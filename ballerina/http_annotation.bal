@@ -87,7 +87,7 @@ public annotation HttpPayload Payload on parameter, return;
 #
 # + respondType - Specifies the type of response
 public type HttpCallerInfo record {|
-    typedesc<ResponseMessage> respondType?;
+    typedesc<ResponseMessage|Error> respondType?;
 |};
 
 # The annotation which is used to configure the type of the response.

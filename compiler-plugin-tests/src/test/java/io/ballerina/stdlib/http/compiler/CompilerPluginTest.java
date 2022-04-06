@@ -270,7 +270,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_10");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 7);
+        Assert.assertEquals(diagnosticResult.errorCount(), 9);
         assertError(diagnosticResult, 0, "incompatible respond method argument type : expected " +
                 "'int' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 1, "incompatible respond method argument type : expected " +
@@ -284,6 +284,10 @@ public class CompilerPluginTest {
                 "'Person' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 6, "incompatible respond method argument type : expected " +
                 "'Person' according to the 'http:CallerInfo' annotation", HTTP_114);
+        assertError(diagnosticResult, 7, "incompatible respond method argument type : expected " +
+                "'Person' according to the 'http:CallerInfo' annotation", HTTP_114);
+        assertError(diagnosticResult, 8, "incompatible respond method argument type : expected " +
+                "'http:Error' according to the 'http:CallerInfo' annotation", HTTP_114);
     }
 
     @Test
