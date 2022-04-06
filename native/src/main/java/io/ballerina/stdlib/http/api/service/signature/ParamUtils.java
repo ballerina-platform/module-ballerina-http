@@ -67,18 +67,19 @@ public class ParamUtils {
     }
 
     public static BArray castParamArray(int targetElementTypeTag, String[] argValueArr) {
-        if (targetElementTypeTag == INT_TAG) {
-            return getBArray(argValueArr, INT_ARR, targetElementTypeTag);
-        } else if (targetElementTypeTag == FLOAT_TAG) {
-            return getBArray(argValueArr, FLOAT_ARR, targetElementTypeTag);
-        } else if (targetElementTypeTag == BOOLEAN_TAG) {
-            return getBArray(argValueArr, BOOLEAN_ARR, targetElementTypeTag);
-        } else if (targetElementTypeTag == DECIMAL_TAG) {
-            return getBArray(argValueArr, DECIMAL_ARR, targetElementTypeTag);
-        } else if (targetElementTypeTag == MAP_TAG) {
-            return getBArray(argValueArr, MAP_ARR, targetElementTypeTag);
-        } else {
-            return StringUtils.fromStringArray(argValueArr);
+        switch (targetElementTypeTag) {
+            case INT_TAG:
+                return getBArray(argValueArr, INT_ARR, targetElementTypeTag);
+            case FLOAT_TAG:
+                return getBArray(argValueArr, FLOAT_ARR, targetElementTypeTag);
+            case BOOLEAN_TAG:
+                return getBArray(argValueArr, BOOLEAN_ARR, targetElementTypeTag);
+            case DECIMAL_TAG:
+                return getBArray(argValueArr, DECIMAL_ARR, targetElementTypeTag);
+            case MAP_TAG:
+                return getBArray(argValueArr, MAP_ARR, targetElementTypeTag);
+            default:
+                return StringUtils.fromStringArray(argValueArr);
         }
     }
 

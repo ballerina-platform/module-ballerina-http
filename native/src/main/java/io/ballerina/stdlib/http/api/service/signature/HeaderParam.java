@@ -19,13 +19,16 @@
 package io.ballerina.stdlib.http.api.service.signature;
 
 import io.ballerina.runtime.api.TypeTags;
-import io.ballerina.runtime.api.types.ArrayType;
+import io.ballerina.runtime.api.types.Field;
 import io.ballerina.runtime.api.types.IntersectionType;
+import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.stdlib.http.api.HttpUtil;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * {@code {@link HeaderParam }} represents a inbound request header parameter details.
@@ -34,13 +37,13 @@ import java.util.List;
  */
 public class HeaderParam {
 
-    private int typeTag;
     private final String token;
     private boolean nilable;
     private int index;
     private Type type;
     private String headerName;
     private boolean readonly;
+    private HeaderRecordParam recordParam;
 
     HeaderParam(String token) {
         this.token = token;
@@ -48,7 +51,6 @@ public class HeaderParam {
 
     public void init(Type type, int index) {
         this.type = type;
-        this.typeTag = type.getTag();
         this.index = index;
         validateHeaderParamType(this.type);
     }
@@ -61,7 +63,11 @@ public class HeaderParam {
                 if (type.getTag() == TypeTags.NULL_TAG) {
                     continue;
                 }
-                validateBasicType(type);
+                if (type.getTag() == TypeTags.RECORD_TYPE_TAG) {
+                    validateHeaderParamType(type);
+                    return;
+                }
+                setType(type);
                 break;
             }
         } else if (paramType instanceof IntersectionType) {
@@ -78,38 +84,39 @@ public class HeaderParam {
                 if (type.getTag() == TypeTags.READONLY_TAG) {
                     continue;
                 }
-                if (type.getTag() == TypeTags.UNION_TAG) {
+                if (type.getTag() == TypeTags.UNION_TAG || type.getTag() == TypeTags.RECORD_TYPE_TAG) {
                     validateHeaderParamType(type);
                     return;
                 }
-                validateBasicType(type);
+                setType(type);
                 break;
             }
+        } else if (paramType instanceof RecordType) {
+            this.type = paramType;
+            Map<String, Field> recordFields = ((RecordType) paramType).getFields();
+            List<String> keys = new ArrayList<>();
+            HeaderRecordParam.FieldParam[] fields = new HeaderRecordParam.FieldParam[recordFields.size()];
+            int i = 0;
+            for (Map.Entry<String, Field> field : recordFields.entrySet()) {
+                keys.add(field.getKey());
+                fields[i++] = new HeaderRecordParam.FieldParam(field.getValue().getFieldType());
+            }
+            this.recordParam = new HeaderRecordParam(this.token, this.type, keys, fields);
         } else {
-            validateBasicType(paramType);
+            setType(paramType);
         }
     }
 
-    // Note the validation is only done for the non-object header params. i.e for the string, string[] types
-    private void validateBasicType(Type type) {
-        if (isValidBasicType(type.getTag()) || (type.getTag() == TypeTags.ARRAY_TAG && isValidBasicType(
-                ((ArrayType) type).getElementType().getTag()))) {
-            // Assign element type as the type of header param
-            this.type = type;
-            this.typeTag = type.getTag();
-        }
+    public Type getType() {
+        return this.type;
     }
 
-    private boolean isValidBasicType(int typeTag) {
-        return typeTag == TypeTags.STRING_TAG;
+    private void setType(Type type) {
+        this.type = type;
     }
 
     public String getToken() {
         return this.token;
-    }
-
-    public int getTypeTag() {
-        return this.typeTag;
     }
 
     public boolean isNilable() {
@@ -130,5 +137,13 @@ public class HeaderParam {
 
     public boolean isReadonly() {
         return this.readonly;
+    }
+
+    public HeaderRecordParam getRecordParam() {
+        return this.recordParam;
+    }
+
+    public boolean isRecord() {
+        return getRecordParam() != null;
     }
 }
