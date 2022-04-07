@@ -132,7 +132,6 @@ import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_PRO
 import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_SESSION_TIMEOUT;
 import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_TRUSTSTORE_FILE_PATH;
 import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_TRUSTSTORE_PASSWORD;
-import static io.ballerina.stdlib.http.api.HttpConstants.SERVICE_ENDPOINT_CONFIG;
 import static io.ballerina.stdlib.http.transport.contract.Constants.ENCODING_GZIP;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_1_1_VERSION;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_2_0_VERSION;
@@ -1507,10 +1506,9 @@ public class HttpUtil {
     }
 
     public static void populateInterceptorServicesFromListener(BObject serviceEndpoint, Runtime runtime) {
-        BMap endpointConfig = (BMap) serviceEndpoint.getNativeData(SERVICE_ENDPOINT_CONFIG);
         Object[] interceptors = {};
         List<BObject> interceptorServices = new ArrayList<>();
-        BArray interceptorsArray = endpointConfig.getArrayValue(HttpConstants.ANN_INTERCEPTORS);
+        BArray interceptorsArray = serviceEndpoint.getArrayValue(HttpConstants.ENDPOINT_CONFIG_INTERCEPTORS);
 
         if (interceptorsArray != null) {
             interceptors = interceptorsArray.getValues();

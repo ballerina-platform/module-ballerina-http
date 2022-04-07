@@ -56,12 +56,15 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
     protected final List<HTTPInterceptorServicesRegistry> httpInterceptorServicesRegistries;
 
     protected final BMap endpointConfig;
+    protected final Object listenerLevelInterceptors;
 
     public BallerinaHTTPConnectorListener(HTTPServicesRegistry httpServicesRegistry,
-                        List<HTTPInterceptorServicesRegistry> httpInterceptorServicesRegistries, BMap endpointConfig) {
+                                          List<HTTPInterceptorServicesRegistry> httpInterceptorServicesRegistries,
+                                          BMap endpointConfig, Object interceptors) {
         this.httpInterceptorServicesRegistries = httpInterceptorServicesRegistries;
         this.httpServicesRegistry = httpServicesRegistry;
         this.endpointConfig = endpointConfig;
+        this.listenerLevelInterceptors = interceptors;
     }
 
     @Override
@@ -291,7 +294,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
 
     private void setTargetServiceToInboundMsg(HttpCarbonMessage inboundMessage) {
         inboundMessage.setProperty(INTERCEPTOR_SERVICES_REGISTRIES, httpInterceptorServicesRegistries);
-        inboundMessage.setProperty(INTERCEPTORS, endpointConfig.getArrayValue(HttpConstants.ANN_INTERCEPTORS));
+        inboundMessage.setProperty(INTERCEPTORS, listenerLevelInterceptors);
         try {
             HttpService targetService = HttpDispatcher.findService(httpServicesRegistry, inboundMessage, true);
             inboundMessage.setProperty(HttpConstants.TARGET_SERVICE, targetService.getBalService());
