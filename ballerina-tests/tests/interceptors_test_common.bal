@@ -95,6 +95,15 @@ service class RequestInterceptorCallerRespond {
     }
 }
 
+service class RequestInterceptorCallerRespondError {
+    *http:RequestInterceptor;
+
+    resource function 'default [string... path](http:RequestContext ctx, http:Caller caller) returns error? {
+        ctx.set("last-interceptor", "request-interceptor-caller-respond-error");
+        check caller->respond(error("Request interceptor returns an error"));
+    }
+}
+
 service class RequestInterceptorCallerRespondContinue {
     *http:RequestInterceptor;
 
@@ -422,6 +431,15 @@ service class ResponseInterceptorCallerRespond {
         res.setHeader("response-interceptor-caller-respond", "true");
         res.setTextPayload("Response from caller inside response interceptor");
         check caller->respond(res);
+    }
+}
+
+service class ResponseInterceptorCallerRespondError {
+    *http:ResponseInterceptor;
+
+    remote function interceptResponse(http:RequestContext ctx, http:Caller caller) returns error? {
+        ctx.set("last-interceptor", "response-interceptor-caller-respond-error");
+        check caller->respond(error("Response interceptor returns an error"));
     }
 }
 

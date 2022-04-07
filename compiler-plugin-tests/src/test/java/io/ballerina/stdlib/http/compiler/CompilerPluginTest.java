@@ -38,18 +38,21 @@ import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP
 import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_107;
 import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_108;
 import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_109;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_110;
 import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_111;
 import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_112;
 import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_113;
 import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_114;
 import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_115;
 import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_118;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_125;
 import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_127;
 import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_129;
 import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_132;
 import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_134;
 import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_135;
 import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_140;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_144;
 
 /**
  * This class includes tests for Ballerina Http compiler plugin.
@@ -77,7 +80,9 @@ public class CompilerPluginTest {
     private void assertError(DiagnosticResult diagnosticResult, int index, String message, String code) {
         Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[index];
         Assert.assertEquals(diagnostic.diagnosticInfo().messageFormat(), message);
-        Assert.assertEquals(diagnostic.diagnosticInfo().code(), code);
+        if (code != null) {
+            Assert.assertEquals(diagnostic.diagnosticInfo().code(), code);
+        }
     }
 
     private void assertTrue(DiagnosticResult diagnosticResult, int index, String message, String code) {
@@ -140,7 +145,7 @@ public class CompilerPluginTest {
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.errorCount(), 11);
         assertError(diagnosticResult, 0, "invalid multiple resource parameter annotations for 'abc': expected one of " +
-                "the following types: 'http:Payload', 'http:CallerInfo', 'http:Headers'", HTTP_108);
+                "the following types: 'http:Payload', 'http:CallerInfo', 'http:Header'", HTTP_108);
         assertError(diagnosticResult, 1, "invalid usage of payload annotation for a non entity body " +
                 "resource : 'get'. Use an accessor that supports entity body", HTTP_129);
         assertError(diagnosticResult, 2, "invalid usage of payload annotation for a non entity body " +
@@ -163,23 +168,40 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_5");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 7);
-        assertError(diagnosticResult, 0, "invalid type of header param 'abc': expected 'string' or 'string[]'",
-                    HTTP_109);
-        assertError(diagnosticResult, 1, "invalid multiple resource parameter annotations for 'abc': expected one of " +
-                   "the following types: 'http:Payload', 'http:CallerInfo', 'http:Headers'", HTTP_108);
-        assertError(diagnosticResult, 2, "invalid type of header param 'abc': expected 'string' or 'string[]'",
-                    HTTP_109);
-        assertError(diagnosticResult, 3, "invalid union type of header param 'abc': a string or an array " +
-                        "of a string can only be union with '()'. Eg: string|() or string[]|()",
-                        CompilerPluginTestConstants.HTTP_110);
-        assertError(diagnosticResult, 4, "invalid type of header param 'abc': expected 'string' or 'string[]'",
-                    HTTP_109);
-        assertError(diagnosticResult, 5, "invalid union type of header param 'abc': a string or an array" +
-                " of a string can only be union with '()'. Eg: string|() or string[]|()",
-                CompilerPluginTestConstants.HTTP_110);
-        assertError(diagnosticResult, 6, "invalid type of header param 'abc': expected 'string' or 'string[]'",
-                    HTTP_109);
+        Assert.assertEquals(diagnosticResult.errorCount(), 12);
+        assertError(diagnosticResult, 0, "invalid union type of header param 'xRate': one of the 'string','int'," +
+                "'float','decimal','boolean' types, an array of the above types or a record which consists of the" +
+                " above types can only be union with '()'. Eg: string|() or string[]|()", HTTP_110);
+        assertError(diagnosticResult, 1, "invalid type of header param 'abc': One of the following types is " +
+                "expected: 'string','int','float','decimal','boolean', an array of the above types or a " +
+                "record which consists of the above types", HTTP_109);
+        assertError(diagnosticResult, 2, "invalid union type of header param 'abc': one of the 'string','int'," +
+                "'float','decimal','boolean' types, an array of the above types or a record which consists of " +
+                "the above types can only be union with '()'. Eg: string|() or string[]|()", HTTP_110);
+        assertError(diagnosticResult, 3, "invalid union type of header param 'abc': one of the 'string','int'," +
+                "'float','decimal','boolean' types, an array of the above types or a record which consists of the " +
+                "above types can only be union with '()'. Eg: string|() or string[]|()", HTTP_110);
+        assertError(diagnosticResult, 4, "rest fields are not allowed for header binding records. Use " +
+                "'http:Headers' type to access all headers", HTTP_144);
+        assertError(diagnosticResult, 5, "rest fields are not allowed for header binding records. Use " +
+                "'http:Headers' type to access all headers", HTTP_144);
+        assertError(diagnosticResult, 6, "invalid type of header param 'abc': One of the following types is " +
+                "expected: 'string','int','float','decimal','boolean', an array of the above types or a record " +
+                "which consists of the above types", HTTP_109);
+        assertError(diagnosticResult, 7, "invalid multiple resource parameter annotations for 'abc': expected one of " +
+                "the following types: 'http:Payload', 'http:CallerInfo', 'http:Header'", HTTP_108);
+        assertError(diagnosticResult, 8, "invalid type of header param 'abc': One of the following types is " +
+                "expected: 'string','int','float','decimal','boolean', an array of the above types or a record " +
+                "which consists of the above types", HTTP_109);
+        assertError(diagnosticResult, 9, "invalid union type of header param 'abc': one of the 'string','int'," +
+                "'float','decimal','boolean' types, an array of the above types or a record which consists of the " +
+                "above types can only be union with '()'. Eg: string|() or string[]|()", HTTP_110);
+        assertError(diagnosticResult, 10, "invalid type of header param 'abc': One of the following types is " +
+                "expected: 'string','int','float','decimal','boolean', an array of the above types or a record " +
+                "which consists of the above types", HTTP_109);
+        assertError(diagnosticResult, 11, "invalid union type of header param 'abc': one of the 'string','int'," +
+                "'float','decimal','boolean' types, an array of the above types or a record which consists of the " +
+                "above types can only be union with '()'. Eg: string|() or string[]|()", HTTP_110);
     }
 
     @Test
@@ -194,7 +216,7 @@ public class CompilerPluginTest {
         assertError(diagnosticResult, 1, "invalid type of caller param 'abc': expected 'http:Caller'",
                 HTTP_111);
         assertError(diagnosticResult, 2, "invalid multiple resource parameter annotations for 'abc': expected one of " +
-                "the following types: 'http:Payload', 'http:CallerInfo', 'http:Headers'", HTTP_108);
+                "the following types: 'http:Payload', 'http:CallerInfo', 'http:Header'", HTTP_108);
         assertTrue(diagnosticResult, 3, expectedMsg, HTTP_118);
         assertError(diagnosticResult, 4, "invalid type of caller param 'abc': expected 'http:Caller'",
                 HTTP_111);
@@ -270,7 +292,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_10");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 7);
+        Assert.assertEquals(diagnosticResult.errorCount(), 9);
         assertError(diagnosticResult, 0, "incompatible respond method argument type : expected " +
                 "'int' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 1, "incompatible respond method argument type : expected " +
@@ -284,6 +306,22 @@ public class CompilerPluginTest {
                 "'Person' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 6, "incompatible respond method argument type : expected " +
                 "'Person' according to the 'http:CallerInfo' annotation", HTTP_114);
+        assertError(diagnosticResult, 7, "incompatible respond method argument type : expected " +
+                "'Person' according to the 'http:CallerInfo' annotation", HTTP_114);
+        assertError(diagnosticResult, 8, "incompatible respond method argument type : expected " +
+                "'http:Error' according to the 'http:CallerInfo' annotation", HTTP_114);
+    }
+
+
+    @Test
+    public void testCallerInfoAnnotationWithError() {
+        Package currentPackage = loadPackage("sample_package_24");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.errorCount(), 5);
+        // These are the errors returned from language compiler, so skipped the codes
+        assertError(diagnosticResult, 0, "incompatible.types", null);
+        assertError(diagnosticResult, 1, "incompatible.types", null);
     }
 
     @Test
@@ -436,7 +474,7 @@ public class CompilerPluginTest {
         assertError(diagnosticResult, 6, "invalid multiple interceptor resource functions",
                 CompilerPluginTestConstants.HTTP_124);
         assertError(diagnosticResult, 7, "invalid annotation 'http:ResourceConfig': annotations" +
-                " are not supported for interceptor resource functions", CompilerPluginTestConstants.HTTP_125);
+                " are not supported for interceptor resource functions", HTTP_125);
         assertError(diagnosticResult, 8, "invalid interceptor resource path: expected default resource" +
                 " path: '[string... path]', but found '[string path]'", HTTP_127);
         assertError(diagnosticResult, 9, "resource function should have the mandatory parameter 'error'",
@@ -532,9 +570,9 @@ public class CompilerPluginTest {
         assertTrue(diagnosticResult, 3, "'readonly' intersection type is not allowed for parameter 'entity' of the " +
                 "type 'ballerina/mime:", HTTP_134);
         assertTrue(diagnosticResult, 3, ":Entity & readonly'", HTTP_134);
-        assertTrue(diagnosticResult, 4, "invalid type of header param 'host': expected 'string' or 'string[]'",
-                HTTP_109);
-        assertTrue(diagnosticResult, 5, "invalid type of caller param 'host': expected 'http:Caller'",
-                HTTP_111);
+        assertTrue(diagnosticResult, 4, "invalid type of header param 'host': One of the following types is " +
+                "expected: 'string','int','float','decimal','boolean', an array of the above types or a record " +
+                "which consists of the above types", HTTP_109);
+        assertTrue(diagnosticResult, 5, "invalid type of caller param 'host': expected 'http:Caller'", HTTP_111);
     }
 }

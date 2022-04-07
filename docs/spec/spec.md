@@ -396,8 +396,12 @@ Based on the payload types respective header value is added as the `Content-type
 | int, float, decimal, boolean                                          | application/json         |
 | map\<json\>, table<map\<json\>>, map\<json\>[], table<map\<json\>>)[] | application/json         |
 
+In addition to the above types, caller `respond()` method can accept `error` type. In this case, an error response is 
+returned to the client with the error message.
+
 The HTTP compiler extension checks the argument of the `respond()` method if the matching payload type is passed as
-denoted in the CallerInfo annotation
+denoted in the CallerInfo annotation. At the moment, in terms of responding error, CallerInfo annotation can only support 
+`http:Error` type.
 
 ```ballerina
 resource function post foo(@http:CallerInfo {respondType:Person}  http:Caller hc) {
@@ -550,15 +554,22 @@ binding parameter]
 ##### 2.3.4.5. Header parameter
 
 The header parameter is to access the inbound request headers The header param is defined with `@http:Header` annotation
-The type of header param can be either string or string[]. When multiple header values are present for the given header,
-the first header value is returned when the param type is `string`. To retrieve all the values, use `string[]` type.
-This parameter is not compulsory and not ordered. 
+The type of header param can be defined as follows;
+
+```ballerina
+type BasicType string|int|float|decimal|boolean;
+public type HeaderParamType ()|BasicType|BasicType[]|record {| BasicType...; |};
+```
+
+When multiple header values are present for the given header, the first header value is returned when the param 
+type is `string` or any of the basic types. To retrieve all the values, use `string[]` type or any array of the
+basic types. This parameter is not compulsory and not ordered. 
 
 The header param name is considered as the header name during the value retrieval. However, the header annotation name 
 field can be used to define the header name whenever user needs some different variable name for the header. 
 
-User cannot denote the type as a union of both `string` and `string[]`, that way the resource cannot infer a single 
-type to proceed. Hence, returns a compiler error.
+User cannot denote the type as a union of pure type, array type, or record type together, that way the resource 
+cannot infer a single type to proceed. Hence, returns a compiler error.
 
 In the absence of a header when the param is defined in the resource signature, listener returns 400 BAD REQUEST unless
 the type is nilable. 
@@ -572,6 +583,16 @@ resource function post hello1(@http:Header string referer) {
 //Multiple header value extraction
 resource function post hello2(@http:Header {name: "Accept"} string[] accept) {
     
+}
+
+public type RateLimitHeaders record {|
+    string x\-rate\-limit\-id;
+    int x\-rate\-limit\-remaining;
+    string[] x\-rate\-limit\-types;
+|};
+
+//Populate selected headers to a record
+resource function get hello3(@http:Header RateLimitHeaders rateLimitHeaders) {
 }
 ```
 
