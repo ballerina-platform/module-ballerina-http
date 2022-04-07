@@ -79,7 +79,7 @@ public class Http3BasicTestCase {
     }
 
     @Test
-    public void testHttp2WithPriorKnowledge() {
+    public void Http3BasicTestCase() {
 
         //tested using an external http3 client
         try {
