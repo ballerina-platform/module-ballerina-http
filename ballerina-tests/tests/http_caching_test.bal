@@ -27,10 +27,10 @@ int cachingProxyHitcount = 0;
 
 service /cache on cachingListener1 {
 
-    resource function get .(http:Caller caller, http:Request req) {
+    resource function get .(http:Caller caller, http:Request req) returns error? {
         http:Response|error response = cachingEP->forward("/cachingBackend", req);
 
-        if (response is http:Response) {
+        if response is http:Response {
             lock {
                 cachingProxyHitcount += 1;
             }
@@ -39,18 +39,18 @@ service /cache on cachingListener1 {
                 value = cachingProxyHitcount.toString();
             }
             response.setHeader("x-proxy-hit-count", value);
-            checkpanic caller->respond( response);
+            check caller->respond( response);
         } else {
             http:Response res = new;
             res.statusCode = 500;
             res.setPayload( response.message());
-            checkpanic caller->respond(res);
+            check caller->respond(res);
         }
     }
 
     resource function get checkReqCC(http:Request req) returns json {
         http:RequestCacheControl? reqCC = req.cacheControl;
-        if (reqCC is http:RequestCacheControl) {
+        if reqCC is http:RequestCacheControl {
             json value = { noCache : reqCC.noCache, noStore : reqCC.noStore, noTransform : reqCC.noTransform,
                 onlyIfCached : reqCC.onlyIfCached, maxAge : reqCC.maxAge, maxStale : reqCC.maxStale,
                 minFresh : reqCC.minFresh };
@@ -83,7 +83,7 @@ isolated function getHitCount() returns int {
 
 service /cachingBackend on cachingListener2 {//new http:Listener(9240) {
 
-    isolated resource function 'default .(http:Caller caller, http:Request req) {
+    isolated resource function 'default .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         http:ResponseCacheControl resCC = new;
         resCC.maxAge = 60;
@@ -98,7 +98,7 @@ service /cachingBackend on cachingListener2 {//new http:Listener(9240) {
 
         res.setPayload(payload);
 
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
@@ -108,24 +108,24 @@ json cachingPayload = {message:"Hello, World!"};
 
 //Test basic caching behaviour
 @test:Config {}
-function testBasicCachingBehaviour() {
+function testBasicCachingBehaviour() returns error? {
     http:Response|error response = cachingTestClient->get("/cache");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(serviceHitCount), "1");
-        assertHeaderValue(checkpanic response.getHeader(proxyHitCount), "1");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check response.getHeader(serviceHitCount), "1");
+        assertHeaderValue(check response.getHeader(proxyHitCount), "1");
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), cachingPayload);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
     response = cachingTestClient->get("/cache");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(serviceHitCount), "1");
-        assertHeaderValue(checkpanic response.getHeader(proxyHitCount), "2");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check response.getHeader(serviceHitCount), "1");
+        assertHeaderValue(check response.getHeader(proxyHitCount), "2");
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), cachingPayload);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -135,11 +135,11 @@ function testBasicCachingBehaviour() {
     runtime:sleep(1);
 
     response = cachingTestClient->get("/cache");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(serviceHitCount), "1");
-        assertHeaderValue(checkpanic response.getHeader(proxyHitCount), "3");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check response.getHeader(serviceHitCount), "1");
+        assertHeaderValue(check response.getHeader(proxyHitCount), "3");
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), cachingPayload);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -179,7 +179,7 @@ function testResponseCacheControlBuildCacheControlDirectives() {
 function testReqCCPopulation() {
     string hValue = "no-cache, no-store, no-transform, only-if-cached, max-age=60, max-stale=120, min-fresh=6";
     json|error response = cachingTestClient->get("/cache/checkReqCC", { "Cache-Control": hValue });
-    if (response is json) {
+    if response is json {
         json expected =
             {noCache:true,noStore:true,noTransform:true,onlyIfCached:true,maxAge:60,maxStale:120,minFresh:6};
         test:assertEquals(response, expected);
@@ -191,9 +191,9 @@ function testReqCCPopulation() {
 @test:Config {}
 function testResCCPopulation() {
     http:Response|error response = cachingTestClient->get("/cache/checkResCC");
-    if (response is http:Response) {
+    if response is http:Response {
         http:ResponseCacheControl? resCC = response.cacheControl;
-        if (resCC is http:ResponseCacheControl) {
+        if resCC is http:ResponseCacheControl {
             test:assertEquals(resCC.mustRevalidate, true);
             test:assertEquals(resCC.noCache, true);
             test:assertEquals(resCC.noStore, true);

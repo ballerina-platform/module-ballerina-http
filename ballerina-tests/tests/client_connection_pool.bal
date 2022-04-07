@@ -20,26 +20,26 @@ import ballerina/http;
 http:PoolConfiguration sharedPoolConfig = {};
 
 @test:Config {}
-function testGlobalPoolConfig() {
-    http:Client httpClient1 = checkpanic new("http://localhost:8080");
-    http:Client httpClient2 = checkpanic new("http://localhost:8080");
-    http:Client httpClient3 = checkpanic new("http://localhost:8081");
+function testGlobalPoolConfig() returns error? {
+    http:Client httpClient1 = check new("http://localhost:8080");
+    http:Client httpClient2 = check new("http://localhost:8080");
+    http:Client httpClient3 = check new("http://localhost:8081");
     http:Client[] clients = [httpClient1, httpClient2, httpClient3];
     test:assertEquals(clients.length(), 3);
 }
 
 @test:Config {}
-function testSharedConfig() {
-    http:Client httpClient1 = checkpanic new("http://localhost:8080", { poolConfig: sharedPoolConfig });
-    http:Client httpClient2 = checkpanic new("http://localhost:8080", { poolConfig: sharedPoolConfig });
+function testSharedConfig() returns error? {
+    http:Client httpClient1 = check new("http://localhost:8080", { poolConfig: sharedPoolConfig });
+    http:Client httpClient2 = check new("http://localhost:8080", { poolConfig: sharedPoolConfig });
     http:Client[] clients = [httpClient1, httpClient2];
     test:assertEquals(clients.length(), 2);
 }
 
 @test:Config {}
-function testPoolPerClient() {
-    http:Client httpClient1 = checkpanic new("http://localhost:8080", { poolConfig: { maxActiveConnections: 50 } });
-    http:Client httpClient2 = checkpanic new("http://localhost:8080", { poolConfig: { maxActiveConnections: 25 } });
+function testPoolPerClient() returns error? {
+    http:Client httpClient1 = check new("http://localhost:8080", { poolConfig: { maxActiveConnections: 50 } });
+    http:Client httpClient2 = check new("http://localhost:8080", { poolConfig: { maxActiveConnections: 25 } });
     http:Client[] clients = [httpClient1, httpClient2];
     test:assertEquals(clients.length(), 2);
 }

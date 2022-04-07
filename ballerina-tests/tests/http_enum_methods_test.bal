@@ -54,7 +54,7 @@ service / on new http:Listener(httpEnumMethodsTestPort) {
 @test:Config{}
 public function testHttpEnumMethods() {
     http:Response|error response = clientEPTest->execute(http:GET, "/test", "testMsg");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200);
         test:assertEquals(response.getTextPayload(), "GetTest");
     } else {
@@ -62,7 +62,7 @@ public function testHttpEnumMethods() {
     }
 
     response = clientEPTest->execute(http:POST, "/test", "testMsg");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200);
         test:assertEquals(response.getTextPayload(), "PostTest");
     } else {
@@ -70,7 +70,7 @@ public function testHttpEnumMethods() {
     }
 
     response = clientEPTest->execute(http:PUT, "/test", "testMsg");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200);
         test:assertEquals(response.getTextPayload(), "PutTest");
     } else {
@@ -78,7 +78,7 @@ public function testHttpEnumMethods() {
     }
 
     response = clientEPTest->execute(http:PATCH, "/test", "testMsg");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200);
         test:assertEquals(response.getTextPayload(), "PatchTest");
     } else {
@@ -86,7 +86,7 @@ public function testHttpEnumMethods() {
     }
 
     response = clientEPTest->execute(http:DELETE, "/test", "testMsg");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200);
         test:assertEquals(response.getTextPayload(), "DeleteTest");
     } else {
@@ -94,14 +94,14 @@ public function testHttpEnumMethods() {
     }
 
     response = clientEPTest->execute(http:HEAD, "/test", "testMsg");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200);
     } else {
         test:assertFail("Found unexpected output");
     }
 
     response = clientEPTest->execute(http:OPTIONS, "/test", "testMsg");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200);
         test:assertEquals(response.getTextPayload(), "OptionsTest");
     } else {

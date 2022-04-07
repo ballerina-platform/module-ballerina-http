@@ -49,6 +49,18 @@ isolated function testUrlContentWithPost() returns error? {
 @test:Config {
     groups: ["urlEncodedContent"]
 }
+isolated function testUrlContentInline() returns error? {
+    string response = check clientUrlEncodedTestClient->post("",
+    {
+        "key1": "value1",
+        "key2": "value2"
+    }, mediaType = mime:APPLICATION_FORM_URLENCODED);
+    test:assertEquals(response, expectedResponse, msg = "Found unexpected output");
+}
+
+@test:Config {
+    groups: ["urlEncodedContent"]
+}
 isolated function testUrlContentWithPut() returns error? {
     string response = check clientUrlEncodedTestClient->put("", payload, mediaType = mime:APPLICATION_FORM_URLENCODED);
     test:assertEquals(response, expectedResponse, msg = "Found unexpected output");

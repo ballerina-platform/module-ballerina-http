@@ -45,75 +45,75 @@ const int SC_OK = 200;
 const int SC_INTERNAL_SERVER_ERROR = 500;
 const int SC_SERVICE_UNAVAILABLE = 503;
 
-function invokeApiAndVerifyResponse(http:Client testClient, string path, DataFeed dataFeed) {
+function invokeApiAndVerifyResponse(http:Client testClient, string path, DataFeed dataFeed) returns error? {
     http:Response|error response = testClient->post(path, requestPayload);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, dataFeed.responseCode, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTrueTextPayload(response.getTextPayload(), dataFeed.message);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
-function invokeApiAndVerifyResponseWithHttpGet(http:Client testClient, string path, DataFeed dataFeed) {
+function invokeApiAndVerifyResponseWithHttpGet(http:Client testClient, string path, DataFeed dataFeed) returns error? {
     http:Response|error response = testClient->get(path);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, dataFeed.responseCode, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTrueTextPayload(response.getTextPayload(), dataFeed.message);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
-function invokeApiAndVerifyResponseWithHttpHead(http:Client testClient, string path, DataFeed dataFeed) {
+function invokeApiAndVerifyResponseWithHttpHead(http:Client testClient, string path, DataFeed dataFeed) returns error? {
     http:Response|error response = testClient->head(path);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, dataFeed.responseCode, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CB_HEADER), dataFeed.message);
+        assertHeaderValue(check response.getHeader(CB_HEADER), dataFeed.message);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
-function invokeApiAndVerifyResponseWithHttpOptions(http:Client testClient, string path, DataFeed dataFeed) {
+function invokeApiAndVerifyResponseWithHttpOptions(http:Client testClient, string path, DataFeed dataFeed) returns error? {
     http:Response|error response = testClient->options(path);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, dataFeed.responseCode, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(ALLOW_HEADER), dataFeed.message);
+        assertHeaderValue(check response.getHeader(ALLOW_HEADER), dataFeed.message);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
-function invokeApiAndVerifyResponseWithHttpPut(http:Client testClient, string path, DataFeed dataFeed) {
+function invokeApiAndVerifyResponseWithHttpPut(http:Client testClient, string path, DataFeed dataFeed) returns error? {
     http:Response|error response = testClient->put(path, requestPayload);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, dataFeed.responseCode, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTrueTextPayload(response.getTextPayload(), dataFeed.message);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
-function invokeApiAndVerifyResponseWithHttpPatch(http:Client testClient, string path, DataFeed dataFeed) {
+function invokeApiAndVerifyResponseWithHttpPatch(http:Client testClient, string path, DataFeed dataFeed) returns error? {
     http:Response|error response = testClient->patch(path, requestPayload);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, dataFeed.responseCode, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTrueTextPayload(response.getTextPayload(), dataFeed.message);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
-function invokeApiAndVerifyResponseWithHttpDelete(http:Client testClient, string path, DataFeed dataFeed) {
+function invokeApiAndVerifyResponseWithHttpDelete(http:Client testClient, string path, DataFeed dataFeed) returns error? {
     http:Response|error response = testClient->delete(path, requestPayload);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, dataFeed.responseCode, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTrueTextPayload(response.getTextPayload(), dataFeed.message);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

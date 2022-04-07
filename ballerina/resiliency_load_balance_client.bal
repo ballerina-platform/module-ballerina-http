@@ -47,7 +47,7 @@ public client isolated class LoadBalanceClient {
             i += 1;
         }
         var lbRule = loadBalanceClientConfig.lbRule;
-        if (lbRule is LoadBalancerRule) {
+        if lbRule is LoadBalancerRule {
             self.lbRule = lbRule;
         } else {
             LoadBalancerRoundRobinRule loadBalancerRoundRobinRule = new;
@@ -300,7 +300,7 @@ public client isolated class LoadBalanceClient {
     isolated function performLoadBalanceExecuteAction(string path, Request request,
                                              string httpVerb) returns Response|ClientError {
         HttpOperation connectorAction = extractHttpOperation(httpVerb);
-        if (connectorAction != HTTP_NONE) {
+        if connectorAction != HTTP_NONE {
             return self.performLoadBalanceAction(path, request, connectorAction);
         } else {
             return error UnsupportedActionError("Load balancer client not supported for http method: " + httpVerb);
@@ -317,8 +317,8 @@ public client isolated class LoadBalanceClient {
         Request loadBalancerInRequest = request;
         mime:Entity requestEntity = new;
 
-        if (self.failover) {
-            if (isMultipartRequest(loadBalancerInRequest)) {
+        if self.failover {
+            if isMultipartRequest(loadBalancerInRequest) {
                 loadBalancerInRequest = check populateMultipartRequest(loadBalancerInRequest);
             } else {
                 // When performing passthrough scenarios using Load Balance connector,
@@ -341,14 +341,14 @@ public client isolated class LoadBalanceClient {
             lock {
                 loadBalanceClient = self.lbRule.getNextClient(self.loadBalanceClientsArray);
             }
-            if (loadBalanceClient is Client) {
+            if loadBalanceClient is Client {
                 var serviceResponse = invokeEndpoint(path, request, requestAction, loadBalanceClient.httpClient);
-                if (serviceResponse is Response) {
+                if serviceResponse is Response {
                     return serviceResponse;
-                } else if (serviceResponse is HttpFuture) {
+                } else if serviceResponse is HttpFuture {
                     return getInvalidTypeError();
-                } else if (serviceResponse is ClientError) {
-                    if (self.failover) {
+                } else if serviceResponse is ClientError {
+                    if self.failover {
                         loadBalancerInRequest = check createFailoverRequest(loadBalancerInRequest, requestEntity);
                         loadBalanceActionErrorData.httpActionErr[lbErrorIndex] = serviceResponse;
                         lbErrorIndex += 1;
@@ -371,7 +371,7 @@ public client isolated class LoadBalanceClient {
 isolated function populateGenericLoadBalanceActionError(LoadBalanceActionErrorData loadBalanceActionErrorData)
                                                     returns ClientError {
     error[]? errArray = loadBalanceActionErrorData?.httpActionErr;
-    if (errArray is ()) {
+    if errArray is () {
         panic error("Unexpected nil");
     } else {
         int nErrs = errArray.length();

@@ -17,8 +17,7 @@
 import ballerina/http;
 import ballerina/test;
 
-listener http:Listener typedHeadersTestEP = new(typedHeadersTestPort);
-final http:Client typedHeadersTestClient = check new("http://localhost:" + typedHeadersTestPort.toString());
+final http:Client typedHeadersTestClient = check new("http://localhost:" + generalPort.toString());
 
 type StringHeaders record {|
     string requestId;
@@ -47,7 +46,7 @@ type RequestAccepted record {|
     string body;
 |};
 
-service /test on typedHeadersTestEP {
+service /typedHeaders on generalListener {
     resource function get stringHeaders() returns RequestAccepted {
         return {
             headers: {
@@ -100,37 +99,37 @@ service /test on typedHeadersTestEP {
 
 @test:Config {}
 public function testStringTypedHeaders() returns error? {
-    http:Response resp = check typedHeadersTestClient->get("/test/stringHeaders");
+    http:Response resp = check typedHeadersTestClient->get("/typedHeaders/stringHeaders");
     test:assertEquals(resp.statusCode, 202, msg = "Found unexpected output");
-    test:assertEquals(checkpanic resp.getHeader("requestId"), "123");
-    test:assertEquals(checkpanic resp.getHeaders("requestTypes"), ["HTTP/GET"]);
+    test:assertEquals(check resp.getHeader("requestId"), "123");
+    test:assertEquals(check resp.getHeaders("requestTypes"), ["HTTP/GET"]);
     assertTextPayload(resp.getTextPayload(), "Request is accepted by the server");
 }
 
 @test:Config {}
 public function testIntTypedHeaders() returns error? {
-    http:Response resp = check typedHeadersTestClient->get("/test/intHeaders");
+    http:Response resp = check typedHeadersTestClient->get("/typedHeaders/intHeaders");
     test:assertEquals(resp.statusCode, 202, msg = "Found unexpected output");
-    test:assertEquals(checkpanic resp.getHeader("requestId"), "123");
-    test:assertEquals(checkpanic resp.getHeaders("requestTypes"), [ "1", "2", "3" ]);
+    test:assertEquals(check resp.getHeader("requestId"), "123");
+    test:assertEquals(check resp.getHeaders("requestTypes"), [ "1", "2", "3" ]);
     assertTextPayload(resp.getTextPayload(), "Request is accepted by the server");
 }
 
 @test:Config {}
 public function testBooleanTypedHeaders() returns error? {
-    http:Response resp = check typedHeadersTestClient->get("/test/booleanHeaders");
+    http:Response resp = check typedHeadersTestClient->get("/typedHeaders/booleanHeaders");
     test:assertEquals(resp.statusCode, 202, msg = "Found unexpected output");
-    test:assertEquals(checkpanic resp.getHeader("isSuccess"), "true");
-    test:assertEquals(checkpanic resp.getHeaders("requestFlow"), [ "true", "false", "true", "true" ]);
+    test:assertEquals(check resp.getHeader("isSuccess"), "true");
+    test:assertEquals(check resp.getHeaders("requestFlow"), [ "true", "false", "true", "true" ]);
     assertTextPayload(resp.getTextPayload(), "Request is accepted by the server");
 }
 
 @test:Config {}
 public function testAdvancedHeaderTypes() returns error? {
-    http:Response resp = check typedHeadersTestClient->get("/test/advancedHeaders");
+    http:Response resp = check typedHeadersTestClient->get("/typedHeaders/advancedHeaders");
     test:assertEquals(resp.statusCode, 202, msg = "Found unexpected output");
-    test:assertEquals(checkpanic resp.getHeader("requestId"), "123");
-    test:assertEquals(checkpanic resp.getHeader("isSuccess"), "true");
-    test:assertEquals(checkpanic resp.getHeaders("requestTypes"), [ "HTTP/GET", "Headers/Advanced" ]);
+    test:assertEquals(check resp.getHeader("requestId"), "123");
+    test:assertEquals(check resp.getHeader("isSuccess"), "true");
+    test:assertEquals(check resp.getHeaders("requestTypes"), [ "HTTP/GET", "Headers/Advanced" ]);
     assertTextPayload(resp.getTextPayload(), "Request is accepted by the server");
 }

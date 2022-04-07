@@ -246,7 +246,7 @@ isolated function sendResponse(Response response) {
     }
     // This panic is added to break the execution of the implementation inside the resource function after there is
     // an authn/authz failure and responded with 401/403 internally.
-    panic error("Already responded by auth desugar.");
+    panic error DesugarAuthError("Already responded by auth-desugar.");
 }
 
 isolated function getAuthorizationHeader() returns string|HeaderNotFoundError = @java:Method {

@@ -17,8 +17,6 @@
 import ballerina/http;
 import ballerina/test;
 
-listener http:Listener ep = new(9099, { httpVersion: "2.0" });
-
 //Backend pointed by these clients should be down.
 final http:Client priorOn = check new("http://localhost:14555", { httpVersion: "2.0", http2Settings: {
                 http2PriorKnowledge: true }, poolConfig: {} });
@@ -26,19 +24,18 @@ final http:Client priorOn = check new("http://localhost:14555", { httpVersion: "
 final http:Client priorOff = check new("http://localhost:14555", { httpVersion: "2.0", http2Settings: {
                 http2PriorKnowledge: false }, poolConfig: {} });
 
-service /general on ep {
+service /general on generalHTTP2Listener {
 
-    resource function get serverDown(http:Caller caller, http:Request req) {
-        http:Request serviceReq = new;
+    resource function get serverDown(http:Caller caller, http:Request req) returns error? {
         http:Response|error result1 = priorOn->get("/bogusResource");
         http:Response|error result2 = priorOff->get("/bogusResource");
         string response = handleResponse(result1) + "--" + handleResponse(result2);
-        checkpanic caller->respond(response);
+        check caller->respond(response);
     }
 }
 
 isolated function handleResponse(http:Response|error result) returns string {
-    if (result is http:Response) {
+    if result is http:Response {
         return "Call succeeded";
     } else {
         return "Call to backend failed due to:" + result.message();
@@ -46,10 +43,10 @@ isolated function handleResponse(http:Response|error result) returns string {
 }
 
 @test:Config {}
-public function testServerDown() {
-    http:Client clientEP = checkpanic new("http://localhost:9099");
+public function testServerDown() returns error? {
+    http:Client clientEP = check new("http://localhost:9100");
     http:Response|error resp = clientEP->get("/general/serverDown");
-    if (resp is http:Response) {
+    if resp is http:Response {
         assertTextPayload(resp.getTextPayload(), "Call to backend failed due to:Something wrong with the connection--Call to backend " +
                                     "failed due to:Something wrong with the connection");
     } else {

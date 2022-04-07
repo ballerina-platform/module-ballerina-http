@@ -370,10 +370,12 @@ public class HttpUtil {
         HttpUtil.addCorsHeaders(inboundRequestMsg, outboundResponseMsg);
         HttpUtil.enrichOutboundMessage(outboundResponseMsg, outboundResponseObj);
         Service httpService = (Service) connectionObj.getNativeData(HttpConstants.HTTP_SERVICE);
-        HttpUtil.setCompressionHeaders(httpService.getCompressionConfig(), inboundRequestMsg, outboundResponseMsg);
-        HttpUtil.setChunkingHeader(httpService.getChunkingConfig(), outboundResponseMsg);
-        if (httpService.getMediaTypeSubtypePrefix() != null) {
-            HttpUtil.setMediaTypeSubtypePrefix(httpService.getMediaTypeSubtypePrefix(), outboundResponseMsg);
+        if (httpService != null) {
+            HttpUtil.setCompressionHeaders(httpService.getCompressionConfig(), inboundRequestMsg, outboundResponseMsg);
+            HttpUtil.setChunkingHeader(httpService.getChunkingConfig(), outboundResponseMsg);
+            if (httpService.getMediaTypeSubtypePrefix() != null) {
+                HttpUtil.setMediaTypeSubtypePrefix(httpService.getMediaTypeSubtypePrefix(), outboundResponseMsg);
+            }
         }
     }
 
@@ -456,7 +458,7 @@ public class HttpUtil {
         PipeliningHandler.sendPipelinedResponse(requestMessage, createErrorMessage(errorMsg, statusCode));
     }
 
-    static void handleFailure(HttpCarbonMessage requestMessage, BError error, Boolean printStackTrace) {
+    public static void handleFailure(HttpCarbonMessage requestMessage, BError error, Boolean printStackTrace) {
         String errorMsg = getErrorMessage(error);
         int statusCode = getStatusCode(requestMessage, errorMsg);
         if (printStackTrace) {
@@ -481,6 +483,13 @@ public class HttpUtil {
             return HttpResponseStatus.INTERNAL_SERVER_ERROR.code();
         }
         return carbonStatusCode;
+    }
+
+    public static BError createError(Exception ex) {
+        if (ex.getMessage() != null) {
+            return ErrorCreator.createError(ex);
+        }
+        return ErrorCreator.createError(StringUtils.fromString(""));
     }
 
     public static HttpCarbonMessage createErrorMessage(String payload, int statusCode) {
@@ -1524,8 +1533,7 @@ public class HttpUtil {
             BObject interceptorService = interceptorServices.get(i);
             HTTPInterceptorServicesRegistry servicesRegistry = httpInterceptorServicesRegistries.get(i);
             servicesRegistry.setServicesType(HttpUtil.getInterceptorServiceType(interceptorService));
-            servicesRegistry.registerInterceptorService(runtime, interceptorService, HttpConstants.DEFAULT_BASE_PATH,
-                                                        true);
+            servicesRegistry.registerInterceptorService(interceptorService, HttpConstants.DEFAULT_BASE_PATH, true);
             servicesRegistry.setRuntime(runtime);
         }
     }
@@ -1784,11 +1792,17 @@ public class HttpUtil {
         List<TypeId> typeIdList = objectType.getTypeIdSet().getIds();
         for (TypeId typeId : typeIdList) {
             switch (typeId.getName()) {
-                case HttpConstants.HTTP_REQUEST_INTERCEPTOR:
-                    interceptorServiceType = HttpConstants.HTTP_REQUEST_INTERCEPTOR;
+                case HttpConstants.REQUEST_INTERCEPTOR:
+                    interceptorServiceType = HttpConstants.REQUEST_INTERCEPTOR;
                     break;
-                case HttpConstants.HTTP_REQUEST_ERROR_INTERCEPTOR:
-                    interceptorServiceType = HttpConstants.HTTP_REQUEST_ERROR_INTERCEPTOR;
+                case HttpConstants.REQUEST_ERROR_INTERCEPTOR:
+                    interceptorServiceType = HttpConstants.REQUEST_ERROR_INTERCEPTOR;
+                    break;
+                case HttpConstants.RESPONSE_INTERCEPTOR:
+                    interceptorServiceType = HttpConstants.RESPONSE_INTERCEPTOR;
+                    break;
+                case HttpConstants.RESPONSE_ERROR_INTERCEPTOR:
+                    interceptorServiceType = HttpConstants.RESPONSE_ERROR_INTERCEPTOR;
                     break;
                 default:
                     break;

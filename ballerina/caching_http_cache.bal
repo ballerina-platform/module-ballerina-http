@@ -45,7 +45,7 @@ public isolated class HttpCache {
     }
 
     isolated function isAllowedToCache(Response response) returns boolean {
-        if (self.policy == CACHE_CONTROL_AND_VALIDATORS) {
+        if self.policy == CACHE_CONTROL_AND_VALIDATORS {
             return response.hasHeader(CACHE_CONTROL) && (response.hasHeader(ETAG) || response.hasHeader(LAST_MODIFIED));
         }
 
@@ -53,11 +53,11 @@ public isolated class HttpCache {
     }
 
     isolated function put(string key, RequestCacheControl? requestCacheControl, Response inboundResponse) {
-        if (self.isNonCacheableResponse(requestCacheControl, inboundResponse.cacheControl)) {
+        if self.isNonCacheableResponse(requestCacheControl, inboundResponse.cacheControl) {
             return;
         }
 
-        if (self.isCacheableResponse(inboundResponse)) {
+        if self.isCacheableResponse(inboundResponse) {
             // IMPT: The call to getBinaryPayload() builds the payload from the stream. If this is not done, the stream
             // will be read by the client and the response will be after the first cache hit.
             byte[]|error binaryPayload = inboundResponse.getBinaryPayload();
@@ -71,8 +71,8 @@ public isolated class HttpCache {
 
     // TODO: Need to consider https://tools.ietf.org/html/rfc7234#section-3.2 as well here
     private isolated function isNonCacheableResponse(RequestCacheControl? reqCC, ResponseCacheControl? resCC) returns boolean {
-        if (resCC is ResponseCacheControl) {
-            if (resCC.noStore || (self.isShared && resCC.isPrivate)) {
+        if resCC is ResponseCacheControl {
+            if resCC.noStore || (self.isShared && resCC.isPrivate) {
                 return true;
             }
         }
@@ -86,8 +86,8 @@ public isolated class HttpCache {
         ResponseCacheControl? respCC = inboundResp.cacheControl;
         boolean allowedByCacheControl = false;
 
-        if (respCC is ResponseCacheControl) {
-            if (respCC.maxAge >= 0d || (self.isShared && (respCC.sMaxAge >= 0d)) || !respCC.isPrivate) {
+        if respCC is ResponseCacheControl {
+            if respCC.maxAge >= 0d || (self.isShared && (respCC.sMaxAge >= 0d)) || !respCC.isPrivate {
                 allowedByCacheControl = true;
             }
         }
@@ -99,14 +99,13 @@ public isolated class HttpCache {
         return self.cache.hasKey(key);
     }
 
-    isolated function get(string key) returns Response {
-        Response[] cacheEntry = <Response[]> checkpanic self.cache.get(key);
-        return cacheEntry[cacheEntry.length() - 1];
+    isolated function get(string key) returns any|error {
+        return self.cache.get(key);
     }
 
     isolated function getAll(string key) returns Response[]|() {
         var cacheEntry = trap <Response[]> checkpanic self.cache.get(key);
-        if (cacheEntry is Response[]) {
+        if cacheEntry is Response[] {
             return cacheEntry;
         }
         return ();
@@ -118,13 +117,13 @@ public isolated class HttpCache {
         int i = 0;
 
         var responses = self.getAll(key);
-        if (responses is Response[]) {
+        if responses is Response[] {
             cachedResponses = responses;
         }
 
         foreach var cachedResp in cachedResponses {
             string|error headerValue = cachedResp.getHeader(ETAG);
-            if (headerValue is string && headerValue == etag && !etag.startsWith(WEAK_VALIDATOR_TAG)) {
+            if headerValue is string && headerValue == etag && !etag.startsWith(WEAK_VALIDATOR_TAG) {
                 matchingResponses[i] = cachedResp;
                 i = i + 1;
             }
@@ -139,14 +138,14 @@ public isolated class HttpCache {
         int i = 0;
 
         var responses = self.getAll(key);
-        if (responses is Response[]) {
+        if responses is Response[] {
             cachedResponses = responses;
         }
 
         foreach var cachedResp in cachedResponses {
             string|error etagHeader = cachedResp.getHeader(ETAG);
-            if (etagHeader is string) {
-                if (weakValidatorEquals(etag, etagHeader)) {
+            if etagHeader is string {
+                if weakValidatorEquals(etag, etagHeader) {
                     matchingResponses[i] = cachedResp;
                     i = i + 1;
                 }
@@ -159,7 +158,7 @@ public isolated class HttpCache {
 
     isolated function remove(string key) {
         cache:Error? result = self.cache.invalidate(key);
-        if (result is cache:Error) {
+        if result is cache:Error {
             log:printDebug("Failed to remove the key: " + key + " from the HTTP cache.");
         }
     }
@@ -175,13 +174,13 @@ isolated function isCacheableStatusCode(int statusCode) returns boolean {
 }
 
 isolated function addEntry(cache:Cache cache, string key, Response inboundResponse) {
-    if (cache.hasKey(key)) {
+    if cache.hasKey(key) {
         Response[] existingResponses = <Response[]> checkpanic cache.get(key);
         existingResponses.push(inboundResponse);
     } else {
         Response[] cachedResponses = [inboundResponse];
         cache:Error? result = cache.put(key, cachedResponses);
-        if (result is cache:Error) {
+        if result is cache:Error {
             log:printDebug("Failed to add cached response with the key: " + key + " to the HTTP cache.");
         }
     }

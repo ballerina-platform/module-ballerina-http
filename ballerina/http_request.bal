@@ -196,7 +196,7 @@ public class Request {
     #
     # + return - `true` if the client expects a `100-continue` response
     public isolated function expects100Continue() returns boolean {
-        if (self.hasHeader(EXPECT)) {
+        if self.hasHeader(EXPECT) {
             string|error value = self.getHeader(EXPECT);
             return value is string && value == "100-continue";
         }
@@ -217,45 +217,49 @@ public class Request {
     public isolated function getContentType() returns string {
         string contentTypeHeaderValue = "";
         var value = self.getHeader(mime:CONTENT_TYPE);
-        if (value is string) {
+        if value is string {
             contentTypeHeaderValue = value;
         }
         return contentTypeHeaderValue;
     }
 
-    # Extracts `json` payload from the request. If the content type is not JSON, an `http:ClientError` is returned.
+    # Extract `json` payload from the request. For an empty payload, `http:NoContentError` is returned.
+    #
+    # If the content type is not JSON, an `http:ClientError` is returned.
     #
     # + return - The `json` payload or `http:ClientError` in case of errors
     public isolated function getJsonPayload() returns json|ClientError {
         var result = self.getEntityWithBodyAndWithoutHeaders();
-        if (result is error) {
+        if result is error {
             return result;
         } else {
             var payload = externGetJson(result);
-            if (payload is mime:Error) {
-                if (payload.cause() is mime:NoContentError) {
+            if payload is mime:Error {
+                if payload.cause() is mime:NoContentError {
                     return createErrorForNoPayload(<mime:Error> payload);
                 } else {
                     string message = "Error occurred while retrieving the json payload from the request";
                     return error GenericClientError(message, payload);
-               }
+                }
             } else {
                 return payload;
             }
         }
     }
 
-    # Extracts `xml` payload from the request. If the content type is not XML, an `http:ClientError` is returned.
+    # Extracts `xml` payload from the request. For an empty payload, `http:NoContentError` is returned.
+    #
+    # If the content type is not XML, an `http:ClientError` is returned.
     #
     # + return - The `xml` payload or `http:ClientError` in case of errors
     public isolated function getXmlPayload() returns xml|ClientError {
         var result = self.getEntityWithBodyAndWithoutHeaders();
-        if (result is error) {
+        if result is error {
             return result;
         } else {
             var payload = externGetXml(result);
-            if (payload is mime:Error) {
-                if (payload.cause() is mime:NoContentError) {
+            if payload is mime:Error {
+                if payload.cause() is mime:NoContentError {
                     return createErrorForNoPayload(<mime:Error> payload);
                 } else {
                     string message = "Error occurred while retrieving the xml payload from the request";
@@ -267,17 +271,19 @@ public class Request {
         }
     }
 
-    # Extracts `text` payload from the request. If the content type is not of type text, an `http:ClientError` is returned.
+    # Extracts `text` payload from the request. For an empty payload, `http:NoContentError` is returned.
+    #
+    # If the content type is not of type text, an `http:ClientError` is returned.
     #
     # + return - The `text` payload or `http:ClientError` in case of errors
     public isolated function getTextPayload() returns string|ClientError {
         var result = self.getEntityWithBodyAndWithoutHeaders();
-        if (result is error) {
+        if result is error {
             return result;
         } else {
             var payload = externGetText(result);
-            if (payload is mime:Error) {
-                if (payload.cause() is mime:NoContentError) {
+            if payload is mime:Error {
+                if payload.cause() is mime:NoContentError {
                     return createErrorForNoPayload(<mime:Error> payload);
                 } else {
                     string message = "Error occurred while retrieving the text payload from the request";
@@ -295,11 +301,11 @@ public class Request {
     # + return - A byte channel from which the message payload can be read or `http:ClientError` in case of errors
     isolated function getByteChannel() returns io:ReadableByteChannel|ClientError {
         var result = self.getEntityWithBodyAndWithoutHeaders();
-        if (result is error) {
+        if result is error {
             return result;
         } else {
             var payload = externGetByteChannel(result);
-            if (payload is mime:Error) {
+            if payload is mime:Error {
                 string message = "Error occurred while retrieving the byte channel from the request";
                 return error GenericClientError(message, payload);
             } else {
@@ -315,12 +321,12 @@ public class Request {
     # + return - A byte stream from which the message payload can be read or `http:ClientError` in case of errors
     public isolated function getByteStream(int arraySize = 8192) returns stream<byte[], io:Error?>|ClientError {
         var result = self.getEntityWithBodyAndWithoutHeaders();
-        if (result is error) {
+        if result is error {
             return result;
         } else {
             externPopulateInputStream(result);
             var byteStream = result.getByteStream(arraySize);
-            if (byteStream is mime:Error) {
+            if byteStream is mime:Error {
                 string message = "Error occurred while retrieving the byte stream from the request";
                 return error GenericClientError(message, byteStream);
             } else {
@@ -334,11 +340,11 @@ public class Request {
     # + return - The byte[] representation of the message payload or `http:ClientError` in case of errors
     public isolated function getBinaryPayload() returns byte[]|ClientError {
         var result = self.getEntityWithBodyAndWithoutHeaders();
-        if (result is error) {
+        if result is error {
             return result;
         } else {
             var payload = externGetByteArray(result);
-            if (payload is mime:Error) {
+            if payload is mime:Error {
                 string message = "Error occurred while retrieving the binary payload from the request";
                 return error GenericClientError(message, payload);
             } else {
@@ -352,54 +358,33 @@ public class Request {
     # + return - The map of form params or `http:ClientError` in case of errors
     public isolated function getFormParams() returns map<string>|ClientError {
         var mimeEntity = self.getEntityWithBodyAndWithoutHeaders();
-        if (mimeEntity is error) {
+        if mimeEntity is error {
             return mimeEntity;
         } else {
             string message = "Error occurred while retrieving form parameters from the request";
             string|error contentTypeValue = self.getHeader(mime:CONTENT_TYPE);
-            if (contentTypeValue is error) {
+            if contentTypeValue is error {
                 string errMessage = "Content-Type header is not available";
                 mime:HeaderUnavailableError typeError = error mime:HeaderUnavailableError(errMessage);
                 return error GenericClientError(message, typeError);
             }
             string contentTypeHeaderValue = "";
             var mediaType = mime:getMediaType(contentTypeValue);
-            if (mediaType is mime:InvalidContentTypeError) {
+            if mediaType is mime:InvalidContentTypeError {
                 return error GenericClientError(message, mediaType);
             } else {
                 contentTypeHeaderValue = mediaType.primaryType + "/" + mediaType.subType;
             }
-            if (!(strings:equalsIgnoreCaseAscii(mime:APPLICATION_FORM_URLENCODED, contentTypeHeaderValue))) {
+            if !(strings:equalsIgnoreCaseAscii(mime:APPLICATION_FORM_URLENCODED, contentTypeHeaderValue)) {
                 string errorMessage = "Invalid content type : expected 'application/x-www-form-urlencoded'";
                 mime:InvalidContentTypeError typeError = error mime:InvalidContentTypeError(errorMessage);
                 return error GenericClientError(message, typeError);
             }
             var formData = externGetText(mimeEntity);
-            map<string> parameters = {};
-            if (formData is error) {
+            if formData is error {
                 return error GenericClientError(message, formData);
-            } else {
-                if (formData != "") {
-                    formData = check decode(formData);
-                    string[] entries = regex:split(checkpanic formData, "&");
-                    int entryIndex = 0;
-                    while (entryIndex < entries.length()) {
-                        int? index = entries[entryIndex].indexOf("=");
-                        if (index is int && index != -1) {
-                            string name = entries[entryIndex].substring(0, index);
-                            name = name.trim();
-                            int size = entries[entryIndex].length();
-                            string value = entries[entryIndex].substring(index + 1, size);
-                            value = value.trim();
-                            if (value != "") {
-                                parameters[name] = value;
-                            }
-                        }
-                        entryIndex = entryIndex + 1;
-                    }
-                }
             }
-            return parameters;
+            return getFormDataMap(formData);
         }
     }
 
@@ -410,11 +395,11 @@ public class Request {
     #            constructing the body parts from the request
     public isolated function getBodyParts() returns mime:Entity[]|ClientError {
         var result = self.getEntity();
-        if (result is ClientError) {
+        if result is ClientError {
             return result;
         } else {
             var bodyParts = result.getBodyParts();
-            if (bodyParts is mime:Error) {
+            if bodyParts is mime:Error {
                 string message = "Error occurred while retrieving body parts from the request";
                 return error GenericClientError(message, bodyParts);
             } else {
@@ -535,24 +520,24 @@ public class Request {
     # + contentType - Content-type to be used with the payload. This is an optional parameter
     public isolated function setPayload(string|xml|json|byte[]|mime:Entity[]|stream<byte[], io:Error?> payload,
             string? contentType = ()) {
-        if (contentType is string) {
+        if contentType is string {
             error? err = self.setContentType(contentType);
-            if (err is error) {
+            if err is error {
                 log:printDebug(err.message());
             }
         }
 
-        if (payload is string) {
+        if payload is string {
             self.setTextPayload(payload);
-        } else if (payload is xml) {
+        } else if payload is xml {
             self.setXmlPayload(payload);
-        } else if (payload is byte[]) {
+        } else if payload is byte[] {
             self.setBinaryPayload(payload);
-        } else if (payload is json) {
+        } else if payload is json {
             self.setJsonPayload(payload);
-        } else if (payload is stream<byte[], io:Error?>) {
+        } else if payload is stream<byte[], io:Error?> {
             self.setByteStream(payload);
-        } else if (payload is mime:Entity[]) {
+        } else if payload is mime:Entity[] {
             self.setBodyParts(payload);
         } else {
             panic error Error("invalid entity body type." +
@@ -563,7 +548,7 @@ public class Request {
     // For use within the module. Takes the Cache-Control header and parses it to a RequestCacheControl object.
     isolated function parseCacheControlHeader() {
         // If the request doesn't contain a cache-control header, resort to default cache control settings
-        if (!self.hasHeader(CACHE_CONTROL)) {
+        if !self.hasHeader(CACHE_CONTROL) {
             return;
         }
 
@@ -573,21 +558,21 @@ public class Request {
 
         foreach var dir in directives {
             var directive = dir.trim();
-            if (directive == NO_CACHE) {
+            if directive == NO_CACHE {
                 reqCC.noCache = true;
-            } else if (directive == NO_STORE) {
+            } else if directive == NO_STORE {
                 reqCC.noStore = true;
-            } else if (directive == NO_TRANSFORM) {
+            } else if directive == NO_TRANSFORM {
                 reqCC.noTransform = true;
-            } else if (directive == ONLY_IF_CACHED) {
+            } else if directive == ONLY_IF_CACHED {
                 reqCC.onlyIfCached = true;
-            } else if (directive.startsWith(MAX_AGE)) {
+            } else if directive.startsWith(MAX_AGE) {
                 reqCC.maxAge = getDirectiveValue(directive);
-            } else if (directive == MAX_STALE) {
+            } else if directive == MAX_STALE {
                 reqCC.maxStale = MAX_STALE_ANY_AGE;
-            } else if (directive.startsWith(MAX_STALE)) {
+            } else if directive.startsWith(MAX_STALE) {
                 reqCC.maxStale = getDirectiveValue(directive);
-            } else if (directive.startsWith(MIN_FRESH)) {
+            } else if directive.startsWith(MIN_FRESH) {
                 reqCC.minFresh = getDirectiveValue(directive);
             }
             // non-standard directives are ignored
@@ -611,7 +596,7 @@ public class Request {
         Cookie[] sortedCookies = cookiesToAdd.sort(array:ASCENDING, isolated function(Cookie c) returns int {
             var cookiePath = c.path;
             int l = 0;
-            if (cookiePath is string) {
+            if cookiePath is string {
                 l = cookiePath.length();
             }
             return l;
@@ -622,9 +607,9 @@ public class Request {
         lock {
             updateLastAccessedTime(cookiesToAdd);
         }
-        if (cookieheader != "") {
+        if cookieheader != "" {
             cookieheader = cookieheader.substring(0, cookieheader.length() - 2);
-            if (self.hasHeader("Cookie")) {
+            if self.hasHeader("Cookie") {
                 self.setHeader("Cookie", cookieheader);
             } else {
                 self.addHeader("Cookie", cookieheader);
@@ -638,7 +623,7 @@ public class Request {
     public isolated function getCookies() returns Cookie[] {
         Cookie[] cookiesInRequest = [];
         var cookieValue = self.getHeader("Cookie");
-        if (cookieValue is string) {
+        if cookieValue is string {
             cookiesInRequest = parseCookieHeader(cookieValue);
         }
         return cookiesInRequest;
@@ -647,7 +632,7 @@ public class Request {
 
 isolated function decode(string value) returns string|GenericClientError {
     string|error result = url:decode(value, CHARSET_UTF_8);
-    if (result is error) {
+    if result is error {
         return error GenericClientError("form param decoding failure: " + value, result);
     } else {
         return result;
@@ -721,7 +706,7 @@ public type MutualSslHandshake record {|
 #
 # `passed`: Mutual SSL handshake is successful.
 # `failed`: Mutual SSL handshake has failed.
-public type MutualSslStatus PASSED | FAILED | ();
+public type MutualSslStatus PASSED|FAILED|();
 
 # Mutual SSL handshake is successful.
 public const PASSED = "passed";

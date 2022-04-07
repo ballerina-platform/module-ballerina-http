@@ -30,7 +30,7 @@ public isolated class LoadBalancerRoundRobinRule {
     public isolated function getNextClient(Client?[] loadBalanceCallerActionsArray) returns Client|ClientError {
         lock {
             Client httpClient = <Client>loadBalanceCallerActionsArray[self.index];
-            if (self.index == ((loadBalanceCallerActionsArray.length()) - 1)) {
+            if self.index == ((loadBalanceCallerActionsArray.length()) - 1) {
                 httpClient = <Client>loadBalanceCallerActionsArray[self.index];
                 self.index = 0;
             } else {

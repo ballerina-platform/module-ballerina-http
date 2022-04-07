@@ -16,6 +16,9 @@
 
 import ballerina/jballerina.java;
 import ballerina/lang.value as val;
+import ballerina/lang.'string as strings;
+import ballerina/url;
+import ballerina/mime;
 
 # The caller actions for responding to client requests.
 #
@@ -78,21 +81,21 @@ public isolated client class Caller {
     # + locations - An array of URLs to which the caller can redirect to
     # + return - An `http:ListenerError` if failed to send the redirect response or else `()`
     remote isolated function redirect(Response response, RedirectCode code, string[] locations) returns ListenerError? {
-        if (code == REDIRECT_MULTIPLE_CHOICES_300) {
+        if code == REDIRECT_MULTIPLE_CHOICES_300 {
             response.statusCode = STATUS_MULTIPLE_CHOICES;
-        } else if (code == REDIRECT_MOVED_PERMANENTLY_301) {
+        } else if code == REDIRECT_MOVED_PERMANENTLY_301 {
             response.statusCode = STATUS_MOVED_PERMANENTLY;
-        } else if (code == REDIRECT_FOUND_302) {
+        } else if code == REDIRECT_FOUND_302 {
             response.statusCode = STATUS_FOUND;
-        } else if (code == REDIRECT_SEE_OTHER_303) {
+        } else if code == REDIRECT_SEE_OTHER_303 {
             response.statusCode = STATUS_SEE_OTHER;
-        } else if (code == REDIRECT_NOT_MODIFIED_304) {
+        } else if code == REDIRECT_NOT_MODIFIED_304 {
             response.statusCode = STATUS_NOT_MODIFIED;
-        } else if (code == REDIRECT_USE_PROXY_305) {
+        } else if code == REDIRECT_USE_PROXY_305 {
             response.statusCode = STATUS_USE_PROXY;
-        } else if (code == REDIRECT_TEMPORARY_REDIRECT_307) {
+        } else if code == REDIRECT_TEMPORARY_REDIRECT_307 {
             response.statusCode = STATUS_TEMPORARY_REDIRECT;
-        } else if (code == REDIRECT_PERMANENT_REDIRECT_308) {
+        } else if code == REDIRECT_PERMANENT_REDIRECT_308 {
             response.statusCode = STATUS_PERMANENT_REDIRECT;
         }
         string locationsStr = "";
@@ -116,7 +119,7 @@ public isolated client class Caller {
         return nativeGetRemoteHostName(self);
     }
 
-    private isolated function returnResponse(anydata|StatusCodeResponse|Response|error message, string? returnMediaType,
+    private isolated function returnResponse(anydata|StatusCodeResponse|Response message, string? returnMediaType,
         HttpCacheConfig? cacheConfig) returns ListenerError? {
         Response response = new;
         boolean setETag = cacheConfig is () ? false: cacheConfig.setETag;
@@ -133,18 +136,6 @@ public isolated client class Caller {
                 Accepted AcceptedResponse = {};
                 response = createStatusCodeResponse(AcceptedResponse);
             }
-        } else if message is error {
-            if message is ApplicationResponseError {
-                InternalServerError err = {
-                    headers: message.detail().headers,
-                    body: message.detail().body
-                };
-                response = createStatusCodeResponse(err, returnMediaType);
-                response.statusCode = message.detail().statusCode;
-            } else {
-                response.statusCode = STATUS_INTERNAL_SERVER_ERROR;
-                response.setTextPayload(message.message());
-            }
         } else if message is StatusCodeResponse {
             if message is SuccessStatusCodeResponse {
                 response = createStatusCodeResponse(message, returnMediaType, setETag);
@@ -156,11 +147,11 @@ public isolated client class Caller {
             response = message;
             // Update content-type header with mediaType annotation value only if the response does not already 
             // have a similar header
-            if (returnMediaType is string && !response.hasHeader(CONTENT_TYPE)) {
+            if returnMediaType is string && !response.hasHeader(CONTENT_TYPE) {
                 response.setHeader(CONTENT_TYPE, returnMediaType);
             }
         } else if message is anydata {
-            setPayload(message, response, setETag);
+            setPayload(message, response, returnMediaType, setETag);
             if returnMediaType is string {
                 response.setHeader(CONTENT_TYPE, returnMediaType);
             }
@@ -169,13 +160,29 @@ public isolated client class Caller {
             string errorMsg = "invalid response body type. expected one of the types: anydata|http:StatusCodeResponse|http:Response|error";
             panic error ListenerError(errorMsg);
         }
-        if (cacheCompatibleType && (cacheConfig is HttpCacheConfig)) {
+        if cacheCompatibleType && (cacheConfig is HttpCacheConfig) {
             ResponseCacheControl responseCacheControl = new;
             responseCacheControl.populateFields(cacheConfig);
             response.cacheControl = responseCacheControl;
-            if (cacheConfig.setLastModified) {
+            if cacheConfig.setLastModified {
                 response.setLastModified();
             }
+        }
+        return nativeRespond(self, response);
+    }
+
+    private isolated function returnErrorResponse(error errorResponse, string? returnMediaType, int? statusCode) returns ListenerError? {
+        Response response = new;
+        if errorResponse is ApplicationResponseError {
+            InternalServerError err = {
+                headers: errorResponse.detail().headers,
+                body: errorResponse.detail().body
+            };
+            response = createStatusCodeResponse(err, returnMediaType);
+            response.statusCode = errorResponse.detail().statusCode;
+        } else {
+            response.statusCode = statusCode is () ? STATUS_INTERNAL_SERVER_ERROR : statusCode;
+            response.setTextPayload(errorResponse.message());
         }
         return nativeRespond(self, response);
     }
@@ -187,20 +194,20 @@ isolated function createStatusCodeResponse(StatusCodeResponse message, string? r
     response.statusCode = message.status.code;
 
     var headers = message?.headers;
-    if (headers is map<string[]> || headers is map<int[]> || headers is map<boolean[]>) {
+    if headers is map<string[]> || headers is map<int[]> || headers is map<boolean[]> {
         foreach var [headerKey, headerValues] in headers.entries() {
             string[] mappedValues = headerValues.'map(val => val.toString());
             foreach string headerValue in mappedValues {
                 response.addHeader(headerKey, headerValue);
             }
         }
-    } else if (headers is map<string> || headers is map<int> || headers is map<boolean>) {
+    } else if headers is map<string> || headers is map<int> || headers is map<boolean> {
         foreach var [headerKey, headerValue] in headers.entries() {
             response.setHeader(headerKey, headerValue.toString());
         }
-    } else if (headers is map<string|int|boolean|string[]|int[]|boolean[]>) {
+    } else if headers is map<string|int|boolean|string[]|int[]|boolean[]> {
         foreach var [headerKey, headerValue] in headers.entries() {
-            if (headerValue is string[] || headerValue is int[] || headerValue is boolean[]) {
+            if headerValue is string[] || headerValue is int[] || headerValue is boolean[] {
                 string[] mappedValues = headerValue.'map(val => val.toString());
                 foreach string value in mappedValues {
                     response.addHeader(headerKey, value);
@@ -210,29 +217,37 @@ isolated function createStatusCodeResponse(StatusCodeResponse message, string? r
             }
         }
     }
-
-    setPayload(message?.body, response, setETag);
-
+    string? mediaType = retrieveMediaType(message, returnMediaType);
+    setPayload(message?.body, response, mediaType, setETag);
     // Update content-type header according to the priority. (Highest to lowest)
     // 1. MediaType field in response record
     // 2. Payload annotation mediaType value
     // 3. The content type header included in headers field
     // 4. Default content type related to payload
-    string? mediaType = message?.mediaType;
-    if (mediaType is string) {
+    if mediaType is string {
         response.setHeader(CONTENT_TYPE, mediaType);
         return response;
-    }
-    if (returnMediaType is string) {
-        response.setHeader(CONTENT_TYPE, returnMediaType);
     }
     return response;
 }
 
-isolated function setPayload(anydata payload, Response response, boolean setETag = false) {
+isolated function retrieveMediaType(StatusCodeResponse resp, string? retrievedMediaType) returns string? {
+    string? mediaType = resp?.mediaType;
+    if mediaType is string {
+        return mediaType;
+    }
+    if retrievedMediaType is string {
+        return retrievedMediaType;
+    }
+    return;
+}
+
+isolated function setPayload(anydata payload, Response response, string? mediaType = (), boolean setETag = false) {
     if payload is () {
         return;
-    } else if payload is xml {
+    }
+
+    if payload is xml {
         response.setXmlPayload(payload);
         if setETag {
             response.setETag(payload);
@@ -248,19 +263,53 @@ isolated function setPayload(anydata payload, Response response, boolean setETag
             response.setETag(payload);
         }
     } else {
-        castToJsonAndSetPayload(response, payload, "anydata to json conversion error: ", setETag);
+        processAnydata(response, payload, mediaType, setETag);
     }
 }
 
-isolated function castToJsonAndSetPayload(Response response, anydata payload, string errMsg, boolean setETag = false) {
+isolated function processAnydata(Response response, anydata payload, string? mediaType = (), boolean setETag = false) {
+    match mediaType {
+        mime:APPLICATION_FORM_URLENCODED => {
+            map<string>|error pairs = val:cloneWithType(payload);
+            if pairs is map<string> {
+                string|error result = retrieveUrlEncodedData(pairs);
+                if result is string {
+                    response.setTextPayload(result, mime:APPLICATION_FORM_URLENCODED);
+                    if setETag {
+                        response.setETag(result);
+                    }
+                    return;
+                }
+                panic error InitializingOutboundResponseError("content encoding error: " + result.message(), result);
+            } else {
+                panic error InitializingOutboundRequestError("unsupported content for application/x-www-form-urlencoded media type");
+            }
+        }
+        _ => {
+            setJsonPayload(response, payload, setETag);
+        }
+    }
+}
+
+isolated function retrieveUrlEncodedData(map<string> message) returns string|error {
+    string[] messageParams = [];
+    foreach var ['key, value] in message.entries() {
+        string encodedKey = check url:encode('key, CHARSET_UTF_8);
+        string encodedValue = check url:encode(value, CHARSET_UTF_8);
+        string entry = string `${'encodedKey}=${encodedValue}`;
+        messageParams.push(entry);
+    }
+    return strings:'join("&", ...messageParams);
+}
+
+isolated function setJsonPayload(Response response, anydata payload, boolean setETag) {
     var result = trap val:toJson(payload);
     if result is error {
-        panic error InitializingOutboundResponseError(errMsg + result.message(), result);
-    } else {
-        response.setJsonPayload(result);
-        if setETag {
-            response.setETag(result);
-        }
+        panic error InitializingOutboundResponseError(string `anydata to json conversion error: ${result.message()}`, result);
+    }
+    response.setJsonPayload(result);
+    if setETag {
+        response.setETag(result);
     }
 }
 

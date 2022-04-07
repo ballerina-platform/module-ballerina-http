@@ -20,8 +20,7 @@ import ballerina/mime;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener dataBindingEP = new(databindingTest);
-final http:Client dataBindingClient = check new("http://localhost:" + databindingTest.toString());
+final http:Client dataBindingClient = check new("http://localhost:" + generalPort.toString());
 
 type Person record {|
     string name;
@@ -33,34 +32,35 @@ type Stock record {|
     float price;
 |};
 
-service /echo on dataBindingEP {
+service /dataBinding on generalListener {
 
-    resource function 'default body1(http:Caller caller, @http:Payload {} string person, http:Request req) {
+    resource function 'default body1(http:Caller caller, @http:Payload string person, http:Request req) returns error? {
         json responseJson = { "Person": person };
-        checkpanic caller->respond(responseJson);
+        check caller->respond(responseJson);
     }
 
-    resource function post body2/[string key](@http:Payload {mediaType:"text/plain"} string person, http:Caller caller) {
+    resource function post body2/[string key](@http:Payload {mediaType:"text/plain"} string person, http:Caller caller)
+            returns error? {
         json responseJson = { Key: key, Person: person };
-        checkpanic caller->respond(responseJson);
+        check caller->respond(responseJson);
     }
 
-    resource function 'default body3(http:Caller caller, @http:Payload {mediaType:["text/plain"]} json person) {
+    resource function 'default body3(http:Caller caller, @http:Payload {mediaType:["text/plain"]} json person) returns error? {
         json|error val1 = person.name;
         json|error val2 = person.team;
         json name = val1 is json ? val1 : ();
         json team = val2 is json ? val2 : ();
-        checkpanic caller->respond({ Key: name, Team: team });
+        check caller->respond({ Key: name, Team: team });
     }
 
-    resource function post body4(@http:Payload {} xml person, http:Caller caller, http:Request req) {
+    resource function post body4(@http:Payload xml person, http:Caller caller, http:Request req) returns error? {
         xmllib:Element elem = <xmllib:Element> person;
         string name = <string> elem.getName();
         string team = <string> (person/*).toString();
-        checkpanic caller->respond({ Key: name, Team: team });
+        check caller->respond({ Key: name, Team: team });
     }
 
-    resource function post body5(http:Caller caller, @http:Payload {} byte[] person) {
+    resource function post body5(http:Caller caller, @http:Payload byte[] person) returns error? {
         http:Response res = new;
         var name = strings:fromBytes(person);
         if (name is string) {
@@ -69,46 +69,61 @@ service /echo on dataBindingEP {
             res.setTextPayload("Error occurred while byte array to string conversion");
             res.statusCode = 500;
         }
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function post body6(http:Caller caller, http:Request req, @http:Payload {} Person person) {
+    resource function post body6(http:Caller caller, http:Request req, @http:Payload Person person) returns error? {
         string name = person.name;
         int age = person.age;
-        checkpanic caller->respond({ Key: name, Age: age });
+        check caller->respond({ Key: name, Age: age });
     }
 
-    resource function post body7(http:Caller caller, http:Request req, @http:Payload {} Stock person) {
-        checkpanic caller->respond();
+    resource function post body7(http:Caller caller, http:Request req, @http:Payload Stock person) returns error? {
+        check caller->respond();
     }
 
-    resource function post body8(http:Caller caller, @http:Payload {} Person[] persons) {
+    resource function post body8(http:Caller caller, @http:Payload Person[] persons) returns error? {
         var jsonPayload = persons.cloneWithType(json);
         if (jsonPayload is json) {
-            checkpanic caller->respond(jsonPayload);
+            check caller->respond(jsonPayload);
         } else {
-            checkpanic caller->respond(jsonPayload.message());
+            check caller->respond(jsonPayload.message());
         }
     }
 
-    resource function get negative1(http:Caller caller) {
+    resource function 'default body9(http:Caller caller, @http:Payload map<string> person) returns error? {
+        string? a = person["name"];
+        string? b = person["team"];
+        json responseJson = { "1": a, "2": b};
+        check caller->respond(responseJson);
+    }
+
+    resource function 'default body10(http:Caller caller,
+            @http:Payload {mediaType: "application/x-www-form-urlencoded"} map<string> person) returns error? {
+        string? a = person["name"];
+        string? b = person["team"];
+        json responseJson = { "1": a, "2": b};
+        check caller->respond(responseJson);
+    }
+
+    resource function get negative1(http:Caller caller) returns error? {
         lock {
-            var err = dataBindingEP.attach(multipleAnnot1, "multipleAnnot1");
+            var err = generalListener.attach(multipleAnnot1, "multipleAnnot1");
             if err is error {
-                checkpanic caller->respond(err.message());
+                check caller->respond(err.message());
             } else {
-                checkpanic caller->respond("ok");
+                check caller->respond("ok");
             }
         }
     }
 
-    resource function get negative2(http:Caller caller) {
+    resource function get negative2(http:Caller caller) returns error? {
         lock {
-            var err = dataBindingEP.attach(multipleAnnot2, "multipleAnnot2");
+            var err = generalListener.attach(multipleAnnot2, "multipleAnnot2");
             if err is error {
-                checkpanic caller->respond(err.message());
+                check caller->respond(err.message());
             } else {
-                checkpanic caller->respond("ok");
+                check caller->respond("ok");
             }
         }
     }
@@ -126,13 +141,53 @@ isolated http:Service multipleAnnot2 = service object {
     }
 };
 
+# Album represents data about a record album.
+type Album readonly & record {|
+    string id;
+    string title;
+    string artist;
+    decimal price;
+|};
+
+// albums table to seed record album data.
+table<Album> key(id) albums = table [
+    {id: "1", title: "Blue Train", artist: "John Coltrane", price: 56.99},
+    {id: "2", title: "Jeru", artist: "Gerry Mulligan", price: 17.99},
+    {id: "3", title: "Sarah Vaughan and Clifford Brown", artist: "Sarah Vaughan", price: 39.99}
+];
+
+service /readonlyRecord on generalListener {
+    // Responds with the list of all albums as JSON.
+    resource function get albums() returns Album[] {
+        return albums.toArray();
+    }
+
+    // Adds an album from JSON received in the request body.
+    resource function get albums/[string id]() returns Album | http:NotFound {
+        Album? album = albums[id];
+        if album is () {
+            return <http:NotFound>{};
+        } else {
+            return album;
+        }
+    }
+
+    // Locates the album whose ID value matches the id
+    // parameter sent by the client, then returns that album as a response.
+    resource function post albums(@http:Payload Album album) returns Album {
+        // Add the new album to the table.
+        albums.add(album);
+        return album;
+    }
+}
+
 //Test data binding with string payload
 @test:Config {}
 function testDataBindingWithStringPayload() {
     http:Request req = new;
     req.setTextPayload("WSO2");
-    http:Response|error response = dataBindingClient->post("/echo/body1", req);
-    if (response is http:Response) {
+    http:Response|error response = dataBindingClient->post("/dataBinding/body1", req);
+    if response is http:Response {
         assertJsonPayload(response.getJsonPayload(), {Person:"WSO2"});
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -144,8 +199,8 @@ function testDataBindingWithStringPayload() {
 function testDataBindingWhenPathParamExist() {
     http:Request req = new;
     req.setTextPayload("WSO2");
-    http:Response|error response = dataBindingClient->post("/echo/body2/hello", req);
-    if (response is http:Response) {
+    http:Response|error response = dataBindingClient->post("/dataBinding/body2/hello", req);
+    if response is http:Response {
         assertJsonValue(response.getJsonPayload(), "Key", "hello");
         assertJsonValue(response.getJsonPayload(), "Person", "WSO2");
     } else {
@@ -158,8 +213,8 @@ function testDataBindingWhenPathParamExist() {
 function testDataBindingWithJSONPayload() {
     http:Request req = new;
     req.setJsonPayload({name:"WSO2", team:"ballerina"});
-    http:Response|error response = dataBindingClient->post("/echo/body3", req);
-    if (response is http:Response) {
+    http:Response|error response = dataBindingClient->post("/dataBinding/body3", req);
+    if response is http:Response {
         assertJsonValue(response.getJsonPayload(), "Key", "WSO2");
         assertJsonValue(response.getJsonPayload(), "Team", "ballerina");
     } else {
@@ -173,8 +228,8 @@ function testDataBindingWithXMLPayload() {
     http:Request req = new;
     xml content = xml `<name>WSO2</name>`;
     req.setXmlPayload(content);
-    http:Response|error response = dataBindingClient->post("/echo/body4", req);
-    if (response is http:Response) {
+    http:Response|error response = dataBindingClient->post("/dataBinding/body4", req);
+    if response is http:Response {
         assertJsonValue(response.getJsonPayload(), "Key", "name");
         assertJsonValue(response.getJsonPayload(), "Team", "WSO2");
     } else {
@@ -187,8 +242,8 @@ function testDataBindingWithXMLPayload() {
 function testDataBindingWithBinaryPayload() {
     http:Request req = new;
     req.setBinaryPayload("WSO2".toBytes());
-    http:Response|error response = dataBindingClient->post("/echo/body5", req);
-    if (response is http:Response) {
+    http:Response|error response = dataBindingClient->post("/dataBinding/body5", req);
+    if response is http:Response {
         assertJsonValue(response.getJsonPayload(), "Key", "WSO2");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -200,8 +255,8 @@ function testDataBindingWithBinaryPayload() {
 function testDataBindingWithGlobalStruct() {
     http:Request req = new;
     req.setJsonPayload({name:"wso2",age:12});
-    http:Response|error response = dataBindingClient->post("/echo/body6", req);
-    if (response is http:Response) {
+    http:Response|error response = dataBindingClient->post("/dataBinding/body6", req);
+    if response is http:Response {
         assertJsonValue(response.getJsonPayload(), "Key", "wso2");
         assertJsonValue(response.getJsonPayload(), "Age", 12);
     } else {
@@ -214,8 +269,8 @@ function testDataBindingWithGlobalStruct() {
 function testDataBindingWithRecordArray() {
     http:Request req = new;
     req.setJsonPayload([{name:"wso2",age:12}, {name:"ballerina",age:3}]);
-    http:Response|error response = dataBindingClient->post("/echo/body8", req);
-    if (response is http:Response) {
+    http:Response|error response = dataBindingClient->post("/dataBinding/body8", req);
+    if response is http:Response {
         json expected = [{name:"wso2",age:12}, {name:"ballerina",age:3}];
         assertJsonPayload(response.getJsonPayload(), expected);
     } else {
@@ -228,8 +283,8 @@ function testDataBindingWithRecordArray() {
 function testDataBindingWithoutContentType() {
     http:Request req = new;
     req.setTextPayload("WSO2");
-    http:Response|error response = dataBindingClient->post("/echo/body1", req);
-    if (response is http:Response) {
+    http:Response|error response = dataBindingClient->post("/dataBinding/body1", req);
+    if response is http:Response {
         assertJsonValue(response.getJsonPayload(), "Person", "WSO2");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -242,8 +297,8 @@ function testDataBindingIncompatibleJSONPayloadType() {
     http:Request req = new;
     req.setJsonPayload({name:"WSO2", team:"EI"});
     req.setHeader(mime:CONTENT_TYPE, mime:TEXT_PLAIN);
-    http:Response|error response = dataBindingClient->post("/echo/body3", req);
-    if (response is http:Response) {
+    http:Response|error response = dataBindingClient->post("/dataBinding/body3", req);
+    if response is http:Response {
         assertJsonValue(response.getJsonPayload(), "Key", "WSO2");
         assertJsonValue(response.getJsonPayload(), "Team", "EI");
     } else {
@@ -257,8 +312,8 @@ function testDataBindingCompatiblePayload() {
     http:Request req = new;
     req.setJsonPayload({name:"WSO2", team:"ballerina"});
     req.setHeader(mime:CONTENT_TYPE, mime:TEXT_PLAIN);
-    http:Response|error response = dataBindingClient->post("/echo/body5", req);
-    if (response is http:Response) {
+    http:Response|error response = dataBindingClient->post("/dataBinding/body5", req);
+    if response is http:Response {
         json expected = {name:"WSO2", team:"ballerina"};
         assertJsonValue(response.getJsonPayload(), "Key", expected.toJsonString());
     } else {
@@ -269,8 +324,8 @@ function testDataBindingCompatiblePayload() {
 //Test data binding without a payload
 @test:Config {}
 function testDataBindingWithoutPayload() {
-    http:Response|error response = dataBindingClient->get("/echo/body1");
-    if (response is http:Response) {
+    http:Response|error response = dataBindingClient->get("/dataBinding/body1");
+    if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "data binding failed: error(\"String payload is null\")");
     } else {
@@ -282,8 +337,8 @@ function testDataBindingWithoutPayload() {
 function testDataBindingIncompatibleXMLPayload() {
     http:Request req = new;
     req.setJsonPayload({name:"WSO2", team:"ballerina"});
-    http:Response|error response = dataBindingClient->post("/echo/body4", req);
-    if (response is http:Response) {
+    http:Response|error response = dataBindingClient->post("/dataBinding/body4", req);
+    if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTrueTextPayload(response.getTextPayload(), "data binding failed: error(\"failed to create xml: Unexpected character");
     } else {
@@ -295,8 +350,8 @@ function testDataBindingIncompatibleXMLPayload() {
 function testDataBindingIncompatibleStructPayload() {
     http:Request req = new;
     req.setTextPayload("ballerina");
-    http:Response|error response = dataBindingClient->post("/echo/body6", req);
-    if (response is http:Response) {
+    http:Response|error response = dataBindingClient->post("/dataBinding/body6", req);
+    if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTrueTextPayload(response.getTextPayload(), "data binding failed: error(\"unrecognized token 'ballerina'");
     } else {
@@ -306,8 +361,8 @@ function testDataBindingIncompatibleStructPayload() {
 
 @test:Config {}
 function testDataBindingWithEmptyJsonPayload() {
-    http:Response|error response = dataBindingClient->get("/echo/body3");
-    if (response is http:Response) {
+    http:Response|error response = dataBindingClient->get("/dataBinding/body3");
+    if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "data binding failed: error(\"empty JSON document\")");
     } else {
@@ -319,8 +374,8 @@ function testDataBindingWithEmptyJsonPayload() {
 function testDataBindingStructWithNoMatchingContent() {
     http:Request req = new;
     req.setJsonPayload({name:"WSO2", team:8});
-    http:Response|error response = dataBindingClient->post("/echo/body6", req);
-    if (response is http:Response) {
+    http:Response|error response = dataBindingClient->post("/dataBinding/body6", req);
+    if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTrueTextPayload(response.getTextPayload(), "data binding failed: error(\"{ballerina/lang");
         assertTrueTextPayload(response.getTextPayload(), ".value}ConversionError\",message=\"'map<json>' ");
@@ -336,8 +391,8 @@ function testDataBindingStructWithNoMatchingContent() {
 function testDataBindingStructWithInvalidTypes() {
     http:Request req = new;
     req.setJsonPayload({name:"WSO2", team:8});
-    http:Response|error response = dataBindingClient->post("/echo/body7", req);
-    if (response is http:Response) {
+    http:Response|error response = dataBindingClient->post("/dataBinding/body7", req);
+    if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTrueTextPayload(response.getTextPayload(), "data binding failed: error(\"{ballerina/lang.value}");
         assertTrueTextPayload(response.getTextPayload(), "'map<json>' value cannot be converted to 'http_tests:Stock'");
@@ -354,8 +409,8 @@ function testDataBindingStructWithInvalidTypes() {
 function testDataBindingWithRecordArrayNegative() {
     http:Request req = new;
     req.setJsonPayload([{name:"wso2",team:12}, {lang:"ballerina",age:3}]);
-    http:Response|error response = dataBindingClient->post("/echo/body8", req);
-    if (response is http:Response) {
+    http:Response|error response = dataBindingClient->post("/dataBinding/body8", req);
+    if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTrueTextPayload(response.getTextPayload(), "data binding failed: error(\"{ballerina/lang.value}" +
             "ConversionError\",message=\"'json[]' value cannot be converted to 'http_tests:Person[]");
@@ -367,8 +422,8 @@ function testDataBindingWithRecordArrayNegative() {
 //Test init error for multiple http annotations in a single param
 @test:Config {}
 function testMultipleAnnotsInASingleParam() {
-    http:Response|error response = dataBindingClient->get("/echo/negative1");
-    if (response is http:Response) {
+    http:Response|error response = dataBindingClient->get("/dataBinding/negative1");
+    if response is http:Response {
         assertTextPayload(response.getTextPayload(), "cannot specify more than one http annotation for parameter 'payload'");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -378,9 +433,125 @@ function testMultipleAnnotsInASingleParam() {
 //Test init error for multiple Payload annotated params
 @test:Config {}
 function testMultiplePayloadAnnots() {
-    http:Response|error response = dataBindingClient->get("/echo/negative2");
-    if (response is http:Response) {
+    http:Response|error response = dataBindingClient->get("/dataBinding/negative2");
+    if response is http:Response {
         assertTextPayload(response.getTextPayload(), "invalid multiple 'http:Payload' annotation usage");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+//Test data binding with map of string type
+@test:Config {}
+function testDataBindingWithMapOfString() {
+    http:Request req = new;
+    req.setTextPayload("name=hello%20go&team=ba%20%23ller%20%40na", contentType = "application/x-www-form-urlencoded");
+    http:Response|error response = dataBindingClient->post("/dataBinding/body9", req);
+    if response is http:Response {
+        assertJsonPayload(response.getJsonPayload(), {"1":"hello go","2":"ba #ller @na"});
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+//Test data binding with map of string type
+@test:Config {}
+function testDataBindingWithMapOfStringNegative() {
+    http:Request req = new;
+    req.setJsonPayload({name:"WSO2", team:"ballerina"});
+    http:Response|error response = dataBindingClient->post("/dataBinding/body9", req);
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(), "data binding failed: error(\"Could not convert " +
+        "payload to map<string>: Datasource does not contain form data\")");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testDataBindingWithMapOfStringWithSinglePair() {
+    http:Request req = new;
+    req.setTextPayload("name=hello%20go", contentType = "application/x-www-form-urlencoded");
+    http:Response|error response = dataBindingClient->post("/dataBinding/body9", req);
+    if response is http:Response {
+        assertJsonPayload(response.getJsonPayload(), {"1":"hello go", "2":()});
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testDataBindingWithMapOfStringEmptyValue() {
+    http:Request req = new;
+    req.setTextPayload("name=hello%20go&team=", contentType = "application/x-www-form-urlencoded");
+    http:Response|error response = dataBindingClient->post("/dataBinding/body9", req);
+    if response is http:Response {
+        assertJsonPayload(response.getJsonPayload(), {"1":"hello go","2":""});
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testDataBindingWithMapOfStringEmptyKeyValue() {
+    http:Request req = new;
+    req.setTextPayload("name=hello%20go&=ballerina", contentType = "application/x-www-form-urlencoded");
+    http:Response|error response = dataBindingClient->post("/dataBinding/body9", req);
+    if response is http:Response {
+        assertJsonPayload(response.getJsonPayload(), {"1":"hello go","2":()});
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testDataBindingWithMapOfStringEmptyPayload() {
+    http:Request req = new;
+    req.setTextPayload("", contentType = "application/x-www-form-urlencoded");
+    http:Response|error response = dataBindingClient->post("/dataBinding/body9", req);
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(), "data binding failed: error(\"String payload is null\")");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testDatabindingWithReadOnlyRecordsGetAll() returns error? {
+    json expectedPayload = [{"id":"1", "title":"Blue Train", "artist":"John Coltrane", "price":56.99}, {"id":"2", "title":"Jeru", "artist":"Gerry Mulligan", "price":17.99}, {"id":"3", "title":"Sarah Vaughan and Clifford Brown", "artist":"Sarah Vaughan", "price":39.99}];
+    http:Response|error response = dataBindingClient->get("/readonlyRecord/albums");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertJsonPayloadtoJsonString(response.getJsonPayload(), expectedPayload);
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testDatabindingWithReadOnlyRecordsGetAlbum() returns error? {
+    json expectedPayload = {"id":"1", "title":"Blue Train", "artist":"John Coltrane", "price":56.99};
+    http:Response|error response = dataBindingClient->get("/readonlyRecord/albums/1");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertJsonPayloadtoJsonString(response.getJsonPayload(), expectedPayload);
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {dependsOn:[testDatabindingWithReadOnlyRecordsGetAll]}
+function testDatabindingWithReadOnlyRecordsAddAlbum() returns error? {
+    json newAlbum = {"id":"4", "title":"Blackout", "artist":"Scorpions", "price":27.99};
+    http:Response|error response = dataBindingClient->post("/readonlyRecord/albums", newAlbum);
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertJsonPayloadtoJsonString(response.getJsonPayload(), newAlbum);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

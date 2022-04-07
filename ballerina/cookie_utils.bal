@@ -38,7 +38,7 @@ isolated function parseSetCookieHeader(string cookieStringValue) returns Cookie 
             }
             MAX_AGE_ATTRIBUTE => {
                 int|error age = ints:fromString(nameValuePair[1]);
-                if (age is int) {
+                if age is int {
                     options.maxAge = age;
                 }
             }
@@ -63,10 +63,10 @@ isolated function parseCookieHeader(string cookieStringValue) returns Cookie[] {
     string cookieValue = cookieStringValue;
     string[] nameValuePairs = regex:split(cookieValue, SEMICOLON + SPACE);
     foreach var item in nameValuePairs {
-        if (regex:matches(item, "^([^=]+)=.*$")) {
+        if regex:matches(item, "^([^=]+)=.*$") {
             string[] nameValue = regex:split(item, EQUALS);
             Cookie cookie;
-            if (nameValue.length() > 1) {
+            if nameValue.length() > 1 {
                 cookie = new (nameValue[0], nameValue[1]);
             } else {
                 cookie = new (nameValue[0], "");
@@ -86,13 +86,13 @@ isolated function comparator(Cookie c1, Cookie c2) returns int {
     var cookiePath2 = c2.path;
     int l1 = 0;
     int l2 = 0;
-    if (cookiePath1 is string) {
+    if cookiePath1 is string {
         l1 = cookiePath1.length();
     }
-    if (cookiePath2 is string) {
+    if cookiePath2 is string {
         l2 = cookiePath2.length();
     }
-    if (l1 != l2) {
+    if l1 != l2 {
         return l2 - l1;
     }
     return <int> time:utcDiffSeconds(c1.createdTime, c2.createdTime);

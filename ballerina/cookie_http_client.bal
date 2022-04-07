@@ -143,7 +143,7 @@ public client isolated class CookieClient {
     remote isolated function patch(string path, RequestMessage message) returns Response|ClientError {
         Request request = <Request>message;
         addStoredCookiesToRequest(self.url, path, self.cookieStore, request);
-        var inboundResponse =  self.httpClient->patch(path, request);
+        var inboundResponse = self.httpClient->patch(path, request);
         return addCookiesInResponseToStore(inboundResponse, self.cookieStore, self.cookieConfig, self.url, path);
     }
 
@@ -156,7 +156,7 @@ public client isolated class CookieClient {
     remote isolated function delete(string path, RequestMessage message = ()) returns Response|ClientError {
         Request request = <Request>message;
         addStoredCookiesToRequest(self.url, path, self.cookieStore, request);
-        var inboundResponse =  self.httpClient->delete(path, request);
+        var inboundResponse = self.httpClient->delete(path, request);
         return addCookiesInResponseToStore(inboundResponse, self.cookieStore, self.cookieConfig, self.url, path);
     }
 
@@ -169,7 +169,7 @@ public client isolated class CookieClient {
     remote isolated function options(string path, RequestMessage message = ()) returns Response|ClientError {
         Request request = <Request>message;
         addStoredCookiesToRequest(self.url, path, self.cookieStore, request);
-        var inboundResponse =  self.httpClient->options(path, message = request);
+        var inboundResponse = self.httpClient->options(path, message = request);
         return addCookiesInResponseToStore(inboundResponse, self.cookieStore, self.cookieConfig, self.url, path);
     }
 
@@ -230,10 +230,10 @@ public client isolated class CookieClient {
 // Gets the relevant cookies from the cookieStore and adds them to the request.
 isolated function addStoredCookiesToRequest(string url, string path, CookieStore? cookieStore, Request request) {
     Cookie[] cookiesToSend = [];
-    if (cookieStore is CookieStore) {
+    if cookieStore is CookieStore {
         cookiesToSend = cookieStore.getCookies(url, path);
     }
-    if (cookiesToSend.length() != 0) {
+    if cookiesToSend.length() != 0 {
         // The client has requested to this url before and has stored cookies.
         request.addCookies(cookiesToSend);
     }
@@ -242,7 +242,7 @@ isolated function addStoredCookiesToRequest(string url, string path, CookieStore
 // Gets the cookies from the inbound response, adds them to the cookies store, and returns the response.
 isolated function addCookiesInResponseToStore(Response|ClientError inboundResponse, CookieStore?
         cookieStore, CookieInferredConfig cookieConfig, string url, string path) returns Response|ClientError {
-    if (cookieStore is CookieStore && inboundResponse is Response) {
+    if cookieStore is CookieStore && inboundResponse is Response {
         Cookie[] cookiesInResponse = inboundResponse.getCookies();
         cookieStore.addCookies(cookiesInResponse, cookieConfig, url, path );
     }

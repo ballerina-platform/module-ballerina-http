@@ -35,7 +35,7 @@ function negativeTestResponseGetHeader() {
 function negativeTestResponseGetHeaders() {
     http:Response res = new;
     string[]|error header = res.getHeaders("Content-Type");
-    if (header is error) {
+    if header is error {
         test:assertEquals(header.message(), "Http header does not exist");
     }
 }
@@ -222,7 +222,7 @@ service / on inResponseCachedPayloadBEListener {
 @test:Config {}
 function testInRespGetJsonWhenAlreadyBuildBlobNegative() {
     http:Response|error response = inRespCacheTestClient->get("/checkJson");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "Error occurred while retrieving the json payload from " +
             "the response");
@@ -234,7 +234,7 @@ function testInRespGetJsonWhenAlreadyBuildBlobNegative() {
 @test:Config {}
 function testInRespGetXmlWhenAlreadyBuildBlobNegative() {
     http:Response|error response = inRespCacheTestClient->get("/checkXml");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "Error occurred while retrieving the xml payload from " +
             "the response");

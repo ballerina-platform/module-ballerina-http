@@ -42,10 +42,10 @@ service /failoverDemoService05 on failoverEP05 {
     resource function 'default failoverStartIndex(http:Caller caller, http:Request request) {
         string startIndex = foBackendEP05.getSucceededEndpointIndex().toString();
         http:Response|error backendRes = foBackendEP05->forward("/", request);
-        if (backendRes is http:Response) {
+        if backendRes is http:Response {
             string responseMessage = "Failover start index is : " + startIndex;
             error? responseToCaller = caller->respond(responseMessage);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
@@ -53,7 +53,7 @@ service /failoverDemoService05 on failoverEP05 {
             response.statusCode = 500;
             response.setPayload(backendRes.message());
             error? responseToCaller = caller->respond(response);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         }
@@ -66,7 +66,7 @@ service /delay on backendEP05 {
         // Delay the response for 30000 milliseconds to mimic network level delays.
         runtime:sleep(30);
         error? responseToCaller = caller->respond("Delayed resource is invoked");
-        if (responseToCaller is error) {
+        if responseToCaller is error {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
@@ -76,7 +76,7 @@ service /delay on backendEP05 {
 service /mock05 on backendEP05 {
     resource function 'default .(http:Caller caller, http:Request req) {
         error? responseToCaller = caller->respond("Mock Resource is Invoked.");
-        if (responseToCaller is error) {
+        if responseToCaller is error {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
@@ -84,21 +84,21 @@ service /mock05 on backendEP05 {
 
 //Test to verify whether failover will test from last successful endpoint
 @test:Config {}
-function testFailoverStartingPosition() {
-    http:Client testClient = checkpanic new("http://localhost:9305");
+function testFailoverStartingPosition() returns error? {
+    http:Client testClient = check new("http://localhost:9305");
     http:Response|error response = testClient->post("/failoverDemoService05/failoverStartIndex", requestPayload);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Failover start index is : 0");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
     
     response = testClient->post("/failoverDemoService05/failoverStartIndex", requestPayload);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Failover start index is : 2");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

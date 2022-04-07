@@ -62,8 +62,8 @@ public enum HttpErrorType {
     SSL_ERROR("SslError"),
     INVALID_CONTENT_LENGTH("InvalidContentLengthError"),
     HEADER_NOT_FOUND_ERROR("HeaderNotFoundError"),
-    CLIENT_ERROR("ClientError");
-
+    CLIENT_ERROR("ClientError"),
+    DESUGAR_AUTH_ERROR("DesugarAuthError");
 
     private final String errorName;
 

@@ -63,8 +63,8 @@ service / on new http:Listener(cBClientWithoutStatusCodesTestPort1) {
 @test:Config {
     dataProvider: responseDataProvider1
 }
-function testCircuitBreakerWithoutStatusCodes1(DataFeed dataFeed) {
-    invokeApiAndVerifyResponseWithHttpGet(cbrClient, "/test1", dataFeed);
+function testCircuitBreakerWithoutStatusCodes1(DataFeed dataFeed) returns error? {
+    check invokeApiAndVerifyResponseWithHttpGet(cbrClient, "/test1", dataFeed);
 }
 
 function responseDataProvider1() returns DataFeed[][] {
@@ -80,8 +80,8 @@ function responseDataProvider1() returns DataFeed[][] {
 @test:Config {
     dataProvider: responseDataProvider2
 }
-function testCircuitBreakerWithoutStatusCodes2(DataFeed dataFeed) {
-    invokeApiAndVerifyResponseWithHttpGet(cbrClient, "/test2", dataFeed);
+function testCircuitBreakerWithoutStatusCodes2(DataFeed dataFeed) returns error? {
+    check invokeApiAndVerifyResponseWithHttpGet(cbrClient, "/test2", dataFeed);
 }
 
 function responseDataProvider2() returns DataFeed[][] {

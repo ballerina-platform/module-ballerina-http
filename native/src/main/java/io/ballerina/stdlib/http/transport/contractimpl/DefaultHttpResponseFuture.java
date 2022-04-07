@@ -23,8 +23,11 @@ import io.ballerina.stdlib.http.transport.contract.HttpClientConnectorListener;
 import io.ballerina.stdlib.http.transport.contract.HttpConnectorListener;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.OutboundMsgHolder;
+import io.ballerina.stdlib.http.transport.message.BackPressureObservable;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.ResponseHandle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
@@ -36,12 +39,15 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class DefaultHttpResponseFuture implements HttpResponseFuture {
 
+    private static final Logger LOG = LoggerFactory.getLogger(HttpResponseFuture.class);
+
     private HttpConnectorListener httpConnectorListener;
     private HttpClientConnectorListener responseHandleListener;
     private HttpClientConnectorListener promiseAvailabilityListener;
     private HttpConnectorListener pushPromiseListener;
     private ConcurrentHashMap<Integer, HttpConnectorListener> pushResponseListeners;
     private ConcurrentHashMap<Integer, Throwable> pushResponseListenerErrors;
+    private BackPressureObservable backPressureObservable;
 
     private HttpCarbonMessage httpCarbonMessage;
     private ResponseHandle responseHandle;
@@ -65,6 +71,7 @@ public class DefaultHttpResponseFuture implements HttpResponseFuture {
 
     public DefaultHttpResponseFuture(OutboundMsgHolder outboundMsgHolder) {
         this.outboundMsgHolder = outboundMsgHolder;
+        this.backPressureObservable = outboundMsgHolder != null ? outboundMsgHolder.getBackPressureObservable() : null;
         pushResponseListeners = new ConcurrentHashMap<>();
         pushResponseListenerErrors = new ConcurrentHashMap<>();
     }
@@ -118,6 +125,13 @@ public class DefaultHttpResponseFuture implements HttpResponseFuture {
     public void notifyHttpListener(Throwable throwable) {
         responseLock.lock();
         try {
+            // For HTTP1.1 we have the listener attached to BackPressureObservable inside the BackPressureHandler.
+            // Whereas for HTTP2 we have the listener attached to BackPressureObservable inside the OutboundMsgHolder.
+            if (backPressureObservable != null) {
+                backPressureObservable.removeListener();
+            } else {
+                LOG.warn("No BackPressureObservable found.");
+            }
             this.throwable = throwable;
             returnError = throwable;
             if (executionWaitSem != null) {
@@ -163,6 +177,12 @@ public class DefaultHttpResponseFuture implements HttpResponseFuture {
 
     public void resetStatus() {
         this.returnError = null;
+    }
+
+    public void setBackPressureObservable(BackPressureObservable backPressureObservable) {
+        if (backPressureObservable != null) {
+            this.backPressureObservable = backPressureObservable;
+        }
     }
 
     @Override

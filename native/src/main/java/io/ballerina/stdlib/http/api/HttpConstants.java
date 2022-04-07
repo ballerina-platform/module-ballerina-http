@@ -176,6 +176,7 @@ public class HttpConstants {
     public static final String HTTP_CLIENT = "HttpClient";
     public static final String CLIENT_CONFIG_HASH_CODE = "ClientConfigHashCode";
 
+    public static final String MAIN_STRAND = "MAIN_STRAND";
     public static final String SRC_HANDLER = "SRC_HANDLER";
     public static final String REMOTE_ADDRESS = "REMOTE_ADDRESS";
     public static final String ORIGIN_HOST = "ORIGIN_HOST";
@@ -360,13 +361,19 @@ public class HttpConstants {
     public static final String REQUEST_CONTEXT = "RequestContext";
     public static final String ENTITY_OBJ = "EntityObj";
     public static final String INTERCEPTOR_SERVICE = "INTERCEPTOR_SERVICE";
-    public static final String INTERCEPTOR_SERVICE_INDEX = "INTERCEPTOR_SERVICE_INDEX";
+    public static final String INTERCEPTOR_SERVICE_TYPE = "INTERCEPTOR_SERVICE_TYPE";
+    public static final String REQUEST_INTERCEPTOR_INDEX = "REQUEST_INTERCEPTOR_INDEX";
+    public static final String RESPONSE_INTERCEPTOR_INDEX = "RESPONSE_INTERCEPTOR_INDEX";
     public static final String INTERCEPTOR_SERVICE_ERROR = "INTERCEPTOR_SERVICE_ERROR";
     public static final String WAIT_FOR_FULL_REQUEST = "WAIT_FOR_FULL_REQUEST";
     public static final String HTTP_NORMAL = "Normal";
-    public static final String HTTP_REQUEST_INTERCEPTOR = "RequestInterceptor";
-    public static final String HTTP_REQUEST_ERROR_INTERCEPTOR = "RequestErrorInterceptor";
+    public static final String REQUEST_INTERCEPTOR = "RequestInterceptor";
+    public static final String RESPONSE_INTERCEPTOR = "ResponseInterceptor";
+    public static final String REQUEST_ERROR_INTERCEPTOR = "RequestErrorInterceptor";
+    public static final String RESPONSE_ERROR_INTERCEPTOR = "ResponseErrorInterceptor";
     public static final String TARGET_SERVICE = "TARGET_SERVICE";
+    public static final String INTERCEPT_RESPONSE = "interceptResponse";
+    public static final String INTERCEPT_RESPONSE_ERROR = "interceptResponseError";
 
     //Service Endpoint
     public static final int SERVICE_ENDPOINT_NAME_INDEX = 0;

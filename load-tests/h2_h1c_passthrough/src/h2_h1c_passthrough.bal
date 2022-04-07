@@ -1,4 +1,4 @@
-// Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+// Copyright (c) 2022, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
 //
 // WSO2 Inc. licenses this file to you under the Apache License,
 // Version 2.0 (the "License"); you may not use this file except
@@ -15,7 +15,6 @@
 // under the License.
 
 import ballerina/http;
-import ballerina/log;
 
 listener http:Listener securedEP = new(9090, {
     httpVersion: "2.0",
@@ -30,16 +29,8 @@ listener http:Listener securedEP = new(9090, {
 final http:Client nettyEP = check new("http://netty:8688");
 
 service /passthrough on securedEP {
-    resource function post .(http:Caller caller, http:Request clientRequest) {
-        http:Response|http:ClientError response = nettyEP->forward("/service/EchoService", clientRequest);
-        if (response is http:Response) {
-            error? result = caller->respond(response);
-        } else {
-            log:printError("Error at h2_h1c_passthrough", 'error = response);
-            http:Response res = new;
-            res.statusCode = 500;
-            res.setPayload(response.message());
-            error? result = caller->respond(res);
-        }
+    resource function post .(http:Request clientRequest) returns http:Response|error {
+        http:Response response = check nettyEP->forward("/service/EchoService", clientRequest);
+        return response;
     }
 }

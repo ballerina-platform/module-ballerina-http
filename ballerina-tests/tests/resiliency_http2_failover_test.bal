@@ -42,9 +42,9 @@ service /failoverDemoService06 on failoverEP06 {
     resource function post index(http:Caller caller, http:Request request) {
         string startIndex = foBackendEP06.getSucceededEndpointIndex().toString();
         var backendRes = foBackendEP06->submit("GET", "/", request);
-        if (backendRes is http:HttpFuture) {
+        if backendRes is http:HttpFuture {
             var response = foBackendEP06->getResponse(backendRes);
-            if (response is http:Response) {
+            if response is http:Response {
                 string responseMessage = "Failover start index is : " + startIndex;
                 error? responseToCaller = caller->respond(responseMessage);
                 handleResponseToCaller(responseToCaller);
@@ -64,7 +64,7 @@ service /delay on backendEP06 {
         // Delay the response for 5000 milliseconds to mimic network level delays.
         runtime:sleep(10);
         error? responseToCaller = caller->respond("Delayed resource is invoked");
-        if (responseToCaller is error) {
+        if responseToCaller is error {
             log:printError("Error sending response from delay service", 'error = responseToCaller);
         }
     }
@@ -78,7 +78,7 @@ service /'error on backendEP06 {
         response.statusCode = 500;
         response.setPayload("Response from error Service with error status code.");
         error? responseToCaller = caller->respond(response);
-        if (responseToCaller is error) {
+        if responseToCaller is error {
             log:printError("Error sending response from error service", 'error = responseToCaller);
         }
     }
@@ -89,14 +89,14 @@ service /mock on backendEP06 {
 
     resource function get .(http:Caller caller, http:Request req) {
         error? responseToCaller = caller->respond("Mock Resource is Invoked.");
-        if (responseToCaller is error) {
+        if responseToCaller is error {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }
 
 function handleResponseToCaller(error? responseToCaller) {
-    if (responseToCaller is error) {
+    if responseToCaller is error {
         log:printError("Error sending response from failover service.", 'error = responseToCaller);
     }
 }
@@ -111,21 +111,21 @@ function sendErrorResponse(http:Caller caller, error e) {
 
 //Test basic failover scenario for HTTP2 clients. //////TODO: #24260
 @test:Config{}
-function testBasicHttp2Failover() {
-    http:Client testClient = checkpanic new("http://localhost:9314");
+function testBasicHttp2Failover() returns error? {
+    http:Client testClient = check new("http://localhost:9314");
     http:Response|error response = testClient->post("/failoverDemoService06/index", requestPayload);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTrueTextPayload(response.getTextPayload(), "Failover start index is : 0");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
     response = testClient->post("/failoverDemoService06/index", requestPayload);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTrueTextPayload(response.getTextPayload(), "Failover start index is : 2");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

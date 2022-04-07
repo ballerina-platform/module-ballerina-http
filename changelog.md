@@ -1,3 +1,4 @@
+
 # Change Log
 This file contains all the notable changes done to the Ballerina HTTP package through the releases.
 
@@ -7,7 +8,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+- [Introduce response and response error interceptors](https://github.com/ballerina-platform/ballerina-standard-library/issues/2684)
+- [Allow records to be annotated with @http:Header](https://github.com/ballerina-platform/ballerina-standard-library/issues/2699)
+- [Add basic type support for header params in addition to `string`, `string[]`](https://github.com/ballerina-platform/ballerina-standard-library/issues/2807)
+
+## [2.2.1] - 2022-03-02
+
+### Added
+- [Add code-actions to generate payload and header parameter templates](https://github.com/ballerina-platform/ballerina-standard-library/issues/2642)
+- [Add code-actions to add content-type and cache configuration for response](https://github.com/ballerina-platform/ballerina-standard-library/issues/2662)
+- [Allow readonly intersection type for resource signature params and return type](https://github.com/ballerina-platform/ballerina-standard-library/issues/2610)
+
+## [2.2.0] - 2022-02-01
+
+### Added
 - [Implement Typed `headers` for HTTP response](https://github.com/ballerina-platform/ballerina-standard-library/issues/2563)
+- [Add map<string> data binding support for application/www-x-form-urlencoded](https://github.com/ballerina-platform/ballerina-standard-library/issues/2526)
+- [Add compiler validation for payload annotation usage](https://github.com/ballerina-platform/ballerina-standard-library/issues/2561)
+- [Add support to provide inline request/response body with `x-form-urlencoded` content](https://github.com/ballerina-platform/ballerina-standard-library/issues/2596)
 
 ## [2.1.0] - 2021-12-14
 

@@ -20,8 +20,9 @@ public type StatusCodeResponse Continue|SwitchingProtocols|Ok|Created|Accepted|N
     ResetContent|PartialContent|MultipleChoices|MovedPermanently|Found|SeeOther|NotModified|UseProxy|TemporaryRedirect|
     PermanentRedirect|BadRequest|Unauthorized|PaymentRequired|Forbidden|NotFound|MethodNotAllowed|NotAcceptable|
     ProxyAuthenticationRequired|RequestTimeout|Conflict|Gone|LengthRequired|PreconditionFailed|PayloadTooLarge|
-    UriTooLong|UnsupportedMediaType|RangeNotSatisfiable|ExpectationFailed|UpgradeRequired|RequestHeaderFieldsTooLarge|
-    InternalServerError|NotImplemented|BadGateway|ServiceUnavailable|GatewayTimeout|HttpVersionNotSupported;
+    UriTooLong|UnsupportedMediaType|RangeNotSatisfiable|ExpectationFailed|UpgradeRequired|TooManyRequests|
+    RequestHeaderFieldsTooLarge|InternalServerError|NotImplemented|BadGateway|ServiceUnavailable|GatewayTimeout|
+    HttpVersionNotSupported;
 
 # Defines the possible success status code response record types.
 type SuccessStatusCodeResponse Ok|Created|Accepted|NonAuthoritativeInformation|NoContent|ResetContent|
@@ -334,6 +335,14 @@ public readonly class StatusUpgradeRequired {
     public STATUS_UPGRADE_REQUIRED code = STATUS_UPGRADE_REQUIRED;
 }
 
+# Represents the status code of `STATUS_TOO_MANY_REQUESTS`.
+#
+# + code - The response status code
+public readonly class StatusTooManyRequests {
+    *Status;
+    public STATUS_TOO_MANY_REQUESTS code = STATUS_TOO_MANY_REQUESTS;
+}
+
 # Represents the status code of `STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE`.
 #
 # + code - The response status code
@@ -427,6 +436,7 @@ final StatusUnsupportedMediaType STATUS_UNSUPPORTED_MEDIA_TYPE_OBJ = new;
 final StatusRangeNotSatisfiable STATUS_RANGE_NOT_SATISFIABLE_OBJ = new;
 final StatusExpectationFailed STATUS_EXPECTATION_FAILED_OBJ = new;
 final StatusUpgradeRequired STATUS_UPGRADE_REQUIRED_OBJ = new;
+final StatusTooManyRequests STATUS_TOO_MANY_REQUESTS_OBJ = new;
 final StatusRequestHeaderFieldsTooLarge STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE_OBJ = new;
 final StatusInternalServerError STATUS_INTERNAL_SERVER_ERROR_OBJ = new;
 final StatusNotImplemented STATUS_NOT_IMPLEMENTED_OBJ = new;
@@ -723,6 +733,14 @@ public type ExpectationFailed record {|
 public type UpgradeRequired record {|
     *CommonResponse;
     readonly StatusUpgradeRequired status = STATUS_UPGRADE_REQUIRED_OBJ;
+|};
+
+# The status code response record of `TooManyRequests`.
+#
+# + status - The response status code obj
+public type TooManyRequests record {|
+    *CommonResponse;
+    readonly StatusTooManyRequests status = STATUS_TOO_MANY_REQUESTS_OBJ;
 |};
 
 # The status code response record of `RequestHeaderFieldsTooLarge`.

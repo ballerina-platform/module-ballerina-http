@@ -31,14 +31,14 @@ service /'stream on new http:Listener(streamTest1) {
         http:Response|error clientResponse = streamBackendClient->post("/streamBack/receiver", request);
 
         http:Response res = new;
-        if (clientResponse is http:Response) {
+        if clientResponse is http:Response {
             res = clientResponse;
         } else {
             log:printError("Error occurred while sending data to the client ", 'error = clientResponse);
             setError(res, clientResponse);
         }
         var result = caller->respond(res);
-        if (result is error) {
+        if result is error {
             log:printError("Error while while sending response to the caller", 'error = result);
         }
     }
@@ -47,7 +47,7 @@ service /'stream on new http:Listener(streamTest1) {
         http:Response res = new;
         res.setFileAsPayload("tests/datafiles/BallerinaLang.pdf", contentType = mime:APPLICATION_PDF);
         var result = caller->respond(res);
-        if (result is error) {
+        if result is error {
             log:printError("Error while while sending response to the caller", 'error = result);
         }
     }
@@ -61,7 +61,7 @@ service /streamBack on new http:Listener(streamTest2) {
         if (streamer is stream<byte[], io:Error?>) {
             io:Error? result = io:fileWriteBlocksFromStream("tests/tempfiles/ReceivedFile.pdf", streamer);
 
-            if (result is error) {
+            if result is error {
                 log:printError("error occurred while writing ", 'error = result);
                 setError(res, result);
             } else {
@@ -76,7 +76,7 @@ service /streamBack on new http:Listener(streamTest2) {
             setError(res, streamer);
         }
         var result = caller->respond(res);
-        if (result is error) {
+        if result is error {
            log:printError("Error occurred while sending response", 'error = result);
         }
     }
@@ -88,11 +88,11 @@ function setError(http:Response res, error err) {
 }
 
 @test:Config {}
-function testStreamingLargeFile() {
+function testStreamingLargeFile() returns error? {
     http:Response|error response = streamTestClient->get("/stream/fileupload");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "File Received!");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -104,7 +104,7 @@ function testConsumedStream() returns error? {
     string msg = "Error occurred while retrieving the byte stream from the response";
     string cMsg = "Byte stream is not available but payload can be obtain either as xml, json, string or byte[] type";
     http:Response|error response = streamTestClient->get("/stream/cacheFileupload");
-    if (response is http:Response) {
+    if response is http:Response {
         byte[]|error bytes = response.getBinaryPayload();
         if bytes is error {
             log:printError("Error reading payload", 'error = bytes);
