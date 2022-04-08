@@ -127,6 +127,10 @@ service /dataBinding on generalListener {
             }
         }
     }
+
+    resource function post getInt(@http:Payload int j) returns int {
+        return j;
+    }
 }
 
 isolated http:Service multipleAnnot1 = service object {
@@ -178,6 +182,11 @@ service /readonlyRecord on generalListener {
         // Add the new album to the table.
         albums.add(album);
         return album;
+    }
+
+    resource function post tableBinding(http:Caller caller, @http:Payload table<Album> key(id) albums) returns error? {
+        Album? album = albums["1"];
+        check caller->respond(album);
     }
 }
 
@@ -291,7 +300,7 @@ function testDataBindingWithoutContentType() {
     }
 }
 
-//Test data binding with incompatible content-type
+//Test data binding with incompatible content-type leads to an error
 @test:Config {}
 function testDataBindingIncompatibleJSONPayloadType() {
     http:Request req = new;
@@ -299,8 +308,9 @@ function testDataBindingIncompatibleJSONPayloadType() {
     req.setHeader(mime:CONTENT_TYPE, mime:TEXT_PLAIN);
     http:Response|error response = dataBindingClient->post("/dataBinding/body3", req);
     if response is http:Response {
-        assertJsonValue(response.getJsonPayload(), "Key", "WSO2");
-        assertJsonValue(response.getJsonPayload(), "Team", "EI");
+        test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(),
+            "data binding failed: error GenericListenerError (\"incompatible type found: 'json'\")");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -353,7 +363,8 @@ function testDataBindingIncompatibleStructPayload() {
     http:Response|error response = dataBindingClient->post("/dataBinding/body6", req);
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        assertTrueTextPayload(response.getTextPayload(), "data binding failed: error(\"unrecognized token 'ballerina'");
+        assertTextPayload(response.getTextPayload(),
+        "data binding failed: error GenericListenerError (\"incompatible type found: 'Person'\")");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -555,4 +566,27 @@ function testDatabindingWithReadOnlyRecordsAddAlbum() returns error? {
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
+}
+
+@test:Config {}
+function testDataBindingTable() {
+    json[] j = [
+                   {id: "1", title: "Blue Train", artist: "John Coltrane", price: 56.99},
+                   {id: "2", title: "Jeru", artist: "Gerry Mulligan", price: 17.99},
+                   {id: "3", title: "Sarah Vaughan and Clifford Brown", artist: "Sarah Vaughan", price: 39.99}
+               ];
+    http:Response|error response = dataBindingClient->post("/readonlyRecord/tableBinding", j);
+    if response is http:Response {
+        json expected = {id: "1", title: "Blue Train", artist: "John Coltrane", price: 56.99d};
+        assertJsonPayload(response.getJsonPayload(), expected);
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testHeaderBindingArrayAndString() returns error? {
+    json j = 12;
+    json response = check dataBindingClient->post("/dataBinding/getInt", j);
+    assertJsonPayload(response, j);
 }
