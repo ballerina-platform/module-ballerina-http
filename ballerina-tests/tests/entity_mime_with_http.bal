@@ -50,8 +50,8 @@ service /mimeTest on generalListener {
         check caller->respond(response);
     }
 
-    resource function 'default getPayloadFromEntity(http:Caller caller, http:Request request) returns
-            http:InternalServerError|error? {
+    resource function 'default getPayloadFromEntity(http:Request request) returns
+            http:InternalServerError|http:Response|error {
         http:Response res = new;
         var entity = request.getEntity();
         if entity is mime:Entity {
@@ -60,14 +60,13 @@ service /mimeTest on generalListener {
                 mime:Entity ent = new;
                 ent.setJson({"payload" : jsonPayload, "header" : check entity.getHeader("Content-type")});
                 res.setEntity(ent);
-                check caller->respond(res);
+                return res;
             } else {
                 return {body: "Error while retrieving from entity"};
             }
         } else {
             return {body: "Error while retrieving from request"};
         }
-        return;
     }
 }
 

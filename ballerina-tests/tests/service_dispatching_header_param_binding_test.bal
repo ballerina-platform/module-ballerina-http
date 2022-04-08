@@ -49,7 +49,7 @@ service /headerparamservice on HeaderBindingEP {
         return responseJson;
     }
 
-    resource function get q4(http:Caller caller, @http:Header string? foo, http:Headers headerObj) returns json {
+    resource function get q4(@http:Header string? foo, http:Headers headerObj) returns json {
         string header1 = foo ?: "foo header not found";
         boolean headerBool = headerObj.hasHeader("foo");
 

@@ -284,7 +284,7 @@ service /mytest on outRequestTypeTestEP {
         return data;
     }
 
-    resource function post nil(http:Caller caller, http:Request req) returns string|error {
+    resource function post nil(http:Request req) returns string|error {
         return req.getHeader("Content-Length");
     }
 
