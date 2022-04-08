@@ -25,6 +25,8 @@ type AA record {|
     string a;
 |};
 
+type NewError http:Error;
+
 service http:Service on new http:Listener(9090) {
     resource function get callerInfo1(int xyz, @http:CallerInfo {respondType: string} http:Caller abc) {
         checkpanic abc->respond("done");
@@ -110,5 +112,21 @@ service http:Service on new http:Listener(9090) {
     resource function get callerInfo18(@http:CallerInfo {respondType: Person}http:Caller abc) returns error? {
         AA val = { a: "hello" };
         error? a = abc->respond(val); // error
+    }
+
+    resource function get callerInfo19(@http:CallerInfo {respondType: Person} http:Caller abc) returns error? {
+        check abc->respond(error("hello world")); // error
+    }
+
+    resource function get callerInfo20(@http:CallerInfo {respondType: http:Error} http:Caller abc) returns error? {
+        check abc->respond(<http:Error> error("hello world"));
+    }
+
+    resource function get callerInfo21(@http:CallerInfo {respondType: http:Error} http:Caller abc) returns error? {
+        check abc->respond(error("hello world")); // error
+    }
+
+    resource function get greeting(@http:CallerInfo{respondType: NewError} http:Caller caller) returns error? {
+        check caller->respond(<NewError> error("New Error"));
     }
 }

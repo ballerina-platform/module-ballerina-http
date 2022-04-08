@@ -80,7 +80,9 @@ public class CompilerPluginTest {
     private void assertError(DiagnosticResult diagnosticResult, int index, String message, String code) {
         Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[index];
         Assert.assertEquals(diagnostic.diagnosticInfo().messageFormat(), message);
-        Assert.assertEquals(diagnostic.diagnosticInfo().code(), code);
+        if (code != null) {
+            Assert.assertEquals(diagnostic.diagnosticInfo().code(), code);
+        }
     }
 
     private void assertTrue(DiagnosticResult diagnosticResult, int index, String message, String code) {
@@ -290,7 +292,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_10");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 7);
+        Assert.assertEquals(diagnosticResult.errorCount(), 9);
         assertError(diagnosticResult, 0, "incompatible respond method argument type : expected " +
                 "'int' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 1, "incompatible respond method argument type : expected " +
@@ -304,6 +306,22 @@ public class CompilerPluginTest {
                 "'Person' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 6, "incompatible respond method argument type : expected " +
                 "'Person' according to the 'http:CallerInfo' annotation", HTTP_114);
+        assertError(diagnosticResult, 7, "incompatible respond method argument type : expected " +
+                "'Person' according to the 'http:CallerInfo' annotation", HTTP_114);
+        assertError(diagnosticResult, 8, "incompatible respond method argument type : expected " +
+                "'http:Error' according to the 'http:CallerInfo' annotation", HTTP_114);
+    }
+
+
+    @Test
+    public void testCallerInfoAnnotationWithError() {
+        Package currentPackage = loadPackage("sample_package_24");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.errorCount(), 5);
+        // These are the errors returned from language compiler, so skipped the codes
+        assertError(diagnosticResult, 0, "incompatible.types", null);
+        assertError(diagnosticResult, 1, "incompatible.types", null);
     }
 
     @Test

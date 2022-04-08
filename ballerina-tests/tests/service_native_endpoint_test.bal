@@ -38,8 +38,9 @@ service /serviceEndpointHello on serviceEndpointTestEP {
         check caller->respond(res);
     }
 
-    resource function get host(http:Caller caller) returns string {
-        return caller.getRemoteHostName() ?: "nohost";
+    resource function get host(http:Caller caller) returns error? {
+        string remoteHostName = caller.getRemoteHostName() ?: "nohost";
+        check caller->respond(remoteHostName);
     }
 }
 

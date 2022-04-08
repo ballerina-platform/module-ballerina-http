@@ -63,6 +63,10 @@ service /foo on serviceErrorHandlingServerEP {
     resource function get 'error() returns error {
         return error("Error from resource");
     }
+
+    resource function get callerError(http:Caller caller) returns error? {
+        check caller->respond(error("Error from resource"));
+    }
 }
 
 @test:Config{}
@@ -125,6 +129,16 @@ function testDataBindingFailed() returns error? {
 @test:Config{}
 function testResourceReturnsError() returns error? {
     http:Response res = check serviceErrorHandlingClientEP->get("/foo/error");
+    test:assertEquals(res.statusCode, 500);
+    assertTrueTextPayload(res.getTextPayload(), "Error from resource");
+    assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
+    assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+}
+
+@test:Config{}
+function testResourceCallerRespondsError() returns error? {
+    http:Response res = check serviceErrorHandlingClientEP->get("/foo/callerError");
     test:assertEquals(res.statusCode, 500);
     assertTrueTextPayload(res.getTextPayload(), "Error from resource");
     assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
