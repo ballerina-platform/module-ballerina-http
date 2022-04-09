@@ -18,9 +18,12 @@
 
 package io.ballerina.stdlib.http.api.service.signature.converter;
 
+import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BXml;
+import io.ballerina.stdlib.http.api.HttpErrorType;
+import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.mime.util.EntityBodyHandler;
 
 /**
@@ -37,12 +40,17 @@ public class XmlConverter extends AbstractPayloadConverter {
 
     @Override
     public int getValue(BObject inRequestEntity, boolean readonly, Object[] paramFeed, int index) {
-        BXml bxml = EntityBodyHandler.constructXmlDataSource(inRequestEntity);
-        EntityBodyHandler.addMessageDataSource(inRequestEntity, bxml);
-        if (readonly) {
-            bxml.freezeDirect();
+        if (payloadType.getTag() == TypeTags.XML_TAG) {
+            BXml bxml = EntityBodyHandler.constructXmlDataSource(inRequestEntity);
+            EntityBodyHandler.addMessageDataSource(inRequestEntity, bxml);
+            if (readonly) {
+                bxml.freezeDirect();
+            }
+            paramFeed[index++] = bxml;
+            return index;
+        } else {
+            throw HttpUtil.createHttpError("incompatible type found: '" + payloadType.getName() + "'",
+                                           HttpErrorType.GENERIC_LISTENER_ERROR);
         }
-        paramFeed[index++] = bxml;
-        return index;
     }
 }
