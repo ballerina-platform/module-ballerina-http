@@ -585,7 +585,7 @@ function testDataBindingTable() {
 }
 
 @test:Config {}
-function testHeaderBindingArrayAndString() returns error? {
+function testDataBindingAnInt() returns error? {
     json j = 12;
     json response = check dataBindingClient->post("/dataBinding/getInt", j);
     assertJsonPayload(response, j);

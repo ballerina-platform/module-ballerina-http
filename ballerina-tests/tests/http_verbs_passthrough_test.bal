@@ -238,7 +238,8 @@ function testDataBindingWithIncompatiblePayload() {
     http:Response|error response = httpVerbClient->post("/getQuote/employee", payload);
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        assertTrueTextPayload(response.getTextPayload(), "data binding failed: error(\"unrecognized token 'name:WSO2,team:ballerina'");
+        assertTextPayload(response.getTextPayload(),
+            "data binding failed: error GenericListenerError (\"incompatible type found: 'json'\")");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
