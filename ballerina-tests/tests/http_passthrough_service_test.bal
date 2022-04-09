@@ -83,8 +83,8 @@ service /nyseStock on passthroughEP1 {
         }
     }
 
-    resource function post entityCheck(http:Caller caller, http:Request clientRequest)
-            returns http:InternalServerError|error? {
+    resource function post entityCheck(http:Request clientRequest)
+            returns http:InternalServerError|http:Response|error {
         http:Response res = new;
         var entity = clientRequest.getEntity();
         if entity is mime:Entity {
@@ -94,14 +94,13 @@ service /nyseStock on passthroughEP1 {
                 ent.setText("payload :" + textPayload + ", header: " + check entity.getHeader("Content-type"));
                 ent.setHeader("X-check-header", "entity-check-header");
                 res.setEntity(ent);
-                check caller->respond(res);
+                return res;
             } else {
                 return {body: "Error while retrieving from entity"};
             }
         } else {
             return {body: "Error while retrieving from request"};
         }
-        return;
     }
 }
 

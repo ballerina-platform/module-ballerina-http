@@ -40,6 +40,13 @@ service on resourceFunctionListener {
         return;
     }
 
+    resource function 'default callerRespondError(http:Caller caller) returns error? {
+        http:Response response = new;
+        response.setTextPayload("Hello Ballerina!");
+        // Responding an error using the caller.
+        check caller->respond(getError());
+    }
+
 }
 
 isolated function getError() returns error|int {
@@ -63,6 +70,19 @@ function testErrorTypeReturnedFromAResourceFunction() returns error? {
 @test:Config {}
 function testErrorReturnedFromACheckExprInResourceFunction() returns error? {
     http:Response|error response = resourceFunctionTestClient->get("/checkErrorReturn");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTextPayload(response.getTextPayload(), "Simulated error");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+//Responding error from caller
+@test:Config {}
+function testErrorTypeRespondedFromCaller() returns error? {
+    http:Response|error response = resourceFunctionTestClient->get("/callerRespondError");
     if response is http:Response {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
         assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
