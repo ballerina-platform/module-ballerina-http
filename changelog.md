@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Changed
 - [Append the scheme of the HTTP client URL based on the client configurations](https://github.com/ballerina-platform/ballerina-standard-library/issues/2816)
+- [Refactor auth-desugar respond with DefaultErrorInterceptor](https://github.com/ballerina-platform/ballerina-standard-library/issues/2823)
 
 ## [2.2.1] - 2022-03-02
 
