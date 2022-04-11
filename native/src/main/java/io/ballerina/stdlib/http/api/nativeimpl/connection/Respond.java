@@ -197,7 +197,7 @@ public class Respond extends ConnectionAction {
 
             try {
                 InterceptorService service = HttpDispatcher.findInterceptorService(interceptorServicesRegistry,
-                                             inboundMessage);
+                                             inboundMessage, true);
                 if (service == null) {
                     throw new BallerinaConnectorException("no Interceptor Service found to handle the response");
                 }
