@@ -57,10 +57,10 @@ public type GenericListenerError distinct ListenerError;
 public type ListenerAuthError distinct ListenerError;
 
 # Defines the authentication error types that returned from listener.
-type ListenerAuthnError distinct ListenerAuthError;
+public type ListenerAuthnError distinct ListenerAuthError;
 
 # Defines the authorization error types that returned from listener.
-type ListenerAuthzError distinct ListenerAuthError;
+public type ListenerAuthzError distinct ListenerAuthError;
 
 # Defines the client error types that returned while sending outbound request.
 public type OutboundRequestError distinct ClientError;
