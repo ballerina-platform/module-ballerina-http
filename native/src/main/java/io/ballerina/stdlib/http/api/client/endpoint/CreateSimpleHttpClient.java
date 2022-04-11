@@ -56,11 +56,9 @@ public class CreateSimpleHttpClient {
             if (!urlString.strip().isEmpty()) {
                 String[] urlStrings = urlString.split(HttpConstants.SCHEME_SEPARATOR, 2);
                 if (urlStrings.length == 1) {
-                    if (isClientSecurityConfigured(clientEndpointConfig)) {
-                        urlStrings = new String[]{HttpConstants.HTTPS_SCHEME, urlStrings[0]};
-                    } else {
-                        urlStrings = new String[]{HttpConstants.HTTP_SCHEME, urlStrings[0]};
-                    }
+                    urlStrings = isClientSecurityConfigured(clientEndpointConfig) ?
+                            new String[]{HttpConstants.HTTPS_SCHEME, urlStrings[0]} :
+                            new String[]{HttpConstants.HTTP_SCHEME, urlStrings[0]};
                 } else {
                     if (urlStrings[0].equals(HttpConstants.HTTP_SCHEME) &&
                             isClientSecurityConfigured(clientEndpointConfig)) {
