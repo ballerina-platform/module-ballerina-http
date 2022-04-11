@@ -37,6 +37,7 @@ public class HttpConstants {
     public static final String HTTPS_ENDPOINT_STOPPED = "[ballerina/http] stopped HTTPS/WSS listener ";
     public static final String HTTP_ENDPOINT_STOPPED = "[ballerina/http] stopped HTTP/WS listener ";
     public static final String HTTP_RUNTIME_WARNING_PREFIX = "warning: [ballerina/http] ";
+    public static final String HTTPS_RECOMMENDATION_ERROR = "HTTPS is recommended but using HTTP";
 
     public static final String BASE_PATH = "BASE_PATH";
     public static final String SUB_PATH = "SUB_PATH";
@@ -426,7 +427,6 @@ public class HttpConstants {
     public static final BString SECURESOCKET_CONFIG_SESSION_TIMEOUT = StringUtils.fromString("sessionTimeout");
     public static final BString SECURESOCKET_CONFIG_MUTUAL_SSL = StringUtils.fromString("mutualSsl");
     public static final BString SECURESOCKET_CONFIG_VERIFY_CLIENT = StringUtils.fromString("verifyClient");
-
     public static final BString SECURESOCKET_CONFIG_CERT_VALIDATION_TYPE_OCSP_STAPLING =
             StringUtils.fromString("OCSP_STAPLING");
 
@@ -438,6 +438,7 @@ public class HttpConstants {
     public static final int CLIENT_GLOBAL_POOL_INDEX = 1;
 
     //Client Endpoint Config
+    public static final BString CLIENT_EP_AUTH = StringUtils.fromString("auth");
     public static final BString CLIENT_EP_CHUNKING = StringUtils.fromString("chunking");
     public static final BString CLIENT_EP_ENDPOINT_TIMEOUT = StringUtils.fromString("timeout");
     public static final BString CLIENT_EP_IS_KEEP_ALIVE = StringUtils.fromString("keepAlive");
@@ -525,6 +526,7 @@ public class HttpConstants {
     public static final String REGEX = "(?<!(http:|https:))//";
     public static final String SCHEME_SEPARATOR = "://";
     public static final String HTTP_SCHEME = "http";
+    public static final String HTTPS_SCHEME = "https";
 
     public static final String SERVER_CONNECTOR_FUTURE = "ServerConnectorFuture";
 
