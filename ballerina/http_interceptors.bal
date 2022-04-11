@@ -48,6 +48,15 @@ service class DefaultErrorInterceptor {
         // Returning the already built response for simplicity. This has been built with proper 
         // status code and headers (for `ApplicationResponseError` types)
         // For any other custom responses the `err` object can be used with type check
+        if err is ListenerAuthnError {
+            Response response = new;
+            response.statusCode = 401;
+            return response;
+        } else if err is ListenerAuthzError {
+            Response response = new;
+            response.statusCode = 403;
+            return response;
+        }
         return alreadyBuiltErrorResponse;
     }
 }
