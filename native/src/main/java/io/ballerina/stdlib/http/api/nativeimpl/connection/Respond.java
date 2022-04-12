@@ -63,6 +63,13 @@ public class Respond extends ConnectionAction {
 
     private static final Logger log = LoggerFactory.getLogger(Respond.class);
 
+    public static Object nativeRespondError(Environment env, BObject connectionObj, BObject outboundResponseObj,
+                                            BError error) {
+        HttpCarbonMessage inboundRequest = HttpUtil.getCarbonMsg(connectionObj, null);
+        inboundRequest.setProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR, error);
+        return nativeRespondWithDataCtx(env, connectionObj, outboundResponseObj, new DataContext(env, inboundRequest));
+    }
+
     public static Object nativeRespond(Environment env, BObject connectionObj, BObject outboundResponseObj) {
         return nativeRespondWithDataCtx(env, connectionObj, outboundResponseObj,
                                         new DataContext(env, HttpUtil.getCarbonMsg(connectionObj, null)));
@@ -190,7 +197,7 @@ public class Respond extends ConnectionAction {
 
             try {
                 InterceptorService service = HttpDispatcher.findInterceptorService(interceptorServicesRegistry,
-                                             inboundMessage);
+                                             inboundMessage, true);
                 if (service == null) {
                     throw new BallerinaConnectorException("no Interceptor Service found to handle the response");
                 }
