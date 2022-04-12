@@ -39,14 +39,6 @@ service "/url" on httpReturnNilListener  {
         return; // consider as exec end
     }
 
-    resource function get double(http:Caller caller) returns string {
-        error? err = caller->respond("Hello"); // 200 response
-        if err is error {
-           log:printError("Error occurred while sending response", 'error = err);
-        }
-        return "hi"; // exception
-    }
-
     resource function get errorCaller(http:Caller caller, boolean err) returns error? {
         if err {
             return; //500 response
@@ -94,18 +86,6 @@ function testNilReturnAsEndExec() returns error? {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "hi");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
-}
-
-@test:Config {}
-function testDoubleResponseWithExecption() returns error? {
-    http:Response|error response = httpReturnNilClient->get("/url/double");
-    if response is http:Response {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertTextPayload(response.getTextPayload(), "Hello");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

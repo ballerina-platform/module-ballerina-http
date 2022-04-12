@@ -107,8 +107,10 @@ public class HttpDispatcher {
         }
     }
 
+    // TODO : Refactor finding interceptor service logic and the usage of HTTPInterceptorServicesRegistry
     public static InterceptorService findInterceptorService(HTTPInterceptorServicesRegistry servicesRegistry,
-                                                            HttpCarbonMessage inboundReqMsg) {
+                                                            HttpCarbonMessage inboundReqMsg,
+                                                            boolean isResponsePath) {
         try {
             Map<String, InterceptorService> servicesOnInterface;
             List<String> sortedServiceURIs;
@@ -124,6 +126,12 @@ public class HttpDispatcher {
                 inboundReqMsg.setHttpStatusCode(404);
                 String localAddress = inboundReqMsg.getProperty(HttpConstants.LOCAL_ADDRESS).toString();
                 throw new BallerinaConnectorException("no service has registered for listener : " + localAddress);
+            }
+
+            if (isResponsePath) {
+                // There is only one service registered on the interceptor registry
+                InterceptorService[] services = servicesOnInterface.values().toArray(new InterceptorService[0]);
+                return services[0];
             }
 
             String rawUri = (String) inboundReqMsg.getProperty(HttpConstants.TO);
@@ -209,7 +217,7 @@ public class HttpDispatcher {
 
         try {
             // Find the Service TODO can be improved
-            InterceptorService service = HttpDispatcher.findInterceptorService(servicesRegistry, inboundMessage);
+            InterceptorService service = HttpDispatcher.findInterceptorService(servicesRegistry, inboundMessage, false);
             if (service == null) {
                 throw new BallerinaConnectorException("no Service found to handle the service request");
                 // Finer details of the errors are thrown from the dispatcher itself, Ideally we shouldn't get here.
