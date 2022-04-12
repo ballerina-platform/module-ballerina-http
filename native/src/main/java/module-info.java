@@ -40,6 +40,8 @@ module io.ballerina.stdlib.http {
     requires io.netty.handler;
     requires commons.pool;
     requires io.netty.handler.proxy;
+    requires io.netty.incubator.codec.quic;
+    requires netty.incubator.codec.http3;
     exports io.ballerina.stdlib.http.api;
     exports io.ballerina.stdlib.http.transport.contract.websocket;
     exports io.ballerina.stdlib.http.transport.contract;

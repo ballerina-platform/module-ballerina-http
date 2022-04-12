@@ -15,6 +15,7 @@ import io.netty.handler.codec.http.HttpContent;
 import io.netty.incubator.codec.http3.Http3DataFrame;
 import io.netty.incubator.codec.http3.Http3Exception;
 import io.netty.incubator.codec.http3.Http3HeadersFrame;
+import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +37,9 @@ public class ReceivingEntityBody implements ListenerState {
 
     @Override
     public void readInboundRequestBody(Http3SourceHandler http3SourceHandler, Http3DataFrame dataFrame,boolean isLast) throws Http3Exception {
-        ByteBuf data = (dataFrame).content().alloc().buffer();
+        ByteBuf data = dataFrame.content();
+        System.out.println(dataFrame.content().toString(CharsetUtil.US_ASCII));
+        System.out.println(data);
         HttpCarbonMessage sourceReqCMsg = http3SourceHandler.getStreamIdRequestMap().get(streamId)
                 .getInboundMsg();
         if (sourceReqCMsg != null) {

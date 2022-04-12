@@ -200,9 +200,9 @@ public class Util {
             outboundResponseMsg.removeHeader(HttpHeaderNames.CONNECTION.toString());
         }
 
-        if (outboundResponseMsg.getHeader(HttpHeaderNames.SERVER.toString()) == null) {
-            outboundResponseMsg.setHeader(HttpHeaderNames.SERVER.toString(), serverName);
-        }
+//        if (outboundResponseMsg.getHeader(HttpHeaderNames.SERVER.toString()) == null) {
+//            outboundResponseMsg.setHeader(HttpHeaderNames.SERVER.toString(), serverName);
+//        }
 
         if (outboundResponseMsg.getHeader(HttpHeaderNames.DATE.toString()) == null) {
             outboundResponseMsg.setHeader(HttpHeaderNames.DATE.toString(),

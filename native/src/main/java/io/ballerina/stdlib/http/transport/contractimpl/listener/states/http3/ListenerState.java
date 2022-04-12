@@ -23,11 +23,6 @@ public interface ListenerState {
                                    HttpCarbonMessage outboundResponseMsg, HttpContent httpContent,
                                    long streamId) throws Http3Exception;
 
- 
-//    void writeOutboundPromise(Http3OutboundRespListener http3OutboundRespListener, Http3PushPromise pushPromise)
-//            throws Http3Exception;
-
- 
     void handleStreamTimeout(ServerConnectorFuture serverConnectorFuture, ChannelHandlerContext ctx,
                              Http3OutboundRespListener http3OutboundRespListener, long streamId);
 
