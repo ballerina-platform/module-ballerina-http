@@ -169,15 +169,15 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
         } else {
             String remoteFunctionName = String.valueOf(((FunctionDefinitionNode) member).functionName());
             if (isResponseErrorInterceptor(type)) {
-                if (!remoteFunctionName.equals(Constants.INTERCEPT_RESPONSE_ERROR)) {
-                    reportInvalidRemoteFunction(ctx, member, remoteFunctionName, type,
+                if (!remoteFunctionName.trim().equals(Constants.INTERCEPT_RESPONSE_ERROR)) {
+                    reportInvalidRemoteFunction(ctx, member, remoteFunctionName.trim(), type,
                             Constants.INTERCEPT_RESPONSE_ERROR);
                     return false;
                 } else {
                     return true;
                 }
-            } else if (!remoteFunctionName.equals(Constants.INTERCEPT_RESPONSE)) {
-                reportInvalidRemoteFunction(ctx, member, remoteFunctionName, type, Constants.INTERCEPT_RESPONSE);
+            } else if (!remoteFunctionName.trim().equals(Constants.INTERCEPT_RESPONSE)) {
+                reportInvalidRemoteFunction(ctx, member, remoteFunctionName.trim(), type, Constants.INTERCEPT_RESPONSE);
                 return false;
             } else {
                 return true;
