@@ -167,7 +167,7 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
             reportRemoteFunctionNotAllowed(ctx, member, type);
             return false;
         } else {
-            String remoteFunctionName = String.valueOf(((FunctionDefinitionNode) member).functionName());
+            String remoteFunctionName = String.valueOf(((FunctionDefinitionNode) member).functionName()).trim();
             if (isResponseErrorInterceptor(type)) {
                 if (!remoteFunctionName.equals(Constants.INTERCEPT_RESPONSE_ERROR)) {
                     reportInvalidRemoteFunction(ctx, member, remoteFunctionName, type,
