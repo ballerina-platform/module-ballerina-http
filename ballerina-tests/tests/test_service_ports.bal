@@ -133,7 +133,7 @@ const int cacheAnnotationTestPort2 = 9578;
 const int serviceMediaTypeSubtypePrefixPort = 9579;
 const int queryParamBindingIdealTestPort = 9580;
 const int headerParamBindingIdealTestPort = 9581;
-const int clientWithoutSchemeTestPort = 9582;
+const int clientSchemeTestHttpListenerTestPort = 9582;
 const int requestInterceptorWithCallerRespondTestPort = 9583;
 const int requestInterceptorDataBindingTestPort1 = 9584;
 const int requestInterceptorDataBindingTestPort2 = 9585;
@@ -175,6 +175,7 @@ const int interceptorExecutionOrderTestPort = 9620;
 const int responseInterceptorNegativeTestPort1 = 9621;
 const int responseInterceptorCallerRespondErrorTestPort = 9622;
 const int requestInterceptorCallerRespondErrorTestPort = 9623;
+const int clientSchemeTestHttpsListenerTestPort = 9624;
 
 //HTTP2
 const int serverPushTestPort1 = 9701;

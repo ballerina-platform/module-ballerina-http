@@ -346,7 +346,8 @@ function testDataBindingIncompatibleXMLPayload() {
     http:Response|error response = dataBindingClient->post("/dataBinding/body4", req);
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        assertTrueTextPayload(response.getTextPayload(), "data binding failed: error(\"failed to create xml: Unexpected character");
+        assertTrueTextPayload(response.getTextPayload(),
+            "data binding failed: error(\"{ballerina/lang.value}ConversionError\"");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -468,9 +469,7 @@ function testDataBindingWithMapOfStringNegative() {
     req.setJsonPayload({name:"WSO2", team:"ballerina"});
     http:Response|error response = dataBindingClient->post("/dataBinding/body9", req);
     if response is http:Response {
-        test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        assertTextPayload(response.getTextPayload(), "data binding failed: error(\"Could not convert " +
-        "payload to map<string>: Datasource does not contain form data\")");
+        assertJsonPayload(response.getJsonPayload(), {"1":"WSO2","2":"ballerina"});
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
