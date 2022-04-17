@@ -30,6 +30,7 @@ import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
 import io.ballerina.compiler.api.symbols.RecordTypeSymbol;
 import io.ballerina.compiler.api.symbols.ResourceMethodSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.TableTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
@@ -144,7 +145,7 @@ class HttpResourceValidator {
                 TypeSymbol typeSymbol = param.typeDescriptor();
                 String typeName = typeSymbol.signature();
                 if (typeSymbol.typeKind() == TypeDescKind.INTERSECTION) {
-                    typeSymbol = getEffectiveTypeFromReadonlyIntersection(param);
+                    typeSymbol = getEffectiveTypeFromReadonlyIntersection((IntersectionTypeSymbol) typeSymbol);
                     if (typeSymbol == null) {
                         reportInvalidIntersectionType(ctx, paramLocation, typeName);
                         continue;
@@ -307,15 +308,15 @@ class HttpResourceValidator {
                     continue;
                 }
                 String typeName = annotationTypeNameOptional.get();
-                TypeSymbol paramTypeDescriptor = param.typeDescriptor();
-                if (paramTypeDescriptor.typeKind() == TypeDescKind.INTERSECTION) {
-                    paramTypeDescriptor = getEffectiveTypeFromReadonlyIntersection(param);
-                    if (paramTypeDescriptor == null) {
+                TypeSymbol typeDescriptor = param.typeDescriptor();
+                if (typeDescriptor.typeKind() == TypeDescKind.INTERSECTION) {
+                    typeDescriptor = getEffectiveTypeFromReadonlyIntersection((IntersectionTypeSymbol) typeDescriptor);
+                    if (typeDescriptor == null) {
                         reportInvalidIntersectionType(ctx, paramLocation, typeName);
                         continue;
                     }
                 }
-                TypeDescKind kind = paramTypeDescriptor.typeKind();
+                TypeDescKind kind = typeDescriptor.typeKind();
                 switch (typeName) {
                     case PAYLOAD_ANNOTATION_TYPE: {
                         payloadAnnotationPresent = true;
@@ -327,38 +328,8 @@ class HttpResourceValidator {
                             continue;
                         }
                         annotated = true;
-                        if (kind == TypeDescKind.JSON || kind == TypeDescKind.STRING ||
-                                kind == TypeDescKind.XML || kind == TypeDescKind.RECORD) {
+                        if (isValidPayloadParamType(typeDescriptor, ctx, paramLocation, paramName)) {
                             continue;
-                        } else if (kind == TypeDescKind.ARRAY) {
-                            TypeSymbol arrTypeSymbol = ((ArrayTypeSymbol) paramTypeDescriptor).memberTypeDescriptor();
-                            TypeDescKind elementKind = arrTypeSymbol.typeKind();
-                            if (elementKind == TypeDescKind.INTERSECTION) {
-                                arrTypeSymbol = ((IntersectionTypeSymbol) arrTypeSymbol).effectiveTypeDescriptor();
-                                elementKind = arrTypeSymbol.typeKind();
-                            }
-                            if (elementKind == TypeDescKind.BYTE) {
-                                continue;
-                            } else if (elementKind == TypeDescKind.TYPE_REFERENCE) {
-                                TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) arrTypeSymbol).typeDescriptor();
-                                TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
-                                if (typeDescKind == TypeDescKind.RECORD) {
-                                    continue;
-                                }
-                            }
-                        } else if (kind == TypeDescKind.TYPE_REFERENCE) {
-                            TypeSymbol typeDescriptor =
-                                    ((TypeReferenceTypeSymbol) paramTypeDescriptor).typeDescriptor();
-                            TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
-                            if (typeDescKind == TypeDescKind.RECORD) {
-                                continue;
-                            }
-                        } else if (kind == TypeDescKind.MAP) {
-                            TypeSymbol typeDescriptor = ((MapTypeSymbol) paramTypeDescriptor).typeParam();
-                            TypeDescKind typeDescKind = typeDescriptor.typeKind();
-                            if (typeDescKind == TypeDescKind.STRING) {
-                                continue;
-                            }
                         }
                         String paramTypeName = param.typeDescriptor().signature();
                         reportInvalidPayloadParameterType(ctx, paramLocation, paramTypeName);
@@ -371,8 +342,7 @@ class HttpResourceValidator {
                         }
                         annotated = true;
                         if (kind == TypeDescKind.TYPE_REFERENCE) {
-                            TypeSymbol typeDescriptor =
-                                    ((TypeReferenceTypeSymbol) paramTypeDescriptor).typeDescriptor();
+                            typeDescriptor = ((TypeReferenceTypeSymbol) typeDescriptor).typeDescriptor();
                             TypeDescKind typeDescKind = typeDescriptor.typeKind();
                             if (typeDescKind == TypeDescKind.OBJECT) {
                                 moduleSymbolOptional = typeDescriptor.getModule();
@@ -390,7 +360,7 @@ class HttpResourceValidator {
                                     continue;
                                 }
 
-                                Optional<String> typeNameOptional = paramTypeDescriptor.getName();
+                                Optional<String> typeNameOptional = typeDescriptor.getName();
                                 if (typeNameOptional.isEmpty()) {
                                     reportInvalidCallerParameterType(ctx, paramLocation, paramName);
                                     continue;
@@ -398,9 +368,7 @@ class HttpResourceValidator {
                                 String callerTypeName = typeNameOptional.get();
                                 if (CALLER_OBJ_NAME.equals(callerTypeName)) {
                                     if (callerPresent) {
-                                        updateDiagnostic(ctx, paramLocation,
-                                                                                HttpDiagnosticCodes.HTTP_115, paramName
-                                        );
+                                        updateDiagnostic(ctx, paramLocation, HttpDiagnosticCodes.HTTP_115, paramName);
                                     } else {
                                         callerPresent = true;
                                         extractCallerInfoValueAndValidate(ctx, member, paramIndex);
@@ -423,7 +391,7 @@ class HttpResourceValidator {
                             continue;
                         }
                         annotated = true;
-                        validateHeaderParamType(ctx, paramLocation, param, paramName, paramTypeDescriptor);
+                        validateHeaderParamType(ctx, paramLocation, param, paramName, typeDescriptor);
                         break;
                     }
                     default:
@@ -441,6 +409,44 @@ class HttpResourceValidator {
         if (!headerAnnotationPresent) {
             enableAddHeaderParamCodeAction(ctx, member.functionSignature().location());
         }
+    }
+
+    private static boolean isValidPayloadParamType(TypeSymbol typeDescriptor, SyntaxNodeAnalysisContext ctx,
+                                                   Location paramLocation, String paramName) {
+        TypeDescKind kind = typeDescriptor.typeKind();
+        if (kind == TypeDescKind.INTERSECTION) {
+            typeDescriptor = getEffectiveTypeFromReadonlyIntersection((IntersectionTypeSymbol) typeDescriptor);
+            if (typeDescriptor == null) {
+                reportInvalidIntersectionType(ctx, paramLocation, paramName);
+                return false;
+            }
+            return isValidPayloadParamType(typeDescriptor, ctx, paramLocation, paramName);
+        }
+        if (isAnyDataType(kind)) {
+            return true;
+        } else if (kind == TypeDescKind.ARRAY) {
+            TypeSymbol arrTypeSymbol = ((ArrayTypeSymbol) typeDescriptor).memberTypeDescriptor();
+            TypeDescKind elementKind = arrTypeSymbol.typeKind();
+            if (elementKind == TypeDescKind.INTERSECTION) {
+                arrTypeSymbol = ((IntersectionTypeSymbol) arrTypeSymbol).effectiveTypeDescriptor();
+                elementKind = arrTypeSymbol.typeKind();
+            }
+            if (elementKind == TypeDescKind.BYTE) {
+                return true;
+            }
+            return isValidPayloadParamType(arrTypeSymbol, ctx, paramLocation, paramName);
+        } else if (kind == TypeDescKind.TYPE_REFERENCE) {
+            typeDescriptor = ((TypeReferenceTypeSymbol) typeDescriptor).typeDescriptor();
+            TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
+            return typeDescKind == TypeDescKind.RECORD;
+        } else if (kind == TypeDescKind.MAP) {
+            typeDescriptor = ((MapTypeSymbol) typeDescriptor).typeParam();
+            return isValidPayloadParamType(typeDescriptor, ctx, paramLocation, paramName);
+        } else if (kind == TypeDescKind.TABLE) {
+            typeDescriptor = ((TableTypeSymbol) typeDescriptor).rowTypeParameter();
+            return isValidPayloadParamType(typeDescriptor, ctx, paramLocation, paramName);
+        }
+        return false;
     }
 
     private static void validateHeaderParamType(SyntaxNodeAnalysisContext ctx, Location paramLocation, Symbol param,
@@ -527,17 +533,17 @@ class HttpResourceValidator {
         Map<String, RecordFieldSymbol> recordFieldSymbolMap = recordTypeSymbol.fieldDescriptors();
         for (Map.Entry<String, RecordFieldSymbol> entry : recordFieldSymbolMap.entrySet()) {
             RecordFieldSymbol value = entry.getValue();
-            TypeSymbol paramTypeDescriptor = value.typeDescriptor();
-            String typeName = paramTypeDescriptor.signature();
-            TypeDescKind typeDescKind = paramTypeDescriptor.typeKind();
+            typeDescriptor = value.typeDescriptor();
+            String typeName = typeDescriptor.signature();
+            TypeDescKind typeDescKind = typeDescriptor.typeKind();
             if (typeDescKind == TypeDescKind.INTERSECTION) {
-                paramTypeDescriptor = getEffectiveTypeFromReadonlyIntersection((ParameterSymbol) value);
-                if (paramTypeDescriptor == null) {
+                typeDescriptor = getEffectiveTypeFromReadonlyIntersection((IntersectionTypeSymbol) typeDescriptor);
+                if (typeDescriptor == null) {
                     reportInvalidIntersectionType(ctx, paramLocation, typeName);
                     continue;
                 }
             }
-            validateHeaderParamType(ctx, paramLocation, value, entry.getKey(), paramTypeDescriptor);
+            validateHeaderParamType(ctx, paramLocation, value, entry.getKey(), typeDescriptor);
         }
         Optional<TypeSymbol> restTypeDescriptor = recordTypeSymbol.restTypeDescriptor();
         if (restTypeDescriptor.isPresent()) {
@@ -707,8 +713,7 @@ class HttpResourceValidator {
         return true;
     }
 
-    private static TypeSymbol getEffectiveTypeFromReadonlyIntersection(ParameterSymbol param) {
-        IntersectionTypeSymbol intersectionTypeSymbol = (IntersectionTypeSymbol) param.typeDescriptor();
+    private static TypeSymbol getEffectiveTypeFromReadonlyIntersection(IntersectionTypeSymbol intersectionTypeSymbol) {
         List<TypeSymbol> effectiveTypes = new ArrayList<>();
         for (TypeSymbol typeSymbol : intersectionTypeSymbol.memberTypeDescriptors()) {
             if (typeSymbol.typeKind() == TypeDescKind.READONLY) {
@@ -778,6 +783,13 @@ class HttpResourceValidator {
         } else {
             return TypeDescKind.ERROR.equals(typeKind) || TypeDescKind.NIL.equals(typeKind);
         }
+    }
+
+    private static boolean isAnyDataType(TypeDescKind elementKind) {
+        return elementKind == TypeDescKind.BOOLEAN || elementKind == TypeDescKind.INT ||
+                elementKind == TypeDescKind.FLOAT || elementKind == TypeDescKind.DECIMAL ||
+                elementKind == TypeDescKind.STRING || elementKind == TypeDescKind.XML ||
+                elementKind == TypeDescKind.JSON || elementKind == TypeDescKind.RECORD;
     }
 
     private static void reportInvalidResourceAnnotation(SyntaxNodeAnalysisContext ctx, Location location,
