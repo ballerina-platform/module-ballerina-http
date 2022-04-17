@@ -27,7 +27,6 @@ import java.util.Locale;
 
 import static io.ballerina.runtime.api.TypeTags.ARRAY_TAG;
 import static io.ballerina.runtime.api.TypeTags.MAP_TAG;
-import static io.ballerina.runtime.api.TypeTags.RECORD_TYPE_TAG;
 import static io.ballerina.runtime.api.TypeTags.STRING_TAG;
 import static io.ballerina.runtime.api.TypeTags.XML_TAG;
 
@@ -52,12 +51,13 @@ public abstract class AbstractPayloadConverter {
             return new StringConverter(payloadType);
         } else if (contentType.contains("x-www-form-urlencoded")) {
             if (payloadType.getTag() == MAP_TAG) {
-                return new MapConverter(payloadType);
+                return new MapConverter(payloadType, true);
             }
-            //TODO check
-            return new JsonConverter(payloadType);
+            return new StringConverter(payloadType);
         } else if (contentType.contains("octet-stream")) {
             return new ArrayConverter(payloadType);
+        }  else if (contentType.contains("json")) {
+            return new JsonConverter(payloadType);
         } else {
             return getConverterFromType(payloadType);
         }
@@ -73,8 +73,6 @@ public abstract class AbstractPayloadConverter {
                 return new ArrayConverter(payloadType);
             case MAP_TAG:
                 return new MapConverter(payloadType);
-            case RECORD_TYPE_TAG:
-                return new RecordConverter(payloadType);
             default:
                 return new JsonConverter(payloadType);
         }

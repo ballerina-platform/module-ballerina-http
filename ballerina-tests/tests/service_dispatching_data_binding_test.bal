@@ -127,10 +127,6 @@ service /dataBinding on generalListener {
             }
         }
     }
-
-    resource function post getInt(@http:Payload int j) returns int {
-        return j;
-    }
 }
 
 isolated http:Service multipleAnnot1 = service object {
@@ -582,11 +578,4 @@ function testDataBindingTable() {
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
-}
-
-@test:Config {}
-function testDataBindingAnInt() returns error? {
-    json j = 12;
-    json response = check dataBindingClient->post("/dataBinding/getInt", j);
-    assertJsonPayload(response, j);
 }

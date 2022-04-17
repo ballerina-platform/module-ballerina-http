@@ -22,14 +22,10 @@ import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.values.BArray;
-import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
-import io.ballerina.runtime.api.values.BRefValue;
-import io.ballerina.stdlib.http.api.BallerinaConnectorException;
 import io.ballerina.stdlib.http.api.HttpErrorType;
 import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.mime.util.EntityBodyHandler;
-import org.ballerinalang.langlib.value.CloneWithType;
 
 import java.io.IOException;
 
@@ -60,54 +56,9 @@ public class ArrayConverter extends AbstractPayloadConverter {
                 blobDataSource.freezeDirect();
             }
             paramFeed[index++] = blobDataSource;
-        } else if (elementType.getTag() == TypeTags.RECORD_TYPE_TAG) {
-            Object recordEntity = getRecordEntity(inRequestEntity, payloadType);
-            if (readonly && recordEntity instanceof BRefValue) {
-                ((BRefValue) recordEntity).freezeDirect();
-            }
-            paramFeed[index++] = recordEntity;
         } else {
-            throw new BallerinaConnectorException("Incompatible Element type found inside an array " +
-                                                          elementType.getName());
+            return new JsonConverter(payloadType).getValue(inRequestEntity, readonly, paramFeed, index);
         }
         return index;
-    }
-
-    private static Object getRecordEntity(BObject inRequestEntity, Type entityBodyType) {
-        Object bjson = EntityBodyHandler.getMessageDataSource(inRequestEntity) == null ? getBJsonValue(inRequestEntity)
-                : EntityBodyHandler.getMessageDataSource(inRequestEntity);
-        Object result = getRecord(entityBodyType, bjson);
-        if (result instanceof BError) {
-            throw (BError) result;
-        }
-        return result;
-    }
-
-    /**
-     * Convert a json to the relevant record type.
-     *
-     * @param entityBodyType Represents entity body type
-     * @param bjson          Represents the json value that needs to be converted
-     * @return the relevant ballerina record or object
-     */
-    private static Object getRecord(Type entityBodyType, Object bjson) {
-        try {
-            return CloneWithType.convert(entityBodyType, bjson);
-        } catch (NullPointerException ex) {
-            throw new BallerinaConnectorException("cannot convert payload to record type: " +
-                                                          entityBodyType.getName());
-        }
-    }
-
-    /**
-     * Given an inbound request entity construct the ballerina json.
-     *
-     * @param inRequestEntity Represents inbound request entity
-     * @return a ballerina json value
-     */
-    private static Object getBJsonValue(BObject inRequestEntity) {
-        Object bjson = EntityBodyHandler.constructJsonDataSource(inRequestEntity);
-        EntityBodyHandler.addJsonMessageDataSource(inRequestEntity, bjson);
-        return bjson;
     }
 }

@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.api.service.signature.converter;
 
+import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.values.BError;
@@ -40,6 +41,14 @@ public class JsonConverter extends AbstractPayloadConverter {
 
     @Override
     public int getValue(BObject inRequestEntity, boolean readonly, Object[] paramFeed, int index) {
+        // Following can be removed based on the solution of
+        // https://github.com/ballerina-platform/ballerina-lang/issues/35780
+        if (payloadType.getTag() == TypeTags.RECORD_TYPE_TAG) {
+            return new RecordConverter(payloadType).getValue(inRequestEntity, readonly, paramFeed, index);
+        }
+        if (payloadType.getTag() == TypeTags.STRING_TAG) {
+            return new StringConverter(payloadType).getValue(inRequestEntity, readonly, paramFeed, index);
+        }
         Object bjson = EntityBodyHandler.constructJsonDataSource(inRequestEntity);
         EntityBodyHandler.addJsonMessageDataSource(inRequestEntity, bjson);
         var result = FromJsonWithType.fromJsonWithType(bjson, ValueCreator.createTypedescValue(payloadType));

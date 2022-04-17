@@ -29,6 +29,8 @@ import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.http.api.BallerinaConnectorException;
+import io.ballerina.stdlib.http.api.HttpErrorType;
+import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.mime.util.EntityBodyHandler;
 
 import java.net.URLDecoder;
@@ -47,26 +49,37 @@ public class MapConverter extends AbstractPayloadConverter {
 
     Type payloadType;
     private static final MapType STRING_MAP = TypeCreator.createMapType(PredefinedTypes.TYPE_STRING);
+    private boolean urlEncoded;
+
+    public MapConverter(Type payloadType, boolean urlEncoded) {
+        this.payloadType = payloadType;
+        this.urlEncoded = urlEncoded;
+    }
 
     public MapConverter(Type payloadType) {
         this.payloadType = payloadType;
+        this.urlEncoded = false;
     }
 
     @Override
     public int getValue(BObject inRequestEntity, boolean readonly, Object[] paramFeed, int index) {
         Type constrainedType = ((MapType) payloadType).getConstrainedType();
-        if (constrainedType.getTag() != STRING_TAG) {
-            throw ErrorCreator.createError(StringUtils.fromString(
-                    "invalid map constrained type. Expected: 'map<string>'"));
+        if (urlEncoded) {
+            if (constrainedType.getTag() == STRING_TAG) {
+                BString stringDataSource = EntityBodyHandler.constructStringDataSource(inRequestEntity);
+                EntityBodyHandler.addMessageDataSource(inRequestEntity, stringDataSource);
+                BMap<BString, Object> formParamMap = getFormParamMap(stringDataSource);
+                if (readonly) {
+                    formParamMap.freezeDirect();
+                }
+                paramFeed[index++] = formParamMap;
+                return index;
+            }
+            String typeName = payloadType.getName() + "<" + constrainedType.getName() + ">";
+            throw HttpUtil.createHttpError("incompatible type found: '" + typeName + "'",
+                                           HttpErrorType.GENERIC_LISTENER_ERROR);
         }
-        BString stringDataSource = EntityBodyHandler.constructStringDataSource(inRequestEntity);
-        EntityBodyHandler.addMessageDataSource(inRequestEntity, stringDataSource);
-        BMap<BString, Object> formParamMap = getFormParamMap(stringDataSource);
-        if (readonly) {
-            formParamMap.freezeDirect();
-        }
-        paramFeed[index++] = formParamMap;
-        return index;
+        return new JsonConverter(payloadType).getValue(inRequestEntity, readonly, paramFeed, index);
     }
 
     private static BMap<BString, Object> getFormParamMap(Object stringDataSource) {
