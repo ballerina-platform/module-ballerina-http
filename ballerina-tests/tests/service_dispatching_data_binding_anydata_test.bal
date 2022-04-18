@@ -207,6 +207,11 @@ service /anydataB on generalListener {
         }
     }
 
+    // anydata
+    resource function post checkAnydata(@http:Payload anydata j) returns int {
+        return <int>j;
+    }
+
 
 }
 
@@ -658,4 +663,11 @@ function testDataBindingReadonlyRecordArray() returns error? {
     json response = check anydataBindingClient->post("/anydataB/checkReadonlyArr", j);
     assertJsonValue(response, "status", "readonly");
     assertJsonValue(response, "value", {name:"wso2",age:17});
+}
+
+@test:Config {}
+function testDataBindingAnydata() returns error? {
+    json j = 12;
+    json response = check anydataBindingClient->post("/anydataB/checkAnydata", j);
+    assertJsonPayload(response, j);
 }

@@ -1201,7 +1201,7 @@ http:Client httpClient = check new ("https://person.free.beeceptor.com");
 var payload = check httpClient->get("/data", targetType = json);
 ```
 When the user expects client data binding to happen, the HTTP error responses (4XX, 5XX) will be categorized as an 
-error (http:ClientRequestError, http:RemoteServerError) of the client remote operation. These error types contains
+error (http:ClientRequestError, http:RemoteServerError) of the client remote operation. These error types contain 
 payload, headers and status code inside the error detail.
 
 ```ballerina

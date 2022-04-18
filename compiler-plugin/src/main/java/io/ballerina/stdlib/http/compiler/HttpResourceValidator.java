@@ -789,7 +789,8 @@ class HttpResourceValidator {
         return elementKind == TypeDescKind.BOOLEAN || elementKind == TypeDescKind.INT ||
                 elementKind == TypeDescKind.FLOAT || elementKind == TypeDescKind.DECIMAL ||
                 elementKind == TypeDescKind.STRING || elementKind == TypeDescKind.XML ||
-                elementKind == TypeDescKind.JSON || elementKind == TypeDescKind.RECORD;
+                elementKind == TypeDescKind.JSON || elementKind == TypeDescKind.RECORD ||
+                elementKind == TypeDescKind.ANYDATA;
     }
 
     private static void reportInvalidResourceAnnotation(SyntaxNodeAnalysisContext ctx, Location location,

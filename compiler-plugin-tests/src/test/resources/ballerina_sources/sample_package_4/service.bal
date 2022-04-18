@@ -224,6 +224,11 @@ service http:Service on new http:Listener(9090) {
         return "done";
     }
 
+    // anydata
+    resource function post dbAnydata(@http:Payload anydata abc) returns string {
+        return "done";
+    }
+
     //readonly
     resource function post dbIntTableRO(@http:Payload table<readonly & map<readonly & byte[]>> abc) returns string {
         return "done";

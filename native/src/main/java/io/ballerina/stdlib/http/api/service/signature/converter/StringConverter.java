@@ -55,7 +55,7 @@ public class StringConverter extends AbstractPayloadConverter {
                         ValueCreator.createArrayValue(stringDataSource.getValue().getBytes(StandardCharsets.UTF_8));
             } else {
                 throw HttpUtil.createHttpError(
-                        "Incompatible Element type found inside an array " + elementType.getName(),
+                        "incompatible Element type found inside an array " + elementType.getName(),
                         HttpErrorType.GENERIC_LISTENER_ERROR);
             }
         } else {
