@@ -27,8 +27,8 @@ import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.stdlib.http.api.BallerinaConnectorException;
 import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.api.HttpUtil;
-import io.ballerina.stdlib.http.api.service.signature.converter.AbstractPayloadConverter;
-import io.ballerina.stdlib.http.api.service.signature.converter.RecordConverter;
+import io.ballerina.stdlib.http.api.service.signature.builder.AbstractPayloadBuilder;
+import io.ballerina.stdlib.http.api.service.signature.converter.JsonToRecordConverter;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.mime.util.EntityBodyHandler;
 
@@ -36,7 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static io.ballerina.runtime.api.TypeTags.ARRAY_TAG;
-import static io.ballerina.stdlib.http.api.service.signature.converter.AbstractPayloadConverter.getConverter;
+import static io.ballerina.stdlib.http.api.service.signature.builder.AbstractPayloadBuilder.getBuilder;
 import static io.ballerina.stdlib.mime.util.MimeConstants.REQUEST_ENTITY_FIELD;
 
 /**
@@ -132,7 +132,7 @@ public class PayloadParam implements Parameter {
                     if (((ArrayType) payloadType).getElementType().getTag() == TypeTags.BYTE_TAG) {
                         paramFeed[index++] = dataSource;
                     } else if (((ArrayType) payloadType).getElementType().getTag() == TypeTags.RECORD_TYPE_TAG) {
-                        index = new RecordConverter(payloadType).getValue(inRequestEntity, readonly, paramFeed, index);
+                        index = JsonToRecordConverter.convert(payloadType, inRequestEntity, readonly, paramFeed, index);
                     } else {
                         throw new BallerinaConnectorException("Incompatible Element type found inside an array " +
                                                                       ((ArrayType) payloadType).getElementType()
@@ -140,7 +140,7 @@ public class PayloadParam implements Parameter {
                     }
                     break;
                 case TypeTags.RECORD_TYPE_TAG:
-                    index = new RecordConverter(payloadType).getValue(inRequestEntity, readonly, paramFeed, index);
+                    index = JsonToRecordConverter.convert(payloadType, inRequestEntity, readonly, paramFeed, index);
                     break;
                 default:
                     paramFeed[index++] = dataSource;
@@ -155,8 +155,8 @@ public class PayloadParam implements Parameter {
     private int populateFeedWithFreshPayload(HttpCarbonMessage httpCarbonMessage, Object[] paramFeed,
                                              BObject inRequestEntity, int index, Type payloadType) {
         try {
-            AbstractPayloadConverter converter = getConverter(httpCarbonMessage, payloadType);
-            index = converter.getValue(inRequestEntity, this.readonly, paramFeed, index);
+            AbstractPayloadBuilder payloadBuilder = getBuilder(httpCarbonMessage, payloadType);
+            index = payloadBuilder.build(inRequestEntity, this.readonly, paramFeed, index);
             httpCarbonMessage.setProperty(HttpConstants.ENTITY_OBJ, inRequestEntity);
             return index;
         } catch (BError ex) {

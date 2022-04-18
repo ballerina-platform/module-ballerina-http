@@ -265,7 +265,7 @@ function testDataBindingWithMapOfIntUrlEncoded() returns error? {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(),
-        "data binding failed: error GenericListenerError (\"incompatible type found: 'map<int>'\")");
+        "data binding failed: error PayloadBindingError (\"incompatible type found: 'map<int>'\")");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -301,13 +301,6 @@ function testDataBindingString() returns error? {
 }
 
 @test:Config {}
-function testDataBindingStringWithJson() returns error? {
-    json j = "hello";
-    string response = check anydataBindingClient->post("/anydataB/checkString", j, mediaType = "application/json");
-    assertTextPayload(response, "hello");
-}
-
-@test:Config {}
 function testDataBindingStringWithUrlEncoded() returns error? {
     string j = "name=hello%20go&team=ba%20%23ller%20%40na";
     string response = check anydataBindingClient->post("/anydataB/checkString", j,
@@ -327,6 +320,19 @@ function testDataBindingStringArray() returns error? {
     json j = ["Hi", "Hello"];
     json response = check anydataBindingClient->post("/anydataB/checkStringArray", j);
     assertJsonPayload(response, j);
+}
+
+@test:Config {}
+function testDataBindingStringArrayNegative() {
+    json j = ["Hi", "Hello"];
+    http:Response|error response = anydataBindingClient->post("/anydataB/checkStringArray", j, mediaType = "text/plain");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(),
+        "data binding failed: error PayloadBindingError (\"incompatible array element type found: 'string'\")");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
 }
 
 @test:Config {}
@@ -548,6 +554,19 @@ function testDataBindingXmlByType() returns error? {
     xml j = xml `<name>WSO2</name>`;
     xml response = check anydataBindingClient->post("/anydataB/checkXml", j, mediaType = "application/abc");
     assertXmlPayload(response, j);
+}
+
+@test:Config {}
+function testDataBindingXmlNegative() {
+    xml j = xml `<name>WSO2</name>`;
+    http:Response|error response = anydataBindingClient->post("/anydataB/checkIntMap", j);
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(),
+            "data binding failed: error PayloadBindingError (\"incompatible type found: 'map<int>'\")");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
 }
 
 @test:Config {}

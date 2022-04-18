@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package io.ballerina.stdlib.http.api.service.signature.converter;
+package io.ballerina.stdlib.http.api.service.signature.builder;
 
 import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.types.Type;
@@ -27,19 +27,19 @@ import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.mime.util.EntityBodyHandler;
 
 /**
- * The xml type payload converter.
+ * The xml type payload builder.
  *
  * @since SwanLake update 1
  */
-public class XmlConverter extends AbstractPayloadConverter {
-    Type payloadType;
+public class XmlPayloadBuilder extends AbstractPayloadBuilder {
+    private final Type payloadType;
 
-    public XmlConverter(Type payloadType) {
+    public XmlPayloadBuilder(Type payloadType) {
         this.payloadType = payloadType;
     }
 
     @Override
-    public int getValue(BObject inRequestEntity, boolean readonly, Object[] paramFeed, int index) {
+    public int build(BObject inRequestEntity, boolean readonly, Object[] paramFeed, int index) {
         if (payloadType.getTag() == TypeTags.XML_TAG) {
             BXml bxml = EntityBodyHandler.constructXmlDataSource(inRequestEntity);
             EntityBodyHandler.addMessageDataSource(inRequestEntity, bxml);
@@ -49,8 +49,8 @@ public class XmlConverter extends AbstractPayloadConverter {
             paramFeed[index++] = bxml;
             return index;
         } else {
-            throw HttpUtil.createHttpError("incompatible type found: '" + payloadType.getName() + "'",
-                                           HttpErrorType.GENERIC_LISTENER_ERROR);
+            throw HttpUtil.createHttpError("incompatible type found: '" + payloadType.toString() + "'",
+                                           HttpErrorType.PAYLOAD_BINDING_ERROR);
         }
     }
 }

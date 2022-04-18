@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package io.ballerina.stdlib.http.api.service.signature.converter;
+package io.ballerina.stdlib.http.api.service.signature.builder;
 
 import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.creators.ValueCreator;
@@ -24,30 +24,28 @@ import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BRefValue;
+import io.ballerina.stdlib.http.api.service.signature.converter.JsonToRecordConverter;
 import io.ballerina.stdlib.mime.util.EntityBodyHandler;
 import org.ballerinalang.langlib.value.FromJsonWithType;
 
 /**
- * The json type payload converter.
+ * The json type payload builder.
  *
  * @since SwanLake update 1
  */
-public class JsonConverter extends AbstractPayloadConverter {
-    Type payloadType;
+public class JsonPayloadBuilder extends AbstractPayloadBuilder {
+    private final Type payloadType;
 
-    public JsonConverter(Type payloadType) {
+    public JsonPayloadBuilder(Type payloadType) {
         this.payloadType = payloadType;
     }
 
     @Override
-    public int getValue(BObject inRequestEntity, boolean readonly, Object[] paramFeed, int index) {
+    public int build(BObject inRequestEntity, boolean readonly, Object[] paramFeed, int index) {
         // Following can be removed based on the solution of
         // https://github.com/ballerina-platform/ballerina-lang/issues/35780
         if (payloadType.getTag() == TypeTags.RECORD_TYPE_TAG) {
-            return new RecordConverter(payloadType).getValue(inRequestEntity, readonly, paramFeed, index);
-        }
-        if (payloadType.getTag() == TypeTags.STRING_TAG) {
-            return new StringConverter(payloadType).getValue(inRequestEntity, readonly, paramFeed, index);
+            return JsonToRecordConverter.convert(payloadType, inRequestEntity, readonly, paramFeed, index);
         }
         Object bjson = EntityBodyHandler.constructJsonDataSource(inRequestEntity);
         EntityBodyHandler.addJsonMessageDataSource(inRequestEntity, bjson);

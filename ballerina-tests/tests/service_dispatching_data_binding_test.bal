@@ -306,7 +306,7 @@ function testDataBindingIncompatibleJSONPayloadType() {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(),
-            "data binding failed: error GenericListenerError (\"incompatible type found: 'json'\")");
+            "data binding failed: error PayloadBindingError (\"incompatible type found: 'json'\")");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -361,7 +361,7 @@ function testDataBindingIncompatibleStructPayload() {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(),
-        "data binding failed: error GenericListenerError (\"incompatible type found: 'Person'\")");
+        "data binding failed: error PayloadBindingError (\"incompatible type found: 'http_tests:Person'\")");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

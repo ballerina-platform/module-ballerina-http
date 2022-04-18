@@ -27,20 +27,14 @@ import io.ballerina.stdlib.mime.util.EntityBodyHandler;
 import org.ballerinalang.langlib.value.CloneWithType;
 
 /**
- * The record type payload converter.
+ * The converter binds the JSON payload to a record.
  *
  * @since SwanLake update 1
  */
-public class RecordConverter extends AbstractPayloadConverter {
-    Type payloadType;
+public class JsonToRecordConverter {
 
-    public RecordConverter(Type payloadType) {
-        this.payloadType = payloadType;
-    }
-
-    @Override
-    public int getValue(BObject inRequestEntity, boolean readonly, Object[] paramFeed, int index) {
-        Object recordEntity = getRecordEntity(inRequestEntity, payloadType);
+    public static int convert(Type type, BObject inRequestEntity, boolean readonly, Object[] paramFeed, int index) {
+        Object recordEntity = getRecordEntity(inRequestEntity, type);
         if (readonly && recordEntity instanceof BRefValue) {
             ((BRefValue) recordEntity).freezeDirect();
         }
@@ -84,5 +78,9 @@ public class RecordConverter extends AbstractPayloadConverter {
         Object bjson = EntityBodyHandler.constructJsonDataSource(inRequestEntity);
         EntityBodyHandler.addJsonMessageDataSource(inRequestEntity, bjson);
         return bjson;
+    }
+
+    private JsonToRecordConverter() {
+
     }
 }
