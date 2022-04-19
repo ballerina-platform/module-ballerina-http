@@ -47,10 +47,19 @@ public class HttpCallableUnitCallback implements Callback {
     HttpCallableUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime, String returnMediaType,
                              BMap cacheConfig) {
         this.requestMessage = requestMessage;
-        this.caller = (BObject) requestMessage.getProperty(HttpConstants.CALLER);
+        this.caller = getCaller(requestMessage);
         this.runtime = runtime;
         this.returnMediaType = returnMediaType;
         this.cacheConfig = cacheConfig;
+    }
+
+    private BObject getCaller(HttpCarbonMessage requestMessage) {
+        BObject caller = requestMessage.getProperty(HttpConstants.CALLER) == null ?
+                         ValueCreatorUtils.createCallerObject(requestMessage) :
+                         (BObject) requestMessage.getProperty(HttpConstants.CALLER);
+        caller.addNativeData(HttpConstants.TRANSPORT_MESSAGE, requestMessage);
+        requestMessage.setProperty(HttpConstants.CALLER, caller);
+        return caller;
     }
 
     @Override
@@ -60,8 +69,14 @@ public class HttpCallableUnitCallback implements Callback {
             stopObserverContext();
             return;
         }
-        printStacktraceIfError(result);
+        if (result instanceof BError) {
+            invokeErrorInterceptors((BError) result, true);
+            return;
+        }
+        returnResponse(result);
+    }
 
+    private void returnResponse(Object result) {
         Object[] paramFeed = new Object[6];
         paramFeed[0] = result;
         paramFeed[1] = true;
@@ -70,6 +85,22 @@ public class HttpCallableUnitCallback implements Callback {
         paramFeed[4] = cacheConfig;
         paramFeed[5] = true;
 
+        invokeBalMethod(paramFeed, "returnResponse");
+    }
+
+    private void returnErrorResponse(BError error) {
+        Object[] paramFeed = new Object[6];
+        paramFeed[0] = error;
+        paramFeed[1] = true;
+        paramFeed[2] = returnMediaType != null ? StringUtils.fromString(returnMediaType) : null;
+        paramFeed[3] = true;
+        paramFeed[4] = requestMessage.getHttpStatusCode();
+        paramFeed[5] = true;
+
+        invokeBalMethod(paramFeed, "returnErrorResponse");
+    }
+
+    private void invokeBalMethod(Object[] paramFeed, String methodName) {
         Callback returnCallback = new Callback() {
             @Override
             public void notifySuccess(Object result) {
@@ -83,7 +114,7 @@ public class HttpCallableUnitCallback implements Callback {
             }
         };
         runtime.invokeMethodAsyncSequentially(
-                caller, "returnResponse", null, ModuleUtils.getNotifySuccessMetaData(),
+                caller, methodName, null, ModuleUtils.getNotifySuccessMetaData(),
                 returnCallback, null, PredefinedTypes.TYPE_NULL, paramFeed);
     }
 
@@ -100,18 +131,21 @@ public class HttpCallableUnitCallback implements Callback {
     @Override
     public void notifyFailure(BError error) { // handles panic and check_panic
         cleanupRequestMessage();
-        // This check is added to release the failure path since there is an authn/authz failure and responded
-        // with 401/403 internally.
-        if (error.getMessage().equals("Already responded by auth desugar.")) {
-            return;
-        }
         if (alreadyResponded(error)) {
             return;
         }
-        sendFailureResponse(error);
+        invokeErrorInterceptors(error, true);
     }
 
-    private void sendFailureResponse(BError error) {
+    public void invokeErrorInterceptors(BError error, boolean printError) {
+        requestMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR, error);
+        if (printError) {
+            error.printStackTrace();
+        }
+        returnErrorResponse(error);
+    }
+
+    public void sendFailureResponse(BError error) {
         stopObserverContext();
         HttpUtil.handleFailure(requestMessage, error, true);
     }

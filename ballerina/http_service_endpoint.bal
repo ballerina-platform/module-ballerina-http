@@ -23,6 +23,7 @@ public isolated class Listener {
 
     private int port;
     private InferredListenerConfiguration inferredConfig;
+    private Interceptor[] interceptors;
 
     # Gets invoked during module initialization to initialize the listener.
     #
@@ -39,6 +40,13 @@ public isolated class Listener {
             server: config.server,
             requestLimits: config.requestLimits
         };
+        self.interceptors = [new DefaultErrorInterceptor()];
+        Interceptor[]? interceptors = config.interceptors;
+        if interceptors is Interceptor[] {
+            foreach Interceptor interceptor in interceptors {
+                self.interceptors.push(interceptor);
+            }
+        }
         self.inferredConfig = inferredListenerConfig.cloneReadOnly();
         self.port = port;
         return externInitEndpoint(self, config);
@@ -167,7 +175,7 @@ public type ListenerConfiguration record {|
     decimal timeout = DEFAULT_LISTENER_TIMEOUT;
     string? server = ();
     RequestLimitConfigs requestLimits = {};
-    (RequestInterceptor|RequestErrorInterceptor)[]? interceptors = ();
+    Interceptor[] interceptors?;
 |};
 
 # Provides a set of cloneable configurations for HTTP listener.

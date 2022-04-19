@@ -26,6 +26,7 @@ public class Constants {
     public static final String HTTP = "http";
     public static final String SERVICE_KEYWORD = "service";
     public static final String REMOTE_KEYWORD = "remote";
+    public static final String RESOURCE_KEYWORD = "resource";
     public static final String RESPONSE_OBJ_NAME = "Response";
     public static final String CALLER_OBJ_NAME = "Caller";
     public static final String REQUEST_OBJ_NAME = "Request";
@@ -45,15 +46,22 @@ public class Constants {
     public static final String ERROR = "annotations:error";
     public static final String ALLOWED_RETURN_UNION = "anydata|http:Response|http:StatusCodeRecord|error";
     public static final String REQUEST_INTERCEPTOR = "RequestInterceptor";
+    public static final String RESPONSE_INTERCEPTOR = "ResponseInterceptor";
     public static final String REQUEST_ERROR_INTERCEPTOR = "RequestErrorInterceptor";
+    public static final String RESPONSE_ERROR_INTERCEPTOR = "ResponseErrorInterceptor";
     public static final String SERVICE = "Service";
     public static final String HTTP_REQUEST_INTERCEPTOR = "http:RequestInterceptor";
     public static final String HTTP_REQUEST_ERROR_INTERCEPTOR = "http:RequestErrorInterceptor";
-    public static final String ALLOWED_INTERCEPTOR_RETURN_UNION = "http:NextService|error?";
+    public static final String HTTP_RESPONSE_INTERCEPTOR = "http:ResponseInterceptor";
+    public static final String HTTP_RESPONSE_ERROR_INTERCEPTOR = "http:ResponseErrorInterceptor";
+    public static final String ALLOWED_INTERCEPTOR_RETURN_UNION = "anydata|http:Response|http:StatusCodeRecord|" +
+                                                                  "http:NextService|error?";
     public static final String DEFAULT = "default";
     public static final String GET = "get";
     public static final String HEAD = "head";
     public static final String OPTIONS = "options";
+    public static final String INTERCEPT_RESPONSE = "interceptResponse";
+    public static final String INTERCEPT_RESPONSE_ERROR = "interceptResponseError";
 
     public static final String COLON = ":";
     public static final String PLUS = "+";

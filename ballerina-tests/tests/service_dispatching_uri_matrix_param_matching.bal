@@ -17,10 +17,9 @@
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener matrixEP = new(uriMatrixParamMatchingTest);
-final http:Client matrixClient = check new("http://localhost:" + uriMatrixParamMatchingTest.toString());
+final http:Client matrixClient = check new("http://localhost:" + generalPort.toString());
 
-service /hello on matrixEP {
+service /hello on generalListener {
 
     resource function get t1/[string person]/bar/[string yearParam]/foo(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;

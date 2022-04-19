@@ -20,7 +20,6 @@ package io.ballerina.stdlib.http.api;
 import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.constants.RuntimeConstants;
-import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.observability.ObservabilityConstants;
@@ -57,80 +56,97 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
     protected final List<HTTPInterceptorServicesRegistry> httpInterceptorServicesRegistries;
 
     protected final BMap endpointConfig;
+    protected final Object listenerLevelInterceptors;
 
     public BallerinaHTTPConnectorListener(HTTPServicesRegistry httpServicesRegistry,
-                        List<HTTPInterceptorServicesRegistry> httpInterceptorServicesRegistries, BMap endpointConfig) {
+                                          List<HTTPInterceptorServicesRegistry> httpInterceptorServicesRegistries,
+                                          BMap endpointConfig, Object interceptors) {
         this.httpInterceptorServicesRegistries = httpInterceptorServicesRegistries;
         this.httpServicesRegistry = httpServicesRegistry;
         this.endpointConfig = endpointConfig;
+        this.listenerLevelInterceptors = interceptors;
     }
 
     @Override
     public void onMessage(HttpCarbonMessage inboundMessage) {
+        if (Objects.isNull(inboundMessage.getProperty(INTERCEPTOR_SERVICES_REGISTRIES))) {
+            setTargetServiceToInboundMsg(inboundMessage);
+        }
+
+        List<HTTPInterceptorServicesRegistry> interceptorServicesRegistries =
+                (List<HTTPInterceptorServicesRegistry>) inboundMessage.getProperty(INTERCEPTOR_SERVICES_REGISTRIES);
+
         try {
-            if (Objects.isNull(inboundMessage.getProperty(INTERCEPTOR_SERVICES_REGISTRIES))) {
-                setTargetServiceToCarbonMsg(inboundMessage);
-            }
-
-            List<HTTPInterceptorServicesRegistry> interceptorServicesRegistries =
-                    (List<HTTPInterceptorServicesRegistry>) inboundMessage.getProperty(INTERCEPTOR_SERVICES_REGISTRIES);
-
-            // Executing interceptor services
-            InterceptorResource interceptorResource;
-            int interceptorServiceIndex = inboundMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX)
-                    == null ? 0 : (int)  inboundMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX);
-            while (interceptorServiceIndex < interceptorServicesRegistries.size()) {
-                HTTPInterceptorServicesRegistry interceptorServicesRegistry = interceptorServicesRegistries.
-                        get(interceptorServiceIndex);
-
-                // Checking whether the interceptor service state matches the interceptor service registry type
-                if (!interceptorServicesRegistry.getServicesType().
-                                            equals(inboundMessage.getInterceptorServiceState())) {
-                    interceptorServiceIndex += 1;
-                    inboundMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX, interceptorServiceIndex);
-                    continue;
-                }
-
-                interceptorResource = findInterceptorResource(interceptorServicesRegistry, inboundMessage);
-
-                // Checking whether interceptor resource has data-binding and if we already executed an interceptor
-                // resource we skip getting the full request
-                if (HttpDispatcher.shouldDiffer(interceptorResource) &&
-                        !inboundMessage.isAccessedInInterceptorService()) {
-                    inboundMessage.setProperty(HttpConstants.WAIT_FOR_FULL_REQUEST, true);
-                    inboundMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE, true);
-                    inboundMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX, interceptorServiceIndex);
-                    //Removes inbound content listener since data binding waits for all contents to be received
-                    //before executing its logic.
-                    inboundMessage.removeInboundContentListener();
-                    return;
-                }
-
-                interceptorServiceIndex += 1;
-
-                // Checking whether the interceptor resource path matches the request path
-                if (interceptorResource != null) {
-                    inboundMessage.removeProperty(HttpConstants.WAIT_FOR_FULL_REQUEST);
-                    inboundMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_INDEX, interceptorServiceIndex);
-                    inboundMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE, true);
-                    extractPropertiesAndStartInterceptorResourceExecution(inboundMessage, interceptorResource,
-                            interceptorServicesRegistry);
-                    return;
-                }
-            }
-
-            if (inboundMessage.isInterceptorError()) {
-                HttpInterceptorUnitCallback callback = new HttpInterceptorUnitCallback(inboundMessage, null, this);
-                callback.sendFailureResponse((BError) inboundMessage.getProperty
-                                                                            (HttpConstants.INTERCEPTOR_SERVICE_ERROR));
-            } else {
-                // Executing main resource
-                executeMainResourceOnMessage(inboundMessage);
+            if (executeInterceptorServices(interceptorServicesRegistries, inboundMessage)) {
+                return;
             }
         } catch (Exception ex) {
-            HttpUtil.handleFailure(inboundMessage, ex.getMessage());
-            inboundMessage.waitAndReleaseAllEntities();
+            HttpRequestInterceptorUnitCallback callback = new HttpRequestInterceptorUnitCallback(inboundMessage,
+                    httpServicesRegistry.getRuntime(), this);
+            callback.invokeErrorInterceptors(HttpUtil.createError(ex), false);
+            return;
         }
+
+        if (inboundMessage.isInterceptorError()) {
+            HttpRequestInterceptorUnitCallback callback = new HttpRequestInterceptorUnitCallback(inboundMessage,
+                                                          httpServicesRegistry.getRuntime(), this);
+            callback.returnErrorResponse(inboundMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR));
+        } else {
+            try {
+                executeMainResourceOnMessage(inboundMessage);
+            } catch (Exception ex) {
+                HttpCallableUnitCallback callback = new HttpCallableUnitCallback(inboundMessage,
+                        httpServicesRegistry.getRuntime(), null, null);
+                callback.invokeErrorInterceptors(HttpUtil.createError(ex), false);
+            }
+        }
+    }
+
+    private boolean executeInterceptorServices(List<HTTPInterceptorServicesRegistry> interceptorServicesRegistries,
+                                               HttpCarbonMessage inboundMessage) {
+        int interceptorServiceIndex = inboundMessage.getProperty(HttpConstants.REQUEST_INTERCEPTOR_INDEX)
+                == null ? 0 : (int)  inboundMessage.getProperty(HttpConstants.REQUEST_INTERCEPTOR_INDEX);
+        while (interceptorServiceIndex < interceptorServicesRegistries.size()) {
+            InterceptorResource interceptorResource;
+            HTTPInterceptorServicesRegistry interceptorServicesRegistry = interceptorServicesRegistries.
+                    get(interceptorServiceIndex);
+
+            if (!interceptorServicesRegistry.getServicesType().
+                                        equals(inboundMessage.getRequestInterceptorServiceState())) {
+                interceptorServiceIndex += 1;
+                continue;
+            }
+
+            interceptorResource = findInterceptorResource(interceptorServicesRegistry, inboundMessage);
+
+            if (checkForInterceptorDataBinding(inboundMessage, interceptorServiceIndex, interceptorResource)) {
+                return true;
+            }
+
+            interceptorServiceIndex += 1;
+
+            if (interceptorResource != null) {
+                inboundMessage.removeProperty(HttpConstants.WAIT_FOR_FULL_REQUEST);
+                inboundMessage.setProperty(HttpConstants.REQUEST_INTERCEPTOR_INDEX, interceptorServiceIndex);
+                inboundMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE, true);
+                extractPropertiesAndStartInterceptorResourceExecution(inboundMessage, interceptorResource,
+                        interceptorServicesRegistry);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean checkForInterceptorDataBinding(HttpCarbonMessage inboundMessage, int interceptorServiceIndex,
+                                                   InterceptorResource interceptorResource) {
+        if (HttpDispatcher.shouldDiffer(interceptorResource) && inboundMessage.isAccessedInNonInterceptorService()) {
+            inboundMessage.setProperty(HttpConstants.WAIT_FOR_FULL_REQUEST, true);
+            inboundMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE, true);
+            inboundMessage.setProperty(HttpConstants.REQUEST_INTERCEPTOR_INDEX, interceptorServiceIndex);
+            inboundMessage.removeInboundContentListener();
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -160,7 +176,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         }
         Runtime runtime = httpServicesRegistry.getRuntime();
         Callback callback = new HttpCallableUnitCallback(inboundMessage, runtime, httpResource.getReturnMediaType(),
-                                                         httpResource.getResponseCacheConfig());
+                            httpResource.getResponseCacheConfig());
         BObject service = httpResource.getParentService().getBalService();
         String resourceName = httpResource.getName();
         if (service.getType().isIsolated() && service.getType().isIsolated(resourceName)) {
@@ -213,12 +229,10 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         Object[] signatureParams = HttpDispatcher.getSignatureParameters(resource, inboundMessage, endpointConfig);
 
         Runtime runtime = registry.getRuntime();
-        Callback callback = new HttpInterceptorUnitCallback(inboundMessage, runtime, this);
+        Callback callback = new HttpRequestInterceptorUnitCallback(inboundMessage, runtime, this);
         BObject service = resource.getParentService().getBalService();
         String resourceName = resource.getName();
 
-        // Removes the error occurred during interceptor execution since it is consumed by the error
-        // interceptor
         inboundMessage.removeProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
 
         if (service.getType().isIsolated() && service.getType().isIsolated(resourceName)) {
@@ -243,7 +257,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         httpResource = HttpDispatcher.findResource(httpServicesRegistry, inboundMessage);
         // Checking whether main resource has data-binding and if we already executed an interceptor resource
         // we skip getting the full request
-        if (HttpDispatcher.shouldDiffer(httpResource) && !inboundMessage.isAccessedInInterceptorService()) {
+        if (HttpDispatcher.shouldDiffer(httpResource) && inboundMessage.isAccessedInNonInterceptorService()) {
             inboundMessage.setProperty(HTTP_RESOURCE, httpResource);
             inboundMessage.setProperty(HttpConstants.WAIT_FOR_FULL_REQUEST, true);
             //Removes inbound content listener since data binding waits for all contents to be received
@@ -257,8 +271,9 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
                 extractPropertiesAndStartResourceExecution(inboundMessage, httpResource);
             }
         } catch (BallerinaConnectorException ex) {
-            HttpUtil.handleFailure(inboundMessage, ex.getMessage());
-            inboundMessage.waitAndReleaseAllEntities();
+            HttpCallableUnitCallback callback = new HttpCallableUnitCallback(inboundMessage,
+                                                httpServicesRegistry.getRuntime(), null, null);
+            callback.invokeErrorInterceptors(HttpUtil.createError(ex), false);
         }
     }
 
@@ -277,9 +292,9 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         }
     }
 
-    private void setTargetServiceToCarbonMsg(HttpCarbonMessage inboundMessage) {
+    private void setTargetServiceToInboundMsg(HttpCarbonMessage inboundMessage) {
         inboundMessage.setProperty(INTERCEPTOR_SERVICES_REGISTRIES, httpInterceptorServicesRegistries);
-        inboundMessage.setProperty(INTERCEPTORS, endpointConfig.getArrayValue(HttpConstants.ANN_INTERCEPTORS));
+        inboundMessage.setProperty(INTERCEPTORS, listenerLevelInterceptors);
         try {
             HttpService targetService = HttpDispatcher.findService(httpServicesRegistry, inboundMessage, true);
             inboundMessage.setProperty(HttpConstants.TARGET_SERVICE, targetService.getBalService());

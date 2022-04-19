@@ -217,9 +217,7 @@ function testGetCookiesWithEmptyValue() {
     test:assertEquals(cookiesInRequest[0].value, "", msg = "Invalid cookie value");
 }
 
-listener http:Listener requestListner = new(requestTest);
-
-service /requesthello on requestListner {
+service /requesthello on generalListener {
 
     resource function get addheader/[string key]/[string value](http:Caller caller, http:Request inReq) returns error? {
         http:Request req = new;
@@ -468,7 +466,7 @@ service /requesthello on requestListner {
     }
 }
 
-final http:Client requestClient = check new("http://localhost:" + requestTest.toString());
+final http:Client requestClient = check new("http://localhost:" + generalPort.toString());
 
 // Test addHeader function within a service
 @test:Config {}

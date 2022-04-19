@@ -356,11 +356,6 @@ service http:Service /mytest on resourceReturnTestEP {
         return;
     }
 
-    resource function get test30(http:Caller caller) returns error|string? {
-        _ = check caller->respond("Hello");
-        return "Hello2"; // log error
-    }
-
     resource function get test31(http:Caller caller) returns error? {
         check caller->respond("Hello"); // log error
         return;
@@ -1016,17 +1011,6 @@ public function testCheckPanic() {
 @test:Config {}
 public function testDoubleResponse() {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test29");
-    if resp is http:Response {
-        test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
-        assertTextPayload(resp.getTextPayload(), "Hello");
-    } else {
-        test:assertFail(msg = "Found unexpected output: " +  resp.message());
-    }
-}
-
-@test:Config {}
-public function testReturnAfterResponse() {
-    http:Response|error resp = resourceReturnTestClient->get("/mytest/test30");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
         assertTextPayload(resp.getTextPayload(), "Hello");

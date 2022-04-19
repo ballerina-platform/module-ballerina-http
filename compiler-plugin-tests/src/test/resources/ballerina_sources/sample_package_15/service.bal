@@ -46,7 +46,7 @@ service / on new http:Listener(9999) {
         return "done";
     }
 
-    resource function post test107(@http:Payload json[] abc) returns string {
+    resource function post test107(@http:Payload http:Caller[] abc) returns string {
         return "done"; // error
     }
 

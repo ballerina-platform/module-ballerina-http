@@ -40,9 +40,12 @@ public isolated client class Caller {
 
     # Sends the outbound response to the caller.
     #
-    # + message - The outbound response or any allowed payload
+    # + message - The outbound response or error or any allowed payload
     # + return - An `http:ListenerError` if failed to respond or else `()`
-    remote isolated function respond(ResponseMessage message = ()) returns ListenerError? {
+    remote isolated function respond(ResponseMessage|error message = ()) returns ListenerError? {
+        if message is error {
+            return self.returnErrorResponse(message);
+        }
         Response response = check buildResponse(message);
         return nativeRespond(self, response);
     }
@@ -119,7 +122,7 @@ public isolated client class Caller {
         return nativeGetRemoteHostName(self);
     }
 
-    private isolated function returnResponse(anydata|StatusCodeResponse|Response|error message, string? returnMediaType,
+    private isolated function returnResponse(anydata|StatusCodeResponse|Response message, string? returnMediaType,
         HttpCacheConfig? cacheConfig) returns ListenerError? {
         Response response = new;
         boolean setETag = cacheConfig is () ? false: cacheConfig.setETag;
@@ -135,18 +138,6 @@ public isolated client class Caller {
             } else {
                 Accepted AcceptedResponse = {};
                 response = createStatusCodeResponse(AcceptedResponse);
-            }
-        } else if message is error {
-            if message is ApplicationResponseError {
-                InternalServerError err = {
-                    headers: message.detail().headers,
-                    body: message.detail().body
-                };
-                response = createStatusCodeResponse(err, returnMediaType);
-                response.statusCode = message.detail().statusCode;
-            } else {
-                response.statusCode = STATUS_INTERNAL_SERVER_ERROR;
-                response.setTextPayload(message.message());
             }
         } else if message is StatusCodeResponse {
             if message is SuccessStatusCodeResponse {
@@ -169,7 +160,7 @@ public isolated client class Caller {
             }
             cacheCompatibleType = true;
         } else {
-            string errorMsg = "invalid response body type. expected one of the types: anydata|http:StatusCodeResponse|http:Response|error";
+            string errorMsg = "invalid response body type. expected one of the types: anydata|http:StatusCodeResponse|http:Response";
             panic error ListenerError(errorMsg);
         }
         if cacheCompatibleType && (cacheConfig is HttpCacheConfig) {
@@ -181,6 +172,22 @@ public isolated client class Caller {
             }
         }
         return nativeRespond(self, response);
+    }
+
+    private isolated function returnErrorResponse(error errorResponse, string? returnMediaType = (), int? statusCode = ()) returns ListenerError? {
+        Response response = new;
+        if errorResponse is ApplicationResponseError {
+            InternalServerError err = {
+                headers: errorResponse.detail().headers,
+                body: errorResponse.detail().body
+            };
+            response = createStatusCodeResponse(err, returnMediaType);
+            response.statusCode = errorResponse.detail().statusCode;
+        } else {
+            response.statusCode = statusCode is () ? STATUS_INTERNAL_SERVER_ERROR : statusCode;
+            response.setTextPayload(errorResponse.message());
+        }
+        return nativeRespondError(self, response, errorResponse);
     }
 }
 
@@ -308,6 +315,11 @@ isolated function setJsonPayload(Response response, anydata payload, boolean set
         response.setETag(result);
     }
 }
+
+isolated function nativeRespondError(Caller caller, Response response, error err) returns ListenerError? = @java:Method {
+    'class: "io.ballerina.stdlib.http.api.nativeimpl.connection.Respond",
+    name: "nativeRespondError"
+} external;
 
 isolated function nativeRespond(Caller caller, Response response) returns ListenerError? = @java:Method {
     'class: "io.ballerina.stdlib.http.api.nativeimpl.connection.Respond",

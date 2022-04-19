@@ -8,8 +8,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+- [Introduce response and response error interceptors](https://github.com/ballerina-platform/ballerina-standard-library/issues/2684)
+- [Allow records to be annotated with @http:Header](https://github.com/ballerina-platform/ballerina-standard-library/issues/2699)
+- [Add basic type support for header params in addition to `string`, `string[]`](https://github.com/ballerina-platform/ballerina-standard-library/issues/2807)
+- [Allow HTTP caller to respond `error`](https://github.com/ballerina-platform/ballerina-standard-library/issues/2832)
+- [Introduce `DefaultErrorInterceptor`](https://github.com/ballerina-platform/ballerina-standard-library/issues/2669)
+- [Support `anydata` in service data binding](https://github.com/ballerina-platform/ballerina-standard-library/issues/2530)
+
+### Changed
+- [Append the scheme of the HTTP client URL based on the client configurations](https://github.com/ballerina-platform/ballerina-standard-library/issues/2816)
+- [Refactor auth-desugar respond with DefaultErrorInterceptor](https://github.com/ballerina-platform/ballerina-standard-library/issues/2823)
+
+## [2.2.1] - 2022-03-02
+
+### Added
 - [Add code-actions to generate payload and header parameter templates](https://github.com/ballerina-platform/ballerina-standard-library/issues/2642)
 - [Add code-actions to add content-type and cache configuration for response](https://github.com/ballerina-platform/ballerina-standard-library/issues/2662)
+- [Allow readonly intersection type for resource signature params and return type](https://github.com/ballerina-platform/ballerina-standard-library/issues/2610)
 
 ## [2.2.0] - 2022-02-01
 

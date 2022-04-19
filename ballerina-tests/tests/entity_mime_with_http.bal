@@ -19,9 +19,7 @@ import ballerina/mime;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener mimeEP = new(mimeTest);
-
-service /test on mimeEP {
+service /mimeTest on generalListener {
 
     // TODO: Enable after the I/O revamp
     // resource function post largepayload(http:Caller caller, http:Request request) {
@@ -52,8 +50,8 @@ service /test on mimeEP {
         check caller->respond(response);
     }
 
-    resource function 'default getPayloadFromEntity(http:Caller caller, http:Request request) returns
-            http:InternalServerError|error? {
+    resource function 'default getPayloadFromEntity(http:Request request) returns
+            http:InternalServerError|http:Response|error {
         http:Response res = new;
         var entity = request.getEntity();
         if entity is mime:Entity {
@@ -62,14 +60,13 @@ service /test on mimeEP {
                 mime:Entity ent = new;
                 ent.setJson({"payload" : jsonPayload, "header" : check entity.getHeader("Content-type")});
                 res.setEntity(ent);
-                check caller->respond(res);
+                return res;
             } else {
                 return {body: "Error while retrieving from entity"};
             }
         } else {
             return {body: "Error while retrieving from request"};
         }
-        return;
     }
 }
 
@@ -159,14 +156,14 @@ function testPayloadInResponse() {
     }
 }
 
-final http:Client mimeClient = check new("http://localhost:" + mimeTest.toString());
+final http:Client mimeClient = check new("http://localhost:" + generalPort.toString());
 
 // Access entity to read payload and send back
 @test:Config {}
 function testAccessingPayloadFromEntity() {
     string key = "lang";
     string value = "ballerina";
-    string path = "/test/getPayloadFromEntity";
+    string path = "/mimeTest/getPayloadFromEntity";
     string jsonString = "{\"" + key + "\":\"" + value + "\"}";
     http:Request req = new;
     req.setTextPayload(jsonString);
@@ -182,7 +179,7 @@ function testAccessingPayloadFromEntity() {
 function testStreamResponseSerialize() {
     string key = "lang";
     string value = "ballerina";
-    string path = "/test/largepayload";
+    string path = "/mimeTest/largepayload";
     json jsonString = {[key]:value};
     http:Request req = new;
     req.setJsonPayload(jsonString);

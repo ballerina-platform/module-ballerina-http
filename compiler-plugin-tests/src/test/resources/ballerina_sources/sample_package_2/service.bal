@@ -160,4 +160,8 @@ service http:Service on new http:Listener(9090) {
         map<json> jj = {sam: {hello:"world"}, jon: {no:56}};
         return [jj,jj];
     }
+
+    resource function get greetings(http:Request req) returns readonly & error[] {
+        return [error("error1"), error("error2")];
+    }
 }

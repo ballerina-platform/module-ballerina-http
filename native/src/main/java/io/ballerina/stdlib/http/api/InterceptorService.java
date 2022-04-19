@@ -18,10 +18,12 @@
 package io.ballerina.stdlib.http.api;
 
 import io.ballerina.runtime.api.types.MethodType;
+import io.ballerina.runtime.api.types.RemoteMethodType;
 import io.ballerina.runtime.api.types.ServiceType;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
+import io.ballerina.stdlib.http.api.service.signature.RemoteMethodParamHandler;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.uri.DispatcherUtil;
 import io.ballerina.stdlib.http.uri.URITemplate;
@@ -38,13 +40,15 @@ import java.util.List;
  */
 public class InterceptorService implements Service {
 
-    private BObject balService;
+    private final BObject balService;
     private InterceptorResource interceptorResource;
     private List<String> allAllowedMethods;
-    private String basePath;
+    private final String basePath;
     private URITemplate<Resource, HttpCarbonMessage> uriTemplate;
     private String hostName;
     private String serviceType;
+    private RemoteMethodType remoteMethod;
+    private RemoteMethodParamHandler remoteMethodParamHandler;
 
     protected InterceptorService(BObject service, String basePath) {
         this.balService = service;
@@ -126,9 +130,14 @@ public class InterceptorService implements Service {
         InterceptorService interceptorService = new InterceptorService(service, basePath);
         interceptorService.setServiceType(serviceType);
         interceptorService.setHostName(HttpConstants.DEFAULT_HOST);
-        processInterceptorResource(interceptorService, fromListener);
-        interceptorService.setAllAllowedMethods(DispatcherUtil.getInterceptorResourceMethods(
-                interceptorService));
+        if (serviceType.equals(HttpConstants.REQUEST_INTERCEPTOR) ||
+                serviceType.equals(HttpConstants.REQUEST_ERROR_INTERCEPTOR)) {
+            processInterceptorResource(interceptorService, fromListener);
+            interceptorService.setAllAllowedMethods(DispatcherUtil.getInterceptorResourceMethods(
+                    interceptorService));
+        } else {
+            processInterceptorRemoteMethod(interceptorService);
+        }
         return interceptorService;
     }
 
@@ -140,6 +149,31 @@ public class InterceptorService implements Service {
             updateInterceptorResourceTree(interceptorService,
                     InterceptorResource.buildInterceptorResource(resource, interceptorService, fromListener));
         }
+    }
+
+    private static void processInterceptorRemoteMethod(InterceptorService interceptorService) {
+        RemoteMethodType[] remoteMethods = ((ServiceType) interceptorService.getBalService().getType())
+                .getRemoteMethods();
+        if (remoteMethods.length == 1) {
+            RemoteMethodType remoteMethod = remoteMethods[0];
+            if (remoteMethod.getName().equals(HttpConstants.INTERCEPT_RESPONSE) ||
+                    remoteMethod.getName().equals(HttpConstants.INTERCEPT_RESPONSE_ERROR)) {
+                interceptorService.setRemoteMethodParamHandler(remoteMethod);
+            }
+        }
+    }
+
+    public void setRemoteMethodParamHandler(RemoteMethodType remoteMethod) {
+        this.remoteMethod = remoteMethod;
+        this.remoteMethodParamHandler = new RemoteMethodParamHandler(remoteMethod);
+    }
+
+    public RemoteMethodParamHandler getRemoteMethodParamHandler() {
+        return this.remoteMethodParamHandler;
+    }
+
+    public RemoteMethodType getRemoteMethod() {
+        return this.remoteMethod;
     }
 
     private static void updateInterceptorResourceTree(InterceptorService httpService,

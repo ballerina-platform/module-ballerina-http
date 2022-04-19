@@ -19,10 +19,44 @@ public type RequestInterceptor distinct service object {
 
 };
 
+# The HTTP response interceptor service object type
+public type ResponseInterceptor distinct service object {
+
+};
+
 # The HTTP request error interceptor service object type
 public type RequestErrorInterceptor distinct service object {
 
 };
 
+# The HTTP response error interceptor service object type
+public type ResponseErrorInterceptor distinct service object {
+
+};
+
 # The return type of an interceptor service function
-public type NextService RequestInterceptor|Service;
+public type NextService RequestInterceptor|ResponseInterceptor|Service;
+
+# Types of HTTP interceptor services
+public type Interceptor RequestInterceptor|ResponseInterceptor|RequestErrorInterceptor|ResponseErrorInterceptor;
+
+// Default error interceptors to handle all the unhandled errors
+service class DefaultErrorInterceptor {
+    *ResponseErrorInterceptor;
+
+    remote function interceptResponseError(error err, Response alreadyBuiltErrorResponse) returns Response {
+        // Returning the already built response for simplicity. This has been built with proper 
+        // status code and headers (for `ApplicationResponseError` types)
+        // For any other custom responses the `err` object can be used with type check
+        if err is ListenerAuthnError {
+            Response response = new;
+            response.statusCode = 401;
+            return response;
+        } else if err is ListenerAuthzError {
+            Response response = new;
+            response.statusCode = 403;
+            return response;
+        }
+        return alreadyBuiltErrorResponse;
+    }
+}
