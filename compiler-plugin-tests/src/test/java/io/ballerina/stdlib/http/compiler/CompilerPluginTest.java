@@ -35,7 +35,6 @@ import java.nio.file.Paths;
 
 import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_102;
 import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_106;
-import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_107;
 import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_108;
 import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_109;
 import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_110;
@@ -143,7 +142,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_4");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 11);
+        Assert.assertEquals(diagnosticResult.errorCount(), 5);
         assertError(diagnosticResult, 0, "invalid multiple resource parameter annotations for 'abc': expected one of " +
                 "the following types: 'http:Payload', 'http:CallerInfo', 'http:Header'", HTTP_108);
         assertError(diagnosticResult, 1, "invalid usage of payload annotation for a non entity body " +
@@ -152,15 +151,8 @@ public class CompilerPluginTest {
                 "resource : 'head'. Use an accessor that supports entity body", HTTP_129);
         assertError(diagnosticResult, 3, "invalid usage of payload annotation for a non entity body resource" +
                 " : 'options'. Use an accessor that supports entity body", HTTP_129);
-        assertError(diagnosticResult, 4, "invalid payload parameter type: 'json[]'", HTTP_107);
-        assertError(diagnosticResult, 5, "invalid annotation type on param 'a': expected one of the following types: " +
+        assertError(diagnosticResult, 4, "invalid annotation type on param 'a': expected one of the following types: " +
                 "'http:Payload', 'http:CallerInfo', 'http:Headers'", CompilerPluginTestConstants.HTTP_104);
-        assertError(diagnosticResult, 6, "invalid resource parameter type: " +
-                "'table<http_test/sample_4:0.1.0:Person> key(id)'", HTTP_106);
-        assertError(diagnosticResult, 7, "invalid payload parameter type: 'map<int>'", HTTP_107);
-        assertError(diagnosticResult, 8, "invalid payload parameter type: 'string[]'", HTTP_107);
-        assertError(diagnosticResult, 9, "invalid payload parameter type: 'xml[]'", HTTP_107);
-        assertError(diagnosticResult, 10, "invalid payload parameter type: 'map<string>[]'", HTTP_107);
     }
 
     @Test
@@ -408,7 +400,7 @@ public class CompilerPluginTest {
         assertErrorPosition(diagnosticResult, 1, "(35:5,35:16)");
         assertErrorPosition(diagnosticResult, 2, "(40:86,40:87)");
         assertErrorPosition(diagnosticResult, 3, "(44:57,44:60)");
-        assertErrorPosition(diagnosticResult, 4, "(48:56,48:59)");
+        assertErrorPosition(diagnosticResult, 4, "(48:63,48:66)");
         assertErrorPosition(diagnosticResult, 5, "(52:66,52:69)");
         assertErrorPosition(diagnosticResult, 6, "(56:77,56:80)");
         assertErrorPosition(diagnosticResult, 7, "(60:76,60:79)");

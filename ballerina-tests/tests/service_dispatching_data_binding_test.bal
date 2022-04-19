@@ -179,6 +179,11 @@ service /readonlyRecord on generalListener {
         albums.add(album);
         return album;
     }
+
+    resource function post tableBinding(http:Caller caller, @http:Payload table<Album> key(id) albums) returns error? {
+        Album? album = albums["1"];
+        check caller->respond(album);
+    }
 }
 
 //Test data binding with string payload
@@ -291,7 +296,7 @@ function testDataBindingWithoutContentType() {
     }
 }
 
-//Test data binding with incompatible content-type
+//Test data binding with incompatible content-type leads to an error
 @test:Config {}
 function testDataBindingIncompatibleJSONPayloadType() {
     http:Request req = new;
@@ -299,8 +304,9 @@ function testDataBindingIncompatibleJSONPayloadType() {
     req.setHeader(mime:CONTENT_TYPE, mime:TEXT_PLAIN);
     http:Response|error response = dataBindingClient->post("/dataBinding/body3", req);
     if response is http:Response {
-        assertJsonValue(response.getJsonPayload(), "Key", "WSO2");
-        assertJsonValue(response.getJsonPayload(), "Team", "EI");
+        test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(),
+            "data binding failed: error PayloadBindingError (\"incompatible type found: 'json'\")");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -340,7 +346,8 @@ function testDataBindingIncompatibleXMLPayload() {
     http:Response|error response = dataBindingClient->post("/dataBinding/body4", req);
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        assertTrueTextPayload(response.getTextPayload(), "data binding failed: error(\"failed to create xml: Unexpected character");
+        assertTrueTextPayload(response.getTextPayload(),
+            "data binding failed: error(\"{ballerina/lang.value}ConversionError\"");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -353,7 +360,8 @@ function testDataBindingIncompatibleStructPayload() {
     http:Response|error response = dataBindingClient->post("/dataBinding/body6", req);
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        assertTrueTextPayload(response.getTextPayload(), "data binding failed: error(\"unrecognized token 'ballerina'");
+        assertTextPayload(response.getTextPayload(),
+        "data binding failed: error PayloadBindingError (\"incompatible type found: 'http_tests:Person'\")");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -461,9 +469,7 @@ function testDataBindingWithMapOfStringNegative() {
     req.setJsonPayload({name:"WSO2", team:"ballerina"});
     http:Response|error response = dataBindingClient->post("/dataBinding/body9", req);
     if response is http:Response {
-        test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        assertTextPayload(response.getTextPayload(), "data binding failed: error(\"Could not convert " +
-        "payload to map<string>: Datasource does not contain form data\")");
+        assertJsonPayload(response.getJsonPayload(), {"1":"WSO2","2":"ballerina"});
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -552,6 +558,22 @@ function testDatabindingWithReadOnlyRecordsAddAlbum() returns error? {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayloadtoJsonString(response.getJsonPayload(), newAlbum);
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testDataBindingTable() {
+    json[] j = [
+                   {id: "1", title: "Blue Train", artist: "John Coltrane", price: 56.99},
+                   {id: "2", title: "Jeru", artist: "Gerry Mulligan", price: 17.99},
+                   {id: "3", title: "Sarah Vaughan and Clifford Brown", artist: "Sarah Vaughan", price: 39.99}
+               ];
+    http:Response|error response = dataBindingClient->post("/readonlyRecord/tableBinding", j);
+    if response is http:Response {
+        json expected = {id: "1", title: "Blue Train", artist: "John Coltrane", price: 56.99d};
+        assertJsonPayload(response.getJsonPayload(), expected);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

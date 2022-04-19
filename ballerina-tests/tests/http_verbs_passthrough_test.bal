@@ -233,15 +233,12 @@ function testDataBindingJsonPayload() {
 
 //Test HTTP data binding with incompatible payload with URL. /getQuote/employee
 @test:Config {}
-function testDataBindingWithIncompatiblePayload() {
+function testDataBindingWithIncompatiblePayload() returns error? {
     string payload = "name:WSO2,team:ballerina";
-    http:Response|error response = httpVerbClient->post("/getQuote/employee", payload);
-    if response is http:Response {
-        test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        assertTrueTextPayload(response.getTextPayload(), "data binding failed: error(\"unrecognized token 'name:WSO2,team:ballerina'");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
+    http:Response response = check httpVerbClient->post("/getQuote/employee", payload);
+    test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
+    assertTextPayload(response.getTextPayload(),
+        "data binding failed: error PayloadBindingError (\"incompatible type found: 'json'\")");
 }
 
 //Test with empty method in execute remote method uses the inbound verb
