@@ -3,7 +3,7 @@
 _Owners_: @shafreenAnfar @TharmiganK @ayeshLK @chamil321  
 _Reviewers_: @shafreenAnfar @bhashinee @TharmiganK @ldclakmal  
 _Created_: 2021/12/23  
-_Updated_: 2022/03/14  
+_Updated_: 2022/04/08   
 _Edition_: Swan Lake  
 _Issue_: [#572](https://github.com/ballerina-platform/ballerina-standard-library/issues/572)
 
@@ -528,14 +528,12 @@ See section [Query] to understand accessing query param via the request object.
 
 The payload parameter eases access of request payload during the resource invocation. When the payload param is 
 defined with @http:Payload annotation, the listener binds the inbound request payload into the param type and return. 
-The type of payload param are as follows
-
-```ballerina
-string|json|map<json>|xml|byte[]|record {| anydata...; |}|record {| anydata...; |}[]
-```
+The type of payload param can be one of the anytype.
 
 The payload binding process begins soon after the finding the correct resource for the given URL and before the 
-resource execution. The error which may occur during the process will be returned to the caller with the response 
+resource execution. Based on the `Content-type` header, the payload it deserialized. If the header is not present or 
+not a standard header, the deserializer is inferred by the param type.
+The error which may occur during the process will be returned to the caller with the response 
 status code of 400 BAD REQUEST. The successful binding will proceed the resource execution with the built payload.
 
 ```ballerina
@@ -1189,12 +1187,9 @@ The HTTP client remote function supports the contextually expected return types.
 infer the expected payload type from the LHS variable type. This is called as client payload binding support where the 
 inbound response payload is accessed and parse to the expected type in the method signature. It is easy to access the
 payload directly rather manipulation `http:Response` using its support methods such as `getTextPayload()`, ..etc.
+Client data binding supports `anydata` where the payload is deserialized based on the content type before binding it 
+to the required type.
 
-Followings are the possible return types:
-
-```ballerina
-Response|string|xml|json|map<json>|byte[]|record {| anydata...; |}|record {| anydata...; |}[];
-```
 ```ballerina
 http:Client httpClient = check new ("https://person.free.beeceptor.com");
 json payload = check httpClient->get("/data");
@@ -1206,8 +1201,8 @@ http:Client httpClient = check new ("https://person.free.beeceptor.com");
 var payload = check httpClient->get("/data", targetType = json);
 ```
 When the user expects client data binding to happen, the HTTP error responses (4XX, 5XX) will be categorized as an 
-error (http:ClientRequestError, http:RemoteServerError) of the client remote operation. These error types contains
-payload, headers and statuscode inside the error detail.
+error (http:ClientRequestError, http:RemoteServerError) of the client remote operation. These error types contain 
+payload, headers and status code inside the error detail.
 
 ```ballerina
 public type Detail record {
