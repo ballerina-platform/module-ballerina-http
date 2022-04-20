@@ -907,6 +907,9 @@ public final readonly & ExpectationFailed EXPECTATION_FAILED = {};
 # The common status code response constant of `UpgradeRequired`.
 public final readonly & UpgradeRequired UPGRADE_REQUIRED = {};
 
+# The common status code response constant of `TooManyRequests`.
+public final readonly & TooManyRequests TOO_MANY_REQUESTS = {};
+
 # The common status code response constant of `RequestHeaderFieldsTooLarge`.
 public final readonly & RequestHeaderFieldsTooLarge REQUEST_HEADER_FIELDS_TOO_LARGE = {};
 
