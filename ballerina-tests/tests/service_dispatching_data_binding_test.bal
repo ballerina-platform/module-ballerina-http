@@ -166,7 +166,7 @@ service /readonlyRecord on generalListener {
     resource function get albums/[string id]() returns Album | http:NotFound {
         Album? album = albums[id];
         if album is () {
-            return <http:NotFound>{};
+            return http:NOT_FOUND;
         } else {
             return album;
         }
