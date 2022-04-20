@@ -798,3 +798,132 @@ public type HttpVersionNotSupported record {|
     *CommonResponse;
     readonly StatusHttpVersionNotSupported status = STATUS_HTTP_VERSION_NOT_SUPPORTED_OBJ;
 |};
+
+# The common status code response constant of `Continue`.
+public final readonly & Continue CONTINUE = {};
+
+# The common status code response constant of `SwitchingProtocols`.
+public final readonly & SwitchingProtocols SWITCHING_PROTOCOLS = {};
+
+# The common status code response constant of `Ok`.
+public final readonly & Ok OK = {};
+
+# The common status code response constant of `Created`.
+public final readonly & Created CREATED = {};
+
+# The common status code response constant of `Accepted`.
+public final readonly & Accepted ACCEPTED = {};
+
+# The common status code response constant of `NonAuthoritativeInformation`.
+public final readonly & NonAuthoritativeInformation NON_AUTHORITATIVE_INFORMATION = {};
+
+# The common status code response constant of `NoContent`.
+public final readonly & NoContent NO_CONTENT = {};
+
+# The common status code response constant of `ResetContent`.
+public final readonly & ResetContent RESET_CONTENT = {};
+
+# The common status code response constant of `PartialContent`.
+public final readonly & PartialContent PARTIAL_CONTENT = {};
+
+# The common status code response constant of `MultipleChoices`.
+public final readonly & MultipleChoices MULTIPLE_CHOICES = {};
+
+# The common status code response constant of `MovedPermanently`.
+public final readonly & MovedPermanently MOVED_PERMANENTLY = {};
+
+# The common status code response constant of `Found`.
+public final readonly & Found FOUND = {};
+
+# The common status code response constant of `SeeOther`.
+public final readonly & SeeOther SEE_OTHER = {};
+
+# The common status code response constant of `NotModified`.
+public final readonly & NotModified NOT_MODIFIED = {};
+
+# The common status code response constant of `UseProxy`.
+public final readonly & UseProxy USE_PROXY = {};
+
+# The common status code response constant of `TemporaryRedirect`.
+public final readonly & TemporaryRedirect TEMPORARY_REDIRECT = {};
+
+# The common status code response constant of `PermanentRedirect`.
+public final readonly & PermanentRedirect PERMANENT_REDIRECT = {};
+
+# The common status code response constant of `BadRequest`.
+public final readonly & BadRequest BAD_REQUEST = {};
+
+# The common status code response constant of `Unauthorized`.
+public final readonly & Unauthorized UNAUTHORIZED = {};
+
+# The common status code response constant of `PaymentRequired`.
+public final readonly & PaymentRequired PAYMENT_REQUIRED = {};
+
+# The common status code response constant of `Forbidden`.
+public final readonly & Forbidden FORBIDDEN = {};
+
+# The common status code response constant of `NotFound`.
+public final readonly & NotFound NOT_FOUND = {};
+
+# The common status code response constant of `MethodNotAllowed`.
+public final readonly & MethodNotAllowed METHOD_NOT_ALLOWED = {};
+
+# The common status code response constant of `NotAcceptable`.
+public final readonly & NotAcceptable NOT_ACCEPTABLE = {};
+
+# The common status code response constant of `ProxyAuthenticationRequired`.
+public final readonly & ProxyAuthenticationRequired PROXY_AUTHENTICATION_REQUIRED = {};
+
+# The common status code response constant of `RequestTimeout`.
+public final readonly & RequestTimeout REQUEST_TIMEOUT = {};
+
+# The common status code response constant of `Conflict`.
+public final readonly & Conflict CONFLICT = {};
+
+# The common status code response constant of `Gone`.
+public final readonly & Gone GONE = {};
+
+# The common status code response constant of `LengthRequired`.
+public final readonly & LengthRequired LENGTH_REQUIRED = {};
+
+# The common status code response constant of `PreconditionFailed`.
+public final readonly & PreconditionFailed PRECONDITION_FAILED = {};
+
+# The common status code response constant of `PayloadTooLarge`.
+public final readonly & PayloadTooLarge PAYLOAD_TOO_LARGE = {};
+
+# The common status code response constant of `UriTooLong`.
+public final readonly & UriTooLong URI_TOO_LONG = {};
+
+# The common status code response constant of `UnsupportedMediaType`.
+public final readonly & UnsupportedMediaType UNSUPPORTED_MEDIA_TYPE = {};
+
+# The common status code response constant of `RangeNotSatisfiable`.
+public final readonly & RangeNotSatisfiable RANGE_NOT_SATISFIABLE = {};
+
+# The common status code response constant of `ExpectationFailed`.
+public final readonly & ExpectationFailed EXPECTATION_FAILED = {};
+
+# The common status code response constant of `UpgradeRequired`.
+public final readonly & UpgradeRequired UPGRADE_REQUIRED = {};
+
+# The common status code response constant of `RequestHeaderFieldsTooLarge`.
+public final readonly & RequestHeaderFieldsTooLarge REQUEST_HEADER_FIELDS_TOO_LARGE = {};
+
+# The common status code response constant of `InternalServerError`.
+public final readonly & InternalServerError INTERNAL_SERVER_ERROR = {};
+
+# The common status code response constant of `NotImplemented`.
+public final readonly & NotImplemented NOT_IMPLEMENTED = {};
+
+# The common status code response constant of `BadGateway`.
+public final readonly & BadGateway BAD_GATEWAY = {};
+
+# The common status code response constant of `ServiceUnavailable`.
+public final readonly & ServiceUnavailable SERVICE_UNAVAILABLE = {};
+
+# The common status code response constant of `GatewayTimeout`.
+public final readonly & GatewayTimeout GATEWAY_TIMEOUT = {};
+
+# The common status code response constant of `HttpVersionNotSupported`.
+public final readonly & HttpVersionNotSupported HTTP_VERSION_NOT_SUPPORTED = {};
