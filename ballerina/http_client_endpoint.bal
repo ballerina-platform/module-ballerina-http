@@ -72,7 +72,7 @@ public client isolated class Client {
     } external;
 
     private isolated function processPost(string path, RequestMessage message, TargetType targetType,
-            string? mediaType, map<string|string[]>? headers) returns Response|PayloadType|ClientError {
+            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->post(path, req);
@@ -99,7 +99,7 @@ public client isolated class Client {
     } external;
 
     private isolated function processPut(string path, RequestMessage message, TargetType targetType,
-            string? mediaType, map<string|string[]>? headers) returns Response|PayloadType|ClientError {
+            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->put(path, req);
@@ -126,7 +126,7 @@ public client isolated class Client {
     } external;
 
     private isolated function processPatch(string path, RequestMessage message, TargetType targetType,
-            string? mediaType, map<string|string[]>? headers) returns Response|PayloadType|ClientError {
+            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->patch(path, req);
@@ -153,7 +153,7 @@ public client isolated class Client {
     } external;
 
     private isolated function processDelete(string path, RequestMessage message, TargetType targetType,
-            string? mediaType, map<string|string[]>? headers) returns Response|PayloadType|ClientError {
+            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->delete(path, req);
@@ -191,7 +191,7 @@ public client isolated class Client {
     } external;
 
     private isolated function processGet(string path, map<string|string[]>? headers, TargetType targetType)
-            returns Response|PayloadType|ClientError {
+            returns Response|anydata|ClientError {
         Request req = buildRequestWithHeaders(headers);
         Response|ClientError response = self.httpClient->get(path, message = req);
         if observabilityEnabled && response is Response {
@@ -214,7 +214,7 @@ public client isolated class Client {
     } external;
 
     private isolated function processOptions(string path, map<string|string[]>? headers, TargetType targetType)
-            returns Response|PayloadType|ClientError {
+            returns Response|anydata|ClientError {
         Request req = buildRequestWithHeaders(headers);
         Response|ClientError response = self.httpClient->options(path, message = req);
         if observabilityEnabled && response is Response {
@@ -242,7 +242,7 @@ public client isolated class Client {
 
     private isolated function processExecute(string httpVerb, string path, RequestMessage message,
             TargetType targetType, string? mediaType, map<string|string[]>? headers)
-            returns Response|PayloadType|ClientError {
+            returns Response|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->execute(httpVerb, path, req);
@@ -266,7 +266,7 @@ public client isolated class Client {
     } external;
 
     private isolated function processForward(string path, Request request, TargetType targetType)
-            returns Response|PayloadType|ClientError {
+            returns Response|anydata|ClientError {
         Response|ClientError response = self.httpClient->forward(path, request);
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, request.method, response.statusCode, self.url);
@@ -627,7 +627,7 @@ isolated function createDefaultClient(string url, ClientConfiguration configurat
     return createHttpSecureClient(url, configuration);
 }
 
-isolated function processResponse(Response|ClientError response, TargetType targetType) returns Response|PayloadType|ClientError {
+isolated function processResponse(Response|ClientError response, TargetType targetType) returns Response|anydata|ClientError {
     if targetType is typedesc<Response> || response is ClientError {
         return response;
     }
@@ -649,7 +649,7 @@ isolated function processResponse(Response|ClientError response, TargetType targ
     return performDataBinding(response, targetType);
 }
 
-isolated function performDataBinding(Response response, TargetType targetType) returns PayloadType|ClientError {
+isolated function performDataBinding(Response response, TargetType targetType) returns anydata|ClientError {
     if targetType is typedesc<string> {
         return response.getTextPayload();
     } else if targetType is typedesc<string?> {
