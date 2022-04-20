@@ -62,3 +62,9 @@ path = "./lib/mimepull-@mimepull.version@.jar"
 
 [[platform.java11.dependency]]
 path = "./lib/testng-@testng.version@.jar"
+
+[[platform.java11.dependency]]
+path = "../native/libs/codec.jar"
+
+[[platform.java11.dependency]]
+path = "../native/libs/netty-incubator-codec-http3-0.0.11.Final.jar"

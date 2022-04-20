@@ -20,42 +20,20 @@ package io.ballerina.stdlib.http.transport.contractimpl.common.ssl;
 
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.netty.handler.codec.http2.Http2SecurityUtil;
-import io.netty.handler.ssl.ApplicationProtocolConfig;
-import io.netty.handler.ssl.ApplicationProtocolNames;
-import io.netty.handler.ssl.ClientAuth;
-import io.netty.handler.ssl.ReferenceCountedOpenSslContext;
-import io.netty.handler.ssl.SslContext;
-import io.netty.handler.ssl.SslContextBuilder;
-import io.netty.handler.ssl.SslProvider;
-import io.netty.handler.ssl.SupportedCipherSuiteFilter;
-import io.netty.incubator.codec.http3.Http3;
+import io.netty.handler.ssl.*;
 import io.netty.incubator.codec.quic.QuicSslContext;
 import io.netty.incubator.codec.quic.QuicSslContextBuilder;
 
+import javax.net.ssl.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
+import java.security.*;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SNIHostName;
-import javax.net.ssl.SNIServerName;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLException;
-import javax.net.ssl.SSLParameters;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
 
 /**
  * A class that encapsulates SSL Certificate Information.
@@ -287,8 +265,8 @@ public class SSLHandlerFactory {
         createSSLContextFromKeystores(true);
         String keyPassword = sslConfig.getServerKeyPassword();
 
-        QuicSslContextBuilder serverSslContextBuilder = QuicSslContextBuilder.forServer(this.getKeyManagerFactory(),keyPassword)
-                .trustManager(this.getTrustStoreFactory());
+        QuicSslContextBuilder serverSslContextBuilder = QuicSslContextBuilder.forServer(this.getKeyManagerFactory(),
+                        keyPassword).trustManager(this.getTrustStoreFactory());
         serverSslContextBuilder.applicationProtocols("h3-29", "h3-30", "h3-31", "h3-32", "h3");
         QuicSslContext sslCtx = serverSslContextBuilder.build();
 

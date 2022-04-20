@@ -231,6 +231,12 @@ public final class Constants {
     public static final String HTTP_VERSION_3_0 = "HTTP/3.0";
     public static final String HTTP3_VERSION = "3.0";
 
+    public static final String HTTP3_METHOD = ":method";
+    public static final String HTTP3_PATH = ":path";
+    public static final String HTTP3_AUTHORITY = ":authority";
+    public static final String HTTP3_SCHEME = ":scheme";
+    public static final String HTTP3_STATUS = ":status";
+
 
     public static final String HTTP_SOURCE_HANDLER = "SourceHandler";
     public static final String HTTP_ENCODER = "encoder";

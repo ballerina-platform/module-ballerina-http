@@ -18,7 +18,6 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.listener.http3;
 
-import io.ballerina.stdlib.http.transport.contractimpl.Http2OutboundRespListener;
 import io.ballerina.stdlib.http.transport.contractimpl.Http3OutboundRespListener;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 

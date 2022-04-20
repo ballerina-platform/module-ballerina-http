@@ -20,15 +20,7 @@
 package io.ballerina.stdlib.http.transport.message;
 
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.EventLoop;
 import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http2.Http2Connection;
-import io.netty.handler.codec.http2.Http2Exception;
-import io.netty.handler.codec.http2.Http2LocalFlowController;
-import io.netty.handler.codec.http2.Http2Stream;
-import io.netty.incubator.codec.http3.DefaultHttp3HeadersFrame;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 

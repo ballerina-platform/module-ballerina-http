@@ -1,6 +1,5 @@
 package io.ballerina.stdlib.http.transport.contractimpl.listener.http3;
 
-import io.ballerina.stdlib.http.transport.contractimpl.listener.http3.InboundMessageHolder;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http3.Http3DataEventListener;
 import io.netty.util.internal.PlatformDependent;
 

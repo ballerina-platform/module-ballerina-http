@@ -40,18 +40,14 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.handler.ssl.SslContext;
-import io.netty.incubator.codec.http3.Http3;
 import io.netty.incubator.codec.quic.QuicSslContext;
-import io.netty.incubator.codec.quic.QuicSslContextBuilder;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.EventExecutorGroup;
 import io.netty.util.concurrent.GlobalEventExecutor;
 
-import java.util.Map;
-
 import javax.net.ssl.SSLException;
+import java.util.Map;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.PIPELINING_THREAD_COUNT;
 import static io.ballerina.stdlib.http.transport.contract.Constants.PIPELINING_THREAD_POOL_NAME;

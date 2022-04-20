@@ -3,5 +3,11 @@ org = "ballerina"
 name = "http_tests"
 version = "2.2.2"
 
-[[platform.java11.dependency]]
-path = "../native/build/libs/http-native-2.2.2-SNAPSHOT.jar"
+# [[platform.java11.dependency]]
+# path = "../native/build/libs/http-native-2.2.2-SNAPSHOT.jar"
+
+[[dependency]]
+org="ballerina"
+name="http"
+repository="local"
+version="2.2.4"

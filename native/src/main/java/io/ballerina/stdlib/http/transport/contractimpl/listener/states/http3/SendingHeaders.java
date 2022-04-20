@@ -12,25 +12,17 @@ import io.ballerina.stdlib.http.transport.contractimpl.listener.http3.Http3Sourc
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.HttpContent;
+import io.netty.handler.codec.http.HttpMessage;
 import io.netty.incubator.codec.http3.*;
-import io.netty.util.AsciiString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.URI;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.*;
-import static io.netty.handler.codec.http.HttpScheme.HTTP;
-import static io.netty.handler.codec.http.HttpScheme.HTTPS;
-import static io.netty.handler.codec.http.HttpUtil.isAsteriskForm;
-import static io.netty.handler.codec.http.HttpUtil.isOriginForm;
-import static io.netty.util.AsciiString.EMPTY_STRING;
-import static io.netty.util.internal.StringUtil.isNullOrEmpty;
-import static io.netty.util.internal.StringUtil.length;
 
-public class SendingHeaders implements ListenerState{
+public class SendingHeaders implements ListenerState {
 
     private static final Logger LOG = LoggerFactory.getLogger(SendingHeaders.class);
 
@@ -43,8 +35,9 @@ public class SendingHeaders implements ListenerState{
     private final HttpCarbonMessage inboundRequestMsg;
     private final long streamId;
 
-    public SendingHeaders(Http3OutboundRespListener http3OutboundRespListener, Http3MessageStateContext http3MessageStateContext) {
-        this. http3OutboundRespListener =  http3OutboundRespListener;
+    public SendingHeaders(Http3OutboundRespListener http3OutboundRespListener,
+                          Http3MessageStateContext http3MessageStateContext) {
+        this.http3OutboundRespListener =  http3OutboundRespListener;
         this.http3MessageStateContext = http3MessageStateContext;
         this.ctx =  http3OutboundRespListener.getChannelHandlerContext();
         this.inboundRequestMsg =  http3OutboundRespListener.getInboundRequestMsg();
@@ -53,34 +46,42 @@ public class SendingHeaders implements ListenerState{
     }
 
     @Override
-    public void readInboundRequestHeaders(ChannelHandlerContext ctx, Http3HeadersFrame headersFrame, long streamId) throws Http3Exception {
+    public void readInboundRequestHeaders(ChannelHandlerContext ctx,
+                                          Http3HeadersFrame headersFrame, long streamId) throws Http3Exception {
         LOG.warn("readInboundRequestHeaders is not a dependant action of this state");
     }
 
     @Override
-    public void readInboundRequestBody(Http3SourceHandler http3SourceHandler, Http3DataFrame dataFrame, boolean isLast) throws Http3Exception {
-        http3MessageStateContext.setListenerState(new ReceivingEntityBody(http3MessageStateContext,streamId));
-        http3MessageStateContext.getListenerState().readInboundRequestBody(http3SourceHandler, dataFrame,isLast);
+    public void readInboundRequestBody(Http3SourceHandler http3SourceHandler,
+                                       Http3DataFrame dataFrame, boolean isLast) throws Http3Exception {
+        http3MessageStateContext.setListenerState(new ReceivingEntityBody(http3MessageStateContext, streamId));
+        http3MessageStateContext.getListenerState().readInboundRequestBody(http3SourceHandler, dataFrame, isLast);
 
     }
 
     @Override
-    public void writeOutboundResponseHeaders(Http3OutboundRespListener http3OutboundRespListener, HttpCarbonMessage outboundResponseMsg, HttpContent httpContent, long streamId) throws Http3Exception {
+    public void writeOutboundResponseHeaders(Http3OutboundRespListener http3OutboundRespListener,
+                                             HttpCarbonMessage outboundResponseMsg, HttpContent httpContent,
+                                             long streamId) throws Http3Exception {
         writeHeaders(outboundResponseMsg, streamId);
         http3MessageStateContext.setListenerState(
-                new SendingEntityBody(http3OutboundRespListener, http3MessageStateContext,streamId));
+                new SendingEntityBody(http3OutboundRespListener, http3MessageStateContext, streamId));
         http3MessageStateContext.getListenerState()
                 .writeOutboundResponseBody(http3OutboundRespListener, outboundResponseMsg, httpContent, streamId);
     }
 
 
     @Override
-    public void writeOutboundResponseBody(Http3OutboundRespListener http3OutboundRespListener, HttpCarbonMessage outboundResponseMsg, HttpContent httpContent, long streamId) throws Http3Exception {
+    public void writeOutboundResponseBody(Http3OutboundRespListener http3OutboundRespListener,
+                                          HttpCarbonMessage outboundResponseMsg, HttpContent httpContent,
+                                          long streamId) throws Http3Exception {
         writeOutboundResponseHeaders(http3OutboundRespListener, outboundResponseMsg, httpContent, streamId);
     }
 
     @Override
-    public void handleStreamTimeout(ServerConnectorFuture serverConnectorFuture, ChannelHandlerContext ctx, Http3OutboundRespListener http3OutboundRespListener, long streamId) {
+    public void handleStreamTimeout(ServerConnectorFuture serverConnectorFuture,
+                                    ChannelHandlerContext ctx, Http3OutboundRespListener http3OutboundRespListener,
+                                    long streamId) {
         try {
             serverConnectorFuture.notifyErrorListener(
                     new ServerConnectorException(IDLE_TIMEOUT_TRIGGERED_WHILE_WRITING_OUTBOUND_RESPONSE_HEADERS));
@@ -94,7 +95,7 @@ public class SendingHeaders implements ListenerState{
     public void handleAbruptChannelClosure(ServerConnectorFuture serverConnectorFuture) {
         IOException connectionClose = new IOException(REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY);
         http3OutboundRespListener.getOutboundResponseMsg().setIoException(connectionClose);
-//        outboundRespStatusFuture.notifyHttpListener(connectionClose);
+        outboundRespStatusFuture.notifyHttpListener(connectionClose);
 
         LOG.error(REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_HEADERS);
     }
@@ -110,9 +111,10 @@ public class SendingHeaders implements ListenerState{
 
         headersFrame = Http3StateUtil.toHttp3Headers(httpMessage, true);
 
-        ChannelFuture channelFuture = ctx.write(headersFrame,ctx.newPromise());
+        ChannelFuture channelFuture = ctx.write(headersFrame, ctx.newPromise());
 
-        StateUtil.notifyIfHeaderWriteFailure(outboundRespStatusFuture, channelFuture, REMOTE_CLIENT_CLOSED_BEFORE_INITIATING_OUTBOUND_RESPONSE);
+        StateUtil.notifyIfHeaderWriteFailure(outboundRespStatusFuture, channelFuture,
+                REMOTE_CLIENT_CLOSED_BEFORE_INITIATING_OUTBOUND_RESPONSE);
 
         http3MessageStateContext.setHeadersSent(true);
     }

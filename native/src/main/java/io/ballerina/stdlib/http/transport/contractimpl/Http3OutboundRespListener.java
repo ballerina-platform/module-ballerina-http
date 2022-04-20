@@ -1,7 +1,6 @@
 package io.ballerina.stdlib.http.transport.contractimpl;
 
 import io.ballerina.stdlib.http.transport.contract.HttpConnectorListener;
-import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contract.config.ChunkConfig;
 import io.ballerina.stdlib.http.transport.contract.config.KeepAliveConfig;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http3MessageStateContext;
@@ -52,7 +51,9 @@ public class Http3OutboundRespListener implements HttpConnectorListener {
     private Calendar inboundRequestArrivalTime;
     private String remoteAddress = "-";
 
-    public Http3OutboundRespListener(Http3ServerChannelInitializer http3ServerChannelInitializer, HttpCarbonMessage httpRequestMsg, ChannelHandlerContext channelHandlerContext, String remoteHost, long streamId, Http3ServerChannel http3ServerChannel) {
+    public Http3OutboundRespListener(Http3ServerChannelInitializer http3ServerChannelInitializer,
+                                     HttpCarbonMessage httpRequestMsg, ChannelHandlerContext channelHandlerContext,
+                                     String remoteHost, long streamId, Http3ServerChannel http3ServerChannel) {
         this.http3ServerChannelInitializer = http3ServerChannelInitializer;
         this.channelHandlerContext = channelHandlerContext;
         this.streamId = streamId;
@@ -177,11 +178,12 @@ public class Http3OutboundRespListener implements HttpConnectorListener {
             if (http3MessageStateContext == null) {
                 http3MessageStateContext = new Http3MessageStateContext();
                 http3MessageStateContext.setListenerState(
-                        new SendingHeaders(Http3OutboundRespListener.this, http3MessageStateContext));
+                        new SendingHeaders(Http3OutboundRespListener.this,
+                                http3MessageStateContext));
             }
             http3MessageStateContext.getListenerState().
-                    writeOutboundResponseBody(Http3OutboundRespListener.this, outboundResponseMsg,
-                            httpContent, streamId);
+                    writeOutboundResponseBody(Http3OutboundRespListener.this,
+                            outboundResponseMsg, httpContent, streamId);
         } //done upto this
 
 

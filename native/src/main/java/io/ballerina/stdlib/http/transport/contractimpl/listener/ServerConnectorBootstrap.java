@@ -107,7 +107,7 @@ public class ServerConnectorBootstrap {
 
     public ServerConnector getServerConnector(String host, int port, String httpVersion) { //changedd
         String serverConnectorId = Util.createServerConnectorID(host, port);
-        return new HttpServerConnector(serverConnectorId, host, port,httpVersion);
+        return new HttpServerConnector(serverConnectorId, host, port, httpVersion);
     }
 
     public void addSocketConfiguration(ServerBootstrapConfiguration serverBootstrapConfiguration) {
@@ -134,7 +134,8 @@ public class ServerConnectorBootstrap {
     public void addHttp3SocketConfiguration(ServerBootstrapConfiguration serverBootstrapConfiguration) {
         // Set other serverBootstrap parameters
         http3serverBootstrap.option(ChannelOption.SO_BACKLOG, serverBootstrapConfiguration.getSoBackLog());
-        http3serverBootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, serverBootstrapConfiguration.getConnectTimeOut());
+        http3serverBootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, serverBootstrapConfiguration.
+                getConnectTimeOut());
         http3serverBootstrap.option(ChannelOption.SO_RCVBUF, serverBootstrapConfiguration.getReceiveBufferSize());
 
         http3serverBootstrap.option(ChannelOption.TCP_NODELAY, serverBootstrapConfiguration.isTcpNoDelay());
@@ -302,9 +303,9 @@ public class ServerConnectorBootstrap {
             this.port = port;
             this.connectorID =  id;
             this.httpVersion = httpVersion;
-            if("3.0".equals(httpVersion)) { //changedd
+            if ("3.0".equals(httpVersion)) { //changedd
                 http3ServerChannelInitializer.setInterfaceId(id);
-            }else{
+            } else {
                 httpServerChannelInitializer.setInterfaceId(id);
             }
         }
@@ -323,9 +324,9 @@ public class ServerConnectorBootstrap {
                     serverConnectorFuture.notifyPortBindingError(future.cause());
                 }
             });
-            if("3.0".equals(httpVersion)) { //changed
+            if ("3.0".equals(httpVersion)) { //changed
                 http3ServerChannelInitializer.setServerConnectorFuture(serverConnectorFuture);
-            }else{
+            } else {
                 httpServerChannelInitializer.setServerConnectorFuture(serverConnectorFuture);
             }
 
@@ -378,9 +379,9 @@ public class ServerConnectorBootstrap {
                 log.error("ServerConnectorBootstrap is not initialized");
                 return null;
             }
-            if("3.0".equals(httpVersion)) {
+            if ("3.0".equals(httpVersion)) {
                 return http3serverBootstrap.bind(new InetSocketAddress(getHost(), getPort())); //changedd
-            }else{
+            } else {
                 return serverBootstrap.bind(new InetSocketAddress(getHost(), getPort()));
             }
         }

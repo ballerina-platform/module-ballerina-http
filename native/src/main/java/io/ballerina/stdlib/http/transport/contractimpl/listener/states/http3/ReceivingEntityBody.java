@@ -15,7 +15,6 @@ import io.netty.handler.codec.http.HttpContent;
 import io.netty.incubator.codec.http3.Http3DataFrame;
 import io.netty.incubator.codec.http3.Http3Exception;
 import io.netty.incubator.codec.http3.Http3HeadersFrame;
-import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,21 +24,22 @@ public class ReceivingEntityBody implements ListenerState {
     private final long streamId;
 
     public ReceivingEntityBody(Http3MessageStateContext http3MessageStateContext, long streamId) {
-        this.http3MessageStateContext=http3MessageStateContext;
-        this.streamId=streamId;
+        this.http3MessageStateContext = http3MessageStateContext;
+        this.streamId = streamId;
     }
 
     @Override
-    public void readInboundRequestHeaders(ChannelHandlerContext ctx, Http3HeadersFrame headersFrame,long streamId) {
+    public void readInboundRequestHeaders(ChannelHandlerContext ctx, Http3HeadersFrame headersFrame, long streamId) {
         LOG.warn("readInboundRequestHeaders is not a dependant action of this state");
 
     }
 
     @Override
-    public void readInboundRequestBody(Http3SourceHandler http3SourceHandler, Http3DataFrame dataFrame,boolean isLast) throws Http3Exception {
+    public void readInboundRequestBody(Http3SourceHandler http3SourceHandler, Http3DataFrame dataFrame, boolean isLast)
+            throws Http3Exception {
         ByteBuf data = dataFrame.content();
-        System.out.println(dataFrame.content().toString(CharsetUtil.US_ASCII));
-        System.out.println(data);
+//        System.out.println(dataFrame.content().toString(CharsetUtil.US_ASCII));
+//        System.out.println(data);
         HttpCarbonMessage sourceReqCMsg = http3SourceHandler.getStreamIdRequestMap().get(streamId)
                 .getInboundMsg();
         if (sourceReqCMsg != null) {
@@ -61,19 +61,24 @@ public class ReceivingEntityBody implements ListenerState {
     }
 
     @Override
-    public void writeOutboundResponseHeaders(Http3OutboundRespListener http3OutboundRespListener, HttpCarbonMessage outboundResponseMsg, HttpContent httpContent, long streamId) throws Http3Exception {
+    public void writeOutboundResponseHeaders(Http3OutboundRespListener http3OutboundRespListener,
+                                             HttpCarbonMessage outboundResponseMsg, HttpContent httpContent,
+                                             long streamId) throws Http3Exception {
 
     }
 
 
     @Override
-    public void writeOutboundResponseBody(Http3OutboundRespListener http3OutboundRespListener, HttpCarbonMessage outboundResponseMsg, HttpContent httpContent, long streamId) throws Http3Exception {
+    public void writeOutboundResponseBody(Http3OutboundRespListener http3OutboundRespListener,
+                                          HttpCarbonMessage outboundResponseMsg, HttpContent httpContent,
+                                          long streamId) throws Http3Exception {
 
     }
 
 
     @Override
-    public void handleStreamTimeout(ServerConnectorFuture serverConnectorFuture, ChannelHandlerContext ctx, Http3OutboundRespListener http3OutboundRespListener, long streamId) {
+    public void handleStreamTimeout(ServerConnectorFuture serverConnectorFuture, ChannelHandlerContext ctx,
+                                    Http3OutboundRespListener http3OutboundRespListener, long streamId) {
 
     }
 
