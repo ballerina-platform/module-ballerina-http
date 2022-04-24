@@ -77,7 +77,6 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
         workerGroup = new NioEventLoopGroup(childSocketThreads);
         clientGroup = new NioEventLoopGroup(clientThreads);
         group = new NioEventLoopGroup(serverSocketThreads);
-
     }
 
     @Override
@@ -87,8 +86,8 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
         ServerConnectorBootstrap serverConnectorBootstrap;
 
         if("3.0".equals(listenerConfig.getVersion())){
-            QuicSslContext sslctx = null;
 
+            QuicSslContext sslctx = null;
             SSLConfig sslConfig = listenerConfig.getListenerSSLConfig();
             if (sslConfig != null) {
                 sslctx = createHttp3SslContext(sslConfig);
@@ -96,12 +95,7 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
 
             serverConnectorBootstrap = new ServerConnectorBootstrap(allChannels,sslctx);
             serverConnectorBootstrap.addHttp3SocketConfiguration(serverBootstrapConfiguration);
-            serverConnectorBootstrap.http3AddSecurity(sslConfig);
-
-            serverConnectorBootstrap.http3AddIdleTimeout(listenerConfig.getSocketIdleTimeout());
-
             serverConnectorBootstrap.addHttp3ThreadPools(group);
-            serverConnectorBootstrap.addHttp3KeepAliveBehaviour(listenerConfig.getKeepAliveConfig());
 
         }else{
             serverConnectorBootstrap = new ServerConnectorBootstrap(allChannels);
@@ -132,13 +126,13 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
         if (listenerConfig.isPipeliningEnabled()) {
             pipeliningGroup = new DefaultEventExecutorGroup(PIPELINING_THREAD_COUNT, new DefaultThreadFactory(
                     PIPELINING_THREAD_POOL_NAME));
-            if("3.0".equals(listenerConfig.getVersion())) { //changedd
+            if("3.0".equals(listenerConfig.getVersion())) {
                 serverConnectorBootstrap.setHttp3PipeliningThreadGroup(pipeliningGroup);
             }else{
                 serverConnectorBootstrap.setPipeliningThreadGroup(pipeliningGroup);
             }
         }
-        return serverConnectorBootstrap.getServerConnector(listenerConfig.getHost(), listenerConfig.getPort(),listenerConfig.getVersion()); //changedd
+        return serverConnectorBootstrap.getServerConnector(listenerConfig.getHost(), listenerConfig.getPort(),listenerConfig.getVersion());
     }
 
     private QuicSslContext createHttp3SslContext(SSLConfig sslConfig) {
@@ -151,7 +145,6 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
             throw new RuntimeException("Failed to create ssl context from given certs and key", e);
         }
         return sslContext;
-
     }
 
     private void setSslContext(ServerConnectorBootstrap serverConnectorBootstrap, SSLConfig sslConfig,

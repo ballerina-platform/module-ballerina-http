@@ -74,7 +74,7 @@ public class Http3OutboundRespListener implements HttpConnectorListener {
     @Override
     public void onMessage(HttpCarbonMessage outboundResponseMsg) {
         this.outboundResponseMsg = outboundResponseMsg;
-        writeMessage(outboundResponseMsg, streamId, true);
+        writeMessage(outboundResponseMsg, streamId);
 
     }
 
@@ -101,12 +101,12 @@ public class Http3OutboundRespListener implements HttpConnectorListener {
     }
 
 
-    private void writeMessage(HttpCarbonMessage outboundResponseMsg, long streamId, boolean backOffEnabled) {
+    private void writeMessage(HttpCarbonMessage outboundResponseMsg, long streamId) {
         ResponseWriter writer = new ResponseWriter(streamId);
 
         setContentEncoding(outboundResponseMsg);
         outboundResponseMsg.getHttpContentAsync().setMessageListener(httpContent -> {
-            checkStreamUnwritability(writer);
+//            checkStreamUnwritability(writer);
             channelHandlerContext.channel().eventLoop().execute(() -> {
                 try {
                     writer.writeOutboundResponse(outboundResponseMsg, httpContent);
@@ -117,14 +117,14 @@ public class Http3OutboundRespListener implements HttpConnectorListener {
         });
     }
 
-    private void checkStreamUnwritability(ResponseWriter writer) {
-        if (!writer.isStreamWritable()) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("In thread {}. Stream is not writable.", Thread.currentThread().getName());
-            }
-            writer.getBackPressureObservable().notifyUnWritable();
-        }
-    }
+//    private void checkStreamUnwritability(ResponseWriter writer) {
+//        if (!writer.isStreamWritable()) {
+//            if (LOG.isDebugEnabled()) {
+//                LOG.debug("In thread {}. Stream is not writable.", Thread.currentThread().getName());
+//            }
+//            writer.getBackPressureObservable().notifyUnWritable();
+//        }
+//    }
 
     public long getStreamId() {
         return streamId;
@@ -166,8 +166,8 @@ public class Http3OutboundRespListener implements HttpConnectorListener {
      */
     public class ResponseWriter {
         private long streamId;
-        private AtomicBoolean streamWritable = new AtomicBoolean(true);
-        private final BackPressureObservable backPressureObservable = new DefaultBackPressureObservable();
+//        private AtomicBoolean streamWritable = new AtomicBoolean(true);
+//        private final BackPressureObservable backPressureObservable = new DefaultBackPressureObservable();
 
         ResponseWriter(long streamId) {
             this.streamId = streamId;
@@ -184,16 +184,16 @@ public class Http3OutboundRespListener implements HttpConnectorListener {
             http3MessageStateContext.getListenerState().
                     writeOutboundResponseBody(Http3OutboundRespListener.this,
                             outboundResponseMsg, httpContent, streamId);
-        } //done upto this
-
-
-        boolean isStreamWritable() {
-            return streamWritable.get();
         }
 
-        public BackPressureObservable getBackPressureObservable() {
-            return backPressureObservable;
-        }
+
+//        boolean isStreamWritable() {
+//            return streamWritable.get();
+//        }
+//
+//        public BackPressureObservable getBackPressureObservable() {
+//            return backPressureObservable;
+//        }
     }
 
 

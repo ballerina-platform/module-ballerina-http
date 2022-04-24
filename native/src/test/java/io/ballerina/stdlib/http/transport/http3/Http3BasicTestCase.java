@@ -53,7 +53,7 @@ public class Http3BasicTestCase {
 
     private HttpClientConnector httpClientConnector;
     private ServerConnector serverConnector;
-    private SenderConfiguration senderConfiguration;
+//    private SenderConfiguration senderConfiguration;
     private HttpWsConnectorFactory connectorFactory;
 
     @BeforeClass
@@ -61,6 +61,7 @@ public class Http3BasicTestCase {
         connectorFactory = new DefaultHttpWsConnectorFactory();
         ListenerConfiguration listenerConfiguration = new ListenerConfiguration();
 
+        listenerConfiguration.setServerHeader(TestUtil.TEST_SERVER);
         listenerConfiguration.setPort(TestUtil.SERVER_CONNECTOR_PORT);
         listenerConfiguration.setKeyStoreFile(TestUtil.getAbsolutePath(TestUtil.KEY_STORE_FILE_PATH));
         listenerConfiguration.setKeyStorePass(TestUtil.KEY_STORE_PASSWORD);
@@ -91,8 +92,7 @@ public class Http3BasicTestCase {
 
     @AfterClass
     public void cleanUp() {
-        senderConfiguration.setHttpVersion(String.valueOf(Constants.HTTP_1_1));
-        senderConfiguration.setForceHttp2(false);
+
         httpClientConnector.close();
         serverConnector.stop();
         try {

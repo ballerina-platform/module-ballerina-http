@@ -29,7 +29,7 @@ import java.io.IOException;
 import static io.ballerina.stdlib.http.transport.contract.Constants.*;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY;
 
-public class SendingEntityBody implements ListenerState{
+public class SendingEntityBody implements ListenerState {
 
     private static final Logger LOG = LoggerFactory.getLogger(SendingEntityBody.class);
     private static final InternalLogger ACCESS_LOGGER = InternalLoggerFactory.getInstance(ACCESS_LOG);
@@ -86,44 +86,28 @@ public class SendingEntityBody implements ListenerState{
     public void writeOutboundResponseBody(Http3OutboundRespListener http3OutboundRespListener, HttpCarbonMessage
             outboundResponseMsg, HttpContent httpContent, long streamId) throws Http3Exception {
         this.outboundResponseMsg = outboundResponseMsg;
-        writeContent(http3OutboundRespListener, outboundResponseMsg, httpContent, streamId);
+        writeContent(http3OutboundRespListener, httpContent, streamId);
     }
 
     @Override
     public void handleStreamTimeout(ServerConnectorFuture serverConnectorFuture, ChannelHandlerContext ctx,
                                     Http3OutboundRespListener http3OutboundRespListener, long streamId) {
-
+        //Not yet Implemented
     }
 
     @Override
     public void handleAbruptChannelClosure(ServerConnectorFuture serverConnectorFuture) {
-        IOException connectionClose = new IOException(REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY);
-        outboundResponseMsg.setIoException(connectionClose);
-        outboundRespStatusFuture.notifyHttpListener(connectionClose);
-
-        LOG.error(REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY);
-
+        //Not yet Implemented
     }
 
-    private void writeContent(Http3OutboundRespListener http3OutboundRespListener,
-                              HttpCarbonMessage outboundResponseMsg, HttpContent httpContent, long streamId) {
+    private void writeContent(Http3OutboundRespListener http3OutboundRespListener, HttpContent httpContent,
+                              long streamId) {
+
         if (httpContent instanceof LastHttpContent) {
+            final LastHttpContent lastContent = (LastHttpContent) httpContent;
 
-            final LastHttpContent lastContent = (httpContent == LastHttpContent.EMPTY_LAST_CONTENT) ?
-                    new DefaultLastHttpContent() : (LastHttpContent) httpContent;
-            HttpHeaders trailers = lastContent.trailingHeaders();
-            trailers.add(outboundResponseMsg.getTrailerHeaders());
-            boolean endStream = trailers.isEmpty();
-            writeData(lastContent, streamId, endStream);
-            if (!trailers.isEmpty()) {
-                Http3HeadersFrame http2Trailers = toHttp3Headers(trailers, true);
-                // Write trailing headers.
+            writeData(lastContent, streamId, true);
 
-                ChannelFuture channelFuture = ctx.write(http2Trailers, ctx.newPromise());
-
-                StateUtil.notifyIfHeaderWriteFailure(outboundRespStatusFuture, channelFuture,
-                        REMOTE_CLIENT_CLOSED_BEFORE_INITIATING_OUTBOUND_RESPONSE);
-            }
             http3MessageStateContext
                     .setListenerState(new ResponseCompleted(http3OutboundRespListener,
                             http3MessageStateContext, streamId));
@@ -133,32 +117,20 @@ public class SendingEntityBody implements ListenerState{
     }
 
     private void writeData(HttpContent httpContent, long streamId, boolean endStream) {
-            contentLength += httpContent.content().readableBytes();
-            final ByteBuf content = httpContent.content();
+        contentLength += httpContent.content().readableBytes();
+        final ByteBuf content = httpContent.content();
 
         ChannelFuture channelFuture = ctx.writeAndFlush(new DefaultHttp3DataFrame(
                 Unpooled.wrappedBuffer(content)), ctx.newPromise()).addListener(QuicStreamChannel.SHUTDOWN_OUTPUT);
 
         StateUtil.notifyIfHeaderWriteFailure(outboundRespStatusFuture, channelFuture,
                 REMOTE_CLIENT_CLOSED_BEFORE_INITIATING_OUTBOUND_RESPONSE);
-            if (endStream) {
-                http3OutboundRespListener.getHttp3ServerChannel().getStreamIdRequestMap().remove(streamId);
-                Util.checkForResponseWriteStatus(inboundRequestMsg, outboundRespStatusFuture, channelFuture);
-            } else {
-                StateUtil.notifyIfHeaderWriteFailure(outboundRespStatusFuture, channelFuture,
-                        REMOTE_CLIENT_CLOSED_BEFORE_INITIATING_OUTBOUND_RESPONSE);
-            }
+        if (endStream) {
+            http3OutboundRespListener.getHttp3ServerChannel().getStreamIdRequestMap().remove(streamId);
+            Util.checkForResponseWriteStatus(inboundRequestMsg, outboundRespStatusFuture, channelFuture);
+        } else {
+            StateUtil.notifyIfHeaderWriteFailure(outboundRespStatusFuture, channelFuture,
+                    REMOTE_CLIENT_CLOSED_BEFORE_INITIATING_OUTBOUND_RESPONSE);
         }
-
-    //FROM NETTY
-    static Http3HeadersFrame toHttp3Headers(HttpHeaders inHeaders, boolean validateHeaders) {
-        if (inHeaders.isEmpty()) {
-            return new DefaultHttp3HeadersFrame();
-        }
-        final Http3Headers headers = new DefaultHttp3Headers(validateHeaders, inHeaders.size());
-        final Http3HeadersFrame out = new DefaultHttp3HeadersFrame(headers);
-        return out;
     }
-
-
 }

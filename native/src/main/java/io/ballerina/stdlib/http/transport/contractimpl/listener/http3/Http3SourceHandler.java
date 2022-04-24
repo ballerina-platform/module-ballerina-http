@@ -9,7 +9,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.incubator.codec.http3.Http3DataFrame;
 import io.netty.incubator.codec.http3.Http3HeadersFrame;
 import io.netty.incubator.codec.http3.Http3RequestStreamInboundHandler;
-import io.netty.util.ReferenceCountUtil;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -42,8 +41,6 @@ public class Http3SourceHandler extends Http3RequestStreamInboundHandler {
                 streamId));
         http3MessageStateContext.getListenerState().readInboundRequestHeaders(channelHandlerContext, http3HeadersFrame,
                 streamId);
-
-
     }
 
     @Override
@@ -55,22 +52,18 @@ public class Http3SourceHandler extends Http3RequestStreamInboundHandler {
         if (inboundMessageHolder != null) {
             sourceReqCMsg = inboundMessageHolder.getInboundMsg();
         }
-        if (sourceReqCMsg == null) {
-            ReferenceCountUtil.release(http3DataFrame);
-        } else {
-            sourceReqCMsg.getHttp3MessageStateContext().getListenerState().readInboundRequestBody(this,
-                    http3DataFrame, isLast);
-        }
+        sourceReqCMsg.getHttp3MessageStateContext().getListenerState().readInboundRequestBody(this,
+                http3DataFrame, isLast);
     }
 
     @Override
-    public void channelActive(ChannelHandlerContext ctx) {}
+    public void channelActive(ChannelHandlerContext ctx) {
+    }
 
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
         super.handlerAdded(ctx);
         this.ctx = ctx;
-        // Populate remote address
         this.remoteAddress = ctx.channel().remoteAddress();
         if (this.remoteAddress instanceof InetSocketAddress) {
             remoteHost = ((InetSocketAddress) this.remoteAddress).getAddress().toString();
@@ -81,7 +74,10 @@ public class Http3SourceHandler extends Http3RequestStreamInboundHandler {
     }
 
     @Override
-    public void channelInactive(ChannelHandlerContext ctx) {}
+    public void channelInactive(ChannelHandlerContext ctx) {
+        http3ServerChannel.destroy();
+        ctx.fireChannelInactive();
+    }
 
     public Map<Long, InboundMessageHolder> getStreamIdRequestMap() {
         return http3ServerChannel.getStreamIdRequestMap();
@@ -94,6 +90,7 @@ public class Http3SourceHandler extends Http3RequestStreamInboundHandler {
     public Http3ServerChannel getHttp3ServerChannel() {
         return http3ServerChannel;
     }
+
     public Http3ServerChannelInitializer getHttp3ServerChannelInitializer() {
         return http3serverChannelInitializer;
     }
@@ -118,7 +115,4 @@ public class Http3SourceHandler extends Http3RequestStreamInboundHandler {
         return remoteHost;
     }
 
-    public Http3ServerChannel getHttp2ServerChannel() {
-        return http3ServerChannel;
-    }
 }

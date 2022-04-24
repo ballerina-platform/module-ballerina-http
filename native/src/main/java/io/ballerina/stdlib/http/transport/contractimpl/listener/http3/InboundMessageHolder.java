@@ -33,30 +33,8 @@ public class InboundMessageHolder {
         this.inboundMsg = inboundMsgOrPushResponse;
     }
 
-    /**
-     * Gets last read or write operation execution time.
-     *
-     * @return the last read or write operation execution time
-     */
-    long getLastReadWriteTime() {
-        return lastReadWriteTime;
-    }
-
-    /**
-     * Sets the last read or write operation execution time.
-     *
-     * @param lastReadWriteTime the last read or write operation execution time
-     */
-    void setLastReadWriteTime(long lastReadWriteTime) {
-        this.lastReadWriteTime = lastReadWriteTime;
-    }
-
     public HttpCarbonMessage getInboundMsg() {
         return inboundMsg;
-    }
-
-    public Http3OutboundRespListener getHttp3OutboundRespListener() {
-        return http3OutboundRespListener;
     }
 
     public void setHttp3OutboundRespListener(Http3OutboundRespListener http3OutboundRespListener) {

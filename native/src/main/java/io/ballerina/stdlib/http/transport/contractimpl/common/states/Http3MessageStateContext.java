@@ -10,9 +10,11 @@ public class Http3MessageStateContext {
     public void setListenerState(ListenerState state) {
         this.listenerState = state;
     }
+
     public void setHeadersSent(boolean headersSent) {
         this.headersSent = headersSent;
     }
+
     /**
      * Get the given listener state from the context.
      *

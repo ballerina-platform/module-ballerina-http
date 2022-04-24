@@ -13,8 +13,7 @@ import io.netty.incubator.codec.http3.Http3HeadersFrame;
 
 /**
  * Listener states of HTTP/3 source handler.
- *
- * */
+ */
 
 public interface ListenerState {
 
@@ -67,24 +66,10 @@ public interface ListenerState {
                                    long streamId) throws Http3Exception;
 
 
-    /**
-     * Handles the stream timeout.
-     *
-     * @param serverConnectorFuture     the sever connector future
-     * @param ctx                       the channel handler context
-     * @param http3OutboundRespListener the http/2 outbound response listener
-     * @param streamId                  the stream id
-     */
-
+    //Not yet Implemented
     void handleStreamTimeout(ServerConnectorFuture serverConnectorFuture, ChannelHandlerContext ctx,
                              Http3OutboundRespListener http3OutboundRespListener, long streamId);
 
-    /**
-     * Handles the abrupt channel closure.
-     *
-     * @param serverConnectorFuture     the sever connector future
-     */
-
+    //Not yet Implemented
     void handleAbruptChannelClosure(ServerConnectorFuture serverConnectorFuture);
-
 }

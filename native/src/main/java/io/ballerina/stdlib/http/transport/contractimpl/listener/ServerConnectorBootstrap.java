@@ -82,11 +82,9 @@ public class ServerConnectorBootstrap {
     }
 
     public ServerConnectorBootstrap(ChannelGroup allChannels, QuicSslContext sslctx) {
+
         http3serverBootstrap = new Bootstrap();
-
         http3ServerChannelInitializer = new Http3ServerChannelInitializer();
-        http3ServerChannelInitializer.setAllChannels(allChannels);
-
         ChannelHandler codec = Http3.newQuicServerCodecBuilder()
                 .sslContext(sslctx)
                 .maxIdleTimeout(5000, TimeUnit.MILLISECONDS)
@@ -98,14 +96,12 @@ public class ServerConnectorBootstrap {
                 .handler(http3ServerChannelInitializer).build();
 
         http3serverBootstrap.handler(codec);
-
         HttpTransportContextHolder.getInstance().setHandlerExecutor(new HandlerExecutor());
         initialized = true;
         this.allChannels = allChannels;
-
     }
 
-    public ServerConnector getServerConnector(String host, int port, String httpVersion) { //changedd
+    public ServerConnector getServerConnector(String host, int port, String httpVersion) {
         String serverConnectorId = Util.createServerConnectorID(host, port);
         return new HttpServerConnector(serverConnectorId, host, port, httpVersion);
     }
@@ -124,34 +120,22 @@ public class ServerConnectorBootstrap {
             LOG.debug(String.format("Netty Server Socket BACKLOG %d", serverBootstrapConfiguration.getSoBackLog()));
             LOG.debug(String.format("Netty Server Socket TCP_NODELAY %s", serverBootstrapConfiguration.isTcpNoDelay()));
             LOG.debug(String.format("Netty Server Socket CONNECT_TIMEOUT_MILLIS %d",
-                                    serverBootstrapConfiguration.getConnectTimeOut()));
-            LOG.debug(String.format("Netty Server Socket SO_RCVBUF %d",
-                                    serverBootstrapConfiguration.getReceiveBufferSize()));
-            LOG.debug(String.format("Netty Server Socket SO_SNDBUF %d",
-                                    serverBootstrapConfiguration.getSendBufferSize()));
-        }
-    }
-    public void addHttp3SocketConfiguration(ServerBootstrapConfiguration serverBootstrapConfiguration) {
-        // Set other serverBootstrap parameters
-        http3serverBootstrap.option(ChannelOption.SO_BACKLOG, serverBootstrapConfiguration.getSoBackLog());
-        http3serverBootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, serverBootstrapConfiguration.
-                getConnectTimeOut());
-        http3serverBootstrap.option(ChannelOption.SO_RCVBUF, serverBootstrapConfiguration.getReceiveBufferSize());
-
-        http3serverBootstrap.option(ChannelOption.TCP_NODELAY, serverBootstrapConfiguration.isTcpNoDelay());
-        http3serverBootstrap.option(ChannelOption.SO_RCVBUF, serverBootstrapConfiguration.getReceiveBufferSize());
-        http3serverBootstrap.option(ChannelOption.SO_SNDBUF, serverBootstrapConfiguration.getSendBufferSize());
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug(String.format("Netty Server Socket BACKLOG %d", serverBootstrapConfiguration.getSoBackLog()));
-            LOG.debug(String.format("Netty Server Socket TCP_NODELAY %s", serverBootstrapConfiguration.isTcpNoDelay()));
-            LOG.debug(String.format("Netty Server Socket CONNECT_TIMEOUT_MILLIS %d",
                     serverBootstrapConfiguration.getConnectTimeOut()));
             LOG.debug(String.format("Netty Server Socket SO_RCVBUF %d",
                     serverBootstrapConfiguration.getReceiveBufferSize()));
             LOG.debug(String.format("Netty Server Socket SO_SNDBUF %d",
                     serverBootstrapConfiguration.getSendBufferSize()));
         }
+    }
+
+    public void addHttp3SocketConfiguration(ServerBootstrapConfiguration serverBootstrapConfiguration) {
+
+        http3serverBootstrap.option(ChannelOption.SO_BACKLOG, serverBootstrapConfiguration.getSoBackLog());
+        http3serverBootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, serverBootstrapConfiguration.
+                getConnectTimeOut());
+        http3serverBootstrap.option(ChannelOption.SO_RCVBUF, serverBootstrapConfiguration.getReceiveBufferSize());
+        http3serverBootstrap.option(ChannelOption.SO_SNDBUF, serverBootstrapConfiguration.getSendBufferSize());
+
     }
 
     public void addSecurity(SSLConfig sslConfig) {
@@ -247,19 +231,8 @@ public class ServerConnectorBootstrap {
 
     //for http3
 
-    public void http3AddSecurity(SSLConfig sslConfig) {
-        if (sslConfig != null) {
-            http3ServerChannelInitializer.setSslConfig(sslConfig);
-            isHttps = true;
-        }
-    }
-
-    public void http3AddIdleTimeout(long socketIdleTimeout) {
-        http3ServerChannelInitializer.setIdleTimeout(socketIdleTimeout);
-    }
 
     public void addHttp3ThreadPools(EventLoopGroup bossGroup) {
-
         http3serverBootstrap.group(bossGroup).channel(NioDatagramChannel.class);
     }
 
@@ -280,16 +253,26 @@ public class ServerConnectorBootstrap {
 
     public void addHttp3KeepAliveBehaviour(KeepAliveConfig keepAliveConfig) {
         http3ServerChannelInitializer.setKeepAliveConfig(keepAliveConfig);
-
     }
+
     public void setHttp3PipeliningThreadGroup(EventExecutorGroup pipeliningGroup) {
         http3ServerChannelInitializer.setPipeliningThreadGroup(pipeliningGroup);
     }
 
+    public void http3AddSecurity(SSLConfig sslConfig) {
+        if (sslConfig != null) {
+            http3ServerChannelInitializer.setSslConfig(sslConfig);
+            isHttps = true;
+        }
+    }
+
+    public void http3AddIdleTimeout(long socketIdleTimeout) {
+        http3ServerChannelInitializer.setIdleTimeout(socketIdleTimeout);
+    }
 
     class HttpServerConnector implements ServerConnector {
 
-       private final Logger log = LoggerFactory.getLogger(HttpServerConnector.class);
+        private final Logger log = LoggerFactory.getLogger(HttpServerConnector.class);
         private final String httpVersion;
 
         private ChannelFuture channelFuture;
@@ -301,9 +284,9 @@ public class ServerConnectorBootstrap {
         HttpServerConnector(String id, String host, int port, String httpVersion) {
             this.host = host;
             this.port = port;
-            this.connectorID =  id;
+            this.connectorID = id;
             this.httpVersion = httpVersion;
-            if ("3.0".equals(httpVersion)) { //changedd
+            if ("3.0".equals(httpVersion)) {
                 http3ServerChannelInitializer.setInterfaceId(id);
             } else {
                 httpServerChannelInitializer.setInterfaceId(id);
@@ -324,7 +307,7 @@ public class ServerConnectorBootstrap {
                     serverConnectorFuture.notifyPortBindingError(future.cause());
                 }
             });
-            if ("3.0".equals(httpVersion)) { //changed
+            if ("3.0".equals(httpVersion)) {
                 http3ServerChannelInitializer.setServerConnectorFuture(serverConnectorFuture);
             } else {
                 httpServerChannelInitializer.setServerConnectorFuture(serverConnectorFuture);
@@ -380,7 +363,7 @@ public class ServerConnectorBootstrap {
                 return null;
             }
             if ("3.0".equals(httpVersion)) {
-                return http3serverBootstrap.bind(new InetSocketAddress(getHost(), getPort())); //changedd
+                return http3serverBootstrap.bind(new InetSocketAddress(getHost(), getPort()));
             } else {
                 return serverBootstrap.bind(new InetSocketAddress(getHost(), getPort()));
             }

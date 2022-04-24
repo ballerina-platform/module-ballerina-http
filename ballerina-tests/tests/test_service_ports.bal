@@ -186,6 +186,11 @@ const int http2RedirectTestPort3 = 9705;
 const int http2RetryFunctionTestPort1 = 9706;
 const int http2RetryFunctionTestPort2 = 9707;
 
+
+//HTTP3
+
+const int http3TestPort = 9890;
+
 //Security
 const int securedListenerPort = 9400;
 const int stsPort = 9445;

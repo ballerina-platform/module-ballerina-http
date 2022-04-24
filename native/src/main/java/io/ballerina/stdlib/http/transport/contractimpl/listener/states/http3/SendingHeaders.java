@@ -2,7 +2,6 @@ package io.ballerina.stdlib.http.transport.contractimpl.listener.states.http3;
 
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
-import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorException;
 import io.ballerina.stdlib.http.transport.contractimpl.Http3OutboundRespListener;
 import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http3MessageStateContext;
@@ -17,8 +16,6 @@ import io.netty.handler.codec.http.HttpMessage;
 import io.netty.incubator.codec.http3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.*;
 
@@ -37,12 +34,12 @@ public class SendingHeaders implements ListenerState {
 
     public SendingHeaders(Http3OutboundRespListener http3OutboundRespListener,
                           Http3MessageStateContext http3MessageStateContext) {
-        this.http3OutboundRespListener =  http3OutboundRespListener;
+        this.http3OutboundRespListener = http3OutboundRespListener;
         this.http3MessageStateContext = http3MessageStateContext;
-        this.ctx =  http3OutboundRespListener.getChannelHandlerContext();
-        this.inboundRequestMsg =  http3OutboundRespListener.getInboundRequestMsg();
-        this.outboundRespStatusFuture =  inboundRequestMsg.getHttpOutboundRespStatusFuture();
-        this.streamId =  http3OutboundRespListener.getStreamId();
+        this.ctx = http3OutboundRespListener.getChannelHandlerContext();
+        this.inboundRequestMsg = http3OutboundRespListener.getInboundRequestMsg();
+        this.outboundRespStatusFuture = inboundRequestMsg.getHttpOutboundRespStatusFuture();
+        this.streamId = http3OutboundRespListener.getStreamId();
     }
 
     @Override
@@ -82,35 +79,23 @@ public class SendingHeaders implements ListenerState {
     public void handleStreamTimeout(ServerConnectorFuture serverConnectorFuture,
                                     ChannelHandlerContext ctx, Http3OutboundRespListener http3OutboundRespListener,
                                     long streamId) {
-        try {
-            serverConnectorFuture.notifyErrorListener(
-                    new ServerConnectorException(IDLE_TIMEOUT_TRIGGERED_WHILE_WRITING_OUTBOUND_RESPONSE_HEADERS));
-            LOG.error(IDLE_TIMEOUT_TRIGGERED_WHILE_WRITING_OUTBOUND_RESPONSE_HEADERS);
-        } catch (ServerConnectorException e) {
-            LOG.error("Error while notifying error state to server-connector listener");
-        }
+        //Not yet Implemented
     }
 
     @Override
     public void handleAbruptChannelClosure(ServerConnectorFuture serverConnectorFuture) {
-        IOException connectionClose = new IOException(REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY);
-        http3OutboundRespListener.getOutboundResponseMsg().setIoException(connectionClose);
-        outboundRespStatusFuture.notifyHttpListener(connectionClose);
-
-        LOG.error(REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_HEADERS);
+        //Not yet Implemented
     }
 
     private void writeHeaders(HttpCarbonMessage outboundResponseMsg, long streamId) {
         // Construct Http3 headers
         outboundResponseMsg.getHeaders().
                 add(HttpConversionUtil.ExtensionHeaderNames.SCHEME.text(), HTTP_SCHEME);
-        StateUtil.addTrailerHeaderIfPresent(outboundResponseMsg);
         String serverName = null;
         HttpMessage httpMessage =
                 Util.createHttpResponse(outboundResponseMsg, HTTP3_VERSION, serverName, true);
 
         headersFrame = Http3StateUtil.toHttp3Headers(httpMessage, true);
-
         ChannelFuture channelFuture = ctx.write(headersFrame, ctx.newPromise());
 
         StateUtil.notifyIfHeaderWriteFailure(outboundRespStatusFuture, channelFuture,

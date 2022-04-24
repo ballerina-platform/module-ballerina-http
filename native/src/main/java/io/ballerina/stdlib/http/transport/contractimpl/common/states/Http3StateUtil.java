@@ -2,7 +2,6 @@ package io.ballerina.stdlib.http.transport.contractimpl.common.states;
 
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
-import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorException;
 import io.ballerina.stdlib.http.transport.contractimpl.Http3OutboundRespListener;
 import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.http3.Http3SourceHandler;
@@ -21,21 +20,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
-import java.net.URI;
+import java.util.List;
+import java.util.Map;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.*;
-import static io.netty.handler.codec.http.HttpScheme.HTTP;
-import static io.netty.handler.codec.http.HttpScheme.HTTPS;
-import static io.netty.handler.codec.http.HttpUtil.isAsteriskForm;
-import static io.netty.handler.codec.http.HttpUtil.isOriginForm;
-import static io.netty.util.AsciiString.EMPTY_STRING;
-import static io.netty.util.internal.StringUtil.isNullOrEmpty;
-import static io.netty.util.internal.StringUtil.length;
 
 public class Http3StateUtil {
 
     private static final Logger LOG = LoggerFactory.getLogger(Http3StateUtil.class);
-    private static Http3HeadersFrame headersFrame = new DefaultHttp3HeadersFrame();
+    private static final Http3HeadersFrame headersFrame = new DefaultHttp3HeadersFrame();
     private static final AsciiString EMPTY_REQUEST_PATH = AsciiString.cached("/");
 
     public static void notifyRequestListener(Http3SourceHandler http3SourceHandler,
@@ -92,32 +85,10 @@ public class Http3StateUtil {
         sourceReqCMsg.setProperty(LISTENER_PORT, localAddress != null ? localAddress.getPort() : null);
         sourceReqCMsg.setProperty(LISTENER_INTERFACE_ID, http3SourceHandler.getInterfaceId());
         sourceReqCMsg.setProperty(PROTOCOL, HTTPS_SCHEME);
-        sourceReqCMsg.setProperty(MUTUAL_SSL_HANDSHAKE_RESULT,
-                ctx.channel().attr(Constants.MUTUAL_SSL_RESULT_ATTRIBUTE).get());
-        sourceReqCMsg.setProperty(BASE_64_ENCODED_CERT,
-                ctx.channel().attr(Constants.BASE_64_ENCODED_CERT_ATTRIBUTE).get());
         String uri = httpRequest.uri();
         sourceReqCMsg.setRequestUrl(uri);
         sourceReqCMsg.setProperty(TO, uri);
         return sourceReqCMsg;
-
-    }
-
-    public static Http3HeadersFrame createResponseHeaders() {
-//        headersFrame.headers().status("200");
-//        headersFrame.headers().add("server", "serverName");
-        return headersFrame;
-    }
-
-    public static void writeResponse(ChannelHandlerContext ctx) {
-//        byte[] msg = new byte[content.readableBytes()];
-//        final byte[] CONTENT = "Received\r\n".getBytes(CharsetUtil.US_ASCII);
-//        headersFrame.headers().addInt("content-length", msg.length);
-//        ctx.write(headersFrame);
-//        ctx.writeAndFlush(new DefaultHttp3DataFrame(
-//                        Unpooled.wrappedBuffer(CONTENT)))
-//                .addListener(QuicStreamChannel.SHUTDOWN_OUTPUT);
-//        ReferenceCountUtil.release(headersFrame);
 
     }
 
@@ -131,7 +102,6 @@ public class Http3StateUtil {
                     .writeOutboundResponseBody(http3OutboundRespListener, outboundResponseMsg, httpContent,
                             streamId);
         } else {
-            // When the initial frames of the response is to be sent.
             http3MessageStateContext.setListenerState(
                     new SendingHeaders(http3OutboundRespListener, http3MessageStateContext));
             http3MessageStateContext.getListenerState()
@@ -140,102 +110,20 @@ public class Http3StateUtil {
         }
     }
 
-    public static void validatePromisedStreamState(long originalStreamId, long streamId,
-                                                   HttpCarbonMessage inboundRequestMsg) throws Http3Exception {
-        if (streamId == originalStreamId) { // Not a promised stream, no need to validate
-            return;
-        }
-//        if (!isValidStreamId(streamId, conn)) {
-        inboundRequestMsg.getHttpOutboundRespStatusFuture().
-                notifyHttpListener(new ServerConnectorException(PROMISED_STREAM_REJECTED_ERROR));
-//            throw new Http3Exception(Http3ErrorCode.REFUSED_STREAM, PROMISED_STREAM_REJECTED_ERROR);
-//        }
-    }
-
-
-    //FROM NETTY
     public static Http3HeadersFrame toHttp3Headers(HttpMessage httpMessage, boolean validateHeaders) {
-        HttpHeaders inHeaders = httpMessage.headers();
-        final Http3Headers out = new DefaultHttp3Headers(validateHeaders, inHeaders.size());
-        if (httpMessage instanceof HttpRequest) {
-            HttpRequest request = (HttpRequest) httpMessage;
-            URI requestTargetUri = URI.create(request.uri());
-            out.path(toHttp3Path(requestTargetUri));
-            out.method(request.method().asciiName());
-            setHttp3Scheme(inHeaders, requestTargetUri, out);
 
-            if (!isOriginForm(requestTargetUri) && !isAsteriskForm(requestTargetUri)) {
-                // Attempt to take from HOST header before taking from the request-line
-                String host = inHeaders.getAsString(HttpHeaderNames.HOST);
-                setHttp3Authority((host == null || host.isEmpty()) ? requestTargetUri.getAuthority() : host, out);
-            }
-        } else if (httpMessage instanceof HttpResponse) {
+        HttpHeaders incomingHeaders = httpMessage.headers();
+        final Http3Headers outgoingHeaders = new DefaultHttp3Headers(validateHeaders, incomingHeaders.size());
+        if (httpMessage instanceof HttpResponse) {
             HttpResponse response = (HttpResponse) httpMessage;
-            out.status(response.status().codeAsText());
-        }
-
-        // Add the HTTP headers which have not been consumed above
-//        toHttp3Headers(inHeaders, out);
-        final Http3HeadersFrame headers = new DefaultHttp3HeadersFrame(out);
-        return headers;
-    }
-
-    private static AsciiString toHttp3Path(URI uri) {
-        StringBuilder pathBuilder = new StringBuilder(length(uri.getRawPath()) +
-                length(uri.getRawQuery()) + length(uri.getRawFragment()) + 2);
-        if (!isNullOrEmpty(uri.getRawPath())) {
-            pathBuilder.append(uri.getRawPath());
-        }
-        if (!isNullOrEmpty(uri.getRawQuery())) {
-            pathBuilder.append('?');
-            pathBuilder.append(uri.getRawQuery());
-        }
-        if (!isNullOrEmpty(uri.getRawFragment())) {
-            pathBuilder.append('#');
-            pathBuilder.append(uri.getRawFragment());
-        }
-        String path = pathBuilder.toString();
-        return path.isEmpty() ? EMPTY_REQUEST_PATH : new AsciiString(path);
-    }
-
-    static void setHttp3Authority(String authority, Http3Headers out) {
-        // The authority MUST NOT include the deprecated "userinfo" subcomponent
-        if (authority != null) {
-            if (authority.isEmpty()) {
-                out.authority(EMPTY_STRING);
-            } else {
-                int start = authority.indexOf('@') + 1;
-                int length = authority.length() - start;
-                if (length == 0) {
-                    throw new IllegalArgumentException("authority: " + authority);
-                }
-                out.authority(new AsciiString(authority, start, length));
+            outgoingHeaders.status(response.status().codeAsText());
+            List<Map.Entry<String, String>> httpHeaders = httpMessage.headers().entries();
+            for (Map.Entry<String, String> httpHeader : httpHeaders) {
+                outgoingHeaders.add(httpHeader.getKey(), httpHeader.getValue());
             }
         }
-    }
-
-    private static void setHttp3Scheme(HttpHeaders in, URI uri, Http3Headers out) {
-        String value = uri.getScheme();
-        if (value != null) {
-            out.scheme(new AsciiString(value));
-            return;
-        }
-
-        // Consume the Scheme extension header if present
-        CharSequence cValue = in.get(HttpConversionUtil.ExtensionHeaderNames.SCHEME.text());
-        if (cValue != null) {
-            out.scheme(AsciiString.of(cValue));
-            return;
-        }
-
-        if (uri.getPort() == HTTPS.port()) {
-            out.scheme(HTTPS.name());
-        } else if (uri.getPort() == HTTP.port()) {
-            out.scheme(HTTP.name());
-        } else {
-            throw new IllegalArgumentException(":scheme must be specified. " +
-                    "see https://quicwg.org/base-drafts/draft-ietf-quic-http.html#section-4.1.1.1");
-        }
+        final Http3HeadersFrame headers = new DefaultHttp3HeadersFrame(outgoingHeaders);
+        return headers;
     }
 
 }

@@ -22,14 +22,11 @@ public class Http3QuicStreamInitializer extends ChannelInitializer<QuicStreamCha
     protected void initChannel(QuicStreamChannel ch) throws Exception {
         ChannelPipeline serverPipeline = ch.pipeline();
         configureHttpPipeline(serverPipeline, ch.streamId(), interfaceId, serverConnectorFuture);
-
-
     }
 
     private void configureHttpPipeline(ChannelPipeline serverPipeline, long streamId, String interfaceId,
                                        ServerConnectorFuture serverConnectorFuture) {
         serverPipeline.addLast(new Http3SourceHandler(streamId, serverConnectorFuture, interfaceId));
-
     }
 
 

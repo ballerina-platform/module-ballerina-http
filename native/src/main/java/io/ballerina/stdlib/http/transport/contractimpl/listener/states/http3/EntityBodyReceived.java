@@ -11,8 +11,13 @@ import io.netty.handler.codec.http.HttpContent;
 import io.netty.incubator.codec.http3.Http3DataFrame;
 import io.netty.incubator.codec.http3.Http3Exception;
 import io.netty.incubator.codec.http3.Http3HeadersFrame;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class EntityBodyReceived implements ListenerState {
+
+    private static final Logger LOG = LoggerFactory.getLogger(EntityBodyReceived.class);
+
     private final Http3MessageStateContext http3MessageStateContext;
 
     public EntityBodyReceived(Http3MessageStateContext http3MessageStateContext) {
@@ -21,46 +26,38 @@ public class EntityBodyReceived implements ListenerState {
     }
 
     @Override
-    public void readInboundRequestHeaders(ChannelHandlerContext ctx, Http3HeadersFrame headersFrame, long streamId)  {
-
+    public void readInboundRequestHeaders(ChannelHandlerContext ctx, Http3HeadersFrame headersFrame, long streamId) {
+        LOG.warn("readInboundRequestHeaders is not a dependant action of this state");
     }
 
     @Override
-    public void readInboundRequestBody(Http3SourceHandler http3SourceHandler, Http3DataFrame dataFrame, boolean isLast){
-
+    public void readInboundRequestBody(Http3SourceHandler http3SourceHandler, Http3DataFrame dataFrame, boolean isLast) {
+        LOG.warn("readInboundRequestBody is not a dependant action of this state");
     }
 
     @Override
     public void writeOutboundResponseHeaders(Http3OutboundRespListener http3OutboundRespListener,
                                              HttpCarbonMessage outboundResponseMsg, HttpContent httpContent,
                                              long streamId) throws Http3Exception {
-
+        LOG.warn("writeOutboundResponseHeaders is not a dependant action of this state");
     }
 
     @Override
     public void writeOutboundResponseBody(Http3OutboundRespListener http3OutboundRespListener,
                                           HttpCarbonMessage outboundResponseMsg, HttpContent httpContent,
                                           long streamId) throws Http3Exception {
-        if (http3MessageStateContext.isHeadersSent()) {
-            // response header already sent. move the state to SendingEntityBody.
-            http3MessageStateContext.setListenerState(
-                    new SendingEntityBody(http3OutboundRespListener, http3MessageStateContext, streamId));
-            http3MessageStateContext.getListenerState()
-                    .writeOutboundResponseBody(http3OutboundRespListener, outboundResponseMsg, httpContent, streamId);
-        } else {
             Http3StateUtil.beginResponseWrite(http3MessageStateContext, http3OutboundRespListener,
                     outboundResponseMsg, httpContent, streamId);
-        }
-    }//done upto this
+    }
 
     @Override
     public void handleStreamTimeout(ServerConnectorFuture serverConnectorFuture, ChannelHandlerContext ctx,
                                     Http3OutboundRespListener http3OutboundRespListener, long streamId) {
-
+        //Not yet Implemented
     }
 
     @Override
     public void handleAbruptChannelClosure(ServerConnectorFuture serverConnectorFuture) {
-
+        //Not yet Implemented
     }
 }

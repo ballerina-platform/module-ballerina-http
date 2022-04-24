@@ -54,6 +54,7 @@ dependencies {
     implementation group: 'io.netty', name: 'netty-tcnative-boringssl-static', version:"${nettyTcnativeVersion}"
     implementation group: 'io.netty', name: 'netty-tcnative-classes', version:"${nettyTcnativeVersion}"
 
+    // HTTP/3
     implementation name: 'netty-incubator-codec-http3-0.0.11.Final'
     implementation name: 'codec'
 

@@ -18,7 +18,7 @@ public class Http3ServerChannelInitializer extends ChannelInitializer<QuicChanne
     private static final Logger LOG = LoggerFactory.getLogger(Http3ServerChannelInitializer.class);
 
 
-    private ChannelGroup allChannels;
+//    private ChannelGroup allChannels;
     private SSLConfig sslConfig;
     private long socketIdleTimeout;
     private KeepAliveConfig keepAliveConfig;
@@ -35,12 +35,6 @@ public class Http3ServerChannelInitializer extends ChannelInitializer<QuicChanne
         ChannelPipeline serverPipeline = ch.pipeline();
         serverPipeline.addLast(new Http3ServerConnectionHandler(new Http3QuicStreamInitializer
                 (interfaceId, serverConnectorFuture, this)));
-
-
-    }
-
-    void setAllChannels(ChannelGroup allChannels) {
-        this.allChannels = allChannels;
     }
 
     void setSslConfig(SSLConfig sslConfig) {
@@ -51,6 +45,7 @@ public class Http3ServerChannelInitializer extends ChannelInitializer<QuicChanne
     void setIdleTimeout(long socketIdleTimeout) {
         this.socketIdleTimeout = socketIdleTimeout;
     }
+
     long getSocketIdleTimeout() {
         return socketIdleTimeout;
     }
@@ -87,8 +82,5 @@ public class Http3ServerChannelInitializer extends ChannelInitializer<QuicChanne
 
     }
 
-    public boolean isHttpAccessLogEnabled() {
-        return httpAccessLogEnabled;
-    }
 }
 

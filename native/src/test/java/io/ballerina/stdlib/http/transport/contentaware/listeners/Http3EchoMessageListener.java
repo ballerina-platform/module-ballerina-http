@@ -47,10 +47,10 @@ public class Http3EchoMessageListener implements HttpConnectorListener {
         executor.execute(() -> {
             try {
                 HttpCarbonMessage httpResponse =
-                        new HttpCarbonResponse(new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.METHOD_NOT_ALLOWED));
+                        new HttpCarbonResponse(new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK));
                 httpResponse.setHeader(HttpHeaderNames.CONNECTION.toString(), HttpHeaderValues.KEEP_ALIVE.toString());
                 httpResponse.setHeader(HttpHeaderNames.CONTENT_TYPE.toString(), Constants.TEXT_PLAIN);
-                httpResponse.setHttpStatusCode(HttpResponseStatus.METHOD_NOT_ALLOWED.code());
+                httpResponse.setHttpStatusCode(HttpResponseStatus.OK.code());
                 setForwardedHeader(httpRequest, httpResponse);
 
 //                String payload = "TEST VALUE";
