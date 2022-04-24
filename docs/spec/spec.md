@@ -1525,7 +1525,10 @@ work such as the below.
  - Validating
  - Securing
 
-Interceptors are designed for both request and response flows.
+Interceptors are designed for both request and response flows. There are just service objects which will be executed in
+a configured order to intercept request and response. These interceptor services can only have either a resource function 
+or a remote function depends on the interceptor type. Moreover, they do not support `ServiceConfig`, `ResourceConfig`
+and `Cache` annotations.
 
 #### 8.1.1 Request interceptor
 Following is an example of `RequestInterceptor` written in Ballerina swan-lake. `RequestInterceptor` can only have one 
@@ -1650,8 +1653,9 @@ be placed anywhere in the request or response interceptor chain. The framework a
 `RequestErrorInterceptor` and `ResponseErrorInterceptor` which basically prints the error message to the console.
 
 Users can override these interceptors by defining their own ones as follows. Users don’t have to specifically engage 
-these interceptors as they only have fixed positions and they are always executed. The only additional argument in this 
-case is error `err`.
+these interceptors as they only have fixed positions and they are always executed. The only additional and mandatory 
+argument in this case is error `err`. Moreover, the `RequestErrorInterceptor` resource function can only have
+the `default` method and default path.
 
 ```ballerina
 service class RequestErrorInterceptor {
@@ -1694,8 +1698,9 @@ function paths are relative to the service base path.
 ```
 
 ##### 8.1.4.2 Listener level
-Interceptors could get engaged at Listener level as well. At the listener level resource function paths are 
-relative to the /.
+Interceptors could get engaged at Listener level as well. Interceptors engaged at listener level should have resource 
+function only with default path i.e. these interceptors will get executed for all the services registered on this 
+listener.
 ```ballerina
 listener http:Listener echoListener = new http:Listener(9090, config = {interceptors: [requestInterceptor, responseInterceptor]});
 ```
