@@ -15,7 +15,6 @@
 // under the License.
 
 import ballerina/log;
-import ballerina/io;
 import ballerina/regex;
 
 isolated function performDataBinding(Response response, TargetType targetType) returns anydata|ClientError {
