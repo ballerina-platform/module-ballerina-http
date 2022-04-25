@@ -41,14 +41,14 @@ public class JsonPayloadBuilder extends AbstractPayloadBuilder {
     }
 
     @Override
-    public int build(BObject inRequestEntity, boolean readonly, Object[] paramFeed, int index) {
+    public Object getValue(BObject entity, boolean readonly) {
         // Following can be removed based on the solution of
         // https://github.com/ballerina-platform/ballerina-lang/issues/35780
         if (payloadType.getTag() == TypeTags.RECORD_TYPE_TAG) {
-            return JsonToRecordConverter.convert(payloadType, inRequestEntity, readonly, paramFeed, index);
+            return JsonToRecordConverter.convert(payloadType, entity, readonly);
         }
-        Object bjson = EntityBodyHandler.constructJsonDataSource(inRequestEntity);
-        EntityBodyHandler.addJsonMessageDataSource(inRequestEntity, bjson);
+        Object bjson = EntityBodyHandler.constructJsonDataSource(entity);
+        EntityBodyHandler.addJsonMessageDataSource(entity, bjson);
         var result = FromJsonWithType.fromJsonWithType(bjson, ValueCreator.createTypedescValue(payloadType));
         if (result instanceof BError) {
             throw (BError) result;
@@ -56,7 +56,6 @@ public class JsonPayloadBuilder extends AbstractPayloadBuilder {
         if (readonly && result instanceof BRefValue) {
             ((BRefValue) result).freezeDirect();
         }
-        paramFeed[index++] = result;
-        return index;
+        return result;
     }
 }

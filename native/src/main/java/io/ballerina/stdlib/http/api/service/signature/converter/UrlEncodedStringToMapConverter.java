@@ -47,15 +47,14 @@ public class UrlEncodedStringToMapConverter {
 
     private static final MapType STRING_MAP = TypeCreator.createMapType(PredefinedTypes.TYPE_STRING);
 
-    public static int convert(MapType type, BString dataSource, boolean readonly, Object[] paramFeed, int index) {
+    public static Object convert(MapType type, BString dataSource, boolean readonly) {
         Type constrainedType = type.getConstrainedType();
         if (constrainedType.getTag() == STRING_TAG) {
             BMap<BString, Object> formParamMap = getFormParamMap(dataSource);
             if (readonly) {
                 formParamMap.freezeDirect();
             }
-            paramFeed[index++] = formParamMap;
-            return index;
+            return formParamMap;
         }
         throw HttpUtil.createHttpError("incompatible type found: '" + type.toString() + "'",
                                        HttpErrorType.PAYLOAD_BINDING_ERROR);

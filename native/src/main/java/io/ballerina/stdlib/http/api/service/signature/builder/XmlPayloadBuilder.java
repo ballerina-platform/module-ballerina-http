@@ -39,18 +39,16 @@ public class XmlPayloadBuilder extends AbstractPayloadBuilder {
     }
 
     @Override
-    public int build(BObject inRequestEntity, boolean readonly, Object[] paramFeed, int index) {
+    public Object getValue(BObject entity, boolean readonly) {
         if (payloadType.getTag() == TypeTags.XML_TAG) {
-            BXml bxml = EntityBodyHandler.constructXmlDataSource(inRequestEntity);
-            EntityBodyHandler.addMessageDataSource(inRequestEntity, bxml);
+            BXml bxml = EntityBodyHandler.constructXmlDataSource(entity);
+            EntityBodyHandler.addMessageDataSource(entity, bxml);
             if (readonly) {
                 bxml.freezeDirect();
             }
-            paramFeed[index++] = bxml;
-            return index;
-        } else {
-            throw HttpUtil.createHttpError("incompatible type found: '" + payloadType.toString() + "'",
-                                           HttpErrorType.PAYLOAD_BINDING_ERROR);
+            return bxml;
         }
+        throw HttpUtil.createHttpError("incompatible type found: '" + payloadType.toString() + "'",
+                                       HttpErrorType.PAYLOAD_BINDING_ERROR);
     }
 }

@@ -20,6 +20,16 @@ import ballerina/http;
 
 final http:Client anydataBindingClient = check new("http://localhost:" + generalPort.toString());
 
+type Person record {|
+    string name;
+    int age;
+|};
+
+type Stock record {|
+    int id;
+    float price;
+|};
+
 service /anydataB on generalListener {
 
     // int

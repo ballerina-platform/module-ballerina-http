@@ -19,7 +19,6 @@ import ballerina/jballerina.java;
 import ballerina/mime;
 import ballerina/observe;
 import ballerina/time;
-import ballerina/log;
 
 # The HTTP client provides the capability for initiating contact with a remote HTTP service. The API it
 # provides includes the functions for the standard HTTP methods forwarding a received request and sending requests
@@ -649,77 +648,6 @@ isolated function processResponse(Response|ClientError response, TargetType targ
     return performDataBinding(response, targetType);
 }
 
-isolated function performDataBinding(Response response, TargetType targetType) returns anydata|ClientError {
-    if targetType is typedesc<string> {
-        return response.getTextPayload();
-    } else if targetType is typedesc<string?> {
-        string|ClientError payload = response.getTextPayload();
-        return payload is NoContentError ? () : payload;
-    } else if targetType is typedesc<map<string>> {
-        string payload = check response.getTextPayload();
-        return getFormDataMap(payload);
-    } else if targetType is typedesc<map<string>?> {
-        string|ClientError payload = response.getTextPayload();
-        if payload is error {
-            if payload is NoContentError {
-                return;
-            }
-            return payload;
-        }
-        return getFormDataMap(payload);
-    } else if targetType is typedesc<xml> {
-        return response.getXmlPayload();
-    } else if targetType is typedesc<xml?> {
-        xml|ClientError payload = response.getXmlPayload();
-        return payload is NoContentError ? () : payload;
-    } else if targetType is typedesc<byte[]> {
-        return response.getBinaryPayload();
-    } else if targetType is typedesc<byte[]?> {
-        byte[]|ClientError payload = response.getBinaryPayload();
-        if payload is byte[] {
-            return payload.length() == 0 ? () : payload;
-        }
-        return payload;
-    } else if targetType is typedesc<record {| anydata...; |}> {
-        json payload = check response.getJsonPayload();
-        var result = payload.cloneWithType(targetType);
-        return result is error ? createPayloadBindingError(result) : result;
-    } else if targetType is typedesc<record {| anydata...; |}?> {
-        json|ClientError payload = response.getJsonPayload();
-        if payload is json {
-            var result = payload.cloneWithType(targetType);
-            return result is error ? createPayloadBindingError(result) : result;
-        } else {
-            return payload is NoContentError ? () : payload;
-        }
-    } else if targetType is typedesc<record {| anydata...; |}[]> {
-        json payload = check response.getJsonPayload();
-        var result = payload.cloneWithType(targetType);
-        return result is error ? createPayloadBindingError(result) : result;
-    } else if targetType is typedesc<record {| anydata...; |}[]?> {
-        json|ClientError payload = response.getJsonPayload();
-        if payload is json {
-            var result = payload.cloneWithType(targetType);
-            return result is error ? createPayloadBindingError(result) : result;
-        } else {
-            return payload is NoContentError ? () : payload;
-        }
-    } else if targetType is typedesc<map<json>> {
-        json payload = check response.getJsonPayload();
-        return <map<json>> payload;
-    } else if targetType is typedesc<json> {
-        json|ClientError result = response.getJsonPayload();
-        return result is NoContentError ? (): result;
-    } else {
-        // Consume payload to avoid memory leaks
-        byte[]|ClientError payload = response.getBinaryPayload();
-        if payload is error {
-            log:printDebug("Error releasing payload during invalid target typed data binding: " + payload.message());
-        }
-        return error ClientError("invalid target type, expected: http:Response, string, xml, json, map<json>, byte[], record, record[] or a union of such a type with nil");
-    }
-}
-
 isolated function getPayload(Response response) returns anydata|error {
     string|error contentTypeValue = response.getHeader(CONTENT_TYPE);
     string value = "";
@@ -775,15 +703,6 @@ isolated function createResponseError(int statusCode, string reasonPhrase, map<s
     } else {
         return error RemoteServerError(reasonPhrase, statusCode = statusCode, headers = headers, body = body);
     }
-}
-
-isolated function createPayloadBindingError(error result) returns PayloadBindingError {
-    string errPrefix = "Payload binding failed: ";
-    var errMsg = result.detail()["message"];
-    if errMsg is string {
-        return error PayloadBindingError(errPrefix + errMsg, result);
-    }
-    return error PayloadBindingError(errPrefix + result.message(), result);
 }
 
 # Represents HTTP methods.

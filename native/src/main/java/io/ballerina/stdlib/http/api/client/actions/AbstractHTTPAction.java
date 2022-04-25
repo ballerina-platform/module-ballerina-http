@@ -551,4 +551,17 @@ public abstract class AbstractHTTPAction {
             }
         }
     }
+//
+//    public static Object performClientDataBinding(BObject response, BTypedesc typedesc, boolean readonly) {
+//        BObject entity =  HttpUtil.getEntity(response, false, true, true);
+//        HttpHeaders headers = (HttpHeaders) response.getNativeData(HTTP_HEADERS);
+//        String contentType = headers.get(HttpHeaderNames.CONTENT_TYPE.toString());
+//
+//        AbstractPayloadBuilder payloadBuilder = getBuilder(contentType, typedesc.getDescribingType());
+//        try {
+//            return payloadBuilder.getValue(entity, readonly);
+//        } catch (BError error) {
+//            return error;
+//        }
+//    }
 }
