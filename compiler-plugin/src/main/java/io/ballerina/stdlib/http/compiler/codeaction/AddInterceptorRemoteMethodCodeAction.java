@@ -18,8 +18,10 @@
 
 package io.ballerina.stdlib.http.compiler.codeaction;
 
-import io.ballerina.stdlib.http.compiler.Constants;
 import io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes;
+
+import static io.ballerina.stdlib.http.compiler.codeaction.Constants.LS;
+import static io.ballerina.stdlib.http.compiler.codeaction.Constants.REMOTE;
 
 /**
  * CodeAction to add the remote method for response/ response error interceptor.
@@ -32,17 +34,17 @@ public class AddInterceptorRemoteMethodCodeAction extends AddInterceptorMethodCo
 
     @Override
     protected String methodKind() {
-        return Constants.REMOTE_KEYWORD;
+        return REMOTE;
     }
 
     @Override
     protected String methodSignature(boolean isErrorInterceptor) {
-        String method = "\n\tremote function interceptResponse";
+        String method = LS + "\tremote function interceptResponse";
         method += isErrorInterceptor ? "Error(error err, " : "(";
-        method += "http:RequestContext ctx) returns http:NextService|error? {\n" +
-                "\t\t// add your logic here\n" +
-                "\t\treturn ctx.next();\n" +
-                "\t}\n";
+        method += "http:RequestContext ctx) returns http:NextService|error? {" + LS +
+                "\t\t// add your logic here" + LS +
+                "\t\treturn ctx.next();" + LS +
+                "\t}" + LS;
         return method;
     }
 

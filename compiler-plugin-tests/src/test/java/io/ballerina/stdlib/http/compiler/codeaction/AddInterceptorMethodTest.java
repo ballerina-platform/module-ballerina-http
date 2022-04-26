@@ -29,6 +29,9 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
+import static io.ballerina.stdlib.http.compiler.codeaction.Constants.IS_ERROR_INTERCEPTOR_TYPE;
+import static io.ballerina.stdlib.http.compiler.codeaction.Constants.NODE_LOCATION_KEY;
+
 /**
  * Test for adding interceptor method templates.
  */
@@ -64,9 +67,8 @@ public class AddInterceptorMethodTest extends AbstractCodeActionTest {
     private CodeActionInfo getAddInterceptorResourceMethodCodeAction(LinePosition startLine, LinePosition endLine,
                                                                      boolean isErrorInterceptor) {
         LineRange lineRange = LineRange.from("service.bal", startLine, endLine);
-        CodeActionArgument locationArg = CodeActionArgument.from(CodeActionUtil.NODE_LOCATION_KEY, lineRange);
-        CodeActionArgument isError = CodeActionArgument.from(CodeActionUtil.IS_ERROR_INTERCEPTOR_TYPE,
-                                                             isErrorInterceptor);
+        CodeActionArgument locationArg = CodeActionArgument.from(NODE_LOCATION_KEY, lineRange);
+        CodeActionArgument isError = CodeActionArgument.from(IS_ERROR_INTERCEPTOR_TYPE, isErrorInterceptor);
         CodeActionInfo codeAction = CodeActionInfo.from("Add interceptor resource method", List.of(locationArg,
                                                                                                    isError));
         codeAction.setProviderName("HTTP_132/ballerina/http/ADD_INTERCEPTOR_RESOURCE_METHOD");
@@ -76,9 +78,8 @@ public class AddInterceptorMethodTest extends AbstractCodeActionTest {
     private CodeActionInfo getAddInterceptorRemoteMethodCodeAction(LinePosition startLine, LinePosition endLine,
                                                                    boolean isErrorInterceptor) {
         LineRange lineRange = LineRange.from("service.bal", startLine, endLine);
-        CodeActionArgument locationArg = CodeActionArgument.from(CodeActionUtil.NODE_LOCATION_KEY, lineRange);
-        CodeActionArgument isError = CodeActionArgument.from(CodeActionUtil.IS_ERROR_INTERCEPTOR_TYPE,
-                                                             isErrorInterceptor);
+        CodeActionArgument locationArg = CodeActionArgument.from(NODE_LOCATION_KEY, lineRange);
+        CodeActionArgument isError = CodeActionArgument.from(IS_ERROR_INTERCEPTOR_TYPE, isErrorInterceptor);
         CodeActionInfo codeAction = CodeActionInfo.from("Add interceptor remote method", List.of(locationArg, isError));
         codeAction.setProviderName("HTTP_135/ballerina/http/ADD_INTERCEPTOR_REMOTE_METHOD");
         return codeAction;

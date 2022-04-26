@@ -18,8 +18,10 @@
 
 package io.ballerina.stdlib.http.compiler.codeaction;
 
-import io.ballerina.stdlib.http.compiler.Constants;
 import io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes;
+
+import static io.ballerina.stdlib.http.compiler.codeaction.Constants.LS;
+import static io.ballerina.stdlib.http.compiler.codeaction.Constants.RESOURCE;
 
 /**
  * CodeAction to add the resource method for request/ request error interceptor.
@@ -32,17 +34,17 @@ public class AddInterceptorResourceMethodCodeAction extends AddInterceptorMethod
 
     @Override
     protected String methodKind() {
-        return Constants.RESOURCE_KEYWORD;
+        return RESOURCE;
     }
 
     @Override
     protected String methodSignature(boolean isErrorInterceptor) {
-        String method = "\n\tresource function 'default [string... path](";
+        String method = LS + "\tresource function 'default [string... path](";
         method += isErrorInterceptor ? "error err, " : "";
-        method += "http:RequestContext ctx) " +
-                "returns http:NextService|error? {\n" +
-                "\t\t// add your logic here\n" +
-                "\t\treturn ctx.next();\n\t}\n";
+        method += "http:RequestContext ctx) returns http:NextService|error? {" + LS +
+                "\t\t// add your logic here" + LS +
+                "\t\treturn ctx.next();" + LS +
+                "\t}" + LS;
         return method;
     }
 

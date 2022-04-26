@@ -28,7 +28,6 @@ import io.ballerina.projects.plugins.codeaction.CodeActionContext;
 import io.ballerina.projects.plugins.codeaction.CodeActionExecutionContext;
 import io.ballerina.projects.plugins.codeaction.CodeActionInfo;
 import io.ballerina.projects.plugins.codeaction.DocumentEdit;
-import io.ballerina.stdlib.http.compiler.Constants;
 import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextDocument;
@@ -40,6 +39,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+
+import static io.ballerina.stdlib.http.compiler.codeaction.Constants.ERROR;
+import static io.ballerina.stdlib.http.compiler.codeaction.Constants.IS_ERROR_INTERCEPTOR_TYPE;
+import static io.ballerina.stdlib.http.compiler.codeaction.Constants.NODE_LOCATION_KEY;
 
 /**
  * Abstract implementation of code action to add interceptor method template.
@@ -55,9 +58,9 @@ public abstract class AddInterceptorMethodCodeAction implements CodeAction {
         Diagnostic diagnostic = context.diagnostic();
         SyntaxTree syntaxTree = context.currentDocument().syntaxTree();
         NonTerminalNode node = CodeActionUtil.findNode(syntaxTree, diagnostic.location().lineRange());
-        CodeActionArgument location = CodeActionArgument.from(CodeActionUtil.NODE_LOCATION_KEY, node.lineRange());
-        CodeActionArgument isError = CodeActionArgument.from(CodeActionUtil.IS_ERROR_INTERCEPTOR_TYPE,
-                                                             diagnostic.message().contains(Constants.ERROR));
+        CodeActionArgument location = CodeActionArgument.from(NODE_LOCATION_KEY, node.lineRange());
+        CodeActionArgument isError = CodeActionArgument.from(IS_ERROR_INTERCEPTOR_TYPE,
+                                                             diagnostic.message().contains(ERROR));
         CodeActionInfo info = CodeActionInfo.from(String.format("Add interceptor %s method", methodKind()),
                                                   List.of(location, isError));
         return Optional.of(info);
@@ -68,10 +71,10 @@ public abstract class AddInterceptorMethodCodeAction implements CodeAction {
         LineRange lineRange = null;
         boolean isErrorInterceptor = false;
         for (CodeActionArgument arg : context.arguments()) {
-            if (CodeActionUtil.NODE_LOCATION_KEY.equals(arg.key())) {
+            if (NODE_LOCATION_KEY.equals(arg.key())) {
                 lineRange = arg.valueAs(LineRange.class);
             }
-            if (CodeActionUtil.IS_ERROR_INTERCEPTOR_TYPE.equals(arg.key())) {
+            if (IS_ERROR_INTERCEPTOR_TYPE.equals(arg.key())) {
                 isErrorInterceptor = arg.valueAs(boolean.class);
             }
         }

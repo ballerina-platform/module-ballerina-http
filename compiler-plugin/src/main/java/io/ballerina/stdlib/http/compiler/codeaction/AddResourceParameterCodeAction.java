@@ -43,6 +43,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static io.ballerina.stdlib.http.compiler.codeaction.Constants.NODE_LOCATION_KEY;
+
 /**
  * Abstract implementation of code action to add a parameter to the resource signature.
  */
@@ -69,7 +71,7 @@ public abstract class AddResourceParameterCodeAction implements CodeAction {
                 cursorPosition.get())) {
             return Optional.empty();
         }
-        CodeActionArgument arg = CodeActionArgument.from(CodeActionUtil.NODE_LOCATION_KEY, node.lineRange());
+        CodeActionArgument arg = CodeActionArgument.from(NODE_LOCATION_KEY, node.lineRange());
         CodeActionInfo info = CodeActionInfo.from(String.format("Add %s parameter", paramKind()), List.of(arg));
         return Optional.of(info);
     }
@@ -78,7 +80,7 @@ public abstract class AddResourceParameterCodeAction implements CodeAction {
     public List<DocumentEdit> execute(CodeActionExecutionContext context) {
         LineRange lineRange = null;
         for (CodeActionArgument arg : context.arguments()) {
-            if (CodeActionUtil.NODE_LOCATION_KEY.equals(arg.key())) {
+            if (NODE_LOCATION_KEY.equals(arg.key())) {
                 lineRange = arg.valueAs(LineRange.class);
             }
         }
