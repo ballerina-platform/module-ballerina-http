@@ -526,13 +526,58 @@ See section [Query] to understand accessing query param via the request object.
 
 ##### 2.3.4.4. Payload parameter
 
-The payload parameter eases access of request payload during the resource invocation. When the payload param is 
-defined with @http:Payload annotation, the listener binds the inbound request payload into the param type and return. 
-The type of payload param can be one of the anytype.
+The payload parameter is used to access the request payload during the resource invocation. When the payload param is 
+defined with @http:Payload annotation, the listener deserialize the inbound request payload based on the mime type 
+which retrieved by the `Content-type` header of the request. The data binding happens thereafter considering the 
+parameter type. The type of payload param can be one of the `anytype`. If the header is not present or not a 
+standard header, the binding type is inferred by the param type.
 
-The payload binding process begins soon after the finding the correct resource for the given URL and before the 
-resource execution. Based on the `Content-type` header, the payload it deserialized. If the header is not present or 
-not a standard header, the deserializer is inferred by the param type.
+Following table explains the compatible `anydata` types with each common mime type. In the absence of a standard mime 
+type, the binding type is inferred by the payload param type itself. If the type is not compatible with the mime type,
+error is returned.
+
+|Ballerina Type | Structure|"text" | "xml" | "json" | "x-www-form-urlencoded" | "octet-stream"|
+|---------------|----------|-------|-------|--------|-------------------------|---------------|
+|boolean| | ❌ | ❌ | ✅|❌|❌
+| |boolean[]| ❌ | ❌ | ✅|❌|❌
+| |map\<boolean\>| ❌ | ❌ | ✅|❌|❌
+| |table\<map\<boolean\>\>| ❌ | ❌ | ✅|❌|❌
+|int| | ❌ | ❌ | ✅|❌|❌
+| |int[]| ❌ | ❌ | ✅|❌|❌
+| |map\<int\>| ❌ | ❌ | ✅|❌|❌
+| |table\<map\<int\>\>| ❌ | ❌ | ✅|❌|❌
+float| | ❌ | ❌ | ✅|❌|❌
+| |float[]| ❌ | ❌ | ✅|❌|❌
+| |map\<float\>| ❌ | ❌ | ✅|❌|❌
+| |table\<map\<float\>\>| ❌ | ❌ | ✅|❌|❌
+decimal| | ❌ | ❌ | ✅|❌|❌
+| |decimal[]| ❌ | ❌ | ✅|❌|❌
+| |map\<decimal\>| ❌ | ❌ | ✅|❌|❌
+| |table\<map\<decimal\>\>| ❌ | ❌ | ✅|❌|❌
+byte[]| | ✅ | ❌ | ✅|❌|✅
+| |byte[][]| ❌ | ❌ | ✅|❌|❌
+| |map\<byte[]\>| ❌ | ❌ | ✅|❌|❌
+| |table\<map\<byte[]\>\>| ❌ | ❌ | ✅|❌|❌
+string| |✅|❌|✅|✅|❌
+| |string[]| ❌ | ❌ | ✅|❌|❌
+| |map\<string\>| ❌ | ❌ | ✅|✅|❌
+| |table\<map\<string\>\>| ❌ | ❌ | ✅|❌|❌
+xml| | ❌ | ✅ | ❌|❌|❌
+json| | ❌ | ❌ | ✅|❌|❌
+| |json[]| ❌ | ❌ | ✅|❌|❌
+| |map\<json\>| ❌ | ❌ | ✅|❌|❌
+| |table\<map\<json\>\>| ❌ | ❌ | ✅|❌|❌
+map| | ❌ | ❌ | ✅|❌|❌
+| |map[]| ❌ | ❌ | ✅|❌|❌
+| |map\<map\>| ❌ | ❌ | ✅|❌|❌
+| |table\<map\<map\>\>| ❌ | ❌ | ✅|❌|❌
+record| |❌|❌|✅|❌|❌
+| |record[]| ❌ | ❌ | ✅|❌|❌
+| |map\<record\>| ❌ | ❌ | ✅|❌|❌
+| |table\<record\>| ❌ | ❌ | ✅|❌|❌
+
+The payload binding process begins soon after finding the correct resource for the given URL and before the 
+resource execution. 
 The error which may occur during the process will be returned to the caller with the response 
 status code of 400 BAD REQUEST. The successful binding will proceed the resource execution with the built payload.
 
@@ -1187,8 +1232,52 @@ The HTTP client remote function supports the contextually expected return types.
 infer the expected payload type from the LHS variable type. This is called as client payload binding support where the 
 inbound response payload is accessed and parse to the expected type in the method signature. It is easy to access the
 payload directly rather manipulation `http:Response` using its support methods such as `getTextPayload()`, ..etc.
-Client data binding supports `anydata` where the payload is deserialized based on the content type before binding it 
-to the required type.
+
+Client data binding supports `anydata` where the payload is deserialized based on the mime type before binding it 
+to the required type. Similar to the service data binding following table explains the compatible `anydata` types with 
+each common mime type. In the absence of a standard mime type, the binding type is inferred by the payload param type 
+itself. If the type is not compatible with the mime type, error is returned.
+
+|Ballerina Type | Structure|"text" | "xml" | "json" | "x-www-form-urlencoded" | "octet-stream"|
+|---------------|----------|-------|-------|--------|-------------------------|---------------|
+|boolean| | ❌ | ❌ | ✅|❌|❌
+| |boolean[]| ❌ | ❌ | ✅|❌|❌
+| |map\<boolean\>| ❌ | ❌ | ✅|❌|❌
+| |table\<map\<boolean\>\>| ❌ | ❌ | ✅|❌|❌
+|int| | ❌ | ❌ | ✅|❌|❌
+| |int[]| ❌ | ❌ | ✅|❌|❌
+| |map\<int\>| ❌ | ❌ | ✅|❌|❌
+| |table\<map\<int\>\>| ❌ | ❌ | ✅|❌|❌
+float| | ❌ | ❌ | ✅|❌|❌
+| |float[]| ❌ | ❌ | ✅|❌|❌
+| |map\<float\>| ❌ | ❌ | ✅|❌|❌
+| |table\<map\<float\>\>| ❌ | ❌ | ✅|❌|❌
+decimal| | ❌ | ❌ | ✅|❌|❌
+| |decimal[]| ❌ | ❌ | ✅|❌|❌
+| |map\<decimal\>| ❌ | ❌ | ✅|❌|❌
+| |table\<map\<decimal\>\>| ❌ | ❌ | ✅|❌|❌
+byte[]| | ✅ | ❌ | ✅|❌|✅
+| |byte[][]| ❌ | ❌ | ✅|❌|❌
+| |map\<byte[]\>| ❌ | ❌ | ✅|❌|❌
+| |table\<map\<byte[]\>\>| ❌ | ❌ | ✅|❌|❌
+string| |✅|❌|✅|✅|❌
+| |string[]| ❌ | ❌ | ✅|❌|❌
+| |map\<string\>| ❌ | ❌ | ✅|✅|❌
+| |table\<map\<string\>\>| ❌ | ❌ | ✅|❌|❌
+xml| | ❌ | ✅ | ❌|❌|❌
+json| | ❌ | ❌ | ✅|❌|❌
+| |json[]| ❌ | ❌ | ✅|❌|❌
+| |map\<json\>| ❌ | ❌ | ✅|❌|❌
+| |table\<map\<json\>\>| ❌ | ❌ | ✅|❌|❌
+map| | ❌ | ❌ | ✅|❌|❌
+| |map[]| ❌ | ❌ | ✅|❌|❌
+| |map\<map\>| ❌ | ❌ | ✅|❌|❌
+| |table\<map\<map\>\>| ❌ | ❌ | ✅|❌|❌
+record| |❌|❌|✅|❌|❌
+| |record[]| ❌ | ❌ | ✅|❌|❌
+| |map\<record\>| ❌ | ❌ | ✅|❌|❌
+| |table\<record\>| ❌ | ❌ | ✅|❌|❌
+
 
 ```ballerina
 http:Client httpClient = check new ("https://person.free.beeceptor.com");

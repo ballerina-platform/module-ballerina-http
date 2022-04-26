@@ -42,7 +42,7 @@ public abstract class AbstractPayloadBuilder {
     private static final String URL_ENCODED_PATTERN = "^.*x-www-form-urlencoded.*$";
 
     /**
-     * Get the built the inbound payload after binding it to the respective type.
+     * Get the built inbound payload after binding it to the respective type.
      *
      * @param inRequestEntity inbound request entity
      * @param readonly        readonly status of parameter
