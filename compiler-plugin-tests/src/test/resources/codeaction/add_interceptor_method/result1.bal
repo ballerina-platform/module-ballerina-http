@@ -17,7 +17,7 @@
 import ballerina/http;
 
 service class RequestInterceptor {
-    *http:RequestInterceptor;
+	*http:RequestInterceptor;
 
 	resource function 'default [string... path](http:RequestContext ctx) returns http:NextService|error? {
 		// add your logic here
@@ -26,19 +26,19 @@ service class RequestInterceptor {
 }
 
 service class RequestErrorInterceptor {
-    *http:RequestErrorInterceptor;
+	*http:RequestErrorInterceptor;
 }
 
 service class ResponseInterceptor {
-    *http:ResponseInterceptor;
+	*http:ResponseInterceptor;
 }
 
 service class ResponseErrorInterceptor {
-    *http:ResponseErrorInterceptor;
+	*http:ResponseErrorInterceptor;
 }
 
 service /greeting on new http:Listener(9090) {
-    resource function get hi() returns string {
-        return "hi";
-    }
+	resource function get hi() returns string {
+		return "hi";
+	}
 }
