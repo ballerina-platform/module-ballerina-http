@@ -189,7 +189,7 @@ const int http2RetryFunctionTestPort2 = 9707;
 
 //HTTP3
 
-const int http3TestPort = 9890;
+const int http3TestPort = 9090;
 
 //Security
 const int securedListenerPort = 9400;

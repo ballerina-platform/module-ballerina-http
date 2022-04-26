@@ -5,14 +5,12 @@ import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
 import io.ballerina.stdlib.http.transport.contractimpl.Http3OutboundRespListener;
 import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http3MessageStateContext;
-import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http3StateUtil;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.http3.Http3SourceHandler;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.HttpMessage;
 import io.netty.incubator.codec.http3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,19 +23,16 @@ public class SendingHeaders implements ListenerState {
 
     private static Http3HeadersFrame headersFrame = new DefaultHttp3HeadersFrame();
 
-    private final Http3OutboundRespListener http3OutboundRespListener;
     private final Http3MessageStateContext http3MessageStateContext;
     private final ChannelHandlerContext ctx;
     private final HttpResponseFuture outboundRespStatusFuture;
-    private final HttpCarbonMessage inboundRequestMsg;
     private final long streamId;
 
     public SendingHeaders(Http3OutboundRespListener http3OutboundRespListener,
                           Http3MessageStateContext http3MessageStateContext) {
-        this.http3OutboundRespListener = http3OutboundRespListener;
         this.http3MessageStateContext = http3MessageStateContext;
         this.ctx = http3OutboundRespListener.getChannelHandlerContext();
-        this.inboundRequestMsg = http3OutboundRespListener.getInboundRequestMsg();
+        HttpCarbonMessage inboundRequestMsg = http3OutboundRespListener.getInboundRequestMsg();
         this.outboundRespStatusFuture = inboundRequestMsg.getHttpOutboundRespStatusFuture();
         this.streamId = http3OutboundRespListener.getStreamId();
     }
@@ -60,7 +55,7 @@ public class SendingHeaders implements ListenerState {
     public void writeOutboundResponseHeaders(Http3OutboundRespListener http3OutboundRespListener,
                                              HttpCarbonMessage outboundResponseMsg, HttpContent httpContent,
                                              long streamId) throws Http3Exception {
-        writeHeaders(outboundResponseMsg, streamId);
+        writeHeaders(outboundResponseMsg, http3OutboundRespListener);
         http3MessageStateContext.setListenerState(
                 new SendingEntityBody(http3OutboundRespListener, http3MessageStateContext, streamId));
         http3MessageStateContext.getListenerState()
@@ -87,15 +82,12 @@ public class SendingHeaders implements ListenerState {
         //Not yet Implemented
     }
 
-    private void writeHeaders(HttpCarbonMessage outboundResponseMsg, long streamId) {
+    private void writeHeaders(HttpCarbonMessage outboundResponseMsg, Http3OutboundRespListener http3OutboundRespListener) {
         // Construct Http3 headers
         outboundResponseMsg.getHeaders().
-                add(HttpConversionUtil.ExtensionHeaderNames.SCHEME.text(), HTTP_SCHEME);
-        String serverName = null;
-        HttpMessage httpMessage =
-                Util.createHttpResponse(outboundResponseMsg, HTTP3_VERSION, serverName, true);
+                add(HttpConversionUtil.ExtensionHeaderNames.SCHEME.text(), HTTPS_SCHEME);
+        headersFrame = Util.createHttp3ResponseHeaders(outboundResponseMsg, HTTP3_VERSION, http3OutboundRespListener.getServerName(), true);
 
-        headersFrame = Http3StateUtil.toHttp3Headers(httpMessage, true);
         ChannelFuture channelFuture = ctx.write(headersFrame, ctx.newPromise());
 
         StateUtil.notifyIfHeaderWriteFailure(outboundRespStatusFuture, channelFuture,
@@ -103,6 +95,4 @@ public class SendingHeaders implements ListenerState {
 
         http3MessageStateContext.setHeadersSent(true);
     }
-
-
 }

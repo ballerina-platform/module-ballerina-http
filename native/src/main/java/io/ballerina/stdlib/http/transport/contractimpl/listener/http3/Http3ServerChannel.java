@@ -6,9 +6,7 @@ import java.util.Map;
 
 public class Http3ServerChannel {
 
-
     private Map<Long, InboundMessageHolder> streamIdRequestMap = PlatformDependent.newConcurrentHashMap();
-
 
     void destroy() {
         streamIdRequestMap.clear();
@@ -21,7 +19,4 @@ public class Http3ServerChannel {
     InboundMessageHolder getInboundMessage(long streamId) {
         return streamIdRequestMap.get(streamId);
     }
-
-
-
 }

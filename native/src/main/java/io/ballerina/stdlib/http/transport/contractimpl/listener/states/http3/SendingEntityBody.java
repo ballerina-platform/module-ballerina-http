@@ -32,7 +32,6 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIEN
 public class SendingEntityBody implements ListenerState {
 
     private static final Logger LOG = LoggerFactory.getLogger(SendingEntityBody.class);
-    private static final InternalLogger ACCESS_LOGGER = InternalLoggerFactory.getInstance(ACCESS_LOG);
 
     private final Http3OutboundRespListener http3OutboundRespListener;
     private final Http3MessageStateContext http3MessageStateContext;
@@ -69,22 +68,22 @@ public class SendingEntityBody implements ListenerState {
     @Override
     public void readInboundRequestBody(Http3SourceHandler http3SourceHandler, Http3DataFrame dataFrame, boolean isLast)
             throws Http3Exception {
-        // In bidirectional streaming case, while sending the request data frames, server response data frames can
-        // receive. In order to handle it. we need to change the states depending on the action.
-        http3MessageStateContext.setListenerState(new ReceivingEntityBody(http3MessageStateContext, streamId));
-        http3MessageStateContext.getListenerState().readInboundRequestBody(http3SourceHandler, dataFrame, isLast);
+        LOG.warn("readInboundRequestBody is not a dependant action of this state");
+
     }
 
     @Override
-    public void writeOutboundResponseHeaders(Http3OutboundRespListener http3OutboundRespListener, HttpCarbonMessage
-            outboundResponseMsg, HttpContent httpContent, long streamId) throws Http3Exception {
+    public void writeOutboundResponseHeaders(Http3OutboundRespListener http3OutboundRespListener,
+                                             HttpCarbonMessage outboundResponseMsg, HttpContent httpContent,
+                                             long streamId) throws Http3Exception {
         LOG.warn("writeOutboundResponseHeaders is not a dependant action of this state");
 
     }
 
     @Override
-    public void writeOutboundResponseBody(Http3OutboundRespListener http3OutboundRespListener, HttpCarbonMessage
-            outboundResponseMsg, HttpContent httpContent, long streamId) throws Http3Exception {
+    public void writeOutboundResponseBody(Http3OutboundRespListener http3OutboundRespListener,
+                                          HttpCarbonMessage outboundResponseMsg, HttpContent httpContent,
+                                          long streamId) throws Http3Exception {
         this.outboundResponseMsg = outboundResponseMsg;
         writeContent(http3OutboundRespListener, httpContent, streamId);
     }
@@ -107,7 +106,6 @@ public class SendingEntityBody implements ListenerState {
             final LastHttpContent lastContent = (LastHttpContent) httpContent;
 
             writeData(lastContent, streamId, true);
-
             http3MessageStateContext
                     .setListenerState(new ResponseCompleted(http3OutboundRespListener,
                             http3MessageStateContext, streamId));
@@ -117,7 +115,7 @@ public class SendingEntityBody implements ListenerState {
     }
 
     private void writeData(HttpContent httpContent, long streamId, boolean endStream) {
-        contentLength += httpContent.content().readableBytes();
+
         final ByteBuf content = httpContent.content();
 
         ChannelFuture channelFuture = ctx.writeAndFlush(new DefaultHttp3DataFrame(

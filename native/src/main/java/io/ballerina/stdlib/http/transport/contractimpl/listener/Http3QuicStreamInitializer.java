@@ -10,12 +10,14 @@ public class Http3QuicStreamInitializer extends ChannelInitializer<QuicStreamCha
     private final Http3ServerChannelInitializer http3ServerChannelInitializer;
     private final String interfaceId;
     private final ServerConnectorFuture serverConnectorFuture;
+    private final String serverName;
 
-    public Http3QuicStreamInitializer(String interfaceId, ServerConnectorFuture serverConnectorFuture,
+    public Http3QuicStreamInitializer(String interfaceId, ServerConnectorFuture serverConnectorFuture, String serverName,
                                       Http3ServerChannelInitializer http3ServerChannelInitializer) {
         this.http3ServerChannelInitializer = http3ServerChannelInitializer;
         this.interfaceId = interfaceId;
         this.serverConnectorFuture = serverConnectorFuture;
+        this.serverName = serverName;
     }
 
     @Override
@@ -26,7 +28,7 @@ public class Http3QuicStreamInitializer extends ChannelInitializer<QuicStreamCha
 
     private void configureHttpPipeline(ChannelPipeline serverPipeline, long streamId, String interfaceId,
                                        ServerConnectorFuture serverConnectorFuture) {
-        serverPipeline.addLast(new Http3SourceHandler(streamId, serverConnectorFuture, interfaceId));
+        serverPipeline.addLast(new Http3SourceHandler(streamId, serverConnectorFuture, interfaceId, serverName));
     }
 
 

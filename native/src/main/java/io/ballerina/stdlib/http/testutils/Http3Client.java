@@ -1,6 +1,9 @@
 package io.ballerina.stdlib.http.testutils;
 
+import io.ballerina.runtime.api.PredefinedTypes;
+import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
+import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
@@ -23,7 +26,9 @@ import io.netty.util.NetUtil;
 import io.netty.util.ReferenceCountUtil;
 
 import java.net.InetSocketAddress;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
 
 public final class Http3Client {
 
@@ -35,9 +40,8 @@ public final class Http3Client {
     public static BMap<BString, Object> start(int port, String method, String path, Object payload) throws Exception {
 
         NioEventLoopGroup group = new NioEventLoopGroup(1);
-//        List<String> response = new ArrayList<>();
 
-        BMap<BString, Object> res = ValueCreator.createMapValue();
+        BMap<BString, Object>  res = ValueCreator.createMapValue();;
 
         try {
             QuicSslContext context = QuicSslContextBuilder.forClient()
@@ -58,7 +62,7 @@ public final class Http3Client {
 
             QuicChannel quicChannel = QuicChannel.newBootstrap(channel)
                     .handler(new Http3ClientConnectionHandler())
-                    .remoteAddress(new InetSocketAddress(NetUtil.LOCALHOST4, PORT))
+                    .remoteAddress(new InetSocketAddress(NetUtil.LOCALHOST4, 9090))
                     .connect()
                     .get();
 
@@ -69,7 +73,6 @@ public final class Http3Client {
                                                    Http3HeadersFrame frame, boolean isLast) {
                             String frameContent = String.valueOf(frame);
                             res.put(StringUtils.fromString("Header"),StringUtils.fromString(frameContent));
-//                            response.add(String.valueOf(frame));
                             releaseFrameAndCloseIfLast(ctx, frame, isLast);
                         }
 
@@ -80,7 +83,6 @@ public final class Http3Client {
                                 String frameContent = String.valueOf(frame.content().toString(CharsetUtil.US_ASCII));
                                 res.put(StringUtils.fromString("Body"),StringUtils.fromString(frameContent));
                             }
-//                            response.add(frame.content().toString(CharsetUtil.US_ASCII));
                             releaseFrameAndCloseIfLast(ctx, frame, isLast);
                         }
 
@@ -96,7 +98,7 @@ public final class Http3Client {
 
             Http3HeadersFrame headersFrame = new DefaultHttp3HeadersFrame();
             headersFrame.headers().method(method).path(path)
-                    .authority("127.0.0.1:" + PORT)
+                    .authority("127.0.0.1:" + 9090)
                     .scheme("https");
 
             if (method == "post") {

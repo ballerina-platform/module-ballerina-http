@@ -40,8 +40,7 @@ import io.netty.handler.codec.http2.Http2Headers;
 import io.netty.handler.codec.http2.HttpConversionUtil;
 import io.netty.handler.ssl.*;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
-import io.netty.incubator.codec.http3.Http3Exception;
-import io.netty.incubator.codec.http3.Http3HeadersFrame;
+import io.netty.incubator.codec.http3.*;
 import io.netty.util.AsciiString;
 import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
@@ -60,6 +59,7 @@ import java.security.cert.*;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -113,6 +113,25 @@ public class Util {
         return outboundNettyResponse;
     }
 
+    public static Http3HeadersFrame createHttp3ResponseHeaders(HttpCarbonMessage outboundResponseMsg, String inboundReqHttpVersion,
+                                                               String serverName, boolean keepAlive) {
+
+        HttpVersion httpVersion = new HttpVersion(Constants.HTTP_VERSION_PREFIX + inboundReqHttpVersion, true);
+        HttpResponseStatus httpResponseStatus = getHttpResponseStatus(outboundResponseMsg);
+        HttpResponse outboundNettyResponse = new DefaultHttpResponse(httpVersion, httpResponseStatus);
+        setOutboundRespHeaders(outboundResponseMsg, inboundReqHttpVersion, serverName, keepAlive,
+                outboundNettyResponse);
+
+        HttpHeaders incomingHeaders = outboundNettyResponse.headers();
+        final Http3Headers outgoingHeaders = new DefaultHttp3Headers(true, incomingHeaders.size());
+        outgoingHeaders.status(outboundNettyResponse.status().codeAsText());
+        List<Map.Entry<String, String>> httpHeaders = outboundNettyResponse.headers().entries();
+        for (Map.Entry<String, String> httpHeader : httpHeaders) {
+            outgoingHeaders.add(httpHeader.getKey(), httpHeader.getValue());
+        }
+        return new DefaultHttp3HeadersFrame(outgoingHeaders);
+    }
+
     public static HttpResponse createFullHttpResponse(HttpCarbonMessage outboundResponseMsg,
                                                       String inboundReqHttpVersion, String serverName, boolean keepAlive, ByteBuf fullContent) {
 
@@ -138,9 +157,11 @@ public class Util {
             outboundResponseMsg.removeHeader(HttpHeaderNames.CONNECTION.toString());
         }
 
-//        if (outboundResponseMsg.getHeader(HttpHeaderNames.SERVER.toString()) == null) {
-//            outboundResponseMsg.setHeader(HttpHeaderNames.SERVER.toString(), serverName);
-//        }
+        if (serverName != null) {
+            if (outboundResponseMsg.getHeader(HttpHeaderNames.SERVER.toString()) == null) {
+                outboundResponseMsg.setHeader(HttpHeaderNames.SERVER.toString(), serverName);
+            }
+        }
 
         if (outboundResponseMsg.getHeader(HttpHeaderNames.DATE.toString()) == null) {
             outboundResponseMsg.setHeader(HttpHeaderNames.DATE.toString(),
@@ -257,7 +278,7 @@ public class Util {
         String hMethod = http3Headers.headers().method().toString();
 
         if (hMethod.equalsIgnoreCase("GET")) {
-             method = Constants.HTTP_GET_METHOD;
+            method = Constants.HTTP_GET_METHOD;
         } else if (hMethod.equalsIgnoreCase("POST")) {
             method = Constants.HTTP_POST_METHOD;
         }
@@ -305,7 +326,7 @@ public class Util {
      * Returns the status of chunking compatibility with http version.
      *
      * @param httpVersion http version string.
-     * @return  boolean value of status.
+     * @return boolean value of status.
      */
     public static boolean isVersionCompatibleForChunking(String httpVersion) {
         return Float.valueOf(httpVersion) >= Constants.HTTP_1_1;
@@ -461,11 +482,11 @@ public class Util {
     /**
      * Set configurations to create ssl engine.
      *
-     * @param sslConfig ssl related configurations
-     * @param host host of the connection
-     * @param port port of the connection
+     * @param sslConfig                   ssl related configurations
+     * @param host                        host of the connection
+     * @param port                        port of the connection
      * @param hostNameVerificationEnabled true if host name verification is enabled
-     * @param sslHandlerFactory an instance of sslHandlerFactory
+     * @param sslHandlerFactory           an instance of sslHandlerFactory
      * @return ssl engine
      */
     private static SSLEngine instantiateAndConfigSSL(SSLConfig sslConfig, String host, int port,
@@ -693,10 +714,10 @@ public class Util {
      * Send back no entity body response and close the connection. This function is mostly used
      * when we send back error messages.
      *
-     * @param ctx connection
-     * @param status response status
+     * @param ctx         connection
+     * @param status      response status
      * @param httpVersion of the response
-     * @param serverName server name
+     * @param serverName  server name
      */
     public static void sendAndCloseNoEntityBodyResp(ChannelHandlerContext ctx, HttpResponseStatus status,
                                                     HttpVersion httpVersion, String serverName) {
@@ -768,7 +789,7 @@ public class Util {
      * Creates HTTP carbon message.
      *
      * @param httpMessage HTTP message
-     * @param ctx Channel handler context
+     * @param ctx         Channel handler context
      * @return HttpCarbonMessage
      */
     public static HttpCarbonMessage createHTTPCarbonMessage(HttpMessage httpMessage, ChannelHandlerContext ctx) {
@@ -794,9 +815,10 @@ public class Util {
 
     /**
      * Create a HttpCarbonMessage using the netty inbound http request.
+     *
      * @param httpRequestHeaders of inbound request
-     * @param ctx of the inbound request
-     * @param sourceHandler instance which handled the particular request
+     * @param ctx                of the inbound request
+     * @param sourceHandler      instance which handled the particular request
      * @return HttpCarbon message
      */
     public static HttpCarbonMessage createInboundReqCarbonMsg(HttpRequest httpRequestHeaders,
@@ -841,9 +863,10 @@ public class Util {
 
     /**
      * Create a HttpCarbonMessage using the netty inbound response message.
-     * @param ctx of the inbound response message
+     *
+     * @param ctx                 of the inbound response message
      * @param httpResponseHeaders of the inbound response message
-     * @param outboundRequestMsg is the correlated outbound request message
+     * @param outboundRequestMsg  is the correlated outbound request message
      * @return HttpCarbon message
      */
     public static HttpCarbonMessage createInboundRespCarbonMsg(ChannelHandlerContext ctx,
@@ -866,7 +889,8 @@ public class Util {
 
     /**
      * Check whether a connection should alive or not.
-     * @param keepAliveConfig of the connection
+     *
+     * @param keepAliveConfig    of the connection
      * @param outboundRequestMsg of this particular transaction
      * @return true if the connection should be kept alive
      * @throws ConfigurationException for invalid configurations
@@ -890,6 +914,7 @@ public class Util {
 
     /**
      * Check whether a particular request is expecting continue.
+     *
      * @param inboundRequestMsg in question
      * @return true if the request expects 100-continue response
      */

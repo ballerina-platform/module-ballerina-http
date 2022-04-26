@@ -15,63 +15,19 @@ import org.slf4j.LoggerFactory;
 
 public class Http3ServerChannelInitializer extends ChannelInitializer<QuicChannel> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(Http3ServerChannelInitializer.class);
 
-
-//    private ChannelGroup allChannels;
-    private SSLConfig sslConfig;
-    private long socketIdleTimeout;
-    private KeepAliveConfig keepAliveConfig;
-    private ChunkConfig chunkConfig;
-    private boolean httpAccessLogEnabled;
-    private boolean httpTraceLogEnabled;
-    private EventExecutorGroup pipeliningGroup;
     private String interfaceId;
     private ServerConnectorFuture serverConnectorFuture;
+    private String serverName;
 
     @Override
     protected void initChannel(QuicChannel ch) {
 
         ChannelPipeline serverPipeline = ch.pipeline();
         serverPipeline.addLast(new Http3ServerConnectionHandler(new Http3QuicStreamInitializer
-                (interfaceId, serverConnectorFuture, this)));
+                (interfaceId, serverConnectorFuture, serverName, this)));
     }
 
-    void setSslConfig(SSLConfig sslConfig) {
-        this.sslConfig = sslConfig;
-    }
-
-
-    void setIdleTimeout(long socketIdleTimeout) {
-        this.socketIdleTimeout = socketIdleTimeout;
-    }
-
-    long getSocketIdleTimeout() {
-        return socketIdleTimeout;
-    }
-
-
-    void setHttp3TraceLogEnabled(boolean httpTraceLogEnabled) {
-        this.httpTraceLogEnabled = httpTraceLogEnabled;
-    }
-
-    void setHttp3AccessLogEnabled(boolean isHttpAccessLogEnabled) {
-        this.httpAccessLogEnabled = isHttpAccessLogEnabled;
-
-    }
-
-    void setChunkingConfig(ChunkConfig chunkConfig) {
-        this.chunkConfig = chunkConfig;
-
-    }
-
-    void setKeepAliveConfig(KeepAliveConfig keepAliveConfig) {
-        this.keepAliveConfig = keepAliveConfig;
-    }
-
-    void setPipeliningThreadGroup(EventExecutorGroup pipeliningGroup) {
-        this.pipeliningGroup = pipeliningGroup;
-    }
 
     void setInterfaceId(String interfaceId) {
         this.interfaceId = interfaceId;
@@ -82,5 +38,8 @@ public class Http3ServerChannelInitializer extends ChannelInitializer<QuicChanne
 
     }
 
+    void setServerName(String serverName) {
+        this.serverName = serverName;
+    }
 }
 

@@ -37,8 +37,7 @@ public class Http3OutboundRespListener implements HttpConnectorListener {
     private final String remoteHost;
     private final Http3ServerChannel http3ServerChannel;
     private final long streamId;
-//    private final HttpResponseFuture outboundRespStatusFuture;
-    private  Http3MessageStateContext http3MessageStateContext;
+    private Http3MessageStateContext http3MessageStateContext;
     private ChannelHandlerContext sourceContext;
     private RequestDataHolder requestDataHolder;
     private HandlerExecutor handlerExecutor;
@@ -52,7 +51,7 @@ public class Http3OutboundRespListener implements HttpConnectorListener {
     private String remoteAddress = "-";
 
     public Http3OutboundRespListener(Http3ServerChannelInitializer http3ServerChannelInitializer,
-                                     HttpCarbonMessage httpRequestMsg, ChannelHandlerContext channelHandlerContext,
+                                     HttpCarbonMessage httpRequestMsg, ChannelHandlerContext channelHandlerContext, String serverName,
                                      String remoteHost, long streamId, Http3ServerChannel http3ServerChannel) {
         this.http3ServerChannelInitializer = http3ServerChannelInitializer;
         this.channelHandlerContext = channelHandlerContext;
@@ -60,22 +59,19 @@ public class Http3OutboundRespListener implements HttpConnectorListener {
         this.httpRequestMsg = httpRequestMsg;
         this.handlerExecutor = HttpTransportContextHolder.getInstance().getHandlerExecutor();
         this.remoteHost = remoteHost;
+        this.serverName = serverName;
         this.http3ServerChannel = http3ServerChannel;
         this.requestDataHolder = new RequestDataHolder(httpRequestMsg);
         this.inboundRequestMsg = httpRequestMsg;
         this.handlerExecutor = HttpTransportContextHolder.getInstance().getHandlerExecutor();
         http3MessageStateContext = httpRequestMsg.getHttp3MessageStateContext();
         inboundRequestArrivalTime = Calendar.getInstance();
-//        outboundRespStatusFuture = inboundRequestMsg.getHttpOutboundRespStatusFuture();
-
-
     }
 
     @Override
     public void onMessage(HttpCarbonMessage outboundResponseMsg) {
         this.outboundResponseMsg = outboundResponseMsg;
         writeMessage(outboundResponseMsg, streamId);
-
     }
 
     @Override
@@ -86,6 +82,7 @@ public class Http3OutboundRespListener implements HttpConnectorListener {
     public Calendar getInboundRequestArrivalTime() {
         return inboundRequestArrivalTime;
     }
+
     @Override
     public void onPushPromise(Http2PushPromise pushPromise) {
         HttpConnectorListener.super.onPushPromise(pushPromise);
@@ -106,7 +103,6 @@ public class Http3OutboundRespListener implements HttpConnectorListener {
 
         setContentEncoding(outboundResponseMsg);
         outboundResponseMsg.getHttpContentAsync().setMessageListener(httpContent -> {
-//            checkStreamUnwritability(writer);
             channelHandlerContext.channel().eventLoop().execute(() -> {
                 try {
                     writer.writeOutboundResponse(outboundResponseMsg, httpContent);
@@ -117,15 +113,6 @@ public class Http3OutboundRespListener implements HttpConnectorListener {
         });
     }
 
-//    private void checkStreamUnwritability(ResponseWriter writer) {
-//        if (!writer.isStreamWritable()) {
-//            if (LOG.isDebugEnabled()) {
-//                LOG.debug("In thread {}. Stream is not writable.", Thread.currentThread().getName());
-//            }
-//            writer.getBackPressureObservable().notifyUnWritable();
-//        }
-//    }
-
     public long getStreamId() {
         return streamId;
     }
@@ -134,10 +121,6 @@ public class Http3OutboundRespListener implements HttpConnectorListener {
         return channelHandlerContext;
     }
 
-//    public HttpResponseFuture getOutboundRespStatusFuture() {
-//        return outboundRespStatusFuture;
-//
-//    }
 
     public HttpCarbonMessage getInboundRequestMsg() {
         return inboundRequestMsg;
@@ -156,18 +139,15 @@ public class Http3OutboundRespListener implements HttpConnectorListener {
         return http3ServerChannelInitializer;
     }
 
-//    public HttpResponseFuture getOutboundRespStatusFuture() {
-//        return outboundRespStatusFuture;
-//    }
-
+    public String getServerName() {
+        return serverName;
+    }
 
     /**
      * Responsible for writing HTTP/3 outbound response to the caller.
      */
     public class ResponseWriter {
         private long streamId;
-//        private AtomicBoolean streamWritable = new AtomicBoolean(true);
-//        private final BackPressureObservable backPressureObservable = new DefaultBackPressureObservable();
 
         ResponseWriter(long streamId) {
             this.streamId = streamId;
@@ -175,31 +155,17 @@ public class Http3OutboundRespListener implements HttpConnectorListener {
 
         private void writeOutboundResponse(HttpCarbonMessage outboundResponseMsg, HttpContent httpContent)
                 throws Http3Exception {
-            if (http3MessageStateContext == null) {
-                http3MessageStateContext = new Http3MessageStateContext();
-                http3MessageStateContext.setListenerState(
-                        new SendingHeaders(Http3OutboundRespListener.this,
-                                http3MessageStateContext));
-            }
+
             http3MessageStateContext.getListenerState().
                     writeOutboundResponseBody(Http3OutboundRespListener.this,
                             outboundResponseMsg, httpContent, streamId);
         }
 
-
-//        boolean isStreamWritable() {
-//            return streamWritable.get();
-//        }
-//
-//        public BackPressureObservable getBackPressureObservable() {
-//            return backPressureObservable;
-//        }
     }
 
 
     private void setContentEncoding(HttpCarbonMessage outboundResponseMsg) {
         String contentEncoding = outboundResponseMsg.getHeader(HttpHeaderNames.CONTENT_ENCODING.toString());
-        //This means compression AUTO case; With NEVER(identity) and ALWAYS, content-encoding will always have a value.
         if (contentEncoding == null) {
             String acceptEncoding = inboundRequestMsg.getHeader(HttpHeaderNames.ACCEPT_ENCODING.toString());
             if (acceptEncoding != null) {
@@ -210,6 +176,7 @@ public class Http3OutboundRespListener implements HttpConnectorListener {
             }
         }
     }
+
     private String determineScheme(String acceptEncoding) {
         float starQ = -1.0f;
         float gzipQ = -1.0f;

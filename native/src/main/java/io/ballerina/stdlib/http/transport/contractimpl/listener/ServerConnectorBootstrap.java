@@ -20,10 +20,7 @@ package io.ballerina.stdlib.http.transport.contractimpl.listener;
 
 import io.ballerina.stdlib.http.transport.contract.ServerConnector;
 import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
-import io.ballerina.stdlib.http.transport.contract.config.ChunkConfig;
-import io.ballerina.stdlib.http.transport.contract.config.InboundMsgSizeValidationConfig;
-import io.ballerina.stdlib.http.transport.contract.config.KeepAliveConfig;
-import io.ballerina.stdlib.http.transport.contract.config.ServerBootstrapConfiguration;
+import io.ballerina.stdlib.http.transport.contract.config.*;
 import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorException;
 import io.ballerina.stdlib.http.transport.contractimpl.HttpWsServerConnectorFuture;
 import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
@@ -51,6 +48,8 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLContext;
+
+import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP3_VERSION;
 
 /**
  * {@code ServerConnectorBootstrap} is the heart of the HTTP Server Connector.
@@ -81,20 +80,13 @@ public class ServerConnectorBootstrap {
         this.allChannels = allChannels;
     }
 
-    public ServerConnectorBootstrap(ChannelGroup allChannels, QuicSslContext sslctx) {
+    public ServerConnectorBootstrap(ChannelGroup allChannels, QuicSslContext sslctx,
+                                    ListenerConfiguration listenerConfiguration) {
 
-        http3serverBootstrap = new Bootstrap();
         http3ServerChannelInitializer = new Http3ServerChannelInitializer();
-        ChannelHandler codec = Http3.newQuicServerCodecBuilder()
-                .sslContext(sslctx)
-                .maxIdleTimeout(5000, TimeUnit.MILLISECONDS)
-                .initialMaxData(10000000)
-                .initialMaxStreamDataBidirectionalLocal(1000000)
-                .initialMaxStreamDataBidirectionalRemote(1000000)
-                .initialMaxStreamsBidirectional(100)
-                .tokenHandler(InsecureQuicTokenHandler.INSTANCE)
-                .handler(http3ServerChannelInitializer).build();
+        http3serverBootstrap = new Bootstrap();
 
+        ChannelHandler codec = createQuicServerCodec(listenerConfiguration, http3ServerChannelInitializer, sslctx);
         http3serverBootstrap.handler(codec);
         HttpTransportContextHolder.getInstance().setHandlerExecutor(new HandlerExecutor());
         initialized = true;
@@ -136,6 +128,27 @@ public class ServerConnectorBootstrap {
         http3serverBootstrap.option(ChannelOption.SO_RCVBUF, serverBootstrapConfiguration.getReceiveBufferSize());
         http3serverBootstrap.option(ChannelOption.SO_SNDBUF, serverBootstrapConfiguration.getSendBufferSize());
 
+    }
+
+    private ChannelHandler createQuicServerCodec(ListenerConfiguration listenerConfiguration,
+                                                 Http3ServerChannelInitializer http3ServerChannelInitializer,
+                                                 QuicSslContext sslctx) {
+
+        long maxIdleTimeout = listenerConfiguration.getMaxIdleTimeout();
+        long initialMaxData = listenerConfiguration.getInitialMaxData();
+        long initialMaxStreamDataBidirectionalLocal = listenerConfiguration.getInitialMaxStreamDataBidirectionalLocal();
+        long initialMaxStreamDataBidirectionalRemote = listenerConfiguration.getInitialMaxStreamDataBidirectionalRemote();
+        long initialMaxStreamsBidirectional = listenerConfiguration.getInitialMaxStreamsBidirectional();
+
+        return Http3.newQuicServerCodecBuilder()
+                .sslContext(sslctx)
+                .maxIdleTimeout(maxIdleTimeout, TimeUnit.MILLISECONDS)
+                .initialMaxData(initialMaxData)
+                .initialMaxStreamDataBidirectionalLocal(initialMaxStreamDataBidirectionalLocal)
+                .initialMaxStreamDataBidirectionalRemote(initialMaxStreamDataBidirectionalRemote)
+                .initialMaxStreamsBidirectional(initialMaxStreamsBidirectional)
+                .tokenHandler(InsecureQuicTokenHandler.INSTANCE)
+                .handler(http3ServerChannelInitializer).build();
     }
 
     public void addSecurity(SSLConfig sslConfig) {
@@ -236,38 +249,8 @@ public class ServerConnectorBootstrap {
         http3serverBootstrap.group(bossGroup).channel(NioDatagramChannel.class);
     }
 
-    public void addHttp3TraceLogHandler(boolean isHttpTraceLogEnabled) {
-        http3ServerChannelInitializer.setHttp3TraceLogEnabled(isHttpTraceLogEnabled);
-
-    }
-
-    public void addHttp3AccessLogHandler(boolean isHttpAccessLogEnabled) {
-        http3ServerChannelInitializer.setHttp3AccessLogEnabled(isHttpAccessLogEnabled);
-
-    }
-
-    public void addHttp3ChunkingBehaviour(ChunkConfig chunkConfig) {
-        http3ServerChannelInitializer.setChunkingConfig(chunkConfig);
-
-    }
-
-    public void addHttp3KeepAliveBehaviour(KeepAliveConfig keepAliveConfig) {
-        http3ServerChannelInitializer.setKeepAliveConfig(keepAliveConfig);
-    }
-
-    public void setHttp3PipeliningThreadGroup(EventExecutorGroup pipeliningGroup) {
-        http3ServerChannelInitializer.setPipeliningThreadGroup(pipeliningGroup);
-    }
-
-    public void http3AddSecurity(SSLConfig sslConfig) {
-        if (sslConfig != null) {
-            http3ServerChannelInitializer.setSslConfig(sslConfig);
-            isHttps = true;
-        }
-    }
-
-    public void http3AddIdleTimeout(long socketIdleTimeout) {
-        http3ServerChannelInitializer.setIdleTimeout(socketIdleTimeout);
+    public void addHttp3ServerHeader(String serverName) {
+        http3ServerChannelInitializer.setServerName(serverName);
     }
 
     class HttpServerConnector implements ServerConnector {
@@ -286,7 +269,7 @@ public class ServerConnectorBootstrap {
             this.port = port;
             this.connectorID = id;
             this.httpVersion = httpVersion;
-            if ("3.0".equals(httpVersion)) {
+            if (HTTP3_VERSION.equals(httpVersion)) {
                 http3ServerChannelInitializer.setInterfaceId(id);
             } else {
                 httpServerChannelInitializer.setInterfaceId(id);
@@ -307,7 +290,7 @@ public class ServerConnectorBootstrap {
                     serverConnectorFuture.notifyPortBindingError(future.cause());
                 }
             });
-            if ("3.0".equals(httpVersion)) {
+            if (HTTP3_VERSION.equals(httpVersion)) {
                 http3ServerChannelInitializer.setServerConnectorFuture(serverConnectorFuture);
             } else {
                 httpServerChannelInitializer.setServerConnectorFuture(serverConnectorFuture);
@@ -362,7 +345,7 @@ public class ServerConnectorBootstrap {
                 log.error("ServerConnectorBootstrap is not initialized");
                 return null;
             }
-            if ("3.0".equals(httpVersion)) {
+            if (HTTP3_VERSION.equals(httpVersion)) {
                 return http3serverBootstrap.bind(new InetSocketAddress(getHost(), getPort()));
             } else {
                 return serverBootstrap.bind(new InetSocketAddress(getHost(), getPort()));

@@ -31,7 +31,8 @@ public class EntityBodyReceived implements ListenerState {
     }
 
     @Override
-    public void readInboundRequestBody(Http3SourceHandler http3SourceHandler, Http3DataFrame dataFrame, boolean isLast) {
+    public void readInboundRequestBody(Http3SourceHandler http3SourceHandler, Http3DataFrame dataFrame, boolean isLast)
+            throws Http3Exception {
         LOG.warn("readInboundRequestBody is not a dependant action of this state");
     }
 
@@ -46,8 +47,8 @@ public class EntityBodyReceived implements ListenerState {
     public void writeOutboundResponseBody(Http3OutboundRespListener http3OutboundRespListener,
                                           HttpCarbonMessage outboundResponseMsg, HttpContent httpContent,
                                           long streamId) throws Http3Exception {
-            Http3StateUtil.beginResponseWrite(http3MessageStateContext, http3OutboundRespListener,
-                    outboundResponseMsg, httpContent, streamId);
+        Http3StateUtil.beginResponseWrite(http3MessageStateContext, http3OutboundRespListener,
+                outboundResponseMsg, httpContent, streamId);
     }
 
     @Override

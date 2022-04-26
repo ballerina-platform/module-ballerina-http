@@ -259,7 +259,7 @@ public class SSLHandlerFactory {
     }
 
     /**
-     * This method will provide netty ssl context which supports HTTP3
+     * This provides netty ssl context which supports HTTP3
      * */
     public QuicSslContext createHttp3TLSContextForServer() throws SSLException {
         createSSLContextFromKeystores(true);
@@ -268,9 +268,8 @@ public class SSLHandlerFactory {
         QuicSslContextBuilder serverSslContextBuilder = QuicSslContextBuilder.forServer(this.getKeyManagerFactory(),
                         keyPassword).trustManager(this.getTrustStoreFactory());
         serverSslContextBuilder.applicationProtocols("h3-29", "h3-30", "h3-31", "h3-32", "h3");
-        QuicSslContext sslCtx = serverSslContextBuilder.build();
 
-        return sslCtx;
+        return serverSslContextBuilder.build();
     }
 
     /**

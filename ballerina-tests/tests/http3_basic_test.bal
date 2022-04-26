@@ -11,7 +11,6 @@ http:ListenerConfiguration http3SslServiceConf = {
         }
     },
     httpVersion: "3.0"
-
 };
 
 listener http:Listener http3SslListener = new(9090,http3SslServiceConf);
@@ -21,11 +20,7 @@ listener http:Listener http3SslListener = new(9090,http3SslServiceConf);
      resource function get hello(http:Caller caller,http:Request req) returns error? {
 
           string msg = "Hello!";
-          string length = msg.length().toBalString();
           http:Response response = new;
-          response.setHeader("content-length",length);
-          response.setHeader("content-type","text/plain");
-          response.setHeader("server","wso2");
           response.setPayload(msg);
           check caller->respond(response);
      }
@@ -35,8 +30,7 @@ listener http:Listener http3SslListener = new(9090,http3SslServiceConf);
 
         string|http:ClientError textPayload = payload.getTextPayload();
         http:Response response = new;
-        // io:println(textPayload);
-        // io:println("textPayload");
+
         if textPayload is string {
             response.setPayload(textPayload); 
         }
@@ -65,9 +59,8 @@ listener http:Listener http3SslListener = new(9090,http3SslServiceConf);
 
         check caller->respond(response);
 
-     }
+    }
     
-
 
      resource function post getXMLPayload(http:Caller caller,http:Request payload) returns error? {
 
@@ -86,37 +79,37 @@ listener http:Listener http3SslListener = new(9090,http3SslServiceConf);
         }
 
           check caller->respond(response);
-     }
     }
+}
     
 
      @test:Config {}
-        public function testHttp3Get() returns string | error?  {
+        public function testHttp3Get()  {
 
-        string|error response = getRequests(http3TestPort,"/hello");
+        map<string[]>|error response = getRequests(http3TestPort,"/hello");
+        io:println("GET Request result");
 
-        // io:println(response);
-        // if response is string{
-        //     test:assertEquals(response, "Hello!", msg = "Payload not matched");
-        // } else {
-        //     test:assertFail("Invalid type");
-        // }
+        io:println(response);
+        if response is map<string[]>{
+            test:assertEquals(response["Body"], "Hello!", msg = "Payload not matched");
+        } else {
+            test:assertFail("Invalid type");
+        }
 
      }
 
      @test:Config {}
-        public function testHttp3PostWithTextPayload() returns string | error?  {
+        public function testHttp3PostWithTextPayload() {
 
-        string|error response = postRequests(http3TestPort,"/getPayload","TEXT VALUE");
-        io:println("RES TEXT");
+        map<string[]>|error response = postRequests(http3TestPort,"/getPayload","TEXT VALUE");
+        io:println("POST TEXT Request result");
         io:println(response);
 
-        // if response is map<string>{
-        //     string? b = response["Body"];
-        //     test:assertEquals(b, "JSON PAYLOAD RECEIVED!", msg = "Payload not matched");
-        // } else {
-        //     test:assertFail("Invalid type");
-        // }
+        if response is map<string[]>{
+            test:assertEquals(response["Body"], "TEXT VALUE", msg = "Payload not matched");
+        } else {
+            test:assertFail("Invalid type");
+        }
      }
 
     @test:Config {}
@@ -124,16 +117,15 @@ listener http:Listener http3SslListener = new(9090,http3SslServiceConf);
             
             map<string> payload = {"name": "sara","age": "2" };
 
-            string|error response = sendPostRequestWithJsonPayload(http3TestPort,"/getJsonPayload",payload);
-            io:println("RES JSON");
+            map<string[]>|error response = sendPostRequestWithJsonPayload(http3TestPort,"/getJsonPayload",payload);
+            io:println("POST JSON Request result");
             io:println(response);
 
-
-            // if response is json{
-            //     test:assertEquals(response, "PAYLOAD RECEIVED!", msg = "Payload not matched");
-            // } else {
-            //     test:assertFail("Invalid type");
-            // } 
+            if response is map<string[]>{
+                test:assertEquals(response["Body"], "JSON PAYLOAD RECEIVED!", msg = "Payload not matched");
+            } else {
+                test:assertFail("Invalid type");
+            } 
 
     }
 
@@ -141,38 +133,35 @@ listener http:Listener http3SslListener = new(9090,http3SslServiceConf);
     public function testHttp3PostRequestWithXmlPayload() {
             
             xml data = xml `<name>Hello World</name>`;
-            // map<xml> payload =  data;
 
-
-            string|error response = sendPostRequestWithXmlPayload(http3TestPort,"/getXMLPayload",data);
-            io:println("RES XML");
+            map<string[]>|error response = sendPostRequestWithXmlPayload(http3TestPort,"/getXMLPayload",data);
+            io:println("POST XML Request result");
             io:println(response);
 
-            // if response is string{
-    //             test:assertEquals(response, "PAYLOAD RECEIVED!", msg = "Payload not matched");
-    //         } else {
-    //             test:assertFail("Invalid type");
-    //         } 
+            if response is map<string[]>{
+                test:assertEquals(response["Body"], "XML PAYLOAD RECEIVED!", msg = "Payload not matched");
+            } else {
+                test:assertFail("Invalid type");
+            } 
 
     }
      
-isolated function getRequests(int port,string path) returns string | error= @java:Method {
+isolated function getRequests(int port,string path) returns map<string[]>  | error= @java:Method {
     name: "sendGetRequest",
     'class: "io.ballerina.stdlib.http.testutils.ExternHttp3Client"
 } external;
 
-// isolated function postRequests(int port,string path, string payload) returns map<string> | error= @java:Method {
-isolated function postRequests(int port,string path, string payload) returns string | error= @java:Method {
+isolated function postRequests(int port,string path, string payload) returns map<string[]> | error= @java:Method {
     name: "sendPostRequestWithStringPayload",
     'class: "io.ballerina.stdlib.http.testutils.ExternHttp3Client"
 } external;
 
-isolated function sendPostRequestWithJsonPayload(int port,string path, map<string> payload) returns string |error= @java:Method {
+isolated function sendPostRequestWithJsonPayload(int port,string path, map<string> payload) returns map<string[]> | error= @java:Method {
     name: "sendPostRequestWithJsonPayload",
     'class: "io.ballerina.stdlib.http.testutils.ExternHttp3Client"
 } external;
 
-isolated function sendPostRequestWithXmlPayload(int port, string path, xml  payload) returns string|error= @java:Method {
+isolated function sendPostRequestWithXmlPayload(int port, string path, xml  payload) returns map<string[]> | error= @java:Method {
     name: "sendPostRequestWithXmlPayload",
     'class: "io.ballerina.stdlib.http.testutils.ExternHttp3Client"
 } external;

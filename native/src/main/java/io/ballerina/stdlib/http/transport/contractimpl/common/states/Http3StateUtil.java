@@ -39,7 +39,7 @@ public class Http3StateUtil {
                 ServerConnectorFuture outboundRespFuture = httpRequestMsg.getHttpResponseFuture();
                 Http3OutboundRespListener http3OutboundRespListener = new Http3OutboundRespListener(
                         http3SourceHandler.getHttp3ServerChannelInitializer(), httpRequestMsg,
-                        http3SourceHandler.getChannelHandlerContext(),
+                        http3SourceHandler.getChannelHandlerContext(), http3SourceHandler.getServerName(),
                         http3SourceHandler.getRemoteHost(), streamId,
                         http3SourceHandler.getHttp3ServerChannel());
                 outboundRespFuture.setHttpConnectorListener(http3OutboundRespListener);
@@ -64,7 +64,6 @@ public class Http3StateUtil {
     public static HttpCarbonRequest setupHttp3CarbonRequest(HttpRequest httpRequest,
                                                             Http3SourceHandler http3SourceHandler, long streamId) {
         ChannelHandlerContext ctx = http3SourceHandler.getChannelHandlerContext();
-//        HttpCarbonRequest sourceReqCMsg = new HttpCarbonRequest(httpRequest, new DefaultListener(ctx));
         HttpCarbonRequest sourceReqCMsg = new HttpCarbonRequest(httpRequest, new Http3InboundContentListener(
                 streamId, ctx, INBOUND_REQUEST));
 
@@ -96,18 +95,13 @@ public class Http3StateUtil {
                                           Http3OutboundRespListener http3OutboundRespListener,
                                           HttpCarbonMessage outboundResponseMsg, HttpContent httpContent,
                                           long streamId) throws Http3Exception {
-        if (Util.getHttpResponseStatus(outboundResponseMsg).code() == HttpResponseStatus.CONTINUE.code()) {
-            http3MessageStateContext.setListenerState(new Response100ContinueSent(http3MessageStateContext, streamId));
-            http3MessageStateContext.getListenerState()
-                    .writeOutboundResponseBody(http3OutboundRespListener, outboundResponseMsg, httpContent,
-                            streamId);
-        } else {
+
             http3MessageStateContext.setListenerState(
                     new SendingHeaders(http3OutboundRespListener, http3MessageStateContext));
             http3MessageStateContext.getListenerState()
                     .writeOutboundResponseHeaders(http3OutboundRespListener, outboundResponseMsg, httpContent,
                             streamId);
-        }
+
     }
 
     public static Http3HeadersFrame toHttp3Headers(HttpMessage httpMessage, boolean validateHeaders) {
@@ -117,6 +111,7 @@ public class Http3StateUtil {
         if (httpMessage instanceof HttpResponse) {
             HttpResponse response = (HttpResponse) httpMessage;
             outgoingHeaders.status(response.status().codeAsText());
+
             List<Map.Entry<String, String>> httpHeaders = httpMessage.headers().entries();
             for (Map.Entry<String, String> httpHeader : httpHeaders) {
                 outgoingHeaders.add(httpHeader.getKey(), httpHeader.getValue());

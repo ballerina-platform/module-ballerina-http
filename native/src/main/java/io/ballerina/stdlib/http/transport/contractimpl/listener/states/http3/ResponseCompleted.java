@@ -42,18 +42,17 @@ public class ResponseCompleted implements ListenerState {
     }
 
     @Override
-    public void writeOutboundResponseHeaders(Http3OutboundRespListener http3OutboundRespListener, HttpCarbonMessage
-            outboundResponseMsg, HttpContent httpContent, long streamId) throws Http3Exception {
+    public void writeOutboundResponseHeaders(Http3OutboundRespListener http3OutboundRespListener,
+                                             HttpCarbonMessage outboundResponseMsg, HttpContent httpContent,
+                                             long streamId) throws Http3Exception {
         LOG.warn("writeOutboundResponseHeaders is not a dependant action of this state");
     }
 
     @Override
-    public void writeOutboundResponseBody(Http3OutboundRespListener http3OutboundRespListener, HttpCarbonMessage
-            outboundResponseMsg, HttpContent httpContent, long streamId) throws Http3Exception {
-        http3MessageStateContext.setListenerState(
-                new SendingHeaders(http3OutboundRespListener, http3MessageStateContext));
-        http3MessageStateContext.getListenerState()
-                .writeOutboundResponseHeaders(http3OutboundRespListener, outboundResponseMsg, httpContent, streamId);
+    public void writeOutboundResponseBody(Http3OutboundRespListener http3OutboundRespListener,
+                                          HttpCarbonMessage outboundResponseMsg, HttpContent httpContent,
+                                          long streamId) throws Http3Exception {
+        //Not yet Implemented
     }
 
     @Override

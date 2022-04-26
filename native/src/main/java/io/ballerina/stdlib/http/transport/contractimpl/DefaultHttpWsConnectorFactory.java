@@ -33,6 +33,7 @@ import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
 import io.ballerina.stdlib.http.transport.contractimpl.common.ssl.SSLConfig;
 import io.ballerina.stdlib.http.transport.contractimpl.common.ssl.SSLHandlerFactory;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.ServerConnectorBootstrap;
+import io.ballerina.stdlib.http.transport.contractimpl.listener.states.http3.EntityBodyReceived;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.BootstrapConfiguration;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.ConnectionManager;
 import io.ballerina.stdlib.http.transport.contractimpl.websocket.DefaultWebSocketClientConnector;
@@ -45,17 +46,20 @@ import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.EventExecutorGroup;
 import io.netty.util.concurrent.GlobalEventExecutor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLException;
 import java.util.Map;
 
-import static io.ballerina.stdlib.http.transport.contract.Constants.PIPELINING_THREAD_COUNT;
-import static io.ballerina.stdlib.http.transport.contract.Constants.PIPELINING_THREAD_POOL_NAME;
+import static io.ballerina.stdlib.http.transport.contract.Constants.*;
 
 /**
  * Implementation of HttpWsConnectorFactory interface.
  */
 public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
+
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultHttpWsConnectorFactory.class);
 
     private final EventLoopGroup bossGroup;
     private final EventLoopGroup workerGroup;
@@ -81,23 +85,28 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
 
     @Override
     public ServerConnector createServerConnector(ServerBootstrapConfiguration serverBootstrapConfiguration,
-            ListenerConfiguration listenerConfig) {
+                                                 ListenerConfiguration listenerConfig) {
 
         ServerConnectorBootstrap serverConnectorBootstrap;
 
-        if("3.0".equals(listenerConfig.getVersion())){
+        if (HTTP3_VERSION.equals(listenerConfig.getVersion())) {
 
-            QuicSslContext sslctx = null;
+            QuicSslContext sslctx;
             SSLConfig sslConfig = listenerConfig.getListenerSSLConfig();
             if (sslConfig != null) {
                 sslctx = createHttp3SslContext(sslConfig);
+            } else {
+                throw new RuntimeException("SSL Configuration cannot be null");
             }
 
-            serverConnectorBootstrap = new ServerConnectorBootstrap(allChannels,sslctx);
+            serverConnectorBootstrap = new ServerConnectorBootstrap(allChannels, sslctx, listenerConfig);
+
             serverConnectorBootstrap.addHttp3SocketConfiguration(serverBootstrapConfiguration);
             serverConnectorBootstrap.addHttp3ThreadPools(group);
+            serverConnectorBootstrap.addHttp3ServerHeader(listenerConfig.getServerHeader());
 
-        }else{
+
+        } else {
             serverConnectorBootstrap = new ServerConnectorBootstrap(allChannels);
             serverConnectorBootstrap.addSocketConfiguration(serverBootstrapConfiguration);
             SSLConfig sslConfig = listenerConfig.getListenerSSLConfig();
@@ -126,13 +135,10 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
         if (listenerConfig.isPipeliningEnabled()) {
             pipeliningGroup = new DefaultEventExecutorGroup(PIPELINING_THREAD_COUNT, new DefaultThreadFactory(
                     PIPELINING_THREAD_POOL_NAME));
-            if("3.0".equals(listenerConfig.getVersion())) {
-                serverConnectorBootstrap.setHttp3PipeliningThreadGroup(pipeliningGroup);
-            }else{
-                serverConnectorBootstrap.setPipeliningThreadGroup(pipeliningGroup);
-            }
+            serverConnectorBootstrap.setPipeliningThreadGroup(pipeliningGroup);
         }
-        return serverConnectorBootstrap.getServerConnector(listenerConfig.getHost(), listenerConfig.getPort(),listenerConfig.getVersion());
+        return serverConnectorBootstrap.getServerConnector(listenerConfig.getHost(), listenerConfig.getPort(),
+                listenerConfig.getVersion());
     }
 
     private QuicSslContext createHttp3SslContext(SSLConfig sslConfig) {
@@ -148,7 +154,7 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
     }
 
     private void setSslContext(ServerConnectorBootstrap serverConnectorBootstrap, SSLConfig sslConfig,
-            ListenerConfiguration listenerConfig) {
+                               ListenerConfiguration listenerConfig) {
         try {
             SSLHandlerFactory sslHandlerFactory = new SSLHandlerFactory(sslConfig);
             serverConnectorBootstrap.addcertificateRevocationVerifier(sslConfig.isValidateCertEnabled());
@@ -184,17 +190,17 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
         ConnectionManager connectionManager = new ConnectionManager(senderConfiguration.getPoolConfiguration());
         int configHashCode = Util.getIntProperty(transportProperties, HttpConstants.CLIENT_CONFIG_HASH_CODE, 0);
         return new DefaultHttpClientConnector(connectionManager, senderConfiguration, bootstrapConfig, clientGroup,
-                                              configHashCode);
+                configHashCode);
     }
 
     @Override
     public HttpClientConnector createHttpClientConnector(
-        Map<String, Object> transportProperties, SenderConfiguration senderConfiguration,
-        ConnectionManager connectionManager) {
+            Map<String, Object> transportProperties, SenderConfiguration senderConfiguration,
+            ConnectionManager connectionManager) {
         BootstrapConfiguration bootstrapConfig = new BootstrapConfiguration(transportProperties);
         int configHashCode = Util.getIntProperty(transportProperties, HttpConstants.CLIENT_CONFIG_HASH_CODE, 0);
         return new DefaultHttpClientConnector(connectionManager, senderConfiguration, bootstrapConfig, clientGroup,
-                                              configHashCode);
+                configHashCode);
     }
 
     @Override

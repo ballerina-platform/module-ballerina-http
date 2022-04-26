@@ -51,9 +51,7 @@ public class Http3BasicTestCase {
 
     private static final Logger LOG = LoggerFactory.getLogger(Http3BasicTestCase.class);
 
-    private HttpClientConnector httpClientConnector;
     private ServerConnector serverConnector;
-//    private SenderConfiguration senderConfiguration;
     private HttpWsConnectorFactory connectorFactory;
 
     @BeforeClass
@@ -70,6 +68,7 @@ public class Http3BasicTestCase {
         listenerConfiguration.setServerKeyFile(TestUtil.getAbsolutePath(TestUtil.KEY_FILE));
         listenerConfiguration.setServerKeyPassword(String.valueOf(HttpConstants.SECURESOCKET_CONFIG_CERTKEY_KEY_PASSWORD));
         listenerConfiguration.setVersion(Constants.HTTP3_VERSION);
+
 
         serverConnector = connectorFactory
                 .createServerConnector(TestUtil.getDefaultServerBootstrapConfig(), listenerConfiguration);
@@ -93,7 +92,6 @@ public class Http3BasicTestCase {
     @AfterClass
     public void cleanUp() {
 
-        httpClientConnector.close();
         serverConnector.stop();
         try {
             connectorFactory.shutdown();

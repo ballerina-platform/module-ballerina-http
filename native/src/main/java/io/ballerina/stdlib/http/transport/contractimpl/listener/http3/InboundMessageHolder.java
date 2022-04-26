@@ -26,7 +26,6 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
  */
 public class InboundMessageHolder {
     private HttpCarbonMessage inboundMsg;
-    private long lastReadWriteTime;
     private Http3OutboundRespListener http3OutboundRespListener;
 
     public InboundMessageHolder(HttpCarbonMessage inboundMsgOrPushResponse) {

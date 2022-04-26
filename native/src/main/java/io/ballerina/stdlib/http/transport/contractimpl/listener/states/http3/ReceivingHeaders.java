@@ -39,7 +39,7 @@ public class ReceivingHeaders implements ListenerState {
 
         HttpCarbonMessage sourceReqCMsg = setupHttp3CarbonMsg(headersFrame, streamId);
         sourceReqCMsg.setHttp3MessageStateContext(http3MessageStateContext);
-        initializeDataEventListeners(ctx, streamId, sourceReqCMsg);
+        initializeDataEventListeners(streamId, sourceReqCMsg);
         http3MessageStateContext.setListenerState(new ReceivingEntityBody(http3MessageStateContext, streamId));
     }
 
@@ -55,14 +55,16 @@ public class ReceivingHeaders implements ListenerState {
     }
 
     @Override
-    public void writeOutboundResponseHeaders(Http3OutboundRespListener http3OutboundRespListener, HttpCarbonMessage
-            outboundResponseMsg, HttpContent httpContent, long streamId) throws Http3Exception {
+    public void writeOutboundResponseHeaders(Http3OutboundRespListener http3OutboundRespListener,
+                                             HttpCarbonMessage outboundResponseMsg, HttpContent httpContent,
+                                             long streamId) throws Http3Exception {
         LOG.warn("writeOutboundResponseHeaders is not a dependant action of this state");
     }
 
     @Override
-    public void writeOutboundResponseBody(Http3OutboundRespListener http3OutboundRespListener, HttpCarbonMessage
-            outboundResponseMsg, HttpContent httpContent, long streamId) throws Http3Exception {
+    public void writeOutboundResponseBody(Http3OutboundRespListener http3OutboundRespListener,
+                                          HttpCarbonMessage outboundResponseMsg, HttpContent httpContent,
+                                          long streamId) throws Http3Exception {
         LOG.warn("writeOutboundResponseBody is not a dependant action of this state");
     }
 
@@ -72,7 +74,7 @@ public class ReceivingHeaders implements ListenerState {
         //Not yet Implemented
     }
 
-    private void initializeDataEventListeners(ChannelHandlerContext ctx, long streamId,
+    private void initializeDataEventListeners(long streamId,
                                               HttpCarbonMessage sourceReqCMsg) {
         InboundMessageHolder inboundMsgHolder = new InboundMessageHolder(sourceReqCMsg);
         http3SourceHandler.getStreamIdRequestMap().put(streamId, inboundMsgHolder);

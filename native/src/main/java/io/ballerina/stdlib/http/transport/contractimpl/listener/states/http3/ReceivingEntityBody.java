@@ -38,20 +38,22 @@ public class ReceivingEntityBody implements ListenerState {
             throws Http3Exception {
 
         ByteBuf data = dataFrame.content();
-        HttpCarbonMessage sourceReqCMsg = http3SourceHandler.getStreamIdRequestMap().get(streamId)
-                .getInboundMsg();
-        if (sourceReqCMsg != null) {
-            if (isLast) {
-                sourceReqCMsg.addHttpContent(new DefaultLastHttpContent(data));
-                sourceReqCMsg.setLastHttpContentArrived();
-                http3MessageStateContext.setListenerState(new EntityBodyReceived(http3MessageStateContext));
+        if (data != null) {
+            HttpCarbonMessage sourceReqCMsg = http3SourceHandler.getStreamIdRequestMap().get(streamId).getInboundMsg();
+            if (sourceReqCMsg != null) {
+                if (isLast) {
+                    sourceReqCMsg.addHttpContent(new DefaultLastHttpContent(data));
+                    sourceReqCMsg.setLastHttpContentArrived();
+                    http3MessageStateContext.setListenerState(new EntityBodyReceived(http3MessageStateContext));
+                } else {
+                    sourceReqCMsg.addHttpContent(new DefaultHttpContent(data));
+                }
             } else {
-                sourceReqCMsg.addHttpContent(new DefaultHttpContent(data));
+                LOG.warn("Inconsistent state detected : data has been received before headers");
             }
         } else {
-            LOG.warn("Inconsistent state detected : data has been received before headers");
+            http3MessageStateContext.setListenerState(new EntityBodyReceived(http3MessageStateContext));
         }
-
     }
 
     @Override

@@ -16,6 +16,7 @@ import java.util.Map;
 
 public class Http3SourceHandler extends Http3RequestStreamInboundHandler {
     private final long streamId;
+    private final String serverName;
     private boolean connectedState;
     private Http3ServerChannel http3ServerChannel = new Http3ServerChannel();
     private ServerConnectorFuture serverConnectorFuture;
@@ -26,10 +27,11 @@ public class Http3SourceHandler extends Http3RequestStreamInboundHandler {
     private String remoteHost;
 
 
-    public Http3SourceHandler(long streamId, ServerConnectorFuture serverConnectorFuture, String interfaceId) {
+    public Http3SourceHandler(long streamId, ServerConnectorFuture serverConnectorFuture, String interfaceId, String serverName) {
         this.interfaceId = interfaceId;
         this.serverConnectorFuture = serverConnectorFuture;
         this.streamId = streamId;
+        this.serverName = serverName;
     }
 
 
@@ -114,5 +116,9 @@ public class Http3SourceHandler extends Http3RequestStreamInboundHandler {
     public String getRemoteHost() {
         return remoteHost;
     }
+    public String getServerName() {
+        return serverName;
+    }
+
 
 }

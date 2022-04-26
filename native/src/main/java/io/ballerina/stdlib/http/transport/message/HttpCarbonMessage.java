@@ -156,8 +156,8 @@ public class HttpCarbonMessage {
     }
 
     /**
-     * @deprecated
      * @return the message body.
+     * @deprecated
      */
     @Deprecated
     public ByteBuf getMessageBody() {
@@ -188,6 +188,7 @@ public class HttpCarbonMessage {
 
     /**
      * Return the length of entire payload. This is a blocking method.
+     *
      * @return the length.
      */
     @Deprecated
@@ -196,8 +197,8 @@ public class HttpCarbonMessage {
     }
 
     /**
-     * @deprecated
      * @param msgBody the message body.
+     * @deprecated
      */
     @Deprecated
     public void addMessageBody(ByteBuffer msgBody) {
@@ -230,7 +231,7 @@ public class HttpCarbonMessage {
     /**
      * Set the header value for the given name.
      *
-     * @param key header name.
+     * @param key   header name.
      * @param value header value.
      */
     public void setHeader(String key, String value) {
@@ -240,7 +241,7 @@ public class HttpCarbonMessage {
     /**
      * Set the header value for the given name.
      *
-     * @param key header name.
+     * @param key   header name.
      * @param value header value as object.
      */
     public void setHeader(String key, Object value) {
@@ -487,6 +488,7 @@ public class HttpCarbonMessage {
 
     /**
      * Gives the underling netty request message.
+     *
      * @return netty request message
      */
     public HttpRequest getNettyHttpRequest() {
@@ -495,6 +497,7 @@ public class HttpCarbonMessage {
 
     /**
      * Gives the underling netty response message.
+     *
      * @return netty response message
      */
     public HttpResponse getNettyHttpResponse() {
@@ -516,6 +519,7 @@ public class HttpCarbonMessage {
     public void setHttp2MessageStateContext(Http2MessageStateContext http2MessageStateContext) {
         this.http2MessageStateContext = http2MessageStateContext;
     }
+
     public void setHttp3MessageStateContext(Http3MessageStateContext http3MessageStateContext) {
         this.http3MessageStateContext = http3MessageStateContext;
     }

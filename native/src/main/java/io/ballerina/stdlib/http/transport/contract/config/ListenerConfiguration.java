@@ -18,6 +18,8 @@
  */
 package io.ballerina.stdlib.http.transport.contract.config;
 
+import io.netty.incubator.codec.http3.Http3;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,6 +57,14 @@ public class ListenerConfiguration extends SslConfiguration {
     private boolean pipeliningEnabled;
     private boolean webSocketCompressionEnabled;
     private long pipeliningLimit;
+
+    //Http3
+    private long maxIdleTimeout = 5000;
+    private long initialMaxData = 10000000;
+    private long initialMaxStreamDataBidirectionalLocal = 1000000;
+    private long initialMaxStreamDataBidirectionalRemote = 1000000;
+    private long initialMaxStreamsBidirectional = 100;
+
 
     public ListenerConfiguration() {
     }
@@ -200,5 +210,41 @@ public class ListenerConfiguration extends SslConfiguration {
 
     public void setWebSocketCompressionEnabled(boolean webSocketCompressionEnabled) {
         this.webSocketCompressionEnabled = webSocketCompressionEnabled;
+    }
+
+    //HTTP3
+    public void setInitialMaxData(long initialMaxData) {
+        this.initialMaxData = initialMaxData;
+    }
+    public long getInitialMaxData() {
+        return initialMaxData;
+    }
+
+    public void setInitialMaxStreamDataBidirectionalLocal(long initialMaxStreamDataBidirectionalLocal) {
+        this.initialMaxStreamDataBidirectionalLocal = initialMaxStreamDataBidirectionalLocal;
+    }
+    public long getInitialMaxStreamDataBidirectionalLocal() {
+        return initialMaxStreamDataBidirectionalLocal;
+    }
+
+    public void setInitialMaxStreamDataBidirectionalRemote(long initialMaxStreamDataBidirectionalRemote) {
+        this.initialMaxStreamDataBidirectionalRemote = initialMaxStreamDataBidirectionalRemote;
+    }
+    public long getInitialMaxStreamDataBidirectionalRemote() {
+        return initialMaxStreamDataBidirectionalRemote;
+    }
+
+    public void setInitialMaxStreamsBidirectional(long initialMaxStreamsBidirectional) {
+        this.initialMaxStreamsBidirectional = initialMaxStreamsBidirectional;
+    }
+    public long getInitialMaxStreamsBidirectional() {
+        return initialMaxStreamsBidirectional;
+    }
+
+    public void setMaxIdleTimeout(long maxIdleTimeout) {
+        this.maxIdleTimeout=maxIdleTimeout;
+    }
+    public long getMaxIdleTimeout() {
+        return maxIdleTimeout;
     }
 }
