@@ -29,6 +29,9 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
+/**
+ * Test for adding interceptor method templates.
+ */
 public class AddInterceptorMethodTest extends AbstractCodeActionTest {
 
     @Test(dataProvider = "testDataProvider")
