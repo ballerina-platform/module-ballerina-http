@@ -43,7 +43,7 @@ public class Constants {
     public static final String CALLER_ANNOTATION_NAME = "CallerInfo";
     public static final String FIELD_RESPONSE_TYPE = "respondType";
     public static final String RESPOND_METHOD_NAME = "respond";
-    public static final String ERROR = "annotations:error";
+    public static final String ERROR = "Error";
     public static final String ALLOWED_RETURN_UNION = "anydata|http:Response|http:StatusCodeRecord|error";
     public static final String REQUEST_INTERCEPTOR = "RequestInterceptor";
     public static final String RESPONSE_INTERCEPTOR = "ResponseInterceptor";

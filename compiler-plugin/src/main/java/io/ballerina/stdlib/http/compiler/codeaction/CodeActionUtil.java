@@ -31,6 +31,7 @@ import io.ballerina.tools.text.TextRange;
 public class CodeActionUtil {
 
     public static final String NODE_LOCATION_KEY = "node.location";
+    public static final String IS_ERROR_INTERCEPTOR_TYPE = "node.errorInterceptor";
 
     private CodeActionUtil() {
     }
