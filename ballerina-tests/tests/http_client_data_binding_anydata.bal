@@ -15,7 +15,14 @@
 // under the License.
 
 import ballerina/test;
+import ballerina/mime;
 import ballerina/http;
+import ballerina/lang.'string as strings;
+
+type ClientAnydataDBPerson record {|
+    string name;
+    int age;
+|};
 
 service /anydataTest on clientDBBackendListener {
 
@@ -24,6 +31,10 @@ service /anydataTest on clientDBBackendListener {
     }
 
     resource function get intTypeWithInvalidMimeType() returns @http:Payload{mediaType : "type2/subtype2"} int {
+        return 65;
+    }
+
+    resource function get intTypeWithIncompatibleMimeType() returns @http:Payload{mediaType : "application/xml"} int {
         return 65;
     }
 
@@ -104,6 +115,102 @@ service /anydataTest on clientDBBackendListener {
            {id: "3", title: "33"}
         ];
     }
+
+    // anydata
+    resource function get anydataType() returns anydata {
+        return 563;
+    }
+
+    // issue #2813
+    resource function get status() returns http:Ok {
+        return {
+            body: {status: "OK"},
+            mediaType: mime:APPLICATION_JSON
+        };
+    }
+
+    // record
+    resource function get recordMapType() returns map<ClientAnydataDBPerson> {
+        ClientAnydataDBPerson a = {name:"hello", age:23};
+        ClientAnydataDBPerson b = {name:"ballerina", age:5};
+        return { "1": a, "2": b};
+    }
+
+    resource function get recordMapTypeWithInvalidMimeType()
+            returns @http:Payload{mediaType : "type2/subtype2"} map<ClientAnydataDBPerson> {
+        ClientAnydataDBPerson a = {name:"hello", age:23};
+        ClientAnydataDBPerson b = {name:"ballerina", age:5};
+        return { "1": a, "2": b};
+    }
+
+    resource function get recordTableType() returns table<ClientAnydataDBPerson> {
+        return table [
+           {name:"hello", age:23},
+           {name:"ballerina", age:5}
+        ];
+    }
+
+    resource function get recordTableTypeWithInvalidMimeType()
+            returns @http:Payload{mediaType : "type2/subtype2"} table<ClientAnydataDBPerson> {
+        return table [
+           {name:"hello", age:23},
+           {name:"ballerina", age:5}
+        ];
+    }
+
+    // byte[]
+    resource function get byteArrType() returns byte[] {
+        return "WSO2".toBytes();
+    }
+
+    resource function get byteArrTypeWithInvalidMimeType()
+            returns @http:Payload{mediaType : "type2/subtype2"} byte[] {
+        return "WSO2".toBytes();
+    }
+
+    resource function get byteArrArrType() returns byte[][] {
+        return ["WSO2".toBytes(), "Ballerina".toBytes()];
+    }
+
+    resource function get byteArrArrTypeWithInvalidMimeType()
+            returns @http:Payload{mediaType : "type2/subtype2"} byte[][] {
+        return ["WSO2".toBytes(), "Ballerina".toBytes()];
+    }
+
+    resource function get byteArrMapType() returns map<byte[]> {
+        return {name:"STDLIB".toBytes(), team:"Ballerina".toBytes()};
+    }
+
+    resource function get byteArrMapTypeWithInvalidMimeType()
+            returns @http:Payload{mediaType : "type2/subtype2"} map<byte[]> {
+        return {name:"STDLIB".toBytes(), team:"Ballerina".toBytes()};
+    }
+
+    resource function get byteArrTableType() returns table<map<byte[]>> {
+        return table [
+            {id: "WSO2".toBytes(), title: "Company".toBytes()},
+            {id: "Ballerina".toBytes(), title: "Language".toBytes()},
+            {id: "Srilanka".toBytes(), title: "Country".toBytes()}
+        ];
+    }
+
+    resource function get byteArrTableTypeWithInvalidMimeType()
+            returns @http:Payload{mediaType : "type2/subtype2"} table<map<byte[]>> {
+        return table [
+            {id: "WSO2".toBytes(), title: "Company".toBytes()},
+            {id: "Ballerina".toBytes(), title: "Language".toBytes()},
+            {id: "Srilanka".toBytes(), title: "Country".toBytes()}
+        ];
+    }
+
+    // xml
+    resource function get xmlArrType() returns xml[] {
+        return [xml `<name>WSO2</name>`, xml `<name>Ballerina</name>`];
+    }
+
+    resource function get xmlArrTypeWithInvalidMimeType() returns @http:Payload{mediaType : "type2/subtype2"} xml[] {
+        return [xml `<name>WSO2</name>`, xml `<name>Ballerina</name>`];
+    }
 }
 
 @test:Config {}
@@ -116,6 +223,16 @@ function testIntDatabinding() returns error? {
 function testIntDatabindingByType() returns error? {
     int response = check clientDBBackendClient->get("/anydataTest/intTypeWithInvalidMimeType");
     test:assertEquals(response, 65, msg = "Found unexpected output");
+}
+
+@test:Config {}
+function testIntDatabindingByTypeNegative() returns error? {
+    int|error response = clientDBBackendClient->get("/anydataTest/intTypeWithIncompatibleMimeType");
+    if response is error {
+        assertTrueTextPayload(response.message(), "incompatible typedesc int found for 'application/xml' mime type");
+    } else {
+        test:assertFail(msg = "Found unexpected output type");
+    }
 }
 
 @test:Config {}
@@ -284,5 +401,147 @@ function testStringTableDatabindingByType() returns error? {
         test:assertEquals(next.value, {id: "1", title: "11"});
     } else {
         test:assertFail(msg = "Found unexpected output type");
+    }
+}
+
+@test:Config {}
+function testAnydataDatabinding() returns error? {
+    anydata response = check clientDBBackendClient->get("/anydataTest/anydataType");
+    if response is int {
+        test:assertEquals(response, 563, msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type");
+    }
+}
+
+@test:Config {}
+function testJsonWithStringDatabinding() returns error? {
+    json response = check clientDBBackendClient->get("/anydataTest/status");
+    test:assertEquals(response, {"status":"OK"}, msg = "Found unexpected output");
+    record {|
+        string status;
+    |} recordOfString = check clientDBBackendClient->get("/anydataTest/status");
+    test:assertEquals(recordOfString, {"status":"OK"}, msg = "Found unexpected output");
+}
+
+@test:Config {}
+function testRecordMapDatabinding() returns error? {
+    map<ClientAnydataDBPerson> response = check clientDBBackendClient->get("/anydataTest/recordMapType");
+    test:assertEquals(response.get("1"), {name:"hello", age:23}, msg = "Found unexpected output");
+}
+
+@test:Config {}
+function testRecordMapDatabindingByType() returns error? {
+    map<ClientAnydataDBPerson> response = check clientDBBackendClient->get("/anydataTest/recordMapTypeWithInvalidMimeType");
+    test:assertEquals(response.get("1"), {name:"hello", age:23}, msg = "Found unexpected output");
+}
+
+@test:Config {}
+function testRecordTableDatabinding() returns error? {
+    table<ClientAnydataDBPerson> tbl = check clientDBBackendClient->get("/anydataTest/recordTableType");
+    object {public isolated function next() returns record {| ClientAnydataDBPerson value; |}?;} iterator = tbl.iterator();
+    record {| ClientAnydataDBPerson value; |}? next = iterator.next();
+    if next is record {| ClientAnydataDBPerson value; |} {
+        test:assertEquals(next.value, {name:"hello", age:23});
+    } else {
+        test:assertFail(msg = "Found unexpected output type");
+    }
+}
+
+@test:Config {}
+function testRecordTableDatabindingByType() returns error? {
+    table<ClientAnydataDBPerson> tbl = check clientDBBackendClient->get("/anydataTest/recordTableTypeWithInvalidMimeType");
+    object {public isolated function next() returns record {| ClientAnydataDBPerson value; |}?;} iterator = tbl.iterator();
+    record {| ClientAnydataDBPerson value; |}? next = iterator.next();
+    if next is record {| ClientAnydataDBPerson value; |} {
+        test:assertEquals(next.value, {name:"hello", age:23});
+    } else {
+        test:assertFail(msg = "Found unexpected output type");
+    }
+}
+
+@test:Config {}
+function testByteArrDatabinding() returns error? {
+    byte[] response = check clientDBBackendClient->get("/anydataTest/byteArrType");
+    test:assertEquals(check strings:fromBytes(response), "WSO2", msg = "Found unexpected output");
+}
+
+@test:Config {}
+function testByteArrDatabindingByType() returns error? {
+    byte[] response = check clientDBBackendClient->get("/anydataTest/byteArrTypeWithInvalidMimeType");
+    test:assertEquals(check strings:fromBytes(response), "WSO2", msg = "Found unexpected output");
+}
+
+@test:Config {}
+function testByteArrArrDatabinding() returns error? {
+    byte[][] response = check clientDBBackendClient->get("/anydataTest/byteArrArrType");
+    test:assertEquals(check strings:fromBytes(response[1]), "Ballerina", msg = "Found unexpected output");
+}
+
+@test:Config {}
+function testByteArrArrDatabindingByType() returns error? {
+    byte[][] response = check clientDBBackendClient->get("/anydataTest/byteArrArrTypeWithInvalidMimeType");
+    test:assertEquals(check strings:fromBytes(response[1]), "Ballerina", msg = "Found unexpected output");
+}
+
+@test:Config {}
+function testByteArrMapDatabinding() returns error? {
+    map<byte[]> response = check clientDBBackendClient->get("/anydataTest/byteArrMapType");
+    byte[] val = response["name"]?:[87,87,87,50];
+    test:assertEquals(check strings:fromBytes(val), "STDLIB", msg = "Found unexpected output");
+}
+
+@test:Config {}
+function testByteArrMapDatabindingByType() returns error? {
+    map<byte[]> response = check clientDBBackendClient->get("/anydataTest/byteArrMapTypeWithInvalidMimeType");
+    byte[] val = response["name"]?:[87,87,87,50];
+    test:assertEquals(check strings:fromBytes(val), "STDLIB", msg = "Found unexpected output");
+}
+
+@test:Config {}
+function testByteArrTableDatabinding() returns error? {
+    table<map<byte[]>> response = check clientDBBackendClient->get("/anydataTest/byteArrTableType");
+    object {public isolated function next() returns record {| map<byte[]> value; |}?;} iterator = response.iterator();
+    record {| map<byte[]> value; |}? next = iterator.next();
+    if next is record {| map<byte[]> value; |} {
+        byte[] val = next.value["id"]?:[87,87,87,50];
+        test:assertEquals(check strings:fromBytes(val), "WSO2", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type");
+    }
+}
+
+@test:Config {}
+function testByteArrTableDatabindingByType() returns error? {
+    table<map<byte[]>> response = check clientDBBackendClient->get("/anydataTest/byteArrTableTypeWithInvalidMimeType");
+    object {public isolated function next() returns record {| map<byte[]> value; |}?;} iterator = response.iterator();
+    record {| map<byte[]> value; |}? next = iterator.next();
+    if next is record {| map<byte[]> value; |} {
+        byte[] val = next.value["title"]?:[87,87,87,50];
+        test:assertEquals(check strings:fromBytes(val), "Company", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type");
+    }
+}
+
+@test:Config {}
+function testXmlArrDatabinding() {
+    xml[]|error response = clientDBBackendClient->get("/anydataTest/xmlArrType");
+    if response is error {
+        assertTrueTextPayload(response.message(),
+            "Payload binding failed: 'json[]' value cannot be converted to 'xml<");
+    } else {
+        test:assertEquals(response[0], xml `<name>WSO2</name>`, msg = "Found unexpected output");
+    }
+}
+
+@test:Config {}
+function testXmlArrDatabindingByType() {
+    xml[]|error response = clientDBBackendClient->get("/anydataTest/xmlArrTypeWithInvalidMimeType");
+    if response is error {
+        assertTrueTextPayload(response.message(),
+            "Payload binding failed: 'json[]' value cannot be converted to 'xml");
+    } else {
+        test:assertEquals(response[0], xml `<name>WSO2</name>`, msg = "Found unexpected output");
     }
 }

@@ -527,14 +527,14 @@ See section [Query] to understand accessing query param via the request object.
 ##### 2.3.4.4. Payload parameter
 
 The payload parameter is used to access the request payload during the resource invocation. When the payload param is 
-defined with @http:Payload annotation, the listener deserialize the inbound request payload based on the mime type 
+defined with @http:Payload annotation, the listener deserialize the inbound request payload based on the media type 
 which retrieved by the `Content-type` header of the request. The data binding happens thereafter considering the 
-parameter type. The type of payload param can be one of the `anytype`. If the header is not present or not a 
-standard header, the binding type is inferred by the param type.
+parameter type. The type of payload parameter can be one of the `anytype`. If the header is not present or not a 
+standard header, the binding type is inferred by the parameter type.
 
-Following table explains the compatible `anydata` types with each common mime type. In the absence of a standard mime 
-type, the binding type is inferred by the payload param type itself. If the type is not compatible with the mime type,
-error is returned.
+Following table explains the compatible `anydata` types with each common media type. In the absence of a standard media 
+type, the binding type is inferred by the payload parameter type itself. If the type is not compatible with the media 
+type, error is returned.
 
 |Ballerina Type | Structure|"text" | "xml" | "json" | "x-www-form-urlencoded" | "octet-stream"|
 |---------------|----------|-------|-------|--------|-------------------------|---------------|
@@ -1233,10 +1233,10 @@ infer the expected payload type from the LHS variable type. This is called as cl
 inbound response payload is accessed and parse to the expected type in the method signature. It is easy to access the
 payload directly rather manipulation `http:Response` using its support methods such as `getTextPayload()`, ..etc.
 
-Client data binding supports `anydata` where the payload is deserialized based on the mime type before binding it 
+Client data binding supports `anydata` where the payload is deserialized based on the media type before binding it 
 to the required type. Similar to the service data binding following table explains the compatible `anydata` types with 
-each common mime type. In the absence of a standard mime type, the binding type is inferred by the payload param type 
-itself. If the type is not compatible with the mime type, error is returned.
+each common media type. In the absence of a standard media type, the binding type is inferred by the payload parameter 
+type itself. If the type is not compatible with the media type, error is returned.
 
 |Ballerina Type | Structure|"text" | "xml" | "json" | "x-www-form-urlencoded" | "octet-stream"|
 |---------------|----------|-------|-------|--------|-------------------------|---------------|
