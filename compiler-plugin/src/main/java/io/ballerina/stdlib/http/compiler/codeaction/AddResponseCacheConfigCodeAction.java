@@ -39,6 +39,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static io.ballerina.stdlib.http.compiler.codeaction.Constants.NODE_LOCATION_KEY;
+
 /**
  * CodeAction to add response cache configuration.
  */
@@ -56,8 +58,7 @@ public class AddResponseCacheConfigCodeAction implements CodeAction {
             return Optional.empty();
         }
 
-        CodeActionArgument locationArg = CodeActionArgument.from(CodeActionUtil.NODE_LOCATION_KEY,
-                node.location().lineRange());
+        CodeActionArgument locationArg = CodeActionArgument.from(NODE_LOCATION_KEY, node.location().lineRange());
         return Optional.of(CodeActionInfo.from("Add response cache configuration", List.of(locationArg)));
     }
 
@@ -65,7 +66,7 @@ public class AddResponseCacheConfigCodeAction implements CodeAction {
     public List<DocumentEdit> execute(CodeActionExecutionContext context) {
         LineRange lineRange = null;
         for (CodeActionArgument arg : context.arguments()) {
-            if (CodeActionUtil.NODE_LOCATION_KEY.equals(arg.key())) {
+            if (NODE_LOCATION_KEY.equals(arg.key())) {
                 lineRange = arg.valueAs(LineRange.class);
             }
         }
