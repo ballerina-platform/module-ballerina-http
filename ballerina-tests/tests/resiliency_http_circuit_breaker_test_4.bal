@@ -41,7 +41,7 @@ service /cb on circuitBreakerEP03 {
 
     resource function 'default getstate(http:Caller caller, http:Request request) {
         http:Response|error backendRes = simpleClientEP->forward("/simple", request);
-        http:CircuitState currentState = simpleClientEP.getCurrentState();
+        http:CircuitState currentState = simpleClientEP.getCircuitBreakerCurrentState();
         if backendRes is http:Response {
             if (!(currentState == http:CB_CLOSED_STATE)) {
                 backendRes.setPayload("Circuit Breaker is not in correct state state");

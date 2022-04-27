@@ -53,7 +53,7 @@ service /cb on circuitBreakerEP02 {
         }
         if (count == 4) {
             runtime:sleep(5);
-            unhealthyClientEP.forceClose();
+            unhealthyClientEP.circuitBreakerForceClose();
         }
         http:Response|error backendRes = unhealthyClientEP->forward("/unhealthy", request);
         if backendRes is http:Response {
