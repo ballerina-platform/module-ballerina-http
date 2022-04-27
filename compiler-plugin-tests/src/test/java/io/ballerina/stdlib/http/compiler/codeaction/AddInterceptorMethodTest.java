@@ -53,14 +53,14 @@ public class AddInterceptorMethodTest extends AbstractCodeActionTest {
     @DataProvider
     private Object[][] testDataProvider() {
         return new Object[][]{
-                {"service.bal", 19, 29, getAddInterceptorResourceMethodCodeAction(LinePosition.from(18, 0),
-                                                    LinePosition.from(20, 1), false), "result1.bal"},
-                {"service.bal", 23, 34, getAddInterceptorResourceMethodCodeAction(LinePosition.from(22, 0),
-                                                    LinePosition.from(24, 1), true), "result2.bal"},
-                {"service.bal", 27, 30, getAddInterceptorRemoteMethodCodeAction(LinePosition.from(26, 0),
-                                                    LinePosition.from(28, 1), false), "result3.bal"},
-                {"service.bal", 31, 35, getAddInterceptorRemoteMethodCodeAction(LinePosition.from(30, 0),
-                                                    LinePosition.from(32, 1), true), "result4.bal"}
+                {"service.bal", 22, 29, getAddInterceptorResourceMethodCodeAction(LinePosition.from(21, 0),
+                                                    LinePosition.from(23, 1), false), "result1.bal"},
+                {"service.bal", 26, 34, getAddInterceptorResourceMethodCodeAction(LinePosition.from(25, 0),
+                                                    LinePosition.from(27, 1), true), "result2.bal"},
+                {"service.bal", 30, 30, getAddInterceptorRemoteMethodCodeAction(LinePosition.from(29, 0),
+                                                    LinePosition.from(31, 1), false), "result3.bal"},
+                {"service.bal", 34, 35, getAddInterceptorRemoteMethodCodeAction(LinePosition.from(33, 0),
+                                                    LinePosition.from(35, 1), true), "result4.bal"}
         };
     }
 
