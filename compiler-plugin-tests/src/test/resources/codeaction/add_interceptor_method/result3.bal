@@ -14,6 +14,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
+// This is added to test some auto generated code segments.
+// Please ignore the indentation.
+
 import ballerina/http;
 
 service class RequestInterceptor {
