@@ -18,7 +18,7 @@
 # schemes configured in the HTTP client endpoint to secure the HTTP requests.
 #
 # + httpClient - The underlying `HttpActions` instance, which will make the actual network calls
-public client isolated class HttpSecureClient {
+client isolated class HttpSecureClient {
 
     private final HttpClient httpClient;
     private final ClientAuthHandler clientAuthHandler;

@@ -185,7 +185,7 @@ isolated function populateHeaders(Request request, map<string|string[]>? headers
 # + httpClient - HTTP client which uses to call the relevant functions
 # + verb - HTTP verb used for submit method
 # + return - The response for the request or an `http:ClientError` if failed to establish communication with the upstream server
-public isolated function invokeEndpoint (string path, Request outRequest, HttpOperation requestAction, HttpClient httpClient,
+isolated function invokeEndpoint (string path, Request outRequest, HttpOperation requestAction, HttpClient httpClient,
         string verb = "") returns  HttpResponse|ClientError {
 
     if HTTP_GET == requestAction {

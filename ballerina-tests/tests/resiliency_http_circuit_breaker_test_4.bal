@@ -40,9 +40,8 @@ final http:Client simpleClientEP = check new("http://localhost:8089", conf03);
 service /cb on circuitBreakerEP03 {
 
     resource function 'default getstate(http:Caller caller, http:Request request) {
-        http:CircuitBreakerClient cbClient = <http:CircuitBreakerClient>simpleClientEP.httpClient;
         http:Response|error backendRes = simpleClientEP->forward("/simple", request);
-        http:CircuitState currentState = cbClient.getCurrentState();
+        http:CircuitState currentState = simpleClientEP.getCurrentState();
         if backendRes is http:Response {
             if (!(currentState == http:CB_CLOSED_STATE)) {
                 backendRes.setPayload("Circuit Breaker is not in correct state state");
