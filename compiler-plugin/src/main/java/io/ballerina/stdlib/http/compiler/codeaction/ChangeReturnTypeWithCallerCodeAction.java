@@ -37,6 +37,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static io.ballerina.stdlib.http.compiler.codeaction.Constants.NODE_LOCATION_KEY;
+
 /**
  * Codeaction to change the return type to <pre>error?</pre> if the resource function has <pre>http:Caller</pre> as a
  * parameter.
@@ -56,8 +58,7 @@ public class ChangeReturnTypeWithCallerCodeAction implements CodeAction {
             return Optional.empty();
         }
 
-        CodeActionArgument locationArg = CodeActionArgument.from(CodeActionUtil.NODE_LOCATION_KEY,
-                node.location().lineRange());
+        CodeActionArgument locationArg = CodeActionArgument.from(NODE_LOCATION_KEY, node.location().lineRange());
         return Optional.of(CodeActionInfo.from("Change return type to 'error?'", List.of(locationArg)));
     }
 
@@ -65,7 +66,7 @@ public class ChangeReturnTypeWithCallerCodeAction implements CodeAction {
     public List<DocumentEdit> execute(CodeActionExecutionContext context) {
         LineRange lineRange = null;
         for (CodeActionArgument argument : context.arguments()) {
-            if (CodeActionUtil.NODE_LOCATION_KEY.equals(argument.key())) {
+            if (NODE_LOCATION_KEY.equals(argument.key())) {
                 lineRange = argument.valueAs(LineRange.class);
             }
         }

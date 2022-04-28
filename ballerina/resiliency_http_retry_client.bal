@@ -38,7 +38,7 @@ type RetryInferredConfig record {|
 # + retryInferredConfig - Derived set of configurations associated with retry
 # + httpClient - Chain of different HTTP clients which provides the capability for initiating contact with a remote
 #                HTTP service in resilient manner.
-public client isolated class RetryClient {
+client isolated class RetryClient {
 
     final RetryInferredConfig & readonly retryInferredConfig;
     final HttpClient httpClient;

@@ -132,7 +132,7 @@ public class PayloadParam implements Parameter {
                     if (((ArrayType) payloadType).getElementType().getTag() == TypeTags.BYTE_TAG) {
                         paramFeed[index++] = dataSource;
                     } else if (((ArrayType) payloadType).getElementType().getTag() == TypeTags.RECORD_TYPE_TAG) {
-                        index = JsonToRecordConverter.convert(payloadType, inRequestEntity, readonly, paramFeed, index);
+                        paramFeed[index++]  = JsonToRecordConverter.convert(payloadType, inRequestEntity, readonly);
                     } else {
                         throw new BallerinaConnectorException("Incompatible Element type found inside an array " +
                                                                       ((ArrayType) payloadType).getElementType()
@@ -140,7 +140,7 @@ public class PayloadParam implements Parameter {
                     }
                     break;
                 case TypeTags.RECORD_TYPE_TAG:
-                    index = JsonToRecordConverter.convert(payloadType, inRequestEntity, readonly, paramFeed, index);
+                    paramFeed[index++]  = JsonToRecordConverter.convert(payloadType, inRequestEntity, readonly);
                     break;
                 default:
                     paramFeed[index++] = dataSource;
@@ -152,15 +152,16 @@ public class PayloadParam implements Parameter {
         return index;
     }
 
-    private int populateFeedWithFreshPayload(HttpCarbonMessage httpCarbonMessage, Object[] paramFeed,
+    private int populateFeedWithFreshPayload(HttpCarbonMessage inboundMessage, Object[] paramFeed,
                                              BObject inRequestEntity, int index, Type payloadType) {
         try {
-            AbstractPayloadBuilder payloadBuilder = getBuilder(httpCarbonMessage, payloadType);
-            index = payloadBuilder.build(inRequestEntity, this.readonly, paramFeed, index);
-            httpCarbonMessage.setProperty(HttpConstants.ENTITY_OBJ, inRequestEntity);
+            String contentType = HttpUtil.getContentTypeFromTransportMessage(inboundMessage);
+            AbstractPayloadBuilder payloadBuilder = getBuilder(contentType, payloadType);
+            paramFeed[index++] = payloadBuilder.getValue(inRequestEntity, this.readonly);
+            inboundMessage.setProperty(HttpConstants.ENTITY_OBJ, inRequestEntity);
             return index;
         } catch (BError ex) {
-            httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
+            inboundMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
             throw new BallerinaConnectorException("data binding failed: " + ex.toString());
         }
     }

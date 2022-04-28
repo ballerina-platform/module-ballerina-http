@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.compiler.codeaction;
 
+import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
@@ -27,7 +28,7 @@ import io.ballerina.projects.plugins.codeaction.CodeActionContext;
 import io.ballerina.projects.plugins.codeaction.CodeActionExecutionContext;
 import io.ballerina.projects.plugins.codeaction.CodeActionInfo;
 import io.ballerina.projects.plugins.codeaction.DocumentEdit;
-import io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes;
+import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextDocumentChange;
@@ -39,35 +40,42 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static io.ballerina.stdlib.http.compiler.codeaction.Constants.ERROR;
+import static io.ballerina.stdlib.http.compiler.codeaction.Constants.IS_ERROR_INTERCEPTOR_TYPE;
 import static io.ballerina.stdlib.http.compiler.codeaction.Constants.NODE_LOCATION_KEY;
 
 /**
- * CodeAction to add response content-type.
+ * Abstract implementation of code action to add interceptor method template.
  */
-public class AddResponseContentTypeCodeAction implements CodeAction {
+public abstract class AddInterceptorMethodCodeAction implements CodeAction {
     @Override
     public List<String> supportedDiagnosticCodes() {
-        return List.of(HttpDiagnosticCodes.HTTP_HINT_103.getCode());
+        return List.of(diagnosticCode());
     }
 
     @Override
     public Optional<CodeActionInfo> codeActionInfo(CodeActionContext context) {
-        NonTerminalNode node = CodeActionUtil.findNode(context.currentDocument().syntaxTree(),
-                context.diagnostic().location().lineRange());
-        if (node == null || node.parent().kind() != SyntaxKind.RETURN_TYPE_DESCRIPTOR) {
-            return Optional.empty();
-        }
-
-        CodeActionArgument locationArg = CodeActionArgument.from(NODE_LOCATION_KEY, node.location().lineRange());
-        return Optional.of(CodeActionInfo.from("Add response content-type", List.of(locationArg)));
+        Diagnostic diagnostic = context.diagnostic();
+        SyntaxTree syntaxTree = context.currentDocument().syntaxTree();
+        NonTerminalNode node = CodeActionUtil.findNode(syntaxTree, diagnostic.location().lineRange());
+        CodeActionArgument location = CodeActionArgument.from(NODE_LOCATION_KEY, node.lineRange());
+        CodeActionArgument isError = CodeActionArgument.from(IS_ERROR_INTERCEPTOR_TYPE,
+                                                             diagnostic.message().contains(ERROR));
+        CodeActionInfo info = CodeActionInfo.from(String.format("Add interceptor %s method", methodKind()),
+                                                  List.of(location, isError));
+        return Optional.of(info);
     }
 
     @Override
     public List<DocumentEdit> execute(CodeActionExecutionContext context) {
         LineRange lineRange = null;
+        boolean isErrorInterceptor = false;
         for (CodeActionArgument arg : context.arguments()) {
             if (NODE_LOCATION_KEY.equals(arg.key())) {
                 lineRange = arg.valueAs(LineRange.class);
+            }
+            if (IS_ERROR_INTERCEPTOR_TYPE.equals(arg.key())) {
+                isErrorInterceptor = arg.valueAs(boolean.class);
             }
         }
         if (lineRange == null) {
@@ -76,20 +84,22 @@ public class AddResponseContentTypeCodeAction implements CodeAction {
 
         SyntaxTree syntaxTree = context.currentDocument().syntaxTree();
         NonTerminalNode node = CodeActionUtil.findNode(syntaxTree, lineRange);
+        if (!node.kind().equals(SyntaxKind.CLASS_DEFINITION)) {
+            return Collections.emptyList();
+        }
 
-        String mediaTypedPayload = "@http:Payload{mediaType: \"\"} ";
-        int start = node.position();
-        TextRange textRange = TextRange.from(start, 0);
-
+        TextRange textRange = TextRange.from(((ClassDefinitionNode) node).closeBrace().textRange().startOffset(), 0);
+        String method = methodSignature(isErrorInterceptor);
         List<TextEdit> textEdits = new ArrayList<>();
-        textEdits.add(TextEdit.from(textRange, mediaTypedPayload));
+        textEdits.add(TextEdit.from(textRange, method));
         TextDocumentChange change = TextDocumentChange.from(textEdits.toArray(new TextEdit[0]));
         TextDocument modifiedTextDocument = syntaxTree.textDocument().apply(change);
         return Collections.singletonList(new DocumentEdit(context.fileUri(), SyntaxTree.from(modifiedTextDocument)));
     }
 
-    @Override
-    public String name() {
-        return "ADD_RESPONSE_CONTENT_TYPE";
-    }
+    protected abstract String diagnosticCode();
+
+    protected abstract String methodKind();
+
+    protected abstract String methodSignature(boolean isErrorInterceptor);
 }

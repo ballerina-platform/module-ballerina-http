@@ -19,7 +19,6 @@ import ballerina/jballerina.java;
 import ballerina/mime;
 import ballerina/observe;
 import ballerina/time;
-import ballerina/log;
 
 # The HTTP client provides the capability for initiating contact with a remote HTTP service. The API it
 # provides includes the functions for the standard HTTP methods forwarding a received request and sending requests
@@ -34,7 +33,7 @@ public client isolated class Client {
 
     private final string url;
     private CookieStore? cookieStore = ();
-    public final HttpClient httpClient;
+    final HttpClient httpClient;
 
     # Gets invoked to initialize the `client`. During initialization, the configurations provided through the `config`
     # record is used to determine which type of additional behaviours are added to the endpoint (e.g., caching,
@@ -72,7 +71,7 @@ public client isolated class Client {
     } external;
 
     private isolated function processPost(string path, RequestMessage message, TargetType targetType,
-            string? mediaType, map<string|string[]>? headers) returns Response|PayloadType|ClientError {
+            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->post(path, req);
@@ -99,7 +98,7 @@ public client isolated class Client {
     } external;
 
     private isolated function processPut(string path, RequestMessage message, TargetType targetType,
-            string? mediaType, map<string|string[]>? headers) returns Response|PayloadType|ClientError {
+            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->put(path, req);
@@ -126,7 +125,7 @@ public client isolated class Client {
     } external;
 
     private isolated function processPatch(string path, RequestMessage message, TargetType targetType,
-            string? mediaType, map<string|string[]>? headers) returns Response|PayloadType|ClientError {
+            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->patch(path, req);
@@ -153,7 +152,7 @@ public client isolated class Client {
     } external;
 
     private isolated function processDelete(string path, RequestMessage message, TargetType targetType,
-            string? mediaType, map<string|string[]>? headers) returns Response|PayloadType|ClientError {
+            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->delete(path, req);
@@ -191,7 +190,7 @@ public client isolated class Client {
     } external;
 
     private isolated function processGet(string path, map<string|string[]>? headers, TargetType targetType)
-            returns Response|PayloadType|ClientError {
+            returns Response|anydata|ClientError {
         Request req = buildRequestWithHeaders(headers);
         Response|ClientError response = self.httpClient->get(path, message = req);
         if observabilityEnabled && response is Response {
@@ -214,7 +213,7 @@ public client isolated class Client {
     } external;
 
     private isolated function processOptions(string path, map<string|string[]>? headers, TargetType targetType)
-            returns Response|PayloadType|ClientError {
+            returns Response|anydata|ClientError {
         Request req = buildRequestWithHeaders(headers);
         Response|ClientError response = self.httpClient->options(path, message = req);
         if observabilityEnabled && response is Response {
@@ -242,7 +241,7 @@ public client isolated class Client {
 
     private isolated function processExecute(string httpVerb, string path, RequestMessage message,
             TargetType targetType, string? mediaType, map<string|string[]>? headers)
-            returns Response|PayloadType|ClientError {
+            returns Response|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->execute(httpVerb, path, req);
@@ -266,7 +265,7 @@ public client isolated class Client {
     } external;
 
     private isolated function processForward(string path, Request request, TargetType targetType)
-            returns Response|PayloadType|ClientError {
+            returns Response|anydata|ClientError {
         Response|ClientError response = self.httpClient->forward(path, request);
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, request.method, response.statusCode, self.url);
@@ -342,6 +341,43 @@ public client isolated class Client {
     public isolated function getCookieStore() returns CookieStore? {
         lock {
             return self.cookieStore;
+        }
+    }
+
+    # The circuit breaker client related method to force the circuit into a closed state in which it will allow
+    # requests regardless of the error percentage until the failure threshold exceeds.
+    public isolated function circuitBreakerForceClose() {
+        do {
+            CircuitBreakerClient cbClient = check trap <CircuitBreakerClient>self.httpClient;
+            cbClient.forceClose();
+        } on fail error err {
+            panic error ClientError("illegal method invocation. 'circuitBreakerForceClose()' is allowed for clients " +
+                "which have configured with circuit breaker configurations", err);
+        }
+    }
+
+    # The circuit breaker client related method to force the circuit into a open state in which it will suspend all
+    # requests until `resetTime` interval exceeds.
+    public isolated function circuitBreakerForceOpen() {
+        do {
+            CircuitBreakerClient cbClient = check trap <CircuitBreakerClient>self.httpClient;
+            cbClient.forceOpen();
+        } on fail error err {
+            panic error ClientError("illegal method invocation. 'circuitBreakerForceOpen()' is allowed for clients " +
+                "which have configured with circuit breaker configurations", err);
+        }
+    }
+
+    # The circuit breaker client related method to provides the `http:CircuitState` of the circuit breaker.
+    #
+    # + return - The current `http:CircuitState` of the circuit breaker
+    public isolated function getCircuitBreakerCurrentState() returns CircuitState {
+        do {
+            CircuitBreakerClient cbClient = check trap <CircuitBreakerClient>self.httpClient;
+            return cbClient.getCurrentState();
+        } on fail error err {
+            panic error ClientError("illegal method invocation. 'getCircuitBreakerCurrentState()' is allowed for " +
+                "clients which have configured with circuit breaker configurations", err);
         }
     }
 }
@@ -627,7 +663,7 @@ isolated function createDefaultClient(string url, ClientConfiguration configurat
     return createHttpSecureClient(url, configuration);
 }
 
-isolated function processResponse(Response|ClientError response, TargetType targetType) returns Response|PayloadType|ClientError {
+isolated function processResponse(Response|ClientError response, TargetType targetType) returns Response|anydata|ClientError {
     if targetType is typedesc<Response> || response is ClientError {
         return response;
     }
@@ -647,77 +683,6 @@ isolated function processResponse(Response|ClientError response, TargetType targ
         }
     }
     return performDataBinding(response, targetType);
-}
-
-isolated function performDataBinding(Response response, TargetType targetType) returns PayloadType|ClientError {
-    if targetType is typedesc<string> {
-        return response.getTextPayload();
-    } else if targetType is typedesc<string?> {
-        string|ClientError payload = response.getTextPayload();
-        return payload is NoContentError ? () : payload;
-    } else if targetType is typedesc<map<string>> {
-        string payload = check response.getTextPayload();
-        return getFormDataMap(payload);
-    } else if targetType is typedesc<map<string>?> {
-        string|ClientError payload = response.getTextPayload();
-        if payload is error {
-            if payload is NoContentError {
-                return;
-            }
-            return payload;
-        }
-        return getFormDataMap(payload);
-    } else if targetType is typedesc<xml> {
-        return response.getXmlPayload();
-    } else if targetType is typedesc<xml?> {
-        xml|ClientError payload = response.getXmlPayload();
-        return payload is NoContentError ? () : payload;
-    } else if targetType is typedesc<byte[]> {
-        return response.getBinaryPayload();
-    } else if targetType is typedesc<byte[]?> {
-        byte[]|ClientError payload = response.getBinaryPayload();
-        if payload is byte[] {
-            return payload.length() == 0 ? () : payload;
-        }
-        return payload;
-    } else if targetType is typedesc<record {| anydata...; |}> {
-        json payload = check response.getJsonPayload();
-        var result = payload.cloneWithType(targetType);
-        return result is error ? createPayloadBindingError(result) : result;
-    } else if targetType is typedesc<record {| anydata...; |}?> {
-        json|ClientError payload = response.getJsonPayload();
-        if payload is json {
-            var result = payload.cloneWithType(targetType);
-            return result is error ? createPayloadBindingError(result) : result;
-        } else {
-            return payload is NoContentError ? () : payload;
-        }
-    } else if targetType is typedesc<record {| anydata...; |}[]> {
-        json payload = check response.getJsonPayload();
-        var result = payload.cloneWithType(targetType);
-        return result is error ? createPayloadBindingError(result) : result;
-    } else if targetType is typedesc<record {| anydata...; |}[]?> {
-        json|ClientError payload = response.getJsonPayload();
-        if payload is json {
-            var result = payload.cloneWithType(targetType);
-            return result is error ? createPayloadBindingError(result) : result;
-        } else {
-            return payload is NoContentError ? () : payload;
-        }
-    } else if targetType is typedesc<map<json>> {
-        json payload = check response.getJsonPayload();
-        return <map<json>> payload;
-    } else if targetType is typedesc<json> {
-        json|ClientError result = response.getJsonPayload();
-        return result is NoContentError ? (): result;
-    } else {
-        // Consume payload to avoid memory leaks
-        byte[]|ClientError payload = response.getBinaryPayload();
-        if payload is error {
-            log:printDebug("Error releasing payload during invalid target typed data binding: " + payload.message());
-        }
-        return error ClientError("invalid target type, expected: http:Response, string, xml, json, map<json>, byte[], record, record[] or a union of such a type with nil");
-    }
 }
 
 isolated function getPayload(Response response) returns anydata|error {
@@ -775,15 +740,6 @@ isolated function createResponseError(int statusCode, string reasonPhrase, map<s
     } else {
         return error RemoteServerError(reasonPhrase, statusCode = statusCode, headers = headers, body = body);
     }
-}
-
-isolated function createPayloadBindingError(error result) returns PayloadBindingError {
-    string errPrefix = "Payload binding failed: ";
-    var errMsg = result.detail()["message"];
-    if errMsg is string {
-        return error PayloadBindingError(errPrefix + errMsg, result);
-    }
-    return error PayloadBindingError(errPrefix + result.message(), result);
 }
 
 # Represents HTTP methods.
