@@ -396,8 +396,8 @@ Based on the payload types respective header value is added as the `Content-type
 | int, float, decimal, boolean                                          | application/json         |
 | map\<json\>, table<map\<json\>>, map\<json\>[], table<map\<json\>>)[] | application/json         |
 
-In addition to the above types, caller `respond()` method can accept `error` type. In this case, an error response is 
-returned to the client with the error message.
+In addition to the above types, caller `respond()` method can accept `StatusCodeResponse` or `error` type. In case of 
+`error`, an error response is returned to the client with the error message.
 
 The HTTP compiler extension checks the argument of the `respond()` method if the matching payload type is passed as
 denoted in the CallerInfo annotation. At the moment, in terms of responding error, CallerInfo annotation can only support 
