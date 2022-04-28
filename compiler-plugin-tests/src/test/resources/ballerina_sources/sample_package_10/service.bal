@@ -27,6 +27,8 @@ type AA record {|
 
 type NewError http:Error;
 
+type StatusResponse http:Ok|http:BadRequest;
+
 service http:Service on new http:Listener(9090) {
     resource function get callerInfo1(int xyz, @http:CallerInfo {respondType: string} http:Caller abc) {
         checkpanic abc->respond("done");
@@ -126,7 +128,28 @@ service http:Service on new http:Listener(9090) {
         check abc->respond(error("hello world")); // error
     }
 
-    resource function get greeting(@http:CallerInfo{respondType: NewError} http:Caller caller) returns error? {
+    resource function get callerInfo22(@http:CallerInfo{respondType: NewError} http:Caller caller) returns error? {
         check caller->respond(<NewError> error("New Error"));
+    }
+
+    resource function get callerInfo23(@http:CallerInfo{respondType: http:Ok} http:Caller caller) returns error? {
+        check caller->respond(http:OK);
+    }
+
+    resource function get callerInfo24(@http:CallerInfo{respondType: http:Ok} http:Caller caller) returns error? {
+        check caller->respond(http:NOT_FOUND); // error
+    }
+
+    resource function get callerInfo25(@http:CallerInfo{respondType: http:StatusCodeResponse} http:Caller caller) returns error? {
+        check caller->respond(http:NOT_FOUND);
+    }
+
+    resource function get callerInfo26(@http:CallerInfo{respondType: http:StatusCodeResponse} http:Caller caller) returns error? {
+        check caller->respond("hello wold"); // error
+    }
+
+    resource function get callerInfo27(@http:CallerInfo{respondType: StatusResponse} http:Caller caller) returns error? {
+        http:BadRequest res = {body: {message: "Bad Request"}};
+        check caller->respond(res);
     }
 }
