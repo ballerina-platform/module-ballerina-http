@@ -72,11 +72,11 @@ public class Http3BasicTestCase {
     public void http3BasicTest() {
 
         //tested using an external http3 client
-       try{
-           Thread.sleep(20000000);
-       }catch (InterruptedException ex){
-           ex.printStackTrace();
-       }
+        try {
+            Thread.sleep(20000000);
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
+        }
     }
 
     @AfterClass

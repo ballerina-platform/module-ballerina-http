@@ -18,7 +18,6 @@ import io.netty.incubator.codec.quic.QuicChannel;
 import io.netty.incubator.codec.quic.QuicSslContext;
 import io.netty.incubator.codec.quic.QuicSslContextBuilder;
 import io.netty.incubator.codec.quic.QuicStreamChannel;
-import io.netty.util.CharsetUtil;
 import io.netty.util.NetUtil;
 import io.netty.util.ReferenceCountUtil;
 
