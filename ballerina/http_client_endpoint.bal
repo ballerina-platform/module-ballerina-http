@@ -34,7 +34,7 @@ public client isolated class Client {
 
     private final string url;
     private CookieStore? cookieStore = ();
-    public final HttpClient httpClient;
+    final HttpClient httpClient;
 
     # Gets invoked to initialize the `client`. During initialization, the configurations provided through the `config`
     # record is used to determine which type of additional behaviours are added to the endpoint (e.g., caching,
@@ -342,6 +342,43 @@ public client isolated class Client {
     public isolated function getCookieStore() returns CookieStore? {
         lock {
             return self.cookieStore;
+        }
+    }
+
+    # The circuit breaker client related method to force the circuit into a closed state in which it will allow
+    # requests regardless of the error percentage until the failure threshold exceeds.
+    public isolated function circuitBreakerForceClose() {
+        do {
+            CircuitBreakerClient cbClient = check trap <CircuitBreakerClient>self.httpClient;
+            cbClient.forceClose();
+        } on fail error err {
+            panic error ClientError("illegal method invocation. 'circuitBreakerForceClose()' is allowed for clients " +
+                "which have configured with circuit breaker configurations", err);
+        }
+    }
+
+    # The circuit breaker client related method to force the circuit into a open state in which it will suspend all
+    # requests until `resetTime` interval exceeds.
+    public isolated function circuitBreakerForceOpen() {
+        do {
+            CircuitBreakerClient cbClient = check trap <CircuitBreakerClient>self.httpClient;
+            cbClient.forceOpen();
+        } on fail error err {
+            panic error ClientError("illegal method invocation. 'circuitBreakerForceOpen()' is allowed for clients " +
+                "which have configured with circuit breaker configurations", err);
+        }
+    }
+
+    # The circuit breaker client related method to provides the `http:CircuitState` of the circuit breaker.
+    #
+    # + return - The current `http:CircuitState` of the circuit breaker
+    public isolated function getCircuitBreakerCurrentState() returns CircuitState {
+        do {
+            CircuitBreakerClient cbClient = check trap <CircuitBreakerClient>self.httpClient;
+            return cbClient.getCurrentState();
+        } on fail error err {
+            panic error ClientError("illegal method invocation. 'getCircuitBreakerCurrentState()' is allowed for " +
+                "clients which have configured with circuit breaker configurations", err);
         }
     }
 }

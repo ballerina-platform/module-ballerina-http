@@ -27,7 +27,7 @@ type CookieInferredConfig record {|
 # + cookieConfig - Configurations associated with the cookies
 # + httpClient - HTTP client for outbound HTTP requests
 # + cookieStore - Stores the cookies of the client
-public client isolated class CookieClient {
+client isolated class CookieClient {
 
     private final string url;
     private final CookieInferredConfig & readonly cookieConfig;
