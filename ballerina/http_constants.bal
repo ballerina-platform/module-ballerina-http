@@ -149,3 +149,9 @@ const string RFC_1123_DATE_TIME = "RFC_1123_DATE_TIME";
 
 # Represents UTF-8 charset
 const string CHARSET_UTF_8 = "UTF-8";
+
+const string JSON_PATTERN = "^.*json.*$";
+const string XML_PATTERN = "^.*xml.*$";
+const string TEXT_PATTERN = "^.*text.*$";
+const string OCTET_STREAM_PATTERN = "^.*octet-stream.*$";
+const string URL_ENCODED_PATTERN = "^.*x-www-form-urlencoded.*$";

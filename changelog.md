@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Allow HTTP caller to respond `StatusCodeResponse`](https://github.com/ballerina-platform/ballerina-standard-library/issues/2853)
 - [Introduce `DefaultErrorInterceptor`](https://github.com/ballerina-platform/ballerina-standard-library/issues/2669)
 - [Support `anydata` in service data binding](https://github.com/ballerina-platform/ballerina-standard-library/issues/2530)
+- [Support `anydata` in client data binding](https://github.com/ballerina-platform/ballerina-standard-library/issues/2036)
 - [Add common constants for HTTP status-code responses](https://github.com/ballerina-platform/ballerina-standard-library/issues/1540)
 - [Add code-actions to generate interceptor method template](https://github.com/ballerina-platform/ballerina-standard-library/issues/2664)
 

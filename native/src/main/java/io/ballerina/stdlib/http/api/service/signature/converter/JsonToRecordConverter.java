@@ -33,18 +33,17 @@ import org.ballerinalang.langlib.value.CloneWithType;
  */
 public class JsonToRecordConverter {
 
-    public static int convert(Type type, BObject inRequestEntity, boolean readonly, Object[] paramFeed, int index) {
-        Object recordEntity = getRecordEntity(inRequestEntity, type);
+    public static Object convert(Type type, BObject entity, boolean readonly) {
+        Object recordEntity = getRecordEntity(entity, type);
         if (readonly && recordEntity instanceof BRefValue) {
             ((BRefValue) recordEntity).freezeDirect();
         }
-        paramFeed[index++] = recordEntity;
-        return index;
+        return recordEntity;
     }
 
-    private static Object getRecordEntity(BObject inRequestEntity, Type entityBodyType) {
-        Object bjson = EntityBodyHandler.getMessageDataSource(inRequestEntity) == null ? getBJsonValue(inRequestEntity)
-                : EntityBodyHandler.getMessageDataSource(inRequestEntity);
+    private static Object getRecordEntity(BObject entity, Type entityBodyType) {
+        Object bjson = EntityBodyHandler.getMessageDataSource(entity) == null ? getBJsonValue(entity)
+                : EntityBodyHandler.getMessageDataSource(entity);
         Object result = getRecord(entityBodyType, bjson);
         if (result instanceof BError) {
             throw (BError) result;
@@ -71,12 +70,12 @@ public class JsonToRecordConverter {
     /**
      * Given an inbound request entity construct the ballerina json.
      *
-     * @param inRequestEntity Represents inbound request entity
+     * @param entity Represents inbound request entity
      * @return a ballerina json value
      */
-    private static Object getBJsonValue(BObject inRequestEntity) {
-        Object bjson = EntityBodyHandler.constructJsonDataSource(inRequestEntity);
-        EntityBodyHandler.addJsonMessageDataSource(inRequestEntity, bjson);
+    private static Object getBJsonValue(BObject entity) {
+        Object bjson = EntityBodyHandler.constructJsonDataSource(entity);
+        EntityBodyHandler.addJsonMessageDataSource(entity, bjson);
         return bjson;
     }
 
