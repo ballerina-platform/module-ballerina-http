@@ -1,15 +1,19 @@
 package io.ballerina.stdlib.http.transport.util.client.http3;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
-import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
-import io.netty.incubator.codec.http3.*;
+import io.netty.incubator.codec.http3.DefaultHttp3HeadersFrame;
+import io.netty.incubator.codec.http3.Http3;
+import io.netty.incubator.codec.http3.Http3ClientConnectionHandler;
+import io.netty.incubator.codec.http3.Http3DataFrame;
+import io.netty.incubator.codec.http3.Http3HeadersFrame;
+import io.netty.incubator.codec.http3.Http3RequestStreamFrame;
+import io.netty.incubator.codec.http3.Http3RequestStreamInboundHandler;
 import io.netty.incubator.codec.quic.QuicChannel;
 import io.netty.incubator.codec.quic.QuicSslContext;
 import io.netty.incubator.codec.quic.QuicSslContextBuilder;
@@ -21,6 +25,10 @@ import io.netty.util.ReferenceCountUtil;
 import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Netty Http3 client for HTTP 3 Basic test.
+ *
+ */
 public final class Http3Client {
 
     static final int PORT = 9090;
@@ -58,14 +66,12 @@ public final class Http3Client {
                         @Override
                         protected void channelRead(ChannelHandlerContext ctx,
                                                    Http3HeadersFrame frame, boolean isLast) {
-                            System.err.println(frame);
                             releaseFrameAndCloseIfLast(ctx, frame, isLast);
                         }
 
                         @Override
                         protected void channelRead(ChannelHandlerContext ctx,
                                                    Http3DataFrame frame, boolean isLast) {
-                            System.out.println(frame.content().toString(CharsetUtil.US_ASCII));
                             releaseFrameAndCloseIfLast(ctx, frame, isLast);
                         }
 
@@ -84,7 +90,6 @@ public final class Http3Client {
                     .authority("127.0.0.1:" + PORT)
                     .scheme("https");
 
-            System.err.println("methodd "+headersFrame.headers().method());
 
             streamChannel.writeAndFlush(headersFrame)
                     .addListener(QuicStreamChannel.SHUTDOWN_OUTPUT);

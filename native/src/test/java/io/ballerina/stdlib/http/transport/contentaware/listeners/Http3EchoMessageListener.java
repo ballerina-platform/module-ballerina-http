@@ -24,13 +24,16 @@ import io.ballerina.stdlib.http.transport.contract.HttpConnectorListener;
 import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorException;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonResponse;
-import io.netty.buffer.Unpooled;
-import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.DefaultHttpResponse;
+import io.netty.handler.codec.http.HttpContent;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.LastHttpContent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 

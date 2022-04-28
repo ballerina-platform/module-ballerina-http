@@ -19,34 +19,23 @@
 package io.ballerina.stdlib.http.transport.http3;
 
 import io.ballerina.stdlib.http.api.HttpConstants;
-import io.ballerina.stdlib.http.transport.contentaware.listeners.EchoMessageListener;
 import io.ballerina.stdlib.http.transport.contentaware.listeners.Http3EchoMessageListener;
 import io.ballerina.stdlib.http.transport.contract.Constants;
-import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
 import io.ballerina.stdlib.http.transport.contract.HttpWsConnectorFactory;
 import io.ballerina.stdlib.http.transport.contract.ServerConnector;
 import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
 import io.ballerina.stdlib.http.transport.contract.config.ListenerConfiguration;
-import io.ballerina.stdlib.http.transport.contract.config.SenderConfiguration;
-import io.ballerina.stdlib.http.transport.contract.config.TransportsConfiguration;
 import io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpWsConnectorFactory;
-import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
-import io.ballerina.stdlib.http.transport.message.HttpConnectorUtil;
-import io.ballerina.stdlib.http.transport.message.HttpMessageDataStreamer;
 import io.ballerina.stdlib.http.transport.util.TestUtil;
-import io.ballerina.stdlib.http.transport.util.client.http2.MessageGenerator;
-import io.ballerina.stdlib.http.transport.util.client.http2.MessageSender;
-import io.netty.handler.codec.http.HttpMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-
-
+/**
+ * This contains basic test cases for HTTP3 Listener.
+ */
 public class Http3BasicTestCase {
 
     private static final Logger LOG = LoggerFactory.getLogger(Http3BasicTestCase.class);
@@ -66,7 +55,8 @@ public class Http3BasicTestCase {
         listenerConfiguration.setScheme(Constants.HTTPS_SCHEME);
         listenerConfiguration.setServerCertificates(TestUtil.getAbsolutePath(TestUtil.CERT_FILE));
         listenerConfiguration.setServerKeyFile(TestUtil.getAbsolutePath(TestUtil.KEY_FILE));
-        listenerConfiguration.setServerKeyPassword(String.valueOf(HttpConstants.SECURESOCKET_CONFIG_CERTKEY_KEY_PASSWORD));
+        listenerConfiguration.setServerKeyPassword(String.valueOf(HttpConstants.
+                SECURESOCKET_CONFIG_CERTKEY_KEY_PASSWORD));
         listenerConfiguration.setVersion(Constants.HTTP3_VERSION);
 
 
@@ -79,14 +69,14 @@ public class Http3BasicTestCase {
     }
 
     @Test
-    public void Http3BasicTestCase() {
+    public void http3BasicTest() {
 
         //tested using an external http3 client
-        try {
-            Thread.sleep(20000000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+       try{
+           Thread.sleep(20000000);
+       }catch (InterruptedException ex){
+           ex.printStackTrace();
+       }
     }
 
     @AfterClass
