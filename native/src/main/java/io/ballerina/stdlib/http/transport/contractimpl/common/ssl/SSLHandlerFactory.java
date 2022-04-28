@@ -259,7 +259,7 @@ public class SSLHandlerFactory {
     }
 
     /**
-     * This provides netty ssl context which supports HTTP3
+     * This provides netty ssl context which supports HTTP3.
      * */
     public QuicSslContext createHttp3TLSContextForServer() throws SSLException {
         createSSLContextFromKeystores(true);

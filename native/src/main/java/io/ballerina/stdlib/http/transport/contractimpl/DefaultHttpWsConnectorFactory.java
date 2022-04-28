@@ -33,7 +33,6 @@ import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
 import io.ballerina.stdlib.http.transport.contractimpl.common.ssl.SSLConfig;
 import io.ballerina.stdlib.http.transport.contractimpl.common.ssl.SSLHandlerFactory;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.ServerConnectorBootstrap;
-import io.ballerina.stdlib.http.transport.contractimpl.listener.states.http3.EntityBodyReceived;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.BootstrapConfiguration;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.ConnectionManager;
 import io.ballerina.stdlib.http.transport.contractimpl.websocket.DefaultWebSocketClientConnector;

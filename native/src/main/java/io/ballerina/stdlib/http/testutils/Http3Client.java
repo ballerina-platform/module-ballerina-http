@@ -1,9 +1,6 @@
 package io.ballerina.stdlib.http.testutils;
 
-import io.ballerina.runtime.api.PredefinedTypes;
-import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
-import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
@@ -26,7 +23,6 @@ import io.netty.util.NetUtil;
 import io.netty.util.ReferenceCountUtil;
 
 import java.net.InetSocketAddress;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 
@@ -41,7 +37,8 @@ public final class Http3Client {
 
         NioEventLoopGroup group = new NioEventLoopGroup(1);
 
-        BMap<BString, Object>  res = ValueCreator.createMapValue();;
+        BMap<BString, Object> res = ValueCreator.createMapValue();
+        ;
 
         try {
             QuicSslContext context = QuicSslContextBuilder.forClient()
@@ -72,16 +69,16 @@ public final class Http3Client {
                         protected void channelRead(ChannelHandlerContext ctx,
                                                    Http3HeadersFrame frame, boolean isLast) {
                             String frameContent = String.valueOf(frame);
-                            res.put(StringUtils.fromString("Header"),StringUtils.fromString(frameContent));
+                            res.put(StringUtils.fromString("Header"), StringUtils.fromString(frameContent));
                             releaseFrameAndCloseIfLast(ctx, frame, isLast);
                         }
 
                         @Override
                         protected void channelRead(ChannelHandlerContext ctx,
                                                    Http3DataFrame frame, boolean isLast) {
-                            if(!isLast){
+                            if (!isLast) {
                                 String frameContent = String.valueOf(frame.content().toString(CharsetUtil.US_ASCII));
-                                res.put(StringUtils.fromString("Body"),StringUtils.fromString(frameContent));
+                                res.put(StringUtils.fromString("Body"), StringUtils.fromString(frameContent));
                             }
                             releaseFrameAndCloseIfLast(ctx, frame, isLast);
                         }
@@ -111,10 +108,10 @@ public final class Http3Client {
                     String CONTENTs = payload.toString();
                     CONTENT = CONTENTs.getBytes(CharsetUtil.US_ASCII);
 
-                    if ((payload.getClass()).toString().contains("XmlItem")){
-                        headersFrame.headers().add(HttpHeaderNames.CONTENT_TYPE,"application/xml");
-                    } else if ((payload.getClass()).toString().contains("MapValueImpl")){
-                        headersFrame.headers().add(HttpHeaderNames.CONTENT_TYPE,"application/json");
+                    if ((payload.getClass()).toString().contains("XmlItem")) {
+                        headersFrame.headers().add(HttpHeaderNames.CONTENT_TYPE, "application/xml");
+                    } else if ((payload.getClass()).toString().contains("MapValueImpl")) {
+                        headersFrame.headers().add(HttpHeaderNames.CONTENT_TYPE, "application/json");
                     }
                 }
 

@@ -103,7 +103,8 @@ public class Util {
     public static HttpResponse createHttpResponse(HttpCarbonMessage outboundResponseMsg, String inboundReqHttpVersion,
                                                   String serverName, boolean keepAlive) {
 
-        HttpVersion httpVersion = new HttpVersion(Constants.HTTP_VERSION_PREFIX + inboundReqHttpVersion, true);
+        HttpVersion httpVersion = new HttpVersion(Constants.HTTP_VERSION_PREFIX + inboundReqHttpVersion,
+                true);
         HttpResponseStatus httpResponseStatus = getHttpResponseStatus(outboundResponseMsg);
         HttpResponse outboundNettyResponse = new DefaultHttpResponse(httpVersion, httpResponseStatus);
 
@@ -117,7 +118,8 @@ public class Util {
                                                                String inboundReqHttpVersion, String serverName,
                                                                boolean keepAlive) {
 
-        HttpVersion httpVersion = new HttpVersion(Constants.HTTP_VERSION_PREFIX + inboundReqHttpVersion, true);
+        HttpVersion httpVersion = new HttpVersion(Constants.HTTP_VERSION_PREFIX + inboundReqHttpVersion,
+                true);
         HttpResponseStatus httpResponseStatus = getHttpResponseStatus(outboundResponseMsg);
         HttpResponse outboundNettyResponse = new DefaultHttpResponse(httpVersion, httpResponseStatus);
         setOutboundRespHeaders(outboundResponseMsg, inboundReqHttpVersion, serverName, keepAlive,
@@ -134,9 +136,11 @@ public class Util {
     }
 
     public static HttpResponse createFullHttpResponse(HttpCarbonMessage outboundResponseMsg,
-                                                      String inboundReqHttpVersion, String serverName, boolean keepAlive, ByteBuf fullContent) {
+                                                      String inboundReqHttpVersion, String serverName,
+                                                      boolean keepAlive, ByteBuf fullContent) {
 
-        HttpVersion httpVersion = new HttpVersion(Constants.HTTP_VERSION_PREFIX + inboundReqHttpVersion, true);
+        HttpVersion httpVersion = new HttpVersion(Constants.HTTP_VERSION_PREFIX + inboundReqHttpVersion,
+                true);
         HttpResponseStatus httpResponseStatus = getHttpResponseStatus(outboundResponseMsg);
         HttpResponse outboundNettyResponse =
                 new DefaultFullHttpResponse(httpVersion, httpResponseStatus, fullContent);
@@ -491,7 +495,8 @@ public class Util {
      * @return ssl engine
      */
     private static SSLEngine instantiateAndConfigSSL(SSLConfig sslConfig, String host, int port,
-                                                     boolean hostNameVerificationEnabled, SSLHandlerFactory sslHandlerFactory) {
+                                                     boolean hostNameVerificationEnabled,
+                                                     SSLHandlerFactory sslHandlerFactory) {
         // set the pipeline factory, which creates the pipeline for each newly created channels
         SSLEngine sslEngine = null;
         if (sslConfig != null) {
@@ -740,7 +745,8 @@ public class Util {
      * @param channelFuture            the channel future related to response write operation
      */
     public static void checkForResponseWriteStatus(HttpCarbonMessage inboundRequestMsg,
-                                                   HttpResponseFuture outboundRespStatusFuture, ChannelFuture channelFuture) {
+                                                   HttpResponseFuture outboundRespStatusFuture,
+                                                   ChannelFuture channelFuture) {
         channelFuture.addListener(writeOperationPromise -> {
             Throwable throwable = writeOperationPromise.cause();
             if (throwable != null) {

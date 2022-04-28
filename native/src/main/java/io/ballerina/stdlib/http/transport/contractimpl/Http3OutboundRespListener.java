@@ -7,11 +7,8 @@ import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http3Messag
 import io.ballerina.stdlib.http.transport.contractimpl.listener.Http3ServerChannelInitializer;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.RequestDataHolder;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.http3.Http3ServerChannel;
-import io.ballerina.stdlib.http.transport.contractimpl.listener.states.http3.SendingHeaders;
 import io.ballerina.stdlib.http.transport.internal.HandlerExecutor;
 import io.ballerina.stdlib.http.transport.internal.HttpTransportContextHolder;
-import io.ballerina.stdlib.http.transport.message.BackPressureObservable;
-import io.ballerina.stdlib.http.transport.message.DefaultBackPressureObservable;
 import io.ballerina.stdlib.http.transport.message.Http2PushPromise;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.netty.channel.ChannelHandlerContext;
@@ -22,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Calendar;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.ENCODING_DEFLATE;
 import static io.ballerina.stdlib.http.transport.contract.Constants.ENCODING_GZIP;
@@ -51,8 +47,9 @@ public class Http3OutboundRespListener implements HttpConnectorListener {
     private String remoteAddress = "-";
 
     public Http3OutboundRespListener(Http3ServerChannelInitializer http3ServerChannelInitializer,
-                                     HttpCarbonMessage httpRequestMsg, ChannelHandlerContext channelHandlerContext, String serverName,
-                                     String remoteHost, long streamId, Http3ServerChannel http3ServerChannel) {
+                                     HttpCarbonMessage httpRequestMsg, ChannelHandlerContext channelHandlerContext,
+                                     String serverName, String remoteHost, long streamId,
+                                     Http3ServerChannel http3ServerChannel) {
         this.http3ServerChannelInitializer = http3ServerChannelInitializer;
         this.channelHandlerContext = channelHandlerContext;
         this.streamId = streamId;

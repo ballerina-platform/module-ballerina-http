@@ -137,7 +137,8 @@ public class ServerConnectorBootstrap {
         long maxIdleTimeout = listenerConfiguration.getMaxIdleTimeout();
         long initialMaxData = listenerConfiguration.getInitialMaxData();
         long initialMaxStreamDataBidirectionalLocal = listenerConfiguration.getInitialMaxStreamDataBidirectionalLocal();
-        long initialMaxStreamDataBidirectionalRemote = listenerConfiguration.getInitialMaxStreamDataBidirectionalRemote();
+        long initialMaxStreamDataBidirectionalRemote = listenerConfiguration.
+                getInitialMaxStreamDataBidirectionalRemote();
         long initialMaxStreamsBidirectional = listenerConfiguration.getInitialMaxStreamsBidirectional();
 
         return Http3.newQuicServerCodecBuilder()
