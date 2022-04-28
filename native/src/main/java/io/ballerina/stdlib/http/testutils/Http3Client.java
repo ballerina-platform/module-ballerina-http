@@ -13,7 +13,14 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
-import io.netty.incubator.codec.http3.*;
+import io.netty.incubator.codec.http3.Http3;
+import io.netty.incubator.codec.http3.Http3ClientConnectionHandler;
+import io.netty.incubator.codec.http3.Http3HeadersFrame;
+import io.netty.incubator.codec.http3.Http3DataFrame;
+import io.netty.incubator.codec.http3.Http3RequestStreamFrame;
+import io.netty.incubator.codec.http3.DefaultHttp3HeadersFrame;
+import io.netty.incubator.codec.http3.DefaultHttp3DataFrame;
+import io.netty.incubator.codec.http3.Http3RequestStreamInboundHandler;
 import io.netty.incubator.codec.quic.QuicChannel;
 import io.netty.incubator.codec.quic.QuicSslContext;
 import io.netty.incubator.codec.quic.QuicSslContextBuilder;
@@ -25,7 +32,10 @@ import io.netty.util.ReferenceCountUtil;
 import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 
-
+/**
+ * Netty Http3 client for HTTP 3 Basic test.
+ *
+ */
 public final class Http3Client {
 
     static final int PORT = 8080;
@@ -100,13 +110,13 @@ public final class Http3Client {
 
             if (method == "post") {
 
-                byte[] CONTENT;
+                byte[] content;
                 if (payload.getClass().equals(String.class)) {
-                    CONTENT = ((String) payload).getBytes(CharsetUtil.US_ASCII);
+                    content = ((String) payload).getBytes(CharsetUtil.US_ASCII);
 
                 } else {
-                    String CONTENTs = payload.toString();
-                    CONTENT = CONTENTs.getBytes(CharsetUtil.US_ASCII);
+                    String contents = payload.toString();
+                    content = contents.getBytes(CharsetUtil.US_ASCII);
 
                     if ((payload.getClass()).toString().contains("XmlItem")) {
                         headersFrame.headers().add(HttpHeaderNames.CONTENT_TYPE, "application/xml");
@@ -117,7 +127,7 @@ public final class Http3Client {
 
                 streamChannel.write(headersFrame);
                 streamChannel.writeAndFlush(new DefaultHttp3DataFrame(
-                                Unpooled.wrappedBuffer(CONTENT)))
+                                Unpooled.wrappedBuffer(content)))
                         .addListener(QuicStreamChannel.SHUTDOWN_OUTPUT);
             } else if (method == "get") {
                 streamChannel.writeAndFlush(headersFrame)

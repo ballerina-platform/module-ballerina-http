@@ -11,7 +11,10 @@ import java.util.Map;
 
 import static io.ballerina.runtime.api.PredefinedTypes.TYPE_STRING;
 
-
+/**
+ * Contains utility functions used for HTTP 3 Basic test.
+ *
+ */
 public class ExternHttp3Client {
 
     private static final MapType mapType = TypeCreator.createMapType(

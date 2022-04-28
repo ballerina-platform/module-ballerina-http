@@ -7,7 +7,10 @@ import io.ballerina.stdlib.http.transport.contractimpl.listener.http3.Http3Sourc
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpContent;
-import io.netty.incubator.codec.http3.*;
+import io.netty.incubator.codec.http3.DefaultHttp3HeadersFrame;
+import io.netty.incubator.codec.http3.Http3DataFrame;
+import io.netty.incubator.codec.http3.Http3Exception;
+import io.netty.incubator.codec.http3.Http3HeadersFrame;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +19,9 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIEN
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.ILLEGAL_STATE_ERROR;
 import static io.netty.handler.codec.http.HttpResponseStatus.CONTINUE;
 
+/**
+ * Special state of sending 100-continue response.
+ */
 public class Response100ContinueSent implements ListenerState {
     private static final Logger LOG = LoggerFactory.getLogger(Response100ContinueSent.class);
     private final Http3MessageStateContext http3MessageStateContext;

@@ -4,6 +4,9 @@ import io.netty.util.internal.PlatformDependent;
 
 import java.util.Map;
 
+/**
+ * Represents the streams related to a single server channel.
+ */
 public class Http3ServerChannel {
 
     private Map<Long, InboundMessageHolder> streamIdRequestMap = PlatformDependent.newConcurrentHashMap();

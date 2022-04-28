@@ -17,6 +17,10 @@ import io.netty.incubator.codec.http3.Http3HeadersFrame;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * State between start and end of inbound request payload read.
+ *
+ */
 public class ReceivingEntityBody implements ListenerState {
     private static final Logger LOG = LoggerFactory.getLogger(ReceivingEntityBody.class);
     private final Http3MessageStateContext http3MessageStateContext;

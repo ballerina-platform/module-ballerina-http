@@ -25,6 +25,10 @@ import org.slf4j.LoggerFactory;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_CLOSED_BEFORE_INITIATING_OUTBOUND_RESPONSE;
 
+/**
+ * State between start and end of outbound response or push response entity body write.
+ *
+ */
 public class SendingEntityBody implements ListenerState {
 
     private static final Logger LOG = LoggerFactory.getLogger(SendingEntityBody.class);

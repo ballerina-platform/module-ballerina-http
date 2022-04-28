@@ -6,7 +6,6 @@ import io.ballerina.stdlib.http.transport.contractimpl.listener.http3.Http3Sourc
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http2.Http2Exception;
 import io.netty.incubator.codec.http3.Http3DataFrame;
 import io.netty.incubator.codec.http3.Http3Exception;
 import io.netty.incubator.codec.http3.Http3HeadersFrame;

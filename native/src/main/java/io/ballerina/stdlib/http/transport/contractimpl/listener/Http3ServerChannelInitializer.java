@@ -6,6 +6,9 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.incubator.codec.http3.Http3ServerConnectionHandler;
 import io.netty.incubator.codec.quic.QuicChannel;
 
+/**
+ * A class that responsible for build server side quic channels.
+ */
 public class Http3ServerChannelInitializer extends ChannelInitializer<QuicChannel> {
 
 

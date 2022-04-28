@@ -6,14 +6,17 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.incubator.codec.quic.QuicStreamChannel;
 
+/**
+ * A class that responsible for build server side quic streams.
+ */
 public class Http3QuicStreamInitializer extends ChannelInitializer<QuicStreamChannel> {
     private final Http3ServerChannelInitializer http3ServerChannelInitializer;
     private final String interfaceId;
     private final ServerConnectorFuture serverConnectorFuture;
     private final String serverName;
 
-    public Http3QuicStreamInitializer(String interfaceId, ServerConnectorFuture serverConnectorFuture, String serverName,
-                                      Http3ServerChannelInitializer http3ServerChannelInitializer) {
+    public Http3QuicStreamInitializer(String interfaceId, ServerConnectorFuture serverConnectorFuture,
+                                      String serverName, Http3ServerChannelInitializer http3ServerChannelInitializer) {
         this.http3ServerChannelInitializer = http3ServerChannelInitializer;
         this.interfaceId = interfaceId;
         this.serverConnectorFuture = serverConnectorFuture;

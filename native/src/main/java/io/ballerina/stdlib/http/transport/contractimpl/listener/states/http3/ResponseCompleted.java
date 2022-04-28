@@ -13,6 +13,9 @@ import io.netty.incubator.codec.http3.Http3HeadersFrame;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * State of successfully written response.
+ */
 public class ResponseCompleted implements ListenerState {
 
     private static final Logger LOG = LoggerFactory.getLogger(ResponseCompleted.class);

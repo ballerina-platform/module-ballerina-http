@@ -14,6 +14,10 @@ import io.netty.incubator.codec.http3.Http3HeadersFrame;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * State between end of inbound request payload read and start of outbound response or push response headers write.
+ *
+ */
 public class EntityBodyReceived implements ListenerState {
 
     private static final Logger LOG = LoggerFactory.getLogger(EntityBodyReceived.class);

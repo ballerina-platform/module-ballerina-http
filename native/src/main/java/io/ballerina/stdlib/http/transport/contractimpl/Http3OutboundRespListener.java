@@ -46,6 +46,10 @@ public class Http3OutboundRespListener implements HttpConnectorListener {
     private Calendar inboundRequestArrivalTime;
     private String remoteAddress = "-";
 
+    /**
+     * {@code Http3OutboundRespListener} is responsible for listening for outbound response messages
+     * and delivering them to the client.
+     */
     public Http3OutboundRespListener(Http3ServerChannelInitializer http3ServerChannelInitializer,
                                      HttpCarbonMessage httpRequestMsg, ChannelHandlerContext channelHandlerContext,
                                      String serverName, String remoteHost, long streamId,

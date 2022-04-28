@@ -18,6 +18,11 @@ import org.slf4j.LoggerFactory;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http3StateUtil.notifyRequestListener;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http3StateUtil.setupHttp3CarbonRequest;
 
+/**
+ * State between start and end of inbound request headers read.
+ *
+ */
+
 public class ReceivingHeaders implements ListenerState {
 
     private static final Logger LOG = LoggerFactory.getLogger(ReceivingHeaders.class);

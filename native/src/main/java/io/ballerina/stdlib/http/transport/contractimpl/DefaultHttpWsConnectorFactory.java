@@ -51,7 +51,9 @@ import org.slf4j.LoggerFactory;
 import javax.net.ssl.SSLException;
 import java.util.Map;
 
-import static io.ballerina.stdlib.http.transport.contract.Constants.*;
+import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP3_VERSION;
+import static io.ballerina.stdlib.http.transport.contract.Constants.PIPELINING_THREAD_COUNT;
+import static io.ballerina.stdlib.http.transport.contract.Constants.PIPELINING_THREAD_POOL_NAME;
 
 /**
  * Implementation of HttpWsConnectorFactory interface.
