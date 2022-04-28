@@ -29,6 +29,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
+import static io.ballerina.stdlib.http.compiler.codeaction.Constants.NODE_LOCATION_KEY;
+
 /**
  * Test for adding annotations to the resource return statement.
  */
@@ -59,7 +61,7 @@ public class AddAnnotationsToReturnTypeTest extends AbstractCodeActionTest {
 
     private CodeActionInfo getAddResponseCacheConfigCodeAction(LinePosition startLine, LinePosition endLine) {
         LineRange lineRange = LineRange.from("service.bal", startLine, endLine);
-        CodeActionArgument locationArg = CodeActionArgument.from(CodeActionUtil.NODE_LOCATION_KEY, lineRange);
+        CodeActionArgument locationArg = CodeActionArgument.from(NODE_LOCATION_KEY, lineRange);
         CodeActionInfo codeAction = CodeActionInfo.from("Add response cache configuration", List.of(locationArg));
         codeAction.setProviderName("HTTP_HINT_104/ballerina/http/ADD_RESPONSE_CACHE_CONFIG");
         return codeAction;
@@ -67,7 +69,7 @@ public class AddAnnotationsToReturnTypeTest extends AbstractCodeActionTest {
 
     private CodeActionInfo getAddResponseContentTypeCodeAction(LinePosition startLine, LinePosition endLine) {
         LineRange lineRange = LineRange.from("service.bal", startLine, endLine);
-        CodeActionArgument locationArg = CodeActionArgument.from(CodeActionUtil.NODE_LOCATION_KEY, lineRange);
+        CodeActionArgument locationArg = CodeActionArgument.from(NODE_LOCATION_KEY, lineRange);
         CodeActionInfo codeAction = CodeActionInfo.from("Add response content-type", List.of(locationArg));
         codeAction.setProviderName("HTTP_HINT_103/ballerina/http/ADD_RESPONSE_CONTENT_TYPE");
         return codeAction;

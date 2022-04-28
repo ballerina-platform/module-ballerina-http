@@ -30,8 +30,6 @@ import io.ballerina.tools.text.TextRange;
  */
 public class CodeActionUtil {
 
-    public static final String NODE_LOCATION_KEY = "node.location";
-
     private CodeActionUtil() {
     }
 
