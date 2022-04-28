@@ -30,7 +30,16 @@ import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Map;
 
-import static io.ballerina.stdlib.http.transport.contract.Constants.*;
+import static io.ballerina.stdlib.http.transport.contract.Constants.CHNL_HNDLR_CTX;
+import static io.ballerina.stdlib.http.transport.contract.Constants.HTTPS_SCHEME;
+import static io.ballerina.stdlib.http.transport.contract.Constants.INBOUND_REQUEST;
+import static io.ballerina.stdlib.http.transport.contract.Constants.LISTENER_INTERFACE_ID;
+import static io.ballerina.stdlib.http.transport.contract.Constants.LISTENER_PORT;
+import static io.ballerina.stdlib.http.transport.contract.Constants.LOCAL_ADDRESS;
+import static io.ballerina.stdlib.http.transport.contract.Constants.POOLED_BYTE_BUFFER_FACTORY;
+import static io.ballerina.stdlib.http.transport.contract.Constants.PROTOCOL;
+import static io.ballerina.stdlib.http.transport.contract.Constants.TO;
+
 
 /**
  * HTTP/2 utility functions for states.

@@ -77,6 +77,8 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import io.netty.incubator.codec.http3.DefaultHttp3Headers;
+import io.netty.incubator.codec.http3.Http3Exception;
 import io.netty.util.AsciiString;
 import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
@@ -125,7 +127,8 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.MUTUAL_SSL_H
 import static io.ballerina.stdlib.http.transport.contract.Constants.MUTUAL_SSL_PASSED;
 import static io.ballerina.stdlib.http.transport.contract.Constants.OK_200;
 import static io.ballerina.stdlib.http.transport.contract.Constants.PROTOCOL;
-import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_HEADERS;
+import static io.ballerina.stdlib.http.transport.contract.Constants.
+        REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_HEADERS;
 import static io.ballerina.stdlib.http.transport.contract.Constants.TO;
 import static io.ballerina.stdlib.http.transport.contract.Constants.URL_AUTHORITY;
 import static io.ballerina.stdlib.http.transport.contract.config.KeepAliveConfig.ALWAYS;
@@ -133,11 +136,9 @@ import static io.ballerina.stdlib.http.transport.contract.config.KeepAliveConfig
 import static io.netty.handler.codec.http.HttpHeaderNames.TRAILER;
 
 
-import io.netty.incubator.codec.http3.DefaultHttp3Headers;
 import io.netty.incubator.codec.http3.DefaultHttp3HeadersFrame;
 import io.netty.incubator.codec.http3.Http3Headers;
 import io.netty.incubator.codec.http3.Http3HeadersFrame;
-import io.netty.incubator.codec.http3.Http3Exception;
 
 /**
  * Includes utility methods for creating http requests and responses and their related properties.
@@ -469,7 +470,8 @@ public class Util {
     }
 
     private static SSLEngine getSslEngineForCerts(SocketChannel socketChannel, String host, int port,
-                                                  SSLConfig sslConfig, SSLHandlerFactory sslHandlerFactory) throws SSLException {
+                                                  SSLConfig sslConfig, SSLHandlerFactory sslHandlerFactory)
+            throws SSLException {
         SslContext sslContext = sslHandlerFactory.createHttpTLSContextForClient();
         SslHandler sslHandler = sslContext.newHandler(socketChannel.alloc(), host, port);
         SSLEngine sslEngine = sslHandler.engine();

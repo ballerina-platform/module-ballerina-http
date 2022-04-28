@@ -5,7 +5,6 @@ import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http3Messag
 import io.ballerina.stdlib.http.transport.contractimpl.listener.Http3ServerChannelInitializer;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.states.http3.ReceivingHeaders;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
-import io.ballerina.stdlib.http.transport.message.HttpCarbonRequest;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.incubator.codec.http3.Http3DataFrame;
 import io.netty.incubator.codec.http3.Http3HeadersFrame;

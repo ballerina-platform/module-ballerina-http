@@ -23,6 +23,10 @@ import java.util.Calendar;
 import static io.ballerina.stdlib.http.transport.contract.Constants.ENCODING_DEFLATE;
 import static io.ballerina.stdlib.http.transport.contract.Constants.ENCODING_GZIP;
 
+/**
+ * Responsible for listening for outbound response messages and delivering them to the client.
+ */
+
 public class Http3OutboundRespListener implements HttpConnectorListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(Http3OutboundRespListener.class);
@@ -46,10 +50,6 @@ public class Http3OutboundRespListener implements HttpConnectorListener {
     private Calendar inboundRequestArrivalTime;
     private String remoteAddress = "-";
 
-    /**
-     * {@code Http3OutboundRespListener} is responsible for listening for outbound response messages
-     * and delivering them to the client.
-     */
     public Http3OutboundRespListener(Http3ServerChannelInitializer http3ServerChannelInitializer,
                                      HttpCarbonMessage httpRequestMsg, ChannelHandlerContext channelHandlerContext,
                                      String serverName, String remoteHost, long streamId,
@@ -107,8 +107,9 @@ public class Http3OutboundRespListener implements HttpConnectorListener {
             channelHandlerContext.channel().eventLoop().execute(() -> {
                 try {
                     writer.writeOutboundResponse(outboundResponseMsg, httpContent);
-                } catch (Http3Exception e) {
-                    e.printStackTrace();
+                } catch (Http3Exception ex) {
+                    LOG.error("Failed to send the outbound response : " + ex.getMessage(), ex);
+                    inboundRequestMsg.getHttpOutboundRespStatusFuture().notifyHttpListener(ex);
                 }
             });
         });
