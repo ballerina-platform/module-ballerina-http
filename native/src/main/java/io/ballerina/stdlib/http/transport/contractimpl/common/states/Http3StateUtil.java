@@ -88,20 +88,16 @@ public class Http3StateUtil {
         sourceReqCMsg.setRequestUrl(uri);
         sourceReqCMsg.setProperty(TO, uri);
         return sourceReqCMsg;
-
     }
 
     public static void beginResponseWrite(Http3MessageStateContext http3MessageStateContext,
                                           Http3OutboundRespListener http3OutboundRespListener,
                                           HttpCarbonMessage outboundResponseMsg, HttpContent httpContent,
                                           long streamId) throws Http3Exception {
-
-            http3MessageStateContext.setListenerState(
-                    new SendingHeaders(http3OutboundRespListener, http3MessageStateContext));
-            http3MessageStateContext.getListenerState()
-                    .writeOutboundResponseHeaders(http3OutboundRespListener, outboundResponseMsg, httpContent,
-                            streamId);
-
+        http3MessageStateContext.setListenerState(
+                new SendingHeaders(http3OutboundRespListener, http3MessageStateContext));
+        http3MessageStateContext.getListenerState()
+                .writeOutboundResponseHeaders(http3OutboundRespListener, outboundResponseMsg, httpContent, streamId);
     }
 
     public static Http3HeadersFrame toHttp3Headers(HttpMessage httpMessage, boolean validateHeaders) {

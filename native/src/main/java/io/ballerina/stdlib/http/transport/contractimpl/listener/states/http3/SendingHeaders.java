@@ -86,7 +86,8 @@ public class SendingHeaders implements ListenerState {
         // Construct Http3 headers
         outboundResponseMsg.getHeaders().
                 add(HttpConversionUtil.ExtensionHeaderNames.SCHEME.text(), HTTPS_SCHEME);
-        headersFrame = Util.createHttp3ResponseHeaders(outboundResponseMsg, HTTP3_VERSION, http3OutboundRespListener.getServerName(), true);
+        headersFrame = Util.createHttp3ResponseHeaders(outboundResponseMsg, HTTP3_VERSION,
+                http3OutboundRespListener.getServerName(), true);
 
         ChannelFuture channelFuture = ctx.write(headersFrame, ctx.newPromise());
 

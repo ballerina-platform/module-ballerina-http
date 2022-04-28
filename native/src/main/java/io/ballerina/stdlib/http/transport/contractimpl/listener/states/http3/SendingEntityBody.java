@@ -117,7 +117,6 @@ public class SendingEntityBody implements ListenerState {
     private void writeData(HttpContent httpContent, long streamId, boolean endStream) {
 
         final ByteBuf content = httpContent.content();
-
         ChannelFuture channelFuture = ctx.writeAndFlush(new DefaultHttp3DataFrame(
                 Unpooled.wrappedBuffer(content)), ctx.newPromise()).addListener(QuicStreamChannel.SHUTDOWN_OUTPUT);
 
