@@ -44,6 +44,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static io.ballerina.stdlib.http.compiler.codeaction.Constants.NODE_LOCATION_KEY;
+
 /**
  * Abstract implementation of code action to change a resource header param's type.
  */
@@ -75,8 +77,8 @@ public abstract class ChangeHeaderParamTypeCodeAction implements CodeAction {
             return Optional.empty();
         }
 
-        CodeActionArgument locationArg = CodeActionArgument.from(CodeActionUtil.NODE_LOCATION_KEY, 
-                nonTerminalNode.get().location().lineRange());
+        CodeActionArgument locationArg = CodeActionArgument.from(NODE_LOCATION_KEY,
+                                                                 nonTerminalNode.get().location().lineRange());
         return Optional.of(CodeActionInfo.from(String.format("Change header param to '%s'", headerParamType()),
                 List.of(locationArg)));
     }
@@ -85,7 +87,7 @@ public abstract class ChangeHeaderParamTypeCodeAction implements CodeAction {
     public List<DocumentEdit> execute(CodeActionExecutionContext context) {
         LineRange lineRange = null;
         for (CodeActionArgument argument : context.arguments()) {
-            if (CodeActionUtil.NODE_LOCATION_KEY.equals(argument.key())) {
+            if (NODE_LOCATION_KEY.equals(argument.key())) {
                 lineRange = argument.valueAs(LineRange.class);
             }
         }

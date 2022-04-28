@@ -40,7 +40,7 @@ type RedirectInferredConfig record {|
 # + redirectConfig - Configurations associated with redirect
 # + httpClient - HTTP client for outbound HTTP requests
 # + currentRedirectCount - Current redirect count of the HTTP client
-public client isolated class RedirectClient {
+client isolated class RedirectClient {
 
     final string url;
     private final RedirectInferredConfig config;

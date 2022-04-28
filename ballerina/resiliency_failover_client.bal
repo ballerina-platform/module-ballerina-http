@@ -80,7 +80,7 @@ public client isolated class FailoverClient {
     } external;
 
     private isolated function processPost(string path, RequestMessage message, TargetType targetType, 
-            string? mediaType, map<string|string[]>? headers) returns Response|PayloadType|ClientError {
+            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         var result = self.performFailoverAction(path, req, HTTP_POST);
@@ -110,7 +110,7 @@ public client isolated class FailoverClient {
     } external;
     
     private isolated function processPut(string path, RequestMessage message, TargetType targetType, 
-            string? mediaType, map<string|string[]>? headers) returns Response|PayloadType|ClientError {
+            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         var result = self.performFailoverAction(path, req, HTTP_PUT);
@@ -140,7 +140,7 @@ public client isolated class FailoverClient {
     } external;
     
     private isolated function processPatch(string path, RequestMessage message, TargetType targetType, 
-            string? mediaType, map<string|string[]>? headers) returns Response|PayloadType|ClientError {
+            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         var result = self.performFailoverAction(path, req, HTTP_PATCH);
@@ -170,7 +170,7 @@ public client isolated class FailoverClient {
     } external;
     
     private isolated function processDelete(string path, RequestMessage message, TargetType targetType, 
-            string? mediaType, map<string|string[]>? headers) returns Response|PayloadType|ClientError {
+            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         var result = self.performFailoverAction(path, req, HTTP_DELETE);
@@ -214,7 +214,7 @@ public client isolated class FailoverClient {
     } external;
         
     private isolated function processGet(string path, map<string|string[]>? headers, TargetType targetType)
-            returns Response|PayloadType|ClientError {
+            returns Response|anydata|ClientError {
         Request req = buildRequestWithHeaders(headers);
         var result = self.performFailoverAction(path, req, HTTP_GET);
         if result is HttpFuture {
@@ -240,7 +240,7 @@ public client isolated class FailoverClient {
     } external;
     
     private isolated function processOptions(string path, map<string|string[]>? headers, TargetType targetType)
-            returns Response|PayloadType|ClientError {
+            returns Response|anydata|ClientError {
         Request req = buildRequestWithHeaders(headers);
         var result = self.performFailoverAction(path, req, HTTP_OPTIONS);
         if result is HttpFuture {
@@ -271,7 +271,7 @@ public client isolated class FailoverClient {
     
     private isolated function processExecute(string httpVerb, string path, RequestMessage message,
             TargetType targetType, string? mediaType, map<string|string[]>? headers) 
-            returns Response|PayloadType|ClientError {
+            returns Response|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         var result = self.performExecuteAction(path, req, httpVerb);
@@ -298,7 +298,7 @@ public client isolated class FailoverClient {
     } external;
     
     private isolated function processForward(string path, Request request, TargetType targetType)
-            returns Response|PayloadType|ClientError {
+            returns Response|anydata|ClientError {
         var result = self.performFailoverAction(path, request, HTTP_FORWARD);
         if result is HttpFuture {
             return getInvalidTypeError();

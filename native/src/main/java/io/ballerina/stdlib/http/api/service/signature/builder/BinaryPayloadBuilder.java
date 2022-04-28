@@ -34,18 +34,17 @@ import java.io.IOException;
 public class BinaryPayloadBuilder extends AbstractPayloadBuilder {
 
     @Override
-    public int build(BObject inRequestEntity, boolean readonly, Object[] paramFeed, int index) {
+    public Object getValue(BObject entity, boolean readonly) {
         BArray blobDataSource;
         try {
-            blobDataSource = EntityBodyHandler.constructBlobDataSource(inRequestEntity);
+            blobDataSource = EntityBodyHandler.constructBlobDataSource(entity);
         } catch (IOException e) {
             throw HttpUtil.createHttpError(e.getMessage(), HttpErrorType.CLIENT_ERROR);
         }
-        EntityBodyHandler.addMessageDataSource(inRequestEntity, blobDataSource);
+        EntityBodyHandler.addMessageDataSource(entity, blobDataSource);
         if (readonly) {
             blobDataSource.freezeDirect();
         }
-        paramFeed[index++] = blobDataSource;
-        return index;
+        return blobDataSource;
     }
 }

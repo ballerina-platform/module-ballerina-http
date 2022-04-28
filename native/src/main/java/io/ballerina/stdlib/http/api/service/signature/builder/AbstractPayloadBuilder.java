@@ -20,8 +20,6 @@ package io.ballerina.stdlib.http.api.service.signature.builder;
 
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.values.BObject;
-import io.ballerina.stdlib.http.api.HttpUtil;
-import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
 import java.util.Locale;
 
@@ -44,18 +42,15 @@ public abstract class AbstractPayloadBuilder {
     private static final String URL_ENCODED_PATTERN = "^.*x-www-form-urlencoded.*$";
 
     /**
-     * Build the inbound payload, bind it to the respective type and return the next signature param index.
+     * Get the built inbound payload after binding it to the respective type.
      *
      * @param inRequestEntity inbound request entity
      * @param readonly        readonly status of parameter
-     * @param paramFeed       array of signature parameters
-     * @param index           current signature parameter index
-     * @return the next index of the signature parameter
+     * @return the payload
      */
-    public abstract int build(BObject inRequestEntity, boolean readonly, Object[] paramFeed, int index);
+    public abstract Object getValue(BObject inRequestEntity, boolean readonly);
 
-    public static AbstractPayloadBuilder getBuilder(HttpCarbonMessage inboundMessage, Type payloadType) {
-        String contentType = HttpUtil.getContentTypeFromTransportMessage(inboundMessage);
+    public static AbstractPayloadBuilder getBuilder(String contentType, Type payloadType) {
         if (contentType == null || contentType.isEmpty()) {
             return getBuilderFromType(payloadType);
         }

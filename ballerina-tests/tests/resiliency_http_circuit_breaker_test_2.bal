@@ -50,12 +50,11 @@ final http:Client healthyClientEP = checkpanic new("http://localhost:8087", conf
 service /cb on circuitBreakerEP01 {
 
     resource function 'default forceopen(http:Caller caller, http:Request request) {
-        http:CircuitBreakerClient cbClient = <http:CircuitBreakerClient>healthyClientEP.httpClient;
         int counter = retrieveAndIncrementCounter();
         if (counter % 3 == 0) {
-            cbClient.forceClose();
+            healthyClientEP.circuitBreakerForceClose();
         } else if (counter % 3 == 1) {
-            cbClient.forceOpen();
+            healthyClientEP.circuitBreakerForceOpen();
         }
 
         http:Response|error backendRes = healthyClientEP->forward("/healthy", request);
@@ -63,12 +62,11 @@ service /cb on circuitBreakerEP01 {
     }
 
     resource function get forceopen(http:Caller caller, http:Request request) {
-        http:CircuitBreakerClient cbClient = <http:CircuitBreakerClient>healthyClientEP.httpClient;
         int counter = retrieveAndIncrementCounter();
         if (counter % 3 == 0) {
-            cbClient.forceClose();
+            healthyClientEP.circuitBreakerForceClose();
         } else if (counter % 3 == 1) {
-            cbClient.forceOpen();
+            healthyClientEP.circuitBreakerForceOpen();
         }
 
         http:Response|error backendRes = healthyClientEP->get("/healthy");
@@ -76,12 +74,11 @@ service /cb on circuitBreakerEP01 {
     }
 
     resource function head forceopen(http:Caller caller, http:Request request) {
-        http:CircuitBreakerClient cbClient = <http:CircuitBreakerClient>healthyClientEP.httpClient;
         int counter = retrieveAndIncrementCounter();
         if (counter % 3 == 0) {
-            cbClient.forceClose();
+            healthyClientEP.circuitBreakerForceClose();
         } else if (counter % 3 == 1) {
-            cbClient.forceOpen();
+            healthyClientEP.circuitBreakerForceOpen();
         }
         http:Response|error backendRes = healthyClientEP->head("/healthy");
         if backendRes is http:Response {
@@ -101,12 +98,11 @@ service /cb on circuitBreakerEP01 {
     }
 
     resource function options forceopen(http:Caller caller, http:Request request) {
-        http:CircuitBreakerClient cbClient = <http:CircuitBreakerClient>healthyClientEP.httpClient;
         int counter = retrieveAndIncrementCounter();
         if (counter % 3 == 0) {
-            cbClient.forceClose();
+            healthyClientEP.circuitBreakerForceClose();
         } else if (counter % 3 == 1) {
-            cbClient.forceOpen();
+            healthyClientEP.circuitBreakerForceOpen();
         }
         http:Response|error backendRes = healthyClientEP->options("/healthy");
         if backendRes is http:Response {
@@ -126,12 +122,11 @@ service /cb on circuitBreakerEP01 {
     }
 
     resource function put forceopen(http:Caller caller, http:Request request) {
-        http:CircuitBreakerClient cbClient = <http:CircuitBreakerClient>healthyClientEP.httpClient;
         int counter = retrieveAndIncrementCounter();
         if (counter % 3 == 0) {
-            cbClient.forceClose();
+            healthyClientEP.circuitBreakerForceClose();
         } else if (counter % 3 == 1) {
-            cbClient.forceOpen();
+            healthyClientEP.circuitBreakerForceOpen();
         }
 
         http:Response|error backendRes = healthyClientEP->put("/healthy", request);
@@ -139,12 +134,11 @@ service /cb on circuitBreakerEP01 {
     }
 
     resource function patch forceopen(http:Caller caller, http:Request request) {
-        http:CircuitBreakerClient cbClient = <http:CircuitBreakerClient>healthyClientEP.httpClient;
         int counter = retrieveAndIncrementCounter();
         if (counter % 3 == 0) {
-            cbClient.forceClose();
+            healthyClientEP.circuitBreakerForceClose();
         } else if (counter % 3 == 1) {
-            cbClient.forceOpen();
+            healthyClientEP.circuitBreakerForceOpen();
         }
 
         http:Response|error backendRes = healthyClientEP->patch("/healthy", request);
@@ -152,12 +146,11 @@ service /cb on circuitBreakerEP01 {
     }
 
     resource function delete forceopen(http:Caller caller, http:Request request) {
-        http:CircuitBreakerClient cbClient = <http:CircuitBreakerClient>healthyClientEP.httpClient;
         int counter = retrieveAndIncrementCounter();
         if (counter % 3 == 0) {
-            cbClient.forceClose();
+            healthyClientEP.circuitBreakerForceClose();
         } else if (counter % 3 == 1) {
-            cbClient.forceOpen();
+            healthyClientEP.circuitBreakerForceOpen();
         }
 
         http:Response|error backendRes = healthyClientEP->delete("/healthy", request);

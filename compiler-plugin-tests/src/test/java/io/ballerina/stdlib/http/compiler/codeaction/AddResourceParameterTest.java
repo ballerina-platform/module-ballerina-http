@@ -29,6 +29,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
+import static io.ballerina.stdlib.http.compiler.codeaction.Constants.NODE_LOCATION_KEY;
+
 /**
  * Test for adding parameters to the resource signature.
  */
@@ -63,7 +65,7 @@ public class AddResourceParameterTest extends AbstractCodeActionTest {
 
     private CodeActionInfo getAddPayloadCodeAction(LinePosition startLine, LinePosition endLine) {
         LineRange lineRange = LineRange.from("service.bal", startLine, endLine);
-        CodeActionArgument locationArg = CodeActionArgument.from(CodeActionUtil.NODE_LOCATION_KEY, lineRange);
+        CodeActionArgument locationArg = CodeActionArgument.from(NODE_LOCATION_KEY, lineRange);
         CodeActionInfo codeAction = CodeActionInfo.from("Add payload parameter", List.of(locationArg));
         codeAction.setProviderName("HTTP_HINT_101/ballerina/http/ADD_PAYLOAD_PARAM");
         return codeAction;
@@ -71,7 +73,7 @@ public class AddResourceParameterTest extends AbstractCodeActionTest {
 
     private CodeActionInfo getAddHeaderCodeAction(LinePosition startLine, LinePosition endLine) {
         LineRange lineRange = LineRange.from("service.bal", startLine, endLine);
-        CodeActionArgument locationArg = CodeActionArgument.from(CodeActionUtil.NODE_LOCATION_KEY, lineRange);
+        CodeActionArgument locationArg = CodeActionArgument.from(NODE_LOCATION_KEY, lineRange);
         CodeActionInfo codeAction = CodeActionInfo.from("Add header parameter", List.of(locationArg));
         codeAction.setProviderName("HTTP_HINT_102/ballerina/http/ADD_HEADER_PARAM");
         return codeAction;
