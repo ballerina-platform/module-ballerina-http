@@ -78,7 +78,10 @@ import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.netty.incubator.codec.http3.DefaultHttp3Headers;
+import io.netty.incubator.codec.http3.DefaultHttp3HeadersFrame;
 import io.netty.incubator.codec.http3.Http3Exception;
+import io.netty.incubator.codec.http3.Http3Headers;
+import io.netty.incubator.codec.http3.Http3HeadersFrame;
 import io.netty.util.AsciiString;
 import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
@@ -135,10 +138,6 @@ import static io.ballerina.stdlib.http.transport.contract.config.KeepAliveConfig
 import static io.ballerina.stdlib.http.transport.contract.config.KeepAliveConfig.AUTO;
 import static io.netty.handler.codec.http.HttpHeaderNames.TRAILER;
 
-
-import io.netty.incubator.codec.http3.DefaultHttp3HeadersFrame;
-import io.netty.incubator.codec.http3.Http3Headers;
-import io.netty.incubator.codec.http3.Http3HeadersFrame;
 
 /**
  * Includes utility methods for creating http requests and responses and their related properties.

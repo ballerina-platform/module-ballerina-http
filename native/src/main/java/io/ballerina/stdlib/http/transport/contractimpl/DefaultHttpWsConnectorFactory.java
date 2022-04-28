@@ -48,9 +48,9 @@ import io.netty.util.concurrent.GlobalEventExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.net.ssl.SSLException;
-
 import java.util.Map;
+
+import javax.net.ssl.SSLException;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP3_VERSION;
 import static io.ballerina.stdlib.http.transport.contract.Constants.PIPELINING_THREAD_COUNT;
