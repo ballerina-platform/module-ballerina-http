@@ -87,7 +87,6 @@ public class Http3OutboundRespListener implements HttpConnectorListener {
 
         setContentEncoding(outboundResponseMsg);
         outboundResponseMsg.getHttpContentAsync().setMessageListener(httpContent -> {
-//            checkStreamUnwritability(writer);
             channelHandlerContext.channel().eventLoop().execute(() -> {
                 try {
                     writer.writeOutboundResponse(outboundResponseMsg, httpContent);

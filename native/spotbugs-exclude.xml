@@ -30,6 +30,10 @@
         <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD" />
     </Match>
     <Match>
+        <Class name="io.ballerina.stdlib.http.transport.contractimpl.Http3OutboundRespListener$ResponseWriter" />
+        <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD" />
+    </Match>
+    <Match>
         <Class name="io.ballerina.stdlib.http.transport.contractimpl.sender.websocket.WebSocketClient" />
         <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD" />
     </Match>

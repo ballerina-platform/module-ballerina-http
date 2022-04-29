@@ -1,7 +1,6 @@
 import ballerina/http;
 import ballerina/jballerina.java;
 import ballerina/test;
-import ballerina/io;
 
 http:ListenerConfiguration http3SslServiceConf = {
     secureSocket: {
@@ -36,7 +35,6 @@ listener http:Listener http3SslListener = new(9090,http3SslServiceConf);
         }
         if textPayload is http:ClientError {
           string  msg = "Found unexpected output for TEXT: " +  textPayload.message();
-          io:println(msg);
         }
           check caller->respond(response);
      }
@@ -47,14 +45,12 @@ listener http:Listener http3SslListener = new(9090,http3SslServiceConf);
             http:Response response = new;
         
         if jsonPayload is json { 
-        io:println(jsonPayload);
-        string msgs = "JSON PAYLOAD RECEIVED!";
-                response.setPayload(msgs); 
+            string msgs = "JSON PAYLOAD RECEIVED!";
+            response.setPayload(msgs);
 
         }
         if jsonPayload is http:ClientError {
           string  msg = "Found unexpected output for JSON: " +  jsonPayload.message();
-          io:println(msg);
         }
 
         check caller->respond(response);
@@ -69,13 +65,11 @@ listener http:Listener http3SslListener = new(9090,http3SslServiceConf);
 
 
         if xmlPayload is xml {
-            io:println(xmlPayload);
             string msgs = "XML PAYLOAD RECEIVED!";
-                response.setPayload(msgs); 
+            response.setPayload(msgs);
         }
         if xmlPayload is http:ClientError {
           string  msg = "Found unexpected output for XML: " +  xmlPayload.message();
-          io:println(msg);
         }
 
           check caller->respond(response);
@@ -87,9 +81,7 @@ listener http:Listener http3SslListener = new(9090,http3SslServiceConf);
         public function testHttp3Get()  {
 
         map<string[]>|error response = getRequests(http3TestPort,"/hello");
-        io:println("GET Request result");
 
-        io:println(response);
         if response is map<string[]>{
             test:assertEquals(response["Body"], "Hello!", msg = "Payload not matched");
         } else {
@@ -102,8 +94,6 @@ listener http:Listener http3SslListener = new(9090,http3SslServiceConf);
         public function testHttp3PostWithTextPayload() {
 
         map<string[]>|error response = postRequests(http3TestPort,"/getPayload","TEXT VALUE");
-        io:println("POST TEXT Request result");
-        io:println(response);
 
         if response is map<string[]>{
             test:assertEquals(response["Body"], "TEXT VALUE", msg = "Payload not matched");
@@ -118,8 +108,6 @@ listener http:Listener http3SslListener = new(9090,http3SslServiceConf);
             map<string> payload = {"name": "sara","age": "2" };
 
             map<string[]>|error response = sendPostRequestWithJsonPayload(http3TestPort,"/getJsonPayload",payload);
-            io:println("POST JSON Request result");
-            io:println(response);
 
             if response is map<string[]>{
                 test:assertEquals(response["Body"], "JSON PAYLOAD RECEIVED!", msg = "Payload not matched");
@@ -135,8 +123,6 @@ listener http:Listener http3SslListener = new(9090,http3SslServiceConf);
             xml data = xml `<name>Hello World</name>`;
 
             map<string[]>|error response = sendPostRequestWithXmlPayload(http3TestPort,"/getXMLPayload",data);
-            io:println("POST XML Request result");
-            io:println(response);
 
             if response is map<string[]>{
                 test:assertEquals(response["Body"], "XML PAYLOAD RECEIVED!", msg = "Payload not matched");
