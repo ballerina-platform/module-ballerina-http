@@ -325,7 +325,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_11");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 10);
+        Assert.assertEquals(diagnosticResult.errorCount(), 11);
         assertError(diagnosticResult, 0, "incompatible respond method argument type : expected " +
                 "'http:Response' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 1, "incompatible respond method argument type : expected " +
@@ -333,18 +333,20 @@ public class CompilerPluginTest {
         assertError(diagnosticResult, 2, "incompatible respond method argument type : expected " +
                 "'json' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 3, "incompatible respond method argument type : expected " +
-                "'ByteArr' according to the 'http:CallerInfo' annotation", HTTP_114);
+                "'json' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 4, "incompatible respond method argument type : expected " +
-                "'MapJson' according to the 'http:CallerInfo' annotation", HTTP_114);
+                "'ByteArr' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 5, "incompatible respond method argument type : expected " +
-                "'PersonTable' according to the 'http:CallerInfo' annotation", HTTP_114);
+                "'MapJson' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 6, "incompatible respond method argument type : expected " +
-                "'MapJsonArr' according to the 'http:CallerInfo' annotation", HTTP_114);
+                "'PersonTable' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 7, "incompatible respond method argument type : expected " +
-                "'PersonTableArr' according to the 'http:CallerInfo' annotation", HTTP_114);
+                "'MapJsonArr' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 8, "incompatible respond method argument type : expected " +
-                "'EntityArr' according to the 'http:CallerInfo' annotation", HTTP_114);
+                "'PersonTableArr' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 9, "incompatible respond method argument type : expected " +
+                "'EntityArr' according to the 'http:CallerInfo' annotation", HTTP_114);
+        assertError(diagnosticResult, 10, "incompatible respond method argument type : expected " +
                 "'ByteStream' according to the 'http:CallerInfo' annotation", HTTP_114);
     }
 
