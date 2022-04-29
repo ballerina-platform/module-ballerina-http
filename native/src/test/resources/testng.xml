@@ -28,197 +28,199 @@
     <!--</listeners>-->
 
     <listeners>
-        <listener class-name="io.ballerina.stdlib.http.transport.util.TestNGListener" />
+        <listener class-name="io.ballerina.stdlib.http.transport.util.TestNGListener"/>
     </listeners>
 
-    <!--    <test name="Transport WebSocket Tests" parallel="false">-->
-    <!--        <classes>-->
-    <!--            <class name="io.ballerina.stdlib.http.transport.websocket.server.WebSocketServerHandshakeFunctionalityTestCase"/>-->
-    <!--            <class name="io.ballerina.stdlib.http.transport.websocket.server.WebSocketServerFunctionalityTestCase"/>-->
-    <!--            <class name="io.ballerina.stdlib.http.transport.websocket.client.WebSocketClientHandshakeFunctionalityTestCase"/>-->
-    <!--            <class name="io.ballerina.stdlib.http.transport.websocket.client.WebSocketClientFunctionalityTestCase"/>-->
-    <!--            <class name="io.ballerina.stdlib.http.transport.websocket.passthrough.WebSocketPassThroughTestCase"/>-->
-    <!--            <class name="io.ballerina.stdlib.http.transport.websocket.ssl.WebSocketSSLHandshakeSuccessfulTestCase"/>-->
-    <!--            <class name="io.ballerina.stdlib.http.transport.websocket.ssl.WebSocketSSLHandshakeFailureTestCase"/>-->
-    <!--            <class name="io.ballerina.stdlib.http.transport.websocket.WebSocketUnitTestCase"/>-->
-    <!--        </classes>-->
-    <!--    </test>-->
+    <test name="Transport WebSocket Tests" parallel="false">
+        <classes>
+            <class name="io.ballerina.stdlib.http.transport.websocket.server.WebSocketServerHandshakeFunctionalityTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.websocket.server.WebSocketServerFunctionalityTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.websocket.client.WebSocketClientHandshakeFunctionalityTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.websocket.client.WebSocketClientFunctionalityTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.websocket.passthrough.WebSocketPassThroughTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.websocket.ssl.WebSocketSSLHandshakeSuccessfulTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.websocket.ssl.WebSocketSSLHandshakeFailureTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.websocket.WebSocketUnitTestCase"/>
+        </classes>
+    </test>
     <test name="Transport HTTP test" parallel="false">
         <classes>
-<!--            <class name="io.ballerina.stdlib.http.transport.passthrough.PassThroughHttpsTestCase"/>-->
+            <class name="io.ballerina.stdlib.http.transport.passthrough.PassThroughHttpTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.passthrough.PassThroughHttpsTestCase"/>
 
-            <!--            <class name="io.ballerina.stdlib.http.transport.contentaware.EchoServerConnectorListenerTestCase" />-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.contentaware.RequestResponseCreationTestCase" />-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.contentaware.RequestResponseStreamingTestCase" />-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.contentaware.RequestResponseTransformTestCase" />-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.contentaware.RequestResponseTransformStreamingTestCase" />-->
+            <class name="io.ballerina.stdlib.http.transport.contentaware.EchoServerConnectorListenerTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.contentaware.RequestResponseCreationTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.contentaware.RequestResponseStreamingTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.contentaware.RequestResponseTransformTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.contentaware.RequestResponseTransformStreamingTestCase"/>
 
             <!--Issue https://github.com/ballerina-platform/ballerina-standard-library/issues/317#issuecomment-816583427-->
             <!--            <class name="io.ballerina.stdlib.http.transport.proxyserver.HttpsProxyServerTestCase" />-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.proxyserver.HttpProxyServerTestCase" />-->
+            <class name="io.ballerina.stdlib.http.transport.proxyserver.HttpProxyServerTestCase"/>
 
-            <!--            <class name="io.ballerina.stdlib.http.transport.ClientConnectorTimeoutTestCase" />-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.ClientTimeoutWhileWritingBodyTestCase" />-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.ClientTimeoutWhileReadingBodyTestCase" />-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.ServerCloseWhileReadingBodyTestCase" />-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.ServerCloseWhileWritingBodyTestCase" />-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.ClientConnectorConnectionRefusedTestCase" />-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.ClientConnectorClosureAfterRequestReadTestCase" />-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.ServerConnectorTimeoutTestCase" />-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.ServerConnectorTimeoutWhileReadingBodyTestCase" />-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.ServerConnectorTimeoutWhileSendingBodyTestCase" />-->
+            <class name="io.ballerina.stdlib.http.transport.ClientConnectorTimeoutTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.ClientTimeoutWhileWritingBodyTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.ClientTimeoutWhileReadingBodyTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.ServerCloseWhileReadingBodyTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.ServerCloseWhileWritingBodyTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.ClientConnectorConnectionRefusedTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.ClientConnectorClosureAfterRequestReadTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.ServerConnectorTimeoutTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.ServerConnectorTimeoutWhileReadingBodyTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.ServerConnectorTimeoutWhileSendingBodyTestCase"/>
 
-            <!--            <class name="io.ballerina.stdlib.http.transport.chunkdisable.ChunkAutoServerTestCase" />-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.chunkdisable.ChunkEnableServerTestCase" />-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.chunkdisable.ChunkDisableServerTestCase" />-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.chunkdisable.ChunkAutoClientTestCase" />-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.chunkdisable.ChunkEnableClientTestCase" />-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.chunkdisable.ChunkDisableClientTestCase" />-->
+            <class name="io.ballerina.stdlib.http.transport.chunkdisable.ChunkAutoServerTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.chunkdisable.ChunkEnableServerTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.chunkdisable.ChunkDisableServerTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.chunkdisable.ChunkAutoClientTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.chunkdisable.ChunkEnableClientTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.chunkdisable.ChunkDisableClientTestCase"/>
 
-            <!--            <class name="io.ballerina.stdlib.http.transport.expect100continue.ListenerContinue100TestCase" />-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.expect100continue.ClientAbnormal100ContinueTestCase"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.expect100continue.ClientContinue100ChunkingTestCase"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.expect100continue.ClientContinue100ContentLengthTestCase"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.expect100continue.ClientContinue100ClosureTestCase"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.expect100continue.ClientContinue100TimeoutTestCase"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.expect100continue.ClientContinue100ResponseTimeoutTestCase"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.expect100continue.ListenerContinue100AfterRespReceivedTestCase"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.expect100continue.ListenerContinue100WhileRespReceivingTestCase"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.expect100continue.ClientContinue100WhileSendingReqTestCase"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.expect100continue.ClientContinue100AfterSendingReqTestCase"/>-->
+            <class name="io.ballerina.stdlib.http.transport.expect100continue.ListenerContinue100TestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.expect100continue.ClientAbnormal100ContinueTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.expect100continue.ClientContinue100ChunkingTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.expect100continue.ClientContinue100ContentLengthTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.expect100continue.ClientContinue100ClosureTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.expect100continue.ClientContinue100TimeoutTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.expect100continue.ClientContinue100ResponseTimeoutTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.expect100continue.ListenerContinue100AfterRespReceivedTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.expect100continue.ListenerContinue100WhileRespReceivingTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.expect100continue.ClientContinue100WhileSendingReqTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.expect100continue.ClientContinue100AfterSendingReqTestCase"/>
 
-            <!--            <class name="io.ballerina.stdlib.http.transport.unitfunction.CommonUtilTestCase" />-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.unitfunction.HttpCarbonMessageTestCase" />-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.unitfunction.ForwardedTestCase" />-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.unitfunction.BlockingEntityCollectorTestCase" />-->
+            <class name="io.ballerina.stdlib.http.transport.unitfunction.CommonUtilTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.unitfunction.HttpCarbonMessageTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.unitfunction.ForwardedTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.unitfunction.BlockingEntityCollectorTestCase"/>
 
-            <!--            <class name="io.ballerina.stdlib.http.transport.encoding.ContentEncodingTestCase"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.lengthvalidation.RequestLengthValidationTest"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.lengthvalidation.ResponseLengthValidationTest"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.http1point0test.HttpOnePointZeroServerConnectorTestCase"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.http1point0test.KeepAliveHttpOnePointZeroClientTestCase"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.http1point0test.ChunkAutoHttpOnePointZeroClientTestCase"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.http1point0test.ChunkAlwaysHttpOnePointZeroClientTestCase"/>-->
+            <class name="io.ballerina.stdlib.http.transport.encoding.ContentEncodingTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.lengthvalidation.RequestLengthValidationTest"/>
+            <class name="io.ballerina.stdlib.http.transport.lengthvalidation.ResponseLengthValidationTest"/>
+            <class name="io.ballerina.stdlib.http.transport.http1point0test.HttpOnePointZeroServerConnectorTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.http1point0test.KeepAliveHttpOnePointZeroClientTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.http1point0test.ChunkAutoHttpOnePointZeroClientTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.http1point0test.ChunkAlwaysHttpOnePointZeroClientTestCase"/>
 
-            <!--            <class name="io.ballerina.stdlib.http.transport.connectionpool.ConnectionPoolProxyTestCase" />-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.connectionpool.ConnectionPoolEvictionTestCase" />-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.connectionpool.ConnectionPoolMaxConnTestCase" />-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.connectionpool.ConnectionPoolTimeoutProxyTestCase" />-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.connectionpool.ConnectionPoolMainTestCase" />-->
-            <!--&lt;!&ndash;Issue https://github.com/ballerina-platform/ballerina-standard-library/issues/317#issuecomment-816583427&ndash;&gt;-->
-            <!--&lt;!&ndash;            <class name="io.ballerina.stdlib.http.transport.connectionpool.ConnectionPoolWaitingTimeoutTestCase" />&ndash;&gt;-->
+            <class name="io.ballerina.stdlib.http.transport.connectionpool.ConnectionPoolProxyTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.connectionpool.ConnectionPoolEvictionTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.connectionpool.ConnectionPoolMaxConnTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.connectionpool.ConnectionPoolTimeoutProxyTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.connectionpool.ConnectionPoolMainTestCase"/>
+            <!--Issue https://github.com/ballerina-platform/ballerina-standard-library/issues/317#issuecomment-816583427-->
+            <!--            <class name="io.ballerina.stdlib.http.transport.connectionpool.ConnectionPoolWaitingTimeoutTestCase" />-->
 
-            <!--            <class name="io.ballerina.stdlib.http.transport.forwardedextension.ForwardedEnableTestCase" />-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.forwardedextension.ForwardedTransitionTestCase" />-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.forwardedextension.ForwardedDefaultTestCase" />-->
+            <class name="io.ballerina.stdlib.http.transport.forwardedextension.ForwardedEnableTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.forwardedextension.ForwardedTransitionTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.forwardedextension.ForwardedDefaultTestCase"/>
 
-            <!--            <class name="io.ballerina.stdlib.http.transport.method.head.HeadRequestTestCase"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.message.GetFullMessageTestCase" />-->
+            <class name="io.ballerina.stdlib.http.transport.method.head.HeadRequestTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.message.GetFullMessageTestCase"/>
 
-            <!--            <class name="io.ballerina.stdlib.http.transport.trailer.ListenerResponseTrailerHeaderTestCase"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.trailer.NegativeListenerResponseTrailerHeaderTestCase"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.trailer.ClientReadTrailerHeaderTestCase"/>-->
-        </classes>
-    </test>
-    <test name="Transport HTTP3 Tests" parallel="false">
-        <classes>
-                        <class name="io.ballerina.stdlib.http.transport.http3.Http3BasicTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.trailer.ListenerResponseTrailerHeaderTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.trailer.NegativeListenerResponseTrailerHeaderTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.trailer.ClientReadTrailerHeaderTestCase"/>
         </classes>
     </test>
     <test name="Transport HTTP2 Tests" parallel="false">
         <classes>
-            <!--            <class name="io.ballerina.stdlib.http.transport.http2.Http2ClientConnectorBasicTestCase"/>-->
-<!--                        <class name="io.ballerina.stdlib.http.transport.http2.Http2ServerConnectorBasicTestCase"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.http2.Http2ServerPushTestCase"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.http2.clienttimeout.TimeoutAfterRequestWrite"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.http2.clienttimeout.TimeoutDuringRequestWrite"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.http2.clienttimeout.TimeoutDuringResponseReceive"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.http2.Http2WithHttp2ResetContent"/>-->
-<!--                        <class name="io.ballerina.stdlib.http.transport.http2.Http2WithPriorKnowledgeTestCase"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.http2.connectionpool.H2ConnectionPoolWithALPN"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.http2.connectionpool.H2ConnectionPoolWithPriorKnowledge"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.http2.connectionpool.H2ConnectionPoolWithUpgrade"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.http2.TestExhaustedStreamIdForClient"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.http2.servertimeout.TimeoutDuringRequestReceive"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.http2.servertimeout.TimeoutAfterRequestReceived"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.http2.http2forwardedextension.Http2ForwardedDefaultTestCase"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.http2.http2forwardedextension.Http2ForwardedEnableTestCase"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.http2.http2forwardedextension.Http2ForwardedTransitionTestCase"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.http2.http2forwardedextension.Http2ForwardedEnableWithoutForceHttp2"/>-->
-            <!--            &lt;!&ndash;<class name="io.ballerina.stdlib.http.transport.http2.servertimeout.TimeoutDuringResponseDataWrite"/>&ndash;&gt;-->
-            <!--            &lt;!&ndash;<class name="io.ballerina.stdlib.http.transport.http2.servertimeout.TimeoutDuringResponseDataWrite2"/>&ndash;&gt;-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.http2.clientchannelclose.RemoteChannelCloseWithSSLError"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.http2.compression.ResponseBodyCompressionTestCase"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.http2.expect100continue.Abnormal100ContinueTestCase"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.http2.expect100continue.ClientContinue100ChunkingTestCase"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.http2.expect100continue.Expect100ContinueClientTestCase"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.http2.expect100continue.ClientContinue100TimeoutTestcase"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.http2.expect100continue.ClientContinueResponseTimeout"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.http2.trailer.H2ListenerIntendedResponseTrailerHeaderTestCase"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.http2.trailer.H2ListenerPushResponseTrailerHeaderTestCase"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.http2.trailer.H2ListenerTrailersInInitialHeaderFrameTestCase"/>-->
-            <!--        </classes>-->
-            <!--    </test>-->
-            <!--    <test name="Transport Security Tests" parallel="false">-->
-            <!--        <classes>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.certificatevalidation.RevocationVerificationTest"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.certificatevalidation.CRLVerifierTest"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.certificatevalidation.OCSPVerifierTest"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.https.HttpsInvalidServerCertificateTest"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.https.SSLProtocolsTest"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.https.MutualSSLTestCase"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.https.CipherSuitesTest"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.hostnameverfication.HostnameVerificationTest"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.pkcs.PKCSTest"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.certificatevalidation.OCSPStaplingTest"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.certificatevalidation.OCSPValidationTest"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.certificatevalidation.ListCertificateListFromCertChain"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.https.MutualSSLwithCertsTest"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.https.CipherSuiteswithCertsTest"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.https.OptionalMutualSSLTest"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.https.SSLProtocolsWithCertsTest"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.http2.ssl.Http2ALPNwithCertsTest"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.http2.ssl.TestHttp2WithALPN"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.http2.ssl.Http2MutualSslTest"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.http2.ssl.DisableSslTest"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.disablessl.SslDisabledClientTest"/>-->
-            <!--            <class name="io.ballerina.stdlib.http.transport.https.ServerCloseConnectionDuringSslTest"/>-->
+            <class name="io.ballerina.stdlib.http.transport.http2.Http2ClientConnectorBasicTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.Http2ServerConnectorBasicTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.Http2ServerPushTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.clienttimeout.TimeoutAfterRequestWrite"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.clienttimeout.TimeoutDuringRequestWrite"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.clienttimeout.TimeoutDuringResponseReceive"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.Http2WithHttp2ResetContent"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.Http2WithPriorKnowledgeTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.connectionpool.H2ConnectionPoolWithALPN"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.connectionpool.H2ConnectionPoolWithPriorKnowledge"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.connectionpool.H2ConnectionPoolWithUpgrade"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.TestExhaustedStreamIdForClient"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.servertimeout.TimeoutDuringRequestReceive"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.servertimeout.TimeoutAfterRequestReceived"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.http2forwardedextension.Http2ForwardedDefaultTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.http2forwardedextension.Http2ForwardedEnableTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.http2forwardedextension.Http2ForwardedTransitionTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.http2forwardedextension.Http2ForwardedEnableWithoutForceHttp2"/>
+            <!--<class name="io.ballerina.stdlib.http.transport.http2.servertimeout.TimeoutDuringResponseDataWrite"/>-->
+            <!--<class name="io.ballerina.stdlib.http.transport.http2.servertimeout.TimeoutDuringResponseDataWrite2"/>-->
+            <class name="io.ballerina.stdlib.http.transport.http2.clientchannelclose.RemoteChannelCloseWithSSLError"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.compression.ResponseBodyCompressionTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.expect100continue.Abnormal100ContinueTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.expect100continue.ClientContinue100ChunkingTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.expect100continue.Expect100ContinueClientTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.expect100continue.ClientContinue100TimeoutTestcase"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.expect100continue.ClientContinueResponseTimeout"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.trailer.H2ListenerIntendedResponseTrailerHeaderTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.trailer.H2ListenerPushResponseTrailerHeaderTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.trailer.H2ListenerTrailersInInitialHeaderFrameTestCase"/>
         </classes>
     </test>
-    <!--    <test name="Transport Unit Tests" parallel="false">-->
-    <!--        <classes>-->
-    <!--            <class name="io.ballerina.stdlib.http.transport.internal.HandlerExecutorTest"/>-->
-    <!--            <class name="io.ballerina.stdlib.http.transport.internal.HttpTransportContextHolderTest"/>-->
-    <!--            <class name="io.ballerina.stdlib.http.transport.internal.HttpTransportActivatorTest"/>-->
-    <!--            <class name="io.ballerina.stdlib.http.transport.message.BlockingEntityCollectorTest"/>-->
-    <!--            <class name="io.ballerina.stdlib.http.transport.message.HttpCarbonMessageTest"/>-->
-    <!--            <class name="io.ballerina.stdlib.http.transport.message.HttpCarbonRequestTest"/>-->
-    <!--            <class name="io.ballerina.stdlib.http.transport.message.HttpCarbonResponseTest"/>-->
-    <!--            <class name="io.ballerina.stdlib.http.transport.message.HttpMessageDataStreamerTest"/>-->
-    <!--            <class name="io.ballerina.stdlib.http.transport.message.DefaultFullHttpMessageFutureTest"/>-->
-    <!--            <class name="io.ballerina.stdlib.http.transport.contract.config.ListenerConfigurationTest"/>-->
-    <!--            <class name="io.ballerina.stdlib.http.transport.contract.config.SenderConfigurationTest"/>-->
-    <!--            <class name="io.ballerina.stdlib.http.transport.contract.config.InboundMsgSizeValidationConfigTest"/>-->
-    <!--            <class name="io.ballerina.stdlib.http.transport.contract.config.ParameterTest"/>-->
-    <!--            <class name="io.ballerina.stdlib.http.transport.contract.config.ProxyServerConfigurationTest"/>-->
-    <!--            <class name="io.ballerina.stdlib.http.transport.contract.config.ServerBootstrapConfigurationTest"/>-->
-    <!--            <class name="io.ballerina.stdlib.http.transport.contract.config.TransportPropertyTest"/>-->
-    <!--            <class name="io.ballerina.stdlib.http.transport.contract.config.TransportsConfigurationTest"/>-->
-    <!--            <class name="io.ballerina.stdlib.http.transport.contract.config.SslConfigurationTest"/>-->
-    <!--            <class name="io.ballerina.stdlib.http.transport.contract.websocket.WebSocketClientConnectorConfigTest"/>-->
-    <!--            <class name="io.ballerina.stdlib.http.transport.contract.exceptions.ExceptionTest"/>-->
-    <!--            <class name="io.ballerina.stdlib.http.transport.contractimpl.listener.HttpAccessLoggingHandlerTest"/>-->
-    <!--            <class name="io.ballerina.stdlib.http.transport.contractimpl.listener.HttpTraceLoggingHandlerTest"/>-->
-    <!--            <class name="io.ballerina.stdlib.http.transport.contractimpl.common.FrameLoggerTest"/>-->
-    <!--            <class name="io.ballerina.stdlib.http.transport.contractimpl.common.certificatevalidation.cache.CacheControllerTest"/>-->
-    <!--        </classes>-->
-    <!--    </test>-->
-    <!--    <test name="Ballerina Http native Tests" parallel="false">-->
-    <!--        <classes>-->
-    <!--            <class name="io.ballerina.stdlib.http.api.ExceptionTest"/>-->
-    <!--            <class name="io.ballerina.stdlib.http.api.HttpServiceTest"/>-->
-    <!--            <class name="io.ballerina.stdlib.http.api.logging.HttpLogManagerTest"/>-->
-    <!--            <class name="io.ballerina.stdlib.http.api.logging.util.LogUtilTest"/>-->
-    <!--        </classes>-->
-    <!--    </test>-->
+    <test name="Transport Security Tests" parallel="false">
+        <classes>
+            <class name="io.ballerina.stdlib.http.transport.certificatevalidation.RevocationVerificationTest"/>
+            <class name="io.ballerina.stdlib.http.transport.certificatevalidation.CRLVerifierTest"/>
+            <class name="io.ballerina.stdlib.http.transport.certificatevalidation.OCSPVerifierTest"/>
+            <class name="io.ballerina.stdlib.http.transport.https.HttpsInvalidServerCertificateTest"/>
+            <class name="io.ballerina.stdlib.http.transport.https.SSLProtocolsTest"/>
+            <class name="io.ballerina.stdlib.http.transport.https.MutualSSLTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.https.CipherSuitesTest"/>
+            <class name="io.ballerina.stdlib.http.transport.hostnameverfication.HostnameVerificationTest"/>
+            <class name="io.ballerina.stdlib.http.transport.pkcs.PKCSTest"/>
+            <class name="io.ballerina.stdlib.http.transport.certificatevalidation.OCSPStaplingTest"/>
+            <class name="io.ballerina.stdlib.http.transport.certificatevalidation.OCSPValidationTest"/>
+            <class name="io.ballerina.stdlib.http.transport.certificatevalidation.ListCertificateListFromCertChain"/>
+            <class name="io.ballerina.stdlib.http.transport.https.MutualSSLwithCertsTest"/>
+            <class name="io.ballerina.stdlib.http.transport.https.CipherSuiteswithCertsTest"/>
+            <class name="io.ballerina.stdlib.http.transport.https.OptionalMutualSSLTest"/>
+            <class name="io.ballerina.stdlib.http.transport.https.SSLProtocolsWithCertsTest"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.ssl.Http2ALPNwithCertsTest"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.ssl.TestHttp2WithALPN"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.ssl.Http2MutualSslTest"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.ssl.DisableSslTest"/>
+            <class name="io.ballerina.stdlib.http.transport.disablessl.SslDisabledClientTest"/>
+            <class name="io.ballerina.stdlib.http.transport.https.ServerCloseConnectionDuringSslTest"/>
+        </classes>
+    </test>
+    <test name="Transport Unit Tests" parallel="false">
+        <classes>
+            <class name="io.ballerina.stdlib.http.transport.internal.HandlerExecutorTest"/>
+            <class name="io.ballerina.stdlib.http.transport.internal.HttpTransportContextHolderTest"/>
+            <class name="io.ballerina.stdlib.http.transport.internal.HttpTransportActivatorTest"/>
+            <class name="io.ballerina.stdlib.http.transport.message.BlockingEntityCollectorTest"/>
+            <class name="io.ballerina.stdlib.http.transport.message.HttpCarbonMessageTest"/>
+            <class name="io.ballerina.stdlib.http.transport.message.HttpCarbonRequestTest"/>
+            <class name="io.ballerina.stdlib.http.transport.message.HttpCarbonResponseTest"/>
+            <class name="io.ballerina.stdlib.http.transport.message.HttpMessageDataStreamerTest"/>
+            <class name="io.ballerina.stdlib.http.transport.message.DefaultFullHttpMessageFutureTest"/>
+            <class name="io.ballerina.stdlib.http.transport.contract.config.ListenerConfigurationTest"/>
+            <class name="io.ballerina.stdlib.http.transport.contract.config.SenderConfigurationTest"/>
+            <class name="io.ballerina.stdlib.http.transport.contract.config.InboundMsgSizeValidationConfigTest"/>
+            <class name="io.ballerina.stdlib.http.transport.contract.config.ParameterTest"/>
+            <class name="io.ballerina.stdlib.http.transport.contract.config.ProxyServerConfigurationTest"/>
+            <class name="io.ballerina.stdlib.http.transport.contract.config.ServerBootstrapConfigurationTest"/>
+            <class name="io.ballerina.stdlib.http.transport.contract.config.TransportPropertyTest"/>
+            <class name="io.ballerina.stdlib.http.transport.contract.config.TransportsConfigurationTest"/>
+            <class name="io.ballerina.stdlib.http.transport.contract.config.SslConfigurationTest"/>
+            <class name="io.ballerina.stdlib.http.transport.contract.websocket.WebSocketClientConnectorConfigTest"/>
+            <class name="io.ballerina.stdlib.http.transport.contract.exceptions.ExceptionTest"/>
+            <class name="io.ballerina.stdlib.http.transport.contractimpl.listener.HttpAccessLoggingHandlerTest"/>
+            <class name="io.ballerina.stdlib.http.transport.contractimpl.listener.HttpTraceLoggingHandlerTest"/>
+            <class name="io.ballerina.stdlib.http.transport.contractimpl.common.FrameLoggerTest"/>
+            <class name="io.ballerina.stdlib.http.transport.contractimpl.common.certificatevalidation.cache.CacheControllerTest"/>
+        </classes>
+    </test>
+    <test name="Ballerina Http native Tests" parallel="false">
+        <classes>
+            <class name="io.ballerina.stdlib.http.api.ExceptionTest"/>
+            <class name="io.ballerina.stdlib.http.api.HttpServiceTest"/>
+            <class name="io.ballerina.stdlib.http.api.logging.HttpLogManagerTest"/>
+            <class name="io.ballerina.stdlib.http.api.logging.util.LogUtilTest"/>
+        </classes>
+    </test>
+    <test name="Transport HTTP3 Tests" parallel="false">
+        <classes>
+            <class name="io.ballerina.stdlib.http.transport.http3.Http3BasicTestCase"/>
+        </classes>
+    </test>
+
 </suite>
