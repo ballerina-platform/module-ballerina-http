@@ -47,10 +47,11 @@ listener http:Listener http3SslListener = new(9090,http3SslServiceConf);
         if jsonPayload is json { 
             string msgs = "JSON PAYLOAD RECEIVED!";
             response.setPayload(msgs);
-
         }
         if jsonPayload is http:ClientError {
-          string  msg = "Found unexpected output for JSON: " +  jsonPayload.message();
+            string  msg = "Found unexpected output for JSON: " +  jsonPayload.message();
+            response.setPayload(msg);
+
         }
 
         check caller->respond(response);
@@ -69,7 +70,8 @@ listener http:Listener http3SslListener = new(9090,http3SslServiceConf);
             response.setPayload(msgs);
         }
         if xmlPayload is http:ClientError {
-          string  msg = "Found unexpected output for XML: " +  xmlPayload.message();
+            string  msg = "Found unexpected output for XML: " +  xmlPayload.message();
+            response.setPayload(msg);
         }
 
           check caller->respond(response);
