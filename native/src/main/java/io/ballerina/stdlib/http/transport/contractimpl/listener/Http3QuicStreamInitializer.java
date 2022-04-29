@@ -31,7 +31,8 @@ public class Http3QuicStreamInitializer extends ChannelInitializer<QuicStreamCha
 
     private void configureHttpPipeline(ChannelPipeline serverPipeline, long streamId, String interfaceId,
                                        ServerConnectorFuture serverConnectorFuture) {
-        serverPipeline.addLast(new Http3SourceHandler(streamId, serverConnectorFuture, interfaceId, serverName));
+        serverPipeline.addLast(new Http3SourceHandler(streamId, serverConnectorFuture, interfaceId, serverName,
+                http3ServerChannelInitializer));
     }
 
 

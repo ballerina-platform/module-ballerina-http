@@ -32,7 +32,6 @@ import java.util.Map;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.CHNL_HNDLR_CTX;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTPS_SCHEME;
-import static io.ballerina.stdlib.http.transport.contract.Constants.INBOUND_REQUEST;
 import static io.ballerina.stdlib.http.transport.contract.Constants.LISTENER_INTERFACE_ID;
 import static io.ballerina.stdlib.http.transport.contract.Constants.LISTENER_PORT;
 import static io.ballerina.stdlib.http.transport.contract.Constants.LOCAL_ADDRESS;
@@ -65,7 +64,6 @@ public class Http3StateUtil {
                         http3SourceHandler.getHttp3ServerChannel());
                 outboundRespFuture.setHttpConnectorListener(http3OutboundRespListener);
                 http3SourceHandler.getServerConnectorFuture().notifyHttpListener(httpRequestMsg);
-                inboundMessageHolder.setHttp3OutboundRespListener(http3OutboundRespListener);
             } catch (Exception e) {
                 LOG.error("Error while notifying listeners", e);
             }
@@ -85,8 +83,7 @@ public class Http3StateUtil {
     public static HttpCarbonRequest setupHttp3CarbonRequest(HttpRequest httpRequest,
                                                             Http3SourceHandler http3SourceHandler, long streamId) {
         ChannelHandlerContext ctx = http3SourceHandler.getChannelHandlerContext();
-        HttpCarbonRequest sourceReqCMsg = new HttpCarbonRequest(httpRequest, new Http3InboundContentListener(
-                streamId, ctx, INBOUND_REQUEST));
+        HttpCarbonRequest sourceReqCMsg = new HttpCarbonRequest(httpRequest, new Http3InboundContentListener());
 
         sourceReqCMsg.setProperty(POOLED_BYTE_BUFFER_FACTORY, new PooledDataStreamerFactory(ctx.alloc()));
         sourceReqCMsg.setProperty(CHNL_HNDLR_CTX, ctx);

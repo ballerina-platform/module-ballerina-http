@@ -1,14 +1,9 @@
 package io.ballerina.stdlib.http.transport.contractimpl;
 
 import io.ballerina.stdlib.http.transport.contract.HttpConnectorListener;
-import io.ballerina.stdlib.http.transport.contract.config.ChunkConfig;
-import io.ballerina.stdlib.http.transport.contract.config.KeepAliveConfig;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http3MessageStateContext;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.Http3ServerChannelInitializer;
-import io.ballerina.stdlib.http.transport.contractimpl.listener.RequestDataHolder;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.http3.Http3ServerChannel;
-import io.ballerina.stdlib.http.transport.internal.HandlerExecutor;
-import io.ballerina.stdlib.http.transport.internal.HttpTransportContextHolder;
 import io.ballerina.stdlib.http.transport.message.Http2PushPromise;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.netty.channel.ChannelHandlerContext;
@@ -33,22 +28,14 @@ public class Http3OutboundRespListener implements HttpConnectorListener {
 
     private final Http3ServerChannelInitializer http3ServerChannelInitializer;
     private final ChannelHandlerContext channelHandlerContext;
-    private final HttpCarbonMessage httpRequestMsg;
-    private final String remoteHost;
     private final Http3ServerChannel http3ServerChannel;
     private final long streamId;
-    private Http3MessageStateContext http3MessageStateContext;
-    private ChannelHandlerContext sourceContext;
-    private RequestDataHolder requestDataHolder;
-    private HandlerExecutor handlerExecutor;
-    private HttpCarbonMessage inboundRequestMsg;
-    private ChunkConfig chunkConfig;
-    private KeepAliveConfig keepAliveConfig;
-    private String serverName;
+    private final Http3MessageStateContext http3MessageStateContext;
+    private final HttpCarbonMessage inboundRequestMsg;
+
+    private final String serverName;
     private HttpCarbonMessage outboundResponseMsg;
-    private ResponseWriter defaultResponseWriter;
-    private Calendar inboundRequestArrivalTime;
-    private String remoteAddress = "-";
+    private final Calendar inboundRequestArrivalTime;
 
     public Http3OutboundRespListener(Http3ServerChannelInitializer http3ServerChannelInitializer,
                                      HttpCarbonMessage httpRequestMsg, ChannelHandlerContext channelHandlerContext,
@@ -57,14 +44,9 @@ public class Http3OutboundRespListener implements HttpConnectorListener {
         this.http3ServerChannelInitializer = http3ServerChannelInitializer;
         this.channelHandlerContext = channelHandlerContext;
         this.streamId = streamId;
-        this.httpRequestMsg = httpRequestMsg;
-        this.handlerExecutor = HttpTransportContextHolder.getInstance().getHandlerExecutor();
-        this.remoteHost = remoteHost;
         this.serverName = serverName;
         this.http3ServerChannel = http3ServerChannel;
-        this.requestDataHolder = new RequestDataHolder(httpRequestMsg);
         this.inboundRequestMsg = httpRequestMsg;
-        this.handlerExecutor = HttpTransportContextHolder.getInstance().getHandlerExecutor();
         http3MessageStateContext = httpRequestMsg.getHttp3MessageStateContext();
         inboundRequestArrivalTime = Calendar.getInstance();
     }
@@ -95,6 +77,7 @@ public class Http3OutboundRespListener implements HttpConnectorListener {
     }
 
     public String getRemoteAddress() {
+        String remoteAddress = "-";
         return remoteAddress;
     }
 
@@ -104,6 +87,7 @@ public class Http3OutboundRespListener implements HttpConnectorListener {
 
         setContentEncoding(outboundResponseMsg);
         outboundResponseMsg.getHttpContentAsync().setMessageListener(httpContent -> {
+//            checkStreamUnwritability(writer);
             channelHandlerContext.channel().eventLoop().execute(() -> {
                 try {
                     writer.writeOutboundResponse(outboundResponseMsg, httpContent);

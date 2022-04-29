@@ -108,7 +108,7 @@ public final class Http3Client {
                     .authority("127.0.0.1:" + 9090)
                     .scheme("https");
 
-            if (method == "post") {
+            if (method.equals("post")) {
 
                 byte[] content;
                 if (payload.getClass().equals(String.class)) {
@@ -129,7 +129,7 @@ public final class Http3Client {
                 streamChannel.writeAndFlush(new DefaultHttp3DataFrame(
                                 Unpooled.wrappedBuffer(content)))
                         .addListener(QuicStreamChannel.SHUTDOWN_OUTPUT);
-            } else if (method == "get") {
+            } else if (method.equals("get")) {
                 streamChannel.writeAndFlush(headersFrame)
                         .addListener(QuicStreamChannel.SHUTDOWN_OUTPUT);
             }

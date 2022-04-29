@@ -18,7 +18,6 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.listener.http3;
 
-import io.ballerina.stdlib.http.transport.contractimpl.Http3OutboundRespListener;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
 /**
@@ -26,7 +25,6 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
  */
 public class InboundMessageHolder {
     private HttpCarbonMessage inboundMsg;
-    private Http3OutboundRespListener http3OutboundRespListener;
 
     public InboundMessageHolder(HttpCarbonMessage inboundMsgOrPushResponse) {
         this.inboundMsg = inboundMsgOrPushResponse;
@@ -36,7 +34,4 @@ public class InboundMessageHolder {
         return inboundMsg;
     }
 
-    public void setHttp3OutboundRespListener(Http3OutboundRespListener http3OutboundRespListener) {
-        this.http3OutboundRespListener = http3OutboundRespListener;
-    }
 }

@@ -19,27 +19,17 @@
 
 package io.ballerina.stdlib.http.transport.message;
 
-import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpContent;
-
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Represents the HTTP/3 inbound content listener.
  */
 public class Http3InboundContentListener implements Listener {
 
-    private long streamId;
-    private boolean appConsumeRequired = true;
-    private AtomicBoolean consumeInboundContent = new AtomicBoolean(true);
-    private ChannelHandlerContext channelHandlerContext;
-    private String inboundType;
 
-    public Http3InboundContentListener(long streamId, ChannelHandlerContext ctx,
-                                       String inboundType) {
-        this.streamId = streamId;
-        this.channelHandlerContext = ctx;
-        this.inboundType = inboundType;
+
+    public Http3InboundContentListener() {
+
     }
 
     @Override

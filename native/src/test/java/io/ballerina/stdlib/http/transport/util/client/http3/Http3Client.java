@@ -1,12 +1,15 @@
 package io.ballerina.stdlib.http.transport.util.client.http3;
 
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import io.netty.incubator.codec.http3.DefaultHttp3DataFrame;
 import io.netty.incubator.codec.http3.DefaultHttp3HeadersFrame;
 import io.netty.incubator.codec.http3.Http3;
 import io.netty.incubator.codec.http3.Http3ClientConnectionHandler;
@@ -18,10 +21,12 @@ import io.netty.incubator.codec.quic.QuicChannel;
 import io.netty.incubator.codec.quic.QuicSslContext;
 import io.netty.incubator.codec.quic.QuicSslContextBuilder;
 import io.netty.incubator.codec.quic.QuicStreamChannel;
+import io.netty.util.CharsetUtil;
 import io.netty.util.NetUtil;
 import io.netty.util.ReferenceCountUtil;
 
 import java.net.InetSocketAddress;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -30,12 +35,17 @@ import java.util.concurrent.TimeUnit;
  */
 public final class Http3Client {
 
-    static final int PORT = 9090;
+    static final int PORT = 8080;
 
-    private Http3Client() { }
+    private Http3Client() {
+    }
 
-    public static void start(String... args) throws Exception {
+    public static String[] start(int port, String method, String path, Object payload) throws Exception {
+
         NioEventLoopGroup group = new NioEventLoopGroup(1);
+
+        final String[] payloadReceived = new String[1];
+        Map<String, Object> res = null;
 
         try {
             QuicSslContext context = QuicSslContextBuilder.forClient()
@@ -56,7 +66,7 @@ public final class Http3Client {
 
             QuicChannel quicChannel = QuicChannel.newBootstrap(channel)
                     .handler(new Http3ClientConnectionHandler())
-                    .remoteAddress(new InetSocketAddress(NetUtil.LOCALHOST4, PORT))
+                    .remoteAddress(new InetSocketAddress(NetUtil.LOCALHOST4, port))
                     .connect()
                     .get();
 
@@ -65,12 +75,19 @@ public final class Http3Client {
                         @Override
                         protected void channelRead(ChannelHandlerContext ctx,
                                                    Http3HeadersFrame frame, boolean isLast) {
+                            String frameContent = String.valueOf(frame);
+                            res.put("Header", frameContent);
                             releaseFrameAndCloseIfLast(ctx, frame, isLast);
                         }
 
                         @Override
                         protected void channelRead(ChannelHandlerContext ctx,
                                                    Http3DataFrame frame, boolean isLast) {
+                            if (!isLast) {
+                                String frameContent = String.valueOf(frame.content().toString(CharsetUtil.US_ASCII));
+                                payloadReceived[0] = frameContent;
+                                res.put("Body", frameContent);
+                            }
                             releaseFrameAndCloseIfLast(ctx, frame, isLast);
                         }
 
@@ -85,14 +102,35 @@ public final class Http3Client {
 
 
             Http3HeadersFrame headersFrame = new DefaultHttp3HeadersFrame();
-            headersFrame.headers().method("get").path("/name/Dilhani")
-                    .authority("127.0.0.1:" + PORT)
+            headersFrame.headers().method(method).path(path)
+                    .authority("127.0.0.1:" + port)
                     .scheme("https");
 
+            if (method.equals("post")) {
 
-            streamChannel.writeAndFlush(headersFrame)
-                    .addListener(QuicStreamChannel.SHUTDOWN_OUTPUT);
+                byte[] content;
+                if (payload.getClass().equals(String.class)) {
+                    content = ((String) payload).getBytes(CharsetUtil.US_ASCII);
 
+                } else {
+                    String contents = payload.toString();
+                    content = contents.getBytes(CharsetUtil.US_ASCII);
+
+                    if ((payload.getClass()).toString().contains("XmlItem")) {
+                        headersFrame.headers().add(HttpHeaderNames.CONTENT_TYPE, "application/xml");
+                    } else if ((payload.getClass()).toString().contains("MapValueImpl")) {
+                        headersFrame.headers().add(HttpHeaderNames.CONTENT_TYPE, "application/json");
+                    }
+                }
+
+                streamChannel.write(headersFrame);
+                streamChannel.writeAndFlush(new DefaultHttp3DataFrame(
+                                Unpooled.wrappedBuffer(content)))
+                        .addListener(QuicStreamChannel.SHUTDOWN_OUTPUT);
+            } else if (method.equals("get")) {
+                streamChannel.writeAndFlush(headersFrame)
+                        .addListener(QuicStreamChannel.SHUTDOWN_OUTPUT);
+            }
             streamChannel.closeFuture().sync();
 
             quicChannel.close().sync();
@@ -100,5 +138,7 @@ public final class Http3Client {
         } finally {
             group.shutdownGracefully();
         }
+
+        return payloadReceived;
     }
 }

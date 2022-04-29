@@ -27,11 +27,14 @@ import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
 import io.ballerina.stdlib.http.transport.contract.config.ListenerConfiguration;
 import io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpWsConnectorFactory;
 import io.ballerina.stdlib.http.transport.util.TestUtil;
+import io.ballerina.stdlib.http.transport.util.client.http3.Http3Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+
+import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * This contains basic test cases for HTTP3 Listener.
@@ -39,6 +42,7 @@ import org.testng.annotations.Test;
 public class Http3BasicTestCase {
 
     private static final Logger LOG = LoggerFactory.getLogger(Http3BasicTestCase.class);
+    private static final String testValue = "TEST VALUE";
 
     private ServerConnector serverConnector;
     private HttpWsConnectorFactory connectorFactory;
@@ -69,14 +73,12 @@ public class Http3BasicTestCase {
     }
 
     @Test
-    public void http3BasicTest() {
+    public void http3BasicTest() throws Exception {
+        //tested using an external client written in netty
+        String[] res = Http3Client.start(8490, "get", "/hello", null);
+        String content = res[0];
+        assertEquals(testValue, content);
 
-        //tested using an external http3 client
-        try {
-            Thread.sleep(20000000);
-        } catch (InterruptedException ex) {
-            ex.printStackTrace();
-        }
     }
 
     @AfterClass
