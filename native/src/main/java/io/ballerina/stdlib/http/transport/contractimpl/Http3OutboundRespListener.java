@@ -59,7 +59,7 @@ public class Http3OutboundRespListener implements HttpConnectorListener {
 
     @Override
     public void onError(Throwable throwable) {
-
+        LOG.error("Couldn't send the outbound response", throwable);
     }
 
     public Calendar getInboundRequestArrivalTime() {
