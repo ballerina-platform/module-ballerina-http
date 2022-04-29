@@ -5,7 +5,7 @@ import ballerina/test;
 http:ListenerConfiguration http3SslServiceConf = {
     secureSocket: {
         key: {
-            path: "/home/dilhanivm/Documents/ballerina/module-ballerina-http/ballerina-tests/tests/certsandkeys/ballerinaKeystore.p12",
+            path: "tests/certsandkeys/ballerinaKeystore.p12",
             password: "ballerina"
         }
     },
