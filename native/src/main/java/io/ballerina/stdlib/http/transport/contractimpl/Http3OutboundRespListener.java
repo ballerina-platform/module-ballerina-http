@@ -140,7 +140,6 @@ public class Http3OutboundRespListener implements HttpConnectorListener {
 
         private void writeOutboundResponse(HttpCarbonMessage outboundResponseMsg, HttpContent httpContent)
                 throws Http3Exception {
-
             http3MessageStateContext.getListenerState().
                     writeOutboundResponseBody(Http3OutboundRespListener.this,
                             outboundResponseMsg, httpContent, streamId);

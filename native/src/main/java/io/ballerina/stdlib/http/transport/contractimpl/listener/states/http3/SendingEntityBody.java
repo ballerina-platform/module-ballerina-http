@@ -32,18 +32,14 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIEN
 public class SendingEntityBody implements ListenerState {
 
     private static final Logger LOG = LoggerFactory.getLogger(SendingEntityBody.class);
-
     private final Http3OutboundRespListener http3OutboundRespListener;
     private final Http3MessageStateContext http3MessageStateContext;
     private final ChannelHandlerContext ctx;
     private final Http3ServerChannelInitializer serverChannelInitializer;
     private final HttpCarbonMessage inboundRequestMsg;
     private final HttpResponseFuture outboundRespStatusFuture;
-    private final Object inboundRequestArrivalTime;
     private final long streamId;
-    private String remoteAddress;
     private HttpCarbonMessage outboundResponseMsg;
-    private Long contentLength = 0L;
 
     public SendingEntityBody(Http3OutboundRespListener http3OutboundRespListener, Http3MessageStateContext
             http3MessageStateContext, long streamId) {
@@ -53,9 +49,7 @@ public class SendingEntityBody implements ListenerState {
         this.serverChannelInitializer = http3OutboundRespListener.getServerChannelInitializer();
         this.inboundRequestMsg = http3OutboundRespListener.getInboundRequestMsg();
         this.outboundRespStatusFuture = inboundRequestMsg.getHttpOutboundRespStatusFuture();
-        this.inboundRequestArrivalTime = http3OutboundRespListener.getInboundRequestArrivalTime();
         this.streamId = streamId;
-        this.remoteAddress = http3OutboundRespListener.getRemoteAddress();
 
     }
 
