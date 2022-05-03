@@ -108,6 +108,7 @@ public class AllQueryParams implements Parameter {
                 }
                 paramFeed[index] = true;
             } catch (Exception ex) {
+                httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
                 throw new BallerinaConnectorException("Error in casting query param : " + ex.getMessage());
             }
         }
