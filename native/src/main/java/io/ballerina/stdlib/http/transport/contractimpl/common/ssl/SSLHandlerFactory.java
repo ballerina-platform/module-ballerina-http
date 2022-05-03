@@ -18,6 +18,7 @@
  */
 package io.ballerina.stdlib.http.transport.contractimpl.common.ssl;
 
+
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.netty.handler.codec.http2.Http2SecurityUtil;
 import io.netty.handler.ssl.ApplicationProtocolConfig;
@@ -28,6 +29,8 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.ssl.SupportedCipherSuiteFilter;
+import io.netty.incubator.codec.quic.QuicSslContext;
+import io.netty.incubator.codec.quic.QuicSslContextBuilder;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -53,6 +56,7 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
+
 
 /**
  * A class that encapsulates SSL Certificate Information.
@@ -275,6 +279,20 @@ public class SSLHandlerFactory {
         }
 
         return sslCtx;
+    }
+
+    /**
+     * This provides netty ssl context which supports HTTP3.
+     * */
+    public QuicSslContext createHttp3TLSContextForServer() throws SSLException {
+        createSSLContextFromKeystores(true);
+        String keyPassword = sslConfig.getServerKeyPassword();
+
+        QuicSslContextBuilder serverSslContextBuilder = QuicSslContextBuilder.forServer(this.getKeyManagerFactory(),
+                        keyPassword).trustManager(this.getTrustStoreFactory());
+        serverSslContextBuilder.applicationProtocols("h3-29", "h3-30", "h3-31", "h3-32", "h3");
+
+        return serverSslContextBuilder.build();
     }
 
     /**

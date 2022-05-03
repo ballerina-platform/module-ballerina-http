@@ -113,7 +113,8 @@ public class HttpCompilerPluginUtil {
             return;
         }
         TypeDescKind kind = returnTypeSymbol.typeKind();
-        if (isBasicTypeDesc(kind) || kind == TypeDescKind.ERROR || kind == TypeDescKind.NIL) {
+        if (isBasicTypeDesc(kind) || kind == TypeDescKind.ERROR || kind == TypeDescKind.NIL ||
+                kind == TypeDescKind.ANYDATA) {
             return;
         }
         if (kind == TypeDescKind.INTERSECTION) {
@@ -177,6 +178,9 @@ public class HttpCompilerPluginUtil {
                     typeDescKind != TypeDescKind.TABLE) {
                 reportInvalidReturnType(ctx, node, typeStringValue, diagnosticCode);
             }
+        } else if (kind == TypeDescKind.ARRAY) {
+            memberTypeDescriptor = ((ArrayTypeSymbol) memberTypeDescriptor).memberTypeDescriptor();
+            validateArrayElementType(ctx, node, typeStringValue, memberTypeDescriptor, diagnosticCode);
         } else {
             reportInvalidReturnType(ctx, node, typeStringValue, diagnosticCode);
         }

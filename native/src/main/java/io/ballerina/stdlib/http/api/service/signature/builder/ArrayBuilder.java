@@ -36,11 +36,11 @@ public class ArrayBuilder extends AbstractPayloadBuilder {
     }
 
     @Override
-    public int build(BObject inRequestEntity, boolean readonly, Object[] paramFeed, int index) {
+    public Object getValue(BObject entity, boolean readonly) {
         Type elementType = ((ArrayType) payloadType).getElementType();
         if (elementType.getTag() == TypeTags.BYTE_TAG) {
-            return new BinaryPayloadBuilder().build(inRequestEntity, readonly, paramFeed, index);
+            return new BinaryPayloadBuilder().getValue(entity, readonly);
         }
-        return new JsonPayloadBuilder(payloadType).build(inRequestEntity, readonly, paramFeed, index);
+        return new JsonPayloadBuilder(payloadType).getValue(entity, readonly);
     }
 }

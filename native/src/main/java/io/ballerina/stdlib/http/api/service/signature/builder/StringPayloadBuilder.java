@@ -43,20 +43,17 @@ public class StringPayloadBuilder extends AbstractPayloadBuilder {
     }
 
     @Override
-    public int build(BObject inRequestEntity, boolean readonly, Object[] paramFeed, int index) {
-        BString dataSource = EntityBodyHandler.constructStringDataSource(inRequestEntity);
-        EntityBodyHandler.addMessageDataSource(inRequestEntity, dataSource);
+    public Object getValue(BObject entity, boolean readonly) {
+        BString dataSource = EntityBodyHandler.constructStringDataSource(entity);
+        EntityBodyHandler.addMessageDataSource(entity, dataSource);
         if (payloadType.getTag() == TypeTags.STRING_TAG) {
-            paramFeed[index++] = dataSource;
+            return dataSource;
         } else if (payloadType.getTag() == TypeTags.ARRAY_TAG) {
-            return StringToByteArrayConverter.convert((ArrayType) payloadType, dataSource, readonly, paramFeed, index);
+            return StringToByteArrayConverter.convert((ArrayType) payloadType, dataSource, readonly);
         } else if (payloadType.getTag() == TypeTags.MAP_TAG) {
-            return UrlEncodedStringToMapConverter.convert((MapType) payloadType, dataSource, readonly, paramFeed,
-                                                          index);
-        } else {
-            throw HttpUtil.createHttpError("incompatible type found: '" + payloadType.toString() + "'",
-                                           HttpErrorType.PAYLOAD_BINDING_ERROR);
+            return UrlEncodedStringToMapConverter.convert((MapType) payloadType, dataSource, readonly);
         }
-        return index;
+        throw HttpUtil.createHttpError("incompatible type found: '" + payloadType.toString() + "'",
+                                       HttpErrorType.PAYLOAD_BINDING_ERROR);
     }
 }

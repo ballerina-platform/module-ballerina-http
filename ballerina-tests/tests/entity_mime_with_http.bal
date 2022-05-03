@@ -18,6 +18,7 @@ import ballerina/io;
 import ballerina/mime;
 import ballerina/test;
 import ballerina/http;
+import ballerina/lang.'string;
 
 service /mimeTest on generalListener {
 
@@ -176,17 +177,14 @@ function testAccessingPayloadFromEntity() {
 }
 
 @test:Config {}
-function testStreamResponseSerialize() {
+function testStreamResponseSerialize() returns error? {
     string key = "lang";
     string value = "ballerina";
     string path = "/mimeTest/largepayload";
     json jsonString = {[key]:value};
     http:Request req = new;
     req.setJsonPayload(jsonString);
-    json|error response = mimeClient->post(path, req, targetType = json);
-    if response is json {
-        assertJsonPayload(response, jsonString);
-    } else {
-        test:assertFail(msg = "Test Failed! " + response.message());
-    }
+    byte[] response = check mimeClient->post(path, req);
+    string payload = check 'string:fromBytes(response);
+    test:assertEquals(payload, jsonString.toString());
 }

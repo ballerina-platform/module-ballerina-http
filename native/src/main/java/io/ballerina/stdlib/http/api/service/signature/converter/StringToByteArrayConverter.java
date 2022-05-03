@@ -37,16 +37,14 @@ import static io.ballerina.runtime.api.creators.ValueCreator.createReadonlyArray
  */
 public class StringToByteArrayConverter {
 
-    public static int convert(ArrayType type, BString dataSource, boolean readonly, Object[] paramFeed, int index) {
+    public static Object convert(ArrayType type, BString dataSource, boolean readonly) {
         Type elementType = type.getElementType();
         if (elementType.getTag() == TypeTags.BYTE_TAG) {
             byte[] values = dataSource.getValue().getBytes(StandardCharsets.UTF_8);
-            paramFeed[index++] = readonly ? createReadonlyArrayValue(values) : createArrayValue(values);
-        } else {
-            throw HttpUtil.createHttpError("incompatible array element type found: '" + elementType.toString() + "'",
-                                           HttpErrorType.PAYLOAD_BINDING_ERROR);
+            return readonly ? createReadonlyArrayValue(values) : createArrayValue(values);
         }
-        return index;
+        throw HttpUtil.createHttpError("incompatible array element type found: '" +
+                                               elementType.toString() + "'", HttpErrorType.PAYLOAD_BINDING_ERROR);
     }
 
     private StringToByteArrayConverter() {

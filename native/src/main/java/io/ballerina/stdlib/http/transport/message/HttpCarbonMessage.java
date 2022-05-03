@@ -26,6 +26,7 @@ import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorExc
 import io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contractimpl.HttpWsServerConnectorFuture;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
+import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http3MessageStateContext;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.states.ListenerReqRespStateManager;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -65,6 +66,8 @@ public class HttpCarbonMessage {
     private IOException ioException;
     public ListenerReqRespStateManager listenerReqRespStateManager;
     private Http2MessageStateContext http2MessageStateContext;
+    private Http3MessageStateContext http3MessageStateContext;
+
     private FullHttpMessageFuture fullHttpMessageFuture;
 
     private long sequenceId; //Keep track of request/response order
@@ -153,8 +156,8 @@ public class HttpCarbonMessage {
     }
 
     /**
-     * @deprecated
      * @return the message body.
+     * @deprecated
      */
     @Deprecated
     public ByteBuf getMessageBody() {
@@ -185,6 +188,7 @@ public class HttpCarbonMessage {
 
     /**
      * Return the length of entire payload. This is a blocking method.
+     *
      * @return the length.
      */
     @Deprecated
@@ -193,8 +197,8 @@ public class HttpCarbonMessage {
     }
 
     /**
-     * @deprecated
      * @param msgBody the message body.
+     * @deprecated
      */
     @Deprecated
     public void addMessageBody(ByteBuffer msgBody) {
@@ -227,7 +231,7 @@ public class HttpCarbonMessage {
     /**
      * Set the header value for the given name.
      *
-     * @param key header name.
+     * @param key   header name.
      * @param value header value.
      */
     public void setHeader(String key, String value) {
@@ -237,7 +241,7 @@ public class HttpCarbonMessage {
     /**
      * Set the header value for the given name.
      *
-     * @param key header name.
+     * @param key   header name.
      * @param value header value as object.
      */
     public void setHeader(String key, Object value) {
@@ -484,6 +488,7 @@ public class HttpCarbonMessage {
 
     /**
      * Gives the underling netty request message.
+     *
      * @return netty request message
      */
     public HttpRequest getNettyHttpRequest() {
@@ -492,6 +497,7 @@ public class HttpCarbonMessage {
 
     /**
      * Gives the underling netty response message.
+     *
      * @return netty response message
      */
     public HttpResponse getNettyHttpResponse() {
@@ -512,6 +518,10 @@ public class HttpCarbonMessage {
 
     public void setHttp2MessageStateContext(Http2MessageStateContext http2MessageStateContext) {
         this.http2MessageStateContext = http2MessageStateContext;
+    }
+
+    public void setHttp3MessageStateContext(Http3MessageStateContext http3MessageStateContext) {
+        this.http3MessageStateContext = http3MessageStateContext;
     }
 
     public long getSequenceId() {
@@ -691,5 +701,9 @@ public class HttpCarbonMessage {
 
     public Listener getListener() {
         return this.contentObservable.getListener();
+    }
+
+    public Http3MessageStateContext getHttp3MessageStateContext() {
+        return http3MessageStateContext;
     }
 }

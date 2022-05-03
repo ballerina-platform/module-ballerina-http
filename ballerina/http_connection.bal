@@ -40,14 +40,19 @@ public isolated client class Caller {
 
     # Sends the outbound response to the caller.
     #
-    # + message - The outbound response or error or any allowed payload
+    # + message - The outbound response or status code response or error or any allowed payload
     # + return - An `http:ListenerError` if failed to respond or else `()`
-    remote isolated function respond(ResponseMessage|error message = ()) returns ListenerError? {
-        if message is error {
+    remote isolated function respond(ResponseMessage|StatusCodeResponse|error message = ()) returns ListenerError? {
+        if message is ResponseMessage {
+            return nativeRespond(self, check buildResponse(message));
+        } else if message is StatusCodeResponse {
+            return nativeRespond(self, createStatusCodeResponse(message));
+        } else if message is error {
             return self.returnErrorResponse(message);
+        } else {
+            string errorMsg = "invalid response body type. expected one of the types: http:ResponseMessage|http:StatusCodeResponse|error";
+            panic error ListenerError(errorMsg);
         }
-        Response response = check buildResponse(message);
-        return nativeRespond(self, response);
     }
 
     # Pushes a promise to the caller.

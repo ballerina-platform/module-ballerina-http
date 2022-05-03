@@ -57,6 +57,7 @@ import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
@@ -76,6 +77,11 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import io.netty.incubator.codec.http3.DefaultHttp3Headers;
+import io.netty.incubator.codec.http3.DefaultHttp3HeadersFrame;
+import io.netty.incubator.codec.http3.Http3Exception;
+import io.netty.incubator.codec.http3.Http3Headers;
+import io.netty.incubator.codec.http3.Http3HeadersFrame;
 import io.netty.util.AsciiString;
 import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
@@ -98,6 +104,7 @@ import java.security.cert.X509Certificate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -123,12 +130,14 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.MUTUAL_SSL_H
 import static io.ballerina.stdlib.http.transport.contract.Constants.MUTUAL_SSL_PASSED;
 import static io.ballerina.stdlib.http.transport.contract.Constants.OK_200;
 import static io.ballerina.stdlib.http.transport.contract.Constants.PROTOCOL;
-import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_HEADERS;
+import static io.ballerina.stdlib.http.transport.contract.Constants.
+        REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_HEADERS;
 import static io.ballerina.stdlib.http.transport.contract.Constants.TO;
 import static io.ballerina.stdlib.http.transport.contract.Constants.URL_AUTHORITY;
 import static io.ballerina.stdlib.http.transport.contract.config.KeepAliveConfig.ALWAYS;
 import static io.ballerina.stdlib.http.transport.contract.config.KeepAliveConfig.AUTO;
 import static io.netty.handler.codec.http.HttpHeaderNames.TRAILER;
+
 
 /**
  * Includes utility methods for creating http requests and responses and their related properties.
@@ -162,7 +171,8 @@ public class Util {
     public static HttpResponse createHttpResponse(HttpCarbonMessage outboundResponseMsg, String inboundReqHttpVersion,
                                                   String serverName, boolean keepAlive) {
 
-        HttpVersion httpVersion = new HttpVersion(Constants.HTTP_VERSION_PREFIX + inboundReqHttpVersion, true);
+        HttpVersion httpVersion = new HttpVersion(Constants.HTTP_VERSION_PREFIX + inboundReqHttpVersion,
+                true);
         HttpResponseStatus httpResponseStatus = getHttpResponseStatus(outboundResponseMsg);
         HttpResponse outboundNettyResponse = new DefaultHttpResponse(httpVersion, httpResponseStatus);
 
@@ -172,10 +182,33 @@ public class Util {
         return outboundNettyResponse;
     }
 
-    public static HttpResponse createFullHttpResponse(HttpCarbonMessage outboundResponseMsg,
-            String inboundReqHttpVersion, String serverName, boolean keepAlive, ByteBuf fullContent) {
+    public static Http3HeadersFrame createHttp3ResponseHeaders(HttpCarbonMessage outboundResponseMsg,
+                                                               String inboundReqHttpVersion, String serverName,
+                                                               boolean keepAlive) {
 
-        HttpVersion httpVersion = new HttpVersion(Constants.HTTP_VERSION_PREFIX + inboundReqHttpVersion, true);
+        HttpVersion httpVersion = new HttpVersion(Constants.HTTP_VERSION_PREFIX + inboundReqHttpVersion,
+                true);
+        HttpResponseStatus httpResponseStatus = getHttpResponseStatus(outboundResponseMsg);
+        HttpResponse outboundNettyResponse = new DefaultHttpResponse(httpVersion, httpResponseStatus);
+        setOutboundRespHeaders(outboundResponseMsg, inboundReqHttpVersion, serverName, keepAlive,
+                outboundNettyResponse);
+
+        HttpHeaders incomingHeaders = outboundNettyResponse.headers();
+        final Http3Headers outgoingHeaders = new DefaultHttp3Headers(true, incomingHeaders.size());
+        outgoingHeaders.status(outboundNettyResponse.status().codeAsText());
+        List<Map.Entry<String, String>> httpHeaders = outboundNettyResponse.headers().entries();
+        for (Map.Entry<String, String> httpHeader : httpHeaders) {
+            outgoingHeaders.add(httpHeader.getKey(), httpHeader.getValue());
+        }
+        return new DefaultHttp3HeadersFrame(outgoingHeaders);
+    }
+
+    public static HttpResponse createFullHttpResponse(HttpCarbonMessage outboundResponseMsg,
+                                                      String inboundReqHttpVersion, String serverName,
+                                                      boolean keepAlive, ByteBuf fullContent) {
+
+        HttpVersion httpVersion = new HttpVersion(Constants.HTTP_VERSION_PREFIX + inboundReqHttpVersion,
+                true);
         HttpResponseStatus httpResponseStatus = getHttpResponseStatus(outboundResponseMsg);
         HttpResponse outboundNettyResponse =
                 new DefaultFullHttpResponse(httpVersion, httpResponseStatus, fullContent);
@@ -197,13 +230,15 @@ public class Util {
             outboundResponseMsg.removeHeader(HttpHeaderNames.CONNECTION.toString());
         }
 
-        if (outboundResponseMsg.getHeader(HttpHeaderNames.SERVER.toString()) == null) {
-            outboundResponseMsg.setHeader(HttpHeaderNames.SERVER.toString(), serverName);
+        if (serverName != null) {
+            if (outboundResponseMsg.getHeader(HttpHeaderNames.SERVER.toString()) == null) {
+                outboundResponseMsg.setHeader(HttpHeaderNames.SERVER.toString(), serverName);
+            }
         }
 
         if (outboundResponseMsg.getHeader(HttpHeaderNames.DATE.toString()) == null) {
             outboundResponseMsg.setHeader(HttpHeaderNames.DATE.toString(),
-                                          ZonedDateTime.now().format(DateTimeFormatter.RFC_1123_DATE_TIME));
+                    ZonedDateTime.now().format(DateTimeFormatter.RFC_1123_DATE_TIME));
         }
 
         outboundNettyResponse.headers().add(outboundResponseMsg.getHeaders());
@@ -309,6 +344,33 @@ public class Util {
         return httpRequest;
     }
 
+    public static HttpRequest createHttpRequestFromHttp3Headers(Http3HeadersFrame http3Headers, long streamId)
+            throws Http3Exception {
+
+        String method = Constants.HTTP_GET_METHOD;
+        String hMethod = http3Headers.headers().method().toString();
+
+        if (hMethod.equalsIgnoreCase("GET")) {
+            method = Constants.HTTP_GET_METHOD;
+        } else if (hMethod.equalsIgnoreCase("POST")) {
+            method = Constants.HTTP_POST_METHOD;
+        }
+
+        String path = Constants.DEFAULT_BASE_PATH;
+        if (http3Headers.headers().path() != null) {
+            path = http3Headers.headers().path().toString();
+        }
+        // Remove PseudoHeaderNames from headers
+        http3Headers.headers().getAndRemove(Constants.HTTP3_AUTHORITY);
+        http3Headers.headers().getAndRemove(Constants.HTTP3_SCHEME);
+        HttpVersion version = new HttpVersion(Constants.HTTP_VERSION_3_0, true);
+
+        // Construct new HTTP Carbon Request
+        HttpRequest httpRequest = new DefaultHttpRequest(version, HttpMethod.valueOf(method), path);
+
+        return httpRequest;
+    }
+
     public static void setupContentLengthRequest(HttpCarbonMessage httpOutboundRequest, long contentLength) {
         removeContentLengthAndTransferEncodingHeaders(httpOutboundRequest);
         httpOutboundRequest.setHeader(HttpHeaderNames.CONTENT_LENGTH.toString(), String.valueOf(contentLength));
@@ -337,7 +399,7 @@ public class Util {
      * Returns the status of chunking compatibility with http version.
      *
      * @param httpVersion http version string.
-     * @return  boolean value of status.
+     * @return boolean value of status.
      */
     public static boolean isVersionCompatibleForChunking(String httpVersion) {
         return Float.valueOf(httpVersion) >= Constants.HTTP_1_1;
@@ -407,7 +469,8 @@ public class Util {
     }
 
     private static SSLEngine getSslEngineForCerts(SocketChannel socketChannel, String host, int port,
-            SSLConfig sslConfig, SSLHandlerFactory sslHandlerFactory) throws SSLException {
+                                                  SSLConfig sslConfig, SSLHandlerFactory sslHandlerFactory)
+            throws SSLException {
         SslContext sslContext = sslHandlerFactory.createHttpTLSContextForClient();
         SslHandler sslHandler = sslContext.newHandler(socketChannel.alloc(), host, port);
         SSLEngine sslEngine = sslHandler.engine();
@@ -493,15 +556,16 @@ public class Util {
     /**
      * Set configurations to create ssl engine.
      *
-     * @param sslConfig ssl related configurations
-     * @param host host of the connection
-     * @param port port of the connection
+     * @param sslConfig                   ssl related configurations
+     * @param host                        host of the connection
+     * @param port                        port of the connection
      * @param hostNameVerificationEnabled true if host name verification is enabled
-     * @param sslHandlerFactory an instance of sslHandlerFactory
+     * @param sslHandlerFactory           an instance of sslHandlerFactory
      * @return ssl engine
      */
     private static SSLEngine instantiateAndConfigSSL(SSLConfig sslConfig, String host, int port,
-            boolean hostNameVerificationEnabled, SSLHandlerFactory sslHandlerFactory) {
+                                                     boolean hostNameVerificationEnabled,
+                                                     SSLHandlerFactory sslHandlerFactory) {
         // set the pipeline factory, which creates the pipeline for each newly created channels
         SSLEngine sslEngine = null;
         if (sslConfig != null) {
@@ -725,13 +789,13 @@ public class Util {
      * Send back no entity body response and close the connection. This function is mostly used
      * when we send back error messages.
      *
-     * @param ctx connection
-     * @param status response status
+     * @param ctx         connection
+     * @param status      response status
      * @param httpVersion of the response
-     * @param serverName server name
+     * @param serverName  server name
      */
     public static void sendAndCloseNoEntityBodyResp(ChannelHandlerContext ctx, HttpResponseStatus status,
-            HttpVersion httpVersion, String serverName) {
+                                                    HttpVersion httpVersion, String serverName) {
         HttpResponse outboundResponse = new DefaultHttpResponse(httpVersion, status);
         outboundResponse.headers().set(HttpHeaderNames.CONTENT_LENGTH, 0);
         outboundResponse.headers().set(HttpHeaderNames.CONNECTION.toString(), Constants.CONNECTION_CLOSE);
@@ -750,7 +814,8 @@ public class Util {
      * @param channelFuture            the channel future related to response write operation
      */
     public static void checkForResponseWriteStatus(HttpCarbonMessage inboundRequestMsg,
-                                           HttpResponseFuture outboundRespStatusFuture, ChannelFuture channelFuture) {
+                                                   HttpResponseFuture outboundRespStatusFuture,
+                                                   ChannelFuture channelFuture) {
         channelFuture.addListener(writeOperationPromise -> {
             Throwable throwable = writeOperationPromise.cause();
             if (throwable != null) {
@@ -800,7 +865,7 @@ public class Util {
      * Creates HTTP carbon message.
      *
      * @param httpMessage HTTP message
-     * @param ctx Channel handler context
+     * @param ctx         Channel handler context
      * @return HttpCarbonMessage
      */
     public static HttpCarbonMessage createHTTPCarbonMessage(HttpMessage httpMessage, ChannelHandlerContext ctx) {
@@ -826,13 +891,14 @@ public class Util {
 
     /**
      * Create a HttpCarbonMessage using the netty inbound http request.
+     *
      * @param httpRequestHeaders of inbound request
-     * @param ctx of the inbound request
-     * @param sourceHandler instance which handled the particular request
+     * @param ctx                of the inbound request
+     * @param sourceHandler      instance which handled the particular request
      * @return HttpCarbon message
      */
     public static HttpCarbonMessage createInboundReqCarbonMsg(HttpRequest httpRequestHeaders,
-            ChannelHandlerContext ctx, SourceHandler sourceHandler) {
+                                                              ChannelHandlerContext ctx, SourceHandler sourceHandler) {
 
         HttpCarbonMessage inboundRequestMsg =
                 new HttpCarbonRequest(httpRequestHeaders, new DefaultListener(ctx));
@@ -873,9 +939,10 @@ public class Util {
 
     /**
      * Create a HttpCarbonMessage using the netty inbound response message.
-     * @param ctx of the inbound response message
+     *
+     * @param ctx                 of the inbound response message
      * @param httpResponseHeaders of the inbound response message
-     * @param outboundRequestMsg is the correlated outbound request message
+     * @param outboundRequestMsg  is the correlated outbound request message
      * @return HttpCarbon message
      */
     public static HttpCarbonMessage createInboundRespCarbonMsg(ChannelHandlerContext ctx,
@@ -898,7 +965,8 @@ public class Util {
 
     /**
      * Check whether a connection should alive or not.
-     * @param keepAliveConfig of the connection
+     *
+     * @param keepAliveConfig    of the connection
      * @param outboundRequestMsg of this particular transaction
      * @return true if the connection should be kept alive
      * @throws ConfigurationException for invalid configurations
@@ -906,22 +974,23 @@ public class Util {
     public static boolean isKeepAlive(KeepAliveConfig keepAliveConfig, HttpCarbonMessage outboundRequestMsg)
             throws ConfigurationException {
         switch (keepAliveConfig) {
-        case AUTO:
-            return Float.valueOf(outboundRequestMsg.getHttpVersion()) > Constants.HTTP_1_0;
-        case ALWAYS:
-            return true;
-        case NEVER:
-            return false;
-        default:
-            // The execution will never reach here. In case execution reach here means it should be an invalid value
-            // for keep-alive configurations.
-            throw new ConfigurationException("Invalid keep-alive configuration value : "
-                    + keepAliveConfig.toString());
+            case AUTO:
+                return Float.valueOf(outboundRequestMsg.getHttpVersion()) > Constants.HTTP_1_0;
+            case ALWAYS:
+                return true;
+            case NEVER:
+                return false;
+            default:
+                // The execution will never reach here. In case execution reach here means it should be an invalid value
+                // for keep-alive configurations.
+                throw new ConfigurationException("Invalid keep-alive configuration value : "
+                        + keepAliveConfig.toString());
         }
     }
 
     /**
      * Check whether a particular request is expecting continue.
+     *
      * @param inboundRequestMsg in question
      * @return true if the request expects 100-continue response
      */
@@ -991,7 +1060,7 @@ public class Util {
                 setPassthroughBackOffListener(outboundMessage, backpressureHandler, ctx);
             } else {
                 backpressureHandler.getBackPressureObservable().setListener(
-                    new DefaultBackPressureListener());
+                        new DefaultBackPressureListener());
             }
         }
     }
@@ -1011,7 +1080,7 @@ public class Util {
         Listener inboundListener = outboundMessage.getListener();
         if (inboundListener instanceof Http2InboundContentListener) {
             backpressureHandler.getBackPressureObservable().setListener(
-                new Http2PassthroughBackPressureListener((Http2InboundContentListener) inboundListener));
+                    new Http2PassthroughBackPressureListener((Http2InboundContentListener) inboundListener));
         } else if (inboundListener instanceof DefaultListener && ctx != null) {
             backpressureHandler.getBackPressureObservable().setListener(new PassthroughBackPressureListener(ctx));
         }
@@ -1068,7 +1137,7 @@ public class Util {
     }
 
     public static void handleOutboundConnectionHeader(SenderConfiguration senderConfiguration,
-                                                HttpCarbonMessage httpOutboundRequest) {
+                                                      HttpCarbonMessage httpOutboundRequest) {
         switch (senderConfiguration.getKeepAliveConfig()) {
             case AUTO:
                 if (Float.valueOf(senderConfiguration.getHttpVersion()) >= Constants.HTTP_1_1) {
@@ -1144,7 +1213,7 @@ public class Util {
                 ctx.channel().attr(Constants.MUTUAL_SSL_RESULT_ATTRIBUTE).set(MUTUAL_SSL_PASSED);
                 ctx.channel().attr(Constants.BASE_64_ENCODED_CERT_ATTRIBUTE).set(base64EncodedCert);
             } catch (SSLPeerUnverifiedException | CertificateExpiredException | CertificateNotYetValidException
-                        | CertificateEncodingException e) {
+                     | CertificateEncodingException e) {
                 ctx.channel().attr(Constants.MUTUAL_SSL_RESULT_ATTRIBUTE).set(MUTUAL_SSL_FAILED);
             }
         } else {

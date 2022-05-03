@@ -23,7 +23,7 @@ import ballerina/time;
 # + httpClient - The underlying `HttpActions` instance which will be making the actual network calls
 # + cache - The cache storage for the HTTP responses
 # + cacheConfig - Configurations for the underlying cache storage and for controlling the HTTP caching behaviour
-public client isolated class HttpCachingClient {
+client isolated class HttpCachingClient {
 
     private final HttpClient httpClient;
     private final HttpCache cache;

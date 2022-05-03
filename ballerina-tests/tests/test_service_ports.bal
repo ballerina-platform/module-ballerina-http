@@ -176,6 +176,7 @@ const int responseInterceptorNegativeTestPort1 = 9621;
 const int responseInterceptorCallerRespondErrorTestPort = 9622;
 const int requestInterceptorCallerRespondErrorTestPort = 9623;
 const int clientSchemeTestHttpsListenerTestPort = 9624;
+const int callerRespondTestPort = 9625;
 
 //HTTP2
 const int serverPushTestPort1 = 9701;
@@ -185,6 +186,11 @@ const int http2RedirectTestPort2 = 9704;
 const int http2RedirectTestPort3 = 9705;
 const int http2RetryFunctionTestPort1 = 9706;
 const int http2RetryFunctionTestPort2 = 9707;
+
+
+//HTTP3
+
+const int http3TestPort = 9090;
 
 //Security
 const int securedListenerPort = 9400;
