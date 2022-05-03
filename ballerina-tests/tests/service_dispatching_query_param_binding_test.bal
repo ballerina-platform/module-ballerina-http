@@ -118,8 +118,16 @@ function testNegativeStringQueryBindingCaseSensitivity() {
 function testNegativeIntQueryBindingCastingError() {
     http:Response|error response = queryBindingClient->get("/queryparamservice/?foo=WSO2&bar=go");
     if response is http:Response {
-        test:assertEquals(response.statusCode, 500);
+        test:assertEquals(response.statusCode, 400);
         assertTextPayload(response.getTextPayload(), "Error in casting query param : For input string: \"go\"");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+
+    response = queryBindingClient->get("/queryparamservice/?foo=WSO2&bar=");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 400);
+        assertTextPayload(response.getTextPayload(), "Error in casting query param : For input string: \"\"");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
