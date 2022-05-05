@@ -1364,6 +1364,7 @@ public type HttpServiceConfig record {|
     string mediaTypeSubtypePrefix?;
     boolean treatNilableAsOptional = true;
     Interceptor[] interceptors?;
+    readonly byte[] openApiDefinition = [];
 |};
 
 @http:ServiceConfig {
