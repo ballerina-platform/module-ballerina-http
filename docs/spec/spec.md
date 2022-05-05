@@ -1375,6 +1375,9 @@ service on testListener {
 }
 ```
 
+The `openApiDefinition` field in http:ServiceConfig annotation serves a unique purpose. It will be automatically 
+populated at compile-time with OpenAPI definition of the particular http:Service.
+
 ### 4.2. Resource configuration
 The resource configuration responsible for shaping the resource function. Most of the behaviours are provided from 
 the language itself such as path, HTTP verb as a part of resource function. Some other configs such as CORS, 
