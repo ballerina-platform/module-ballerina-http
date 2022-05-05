@@ -1364,6 +1364,7 @@ public type HttpServiceConfig record {|
     string mediaTypeSubtypePrefix?;
     boolean treatNilableAsOptional = true;
     Interceptor[] interceptors?;
+    readonly byte[] openApiDefinition = [];
 |};
 
 @http:ServiceConfig {
@@ -1373,6 +1374,9 @@ service on testListener {
     
 }
 ```
+
+The `openApiDefinition` field in http:ServiceConfig annotation serves a unique purpose. It will be automatically 
+populated at compile-time with OpenAPI definition of the particular http:Service.
 
 ### 4.2. Resource configuration
 The resource configuration responsible for shaping the resource function. Most of the behaviours are provided from 
