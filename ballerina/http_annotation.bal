@@ -24,7 +24,7 @@
 # + mediaTypeSubtypePrefix - Service specific media-type subtype prefix
 # + treatNilableAsOptional - Treat Nilable parameters as optional
 # + interceptors - An array of interceptor services
-# + openApiDefinition - The generated OpenAPI definition for the HTTP service. This is auto-generated at compile-time.
+# + openApiDefinition - The generated OpenAPI definition for the HTTP service. This is auto-generated at compile-time if OpenAPI doc auto generation is enabled
 public type HttpServiceConfig record {|
     string host = "b7a.default";
     CompressionConfig compression = {};
@@ -34,7 +34,7 @@ public type HttpServiceConfig record {|
     string mediaTypeSubtypePrefix?;
     boolean treatNilableAsOptional = true;
     Interceptor[] interceptors?;
-    readonly byte[] openApiDefinition = [];
+    byte[] openApiDefinition = [];
 |};
 
 # Configurations for CORS support.
