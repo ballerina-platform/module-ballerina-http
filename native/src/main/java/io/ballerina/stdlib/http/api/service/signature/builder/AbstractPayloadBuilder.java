@@ -20,6 +20,7 @@ package io.ballerina.stdlib.http.api.service.signature.builder;
 
 import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.types.TypedescType;
 import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BTypedesc;
@@ -87,7 +88,7 @@ public abstract class AbstractPayloadBuilder {
         }
     }
 
-    public boolean isSubtypeOfAllowedType(Type payloadType, int targetTypeTag) {
+    public static boolean isSubtypeOfAllowedType(Type payloadType, int targetTypeTag) {
         if (payloadType.getTag() == targetTypeTag) {
             return true;
         } else if (payloadType.getTag() == TypeTags.UNION_TAG) {
@@ -98,7 +99,13 @@ public abstract class AbstractPayloadBuilder {
         return false;
     }
 
-    public boolean typeIncludedInUnion(BTypedesc unionType, BTypedesc targetType) {
-        return isSubtypeOfAllowedType(unionType.getDescribingType(), targetType.getDescribingType().getTag());
+    public static boolean typeIncludedInUnion(BTypedesc unionType, BTypedesc targetType) {
+        int targetTypeTag = ((TypedescType) targetType.getDescribingType()).getConstraint().getTag();
+        Type unionTypeDescribingType = unionType.getDescribingType();
+        if (unionTypeDescribingType.getTag() == TypeTags.UNION_TAG) {
+            List<Type> memberTypes = ((UnionType) unionTypeDescribingType).getMemberTypes();
+            return memberTypes.stream().anyMatch(memberType -> memberType.getTag() == targetTypeTag);
+        }
+        return false;
     }
 }

@@ -24,6 +24,11 @@ type ClientAnydataDBPerson record {|
     int age;
 |};
 
+type ClientAnydataDBStock record {|
+    int id;
+    float price;
+|};
+
 service /anydataTest on clientDBBackendListener {
 
     resource function get intType() returns int {
@@ -210,6 +215,23 @@ service /anydataTest on clientDBBackendListener {
 
     resource function get xmlArrTypeWithInvalidMimeType() returns @http:Payload{mediaType : "type2/subtype2"} xml[] {
         return [xml `<name>WSO2</name>`, xml `<name>Ballerina</name>`];
+    }
+
+    // union
+    resource function get xmlType() returns xml {
+        return xml `<name>WSO2</name>`;
+    }
+
+    resource function get jsonType() returns json {
+        return {name:"hello", id:20};
+    }
+
+    resource function get recordType() returns ClientAnydataDBPerson {
+        return {name:"hello", age:20};
+    }
+
+    resource function get getFormData() returns http:Ok|error {
+        return { body : "first%20Name=WS%20O2&tea%24%2Am=Bal%40Dance", mediaType : "x-www-form-urlencoded" };
     }
 }
 
@@ -543,5 +565,88 @@ function testXmlArrDatabindingByType() {
             "Payload binding failed: 'json[]' value cannot be converted to 'xml");
     } else {
         test:assertEquals(response[0], xml `<name>WSO2</name>`, msg = "Found unexpected output");
+    }
+}
+
+@test:Config {}
+function testUnionOfDatabindingForXmlWithJsonXml() returns error? {
+    xml|json response = check clientDBBackendClient->get("/anydataTest/xmlType");
+    if response is xml {
+        assertXmlPayload(response, xml `<name>WSO2</name>`);
+    } else {
+        test:assertFail(msg = "Found unexpected output type");
+    }
+}
+
+@test:Config {}
+function testUnionOfDatabindingForJsonWithJsonXml() returns error? {
+    xml|json response = check clientDBBackendClient->get("/anydataTest/jsonType");
+    if response is json {
+        assertJsonPayload(response, {name:"hello", id:20});
+    } else {
+        test:assertFail(msg = "Found unexpected output type");
+    }
+}
+
+@test:Config {}
+function testUnionOfDatabindingForStringWithStringXml() returns error? {
+    xml|string response = check clientDBBackendClient->get("/anydataTest/stringType");
+    if response is string {
+        test:assertEquals(response, "hello", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type");
+    }
+}
+
+@test:Config {}
+function testUnionOfDatabindingForByteArrWithStringByteArr() returns error? {
+    xml|byte[] response = check clientDBBackendClient->get("/anydataTest/stringType");
+    if response is byte[] {
+        test:assertEquals(check strings:fromBytes(response), "hello", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type");
+    }
+}
+
+@test:Config {}
+function testUnionOfDatabindingForMapStringWithMapStringXml() returns error? {
+    xml|map<string> person = check clientDBBackendClient->get("/anydataTest/getFormData");
+    if person is map<string> {
+        string? val1 = person["first Name"];
+        string? val2 = person["tea$*m"];
+        test:assertEquals(val1, "WS O2", msg = "Found unexpected output");
+        test:assertEquals(val2, "Bal@Dance", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type");
+    }
+}
+
+@test:Config {}
+function testUnionOfDatabindingForStringWithMapStringXml() returns error? {
+    string|xml person = check clientDBBackendClient->get("/anydataTest/getFormData");
+    if person is string {
+        test:assertEquals(person, "first%20Name=WS%20O2&tea%24%2Am=Bal%40Dance", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type");
+    }
+}
+
+@test:Config {}
+function testUnionOfDatabindingForByteArrWithByteArrXml() returns error? {
+    byte[]|xml response = check clientDBBackendClient->get("/anydataTest/byteArrType");
+    if response is byte[] {
+        test:assertEquals(check strings:fromBytes(response), "WSO2", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type");
+    }
+}
+
+@test:Config {}
+function testUnionOfDatabindingForRecordWithPersonNStock() returns error? {
+    ClientAnydataDBPerson|ClientAnydataDBStock response = check clientDBBackendClient->get("/anydataTest/recordType");
+    if response is ClientAnydataDBPerson {
+        test:assertEquals(response, {name:"hello", age:20}, msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type");
     }
 }

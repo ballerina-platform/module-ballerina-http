@@ -16,6 +16,12 @@
 
 import ballerina/log;
 import ballerina/regex;
+import ballerina/jballerina.java;
+
+type xmlType typedesc<xml>;
+type stringType typedesc<string>;
+type byteArrType typedesc<byte[]>;
+type mapStringType typedesc<map<string>>;
 
 isolated function performDataBinding(Response response, TargetType targetType) returns anydata|ClientError {
     string contentType = response.getContentType();
@@ -57,6 +63,8 @@ isolated function getBuilderFromType(Response response, TargetType targetType) r
         }
         return payload;
     } else {
+        // Due to the limitation of https://github.com/ballerina-platform/ballerina-spec/issues/1090
+        // all the other types including union are considered as json subtypes.
         return jsonPayloadBuilder(response, targetType);
     }
 }
@@ -67,6 +75,8 @@ isolated function xmlPayloadBuilder(Response response, TargetType targetType) re
     } else if targetType is typedesc<xml?> {
         xml|ClientError payload = response.getXmlPayload();
         return payload is NoContentError ? () : payload;
+    } else if typeIncludedInUnion(targetType, xmlType) {
+        return response.getXmlPayload();
     } else {
         return getCommonError(response, targetType);
     }
@@ -78,11 +88,15 @@ isolated function textPayloadBuilder(Response response, TargetType targetType) r
     } else if targetType is typedesc<string?> {
         string|ClientError payload = response.getTextPayload();
         return payload is NoContentError ? () : payload;
+    } else if typeIncludedInUnion(targetType, stringType) {
+        return response.getTextPayload();
     } else if targetType is typedesc<byte[]> {
         return response.getBinaryPayload();
     } else if targetType is typedesc<byte[]?> {
         byte[]|ClientError payload = response.getBinaryPayload();
         return payload is NoContentError ? () : payload;
+    } else if typeIncludedInUnion(targetType, byteArrType) {
+        return response.getBinaryPayload();
     } else {
          return getCommonError(response, targetType);
     }
@@ -101,11 +115,16 @@ isolated function formPayloadBuilder(Response response, TargetType targetType) r
             return payload;
         }
         return getFormDataMap(payload);
+    } else if typeIncludedInUnion(targetType, mapStringType) {
+        string payload = check response.getTextPayload();
+        return getFormDataMap(payload);
     } else if targetType is typedesc<string> {
         return response.getTextPayload();
     } else if targetType is typedesc<string?> {
         string|ClientError payload = response.getTextPayload();
         return payload is NoContentError ? () : payload;
+    } else if typeIncludedInUnion(targetType, stringType) {
+        return response.getTextPayload();
     } else {
         return getCommonError(response, targetType);
     }
@@ -120,6 +139,8 @@ isolated function blobPayloadBuilder(Response response, TargetType targetType) r
             return payload.length() == 0 ? () : payload;
         }
         return payload;
+    } else if typeIncludedInUnion(targetType, byteArrType) {
+        return response.getBinaryPayload();
     } else {
         return getCommonError(response, targetType);
     }
@@ -181,3 +202,7 @@ isolated function getCommonError(Response response, TargetType targetType) retur
     string mimeType = contentType == "" ? "no" : "'" + contentType + "'";
     return error PayloadBindingError("incompatible " + targetType.toString() + " found for " + mimeType + " mime type");
 }
+
+isolated function typeIncludedInUnion(typedesc unionType, any targetType) returns boolean = @java:Method {
+    'class: "io.ballerina.stdlib.http.api.service.signature.builder.AbstractPayloadBuilder"
+} external;

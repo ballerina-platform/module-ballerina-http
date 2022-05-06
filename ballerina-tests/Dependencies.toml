@@ -92,10 +92,12 @@ name = "http_tests"
 version = "2.3.0"
 dependencies = [
 	{org = "ballerina", name = "http"},
+	{org = "ballerina", name = "lang.runtime"},
 	{org = "ballerina", name = "lang.string"},
-	{org = "ballerina", name = "lang.xml"},
+	{org = "ballerina", name = "log"},
 	{org = "ballerina", name = "mime"},
-	{org = "ballerina", name = "test"}
+	{org = "ballerina", name = "test"},
+	{org = "ballerina", name = "url"}
 ]
 modules = [
 	{org = "ballerina", packageName = "http_tests", moduleName = "http_tests"}
@@ -185,6 +187,9 @@ scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
 ]
+modules = [
+	{org = "ballerina", packageName = "lang.runtime", moduleName = "lang.runtime"}
+]
 
 [[package]]
 org = "ballerina"
@@ -209,18 +214,6 @@ dependencies = [
 
 [[package]]
 org = "ballerina"
-name = "lang.xml"
-version = "0.0.0"
-scope = "testOnly"
-dependencies = [
-	{org = "ballerina", name = "jballerina.java"}
-]
-modules = [
-	{org = "ballerina", packageName = "lang.xml", moduleName = "lang.xml"}
-]
-
-[[package]]
-org = "ballerina"
 name = "log"
 version = "2.2.1"
 scope = "testOnly"
@@ -229,6 +222,9 @@ dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "lang.value"},
 	{org = "ballerina", name = "observe"}
+]
+modules = [
+	{org = "ballerina", packageName = "log", moduleName = "log"}
 ]
 
 [[package]]
@@ -323,6 +319,9 @@ version = "2.2.1"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
+]
+modules = [
+	{org = "ballerina", packageName = "url", moduleName = "url"}
 ]
 
 
