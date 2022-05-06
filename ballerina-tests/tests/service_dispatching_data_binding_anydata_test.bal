@@ -221,6 +221,14 @@ service /anydataB on generalListener {
         }
     }
 
+    resource function post checkUnionTypesWithStringJson(@http:Payload json|string payload) returns json {
+        if payload is string {
+            return {result: "It's string"};
+        } else {
+            return {result: "It's json"};
+        }
+    }
+
     resource function post checkUnionTypesWithStringNil(@http:Payload string? payload) returns json {
         if payload is string {
             return {result: payload};
@@ -260,6 +268,18 @@ service /anydataB on generalListener {
             return j[0];
         } else {
             return "It's json";
+        }
+    }
+
+    resource function post checkUnionWithRecords(@http:Payload Person|Stock person) returns json {
+        if person is Person {
+            string name = person.name;
+            int age = person.age;
+            return { Key: name, Age: age };
+        } else {
+            float price = person.price;
+            int age = person.id;
+            return { Key: price, Age: age };
         }
     }
 
@@ -825,6 +845,31 @@ function testDataBindingUnionByteArrayJsonWithTextPlain() returns error? {
 function testDataBindingUnionByteArrayJsonWithOctet() returns error? {
     string response = check anydataBindingClient->post("/anydataB/checkUnionWithByteArrJson", "WSO2".toBytes());
     assertTextPayload(response, "WSO2");
+}
+
+@test:Config {}
+function testDataBindingUnionWithRecords() returns error? {
+    json response = check anydataBindingClient->post("/anydataB/checkUnionWithRecords", {name:"wso2", age:12});
+    assertJsonPayload(response, {Key:"wso2", Age:12});
+}
+
+@test:Config {}
+function testDataBindingUnionWithRecordsStocks() returns error? {
+    json response = check anydataBindingClient->post("/anydataB/checkUnionWithRecords", {id:34, price:4324.65});
+    assertJsonPayload(response, {Key:4324.65d, Age:34});
+}
+
+@test:Config {}
+function testDataBindingUnionWithJsonAndStringWithAppJson() returns error? {
+    json response = check anydataBindingClient->post("/anydataB/checkUnionTypesWithStringJson", {name:"wso2",age:12},
+    mediaType = "application/json");
+    assertJsonPayload(response, {result: "It's json"});
+}
+
+@test:Config {}
+function testDataBindingUnionWithJsonAndStringWithTextPlain() returns error? {
+    json response = check anydataBindingClient->post("/anydataB/checkUnionTypesWithStringJson", "Hello");
+    assertJsonPayload(response, {result: "It's string"});
 }
 
 @test:Config {}

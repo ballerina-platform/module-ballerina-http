@@ -221,7 +221,7 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "mime"
-version = "2.2.3"
+version = "2.2.1"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "io"},

@@ -91,6 +91,7 @@ public abstract class AbstractPayloadBuilder {
         if (payloadType.getTag() == targetTypeTag) {
             return true;
         } else if (payloadType.getTag() == TypeTags.UNION_TAG) {
+            assert payloadType instanceof UnionType : payloadType.getClass();
             List<Type> memberTypes = ((UnionType) payloadType).getMemberTypes();
             return memberTypes.stream().anyMatch(memberType -> isSubtypeOfAllowedType(memberType, targetTypeTag));
         }
