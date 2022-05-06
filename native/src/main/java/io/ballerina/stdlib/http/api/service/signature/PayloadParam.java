@@ -100,11 +100,7 @@ public class PayloadParam implements Parameter {
                     this.readonly = true;
                     continue;
                 }
-//                if (type.getTag() == TypeTags.UNION_TAG) {
-//                    validatePayloadParam(type);
-//                }
                 parameterType = type;
-//                break;
             }
         }
 

@@ -333,7 +333,8 @@ function testDataBindingWithoutPayload() {
     http:Response|error response = dataBindingClient->get("/dataBinding/body1");
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        assertTextPayload(response.getTextPayload(), "data binding failed: error(\"String payload is null\")");
+        assertTextPayload(response.getTextPayload(),
+            "data binding failed: error NoContentError (\"String payload is null\")");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -371,8 +372,8 @@ function testDataBindingIncompatibleStructPayload() {
 function testDataBindingWithEmptyJsonPayload() {
     http:Response|error response = dataBindingClient->get("/dataBinding/body3");
     if response is http:Response {
-        test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        assertTextPayload(response.getTextPayload(), "data binding failed: error(\"empty JSON document\")");
+        assertJsonValue(response.getJsonPayload(), "Key", ());
+        assertJsonValue(response.getJsonPayload(), "Team", ());
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -518,7 +519,8 @@ function testDataBindingWithMapOfStringEmptyPayload() {
     http:Response|error response = dataBindingClient->post("/dataBinding/body9", req);
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        assertTextPayload(response.getTextPayload(), "data binding failed: error(\"String payload is null\")");
+        assertTextPayload(response.getTextPayload(),
+            "data binding failed: error NoContentError (\"String payload is null\")");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
