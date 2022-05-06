@@ -581,6 +581,14 @@ resource execution.
 The error which may occur during the process will be returned to the caller with the response 
 status code of 400 BAD REQUEST. The successful binding will proceed the resource execution with the built payload.
 
+Additionally, the payload parameter type can be a union of `anydata`. Based on the media type, the potential binding
+type is decided. For example, if the union is defined as `json|xml` and the media type is related to `json`, 
+the deserialization and the binding will proceed according to type `json`. 
+If the given types of the union are not compatible with the media type, an error is returned.
+
+If any of the type is union with `()`(i.e `string?`), then in the absence of the payload, `()` will be assigned as 
+the value without being responded by a `BAD REQUEST` response.
+
 ```ballerina
 resource function post hello(@http:Payload json payload) { 
     
