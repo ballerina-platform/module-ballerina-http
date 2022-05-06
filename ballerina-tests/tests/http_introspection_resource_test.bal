@@ -53,98 +53,63 @@ isolated http:Service openApiMock = service object {
 
 @test:Config {}
 function testIntrospectionResourceLinkWithoutOpenApiDefinition() returns error? {
-    http:Response|error response = httpIntroResTestClient->options("/greeting");
-    if response is http:Response {
-        test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
-        test:assertEquals(check response.getHeader(ALLOW), "GET, OPTIONS", msg = "Found unexpected Header");
-        string|error header = response.getHeader(LINK);
-        if header is error {
-            test:assertEquals(header.message(), "Http header does not exist", msg = "Found unexpected Error");
-        } else {
-            test:assertFail(msg = "Found unexpected output type: " + header);
-        }
+    http:Response response = check httpIntroResTestClient->options("/greeting");
+    test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
+    test:assertEquals(check response.getHeader(ALLOW), "GET, OPTIONS", msg = "Found unexpected Header");
+    string|error header = response.getHeader(LINK);
+    if header is error {
+        test:assertEquals(header.message(), "Http header does not exist", msg = "Found unexpected Error");
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
+        test:assertFail(msg = "Found unexpected output type: " + header);
     }
-    return;
 }
 
 @test:Config {}
 function testIntrospectionResourceLinkForBasePathWithoutOpenApiDefinition() returns error? {
-    http:Response|error response = httpIntroResTestClient->options("/");
-    if response is http:Response {
-        test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
-        test:assertEquals(check response.getHeader(ALLOW), "GET, OPTIONS", msg = "Found unexpected Header");
-        string|error header = response.getHeader(LINK);
-        if header is error {
-            test:assertEquals(header.message(), "Http header does not exist", msg = "Found unexpected Error");
-        } else {
-            test:assertFail(msg = "Found unexpected output type: " + header);
-        }
+    http:Response response = check httpIntroResTestClient->options("/");
+    test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
+    test:assertEquals(check response.getHeader(ALLOW), "GET, OPTIONS", msg = "Found unexpected Header");
+    string|error header = response.getHeader(LINK);
+    if header is error {
+        test:assertEquals(header.message(), "Http header does not exist", msg = "Found unexpected Error");
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
+        test:assertFail(msg = "Found unexpected output type: " + header);
     }
-    return;
 }
 
 @test:Config {}
 function testIntrospectionResourceLink() returns error? {
-    http:Response|error response = httpIntroResTestClient->options("/hello");
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
-        test:assertEquals(check response.getHeader(ALLOW), "GET, OPTIONS", msg = "Found unexpected Header");
-        assertHeaderValue(check response.getHeader(LINK), "</hello/openapi-doc-dygixywsw>;rel=\"service-desc\"");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
+    http:Response response = check httpIntroResTestClient->options("/hello");
+    test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
+    test:assertEquals(check response.getHeader(ALLOW), "GET, OPTIONS", msg = "Found unexpected Header");
+    assertHeaderValue(check response.getHeader(LINK), "</hello/openapi-doc-dygixywsw>;rel=\"service-desc\"");
 
-    response = httpIntroResTestClient->options("/hello/greeting");
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
-        test:assertEquals(check response.getHeader(ALLOW), "GET, OPTIONS", msg = "Found unexpected Header");
-        assertHeaderValue(check response.getHeader(LINK), "</hello/openapi-doc-dygixywsw>;rel=\"service-desc\"");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
+    response = check httpIntroResTestClient->options("/hello/greeting");
+    test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
+    test:assertEquals(check response.getHeader(ALLOW), "GET, OPTIONS", msg = "Found unexpected Header");
+    assertHeaderValue(check response.getHeader(LINK), "</hello/openapi-doc-dygixywsw>;rel=\"service-desc\"");
 }
 
 @test:Config {}
 function testIntrospectionResourceGetPayload() returns error? {
-    http:Response|error response = httpIntroResTestClient->get("/hello/openapi-doc-dygixywsw");
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected statusCode");
-        test:assertEquals(response.getContentType(), "application/json", msg = "Found unexpected Header");
-        assertJsonPayload(check response.getJsonPayload(), openApiDoc);
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
+    http:Response response = check httpIntroResTestClient->get("/hello/openapi-doc-dygixywsw");
+    test:assertEquals(response.statusCode, 200, msg = "Found unexpected statusCode");
+    test:assertEquals(response.getContentType(), "application/json", msg = "Found unexpected Header");
+    assertJsonPayload(check response.getJsonPayload(), openApiDoc);
 }
 
 
 @test:Config {}
 function testIntrospectionAnnotationInConstructorExpression() returns error? {
-    http:Response|error response = httpIntroResTestClient->get("/greeting");
-    if response is http:Response {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertTextPayload(response.getTextPayload(), "Hello Swan");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
+    http:Response response = check httpIntroResTestClient->get("/greeting");
+    test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+    assertTextPayload(response.getTextPayload(), "Hello Swan");
 
-    response = httpIntroResTestClient->options("/mock");
-    if response is http:Response {
-        test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
-        test:assertEquals(check response.getHeader(ALLOW), "GET, OPTIONS", msg = "Found unexpected Header");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
+    response = check httpIntroResTestClient->options("/mock");
+    test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
+    test:assertEquals(check response.getHeader(ALLOW), "GET, OPTIONS", msg = "Found unexpected Header");
 
-    response = httpIntroResTestClient->get("/mock/openapi-doc-dygixywsw");
-    if response is http:Response {
-        test:assertEquals(response.statusCode, 404, msg = "Found unexpected statusCode");
-        assertTrueTextPayload(response.getTextPayload(), "no matching resource found for path");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
-    return;
+    response = check httpIntroResTestClient->get("/mock/openapi-doc-dygixywsw");
+    test:assertEquals(response.statusCode, 404, msg = "Found unexpected statusCode");
+    assertTrueTextPayload(response.getTextPayload(), "no matching resource found for path");
 }
