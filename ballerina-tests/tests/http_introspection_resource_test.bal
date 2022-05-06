@@ -36,7 +36,7 @@ isolated http:Service openApiMock = service object {
 };
 
 @test:Config {}
-function testIntrospectionResourceLinkWithoutOpenApiDefinition() returns error? {
+function testIntrospectionResourceLinkWhenFileDoesNotExist() returns error? {
     http:Response|error response = httpIntroResTestClient->options("/greeting");
     if response is http:Response {
         test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
@@ -54,7 +54,7 @@ function testIntrospectionResourceLinkWithoutOpenApiDefinition() returns error? 
 }
 
 @test:Config {}
-function testIntrospectionResourceLinkForBasePathWithoutOpenApiDefinition() returns error? {
+function testIntrospectionResourceLinkForBasePathWhenFileDoesNotExist() returns error? {
     http:Response|error response = httpIntroResTestClient->options("/");
     if response is http:Response {
         test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
