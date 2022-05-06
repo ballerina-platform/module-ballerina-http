@@ -68,7 +68,7 @@ isolated function xmlPayloadBuilder(Response response, TargetType targetType) re
         xml|ClientError payload = response.getXmlPayload();
         return payload is NoContentError ? () : payload;
     } else {
-         return getCommonError(response, targetType);
+        return getCommonError(response, targetType);
     }
 }
 

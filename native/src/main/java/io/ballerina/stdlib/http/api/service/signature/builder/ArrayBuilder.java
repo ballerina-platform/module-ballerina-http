@@ -39,7 +39,7 @@ public class ArrayBuilder extends AbstractPayloadBuilder {
     public Object getValue(BObject entity, boolean readonly) {
         Type elementType = ((ArrayType) payloadType).getElementType();
         if (elementType.getTag() == TypeTags.BYTE_TAG) {
-            return new BinaryPayloadBuilder().getValue(entity, readonly);
+            return new BinaryPayloadBuilder(payloadType).getValue(entity, readonly);
         }
         return new JsonPayloadBuilder(payloadType).getValue(entity, readonly);
     }

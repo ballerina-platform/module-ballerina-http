@@ -212,7 +212,95 @@ service /anydataB on generalListener {
         return <int>j;
     }
 
+    // Union
+    resource function post checkUnionTypesWithXmlJson(@http:Payload json|xml payload) returns json|xml {
+        if payload is json {
+            return {result: "It's json"};
+        } else {
+            return payload;
+        }
+    }
 
+    resource function post checkUnionTypesWithStringJson(@http:Payload json|string payload) returns json {
+        if payload is string {
+            return {result: "It's string"};
+        } else {
+            return {result: "It's json"};
+        }
+    }
+
+    resource function post checkUnionTypesWithStringNil(@http:Payload string? payload) returns json {
+        if payload is string {
+            return {result: payload};
+        } else {
+            return {result: "It's nil"};
+        }
+    }
+
+    resource function post checkUnionWithStringMapXml(@http:Payload xml|map<string> person) returns json|error {
+        if person is map<string> {
+            string? a = person["name"];
+            string? b = person["team"];
+            json responseJson = { "1": a, "2": b};
+            return responseJson;
+        } else {
+            return {result: "It's xml"};
+        }
+    }
+
+    resource function post checkUnionWithByteArrJson(@http:Payload json|byte[] j) returns
+            http:InternalServerError|string {
+        if j is byte[] {
+            var name = strings:fromBytes(j);
+            if (name is string) {
+                return name;
+            } else {
+                return <http:InternalServerError> {body:"Error occurred while byte array to string conversion"};
+            }
+        } else {
+            return "It's json";
+        }
+    }
+
+    resource function post checkUnionWithStringArrJson(@http:Payload json|string[] j) returns
+            http:InternalServerError|string {
+        if j is string[] {
+            return j[0];
+        } else {
+            return "It's json";
+        }
+    }
+
+    resource function post checkUnionWithRecords(@http:Payload Person|Stock person) returns json {
+        if person is Person {
+            string name = person.name;
+            int age = person.age;
+            return { Key: name, Age: age };
+        } else {
+            float price = person.price;
+            int age = person.id;
+            return { Key: price, Age: age };
+        }
+    }
+
+    // readonly union
+    resource function post checkUnionTypesWithStringNilWithReadonly(@http:Payload readonly & byte[]? payload)
+        returns json {
+        if payload is byte[] {
+            return {result: "payload"};
+        } else {
+            return {result: "It's nil"};
+        }
+    }
+
+    resource function post checkUnionTypesWithReadonlyByteArrWithNil(@http:Payload readonly & byte[]|() payload)
+        returns json {
+        if payload is byte[] {
+            return {result: "payload"};
+        } else {
+            return {result: "It's nil"};
+        }
+    }
 }
 
 @test:Config {}
@@ -486,6 +574,18 @@ function testDataBindingByteArrayWithTextPlain() returns error? {
 }
 
 @test:Config {}
+function testDataBindingOctetStreamNegative() {
+    http:Response|error response = anydataBindingClient->post("/anydataB/checkRecord", "WSO2".toBytes());
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(),
+            "data binding failed: error PayloadBindingError (\"incompatible type found: 'http_tests:Person'\")");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
 function testDataBindingByteArrayByType() returns error? {
     json j = "WSO2".toBytes();
     string response = check anydataBindingClient->post("/anydataB/checkByteArr", j, mediaType = "application/abc");
@@ -689,4 +789,111 @@ function testDataBindingAnydata() returns error? {
     json j = 12;
     json response = check anydataBindingClient->post("/anydataB/checkAnydata", j);
     assertJsonPayload(response, j);
+}
+
+@test:Config {}
+function testDataBindingUnionWithJson() returns error? {
+    json response = check anydataBindingClient->post("/anydataB/checkUnionTypesWithXmlJson", {name:"wso2",age:12},
+    mediaType = "application/json");
+    assertJsonPayload(response, {result: "It's json"});
+}
+
+@test:Config {}
+function testDataBindingUnionWithXml() returns error? {
+    xml j = xml `<name>WSO2</name>`;
+    xml response = check anydataBindingClient->post("/anydataB/checkUnionTypesWithXmlJson", j);
+    assertXmlPayload(response, j);
+}
+
+@test:Config {}
+function testDataBindingUnionWithString() returns error? {
+    string payload = "hello";
+    json response = check anydataBindingClient->post("/anydataB/checkUnionTypesWithStringNil", payload);
+    assertJsonPayload(response, {result: payload});
+}
+
+@test:Config {}
+function testDataBindingUnionWithNil() returns error? {
+    string payload = "";
+    json response = check anydataBindingClient->post("/anydataB/checkUnionTypesWithStringNil", payload);
+    assertJsonPayload(response, {result: "It's nil"});
+}
+
+@test:Config {}
+function testDataBindingUnionWithMapOfStringUrlEncodedAndXml() returns error? {
+    string inPayload = "name=hello%20go&team=ba%20%23ller%20%40na";
+    json response = check anydataBindingClient->post("/anydataB/checkUnionWithStringMapXml", inPayload,
+        mediaType = "application/x-www-form-urlencoded");
+    assertJsonPayload(response, {"1":"hello go", "2":"ba #ller @na"});
+}
+
+@test:Config {}
+function testDataBindingUnionWithMapOfStringAndXml() returns error? {
+    xml j = xml `<name>WSO2</name>`;
+    json response = check anydataBindingClient->post("/anydataB/checkUnionWithStringMapXml", j);
+    assertJsonPayload(response, {result: "It's xml"});
+}
+
+@test:Config {}
+function testDataBindingUnionByteArrayJsonWithTextPlain() returns error? {
+    string response = check anydataBindingClient->post("/anydataB/checkUnionWithByteArrJson", "WSO2".toBytes(),
+        mediaType = "text/plain");
+    assertTextPayload(response, "WSO2");
+}
+
+@test:Config {}
+function testDataBindingUnionByteArrayJsonWithOctet() returns error? {
+    string response = check anydataBindingClient->post("/anydataB/checkUnionWithByteArrJson", "WSO2".toBytes());
+    assertTextPayload(response, "WSO2");
+}
+
+@test:Config {}
+function testDataBindingUnionWithRecords() returns error? {
+    json response = check anydataBindingClient->post("/anydataB/checkUnionWithRecords", {name:"wso2", age:12});
+    assertJsonPayload(response, {Key:"wso2", Age:12});
+}
+
+@test:Config {}
+function testDataBindingUnionWithRecordsStocks() returns error? {
+    json response = check anydataBindingClient->post("/anydataB/checkUnionWithRecords", {id:34, price:4324.65});
+    assertJsonPayload(response, {Key:4324.65d, Age:34});
+}
+
+@test:Config {}
+function testDataBindingUnionWithJsonAndStringWithAppJson() returns error? {
+    json response = check anydataBindingClient->post("/anydataB/checkUnionTypesWithStringJson", {name:"wso2",age:12},
+    mediaType = "application/json");
+    assertJsonPayload(response, {result: "It's json"});
+}
+
+@test:Config {}
+function testDataBindingUnionWithJsonAndStringWithTextPlain() returns error? {
+    json response = check anydataBindingClient->post("/anydataB/checkUnionTypesWithStringJson", "Hello");
+    assertJsonPayload(response, {result: "It's string"});
+}
+
+@test:Config {}
+function testDataBindingUnionStringArrayJsonWithTextPlain() {
+    http:Response|error response = anydataBindingClient->post("/anydataB/checkUnionWithStringArrJson", "WSO2");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(),
+            "data binding failed: error PayloadBindingError (\"incompatible type found: '(json|string[])'\")");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testDataBindingUnionWithNilReadonly() returns error? {
+    string payload = "";
+    json response = check anydataBindingClient->post("/anydataB/checkUnionTypesWithStringNilWithReadonly", payload);
+    assertJsonPayload(response, {result: "It's nil"});
+}
+
+@test:Config {}
+function testDataBindingUnionTypesWithReadonlyByteArrWithNil() returns error? {
+    string payload = "";
+    json response = check anydataBindingClient->post("/anydataB/checkUnionTypesWithReadonlyByteArrWithNil", payload);
+    assertJsonPayload(response, {result: "It's nil"});
 }
