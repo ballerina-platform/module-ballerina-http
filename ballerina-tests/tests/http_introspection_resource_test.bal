@@ -16,11 +16,27 @@
 
 import ballerina/test;
 import ballerina/http;
+import ballerina/io;
 
 listener http:Listener httpIntroResTestListener = new(introResTest);
 final http:Client httpIntroResTestClient = check new("http://localhost:" + introResTest.toString());
 
 service / on httpIntroResTestListener {
+    resource function get greeting() returns string|error {
+        lock {
+            check httpIntroResTestListener.attach(openApiMock, "/mock");
+        }
+        return "Hello Swan";
+    }
+}
+
+json openApiDoc = check io:fileReadJson("tests/datafiles/testopenapidoc.json");
+readonly & byte[] openApiDef = openApiDoc.toJsonString().toBytes().cloneReadOnly();
+
+@http:ServiceConfig {
+    openApiDefinition: openApiDef
+}
+service /hello on httpIntroResTestListener {
     resource function get greeting() returns string|error {
         lock {
             check httpIntroResTestListener.attach(openApiMock, "/mock");
@@ -70,6 +86,40 @@ function testIntrospectionResourceLinkForBasePathWithoutOpenApiDefinition() retu
     }
     return;
 }
+
+@test:Config {}
+function testIntrospectionResourceLink() returns error? {
+    http:Response|error response = httpIntroResTestClient->options("/hello");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
+        test:assertEquals(check response.getHeader(ALLOW), "GET, OPTIONS", msg = "Found unexpected Header");
+        assertHeaderValue(check response.getHeader(LINK), "</hello/openapi-doc-dygixywsw>;rel=\"service-desc\"");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+
+    response = httpIntroResTestClient->options("/hello/greeting");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
+        test:assertEquals(check response.getHeader(ALLOW), "GET, OPTIONS", msg = "Found unexpected Header");
+        assertHeaderValue(check response.getHeader(LINK), "</hello/openapi-doc-dygixywsw>;rel=\"service-desc\"");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testIntrospectionResourceGetPayload() returns error? {
+    http:Response|error response = httpIntroResTestClient->get("/hello/openapi-doc-dygixywsw");
+    if (response is http:Response) {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected statusCode");
+        test:assertEquals(response.getContentType(), "application/json", msg = "Found unexpected Header");
+        assertJsonPayload(check response.getJsonPayload(), openApiDoc);
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
 
 @test:Config {}
 function testIntrospectionAnnotationInConstructorExpression() returns error? {
