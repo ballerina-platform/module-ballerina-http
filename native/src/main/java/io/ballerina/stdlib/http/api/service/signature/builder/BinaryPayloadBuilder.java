@@ -18,6 +18,10 @@
 
 package io.ballerina.stdlib.http.api.service.signature.builder;
 
+import io.ballerina.runtime.api.TypeTags;
+import io.ballerina.runtime.api.types.ArrayType;
+import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.stdlib.http.api.HttpErrorType;
@@ -25,6 +29,7 @@ import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.mime.util.EntityBodyHandler;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * The blob type payload builder.
@@ -32,9 +37,35 @@ import java.io.IOException;
  * @since SwanLake update 1
  */
 public class BinaryPayloadBuilder extends AbstractPayloadBuilder {
+    private final Type payloadType;
+
+    public BinaryPayloadBuilder(Type payloadType) {
+        this.payloadType = payloadType;
+    }
 
     @Override
     public Object getValue(BObject entity, boolean readonly) {
+        if (payloadType.getTag() == TypeTags.ARRAY_TAG) {
+            Type elementType = ((ArrayType) payloadType).getElementType();
+            if (elementType.getTag() == TypeTags.BYTE_TAG) {
+                return createValue(entity, readonly);
+            }
+        } else if (payloadType.getTag() == TypeTags.UNION_TAG) {
+            List<Type> memberTypes = ((UnionType) payloadType).getMemberTypes();
+            for (Type memberType : memberTypes) {
+                if (memberType.getTag() == TypeTags.ARRAY_TAG) {
+                    Type elementType = ((ArrayType) memberType).getElementType();
+                    if (elementType.getTag() == TypeTags.BYTE_TAG) {
+                        return createValue(entity, readonly);
+                    }
+                }
+            }
+        }
+        throw HttpUtil.createHttpError("incompatible type found: '" + payloadType.toString() + "'",
+                                       HttpErrorType.PAYLOAD_BINDING_ERROR);
+    }
+
+    private Object createValue(BObject entity, boolean readonly) {
         BArray blobDataSource;
         try {
             blobDataSource = EntityBodyHandler.constructBlobDataSource(entity);

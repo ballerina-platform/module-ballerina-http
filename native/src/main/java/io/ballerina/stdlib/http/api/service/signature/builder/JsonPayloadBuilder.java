@@ -44,7 +44,7 @@ public class JsonPayloadBuilder extends AbstractPayloadBuilder {
     public Object getValue(BObject entity, boolean readonly) {
         // Following can be removed based on the solution of
         // https://github.com/ballerina-platform/ballerina-lang/issues/35780
-        if (payloadType.getTag() == TypeTags.RECORD_TYPE_TAG) {
+        if (isSubtypeOfAllowedType(payloadType, TypeTags.RECORD_TYPE_TAG)) {
             return JsonToRecordConverter.convert(payloadType, entity, readonly);
         }
         Object bjson = EntityBodyHandler.constructJsonDataSource(entity);

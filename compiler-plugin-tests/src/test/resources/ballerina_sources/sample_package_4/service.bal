@@ -241,4 +241,25 @@ service http:Service on new http:Listener(9090) {
     resource function post greeting1(int num, @http:Payload json abc, @Pp {id:0} string a) returns string {
         return "done"; // error
     }
+
+    // unions
+    resource function post dbUnion(@http:Payload json|xml abc) returns string {
+        return "done";
+    }
+
+    resource function post dbReadonlyJsonUnion(@http:Payload readonly & byte[]|xml abc) returns string {
+        return "done";
+    }
+
+    resource function post dbReadonlyUnion(@http:Payload readonly & (json|xml) abc) returns string {
+        return "done";
+    }
+
+    resource function post dbStringNil(@http:Payload string? abc) returns string {
+        return "done";
+    }
+
+    resource function post dbUnionNegative(@http:Payload string|http:Caller abc) returns string {
+        return "done";
+    }
 }

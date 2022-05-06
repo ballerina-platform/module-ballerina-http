@@ -445,6 +445,14 @@ class HttpResourceValidator {
         } else if (kind == TypeDescKind.TABLE) {
             typeDescriptor = ((TableTypeSymbol) typeDescriptor).rowTypeParameter();
             return isValidPayloadParamType(typeDescriptor, ctx, paramLocation, paramName);
+        } else if (kind == TypeDescKind.UNION) {
+            List<TypeSymbol> typeDescriptors = ((UnionTypeSymbol) typeDescriptor).memberTypeDescriptors();
+            for (TypeSymbol symbol: typeDescriptors) {
+                if (!isValidPayloadParamType(symbol, ctx, paramLocation, paramName)) {
+                    return false;
+                }
+            }
+            return true;
         }
         return false;
     }
@@ -790,7 +798,7 @@ class HttpResourceValidator {
                 elementKind == TypeDescKind.FLOAT || elementKind == TypeDescKind.DECIMAL ||
                 elementKind == TypeDescKind.STRING || elementKind == TypeDescKind.XML ||
                 elementKind == TypeDescKind.JSON || elementKind == TypeDescKind.RECORD ||
-                elementKind == TypeDescKind.ANYDATA;
+                elementKind == TypeDescKind.ANYDATA || elementKind == TypeDescKind.NIL;
     }
 
     private static void reportInvalidResourceAnnotation(SyntaxNodeAnalysisContext ctx, Location location,

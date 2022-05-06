@@ -22,6 +22,7 @@ import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.IntersectionType;
 import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.stdlib.http.api.BallerinaConnectorException;
@@ -31,6 +32,7 @@ import io.ballerina.stdlib.http.api.service.signature.builder.AbstractPayloadBui
 import io.ballerina.stdlib.http.api.service.signature.converter.JsonToRecordConverter;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.mime.util.EntityBodyHandler;
+import io.ballerina.stdlib.mime.util.MimeConstants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,6 +52,7 @@ public class PayloadParam implements Parameter {
     private Type type;
     private final String token;
     private boolean readonly;
+    private boolean nilable;
     private final List<String> mediaTypes = new ArrayList<>();
 
     PayloadParam(String token) {
@@ -89,21 +92,35 @@ public class PayloadParam implements Parameter {
             List<Type> memberTypes = ((IntersectionType) parameterType).getConstituentTypes();
             int size = memberTypes.size();
             if (size > 2) {
-                throw HttpUtil.createHttpError(
-                        "invalid payload param type '" + parameterType.getName() +
+                throw HttpUtil.createHttpError("invalid payload param type '" + parameterType.getName() +
                                 "': only readonly intersection is allowed");
             }
-            this.readonly = true;
             for (Type type : memberTypes) {
                 if (type.getTag() == TypeTags.READONLY_TAG) {
+                    this.readonly = true;
                     continue;
                 }
-                this.type = type;
-                break;
+//                if (type.getTag() == TypeTags.UNION_TAG) {
+//                    validatePayloadParam(type);
+//                }
+                parameterType = type;
+//                break;
             }
-        } else {
-            this.type = parameterType;
         }
+
+        if (parameterType instanceof UnionType) {
+            List<Type> memberTypes = ((UnionType) parameterType).getMemberTypes();
+            for (Type type : memberTypes) {
+                if (type.getTag() == TypeTags.INTERSECTION_TAG) {
+                    this.readonly = true;
+                    continue;
+                }
+                if (type.getTag() == TypeTags.NULL_TAG) {
+                    this.nilable = true;
+                }
+            }
+        }
+        this.type = parameterType;
     }
 
     public void populateFeed(BObject inRequest, HttpCarbonMessage httpCarbonMessage, Object[] paramFeed) {
@@ -157,10 +174,15 @@ public class PayloadParam implements Parameter {
         try {
             String contentType = HttpUtil.getContentTypeFromTransportMessage(inboundMessage);
             AbstractPayloadBuilder payloadBuilder = getBuilder(contentType, payloadType);
-            paramFeed[index++] = payloadBuilder.getValue(inRequestEntity, this.readonly);
+            paramFeed[index] = payloadBuilder.getValue(inRequestEntity, this.readonly);
             inboundMessage.setProperty(HttpConstants.ENTITY_OBJ, inRequestEntity);
-            return index;
+            return ++index;
         } catch (BError ex) {
+            String typeName = ex.getType().getName();
+            if (MimeConstants.NO_CONTENT_ERROR.equals(typeName) && this.nilable) {
+                paramFeed[index] = null;
+                return ++index;
+            }
             inboundMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
             throw new BallerinaConnectorException("data binding failed: " + ex.toString());
         }

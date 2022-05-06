@@ -23,7 +23,6 @@ import io.ballerina.projects.plugins.codeaction.CodeActionInfo;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
 import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -36,7 +35,7 @@ import static io.ballerina.stdlib.http.compiler.codeaction.Constants.NODE_LOCATI
  */
 public class ChangeHeaderParamTypeTest extends AbstractCodeActionTest {
 
-    @Test(dataProvider = "testDataProvider")
+//    @Test(dataProvider = "testDataProvider")
     public void testCodeActions(String srcFile, int line, int offset, CodeActionInfo expected, String resultFile)
             throws IOException {
         Path filePath = RESOURCE_PATH.resolve("ballerina_sources")

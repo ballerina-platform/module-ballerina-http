@@ -16,6 +16,7 @@
 
 import ballerina/log;
 import ballerina/regex;
+import ballerina/io;
 
 isolated function performDataBinding(Response response, TargetType targetType) returns anydata|ClientError {
     string contentType = response.getContentType();
@@ -68,6 +69,7 @@ isolated function xmlPayloadBuilder(Response response, TargetType targetType) re
         xml|ClientError payload = response.getXmlPayload();
         return payload is NoContentError ? () : payload;
     } else {
+        io:println("incompatible type with xml or xml?");
          return getCommonError(response, targetType);
     }
 }

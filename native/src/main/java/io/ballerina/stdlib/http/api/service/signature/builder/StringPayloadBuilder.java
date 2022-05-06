@@ -22,6 +22,8 @@ import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.types.UnionType;
+import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.http.api.HttpErrorType;
@@ -29,6 +31,8 @@ import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.api.service.signature.converter.StringToByteArrayConverter;
 import io.ballerina.stdlib.http.api.service.signature.converter.UrlEncodedStringToMapConverter;
 import io.ballerina.stdlib.mime.util.EntityBodyHandler;
+
+import java.util.List;
 
 /**
  * The string type payload builder.
@@ -46,12 +50,25 @@ public class StringPayloadBuilder extends AbstractPayloadBuilder {
     public Object getValue(BObject entity, boolean readonly) {
         BString dataSource = EntityBodyHandler.constructStringDataSource(entity);
         EntityBodyHandler.addMessageDataSource(entity, dataSource);
+        return createValue(payloadType, readonly, dataSource);
+    }
+
+    private Object createValue(Type payloadType, boolean readonly, BString dataSource) {
         if (payloadType.getTag() == TypeTags.STRING_TAG) {
             return dataSource;
         } else if (payloadType.getTag() == TypeTags.ARRAY_TAG) {
             return StringToByteArrayConverter.convert((ArrayType) payloadType, dataSource, readonly);
         } else if (payloadType.getTag() == TypeTags.MAP_TAG) {
             return UrlEncodedStringToMapConverter.convert((MapType) payloadType, dataSource, readonly);
+        } else if (payloadType.getTag() == TypeTags.UNION_TAG) {
+            List<Type> memberTypes = ((UnionType) payloadType).getMemberTypes();
+            for (Type memberType : memberTypes) {
+                try {
+                    return createValue(memberType, readonly, dataSource);
+                } catch (BError ignored) {
+                    // thrown errors are ignored until all the types are iterated
+                }
+            }
         }
         throw HttpUtil.createHttpError("incompatible type found: '" + payloadType.toString() + "'",
                                        HttpErrorType.PAYLOAD_BINDING_ERROR);
