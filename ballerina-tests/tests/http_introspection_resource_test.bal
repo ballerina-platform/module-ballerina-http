@@ -37,11 +37,8 @@ byte[] openApiDef = openApiDoc.toJsonString().toBytes();
     openApiDefinition: openApiDef
 }
 service /hello on httpIntroResTestListener {
-    resource function get greeting() returns string|error {
-        lock {
-            check httpIntroResTestListener.attach(openApiMock, "/mock");
-        }
-        return "Hello Swan";
+    resource function get greeting() returns string {
+        return "Greetings!";
     }
 }
 
