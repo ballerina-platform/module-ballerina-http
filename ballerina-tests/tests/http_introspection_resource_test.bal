@@ -31,7 +31,7 @@ service / on httpIntroResTestListener {
 }
 
 json openApiDoc = check io:fileReadJson("tests/datafiles/testopenapidoc.json");
-readonly & byte[] openApiDef = openApiDoc.toJsonString().toBytes().cloneReadOnly();
+byte[] openApiDef = openApiDoc.toJsonString().toBytes();
 
 @http:ServiceConfig {
     openApiDefinition: openApiDef
