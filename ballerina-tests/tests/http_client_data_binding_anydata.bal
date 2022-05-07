@@ -231,7 +231,28 @@ service /anydataTest on clientDBBackendListener {
     }
 
     resource function get getFormData() returns http:Ok|error {
-        return { body : "first%20Name=WS%20O2&tea%24%2Am=Bal%40Dance", mediaType : "x-www-form-urlencoded" };
+        return { body : "first%20Name=WS%20O2&tea%24%2Am=Bal%40Dance", mediaType : "application/x-www-form-urlencoded" };
+    }
+
+    // nilable union
+    resource function get getNoContentXml() returns http:Created {
+        return { mediaType : "application/xml" };
+    }
+
+    resource function get getNoContentString() returns http:Created {
+        return { mediaType : "text/plain" };
+    }
+
+    resource function get getNoContentUrlEncoded() returns http:Created {
+        return { mediaType : "application/x-www-form-urlencoded" };
+    }
+
+    resource function get getNoContentBlob() returns http:Created {
+        return { mediaType : "application/octet-stream" };
+    }
+
+    resource function get getNoContentJson() returns http:Created {
+        return { mediaType : "application/json" };
     }
 }
 
@@ -649,4 +670,46 @@ function testUnionOfDatabindingForRecordWithPersonNStock() returns error? {
     } else {
         test:assertFail(msg = "Found unexpected output type");
     }
+}
+
+@test:Config {}
+function testNilableUnionOfDatabindingForXml() returns error? {
+    xml|string? response = check clientDBBackendClient->get("/anydataTest/getNoContentXml");
+    test:assertTrue(response is (), msg = "Found unexpected output");
+}
+
+@test:Config {}
+function testNilableUnionOfDatabindingForString() returns error? {
+    xml|string? response = check clientDBBackendClient->get("/anydataTest/getNoContentString");
+    test:assertTrue(response is (), msg = "Found unexpected output");
+}
+
+@test:Config {}
+function testNilableUnionOfDatabindingForByteArr() returns error? {
+    xml|byte[]? response = check clientDBBackendClient->get("/anydataTest/getNoContentString");
+    test:assertTrue(response is (), msg = "Found unexpected output");
+}
+
+@test:Config {}
+function testNilableUnionOfDatabindingForMapFormData() returns error? {
+    xml|map<string>? response = check clientDBBackendClient->get("/anydataTest/getNoContentUrlEncoded");
+    test:assertTrue(response is (), msg = "Found unexpected output");
+}
+
+@test:Config {}
+function testNilableUnionOfDatabindingForStringFormData() returns error? {
+    xml|string? response = check clientDBBackendClient->get("/anydataTest/getNoContentUrlEncoded");
+    test:assertTrue(response is (), msg = "Found unexpected output");
+}
+
+@test:Config {}
+function testNilableUnionOfDatabindingForOctetBlob() returns error? {
+    xml|byte[]? response = check clientDBBackendClient->get("/anydataTest/getNoContentBlob");
+    test:assertTrue(response is (), msg = "Found unexpected output");
+}
+
+@test:Config {}
+function testNilableUnionOfDatabindingForJson() returns error? {
+    xml|json? response = check clientDBBackendClient->get("/anydataTest/getNoContentJson");
+    test:assertTrue(response is (), msg = "Found unexpected output");
 }

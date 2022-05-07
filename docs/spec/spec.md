@@ -581,20 +581,26 @@ resource execution.
 The error which may occur during the process will be returned to the caller with the response 
 status code of 400 BAD REQUEST. The successful binding will proceed the resource execution with the built payload.
 
+```ballerina
+resource function post hello(@http:Payload json payload) { 
+    
+}
+```
+
 Additionally, the payload parameter type can be a union of `anydata`. Based on the media type, the potential binding
 type is decided. For example, if the union is defined as `json|xml` and the media type is related to `json`,
 the deserialization and the binding will proceed according to the type `json`. But if the media type is related to `xml`
 the process will happen according to the type `xml`.
 If the given types of the union are not compatible with the media type, an error is returned.
 
-If any of the type is union with `()`(i.e `string?`), then in the absence of the payload, `()` will be assigned as 
-the value without being responded by a `BAD REQUEST` response.
-
 ```ballerina
-resource function post hello(@http:Payload json payload) { 
+resource function post hello(@http:Payload json|xml payload) { 
     
 }
+
 ```
+If any of the type is union with `()`(i.e `string?`), then in the absence of the payload, `()` will be assigned as 
+the value without being responded by a `BAD REQUEST` response.
 
 Internally the complete payload is built, therefore the application should have sufficient memory to support the 
 process. Payload binding is not recommended if the service behaves as a proxy/pass-through where request payload is 
@@ -1334,6 +1340,13 @@ type is decided. For example, if the union is defined as `json|xml` and the medi
 the deserialization and the binding will proceed according to the type `json`. But if the media type is related to `xml`
 the process will happen according to the type `xml`.
 If the given types of the union are not compatible with the media type, an error is returned.
+
+```ballerina
+json|xml payload = check httpClient->get("/data");
+```
+
+If the type is union with `()`(i.e `string?`), then in the absence of the payload, `()` will be assigned as
+the value without being responded by a `BAD REQUEST` response.
 
 ## 3. Request routing
 Ballerina dispatching logic is implemented to uniquely identify a resource based on the request URI and Method.

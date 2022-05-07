@@ -18,6 +18,7 @@ import ballerina/log;
 import ballerina/regex;
 import ballerina/jballerina.java;
 
+type nilType typedesc<()>;
 type xmlType typedesc<xml>;
 type stringType typedesc<string>;
 type byteArrType typedesc<byte[]>;
@@ -72,11 +73,9 @@ isolated function getBuilderFromType(Response response, TargetType targetType) r
 isolated function xmlPayloadBuilder(Response response, TargetType targetType) returns xml|ClientError? {
     if targetType is typedesc<xml> {
         return response.getXmlPayload();
-    } else if targetType is typedesc<xml?> {
-        xml|ClientError payload = response.getXmlPayload();
-        return payload is NoContentError ? () : payload;
     } else if typeIncludedInUnion(targetType, xmlType) {
-        return response.getXmlPayload();
+        xml|ClientError payload = response.getXmlPayload();
+        return payload is NoContentError ? (typeIncludedInUnion(targetType, nilType) ? () : payload) : payload;
     } else {
         return getCommonError(response, targetType);
     }
@@ -85,18 +84,19 @@ isolated function xmlPayloadBuilder(Response response, TargetType targetType) re
 isolated function textPayloadBuilder(Response response, TargetType targetType) returns string|byte[]|ClientError? {
     if targetType is typedesc<string> {
         return response.getTextPayload();
-    } else if targetType is typedesc<string?> {
-        string|ClientError payload = response.getTextPayload();
-        return payload is NoContentError ? () : payload;
     } else if typeIncludedInUnion(targetType, stringType) {
-        return response.getTextPayload();
+        string|ClientError payload = response.getTextPayload();
+        return payload is NoContentError ? (typeIncludedInUnion(targetType, nilType) ? () : payload) : payload;
     } else if targetType is typedesc<byte[]> {
         return response.getBinaryPayload();
-    } else if targetType is typedesc<byte[]?> {
-        byte[]|ClientError payload = response.getBinaryPayload();
-        return payload is NoContentError ? () : payload;
     } else if typeIncludedInUnion(targetType, byteArrType) {
-        return response.getBinaryPayload();
+        string|ClientError payload = response.getTextPayload();
+        if payload is string {
+            return payload.toBytes();
+        } else if payload is NoContentError {
+            return typeIncludedInUnion(targetType, nilType) ? () : payload;
+        }
+        return payload;
     } else {
          return getCommonError(response, targetType);
     }
@@ -106,25 +106,15 @@ isolated function formPayloadBuilder(Response response, TargetType targetType) r
     if targetType is typedesc<map<string>> {
         string payload = check response.getTextPayload();
         return getFormDataMap(payload);
-    } else if targetType is typedesc<map<string>?> {
-        string|ClientError payload = response.getTextPayload();
-        if payload is error {
-            if payload is NoContentError {
-                return;
-            }
-            return payload;
-        }
-        return getFormDataMap(payload);
     } else if typeIncludedInUnion(targetType, mapStringType) {
-        string payload = check response.getTextPayload();
-        return getFormDataMap(payload);
+        string|ClientError payload = response.getTextPayload();
+        return payload is NoContentError ? (typeIncludedInUnion(targetType, nilType) ? () : payload) :
+            getFormDataMap(check payload);
     } else if targetType is typedesc<string> {
         return response.getTextPayload();
-    } else if targetType is typedesc<string?> {
-        string|ClientError payload = response.getTextPayload();
-        return payload is NoContentError ? () : payload;
     } else if typeIncludedInUnion(targetType, stringType) {
-        return response.getTextPayload();
+        string|ClientError payload = response.getTextPayload();
+        return payload is NoContentError ? (typeIncludedInUnion(targetType, nilType) ? () : payload) : payload;
     } else {
         return getCommonError(response, targetType);
     }
@@ -133,14 +123,12 @@ isolated function formPayloadBuilder(Response response, TargetType targetType) r
 isolated function blobPayloadBuilder(Response response, TargetType targetType) returns byte[]|ClientError? {
     if targetType is typedesc<byte[]> {
         return response.getBinaryPayload();
-    } else if targetType is typedesc<byte[]?> {
+    } else if typeIncludedInUnion(targetType, byteArrType) {
         byte[]|ClientError payload = response.getBinaryPayload();
-        if payload is byte[] {
-            return payload.length() == 0 ? () : payload;
+        if payload is byte[] && payload.length() == 0 {
+            return typeIncludedInUnion(targetType, nilType) ? () : payload;
         }
         return payload;
-    } else if typeIncludedInUnion(targetType, byteArrType) {
-        return response.getBinaryPayload();
     } else {
         return getCommonError(response, targetType);
     }
