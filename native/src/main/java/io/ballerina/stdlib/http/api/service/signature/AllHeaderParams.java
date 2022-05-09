@@ -120,7 +120,7 @@ public class AllHeaderParams implements Parameter {
                 }
             } catch (Exception exp) {
                 httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
-                throw new BallerinaConnectorException("header binding failed: " + exp);
+                throw new BallerinaConnectorException("header binding failed: " + exp.getMessage());
             }
             paramFeed[index] = true;
         }
