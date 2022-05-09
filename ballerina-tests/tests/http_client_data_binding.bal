@@ -196,13 +196,16 @@ service /passthrough on clientDBProxyListener {
         xml|json|http:ClientError unionPayload = clientDBBackendClient->post("/backend/getJson", "want json");
         if unionPayload is http:ClientError {
             payload.push(unionPayload.message());
+        } else if unionPayload is json {
+            payload.push(unionPayload.toString());
         }
 
         int|string|http:ClientError basicTypeUnionPayload = clientDBBackendClient->post("/backend/getString", "want string");
         if basicTypeUnionPayload is http:ClientError {
             payload.push(basicTypeUnionPayload.message());
+        } else if basicTypeUnionPayload is string {
+            payload.push(basicTypeUnionPayload);
         }
-
         return string:'join("|", ...payload);
     }
 
@@ -585,17 +588,16 @@ function testAllBindingErrorReturns() returns error? {
 @test:Config {
     groups: ["dataBinding"]
 }
-function testAllBindingErrors() returns error? {
+function testUnionBinding() returns error? {
     http:Response|error response = clientDBTestClient->get("/passthrough/runtimeErrors");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(),
-            "incompatible typedesc (int|string) found for 'text/plain' mime type");
+            "{\"id\":\"chamil\",\"values\":{\"a\":2,\"b\":45,\"c\":{\"x\":\"mnb\",\"y\":\"uio\"}}}|This is my @4491*&&#$^($@");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
-    return;
 }
 
 @test:Config {

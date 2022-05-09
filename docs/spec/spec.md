@@ -581,19 +581,26 @@ resource execution.
 The error which may occur during the process will be returned to the caller with the response 
 status code of 400 BAD REQUEST. The successful binding will proceed the resource execution with the built payload.
 
-Additionally, the payload parameter type can be a union of `anydata`. Based on the media type, the potential binding
-type is decided. For example, if the union is defined as `json|xml` and the media type is related to `json`, 
-the deserialization and the binding will proceed according to type `json`. 
-If the given types of the union are not compatible with the media type, an error is returned.
-
-If any of the type is union with `()`(i.e `string?`), then in the absence of the payload, `()` will be assigned as 
-the value without being responded by a `BAD REQUEST` response.
-
 ```ballerina
 resource function post hello(@http:Payload json payload) { 
     
 }
 ```
+
+Additionally, the payload parameter type can be a union of `anydata`. Based on the media type, the potential binding
+type is decided. For example, if the union is defined as `json|xml` and the media type is related to `json`,
+the deserialization and the binding will proceed according to the type `json`. But if the media type is related to `xml`
+the process will happen according to the type `xml`.
+If the given types of the union are not compatible with the media type, an error is returned.
+
+```ballerina
+resource function post hello(@http:Payload json|xml payload) { 
+    
+}
+
+```
+If any of the type is union with `()`(i.e `string?`), then in the absence of the payload, `()` will be assigned as 
+the value without being responded by a `BAD REQUEST` response.
 
 Internally the complete payload is built, therefore the application should have sufficient memory to support the 
 process. Payload binding is not recommended if the service behaves as a proxy/pass-through where request payload is 
@@ -1297,6 +1304,14 @@ In case of using var as return type, user can pass the typedesc to the targetTyp
 http:Client httpClient = check new ("https://person.free.beeceptor.com");
 var payload = check httpClient->get("/data", targetType = json);
 ```
+
+If any of the type is union with `()`(i.e `string?`), then in the absence of the payload, `()` will be assigned as
+the value without being responded by a `BAD REQUEST` response.
+
+```ballerina
+string? payload = check httpClient->get("/data");
+```
+
 When the user expects client data binding to happen, the HTTP error responses (4XX, 5XX) will be categorized as an 
 error (http:ClientRequestError, http:RemoteServerError) of the client remote operation. These error types contain 
 payload, headers and status code inside the error detail.
@@ -1319,6 +1334,19 @@ if (result is http:RemoteServerError) {
     map<string[]> headers = result.detail().headers;
 }
 ```
+
+Additionally, the client action return type can be a union of `anydata`. Based on the media type, the potential binding
+type is decided. For example, if the union is defined as `json|xml` and the media type is related to `json`,
+the deserialization and the binding will proceed according to the type `json`. But if the media type is related to `xml`
+the process will happen according to the type `xml`.
+If the given types of the union are not compatible with the media type, an error is returned.
+
+```ballerina
+json|xml payload = check httpClient->get("/data");
+```
+
+If the type is union with `()`(i.e `string?`), then in the absence of the payload, `()` will be assigned as
+the value without being responded by a `BAD REQUEST` response.
 
 ## 3. Request routing
 Ballerina dispatching logic is implemented to uniquely identify a resource based on the request URI and Method.
