@@ -661,3 +661,36 @@ function testReadonlyHeaderParams() returns error? {
     assertJsonValue(response, "header3", { status : "non-readonly", value : "nil float" });
     assertJsonValue(response, "header4", { status : "readonly", value : [2.8d, 3.4d] });
 }
+
+@test:Config {}
+function testHeaderParamsCastingError() returns error? {
+    http:Response response = check headerBindingClient->get("/headerRecord/ofOtherNilableHeaders", 
+        {"iid" : "hello"});
+    test:assertEquals(response.statusCode, 400);
+    assertTrueTextPayload(response.getTextPayload(), "header binding failed: java.lang.NumberFormatException");
+
+    response = check headerBindingClient->get("/headerRecord/ofOtherNilableHeaders", 
+        {"fid" : "hello"});
+    test:assertEquals(response.statusCode, 400);
+    assertTrueTextPayload(response.getTextPayload(), "header binding failed: java.lang.NumberFormatException");
+
+    response = check headerBindingClient->get("/headerRecord/ofOtherNilableHeaders", 
+        {"did" : "hello"});
+    test:assertEquals(response.statusCode, 400);
+    assertTrueTextPayload(response.getTextPayload(), "header binding failed: java.lang.NumberFormatException");
+
+    response = check headerBindingClient->get("/headerRecord/ofOtherNilableHeaders", 
+        {"iaid" : ["3", "5", "8", "hello"]});
+    test:assertEquals(response.statusCode, 400);
+    assertTrueTextPayload(response.getTextPayload(), "header binding failed: java.lang.NumberFormatException");
+
+    response = check headerBindingClient->get("/headerRecord/ofOtherNilableHeaders", 
+        {"faid" : ["3.445", "hello", "5.667", "8.206"]});
+    test:assertEquals(response.statusCode, 400);
+    assertTrueTextPayload(response.getTextPayload(), "header binding failed: java.lang.NumberFormatException");
+
+    response = check headerBindingClient->get("/headerRecord/ofOtherNilableHeaders", 
+        {"daid" : ["3.4", "5.6", "hello", "8"]});
+    test:assertEquals(response.statusCode, 400);
+    assertTrueTextPayload(response.getTextPayload(), "header binding failed: java.lang.NumberFormatException");
+}
