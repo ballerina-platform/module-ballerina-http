@@ -118,9 +118,9 @@ public class AllHeaderParams implements Parameter {
                 } else {
                     paramFeed[index++] = castParam(typeTag, headerValues.get(0));
                 }
-            } catch (Exception exp) {
+            } catch (NumberFormatException e) {
                 httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
-                throw new BallerinaConnectorException("header binding failed: " + exp.getMessage());
+                throw new BallerinaConnectorException("header binding failed for parameter: " + token);
             }
             paramFeed[index] = true;
         }
