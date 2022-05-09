@@ -673,6 +673,46 @@ function testUnionOfDatabindingForRecordWithPersonNStock() returns error? {
 }
 
 @test:Config {}
+function testUnionOfDatabindingForMoreTypesWithString() returns error? {
+    xml|json|string|byte[] response = check clientDBBackendClient->get("/anydataTest/stringType");
+    if response is string {
+        test:assertEquals(response, "hello", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type");
+    }
+}
+
+@test:Config {}
+function testUnionOfDatabindingForMoreTypesWithJson() returns error? {
+    xml|json|string|byte[] response = check clientDBBackendClient->get("/anydataTest/jsonType");
+    if response is json {
+        assertJsonPayload(response, {name:"hello", id:20});
+    } else {
+        test:assertFail(msg = "Found unexpected output type");
+    }
+}
+
+@test:Config {}
+function testUnionOfDatabindingForMoreTypesWithXml() returns error? {
+    xml|json|string|byte[] response = check clientDBBackendClient->get("/anydataTest/xmlType");
+    if response is xml {
+        assertXmlPayload(response, xml `<name>WSO2</name>`);
+    } else {
+        test:assertFail(msg = "Found unexpected output type");
+    }
+}
+
+@test:Config {}
+function testUnionOfDatabindingForMoreTypesWithByteArr() returns error? {
+    xml|json|string|byte[] response = check clientDBBackendClient->get("/anydataTest/byteArrType");
+    if response is byte[] {
+        test:assertEquals(check strings:fromBytes(response), "WSO2", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type");
+    }
+}
+
+@test:Config {}
 function testNilableUnionOfDatabindingForXml() returns error? {
     xml|string? response = check clientDBBackendClient->get("/anydataTest/getNoContentXml");
     test:assertTrue(response is (), msg = "Found unexpected output");
