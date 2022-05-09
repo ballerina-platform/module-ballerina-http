@@ -107,15 +107,20 @@ public class AllHeaderParams implements Parameter {
                 }
             }
             int typeTag = headerParam.getType().getTag();
-            if (typeTag == ARRAY_TAG) {
-                int elementTypeTag = ((ArrayType) headerParam.getType()).getElementType().getTag();
-                BArray bArray = castParamArray(elementTypeTag, headerValues.toArray(new String[0]));
-                if (headerParam.isReadonly()) {
-                    bArray.freezeDirect();
+            try {
+                if (typeTag == ARRAY_TAG) {
+                    int elementTypeTag = ((ArrayType) headerParam.getType()).getElementType().getTag();
+                    BArray bArray = castParamArray(elementTypeTag, headerValues.toArray(new String[0]));
+                    if (headerParam.isReadonly()) {
+                        bArray.freezeDirect();
+                    }
+                    paramFeed[index++] = bArray;
+                } else {
+                    paramFeed[index++] = castParam(typeTag, headerValues.get(0));
                 }
-                paramFeed[index++] = bArray;
-            } else {
-                paramFeed[index++] = castParam(typeTag, headerValues.get(0));
+            } catch (Exception exp) {
+                httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
+                throw new BallerinaConnectorException("header binding failed: " + exp);
             }
             paramFeed[index] = true;
         }
