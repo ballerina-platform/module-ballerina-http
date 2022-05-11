@@ -33,10 +33,10 @@ service /service1 on serviceSpecificListener {
             return "test2";
     }
 
-    resource function default test3(http:Request req) returns http:Response {
+    resource function default test3(http:Request req) returns http:Response|error {
         http:Response res = new;
         res.setPayload("test3");
-        checkpanic res.setContentType("type3/subtype3");
+        check res.setContentType("type3/subtype3");
         return res;
     }
 

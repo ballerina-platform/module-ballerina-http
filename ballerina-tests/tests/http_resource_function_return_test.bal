@@ -36,8 +36,15 @@ service on resourceFunctionListener {
         // Check expression returns error.
         int i = check getError();
         response.setTextPayload("i = " + i.toString());
-        checkpanic caller->respond(response);
+        check caller->respond(response);
         return;
+    }
+
+    resource function 'default callerRespondError(http:Caller caller) returns error? {
+        http:Response response = new;
+        response.setTextPayload("Hello Ballerina!");
+        // Responding an error using the caller.
+        check caller->respond(getError());
     }
 
 }
@@ -48,11 +55,11 @@ isolated function getError() returns error|int {
 
 //Returning error from a resource function generate 500
 @test:Config {}
-function testErrorTypeReturnedFromAResourceFunction() {
+function testErrorTypeReturnedFromAResourceFunction() returns error? {
     http:Response|error response = resourceFunctionTestClient->get("/manualErrorReturn");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Some random error");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -61,11 +68,24 @@ function testErrorTypeReturnedFromAResourceFunction() {
 
 //Returning error from a resource function due to 'check' generate 500
 @test:Config {}
-function testErrorReturnedFromACheckExprInResourceFunction() {
+function testErrorReturnedFromACheckExprInResourceFunction() returns error? {
     http:Response|error response = resourceFunctionTestClient->get("/checkErrorReturn");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertTextPayload(response.getTextPayload(), "Simulated error");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+//Responding error from caller
+@test:Config {}
+function testErrorTypeRespondedFromCaller() returns error? {
+    http:Response|error response = resourceFunctionTestClient->get("/callerRespondError");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Simulated error");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

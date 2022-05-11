@@ -26,7 +26,7 @@ function testAddCookieWithUnmatchedDomain() {
     http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "foo.example.com");
     http:CookieConfig cookieConfig = { enabled: true };
     error? result = cookieStore.addCookie(cookie1, cookieConfig, "http://bar.example.com", "/sample");
-    if (result is error) {
+    if result is error {
         io:println(result);
     }
     // Gets all the cookies.
@@ -41,7 +41,7 @@ function testAddCookieWithUnmatchedPath() {
     http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/mail/inbox", domain = "example.com");
     http:CookieConfig cookieConfig = { enabled: true };
     error? result = cookieStore.addCookie(cookie1, cookieConfig, "http://example.com", "/mail");
-    if (result is error) {
+    if result is error {
         io:println(result);
     }
     http:Cookie[] cookies = cookieStore.getAllCookies();
@@ -57,11 +57,11 @@ function testAddSimilarCookie() {
     http:Cookie cookie2 = new("SID002", "6789mnmsddd34", path = "/sample", domain = "google.com");
     http:CookieConfig cookieConfig = { enabled: true };
     error? result = cookieStore.addCookie(cookie1, cookieConfig, "http://google.com", "/sample");
-    if (result is error) {
+    if result is error {
         io:println(result);
     }
     result = cookieStore.addCookie(cookie2, cookieConfig, "google.com", "/sample");
-    if (result is error) {
+    if result is error {
         io:println(result);
     }
     http:Cookie[] cookies = cookieStore.getAllCookies();
@@ -77,7 +77,7 @@ function testAddHttpOnlyCookie() {
     http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com", httpOnly = true);
     http:CookieConfig cookieConfig = { enabled: true };
     error? result = cookieStore.addCookie(cookie1, cookieConfig, "google.com", "/sample");
-    if (result is error) {
+    if result is error {
         io:println(result);
     }
     http:Cookie[] cookies = cookieStore.getAllCookies();
@@ -217,16 +217,16 @@ function testCheckMaxCookiesPerDomain() returns error? {
 
 // Test to give invalid file extension when creating a CsvPersistentCookieHandler object
 @test:Config {}
-function testAddPersistentCookieWithoutPersistentStore() {
+function testAddPersistentCookieWithoutPersistentStore() returns error? {
     http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com", expires = "2030-07-15 05:46:22");
     http:CookieConfig cookieConfig = { enabled: true };
-    http:Client cookieClientEndpoint = checkpanic new("http://google.com", cookieConfig = cookieConfig );
+    http:Client cookieClientEndpoint = check new("http://google.com", cookieConfig = cookieConfig );
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
     http:Cookie[] cookies = [];
     boolean|error validCookie1 = cookie1.isValid();
     if (cookieStore is http:CookieStore && validCookie1 is boolean && validCookie1) {
         error? result = cookieStore.addCookie(cookie1, cookieConfig, "http://google.com", "/sample");
-        if (result is error) {
+        if result is error {
             io:println(result);
         }
         cookies = cookieStore.getAllCookies();
@@ -240,7 +240,7 @@ function testRemovePersistentCookieFromCookieStore_1() returns error? {
     http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com", expires = "2030-07-15 05:46:22");
     http:CsvPersistentCookieHandler myPersistentStore = new(filePath + "client-6.csv");
     http:CookieConfig cookieConfig = { enabled: true, persistentCookieHandler: myPersistentStore };
-    http:Client cookieClientEndpoint = checkpanic new("http://google.com", cookieConfig = cookieConfig );
+    http:Client cookieClientEndpoint = check new("http://google.com", cookieConfig = cookieConfig );
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
     http:Cookie[] cookies = [];
     boolean|error validCookie1 = cookie1.isValid();
@@ -260,15 +260,15 @@ function testRemovePersistentCookieFromCookieStore_1() returns error? {
 
 // Test to remove a specific cookie which is not in the cookie store, when there is no persistent cookie store
 @test:Config {}
-function testRemovePersistentCookieFromCookieStore_2() {
+function testRemovePersistentCookieFromCookieStore_2() returns error? {
     http:CsvPersistentCookieHandler myPersistentStore = new(filePath + "client-7.csv");
     http:CookieConfig cookieConfig = { enabled: true, persistentCookieHandler: myPersistentStore };
-    http:Client cookieClientEndpoint = checkpanic new("http://google.com", cookieConfig = cookieConfig );
+    http:Client cookieClientEndpoint = check new("http://google.com", cookieConfig = cookieConfig );
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
     http:Cookie[] cookies = [];
     if (cookieStore is http:CookieStore) {
         error? result = cookieStore.removeCookie("SID003", "google.com", "/sample");
-        if (result is error) {
+        if result is error {
             io:println(result);
         }
         cookies = cookieStore.getAllCookies();
@@ -278,15 +278,15 @@ function testRemovePersistentCookieFromCookieStore_2() {
 
 // Test to remove all cookies when there is no persistent cookie store
 @test:Config {}
-function testRemoveAllCookiesFromCookieStore() {
+function testRemoveAllCookiesFromCookieStore() returns error? {
     http:CsvPersistentCookieHandler myPersistentStore = new(filePath + "client-8.csv");
     http:CookieConfig cookieConfig = { enabled: true, persistentCookieHandler: myPersistentStore };
-    http:Client cookieClientEndpoint = checkpanic new("http://google.com", cookieConfig = cookieConfig );
+    http:Client cookieClientEndpoint = check new("http://google.com", cookieConfig = cookieConfig );
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
     http:Cookie[] cookies = [];
     if (cookieStore is http:CookieStore) {
         error? result = cookieStore.removeAllCookies();
-        if (result is error) {
+        if result is error {
             io:println(result);
         }
         cookies = cookieStore.getAllCookies();

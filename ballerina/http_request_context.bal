@@ -17,7 +17,7 @@
 import ballerina/jballerina.java;
 import ballerina/lang.value;
 
-# Represents an HTTP Context that allows user to pass data between filters.
+# Represents an HTTP Context that allows user to pass data between interceptors.
 public isolated class RequestContext {
     private final map<value:Cloneable|isolated object {}> attributes = {};
 
@@ -60,7 +60,7 @@ public isolated class RequestContext {
     public isolated function remove(string key) {
         lock {
             value:Cloneable|isolated object {} err = trap self.attributes.remove(key);
-            if (err is error) {
+            if err is error {
                 panic err;
             }
         }

@@ -1,3 +1,4 @@
+
 # Change Log
 This file contains all the notable changes done to the Ballerina HTTP package through the releases.
 
@@ -5,6 +6,43 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+### Added
+- [Introduce response and response error interceptors](https://github.com/ballerina-platform/ballerina-standard-library/issues/2684)
+- [Allow records to be annotated with @http:Header](https://github.com/ballerina-platform/ballerina-standard-library/issues/2699)
+- [Add basic type support for header params in addition to `string`, `string[]`](https://github.com/ballerina-platform/ballerina-standard-library/issues/2807)
+- [Allow HTTP caller to respond `error`](https://github.com/ballerina-platform/ballerina-standard-library/issues/2832)
+- [Allow HTTP caller to respond `StatusCodeResponse`](https://github.com/ballerina-platform/ballerina-standard-library/issues/2853)
+- [Introduce `DefaultErrorInterceptor`](https://github.com/ballerina-platform/ballerina-standard-library/issues/2669)
+- [Support `anydata` in service data binding](https://github.com/ballerina-platform/ballerina-standard-library/issues/2530)
+- [Support `anydata` in client data binding](https://github.com/ballerina-platform/ballerina-standard-library/issues/2036)
+- [Add union type support service data binding](https://github.com/ballerina-platform/ballerina-standard-library/issues/2701)
+- [Add union type support client data binding](https://github.com/ballerina-platform/ballerina-standard-library/issues/2883)
+- [Add common constants for HTTP status-code responses](https://github.com/ballerina-platform/ballerina-standard-library/issues/1540)
+- [Add code-actions to generate interceptor method template](https://github.com/ballerina-platform/ballerina-standard-library/issues/2664)
+- [Add OpenAPI definition field in `@http:ServiceConfig`](https://github.com/ballerina-platform/ballerina-standard-library/issues/2881)
+
+### Changed
+- [Append the scheme of the HTTP client URL based on the client configurations](https://github.com/ballerina-platform/ballerina-standard-library/issues/2816)
+- [Refactor auth-desugar respond with DefaultErrorInterceptor](https://github.com/ballerina-platform/ballerina-standard-library/issues/2823)
+- [Hide subtypes of http:Client](https://github.com/ballerina-platform/ballerina-standard-library/issues/504)
+
+## [2.2.1] - 2022-03-02
+
+### Added
+- [Add code-actions to generate payload and header parameter templates](https://github.com/ballerina-platform/ballerina-standard-library/issues/2642)
+- [Add code-actions to add content-type and cache configuration for response](https://github.com/ballerina-platform/ballerina-standard-library/issues/2662)
+- [Allow readonly intersection type for resource signature params and return type](https://github.com/ballerina-platform/ballerina-standard-library/issues/2610)
+
+## [2.2.0] - 2022-02-01
+
+### Added
+- [Implement Typed `headers` for HTTP response](https://github.com/ballerina-platform/ballerina-standard-library/issues/2563)
+- [Add map<string> data binding support for application/www-x-form-urlencoded](https://github.com/ballerina-platform/ballerina-standard-library/issues/2526)
+- [Add compiler validation for payload annotation usage](https://github.com/ballerina-platform/ballerina-standard-library/issues/2561)
+- [Add support to provide inline request/response body with `x-form-urlencoded` content](https://github.com/ballerina-platform/ballerina-standard-library/issues/2596)
+
+## [2.1.0] - 2021-12-14
 
 ### Added
 - [Introduce interceptors at service level](https://github.com/ballerina-platform/ballerina-standard-library/issues/2447)
@@ -18,6 +56,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Changed
 - [Rename RequestContext add function to set](https://github.com/ballerina-platform/ballerina-standard-library/issues/2414)
 - [Only allow default path in interceptors engaged at listener level](https://github.com/ballerina-platform/ballerina-standard-library/issues/2452)
+- [Provide a better way to send with `application/x-www-form-urlencoded`](https://github.com/ballerina-platform/ballerina-standard-library/issues/1705)
 
 ## [2.0.1] - 2021-11-20
 

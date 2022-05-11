@@ -19,14 +19,21 @@
 package io.ballerina.stdlib.http.api.nativeimpl.connection;
 
 import io.ballerina.runtime.api.Environment;
+import io.ballerina.runtime.api.Runtime;
+import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.observability.ObserveUtils;
 import io.ballerina.runtime.observability.ObserverContext;
+import io.ballerina.stdlib.http.api.BallerinaConnectorException;
 import io.ballerina.stdlib.http.api.DataContext;
+import io.ballerina.stdlib.http.api.HTTPInterceptorServicesRegistry;
 import io.ballerina.stdlib.http.api.HttpConstants;
+import io.ballerina.stdlib.http.api.HttpDispatcher;
 import io.ballerina.stdlib.http.api.HttpErrorType;
+import io.ballerina.stdlib.http.api.HttpResponseInterceptorUnitCallback;
 import io.ballerina.stdlib.http.api.HttpUtil;
+import io.ballerina.stdlib.http.api.InterceptorService;
 import io.ballerina.stdlib.http.api.client.caching.ResponseCacheControlObj;
 import io.ballerina.stdlib.http.api.nativeimpl.pipelining.PipelinedResponse;
 import io.ballerina.stdlib.http.api.util.CacheUtils;
@@ -36,7 +43,10 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 import static io.ballerina.runtime.observability.ObservabilityConstants.PROPERTY_KEY_HTTP_STATUS_CODE;
+import static io.ballerina.stdlib.http.api.HttpConstants.INTERCEPTOR_SERVICES_REGISTRIES;
 import static io.ballerina.stdlib.http.api.HttpConstants.OBSERVABILITY_CONTEXT_PROPERTY;
 import static io.ballerina.stdlib.http.api.HttpConstants.RESPONSE_CACHE_CONTROL_FIELD;
 import static io.ballerina.stdlib.http.api.HttpConstants.RESPONSE_STATUS_CODE_FIELD;
@@ -53,9 +63,24 @@ public class Respond extends ConnectionAction {
 
     private static final Logger log = LoggerFactory.getLogger(Respond.class);
 
+    public static Object nativeRespondError(Environment env, BObject connectionObj, BObject outboundResponseObj,
+                                            BError error) {
+        HttpCarbonMessage inboundRequest = HttpUtil.getCarbonMsg(connectionObj, null);
+        inboundRequest.setProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR, error);
+        return nativeRespondWithDataCtx(env, connectionObj, outboundResponseObj, new DataContext(env, inboundRequest));
+    }
+
     public static Object nativeRespond(Environment env, BObject connectionObj, BObject outboundResponseObj) {
+        return nativeRespondWithDataCtx(env, connectionObj, outboundResponseObj,
+                                        new DataContext(env, HttpUtil.getCarbonMsg(connectionObj, null)));
+    }
+
+    public static Object nativeRespondWithDataCtx(Environment env, BObject connectionObj, BObject outboundResponseObj,
+                                                  DataContext dataContext) {
         HttpCarbonMessage inboundRequestMsg = HttpUtil.getCarbonMsg(connectionObj, null);
-        DataContext dataContext = new DataContext(env, inboundRequestMsg);
+        if (invokeResponseInterceptor(env, inboundRequestMsg, outboundResponseObj, connectionObj, dataContext)) {
+            return null;
+        }
         if (isDirtyResponse(outboundResponseObj)) {
             String errorMessage = "Couldn't complete the respond operation as the response has been already used.";
             HttpUtil.sendOutboundResponse(inboundRequestMsg, HttpUtil.createErrorMessage(errorMessage, 500));
@@ -97,12 +122,15 @@ public class Respond extends ConnectionAction {
         if (ObserveUtils.isObservabilityEnabled()) {
             int statusCode = (int) outboundResponseObj.getIntValue(RESPONSE_STATUS_CODE_FIELD);
             ObserverContext observerContext = ObserveUtils.getObserverContextOfCurrentFrame(env);
-            if (observerContext == null) {
-                observerContext = (ObserverContext) inboundRequestMsg.getProperty(OBSERVABILITY_CONTEXT_PROPERTY);
+            // setting the status-code in the observability context for the current strand
+            // this is done for the `caller->respond()`
+            if (observerContext != null) {
+                observerContext.addProperty(PROPERTY_KEY_HTTP_STATUS_CODE, statusCode);
             }
-            observerContext.addProperty(PROPERTY_KEY_HTTP_STATUS_CODE, statusCode);
-            if (observerContext.isManuallyClosed()) {
-                ObserveUtils.stopObservationWithContext(observerContext);
+            // setting the status-code in the observability context for the resource span
+            observerContext = (ObserverContext) inboundRequestMsg.getProperty(OBSERVABILITY_CONTEXT_PROPERTY);
+            if (observerContext != null) {
+                observerContext.addProperty(PROPERTY_KEY_HTTP_STATUS_CODE, statusCode);
             }
         }
         try {
@@ -146,4 +174,82 @@ public class Respond extends ConnectionAction {
     }
 
     private Respond() {}
+
+    public static boolean invokeResponseInterceptor(Environment env, HttpCarbonMessage inboundMessage,
+                                                    BObject outboundResponseObj, BObject callerObj,
+                                                    DataContext dataContext) {
+        List<HTTPInterceptorServicesRegistry> interceptorServicesRegistries =
+                (List<HTTPInterceptorServicesRegistry>) inboundMessage.getProperty(INTERCEPTOR_SERVICES_REGISTRIES);
+        if (interceptorServicesRegistries.isEmpty()) {
+            return false;
+        }
+        int interceptorServiceIndex = getResponseInterceptorIndex(inboundMessage, interceptorServicesRegistries.size());
+        while (interceptorServiceIndex >= 0) {
+            HTTPInterceptorServicesRegistry interceptorServicesRegistry = interceptorServicesRegistries.
+                    get(interceptorServiceIndex);
+
+            if (!interceptorServicesRegistry.getServicesType().equals(
+                    inboundMessage.getResponseInterceptorServiceState())) {
+                interceptorServiceIndex -= 1;
+                inboundMessage.setProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX, interceptorServiceIndex);
+                continue;
+            }
+
+            try {
+                InterceptorService service = HttpDispatcher.findInterceptorService(interceptorServicesRegistry,
+                                             inboundMessage, true);
+                if (service == null) {
+                    throw new BallerinaConnectorException("no Interceptor Service found to handle the response");
+                }
+
+                interceptorServiceIndex -= 1;
+                inboundMessage.setProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX, interceptorServiceIndex);
+                startInterceptResponseMethod(inboundMessage, outboundResponseObj, callerObj, service, env,
+                        interceptorServicesRegistry, dataContext);
+                return true;
+            } catch (Exception e) {
+                throw new BallerinaConnectorException(e.getMessage());
+            }
+        }
+        if (inboundMessage.isInterceptorError()) {
+            HttpResponseInterceptorUnitCallback callback = new HttpResponseInterceptorUnitCallback(inboundMessage,
+                    callerObj, outboundResponseObj, env, dataContext, null);
+            callback.sendFailureResponse((BError) inboundMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR));
+        }
+        return false;
+    }
+
+    private static int getResponseInterceptorIndex(HttpCarbonMessage inboundMessage, int interceptorsCount) {
+        if (inboundMessage.getProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX) != null) {
+            return (int) inboundMessage.getProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX);
+        } else if (inboundMessage.getProperty(HttpConstants.REQUEST_INTERCEPTOR_INDEX) != null) {
+            return (int) inboundMessage.getProperty(HttpConstants.REQUEST_INTERCEPTOR_INDEX) - 1;
+        } else {
+            return interceptorsCount - 1;
+        }
+    }
+
+    private static void startInterceptResponseMethod(HttpCarbonMessage inboundMessage, BObject outboundResponseObj,
+                                                     BObject callerObj, InterceptorService service, Environment env,
+                                                     HTTPInterceptorServicesRegistry interceptorServicesRegistry,
+                                                     DataContext dataContext) {
+        BObject serviceObj = service.getBalService();
+        Runtime runtime = interceptorServicesRegistry.getRuntime();
+        Object[] signatureParams = HttpDispatcher.getRemoteSignatureParameters(service, outboundResponseObj, callerObj,
+                                   inboundMessage);
+        Callback callback = new HttpResponseInterceptorUnitCallback(inboundMessage, callerObj,
+                outboundResponseObj, env, dataContext, runtime);
+
+        inboundMessage.removeProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
+        String methodName = service.getServiceType().equals(HttpConstants.RESPONSE_ERROR_INTERCEPTOR)
+                            ? HttpConstants.INTERCEPT_RESPONSE_ERROR : HttpConstants.INTERCEPT_RESPONSE;
+
+        if (serviceObj.getType().isIsolated() && serviceObj.getType().isIsolated(methodName)) {
+            runtime.invokeMethodAsyncConcurrently(serviceObj, methodName, null, null,
+                    callback, null, service.getRemoteMethod().getReturnType(), signatureParams);
+        } else {
+            runtime.invokeMethodAsyncSequentially(serviceObj, methodName, null, null,
+                    callback, null, service.getRemoteMethod().getReturnType(), signatureParams);
+        }
+    }
 }

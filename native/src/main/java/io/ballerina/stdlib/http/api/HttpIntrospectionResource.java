@@ -18,11 +18,7 @@
 
 package io.ballerina.stdlib.http.api;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
-import java.util.Objects;
 
 import static io.ballerina.stdlib.http.api.HttpConstants.SINGLE_SLASH;
 
@@ -36,13 +32,12 @@ public class HttpIntrospectionResource extends HttpResource {
     private static final String RESOURCE_NAME = "openapi-doc-dygixywsw";
     private static final String RESOURCE_METHOD = "$get$";
     private static final String REL_PARAM = "rel=\"service-desc\"";
-    private static final String ERROR_PREFIX = "Error retrieving OpenAPI spec: ";
-    private final String filePath;
+    private final byte[] payload;
 
-    protected HttpIntrospectionResource(HttpService httpService, String filePath) {
+    protected HttpIntrospectionResource(HttpService httpService, byte[] payload) {
         String path = (httpService.getBasePath() + SINGLE_SLASH + RESOURCE_NAME).replaceAll("/+", SINGLE_SLASH);
         httpService.setIntrospectionResourcePathHeaderValue("<" + path + ">;" + REL_PARAM);
-        this.filePath = filePath;
+        this.payload = payload.clone();
     }
 
     public String getName() {
@@ -54,20 +49,7 @@ public class HttpIntrospectionResource extends HttpResource {
     }
 
     public byte[] getPayload() {
-        ByteArrayOutputStream result;
-        try (InputStream inputStream = HttpIntrospectionResource.class.getClassLoader().getResourceAsStream(filePath)) {
-            Objects.requireNonNull(inputStream, ERROR_PREFIX + "generated doc does not exist");
-
-            result = new ByteArrayOutputStream();
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = inputStream.read(buffer)) != -1) {
-                result.write(buffer, 0, length);
-            }
-        } catch (IOException e) {
-            throw HttpUtil.createHttpError(ERROR_PREFIX + e.getMessage(), HttpErrorType.GENERIC_LISTENER_ERROR);
-        }
-        return result.toByteArray();
+        return this.payload.clone();
     }
 
     public List<String> getMethods() {

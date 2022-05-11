@@ -28,51 +28,51 @@ boolean listenerIdle = true;
 boolean listenerStopped = false;
 
 service /startService on listenerMethodListener {
-    resource function get test(http:Caller remoteCaller, http:Request req) {
+    resource function get test(http:Caller remoteCaller) returns error? {
         lock {
             http:Service listenerMethodMock1 = service object {
                 resource function get .(http:Caller caller, http:Request req) {
                     error? responseToCaller = caller->respond("Mock1 invoked!");
-                    if (responseToCaller is error) {
+                    if responseToCaller is error {
                         log:printError("Error sending response from mock service", 'error = responseToCaller);
                     }
                 }
             };
-            checkpanic listenerMethodbackendEP.attach(listenerMethodMock1, "mock1");
+            check listenerMethodbackendEP.attach(listenerMethodMock1, "mock1");
         }
 
         lock {
             http:Service listenerMethodMock2 = service object {
-                resource function get .(http:Caller caller, http:Request req) {
+                resource function get .(http:Caller caller, http:Request req) returns error? {
                     // gracefulStop will unbind the listener port and stop accepting new connections.
                     // But already connection created clients can communicate until client close.
                     lock {
-                        checkpanic listenerMethodbackendEP.gracefulStop();
+                        check listenerMethodbackendEP.gracefulStop();
                     }
                     error? responseToCaller = caller->respond("Mock2 invoked!");
-                    if (responseToCaller is error) {
+                    if responseToCaller is error {
                         log:printError("Error sending response from mock service", 'error = responseToCaller);
                     }
                 }
             };
-            checkpanic listenerMethodbackendEP.attach(listenerMethodMock2, "mock2");
+            check listenerMethodbackendEP.attach(listenerMethodMock2, "mock2");
         }
         lock {
-            checkpanic listenerMethodbackendEP.start();
+            check listenerMethodbackendEP.start();
         }
         error? result = remoteCaller->respond("Backend service started!");
-        if (result is error) {
+        if result is error {
             log:printError("Error sending response", 'error = result);
         }
     }
 }
 
 @test:Config {}
-function testServiceAttachAndStart() {
+function testServiceAttachAndStart() returns error? {
     http:Response|error response = listenerMethodTestClient->get("/startService/test");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Backend service started!");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -80,11 +80,11 @@ function testServiceAttachAndStart() {
 }
 
 @test:Config {dependsOn:[testServiceAttachAndStart]}
-function testAvailabilityOfAttachedService() {
+function testAvailabilityOfAttachedService() returns error? {
     http:Response|error response = backendTestClient->get("/mock1");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Mock1 invoked!");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -92,11 +92,11 @@ function testAvailabilityOfAttachedService() {
 }
 
 @test:Config {dependsOn:[testAvailabilityOfAttachedService]}
-function testGracefulStopMethod() {
+function testGracefulStopMethod() returns error? {
     http:Response|error response = backendTestClient->get("/mock2");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Mock2 invoked!");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

@@ -41,13 +41,13 @@ final http:Client backendClientEP07 = check new("http://localhost:8095", conf07)
 service /cb on circuitBreakerEP07 {
 
     resource function 'default trialrun/[int index](http:Caller caller, http:Request request) {
-        if (index == 3) {
+        if index == 3 {
             runtime:sleep(3);
         }
         http:Response|error backendRes = backendClientEP07->post("/hello07/", request);
-        if (backendRes is http:Response) {
+        if backendRes is http:Response {
             error? responseToCaller = caller->respond(backendRes);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
@@ -63,7 +63,7 @@ service /hello07 on new http:Listener(8095, httpVersion = "2.0") {
         res.statusCode = http:STATUS_SERVICE_UNAVAILABLE;
         res.setPayload("Service unavailable.");
         error? responseToCaller = caller->respond(res);
-        if (responseToCaller is error) {
+        if responseToCaller is error {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
@@ -74,7 +74,7 @@ function sendCBErrorResponse(http:Caller caller, error e) {
     response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
     response.setPayload(e.message());
     error? responseToCaller = caller->respond(response);
-    if (responseToCaller is error) {
+    if responseToCaller is error {
         log:printError("Error sending response", 'error = responseToCaller);
     }
 }
@@ -87,9 +87,9 @@ int index = 0;
 @test:Config{
     dataProvider:http2CircuitBreakerDataProvider
 }
-function testBasicHttp2CircuitBreaker(DataFeed dataFeed) {
+function testBasicHttp2CircuitBreaker(DataFeed dataFeed) returns error? {
     index += 1;
-    invokeApiAndVerifyResponse(h2CBTestClient, "/cb/trialrun/" + index.toString(), dataFeed);
+    check invokeApiAndVerifyResponse(h2CBTestClient, "/cb/trialrun/" + index.toString(), dataFeed);
 }
 
 function http2CircuitBreakerDataProvider() returns DataFeed[][] {

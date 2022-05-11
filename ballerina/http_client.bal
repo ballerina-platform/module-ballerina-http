@@ -18,7 +18,7 @@ import ballerina/jballerina.java;
 
 # Lies inside every type of client in the chain holding the native client connector. More complex and specific
 # endpoint types are created by wrapping this generic HTTP actions implementation internally.
-public client isolated class HttpClient {
+client isolated class HttpClient {
 
     # Gets invoked to initialize the native `client`. During the initialization, the configurations are provided through the
     # `config`. The `HttpClient` lies inside every type of client in the chain holding the native client connector.

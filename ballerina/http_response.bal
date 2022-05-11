@@ -143,7 +143,7 @@ public class Response {
 
 
         // TODO: see if this can be handled in a better manner
-        if (strings:equalsIgnoreCaseAscii(SERVER, headerName)) {
+        if strings:equalsIgnoreCaseAscii(SERVER, headerName) {
             self.server = headerValue;
         }
     }
@@ -188,23 +188,25 @@ public class Response {
     public isolated function getContentType() returns string {
         string contentTypeHeaderValue = "";
         var value = self.getHeader(mime:CONTENT_TYPE);
-        if (value is string) {
+        if value is string {
             contentTypeHeaderValue = value;
         }
         return contentTypeHeaderValue;
     }
 
-    # Extract `json` payload from the response. If the content type is not JSON, an `http:ClientError` is returned.
+    # Extract `json` payload from the response. For an empty payload, `http:NoContentError` is returned.
+    #
+    # If the content type is not JSON, an `http:ClientError` is returned.
     #
     # + return - The `json` payload or `http:ClientError` in case of errors
     public isolated function getJsonPayload() returns json|ClientError {
         var result = self.getEntityWithBodyAndWithoutHeaders();
-        if (result is error) {
+        if result is error {
             return result;
         } else {
             var payload = externGetJson(result);
-            if (payload is mime:Error) {
-                if (payload.cause() is mime:NoContentError) {
+            if payload is mime:Error {
+                if payload.cause() is mime:NoContentError {
                     return createErrorForNoPayload(<mime:Error> payload);
                 } else {
                     string message = "Error occurred while retrieving the json payload from the response";
@@ -216,17 +218,19 @@ public class Response {
         }
     }
 
-    # Extracts `xml` payload from the response.
+    # Extracts `xml` payload from the response. For an empty payload, `http:NoContentError` is returned.
+    #
+    # If the content type is not XML, an `http:ClientError` is returned.
     #
     # + return - The `xml` payload or `http:ClientError` in case of errors
     public isolated function getXmlPayload() returns xml|ClientError {
         var result = self.getEntityWithBodyAndWithoutHeaders();
-        if (result is error) {
+        if result is error {
             return result;
         } else {
             var payload = externGetXml(result);
-            if (payload is mime:Error) {
-                if (payload.cause() is mime:NoContentError) {
+            if payload is mime:Error {
+                if payload.cause() is mime:NoContentError {
                     return createErrorForNoPayload(<mime:Error> payload);
                 } else {
                     string message = "Error occurred while retrieving the xml payload from the response";
@@ -238,17 +242,19 @@ public class Response {
         }
     }
 
-    # Extracts `text` payload from the response.
+    # Extracts `text` payload from the response. For an empty payload, `http:NoContentError` is returned.
+    #
+    # If the content type is not of type text, an `http:ClientError` is returned.
     #
     # + return - The string representation of the message payload or `http:ClientError` in case of errors
     public isolated function getTextPayload() returns string|ClientError {
         var result = self.getEntityWithBodyAndWithoutHeaders();
-        if (result is error) {
+        if result is error {
             return result;
         } else {
             var payload = externGetText(result);
-            if (payload is mime:Error) {
-                if (payload.cause() is mime:NoContentError) {
+            if payload is mime:Error {
+                if payload.cause() is mime:NoContentError {
                     return createErrorForNoPayload(<mime:Error> payload);
                 } else {
                     string message = "Error occurred while retrieving the text payload from the response";
@@ -266,11 +272,11 @@ public class Response {
     # + return - A byte channel from which the message payload can be read or `http:ClientError` in case of errors
     isolated function getByteChannel() returns io:ReadableByteChannel|ClientError {
         var result = self.getEntityWithBodyAndWithoutHeaders();
-        if (result is error) {
+        if result is error {
             return result;
         } else {
             var payload = externGetByteChannel(result);
-            if (payload is mime:Error) {
+            if payload is mime:Error {
                 string message = "Error occurred while retrieving the byte channel from the response";
                 return error GenericClientError(message, payload);
             } else {
@@ -286,12 +292,12 @@ public class Response {
     # + return - A byte stream from which the message payload can be read or `http:ClientError` in case of errors
     public isolated function getByteStream(int arraySize = 8192) returns stream<byte[], io:Error?>|ClientError {
         var result = self.getEntityWithBodyAndWithoutHeaders();
-        if (result is error) {
+        if result is error {
             return result;
         } else {
             externPopulateInputStream(result);
             var byteStream = result.getByteStream(arraySize);
-            if (byteStream is mime:Error) {
+            if byteStream is mime:Error {
                 string message = "Error occurred while retrieving the byte stream from the response";
                 return error GenericClientError(message, byteStream);
             } else {
@@ -305,11 +311,11 @@ public class Response {
     # + return - The byte[] representation of the message payload or `http:ClientError` in case of errors
     public isolated function getBinaryPayload() returns byte[]|ClientError {
         var result = self.getEntityWithBodyAndWithoutHeaders();
-        if (result is error) {
+        if result is error {
             return result;
         } else {
             var payload = externGetByteArray(result);
-            if (payload is mime:Error) {
+            if payload is mime:Error {
                 string message = "Error occurred while retrieving the binary payload from the response";
                 return error GenericClientError(message, payload);
             } else {
@@ -324,12 +330,12 @@ public class Response {
     #            constructing the body parts from the response
     public isolated function getBodyParts() returns mime:Entity[]|ClientError {
         var result = self.getEntity();
-        if (result is ClientError) {
+        if result is ClientError {
             // TODO: Confirm whether this is actually a ClientError or not.
             return result;
         } else {
             var bodyParts = result.getBodyParts();
-            if (bodyParts is mime:Error) {
+            if bodyParts is mime:Error {
                 string message = "Error occurred while retrieving body parts from the response";
                 return error GenericClientError(message, bodyParts);
             } else {
@@ -350,7 +356,7 @@ public class Response {
     public isolated function setLastModified() {
         time:Utc currentT = time:utcNow();
         var lastModified = utcToString(currentT, RFC_1123_DATE_TIME);
-        if (lastModified is string) {
+        if lastModified is string {
             self.setHeader(LAST_MODIFIED, lastModified);
         } else {
             //This error is unlikely as the format is a constant and time is
@@ -434,7 +440,7 @@ public class Response {
     #                 The `application/octet-stream` is the default value
     public isolated function setFileAsPayload(string filePath, string? contentType = ()) {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
-         setFile(entity, filePath, self.getContentType(), contentType);
+        setFile(entity, filePath, self.getContentType(), contentType);
         self.setEntityAndUpdateContentTypeHeader(entity);
     }
 
@@ -471,25 +477,28 @@ public class Response {
     # + contentType - Content-type to be used with the payload. This is an optional parameter
     public isolated function setPayload(string|xml|json|byte[]|mime:Entity[]|stream<byte[], io:Error?> payload,
             string? contentType = ()) {
-        if (contentType is string) {
+        if contentType is string {
             error? err = self.setContentType(contentType);
-            if (err is error) {
+            if err is error {
                 log:printDebug(err.message());
             }
         }
 
-        if (payload is string) {
+        if payload is string {
             self.setTextPayload(payload);
-        } else if (payload is xml) {
+        } else if payload is xml {
             self.setXmlPayload(payload);
-        } else if (payload is byte[]) {
+        } else if payload is byte[] {
             self.setBinaryPayload(payload);
-        } else if (payload is json) {
+        } else if payload is json {
             self.setJsonPayload(payload);
-        } else if (payload is stream<byte[], io:Error?>) {
+        } else if payload is stream<byte[], io:Error?> {
             self.setByteStream(payload);
-        } else {
+        } else if payload is mime:Entity[] {
             self.setBodyParts(payload);
+        } else {
+            panic error Error("invalid entity body type." +
+                "expected one of the types: string|xml|json|byte[]|mime:Entity[]|stream<byte[],io:Error?>");
         }
     }
 
@@ -498,7 +507,7 @@ public class Response {
     # + cookie - The cookie, which is added to response
     public isolated function addCookie(Cookie cookie) {
         var result = cookie.isValid();
-        if (result is boolean) {
+        if result is boolean {
             self.addHeader("Set-Cookie", cookie.toStringValue());
         } else {
             log:printError("Invalid Cookie", 'error = result);
@@ -523,7 +532,7 @@ public class Response {
     public isolated function getCookies() returns Cookie[] {
         Cookie[] cookiesInResponse = [];
         string[]|error cookiesStringValues = self.getHeaders("Set-Cookie");
-        if (cookiesStringValues is string[]) {
+        if cookiesStringValues is string[] {
             foreach string cookiesStringValue in cookiesStringValues {
                 cookiesInResponse.push(parseSetCookieHeader(cookiesStringValue));
             }

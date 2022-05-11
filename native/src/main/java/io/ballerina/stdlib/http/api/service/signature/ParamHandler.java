@@ -23,6 +23,7 @@ import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
+import io.ballerina.runtime.api.types.IntersectionType;
 import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.types.ResourceMethodType;
 import io.ballerina.runtime.api.types.Type;
@@ -115,17 +116,17 @@ public class ParamHandler {
                         getOtherParamList().add(this.requestContextParam);
                     } else {
                         throw HttpUtil.createHttpError("invalid multiple '" + REQUEST_CONTEXT_TYPE
-                                + "' parameter");
+                                                               + "' parameter");
                     }
                     break;
                 case HttpConstants.STRUCT_GENERIC_ERROR:
                     if (this.interceptorErrorParam == null) {
                         this.interceptorErrorParam = new NonRecurringParam(index,
-                                HttpConstants.STRUCT_GENERIC_ERROR);
+                                                                           HttpConstants.STRUCT_GENERIC_ERROR);
                         getOtherParamList().add(this.interceptorErrorParam);
                     } else {
                         throw HttpUtil.createHttpError("invalid multiple '" +
-                                HttpConstants.STRUCT_GENERIC_ERROR + "' parameter");
+                                                               HttpConstants.STRUCT_GENERIC_ERROR + "' parameter");
                     }
                     break;
                 case CALLER_TYPE:
@@ -161,7 +162,7 @@ public class ParamHandler {
                     } else if ((headerParam = headerParams.get(paramName)) != null) {
                         headerParam.init(parameterType, index);
                     } else {
-                        validateQueryParam(index, resource, parameterType);
+                        validateQueryParam(index, resource, parameterType, false);
                     }
             }
         }
@@ -243,7 +244,7 @@ public class ParamHandler {
         this.headerParams.add(headerParam);
     }
 
-    private void validateQueryParam(int index, ResourceMethodType balResource, Type parameterType) {
+    private void validateQueryParam(int index, ResourceMethodType balResource, Type parameterType, boolean readonly) {
         if (parameterType instanceof UnionType) {
             List<Type> memberTypes = ((UnionType) parameterType).getMemberTypes();
             int size = memberTypes.size();
@@ -256,16 +257,39 @@ public class ParamHandler {
                 if (type.getTag() == TypeTags.NULL_TAG) {
                     continue;
                 }
-                QueryParam queryParam = new QueryParam(type, HttpUtil.unescapeAndEncodeValue(
-                        balResource.getParamNames()[index]), index, true);
-                this.queryParams.add(queryParam);
+                createQueryParam(index, balResource, type, true, readonly);
+                break;
+            }
+        } else if (parameterType instanceof IntersectionType) {
+            // Assumes that the only intersection type is readonly
+            List<Type> memberTypes = ((IntersectionType) parameterType).getConstituentTypes();
+            int size = memberTypes.size();
+            if (size > 2) {
+                throw HttpUtil.createHttpError(
+                        "invalid query param type '" + parameterType.getName() +
+                                "': only readonly intersection is allowed");
+            }
+            for (Type type : memberTypes) {
+                if (type.getTag() == TypeTags.READONLY_TAG) {
+                    continue;
+                }
+                if (type.getTag() == TypeTags.UNION_TAG) {
+                    validateQueryParam(index, balResource, type, true);
+                    return;
+                }
+                createQueryParam(index, balResource, type, false, true);
                 break;
             }
         } else {
-            QueryParam queryParam = new QueryParam(parameterType, HttpUtil.unescapeAndEncodeValue(
-                    balResource.getParamNames()[index]), index, false);
-            this.queryParams.add(queryParam);
+            createQueryParam(index, balResource, parameterType, false, false);
         }
+    }
+
+    private void createQueryParam(int index, ResourceMethodType balResource, Type type, boolean nilable,
+                                  boolean readonly) {
+        QueryParam queryParam = new QueryParam(type, HttpUtil.unescapeAndEncodeValue(
+                balResource.getParamNames()[index]), index, nilable, readonly);
+        this.queryParams.add(queryParam);
     }
 
     private void validatePathParam(ResourceMethodType resource, int pathParamCount) {

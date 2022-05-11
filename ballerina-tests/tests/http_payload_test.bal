@@ -26,39 +26,39 @@ final http:Client clientEP19 = check new("http://localhost:" + httpPayloadTestPo
 
 service /testService16 on httpPayloadListenerEP1 {
 
-    resource function get .(http:Caller caller, http:Request request) {
+    resource function get .(http:Caller caller, http:Request request) returns error? {
         http:Response|error res = clientEP19->get("/payloadTest");
-        if (res is http:Response) {
+        if res is http:Response {
             //First get the payload as a byte array, then take it as an xml
             var binaryPayload = res.getBinaryPayload();
-            if (binaryPayload is byte[]) {
+            if binaryPayload is byte[] {
                 var payload = res.getXmlPayload();
-                if (payload is xml) {
+                if payload is xml {
                     //xml descendants = payload.selectDescendants("title");
-                    checkpanic caller->respond((payload/**/<title>/*).toString());
+                    check caller->respond((payload/**/<title>/*).toString());
                 } else {
-                    checkpanic caller->respond(payload.message());
+                    check caller->respond(payload.message());
                 }
             } else {
-                checkpanic caller->respond(binaryPayload.message());
+                check caller->respond(binaryPayload.message());
             }
         } else {
-            checkpanic caller->respond(res.message());
+            check caller->respond(res.message());
         }
     }
 
-    resource function 'default getPayloadForParseError(http:Caller caller, http:Request request) {
+    resource function 'default getPayloadForParseError(http:Caller caller, http:Request request) returns error? {
         http:Response|error res = clientEP19->get("/payloadTest/getString");
-        if (res is http:Response) {
+        if res is http:Response {
             var payload = res.getXmlPayload();
-            if (payload is xml) {
+            if payload is xml {
                 //xml descendants = payload.selectDescendants("title");
-                checkpanic caller->respond((payload/**/<title>/*).toString());
+                check caller->respond((payload/**/<title>/*).toString());
             } else {
-                if (payload is http:GenericClientError) {
+                if payload is http:GenericClientError {
                     var cause = payload.cause();
-                    if (cause is mime:ParserError) {
-                        checkpanic caller->respond(cause.message());
+                    if cause is mime:ParserError {
+                        check caller->respond(cause.message());
                     }
                 }
             }
@@ -68,7 +68,7 @@ service /testService16 on httpPayloadListenerEP1 {
 
 service /payloadTest on httpPayloadListenerEP2 {
 
-    resource function get .(http:Caller caller, http:Request req) {
+    resource function get .(http:Caller caller, http:Request req) returns error? {
         xml xmlPayload = xml `<xml version="1.0">
                                 <channel>
                                     <title>W3Schools Home Page</title>
@@ -81,27 +81,27 @@ service /payloadTest on httpPayloadListenerEP2 {
                                       </item>
                                 </channel>
                               </xml>`;
-        checkpanic caller->respond(xmlPayload);
+        check caller->respond(xmlPayload);
     }
 
-    resource function 'default getString(http:Caller caller, http:Request req) {
+    resource function 'default getString(http:Caller caller, http:Request req) returns error? {
         string stringPayload = "";
         int i = 0;
         while(i<1000) {
             stringPayload = stringPayload + "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
             i = i + 1;
         }
-        checkpanic caller->respond(stringPayload);
+        check caller->respond(stringPayload);
     }
 }
 
 //Test whether the xml payload gets parsed properly, after the said payload has been retrieved as a byte array.
 @test:Config {}
-function testXmlPayload() {
+function testXmlPayload() returns error? {
     http:Response|error response = httpPayloadClient->get("/testService16/");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "W3Schools Home PageRSS Tutorial");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -111,11 +111,11 @@ function testXmlPayload() {
 //Test getXmlPayload() for inbound response with parser errors.
 //FullMessageListener is notified via transport thread and thrown exception should be caught at ballerina space
 @test:Config {}
-function testGetXmlPayloadReturnParserError() {
+function testGetXmlPayloadReturnParserError() returns error? {
     http:Response|error response = httpPayloadClient->get("/testService16/getPayloadForParseError");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTrueTextPayload(response.getTextPayload(),
                 "Error occurred while extracting xml data from entity: error(\"failed to create xml");
     } else {

@@ -38,7 +38,7 @@ type RetryInferredConfig record {|
 # + retryInferredConfig - Derived set of configurations associated with retry
 # + httpClient - Chain of different HTTP clients which provides the capability for initiating contact with a remote
 #                HTTP service in resilient manner.
-public client isolated class RetryClient {
+client isolated class RetryClient {
 
     final RetryInferredConfig & readonly retryInferredConfig;
     final HttpClient httpClient;
@@ -66,10 +66,12 @@ public client isolated class RetryClient {
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function post(string path, RequestMessage message) returns Response|ClientError {
         var result = performRetryAction(path, <Request>message, HTTP_POST, self);
-        if (result is HttpFuture) {
+        if result is HttpFuture {
             return getInvalidTypeError();
-        } else {
+        } else if result is Response || result is ClientError {
             return result;
+        } else {
+            panic error ClientError("invalid response type received");
         }
     }
 
@@ -81,10 +83,12 @@ public client isolated class RetryClient {
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function head(string path, RequestMessage message = ()) returns Response|ClientError {
         var result = performRetryAction(path, <Request>message, HTTP_HEAD, self);
-        if (result is HttpFuture) {
+        if result is HttpFuture {
             return getInvalidTypeError();
-        } else {
+        } else if result is Response || result is ClientError {
             return result;
+        } else {
+            panic error ClientError("invalid response type received");
         }
     }
 
@@ -96,10 +100,12 @@ public client isolated class RetryClient {
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function put(string path, RequestMessage message) returns Response|ClientError {
         var result = performRetryAction(path, <Request>message, HTTP_PUT, self);
-        if (result is HttpFuture) {
+        if result is HttpFuture {
             return getInvalidTypeError();
-        } else {
+        } else if result is Response || result is ClientError {
             return result;
+        } else {
+            panic error ClientError("invalid response type received");
         }
     }
 
@@ -111,10 +117,12 @@ public client isolated class RetryClient {
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function forward(string path, Request request) returns Response|ClientError {
         var result = performRetryAction(path, request, HTTP_FORWARD, self);
-        if (result is HttpFuture) {
+        if result is HttpFuture {
             return getInvalidTypeError();
-        } else {
+        } else if result is Response || result is ClientError {
             return result;
+        } else {
+            panic error ClientError("invalid response type received");
         }
     }
 
@@ -128,10 +136,12 @@ public client isolated class RetryClient {
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function execute(string httpVerb, string path, RequestMessage message) returns Response|ClientError {
         var result = performRetryClientExecuteAction(path, <Request>message, httpVerb, self);
-        if (result is HttpFuture) {
+        if result is HttpFuture {
             return getInvalidTypeError();
-        } else {
+        } else if result is Response || result is ClientError {
             return result;
+        } else {
+            panic error ClientError("invalid response type received");
         }
     }
 
@@ -143,10 +153,12 @@ public client isolated class RetryClient {
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function patch(string path, RequestMessage message) returns Response|ClientError {
         var result = performRetryAction(path, <Request>message, HTTP_PATCH, self);
-        if (result is HttpFuture) {
+        if result is HttpFuture {
             return getInvalidTypeError();
-        } else {
+        } else if result is Response || result is ClientError {
             return result;
+        } else {
+            panic error ClientError("invalid response type received");
         }
     }
 
@@ -158,10 +170,12 @@ public client isolated class RetryClient {
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function delete(string path, RequestMessage message = ()) returns Response|ClientError {
         var result = performRetryAction(path, <Request>message, HTTP_DELETE, self);
-        if (result is HttpFuture) {
+        if result is HttpFuture {
             return getInvalidTypeError();
-        } else {
+        } else if result is Response || result is ClientError {
             return result;
+        } else {
+            panic error ClientError("invalid response type received");
         }
     }
 
@@ -173,10 +187,12 @@ public client isolated class RetryClient {
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function get(string path, RequestMessage message = ()) returns Response|ClientError {
         var result = performRetryAction(path, <Request>message, HTTP_GET, self);
-        if (result is HttpFuture) {
+        if result is HttpFuture {
             return getInvalidTypeError();
-        } else {
+        } else if result is Response || result is ClientError {
             return result;
+        } else {
+            panic error ClientError("invalid response type received");
         }
     }
 
@@ -188,10 +204,12 @@ public client isolated class RetryClient {
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function options(string path, RequestMessage message = ()) returns Response|ClientError {
         var result = performRetryAction(path, <Request>message, HTTP_OPTIONS, self);
-        if (result is HttpFuture) {
+        if result is HttpFuture {
             return getInvalidTypeError();
-        } else {
+        } else if result is Response || result is ClientError {
             return result;
+        } else {
+            panic error ClientError("invalid response type received");
         }
     }
 
@@ -205,10 +223,12 @@ public client isolated class RetryClient {
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation or else an `http:ClientError` if the submission fails
     remote isolated function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
         var result = performRetryClientExecuteAction(path, <Request>message, HTTP_SUBMIT, self, verb = httpVerb);
-        if (result is Response) {
+        if result is Response {
             return getInvalidTypeError();
-        } else {
+        } else if result is HttpFuture || result is ClientError {
             return result;
+        } else {
+            panic error ClientError("invalid response type received");
         }
     }
 
@@ -292,20 +312,20 @@ isolated function performRetryAction(string path, Request request, HttpOperation
     while (currentRetryCount < (retryCount + 1)) {
         inRequest = check populateMultipartRequest(inRequest);
         var backendResponse = invokeEndpoint(path, inRequest, requestAction, httpClient, verb = verb);
-        if (backendResponse is Response) {
+        if backendResponse is Response {
             int responseStatusCode = backendResponse.statusCode;
-            if ((statusCodes.indexOf(responseStatusCode) is int) && currentRetryCount < (retryCount)) {
+            if (statusCodes.indexOf(responseStatusCode) is int) && currentRetryCount < (retryCount) {
                 [interval, currentRetryCount] =
                                 calculateEffectiveIntervalAndRetryCount(retryClient, currentRetryCount, interval,
                                 backOffFactor, maxWaitInterval);
             } else {
                 return backendResponse;
             }
-        } else if (backendResponse is HttpFuture) {
+        } else if backendResponse is HttpFuture {
             var response = httpClient->getResponse(backendResponse);
-            if (response is Response) {
+            if response is Response {
                 int responseStatusCode = response.statusCode;
-                if ((statusCodes.indexOf(responseStatusCode) is int) && currentRetryCount < (retryCount)) {
+                if (statusCodes.indexOf(responseStatusCode) is int) && currentRetryCount < (retryCount) {
                     [interval, currentRetryCount] =
                                     calculateEffectiveIntervalAndRetryCount(retryClient, currentRetryCount, interval,
                                     backOffFactor, maxWaitInterval);
@@ -319,11 +339,13 @@ isolated function performRetryAction(string path, Request request, HttpOperation
                                 backOffFactor, maxWaitInterval);
                 httpConnectorErr = response;
             }
-        } else {
+        } else if backendResponse is ClientError {
             [interval, currentRetryCount] =
                             calculateEffectiveIntervalAndRetryCount(retryClient, currentRetryCount, interval,
                             backOffFactor, maxWaitInterval);
             httpConnectorErr = backendResponse;
+        } else {
+            panic error ClientError("invalid response type received");
         }
         runtime:sleep(interval);
     }
@@ -333,7 +355,7 @@ isolated function performRetryAction(string path, Request request, HttpOperation
 isolated function calculateEffectiveIntervalAndRetryCount(RetryClient retryClient, int currentRetryCount,
         decimal currentDelay, float backOffFactor, decimal maxWaitInterval) returns [decimal, int] {
     decimal interval = currentDelay;
-    if (currentRetryCount != 0) {
+    if currentRetryCount != 0 {
         interval = getWaitTime(backOffFactor, maxWaitInterval, interval);
     }
     int retryCount = currentRetryCount + 1;

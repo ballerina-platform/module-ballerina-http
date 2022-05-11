@@ -40,15 +40,14 @@ final http:Client simpleClientEP = check new("http://localhost:8089", conf03);
 service /cb on circuitBreakerEP03 {
 
     resource function 'default getstate(http:Caller caller, http:Request request) {
-        http:CircuitBreakerClient cbClient = <http:CircuitBreakerClient>simpleClientEP.httpClient;
         http:Response|error backendRes = simpleClientEP->forward("/simple", request);
-        http:CircuitState currentState = cbClient.getCurrentState();
-        if (backendRes is http:Response) {
+        http:CircuitState currentState = simpleClientEP.getCircuitBreakerCurrentState();
+        if backendRes is http:Response {
             if (!(currentState == http:CB_CLOSED_STATE)) {
                 backendRes.setPayload("Circuit Breaker is not in correct state state");
             }
             error? responseToCaller = caller->respond(backendRes);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
@@ -56,7 +55,7 @@ service /cb on circuitBreakerEP03 {
             response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
             response.setPayload(backendRes.message());
             error? responseToCaller = caller->respond(response);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         }
@@ -67,7 +66,7 @@ service /simple on new http:Listener(8089) {
     
     resource function 'default .(http:Caller caller, http:Request req) {
         error? responseToCaller = caller->respond("Hello World!!!");
-        if (responseToCaller is error) {
+        if responseToCaller is error {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
@@ -77,8 +76,8 @@ service /simple on new http:Listener(8089) {
 final http:Client testGetStateClient = check new("http://localhost:9309");
 
 @test:Config{ dataProvider:getStateResponseDataProvider }
-function testGetState(DataFeed dataFeed) {
-    invokeApiAndVerifyResponse(testGetStateClient, "/cb/getstate", dataFeed);
+function testGetState(DataFeed dataFeed) returns error? {
+    check invokeApiAndVerifyResponse(testGetStateClient, "/cb/getstate", dataFeed);
 }
 
 function getStateResponseDataProvider() returns DataFeed[][] {

@@ -34,7 +34,7 @@ listener http:Listener mutualSSLListener = new(9217, mutualSslCertServiceConf);
 
 service /mutualSSLService on mutualSSLListener {
 
-    resource function get .(http:Caller caller, http:Request req) {
+    resource function get .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         string expectedCert = "MIIDsTCCApmgAwIBAgIUAcBP5M4LISxVgyGsnJohqmsCN/kwDQYJKoZIhvcNAQELBQAwaDELMAkGA1UEBhMCTEsx"
                     + "EDAOBgNVBAgMB1dlc3Rlcm4xEDAOBgNVBAcMB0NvbG9tYm8xDTALBgNVBAoMBHdzbzIxEjAQBgNVBAsMCWJhbGxlcmluYTE"
@@ -50,10 +50,10 @@ service /mutualSSLService on mutualSSLListener {
                     + "D3WwdzAO8kZheemiZM5FZYhaXkBymNNe7qvL/aC6CuwyC3n+4GOtV+xabmH4T/p7HEcvq2SY0YGTpJ0OcUlvJ3UqzhTieK67"
                     + "dSFKmDN3hOBrxacFV9ybzub67erPkQpV4GpJUW9HShp0qXr6WuX1hg7WA6RgneWkq3y2h6sts/c5S/dAP8KlqghvEdv8lnAc"
                     + "SqjN3kSTim/JMMe4kChtjUE7C1Ag==";
-        if (req.mutualSslHandshake["status"] == "passed") {
+        if req.mutualSslHandshake["status"] == "passed" {
             string? cert = req.mutualSslHandshake["base64EncodedCert"];
-            if (cert is string) {
-                if (cert == expectedCert) {
+            if cert is string {
+                if cert == expectedCert {
                     res.setTextPayload("Response received");
                 } else {
                     res.setTextPayload("Expected cert not found");
@@ -62,7 +62,7 @@ service /mutualSSLService on mutualSSLListener {
                 res.setTextPayload("Cert not found");
             }
         }
-        checkpanic caller->respond( res);
+        check caller->respond( res);
     }
 }
 
@@ -77,12 +77,12 @@ http:ClientConfiguration mutualSslCertClientConf1 = {
 };
 
 @test:Config {}
-public function testMutualSslWithCerts1() {
-    http:Client clientEP = checkpanic new("https://localhost:9217", mutualSslCertClientConf1);
+public function testMutualSslWithCerts1() returns error? {
+    http:Client clientEP = check new("https://localhost:9217", mutualSslCertClientConf1);
     http:Response|error resp = clientEP->get("/mutualSSLService/");
-    if (resp is http:Response) {
+    if resp is http:Response {
         var payload = resp.getTextPayload();
-        if (payload is string) {
+        if payload is string {
             test:assertEquals(payload, "Response received");
         } else {
             test:assertFail(msg = "Found unexpected output: " +  payload.message());
@@ -102,11 +102,11 @@ http:ClientConfiguration mutualSslCertClientConf2 = {
 };
 
 @test:Config {}
-public function testMutualSslWithCerts2() {
-    http:Client clientEP = checkpanic new("https://localhost:9217", mutualSslCertClientConf2);
+public function testMutualSslWithCerts2() returns error? {
+    http:Client clientEP = check new("https://localhost:9217", mutualSslCertClientConf2);
     http:Response|error resp = clientEP->get("/mutualSSLService/");
     string expectedErrMsg = "SSL connection failed:unable to find valid certification path to requested target";
-    if (resp is error) {
+    if resp is error {
         test:assertTrue(resp.message().includes(expectedErrMsg));
     } else {
         test:assertFail(msg = "Expected mutual SSL error not found");
@@ -124,12 +124,12 @@ http:ClientConfiguration mutualSslCertClientConf3 = {
 };
 
 @test:Config {}
-public function testMutualSslWithCerts3() {
-    http:Client clientEP = checkpanic new("https://localhost:9217", mutualSslCertClientConf3);
+public function testMutualSslWithCerts3() returns error? {
+    http:Client clientEP = check new("https://localhost:9217", mutualSslCertClientConf3);
     http:Response|error resp = clientEP->get("/mutualSSLService/");
-    if (resp is http:Response) {
+    if resp is http:Response {
         var payload = resp.getTextPayload();
-        if (payload is string) {
+        if payload is string {
             test:assertEquals(payload, "Response received");
         } else {
             test:assertFail(msg = "Found unexpected output: " +  payload.message());

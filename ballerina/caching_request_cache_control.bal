@@ -40,40 +40,40 @@ public class RequestCacheControl {
         string[] directives = [];
         int i = 0;
 
-        if (self.noCache) {
+        if self.noCache {
             directives[i] = NO_CACHE;
             i += 1;
         }
 
-        if (self.noStore) {
+        if self.noStore {
             directives[i] = NO_STORE;
             i += 1;
         }
 
-        if (self.noTransform) {
+        if self.noTransform {
             directives[i] = NO_TRANSFORM;
             i += 1;
         }
 
-        if (self.onlyIfCached) {
+        if self.onlyIfCached {
             directives[i] = ONLY_IF_CACHED;
             i += 1;
         }
 
-        if (self.maxAge >= 0d) {
+        if self.maxAge >= 0d {
             directives[i] = MAX_AGE + "=" + self.maxAge.toString();
             i += 1;
         }
 
-        if (self.maxStale == MAX_STALE_ANY_AGE) {
+        if self.maxStale == MAX_STALE_ANY_AGE {
             directives[i] = MAX_STALE;
             i += 1;
-        } else if (self.maxStale >= 0d) {
+        } else if self.maxStale >= 0d {
             directives[i] = MAX_STALE + "=" + self.maxStale.toString();
             i += 1;
         }
 
-        if (self.minFresh >= 0d) {
+        if self.minFresh >= 0d {
             directives[i] = MIN_FRESH + "=" + self.minFresh.toString();
             i += 1;
         }
@@ -84,8 +84,8 @@ public class RequestCacheControl {
 
 isolated function setRequestCacheControlHeader(Request request) {
     var requestCacheControl = request.cacheControl;
-    if (requestCacheControl is RequestCacheControl) {
-        if (!request.hasHeader(CACHE_CONTROL)) {
+    if requestCacheControl is RequestCacheControl {
+        if !request.hasHeader(CACHE_CONTROL) {
             request.setHeader(CACHE_CONTROL, requestCacheControl.buildCacheControlDirectives());
         }
     }

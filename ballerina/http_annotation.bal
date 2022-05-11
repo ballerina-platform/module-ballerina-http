@@ -24,6 +24,7 @@
 # + mediaTypeSubtypePrefix - Service specific media-type subtype prefix
 # + treatNilableAsOptional - Treat Nilable parameters as optional
 # + interceptors - An array of interceptor services
+# + openApiDefinition - The generated OpenAPI definition for the HTTP service. This is auto-generated at compile-time if OpenAPI doc auto generation is enabled
 public type HttpServiceConfig record {|
     string host = "b7a.default";
     CompressionConfig compression = {};
@@ -32,7 +33,8 @@ public type HttpServiceConfig record {|
     ListenerAuthConfig[] auth?;
     string mediaTypeSubtypePrefix?;
     boolean treatNilableAsOptional = true;
-    (RequestInterceptor|RequestErrorInterceptor)[]? interceptors = ();
+    Interceptor[] interceptors?;
+    byte[] openApiDefinition = [];
 |};
 
 # Configurations for CORS support.
@@ -87,7 +89,8 @@ public annotation HttpPayload Payload on parameter, return;
 #
 # + respondType - Specifies the type of response
 public type HttpCallerInfo record {|
-    typedesc<ResponseMessage> respondType?;
+    // TODO : allow error type once the limitation in typedesc is resolved
+    typedesc<ResponseMessage|StatusCodeResponse|Error> respondType?;
 |};
 
 # The annotation which is used to configure the type of the response.

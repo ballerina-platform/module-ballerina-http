@@ -17,9 +17,7 @@
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener testEP = new(requestTest2);
-
-service /MyService on testEP {
+service /MyService on generalListener {
 
     resource function post myResource(http:Caller caller, http:Request req) returns error? {
         _ = check req.getTextPayload();
@@ -30,7 +28,7 @@ service /MyService on testEP {
     }
 }
 
-final http:Client requestClient2 = check new("http://localhost:" + requestTest2.toString());
+final http:Client requestClient2 = check new("http://localhost:" + generalPort.toString());
 
 @test:Config {}
 public function testAccessingPayloadAsTextAndJSON()  {
@@ -39,7 +37,7 @@ public function testAccessingPayloadAsTextAndJSON()  {
     http:Request req = new;
     req.setTextPayload(payload);
     http:Response|error response = requestClient2->post(path, req);
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonPayload(response.getTextPayload(), "bar");
     } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());

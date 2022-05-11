@@ -16,10 +16,9 @@
 
 import ballerina/http;
 import ballerina/log;
-import ballerina/io;
 import ballerina/test;
 
-final http:Client h2Client = check new("http://localhost:9127", {
+final http:Client h2Client = check new("http://localhost:9100", {
     httpVersion: "2.0",
     http2Settings: {
         http2PriorKnowledge: true
@@ -27,14 +26,14 @@ final http:Client h2Client = check new("http://localhost:9127", {
     timeout: 300
 });
 
-service /helloWorld on new http:Listener(9127, {httpVersion: "2.0"}) {
+service /http2Continue on generalHTTP2Listener {
 
     resource function post abnormalResource(http:Caller caller, http:Request request) {
         error? result = caller->continue();
         handleRespError(result);
         http:Response res = new;
         var payload = request.getTextPayload();
-        if (payload is string) {
+        if payload is string {
             res.statusCode = 200;
             res.setPayload(payload);
             var result1 = caller->respond(res);
@@ -50,30 +49,29 @@ service /helloWorld on new http:Listener(9127, {httpVersion: "2.0"}) {
 
 service /continueService on new http:Listener(9128, {httpVersion: "2.0"}) {
 
-    resource function get initial(http:Caller caller, http:Request req) {
-        io:println("test100ContinueResource");
-        http:Response|error response = h2Client->post("/helloWorld/abnormalResource", "100 continue response should be ignored by this client");
-        if (response is http:Response) {
-            checkpanic caller->respond(response);
+    resource function get initial(http:Caller caller, http:Request req) returns error? {
+        http:Response|error response = h2Client->post("/http2Continue/abnormalResource", "100 continue response should be ignored by this client");
+        if response is http:Response {
+            check caller->respond(response);
         } else {
-            checkpanic caller->respond("Error sending client request");
+            check caller->respond("Error sending client request");
         }
     }
 }
 
 function handleRespError(error? result) {
-    if (result is error) {
+    if result is error {
         log:printError(result.message(), 'error = result);
     }
 }
 
 @test:Config {}
-public function testUnexpected100ContinueResponse() {
-    http:Client clientEP = checkpanic new("http://localhost:9128");
+public function testUnexpected100ContinueResponse() returns error? {
+    http:Client clientEP = check new("http://localhost:9128");
     http:Response|error resp = clientEP->get("/continueService/initial");
-    if (resp is http:Response) {
+    if resp is http:Response {
         var payload = resp.getTextPayload();
-        if (payload is string) {
+        if payload is string {
             test:assertEquals(payload, "100 continue response should be ignored by this client");
         } else {
             test:assertFail(msg = "Found unexpected output: " +  payload.message());

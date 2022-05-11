@@ -22,7 +22,6 @@ import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.flags.SymbolFlags;
 import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.MethodType;
-import io.ballerina.runtime.api.types.ObjectType;
 import io.ballerina.runtime.api.types.ServiceType;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
@@ -39,12 +38,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -64,6 +60,7 @@ public class HttpService implements Service {
     private static final BString CORS_FIELD = StringUtils.fromString("cors");
     private static final BString VERSIONING_FIELD = StringUtils.fromString("versioning");
     private static final BString HOST_FIELD = StringUtils.fromString("host");
+    private static final BString OPENAPI_DEF_FIELD = StringUtils.fromString("openApiDefinition");
     private static final BString MEDIA_TYPE_SUBTYPE_PREFIX = StringUtils.fromString("mediaTypeSubtypePrefix");
     private static final BString TREAT_NILABLE_AS_OPTIONAL = StringUtils.fromString("treatNilableAsOptional");
 
@@ -82,6 +79,7 @@ public class HttpService implements Service {
     private boolean treatNilableAsOptional = true;
     private List<HTTPInterceptorServicesRegistry> interceptorServicesRegistries;
     private BArray balInterceptorServicesArray;
+    private byte[] introspectionPayload = new byte[0];
 
     protected HttpService(BObject service, String basePath) {
         this.balService = service;
@@ -205,6 +203,14 @@ public class HttpService implements Service {
         }
     }
 
+    public void setIntrospectionPayload(byte[] introspectionPayload) {
+        this.introspectionPayload = introspectionPayload.clone();
+    }
+
+    public byte[] getIntrospectionPayload() {
+        return this.introspectionPayload.clone();
+    }
+
     @Override
     public URITemplate<Resource, HttpCarbonMessage> getUriTemplate() throws URITemplateException {
         if (uriTemplate == null) {
@@ -222,6 +228,7 @@ public class HttpService implements Service {
             httpService.setChunkingConfig(serviceConfig.get(HttpConstants.ANN_CONFIG_ATTR_CHUNKING).toString());
             httpService.setCorsHeaders(CorsHeaders.buildCorsHeaders(serviceConfig.getMapValue(CORS_FIELD)));
             httpService.setHostName(serviceConfig.getStringValue(HOST_FIELD).getValue().trim());
+            httpService.setIntrospectionPayload(serviceConfig.getArrayValue(OPENAPI_DEF_FIELD).getByteArray());
             if (serviceConfig.containsKey(MEDIA_TYPE_SUBTYPE_PREFIX)) {
                 httpService.setMediaTypeSubtypePrefix(serviceConfig.getStringValue(MEDIA_TYPE_SUBTYPE_PREFIX)
                         .getValue().trim());
@@ -244,15 +251,13 @@ public class HttpService implements Service {
             updateResourceTree(httpService, httpResources, HttpResource.buildHttpResource(resource, httpService));
         }
 
-        httpService.getIntrospectionDocName().ifPresent(openApiDocName -> {
-            String filePath = "resources/ballerina/http/" + openApiDocName + ".json";
-            URL resourceUrl = HttpIntrospectionResource.class.getClassLoader().getResource(filePath);
-            if (Objects.nonNull(resourceUrl)) {
-                updateResourceTree(httpService, httpResources, new HttpIntrospectionResource(httpService, filePath));
-            } else {
-                log.debug("OpenAPI specification document does not exist in path: '" + filePath + "'");
-            }
-        });
+        byte[] introspectionPayload = httpService.getIntrospectionPayload();
+        if (introspectionPayload.length > 0) {
+            updateResourceTree(httpService, httpResources, new HttpIntrospectionResource(httpService,
+                                                                                         introspectionPayload));
+        } else {
+            log.debug("OpenAPI definition is not available");
+        }
         httpService.setResources(httpResources);
     }
 
@@ -285,19 +290,6 @@ public class HttpService implements Service {
 
     protected void setIntrospectionResourcePathHeaderValue(String introspectionResourcePath) {
         this.introspectionResourcePath = introspectionResourcePath;
-    }
-
-    protected Optional<String> getIntrospectionDocName() {
-        ObjectType objType = this.balService.getType();
-        if (Objects.nonNull(objType)) {
-            return objType.getAnnotations().entrySet().stream()
-                    .filter(e -> e.getKey().toString().contains(HttpConstants.ANN_NAME_HTTP_INTROSPECTION_DOC_CONFIG))
-                    .findFirst()
-                    .map(Map.Entry::getValue)
-                    .filter(e -> e instanceof BMap)
-                    .map(e -> ((BMap) e).getStringValue(HttpConstants.ANN_FIELD_DOC_NAME).getValue().trim());
-        }
-        return Optional.empty();
     }
 
     public void setInterceptorServicesRegistries(List<HTTPInterceptorServicesRegistry> interceptorServicesRegistries) {
@@ -348,7 +340,7 @@ public class HttpService implements Service {
             BObject interceptorService = (BObject) interceptorServices.get(i);
             HTTPInterceptorServicesRegistry servicesRegistry = new HTTPInterceptorServicesRegistry();
             servicesRegistry.setServicesType(HttpUtil.getInterceptorServiceType(interceptorService));
-            servicesRegistry.registerInterceptorService(runtime, interceptorService, service.getBasePath(), false);
+            servicesRegistry.registerInterceptorService(interceptorService, service.getBasePath(), false);
             servicesRegistry.setRuntime(runtime);
             interceptorServicesRegistries.add(servicesRegistry);
         }

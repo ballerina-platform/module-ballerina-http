@@ -17,59 +17,55 @@
 import ballerina/http;
 import ballerina/test;
 
-listener http:Listener priorEp1 = new(9111, { httpVersion: "2.0" });
-listener http:Listener priorEp2 = new(9112, { httpVersion: "2.0" });
-
-final http:Client h2WithPriorKnowledge = check new("http://localhost:9112", httpVersion = "2.0", http2Settings = {
+final http:Client h2WithPriorKnowledge = check new("http://localhost:9101", httpVersion = "2.0", http2Settings = {
                 http2PriorKnowledge: true }, poolConfig = {});
 
-final http:Client h2WithoutPriorKnowledge = check new("http://localhost:9112", { httpVersion: "2.0", http2Settings: {
+final http:Client h2WithoutPriorKnowledge = check new("http://localhost:9101", { httpVersion: "2.0", http2Settings: {
                 http2PriorKnowledge: false }, poolConfig: {} });
 
-service /priorKnowledge on priorEp1 {
+service /priorKnowledge on generalHTTP2Listener {
 
-    resource function get 'on(http:Caller caller, http:Request req) {
+    resource function get 'on(http:Caller caller, http:Request req) returns error? {
         http:Response|error response = h2WithPriorKnowledge->post("/priorKnowledgeTestBackEnd", "Prior knowledge is enabled");
-        if (response is http:Response) {
-            checkpanic caller->respond(response);
+        if response is http:Response {
+            check caller->respond(response);
         } else {
-            checkpanic caller->respond("Error in client post with prior knowledge on");
+            check caller->respond("Error in client post with prior knowledge on");
         }
     }
 
-    resource function get off(http:Caller caller, http:Request req) {
+    resource function get off(http:Caller caller, http:Request req) returns error? {
         http:Response|error response = h2WithoutPriorKnowledge->post("/priorKnowledgeTestBackEnd", "Prior knowledge is disabled");
-        if (response is http:Response) {
-            checkpanic caller->respond(response);
+        if response is http:Response {
+            check caller->respond(response);
         } else {
-            checkpanic caller->respond("Error in client post with prior knowledge off");
+            check caller->respond("Error in client post with prior knowledge off");
         }
     }
 }
 
-service /priorKnowledgeTestBackEnd on priorEp2 {
+service /priorKnowledgeTestBackEnd on HTTP2BackendListener {
 
-    resource function post .(http:Caller caller, http:Request req) {
+    resource function post .(http:Caller caller, http:Request req) returns error? {
         string outboundResponse = "";
-        if (req.hasHeader(http:CONNECTION) && req.hasHeader(http:UPGRADE)) {
-            string[] connHeaders = checkpanic req.getHeaders(http:CONNECTION);
+        if req.hasHeader(http:CONNECTION) && req.hasHeader(http:UPGRADE) {
+            string[] connHeaders = check req.getHeaders(http:CONNECTION);
             outboundResponse = connHeaders[1];
-            outboundResponse = outboundResponse + "--" + checkpanic req.getHeader(http:UPGRADE);
+            outboundResponse = outboundResponse + "--" + check req.getHeader(http:UPGRADE);
         } else {
             outboundResponse = "Connection and upgrade headers are not present";
         }
 
-        outboundResponse = outboundResponse + "--" + checkpanic req.getTextPayload();
-        checkpanic caller->respond(outboundResponse);
+        outboundResponse = outboundResponse + "--" + check req.getTextPayload();
+        check caller->respond(outboundResponse);
     }
 }
 
 @test:Config {}
-public function testPriorKnowledgeOn() {
-    final http:Client clientEP = checkpanic new("http://localhost:9111");
-    http:Request req = new;
+public function testPriorKnowledgeOn() returns error? {
+    final http:Client clientEP = check new("http://localhost:9100");
     http:Response|error resp = clientEP->get("/priorKnowledge/on");
-    if (resp is http:Response) {
+    if resp is http:Response {
         assertTextPayload(resp.getTextPayload(), "Connection and upgrade headers are not present--Prior knowledge is enabled");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -77,10 +73,10 @@ public function testPriorKnowledgeOn() {
 }
 
 @test:Config {}
-public function testPriorKnowledgeOff() {
-    final http:Client clientEP = checkpanic new("http://localhost:9111");
+public function testPriorKnowledgeOff() returns error? {
+    final http:Client clientEP = check new("http://localhost:9100");
     http:Response|error resp = clientEP->get("/priorKnowledge/off");
-    if (resp is http:Response) {
+    if resp is http:Response {
         assertTextPayload(resp.getTextPayload(), "HTTP2-Settings,upgrade--h2c--Prior knowledge is disabled");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());

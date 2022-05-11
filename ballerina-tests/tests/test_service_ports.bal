@@ -14,11 +14,18 @@
 // specific language governing permissions and limitations
 // under the License.
 
-const int requestTest = 9000;
-const int requestTest2 = 9093;
-const int databindingTest = 9001;
-const int producesConsumesTest = 9002;
-const int uriMatrixParamMatchingTest = 9003;
+import ballerina/http;
+
+listener http:Listener generalListener = new(generalPort);
+
+listener http:Listener generalHTTP2Listener = new http:Listener(http2GeneralPort, {httpVersion: "2.0"});
+listener http:Listener HTTP2BackendListener = new http:Listener(http2BackendPort, {httpVersion: "2.0"});
+
+const int generalPort = 9000;
+
+const int http2GeneralPort = 9100;
+const int http2BackendPort = 9101;
+
 const int uriTemplateTest1 = 9004;
 const int uriTemplateTest2 = 9005;
 const int uriTemplateDefaultTest1 = 9006;
@@ -36,8 +43,6 @@ const int serviceEndpointTest = 9016;
 const int parseHeaderTest = 9017;
 const int multipartRequestTest = 9018;
 const int responseTest = 9094;
-const int entityTest = 9097;
-const int mimeTest = 9096;
 const int proxyTest1 = 9019;
 const int proxyTest2 = 9020;
 const int streamTest1 = 9021;
@@ -128,34 +133,50 @@ const int cacheAnnotationTestPort2 = 9578;
 const int serviceMediaTypeSubtypePrefixPort = 9579;
 const int queryParamBindingIdealTestPort = 9580;
 const int headerParamBindingIdealTestPort = 9581;
-const int clientWithoutSchemeTestPort = 9582;
-const int databindingTestWithInterceptorsPort = 9583;
-const int defaultRequestInterceptorTestPort = 9584;
-const int requestInterceptorWithCallerRespondTestPort = 9585;
-const int requestInterceptorReturnsErrorTestPort = 9586;
-const int requestErrorInterceptorTestPort = 9587;
-const int requestInterceptorDataBindingTestPort1 = 9588;
-const int requestInterceptorDataBindingTestPort2 = 9589;
-const int requestInterceptorSetPayloadTestPort = 9590;
-const int requestInterceptorWithoutCtxNextTestPort = 9591;
-const int requestInterceptorHttpVerbTestPort = 9592;
-const int requestInterceptorBasePathTestPort = 9593;
-const int getRequestInterceptorBasePathTestPort = 9594;
-const int requestInterceptorSkipTestPort = 9595;
-const int requestInterceptorNegativeTestPort1 = 9596;
-const int requestInterceptorNegativeTestPort2 = 9597;
-const int requestInterceptorNegativeTestPort3 = 9598;
-const int requestInterceptorNegativeTestPort4 = 9599;
-const int requestInterceptorNegativeTestPort5 = 9600;
-const int requestInterceptorNegativeTestPort6 = 9601;
-const int requestInterceptorCallerRespondContinueTestPort = 9602;
-const int requestInterceptorStringPayloadBindingTestPort = 9603;
-const int requestInterceptorRecordPayloadBindingTestPort = 9604;
-const int requestInterceptorRecordArrayPayloadBindingTestPort = 9605;
-const int requestInterceptorByteArrayPayloadBindingTestPort = 9606;
-const int requestInterceptorWithQueryParamTestPort = 9607;
-const int requestInterceptorServiceConfigTestPort1 = 9608;
-const int requestInterceptorServiceConfigTestPort2 = 9609;
+const int clientSchemeTestHttpListenerTestPort = 9582;
+const int requestInterceptorWithCallerRespondTestPort = 9583;
+const int requestInterceptorDataBindingTestPort1 = 9584;
+const int requestInterceptorDataBindingTestPort2 = 9585;
+const int requestInterceptorWithoutCtxNextTestPort = 9586;
+const int requestInterceptorBasePathTestPort = 9587;
+const int getRequestInterceptorBasePathTestPort = 9588;
+const int requestInterceptorSkipTestPort = 9589;
+const int requestInterceptorNegativeTestPort1 = 9590;
+const int requestInterceptorNegativeTestPort2 = 9591;
+const int requestInterceptorNegativeTestPort3 = 9592;
+const int requestInterceptorNegativeTestPort4 = 9593;
+const int requestInterceptorNegativeTestPort5 = 9594;
+const int requestInterceptorNegativeTestPort6 = 9595;
+const int requestInterceptorCallerRespondContinueTestPort = 9596;
+const int requestInterceptorStringPayloadBindingTestPort = 9597;
+const int requestInterceptorRecordPayloadBindingTestPort = 9598;
+const int requestInterceptorRecordArrayPayloadBindingTestPort = 9599;
+const int requestInterceptorByteArrayPayloadBindingTestPort = 9600;
+const int requestInterceptorWithQueryParamTestPort = 9601;
+const int requestInterceptorServiceConfigTestPort1 = 9602;
+const int requestInterceptorServiceConfigTestPort2 = 9603;
+const int clientFormUrlEncodedTestPort = 9604;
+const int typedHeadersTestPort = 9605;
+const int urlEncodedResponsesTestPort = 9606;
+const int readonlyQueryTestPort = 9607;
+const int responseInterceptorWithCallerRespondTestPort = 9608;
+const int responseInterceptorCallerRespondContinueTestPort = 9609;
+const int responseInterceptorWithoutCtxNextTestPort = 9610;
+const int responseInterceptorSkipTestPort = 9611;
+const int requestInterceptorCtxNextTestPort = 9612;
+const int serviceErrorHandlingTestPort = 9613;
+const int noServiceRegisteredTestPort = 9614;
+const int interceptorBasicTestsPort1 = 9615;
+const int interceptorBasicTestsPort2 = 9616;
+const int interceptorBasicTestsPort3 = 9617;
+const int responseInterceptorReturnsErrorTestPort = 9618;
+const int interceptorReturnsStatusTestPort = 9619;
+const int interceptorExecutionOrderTestPort = 9620;
+const int responseInterceptorNegativeTestPort1 = 9621;
+const int responseInterceptorCallerRespondErrorTestPort = 9622;
+const int requestInterceptorCallerRespondErrorTestPort = 9623;
+const int clientSchemeTestHttpsListenerTestPort = 9624;
+const int callerRespondTestPort = 9625;
 
 //HTTP2
 const int serverPushTestPort1 = 9701;

@@ -33,45 +33,45 @@ final http:Client utdClient3 = check new("http://localhost:" + uriTemplateDefaul
 }
 service /serviceName on utdtestEP {
 
-    resource function get test1 (http:Caller caller, http:Request req) {
+    resource function get test1 (http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         json responseJson = {"echo":"dispatched to service name"};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
 service "/" on utdtestEP {
 
-    resource function 'default test1(http:Caller caller, http:Request req) {
+    resource function 'default test1(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         json responseJson = {"echo":"dispatched to empty service name"};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
     // proxy
-    resource function 'default [string... s](http:Caller caller, http:Request req) {
+    resource function 'default [string... s](http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         json responseJson = {"echo":"dispatched to a proxy service"};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
 service /serviceWithNoAnnotation on utdtestEP {
 
-    resource function 'default test1(http:Caller caller, http:Request req) {
+    resource function 'default test1(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         json responseJson = {"echo":"dispatched to a service without an annotation"};
         res.setJsonPayload(responseJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
 service on utdmockEP1 {
-    resource function 'default testResource(http:Caller caller, http:Request req) {
-        checkpanic caller->respond({"echo":"dispatched to the service that neither has an explicitly defined basepath nor a name"});
+    resource function 'default testResource(http:Caller caller, http:Request req) returns error? {
+        check caller->respond({"echo":"dispatched to the service that neither has an explicitly defined basepath nor a name"});
     }
 }
 
@@ -79,8 +79,8 @@ service on utdmockEP1 {
     compression: {enable: http:COMPRESSION_AUTO}
 }
 service on utdmockEP2 {
-    resource function 'default testResource(http:Caller caller, http:Request req) {
-        checkpanic caller->respond("dispatched to the service that doesn't have a name but has a config without a basepath");
+    resource function 'default testResource(http:Caller caller, http:Request req) returns error? {
+        check caller->respond("dispatched to the service that doesn't have a name but has a config without a basepath");
     }
 }
 
@@ -107,7 +107,7 @@ service /call on utdtestEP {
 @test:Config {}
 function testServiceNameDispatchingWhenBasePathUndefined() {
     http:Response|error response = utdClient1->get("/serviceName/test1");
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonValue(response.getJsonPayload(), "echo", "dispatched to service name");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -118,7 +118,7 @@ function testServiceNameDispatchingWhenBasePathUndefined() {
 @test:Config {}
 function testServiceNameDispatchingWithEmptyBasePath() {
     http:Response|error response = utdClient1->get("/test1");
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonValue(response.getJsonPayload(), "echo", "dispatched to empty service name");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -129,7 +129,7 @@ function testServiceNameDispatchingWithEmptyBasePath() {
 @test:Config {}
 function testServiceNameDispatchingWhenAnnotationUnavailable() {
     http:Response|error response = utdClient1->get("/serviceWithNoAnnotation/test1");
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonValue(response.getJsonPayload(), "echo", "dispatched to a service without an annotation");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -139,7 +139,7 @@ function testServiceNameDispatchingWhenAnnotationUnavailable() {
 @test:Config {}
 function testPureProxyService() {
     http:Response|error response = utdClient1->get("/");
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonValue(response.getJsonPayload(), "echo", "dispatched to a proxy service");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -150,7 +150,7 @@ function testPureProxyService() {
 @test:Config {}
 function testDispatchingToDefault() {
     http:Response|error response = utdClient1->get("/serviceEmptyName/hello");
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonValue(response.getJsonPayload(), "echo", "dispatched to a proxy service");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -161,7 +161,7 @@ function testDispatchingToDefault() {
 @test:Config {}
 function testServiceWithNoNameAndNoConfig() {
     http:Response|error response = utdClient2->get("/testResource");
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonValue(response.getJsonPayload(), "echo", 
                     "dispatched to the service that neither has an explicitly defined basepath nor a name");
     } else {
@@ -173,7 +173,7 @@ function testServiceWithNoNameAndNoConfig() {
 @test:Config {}
 function testServiceWithNoName() {
     http:Response|error response = utdClient3->get("/testResource");
-    if (response is http:Response) {
+    if response is http:Response {
         assertTextPayload(response.getTextPayload(), 
                     "dispatched to the service that doesn't have a name but has a config without a basepath");
     } else {
@@ -184,21 +184,21 @@ function testServiceWithNoName() {
 @test:Config {}
 function testUnmatchedURIPathGettingMatchedToPathParam() {
     string|error response = utdClient1->get("/call/abcde");
-    if (response is http:ClientRequestError) {
+    if response is http:ClientRequestError {
         test:assertEquals(response.message(), "Not Found", msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected type");
     }
 
     response = utdClient1->get("/call/abcd");
-    if (response is string) {
+    if response is string {
         test:assertEquals(response, "abcd", msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found error: " + response.message());
     }
 
     response = utdClient1->get("/call/abc/d");
-    if (response is string) {
+    if response is string {
         test:assertEquals(response, "abc/path", msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found error: " + response.message());

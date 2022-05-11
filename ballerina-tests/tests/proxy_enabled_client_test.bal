@@ -23,7 +23,7 @@
 //     resource function post server(http:Caller caller, http:Request req) {
 //         http:Response res = new;
 //         res.setTextPayload("Backend server sent the response");
-//         checkpanic caller->respond(res);
+//         check caller->respond(res);
 //     }
 // }
 
@@ -37,12 +37,12 @@
 // }
 
 // function sendRequest(string url, http:Request req, http:Caller caller) {
-//     http:Client clientEP = checkpanic new(url);
+//     http:Client clientEP = check new(url);
 //     http:Response|error response = clientEP->forward("", req);
-//     if (response is http:Response) {
-//         checkpanic caller->respond(<@untainted>response);
+//     if response is http:Response {
+//         check caller->respond(<@untainted>response);
 //     } else {
-//         checkpanic caller->respond(<@untainted>response.message());
+//         check caller->respond(<@untainted>response.message());
 //     }
 // }
 
@@ -57,12 +57,12 @@
 
 // @test:Config {}
 // public function testProxyClient() {
-//     http:Client clientEP2 = checkpanic new("http://localhost:" + proxyTest1.toString(), clientEPConfig);
+//     http:Client clientEP2 = check new("http://localhost:" + proxyTest1.toString(), clientEPConfig);
 //     http:Request req = new;
 //     http:Response|error resp = clientEP2->post("/proxy/server", req);
-//     if (resp is http:Response) {
+//     if resp is http:Response {
 //         var payload = resp.getTextPayload();
-//         if (payload is string) {
+//         if payload is string {
 //             test:assertEquals(payload, "Backend server sent the response");
 //         } else {
 //             test:assertFail(msg = "Found unexpected output: " +  payload.message());

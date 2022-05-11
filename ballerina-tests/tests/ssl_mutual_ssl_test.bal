@@ -44,7 +44,7 @@ listener http:Listener echo15 = new(9116, mutualSslServiceConf);
 
 service /helloWorld15 on echo15 {
     
-    resource function get .(http:Caller caller, http:Request req) {
+    resource function get .(http:Caller caller, http:Request req) returns error? {
         string expectedCert = "MIIDdzCCAl+gAwIBAgIEfP3e8zANBgkqhkiG9w0BAQsFADBkMQswCQYDVQQGEwJVUzELMAkGA1UECBMCQ0ExF"
                         + "jAUBgNVBAcTDU1vdW50YWluIFZpZXcxDTALBgNVBAoTBFdTTzIxDTALBgNVBAsTBFdTTzIxEjAQBgNVBAMTCWxvY2Fsa"
                         + "G9zdDAeFw0xNzEwMjQwNTQ3NThaFw0zNzEwMTkwNTQ3NThaMGQxCzAJBgNVBAYTAlVTMQswCQYDVQQIEwJDQTEWMBQGA"
@@ -59,10 +59,10 @@ service /helloWorld15 on echo15 {
                         + "vDeBPSJ/scRGasZ5q2W3IenDNrfPIUhD74tFiCiqNJO91qD/LO+++3XeZzfPh8NRKkiPX7dB8WJ3YNBuQAvgRWTISpSS"
                         + "XLmqMb+7MPQVgecsepZdk8CwkRLxh3RKPJMjigmCgyvkSaoDMKAYC3iYjfUTiJ57UeqoSl0IaOFJ0wfZRFh+UytlDZa";
         http:Response res = new;
-        if (req.mutualSslHandshake["status"] == "passed") {
+        if req.mutualSslHandshake["status"] == "passed" {
             string? cert = req.mutualSslHandshake["base64EncodedCert"];
-            if (cert is string) {
-                if (cert == expectedCert) {
+            if cert is string {
+                if cert == expectedCert {
                     res.setTextPayload("hello world");
                 } else {
                     res.setTextPayload("Expected cert not found");
@@ -71,7 +71,7 @@ service /helloWorld15 on echo15 {
                 res.setTextPayload("Cert not found");
             }
         }
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
@@ -79,10 +79,10 @@ listener http:Listener echoDummy15 = new(9117);
 
 service /echoDummyService15 on echoDummy15 {
 
-    resource function post .(http:Caller caller, http:Request req) {
+    resource function post .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         res.setTextPayload("hello world");
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
@@ -107,12 +107,12 @@ http:ClientConfiguration mutualSslClientConf1 = {
 };
 
 @test:Config {}
-public function testMutualSsl1() {
-    http:Client httpClient = checkpanic new("https://localhost:9116", mutualSslClientConf1);
+public function testMutualSsl1() returns error? {
+    http:Client httpClient = check new("https://localhost:9116", mutualSslClientConf1);
     http:Response|error resp = httpClient->get("/helloWorld15/");
-    if (resp is http:Response) {
+    if resp is http:Response {
         var payload = resp.getTextPayload();
-        if (payload is string) {
+        if payload is string {
             test:assertEquals(payload, "hello world");
         } else {
             test:assertFail(msg = "Found unexpected output: " +  payload.message());
@@ -139,11 +139,11 @@ http:ClientConfiguration mutualSslClientConf2 = {
 };
 
 @test:Config {}
-public function testMutualSsl2() {
-    http:Client httpClient = checkpanic new("https://localhost:9116", mutualSslClientConf2);
+public function testMutualSsl2() returns error? {
+    http:Client httpClient = check new("https://localhost:9116", mutualSslClientConf2);
     http:Response|error resp = httpClient->get("/helloWorld15/");
     string expectedErrMsg = "SSL connection failed:unable to find valid certification path to requested target localhost/127.0.0.1:9116";
-    if (resp is error) {
+    if resp is error {
         test:assertEquals(resp.message(), expectedErrMsg);
     } else {
         test:assertFail(msg = "Expected mutual SSL error not found");
@@ -168,12 +168,12 @@ http:ClientConfiguration mutualSslClientConf3 = {
 };
 
 @test:Config {}
-public function testMutualSsl3() {
-    http:Client httpClient = checkpanic new("https://localhost:9116", mutualSslClientConf3);
+public function testMutualSsl3() returns error? {
+    http:Client httpClient = check new("https://localhost:9116", mutualSslClientConf3);
     http:Response|error resp = httpClient->get("/helloWorld15/");
-    if (resp is http:Response) {
+    if resp is http:Response {
         var payload = resp.getTextPayload();
-        if (payload is string) {
+        if payload is string {
             test:assertEquals(payload, "hello world");
         } else {
             test:assertFail(msg = "Found unexpected output: " +  payload.message());

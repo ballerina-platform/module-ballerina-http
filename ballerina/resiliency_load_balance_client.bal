@@ -47,7 +47,7 @@ public client isolated class LoadBalanceClient {
             i += 1;
         }
         var lbRule = loadBalanceClientConfig.lbRule;
-        if (lbRule is LoadBalancerRule) {
+        if lbRule is LoadBalancerRule {
             self.lbRule = lbRule;
         } else {
             LoadBalancerRoundRobinRule loadBalancerRoundRobinRule = new;
@@ -62,8 +62,7 @@ public client isolated class LoadBalanceClient {
     # + message - An HTTP outbound request or any allowed payload
     # + headers - The entity headers
     # + mediaType - The MIME type header of the request entity
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function post(string path, RequestMessage message, map<string|string[]>? headers = (),
@@ -73,8 +72,8 @@ public client isolated class LoadBalanceClient {
     } external;
     
     private isolated function processPost(string path, RequestMessage message, TargetType targetType, 
-            string? mediaType, map<string|string[]>? headers) returns Response|PayloadType|ClientError {
-        Request req = check buildRequest(message);
+            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
+        Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         var result = self.performLoadBalanceAction(path, req, HTTP_POST);
         return processResponse(result, targetType);
@@ -86,8 +85,7 @@ public client isolated class LoadBalanceClient {
     # + message - An HTTP outbound request or any allowed payload
     # + headers - The entity headers
     # + mediaType - The MIME type header of the request entity
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function put(string path, RequestMessage message, map<string|string[]>? headers = (),
@@ -97,8 +95,8 @@ public client isolated class LoadBalanceClient {
     } external;
     
     private isolated function processPut(string path, RequestMessage message, TargetType targetType, 
-            string? mediaType, map<string|string[]>? headers) returns Response|PayloadType|ClientError {
-        Request req = check buildRequest(message);
+            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
+        Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         var result = self.performLoadBalanceAction(path, req, HTTP_PUT);
         return processResponse(result, targetType);
@@ -110,8 +108,7 @@ public client isolated class LoadBalanceClient {
     # + message - An HTTP outbound request or any allowed payload
     # + headers - The entity headers
     # + mediaType - The MIME type header of the request entity
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function patch(string path, RequestMessage message, map<string|string[]>? headers = (),
@@ -121,8 +118,8 @@ public client isolated class LoadBalanceClient {
     } external;
     
     private isolated function processPatch(string path, RequestMessage message, TargetType targetType, 
-            string? mediaType, map<string|string[]>? headers) returns Response|PayloadType|ClientError {
-        Request req = check buildRequest(message);
+            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
+        Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         var result = self.performLoadBalanceAction(path, req, HTTP_PATCH);
         return processResponse(result, targetType);
@@ -134,8 +131,7 @@ public client isolated class LoadBalanceClient {
     # + message - An optional HTTP outbound request message or any allowed payload
     # + headers - The entity headers
     # + mediaType - The MIME type header of the request entity
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function delete(string path, RequestMessage message = (), map<string|string[]>? headers = (),
@@ -145,8 +141,8 @@ public client isolated class LoadBalanceClient {
     } external;
     
     private isolated function processDelete(string path, RequestMessage message, TargetType targetType, 
-            string? mediaType, map<string|string[]>? headers) returns Response|PayloadType|ClientError {
-        Request req = check buildRequest(message);
+            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
+        Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         var result = self.performLoadBalanceAction(path, req, HTTP_DELETE);
         return processResponse(result, targetType);
@@ -166,8 +162,7 @@ public client isolated class LoadBalanceClient {
     # 
     # + path - Request path
     # + headers - The entity headers
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function get(string path, map<string|string[]>? headers = (), TargetType targetType = <>)
@@ -176,7 +171,7 @@ public client isolated class LoadBalanceClient {
     } external;
     
     private isolated function processGet(string path, map<string|string[]>? headers, TargetType targetType)
-            returns Response|PayloadType|ClientError {
+            returns Response|anydata|ClientError {
         Request req = buildRequestWithHeaders(headers);
         var result = self.performLoadBalanceAction(path, req, HTTP_GET);
         return processResponse(result, targetType);
@@ -186,8 +181,7 @@ public client isolated class LoadBalanceClient {
     #
     # + path - Request path
     # + headers - The entity headers
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function options(string path, map<string|string[]>? headers = (), TargetType targetType = <>)
@@ -196,7 +190,7 @@ public client isolated class LoadBalanceClient {
     } external;
     
     private isolated function processOptions(string path, map<string|string[]>? headers, TargetType targetType)
-            returns Response|PayloadType|ClientError {
+            returns Response|anydata|ClientError {
         Request req = buildRequestWithHeaders(headers);
         var result = self.performLoadBalanceAction(path, req, HTTP_OPTIONS);
         return processResponse(result, targetType);
@@ -209,8 +203,7 @@ public client isolated class LoadBalanceClient {
     # + message - An HTTP outbound request or any allowed payload
     # + headers - The entity headers
     # + mediaType - The MIME type header of the request entity
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function execute(string httpVerb, string path, RequestMessage message,
@@ -221,8 +214,8 @@ public client isolated class LoadBalanceClient {
     
     private isolated function processExecute(string httpVerb, string path, RequestMessage message,
             TargetType targetType, string? mediaType, map<string|string[]>? headers) 
-            returns Response|PayloadType|ClientError {
-        Request req = check buildRequest(message);
+            returns Response|anydata|ClientError {
+        Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         var result = self.performLoadBalanceExecuteAction(path, req, httpVerb);
         return processResponse(result, targetType);
@@ -232,8 +225,7 @@ public client isolated class LoadBalanceClient {
     #
     # + path - Resource path
     # + request - An HTTP request
-    # + targetType - HTTP response or the payload type (`string`, `xml`, `json`, `byte[]`,`record {| anydata...; |}`, or
-    #                `record {| anydata...; |}[]`), which is expected to be returned after data binding
+    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function forward(string path, Request request, TargetType targetType = <>)
@@ -242,7 +234,7 @@ public client isolated class LoadBalanceClient {
     } external;
 
     private isolated function processForward(string path, Request request, TargetType targetType)
-            returns Response|PayloadType|ClientError {
+            returns Response|anydata|ClientError {
         var result = self.performLoadBalanceAction(path, request, HTTP_FORWARD);
         return processResponse(result, targetType);
     }
@@ -300,7 +292,7 @@ public client isolated class LoadBalanceClient {
     isolated function performLoadBalanceExecuteAction(string path, Request request,
                                              string httpVerb) returns Response|ClientError {
         HttpOperation connectorAction = extractHttpOperation(httpVerb);
-        if (connectorAction != HTTP_NONE) {
+        if connectorAction != HTTP_NONE {
             return self.performLoadBalanceAction(path, request, connectorAction);
         } else {
             return error UnsupportedActionError("Load balancer client not supported for http method: " + httpVerb);
@@ -317,8 +309,8 @@ public client isolated class LoadBalanceClient {
         Request loadBalancerInRequest = request;
         mime:Entity requestEntity = new;
 
-        if (self.failover) {
-            if (isMultipartRequest(loadBalancerInRequest)) {
+        if self.failover {
+            if isMultipartRequest(loadBalancerInRequest) {
                 loadBalancerInRequest = check populateMultipartRequest(loadBalancerInRequest);
             } else {
                 // When performing passthrough scenarios using Load Balance connector,
@@ -341,14 +333,14 @@ public client isolated class LoadBalanceClient {
             lock {
                 loadBalanceClient = self.lbRule.getNextClient(self.loadBalanceClientsArray);
             }
-            if (loadBalanceClient is Client) {
+            if loadBalanceClient is Client {
                 var serviceResponse = invokeEndpoint(path, request, requestAction, loadBalanceClient.httpClient);
-                if (serviceResponse is Response) {
+                if serviceResponse is Response {
                     return serviceResponse;
-                } else if (serviceResponse is HttpFuture) {
+                } else if serviceResponse is HttpFuture {
                     return getInvalidTypeError();
-                } else {
-                    if (self.failover) {
+                } else if serviceResponse is ClientError {
+                    if self.failover {
                         loadBalancerInRequest = check createFailoverRequest(loadBalancerInRequest, requestEntity);
                         loadBalanceActionErrorData.httpActionErr[lbErrorIndex] = serviceResponse;
                         lbErrorIndex += 1;
@@ -356,6 +348,8 @@ public client isolated class LoadBalanceClient {
                     } else {
                         return serviceResponse;
                     }
+                } else {
+                    panic error ClientError("invalid response type received");
                 }
             } else {
                 return loadBalanceClient;
@@ -369,7 +363,7 @@ public client isolated class LoadBalanceClient {
 isolated function populateGenericLoadBalanceActionError(LoadBalanceActionErrorData loadBalanceActionErrorData)
                                                     returns ClientError {
     error[]? errArray = loadBalanceActionErrorData?.httpActionErr;
-    if (errArray is ()) {
+    if errArray is () {
         panic error("Unexpected nil");
     } else {
         int nErrs = errArray.length();

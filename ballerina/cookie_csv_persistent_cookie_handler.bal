@@ -52,23 +52,23 @@ public isolated class CsvPersistentCookieHandler {
     # + return - An error will be returned if there is any error occurred during the storing process of the cookie or else nil is returned
     public isolated function storeCookie(Cookie cookie) returns CookieHandlingError? {
         lock {
-            if (fileExist(self.fileName) && self.cookiesTable.length() == 0) {
+            if fileExist(self.fileName) && self.cookiesTable.length() == 0 {
                 var tblResult = readFile(self.fileName);
-                if (tblResult is table<myCookie> key(name, domain, path)) {
+                if tblResult is table<myCookie> key(name, domain, path) {
                     self.cookiesTable = tblResult;
                 } else {
                     return error CookieHandlingError("Error in reading the csv file", tblResult);
                 }
             }
             var tableUpdateResult = addNewCookieToTable(self.cookiesTable, cookie);
-            if (tableUpdateResult is table<myCookie> key(name, domain, path)) {
+            if tableUpdateResult is table<myCookie> key(name, domain, path) {
                 self.cookiesTable = tableUpdateResult;
             } else {
                 return error CookieHandlingError("Error in updating the records in csv file",
                 cause = tableUpdateResult);
             }
             var result = writeToFile(self.cookiesTable, self.fileName);
-            if (result is error) {
+            if result is error {
                 return error CookieHandlingError("Error in writing the csv file", result);
             }
         }
@@ -80,9 +80,9 @@ public isolated class CsvPersistentCookieHandler {
     # + return - Array of persistent cookies stored in the cookie store or else an error is returned if one occurred during the retrieval of the cookies
     public isolated function getAllCookies() returns Cookie[]|CookieHandlingError {
         Cookie[] cookies = [];
-        if (fileExist(self.fileName)) {
+        if fileExist(self.fileName) {
             var tblResult = readFile(self.fileName);
-            if (tblResult is table<myCookie> key(name, domain, path)) {
+            if tblResult is table<myCookie> key(name, domain, path) {
                 foreach var rec in tblResult {
                     CookieOptions options = {};
                     options.domain = rec.domain;
@@ -94,11 +94,11 @@ public isolated class CsvPersistentCookieHandler {
                     options.httpOnly = rec.httpOnly;
                     options.secure = rec.secure;
                     time:Utc|error t1 = time:utcFromString(rec.createdTime);
-                    if (t1 is time:Utc) {
+                    if t1 is time:Utc {
                         options.createdTime = t1;
                     }
                     time:Utc|error t2 = time:utcFromString(rec.lastAccessedTime);
-                    if (t2 is time:Utc) {
+                    if t2 is time:Utc {
                         options.lastAccessedTime = t2;
                     }
                     options.hostOnly = rec.hostOnly;
@@ -120,11 +120,11 @@ public isolated class CsvPersistentCookieHandler {
     # + path - Path of the persistent cookie to be removed
     # + return - An error will be returned if there is any error occurred during the removal of the cookie or else nil is returned
     public isolated function removeCookie(string name, string domain, string path) returns CookieHandlingError? {
-        if (fileExist(self.fileName)) {
+        if fileExist(self.fileName) {
             lock {
-                if(self.cookiesTable.length() == 0) {
+                if self.cookiesTable.length() == 0 {
                     var tblResult = readFile(self.fileName);
-                    if (tblResult is table<myCookie> key(name, domain, path)) {
+                    if tblResult is table<myCookie> key(name, domain, path) {
                         self.cookiesTable = tblResult;
                     } else {
                         return error CookieHandlingError("Error in reading the csv file", tblResult);
@@ -132,11 +132,11 @@ public isolated class CsvPersistentCookieHandler {
                 }
                 _ = self.cookiesTable.remove([name, domain, path]);
                 error? removeResults = file:remove(self.fileName);
-                if (removeResults is error) {
+                if removeResults is error {
                     return error CookieHandlingError("Error in removing the csv file", removeResults);
                 }
                 var writeResult = writeToFile(self.cookiesTable, self.fileName);
-                if (writeResult is error) {
+                if writeResult is error {
                     return error CookieHandlingError("Error in writing the csv file", writeResult);
                 }
                 return;
@@ -150,7 +150,7 @@ public isolated class CsvPersistentCookieHandler {
     # + return - An error will be returned if there is any error occurred during the removal of all the cookies or else nil is returned
     public isolated function removeAllCookies() returns CookieHandlingError? {
         error? removeResults = file:remove(self.fileName);
-        if (removeResults is error) {
+        if removeResults is error {
             return error CookieHandlingError("Error in removing the csv file", removeResults);
         }
         return;
@@ -158,7 +158,7 @@ public isolated class CsvPersistentCookieHandler {
 }
 
 isolated function validateFileExtension(string fileName) returns string|CookieHandlingError {
-    if (fileName.toLowerAscii().endsWith(".csv")) {
+    if fileName.toLowerAscii().endsWith(".csv") {
         return fileName;
     }
     return error CookieHandlingError("Invalid file format");
@@ -168,7 +168,7 @@ isolated function readFile(string fileName) returns error|table<myCookie> key(na
     io:ReadableCSVChannel rCsvChannel2 = check io:openReadableCsvFile(fileName);
     var tblResult = rCsvChannel2.toTable(myCookie, ["name", "domain", "path"]);
     closeReadableCSVChannel(rCsvChannel2);
-    if (tblResult is table<record{| anydata...; |}>) {
+    if tblResult is table<record{| anydata...;|}> {
         return <table<myCookie> key(name, domain, path)>tblResult;
     } else {
         return tblResult;
@@ -177,7 +177,7 @@ isolated function readFile(string fileName) returns error|table<myCookie> key(na
 
 isolated function closeReadableCSVChannel(io:ReadableCSVChannel csvChannel) {
     var result = csvChannel.close();
-    if (result is error) {
+    if result is error {
         log:printError("Error occurred while closing the channel: ", 'error = result);
     }
 }
@@ -193,7 +193,7 @@ returns table<myCookie> key(name, domain, path)|error {
     var expires = cookieToAdd.expires;
     string createdTime = time:utcToString(cookieToAdd.createdTime);
     string lastAccessedTime = time:utcToString(cookieToAdd.lastAccessedTime);
-    if (domain is string && path is string) {
+    if domain is string && path is string {
         myCookie c1 = { name: name, value: value, domain: domain, path: path, expires: expires is string ?
         expires : "-", maxAge: cookieToAdd.maxAge, httpOnly: cookieToAdd.httpOnly, secure: cookieToAdd.secure,
         createdTime: createdTime, lastAccessedTime: lastAccessedTime, hostOnly: cookieToAdd.hostOnly };
@@ -211,7 +211,7 @@ isolated function writeToFile(table<myCookie> key(name, domain, path) cookiesTab
         entry.httpOnly.toString(), entry.secure.toString(), entry.createdTime, entry.lastAccessedTime,
         entry.hostOnly.toString()];
         var writeResult = writeDataToCSVChannel(wCsvChannel2, rec);
-        if (writeResult is error) {
+        if writeResult is error {
             return writeResult;
         }
     }
@@ -222,7 +222,7 @@ isolated function writeToFile(table<myCookie> key(name, domain, path) cookiesTab
 isolated function writeDataToCSVChannel(io:WritableCSVChannel csvChannel, string[]... data) returns error? {
     foreach var rec in data {
         var returnedVal = csvChannel.write(rec);
-        if (returnedVal is error) {
+        if returnedVal is error {
             return returnedVal;
         }
     }
@@ -231,14 +231,14 @@ isolated function writeDataToCSVChannel(io:WritableCSVChannel csvChannel, string
 
 isolated function closeWritableCSVChannel(io:WritableCSVChannel csvChannel) {
     var result = csvChannel.close();
-    if (result is error) {
+    if result is error {
         log:printError("Error occurred while closing the channel: ", 'error = result);
     }
 }
 
 isolated function fileExist(string fileName) returns boolean {
     boolean|error fileTestResult = file:test(fileName, file:EXISTS);
-    if (fileTestResult is boolean) {
+    if fileTestResult is boolean {
         return fileTestResult;
     }
     return false;

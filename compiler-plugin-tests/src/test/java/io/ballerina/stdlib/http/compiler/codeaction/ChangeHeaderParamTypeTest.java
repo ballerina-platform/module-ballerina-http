@@ -29,8 +29,10 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
+import static io.ballerina.stdlib.http.compiler.codeaction.Constants.NODE_LOCATION_KEY;
+
 /**
- * Tests the change return type to 'error?' when http:Caller is a function parameter.
+ * Test for changing header parameter type to string or string[].
  */
 public class ChangeHeaderParamTypeTest extends AbstractCodeActionTest {
 
@@ -57,8 +59,8 @@ public class ChangeHeaderParamTypeTest extends AbstractCodeActionTest {
 
     private CodeActionInfo getChangeHeaderParamToStringCodeAction() {
         LineRange lineRange = LineRange.from("service.bal", LinePosition.from(20, 29),
-                LinePosition.from(20, 52));
-        CodeActionArgument locationArg = CodeActionArgument.from(CodeActionUtil.NODE_LOCATION_KEY, lineRange);
+                LinePosition.from(20, 53));
+        CodeActionArgument locationArg = CodeActionArgument.from(NODE_LOCATION_KEY, lineRange);
         CodeActionInfo codeAction = CodeActionInfo.from("Change header param to 'string'", List.of(locationArg));
         codeAction.setProviderName("HTTP_109/ballerina/http/CHANGE_HEADER_PARAM_STRING");
         return codeAction;
@@ -66,8 +68,8 @@ public class ChangeHeaderParamTypeTest extends AbstractCodeActionTest {
 
     private CodeActionInfo getChangeHeaderParamToStringArrayCodeAction() {
         LineRange lineRange = LineRange.from("service.bal", LinePosition.from(20, 29),
-                LinePosition.from(20, 52));
-        CodeActionArgument locationArg = CodeActionArgument.from(CodeActionUtil.NODE_LOCATION_KEY, lineRange);
+                LinePosition.from(20, 53));
+        CodeActionArgument locationArg = CodeActionArgument.from(NODE_LOCATION_KEY, lineRange);
         CodeActionInfo codeAction = CodeActionInfo.from("Change header param to 'string[]'", List.of(locationArg));
         codeAction.setProviderName("HTTP_109/ballerina/http/CHANGE_HEADER_PARAM_STRING_ARRAY");
         return codeAction;

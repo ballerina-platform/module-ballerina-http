@@ -26,12 +26,12 @@ final http:Client continueClient = check new("http://localhost:" + httpClientCon
 
 service /'continue on httpClientContinueListenerEP1 {
 
-    resource function 'default .(http:Caller caller, http:Request request) {
-        if (request.expects100Continue()) {
-            string mediaType = checkpanic request.getHeader("Content-Type");
-            if (mediaType.toLowerAscii() == "text/plain") {
+    resource function 'default .(http:Caller caller, http:Request request) returns error? {
+        if request.expects100Continue() {
+            string mediaType = check request.getHeader("Content-Type");
+            if mediaType.toLowerAscii() == "text/plain" {
                 error? result = caller->continue();
-                if (result is error) {
+                if result is error {
                     log:printError("Error sending response", 'error = result);
                 }
             } else {
@@ -39,7 +39,7 @@ service /'continue on httpClientContinueListenerEP1 {
                 res.statusCode = 417;
                 res.setPayload("Unprocessable Entity");
                 error? result = caller->respond(res);
-                if (result is error) {
+                if result is error {
                     log:printError("Error sending response", 'error = result);
                 }
                 return;
@@ -47,18 +47,18 @@ service /'continue on httpClientContinueListenerEP1 {
         }
         http:Response res = new;
         var payload = request.getTextPayload();
-        if (payload is string) {
+        if payload is string {
             res.statusCode = 200;
             res.setPayload("Hello World!\n");
             error? result = caller->respond(res);
-            if (result is error) {
+            if result is error {
                 log:printError("Error sending response", 'error = result);
             }
         } else {
             res.statusCode = 500;
             res.setPayload(payload.message());
             error? result = caller->respond(res);
-            if (result is error) {
+            if result is error {
                 log:printError("Error sending response", 'error = result);
             }
         }
@@ -67,41 +67,41 @@ service /'continue on httpClientContinueListenerEP1 {
 
 service /'continue on httpClientContinueListenerEP2  {
 
-    resource function get .(http:Caller caller, http:Request req) {
+    resource function get .(http:Caller caller, http:Request req) returns error? {
         req.addHeader("content-type", "text/plain");
         req.addHeader("Expect", "100-continue");
         req.setPayload("Hi");
         http:Response|error response = continueClient->post("/continue", req);
-        if (response is http:Response) {
-            checkpanic caller->respond(response);
+        if response is http:Response {
+            check caller->respond(response);
         } else {
-            checkpanic caller->respond("Error: " + response.toString());
+            check caller->respond("Error: " + response.toString());
         }
     }
 
-    resource function get failure(http:Caller caller, http:Request req) {
+    resource function get failure(http:Caller caller, http:Request req) returns error? {
         req.addHeader("Expect", "100-continue");
         req.addHeader("content-type", "application/json");
         req.setPayload({ name: "apple", color: "red" });
         http:Response|error response = continueClient->post("/continue", req);
-        if (response is http:Response) {
-            checkpanic caller->respond(response);
+        if response is http:Response {
+            check caller->respond(response);
         } else {
-            checkpanic caller->respond("Error: " + response.toString());
+            check caller->respond("Error: " + response.toString());
         }
     }
 }
 @test:Config {}
-function testContinueActionWithMain() {
-    http:Client clientEP = checkpanic new("http://localhost:" + httpClientContinueTestPort1.toString());
+function testContinueActionWithMain() returns error? {
+    http:Client clientEP = check new("http://localhost:" + httpClientContinueTestPort1.toString());
     http:Request req = new();
     req.addHeader("content-type", "text/plain");
     req.addHeader("Expect", "100-continue");
     req.setPayload("Hello World!");
     http:Response|error response = clientEP->post("/continue", req);
-    if (response is http:Response) {
+    if response is http:Response {
         var payload = response.getTextPayload();
-        if (payload is string) {
+        if payload is string {
             test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
             assertTextPayload(response.getTextPayload(), "Hello World!\n");
         } else {
@@ -114,11 +114,11 @@ function testContinueActionWithMain() {
 
 //Test 100 continue for http client
 @test:Config {dependsOn:[testContinueActionWithMain]}
-function testContinueAction() {
+function testContinueAction() returns error? {
     http:Response|error response = httpClientContinueClient->get("/continue");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Hello World!\n");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -127,11 +127,11 @@ function testContinueAction() {
 
 //Negative test case for 100 continue of http client
 @test:Config {dependsOn:[testContinueAction]}
-function testNegativeContinueAction() {
+function testNegativeContinueAction() returns error? {
     http:Response|error response = httpClientContinueClient->get("/continue/failure");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 417, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

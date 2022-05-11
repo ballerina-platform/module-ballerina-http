@@ -55,7 +55,7 @@ service class InterceptorService2 {
 service class InterceptorService3 {
     *http:RequestInterceptor;
 
-    resource function default [string... path](http:Caller caller, http:RequestContext ctx, http:Request req) {
+    resource function 'default [string... path](http:Caller caller, http:RequestContext ctx, http:Request req) {
         req.setTextPayload("interceptor");
     }
 }
@@ -63,7 +63,7 @@ service class InterceptorService3 {
 service class InterceptorService4 {
     *http:RequestInterceptor;
 
-    resource function get [string... path](http:Caller caller, http:RequestContext ctx, http:Request req) returns error{
+    resource function get [string... path](http:Caller caller, http:RequestContext ctx, http:Request req) returns error {
         return error("new error");
     }
 }
@@ -80,8 +80,84 @@ service class InterceptorService5 {
 service class InterceptorService6 {
     *http:RequestInterceptor;
 
-    resource function get [string... path](string q1, int q2, @http:Payload string payload, @http:Header string foo, http:Caller caller) returns error? {
+    resource function post [string... path](string q1, int q2, @http:Payload string payload, @http:Header string foo, http:Caller caller) returns error? {
         check caller->respond(payload);
+    }
+}
+
+service class RequestInterceptor1 {
+    *http:RequestInterceptor;
+
+    resource function get greeting(http:RequestContext ctx, http:Request req, http:Caller caller) returns string {
+        req.setTextPayload("interceptor");
+        return "HelloWorld";
+    }
+}
+
+service class ResponseInterceptor1 {
+    *http:ResponseInterceptor;
+
+    remote function interceptResponse() {
+    }
+}
+
+service class ResponseInterceptor2 {
+    *http:ResponseInterceptor;
+
+    remote function interceptResponse (http:RequestContext ctx) returns http:NextService|error? {
+        return ctx.next();
+    }
+}
+
+service class ResponseInterceptor3 {
+    *http:ResponseInterceptor;
+
+    remote function interceptResponse(http:RequestContext ctx, http:Response res) returns http:NextService|error? {
+        res.setHeader("response-interceptor", "hello-world");
+        return ctx.next();
+    }
+}
+
+service class ResponseInterceptor4 {
+    *http:ResponseInterceptor;
+
+    remote function interceptResponse (http:Response res) {
+        res.setHeader("response-interceptor", "hello-world");
+    }
+}
+
+service class ResponseInterceptor5 {
+    *http:ResponseInterceptor;
+
+    remote function interceptResponse(http:Caller caller, http:Response res) returns error? {
+        res.setHeader("response-interceptor", "hello-world");
+        check caller->respond(res);
+    }
+}
+
+service class ResponseInterceptor6 {
+    *http:ResponseInterceptor;
+
+    remote function interceptResponse(http:Caller caller, http:Response res) returns error? {
+        res.setHeader("response-interceptor", "hello-world");
+        return caller->respond(res);
+    }
+}
+
+service class ResponseInterceptor7 {
+    *http:ResponseInterceptor;
+
+    remote function interceptResponse(http:RequestContext ctx, http:Caller caller) returns http:NextService|error? {
+        check caller->respond("greetings");
+        return ctx.next();
+    }
+}
+
+service class ResponseErrorInterceptorService1 {
+    *http:ResponseErrorInterceptor;
+
+    remote function interceptResponseError (error err, http:RequestContext ctx) returns http:NextService|error? {
+        return ctx.next();
     }
 }
 
@@ -127,9 +203,10 @@ service class InterceptorService10 {
 service class InterceptorService11 {
     *http:RequestInterceptor;
 
-    resource function get greeting(http:RequestContext ctx, http:Request req, http:Caller caller) returns string {
-        req.setTextPayload("interceptor");
-        return "HelloWorld";
+    resource function get greeting() returns error[] {
+        error e1 = error http:ListenerError("hello1");
+        error e2 = error http:ListenerError("hello2");
+        return [e1, e2];
     }
 }
 
@@ -162,6 +239,126 @@ service class InterceptorService14 {
 
     resource function 'default [string path](http:RequestContext ctx, http:Request req, http:Caller caller) returns http:NextService|error? {
         req.setTextPayload("interceptor");
+        return ctx.next();
+    }
+}
+
+service class InterceptorService15 {
+    *http:RequestInterceptor;
+
+    resource function get greeting(http:RequestContext ctx, @http:Payload string abc) returns http:NextService|error? {
+        return ctx.next();
+    }
+}
+
+service class InterceptorService16 {
+    *http:RequestInterceptor;
+}
+
+service class InterceptorService17 {
+    *http:RequestErrorInterceptor;
+}
+
+service class InterceptorService18 {
+    *http:ResponseInterceptor;
+}
+
+service class RequestInterceptorService1 {
+    *http:RequestInterceptor;
+
+    remote function interceptResponse(http:RequestContext ctx) returns http:NextService|error? {
+        return ctx.next();
+    }
+}
+
+service class RequestErrorInterceptorService1 {
+    *http:RequestErrorInterceptor;
+
+    remote function interceptResponse(http:RequestContext ctx) returns http:NextService|error? {
+        return ctx.next();
+    }
+}
+
+service class ResponseInterceptor8 {
+    *http:ResponseInterceptor;
+
+    resource function post [string... path](http:Caller caller, http:Request req) returns error? {
+        req.setTextPayload("interceptor");
+        check caller->respond(path);
+    }
+}
+
+service class ResponseInterceptor9 {
+    *http:ResponseInterceptor;
+
+    remote function returnResponse(http:RequestContext ctx, http:Response res) returns http:NextService|error? {
+        res.setHeader("response-interceptor", "hello-world");
+        return ctx.next();
+    }
+}
+
+service class ResponseInterceptor10 {
+    *http:ResponseInterceptor;
+
+    remote function interceptResponse(http:RequestContext ctx, http:Response res1, http:Response res2) returns http:NextService|error? {
+        res1.setHeader("response-interceptor", "hello-world");
+        return ctx.next();
+    }
+}
+
+service class ResponseInterceptor11 {
+    *http:ResponseInterceptor;
+
+    remote function interceptResponse(http:RequestContext ctx, http:Request req) returns http:NextService|error? {
+        return ctx.next();
+    }
+}
+
+service class ResponseInterceptor12 {
+    *http:ResponseInterceptor;
+
+    remote function interceptResponse(http:RequestContext ctx, string payload) returns http:NextService|error? {
+        return ctx.next();
+    }
+}
+
+service class ResponseInterceptor13 {
+    *http:ResponseInterceptor;
+
+    remote function interceptResponse() returns http:Client {
+        http:Client httpClient = checkpanic new("path");
+        return httpClient;
+    }
+}
+
+service class ResponseInterceptor14 {
+    *http:ResponseInterceptor;
+
+    remote function interceptResponse() returns @http:Payload string {
+        return "hello";
+    }
+}
+
+service class RequestInterceptor2 {
+    *http:RequestInterceptor;
+
+    resource function post [string... path]() returns @http:Cache string {
+        return "hello";
+    }
+}
+
+service class ResponseErrorInterceptorService2 {
+    *http:ResponseErrorInterceptor;
+
+    remote function interceptError(error err, http:RequestContext ctx) returns http:NextService|error? {
+        return ctx.next();
+    }
+}
+
+service class ResponseErrorInterceptorService3 {
+    *http:ResponseErrorInterceptor;
+
+    remote function interceptResponseError(http:RequestContext ctx) returns http:NextService|error? {
         return ctx.next();
     }
 }

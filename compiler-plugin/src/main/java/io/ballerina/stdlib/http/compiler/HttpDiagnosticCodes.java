@@ -41,10 +41,13 @@ public enum HttpDiagnosticCodes {
     HTTP_106("HTTP_106", "invalid resource parameter type: '%s'", ERROR),
     HTTP_107("HTTP_107", "invalid payload parameter type: '%s'", ERROR),
     HTTP_108("HTTP_108", "invalid multiple resource parameter annotations for '%s'" +
-            ": expected one of the following types: 'http:Payload', 'http:CallerInfo', 'http:Headers'", ERROR),
-    HTTP_109("HTTP_109", "invalid type of header param '%s': expected 'string' or 'string[]'", ERROR),
-    HTTP_110("HTTP_110", "invalid union type of header param '%s': a string or an array of a string can " +
-            "only be union with '()'. Eg: string|() or string[]|()", ERROR),
+            ": expected one of the following types: 'http:Payload', 'http:CallerInfo', 'http:Header'", ERROR),
+    HTTP_109("HTTP_109", "invalid type of header param '%s': One of the following types is expected: " +
+            "'string','int','float','decimal','boolean', an array of the above types or a record which consists of " +
+            "the above types", ERROR),
+    HTTP_110("HTTP_110", "invalid union type of header param '%s': one of the 'string','int','float'," +
+            "'decimal','boolean' types, an array of the above types or a record which consists of the above types can" +
+            " only be union with '()'. Eg: string|() or string[]|()", ERROR),
     HTTP_111("HTTP_111", "invalid type of caller param '%s': expected 'http:Caller'", ERROR),
     HTTP_112("HTTP_112", "invalid type of query param '%s': expected one of the 'string', 'int', 'float', " +
             "'boolean', 'decimal', 'map<json>' types or the array types of them", ERROR),
@@ -74,7 +77,32 @@ public enum HttpDiagnosticCodes {
             "'[string... path]', but found '%s'", ERROR),
     HTTP_128("HTTP_128", "invalid interceptor resource method: expected default resource method: " +
             "'default', but found '%s'", ERROR),
-    HTTP_HINT_101("HTTP_HINT_101", "A resource annotation can be added", INTERNAL);
+    HTTP_129("HTTP_129", "invalid usage of payload annotation for a non entity body resource : '%s'. " +
+            "Use an accessor that supports entity body", ERROR),
+    HTTP_130("HTTP_130", "invalid usage of cache annotation with return type : '%s'. " +
+            "Cache annotation only supports return types of anydata and SuccessStatusCodeResponse", ERROR),
+    HTTP_131("HTTP_131", "invalid usage of payload annotation with return type : '%s'", ERROR),
+    HTTP_132("HTTP_132", "%s must have a resource method", ERROR),
+    HTTP_133("HTTP_133", "invalid intersection type : '%s'. Only readonly type is allowed", ERROR),
+    HTTP_134("HTTP_134", "'readonly' intersection type is not allowed for parameter '%s' of the type '%s'", ERROR),
+    HTTP_135("HTTP_135", "%s must have the remote method : '%s'", ERROR),
+    HTTP_136("HTTP_136", "resource function is not allowed in %s", ERROR),
+    HTTP_137("HTTP_137", "remote function is not allowed in %s", ERROR),
+    HTTP_138("HTTP_138", "invalid remote function : '%s'. %s can have only '%s' remote " +
+            "function", ERROR),
+    HTTP_139("HTTP_139", "invalid multiple 'http:Response' parameter: '%s'", ERROR),
+    HTTP_140("HTTP_140", "invalid parameter type: '%s' in 'interceptResponse' remote method", ERROR),
+    HTTP_141("HTTP_141", "invalid interceptor remote method return type: expected '" +
+            ALLOWED_INTERCEPTOR_RETURN_UNION + "', but found '%s'", ERROR),
+    HTTP_142("HTTP_142", "return type annotation is not supported in interceptor service", ERROR),
+    HTTP_143("HTTP_143", "%s function should have the mandatory parameter 'error'", ERROR),
+    HTTP_144("HTTP_144", "rest fields are not allowed for header binding records. Use 'http:Headers' type to access " +
+            "all headers", ERROR),
+
+    HTTP_HINT_101("HTTP_HINT_101", "Payload annotation can be added", INTERNAL),
+    HTTP_HINT_102("HTTP_HINT_102", "Header annotation can be added", INTERNAL),
+    HTTP_HINT_103("HTTP_HINT_103", "Response content-type can be added", INTERNAL),
+    HTTP_HINT_104("HTTP_HINT_104", "Response cache configuration can be added", INTERNAL);
 
     private final String code;
     private final String message;

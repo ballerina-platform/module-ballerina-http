@@ -42,12 +42,12 @@ public isolated function authenticateResource(Service serviceRef, string methodN
     if header is string {
         Unauthorized|Forbidden? result = tryAuthenticate(<ListenerAuthConfig[]>authConfig, header);
         if result is Unauthorized {
-            sendResponse(create401Response());
+            panic error ListenerAuthnError("");
         } else if result is Forbidden {
-            sendResponse(create403Response());
+            panic error ListenerAuthzError("");
         }
     } else {
-        sendResponse(create401Response());
+        panic error ListenerAuthnError("");
     }
 }
 
@@ -149,8 +149,11 @@ isolated function authenticateWithJwtValidatorConfig(JwtValidatorConfigWithScope
             return authz;
         }
         return;
+    } else if authn is Unauthorized {
+        return authn;
+    } else {
+        panic error("Unsupported record type found.");
     }
-    return authn;
 }
 
 isolated function authenticateWithOAuth2IntrospectionConfig(OAuth2IntrospectionConfigWithScopes config, string header)
@@ -168,8 +171,11 @@ isolated function authenticateWithOAuth2IntrospectionConfig(OAuth2IntrospectionC
     oauth2:IntrospectionResponse|Unauthorized|Forbidden auth = handler->authorize(header, config?.scopes);
     if auth is oauth2:IntrospectionResponse {
         return;
+    } else if auth is Unauthorized || auth is Forbidden {
+        return auth;
+    } else {
+        panic error("Unsupported record type found.");
     }
-    return auth;
 }
 
 isolated function getListenerAuthConfig(Service serviceRef, string methodName, string[] resourcePath)
@@ -218,29 +224,6 @@ isolated function getResourceAuthConfig(Service serviceRef, string methodName, s
     }
     HttpResourceConfig resourceConfig = <HttpResourceConfig>resourceAnnotation;
     return resourceConfig?.auth;
-}
-
-isolated function create401Response() returns Response {
-    Response response = new;
-    response.statusCode = 401;
-    return response;
-}
-
-isolated function create403Response() returns Response {
-    Response response = new;
-    response.statusCode = 403;
-    return response;
-}
-
-isolated function sendResponse(Response response) {
-    Caller caller = getCaller();
-    error? err = caller->respond(response);
-    if err is error {
-        log:printError("Failed to respond the 401/403 request.", 'error = err);
-    }
-    // This panic is added to break the execution of the implementation inside the resource function after there is
-    // an authn/authz failure and responded with 401/403 internally.
-    panic error("Already responded by auth desugar.");
 }
 
 isolated function getAuthorizationHeader() returns string|HeaderNotFoundError = @java:Method {

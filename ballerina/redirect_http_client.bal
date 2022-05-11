@@ -40,7 +40,7 @@ type RedirectInferredConfig record {|
 # + redirectConfig - Configurations associated with redirect
 # + httpClient - HTTP client for outbound HTTP requests
 # + currentRedirectCount - Current redirect count of the HTTP client
-public client isolated class RedirectClient {
+client isolated class RedirectClient {
 
     final string url;
     private final RedirectInferredConfig config;
@@ -80,14 +80,13 @@ public client isolated class RedirectClient {
         self.redirectConfig = redirectConfig.cloneReadOnly();
         self.httpClient = httpClient;
         var cookieConfigVal = config.cookieConfig;
-        if (cookieConfigVal is CookieConfig) {
+        if cookieConfigVal is CookieConfig {
             self.cookieEnabled = cookieConfigVal.enabled;
             self.persistentCookieHandler = cookieConfigVal?.persistentCookieHandler;
         } else {
             self.cookieEnabled = false;
             self.persistentCookieHandler = ();
         }
-        return;
     }
 
     # If the received response for the `RedirectClient.get()` remote function is redirect eligible, redirect will be
@@ -98,10 +97,12 @@ public client isolated class RedirectClient {
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function get(string path, RequestMessage message = ()) returns Response|ClientError {
         var result = self.performRedirectIfEligible(path, <Request>message, HTTP_GET);
-        if (result is HttpFuture) {
+        if result is HttpFuture {
             return getInvalidTypeError();
-        } else {
+        } else if result is Response || result is ClientError {
             return result;
+        } else {
+            panic error ClientError("invalid response type received");
         }
     }
 
@@ -114,10 +115,12 @@ public client isolated class RedirectClient {
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function post(string path, RequestMessage message) returns Response|ClientError {
         var result =  self.performRedirectIfEligible(path, <Request>message, HTTP_POST);
-        if (result is HttpFuture) {
+        if result is HttpFuture {
             return getInvalidTypeError();
-        } else {
+        } else if result is Response || result is ClientError {
             return result;
+        } else {
+            panic error ClientError("invalid response type received");
         }
     }
 
@@ -129,10 +132,12 @@ public client isolated class RedirectClient {
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function head(string path, RequestMessage message = ()) returns Response|ClientError {
         var result = self.performRedirectIfEligible(path, <Request>message, HTTP_HEAD);
-        if (result is HttpFuture) {
+        if result is HttpFuture {
             return getInvalidTypeError();
-        } else {
+        } else if result is Response || result is ClientError {
             return result;
+        } else {
+            panic error ClientError("invalid response type received");
         }
     }
 
@@ -144,10 +149,12 @@ public client isolated class RedirectClient {
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function put(string path, RequestMessage message) returns Response|ClientError {
         var result = self.performRedirectIfEligible(path, <Request>message, HTTP_PUT);
-        if (result is HttpFuture) {
+        if result is HttpFuture {
             return getInvalidTypeError();
-        } else {
+        } else if result is Response || result is ClientError {
             return result;
+        } else {
+            panic error ClientError("invalid response type received");
         }
     }
 
@@ -170,14 +177,16 @@ public client isolated class RedirectClient {
     remote isolated function execute(string httpVerb, string path, RequestMessage message) returns Response|ClientError {
         Request request = <Request>message;
         //Redirection is performed only for HTTP methods
-        if (HTTP_NONE == extractHttpOperation(httpVerb)) {
+        if HTTP_NONE == extractHttpOperation(httpVerb) {
             return self.httpClient->execute(httpVerb, path, request);
         } else {
             var result = self.performRedirectIfEligible(path, request, extractHttpOperation(httpVerb));
-            if (result is HttpFuture) {
+            if result is HttpFuture {
                 return getInvalidTypeError();
-            } else {
+            } else if result is Response || result is ClientError {
                 return result;
+            } else {
+                panic error ClientError("invalid response type received");
             }
         }
     }
@@ -190,10 +199,12 @@ public client isolated class RedirectClient {
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function patch(string path, RequestMessage message) returns Response|ClientError {
         var result = self.performRedirectIfEligible(path, <Request>message, HTTP_PATCH);
-        if (result is HttpFuture) {
+        if result is HttpFuture {
             return getInvalidTypeError();
-        } else {
+        } else if result is Response || result is ClientError {
             return result;
+        } else {
+            panic error ClientError("invalid response type received");
         }
     }
 
@@ -205,10 +216,12 @@ public client isolated class RedirectClient {
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function delete(string path, RequestMessage message = ()) returns Response|ClientError {
         var result = self.performRedirectIfEligible(path, <Request>message, HTTP_DELETE);
-        if (result is HttpFuture) {
+        if result is HttpFuture {
             return getInvalidTypeError();
-        } else {
+        } else if result is Response || result is ClientError {
             return result;
+        } else {
+            panic error ClientError("invalid response type received");
         }
     }
 
@@ -220,10 +233,12 @@ public client isolated class RedirectClient {
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function options(string path, RequestMessage message = ()) returns Response|ClientError {
         var result = self.performRedirectIfEligible(path, <Request>message, HTTP_OPTIONS);
-        if (result is HttpFuture) {
+        if result is HttpFuture {
             return getInvalidTypeError();
-        } else {
+        } else if result is Response || result is ClientError {
             return result;
+        } else {
+            panic error ClientError("invalid response type received");
         }
     }
 
@@ -315,8 +330,8 @@ public client isolated class RedirectClient {
     //Inspect the response for redirect eligibility.
     isolated function checkRedirectEligibility(HttpResponse|ClientError response, string resolvedRequestedURI,
             HttpOperation httpVerb, Request request) returns HttpResponse|ClientError {
-        if (response is Response) {
-            if (isRedirectResponse(response.statusCode)) {
+        if response is Response {
+            if isRedirectResponse(response.statusCode) {
                 return self.redirect(response, httpVerb, request, resolvedRequestedURI);
             } else {
                 self.setCountAndResolvedURL(response, resolvedRequestedURI);
@@ -333,7 +348,7 @@ public client isolated class RedirectClient {
             returns HttpResponse|ClientError {
         int currentCount = self.getCurrentRedirectCount();
         int maxCount = self.redirectConfig.maxCount;
-        if (currentCount >= maxCount) {
+        if currentCount >= maxCount {
             log:printDebug("Maximum redirect count reached!");
             self.setCountAndResolvedURL(response, resolvedRequestedURI);
         } else {
@@ -342,13 +357,13 @@ public client isolated class RedirectClient {
             log:printDebug("Redirect count : " + currentCountValue);
             self.setCurrentRedirectCount(currentCount);
             var redirectMethod = getRedirectMethod(httpVerb, response);
-            if (redirectMethod is HttpOperation) {
+            if redirectMethod is HttpOperation {
                  var location = response.getHeader(LOCATION);
-                 if (location is string) {
+                 if location is string {
                     log:printDebug("Location header value: " + location);
-                    if (!isAbsolute(location)) {
+                    if !isAbsolute(location) {
                         var resolvedURI = resolve(resolvedRequestedURI, location);
-                        if (resolvedURI is string) {
+                        if resolvedURI is string {
                             return self.performRedirection(resolvedURI, redirectMethod, request, response);
                         } else {
                             self.setCurrentRedirectCount(0);
@@ -371,7 +386,7 @@ public client isolated class RedirectClient {
     isolated function performRedirection(string location, HttpOperation redirectMethod, Request request,
             Response response) returns HttpResponse|ClientError {
         CookieStore? cookieStore = ();
-        if (self.cookieEnabled) {
+        if self.cookieEnabled {
             cookieStore = new(self.persistentCookieHandler);
         }
         RedirectInferredConfig redirectInferredConfig;
@@ -379,7 +394,7 @@ public client isolated class RedirectClient {
             redirectInferredConfig = self.config.clone();
         }
         var retryClient = createRetryClient(location, self.createNewEndpointConfig(redirectInferredConfig), cookieStore);
-        if (retryClient is HttpClient) {
+        if retryClient is HttpClient {
             final string locationValue = location;
             log:printDebug("Redirect using new clientEP : " + locationValue);
             HttpResponse|ClientError result = invokeEndpoint("",
@@ -439,22 +454,21 @@ isolated function isRedirectResponse(int statusCode) returns boolean {
 // | Does not allow changing the request       | 308       | 307       |
 // | method from POST to GET                   |           |           |
 // +-------------------------------------------+-----------+-----------+
-isolated function getRedirectMethod(HttpOperation httpVerb, Response response) returns HttpOperation|() {
+isolated function getRedirectMethod(HttpOperation httpVerb, Response response) returns HttpOperation? {
     int statusCode = response.statusCode;
-    if (statusCode == STATUS_MOVED_PERMANENTLY || statusCode == STATUS_FOUND || statusCode == STATUS_SEE_OTHER) {
+    if statusCode == STATUS_MOVED_PERMANENTLY || statusCode == STATUS_FOUND || statusCode == STATUS_SEE_OTHER {
         return HTTP_GET;
     }
-    if (statusCode == STATUS_TEMPORARY_REDIRECT || statusCode == STATUS_PERMANENT_REDIRECT ||
-               statusCode == STATUS_MULTIPLE_CHOICES || statusCode == STATUS_USE_PROXY) {
+    if statusCode == STATUS_TEMPORARY_REDIRECT || statusCode == STATUS_PERMANENT_REDIRECT ||
+               statusCode == STATUS_MULTIPLE_CHOICES || statusCode == STATUS_USE_PROXY {
         return httpVerb;
     }
-    final string statusCodeValue = statusCode.toString();
-    log:printDebug("unsupported redirect status code" + statusCodeValue);
-    return ();
+    log:printDebug("unsupported redirect status code" + statusCode.toString());
+    return;
 }
 
 isolated function createRedirectRequest(Request request, boolean allowAuthHeaders) returns Request {
-    if (allowAuthHeaders) {
+    if allowAuthHeaders {
         return request;
     }
     request.removeHeader(AUTHORIZATION);

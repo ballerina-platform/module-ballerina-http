@@ -38,49 +38,46 @@ public const CB_HALF_OPEN_STATE = "HALF_OPEN";
 public const CB_CLOSED_STATE = "CLOSED";
 
 # Maintains the health of the Circuit Breaker.
-#
-# + lastRequestSuccess - Whether last request is success or not
-# + totalRequestCount - Total request count received within the `RollingWindow`
-# + lastUsedBucketId - ID of the last bucket used in Circuit Breaker calculations
-# + startTime - Circuit Breaker start time
-# + lastRequestTime - The time that the last request received
-# + lastErrorTime - The time that the last error occurred
-# + lastForcedOpenTime - The time that circuit forcefully opened at last
-# + totalBuckets - The discrete time buckets into which the time window is divided
 public type CircuitHealth record {|
+    # Whether last request is success or not
     boolean lastRequestSuccess = false;
+    # Total request count received within the `RollingWindow`
     int totalRequestCount = 0;
+    # ID of the last bucket used in Circuit Breaker calculations
     int lastUsedBucketId = 0;
+    # Circuit Breaker start time
     time:Utc startTime = time:utcNow();
+    # The time that the last request received
     time:Utc lastRequestTime?;
+    # The time that the last error occurred
     time:Utc lastErrorTime?;
+    # The time that circuit forcefully opened at last
     time:Utc lastForcedOpenTime?;
+    # The discrete time buckets into which the time window is divided
     Bucket?[] totalBuckets = [];
 |};
 
 # Provides a set of configurations for controlling the behaviour of the Circuit Breaker.
-#
-# + rollingWindow - The `http:RollingWindow` options of the `CircuitBreaker`
-# + failureThreshold - The threshold for request failures. When this threshold exceeds, the circuit trips
-#                      The threshold should be a value between 0 and 1
-# + resetTime - The time period (in seconds) to wait before attempting to make another request to
-#               the upstream service
-# + statusCodes - Array of HTTP response status codes which are considered as failures
 public type CircuitBreakerConfig record {|
+    # The `http:RollingWindow` options of the `CircuitBreaker`
     RollingWindow rollingWindow = {};
+    # The threshold for request failures. When this threshold exceeds, the circuit trips. The threshold should be a
+    # value between 0 and 1
     float failureThreshold = 0.0;
+    # The time period (in seconds) to wait before attempting to make another request to the upstream service
     decimal resetTime = 0;
+    # Array of HTTP response status codes which are considered as failures
     int[] statusCodes = [];
 |};
 
 # Represents a rolling window in the Circuit Breaker.
 #
-# + requestVolumeThreshold - Minimum number of requests in a `RollingWindow` that will trip the circuit.
-# + timeWindow - Time period in seconds for which the failure threshold is calculated
-# + bucketSize - The granularity at which the time window slides. This is measured in seconds.
 public type RollingWindow record {|
+    # Minimum number of requests in a `RollingWindow` that will trip the circuit.
     int requestVolumeThreshold = 10;
+    # Time period in seconds for which the failure threshold is calculated
     decimal timeWindow = 60;
+    # The granularity at which the time window slides. This is measured in seconds.
     decimal bucketSize = 10;
 |};
 
@@ -121,13 +118,13 @@ public type CircuitBreakerInferredConfig record {|
 # + httpClient - The underlying `HttpActions` instance which will be making the actual network calls
 # + circuitHealth - The circuit health monitor
 # + currentCircuitState - The current state the circuit is in
-public client isolated class CircuitBreakerClient {
+client isolated class CircuitBreakerClient {
 
     private string url;
     private final CircuitBreakerInferredConfig & readonly circuitBreakerInferredConfig;
     private final CircuitHealth circuitHealth;
     private CircuitState currentCircuitState = CB_CLOSED_STATE;
-    public final HttpClient httpClient;
+    final HttpClient httpClient;
 
     # A Circuit Breaker implementation which can be used to gracefully handle network failures.
     #
@@ -140,7 +137,7 @@ public client isolated class CircuitBreakerClient {
     isolated function init(string url, ClientConfiguration config, CircuitBreakerInferredConfig
         circuitBreakerInferredConfig, HttpClient httpClient, CircuitHealth circuitHealth) returns ClientError? {
         RollingWindow rollingWindow = circuitBreakerInferredConfig.rollingWindow;
-        if (rollingWindow.timeWindow < rollingWindow.bucketSize) {
+        if rollingWindow.timeWindow < rollingWindow.bucketSize {
             return error GenericClientError("Circuit breaker 'timeWindow' value should be greater" +
                 " than the 'bucketSize' value.");
         }
@@ -159,7 +156,7 @@ public client isolated class CircuitBreakerClient {
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function post(string path, RequestMessage message) returns Response|ClientError {
         self.setCurrentState(self.updateCircuitState());
-        if (self.getCurrentState() == CB_OPEN_STATE) {
+        if self.getCurrentState() == CB_OPEN_STATE {
             // TODO: Allow the user to handle this scenario. Maybe through a user provided function
             return self.handleOpenCircuit();
         } else {
@@ -176,7 +173,7 @@ public client isolated class CircuitBreakerClient {
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function head(string path, RequestMessage message = ()) returns Response|ClientError {
         self.setCurrentState(self.updateCircuitState());
-        if (self.getCurrentState() == CB_OPEN_STATE) {
+        if self.getCurrentState() == CB_OPEN_STATE {
             // TODO: Allow the user to handle this scenario. Maybe through a user provided function
             return self.handleOpenCircuit();
         } else {
@@ -193,7 +190,7 @@ public client isolated class CircuitBreakerClient {
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function put(string path, RequestMessage message) returns Response|ClientError {
         self.setCurrentState(self.updateCircuitState());
-        if (self.getCurrentState() == CB_OPEN_STATE) {
+        if self.getCurrentState() == CB_OPEN_STATE {
             // TODO: Allow the user to handle this scenario. Maybe through a user provided function
             return self.handleOpenCircuit();
         } else {
@@ -211,7 +208,7 @@ public client isolated class CircuitBreakerClient {
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function execute(string httpVerb, string path, RequestMessage message) returns Response|ClientError {
         self.setCurrentState(self.updateCircuitState());
-        if (self.getCurrentState() == CB_OPEN_STATE) {
+        if self.getCurrentState() == CB_OPEN_STATE {
             // TODO: Allow the user to handle this scenario. Maybe through a user provided function
             return self.handleOpenCircuit();
         } else {
@@ -228,7 +225,7 @@ public client isolated class CircuitBreakerClient {
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function patch(string path, RequestMessage message) returns Response|ClientError {
         self.setCurrentState(self.updateCircuitState());
-        if (self.getCurrentState() == CB_OPEN_STATE) {
+        if self.getCurrentState() == CB_OPEN_STATE {
             // TODO: Allow the user to handle this scenario. Maybe through a user provided function
             return self.handleOpenCircuit();
         } else {
@@ -245,7 +242,7 @@ public client isolated class CircuitBreakerClient {
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function delete(string path, RequestMessage message = ()) returns Response|ClientError {
         self.setCurrentState(self.updateCircuitState());
-        if (self.getCurrentState() == CB_OPEN_STATE) {
+        if self.getCurrentState() == CB_OPEN_STATE {
             // TODO: Allow the user to handle this scenario. Maybe through a user provided function
             return self.handleOpenCircuit();
         } else {
@@ -262,7 +259,7 @@ public client isolated class CircuitBreakerClient {
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function get(string path, RequestMessage message = ()) returns Response|ClientError {
         self.setCurrentState(self.updateCircuitState());
-        if (self.getCurrentState() == CB_OPEN_STATE) {
+        if self.getCurrentState() == CB_OPEN_STATE {
             // TODO: Allow the user to handle this scenario. Maybe through a user provided function
             return self.handleOpenCircuit();
         } else {
@@ -279,7 +276,7 @@ public client isolated class CircuitBreakerClient {
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function options(string path, RequestMessage message = ()) returns Response|ClientError {
         self.setCurrentState(self.updateCircuitState());
-        if (self.getCurrentState() == CB_OPEN_STATE) {
+        if self.getCurrentState() == CB_OPEN_STATE {
             // TODO: Allow the user to handle this scenario. Maybe through a user provided function
             return self.handleOpenCircuit();
         } else {
@@ -296,7 +293,7 @@ public client isolated class CircuitBreakerClient {
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function forward(string path, Request request) returns Response|ClientError {
         self.setCurrentState(self.updateCircuitState());
-        if (self.getCurrentState() == CB_OPEN_STATE) {
+        if self.getCurrentState() == CB_OPEN_STATE {
             // TODO: Allow the user to handle this scenario. Maybe through a user provided function
             return self.handleOpenCircuit();
         } else {
@@ -316,12 +313,12 @@ public client isolated class CircuitBreakerClient {
     #            fails
     remote isolated function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
         self.setCurrentState(self.updateCircuitState());
-        if (self.getCurrentState() == CB_OPEN_STATE) {
+        if self.getCurrentState() == CB_OPEN_STATE {
             // TODO: Allow the user to handle this scenario. Maybe through a user provided function
             return self.handleOpenCircuit();
         } else {
             var serviceFuture = self.httpClient->submit(httpVerb, path, <Request>message);
-            if (serviceFuture is HttpFuture) {
+            if serviceFuture is HttpFuture {
                 var serviceResponse = self.httpClient->getResponse(serviceFuture);
                 Response|ClientError result = self.updateCircuitHealthAndRespond(serviceResponse);
                 if result is error {
@@ -378,7 +375,7 @@ public client isolated class CircuitBreakerClient {
 
     # Force the circuit into a closed state in which it will allow requests regardless of the error percentage
     # until the failure threshold exceeds.
-    public isolated function forceClose() {
+    isolated function forceClose() {
         log:printInfo("Circuit forcefully switched to CLOSE state.");
         self.setCurrentState(CB_CLOSED_STATE);
         lock {
@@ -388,7 +385,7 @@ public client isolated class CircuitBreakerClient {
 
     # Force the circuit into a open state in which it will suspend all requests
     # until `resetTime` interval exceeds.
-    public isolated function forceOpen() {
+    isolated function forceOpen() {
         lock {
             self.currentCircuitState = CB_OPEN_STATE;
             self.circuitHealth.lastForcedOpenTime = time:utcNow();
@@ -398,7 +395,7 @@ public client isolated class CircuitBreakerClient {
     # Provides the `http:CircuitState` of the circuit breaker.
     #
     # + return - The current `http:CircuitState` of the circuit breaker
-    public isolated function getCurrentState() returns CircuitState {
+    isolated function getCurrentState() returns CircuitState {
         lock {
             return self.currentCircuitState;
         }
@@ -416,12 +413,12 @@ public client isolated class CircuitBreakerClient {
             self.circuitHealth.lastRequestTime = time:utcNow();
             int totalRequestsCount = self.getTotalRequestsCount(self.circuitHealth);
             self.circuitHealth.totalRequestCount = totalRequestsCount;
-            if (totalRequestsCount >= self.circuitBreakerInferredConfig.rollingWindow.requestVolumeThreshold) {
-                if (currentState == CB_OPEN_STATE) {
+            if totalRequestsCount >= self.circuitBreakerInferredConfig.rollingWindow.requestVolumeThreshold {
+                if currentState == CB_OPEN_STATE {
                     currentState = self.switchCircuitStateOpenToHalfOpenOnResetTime(self.circuitBreakerInferredConfig,
                                                                                     self.circuitHealth, currentState);
-                } else if (currentState == CB_HALF_OPEN_STATE) {
-                    if (!self.circuitHealth.lastRequestSuccess) {
+                } else if currentState == CB_HALF_OPEN_STATE {
+                    if !self.circuitHealth.lastRequestSuccess {
                         // If the trial run has failed, trip the circuit again
                         currentState = CB_OPEN_STATE;
                         log:printInfo("CircuitBreaker trial run has failed. Circuit switched from HALF_OPEN to OPEN state.")
@@ -435,7 +432,7 @@ public client isolated class CircuitBreakerClient {
                 } else {
                     float currentFailureRate = self.getCurrentFailureRatio(self.circuitHealth);
 
-                    if (currentFailureRate > self.circuitBreakerInferredConfig.failureThreshold) {
+                    if currentFailureRate > self.circuitBreakerInferredConfig.failureThreshold {
                         currentState = CB_OPEN_STATE;
                         log:printInfo("CircuitBreaker failure threshold exceeded. Circuit tripped from CLOSE to OPEN state."
                         );
@@ -463,8 +460,8 @@ public client isolated class CircuitBreakerClient {
     }
 
     isolated function updateCircuitHealthAndRespond(Response|ClientError serviceResponse) returns Response|ClientError {
-        if (serviceResponse is Response) {
-            if (self.circuitBreakerInferredConfig.statusCodes.indexOf(serviceResponse.statusCode) is int) {
+        if serviceResponse is Response {
+            if self.circuitBreakerInferredConfig.statusCodes.indexOf(serviceResponse.statusCode) is int {
                 self.updateCircuitHealthFailure();
             } else {
                 self.updateCircuitHealthSuccess();
@@ -486,10 +483,10 @@ public client isolated class CircuitBreakerClient {
             time:Utc lastUpdated = time:utcNow();
             self.circuitHealth.lastErrorTime = lastUpdated;
             Bucket?[] buckets = self.circuitHealth.totalBuckets;
-            if (buckets is Bucket[]) {
+            if buckets is Bucket[] {
                 //TODO:Get this verified
                 time:Utc? lastUpdatedTime = buckets[currentBucketId]?.lastUpdatedTime;
-                if (lastUpdatedTime is time:Utc) {
+                if lastUpdatedTime is time:Utc {
                     lastUpdatedTime = lastUpdated;
                 }
             }
@@ -503,10 +500,10 @@ public client isolated class CircuitBreakerClient {
             self.updateLastUsedBucketId(self.circuitHealth, currentBucketId);
             self.circuitHealth.lastRequestSuccess = true;
             Bucket?[] buckets = self.circuitHealth.totalBuckets;
-            if (buckets is Bucket[]) {
+            if buckets is Bucket[] {
                 //TODO:Get this verified
                 time:Utc? lastUpdatedTime = buckets[currentBucketId]?.lastUpdatedTime;
-                if (lastUpdatedTime is time:Utc) {
+                if lastUpdatedTime is time:Utc {
                     lastUpdatedTime = lastUpdated;
                 }
             }
@@ -528,7 +525,7 @@ public client isolated class CircuitBreakerClient {
             totalFailures = totalFailures + bucket.failureCount;
         }
         float ratio = 0.0;
-        if (totalCount > 0) {
+        if totalCount > 0 {
             ratio = <float> totalFailures / <float> totalCount;
         }
         return ratio;
@@ -584,7 +581,7 @@ public client isolated class CircuitBreakerClient {
             lastErrorTime = self.circuitHealth?.lastErrorTime;
             lastForcedOpenTime = self.circuitHealth?.lastForcedOpenTime;
         }
-        if (lastErrorTime is time:Utc && lastForcedOpenTime is time:Utc) {
+        if lastErrorTime is time:Utc && lastForcedOpenTime is time:Utc {
             return (time:utcDiffSeconds(lastErrorTime, lastForcedOpenTime) > 0d) ? lastErrorTime : lastForcedOpenTime;
         }
         //TODO:What to send?
@@ -601,12 +598,12 @@ public client isolated class CircuitBreakerClient {
         time:Utc? lastRequestTime = circuitHealth?.lastRequestTime;
         //TODO:Get this logic verified
         decimal idleTime = 0;
-        if (lastRequestTime is time:Utc) {
+        if lastRequestTime is time:Utc {
             idleTime = time:utcDiffSeconds(currentTime, lastRequestTime);
         }
         RollingWindow rollingWindow = circuitBreakerInferredConfig.rollingWindow;
         // If the time duration between two requests greater than timeWindow values, reset the buckets to default.
-        if (idleTime > rollingWindow.timeWindow) {
+        if idleTime > rollingWindow.timeWindow {
             self.reInitializeBuckets(circuitHealth);
         } else {
             int currentBucketId = self.getCurrentBucketId(circuitHealth);
@@ -614,11 +611,11 @@ public client isolated class CircuitBreakerClient {
             // Check whether subsequent requests received within same bucket(sub time window). If the idle time is greater
             // than bucketSize means subsequent calls are received time exceeding the rolling window. if we need to
             // reset the buckets to default.
-            if (currentBucketId == circuitHealth.lastUsedBucketId && idleTime > rollingWindow.bucketSize) {
+            if currentBucketId == circuitHealth.lastUsedBucketId && idleTime > rollingWindow.bucketSize {
                 self.reInitializeBuckets(circuitHealth);
             // If the current bucket (sub time window) is less than last updated bucket. Stats of the current bucket to
             // zeroth bucket and Last bucket to last used bucket needs to be reset to default.
-            } else if (currentBucketId < lastUsedBucketId) {
+            } else if currentBucketId < lastUsedBucketId {
                 int index = currentBucketId;
                 while (index >= 0) {
                     self.resetBucketStats(circuitHealth, index);
@@ -658,7 +655,7 @@ public client isolated class CircuitBreakerClient {
     # + circuitHealth - Circuit Breaker health status
     # + bucketId - Position of the currently used bucket
     isolated function updateLastUsedBucketId(CircuitHealth circuitHealth, int bucketId) {
-        if (bucketId != circuitHealth.lastUsedBucketId) {
+        if bucketId != circuitHealth.lastUsedBucketId {
             self.resetBucketStats(circuitHealth, bucketId);
             circuitHealth.lastUsedBucketId = bucketId;
         }
@@ -673,10 +670,10 @@ public client isolated class CircuitBreakerClient {
     isolated function switchCircuitStateOpenToHalfOpenOnResetTime(CircuitBreakerInferredConfig circuitBreakerInferredConfig,
                                             CircuitHealth circuitHealth, CircuitState currentState) returns CircuitState {
         CircuitState currentCircuitState = currentState;
-        if (currentState == CB_OPEN_STATE) {
+        if currentState == CB_OPEN_STATE {
             time:Utc effectiveErrorTime = self.getEffectiveErrorTime();
             time:Seconds elapsedTime = time:utcDiffSeconds(time:utcNow(), effectiveErrorTime);
-            if (elapsedTime > circuitBreakerInferredConfig.resetTime) {
+            if elapsedTime > circuitBreakerInferredConfig.resetTime {
                 currentCircuitState = CB_HALF_OPEN_STATE;
                 log:printInfo("CircuitBreaker reset timeout reached. Circuit switched from OPEN to HALF_OPEN state.");
             }
@@ -694,7 +691,7 @@ public client isolated class CircuitBreakerClient {
 // Validates the struct configurations passed to create circuit breaker.
 isolated function validateCircuitBreakerConfiguration(CircuitBreakerConfig circuitBreakerConfig) {
     float failureThreshold = circuitBreakerConfig.failureThreshold;
-    if (failureThreshold < 0f || failureThreshold > 1f) {
+    if failureThreshold < 0f || failureThreshold > 1f {
         string errorMessage = "Invalid failure threshold. Failure threshold value"
             + " should between 0 to 1, found " + failureThreshold.toString();
         panic error CircuitBreakerConfigError(errorMessage);
