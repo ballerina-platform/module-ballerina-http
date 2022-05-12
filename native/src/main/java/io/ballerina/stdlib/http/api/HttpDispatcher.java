@@ -301,7 +301,7 @@ public class HttpDispatcher {
             HttpResourceArguments resourceArgumentValues =
                     (HttpResourceArguments) httpCarbonMessage.getProperty(HttpConstants.RESOURCE_ARGS);
             updateWildcardToken(resource.getWildcardToken(), pathParamCount - 1, resourceArgumentValues.getMap());
-            populatePathParams(resource, paramFeed, resourceArgumentValues, pathParamCount);
+            populatePathParams(resource, paramFeed, resourceArgumentValues, pathParamCount, httpCarbonMessage);
         }
         // Following was written assuming that they are validated
         for (Parameter param : paramHandler.getOtherParamList()) {
@@ -424,7 +424,8 @@ public class HttpDispatcher {
     }
 
     private static void populatePathParams(Resource resource, Object[] paramFeed,
-                                           HttpResourceArguments resourceArgumentValues, int pathParamCount) {
+                                           HttpResourceArguments resourceArgumentValues, int pathParamCount,
+                                           HttpCarbonMessage inboundRequest) {
 
         String[] pathParamTokens = Arrays.copyOfRange(resource.getBalResource().getParamNames(), 0, pathParamCount);
         int actualSignatureParamIndex = 0;
@@ -449,7 +450,8 @@ public class HttpDispatcher {
                 }
                 paramFeed[paramIndex] = true;
             } catch (Exception ex) {
-                throw new BallerinaConnectorException("Error in casting path param : " + ex.getMessage());
+                inboundRequest.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
+                throw new BallerinaConnectorException("error in casting path parameter : '" + paramName + "'");
             }
         }
     }
