@@ -83,7 +83,11 @@ public class RequestCompleted implements SenderState {
     public void readInboundResponseBody(ChannelHandlerContext ctx, Http2DataFrame http2DataFrame,
                                         OutboundMsgHolder outboundMsgHolder, boolean serverPush,
                                         Http2MessageStateContext http2MessageStateContext) {
-        LOG.warn("readInboundResponseBody is not a dependant action of this state");
+        // Following is needed in bidirectional streaming scenario when response body can be received even though
+        // the sender has finished sending requests
+        http2MessageStateContext.setSenderState(new ReceivingEntityBody(http2TargetHandler, http2RequestWriter));
+        http2MessageStateContext.getSenderState().readInboundResponseBody(ctx, http2DataFrame, outboundMsgHolder,
+                serverPush, http2MessageStateContext);
     }
 
     @Override
