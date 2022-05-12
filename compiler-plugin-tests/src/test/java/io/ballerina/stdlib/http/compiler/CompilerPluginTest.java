@@ -35,7 +35,6 @@ import java.nio.file.Paths;
 
 import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_102;
 import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_106;
-import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_107;
 import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_108;
 import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_109;
 import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_110;
@@ -143,7 +142,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_4");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 11);
+        Assert.assertEquals(diagnosticResult.errorCount(), 6);
         assertError(diagnosticResult, 0, "invalid multiple resource parameter annotations for 'abc': expected one of " +
                 "the following types: 'http:Payload', 'http:CallerInfo', 'http:Header'", HTTP_108);
         assertError(diagnosticResult, 1, "invalid usage of payload annotation for a non entity body " +
@@ -152,15 +151,10 @@ public class CompilerPluginTest {
                 "resource : 'head'. Use an accessor that supports entity body", HTTP_129);
         assertError(diagnosticResult, 3, "invalid usage of payload annotation for a non entity body resource" +
                 " : 'options'. Use an accessor that supports entity body", HTTP_129);
-        assertError(diagnosticResult, 4, "invalid payload parameter type: 'json[]'", HTTP_107);
-        assertError(diagnosticResult, 5, "invalid annotation type on param 'a': expected one of the following types: " +
+        assertError(diagnosticResult, 4, "invalid annotation type on param 'a': expected one of the following types: " +
                 "'http:Payload', 'http:CallerInfo', 'http:Headers'", CompilerPluginTestConstants.HTTP_104);
-        assertError(diagnosticResult, 6, "invalid resource parameter type: " +
-                "'table<http_test/sample_4:0.1.0:Person> key(id)'", HTTP_106);
-        assertError(diagnosticResult, 7, "invalid payload parameter type: 'map<int>'", HTTP_107);
-        assertError(diagnosticResult, 8, "invalid payload parameter type: 'string[]'", HTTP_107);
-        assertError(diagnosticResult, 9, "invalid payload parameter type: 'xml[]'", HTTP_107);
-        assertError(diagnosticResult, 10, "invalid payload parameter type: 'map<string>[]'", HTTP_107);
+        assertTrue(diagnosticResult, 5, "invalid payload parameter type: 'string|ballerina/http:",
+                    CompilerPluginTestConstants.HTTP_107);
     }
 
     @Test
@@ -292,7 +286,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_10");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 9);
+        Assert.assertEquals(diagnosticResult.errorCount(), 11);
         assertError(diagnosticResult, 0, "incompatible respond method argument type : expected " +
                 "'int' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 1, "incompatible respond method argument type : expected " +
@@ -310,6 +304,10 @@ public class CompilerPluginTest {
                 "'Person' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 8, "incompatible respond method argument type : expected " +
                 "'http:Error' according to the 'http:CallerInfo' annotation", HTTP_114);
+        assertError(diagnosticResult, 9, "incompatible respond method argument type : expected " +
+                "'http:Ok' according to the 'http:CallerInfo' annotation", HTTP_114); 
+        assertError(diagnosticResult, 10, "incompatible respond method argument type : expected " +
+                "'http:StatusCodeResponse' according to the 'http:CallerInfo' annotation", HTTP_114);       
     }
 
 
@@ -329,7 +327,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_11");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 10);
+        Assert.assertEquals(diagnosticResult.errorCount(), 11);
         assertError(diagnosticResult, 0, "incompatible respond method argument type : expected " +
                 "'http:Response' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 1, "incompatible respond method argument type : expected " +
@@ -337,18 +335,20 @@ public class CompilerPluginTest {
         assertError(diagnosticResult, 2, "incompatible respond method argument type : expected " +
                 "'json' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 3, "incompatible respond method argument type : expected " +
-                "'ByteArr' according to the 'http:CallerInfo' annotation", HTTP_114);
+                "'json' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 4, "incompatible respond method argument type : expected " +
-                "'MapJson' according to the 'http:CallerInfo' annotation", HTTP_114);
+                "'ByteArr' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 5, "incompatible respond method argument type : expected " +
-                "'PersonTable' according to the 'http:CallerInfo' annotation", HTTP_114);
+                "'MapJson' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 6, "incompatible respond method argument type : expected " +
-                "'MapJsonArr' according to the 'http:CallerInfo' annotation", HTTP_114);
+                "'PersonTable' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 7, "incompatible respond method argument type : expected " +
-                "'PersonTableArr' according to the 'http:CallerInfo' annotation", HTTP_114);
+                "'MapJsonArr' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 8, "incompatible respond method argument type : expected " +
-                "'EntityArr' according to the 'http:CallerInfo' annotation", HTTP_114);
+                "'PersonTableArr' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 9, "incompatible respond method argument type : expected " +
+                "'EntityArr' according to the 'http:CallerInfo' annotation", HTTP_114);
+        assertError(diagnosticResult, 10, "incompatible respond method argument type : expected " +
                 "'ByteStream' according to the 'http:CallerInfo' annotation", HTTP_114);
     }
 
@@ -408,7 +408,7 @@ public class CompilerPluginTest {
         assertErrorPosition(diagnosticResult, 1, "(35:5,35:16)");
         assertErrorPosition(diagnosticResult, 2, "(40:86,40:87)");
         assertErrorPosition(diagnosticResult, 3, "(44:57,44:60)");
-        assertErrorPosition(diagnosticResult, 4, "(48:56,48:59)");
+        assertErrorPosition(diagnosticResult, 4, "(48:63,48:66)");
         assertErrorPosition(diagnosticResult, 5, "(52:66,52:69)");
         assertErrorPosition(diagnosticResult, 6, "(56:77,56:80)");
         assertErrorPosition(diagnosticResult, 7, "(60:76,60:79)");
@@ -457,7 +457,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_19");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 29);
+        Assert.assertEquals(diagnosticResult.errorCount(), 31);
         assertError(diagnosticResult, 0, "invalid multiple interceptor type reference: " +
                 "'http:RequestErrorInterceptor'", CompilerPluginTestConstants.HTTP_123);
         assertError(diagnosticResult, 1, "invalid interceptor resource path: expected default resource" +
@@ -512,7 +512,11 @@ public class CompilerPluginTest {
                 CompilerPluginTestConstants.HTTP_142);
         assertError(diagnosticResult, 27, "return type annotation is not supported in interceptor service",
                 CompilerPluginTestConstants.HTTP_142);
-        assertError(diagnosticResult, 28, "remote function should have the mandatory parameter 'error'",
+        assertError(diagnosticResult, 28, "invalid remote function : 'interceptError'. ResponseErrorInterceptor " +
+                "can have only 'interceptResponseError' remote function", CompilerPluginTestConstants.HTTP_138);
+        assertError(diagnosticResult, 29, "ResponseErrorInterceptor must have the remote method : " +
+                "'interceptResponseError'", HTTP_135);
+        assertError(diagnosticResult, 30, "remote function should have the mandatory parameter 'error'",
                 CompilerPluginTestConstants.HTTP_143);
     }
 

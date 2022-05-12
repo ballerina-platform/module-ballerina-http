@@ -196,13 +196,16 @@ service /passthrough on clientDBProxyListener {
         xml|json|http:ClientError unionPayload = clientDBBackendClient->post("/backend/getJson", "want json");
         if unionPayload is http:ClientError {
             payload.push(unionPayload.message());
+        } else if unionPayload is json {
+            payload.push(unionPayload.toString());
         }
 
         int|string|http:ClientError basicTypeUnionPayload = clientDBBackendClient->post("/backend/getString", "want string");
         if basicTypeUnionPayload is http:ClientError {
             payload.push(basicTypeUnionPayload.message());
+        } else if basicTypeUnionPayload is string {
+            payload.push(basicTypeUnionPayload);
         }
-
         return string:'join("|", ...payload);
     }
 
@@ -585,17 +588,16 @@ function testAllBindingErrorReturns() returns error? {
 @test:Config {
     groups: ["dataBinding"]
 }
-function testAllBindingErrors() returns error? {
+function testUnionBinding() returns error? {
     http:Response|error response = clientDBTestClient->get("/passthrough/runtimeErrors");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertTextPayload(response.getTextPayload(), "invalid target type, expected: http:Response, string, xml, json, map<json>, " +
-        "byte[], record, record[] or a union of such a type with nil|Error occurred while retrieving the json payload from the response");
+        assertTextPayload(response.getTextPayload(),
+            "{\"id\":\"chamil\",\"values\":{\"a\":2,\"b\":45,\"c\":{\"x\":\"mnb\",\"y\":\"uio\"}}}|This is my @4491*&&#$^($@");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
-    return;
 }
 
 @test:Config {
@@ -606,7 +608,10 @@ function testAllBindingErrorsWithNillableTypes() returns error? {
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
-        assertTextPayload(response.getTextPayload(), "Error occurred while retrieving the xml payload from the response|Error occurred while retrieving the json payload from the response");
+        assertTextPayload(response.getTextPayload(),
+            "Payload binding failed: 'map<json>' value cannot be converted to " +
+            "'xml<(lang.xml:Element|lang.xml:Comment|lang.xml:ProcessingInstruction|lang.xml:Text)>?'|" +
+            "incompatible typedesc int? found for 'text/plain' mime type");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -836,7 +841,8 @@ function testMapOfStringDataBinding() returns error? {
 function testMapOfStringDataBindingWithJsonPayload() {
     map<string>|error response = clientDBBackendClient->get("/backend/getJson");
     if (response is error) {
-        assertTextPayload(response.message(), "Datasource does not contain form data");
+        assertTrueTextPayload(response.message(),
+            "Payload binding failed: 'map<json>' value cannot be converted to 'map<string>'");
     } else {
         test:assertFail(msg = "Found unexpected output type: map<string>");
     }

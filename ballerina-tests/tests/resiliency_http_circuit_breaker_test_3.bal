@@ -43,7 +43,6 @@ final http:Client unhealthyClientEP = check new("http://localhost:8088", conf02)
 service /cb on circuitBreakerEP02 {
 
     isolated resource function 'default forceclose(http:Caller caller, http:Request request) {
-        http:CircuitBreakerClient cbClient = <http:CircuitBreakerClient>unhealthyClientEP.httpClient;
         lock {
             forceCloseStateCount = forceCloseStateCount + 1;
         }
@@ -54,7 +53,7 @@ service /cb on circuitBreakerEP02 {
         }
         if (count == 4) {
             runtime:sleep(5);
-            cbClient.forceClose();
+            unhealthyClientEP.circuitBreakerForceClose();
         }
         http:Response|error backendRes = unhealthyClientEP->forward("/unhealthy", request);
         if backendRes is http:Response {

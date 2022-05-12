@@ -104,7 +104,7 @@ service class ResponseInterceptor1 {
 service class ResponseInterceptor2 {
     *http:ResponseInterceptor;
 
-    remote function interceptResponse(http:RequestContext ctx) returns http:NextService|error? {
+    remote function interceptResponse (http:RequestContext ctx) returns http:NextService|error? {
         return ctx.next();
     }
 }
@@ -121,7 +121,7 @@ service class ResponseInterceptor3 {
 service class ResponseInterceptor4 {
     *http:ResponseInterceptor;
 
-    remote function interceptResponse(http:Response res) {
+    remote function interceptResponse (http:Response res) {
         res.setHeader("response-interceptor", "hello-world");
     }
 }
@@ -149,6 +149,14 @@ service class ResponseInterceptor7 {
 
     remote function interceptResponse(http:RequestContext ctx, http:Caller caller) returns http:NextService|error? {
         check caller->respond("greetings");
+        return ctx.next();
+    }
+}
+
+service class ResponseErrorInterceptorService1 {
+    *http:ResponseErrorInterceptor;
+
+    remote function interceptResponseError (error err, http:RequestContext ctx) returns http:NextService|error? {
         return ctx.next();
     }
 }
@@ -339,7 +347,15 @@ service class RequestInterceptor2 {
     }
 }
 
-service class ResponseErrorInterceptorService1 {
+service class ResponseErrorInterceptorService2 {
+    *http:ResponseErrorInterceptor;
+
+    remote function interceptError(error err, http:RequestContext ctx) returns http:NextService|error? {
+        return ctx.next();
+    }
+}
+
+service class ResponseErrorInterceptorService3 {
     *http:ResponseErrorInterceptor;
 
     remote function interceptResponseError(http:RequestContext ctx) returns http:NextService|error? {

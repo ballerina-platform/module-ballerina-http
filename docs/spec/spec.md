@@ -3,7 +3,7 @@
 _Owners_: @shafreenAnfar @TharmiganK @ayeshLK @chamil321  
 _Reviewers_: @shafreenAnfar @bhashinee @TharmiganK @ldclakmal  
 _Created_: 2021/12/23  
-_Updated_: 2022/03/14  
+_Updated_: 2022/04/08   
 _Edition_: Swan Lake  
 _Issue_: [#572](https://github.com/ballerina-platform/ballerina-standard-library/issues/572)
 
@@ -396,8 +396,8 @@ Based on the payload types respective header value is added as the `Content-type
 | int, float, decimal, boolean                                          | application/json         |
 | map\<json\>, table<map\<json\>>, map\<json\>[], table<map\<json\>>)[] | application/json         |
 
-In addition to the above types, caller `respond()` method can accept `error` type. In this case, an error response is 
-returned to the client with the error message.
+In addition to the above types, caller `respond()` method can accept `StatusCodeResponse` or `error` type. In case of 
+`error`, an error response is returned to the client with the error message.
 
 The HTTP compiler extension checks the argument of the `respond()` method if the matching payload type is passed as
 denoted in the CallerInfo annotation. At the moment, in terms of responding error, CallerInfo annotation can only support 
@@ -526,16 +526,59 @@ See section [Query] to understand accessing query param via the request object.
 
 ##### 2.3.4.4. Payload parameter
 
-The payload parameter eases access of request payload during the resource invocation. When the payload param is 
-defined with @http:Payload annotation, the listener binds the inbound request payload into the param type and return. 
-The type of payload param are as follows
+The payload parameter is used to access the request payload during the resource invocation. When the payload param is 
+defined with @http:Payload annotation, the listener deserialize the inbound request payload based on the media type 
+which retrieved by the `Content-type` header of the request. The data binding happens thereafter considering the 
+parameter type. The type of payload parameter can be one of the `anytype`. If the header is not present or not a 
+standard header, the binding type is inferred by the parameter type.
 
-```ballerina
-string|json|map<json>|xml|byte[]|record {| anydata...; |}|record {| anydata...; |}[]
-```
+Following table explains the compatible `anydata` types with each common media type. In the absence of a standard media 
+type, the binding type is inferred by the payload parameter type itself. If the type is not compatible with the media 
+type, error is returned.
 
-The payload binding process begins soon after the finding the correct resource for the given URL and before the 
-resource execution. The error which may occur during the process will be returned to the caller with the response 
+|Ballerina Type | Structure|"text" | "xml" | "json" | "x-www-form-urlencoded" | "octet-stream"|
+|---------------|----------|-------|-------|--------|-------------------------|---------------|
+|boolean| | ❌ | ❌ | ✅|❌|❌
+| |boolean[]| ❌ | ❌ | ✅|❌|❌
+| |map\<boolean\>| ❌ | ❌ | ✅|❌|❌
+| |table\<map\<boolean\>\>| ❌ | ❌ | ✅|❌|❌
+|int| | ❌ | ❌ | ✅|❌|❌
+| |int[]| ❌ | ❌ | ✅|❌|❌
+| |map\<int\>| ❌ | ❌ | ✅|❌|❌
+| |table\<map\<int\>\>| ❌ | ❌ | ✅|❌|❌
+float| | ❌ | ❌ | ✅|❌|❌
+| |float[]| ❌ | ❌ | ✅|❌|❌
+| |map\<float\>| ❌ | ❌ | ✅|❌|❌
+| |table\<map\<float\>\>| ❌ | ❌ | ✅|❌|❌
+decimal| | ❌ | ❌ | ✅|❌|❌
+| |decimal[]| ❌ | ❌ | ✅|❌|❌
+| |map\<decimal\>| ❌ | ❌ | ✅|❌|❌
+| |table\<map\<decimal\>\>| ❌ | ❌ | ✅|❌|❌
+byte[]| | ✅ | ❌ | ✅|❌|✅
+| |byte[][]| ❌ | ❌ | ✅|❌|❌
+| |map\<byte[]\>| ❌ | ❌ | ✅|❌|❌
+| |table\<map\<byte[]\>\>| ❌ | ❌ | ✅|❌|❌
+string| |✅|❌|✅|✅|❌
+| |string[]| ❌ | ❌ | ✅|❌|❌
+| |map\<string\>| ❌ | ❌ | ✅|✅|❌
+| |table\<map\<string\>\>| ❌ | ❌ | ✅|❌|❌
+xml| | ❌ | ✅ | ❌|❌|❌
+json| | ❌ | ❌ | ✅|❌|❌
+| |json[]| ❌ | ❌ | ✅|❌|❌
+| |map\<json\>| ❌ | ❌ | ✅|❌|❌
+| |table\<map\<json\>\>| ❌ | ❌ | ✅|❌|❌
+map| | ❌ | ❌ | ✅|❌|❌
+| |map[]| ❌ | ❌ | ✅|❌|❌
+| |map\<map\>| ❌ | ❌ | ✅|❌|❌
+| |table\<map\<map\>\>| ❌ | ❌ | ✅|❌|❌
+record| |❌|❌|✅|❌|❌
+| |record[]| ❌ | ❌ | ✅|❌|❌
+| |map\<record\>| ❌ | ❌ | ✅|❌|❌
+| |table\<record\>| ❌ | ❌ | ✅|❌|❌
+
+The payload binding process begins soon after finding the correct resource for the given URL and before the 
+resource execution. 
+The error which may occur during the process will be returned to the caller with the response 
 status code of 400 BAD REQUEST. The successful binding will proceed the resource execution with the built payload.
 
 ```ballerina
@@ -543,6 +586,21 @@ resource function post hello(@http:Payload json payload) {
     
 }
 ```
+
+Additionally, the payload parameter type can be a union of `anydata`. Based on the media type, the potential binding
+type is decided. For example, if the union is defined as `json|xml` and the media type is related to `json`,
+the deserialization and the binding will proceed according to the type `json`. But if the media type is related to `xml`
+the process will happen according to the type `xml`.
+If the given types of the union are not compatible with the media type, an error is returned.
+
+```ballerina
+resource function post hello(@http:Payload json|xml payload) { 
+    
+}
+
+```
+If any of the type is union with `()`(i.e `string?`), then in the absence of the payload, `()` will be assigned as 
+the value without being responded by a `BAD REQUEST` response.
 
 Internally the complete payload is built, therefore the application should have sufficient memory to support the 
 process. Payload binding is not recommended if the service behaves as a proxy/pass-through where request payload is 
@@ -1190,11 +1248,52 @@ infer the expected payload type from the LHS variable type. This is called as cl
 inbound response payload is accessed and parse to the expected type in the method signature. It is easy to access the
 payload directly rather manipulation `http:Response` using its support methods such as `getTextPayload()`, ..etc.
 
-Followings are the possible return types:
+Client data binding supports `anydata` where the payload is deserialized based on the media type before binding it 
+to the required type. Similar to the service data binding following table explains the compatible `anydata` types with 
+each common media type. In the absence of a standard media type, the binding type is inferred by the payload parameter 
+type itself. If the type is not compatible with the media type, error is returned.
 
-```ballerina
-Response|string|xml|json|map<json>|byte[]|record {| anydata...; |}|record {| anydata...; |}[];
-```
+|Ballerina Type | Structure|"text" | "xml" | "json" | "x-www-form-urlencoded" | "octet-stream"|
+|---------------|----------|-------|-------|--------|-------------------------|---------------|
+|boolean| | ❌ | ❌ | ✅|❌|❌
+| |boolean[]| ❌ | ❌ | ✅|❌|❌
+| |map\<boolean\>| ❌ | ❌ | ✅|❌|❌
+| |table\<map\<boolean\>\>| ❌ | ❌ | ✅|❌|❌
+|int| | ❌ | ❌ | ✅|❌|❌
+| |int[]| ❌ | ❌ | ✅|❌|❌
+| |map\<int\>| ❌ | ❌ | ✅|❌|❌
+| |table\<map\<int\>\>| ❌ | ❌ | ✅|❌|❌
+float| | ❌ | ❌ | ✅|❌|❌
+| |float[]| ❌ | ❌ | ✅|❌|❌
+| |map\<float\>| ❌ | ❌ | ✅|❌|❌
+| |table\<map\<float\>\>| ❌ | ❌ | ✅|❌|❌
+decimal| | ❌ | ❌ | ✅|❌|❌
+| |decimal[]| ❌ | ❌ | ✅|❌|❌
+| |map\<decimal\>| ❌ | ❌ | ✅|❌|❌
+| |table\<map\<decimal\>\>| ❌ | ❌ | ✅|❌|❌
+byte[]| | ✅ | ❌ | ✅|❌|✅
+| |byte[][]| ❌ | ❌ | ✅|❌|❌
+| |map\<byte[]\>| ❌ | ❌ | ✅|❌|❌
+| |table\<map\<byte[]\>\>| ❌ | ❌ | ✅|❌|❌
+string| |✅|❌|✅|✅|❌
+| |string[]| ❌ | ❌ | ✅|❌|❌
+| |map\<string\>| ❌ | ❌ | ✅|✅|❌
+| |table\<map\<string\>\>| ❌ | ❌ | ✅|❌|❌
+xml| | ❌ | ✅ | ❌|❌|❌
+json| | ❌ | ❌ | ✅|❌|❌
+| |json[]| ❌ | ❌ | ✅|❌|❌
+| |map\<json\>| ❌ | ❌ | ✅|❌|❌
+| |table\<map\<json\>\>| ❌ | ❌ | ✅|❌|❌
+map| | ❌ | ❌ | ✅|❌|❌
+| |map[]| ❌ | ❌ | ✅|❌|❌
+| |map\<map\>| ❌ | ❌ | ✅|❌|❌
+| |table\<map\<map\>\>| ❌ | ❌ | ✅|❌|❌
+record| |❌|❌|✅|❌|❌
+| |record[]| ❌ | ❌ | ✅|❌|❌
+| |map\<record\>| ❌ | ❌ | ✅|❌|❌
+| |table\<record\>| ❌ | ❌ | ✅|❌|❌
+
+
 ```ballerina
 http:Client httpClient = check new ("https://person.free.beeceptor.com");
 json payload = check httpClient->get("/data");
@@ -1205,9 +1304,17 @@ In case of using var as return type, user can pass the typedesc to the targetTyp
 http:Client httpClient = check new ("https://person.free.beeceptor.com");
 var payload = check httpClient->get("/data", targetType = json);
 ```
+
+If any of the type is union with `()`(i.e `string?`), then in the absence of the payload, `()` will be assigned as
+the value without being responded by a `BAD REQUEST` response.
+
+```ballerina
+string? payload = check httpClient->get("/data");
+```
+
 When the user expects client data binding to happen, the HTTP error responses (4XX, 5XX) will be categorized as an 
-error (http:ClientRequestError, http:RemoteServerError) of the client remote operation. These error types contains
-payload, headers and statuscode inside the error detail.
+error (http:ClientRequestError, http:RemoteServerError) of the client remote operation. These error types contain 
+payload, headers and status code inside the error detail.
 
 ```ballerina
 public type Detail record {
@@ -1227,6 +1334,19 @@ if (result is http:RemoteServerError) {
     map<string[]> headers = result.detail().headers;
 }
 ```
+
+Additionally, the client action return type can be a union of `anydata`. Based on the media type, the potential binding
+type is decided. For example, if the union is defined as `json|xml` and the media type is related to `json`,
+the deserialization and the binding will proceed according to the type `json`. But if the media type is related to `xml`
+the process will happen according to the type `xml`.
+If the given types of the union are not compatible with the media type, an error is returned.
+
+```ballerina
+json|xml payload = check httpClient->get("/data");
+```
+
+If the type is union with `()`(i.e `string?`), then in the absence of the payload, `()` will be assigned as
+the value without being responded by a `BAD REQUEST` response.
 
 ## 3. Request routing
 Ballerina dispatching logic is implemented to uniquely identify a resource based on the request URI and Method.
@@ -1280,6 +1400,7 @@ public type HttpServiceConfig record {|
     string mediaTypeSubtypePrefix?;
     boolean treatNilableAsOptional = true;
     Interceptor[] interceptors?;
+    byte[] openApiDefinition = [];
 |};
 
 @http:ServiceConfig {
@@ -1289,6 +1410,10 @@ service on testListener {
     
 }
 ```
+
+The `openApiDefinition` field in http:ServiceConfig annotation serves a unique purpose. It will be automatically 
+populated at compile-time with OpenAPI definition of the particular http:Service if the OpenAPI definition auto 
+generation is available.
 
 ### 4.2. Resource configuration
 The resource configuration responsible for shaping the resource function. Most of the behaviours are provided from 
@@ -1530,7 +1655,10 @@ work such as the below.
  - Validating
  - Securing
 
-Interceptors are designed for both request and response flows.
+Interceptors are designed for both request and response flows. There are just service objects which will be executed in
+a configured order to intercept request and response. These interceptor services can only have either a resource function 
+or a remote function depends on the interceptor type. Moreover, they do not support `ServiceConfig`, `ResourceConfig`
+and `Cache` annotations.
 
 #### 8.1.1 Request interceptor
 Following is an example of `RequestInterceptor` written in Ballerina swan-lake. `RequestInterceptor` can only have one 
@@ -1655,8 +1783,9 @@ be placed anywhere in the request or response interceptor chain. The framework a
 `RequestErrorInterceptor` and `ResponseErrorInterceptor` which basically prints the error message to the console.
 
 Users can override these interceptors by defining their own ones as follows. Users don’t have to specifically engage 
-these interceptors as they only have fixed positions and they are always executed. The only additional argument in this 
-case is error `err`.
+these interceptors as they only have fixed positions and they are always executed. The only additional and mandatory 
+argument in this case is error `err`. Moreover, the `RequestErrorInterceptor` resource function can only have
+the `default` method and default path.
 
 ```ballerina
 service class RequestErrorInterceptor {
@@ -1699,8 +1828,9 @@ function paths are relative to the service base path.
 ```
 
 ##### 8.1.4.2 Listener level
-Interceptors could get engaged at Listener level as well. At the listener level resource function paths are 
-relative to the /.
+Interceptors could get engaged at Listener level as well. Interceptors engaged at listener level should have resource 
+function only with default path i.e. these interceptors will get executed for all the services registered on this 
+listener.
 ```ballerina
 listener http:Listener echoListener = new http:Listener(9090, config = {interceptors: [requestInterceptor, responseInterceptor]});
 ```

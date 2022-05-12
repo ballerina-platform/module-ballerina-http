@@ -118,13 +118,13 @@ public type CircuitBreakerInferredConfig record {|
 # + httpClient - The underlying `HttpActions` instance which will be making the actual network calls
 # + circuitHealth - The circuit health monitor
 # + currentCircuitState - The current state the circuit is in
-public client isolated class CircuitBreakerClient {
+client isolated class CircuitBreakerClient {
 
     private string url;
     private final CircuitBreakerInferredConfig & readonly circuitBreakerInferredConfig;
     private final CircuitHealth circuitHealth;
     private CircuitState currentCircuitState = CB_CLOSED_STATE;
-    public final HttpClient httpClient;
+    final HttpClient httpClient;
 
     # A Circuit Breaker implementation which can be used to gracefully handle network failures.
     #
@@ -375,7 +375,7 @@ public client isolated class CircuitBreakerClient {
 
     # Force the circuit into a closed state in which it will allow requests regardless of the error percentage
     # until the failure threshold exceeds.
-    public isolated function forceClose() {
+    isolated function forceClose() {
         log:printInfo("Circuit forcefully switched to CLOSE state.");
         self.setCurrentState(CB_CLOSED_STATE);
         lock {
@@ -385,7 +385,7 @@ public client isolated class CircuitBreakerClient {
 
     # Force the circuit into a open state in which it will suspend all requests
     # until `resetTime` interval exceeds.
-    public isolated function forceOpen() {
+    isolated function forceOpen() {
         lock {
             self.currentCircuitState = CB_OPEN_STATE;
             self.circuitHealth.lastForcedOpenTime = time:utcNow();
@@ -395,7 +395,7 @@ public client isolated class CircuitBreakerClient {
     # Provides the `http:CircuitState` of the circuit breaker.
     #
     # + return - The current `http:CircuitState` of the circuit breaker
-    public isolated function getCurrentState() returns CircuitState {
+    isolated function getCurrentState() returns CircuitState {
         lock {
             return self.currentCircuitState;
         }
