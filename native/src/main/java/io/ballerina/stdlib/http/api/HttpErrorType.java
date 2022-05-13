@@ -65,6 +65,7 @@ public enum HttpErrorType {
     CLIENT_ERROR("ClientError"),
     PAYLOAD_BINDING_ERROR("PayloadBindingError"),
     HEADER_BINDING_ERROR("HeaderBindingError"),
+    QUERY_PARAM_BINDING_ERROR("QueryParameterBindingError"),
     INTERCEPTOR_RETURN_ERROR("InterceptorReturnError");
 
     private final String errorName;

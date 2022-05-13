@@ -24,7 +24,6 @@ import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
-import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.http.api.HttpConstants;
@@ -122,11 +121,10 @@ public class AllHeaderParams implements Parameter {
                 } else {
                     paramFeed[index++] = castParam(typeTag, headerValues.get(0));
                 }
-            } catch (Exception e) {
+            } catch (Exception ex) {
                 httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
-                BError cause = HttpUtil.createError(e);
-                throw HttpUtil.createHttpError("header binding failed for parameter: " + token,
-                                               HttpErrorType.HEADER_BINDING_ERROR, cause);
+                throw HttpUtil.createHttpError("header binding failed for parameter: '" + token + "'",
+                                               HttpErrorType.HEADER_BINDING_ERROR, HttpUtil.createError(ex));
             }
             paramFeed[index] = true;
         }

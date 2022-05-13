@@ -59,6 +59,9 @@ public type InterceptorReturnError distinct ListenerError;
 # Represents an error, which occurred due to a header binding.
 public type HeaderBindingError distinct ListenerError;
 
+# Represents an error, which occurred due to a query parameter binding.
+public type QueryParameterBindingError distinct ListenerError;
+
 # Defines the auth error types that returned from listener.
 public type ListenerAuthError distinct ListenerError;
 
