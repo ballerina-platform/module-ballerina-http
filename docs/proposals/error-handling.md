@@ -22,7 +22,7 @@ However, this often causes problems because when designing any API consistency m
 must have a consistent format.
 
 As a result, almost all the real API requires overriding the default error handler and replacing it with their own 
-error handlers. At the moment HTTP library doesn't have a solid way of doing this.
+error handlers. At the moment the HTTP library doesn't have a solid way of doing this.
 
 ## Description
 
@@ -49,7 +49,7 @@ public type RequestErrorInterceptor distinct service object {};
 service class RequestErrorInterceptor {
    *http:RequestErrorInterceptor;
  
-   resouce function 'default [string… path](http:RequestContext ctx, http:Caller caller,
+   resource function 'default [string… path](http:RequestContext ctx, http:Caller caller,
                        http:Request req, error err) returns http:RequestInterceptor|error? {
        // deal with the error
        return ctx.next();
@@ -64,7 +64,7 @@ interceptor pipeline. Following is such an example.
 service class RequestErrorInterceptor {
    *http:RequestErrorInterceptor;
  
-   resouce function 'default [string… path](error err) returns http:NotFound  {
+   resource function 'default [string… path](error err) returns http:NotFound  {
        http:NotFound nf = { body: { msg: err.message() } };
        return nf;
    }
