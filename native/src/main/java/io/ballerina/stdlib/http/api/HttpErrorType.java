@@ -64,6 +64,7 @@ public enum HttpErrorType {
     HEADER_NOT_FOUND_ERROR("HeaderNotFoundError"),
     CLIENT_ERROR("ClientError"),
     PAYLOAD_BINDING_ERROR("PayloadBindingError"),
+    HEADER_BINDING_ERROR("HeaderBindingError"),
     INTERCEPTOR_RETURN_ERROR("InterceptorReturnError");
 
     private final String errorName;

@@ -53,8 +53,11 @@ public type OutboundResponseError distinct ListenerError;
 # Represents a generic listener error.
 public type GenericListenerError distinct ListenerError;
 
-# Represents an error, which occurred due to a failure in interceptor return
+# Represents an error, which occurred due to a failure in interceptor return.
 public type InterceptorReturnError distinct ListenerError;
+
+# Represents an error, which occurred due to a header binding.
+public type HeaderBindingError distinct ListenerError;
 
 # Defines the auth error types that returned from listener.
 public type ListenerAuthError distinct ListenerError;
