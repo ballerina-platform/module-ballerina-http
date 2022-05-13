@@ -94,7 +94,7 @@ It is possible to get hold of the original response using the argument `http:Res
 ### DefaultErrorInterceptor
 `DefaultErrorInterceptor` is a `ResponseErrorInterceptor` which will be added by the Listener as the 
 first interceptor in the interceptor pipeline. Hence, any error which is not handled by other error interceptors 
-will be handled by this error interceptor. Following is how the internal default error interceptor is defined
+will be handled by this error interceptor. Following is how the internal default error interceptor is defined.
 
 ```ballerina
 service class DefaultErrorInterceptor {
