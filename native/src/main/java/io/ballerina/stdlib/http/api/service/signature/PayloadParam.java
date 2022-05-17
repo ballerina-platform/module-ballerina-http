@@ -25,8 +25,8 @@ import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
-import io.ballerina.stdlib.http.api.BallerinaConnectorException;
 import io.ballerina.stdlib.http.api.HttpConstants;
+import io.ballerina.stdlib.http.api.HttpErrorType;
 import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.api.service.signature.builder.AbstractPayloadBuilder;
 import io.ballerina.stdlib.http.api.service.signature.converter.JsonToRecordConverter;
@@ -147,9 +147,8 @@ public class PayloadParam implements Parameter {
                     } else if (((ArrayType) payloadType).getElementType().getTag() == TypeTags.RECORD_TYPE_TAG) {
                         paramFeed[index++]  = JsonToRecordConverter.convert(payloadType, inRequestEntity, readonly);
                     } else {
-                        throw new BallerinaConnectorException("Incompatible Element type found inside an array " +
-                                                                      ((ArrayType) payloadType).getElementType()
-                                                                              .getName());
+                        throw HttpUtil.createHttpError("incompatible element type found inside an array " +
+                                                       ((ArrayType) payloadType).getElementType().getName());
                     }
                     break;
                 case TypeTags.RECORD_TYPE_TAG:
@@ -160,7 +159,8 @@ public class PayloadParam implements Parameter {
             }
         } catch (BError ex) {
             httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
-            throw new BallerinaConnectorException("data binding failed: " + ex.toString());
+            throw HttpUtil.createHttpError("data binding failed: " + HttpUtil.getPrintableErrorMsg(ex),
+                                           HttpErrorType.PAYLOAD_BINDING_LISTENER_ERROR);
         }
         return index;
     }
@@ -180,7 +180,8 @@ public class PayloadParam implements Parameter {
                 return ++index;
             }
             inboundMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
-            throw new BallerinaConnectorException("data binding failed: " + ex.toString());
+            throw HttpUtil.createHttpError("data binding failed: " + HttpUtil.getPrintableErrorMsg(ex),
+                                           HttpErrorType.PAYLOAD_BINDING_LISTENER_ERROR);
         }
     }
 }

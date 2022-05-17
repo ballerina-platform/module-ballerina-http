@@ -59,6 +59,15 @@ public type InterceptorReturnError distinct ListenerError;
 # Represents an error, which occurred due to a header binding.
 public type HeaderBindingError distinct ListenerError;
 
+# Represents an error, which occurred due to the client payload binding.
+public type PayloadBindingClientError distinct ClientError;
+
+# Represents an error, which occurred due to the service payload binding.
+public type PayloadBindingListenerError distinct ListenerError;
+
+# Represents an error, which occurred due to payload binding.
+public type PayloadBindingError PayloadBindingClientError|PayloadBindingListenerError;
+
 # Represents an error, which occurred due to a query parameter binding.
 public type QueryParameterBindingError distinct ListenerError;
 
@@ -115,9 +124,6 @@ public type ClientRequestError distinct (ApplicationResponseError & error<Detail
 
 # Represents an error, which occurred due to a failure of the remote server(5xx HTTP response).
 public type RemoteServerError distinct (ApplicationResponseError & error<Detail>);
-
-# Represents an error, which occurred due to a payload binding.
-public type PayloadBindingError distinct GenericClientError;
 
 # Represents an error, which occurred due to the absence of the payload.
 public type NoContentError distinct GenericClientError;

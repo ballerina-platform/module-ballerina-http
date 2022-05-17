@@ -49,6 +49,6 @@ public class XmlPayloadBuilder extends AbstractPayloadBuilder {
             return bxml;
         }
         throw HttpUtil.createHttpError("incompatible type found: '" + payloadType.toString() + "'",
-                                       HttpErrorType.PAYLOAD_BINDING_ERROR);
+                                       HttpErrorType.PAYLOAD_BINDING_LISTENER_ERROR);
     }
 }
