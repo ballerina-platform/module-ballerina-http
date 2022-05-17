@@ -54,9 +54,9 @@ service /cb on circuitBreakerEP06 {
             runtime:sleep(3);
         }
         http:Response|error backendRes = backendClientEP06->forward("/hello06", request);
-        if (backendRes is http:Response) {
+        if backendRes is http:Response {
             error? responseToCaller = caller->respond(backendRes);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
@@ -64,7 +64,7 @@ service /cb on circuitBreakerEP06 {
             response.statusCode = http:STATUS_INTERNAL_SERVER_ERROR;
             response.setPayload(backendRes.message());
             error? responseToCaller = caller->respond(response);
-            if (responseToCaller is error) {
+            if responseToCaller is error {
                 log:printError("Error sending response", 'error = responseToCaller);
             }
         }
@@ -87,7 +87,7 @@ service /hello06 on new http:Listener(8092) {
             res.setPayload("Hello World!!!");
         }
         error? responseToCaller = caller->respond(res);
-        if (responseToCaller is error) {
+        if responseToCaller is error {
             log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
@@ -97,8 +97,8 @@ service /hello06 on new http:Listener(8092) {
 final http:Client testTrialRunFailureClient = check new("http://localhost:9312");
 
 @test:Config{ dataProvider:trialRunFailureResponseDataProvider }
-function testCBTrialRunFailure(DataFeed dataFeed) {
-    invokeApiAndVerifyResponse(testTrialRunFailureClient, "/cb/trialrun", dataFeed);
+function testCBTrialRunFailure(DataFeed dataFeed) returns error? {
+    check invokeApiAndVerifyResponse(testTrialRunFailureClient, "/cb/trialrun", dataFeed);
 }
 
 function trialRunFailureResponseDataProvider() returns DataFeed[][] {

@@ -278,7 +278,7 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
 
                     targetChannel.setChannel(targetNettyChannel);
                     targetChannel.configTargetHandler(httpOutboundRequest, httpResponseFuture);
-                    httpResponseFuture.setBackPressureHandler(targetChannel.getBackPressureHandler());
+                    httpResponseFuture.setBackPressureObservable(targetChannel.getBackPressureObservable());
                     Util.setCorrelationIdForLogging(targetNettyChannel.pipeline(), targetChannel.getCorrelatedSource());
 
                     Util.handleOutboundConnectionHeader(senderConfiguration, httpOutboundRequest);

@@ -29,40 +29,40 @@ service /test on mimeEP {
     //     mime:Entity responseEntity = new;
 
     //     var result = request.getByteChannel();
-    //     if (result is io:ReadableByteChannel) {
+    //     if result is io:ReadableByteChannel {
     //         responseEntity.setByteChannel(result);
     //     } else {
     //         io:print("Error in getting byte channel");
     //     }
 
     //     response.setEntity(responseEntity);
-    //     checkpanic caller->respond(response);
+    //     check caller->respond(response);
     // }
 
-    resource function post largepayload(http:Caller caller, http:Request request) {
+    resource function post largepayload(http:Caller caller, http:Request request) returns error? {
         http:Response response = new;
         mime:Entity responseEntity = new;
         var result = request.getByteStream();
-        if (result is stream<byte[], io:Error?>) {
+        if result is stream<byte[], io:Error?> {
             responseEntity.setByteStream(result);
         } else {
             io:print("Error in getting byte stream");
         }
         response.setEntity(responseEntity);
-        checkpanic caller->respond(response);
+        check caller->respond(response);
     }
 
     resource function 'default getPayloadFromEntity(http:Caller caller, http:Request request) returns
-            http:InternalServerError? {
+            http:InternalServerError|error? {
         http:Response res = new;
         var entity = request.getEntity();
-        if (entity is mime:Entity) {
+        if entity is mime:Entity {
             json|error jsonPayload = entity.getJson();
-            if (jsonPayload is json) {
+            if jsonPayload is json {
                 mime:Entity ent = new;
-                ent.setJson({"payload" : jsonPayload, "header" : checkpanic entity.getHeader("Content-type")});
+                ent.setJson({"payload" : jsonPayload, "header" : check entity.getHeader("Content-type")});
                 res.setEntity(ent);
-                checkpanic caller->respond(res);
+                check caller->respond(res);
             } else {
                 return {body: "Error while retrieving from entity"};
             }
@@ -74,13 +74,13 @@ service /test on mimeEP {
 }
 
 @test:Config {}
-function testHeaderWithRequest() {
+function testHeaderWithRequest() returns error? {
     mime:Entity entity = new;
     entity.setHeader("123Authorization", "123Basicxxxxxx");
 
     http:Request request = new;
     request.setEntity(entity);
-    test:assertEquals(checkpanic request.getHeader("123Authorization"), "123Basicxxxxxx", msg = "Output mismatched");
+    test:assertEquals(check request.getHeader("123Authorization"), "123Basicxxxxxx", msg = "Output mismatched");
 }
 
 @test:Config {}
@@ -104,7 +104,7 @@ function testPayloadInRequest() {
     request.setJsonPayload({"payload": "PayloadInTheRequest"});
 
     var entity = request.getEntity();
-    if (entity is mime:Entity) {
+    if entity is mime:Entity {
         var payload = entity.getJson();
         if payload is json {
             test:assertEquals(payload, {"payload": "PayloadInTheRequest"}, msg = "Output mismatched");
@@ -117,13 +117,13 @@ function testPayloadInRequest() {
 }
 
 @test:Config {}
-function testHeaderWithResponse() {
+function testHeaderWithResponse() returns error? {
     mime:Entity entity = new;
     entity.setHeader("123Authorization", "123Basicxxxxxx");
 
     http:Response response = new;
     response.setEntity(entity);
-    test:assertEquals(checkpanic response.getHeader("123Authorization"),  "123Basicxxxxxx", msg = "Output mismatched");
+    test:assertEquals(check response.getHeader("123Authorization"),  "123Basicxxxxxx", msg = "Output mismatched");
 }
 
 @test:Config {}
@@ -147,7 +147,7 @@ function testPayloadInResponse() {
     response.setJsonPayload({"payload": "PayloadInTheResponse"});
 
     var entity = response.getEntity();
-    if (entity is mime:Entity) {
+    if entity is mime:Entity {
         var payload = entity.getJson();
         if payload is json {
             test:assertEquals(payload, {"payload": "PayloadInTheResponse"}, msg = "Output mismatched");
@@ -171,7 +171,7 @@ function testAccessingPayloadFromEntity() {
     http:Request req = new;
     req.setTextPayload(jsonString);
     http:Response|error response = mimeClient->post(path, req);
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonPayload(response.getJsonPayload(), {"payload":{"lang":"ballerina"}, "header":"text/plain"});
     } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
@@ -187,7 +187,7 @@ function testStreamResponseSerialize() {
     http:Request req = new;
     req.setJsonPayload(jsonString);
     json|error response = mimeClient->post(path, req, targetType = json);
-    if (response is json) {
+    if response is json {
         assertJsonPayload(response, jsonString);
     } else {
         test:assertFail(msg = "Test Failed! " + response.message());

@@ -61,44 +61,44 @@ public class ResponseCacheControl {
         string[] directives = [];
         int i = 0;
 
-        if (self.mustRevalidate) {
+        if self.mustRevalidate {
             directives[i] = MUST_REVALIDATE;
             i += 1;
         }
 
-        if (self.noCache) {
+        if self.noCache {
             directives[i] = NO_CACHE + appendFields(self.noCacheFields);
             i += 1;
         }
 
-        if (self.noStore) {
+        if self.noStore {
             directives[i] = NO_STORE;
             i += 1;
         }
 
-        if (self.noTransform) {
+        if self.noTransform {
             directives[i] = NO_TRANSFORM;
             i += 1;
         }
 
-        if (self.isPrivate) {
+        if self.isPrivate {
             directives[i] = PRIVATE + appendFields(self.privateFields);
         } else {
             directives[i] = PUBLIC;
         }
         i += 1;
 
-        if (self.proxyRevalidate) {
+        if self.proxyRevalidate {
             directives[i] = PROXY_REVALIDATE;
             i += 1;
         }
 
-        if (self.maxAge >= 0d) {
+        if self.maxAge >= 0d {
             directives[i] = MAX_AGE + "=" + self.maxAge.toString();
             i += 1;
         }
 
-        if (self.sMaxAge >= 0d) {
+        if self.sMaxAge >= 0d {
             directives[i] = S_MAX_AGE + "=" + self.sMaxAge.toString();
             i += 1;
         }

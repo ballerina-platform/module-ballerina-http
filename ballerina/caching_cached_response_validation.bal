@@ -21,7 +21,7 @@ isolated function getValidationResponse(HttpClient httpClient, Request req, Resp
                                time:Utc currentT, string path, string httpMethod, boolean isFreshResponse)
                                                                                 returns Response|ClientError {
     // If the no-cache directive is set, always validate the response before serving
-    if (isFreshResponse) {
+    if isFreshResponse {
         log:printDebug("Sending validation request for a fresh response");
     } else {
         log:printDebug("Sending validation request for a stale response");
@@ -29,7 +29,7 @@ isolated function getValidationResponse(HttpClient httpClient, Request req, Resp
 
     var validationResponse = sendValidationRequest(httpClient, httpMethod, path, req, cachedResponse);
 
-    if (validationResponse is ClientError) {
+    if validationResponse is ClientError {
         // Based on https://tools.ietf.org/html/rfc7234#section-4.2.4
         // This behaviour is based on the fact that currently error structs are returned only
         // if the connection is refused or the connection times out.
@@ -38,7 +38,7 @@ isolated function getValidationResponse(HttpClient httpClient, Request req, Resp
         updateResponseTimestamps(cachedResponse, currentT, time:utcNow());
         setAgeHeader(cachedResponse);
 
-        if (!isFreshResponse) {
+        if !isFreshResponse {
             // If the origin server cannot be reached and a fresh response is unavailable, serve a stale
             // response (unless it is prohibited through a directive).
             cachedResponse.setHeader(WARNING, WARNING_111_REVALIDATION_FAILED);
@@ -53,9 +53,9 @@ isolated function getValidationResponse(HttpClient httpClient, Request req, Resp
     log:printDebug("Response for validation request received");
 
     // Based on https://tools.ietf.org/html/rfc7234#section-4.3.3
-    if (validationResponse.statusCode == STATUS_NOT_MODIFIED) {
+    if validationResponse.statusCode == STATUS_NOT_MODIFIED {
         return handle304Response(validationResponse, cachedResponse, cache, path, httpMethod);
-    } else if (validationResponse.statusCode >= 500 && validationResponse.statusCode < 600) {
+    } else if validationResponse.statusCode >= 500 && validationResponse.statusCode < 600 {
         // May forward the response or act as if the origin server failed to respond and serve a
         // stored response
         // TODO: Make the above mentioned behaviour user-configurable
@@ -74,12 +74,12 @@ isolated function sendValidationRequest(HttpClient httpClient, string httpMethod
         Response cachedResponse) returns Response|ClientError {
     // Set the precondition headers only if the user hasn't explicitly set them.
     boolean userProvidedINMHeader = originalRequest.hasHeader(IF_NONE_MATCH);
-    if (!userProvidedINMHeader && cachedResponse.hasHeader(ETAG)) {
+    if !userProvidedINMHeader && cachedResponse.hasHeader(ETAG) {
         originalRequest.setHeader(IF_NONE_MATCH, checkpanic cachedResponse.getHeader(ETAG));
     }
 
     boolean userProvidedIMSHeader = originalRequest.hasHeader(IF_MODIFIED_SINCE);
-    if (!userProvidedIMSHeader && cachedResponse.hasHeader(LAST_MODIFIED)) {
+    if !userProvidedIMSHeader && cachedResponse.hasHeader(LAST_MODIFIED) {
         originalRequest.setHeader(IF_MODIFIED_SINCE, checkpanic cachedResponse.getHeader(LAST_MODIFIED));
     }
 
@@ -88,11 +88,11 @@ isolated function sendValidationRequest(HttpClient httpClient, string httpMethod
     var resp = httpClient->execute(httpMethod, path, originalRequest);
 
     // Have to remove the precondition headers from the request if they weren't user provided.
-    if (!userProvidedINMHeader) {
+    if !userProvidedINMHeader {
         originalRequest.removeHeader(IF_NONE_MATCH);
     }
 
-    if (!userProvidedIMSHeader) {
+    if !userProvidedIMSHeader {
         originalRequest.removeHeader(IF_MODIFIED_SINCE);
     }
     return resp;
@@ -102,8 +102,8 @@ isolated function sendValidationRequest(HttpClient httpClient, string httpMethod
 isolated function handle304Response(Response validationResponse, Response cachedResponse, HttpCache cache, string path,
                            string httpMethod) returns Response|ClientError {
     string|error etag = validationResponse.getHeader(ETAG);
-    if (etag is string) {
-        if (isAStrongValidator(etag)) {
+    if etag is string {
+        if isAStrongValidator(etag) {
             // Assuming ETags are the only strong validators
             Response[] matchingCachedResponses = cache.getAllByETag(getCacheKey(httpMethod, path), etag);
 
@@ -112,7 +112,7 @@ isolated function handle304Response(Response validationResponse, Response cached
             }
             log:printDebug("304 response received, with a strong validator. Response(s) updated");
             return cachedResponse;
-        } else if (hasAWeakValidator(validationResponse, etag)) {
+        } else if hasAWeakValidator(validationResponse, etag) {
             // The weak validator should be either an ETag or a last modified date. Precedence given to ETag
             Response[] matchingCachedResponses = cache.getAllByWeakETag(getCacheKey(httpMethod, path), etag);
 
@@ -126,8 +126,8 @@ isolated function handle304Response(Response validationResponse, Response cached
 
     // Not checking the ETag in validation since it's already checked above.
     // TODO: Need to check whether cachedResponse is the only matching response
-    if (!cachedResponse.hasHeader(ETAG) && !cachedResponse.hasHeader(LAST_MODIFIED) &&
-                                                        !validationResponse.hasHeader(LAST_MODIFIED)) {
+    if !cachedResponse.hasHeader(ETAG) && !cachedResponse.hasHeader(LAST_MODIFIED) &&
+                                                        !validationResponse.hasHeader(LAST_MODIFIED) {
         log:printDebug("304 response received and stored response do not have validators. Updating the stored response.");
         updateResponse(cachedResponse, validationResponse);
     }
@@ -146,9 +146,5 @@ isolated function hasAWeakValidator(Response validationResponse, string etag) re
 isolated function isAStrongValidator(string etag) returns boolean {
     // TODO: Consider cases where Last-Modified can also be treated as a strong validator as per
     // https://tools.ietf.org/html/rfc7232#section-2.2.2
-    if (!etag.startsWith(WEAK_VALIDATOR_TAG)) {
-        return true;
-    }
-
-    return false;
+    return !etag.startsWith(WEAK_VALIDATOR_TAG);
 }

@@ -24,10 +24,10 @@ final http:Client ecommerceClient = check new("http://localhost:" + ecommerceTes
 
 service /customerservice on ecommerceListenerEP {
 
-    resource function 'default customers(http:Caller caller, http:Request req) {
+    resource function 'default customers(http:Caller caller, http:Request req) returns error? {
         json payload = {};
         string httpMethod = req.method;
-        if (strings:equalsIgnoreCaseAscii(httpMethod, "GET")) {
+        if strings:equalsIgnoreCaseAscii(httpMethod, "GET") {
             payload = {"Customer":{"ID":"987654", "Name":"ABC PQR", "Description":"Sample Customer."}};
         } else {
             payload = {"Status":"Customer is successfully added."};
@@ -35,7 +35,7 @@ service /customerservice on ecommerceListenerEP {
 
         http:Response res = new;
         res.setJsonPayload(payload);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
     function getCustomers() {
@@ -47,20 +47,20 @@ final http:Client productsService = check new("http://localhost:" + ecommerceTes
 
 service /ecommerceservice on ecommerceListenerEP {
 
-    resource function get products/[string prodId](http:Caller caller, http:Request req) {
+    resource function get products/[string prodId](http:Caller caller, http:Request req) returns error? {
         string reqPath = "/productsservice/" +  prodId;
         http:Response|error clientResponse = productsService->get( reqPath);
-        if (clientResponse is http:Response) {
-            checkpanic caller->respond(clientResponse);
+        if clientResponse is http:Response {
+            check caller->respond(clientResponse);
         } else {
             io:println("Error occurred while reading product response");
         }
     }
 
-    resource function post products(http:Caller caller, http:Request req) {
+    resource function post products(http:Caller caller, http:Request req) returns error? {
         http:Request clientRequest = new;
         var jsonReq = req.getJsonPayload();
-        if (jsonReq is json) {
+        if jsonReq is json {
             clientRequest.setPayload(jsonReq);
         } else {
             io:println("Error occurred while reading products payload");
@@ -68,47 +68,47 @@ service /ecommerceservice on ecommerceListenerEP {
 
         http:Response clientResponse = new;
         http:Response|error clientRes = productsService->post("/productsservice", clientRequest);
-        if (clientRes is http:Response) {
+        if clientRes is http:Response {
             clientResponse = clientRes;
         } else {
             io:println("Error occurred while reading locator response");
         }
-        checkpanic caller->respond(clientResponse);
+        check caller->respond(clientResponse);
     }
 
-    resource function get orders(http:Caller caller, http:Request req) {
+    resource function get orders(http:Caller caller, http:Request req) returns error? {
         http:Response|error clientResponse = productsService->get("/orderservice/orders");
-        if (clientResponse is http:Response) {
-            checkpanic caller->respond(clientResponse);
+        if clientResponse is http:Response {
+            check caller->respond(clientResponse);
         } else {
             io:println("Error occurred while reading orders response");
         }
     }
 
-    resource function post orders(http:Caller caller, http:Request req) {
+    resource function post orders(http:Caller caller, http:Request req) returns error? {
         http:Request clientRequest = new;
         http:Response|error clientResponse = productsService->post("/orderservice/orders", clientRequest);
-        if (clientResponse is http:Response) {
-            checkpanic caller->respond(clientResponse);
+        if clientResponse is http:Response {
+            check caller->respond(clientResponse);
         } else {
             io:println("Error occurred while writing orders response");
         }
     }
 
-    resource function get customers(http:Caller caller, http:Request req) {
+    resource function get customers(http:Caller caller, http:Request req) returns error? {
         http:Response|error clientResponse = productsService->get("/customerservice/customers");
-        if (clientResponse is http:Response) {
-            checkpanic caller->respond(clientResponse);
+        if clientResponse is http:Response {
+            check caller->respond(clientResponse);
         } else {
             io:println("Error occurred while reading customers response");
         }
     }
 
-    resource function post customers(http:Caller caller, http:Request req) {
+    resource function post customers(http:Caller caller, http:Request req) returns error? {
         http:Request clientRequest = new;
         http:Response|error clientResponse = productsService->post("/customerservice/customers", clientRequest);
-        if (clientResponse is http:Response) {
-            checkpanic caller->respond(clientResponse);
+        if clientResponse is http:Response {
+            check caller->respond(clientResponse);
         } else {
             io:println("Error occurred while writing customers response");
         }
@@ -117,10 +117,10 @@ service /ecommerceservice on ecommerceListenerEP {
 
 service /orderservice on ecommerceListenerEP {
 
-    resource function 'default orders(http:Caller caller, http:Request req) {
+    resource function 'default orders(http:Caller caller, http:Request req) returns error? {
         json payload = {};
         string httpMethod = req.method;
-        if (strings:equalsIgnoreCaseAscii(httpMethod, "GET")) {
+        if strings:equalsIgnoreCaseAscii(httpMethod, "GET") {
             payload = {"Order":{"ID":"111999", "Name":"ABC123", "Description":"Sample order."}};
         } else {
             payload = {"Status":"Order is successfully added."};
@@ -128,7 +128,7 @@ service /orderservice on ecommerceListenerEP {
 
         http:Response res = new;
         res.setJsonPayload(payload);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
@@ -136,22 +136,22 @@ isolated map<anydata> productsMap = populateSampleProducts().clone();
 
 service /productsservice on ecommerceListenerEP {
 
-    resource function get [string prodId](http:Caller caller, http:Request req) {
+    resource function get [string prodId](http:Caller caller, http:Request req) returns error? {
         lock {
             http:Response res = new;
             var result = productsMap[prodId].cloneWithType(json);
-            if (result is json) {
+            if result is json {
                 res.setPayload(result);
             } else {
                 res.setPayload(result.message());
             }
-            checkpanic caller->respond(res);
+            check caller->respond(res);
         }
     }
 
-    resource function post .(http:Caller caller, http:Request req) {
+    resource function post .(http:Caller caller, http:Request req) returns error? {
         var jsonReq = req.getJsonPayload();
-        if (jsonReq is json) {
+        if jsonReq is json {
             var id = jsonReq.Product.ID;
             string productId = id is error ? id.toString() : id.toString();
             lock {
@@ -161,7 +161,7 @@ service /productsservice on ecommerceListenerEP {
 
             http:Response res = new;
             res.setPayload(payload);
-            checkpanic caller->respond(res);
+            check caller->respond(res);
         } else {
             io:println("Error occurred while reading bank locator request");
         }
@@ -182,11 +182,11 @@ function populateSampleProducts() returns (map<anydata>) {
 
 //Test resource GET products in E-Commerce sample
 @test:Config {}
-function testGetProducts() {
+function testGetProducts() returns error? {
     http:Response|error response = ecommerceClient->get("/ecommerceservice/products/123001");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {Product:{ID:"123001", Name:"ABC_2", Description:"Sample product."}});
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -195,11 +195,11 @@ function testGetProducts() {
 
 //Test resource GET orders in E-Commerce sample
 @test:Config {}
-function testGetOrders() {
+function testGetOrders() returns error? {
     http:Response|error response = ecommerceClient->get("/ecommerceservice/orders");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {Order:{ID:"111999", Name:"ABC123", Description:"Sample order."}});
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -208,11 +208,11 @@ function testGetOrders() {
 
 //Test resource GET customers in E-Commerce sample
 @test:Config {}
-function testGetCustomers() {
+function testGetCustomers() returns error? {
     http:Response|error response = ecommerceClient->get("/ecommerceservice/customers");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {Customer:{ID:"987654", Name:"ABC PQR", Description:"Sample Customer."}});
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -221,13 +221,13 @@ function testGetCustomers() {
 
 //Test resource POST orders in E-Commerce sample
 @test:Config {}
-function testPostOrder() {
+function testPostOrder() returns error? {
     http:Request req = new;
     req.setJsonPayload({Order:{ID:"111222",Name:"XYZ123"}});
     http:Response|error response = ecommerceClient->post("/ecommerceservice/orders", req);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {Status:"Order is successfully added."});
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -236,13 +236,13 @@ function testPostOrder() {
 
 //Test resource POST products in E-Commerce sample
 @test:Config {}
-function testPostProduct() {
+function testPostProduct() returns error? {
     http:Request req = new;
     req.setJsonPayload({Product:{ID:"123345",Name:"PQR"}});
     http:Response|error response = ecommerceClient->post("/ecommerceservice/products", req);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {Status:"Product is successfully added."});
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -251,13 +251,13 @@ function testPostProduct() {
 
 //Test resource POST customers in E-Commerce sample
 @test:Config {}
-function testPostCustomers() {
+function testPostCustomers() returns error? {
     http:Request req = new;
     req.setJsonPayload({Customer:{ID:"97453",Name:"ABC XYZ"}});
     http:Response|error response = ecommerceClient->post("/ecommerceservice/customers", req);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayload(response.getJsonPayload(), {Status:"Customer is successfully added."});
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

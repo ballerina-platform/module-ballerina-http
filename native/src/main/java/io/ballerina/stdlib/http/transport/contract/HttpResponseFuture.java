@@ -19,7 +19,7 @@
 
 package io.ballerina.stdlib.http.transport.contract;
 
-import io.ballerina.stdlib.http.transport.contractimpl.common.BackPressureHandler;
+import io.ballerina.stdlib.http.transport.message.BackPressureObservable;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.ResponseHandle;
 
@@ -68,11 +68,11 @@ public interface HttpResponseFuture {
     void resetStatus();
 
     /**
-     * Sets back pressure handler.
+     * Sets back pressure observable.
      *
-     * @param backPressureHandler which handles backpressure
+     * @param backPressureObservable which allows listeners to register and get notified
      */
-    void setBackPressureHandler(BackPressureHandler backPressureHandler);
+    void setBackPressureObservable(BackPressureObservable backPressureObservable);
 
     /**
      * Makes the async operation sync.

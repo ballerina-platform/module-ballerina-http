@@ -38,7 +38,7 @@ public client isolated class HttpCachingClient {
     # + return - The `client` or an `http:ClientError` if the initialization failed
     isolated function init(string url, ClientConfiguration config, CacheConfig cacheConfig) returns ClientError? {
         var httpSecureClient = createHttpSecureClient(url, config);
-        if (httpSecureClient is HttpClient) {
+        if httpSecureClient is HttpClient {
             self.httpClient = httpSecureClient;
         } else {
             return httpSecureClient;
@@ -59,7 +59,7 @@ public client isolated class HttpCachingClient {
         setRequestCacheControlHeader(req);
 
         var inboundResponse = self.httpClient->post(path, req);
-        if (inboundResponse is Response) {
+        if inboundResponse is Response {
             invalidateResponses(self.cache, inboundResponse, path);
         }
         return inboundResponse;
@@ -88,7 +88,7 @@ public client isolated class HttpCachingClient {
         setRequestCacheControlHeader(req);
 
         var inboundResponse = self.httpClient->put(path, req);
-        if (inboundResponse is Response) {
+        if inboundResponse is Response {
             invalidateResponses(self.cache, inboundResponse, path);
         }
         return inboundResponse;
@@ -105,13 +105,13 @@ public client isolated class HttpCachingClient {
         Request request = <Request>message;
         setRequestCacheControlHeader(request);
 
-        if (httpMethod == HTTP_GET || httpMethod == HTTP_HEAD) {
+        if httpMethod == HTTP_GET || httpMethod == HTTP_HEAD {
             return getCachedResponse(self.cache, self.httpClient, request, httpMethod, path,
                                      self.cacheConfig.isShared, false);
         }
 
         var inboundResponse = self.httpClient->execute(httpMethod, path, request);
-        if (inboundResponse is Response) {
+        if inboundResponse is Response {
             invalidateResponses(self.cache, inboundResponse, path);
         }
         return inboundResponse;
@@ -128,7 +128,7 @@ public client isolated class HttpCachingClient {
         setRequestCacheControlHeader(req);
 
         var inboundResponse = self.httpClient->patch(path, req);
-        if (inboundResponse is Response) {
+        if inboundResponse is Response {
             invalidateResponses(self.cache, inboundResponse, path);
         }
         return inboundResponse;
@@ -145,7 +145,7 @@ public client isolated class HttpCachingClient {
         setRequestCacheControlHeader(req);
 
         var inboundResponse = self.httpClient->delete(path, req);
-        if (inboundResponse is Response) {
+        if inboundResponse is Response {
             invalidateResponses(self.cache, inboundResponse, path);
         }
         return inboundResponse;
@@ -174,7 +174,7 @@ public client isolated class HttpCachingClient {
         setRequestCacheControlHeader(req);
 
         var inboundResponse = self.httpClient->options(path, message = req);
-        if (inboundResponse is Response) {
+        if inboundResponse is Response {
             invalidateResponses(self.cache, inboundResponse, path);
         }
         return inboundResponse;
@@ -187,13 +187,13 @@ public client isolated class HttpCachingClient {
     # + request - The HTTP request to be forwarded
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function forward(string path, Request request) returns Response|ClientError {
-        if (request.method == HTTP_GET || request.method == HTTP_HEAD) {
+        if request.method == HTTP_GET || request.method == HTTP_HEAD {
             return getCachedResponse(self.cache, self.httpClient, request, request.method, path,
                                      self.cacheConfig.isShared, true);
         }
 
         var inboundResponse = self.httpClient->forward(path, request);
-        if (inboundResponse is Response) {
+        if inboundResponse is Response {
             invalidateResponses(self.cache, inboundResponse, path);
         }
         return inboundResponse;
@@ -270,7 +270,7 @@ isolated function getCachedResponse(HttpCache cache, HttpClient httpClient, Requ
     req.parseCacheControlHeader();
 
     any|error cacheEntry = cache.get(getCacheKey(httpMethod, path));
-    if (cacheEntry !is error) {
+    if cacheEntry !is error {
         Response[] cachedValue = <Response[]> cacheEntry;
         Response cachedResponse = cachedValue[cachedValue.length() - 1];
 
@@ -290,10 +290,10 @@ isolated function getCachedResponse(HttpCache cache, HttpClient httpClient, Requ
         lock {
             freshResponse = isFreshResponse(cachedResponse, isShared);
         }
-        if (freshResponse) {
+        if freshResponse {
             // If the no-cache directive is not set, responses can be served straight from the cache, without
             // validating with the origin server.
-            if (!isNoCacheSet(reqCache, resCache) && !req.hasHeader(PRAGMA)) {
+            if !isNoCacheSet(reqCache, resCache) && !req.hasHeader(PRAGMA) {
                 log:printDebug("Serving a cached fresh response without validating with the origin server");
                 return cachedResponse;
             }
@@ -304,7 +304,7 @@ isolated function getCachedResponse(HttpCache cache, HttpClient httpClient, Requ
 
         // If a fresh response is not available, serve a stale response, provided that it is not prohibited by
         // a directive and is explicitly allowed in the request.
-        if (isAllowedToBeServedStale(req.cacheControl, cachedResponse, isShared) && !req.hasHeader(PRAGMA)) {
+        if isAllowedToBeServedStale(req.cacheControl, cachedResponse, isShared) && !req.hasHeader(PRAGMA) {
             // If the no-cache directive is not set, responses can be served straight from the cache, without
             // validating with the origin server.
             log:printDebug("Serving cached stale response without validating with the origin server");
@@ -316,7 +316,7 @@ isolated function getCachedResponse(HttpCache cache, HttpClient httpClient, Requ
 
         var validatedResponse = getValidationResponse(httpClient, req, cachedResponse, cache, currentT, path,
                                                             httpMethod, false);
-        if (validatedResponse is Response) {
+        if validatedResponse is Response {
             updateResponseTimestamps(validatedResponse, currentT, time:utcNow());
             setAgeHeader(validatedResponse);
         }
@@ -327,8 +327,8 @@ isolated function getCachedResponse(HttpCache cache, HttpClient httpClient, Requ
     log:printDebug("Sending new request to: " + path);
 
     var response = sendNewRequest(httpClient, req, path, httpMethod, forwardRequest);
-    if (response is Response) {
-        if (cache.isAllowedToCache(response)) {
+    if response is Response {
+        if cache.isAllowedToCache(response) {
             response.requestTime = currentT;
             response.receivedTime = time:utcNow();
             cache.put(getCacheKey(httpMethod, path), req.cacheControl, response);
@@ -342,20 +342,20 @@ isolated function getCachedResponse(HttpCache cache, HttpClient httpClient, Requ
 // Based on https://tools.ietf.org/html/rfc7234#section-4.4
 isolated function invalidateResponses(HttpCache httpCache, Response inboundResponse, string path) {
     // TODO: Improve this logic in accordance with the spec
-    if (isCacheableStatusCode(inboundResponse.statusCode) &&
-                    inboundResponse.statusCode >= 200 && inboundResponse.statusCode < 400) {
+    if isCacheableStatusCode(inboundResponse.statusCode) &&
+                    inboundResponse.statusCode >= 200 && inboundResponse.statusCode < 400 {
         string getMethodCacheKey = getCacheKey(HTTP_GET, path);
-        if (httpCache.cache.hasKey(getMethodCacheKey)) {
+        if httpCache.cache.hasKey(getMethodCacheKey) {
             cache:Error? result = httpCache.cache.invalidate(getMethodCacheKey);
-            if (result is cache:Error) {
+            if result is cache:Error {
                 log:printDebug("Failed to remove the key: " + getMethodCacheKey + " from the cache.");
             }
         }
 
         string headMethodCacheKey = getCacheKey(HTTP_HEAD, path);
-        if (httpCache.cache.hasKey(headMethodCacheKey)) {
+        if httpCache.cache.hasKey(headMethodCacheKey) {
             cache:Error? result = httpCache.cache.invalidate(headMethodCacheKey);
-            if (result is cache:Error) {
+            if result is cache:Error {
                 log:printDebug("Failed to remove the key: " + headMethodCacheKey + " from the cache.");
             }
         }
@@ -364,12 +364,12 @@ isolated function invalidateResponses(HttpCache httpCache, Response inboundRespo
 
 isolated function sendNewRequest(HttpClient httpClient, Request request, string path, string httpMethod, boolean forwardRequest)
                                                                 returns Response|ClientError {
-    if (forwardRequest) {
+    if forwardRequest {
         return httpClient->forward(path, request);
     }
-    if (httpMethod == HTTP_GET) {
+    if httpMethod == HTTP_GET {
         return httpClient->get(path, message = request);
-    } else if (httpMethod == HTTP_HEAD) {
+    } else if httpMethod == HTTP_HEAD {
         return httpClient->head(path, message = request);
     } else {
         string message = "HTTP method not supported in caching client: " + httpMethod;

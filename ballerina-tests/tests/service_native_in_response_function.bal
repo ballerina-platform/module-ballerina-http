@@ -18,46 +18,46 @@ import ballerina/test;
 import ballerina/http;
 
 @test:Config {}
-function testResponseNegativeContentType() {
+function testResponseNegativeContentType() returns error? {
     http:Response res = new;
-    checkpanic res.setContentType("application/x-custom-type+json");
+    check res.setContentType("application/x-custom-type+json");
     test:assertEquals(res.getContentType(), "application/x-custom-type+json", msg = "Content type mismatched");
 }
 
 @test:Config {}
-function testResposeGetContentLength() {
+function testResposeGetContentLength() returns error? {
     http:Response res = new;
     string length = "Ballerina".length().toString();
     res.setHeader("content-length", length);
-    test:assertEquals(checkpanic res.getHeader("content-length"), length, msg = "Content length mismatched");
+    test:assertEquals(check res.getHeader("content-length"), length, msg = "Content length mismatched");
 }
 
 @test:Config {}
-function testResposeAddHeader() {
+function testResposeAddHeader() returns error? {
     http:Response res = new;
     string key = "lang";
     string value = "Ballerina";
     res.addHeader(key, value);
-    test:assertEquals(checkpanic res.getHeader(key), value, msg = "Value mismatched");
+    test:assertEquals(check res.getHeader(key), value, msg = "Value mismatched");
 }
 
 @test:Config {}
-function testResposeGetHeader() {
+function testResposeGetHeader() returns error? {
     http:Response res = new;
     string key = "lang";
     string value = "Ballerina";
     res.addHeader(key, value);
-    test:assertEquals(checkpanic res.getHeader(key), value, msg = "Value mismatched");
+    test:assertEquals(check res.getHeader(key), value, msg = "Value mismatched");
 }
 
 @test:Config {}
-function testResposeGetHeaders() {
+function testResposeGetHeaders() returns error? {
     http:Response res = new;
     string key = "header1";
     string value = "abc, xyz";
     res.setHeader(key, "1stHeader");
     res.addHeader(key, value);
-    string[] headers = checkpanic res.getHeaders(key);
+    string[] headers = check res.getHeaders(key);
     test:assertEquals(headers[0], "1stHeader", msg = "Header value mismatched");
     test:assertEquals(headers[1], "abc, xyz", msg = "Header value mismatched");
 }
@@ -130,13 +130,13 @@ function testResposeRemoveAllHeaders() {
 }
 
 @test:Config {}
-function testResposeSetHeader() {
+function testResposeSetHeader() returns error? {
     http:Response res = new;
     string key = "lang";
     string value = "ballerina; a=6";
     res.setHeader(key, "abc");
     res.setHeader(key, value);
-    test:assertEquals(checkpanic res.getHeader(key), value, msg = "Header value mismatched");
+    test:assertEquals(check res.getHeader(key), value, msg = "Header value mismatched");
 }
 
 @test:Config {}
@@ -199,82 +199,82 @@ listener http:Listener responseEp = new(responseTest);
 
 service /response on responseEp {
 
-    resource function get eleven(http:Caller caller, http:Request req) {
+    resource function get eleven(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get twelve/[string phase](http:Caller caller, http:Request req) {
+    resource function get twelve/[string phase](http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         res.reasonPhrase = phase;
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get thirteen(http:Caller caller, http:Request req) {
+    resource function get thirteen(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         res.statusCode = 203;
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get addheader/[string key]/[string value](http:Caller caller, http:Request req) {
+    resource function get addheader/[string key]/[string value](http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         res.addHeader(key, value);
-        string result = checkpanic res.getHeader(key);
+        string result = check res.getHeader(key);
         res.setJsonPayload({lang:result});
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get getHeader/[string header]/[string value](http:Caller caller, http:Request req) {
+    resource function get getHeader/[string header]/[string value](http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         res.setHeader(header, value);
-        string result = checkpanic res.getHeader(header);
+        string result = check res.getHeader(header);
         res.setJsonPayload({value:result});
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get getJsonPayload/[string value](http:Caller caller, http:Request req) {
+    resource function get getJsonPayload/[string value](http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         json jsonStr = {lang:value};
         res.setJsonPayload(jsonStr);
         var returnResult = res.getJsonPayload();
-        if (returnResult is error) {
+        if returnResult is error {
             res.setTextPayload("Error occurred");
             res.statusCode = 500;
         } else {
-            res.setJsonPayload(checkpanic returnResult.lang);
+            res.setJsonPayload(check returnResult.lang);
         }
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get GetTextPayload/[string valueStr](http:Caller caller, http:Request req) {
+    resource function get GetTextPayload/[string valueStr](http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         res.setTextPayload(valueStr);
         var returnResult = res.getTextPayload();
-        if (returnResult is error) {
+        if returnResult is error {
             res.setTextPayload("Error occurred");
             res.statusCode =500;
         } else {
             res.setTextPayload(returnResult);
         }
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get GetXmlPayload(http:Caller caller, http:Request req) {
+    resource function get GetXmlPayload(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         xml xmlStr = xml `<name>ballerina</name>`;
         res.setXmlPayload(xmlStr);
         var returnResult = res.getXmlPayload();
-        if (returnResult is error) {
+        if returnResult is error {
             res.setTextPayload("Error occurred");
             res.statusCode =500;
         } else {
             var name = (returnResult/*).toString();
             res.setTextPayload(<string> name);
         }
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get RemoveHeader/[string key]/[string value](http:Caller caller, http:Request req) {
+    resource function get RemoveHeader/[string key]/[string value](http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         res.setHeader(key, value);
         res.removeHeader(key);
@@ -283,10 +283,10 @@ service /response on responseEp {
             header = "value is null";
         }
         res.setJsonPayload({value:header});
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get RemoveAllHeaders (http:Caller caller, http:Request req) {
+    resource function get RemoveAllHeaders (http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         res.setHeader("Expect", "100-continue");
         res.setHeader("Range", "bytes=500-999");
@@ -296,29 +296,29 @@ service /response on responseEp {
             header = "value is null";
         }
         res.setJsonPayload({value:header});
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get addCookie (http:Caller caller, http:Request req) {
+    resource function get addCookie (http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         http:Cookie cookie = new("SID3", "31d4d96e407aad42", path = "/sample", domain = "google.com", maxAge = 3600,
             expires = "2017-06-26 05:46:22", httpOnly = true, secure = true);
         res.addCookie(cookie);
-        string result = checkpanic res.getHeader("Set-Cookie");
+        string result = check res.getHeader("Set-Cookie");
         res.setJsonPayload({SetCookieHeader:result});
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get removeCookieByServer (http:Caller caller, http:Request req) {
+    resource function get removeCookieByServer (http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         http:Cookie cookie = new("SID3", "31d4d96e407aad42", expires="2017-06-26 05:46:22");
         res.removeCookiesFromRemoteStore(cookie);
-        string result = checkpanic res.getHeader("Set-Cookie");
+        string result = check res.getHeader("Set-Cookie");
         res.setJsonPayload({SetCookieHeader:result});
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get getCookies (http:Caller caller, http:Request req) {
+    resource function get getCookies (http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = ".GOOGLE.com.", maxAge = 3600,
             expires = "2017-06-26 05:46:22", httpOnly = true, secure = true);
@@ -327,7 +327,7 @@ service /response on responseEp {
         http:Cookie[] cookiesInResponse=res.getCookies();
         string result = <string>  cookiesInResponse[0].name ;
         res.setJsonPayload({cookie:result});
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
@@ -340,7 +340,7 @@ function testResponseServiceAddHeader() {
     string value = "ballerina";
     string path = "/response/addheader/" + key + "/" + value;
     http:Response|error response = responseClient->get(path);
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonPayload(response.getJsonPayload(), {lang:"ballerina"});
     } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
@@ -353,7 +353,7 @@ function testResponseServiceGetHeader() {
     string value = "test-header-value";
     string path = "/response/getHeader/" + "test-header-name" + "/" + value;
     http:Response|error response = responseClient->get(path);
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonPayload(response.getJsonPayload(), {value: value});
     } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
@@ -366,7 +366,7 @@ function testResponseServiceGetJsonPayload() {
     string value = "ballerina";
     string path = "/response/getJsonPayload/" + value;
     http:Response|error response = responseClient->get(path);
-    if (response is http:Response) {
+    if response is http:Response {
         assertJsonPayload(response.getJsonPayload(), value);
     } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
@@ -379,7 +379,7 @@ function testResponseServiceGetTextPayload() {
     string value = "ballerina";
     string path = "/response/GetTextPayload/" + value;
     http:Response|error response = responseClient->get(path);
-    if (response is http:Response) {
+    if response is http:Response {
         assertTextPayload(response.getTextPayload(), value);
     } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
@@ -392,7 +392,7 @@ function testResponseServiceGetXmlPayload() {
     string value = "ballerina";
     string path = "/response/GetXmlPayload";
     http:Response|error response = responseClient->get(path);
-    if (response is http:Response) {
+    if response is http:Response {
         assertTextPayload(response.getTextPayload(), value);
     } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
@@ -412,7 +412,7 @@ function testResponseServiceRemoveHeader() {
     string value = "x-www-form-urlencoded";
     string path = "/response/RemoveHeader/Content-Type/" + value;
     http:Response|error response = responseClient->get(path);
-    if (response is http:Response) {
+    if response is http:Response {
         assertTextPayload(response.getTextPayload(), "{\"value\":\"value is null\"}");
     } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
@@ -424,7 +424,7 @@ function testResponseServiceRemoveHeader() {
 function testResponseServiceRemoveAllHeaders() {
     string path = "/response/RemoveAllHeaders";
     http:Response|error response = responseClient->get(path);
-    if (response is http:Response) {
+    if response is http:Response {
         assertTextPayload(response.getTextPayload(), "{\"value\":\"value is null\"}");
     } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
@@ -443,7 +443,7 @@ function testSetReasonPhase() {
     string phase = "ballerina";
     string path = "/response/twelve/" + phase;
     http:Response|error response = responseClient->get(path);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.reasonPhrase, phase);
     } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
@@ -454,7 +454,7 @@ function testSetReasonPhase() {
 function testSetStatusCode() {
     string path = "/response/thirteen";
     http:Response|error response = responseClient->get(path);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 203);
     } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
@@ -462,42 +462,42 @@ function testSetStatusCode() {
 }
 
 @test:Config {}
-function testTrailingAddHeader() {
+function testTrailingAddHeader() returns error? {
     http:Response res = new;
     string headerName = "Max-Forwards";
     string headerValue = "eighty two";
     string retrieval = "max-forwards";
     res.addHeader(headerName, headerValue, position = "trailing");
-    test:assertEquals(checkpanic res.getHeader(retrieval, position = "trailing"), "eighty two");
+    test:assertEquals(check res.getHeader(retrieval, position = "trailing"), "eighty two");
 }
 
 @test:Config {}
-function testAddingMultipleValuesToSameTrailingHeader() {
+function testAddingMultipleValuesToSameTrailingHeader() returns error? {
     http:Response res = new;
     res.addHeader("heAder1", "value1", position = "trailing");
     res.addHeader("header1", "value2", position = "trailing");
-    string[] output = checkpanic res.getHeaders("header1", position = "trailing");
-    test:assertEquals(checkpanic res.getHeader("header1", position = "trailing"), "value1");
+    string[] output = check res.getHeaders("header1", position = "trailing");
+    test:assertEquals(check res.getHeader("header1", position = "trailing"), "value1");
     test:assertEquals(output.length(), 2);
     test:assertEquals(output[0], "value1");
     test:assertEquals(output[1], "value2");
 }
 
 @test:Config {}
-function testSetTrailingHeaderAfterAddHeader() {
+function testSetTrailingHeaderAfterAddHeader() returns error? {
     http:Response res = new;
     res.addHeader("heAder1", "value1", position = "trailing");
     res.addHeader("header1", "value2", position = "trailing");
     res.addHeader("hEader2", "value3", position = "trailing");
-    string[] output = checkpanic res.getHeaders("header1", position = "trailing");
-    test:assertEquals(checkpanic res.getHeader("header2", position = "trailing"), "value3");
+    string[] output = check res.getHeaders("header1", position = "trailing");
+    test:assertEquals(check res.getHeader("header2", position = "trailing"), "value3");
     test:assertEquals(output.length(), 2);
     test:assertEquals(output[0], "value1");
     test:assertEquals(output[1], "value2");
 }
 
 @test:Config {}
-function testRemoveTrailingHeader() {
+function testRemoveTrailingHeader() returns error? {
     http:Response res = new;
     res.addHeader("heAder1", "value1", position = "trailing");
     res.addHeader("header1", "value2", position = "trailing");
@@ -508,7 +508,7 @@ function testRemoveTrailingHeader() {
     res.removeHeader("HEADER1", position = "trailing");
     res.removeHeader("NONE_EXISTENCE_HEADER", position = "trailing");
     string[]|error output = res.getHeaders("header1", position = "trailing");
-    test:assertEquals(checkpanic res.getHeader("header2", position = "trailing"), "totally different value");
+    test:assertEquals(check res.getHeader("header2", position = "trailing"), "totally different value");
     if (output is error) {
         test:assertEquals(output.message(), "Http header does not exist", msg = "Outptut mismatched");
     } else {

@@ -39,7 +39,7 @@ service /serialize on serializeXmlListener {
         http:Response|error returnResponse = xmlClientEP->post("/serialize/decode", request);
         if (returnResponse is http:Response) {
             error? result = caller->respond(returnResponse);
-            if (result is error) {
+            if result is error {
                 log:printError("Error sending response", 'error = result);
             }
         } else {
@@ -47,7 +47,7 @@ service /serialize on serializeXmlListener {
             response.setPayload("Error occurred while sending multipart request!");
             response.statusCode = 500;
             error? result = caller->respond(response);
-            if (result is error) {
+            if result is error {
                 log:printError("Error sending response", 'error = result);
             }
         }
@@ -73,7 +73,7 @@ service /serialize on serializeXmlListener {
             response.statusCode = 500;
         }
         error? result = caller->respond(response);
-        if (result is error) {
+        if result is error {
             log:printError("Error sending response", 'error = result);
         }
     }

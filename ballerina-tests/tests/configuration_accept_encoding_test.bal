@@ -33,17 +33,17 @@ final http:Client acceptEncodingDisableEP = check new("http://localhost:" + acce
 
 service /hello on acceptEncodingListenerEP {
 
-    resource function 'default .(http:Caller caller, http:Request req) {
+    resource function 'default .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         json payload = {};
         boolean hasHeader = req.hasHeader(ACCEPT_ENCODING);
-        if (hasHeader) {
-            payload = {acceptEncoding: checkpanic req.getHeader(ACCEPT_ENCODING)};
+        if hasHeader {
+            payload = {acceptEncoding: check req.getHeader(ACCEPT_ENCODING)};
         } else {
             payload = {acceptEncoding:"Accept-Encoding header not present."};
         }
         res.setJsonPayload( payload);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 }
 
@@ -53,7 +53,7 @@ function testAcceptEncodingEnabled() {
     http:Request req = new;
     req.setTextPayload("accept encoding test");
     http:Response|error response = acceptEncodingEnableEP->post("/", req);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertJsonValue(response.getJsonPayload(), "acceptEncoding", "deflate, gzip");
         assertHeaderValue(response.server, "Mysql");
@@ -64,16 +64,12 @@ function testAcceptEncodingEnabled() {
 
 //Tests the behaviour when Accept Encoding option is disable.
 @test:Config {}
-function testAcceptEncodingDisabled() {
+function testAcceptEncodingDisabled() returns error? {
     http:Request req = new;
     req.setTextPayload("accept encoding test");
-    http:Response|error response = acceptEncodingDisableEP->post("/", req);
-    if (response is http:Response) {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertJsonValue(response.getJsonPayload(), "acceptEncoding", "Accept-Encoding header not present.");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
+    http:Response response = check acceptEncodingDisableEP->post("/", req);
+    test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+    assertJsonValue(response.getJsonPayload(), "acceptEncoding", "Accept-Encoding header not present.");
 }
 
 //Tests the behaviour when Accept Encoding option is auto.
@@ -82,7 +78,7 @@ function testAcceptEncodingAuto() {
     http:Request req = new;
     req.setTextPayload("accept encoding test");
     http:Response|error response = acceptEncodingAutoEP->post("/", req);
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertJsonValue(response.getJsonPayload(), "acceptEncoding", "Accept-Encoding header not present.");
     } else {

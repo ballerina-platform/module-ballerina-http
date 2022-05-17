@@ -153,6 +153,7 @@ public class Http2OutboundRespListener implements HttpConnectorListener {
             defaultResponseWriter = writer;
         }
         setBackPressureListener(outboundResponseMsg, writer);
+        setBackPressureObservableToHttpResponseFuture(writer);
         setContentEncoding(outboundResponseMsg);
         outboundResponseMsg.getHttpContentAsync().setMessageListener(httpContent -> {
             checkStreamUnwritability(writer);
@@ -165,6 +166,10 @@ public class Http2OutboundRespListener implements HttpConnectorListener {
                 }
             });
         });
+    }
+
+    private void setBackPressureObservableToHttpResponseFuture(ResponseWriter writer) {
+        inboundRequestMsg.getHttpOutboundRespStatusFuture().setBackPressureObservable(writer.backPressureObservable);
     }
 
     private void setContentEncoding(HttpCarbonMessage outboundResponseMsg) {

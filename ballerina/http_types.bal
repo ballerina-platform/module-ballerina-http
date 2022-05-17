@@ -18,12 +18,12 @@ import ballerina/io;
 import ballerina/mime;
 
 # The types of messages that are accepted by HTTP `client` when sending out the outbound request.
-public type RequestMessage Request|string|xml|json|byte[]|int|float|decimal|boolean|map<json>|table<map<json>>|
-                           (map<json>|table<map<json>>)[]|mime:Entity[]|stream<byte[], io:Error?>|();
+public type RequestMessage Request|xml|json|byte[]|table<map<json>>|(map<json>|table<map<json>>)[]|mime:Entity[]|
+                           stream<byte[], io:Error?>;
 
 # The types of messages that are accepted by HTTP `listener` when sending out the outbound response.
-public type ResponseMessage Response|string|xml|json|byte[]|int|float|decimal|boolean|map<json>|table<map<json>>|
-                            (map<json>|table<map<json>>)[]|mime:Entity[]|stream<byte[], io:Error?>|();
+public type ResponseMessage Response|xml|json|byte[]|table<map<json>>|(map<json>|table<map<json>>)[]|mime:Entity[]|
+                            stream<byte[], io:Error?>;
 
 # The HTTP service type.
 public type Service distinct service object {
@@ -57,11 +57,10 @@ type safeHttpOperation HTTP_GET|HTTP_HEAD|HTTP_OPTIONS;
 type HttpResponse Response|HttpFuture;
 
 # A record for providing configurations for content compression.
-#
-# + enable - The status of compression
-# + contentTypes - Content types which are allowed for compression
 public type CompressionConfig record {|
+    # The status of compression
     Compression enable = COMPRESSION_AUTO;
+    # Content types which are allowed for compression
     string[] contentTypes = [];
 |};
 
@@ -70,35 +69,34 @@ type HTTPError record {
 };
 
 # Common client configurations for the next level clients.
-#
-# + httpVersion - The HTTP version understood by the client
-# + http1Settings - Configurations related to HTTP/1.x protocol
-# + http2Settings - Configurations related to HTTP/2 protocol
-# + timeout - The maximum time to wait (in seconds) for a response before closing the connection
-# + forwarded - The choice of setting `forwarded`/`x-forwarded` header
-# + followRedirects - Configurations associated with Redirection
-# + poolConfig - Configurations associated with request pooling
-# + cache - HTTP caching related configurations
-# + compression - Specifies the way of handling compression (`accept-encoding`) header
-# + auth - Configurations related to client authentication
-# + circuitBreaker - Configurations associated with the behaviour of the Circuit Breaker
-# + retryConfig - Configurations associated with retrying
-# + cookieConfig - Configurations associated with cookies
-# + responseLimits - Configurations associated with inbound response size limits
 public type CommonClientConfiguration record {|
+    # The HTTP version understood by the client
     string httpVersion = HTTP_1_1;
+    # Configurations related to HTTP/1.x protocol
     ClientHttp1Settings http1Settings = {};
+    # Configurations related to HTTP/2 protocol
     ClientHttp2Settings http2Settings = {};
+    # The maximum time to wait (in seconds) for a response before closing the connection
     decimal timeout = 60;
+    # The choice of setting `forwarded`/`x-forwarded` header
     string forwarded = "disable";
+    # Configurations associated with Redirection
     FollowRedirects? followRedirects = ();
+    # Configurations associated with request pooling
     PoolConfiguration? poolConfig = ();
+    # HTTP caching related configurations
     CacheConfig cache = {};
+    # Specifies the way of handling compression (`accept-encoding`) header
     Compression compression = COMPRESSION_AUTO;
+    # Configurations related to client authentication
     ClientAuthConfig? auth = ();
+    # Configurations associated with the behaviour of the Circuit Breaker
     CircuitBreakerConfig? circuitBreaker = ();
+    # Configurations associated with retrying
     RetryConfig? retryConfig = ();
+    # Configurations associated with cookies
     CookieConfig? cookieConfig = ();
+    # Configurations associated with inbound response size limits
     ResponseLimitConfigs responseLimits = {};
 |};
 

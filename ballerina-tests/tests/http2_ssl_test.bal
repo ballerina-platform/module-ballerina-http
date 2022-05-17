@@ -34,7 +34,7 @@ service /http2Service on http2SslListener {
 
     resource function get .(http:Caller caller, http:Request req) {
         error? result = caller->respond("Hello World!");
-        if (result is error) {
+        if result is error {
             log:printError("Failed to respond", 'error = result);
         }
     }
@@ -51,10 +51,10 @@ http:ClientConfiguration http2SslClientConf1 = {
 };
 
 @test:Config {}
-public function testHttp2Ssl1() {
-    http:Client clientEP = checkpanic new("https://localhost:9206", http2SslClientConf1);
+public function testHttp2Ssl1() returns error? {
+    http:Client clientEP = check new("https://localhost:9206", http2SslClientConf1);
     http:Response|error resp = clientEP->get("/http2Service/");
-    if (resp is http:Response) {
+    if resp is http:Response {
         assertTextPayload(resp.getTextPayload(), "Hello World!");
     } else {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -68,7 +68,7 @@ http:ClientConfiguration http2SslClientConf2 = {
 @test:Config {}
 public function testHttp2Ssl2() {
     http:Client|http:ClientError httpClient = new("https://localhost:9206", http2SslClientConf2);
-    if (httpClient is http:ClientError) {
+    if httpClient is http:ClientError {
         test:assertEquals(httpClient.message(), "The secureSocket configuration should be provided to establish an HTTPS connection");
     } else {
         test:assertFail(msg = "Found unexpected output: Expected an error message for not configuring secureSocket");

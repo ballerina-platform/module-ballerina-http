@@ -40,7 +40,7 @@ isolated function calculateCurrentResponseAge(Response cachedResponse) returns i
 
 isolated function getResponseAge(Response cachedResponse) returns decimal {
     string|error ageHeaderString = cachedResponse.getHeader(AGE);
-    if (ageHeaderString is error) {
+    if ageHeaderString is error {
         return 0;
     } else {
         var ageValue = 'decimal:fromString(ageHeaderString);
@@ -50,7 +50,7 @@ isolated function getResponseAge(Response cachedResponse) returns decimal {
 
 isolated function getDateValue(Response inboundResponse) returns time:Utc {
     string|error dateHeader = inboundResponse.getHeader(DATE);
-    if (dateHeader is string) {
+    if dateHeader is string {
         // TODO: May need to handle invalid date headers
         var dateHeaderTime = utcFromString(dateHeader, RFC_1123_DATE_TIME);
         return (dateHeaderTime is time:Utc) ? dateHeaderTime : [0, 0.0];

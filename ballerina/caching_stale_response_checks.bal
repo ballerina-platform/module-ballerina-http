@@ -19,20 +19,18 @@
 isolated function isAllowedToBeServedStale(RequestCacheControl? requestCacheControl, Response cachedResponse,
                                   boolean isSharedCache) returns boolean {
     // A cache MUST NOT generate a stale response if it is prohibited by an explicit in-protocol directive
-    if (isServingStaleProhibitedInRequestCC(requestCacheControl)) {
+    if isServingStaleProhibitedInRequestCC(requestCacheControl) {
         return false;
     }
-
-    if (isServingStaleProhibitedInResponseCC(cachedResponse.cacheControl)) {
+    if isServingStaleProhibitedInResponseCC(cachedResponse.cacheControl) {
         return false;
     }
-
     return isStaleResponseAccepted(requestCacheControl, cachedResponse, isSharedCache);
 }
 
 isolated function isServingStaleProhibitedInRequestCC(RequestCacheControl? cacheControl) returns boolean {
     // A cache MUST NOT generate a stale response if it is prohibited by an explicit in-protocol directive
-    if (cacheControl is ()) {
+    if cacheControl is () {
         return false;
     }
 
@@ -42,7 +40,7 @@ isolated function isServingStaleProhibitedInRequestCC(RequestCacheControl? cache
 
 isolated function isServingStaleProhibitedInResponseCC(ResponseCacheControl? cacheControl) returns boolean {
     // A cache MUST NOT generate a stale response if it is prohibited by an explicit in-protocol directive
-    if (cacheControl is ()) {
+    if cacheControl is () {
         return false;
     }
 
@@ -54,11 +52,11 @@ isolated function isServingStaleProhibitedInResponseCC(ResponseCacheControl? cac
 
 isolated function isStaleResponseAccepted(RequestCacheControl? requestCacheControl, Response cachedResponse,
                                  boolean isSharedCache) returns boolean {
-    if (requestCacheControl is RequestCacheControl) {
-        if (requestCacheControl.maxStale == MAX_STALE_ANY_AGE) {
+    if requestCacheControl is RequestCacheControl {
+        if requestCacheControl.maxStale == MAX_STALE_ANY_AGE {
             return true;
-        } else if (requestCacheControl.maxStale >=
-                               (getResponseAge(cachedResponse) - getFreshnessLifetime(cachedResponse, isSharedCache))) {
+        } else if requestCacheControl.maxStale >=
+                               (getResponseAge(cachedResponse) - getFreshnessLifetime(cachedResponse, isSharedCache)) {
             return true;
         }
     }

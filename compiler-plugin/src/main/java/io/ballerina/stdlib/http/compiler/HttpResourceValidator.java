@@ -94,7 +94,7 @@ class HttpResourceValidator {
                 Node annotReference = annotation.annotReference();
                 String annotName = annotReference.toString();
                 if (annotReference.kind() == SyntaxKind.QUALIFIED_NAME_REFERENCE) {
-                    String[] strings = annotName.split(":");
+                    String[] strings = annotName.split(Constants.COLON);
                     if (RESOURCE_CONFIG_ANNOTATION.equals(strings[strings.length - 1].trim())) {
                         continue;
                     }
@@ -110,11 +110,14 @@ class HttpResourceValidator {
         boolean requestCtxPresent = false;
         boolean headersPresent = false;
         boolean errorPresent = false;
+        boolean payloadAnnotationPresent = false;
+        boolean headerAnnotationPresent = false;
         Optional<Symbol> resourceMethodSymbolOptional = ctx.semanticModel().symbol(member);
         Location paramLocation = member.location();
         if (resourceMethodSymbolOptional.isEmpty()) {
             return;
         }
+        Optional<String> resourceMethodOptional = resourceMethodSymbolOptional.get().getName();
         Optional<List<ParameterSymbol>> parametersOptional =
                 ((ResourceMethodSymbol) resourceMethodSymbolOptional.get()).typeDescriptor().params();
         if (parametersOptional.isEmpty()) {
@@ -291,7 +294,7 @@ class HttpResourceValidator {
                 String typeName = annotationTypeNameOptional.get();
                 switch (typeName) {
                     case PAYLOAD_ANNOTATION_TYPE: {
-                        Optional<String> resourceMethodOptional = resourceMethodSymbolOptional.get().getName();
+                        payloadAnnotationPresent = true;
                         if (resourceMethodOptional.isPresent()) {
                             validatePayloadAnnotationUsage(ctx, paramLocation, resourceMethodOptional.get());
                         }
@@ -397,6 +400,7 @@ class HttpResourceValidator {
                         break;
                     }
                     case HEADER_ANNOTATION_TYPE: {
+                        headerAnnotationPresent = true;
                         if (annotated) {
                             reportInvalidMultipleAnnotation(ctx, paramLocation, paramName);
                             continue;
@@ -449,12 +453,29 @@ class HttpResourceValidator {
                 }
             }
         }
+        if (resourceMethodOptional.isPresent() && !payloadAnnotationPresent) {
+            enableAddPayloadParamCodeAction(ctx, member.functionSignature().location(), resourceMethodOptional.get());
+        }
+        if (!headerAnnotationPresent) {
+            enableAddHeaderParamCodeAction(ctx, member.functionSignature().location());
+        }
+    }
+
+    private static void enableAddPayloadParamCodeAction(SyntaxNodeAnalysisContext ctx, Location location,
+                                                        String methodName) {
+        if (!methodName.equals(GET) && !methodName.equals(HEAD) && !methodName.equals(OPTIONS)) {
+            HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_HINT_101);
+        }
+    }
+
+    private static void enableAddHeaderParamCodeAction(SyntaxNodeAnalysisContext ctx, Location location) {
+        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_HINT_102);
     }
 
     private static void validatePayloadAnnotationUsage(SyntaxNodeAnalysisContext ctx, Location location,
                                                        String methodName) {
         if (methodName.equals(GET) || methodName.equals(HEAD) || methodName.equals(OPTIONS)) {
-            reportInvalidUsageOfPayloadAnnotation(ctx, location, methodName);
+            reportInvalidUsageOfPayloadAnnotation(ctx, location, methodName, HttpDiagnosticCodes.HTTP_129);
         }
     }
 
@@ -530,12 +551,52 @@ class HttpResourceValidator {
         }
         FunctionTypeSymbol functionTypeSymbol = ((FunctionSymbol) functionSymbol.get()).typeDescriptor();
         Optional<TypeSymbol> returnTypeSymbol = functionTypeSymbol.returnTypeDescriptor();
-        returnTypeSymbol.ifPresent(typeSymbol -> validateReturnType(ctx, returnTypeNode, returnTypeStringValue,
-                typeSymbol));
+        if (returnTypeSymbol.isEmpty()) {
+            return;
+        }
+        validateReturnType(ctx, returnTypeNode, returnTypeStringValue, returnTypeSymbol.get());
+        validateAnnotationsAndEnableCodeActions(ctx, returnTypeNode, returnTypeSymbol.get(), returnTypeStringValue,
+                                                returnTypeDescriptorNode.get());
     }
 
-    private static void validateReturnType(SyntaxNodeAnalysisContext ctx, Node node,
-                                           String returnTypeStringValue, TypeSymbol returnTypeSymbol) {
+    private static void validateAnnotationsAndEnableCodeActions(SyntaxNodeAnalysisContext ctx, Node returnTypeNode,
+                                                                TypeSymbol returnTypeSymbol, String returnTypeString,
+                                                                ReturnTypeDescriptorNode returnTypeDescriptorNode) {
+        boolean payloadAnnotationPresent = false;
+        boolean cacheAnnotationPresent = false;
+        NodeList<AnnotationNode> annotations = returnTypeDescriptorNode.annotations();
+        for (AnnotationNode annotation : annotations) {
+            Node annotReference = annotation.annotReference();
+            String annotName = annotReference.toString();
+            if (annotReference.kind() == SyntaxKind.QUALIFIED_NAME_REFERENCE) {
+                String[] strings = annotName.split(Constants.COLON);
+                if (Constants.PAYLOAD_ANNOTATION.equals(strings[strings.length - 1].trim())) {
+                    payloadAnnotationPresent = true;
+                } else if (Constants.CACHE_ANNOTATION.equals(strings[strings.length - 1].trim())) {
+                    cacheAnnotationPresent = true;
+                }
+            }
+        }
+        if (checkForSupportedReturnTypes(returnTypeSymbol)) {
+            if (!payloadAnnotationPresent) {
+                enableConfigureReturnMediaTypeCodeAction(ctx, returnTypeNode);
+            }
+            if (!cacheAnnotationPresent) {
+                enableResponseCacheConfigCodeAction(ctx, returnTypeNode);
+            }
+        } else {
+            if (payloadAnnotationPresent) {
+                reportInvalidUsageOfPayloadAnnotation(ctx, returnTypeNode.location(), returnTypeString,
+                        HttpDiagnosticCodes.HTTP_131);
+            }
+            if (cacheAnnotationPresent) {
+                reportInvalidUsageOfCacheAnnotation(ctx, returnTypeNode.location(), returnTypeString);
+            }
+        }
+    }
+
+    private static void validateReturnType(SyntaxNodeAnalysisContext ctx, Node node, String returnTypeStringValue,
+                                           TypeSymbol returnTypeSymbol) {
         TypeDescKind kind = returnTypeSymbol.typeKind();
         if (isBasicTypeDesc(kind) || kind == TypeDescKind.ERROR || kind == TypeDescKind.NIL) {
             return;
@@ -591,6 +652,35 @@ class HttpResourceValidator {
         } else {
             reportInvalidReturnType(ctx, node, typeStringValue);
         }
+    }
+
+    private static void enableConfigureReturnMediaTypeCodeAction(SyntaxNodeAnalysisContext ctx, Node node) {
+        HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_HINT_103);
+    }
+
+    private static void enableResponseCacheConfigCodeAction(SyntaxNodeAnalysisContext ctx, Node node) {
+        HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_HINT_104);
+    }
+
+    private static boolean checkForSupportedReturnTypes(TypeSymbol returnTypeSymbol) {
+        TypeDescKind kind = returnTypeSymbol.typeKind();
+        if (kind == TypeDescKind.ERROR || kind == TypeDescKind.NIL) {
+            return false;
+        }
+        if (kind == TypeDescKind.UNION) {
+            List<TypeSymbol> typeSymbols = ((UnionTypeSymbol) returnTypeSymbol).memberTypeDescriptors();
+            if (typeSymbols.size() == 2) {
+                return checkForSupportedReturnTypes(typeSymbols.get(0))
+                        || checkForSupportedReturnTypes(typeSymbols.get(1));
+            }
+        } else if (kind == TypeDescKind.TYPE_REFERENCE) {
+            TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) returnTypeSymbol).typeDescriptor();
+            TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
+            if (typeDescKind == TypeDescKind.ERROR) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static TypeDescKind retrieveEffectiveTypeDesc(TypeSymbol descriptor) {
@@ -746,7 +836,12 @@ class HttpResourceValidator {
     }
 
     private static void reportInvalidUsageOfPayloadAnnotation(SyntaxNodeAnalysisContext ctx, Location location,
-                                                              String methodName) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, methodName, HttpDiagnosticCodes.HTTP_129);
+                                                              String name, HttpDiagnosticCodes code) {
+        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, name, code);
+    }
+
+    private static void reportInvalidUsageOfCacheAnnotation(SyntaxNodeAnalysisContext ctx, Location location,
+                                                            String returnType) {
+        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, returnType, HttpDiagnosticCodes.HTTP_130);
     }
 }

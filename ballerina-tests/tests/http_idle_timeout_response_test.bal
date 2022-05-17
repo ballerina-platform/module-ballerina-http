@@ -28,13 +28,13 @@ service /idleTimeout on idleTimeoutListenerEP {
 
     resource function post timeout408(http:Caller caller, http:Request req) {
         var result = req.getTextPayload();
-        if (result is string) {
+        if result is string {
             log:printInfo(result);
         } else  {
             log:printError("Error reading request", 'error = result);
         }
         var responseError = caller->respond("some");
-        if (responseError is error) {
+        if responseError is error {
             log:printError("Error sending response", 'error = responseError);
         }
     }
@@ -42,7 +42,7 @@ service /idleTimeout on idleTimeoutListenerEP {
     resource function get timeout500(http:Caller caller, http:Request req) {
         runtime:sleep(3);
         var responseError = caller->respond("some");
-        if (responseError is error) {
+        if responseError is error {
             log:printError("Error sending response", 'error = responseError);
         }
     }
@@ -52,7 +52,7 @@ service /idleTimeout on idleTimeoutListenerEP {
 @test:Config {}
 function test500Response() {
     http:Response|error response = idleTimeoutClient->get("/idleTimeout/timeout500");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 408, msg = "Found unexpected output");
         test:assertEquals(response.server, "Mysql");
     } else {

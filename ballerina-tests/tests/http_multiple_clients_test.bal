@@ -29,48 +29,48 @@ final http:Client h1Client = check new("http://localhost:" + multipleClientTestP
 
 service /globalClientTest on multipleClientListener1 {
 
-    resource function get h1(http:Caller caller, http:Request req) {
+    resource function get h1(http:Caller caller, http:Request req) returns error? {
         http:Response|error response = h1Client->post("/backend", "HTTP/1.1 request");
-        if (response is http:Response) {
-            checkpanic caller->respond(response);
+        if response is http:Response {
+            check caller->respond(response);
         } else {
-            checkpanic caller->respond("Error in client post - HTTP/1.1");
+            check caller->respond("Error in client post - HTTP/1.1");
         }
     }
 
-    resource function get h2(http:Caller caller, http:Request req) {
+    resource function get h2(http:Caller caller, http:Request req) returns error? {
         http:Response|error response = h2WithPriorKnowledgeClient->post("/backend", "HTTP/2 with prior knowledge");
-        if (response is http:Response) {
-            checkpanic caller->respond(response);
+        if response is http:Response {
+            check caller->respond(response);
         } else {
-            checkpanic caller->respond("Error in client post - HTTP/2");
+            check caller->respond("Error in client post - HTTP/2");
         }
     }
 }
 
 service /backend on multipleClientListener2 {
 
-    resource function post .(http:Caller caller, http:Request req) {
+    resource function post .(http:Caller caller, http:Request req) returns error? {
         string outboundResponse = "";
         if (req.hasHeader("connection") && req.hasHeader("upgrade")) {
-            string[] connHeaders = checkpanic req.getHeaders("connection");
+            string[] connHeaders = check req.getHeaders("connection");
             outboundResponse = connHeaders[1];
-            outboundResponse = outboundResponse + "--" + checkpanic req.getHeader("upgrade");
+            outboundResponse = outboundResponse + "--" + check req.getHeader("upgrade");
         } else {
             outboundResponse = "Connection and upgrade headers are not present";
         }
-        outboundResponse = outboundResponse + "--" + checkpanic req.getTextPayload() + "--" + req.httpVersion;
-        checkpanic caller->respond(outboundResponse);
+        outboundResponse = outboundResponse + "--" + check req.getTextPayload() + "--" + req.httpVersion;
+        check caller->respond(outboundResponse);
     }
 }
 
 //Test multiple clients with different configurations that are defined in global scope.
 @test:Config {}
-function testH1Client() {
+function testH1Client() returns error? {
     http:Response|error response = multipleClientTestClient->get("/globalClientTest/h1");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Connection and upgrade headers are not present--HTTP/1.1 request--1.1");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -78,11 +78,11 @@ function testH1Client() {
 }
 
 @test:Config {}
-function testH2Client() {
+function testH2Client() returns error? {
     http:Response|error response = multipleClientTestClient->get("/globalClientTest/h2");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(checkpanic response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
+        assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Connection and upgrade headers are not present--HTTP/2 with prior knowledge--2.0");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());

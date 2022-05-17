@@ -3,14 +3,19 @@
 _Owners_: @shafreenAnfar @TharmiganK @ayeshLK @chamil321  
 _Reviewers_: @shafreenAnfar @bhashinee @TharmiganK @ldclakmal  
 _Created_: 2021/12/23  
-_Updated_: 2021/12/23  
+_Updated_: 2022/02/07  
+_Edition_: Swan Lake  
 _Issue_: [#572](https://github.com/ballerina-platform/ballerina-standard-library/issues/572)
 
 
 # Introduction
-This is the specification for HTTP standard library, which provides HTTP functionalities in the 
-[Ballerina programming language](https://ballerina.io/), which is an open-source programming language for the cloud 
-that makes it easier to use, combine, and create network services.
+This is the specification for the HTTP standard library of [Ballerina language](https://ballerina.io/), which provides HTTP client-server functionalities to produce and consume HTTP APIs.  
+
+The HTTP library specification has evolved and may continue to evolve in the future. The released versions of the specification can be found under the relevant GitHub tag. 
+
+If you have any feedback or suggestions about the library, start a discussion via a [GitHub issue](https://github.com/ballerina-platform/ballerina-standard-library/issues) or in the [Slack channel](https://ballerina.io/community/). Based on the outcome of the discussion, the specification and implementation can be updated. Community feedback is always welcome. Any accepted proposal, which affects the specification is stored under `/docs/proposals`. Proposals under discussion can be found with the label `type/proposal` in GitHub.
+
+The conforming implementation of the specification is released and included in the distribution. Any deviation from the specification is considered a bug.
 
 # Contents
 
@@ -91,9 +96,9 @@ that makes it easier to use, combine, and create network services.
 9. [Security](#9-security)
     * 9.1. [Authentication and Authorization](#91-authentication-and-authorization)
         * 9.1.1. [Declarative Approach](#911-declarative-approach)
-            * 9.1.1.1. [Listener - File User Store](#9111-listener---file-user-store)
-            * 9.1.1.2. [Listener - LDAP User Store](#9112-listener---ldap-user-store)
-            * 9.1.1.3. [Listener - JWT](#9113-listener---jwt)
+            * 9.1.1.1. [Listener - Basic Auth - File User Store](#9111-listener---basic-auth---file-user-store)
+            * 9.1.1.2. [Listener - Basic Auth - LDAP User Store](#9112-listener---basic-auth---ldap-user-store)
+            * 9.1.1.3. [Listener - JWT Auth](#9113-listener---jwt-auth)
             * 9.1.1.4. [Listener - OAuth2](#9114-listener---oauth2)
             * 9.1.1.5. [Client - Basic Auth](#9115-client---basic-auth)
             * 9.1.1.6. [Client - Bearer Token Auth](#9116-client---bearer-token-auth)
@@ -101,13 +106,13 @@ that makes it easier to use, combine, and create network services.
             * 9.1.1.8. [Client - Bearer Token OAuth2](#9118-client---bearer-token-oauth2)
             * 9.1.1.9. [Client - Grant Types OAuth2](#9119-client---grant-types-oauth2)
         * 9.1.2 [Imperative Approach](#912-imperative-approach)
-            * 9.1.2.1. [Listener - File User Store](#9121-listener---file-user-store)
-            * 9.1.2.2. [Listener - LDAP User Store](#9122-listener---ldap-user-store)
-            * 9.1.2.3. [Listener - JWT](#9123-listener---jwt)
+            * 9.1.2.1. [Listener - Basic Auth - File User Store](#9121-listener---basic-auth---file-user-store)
+            * 9.1.2.2. [Listener - Basic Auth - LDAP User Store](#9122-listener---basic-auth---ldap-user-store)
+            * 9.1.2.3. [Listener - JWT Auth](#9123-listener---jwt-auth)
             * 9.1.2.4. [Listener - OAuth2](#9124-listener---oauth2)
             * 9.1.2.5. [Client - Basic Auth](#9125-client---basic-auth)
             * 9.1.2.6. [Client - Bearer Token Auth](#9126-client---bearer-token-auth)
-            * 9.1.2.7. [Client - Self Signed JWT Auth](#9127-self-signed-jwt)
+            * 9.1.2.7. [Client - Self Signed JWT Auth](#9127-client---self-signed-jwt)
             * 9.1.2.8. [Client - Bearer Token OAuth2](#9128-client---bearer-token-oauth2)
             * 9.1.2.9. [Client - Grant Types OAuth2](#9129-client---grant-types-oauth2)
    * 9.2. [SSL/TLS and Mutual SSL](#92-ssltls-and-mutual-ssl)
@@ -120,21 +125,11 @@ that makes it easier to use, combine, and create network services.
         * 10.1.1. [Push promise and promise response](#1011-push-promise-and-promise-response)
 
 ## 1. Overview
-This specification elaborates on Basic Auth authentication and authorization for all the Ballerina listeners and
-clients. The HTTP, gRPC, GraphQL, WebSocket, WebSub protocol-based listeners and clients are secured according to this
-specification.
+Ballerina language provides first-class support for writing network-oriented programs. The HTTP standard library uses these language constructs and creates the programming model to produce and consume HTTP APIs.
 
-The ballerina language provides the first class support for writing network oriented programming models in a more 
-initiative manner. The ballerina-http standard library consumes the rich language construct and creates the 
-programming model to write services.
+The HTTP standard library is designed to work with HTTP protocol. It includes high-level abstractions such as `http:Request`, `http:Response`, `http:Service`, and `http:Client` which allow users to produce and consume HTTP API. Further, developers can use this library to build other libraries. The standard libraries such as GraphQL, Websub, and WebSubHub use this library internally.
 
-The HTTP standard library is designed to work with HTTP protocol. It includes high level abstractions such as 
-`http:Request`, `http:Response`, `http:Service` and `http:Client` which allow users to consume and produce HTTP 
-services. Further the users can use this library to build other libraries. In fact, the standard libraries such 
-as GraphQL, Websub and WebSubHub use this library internally.
-
-In addition to functional requirements, this library deals with none functional requirements such as security,
-observability and resiliency. Each requirement is discussed in detail in the coming sections.
+In addition to functional requirements, this library deals with non functional requirements such as security, observability, and resiliency. Each requirement is discussed in detail in the coming sections.
 
 ## 2. Components
 ### 2.1. Listener
@@ -1377,16 +1372,16 @@ resource function post hello(@http:Header {name:"Referer"} string referer) {
 
 }
 ```
-### 4.6. Cache config annotation
+### 4.6. Cache annotation
 
 This annotation can be used to enable response caching from the resource signature. This allows to set the 
 `cache-control`, `etag` and `last-modified` headers in the response.
 
-The default behavior (`@http:CacheConfig`) is to have `must-revalidate,public,max-age=3600` directives in 
+The default behavior (`@http:Cache`) is to have `must-revalidate,public,max-age=3600` directives in 
 `cache-control` header. In addition to that `etag` and `last-modified` headers will be added.
 
 ```ballerina
-@http:CacheConfig {           // Default Configuration
+@http:Cache {                 // Default Configuration
     mustRevalidate : true,    // Sets the must-revalidate directive
     noCache : false,          // Sets the no-cache directive
     noStore : false,          // Sets the no-store directive 
@@ -1407,7 +1402,7 @@ values cache configuration will not be added through this annotation)
 ```ballerina
 // Sets the cache-control header as "public,must-revalidate,max-age=5". Also sets the etag header.
 // last-modified header will not be set
-resource function get cachingBackEnd(http:Request req) returns @http:CacheConfig{maxAge : 5, 
+resource function get cachingBackEnd(http:Request req) returns @http:Cache{maxAge : 5, 
     setLastModified : false} string {
 
     return "Hello, World!!"
@@ -1729,7 +1724,7 @@ The priority will be given from bottom to top. Then, the auth handler creation a
 authentication/authorization is handled internally without user intervention. The requests that succeeded both 
 authentication and/or authorization phases according to the configurations will be passed to the business logic layer.
 
-##### 9.1.1.1 Listener - File User Store
+##### 9.1.1.1 Listener - Basic Auth - File User Store
 
 ```ballerina
 @http:ServiceConfig {
@@ -1746,6 +1741,7 @@ service /foo on new http:Listener(9090) {
     }
 }
 ```
+
 ```ballerina
 # Config.toml
 
@@ -1764,7 +1760,7 @@ username="eve"
 password="eve@123"
 ```
 
-##### 9.1.1.2. Listener - LDAP User Store
+##### 9.1.1.2. Listener - Basic Auth - LDAP User Store
 
 ```ballerina
 @http:ServiceConfig {
@@ -1802,7 +1798,7 @@ service /foo on new http:Listener(9090) {
 }
 ```
 
-##### 9.1.1.3 Listener - JWT
+##### 9.1.1.3 Listener - JWT Auth
 
 ```ballerina
 @http:ServiceConfig {
@@ -1828,6 +1824,7 @@ service /foo on new http:Listener(9090) {
 ```
 
 ##### 9.1.1.4 Listener - OAuth2
+
 ```ballerina
 @http:ServiceConfig {
     auth: [
@@ -1855,6 +1852,7 @@ service /foo on new http:Listener(9090) {
 ```
 
 ##### 9.1.1.5 Client - Basic Auth
+
 ```ballerina
 http:Client c = check new ("https://localhost:9090",
     auth = {
@@ -1870,6 +1868,7 @@ public function main() returns error? {
 ```
 
 ##### 9.1.1.6 Client - Bearer Token Auth
+
 ```ballerina
 http:Client c = check new ("https://localhost:9090",
     auth = {
@@ -1886,6 +1885,7 @@ public function main() returns error? {
 ```
 
 ##### 9.1.1.7 Client - Self-Signed JWT
+
 ```ballerina
 http:Client c = check new ("https://localhost:9090",
     auth = {
@@ -1911,6 +1911,7 @@ public function main() returns error? {
 ```
 
 ##### 9.1.1.8 Client - Bearer Token OAuth2
+
 ```ballerina
 http:Client c = check new ("https://localhost:9090",
     auth = {
@@ -1925,6 +1926,7 @@ public function main() returns error? {
 ```
 
 ##### 9.1.1.9 Client - Grant Types OAuth2
+
 ```ballerina
 http:OAuth2ClientCredentialsGrantConfig config = {
     tokenUrl: "https://localhost:8080/oauth2/token/authorize",
@@ -1941,12 +1943,13 @@ public function main() returns error? {
 ```
 
 #### 9.1.2 Imperative Approach
+
 This is also known as the code-driven approach, which is used for advanced use cases, where users need to be 
 worried more about how authentication and authorization work and need to have further customizations. The user has 
 full control of the code-driven approach. The handler creation and authentication/authorization calls are made by 
 the user at the business logic layer.
 
-##### 9.1.2.1 Listener - File User Store
+##### 9.1.2.1 Listener - Basic Auth - File User Store
 
 ```ballerina
 http:FileUserStoreConfig config = {};
@@ -1966,6 +1969,7 @@ service /foo on new http:Listener(9090) {
     }
 }
 ```
+
 ```ballerina
 # Config.toml
 [ballerina.observe]
@@ -1978,7 +1982,7 @@ password="123"
 scopes=["write", "update"]
 ```
 
-##### 9.1.2.2 Listener - LDAP User Store
+##### 9.1.2.2 Listener - Basic Auth - LDAP User Store
 
 ```ballerina
 http:LdapUserStoreConfig config = {
@@ -2019,7 +2023,7 @@ service /foo on new http:Listener(9090) {
 }
 ```
 
-##### 9.1.2.3 Listener - JWT
+##### 9.1.2.3 Listener - JWT Auth
 
 ```ballerina
 http:JwtValidatorConfig config = {
@@ -2069,6 +2073,7 @@ service /foo on new http:Listener(9090) {
 ```
 
 ##### 9.1.2.5 Client - Basic Auth
+
 ```ballerina
 http:CredentialsConfig config = {
     username: "tom",
@@ -2087,6 +2092,7 @@ public function main() returns error? {
 ```
 
 ##### 9.1.2.6 Client - Bearer Token Auth
+
 ```ballerina
 http:BearerTokenConfig config = {
     token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFt" +
@@ -2105,7 +2111,8 @@ public function main() returns error? {
 }
 ```
 
-##### 9.1.2.7. Self-Signed JWT
+##### 9.1.2.7. Client - Self-Signed JWT
+
 ```ballerina
 http:JwtIssuerConfig config = {
     username: "admin",
@@ -2131,6 +2138,7 @@ public function main() returns error? {
 ```
 
 ##### 9.1.2.8. Client - Bearer Token OAuth2
+
 ```ballerina
 http:BearerTokenConfig config = {
     token: "JhbGciOiJIIiwiaWF0IjUzI1NiIsInR5cCI6IkpXVCJ9WIiOiIxMjM0NTY3ODkwI"
@@ -2148,6 +2156,7 @@ public function main() returns error? {
 ```
 
 ##### 9.1.2.9. Client - Grant Types OAuth2
+
 ```ballerina
 http:OAuth2ClientCredentialsGrantConfig config = {
     tokenUrl: "https://localhost:8080/oauth2/token/authorize",
@@ -2172,6 +2181,7 @@ The HTTPS listener could connect to or interact with an HTTPS client. The `http:
 of the listener exposes the HTTPS connection related configs.
 
 #### 9.2.1 Listener - SSL/TLS
+
 ```ballerina
 listener http:Listener securedEP = new(9090,
     secureSocket = {

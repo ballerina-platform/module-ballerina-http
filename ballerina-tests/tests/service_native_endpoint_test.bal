@@ -22,20 +22,20 @@ final http:Client serviceEndpointClient = check new("http://localhost:" + servic
 
 service /serviceEndpointHello on serviceEndpointTestEP {
 
-    resource function get protocol(http:Caller caller, http:Request req) {
+    resource function get protocol(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         json connectionJson = {protocol:caller.protocol};
         res.statusCode = 200;
         res.setJsonPayload(connectionJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
-    resource function get local(http:Caller caller, http:Request req) {
+    resource function get local(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         json connectionJson = {local:{host:caller.localAddress.host, port:caller.localAddress.port}};
         res.statusCode = 200;
         res.setJsonPayload(connectionJson);
-        checkpanic caller->respond(res);
+        check caller->respond(res);
     }
 
     resource function get host(http:Caller caller) returns string {
@@ -47,7 +47,7 @@ service /serviceEndpointHello on serviceEndpointTestEP {
 @test:Config {}
 function testGetProtocolConnectionStruct() {
     http:Response|error response = serviceEndpointClient->get("/serviceEndpointHello/protocol");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertJsonValue(response.getJsonPayload(), "protocol", "http");
     } else {
@@ -59,7 +59,7 @@ function testGetProtocolConnectionStruct() {
 @test:Config {}
 function testLocalStructInConnection() {
     http:Response|error response = serviceEndpointClient->get("/serviceEndpointHello/local");
-    if (response is http:Response) {
+    if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         var payload = response.getJsonPayload();
         if payload is map<json> {

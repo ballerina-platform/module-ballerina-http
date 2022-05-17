@@ -38,7 +38,7 @@ service /protocol on sslProtocolListener {
     
     resource function get protocolResource(http:Caller caller, http:Request req) {
         error? result = caller->respond("Hello World!");
-        if (result is error) {
+        if result is error {
            log:printError("Failed to respond", 'error = result);
         }
     }
@@ -58,10 +58,10 @@ http:ClientConfiguration sslProtocolClientConfig = {
 };
 
 @test:Config {}
-public function testSslProtocol() {
-    http:Client clientEP = checkpanic new("https://localhost:9249", sslProtocolClientConfig);
+public function testSslProtocol() returns error? {
+    http:Client clientEP = check new("https://localhost:9249", sslProtocolClientConfig);
     http:Response|error resp = clientEP->get("/protocol/protocolResource");
-    if (resp is http:Response) {
+    if resp is http:Response {
         test:assertFail(msg = "Found unexpected output: Expected an error" );
     } else {
         test:assertTrue(strings:includes(resp.message(), "SSL connection failed"));
