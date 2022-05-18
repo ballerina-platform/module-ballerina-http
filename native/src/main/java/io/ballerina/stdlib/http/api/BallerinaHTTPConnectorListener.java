@@ -304,8 +304,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
                                            targetService.getInterceptorServicesRegistries());
             }
         } catch (Exception e) {
-            inboundMessage.setProperty(HttpConstants.TARGET_SERVICE, HttpUtil.createHttpError(e.getMessage(),
-                    HttpErrorType.GENERIC_LISTENER_ERROR));
+            inboundMessage.setProperty(HttpConstants.TARGET_SERVICE, HttpUtil.createError(e));
         }
     }
 }

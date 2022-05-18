@@ -34,6 +34,7 @@ function testNoServiceRegistered() returns error? {
     assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
     assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
     assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("error-type"), "DispatchingError-Service");
 }
 
 final http:Client serviceErrorHandlingClientEP = check new("http://localhost:" + serviceErrorHandlingTestPort.toString());
@@ -77,6 +78,7 @@ function testNoMatchingServiceRegistered() returns error? {
     assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
     assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
     assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("error-type"), "DispatchingError-Service");
 }
 
 @test:Config{}
@@ -87,6 +89,7 @@ function testNoMatchingResourceFound() returns error? {
     assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
     assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
     assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("error-type"), "DispatchingError-Resource");
 }
 
 @test:Config{}
@@ -97,6 +100,7 @@ function testHeaderNotFound() returns error? {
     assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
     assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
     assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("error-type"), "HeaderBindingError");
 
     res = check serviceErrorHandlingClientEP->get("/foo/bar2");
     test:assertEquals(res.statusCode, 500);
@@ -104,6 +108,7 @@ function testHeaderNotFound() returns error? {
     assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
     assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
     assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("error-type"), "HeaderNotFoundError");
 }
 
 @test:Config{}
@@ -114,6 +119,7 @@ function testMethodNotAllowed() returns error? {
     assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
     assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
     assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("error-type"), "DispatchingError-Resource");
 }
 
 @test:Config{}
@@ -124,6 +130,7 @@ function testDataBindingFailed() returns error? {
     assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
     assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
     assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("error-type"), "PayloadBindingError-Listener");
 }
 
 @test:Config{}
@@ -134,6 +141,7 @@ function testResourceReturnsError() returns error? {
     assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
     assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
     assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("error-type"), "NormalError");
 }
 
 @test:Config{}
@@ -144,4 +152,5 @@ function testResourceCallerRespondsError() returns error? {
     assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
     assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
     assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("error-type"), "NormalError");
 }
