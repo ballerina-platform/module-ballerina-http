@@ -53,13 +53,14 @@ public class ResourceDispatcher {
                     handleOptionsRequest(inboundRequest, service);
                 } else {
                     inboundRequest.setHttpStatusCode(404);
-                    throw new BallerinaConnectorException("no matching resource found for path : "
-                            + inboundRequest.getProperty(HttpConstants.TO) + " , method : " + method);
+                    throw HttpUtil.createHttpError("no matching resource found for path : " +
+                                                   inboundRequest.getProperty(HttpConstants.TO) + " , method : " +
+                                                   method, HttpErrorType.RESOURCE_DISPATCHING_ERROR);
                 }
                 return null;
             }
         } catch (URITemplateException e) {
-            throw new BallerinaConnectorException(e.getMessage());
+            throw HttpUtil.createHttpError(e.getMessage(), HttpErrorType.RESOURCE_DISPATCHING_ERROR);
         }
     }
 
@@ -84,8 +85,8 @@ public class ResourceDispatcher {
                                DispatcherUtil.concatValues(service.getAllAllowedMethods(), false));
         } else {
             cMsg.setHttpStatusCode(404);
-            throw new BallerinaConnectorException("no matching resource found for path : "
-                    + cMsg.getProperty(HttpConstants.TO) + " , method : " + "OPTIONS");
+            throw HttpUtil.createHttpError("no matching resource found for path : " + cMsg.getProperty(HttpConstants.TO)
+                                           + " , method : " + "OPTIONS", HttpErrorType.RESOURCE_DISPATCHING_ERROR);
         }
         CorsHeaderGenerator.process(cMsg, response, false);
         String introspectionResourcePathHeaderValue = service.getIntrospectionResourcePathHeaderValue();

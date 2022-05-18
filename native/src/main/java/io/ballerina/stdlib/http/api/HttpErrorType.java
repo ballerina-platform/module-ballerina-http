@@ -66,7 +66,10 @@ public enum HttpErrorType {
     PAYLOAD_BINDING_LISTENER_ERROR("PayloadBindingListenerError"),
     HEADER_BINDING_ERROR("HeaderBindingError"),
     QUERY_PARAM_BINDING_ERROR("QueryParameterBindingError"),
-    INTERCEPTOR_RETURN_ERROR("InterceptorReturnError");
+    INTERCEPTOR_RETURN_ERROR("InterceptorReturnError"),
+    REQ_DISPATCHING_ERROR("RequestDispatchingError"),
+    SERVICE_DISPATCHING_ERROR("ServiceDispatchingError"),
+    RESOURCE_DISPATCHING_ERROR("ResourceDispatchingError");
 
     private final String errorName;
 

@@ -71,6 +71,15 @@ public type PayloadBindingError PayloadBindingClientError|PayloadBindingListener
 # Represents an error, which occurred due to a query parameter binding.
 public type QueryParameterBindingError distinct ListenerError;
 
+# Represents an error, which occurred during the request dispatching.
+public type RequestDispatchingError distinct ListenerError;
+
+# Represents an error, which occurred during the service dispatching.
+public type ServiceDispatchingError distinct RequestDispatchingError;
+
+# Represents an error, which occurred during the resource dispatching.
+public type ResourceDispatchingError distinct RequestDispatchingError;
+
 # Defines the auth error types that returned from listener.
 public type ListenerAuthError distinct ListenerError;
 
