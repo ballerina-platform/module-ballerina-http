@@ -43,6 +43,9 @@ public type ListenerError distinct Error;
 # Defines the possible client error types.
 public type ClientError distinct Error;
 
+# Represents a header not found error when retrieving headers.
+public type HeaderNotFoundError distinct Error;
+
 // Level 3
 # Defines the listener error types that returned while receiving inbound request.
 public type InboundRequestError distinct ListenerError;
@@ -58,6 +61,9 @@ public type InterceptorReturnError distinct ListenerError;
 
 # Represents an error, which occurred due to a header binding.
 public type HeaderBindingError distinct ListenerError;
+
+# Represents an error, which occurred due to the absence of the payload.
+public type NoContentError distinct ClientError;
 
 # Represents an error, which occurred due to the client payload binding.
 public type PayloadBindingClientError distinct ClientError;
@@ -114,10 +120,6 @@ public type SslError distinct ClientError;
 # Represents both 4XX and 5XX application response client error.
 public type ApplicationResponseError distinct (ClientError & error<Detail>);
 
-// Level 4
-# Represents a header not found error when retrieving headers.
-public type HeaderNotFoundError distinct GenericListenerError;
-
 // Other client-related errors
 # Represents a client error that occurred due to unsupported action invocation.
 public type UnsupportedActionError distinct GenericClientError;
@@ -133,9 +135,6 @@ public type ClientRequestError distinct (ApplicationResponseError & error<Detail
 
 # Represents an error, which occurred due to a failure of the remote server(5xx HTTP response).
 public type RemoteServerError distinct (ApplicationResponseError & error<Detail>);
-
-# Represents an error, which occurred due to the absence of the payload.
-public type NoContentError distinct GenericClientError;
 
 // Resiliency errors
 # Represents a client error that occurred due to all the failover endpoint failure.
