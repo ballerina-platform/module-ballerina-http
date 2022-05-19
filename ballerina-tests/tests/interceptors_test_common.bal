@@ -572,11 +572,7 @@ function getErrorType(error err) returns string {
     } else if err is http:QueryParameterBindingError {
         return "QueryParamBindingError";
     } else if err is http:PayloadBindingError {
-        if err is http:PayloadBindingClientError {
-            return "PayloadBindingError-Client";
-        } else {
-            return "PayloadBindingError-Listener";
-        }
+        return "PayloadBindingError";
     } else if err is http:RequestDispatchingError {
         if err is http:ServiceDispatchingError {
             return "DispatchingError-Service";

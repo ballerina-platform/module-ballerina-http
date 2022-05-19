@@ -154,7 +154,7 @@ function testDataBindingFailed() returns error? {
     assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
     assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
     assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
-    assertHeaderValue(check res.getHeader("error-type"), "PayloadBindingError-Listener");
+    assertHeaderValue(check res.getHeader("error-type"), "PayloadBindingError");
 }
 
 @test:Config{}

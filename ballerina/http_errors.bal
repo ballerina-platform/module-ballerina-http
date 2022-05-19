@@ -46,6 +46,9 @@ public type ClientError distinct Error;
 # Represents a header not found error when retrieving headers.
 public type HeaderNotFoundError distinct Error;
 
+# Represents an error, which occurred due to payload binding.
+public type PayloadBindingError distinct Error;
+
 // Level 3
 # Defines the listener error types that returned while receiving inbound request.
 public type InboundRequestError distinct ListenerError;
@@ -65,14 +68,9 @@ public type HeaderBindingError distinct ListenerError;
 # Represents an error, which occurred due to the absence of the payload.
 public type NoContentError distinct ClientError;
 
-# Represents an error, which occurred due to the client payload binding.
-public type PayloadBindingClientError distinct ClientError;
+type PayloadBindingClientError ClientError & PayloadBindingError; 
 
-# Represents an error, which occurred due to the service payload binding.
-public type PayloadBindingListenerError distinct ListenerError;
-
-# Represents an error, which occurred due to payload binding.
-public type PayloadBindingError PayloadBindingClientError|PayloadBindingListenerError;
+type PayloadBindingListenerError ListenerError & PayloadBindingError; 
 
 # Represents an error, which occurred due to a query parameter binding.
 public type QueryParameterBindingError distinct ListenerError;
