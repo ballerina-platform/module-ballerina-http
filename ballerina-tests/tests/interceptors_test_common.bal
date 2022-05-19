@@ -567,6 +567,8 @@ function getErrorType(error err) returns string {
         return "HeaderNotFoundError";
     } else if err is http:HeaderBindingError {
         return "HeaderBindingError";
+    } else if err is http:PathParameterBindingError {
+        return "PathParamBindingError";
     } else if err is http:QueryParameterBindingError {
         return "QueryParamBindingError";
     } else if err is http:PayloadBindingError {
