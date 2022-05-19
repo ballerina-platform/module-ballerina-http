@@ -77,6 +77,9 @@ public type PayloadBindingError PayloadBindingClientError|PayloadBindingListener
 # Represents an error, which occurred due to a query parameter binding.
 public type QueryParameterBindingError distinct ListenerError;
 
+# Represents an error, which occurred due to a path parameter binding.
+public type PathParameterBindingError distinct ListenerError;
+
 # Represents an error, which occurred during the request dispatching.
 public type RequestDispatchingError distinct ListenerError;
 

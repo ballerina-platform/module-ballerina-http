@@ -449,7 +449,8 @@ public class HttpDispatcher {
                 paramFeed[paramIndex] = true;
             } catch (Exception ex) {
                 inboundRequest.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
-                throw new BallerinaConnectorException("error in casting path parameter : '" + paramName + "'");
+                throw HttpUtil.createHttpError("error in casting path parameter : '" + paramName + "'",
+                                               HttpErrorType.PATH_PARAM_BINDING_ERROR, HttpUtil.createError(ex));
             }
         }
     }
