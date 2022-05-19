@@ -91,9 +91,11 @@ The conforming implementation of the specification is released and included in t
             * 8.1.4.2. [Listener level](#8142-listener-level)
             * 8.1.4.3. [Execution order of interceptors](#8143-execution-order-of-interceptors)
         * 8.1.5. [Data binding](#815-data-binding)
-     * 8.2. [Error handling](#82-error-handling)
-        * 8.2.1. [Trace log](#821-trace-log)
-        * 8.2.2. [Access log](#822-access-log)
+    * 8.2. [Error handling](#82-error-handling)
+      * 8.2.1. [Error interceptors](#821-error-interceptors)
+      * 8.2.2. [Error types](#822-error-types)
+      * 8.2.3. [Trace log](#823-trace-log)
+      * 8.2.4. [Access log](#824-access-log)
 9. [Security](#9-security)
     * 9.1. [Authentication and Authorization](#91-authentication-and-authorization)
         * 9.1.1. [Declarative Approach](#911-declarative-approach)
@@ -1869,7 +1871,155 @@ relevant order even though the end service does not exist.
 parameters. In order to get hold of the headers and the payload, users must use @http:Payload and @http:Headers.
 
 ### 8.2 Error handling
-### 8.2.1 Trace log
+
+#### 8.2.1 Error interceptors
+
+Error handling is an integral part of any network program. Errors can be returned by many components such as interceptors,
+dispatcher, data-binder, security handlers, etc. These errors are often handled by a default handler and sent back as 
+`500 Internal Server Error` with an entity-body. However, this often causes problems because when designing any API 
+consistency matters. Therefore, all the responses must have a consistent format. 
+
+As a result, almost all the real API requires overriding the default error handler and replacing it with their own
+error handlers. This can be done by error interceptors discussed in [Request error interceptor and response error 
+interceptor](#813-request-error-interceptor-and-response-error-interceptor). These error handlers can be placed 
+anywhere in the pipeline. The only mandatory argument in error interceptors is `error`. Just like a main service, it 
+is possible to return values from error handlers which will send back as HTTP responses. This overrides the current response
+and results in triggering the next response interceptor. Following is such an example :
+```ballerina
+service class ResponseErrorInterceptor {
+   *http:ResponseErrorInterceptor;
+ 
+   remote function interceptResponseError(error err) returns http:NotFound {
+       http:NotFound nf = { body: { msg: err.message()} };
+       return nf;
+   }
+}
+```
+
+The HTTP module also have a `DefaultErrorInterceptor` which is a `ResponseErrorInterceptor`. This will be added by 
+the listener and will be executed at last when there is an error. Hence, any error which is not handled by other 
+error interceptors will be finally handled by this default error handler. In essence, the internal default error interceptor
+will look like this :
+```ballerina
+service class DefaultErrorInterceptor {
+    *http:ResponseErrorInterceptor;
+
+    remote function interceptResponseError(error err) returns http:Response {
+        http:Response res = new;
+        res.setTextPayload(err.message());
+        // By default, the error response is set to 500 - Internal Server Error
+        // However, if the error is an internal error which has a different error
+        // status code (4XX or 5XX) then this 500 status code will be overwritten 
+        // by the original status code.
+        res.statusCode = 500;
+        return res;
+    }
+}
+```
+
+In order to overwrite this default error handling behavior, a custom `ResponseErrorInterceptor` can be placed as the 
+first interceptor in the listener level configuration which will be executed at last just before the  `DefaultErrorHandler`.
+
+#### 8.2.2 Error types
+
+In addition to error interceptors, HTTP module provides distinct error types in order to intercept errors and handle 
+them differently. These error types have a hierarchical structure starting from the basic `HttpError`. The following 
+table summarizes the error types which can be intercepted by the error interceptors:
+
+<table>
+<thead>
+  <tr>
+    <th></th>
+    <th>Error</th>
+    <th>Error Type</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td rowspan="5">Executing Interceptors - Interceptor Level</td>
+    <td>500 - no next service to be returned</td>
+    <td rowspan="4">InterceptorReturnError</td>
+  </tr>
+  <tr>
+    <td>500 - request context object does not contain the configured interceptors</td>
+  </tr>
+  <tr>
+    <td>500 - next interceptor service did not match with the configuration</td>
+  </tr>
+  <tr>
+    <td>500 - target service did not match with the configuration</td>
+  </tr>
+  <tr>
+    <td>Other errors occurred during the resource/remote function execution</td>
+    <td><i>Same as the returned error type</i></td>
+  </tr>
+  <tr>
+    <td rowspan="3">Finding Service - Listener Level</td>
+    <td>404 - no service has registered for listener</td>
+    <td rowspan="3">ServiceDispatchingError</td>
+  </tr>
+  <tr>
+    <td>404 - no matching service found for path</td>
+  </tr>
+  <tr>
+    <td>400 - Found non-matrix parameter in path</td>
+  </tr>
+  <tr>
+    <td rowspan="2">Finding Resource - Service Level</td>
+    <td>404 - no matching resource found for path</td>
+     <td rowspan="4">ResourceDispatchingError</td>
+  </tr>
+  <tr>
+    <td>405 - Method not allowed</td>
+  </tr>
+  <tr>
+    <td rowspan="2">Consumes & Produces - Service Level</td>
+    <td>406 - Not Acceptable</td>
+  </tr>
+  <tr>
+    <td>415 - Unsupported Media Type</td>
+  </tr>
+  <tr>
+    <td rowspan="6">Databinding - Service Level</td>
+    <td>400 - Error in casting path param</td>
+    <td>PathParameterBindingError</td>
+  </tr>
+  <tr>
+    <td>400 - no query param value found</td>
+    <td rowspan="2">QueryParameterBindingError</td>
+  </tr>
+  <tr>
+    <td>400 - Error in casting query param </td>
+  </tr>
+  <tr>
+    <td>400 - no header value found</td>
+    <td rowspan="2">HeaderBindingError</td>
+  </tr>
+  <tr>
+    <td>400 - header binding failed </td>
+  </tr>
+  <tr>
+    <td>400 - data binding failed</td>
+    <td>PayloadBindingError</td>
+  </tr>
+  <tr>
+    <td rowspan="2">Security - Resource Level</td>
+    <td>401 - Unauthorized errors - Resource Level</td>
+    <td>ListenerAuthnError</td>
+  </tr>
+  <tr>
+    <td>403 - Forbidden errors</td>
+    <td>ListenerAuthzError</td>
+  </tr>
+  <tr>
+    <td>Resource execution -  Resource Level</td>
+    <td>500 - Returned errors</td>
+    <td><i>Same as the returned error type</i></td>
+  </tr>
+</tbody>
+</table>
+
+#### 8.2.3 Trace log
 The HTTP trace logs can be used to monitor the HTTP traffic that goes in and out of Ballerina.
 The HTTP trace logs are **disabled as default**.
 To enable trace logs, the log level has to be set to TRACE using the runtime argument:
@@ -1891,7 +2041,7 @@ path = "testTraceLog.txt"   # Optional
 host = "localhost"          # Optional
 port = 8080                 # Optional
 ```
-### 8.2.2 Access log
+#### 8.2.4 Access log
 
 Ballerina supports HTTP access logs for HTTP services. The access log format used is the combined log format.
 The HTTP access logs are **disabled as default**.
