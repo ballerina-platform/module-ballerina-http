@@ -70,8 +70,7 @@ public isolated class Listener {
     #
     # + return - An `error` if an error occurred during the listener stop process
     public isolated function immediateStop() returns error? {
-        error err = error("not implemented");
-        return err;
+        return externImmediateStop(self);
     }
 
     # Attaches a service to the listener.
@@ -130,6 +129,11 @@ isolated function externStart(Listener listenerObj) returns error? = @java:Metho
 isolated function externGracefulStop(Listener listenerObj) returns error? = @java:Method {
     'class: "io.ballerina.stdlib.http.api.service.endpoint.GracefulStop",
     name: "gracefulStop"
+} external;
+
+isolated function externImmediateStop(Listener listenerObj) returns error? = @java:Method {
+    'class: "io.ballerina.stdlib.http.api.service.endpoint.ImmediateStop",
+    name: "immediateStop"
 } external;
 
 isolated function externDetach(Listener listenerObj, Service httpService) returns error? = @java:Method {

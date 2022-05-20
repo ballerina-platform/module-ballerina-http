@@ -43,7 +43,7 @@ public class HttpConnectionManager {
     private final Map<String, HttpServerConnectorContext> serverConnectorPool = new HashMap<>();
     private ServerBootstrapConfiguration serverBootstrapConfiguration;
     private final TransportsConfiguration trpConfig;
-    private final HttpWsConnectorFactory httpConnectorFactory = HttpUtil.createHttpWsConnectionFactory();
+//    private final HttpWsConnectorFactory httpConnectorFactory = HttpUtil.createHttpWsConnectionFactory();
 
     private HttpConnectionManager() {
         trpConfig = buildDefaultTransportConfig();
@@ -77,6 +77,7 @@ public class HttpConnectionManager {
 
         serverBootstrapConfiguration = HttpConnectorUtil
                 .getServerBootstrapConfiguration(trpConfig.getTransportProperties());
+        HttpWsConnectorFactory httpConnectorFactory = HttpUtil.createHttpWsConnectionFactory();
         ServerConnector serverConnector =
                 httpConnectorFactory.createServerConnector(serverBootstrapConfiguration, listenerConfig);
 

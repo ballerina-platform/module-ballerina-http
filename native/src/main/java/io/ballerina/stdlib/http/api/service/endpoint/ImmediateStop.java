@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2022, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  *  WSO2 Inc. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -24,14 +24,14 @@ import io.ballerina.stdlib.http.api.HttpErrorType;
 import io.ballerina.stdlib.http.api.HttpUtil;
 
 /**
- * Unbind the the listening port immediately and stop accepting new connection.
+ * Immediately stop listener.
  *
- * @since 0.966
+ * @since SL update 2
  */
-public class GracefulStop extends AbstractHttpNativeFunction {
-    public static Object gracefulStop(BObject serverEndpoint) {
+public class ImmediateStop extends AbstractHttpNativeFunction {
+    public static Object immediateStop(BObject serverEndpoint) {
         try {
-            getServerConnector(serverEndpoint).stop();
+            getServerConnector(serverEndpoint).immediateStop();
             serverEndpoint.addNativeData(HttpConstants.CONNECTOR_STARTED, false);
             resetRegistry(serverEndpoint);
         } catch (Exception ex) {
@@ -40,6 +40,6 @@ public class GracefulStop extends AbstractHttpNativeFunction {
         return null;
     }
 
-    private GracefulStop() {
+    private ImmediateStop() {
     }
 }
