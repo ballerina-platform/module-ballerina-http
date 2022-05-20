@@ -2004,7 +2004,7 @@ table summarizes the error types which can be intercepted by the error intercept
   </tr>
   <tr>
     <td rowspan="2">Security - Resource Level</td>
-    <td>401 - Unauthorized errors - Resource Level</td>
+    <td>401 - Unauthorized errors</td>
     <td>ListenerAuthnError</td>
   </tr>
   <tr>
