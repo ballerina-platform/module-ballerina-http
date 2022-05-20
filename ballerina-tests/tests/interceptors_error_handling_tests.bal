@@ -230,3 +230,90 @@ function testConsumesProducesError() returns error? {
     assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
     assertHeaderValue(check res.getHeader("error-type"), "DispatchingError-Resource");
 }
+
+listener http:Listener authErrorHandlingServerEP = new(authErrorHandlingTestPort, config = {
+    interceptors : [
+        new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultRequestInterceptor(),
+        new DefaultRequestErrorInterceptor(), new LastRequestInterceptor(), new DefaultResponseInterceptor()
+    ],
+    secureSocket : {
+        key: {
+            path: KEYSTORE_PATH,
+            password: "ballerina"
+        }
+    }
+});
+
+// Basic auth (file user store) secured service
+@http:ServiceConfig {
+    auth: [
+        {
+            fileUserStoreConfig: {},
+            scopes: ["write", "update"]
+        }
+    ]
+}
+service /auth on authErrorHandlingServerEP {
+    resource function get .() returns string {
+        return "Hello World!";
+    }
+}
+
+@test:Config{}
+function testAuthnError() returns error? {
+    http:Client clientEP = check new("https://localhost:" + authErrorHandlingTestPort.toString(),
+        auth = {
+            username: "peter",
+            password: "123"
+        },
+        secureSocket = {
+            cert: {
+                path: TRUSTSTORE_PATH,
+                password: "ballerina"
+            }
+        }
+    );
+    http:Response res = check clientEP->get("/auth");
+    test:assertEquals(res.statusCode, 401);
+    assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
+    assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("error-type"), "ListenerAuthenticationError");
+
+    clientEP = check new("https://localhost:" + authErrorHandlingTestPort.toString(),
+        secureSocket = {
+            cert: {
+                path: TRUSTSTORE_PATH,
+                password: "ballerina"
+            }
+        }
+    );
+    res = check clientEP->get("/auth");
+    test:assertEquals(res.statusCode, 401);
+    assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
+    assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("error-type"), "ListenerAuthenticationError");
+}
+
+@test:Config{}
+function testAuthzError() returns error? {
+    http:Client clientEP = check new("https://localhost:" + authErrorHandlingTestPort.toString(),
+        auth = {
+            username: "bob",
+            password: "yyy"
+        },
+        secureSocket = {
+            cert: {
+                path: TRUSTSTORE_PATH,
+                password: "ballerina"
+            }
+        }
+    );
+    http:Response res = check clientEP->get("/auth");
+    test:assertEquals(res.statusCode, 403);
+    assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
+    assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("error-type"), "ListenerAuthorizationError");
+}

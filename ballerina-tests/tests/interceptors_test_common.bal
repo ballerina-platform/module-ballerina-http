@@ -579,6 +579,12 @@ function getErrorType(error err) returns string {
         } else {
             return "DispatchingError-Resource";
         }
+    } else if err is http:ListenerAuthError {
+        if err is http:ListenerAuthnError {
+            return "ListenerAuthenticationError";
+        } else {
+            return "ListenerAuthorizationError";
+        }
     } else {
         return "NormalError";
     }

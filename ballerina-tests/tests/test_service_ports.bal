@@ -177,6 +177,7 @@ const int responseInterceptorCallerRespondErrorTestPort = 9622;
 const int requestInterceptorCallerRespondErrorTestPort = 9623;
 const int clientSchemeTestHttpsListenerTestPort = 9624;
 const int callerRespondTestPort = 9625;
+const int authErrorHandlingTestPort = 9626;
 
 //HTTP2
 const int serverPushTestPort1 = 9701;
