@@ -70,7 +70,9 @@ public enum HttpErrorType {
     INTERCEPTOR_RETURN_ERROR("InterceptorReturnError"),
     REQ_DISPATCHING_ERROR("RequestDispatchingError"),
     SERVICE_DISPATCHING_ERROR("ServiceDispatchingError"),
-    RESOURCE_DISPATCHING_ERROR("ResourceDispatchingError");
+    RESOURCE_DISPATCHING_ERROR("ResourceDispatchingError"),
+    LISTENER_AUTHZ_ERROR("ListenerAuthzError"),
+    LISTENER_AUTHN_ERROR("ListenerAuthnError");
 
     private final String errorName;
 
