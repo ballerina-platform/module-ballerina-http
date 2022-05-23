@@ -26,8 +26,9 @@ import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
-import io.ballerina.stdlib.http.api.BallerinaConnectorException;
 import io.ballerina.stdlib.http.api.HttpConstants;
+import io.ballerina.stdlib.http.api.HttpErrorType;
+import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.netty.handler.codec.http.HttpHeaders;
 
@@ -93,7 +94,8 @@ public class AllHeaderParams implements Parameter {
                     continue;
                 } else {
                     httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
-                    throw new BallerinaConnectorException("no header value found for '" + token + "'");
+                    throw HttpUtil.createHttpError("no header value found for '" + token + "'",
+                                                   HttpErrorType.HEADER_BINDING_ERROR);
                 }
             }
             if (headerValues.size() == 1 && headerValues.get(0).isEmpty()) {
@@ -103,7 +105,8 @@ public class AllHeaderParams implements Parameter {
                     continue;
                 } else {
                     httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
-                    throw new BallerinaConnectorException("no header value found for '" + token + "'");
+                    throw HttpUtil.createHttpError("no header value found for '" + token + "'",
+                                                   HttpErrorType.HEADER_BINDING_ERROR);
                 }
             }
             int typeTag = headerParam.getType().getTag();
@@ -118,9 +121,10 @@ public class AllHeaderParams implements Parameter {
                 } else {
                     paramFeed[index++] = castParam(typeTag, headerValues.get(0));
                 }
-            } catch (NumberFormatException e) {
+            } catch (Exception ex) {
                 httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
-                throw new BallerinaConnectorException("header binding failed for parameter: " + token);
+                throw HttpUtil.createHttpError("header binding failed for parameter: '" + token + "'",
+                                               HttpErrorType.HEADER_BINDING_ERROR, HttpUtil.createError(ex));
             }
             paramFeed[index] = true;
         }
@@ -146,7 +150,8 @@ public class AllHeaderParams implements Parameter {
                     return null;
                 } else {
                     httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
-                    throw new BallerinaConnectorException("no header value found for '" + key + "'");
+                    throw HttpUtil.createHttpError("no header value found for '" + key + "'",
+                                                   HttpErrorType.HEADER_BINDING_ERROR);
                 }
             }
             if (headerValues.size() == 1 && headerValues.get(0).isEmpty()) {
@@ -157,7 +162,8 @@ public class AllHeaderParams implements Parameter {
                     return null;
                 } else {
                     httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
-                    throw new BallerinaConnectorException("no header value found for '" + key + "'");
+                    throw HttpUtil.createHttpError("no header value found for '" + key + "'",
+                                                   HttpErrorType.HEADER_BINDING_ERROR);
                 }
             }
             if (fieldType.getTag() == ARRAY_TAG) {

@@ -28,8 +28,9 @@ import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
-import io.ballerina.stdlib.http.api.BallerinaConnectorException;
 import io.ballerina.stdlib.http.api.HttpConstants;
+import io.ballerina.stdlib.http.api.HttpErrorType;
+import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
 import java.util.ArrayList;
@@ -82,7 +83,8 @@ public class AllQueryParams implements Parameter {
                     continue;
                 } else {
                     httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
-                    throw new BallerinaConnectorException("no query param value found for '" + token + "'");
+                    throw HttpUtil.createHttpError("no query param value found for '" + token + "'",
+                                                   HttpErrorType.QUERY_PARAM_BINDING_ERROR);
                 }
             }
             try {
@@ -109,7 +111,8 @@ public class AllQueryParams implements Parameter {
                 paramFeed[index] = true;
             } catch (Exception ex) {
                 httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
-                throw new BallerinaConnectorException("Error in casting query param : " + ex.getMessage());
+                throw HttpUtil.createHttpError("error in casting query param : '" + token + "'",
+                                               HttpErrorType.QUERY_PARAM_BINDING_ERROR, HttpUtil.createError(ex));
             }
         }
     }

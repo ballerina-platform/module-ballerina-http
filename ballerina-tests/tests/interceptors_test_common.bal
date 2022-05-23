@@ -501,10 +501,14 @@ service class LastResponseInterceptor {
     *http:ResponseInterceptor;
 
     remote function interceptResponse(http:RequestContext ctx, http:Response res) returns http:NextService|error? {
-       string|error val = ctx.get("last-interceptor").ensureType(string);
+       string|error val = trap ctx.get("last-interceptor").ensureType(string);
        string header = val is string ? val : "last-response-interceptor";
        res.setHeader("last-response-interceptor", "true");
        res.setHeader("last-interceptor", header);
+       val = trap ctx.get("error-type").ensureType(string);
+       if val is string {
+           res.setHeader("error-type", val);
+       }
        return ctx.next();
     }
 }
@@ -551,7 +555,38 @@ service class DefaultResponseErrorInterceptor {
        res.setHeader("default-response-error-interceptor", "true");
        res.setTextPayload(err.message());
        ctx.set("last-interceptor", "default-response-error-interceptor");
+       ctx.set("error-type", getErrorType(err));
        return ctx.next();
+    }
+}
+
+function getErrorType(error err) returns string {
+    if err is http:InterceptorReturnError {
+        return "InterceptorReturnError";
+    } else if err is http:HeaderNotFoundError {
+        return "HeaderNotFoundError";
+    } else if err is http:HeaderBindingError {
+        return "HeaderBindingError";
+    } else if err is http:PathParameterBindingError {
+        return "PathParamBindingError";
+    } else if err is http:QueryParameterBindingError {
+        return "QueryParamBindingError";
+    } else if err is http:PayloadBindingError {
+        return "PayloadBindingError";
+    } else if err is http:RequestDispatchingError {
+        if err is http:ServiceDispatchingError {
+            return "DispatchingError-Service";
+        } else {
+            return "DispatchingError-Resource";
+        }
+    } else if err is http:ListenerAuthError {
+        if err is http:ListenerAuthnError {
+            return "ListenerAuthenticationError";
+        } else {
+            return "ListenerAuthorizationError";
+        }
+    } else {
+        return "NormalError";
     }
 }
 

@@ -76,12 +76,13 @@ public class HttpDispatcher {
             } else {
                 inboundReqMsg.setHttpStatusCode(404);
                 String localAddress = inboundReqMsg.getProperty(HttpConstants.LOCAL_ADDRESS).toString();
-                throw new BallerinaConnectorException("no service has registered for listener : " + localAddress);
+                throw HttpUtil.createHttpError("no service has registered for listener : " + localAddress,
+                                               HttpErrorType.SERVICE_DISPATCHING_ERROR);
             }
 
             String rawUri = (String) inboundReqMsg.getProperty(HttpConstants.TO);
             Map<String, Map<String, String>> matrixParams = new HashMap<>();
-            String uriWithoutMatrixParams = URIUtil.extractMatrixParams(rawUri, matrixParams);
+            String uriWithoutMatrixParams = URIUtil.extractMatrixParams(rawUri, matrixParams, inboundReqMsg);
 
             URI validatedUri = getValidatedURI(uriWithoutMatrixParams);
 
@@ -90,8 +91,8 @@ public class HttpDispatcher {
 
             if (basePath == null) {
                 inboundReqMsg.setHttpStatusCode(404);
-                throw new BallerinaConnectorException("no matching service found for path : " +
-                                                              validatedUri.getRawPath());
+                throw HttpUtil.createHttpError("no matching service found for path : " + validatedUri.getRawPath(),
+                                               HttpErrorType.SERVICE_DISPATCHING_ERROR);
             }
 
             HttpService service = servicesOnInterface.get(basePath);
@@ -103,7 +104,7 @@ public class HttpDispatcher {
             }
             return service;
         } catch (Exception e) {
-            throw new BallerinaConnectorException(e.getMessage());
+            throw HttpUtil.createHttpError(e.getMessage(), HttpErrorType.SERVICE_DISPATCHING_ERROR);
         }
     }
 
@@ -125,7 +126,8 @@ public class HttpDispatcher {
             } else {
                 inboundReqMsg.setHttpStatusCode(404);
                 String localAddress = inboundReqMsg.getProperty(HttpConstants.LOCAL_ADDRESS).toString();
-                throw new BallerinaConnectorException("no service has registered for listener : " + localAddress);
+                throw HttpUtil.createHttpError("no service has registered for listener : " + localAddress,
+                                               HttpErrorType.SERVICE_DISPATCHING_ERROR);
             }
 
             if (isResponsePath) {
@@ -137,7 +139,7 @@ public class HttpDispatcher {
             String rawUri = (String) inboundReqMsg.getProperty(HttpConstants.TO);
             inboundReqMsg.setProperty(HttpConstants.RAW_URI, rawUri);
             Map<String, Map<String, String>> matrixParams = new HashMap<>();
-            String uriWithoutMatrixParams = URIUtil.extractMatrixParams(rawUri, matrixParams);
+            String uriWithoutMatrixParams = URIUtil.extractMatrixParams(rawUri, matrixParams, inboundReqMsg);
 
             inboundReqMsg.setProperty(HttpConstants.TO, uriWithoutMatrixParams);
             inboundReqMsg.setProperty(HttpConstants.MATRIX_PARAMS, matrixParams);
@@ -149,15 +151,15 @@ public class HttpDispatcher {
 
             if (basePath == null) {
                 inboundReqMsg.setHttpStatusCode(404);
-                throw new BallerinaConnectorException("no matching service found for path : " +
-                                                              validatedUri.getRawPath());
+                throw HttpUtil.createHttpError("no matching service found for path : " + validatedUri.getRawPath(),
+                                               HttpErrorType.SERVICE_DISPATCHING_ERROR);
             }
 
             InterceptorService service = servicesOnInterface.get(basePath);
             setInboundReqProperties(inboundReqMsg, validatedUri, basePath);
             return service;
         } catch (Exception e) {
-            throw new BallerinaConnectorException(e.getMessage());
+            throw HttpUtil.createHttpError(e.getMessage(), HttpErrorType.SERVICE_DISPATCHING_ERROR);
         }
     }
 
@@ -190,44 +192,40 @@ public class HttpDispatcher {
     public static HttpResource findResource(HTTPServicesRegistry servicesRegistry, HttpCarbonMessage inboundMessage) {
         String protocol = (String) inboundMessage.getProperty(HttpConstants.PROTOCOL);
         if (protocol == null) {
-            throw new BallerinaConnectorException("protocol not defined in the incoming request");
+            throw HttpUtil.createHttpError("protocol not defined in the incoming request",
+                                           HttpErrorType.REQ_DISPATCHING_ERROR);
         }
 
-        try {
-            // Find the Service TODO can be improved
-            HttpService service = HttpDispatcher.findService(servicesRegistry, inboundMessage, false);
-            if (service == null) {
-                throw new BallerinaConnectorException("no Service found to handle the service request");
-                // Finer details of the errors are thrown from the dispatcher itself, Ideally we shouldn't get here.
-            }
-
-            // Find the Resource
-            return (HttpResource) ResourceDispatcher.findResource(service, inboundMessage);
-        } catch (Exception e) {
-            throw new BallerinaConnectorException(e.getMessage());
+        // Find the Service TODO can be improved
+        HttpService service = HttpDispatcher.findService(servicesRegistry, inboundMessage, false);
+        if (service == null) {
+            throw HttpUtil.createHttpError("no Service found to handle the service request",
+                                           HttpErrorType.REQ_DISPATCHING_ERROR);
+            // Finer details of the errors are thrown from the dispatcher itself, Ideally we shouldn't get here.
         }
+
+        // Find the Resource
+        return (HttpResource) ResourceDispatcher.findResource(service, inboundMessage);
     }
 
     public static InterceptorResource findInterceptorResource(HTTPInterceptorServicesRegistry servicesRegistry,
                                                               HttpCarbonMessage inboundMessage) {
         String protocol = (String) inboundMessage.getProperty(HttpConstants.PROTOCOL);
         if (protocol == null) {
-            throw new BallerinaConnectorException("protocol not defined in the incoming request");
+            throw HttpUtil.createHttpError("protocol not defined in the incoming request",
+                                           HttpErrorType.REQ_DISPATCHING_ERROR);
         }
 
-        try {
-            // Find the Service TODO can be improved
-            InterceptorService service = HttpDispatcher.findInterceptorService(servicesRegistry, inboundMessage, false);
-            if (service == null) {
-                throw new BallerinaConnectorException("no Service found to handle the service request");
-                // Finer details of the errors are thrown from the dispatcher itself, Ideally we shouldn't get here.
-            }
-
-            // Find the Resource
-            return (InterceptorResource) ResourceDispatcher.findResource(service, inboundMessage);
-        } catch (Exception e) {
-            throw new BallerinaConnectorException(e.getMessage());
+        // Find the Service TODO can be improved
+        InterceptorService service = HttpDispatcher.findInterceptorService(servicesRegistry, inboundMessage, false);
+        if (service == null) {
+            throw HttpUtil.createHttpError("no Service found to handle the service request",
+                                           HttpErrorType.REQ_DISPATCHING_ERROR);
+            // Finer details of the errors are thrown from the dispatcher itself, Ideally we shouldn't get here.
         }
+
+        // Find the Resource
+        return (InterceptorResource) ResourceDispatcher.findResource(service, inboundMessage);
     }
 
     public static Object[] getRemoteSignatureParameters(InterceptorService service, BObject response, BObject caller,
@@ -301,7 +299,7 @@ public class HttpDispatcher {
             HttpResourceArguments resourceArgumentValues =
                     (HttpResourceArguments) httpCarbonMessage.getProperty(HttpConstants.RESOURCE_ARGS);
             updateWildcardToken(resource.getWildcardToken(), pathParamCount - 1, resourceArgumentValues.getMap());
-            populatePathParams(resource, paramFeed, resourceArgumentValues, pathParamCount);
+            populatePathParams(resource, paramFeed, resourceArgumentValues, pathParamCount, httpCarbonMessage);
         }
         // Following was written assuming that they are validated
         for (Parameter param : paramHandler.getOtherParamList()) {
@@ -424,7 +422,8 @@ public class HttpDispatcher {
     }
 
     private static void populatePathParams(Resource resource, Object[] paramFeed,
-                                           HttpResourceArguments resourceArgumentValues, int pathParamCount) {
+                                           HttpResourceArguments resourceArgumentValues, int pathParamCount,
+                                           HttpCarbonMessage inboundRequest) {
 
         String[] pathParamTokens = Arrays.copyOfRange(resource.getBalResource().getParamNames(), 0, pathParamCount);
         int actualSignatureParamIndex = 0;
@@ -449,7 +448,9 @@ public class HttpDispatcher {
                 }
                 paramFeed[paramIndex] = true;
             } catch (Exception ex) {
-                throw new BallerinaConnectorException("Error in casting path param : " + ex.getMessage());
+                inboundRequest.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
+                throw HttpUtil.createHttpError("error in casting path parameter : '" + paramName + "'",
+                                               HttpErrorType.PATH_PARAM_BINDING_ERROR, HttpUtil.createError(ex));
             }
         }
     }

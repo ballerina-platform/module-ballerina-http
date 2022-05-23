@@ -63,7 +63,16 @@ public enum HttpErrorType {
     INVALID_CONTENT_LENGTH("InvalidContentLengthError"),
     HEADER_NOT_FOUND_ERROR("HeaderNotFoundError"),
     CLIENT_ERROR("ClientError"),
-    PAYLOAD_BINDING_ERROR("PayloadBindingError");
+    PAYLOAD_BINDING_LISTENER_ERROR("PayloadBindingListenerError"),
+    HEADER_BINDING_ERROR("HeaderBindingError"),
+    QUERY_PARAM_BINDING_ERROR("QueryParameterBindingError"),
+    PATH_PARAM_BINDING_ERROR("PathParameterBindingError"),
+    INTERCEPTOR_RETURN_ERROR("InterceptorReturnError"),
+    REQ_DISPATCHING_ERROR("RequestDispatchingError"),
+    SERVICE_DISPATCHING_ERROR("ServiceDispatchingError"),
+    RESOURCE_DISPATCHING_ERROR("ResourceDispatchingError"),
+    LISTENER_AUTHZ_ERROR("ListenerAuthzError"),
+    LISTENER_AUTHN_ERROR("ListenerAuthnError");
 
     private final String errorName;
 

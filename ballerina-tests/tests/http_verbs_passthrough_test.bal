@@ -238,7 +238,7 @@ function testDataBindingWithIncompatiblePayload() returns error? {
     http:Response response = check httpVerbClient->post("/getQuote/employee", payload);
     test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
     assertTextPayload(response.getTextPayload(),
-        "data binding failed: error PayloadBindingError (\"incompatible type found: 'json'\")");
+        "data binding failed: incompatible type found: 'json'");
 }
 
 //Test with empty method in execute remote method uses the inbound verb

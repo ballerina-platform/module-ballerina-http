@@ -135,8 +135,8 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
                 if (result.equals(interceptor)) {
                     sendResponseToNextService();
                 } else {
-                    BError err = HttpUtil.createHttpError("next interceptor service did not match " +
-                            "with the configuration", HttpErrorType.GENERIC_LISTENER_ERROR);
+                    BError err = HttpUtil.createHttpError("next interceptor service did not match with the " +
+                                                          "configuration", HttpErrorType.INTERCEPTOR_RETURN_ERROR);
                     requestMessage.setHttpStatusCode(500);
                     invokeErrorInterceptors(err, true);
                 }
