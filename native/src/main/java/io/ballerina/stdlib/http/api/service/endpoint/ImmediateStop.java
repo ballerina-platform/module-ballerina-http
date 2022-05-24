@@ -40,6 +40,5 @@ public class ImmediateStop extends AbstractHttpNativeFunction {
         return null;
     }
 
-    private ImmediateStop() {
-    }
+    private ImmediateStop() {}
 }

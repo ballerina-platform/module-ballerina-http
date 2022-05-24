@@ -1143,7 +1143,6 @@ public class HttpUtil {
     }
 
     public static HttpWsConnectorFactory createHttpWsConnectionFactory() {
-//        return DefaultHttpWsConnectorFactoryHolder.getHttpConnectorFactory();
         return new DefaultHttpWsConnectorFactory();
     }
 
