@@ -18,16 +18,16 @@
 
 package io.ballerina.stdlib.http.uri.parser;
 
-import io.ballerina.stdlib.http.api.BallerinaConnectorException;
+import io.ballerina.runtime.api.values.BError;
 
 /**
- * This class is use to set and return data in the template tree.
+ * This class is used to set and return data in the template tree.
  * @param <DataType> Type of data which should be set and returned.
  */
 public class DataReturnAgent<DataType> {
 
     private DataType data;
-    private BallerinaConnectorException ballerinaException;
+    private BError error;
 
     /**
      * Set data.
@@ -47,17 +47,17 @@ public class DataReturnAgent<DataType> {
 
     /**
      * Set Error.
-     * @param ballerinaException the error to be set.
+     * @param error the error to be set.
      */
-    public void setError(BallerinaConnectorException ballerinaException) {
-        this.ballerinaException = ballerinaException;
+    public void setError(BError error) {
+        this.error = error;
     }
 
     /**
      * Get Error.
      * @return the Throwable which caused the error.
      */
-    public BallerinaConnectorException getError() {
-        return ballerinaException;
+    public BError getError() {
+        return error;
     }
 }

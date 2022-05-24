@@ -1029,8 +1029,8 @@ function testMultipleIntTypedRestParams() {
 function testMultipleNegativeRestParams() {
     http:Response|error response = utmClient->get("/restParam/int/12.3/4.56");
     if response is http:Response {
-        test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        assertTextPayload(response.getTextPayload(), "Error in casting path param : For input string: \"12.3\"");
+        test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(), "error in casting path parameter : 'aaa'");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

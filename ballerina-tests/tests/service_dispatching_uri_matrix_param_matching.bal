@@ -128,9 +128,9 @@ function testErrorReportInURI() {
     string path = "/hello/t2/john;age;color=white/foo;a=5;b=10"; // encoded URI
     http:Response|error response = matrixClient->get(path);
     if response is http:Response {
-        test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
+        test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(),
-            "Found non-matrix parameter 'age' in path 'hello/t2/john;age;color=white/foo;a=5;b=10'");
+            "found non-matrix parameter 'age' in path 'hello/t2/john;age;color=white/foo;a=5;b=10'");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

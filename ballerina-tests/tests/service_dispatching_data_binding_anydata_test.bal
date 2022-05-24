@@ -353,7 +353,7 @@ function testDataBindingWithMapOfIntUrlEncoded() returns error? {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(),
-        "data binding failed: error PayloadBindingError (\"incompatible type found: 'map<int>'\")");
+        "data binding failed: incompatible type found: 'map<int>'");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -417,7 +417,7 @@ function testDataBindingStringArrayNegative() {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(),
-        "data binding failed: error PayloadBindingError (\"incompatible array element type found: 'string'\")");
+        "data binding failed: incompatible array element type found: 'string'");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -486,7 +486,7 @@ function testDataBindingWithTableofMapOfStringByTypeNegative() returns error? {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTrueTextPayload(response.getTextPayload(),
-        "data binding failed: error(\"{ballerina/lang.value}ConversionError\"");
+        "data binding failed: {ballerina/lang.value}ConversionError");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -560,7 +560,7 @@ function testDataBindingByteArrayWithJson() {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTrueTextPayload(response.getTextPayload(),
-            "data binding failed: error(\"unrecognized token 'WSO2'");
+            "data binding failed: unrecognized token 'WSO2'");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -579,7 +579,7 @@ function testDataBindingOctetStreamNegative() {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(),
-            "data binding failed: error PayloadBindingError (\"incompatible type found: 'http_tests:Person'\")");
+            "data binding failed: incompatible type found: 'http_tests:Person'");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -663,7 +663,7 @@ function testDataBindingXmlNegative() {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(),
-            "data binding failed: error PayloadBindingError (\"incompatible type found: 'map<int>'\")");
+            "data binding failed: incompatible type found: 'map<int>'");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -676,7 +676,7 @@ function testDataBindingXmlArray() {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTrueTextPayload(response.getTextPayload(),
-            "data binding failed: error(\"{ballerina/lang.value}ConversionError\"");
+            "data binding failed: {ballerina/lang.value}ConversionError");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -690,7 +690,7 @@ function testDataBindingXmlArrayByType() {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTrueTextPayload(response.getTextPayload(),
-            "data binding failed: error(\"{ballerina/lang.value}ConversionError\"");
+            "data binding failed: {ballerina/lang.value}ConversionError");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -705,7 +705,7 @@ function testDataBindingWithMapOfXml() {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTrueTextPayload(response.getTextPayload(),
-            "data binding failed: error(\"{ballerina/lang.value}ConversionError\"");
+            "data binding failed: {ballerina/lang.value}ConversionError");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -721,7 +721,7 @@ function testDataBindingWithMapOfXmlByType() returns error? {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTrueTextPayload(response.getTextPayload(),
-            "data binding failed: error(\"{ballerina/lang.value}ConversionError\"");
+            "data binding failed: {ballerina/lang.value}ConversionError");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -738,7 +738,7 @@ function testDataBindingWithTableofMapOfXml() {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTrueTextPayload(response.getTextPayload(),
-            "data binding failed: error(\"{ballerina/lang.value}ConversionError\"");
+            "data binding failed: {ballerina/lang.value}ConversionError");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -878,7 +878,7 @@ function testDataBindingUnionStringArrayJsonWithTextPlain() {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(),
-            "data binding failed: error PayloadBindingError (\"incompatible type found: '(json|string[])'\")");
+            "data binding failed: incompatible type found: '(json|string[])'");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

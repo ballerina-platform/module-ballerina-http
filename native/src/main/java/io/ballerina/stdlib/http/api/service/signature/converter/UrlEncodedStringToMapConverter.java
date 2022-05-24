@@ -57,7 +57,7 @@ public class UrlEncodedStringToMapConverter {
             return formParamMap;
         }
         throw HttpUtil.createHttpError("incompatible type found: '" + type.toString() + "'",
-                                       HttpErrorType.PAYLOAD_BINDING_ERROR);
+                                       HttpErrorType.PAYLOAD_BINDING_LISTENER_ERROR);
     }
 
     private static BMap<BString, Object> getFormParamMap(Object stringDataSource) {

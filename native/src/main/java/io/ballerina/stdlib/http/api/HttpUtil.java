@@ -1811,6 +1811,15 @@ public class HttpUtil {
         return interceptorServiceType;
     }
 
+    public static String getPrintableErrorMsg(BError err) {
+        String errorMsg = err.getMessage() != null ? err.getMessage() : "";
+        Object details = err.getDetails();
+        if (details != null && !details.toString().equals("{}")) {
+            errorMsg += ", " + details.toString();
+        }
+        return errorMsg;
+    }
+
     private HttpUtil() {
     }
 }

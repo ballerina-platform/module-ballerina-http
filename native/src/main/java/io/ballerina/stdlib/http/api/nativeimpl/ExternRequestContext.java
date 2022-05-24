@@ -34,13 +34,13 @@ public class ExternRequestContext {
                 // TODO : After introducing response interceptors, calling ctx.next() should return "illegal function
                 //  invocation : next()" if there is a response interceptor service in the pipeline
                 return HttpUtil.createHttpError("no next service to be returned",
-                        HttpErrorType.GENERIC_LISTENER_ERROR);
+                                                HttpErrorType.INTERCEPTOR_RETURN_ERROR);
             }
             requestCtx.addNativeData(HttpConstants.REQUEST_CONTEXT_NEXT, true);
             return getNextInterceptor(requestCtx, interceptors);
         } else {
-            return HttpUtil.createHttpError("request context object does not contain the configured " +
-                    "interceptors", HttpErrorType.GENERIC_LISTENER_ERROR);
+            return HttpUtil.createHttpError("request context object does not contain the configured interceptors",
+                                            HttpErrorType.INTERCEPTOR_RETURN_ERROR);
         }
     }
 
@@ -64,7 +64,7 @@ public class ExternRequestContext {
         }
         if (interceptorIndex > interceptors.size()) {
             return HttpUtil.createHttpError("no next service to be returned",
-                    HttpErrorType.GENERIC_LISTENER_ERROR);
+                                            HttpErrorType.INTERCEPTOR_RETURN_ERROR);
         }
         if (interceptorIndex < 0) {
             return null;
