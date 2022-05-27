@@ -113,7 +113,7 @@ public class HttpCompilerPluginUtil {
             return;
         }
         TypeDescKind kind = returnTypeSymbol.typeKind();
-        if (isBasicTypeDesc(kind) || kind == TypeDescKind.ERROR || kind == TypeDescKind.NIL ||
+        if (isAnyDataType(kind) || kind == TypeDescKind.ERROR || kind == TypeDescKind.NIL ||
                 kind == TypeDescKind.ANYDATA) {
             return;
         }
@@ -135,10 +135,13 @@ public class HttpCompilerPluginUtil {
                 if (!isHttpModuleType(RESPONSE_OBJ_NAME, typeDescriptor)) {
                     reportInvalidReturnType(ctx, node, returnTypeStringValue, diagnosticCode);
                 }
-            } else if (typeDescKind == TypeDescKind.TABLE) {
+//            } else if (typeDescKind == TypeDescKind.TABLE) {
+//                validateReturnType(ctx, node, returnTypeStringValue, typeDescriptor, diagnosticCode,
+//                isInterceptorType);
+//            } else if (typeDescKind != TypeDescKind.RECORD && typeDescKind != TypeDescKind.ERROR) {
+//                reportInvalidReturnType(ctx, node, returnTypeStringValue, diagnosticCode);
+            } else {
                 validateReturnType(ctx, node, returnTypeStringValue, typeDescriptor, diagnosticCode, isInterceptorType);
-            } else if (typeDescKind != TypeDescKind.RECORD && typeDescKind != TypeDescKind.ERROR) {
-                reportInvalidReturnType(ctx, node, returnTypeStringValue, diagnosticCode);
             }
         } else if (kind == TypeDescKind.MAP) {
             TypeSymbol typeSymbol = ((MapTypeSymbol) returnTypeSymbol).typeParam();
@@ -165,7 +168,7 @@ public class HttpCompilerPluginUtil {
     private static void validateArrayElementType(SyntaxNodeAnalysisContext ctx, Node node, String typeStringValue,
                                                  TypeSymbol memberTypeDescriptor, HttpDiagnosticCodes diagnosticCode) {
         TypeDescKind kind = memberTypeDescriptor.typeKind();
-        if (isBasicTypeDesc(kind) || kind == TypeDescKind.MAP || kind == TypeDescKind.TABLE) {
+        if (isAnyDataType(kind) || kind == TypeDescKind.MAP || kind == TypeDescKind.TABLE) {
             return;
         }
         if (kind == TypeDescKind.INTERSECTION) {
@@ -209,10 +212,16 @@ public class HttpCompilerPluginUtil {
         return typeDescKind;
     }
 
-    private static boolean isBasicTypeDesc(TypeDescKind kind) {
-        return kind == TypeDescKind.STRING || kind == TypeDescKind.INT || kind == TypeDescKind.FLOAT ||
-                kind == TypeDescKind.DECIMAL || kind == TypeDescKind.BOOLEAN || kind == TypeDescKind.JSON ||
-                kind == TypeDescKind.XML || kind == TypeDescKind.RECORD || kind == TypeDescKind.BYTE;
+    public static boolean isAnyDataType(TypeDescKind kind) {
+        return kind == TypeDescKind.BOOLEAN || kind == TypeDescKind.INT || kind == TypeDescKind.FLOAT ||
+                kind == TypeDescKind.DECIMAL || kind == TypeDescKind.STRING || kind == TypeDescKind.XML ||
+                kind == TypeDescKind.JSON || kind == TypeDescKind.RECORD || kind == TypeDescKind.ANYDATA ||
+                kind == TypeDescKind.NIL || kind == TypeDescKind.BYTE || kind == TypeDescKind.STRING_CHAR ||
+                kind == TypeDescKind.XML_ELEMENT || kind == TypeDescKind.XML_COMMENT ||
+                kind == TypeDescKind.XML_PROCESSING_INSTRUCTION || kind == TypeDescKind.XML_TEXT ||
+                kind == TypeDescKind.INT_SIGNED8 || kind == TypeDescKind.INT_UNSIGNED8 ||
+                kind == TypeDescKind.INT_SIGNED16 || kind == TypeDescKind.INT_UNSIGNED16 ||
+                kind == TypeDescKind.INT_SIGNED32 || kind == TypeDescKind.INT_UNSIGNED32;
     }
 
     private static void reportInvalidReturnType(SyntaxNodeAnalysisContext ctx, Node node,

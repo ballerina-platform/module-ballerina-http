@@ -301,6 +301,19 @@ service /anydataB on generalListener {
             return {result: "It's nil"};
         }
     }
+
+    // builtin subtypes
+    resource function post checkXmlElement(@http:Payload xml:Element payload) returns xml:Element {
+        return payload;
+    }
+
+    resource function post checkStrChar(@http:Payload string:Char payload) returns string:Char {
+        return payload;
+    }
+
+    resource function post checkIntSigned32(@http:Payload int:Signed32 payload) returns int:Signed32 {
+        return payload;
+    }
 }
 
 @test:Config {}
@@ -896,4 +909,25 @@ function testDataBindingUnionTypesWithReadonlyByteArrWithNil() returns error? {
     string payload = "";
     json response = check anydataBindingClient->post("/anydataB/checkUnionTypesWithReadonlyByteArrWithNil", payload);
     assertJsonPayload(response, {result: "It's nil"});
+}
+
+@test:Config {}
+function testDataBindingSubtypeXmlElement() returns error? {
+    xml:Element payload = xml `<placeOrder><order-status>PLACED</order-status><order-id>ORD-1234</order-id></placeOrder>`;
+    xml:Element response = check anydataBindingClient->post("/anydataB/checkXmlElement", payload);
+    test:assertEquals(response, payload);
+}
+
+@test:Config {}
+function testDataBindingSubtypeStringChar() returns error? {
+    string:Char payload = "t";
+    string:Char response = check anydataBindingClient->post("/anydataB/checkStrChar", payload);
+    test:assertEquals(response, payload);
+}
+
+@test:Config {}
+function testDataBindingSubtypeIntSigned32() returns error? {
+    int:Signed32 payload = 123;
+    int:Signed32 response = check anydataBindingClient->post("/anydataB/checkIntSigned32", payload);
+    test:assertEquals(response, payload);
 }

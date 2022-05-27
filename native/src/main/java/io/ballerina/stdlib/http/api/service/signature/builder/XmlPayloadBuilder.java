@@ -40,7 +40,11 @@ public class XmlPayloadBuilder extends AbstractPayloadBuilder {
 
     @Override
     public Object getValue(BObject entity, boolean readonly) {
-        if (isSubtypeOfAllowedType(payloadType, TypeTags.XML_TAG)) {
+        if (isSubtypeOfAllowedType(payloadType, TypeTags.XML_TAG) ||
+                isSubtypeOfAllowedType(payloadType, TypeTags.XML_ELEMENT_TAG) ||
+                isSubtypeOfAllowedType(payloadType, TypeTags.XML_COMMENT_TAG) ||
+                isSubtypeOfAllowedType(payloadType, TypeTags.XML_PI_TAG) ||
+                isSubtypeOfAllowedType(payloadType, TypeTags.XML_TEXT_TAG)) {
             BXml bxml = EntityBodyHandler.constructXmlDataSource(entity);
             EntityBodyHandler.addMessageDataSource(entity, bxml);
             if (readonly) {

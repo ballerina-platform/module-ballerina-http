@@ -164,4 +164,51 @@ service http:Service on new http:Listener(9090) {
     resource function get greetings(http:Request req) returns readonly & error[] {
         return [error("error1"), error("error2")];
     }
+
+    resource function get element() returns xml:Element {
+        return xml `<placeOrder>
+                          <order-status>PLACED</order-status>
+                          <order-id>ORD-1234</order-id>
+                    </placeOrder>`;
+    }
+
+    resource function get text() returns xml:Text|json {
+        return {a:"hello"};
+    }
+
+    resource function get comment() returns xml:Comment|json {
+        return {a:"hello"};
+    }
+
+    resource function get processingInstruction() returns xml:ProcessingInstruction|json {
+        return {a:"hello"};
+    }
+
+    resource function get strChar() returns string:Char {
+        return "a";
+    }
+
+    resource function get intSigned32() returns int:Signed32 {
+        return -2147483648;
+    }
+
+    resource function get intSigned16() returns int:Signed16 {
+        return -32768;
+    }
+
+    resource function get intSigned8() returns int:Signed8 {
+        return -128;
+    }
+
+    resource function get intUnsigned32() returns int:Unsigned32 {
+        return 4294967295;
+    }
+
+    resource function get intUnsigned16() returns int:Unsigned16 {
+        return 65535;
+    }
+
+    resource function get intUnsigned8() returns int:Unsigned8 {
+        return 255;
+    }
 }
