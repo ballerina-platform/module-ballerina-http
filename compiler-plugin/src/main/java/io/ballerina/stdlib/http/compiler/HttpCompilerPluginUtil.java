@@ -135,11 +135,6 @@ public class HttpCompilerPluginUtil {
                 if (!isHttpModuleType(RESPONSE_OBJ_NAME, typeDescriptor)) {
                     reportInvalidReturnType(ctx, node, returnTypeStringValue, diagnosticCode);
                 }
-//            } else if (typeDescKind == TypeDescKind.TABLE) {
-//                validateReturnType(ctx, node, returnTypeStringValue, typeDescriptor, diagnosticCode,
-//                isInterceptorType);
-//            } else if (typeDescKind != TypeDescKind.RECORD && typeDescKind != TypeDescKind.ERROR) {
-//                reportInvalidReturnType(ctx, node, returnTypeStringValue, diagnosticCode);
             } else {
                 validateReturnType(ctx, node, returnTypeStringValue, typeDescriptor, diagnosticCode, isInterceptorType);
             }
