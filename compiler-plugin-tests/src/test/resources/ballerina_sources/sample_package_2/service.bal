@@ -27,6 +27,8 @@ type RetPerson record {
 };
 
 type PersonTable table<Person> key(id);
+type newXml xml;
+type newXmlElement xml:Element;
 
 service http:Service on new http:Listener(9090) {
     resource function get greeting() returns int|error|string {
@@ -210,5 +212,16 @@ service http:Service on new http:Listener(9090) {
 
     resource function get intUnsigned8() returns int:Unsigned8 {
         return 255;
+    }
+
+    resource function get customSubtypes() returns newXml {
+        return xml`<name>Tharmigan</name>`;
+    }
+
+    resource function get customXmlElement() returns newXmlElement {
+        return xml `<placeOrder>
+                          <order-status>PLACED</order-status>
+                          <order-id>ORD-1234</order-id>
+                    </placeOrder>`;
     }
 }
