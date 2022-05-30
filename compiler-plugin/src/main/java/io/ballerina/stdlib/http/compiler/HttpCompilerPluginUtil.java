@@ -41,6 +41,7 @@ import io.ballerina.tools.diagnostics.DiagnosticInfo;
 import io.ballerina.tools.diagnostics.DiagnosticProperty;
 import io.ballerina.tools.diagnostics.Location;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -52,6 +53,15 @@ import static io.ballerina.stdlib.http.compiler.Constants.RESPONSE_OBJ_NAME;
  * Utility class providing http compiler plugin utility methods.
  */
 public class HttpCompilerPluginUtil {
+
+    private static final List<TypeDescKind> allowedList = Arrays.asList(
+            TypeDescKind.BOOLEAN, TypeDescKind.INT, TypeDescKind.FLOAT, TypeDescKind.DECIMAL,
+            TypeDescKind.STRING, TypeDescKind.XML, TypeDescKind.JSON, TypeDescKind.RECORD,
+            TypeDescKind.ANYDATA, TypeDescKind.NIL, TypeDescKind.BYTE, TypeDescKind.STRING_CHAR,
+            TypeDescKind.XML_ELEMENT, TypeDescKind.XML_COMMENT, TypeDescKind.XML_PROCESSING_INSTRUCTION,
+            TypeDescKind.XML_TEXT, TypeDescKind.INT_SIGNED8, TypeDescKind.INT_UNSIGNED8,
+            TypeDescKind.INT_SIGNED16, TypeDescKind.INT_UNSIGNED16, TypeDescKind.INT_SIGNED32,
+            TypeDescKind.INT_UNSIGNED32);
 
     public static void updateDiagnostic(SyntaxNodeAnalysisContext ctx, Location location,
                                         HttpDiagnosticCodes httpDiagnosticCodes) {
@@ -208,15 +218,7 @@ public class HttpCompilerPluginUtil {
     }
 
     public static boolean isAnyDataType(TypeDescKind kind) {
-        return kind == TypeDescKind.BOOLEAN || kind == TypeDescKind.INT || kind == TypeDescKind.FLOAT ||
-                kind == TypeDescKind.DECIMAL || kind == TypeDescKind.STRING || kind == TypeDescKind.XML ||
-                kind == TypeDescKind.JSON || kind == TypeDescKind.RECORD || kind == TypeDescKind.ANYDATA ||
-                kind == TypeDescKind.NIL || kind == TypeDescKind.BYTE || kind == TypeDescKind.STRING_CHAR ||
-                kind == TypeDescKind.XML_ELEMENT || kind == TypeDescKind.XML_COMMENT ||
-                kind == TypeDescKind.XML_PROCESSING_INSTRUCTION || kind == TypeDescKind.XML_TEXT ||
-                kind == TypeDescKind.INT_SIGNED8 || kind == TypeDescKind.INT_UNSIGNED8 ||
-                kind == TypeDescKind.INT_SIGNED16 || kind == TypeDescKind.INT_UNSIGNED16 ||
-                kind == TypeDescKind.INT_SIGNED32 || kind == TypeDescKind.INT_UNSIGNED32;
+        return allowedList.stream().anyMatch(allowedKind -> kind == allowedKind);
     }
 
     private static void reportInvalidReturnType(SyntaxNodeAnalysisContext ctx, Node node,

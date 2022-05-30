@@ -18,6 +18,8 @@ import ballerina/lang.'string as strings;
 import ballerina/test;
 import ballerina/http;
 
+type newXmlElement xml:Element;
+
 final http:Client anydataBindingClient = check new("http://localhost:" + generalPort.toString());
 
 service /anydataB on generalListener {
@@ -304,6 +306,10 @@ service /anydataB on generalListener {
 
     // builtin subtypes
     resource function post checkXmlElement(@http:Payload xml:Element payload) returns xml:Element {
+        return payload;
+    }
+
+    resource function post checkCustomXmlElement(@http:Payload newXmlElement payload) returns newXmlElement {
         return payload;
     }
 
@@ -915,6 +921,13 @@ function testDataBindingUnionTypesWithReadonlyByteArrWithNil() returns error? {
 function testDataBindingSubtypeXmlElement() returns error? {
     xml:Element payload = xml `<placeOrder><order-status>PLACED</order-status><order-id>ORD-1234</order-id></placeOrder>`;
     xml:Element response = check anydataBindingClient->post("/anydataB/checkXmlElement", payload);
+    test:assertEquals(response, payload);
+}
+
+@test:Config {}
+function testDataBindingCustomSubtypeXmlElement() returns error? {
+    xml:Element payload = xml `<placeOrder><order-status>PLACED</order-status><order-id>ORD-1234</order-id></placeOrder>`;
+    xml:Element response = check anydataBindingClient->post("/anydataB/checkCustomXmlElement", payload);
     test:assertEquals(response, payload);
 }
 
