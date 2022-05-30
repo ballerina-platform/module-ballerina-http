@@ -92,11 +92,10 @@ public class HTTPServicesRegistry {
     /**
      * Register a service into the map.
      *
-     * @param runtime  ballerina runtime instance.
      * @param service  requested serviceInfo to be registered.
      * @param basePath absolute resource path of the service
      */
-    public void registerService(Runtime runtime, BObject service, String basePath) {
+    public void registerService(BObject service, String basePath) {
         HttpService httpService = HttpService.buildHttpService(service, basePath);
         service.addNativeData(HttpConstants.ABSOLUTE_RESOURCE_PATH, basePath);
         String hostName = httpService.getHostName();
