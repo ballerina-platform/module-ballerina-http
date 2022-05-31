@@ -509,6 +509,13 @@ public class HttpConstants {
     public static final BString LOCAL_HOST_FIELD = StringUtils.fromString("host");
     public static final BString LOCAL_PORT_FIELD = StringUtils.fromString("port");
 
+    //Link struct field name
+    public static final String LINK = "Link";
+    public static final BString LINK_REL = StringUtils.fromString("rel");
+    public static final BString LINK_HREF = StringUtils.fromString("href");
+    public static final BString LINK_METHODS = StringUtils.fromString("methods");
+    public static final BString LINK_TYPES = StringUtils.fromString("types");
+
     //WebSocket Related constants for WebSocket upgrade
     public static final String NATIVE_DATA_WEBSOCKET_CONNECTION_MANAGER = "NATIVE_DATA_WEBSOCKET_CONNECTION_MANAGER";
 

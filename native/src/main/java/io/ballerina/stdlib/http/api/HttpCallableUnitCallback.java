@@ -43,14 +43,16 @@ public class HttpCallableUnitCallback implements Callback {
     private final BMap cacheConfig;
     private HttpCarbonMessage requestMessage;
     private static final String ILLEGAL_FUNCTION_INVOKED = "illegal return: response has already been sent";
+    private final BMap links;
 
     HttpCallableUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime, String returnMediaType,
-                             BMap cacheConfig) {
+                             BMap cacheConfig, BMap links) {
         this.requestMessage = requestMessage;
         this.caller = getCaller(requestMessage);
         this.runtime = runtime;
         this.returnMediaType = returnMediaType;
         this.cacheConfig = cacheConfig;
+        this.links = links;
     }
 
     private BObject getCaller(HttpCarbonMessage requestMessage) {
@@ -77,13 +79,15 @@ public class HttpCallableUnitCallback implements Callback {
     }
 
     private void returnResponse(Object result) {
-        Object[] paramFeed = new Object[6];
+        Object[] paramFeed = new Object[8];
         paramFeed[0] = result;
         paramFeed[1] = true;
         paramFeed[2] = returnMediaType != null ? StringUtils.fromString(returnMediaType) : null;
         paramFeed[3] = true;
         paramFeed[4] = cacheConfig;
         paramFeed[5] = true;
+        paramFeed[6] = links != null && !links.isEmpty() ? links : null;
+        paramFeed[7] = true;
 
         invokeBalMethod(paramFeed, "returnResponse");
     }

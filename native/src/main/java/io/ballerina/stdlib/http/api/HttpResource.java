@@ -17,6 +17,7 @@
 */
 package io.ballerina.stdlib.http.api;
 
+import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.MethodType;
 import io.ballerina.runtime.api.types.RemoteMethodType;
 import io.ballerina.runtime.api.types.ResourceMethodType;
@@ -52,6 +53,9 @@ public class HttpResource implements Resource {
 
     private static final Logger log = LoggerFactory.getLogger(HttpResource.class);
 
+    private static final BString NAME = StringUtils.fromString("name");
+    private static final BString LINKED_TO = StringUtils.fromString("linkedTo");
+    private static final BString RELATION = StringUtils.fromString("relation");
     private static final BString CONSUMES_FIELD = StringUtils.fromString("consumes");
     private static final BString PRODUCES_FIELD = StringUtils.fromString("produces");
     private static final BString CORS_FIELD = StringUtils.fromString("cors");
@@ -60,6 +64,9 @@ public class HttpResource implements Resource {
             StringUtils.fromString(ModuleUtils.getHttpPackageIdentifier() + ":" + ANN_NAME_RESOURCE_CONFIG);
     private static final String RETURN_ANNOT_PREFIX = "$returns$";
 
+    private String name;
+    private List<LinkedResource> linkedResources = new ArrayList<>();
+    private BMap links = ValueCreator.createMapValue();
     private MethodType balResource;
     private List<String> methods;
     private String path;
@@ -90,6 +97,30 @@ public class HttpResource implements Resource {
 
     protected HttpResource() {
 
+    }
+
+    public String getResourceName() {
+        return name;
+    }
+
+    public void setResourceName(String name) {
+        this.name = name;
+    }
+
+    public List<LinkedResource> getLinkedResources() {
+        return linkedResources;
+    }
+
+    public void addLinkedResource(LinkedResource linkedResource) {
+        this.linkedResources.add(linkedResource);
+    }
+
+    public void addLink(BString relation, BMap link) {
+        this.links.put(relation, link);
+    }
+
+    public BMap getLinks() {
+        return this.links;
     }
 
     @Override
@@ -227,6 +258,12 @@ public class HttpResource implements Resource {
         BMap resourceConfigAnnotation = getResourceConfigAnnotation(resource);
 
         if (checkConfigAnnotationAvailability(resourceConfigAnnotation)) {
+            if (resourceConfigAnnotation.getStringValue(NAME) != null) {
+                httpResource.setResourceName(resourceConfigAnnotation.getStringValue(NAME).getValue());
+            }
+            if (resourceConfigAnnotation.getArrayValue(LINKED_TO) != null) {
+                httpResource.processLinkedResources(resourceConfigAnnotation.getArrayValue(LINKED_TO).getValues());
+            }
             httpResource.setConsumes(
                     getAsStringList(resourceConfigAnnotation.getArrayValue(CONSUMES_FIELD).getStringArray()));
             httpResource.setProduces(
@@ -238,6 +275,14 @@ public class HttpResource implements Resource {
         processResourceCors(httpResource, httpService);
         httpResource.prepareAndValidateSignatureParams();
         return httpResource;
+    }
+
+    private void processLinkedResources(Object[] links) {
+        for (Object link: links) {
+            String name = ((BMap) link).getStringValue(NAME).getValue();
+            String relation = ((BMap) link).getStringValue(RELATION).getValue();
+            this.addLinkedResource(new LinkedResource(name, relation));
+        }
     }
 
     /**
@@ -343,5 +388,26 @@ public class HttpResource implements Resource {
 
     public RemoteMethodType getRemoteFunction() {
         return (RemoteMethodType) balResource;
+    }
+
+    /**
+     * Linked resource implementation.
+     */
+    public static class LinkedResource {
+        private final String name;
+        private final String relationship;
+
+        public LinkedResource(String name, String relationship) {
+            this.name = name;
+            this.relationship = relationship;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getRelationship() {
+            return relationship;
+        }
     }
 }

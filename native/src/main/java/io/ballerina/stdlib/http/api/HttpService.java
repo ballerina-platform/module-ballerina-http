@@ -17,7 +17,9 @@
  */
 package io.ballerina.stdlib.http.api;
 
+import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.Runtime;
+import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.flags.SymbolFlags;
 import io.ballerina.runtime.api.types.ArrayType;
@@ -44,6 +46,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static io.ballerina.runtime.api.utils.StringUtils.fromString;
 import static io.ballerina.stdlib.http.api.HttpConstants.DEFAULT_BASE_PATH;
 import static io.ballerina.stdlib.http.api.HttpUtil.checkConfigAnnotationAvailability;
 
@@ -56,13 +59,13 @@ public class HttpService implements Service {
 
     private static final Logger log = LoggerFactory.getLogger(HttpService.class);
 
-    protected static final BString BASE_PATH_FIELD = StringUtils.fromString("basePath");
-    private static final BString CORS_FIELD = StringUtils.fromString("cors");
-    private static final BString VERSIONING_FIELD = StringUtils.fromString("versioning");
-    private static final BString HOST_FIELD = StringUtils.fromString("host");
-    private static final BString OPENAPI_DEF_FIELD = StringUtils.fromString("openApiDefinition");
-    private static final BString MEDIA_TYPE_SUBTYPE_PREFIX = StringUtils.fromString("mediaTypeSubtypePrefix");
-    private static final BString TREAT_NILABLE_AS_OPTIONAL = StringUtils.fromString("treatNilableAsOptional");
+    protected static final BString BASE_PATH_FIELD = fromString("basePath");
+    private static final BString CORS_FIELD = fromString("cors");
+    private static final BString VERSIONING_FIELD = fromString("versioning");
+    private static final BString HOST_FIELD = fromString("host");
+    private static final BString OPENAPI_DEF_FIELD = fromString("openApiDefinition");
+    private static final BString MEDIA_TYPE_SUBTYPE_PREFIX = fromString("mediaTypeSubtypePrefix");
+    private static final BString TREAT_NILABLE_AS_OPTIONAL = fromString("treatNilableAsOptional");
 
     private BObject balService;
     private List<HttpResource> resources;
@@ -258,7 +261,67 @@ public class HttpService implements Service {
         } else {
             log.debug("OpenAPI definition is not available");
         }
+        processLinks(httpService, httpResources);
         httpService.setResources(httpResources);
+    }
+
+    private static void processLinks(HttpService httpService, List<HttpResource> httpResources) {
+        for (HttpResource targetResource : httpResources) {
+            for (HttpResource.LinkedResource link : targetResource.getLinkedResources()) {
+                HttpResource linkedResource = null;
+                for (HttpResource resource : httpResources) {
+                    if (resource.getResourceName() != null && resource.getResourceName().equals(link.getName())) {
+                        if (linkedResource == null) {
+                            linkedResource = resource;
+                        } else {
+                            throw new BallerinaConnectorException("multiple resources found with name: '" +
+                                                                  link.getName() + "'");
+                        }
+                    }
+                }
+                if (linkedResource != null) {
+                    setLinkToResource(httpService, targetResource, link, linkedResource);
+                } else {
+                    throw new BallerinaConnectorException("cannot find resource with name: '" + link.getName() + "'");
+                }
+            }
+        }
+    }
+
+    private static void setLinkToResource(HttpService httpService, HttpResource targetResource,
+                                          HttpResource.LinkedResource link, HttpResource linkedResource) {
+        BMap<BString, Object> linkMap = ValueCreatorUtils.createHTTPRecordValue(HttpConstants.LINK);
+        BString relation = fromString(link.getRelationship());
+        linkMap.put(HttpConstants.LINK_REL, relation);
+        BString href = fromString(linkedResource.getAbsoluteResourcePath());
+        linkMap.put(HttpConstants.LINK_HREF, href);
+        BArray methods = getMethodsBArray(linkedResource.getMethods());
+        if (methods != null) {
+            linkMap.put(HttpConstants.LINK_METHODS, methods);
+        }
+        String returnMediaType = linkedResource.getReturnMediaType();
+        if (httpService.getMediaTypeSubtypePrefix() != null) {
+            String specificReturnMediaType = HttpUtil.getMediaTypeWithPrefix(httpService.getMediaTypeSubtypePrefix(),
+                                                                             returnMediaType);
+            if (specificReturnMediaType != null) {
+                returnMediaType = specificReturnMediaType;
+            }
+        }
+        if (returnMediaType != null) {
+            BArray types = ValueCreator.createArrayValue(TypeCreator.createArrayType(PredefinedTypes.TYPE_STRING));
+            types.append(fromString(returnMediaType));
+            linkMap.put(HttpConstants.LINK_TYPES, types);
+        }
+        targetResource.addLink(relation, linkMap);
+    }
+
+    private static BArray getMethodsBArray(List<String> methods) {
+        if (methods != null) {
+            List<BString> methodsAsBString = methods.stream().map(StringUtils::fromString).collect(Collectors.toList());
+            return ValueCreator.createArrayValue(methodsAsBString.toArray(BString[]::new));
+        } else {
+            return null;
+        }
     }
 
     private static void updateResourceTree(HttpService httpService, List<HttpResource> httpResources,
@@ -280,7 +343,7 @@ public class HttpService implements Service {
     protected static BMap getServiceConfigAnnotation(BObject service, String packagePath,
                                                      String annotationName) {
         String key = packagePath.replaceAll(HttpConstants.REGEX, HttpConstants.SINGLE_SLASH);
-        return (BMap) (service.getType()).getAnnotation(StringUtils.fromString(key + ":" + annotationName));
+        return (BMap) (service.getType()).getAnnotation(fromString(key + ":" + annotationName));
     }
 
     @Override

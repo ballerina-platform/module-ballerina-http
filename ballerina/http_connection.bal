@@ -128,7 +128,7 @@ public isolated client class Caller {
     }
 
     private isolated function returnResponse(anydata|StatusCodeResponse|Response message, string? returnMediaType,
-        HttpCacheConfig? cacheConfig) returns ListenerError? {
+        HttpCacheConfig? cacheConfig, map<Link>? links) returns ListenerError? {
         Response response = new;
         boolean setETag = cacheConfig is () ? false: cacheConfig.setETag;
         boolean cacheCompatibleType = false;
@@ -146,7 +146,7 @@ public isolated client class Caller {
             }
         } else if message is StatusCodeResponse {
             if message is SuccessStatusCodeResponse {
-                response = createStatusCodeResponse(message, returnMediaType, setETag);
+                response = createStatusCodeResponse(message, returnMediaType, setETag, links);
                 cacheCompatibleType = true;
             } else {
                 response = createStatusCodeResponse(message, returnMediaType);
@@ -159,7 +159,7 @@ public isolated client class Caller {
                 response.setHeader(CONTENT_TYPE, returnMediaType);
             }
         } else if message is anydata {
-            setPayload(message, response, returnMediaType, setETag);
+            setPayload(message, response, returnMediaType, setETag, links);
             if returnMediaType is string {
                 response.setHeader(CONTENT_TYPE, returnMediaType);
             }
@@ -196,7 +196,7 @@ public isolated client class Caller {
     }
 }
 
-isolated function createStatusCodeResponse(StatusCodeResponse message, string? returnMediaType = (), boolean setETag = false)
+isolated function createStatusCodeResponse(StatusCodeResponse message, string? returnMediaType = (), boolean setETag = false, map<Link>? links = ())
     returns Response {
     Response response = new;
     response.statusCode = message.status.code;
@@ -226,7 +226,7 @@ isolated function createStatusCodeResponse(StatusCodeResponse message, string? r
         }
     }
     string? mediaType = retrieveMediaType(message, returnMediaType);
-    setPayload(message?.body, response, mediaType, setETag);
+    setPayload(message?.body, response, mediaType, setETag, links);
     // Update content-type header according to the priority. (Highest to lowest)
     // 1. MediaType field in response record
     // 2. Payload annotation mediaType value
@@ -250,7 +250,70 @@ isolated function retrieveMediaType(StatusCodeResponse resp, string? retrievedMe
     return;
 }
 
-isolated function setPayload(anydata payload, Response response, string? mediaType = (), boolean setETag = false) {
+isolated function createLinkXml(map<Link>? links) returns xml? {
+    if links != () {
+        xml xmlLinks = xml``;
+        foreach [string, Link] [rel, link] in links.entries() {
+            xmlLinks += xml`<link rel="${rel}" href="${link.href}"/>`;
+        }
+        return xmlLinks;
+    }
+    return;
+}
+
+isolated function addLinkHeader(Response response, map<Link>? links) {
+    string? headerValue = createLinkHeaderValue(links);
+    if headerValue is string {
+        response.addHeader("link", headerValue);
+    }
+}
+
+isolated function createLinkHeaderValue(map<Link>? links) returns string? {
+    if links != () {
+        string headerValue = "";
+        foreach [string, Link] [rel, link] in links.entries() {
+            headerValue += string`<${link.href}>; rel=${rel}, `;
+        }
+        int? endIndex = headerValue.lastIndexOf(",");
+        if headerValue.length() > 0 && endIndex is int{
+            return headerValue.substring(0, endIndex);
+        }
+    }
+    return;
+}
+
+isolated function addLinksToPayload(anydata message, map<Link>? links) returns [boolean, anydata] {
+    if links !is () {
+        if message is map<anydata> && !message.hasKey("_links") {
+            error? err = trap addLinksToJsonPayload(message, links);
+            if err !is error {
+                return [true, message];
+            }
+        } else if message is xml {
+            xml? xmlLinks = createLinkXml(links);
+            if xmlLinks != () {
+                if message is xml:Element {
+                    message.setChildren(message.getChildren() + xmlLinks);
+                    return [true, message];
+                } else {
+                    return [true, message + xmlLinks];
+                }
+            }
+        }
+    }
+    return [false, message];
+}
+
+isolated function addLinksToJsonPayload(map<anydata> message, map<Link> links) {
+    message["_links"] = links.toJson();
+}
+
+isolated function setPayload(anydata message, Response response, string? mediaType = (), boolean setETag = false, map<Link>? links = ()) {
+    [boolean, anydata] [isLinksAddedToPayload, payload] = addLinksToPayload(message, links);
+    if !isLinksAddedToPayload {
+        addLinkHeader(response, links);
+    }
+
     if payload is () {
         return;
     }
