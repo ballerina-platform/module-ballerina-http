@@ -10,10 +10,10 @@ license = ["Apache-2.0"]
 distribution = "2201.1.0"
 
 [[platform.java11.dependency]]
-path = "../native/build/libs/http-native-2.3.0-SNAPSHOT.jar"
+path = "../native/build/libs/http-native-2.3.0.jar"
 
 [[platform.java11.dependency]]
-path = "./lib/mime-native-2.3.0-20220527-151400-9ed2475.jar"
+path = "./lib/mime-native-2.3.0.jar"
 
 [[platform.java11.dependency]]
 path = "./lib/netty-common-4.1.77.Final.jar"
