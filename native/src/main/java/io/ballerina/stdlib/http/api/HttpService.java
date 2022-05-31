@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -296,9 +297,7 @@ public class HttpService implements Service {
         BString href = fromString(linkedResource.getAbsoluteResourcePath());
         linkMap.put(HttpConstants.LINK_HREF, href);
         BArray methods = getMethodsBArray(linkedResource.getMethods());
-        if (methods != null) {
-            linkMap.put(HttpConstants.LINK_METHODS, methods);
-        }
+        linkMap.put(HttpConstants.LINK_METHODS, methods);
         String returnMediaType = linkedResource.getReturnMediaType();
         if (httpService.getMediaTypeSubtypePrefix() != null) {
             String specificReturnMediaType = HttpUtil.getMediaTypeWithPrefix(httpService.getMediaTypeSubtypePrefix(),
@@ -316,12 +315,11 @@ public class HttpService implements Service {
     }
 
     private static BArray getMethodsBArray(List<String> methods) {
-        if (methods != null) {
-            List<BString> methodsAsBString = methods.stream().map(StringUtils::fromString).collect(Collectors.toList());
-            return ValueCreator.createArrayValue(methodsAsBString.toArray(BString[]::new));
-        } else {
-            return null;
+        if (methods == null) {
+            methods = Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD");
         }
+        List<BString> methodsAsBString = methods.stream().map(StringUtils::fromString).collect(Collectors.toList());
+        return ValueCreator.createArrayValue(methodsAsBString.toArray(BString[]::new));
     }
 
     private static void updateResourceTree(HttpService httpService, List<HttpResource> httpResources,
