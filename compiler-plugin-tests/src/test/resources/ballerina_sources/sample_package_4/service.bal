@@ -15,9 +15,16 @@
 // under the License.
 
 import ballerina/http;
+import ballerina/mime;
 
 type Person record {|
     readonly int id;
+|};
+
+type RequestBody record {|
+    string xyz;
+    mime:Entity file1;
+    http:Request req;
 |};
 
 public annotation Person Pp on parameter;
@@ -261,5 +268,9 @@ service http:Service on new http:Listener(9090) {
 
     resource function post dbUnionNegative(@http:Payload string|http:Caller abc) returns string {
         return "done";
+    }
+
+    resource function post dbRecordWithObjectNegative(@http:Payload RequestBody abc) returns string {
+        return "done"; //error
     }
 }

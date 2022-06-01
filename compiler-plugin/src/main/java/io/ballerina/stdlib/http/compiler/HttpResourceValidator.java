@@ -437,8 +437,27 @@ class HttpResourceValidator {
             return isValidPayloadParamType(arrTypeSymbol, ctx, paramLocation, paramName);
         } else if (kind == TypeDescKind.TYPE_REFERENCE) {
             typeDescriptor = ((TypeReferenceTypeSymbol) typeDescriptor).typeDescriptor();
-            TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
-            return typeDescKind == TypeDescKind.RECORD;
+            String typeName = typeDescriptor.signature();
+            TypeDescKind typeDescKind = typeDescriptor.typeKind();
+            if (typeDescKind == TypeDescKind.INTERSECTION) {
+                typeDescriptor = getEffectiveTypeFromReadonlyIntersection((IntersectionTypeSymbol) typeDescriptor);
+                if (typeDescriptor == null) {
+                    reportInvalidIntersectionType(ctx, paramLocation, typeName);
+                    return true;
+                }
+                typeDescKind = typeDescriptor.typeKind();
+            }
+            if (typeDescKind == TypeDescKind.RECORD) {
+                Map<String, RecordFieldSymbol> recordFieldSymbols =
+                        ((RecordTypeSymbol) typeDescriptor).fieldDescriptors();
+                recordFieldSymbols.forEach((key, value) -> {
+                    TypeSymbol fieldTypeSymbol = value.typeDescriptor();
+                    if (!isValidPayloadParamType(fieldTypeSymbol, ctx, paramLocation, paramName)) {
+                        reportInvalidRecordFieldType(ctx, paramLocation, paramName, fieldTypeSymbol.signature());
+                    }
+                });
+                return true;
+            }
         } else if (kind == TypeDescKind.MAP) {
             typeDescriptor = ((MapTypeSymbol) typeDescriptor).typeParam();
             return isValidPayloadParamType(typeDescriptor, ctx, paramLocation, paramName);
@@ -884,5 +903,10 @@ class HttpResourceValidator {
 
     private static void reportInvalidHeaderRecordRestFieldType(SyntaxNodeAnalysisContext ctx, Location location) {
         updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_144);
+    }
+
+    private static void reportInvalidRecordFieldType(SyntaxNodeAnalysisContext ctx, Location location,
+                                                     String paramName, String typeName) {
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_145, typeName, paramName);
     }
 }

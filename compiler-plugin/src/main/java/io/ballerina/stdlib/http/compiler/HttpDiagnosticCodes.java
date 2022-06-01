@@ -98,6 +98,7 @@ public enum HttpDiagnosticCodes {
     HTTP_143("HTTP_143", "%s function should have the mandatory parameter 'error'", ERROR),
     HTTP_144("HTTP_144", "rest fields are not allowed for header binding records. Use 'http:Headers' type to access " +
             "all headers", ERROR),
+    HTTP_145("HTTP_145", "incompatible record field type: '%s' in payload parameter: '%s'", ERROR),
 
     HTTP_HINT_101("HTTP_HINT_101", "Payload annotation can be added", INTERNAL),
     HTTP_HINT_102("HTTP_HINT_102", "Header annotation can be added", INTERNAL),
