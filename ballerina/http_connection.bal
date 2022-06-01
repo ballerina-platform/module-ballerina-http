@@ -270,16 +270,29 @@ isolated function addLinkHeader(Response response, map<Link>? links) {
 
 isolated function createLinkHeaderValue(map<Link>? links) returns string? {
     if links != () {
-        string headerValue = "";
-        foreach [string, Link] [rel, link] in links.entries() {
-            headerValue += string`<${link.href}>; rel=${rel}, `;
-        }
-        int? endIndex = headerValue.lastIndexOf(",");
-        if headerValue.length() > 0 && endIndex is int{
-            return headerValue.substring(0, endIndex);
-        }
+        string[] linkValues = from var [rel, link] in links.entries() select createLink(rel, link);
+        return linkValues.reduce(isolated function (string header, string linkValue) returns string { 
+            return header == "" ? linkValue:header + ", " + linkValue; }, "");
     }
     return;
+}
+
+isolated function createLink(string rel, Link link) returns string {
+    string header = string`<${link.href}>; rel=${rel}`;
+    string[]? methods = link?.methods;
+    string[]? types = link?.types;
+    if methods !is () {
+        header += string`; methods="${arrayToString(methods)}"`;
+    }
+    if types !is () {
+        header += string`; types="${arrayToString(types)}"`;
+    }
+    return header;
+}
+
+isolated function arrayToString(string[] arr) returns string {
+    string arrayString = arr.toString();
+    return arrayString.substring(1, arrayString.length() - 1);
 }
 
 isolated function addLinksToPayload(anydata message, map<Link>? links) returns [boolean, anydata] {
