@@ -142,7 +142,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_4");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 6);
+        Assert.assertEquals(diagnosticResult.errorCount(), 8);
         assertError(diagnosticResult, 0, "invalid multiple resource parameter annotations for 'abc': expected one of " +
                 "the following types: 'http:Payload', 'http:CallerInfo', 'http:Header'", HTTP_108);
         assertError(diagnosticResult, 1, "invalid usage of payload annotation for a non entity body " +
@@ -155,6 +155,10 @@ public class CompilerPluginTest {
                 "'http:Payload', 'http:CallerInfo', 'http:Headers'", CompilerPluginTestConstants.HTTP_104);
         assertTrue(diagnosticResult, 5, "invalid payload parameter type: 'string|ballerina/http:",
                     CompilerPluginTestConstants.HTTP_107);
+        assertTrue(diagnosticResult, 6, "incompatible record field type: 'ballerina/mime:",
+                   CompilerPluginTestConstants.HTTP_145);
+        assertTrue(diagnosticResult, 7, "incompatible record field type: 'ballerina/http:",
+                   CompilerPluginTestConstants.HTTP_145);
     }
 
     @Test

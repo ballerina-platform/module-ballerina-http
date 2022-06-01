@@ -36,37 +36,19 @@ public class HttpConnectorPortBindingListener implements PortBindingEventListene
 
     @Override
     public void onOpen(String serverConnectorId, boolean isHttps) {
-        if (isHttps) {
-            console.println(HttpConstants.HTTPS_ENDPOINT_STARTED + serverConnectorId);
-        } else {
-            console.println(HttpConstants.HTTP_ENDPOINT_STARTED + serverConnectorId);
+        if (log.isDebugEnabled()) {
+            String message = isHttps ? HttpConstants.HTTPS_ENDPOINT_STARTED : HttpConstants.HTTP_ENDPOINT_STARTED;
+            log.debug(message + serverConnectorId);
         }
     }
 
     @Override
     public void onClose(String serverConnectorId, boolean isHttps) {
-        if (isHttps) {
-            console.println(HttpConstants.HTTPS_ENDPOINT_STOPPED + serverConnectorId);
-        } else {
-            console.println(HttpConstants.HTTP_ENDPOINT_STOPPED + serverConnectorId);
+        if (log.isDebugEnabled()) {
+            String message = isHttps ? HttpConstants.HTTPS_ENDPOINT_STOPPED : HttpConstants.HTTP_ENDPOINT_STOPPED;
+            log.debug(message + serverConnectorId);
         }
     }
-
-//    @Override
-//    public void onOpen(String serverConnectorId, boolean isHttps) {
-//        if (log.isDebugEnabled()) {
-//            String message = isHttps ? HttpConstants.HTTPS_ENDPOINT_STARTED : HttpConstants.HTTP_ENDPOINT_STARTED;
-//            log.debug(message + serverConnectorId);
-//        }
-//    }
-//
-//    @Override
-//    public void onClose(String serverConnectorId, boolean isHttps) {
-//        if (log.isDebugEnabled()) {
-//            String message = isHttps ? HttpConstants.HTTPS_ENDPOINT_STOPPED : HttpConstants.HTTP_ENDPOINT_STOPPED;
-//            log.debug(message + serverConnectorId);
-//        }
-//    }
 
     @Override
     public void onError(Throwable throwable) {
