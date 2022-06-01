@@ -119,6 +119,8 @@ public type LinkedTo record {|
     # Name of the relationship between the linked resource and the current resource.
     # Defaulted to the IANA link relation `self`
     string relation = "self";
+    # Method allowed in the linked resource
+    string method?;
 |};
 
 # Represents the parsed header value details
