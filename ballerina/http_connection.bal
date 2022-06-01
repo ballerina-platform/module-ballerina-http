@@ -250,17 +250,6 @@ isolated function retrieveMediaType(StatusCodeResponse resp, string? retrievedMe
     return;
 }
 
-isolated function createLinkXml(map<Link>? links) returns xml? {
-    if links != () {
-        xml xmlLinks = xml``;
-        foreach [string, Link] [rel, link] in links.entries() {
-            xmlLinks += xml`<link rel="${rel}" href="${link.href}"/>`;
-        }
-        return xmlLinks;
-    }
-    return;
-}
-
 isolated function addLinkHeader(Response response, map<Link>? links) {
     string? headerValue = createLinkHeaderValue(links);
     if headerValue is string {
@@ -301,16 +290,6 @@ isolated function addLinksToPayload(anydata message, map<Link>? links) returns [
             error? err = trap addLinksToJsonPayload(message, links);
             if err !is error {
                 return [true, message];
-            }
-        } else if message is xml {
-            xml? xmlLinks = createLinkXml(links);
-            if xmlLinks != () {
-                if message is xml:Element {
-                    message.setChildren(message.getChildren() + xmlLinks);
-                    return [true, message];
-                } else {
-                    return [true, message + xmlLinks];
-                }
             }
         }
     }
