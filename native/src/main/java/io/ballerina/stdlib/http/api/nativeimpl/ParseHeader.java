@@ -34,7 +34,6 @@ import static io.ballerina.stdlib.http.api.HttpConstants.HEADER_VALUE_FIELD;
 import static io.ballerina.stdlib.http.api.HttpConstants.HEADER_VALUE_PARAM_FIELD;
 import static io.ballerina.stdlib.http.api.HttpConstants.HEADER_VALUE_RECORD;
 import static io.ballerina.stdlib.http.api.HttpErrorType.GENERIC_CLIENT_ERROR;
-import static io.ballerina.stdlib.mime.util.MimeConstants.COMMA;
 import static io.ballerina.stdlib.mime.util.MimeConstants.FAILED_TO_PARSE;
 import static io.ballerina.stdlib.mime.util.MimeConstants.SEMICOLON;
 
@@ -48,10 +47,11 @@ public class ParseHeader {
     private static final RecordType RECORD_TYPE = TypeCreator.createRecordType(
             HEADER_VALUE_RECORD, ModuleUtils.getHttpPackage(), 0, false, 0);
     private static final ArrayType ARRAY_TYPE = TypeCreator.createArrayType(RECORD_TYPE);
+    private static final String COMMA_OUT_OF_QUOTATIONS = "(,)(?=(?:[^\"]|\"[^\"]*\")*$)";
 
     public static Object parseHeader(BString headerValue) {
         try {
-            String[] headerValues = headerValue.getValue().split(COMMA);
+            String[] headerValues = headerValue.getValue().split(COMMA_OUT_OF_QUOTATIONS);
             BArray recordArray = ValueCreator.createArrayValue(ARRAY_TYPE);
             for (int i = 0; i < headerValues.length; i++) {
                 String value = headerValues[i].trim();
