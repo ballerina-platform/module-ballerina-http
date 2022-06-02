@@ -270,6 +270,51 @@ service http:Service on new http:Listener(9090) {
         return "done";
     }
 
+    // builtin subtypes
+    resource function post dbXmlElement(@http:Payload xml:Element abc) returns string {
+        return "done";
+    }
+
+    resource function post dbXmlText(@http:Payload xml:Text abc) returns string {
+        return "done";
+    }
+
+    resource function post dbXmlComment(@http:Payload xml:Comment abc) returns string {
+        return "done";
+    }
+
+    resource function post dbXmlProcessingInstruction(@http:Payload xml:ProcessingInstruction abc) returns string {
+        return "done";
+    }
+
+    resource function post dbStrChar(@http:Payload string:Char abc) returns string {
+        return "done";
+    }
+
+    resource function post dbIntSigned32(@http:Payload int:Signed32 abc) returns string {
+        return "done";
+    }
+
+    resource function post dbIntSigned16(@http:Payload int:Signed16 abc) returns string {
+        return "done";
+    }
+
+    resource function post dbIntSigned8(@http:Payload int:Signed8 abc) returns string {
+        return "done";
+    }
+
+    resource function post dbIntUnsigned32(@http:Payload int:Unsigned32 abc) returns string {
+        return "done";
+    }
+
+    resource function post dbIntUnsigned16(@http:Payload int:Unsigned16 abc) returns string {
+        return "done";
+    }
+
+    resource function post dbIntUnsigned8(@http:Payload int:Unsigned8 abc) returns string {
+        return "done";
+    }
+
     resource function post dbRecordWithObjectNegative(@http:Payload RequestBody abc) returns string {
         return "done"; //error
     }

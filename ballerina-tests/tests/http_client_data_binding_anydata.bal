@@ -254,6 +254,21 @@ service /anydataTest on clientDBBackendListener {
     resource function get getNoContentJson() returns http:Created {
         return { mediaType : "application/json" };
     }
+
+    // builtin subtypes
+    resource function get getXmlElement() returns xml:Element {
+        return xml `<placeOrder><order-status>PLACED</order-status><order-id>ORD-1234</order-id></placeOrder>`;
+    }
+
+    resource function get getStringChar() returns string:Char {
+       string str = "text";
+       string:Char getStringChar = str[0];
+       return getStringChar;
+    }
+
+    resource function get getIntSigned32() returns int:Signed32 {
+        return -2147483648;
+    }
 }
 
 @test:Config {}
@@ -752,4 +767,25 @@ function testNilableUnionOfDatabindingForOctetBlob() returns error? {
 function testNilableUnionOfDatabindingForJson() returns error? {
     xml|json? response = check clientDBBackendClient->get("/anydataTest/getNoContentJson");
     test:assertTrue(response is (), msg = "Found unexpected output");
+}
+
+@test:Config {}
+function testBuiltInSubtypeXmlElement() returns error? {
+    xml response = check clientDBBackendClient->get("/anydataTest/getXmlElement");
+    test:assertTrue(response is xml:Element, msg = "Found unexpected output");
+    assertXmlPayload(response,
+        xml `<placeOrder><order-status>PLACED</order-status><order-id>ORD-1234</order-id></placeOrder>`);
+}
+
+@test:Config {}
+function testBuiltInSubtypeStringChar() returns error? {
+    string:Char response = check clientDBBackendClient->get("/anydataTest/getStringChar");
+    test:assertEquals(response, "t", msg = "Found unexpected output");
+}
+
+
+@test:Config {}
+function testBuiltInSubtypegetIntSigned32() returns error? {
+    int:Signed32 response = check clientDBBackendClient->get("/anydataTest/getIntSigned32");
+    test:assertEquals(response, -2147483648, msg = "Found unexpected output");
 }

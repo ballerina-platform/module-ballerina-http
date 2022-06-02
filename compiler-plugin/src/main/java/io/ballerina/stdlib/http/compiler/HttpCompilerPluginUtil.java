@@ -41,6 +41,7 @@ import io.ballerina.tools.diagnostics.DiagnosticInfo;
 import io.ballerina.tools.diagnostics.DiagnosticProperty;
 import io.ballerina.tools.diagnostics.Location;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -52,6 +53,15 @@ import static io.ballerina.stdlib.http.compiler.Constants.RESPONSE_OBJ_NAME;
  * Utility class providing http compiler plugin utility methods.
  */
 public class HttpCompilerPluginUtil {
+
+    private static final List<TypeDescKind> allowedList = Arrays.asList(
+            TypeDescKind.BOOLEAN, TypeDescKind.INT, TypeDescKind.FLOAT, TypeDescKind.DECIMAL,
+            TypeDescKind.STRING, TypeDescKind.XML, TypeDescKind.JSON, TypeDescKind.RECORD,
+            TypeDescKind.ANYDATA, TypeDescKind.NIL, TypeDescKind.BYTE, TypeDescKind.STRING_CHAR,
+            TypeDescKind.XML_ELEMENT, TypeDescKind.XML_COMMENT, TypeDescKind.XML_PROCESSING_INSTRUCTION,
+            TypeDescKind.XML_TEXT, TypeDescKind.INT_SIGNED8, TypeDescKind.INT_UNSIGNED8,
+            TypeDescKind.INT_SIGNED16, TypeDescKind.INT_UNSIGNED16, TypeDescKind.INT_SIGNED32,
+            TypeDescKind.INT_UNSIGNED32);
 
     public static void updateDiagnostic(SyntaxNodeAnalysisContext ctx, Location location,
                                         HttpDiagnosticCodes httpDiagnosticCodes) {
@@ -113,7 +123,7 @@ public class HttpCompilerPluginUtil {
             return;
         }
         TypeDescKind kind = returnTypeSymbol.typeKind();
-        if (isBasicTypeDesc(kind) || kind == TypeDescKind.ERROR || kind == TypeDescKind.NIL ||
+        if (isAnyDataType(kind) || kind == TypeDescKind.ERROR || kind == TypeDescKind.NIL ||
                 kind == TypeDescKind.ANYDATA) {
             return;
         }
@@ -135,10 +145,8 @@ public class HttpCompilerPluginUtil {
                 if (!isHttpModuleType(RESPONSE_OBJ_NAME, typeDescriptor)) {
                     reportInvalidReturnType(ctx, node, returnTypeStringValue, diagnosticCode);
                 }
-            } else if (typeDescKind == TypeDescKind.TABLE) {
+            } else {
                 validateReturnType(ctx, node, returnTypeStringValue, typeDescriptor, diagnosticCode, isInterceptorType);
-            } else if (typeDescKind != TypeDescKind.RECORD && typeDescKind != TypeDescKind.ERROR) {
-                reportInvalidReturnType(ctx, node, returnTypeStringValue, diagnosticCode);
             }
         } else if (kind == TypeDescKind.MAP) {
             TypeSymbol typeSymbol = ((MapTypeSymbol) returnTypeSymbol).typeParam();
@@ -165,7 +173,7 @@ public class HttpCompilerPluginUtil {
     private static void validateArrayElementType(SyntaxNodeAnalysisContext ctx, Node node, String typeStringValue,
                                                  TypeSymbol memberTypeDescriptor, HttpDiagnosticCodes diagnosticCode) {
         TypeDescKind kind = memberTypeDescriptor.typeKind();
-        if (isBasicTypeDesc(kind) || kind == TypeDescKind.MAP || kind == TypeDescKind.TABLE) {
+        if (isAnyDataType(kind) || kind == TypeDescKind.MAP || kind == TypeDescKind.TABLE) {
             return;
         }
         if (kind == TypeDescKind.INTERSECTION) {
@@ -209,10 +217,8 @@ public class HttpCompilerPluginUtil {
         return typeDescKind;
     }
 
-    private static boolean isBasicTypeDesc(TypeDescKind kind) {
-        return kind == TypeDescKind.STRING || kind == TypeDescKind.INT || kind == TypeDescKind.FLOAT ||
-                kind == TypeDescKind.DECIMAL || kind == TypeDescKind.BOOLEAN || kind == TypeDescKind.JSON ||
-                kind == TypeDescKind.XML || kind == TypeDescKind.RECORD || kind == TypeDescKind.BYTE;
+    public static boolean isAnyDataType(TypeDescKind kind) {
+        return allowedList.stream().anyMatch(allowedKind -> kind == allowedKind);
     }
 
     private static void reportInvalidReturnType(SyntaxNodeAnalysisContext ctx, Node node,
