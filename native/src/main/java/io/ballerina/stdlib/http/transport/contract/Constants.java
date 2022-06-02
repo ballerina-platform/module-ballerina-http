@@ -293,6 +293,9 @@ public final class Constants {
     public static final int MEANINGFULLY_EQUAL = 0;
     public static final int UNBOUNDED_RESPONSE_QUEUE = -1;
     public static final String PIPELINING_THREAD_POOL_NAME = "pipelining-thread-pool";
+    public static final String BOSS_GROUP_THREAD_POOL_NAME = "bossgroup-thread-pool";
+    public static final String WORKER_GROUP_THREAD_POOL_NAME = "workergroup-thread-pool";
+    public static final String CLIENT_GROUP_THREAD_POOL_NAME = "clientgroup-thread-pool";
     public static final int PIPELINING_THREAD_COUNT = 2;
 
     public static final String UTF8 = "UTF-8";
