@@ -177,6 +177,16 @@ function testLinkHeaderWithComplexArrayValue() returns error? {
     test:assertEquals(result[1].params["methods"], "\"\"POST\"\"");
 }
 
+//Test function with negative array value in link header
+@test:Config {}
+function testLinkHeaderWithNegativeArrayValue() returns error? {
+    string linkHeader = "</>; rel=\"self\"; methods=\"\"GET\", \"PO";
+    var result = check http:parseHeader(linkHeader);
+    test:assertEquals(result[0].value, "</>");
+    test:assertEquals(result[0].params["rel"], "\"self\"");
+    test:assertEquals(result[0].params["methods"], "\"\"GET\", \"PO");
+}
+
 //Test function with empty value
 @test:Config {}
 function testEmptyValue() {
