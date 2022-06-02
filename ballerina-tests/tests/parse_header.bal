@@ -150,6 +150,33 @@ function testLinkHeader() {
     }
 }
 
+//Test function with link header with simple array value
+@test:Config {}
+function testLinkHeaderWithSimpleArrayValue() returns error? {
+    string linkHeader = "</>; rel=\"self\"; methods=\"\"GET\", \"POST\"\", </users>; rel=\"add\"; methods=\"\"POST\"\"";
+    var result = check http:parseHeader(linkHeader);
+    test:assertEquals(result[0].value, "</>");
+    test:assertEquals(result[0].params["rel"], "\"self\"");
+    test:assertEquals(result[0].params["methods"], "\"\"GET\", \"POST\"\"");
+    test:assertEquals(result[1].value, "</users>");
+    test:assertEquals(result[1].params["rel"], "\"add\"");
+    test:assertEquals(result[1].params["methods"], "\"\"POST\"\"");
+}
+
+//Test function with link header with complex array value
+@test:Config {}
+function testLinkHeaderWithComplexArrayValue() returns error? {
+    string linkHeader = "</>; rel=\"sample\"; example=\"\"foo\", -1.23, true, [\"charlie\", \"bennet\"], {\"cat\": \"thor\"}, false\", " +
+                        "</users>; rel=\"add\"; methods=\"\"POST\"\"";
+    var result = check http:parseHeader(linkHeader);
+    test:assertEquals(result[0].value, "</>");
+    test:assertEquals(result[0].params["rel"], "\"sample\"");
+    test:assertEquals(result[0].params["example"], "\"\"foo\", -1.23, true, [\"charlie\", \"bennet\"], {\"cat\": \"thor\"}, false\"");
+    test:assertEquals(result[1].value, "</users>");
+    test:assertEquals(result[1].params["rel"], "\"add\"");
+    test:assertEquals(result[1].params["methods"], "\"\"POST\"\"");
+}
+
 //Test function with empty value
 @test:Config {}
 function testEmptyValue() {
