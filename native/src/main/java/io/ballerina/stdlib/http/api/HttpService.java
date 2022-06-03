@@ -271,20 +271,46 @@ public class HttpService implements Service {
             for (HttpResource.LinkedResource link : targetResource.getLinkedResources()) {
                 HttpResource linkedResource = null;
                 for (HttpResource resource : httpResources) {
-                    if (resource.getResourceName() != null && resource.getResourceName().equals(link.getName())) {
-                        if (linkedResource == null) {
-                            linkedResource = resource;
-                        } else {
-                            throw new BallerinaConnectorException("multiple resources found with name: '" +
-                                                                  link.getName() + "'");
-                        }
-                    }
+                    validateResourceName(targetResource, resource);
+                    linkedResource = getLinkedResource(link, linkedResource, resource);
                 }
                 if (linkedResource != null) {
                     setLinkToResource(httpService, targetResource, link, linkedResource);
                 } else {
-                    throw new BallerinaConnectorException("cannot find resource with name: '" + link.getName() + "'");
+                    String msg = "cannot find " + (link.getMethod() != null ? link.getMethod()  : "") + " resource " +
+                                 "with name: '" + link.getName() + "'";
+                    throw new BallerinaConnectorException(msg);
                 }
+            }
+        }
+    }
+
+    private static HttpResource getLinkedResource(HttpResource.LinkedResource link, HttpResource linkedResource,
+                                                  HttpResource resource) {
+        if (resource.getResourceName() != null && resource.getResourceName().equals(link.getName())) {
+            if (link.getMethod() != null) {
+                if (resource.getMethods() != null && resource.getMethods().contains(link.getMethod())) {
+                    linkedResource = resource;
+                }
+            } else {
+                if (linkedResource == null) {
+                    linkedResource = resource;
+                } else {
+                    throw new BallerinaConnectorException("cannot resolve resource name: '" + link.getName()
+                                                          + "' since multiple occurrences found");
+                }
+            }
+        }
+        return linkedResource;
+    }
+
+    private static void validateResourceName(HttpResource targetResource, HttpResource resource) {
+        if (resource.getResourceName() != null && targetResource.getResourceName() != null &&
+            targetResource.getResourceName().equals(resource.getResourceName())) {
+            if (!targetResource.getResourcePathSignature().equals(resource.getResourcePathSignature())) {
+                throw new BallerinaConnectorException("cannot duplicate resource name: '" +
+                                                      targetResource.getResourceName() + "' unless they " +
+                                                      "have the same path");
             }
         }
     }

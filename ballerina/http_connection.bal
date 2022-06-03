@@ -268,7 +268,7 @@ isolated function createLinkHeaderValue(map<Link>? links) returns string? {
 }
 
 isolated function createLink(string rel, Link link) returns string {
-    string header = string`<${link.href}>; rel=${rel}`;
+    string header = string`<${link.href}>; rel="${rel}"`;
     string[]? methods = link?.methods;
     string[]? types = link?.types;
     if methods !is () {

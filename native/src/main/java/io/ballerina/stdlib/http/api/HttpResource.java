@@ -56,6 +56,7 @@ public class HttpResource implements Resource {
     private static final BString NAME = StringUtils.fromString("name");
     private static final BString LINKED_TO = StringUtils.fromString("linkedTo");
     private static final BString RELATION = StringUtils.fromString("relation");
+    private static final BString METHOD = StringUtils.fromString("method");
     private static final BString CONSUMES_FIELD = StringUtils.fromString("consumes");
     private static final BString PRODUCES_FIELD = StringUtils.fromString("produces");
     private static final BString CORS_FIELD = StringUtils.fromString("cors");
@@ -279,9 +280,11 @@ public class HttpResource implements Resource {
 
     private void processLinkedResources(Object[] links) {
         for (Object link: links) {
-            String name = ((BMap) link).getStringValue(NAME).getValue();
-            String relation = ((BMap) link).getStringValue(RELATION).getValue();
-            this.addLinkedResource(new LinkedResource(name, relation));
+            String name = ((BMap) link).getStringValue(NAME).getValue().toLowerCase(Locale.getDefault());
+            String relation = ((BMap) link).getStringValue(RELATION).getValue().toLowerCase(Locale.getDefault());
+            String method = ((BMap) link).getStringValue(METHOD) != null ?
+                            ((BMap) link).getStringValue(METHOD).getValue().toUpperCase(Locale.getDefault()) : null;
+            this.addLinkedResource(new LinkedResource(name, relation, method));
         }
     }
 
@@ -377,6 +380,11 @@ public class HttpResource implements Resource {
         return (parentService.getBasePath() + getPath()).replaceAll("/+", SINGLE_SLASH);
     }
 
+    public String getResourcePathSignature() {
+        String resourceNameSignature = this.getName();
+        return resourceNameSignature.replaceFirst("\\$[^\\$]*", "");
+    }
+
     // Followings added due to WebSub requirement
     public void setPath(String path) {
         this.path = path;
@@ -396,10 +404,12 @@ public class HttpResource implements Resource {
     public static class LinkedResource {
         private final String name;
         private final String relationship;
+        private final String method;
 
-        public LinkedResource(String name, String relationship) {
+        public LinkedResource(String name, String relationship, String method) {
             this.name = name;
             this.relationship = relationship;
+            this.method = method;
         }
 
         public String getName() {
@@ -408,6 +418,10 @@ public class HttpResource implements Resource {
 
         public String getRelationship() {
             return relationship;
+        }
+
+        public String getMethod() {
+            return method;
         }
     }
 }
