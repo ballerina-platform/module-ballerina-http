@@ -594,17 +594,19 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_25");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 7);
+        Assert.assertEquals(diagnosticResult.errorCount(), 8);
         assertTrue(diagnosticResult, 0, "duplicate link relation: 'self'. Resource only supports unique relations",
                  HTTP_147);
         assertTrue(diagnosticResult, 1, "duplicate link relation: 'self'. Resource only supports unique relations",
                  HTTP_147);
         assertTrue(diagnosticResult, 2, "resource name: 'resource1' conflicts with the path. Resource names can be " +
                  "reused only when the resources have the same path", HTTP_146);
-        assertTrue(diagnosticResult, 3, "resource name: 'resource3' conflicts with the path. Resource names can be " +
+        assertTrue(diagnosticResult, 3, "duplicate link relation: 'add'. Resource only supports unique relations",
+                 HTTP_147);
+        assertTrue(diagnosticResult, 4, "resource name: 'resource3' conflicts with the path. Resource names can be " +
                  "reused only when the resources have the same path", HTTP_146);
-        assertTrue(diagnosticResult, 4, "cannot find resource with resource name: 'resource5'", HTTP_148);
-        assertTrue(diagnosticResult, 5, "cannot resolve linked resource without method", HTTP_149);
+        assertTrue(diagnosticResult, 5, "cannot find resource with resource name: 'resource5'", HTTP_148);
         assertTrue(diagnosticResult, 6, "cannot find 'POST' resource with resource name: 'resource1'", HTTP_150);
+        assertTrue(diagnosticResult, 7, "cannot resolve linked resource without method", HTTP_149);
     }
 }

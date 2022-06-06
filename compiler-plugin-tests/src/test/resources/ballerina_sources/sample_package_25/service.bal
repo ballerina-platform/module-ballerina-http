@@ -83,7 +83,7 @@ service on new http:Listener(9091) {
     @http:ResourceConfig {
         name: "resource1",
         linkedTo: [
-            {name: "resource1", method: "post"},
+            {name: "resource1", method: "post", relation: "add"},
             {name: "resource3", relation: "get"},
             {name: "resource3", method: "post", relation: "add"}
         ]
