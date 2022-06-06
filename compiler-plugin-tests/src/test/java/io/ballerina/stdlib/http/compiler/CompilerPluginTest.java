@@ -123,13 +123,13 @@ public class CompilerPluginTest {
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.errorCount(), 4);
         assertError(diagnosticResult, 0, "invalid resource method return type: expected " +
-                "'anydata|http:Response|http:StatusCodeRecord|error', but found 'http:Client'", HTTP_102);
+                "'anydata|http:Response|http:StatusCodeResponse|error', but found 'http:Client'", HTTP_102);
         assertError(diagnosticResult, 1, "invalid resource method return type: expected " +
-                "'anydata|http:Response|http:StatusCodeRecord|error', but found 'error[]'", HTTP_102);
+                "'anydata|http:Response|http:StatusCodeResponse|error', but found 'error[]'", HTTP_102);
         assertError(diagnosticResult, 2, "invalid resource method return type: expected 'anydata|http:Response" +
-                "|http:StatusCodeRecord|error', but found 'map<http:Client>'", HTTP_102);
+                "|http:StatusCodeResponse|error', but found 'map<http:Client>'", HTTP_102);
         assertError(diagnosticResult, 3, "invalid resource method return type: expected " +
-                "'anydata|http:Response|http:StatusCodeRecord|error', but found 'readonly & error[]'", HTTP_102);
+                "'anydata|http:Response|http:StatusCodeResponse|error', but found 'readonly & error[]'", HTTP_102);
     }
 
     @Test
@@ -478,7 +478,7 @@ public class CompilerPluginTest {
         assertError(diagnosticResult, 4, "invalid interceptor resource method: expected default " +
                 "resource method: 'default', but found 'get'", CompilerPluginTestConstants.HTTP_128);
         assertError(diagnosticResult, 5, "invalid interceptor resource method return type: expected " +
-                "'anydata|http:Response|http:StatusCodeRecord|http:NextService|error?', but found 'error[]'",
+                "'anydata|http:Response|http:StatusCodeResponse|http:NextService|error?', but found 'error[]'",
                 CompilerPluginTestConstants.HTTP_126);
         assertError(diagnosticResult, 6, "invalid multiple interceptor resource functions",
                 CompilerPluginTestConstants.HTTP_124);
@@ -515,7 +515,7 @@ public class CompilerPluginTest {
         assertError(diagnosticResult, 24, "invalid parameter type: 'string' in 'interceptResponse' remote method",
                 HTTP_140);
         assertError(diagnosticResult, 25, "invalid interceptor remote method return type: expected " +
-                "'anydata|http:Response|http:StatusCodeRecord|http:NextService|error?', but found 'http:Client'",
+                "'anydata|http:Response|http:StatusCodeResponse|http:NextService|error?', but found 'http:Client'",
                 CompilerPluginTestConstants.HTTP_141);
         assertError(diagnosticResult, 26, "return type annotation is not supported in interceptor service",
                 CompilerPluginTestConstants.HTTP_142);

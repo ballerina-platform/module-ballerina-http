@@ -55,41 +55,41 @@ public isolated class Listener {
     # Starts the registered service programmatically.
     #
     # + return - An `error` if an error occurred during the listener starting process
-    public isolated function 'start() returns error? {
-        return externStart(self);
-    }
+    public isolated function 'start() returns error? = @java:Method {
+        'class: "io.ballerina.stdlib.http.api.service.endpoint.Start"
+    } external;
 
     # Stops the service listener gracefully. Already-accepted requests will be served before connection closure.
     #
     # + return - An `error` if an error occurred during the listener stopping process
-    public isolated function gracefulStop() returns error? {
-        return externGracefulStop(self);
-    }
+    public isolated function gracefulStop() returns error? = @java:Method {
+        'class: "io.ballerina.stdlib.http.api.service.endpoint.GracefulStop"
+    } external;
 
     # Stops the service listener immediately. It is not implemented yet.
     #
     # + return - An `error` if an error occurred during the listener stop process
-    public isolated function immediateStop() returns error? {
-        error err = error("not implemented");
-        return err;
-    }
+    public isolated function immediateStop() returns error? = @java:Method {
+        'class: "io.ballerina.stdlib.http.api.service.endpoint.ImmediateStop"
+    } external;
 
     # Attaches a service to the listener.
     #
     # + httpService - The service that needs to be attached
     # + name - Name of the service
     # + return - An `error` if an error occurred during the service attachment process or else `()`
-    public isolated function attach(Service httpService, string[]|string? name = ()) returns error? {
-        return externRegister(self, httpService, name);
-    }
+    public isolated function attach(Service httpService, string[]|string? name = ()) returns error? = @java:Method {
+        'class: "io.ballerina.stdlib.http.api.service.endpoint.Register",
+        name: "register"
+    } external;
 
     # Detaches an HTTP service from the listener.
     #
     # + httpService - The service to be detached
     # + return - An `error` if one occurred during detaching of a service or else `()`
-    public isolated function detach(Service httpService) returns error? {
-        return externDetach(self, httpService);
-    }
+    public isolated function detach(Service httpService) returns error? = @java:Method {
+        'class: "io.ballerina.stdlib.http.api.service.endpoint.Detach"
+    } external;
 
     # Retrieves the port of the HTTP listener.
     #
@@ -114,27 +114,6 @@ isolated function externInitEndpoint(Listener listenerObj, ListenerConfiguration
 @java:Method {
     'class: "io.ballerina.stdlib.http.api.service.endpoint.InitEndpoint",
     name: "initEndpoint"
-} external;
-
-isolated function externRegister(Listener listenerObj, Service httpService, string[]|string? name) returns error? =
-@java:Method {
-    'class: "io.ballerina.stdlib.http.api.service.endpoint.Register",
-    name: "register"
-} external;
-
-isolated function externStart(Listener listenerObj) returns error? = @java:Method {
-    'class: "io.ballerina.stdlib.http.api.service.endpoint.Start",
-    name: "start"
-} external;
-
-isolated function externGracefulStop(Listener listenerObj) returns error? = @java:Method {
-    'class: "io.ballerina.stdlib.http.api.service.endpoint.GracefulStop",
-    name: "gracefulStop"
-} external;
-
-isolated function externDetach(Listener listenerObj, Service httpService) returns error? = @java:Method {
-    'class: "io.ballerina.stdlib.http.api.service.endpoint.Detach",
-    name: "detach"
 } external;
 
 # Presents a read-only view of the remote address.

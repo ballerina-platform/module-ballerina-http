@@ -49,6 +49,9 @@ import java.util.Map;
 
 import javax.net.ssl.SSLException;
 
+import static io.ballerina.stdlib.http.api.ThreadPerTaskExecutorFactory.getBossGroupThreadPerTaskExecutor;
+import static io.ballerina.stdlib.http.api.ThreadPerTaskExecutorFactory.getClientGroupThreadPerTaskExecutor;
+import static io.ballerina.stdlib.http.api.ThreadPerTaskExecutorFactory.getWorkerGroupThreadPerTaskExecutor;
 import static io.ballerina.stdlib.http.transport.contract.Constants.PIPELINING_THREAD_COUNT;
 import static io.ballerina.stdlib.http.transport.contract.Constants.PIPELINING_THREAD_POOL_NAME;
 
@@ -65,15 +68,16 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
     private final ChannelGroup allChannels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
     public DefaultHttpWsConnectorFactory() {
-        bossGroup = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors());
-        workerGroup = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors() * 2);
-        clientGroup = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors() * 2);
+        int availableProcessors = Runtime.getRuntime().availableProcessors();
+        bossGroup = new NioEventLoopGroup(availableProcessors, getBossGroupThreadPerTaskExecutor());
+        workerGroup = new NioEventLoopGroup(availableProcessors * 2, getWorkerGroupThreadPerTaskExecutor());
+        clientGroup = new NioEventLoopGroup(availableProcessors * 2, getClientGroupThreadPerTaskExecutor());
     }
 
     public DefaultHttpWsConnectorFactory(int serverSocketThreads, int childSocketThreads, int clientThreads) {
-        bossGroup = new NioEventLoopGroup(serverSocketThreads);
-        workerGroup = new NioEventLoopGroup(childSocketThreads);
-        clientGroup = new NioEventLoopGroup(clientThreads);
+        bossGroup = new NioEventLoopGroup(serverSocketThreads, getBossGroupThreadPerTaskExecutor());
+        workerGroup = new NioEventLoopGroup(childSocketThreads, getWorkerGroupThreadPerTaskExecutor());
+        clientGroup = new NioEventLoopGroup(clientThreads, getClientGroupThreadPerTaskExecutor());
     }
 
     @Override
@@ -108,7 +112,7 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
             serverConnectorBootstrap.setPipeliningThreadGroup(pipeliningGroup);
         }
 
-        return serverConnectorBootstrap.getServerConnector(listenerConfig.getHost(), listenerConfig.getPort());
+        return serverConnectorBootstrap.getServerConnector(listenerConfig.getHost(), listenerConfig.getPort(), this);
     }
 
     private void setSslContext(ServerConnectorBootstrap serverConnectorBootstrap, SSLConfig sslConfig,

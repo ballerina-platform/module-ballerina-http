@@ -25,6 +25,7 @@ import io.ballerina.stdlib.http.transport.contract.config.InboundMsgSizeValidati
 import io.ballerina.stdlib.http.transport.contract.config.KeepAliveConfig;
 import io.ballerina.stdlib.http.transport.contract.config.ServerBootstrapConfiguration;
 import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorException;
+import io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpWsConnectorFactory;
 import io.ballerina.stdlib.http.transport.contractimpl.HttpWsServerConnectorFuture;
 import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
 import io.ballerina.stdlib.http.transport.contractimpl.common.ssl.SSLConfig;
@@ -71,9 +72,9 @@ public class ServerConnectorBootstrap {
         this.allChannels = allChannels;
     }
 
-    public ServerConnector getServerConnector(String host, int port) {
+    public ServerConnector getServerConnector(String host, int port, DefaultHttpWsConnectorFactory connectorFactory) {
         String serverConnectorId = Util.createServerConnectorID(host, port);
-        return new HttpServerConnector(serverConnectorId, host, port);
+        return new HttpServerConnector(serverConnectorId, host, port, connectorFactory);
     }
 
     public void addSocketConfiguration(ServerBootstrapConfiguration serverBootstrapConfiguration) {
@@ -195,15 +196,17 @@ public class ServerConnectorBootstrap {
 
         private ChannelFuture channelFuture;
         private ServerConnectorFuture serverConnectorFuture;
+        private DefaultHttpWsConnectorFactory connectorFactory;
         private String host;
         private int port;
         private String connectorID;
 
-        HttpServerConnector(String id, String host, int port) {
+        HttpServerConnector(String id, String host, int port, DefaultHttpWsConnectorFactory connectorFactory) {
             this.host = host;
             this.port = port;
-            this.connectorID =  id;
+            this.connectorID = id;
             httpServerChannelInitializer.setInterfaceId(id);
+            this.connectorFactory = connectorFactory;
         }
 
         @Override
@@ -241,6 +244,11 @@ public class ServerConnectorBootstrap {
             }
 
             return connectorStopped;
+        }
+
+        @Override
+        public void immediateStop() {
+            connectorFactory.shutdownNow();
         }
 
         @Override

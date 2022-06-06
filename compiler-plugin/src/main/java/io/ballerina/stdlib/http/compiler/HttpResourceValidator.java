@@ -86,6 +86,7 @@ import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.RESOURCE_CONFIG_ANNOTATION;
 import static io.ballerina.stdlib.http.compiler.Constants.SELF;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.getNodeString;
+import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.isAnyDataType;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.retrieveEffectiveTypeDesc;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.updateDiagnostic;
 
@@ -586,6 +587,8 @@ class HttpResourceValidator {
                     }
                 });
                 return true;
+            } else {
+                return isValidPayloadParamType(typeDescriptor, ctx, paramLocation, paramName);
             }
         } else if (kind == TypeDescKind.MAP) {
             typeDescriptor = ((MapTypeSymbol) typeDescriptor).typeParam();
@@ -939,14 +942,6 @@ class HttpResourceValidator {
         } else {
             return TypeDescKind.ERROR.equals(typeKind) || TypeDescKind.NIL.equals(typeKind);
         }
-    }
-
-    private static boolean isAnyDataType(TypeDescKind elementKind) {
-        return elementKind == TypeDescKind.BOOLEAN || elementKind == TypeDescKind.INT ||
-                elementKind == TypeDescKind.FLOAT || elementKind == TypeDescKind.DECIMAL ||
-                elementKind == TypeDescKind.STRING || elementKind == TypeDescKind.XML ||
-                elementKind == TypeDescKind.JSON || elementKind == TypeDescKind.RECORD ||
-                elementKind == TypeDescKind.ANYDATA || elementKind == TypeDescKind.NIL;
     }
 
     private static void reportInvalidResourceAnnotation(SyntaxNodeAnalysisContext ctx, Location location,
