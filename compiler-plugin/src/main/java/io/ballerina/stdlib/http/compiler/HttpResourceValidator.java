@@ -459,7 +459,6 @@ class HttpResourceValidator {
                 });
                 return true;
             } else {
-//                typeDescriptor = ((TypeReferenceTypeSymbol) typeDescriptor).typeDescriptor();
                 return isValidPayloadParamType(typeDescriptor, ctx, paramLocation, paramName);
             }
         } else if (kind == TypeDescKind.MAP) {
