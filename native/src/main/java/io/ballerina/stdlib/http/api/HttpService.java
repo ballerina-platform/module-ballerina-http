@@ -289,7 +289,8 @@ public class HttpService implements Service {
                                                   HttpResource resource) {
         if (resource.getResourceName() != null && resource.getResourceName().equals(link.getName())) {
             if (link.getMethod() != null) {
-                if (resource.getMethods() != null && resource.getMethods().contains(link.getMethod())) {
+                if (resource.getMethods() == null || (resource.getMethods() != null &&
+                        resource.getMethods().contains(link.getMethod()))) {
                     linkedResource = resource;
                 }
             } else {
