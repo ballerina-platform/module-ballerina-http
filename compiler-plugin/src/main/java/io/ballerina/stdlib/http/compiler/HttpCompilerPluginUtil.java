@@ -42,11 +42,14 @@ import io.ballerina.tools.diagnostics.DiagnosticProperty;
 import io.ballerina.tools.diagnostics.Location;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 import static io.ballerina.stdlib.http.compiler.Constants.BALLERINA;
+import static io.ballerina.stdlib.http.compiler.Constants.EMPTY;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
 import static io.ballerina.stdlib.http.compiler.Constants.RESPONSE_OBJ_NAME;
+import static io.ballerina.stdlib.http.compiler.Constants.UNNECESSARY_CHARS_REGEX;
 
 /**
  * Utility class providing http compiler plugin utility methods.
@@ -226,5 +229,10 @@ public class HttpCompilerPluginUtil {
 
     public static void reportMissingParameterError(SyntaxNodeAnalysisContext ctx, Location location, String method) {
         updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_143, method);
+    }
+
+    public static String getNodeString(Node node, boolean isCaseSensitive) {
+        String nodeString = node.toString().replaceAll(UNNECESSARY_CHARS_REGEX, EMPTY).trim();
+        return isCaseSensitive ? nodeString : nodeString.toLowerCase(Locale.getDefault());
     }
 }

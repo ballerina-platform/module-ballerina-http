@@ -62,7 +62,14 @@ public class Constants {
     public static final String OPTIONS = "options";
     public static final String INTERCEPT_RESPONSE = "interceptResponse";
     public static final String INTERCEPT_RESPONSE_ERROR = "interceptResponseError";
+    public static final String NAME = "name";
+    public static final String LINKED_TO = "linkedTo";
+    public static final String METHOD = "method";
+    public static final String RELATION = "relation";
+    public static final String PARAM = "$param$";
+    public static final String SELF = "self";
 
+    public static final String EMPTY = "";
     public static final String COLON = ":";
     public static final String PLUS = "+";
     public static final String COMMA_WITH_SPACE = ", ";
