@@ -319,6 +319,7 @@ public class HttpService implements Service {
                                           HttpResource.LinkedResource link, HttpResource linkedResource) {
         BMap<BString, Object> linkMap = ValueCreatorUtils.createHTTPRecordValue(HttpConstants.LINK);
         BString relation = fromString(link.getRelationship());
+        validateLinkRelationUniqueness(targetResource, relation);
         linkMap.put(HttpConstants.LINK_REL, relation);
         BString href = fromString(linkedResource.getAbsoluteResourcePath());
         linkMap.put(HttpConstants.LINK_HREF, href);
@@ -346,6 +347,12 @@ public class HttpService implements Service {
         }
         List<BString> methodsAsBString = methods.stream().map(StringUtils::fromString).collect(Collectors.toList());
         return ValueCreator.createArrayValue(methodsAsBString.toArray(BString[]::new));
+    }
+
+    private static void validateLinkRelationUniqueness(HttpResource targetResource, BString relation) {
+        if (targetResource.hasLinkedRelation(relation)) {
+            throw new BallerinaConnectorException("cannot duplicate resource relation: '" + relation.getValue() + "'");
+        }
     }
 
     private static void updateResourceTree(HttpService httpService, List<HttpResource> httpResources,

@@ -68,6 +68,7 @@ public class HttpResource implements Resource {
     private String name;
     private List<LinkedResource> linkedResources = new ArrayList<>();
     private BMap links = ValueCreator.createMapValue();
+    private List<BString> linkedRelations = new ArrayList<>();
     private MethodType balResource;
     private List<String> methods;
     private String path;
@@ -122,6 +123,15 @@ public class HttpResource implements Resource {
 
     public BMap getLinks() {
         return this.links;
+    }
+
+    public boolean hasLinkedRelation(BString relation) {
+        if (this.linkedRelations.contains(relation)) {
+            return true;
+        } else {
+            this.linkedRelations.add(relation);
+            return false;
+        }
     }
 
     @Override
