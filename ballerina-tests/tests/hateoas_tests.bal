@@ -151,8 +151,8 @@ service /restBucks on new http:Listener(hateoasTestPort) {
         ]
     }
     resource function put payment/[string id](@http:Payload Payment payment)
-            returns @http:Payload{mediaType: "application/json"} PaymentReceipt {
-        return getMockPaymentReceipt(payment);
+            returns @http:Payload{mediaType: "application/json"} http:Accepted {
+        return {body : getMockPaymentReceipt(payment)};
     }
 }
 
@@ -281,7 +281,7 @@ function testHateoasLinkHeaderWithoutBody() returns error? {
 }
 
 @test:Config {}
-function testHateoasLinks3() returns error? {
+function testHateoasLinksInBody() returns error? {
     record{*http:Links; *PaymentReceipt;} paymentReceipt = check jsonClientEP->put("/payment/001", mockPayment);
     map<http:Link> expectedLinks = {
         "self": {
