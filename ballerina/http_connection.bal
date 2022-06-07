@@ -252,9 +252,11 @@ isolated function retrieveMediaType(StatusCodeResponse resp, string? retrievedMe
 }
 
 isolated function addLinkHeader(Response response, map<Link>? links) {
-    string? headerValue = createLinkHeaderValue(links);
-    if headerValue is string {
-        response.addHeader("link", headerValue);
+    if !response.hasHeader("Link") {
+        string? headerValue = createLinkHeaderValue(links);
+        if headerValue is string {
+            response.addHeader("Link", headerValue);
+        }
     }
 }
 
