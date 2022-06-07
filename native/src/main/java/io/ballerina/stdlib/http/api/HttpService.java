@@ -277,8 +277,8 @@ public class HttpService implements Service {
                 if (linkedResource != null) {
                     setLinkToResource(httpService, targetResource, link, linkedResource);
                 } else {
-                    String msg = "cannot find " + (link.getMethod() != null ? link.getMethod()  : "") + " resource " +
-                                 "with name: '" + link.getName() + "'";
+                    String msg = "cannot find" + (link.getMethod() != null ? " " + link.getMethod()  : "") +
+                                 " resource with name: '" + link.getName() + "'";
                     throw new BallerinaConnectorException(msg);
                 }
             }
