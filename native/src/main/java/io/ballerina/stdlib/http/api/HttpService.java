@@ -287,7 +287,7 @@ public class HttpService implements Service {
 
     private static HttpResource getLinkedResource(HttpResource.LinkedResource link, HttpResource linkedResource,
                                                   HttpResource resource) {
-        if (resource.getResourceName() != null && resource.getResourceName().equals(link.getName())) {
+        if (resource.getResourceName() != null && resource.getResourceName().equalsIgnoreCase(link.getName())) {
             if (link.getMethod() != null) {
                 if (resource.getMethods() == null) {
                     if (linkedResource != null) {
@@ -314,7 +314,7 @@ public class HttpService implements Service {
 
     private static void validateResourceName(HttpResource targetResource, HttpResource resource) {
         if (resource.getResourceName() != null && targetResource.getResourceName() != null &&
-            targetResource.getResourceName().equals(resource.getResourceName())) {
+            targetResource.getResourceName().equalsIgnoreCase(resource.getResourceName())) {
             if (!targetResource.getResourcePathSignature().equals(resource.getResourcePathSignature())) {
                 throw new BallerinaConnectorException("cannot duplicate resource name: '" +
                                                       targetResource.getResourceName() + "' unless they " +
