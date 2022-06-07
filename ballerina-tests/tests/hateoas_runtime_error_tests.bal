@@ -7,8 +7,7 @@ listener http:Listener hateoasRuntimeErrorServerEP = check new(hateoasRuntimeErr
 function testDuplicateResourceName() {
     http:Service duplicateResourceNameService = service object {
         @http:ResourceConfig{
-            name: "resource1",
-            linkedTo: [{name: "resource1", method: "get"}]
+            name: "resource1"
         }
         resource function get resource1() returns string {
             return "resource1";
