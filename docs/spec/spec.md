@@ -77,6 +77,9 @@ The conforming implementation of the specification is released and included in t
 6. [Request and Response](#6-request-and-response)
 7. [Header and Payload](#7-header-and-payload)
     * 7.1. [Parse header functions](#71-parse-header-functions)
+    * 7.2. [Links support](#72-links-support)
+      * 7.2.1 [LinkedTo record](#721-linkedto-record)
+      * 7.2.2 [Links in the response](#722-links-in-the-response)
 8. [Interceptor and error handling](#8-interceptor-and-error-handling)
     * 8.1. [Interceptor](#81-interceptor)
         * 8.1.1. [Request interceptor](#811-request-interceptor)
@@ -1425,11 +1428,13 @@ compression, auth are defined in the resource config.
 ```ballerina
 # ResourceConfig definition
 public type HttpResourceConfig record {|
+    string name?;
     string[] consumes = [];
     string[] produces = [];
     CorsConfig cors = {};
     boolean transactionInfectable = true;
     ListenerAuthConfig[]|Scopes auth?;
+    LinkedTo[] linkedTo?;
 |};
 
 @http:ResourceConfig {
@@ -1643,6 +1648,183 @@ parseHeader(string headerValue) returns HeaderValue[]|ClientError  {
 
 }
 ```
+
+### 7.2 Links support
+Hypermedia As the Engine Of Application State (HATEOAS) is one of the key principles in REST, which brings the 
+connectedness to a set of scattered resources. It also brings direction as to what might user could do next. Similar 
+to Web pages REST APIs becomes self-descriptive and dynamic along with this principle.
+
+As an initial support to HATEOAS, HTTP package has the ability to statically record the connectedness of resources 
+through `Links` object. `Links` is a map of `Link` objects which represent the connectedness between resources. The 
+`Link` record is defines as follows :
+```ballerina
+public type Link record {
+    # Names the relationship of the linked target to the current representation
+    string rel?;
+    # Target URL
+    string href;
+    # Expected resource representation media types
+    string[] types?;
+    # Allowed resource methods
+    Method[] methods?;
+};
+```
+
+This `Links` is generated from the `linkedTo` field in the `ResourceConfig` annotation, and added either to the 
+payload or as a `Link` header depends on the payload type.
+
+#### 7.2.1 LinkedTo record
+The `LinkedTo` record is defined as follows :
+```ballerina
+public type LinkedTo record {|
+    string name;
+    string relation = "self";
+    string method?;
+|};
+```
+
+This record represents a connectedness between two resources. All the fields in the `LinkedTo` record is 
+**case-insensitive**. The `relation` field is defaulted to the IANA link relation `self`, and for a specific resource, 
+the linked resources should have a **unique** relation.  
+
+The linked resource is resolved using the resource link name specified in the `name` field. To 
+find the linked resource, the linked resource should be configured with the same name through `ResourceConfig` 
+annotation. Following is a simple example of creating links :
+```ballerina
+service on new http:Listener(port) {
+
+    @http:ResourceConfig {
+        // Create a link between this resource and "Payment" resource
+        linkedTo: [{ name: "Payment", rel: "payment" }]
+    }
+    resouce function post 'order(@http:Payload Order 'order) returns 
+            http:Accepted|http:InternalServerError {
+        // Business logic
+    }
+    
+    @http:ResourceConfig {
+        name: "Payment"
+    }
+    resource function put payment/[string id](@http:Payload Payment payment) returns 
+            http:Ok|http:InternalServerError {
+        // Business logic
+    }
+}
+```
+
+Resource link name can be duplicated only when the resources have the same path. In this case, the `method` of the 
+linked resource should be specified in the `LinkedTo` record to resolve conflicts. Following is an example when we have two 
+resources with the same resource link name :
+```ballerina
+service on new http:Listener(port) {
+
+    @http:ResourceConfig {
+        name: "Orders",
+        linkedTo: [
+            { name: "Orders", rel: "edit",  method: "PUT" },
+            { name: "Orders", rel: "remove",  method: "DELETE" }
+        ]
+    }
+    resouce function put orders/[string id](@http:Payload Order 'order) returns 
+            http:Ok|http:InternalServerError {
+        // Business logic
+    }
+    
+    @http:ResourceConfig {
+        name : "Orders"
+    }
+    resource function delete orders/[string id]() returns http:Ok|http:InternalServerError {
+        // Business logic
+    }
+}
+```
+
+#### 7.2.2 Links in the response
+The static `Links` generated from the `linkedTo` field will be injected to the payload when the payload media-type is 
+JSON, and it is not `readonly`. Suppose the user returns the below record type, the runtime will inject the `Links` 
+record as in the latter. So the response should be considered as a record with `Links` field.
+
+```ballerina
+public type 'Order record {|
+    string item_name;
+    string id;
+    string quantity;
+|};
+```
+
+```ballerina
+public type 'Order record {|
+    *http:Links;
+    string item_name;
+    string id;
+    string quantity;
+|};
+```
+
+Following is an example of `Links` in payload :
+```ballerina
+service on new http:Listener(port) {
+
+    @http:ResourceConfig {
+        linkedTo: [{ name: "Payment", rel: "payment" }]
+    }
+    resouce function get orders/[string id]() returns Order|http:NotFound {
+        // Business logic
+    }
+    
+    @http:ResourceConfig {
+        name: "Payment"
+    }
+    resource function put payment/[string id](@http:Payload Payment payment) returns 
+            http:Ok|http:InternalServerError {
+        // Business logic
+    }
+}
+```
+The response payload to the GET resource will look like this :
+```json
+{
+   "item_name": "latte",
+   "quantity": 2,
+   "_links":{
+      "payment":{
+         "rel": "payment",
+         "href": "/payment/{id}",
+         "methods":["PUT"]
+      }
+   }
+}
+```
+
+When there is no payload or when `Links` not supported in the payload, the `Links` will be added as a `Link` header. 
+Following is an example of `Links` in `Link` header:
+```ballerina
+service on new http:Listener(port) {
+
+    @http:ResourceConfig {
+        linkedTo: [{ name: "Payment", rel: "payment" }]
+    }
+    resouce function post order(@http:Payload Order 'order) returns 
+            http:Accepted|http:InternalServerError {
+        // Business logic
+        // return http:Accepted without body
+    }
+    
+    @http:ResourceConfig {
+        name: "Payment"
+    }
+    resource function put payment/[string id](@http:Payload Payment payment) returns 
+            http:Ok|http:InternalServerError {
+        // Business logic
+    }
+}
+```
+The response will have the following header :
+```
+link: "</payment/{id}>; rel=\"payment\"; methods=\"\"PUT\"\""
+```
+
+The `Links` will not overwrite the payload or the header if the user has defined them already.
 
 ## 8. Interceptor and error handling
 ### 8.1 Interceptor

@@ -43,10 +43,13 @@ import io.ballerina.tools.diagnostics.DiagnosticInfo;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import static io.ballerina.stdlib.http.compiler.Constants.BALLERINA;
 import static io.ballerina.stdlib.http.compiler.Constants.COLON;
+import static io.ballerina.stdlib.http.compiler.Constants.DEFAULT;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
 import static io.ballerina.stdlib.http.compiler.Constants.MEDIA_TYPE_SUBTYPE_PREFIX;
 import static io.ballerina.stdlib.http.compiler.Constants.MEDIA_TYPE_SUBTYPE_REGEX;
@@ -55,6 +58,7 @@ import static io.ballerina.stdlib.http.compiler.Constants.REMOTE_KEYWORD;
 import static io.ballerina.stdlib.http.compiler.Constants.SERVICE_CONFIG_ANNOTATION;
 import static io.ballerina.stdlib.http.compiler.Constants.SUFFIX_SEPARATOR_REGEX;
 import static io.ballerina.stdlib.http.compiler.Constants.UNNECESSARY_CHARS_REGEX;
+import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.updateDiagnostic;
 import static io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes.HTTP_101;
 import static io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes.HTTP_119;
 import static io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes.HTTP_120;
@@ -84,6 +88,7 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
 
         extractServiceAnnotationAndValidate(syntaxNodeAnalysisContext, serviceDeclarationNode);
 
+        LinksMetaData linksMetaData = new LinksMetaData();
         NodeList<Node> members = serviceDeclarationNode.members();
         for (Node member : members) {
             if (member.kind() == SyntaxKind.OBJECT_METHOD_DEFINITION) {
@@ -97,8 +102,58 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
                     reportInvalidFunctionType(syntaxNodeAnalysisContext, node);
                 }
             } else if (member.kind() == SyntaxKind.RESOURCE_ACCESSOR_DEFINITION) {
-                HttpResourceValidator.validateResource(syntaxNodeAnalysisContext, (FunctionDefinitionNode) member);
+                HttpResourceValidator.validateResource(syntaxNodeAnalysisContext, (FunctionDefinitionNode) member,
+                                                       linksMetaData);
             }
+        }
+
+        validateResourceLinks(syntaxNodeAnalysisContext, linksMetaData);
+    }
+
+    private void validateResourceLinks(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext,
+                                       LinksMetaData linksMetaData) {
+        if (!linksMetaData.hasNameReferenceObjects()) {
+            for (Map<String, LinkedToResource> linkedToResourceMap : linksMetaData.getLinkedToResourceMaps()) {
+                for (LinkedToResource linkedToResource : linkedToResourceMap.values()) {
+                    checkLinkedResourceExistence(syntaxNodeAnalysisContext, linksMetaData, linkedToResource);
+                }
+            }
+        }
+    }
+
+    private void checkLinkedResourceExistence(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext,
+                                              LinksMetaData linksMetaData, LinkedToResource linkedToResource) {
+        if (linksMetaData.getLinkedResourcesMap().containsKey(linkedToResource.getName())) {
+            List<LinkedResource> linkedResources =
+                    linksMetaData.getLinkedResourcesMap().get(linkedToResource.getName());
+            if (linkedResources.size() == 1) {
+                if (Objects.isNull(linkedToResource.getMethod())) {
+                    return;
+                } else if (linkedResources.get(0).getMethod().equalsIgnoreCase(DEFAULT) ||
+                           linkedResources.get(0).getMethod().equals(linkedToResource.getMethod())) {
+                    return;
+                } else {
+                    reportUnresolvedLinkedResourceWithMethod(syntaxNodeAnalysisContext, linkedToResource);
+                    return;
+                }
+            }
+            if (Objects.isNull(linkedToResource.getMethod())) {
+                reportUnresolvedLinkedResource(syntaxNodeAnalysisContext, linkedToResource);
+                return;
+            }
+            boolean found = false;
+            for (LinkedResource linkedResource : linkedResources) {
+                if (linkedResource.getMethod().equalsIgnoreCase(DEFAULT) ||
+                        linkedResource.getMethod().equals(linkedToResource.getMethod())) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                reportUnresolvedLinkedResourceWithMethod(syntaxNodeAnalysisContext, linkedToResource);
+            }
+        } else {
+            reportResourceNameDoesNotExist(syntaxNodeAnalysisContext, linkedToResource);
         }
     }
 
@@ -184,5 +239,19 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
         DiagnosticInfo diagnosticInfo = new DiagnosticInfo(HTTP_119.getCode(), String.format(HTTP_119.getMessage(),
                 suffix), HTTP_119.getSeverity());
         ctx.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, node.location()));
+    }
+
+    private static void reportResourceNameDoesNotExist(SyntaxNodeAnalysisContext ctx, LinkedToResource resource) {
+        updateDiagnostic(ctx, resource.getNode().location(), HttpDiagnosticCodes.HTTP_148, resource.getName());
+    }
+
+    private static void reportUnresolvedLinkedResource(SyntaxNodeAnalysisContext ctx, LinkedToResource resource) {
+        updateDiagnostic(ctx, resource.getNode().location(), HttpDiagnosticCodes.HTTP_149);
+    }
+
+    private static void reportUnresolvedLinkedResourceWithMethod(SyntaxNodeAnalysisContext ctx,
+                                                                 LinkedToResource resource) {
+        updateDiagnostic(ctx, resource.getNode().location(), HttpDiagnosticCodes.HTTP_150, resource.getMethod(),
+                         resource.getName());
     }
 }

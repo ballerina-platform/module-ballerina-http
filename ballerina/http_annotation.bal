@@ -59,17 +59,21 @@ public annotation HttpServiceConfig ServiceConfig on service;
 
 # Configuration for an HTTP resource.
 #
+# + name - The name of the resource
 # + consumes - The media types which are accepted by resource
 # + produces - The media types which are produced by resource
 # + cors - The cross origin resource sharing configurations for the resource. If not set, the resource will inherit the CORS behaviour of the enclosing service.
 # + transactionInfectable - Allow to participate in the distributed transactions if value is true
 # + auth - Resource auth configurations
+# + linkedTo - The array of linked resources
 public type HttpResourceConfig record {|
+    string name?;
     string[] consumes = [];
     string[] produces = [];
     CorsConfig cors = {};
     boolean transactionInfectable = true;
     ListenerAuthConfig[]|Scopes auth?;
+    LinkedTo[] linkedTo?;
 |};
 
 # The annotation which is used to configure an HTTP resource.

@@ -52,6 +52,11 @@ import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP
 import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_135;
 import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_140;
 import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_144;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_146;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_147;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_148;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_149;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_150;
 
 /**
  * This class includes tests for Ballerina Http compiler plugin.
@@ -582,5 +587,26 @@ public class CompilerPluginTest {
                 "expected: 'string','int','float','decimal','boolean', an array of the above types or a record " +
                 "which consists of the above types", HTTP_109);
         assertTrue(diagnosticResult, 5, "invalid type of caller param 'host': expected 'http:Caller'", HTTP_111);
+    }
+
+    @Test
+    public void testLinksInResources() {
+        Package currentPackage = loadPackage("sample_package_25");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.errorCount(), 8);
+        assertTrue(diagnosticResult, 0, "duplicate link relation: 'self'. Resource only supports unique relations",
+                HTTP_147);
+        assertTrue(diagnosticResult, 1, "duplicate link relation: 'self'. Resource only supports unique relations",
+                HTTP_147);
+        assertTrue(diagnosticResult, 2, "resource link name: 'resource1' conflicts with the path. Resource names can " +
+                "be reused only when the resources have the same path", HTTP_146);
+        assertTrue(diagnosticResult, 3, "duplicate link relation: 'add'. Resource only supports unique relations",
+                HTTP_147);
+        assertTrue(diagnosticResult, 4, "resource link name: 'resource3' conflicts with the path. Resource names can " +
+                "be reused only when the resources have the same path", HTTP_146);
+        assertTrue(diagnosticResult, 5, "cannot find resource with resource link name: 'resource5'", HTTP_148);
+        assertTrue(diagnosticResult, 6, "cannot find 'POST' resource with resource link name: 'resource1'", HTTP_150);
+        assertTrue(diagnosticResult, 7, "cannot resolve linked resource without method", HTTP_149);
     }
 }

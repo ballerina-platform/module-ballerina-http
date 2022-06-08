@@ -45,7 +45,7 @@ public class Register extends AbstractHttpNativeFunction {
             Runtime runtime = env.getRuntime();
             httpServicesRegistry.setRuntime(runtime);
             String basePath = getBasePath(serviceName);
-            httpServicesRegistry.registerService(runtime, service, basePath);
+            httpServicesRegistry.registerService(service, basePath);
         } catch (BError ex) {
             return ex;
         } catch (Exception e) {

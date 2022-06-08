@@ -17,7 +17,9 @@
  */
 package io.ballerina.stdlib.http.api;
 
+import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.Runtime;
+import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.flags.SymbolFlags;
 import io.ballerina.runtime.api.types.ArrayType;
@@ -39,13 +41,17 @@ import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static io.ballerina.runtime.api.utils.StringUtils.fromString;
 import static io.ballerina.stdlib.http.api.HttpConstants.DEFAULT_BASE_PATH;
+import static io.ballerina.stdlib.http.api.HttpErrorType.GENERIC_LISTENER_ERROR;
 import static io.ballerina.stdlib.http.api.HttpUtil.checkConfigAnnotationAvailability;
+import static io.ballerina.stdlib.http.api.HttpUtil.getMediaTypeWithPrefix;
 
 /**
  * {@code HttpService} This is the http wrapper for the {@code Service} implementation.
@@ -56,13 +62,13 @@ public class HttpService implements Service {
 
     private static final Logger log = LoggerFactory.getLogger(HttpService.class);
 
-    protected static final BString BASE_PATH_FIELD = StringUtils.fromString("basePath");
-    private static final BString CORS_FIELD = StringUtils.fromString("cors");
-    private static final BString VERSIONING_FIELD = StringUtils.fromString("versioning");
-    private static final BString HOST_FIELD = StringUtils.fromString("host");
-    private static final BString OPENAPI_DEF_FIELD = StringUtils.fromString("openApiDefinition");
-    private static final BString MEDIA_TYPE_SUBTYPE_PREFIX = StringUtils.fromString("mediaTypeSubtypePrefix");
-    private static final BString TREAT_NILABLE_AS_OPTIONAL = StringUtils.fromString("treatNilableAsOptional");
+    protected static final BString BASE_PATH_FIELD = fromString("basePath");
+    private static final BString CORS_FIELD = fromString("cors");
+    private static final BString VERSIONING_FIELD = fromString("versioning");
+    private static final BString HOST_FIELD = fromString("host");
+    private static final BString OPENAPI_DEF_FIELD = fromString("openApiDefinition");
+    private static final BString MEDIA_TYPE_SUBTYPE_PREFIX = fromString("mediaTypeSubtypePrefix");
+    private static final BString TREAT_NILABLE_AS_OPTIONAL = fromString("treatNilableAsOptional");
 
     private BObject balService;
     private List<HttpResource> resources;
@@ -258,7 +264,106 @@ public class HttpService implements Service {
         } else {
             log.debug("OpenAPI definition is not available");
         }
+        processLinks(httpService, httpResources);
         httpService.setResources(httpResources);
+    }
+
+    private static void processLinks(HttpService httpService, List<HttpResource> httpResources) {
+        for (HttpResource targetResource : httpResources) {
+            for (HttpResource.LinkedResourceInfo link : targetResource.getLinkedResources()) {
+                HttpResource linkedResource = null;
+                for (HttpResource resource : httpResources) {
+                    linkedResource = getLinkedResource(link, linkedResource, resource);
+                }
+                if (Objects.nonNull(linkedResource)) {
+                    setLinkToResource(httpService, targetResource, link, linkedResource);
+                } else {
+                    String msg = "cannot find" + (link.getMethod() != null ? " " + link.getMethod()  : "") +
+                                 " resource with resource link name: '" + link.getName() + "'";
+                    throw HttpUtil.createHttpError("resource link generation failed: " + msg, GENERIC_LISTENER_ERROR);
+                }
+            }
+        }
+    }
+
+    private static HttpResource getLinkedResource(HttpResource.LinkedResourceInfo link, HttpResource linkedResource,
+                                                  HttpResource resource) {
+        if (Objects.nonNull(resource.getResourceLinkName()) &&
+                resource.getResourceLinkName().equalsIgnoreCase(link.getName())) {
+            if (Objects.nonNull(link.getMethod())) {
+                if (Objects.isNull(resource.getMethods())) {
+                    if (Objects.isNull(linkedResource)) {
+                        linkedResource = resource;
+                    }
+                } else if (resource.getMethods().contains(link.getMethod())) {
+                    linkedResource = resource;
+                }
+            } else {
+                if (Objects.isNull(linkedResource)) {
+                    linkedResource = resource;
+                } else {
+                    throw HttpUtil.createHttpError("resource link generation failed: cannot resolve resource link " +
+                                                   "name: '" + link.getName() + "' since multiple occurrences found",
+                                                    GENERIC_LISTENER_ERROR);
+                }
+            }
+        }
+        return linkedResource;
+    }
+
+    private static void validateResourceName(HttpResource targetResource, List<HttpResource> resources) {
+        if (Objects.isNull(targetResource.getResourceLinkName())) {
+            return;
+        }
+        for (HttpResource resource : resources) {
+            if (Objects.isNull(resource.getResourceLinkName())) {
+                continue;
+            }
+            if (targetResource.getResourceLinkName().equalsIgnoreCase(resource.getResourceLinkName()) &&
+                    !targetResource.getResourcePathSignature().equals(resource.getResourcePathSignature())) {
+                throw HttpUtil.createHttpError("resource link generation failed: cannot duplicate resource link name:" +
+                                               " '" + targetResource.getResourceLinkName() + "' unless they have the " +
+                                               "same path", GENERIC_LISTENER_ERROR);
+            }
+        }
+    }
+
+    private static void setLinkToResource(HttpService httpService, HttpResource targetResource,
+                                          HttpResource.LinkedResourceInfo link, HttpResource linkedResource) {
+        BMap<BString, Object> linkMap = ValueCreatorUtils.createHTTPRecordValue(HttpConstants.LINK);
+        BString relation = fromString(link.getRelationship());
+        if (targetResource.hasLinkedRelation(relation)) {
+            throw HttpUtil.createHttpError("resource link generation failed: cannot duplicate resource link relation:" +
+                                           " '" + relation.getValue() + "'", GENERIC_LISTENER_ERROR);
+        }
+        targetResource.addLinkedRelation(relation);
+        linkMap.put(HttpConstants.LINK_REL, relation);
+        BString href = fromString(linkedResource.getAbsoluteResourcePath());
+        linkMap.put(HttpConstants.LINK_HREF, href);
+        BArray methods = getMethodsBArray(linkedResource.getMethods());
+        linkMap.put(HttpConstants.LINK_METHODS, methods);
+        String returnMediaType = linkedResource.getReturnMediaType();
+        if (Objects.nonNull(returnMediaType)) {
+            if (Objects.nonNull(httpService.getMediaTypeSubtypePrefix())) {
+                String specificReturnMediaType = getMediaTypeWithPrefix(httpService.getMediaTypeSubtypePrefix(),
+                                                                        returnMediaType);
+                if (Objects.nonNull(specificReturnMediaType)) {
+                    returnMediaType = specificReturnMediaType;
+                }
+            }
+            BArray types = ValueCreator.createArrayValue(TypeCreator.createArrayType(PredefinedTypes.TYPE_STRING));
+            types.append(fromString(returnMediaType));
+            linkMap.put(HttpConstants.LINK_TYPES, types);
+        }
+        targetResource.addLink(relation, linkMap);
+    }
+
+    private static BArray getMethodsBArray(List<String> methods) {
+        if (Objects.isNull(methods)) {
+            methods = Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD");
+        }
+        List<BString> methodsAsBString = methods.stream().map(StringUtils::fromString).collect(Collectors.toList());
+        return ValueCreator.createArrayValue(methodsAsBString.toArray(BString[]::new));
     }
 
     private static void updateResourceTree(HttpService httpService, List<HttpResource> httpResources,
@@ -269,6 +374,7 @@ public class HttpService implements Service {
             throw new BallerinaConnectorException(e.getMessage());
         }
         httpResource.setTreatNilableAsOptional(httpService.isTreatNilableAsOptional());
+        validateResourceName(httpResource, httpResources);
         httpResources.add(httpResource);
     }
 
@@ -280,7 +386,7 @@ public class HttpService implements Service {
     protected static BMap getServiceConfigAnnotation(BObject service, String packagePath,
                                                      String annotationName) {
         String key = packagePath.replaceAll(HttpConstants.REGEX, HttpConstants.SINGLE_SLASH);
-        return (BMap) (service.getType()).getAnnotation(StringUtils.fromString(key + ":" + annotationName));
+        return (BMap) (service.getType()).getAnnotation(fromString(key + ":" + annotationName));
     }
 
     @Override
