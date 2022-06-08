@@ -72,6 +72,43 @@ public class HttpCallableUnitCallback implements Callback {
         return caller;
     }
 
+    private boolean isLinksAvailableInResource() {
+        return Objects.nonNull(links) && !links.isEmpty();
+    }
+
+    private boolean isStatusCodeResponse(BMap result) {
+        return result.containsKey(STATUS) && result.get(STATUS) instanceof BObject;
+    }
+
+    private boolean hasJsonBodyWithoutLinks(BMap result) {
+        return result.containsKey(BODY) && result.get(BODY) instanceof BMap &&
+                !((BMap) result.get(BODY)).containsKey(LINKS);
+    }
+
+    private boolean isLinksSupportedInPayload(Object result) {
+        if (result instanceof BMap && !((BMap) result).containsKey(LINKS)) {
+            if (isStatusCodeResponse((BMap) result)) {
+                return hasJsonBodyWithoutLinks((BMap) result);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private void addLinksToStatusCodeResponse(Object result) {
+        ((BMap) ((BMap) result).get(BODY)).put(LINKS, links);
+    }
+
+    private void addLinksToPayload(Object result) {
+        if (result instanceof BMap) {
+            if (isStatusCodeResponse((BMap) result)) {
+                addLinksToStatusCodeResponse(result);
+            } else {
+                ((BMap) result).put(LINKS, links);
+            }
+        }
+    }
+
     @Override
     public void notifySuccess(Object result) {
         cleanupRequestMessage();
@@ -83,47 +120,16 @@ public class HttpCallableUnitCallback implements Callback {
             invokeErrorInterceptors((BError) result, true);
             return;
         }
-        returnResponse(result, checkAddingLinks(result));
-    }
-
-    private boolean checkAddingLinks(Object result) {
-        if (Objects.nonNull(links) && !links.isEmpty()) {
-            if (result instanceof BMap && !((BMap) result).containsKey(LINKS)) {
-                return checkAddingLinksToMap((BMap) result);
+        if (isLinksAvailableInResource() && isLinksSupportedInPayload(result)) {
+            try {
+                addLinksToPayload(result);
+                returnResponse(result, true);
+                return;
+            } catch (Exception ex) {
+                logger.error(ex.getMessage());
             }
         }
-        return false;
-    }
-
-    private boolean checkAddingLinksToMap(BMap result) {
-        try {
-            if (isStatusCodeResponse(result)) {
-                if (hasJsonBody(result)) {
-                    addLinksToStatusCodeResponse(result);
-                } else {
-                    return false;
-                }
-            } else {
-                result.put(LINKS, links);
-            }
-        } catch (Exception ex) {
-            logger.error(ex.getMessage());
-            return false;
-        }
-        return true;
-    }
-
-    private boolean isStatusCodeResponse(BMap result) {
-        return result.containsKey(STATUS) && result.get(STATUS) instanceof BObject;
-    }
-
-    private boolean hasJsonBody(BMap result) {
-        return result.containsKey(BODY) && result.get(BODY) instanceof BMap &&
-               !((BMap) result.get(BODY)).containsKey(LINKS);
-    }
-
-    private void addLinksToStatusCodeResponse(Object result) {
-        ((BMap) ((BMap) result).get(BODY)).put(LINKS, links);
+        returnResponse(result, false);
     }
 
     private void returnResponse(Object result, boolean isLinksAdded) {

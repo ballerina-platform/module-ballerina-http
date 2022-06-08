@@ -157,13 +157,15 @@ class HttpResourceValidator {
         }
         Node fieldValueNode = fieldValueExpression.get();
         if (fieldValueNode instanceof NameReferenceNode) {
-            linksMetaData.setNameReferenceObjects(true);
+            linksMetaData.markNameRefObjsAvailable();
             return;
         }
         String resourceName = getNodeString(fieldValueNode, false);
         String path = getRelativePathFromFunctionNode(member);
         String method = getNodeString(member.functionName(), false);
-        if (!linksMetaData.checkAddingLinkedResource(resourceName, path, method)) {
+        if (linksMetaData.isValidLinkedResource(resourceName, path)) {
+            linksMetaData.addLinkedResource(resourceName, path, method);
+        } else {
             reportInvalidResourceName(ctx, field.location(), resourceName);
         }
     }

@@ -29,12 +29,12 @@ import java.util.Map;
 public class LinksMetaData {
     Map<String, List<LinkedResource>> linkedResourcesMap;
     List<Map<String, LinkedToResource>> linkedToResourceMaps;
-    boolean hasNameReferenceObjects;
+    boolean nameRefObjsAvailable;
 
     public LinksMetaData() {
         this.linkedResourcesMap = new HashMap<>();
         this.linkedToResourceMaps = new ArrayList<>();
-        this.hasNameReferenceObjects = false;
+        this.nameRefObjsAvailable = false;
     }
 
     public Map<String, List<LinkedResource>> getLinkedResourcesMap() {
@@ -46,29 +46,32 @@ public class LinksMetaData {
     }
 
     public boolean hasNameReferenceObjects() {
-        return hasNameReferenceObjects;
+        return nameRefObjsAvailable;
     }
 
-    public void setNameReferenceObjects(boolean hasNameReferenceObjects) {
-        this.hasNameReferenceObjects = hasNameReferenceObjects;
+    public void markNameRefObjsAvailable() {
+        this.nameRefObjsAvailable = true;
     }
 
-    public boolean checkAddingLinkedResource(String resourceName, String path, String method) {
+    public boolean isValidLinkedResource(String resourceName, String path) {
         if (linkedResourcesMap.containsKey(resourceName)) {
             List<LinkedResource> linkedResources = linkedResourcesMap.get(resourceName);
             for (LinkedResource linkedResource : linkedResources) {
-                if (!linkedResource.getPath().equals(path)) {
-                    return false;
-                }
-                linkedResources.add(new LinkedResource(path, method));
-                break;
+                return linkedResource.getPath().equals(path);
             }
+        }
+        return true;
+    }
+
+    public void addLinkedResource(String resourceName, String path, String method) {
+        if (linkedResourcesMap.containsKey(resourceName)) {
+            List<LinkedResource> linkedResources = linkedResourcesMap.get(resourceName);
+            linkedResources.add(new LinkedResource(path, method));
         } else {
             List<LinkedResource> linkedResources = new ArrayList<>();
             linkedResources.add(new LinkedResource(path, method));
             linkedResourcesMap.put(resourceName, linkedResources);
         }
-        return true;
     }
 
     public void addLinkedToResourceMap(Map<String, LinkedToResource> linkedToResourceMap) {
