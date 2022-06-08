@@ -22,6 +22,7 @@ import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.TypedescType;
 import io.ballerina.runtime.api.types.UnionType;
+import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BTypedesc;
 
@@ -100,7 +101,8 @@ public abstract class AbstractPayloadBuilder {
     }
 
     public static boolean typeIncludedInUnion(BTypedesc unionType, BTypedesc targetType) {
-        int targetTypeTag = ((TypedescType) targetType.getDescribingType()).getConstraint().getTag();
+        Type baseType = TypeUtils.getReferredType(targetType.getDescribingType());
+        int targetTypeTag = ((TypedescType) baseType).getConstraint().getTag();
         Type unionTypeDescribingType = unionType.getDescribingType();
         if (unionTypeDescribingType.getTag() == TypeTags.UNION_TAG) {
             List<Type> memberTypes = ((UnionType) unionTypeDescribingType).getMemberTypes();
