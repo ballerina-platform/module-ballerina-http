@@ -21,6 +21,7 @@ package io.ballerina.stdlib.http.compiler;
 import io.ballerina.compiler.syntax.tree.Node;
 
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * Represents HTTP resource linked to a specific resource.
@@ -41,7 +42,7 @@ public class LinkedToResource {
     }
 
     public String getMethod() {
-        return method != null ? method.toUpperCase(Locale.getDefault()) : null;
+        return Objects.nonNull(method) ? method.toUpperCase(Locale.getDefault()) : null;
     }
 
     public Node getNode() {

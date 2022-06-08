@@ -61,6 +61,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -148,16 +149,6 @@ class HttpResourceValidator {
         }
     }
 
-    private static String getRelativePathFromFunctionNode(FunctionDefinitionNode member) {
-        NodeList<Node> nodes = member.relativeResourcePath();
-        String path = EMPTY;
-        for (Node node : nodes) {
-            String token = node instanceof ResourcePathParameterNode ? PARAM : getNodeString(node, true);
-            path = path.equals(EMPTY) ? getNodeString(node, true) : path + token;
-        }
-        return path;
-    }
-
     private static void validateResourceNameField(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
                                                   SpecificFieldNode field, LinksMetaData linksMetaData) {
         Optional<ExpressionNode> fieldValueExpression = field.valueExpr();
@@ -166,15 +157,25 @@ class HttpResourceValidator {
         }
         Node fieldValueNode = fieldValueExpression.get();
         if (fieldValueNode instanceof NameReferenceNode) {
-            linksMetaData.setNameReferenceObjects();
+            linksMetaData.setNameReferenceObjects(true);
             return;
         }
         String resourceName = getNodeString(fieldValueNode, false);
         String path = getRelativePathFromFunctionNode(member);
         String method = getNodeString(member.functionName(), false);
-        if (!linksMetaData.addLinkedResource(resourceName, path, method)) {
+        if (!linksMetaData.checkAddingLinkedResource(resourceName, path, method)) {
             reportInvalidResourceName(ctx, field.location(), resourceName);
         }
+    }
+
+    private static String getRelativePathFromFunctionNode(FunctionDefinitionNode member) {
+        NodeList<Node> nodes = member.relativeResourcePath();
+        String path = EMPTY;
+        for (Node node : nodes) {
+            String token = node instanceof ResourcePathParameterNode ? PARAM : getNodeString(node, true);
+            path = path.equals(EMPTY) ? getNodeString(node, true) : path + token;
+        }
+        return path;
     }
 
     private static void validateLinkedToFields(SyntaxNodeAnalysisContext ctx, SpecificFieldNode field,
@@ -228,7 +229,7 @@ class HttpResourceValidator {
                 default: break;
             }
         }
-        if (name != null) {
+        if (Objects.nonNull(name)) {
             if (linkedResources.containsKey(relation)) {
                 reportInvalidLinkRelation(ctx, node.location(), relation);
                 return;

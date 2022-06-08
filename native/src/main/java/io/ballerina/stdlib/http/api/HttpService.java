@@ -275,7 +275,7 @@ public class HttpService implements Service {
                 for (HttpResource resource : httpResources) {
                     linkedResource = getLinkedResource(link, linkedResource, resource);
                 }
-                if (linkedResource != null) {
+                if (Objects.nonNull(linkedResource)) {
                     setLinkToResource(httpService, targetResource, link, linkedResource);
                 } else {
                     String msg = "cannot find" + (link.getMethod() != null ? " " + link.getMethod()  : "") +
@@ -288,17 +288,18 @@ public class HttpService implements Service {
 
     private static HttpResource getLinkedResource(HttpResource.LinkedResourceInfo link, HttpResource linkedResource,
                                                   HttpResource resource) {
-        if (resource.getResourceLinkName() != null && resource.getResourceLinkName().equalsIgnoreCase(link.getName())) {
-            if (link.getMethod() != null) {
-                if (resource.getMethods() == null) {
-                    if (linkedResource == null) {
+        if (Objects.nonNull(resource.getResourceLinkName()) &&
+                resource.getResourceLinkName().equalsIgnoreCase(link.getName())) {
+            if (Objects.nonNull(link.getMethod())) {
+                if (Objects.isNull(resource.getMethods())) {
+                    if (Objects.isNull(linkedResource)) {
                         linkedResource = resource;
                     }
                 } else if (resource.getMethods().contains(link.getMethod())) {
                     linkedResource = resource;
                 }
             } else {
-                if (linkedResource == null) {
+                if (Objects.isNull(linkedResource)) {
                     linkedResource = resource;
                 } else {
                     throw HttpUtil.createHttpError("resource link generation failed: cannot resolve resource link " +
@@ -311,11 +312,11 @@ public class HttpService implements Service {
     }
 
     private static void validateResourceName(HttpResource targetResource, List<HttpResource> resources) {
-        if (targetResource.getResourceLinkName() == null) {
+        if (Objects.isNull(targetResource.getResourceLinkName())) {
             return;
         }
         for (HttpResource resource : resources) {
-            if (resource.getResourceLinkName() == null) {
+            if (Objects.isNull(resource.getResourceLinkName())) {
                 continue;
             }
             if (targetResource.getResourceLinkName().equalsIgnoreCase(resource.getResourceLinkName()) &&
@@ -331,18 +332,22 @@ public class HttpService implements Service {
                                           HttpResource.LinkedResourceInfo link, HttpResource linkedResource) {
         BMap<BString, Object> linkMap = ValueCreatorUtils.createHTTPRecordValue(HttpConstants.LINK);
         BString relation = fromString(link.getRelationship());
-        validateLinkRelationUniqueness(targetResource, relation);
+        if (targetResource.hasLinkedRelation(relation)) {
+            throw HttpUtil.createHttpError("resource link generation failed: cannot duplicate resource link relation:" +
+                                           " '" + relation.getValue() + "'", GENERIC_LISTENER_ERROR);
+        }
+        targetResource.addLinkedRelation(relation);
         linkMap.put(HttpConstants.LINK_REL, relation);
         BString href = fromString(linkedResource.getAbsoluteResourcePath());
         linkMap.put(HttpConstants.LINK_HREF, href);
         BArray methods = getMethodsBArray(linkedResource.getMethods());
         linkMap.put(HttpConstants.LINK_METHODS, methods);
         String returnMediaType = linkedResource.getReturnMediaType();
-        if (returnMediaType != null) {
-            if (httpService.getMediaTypeSubtypePrefix() != null) {
+        if (Objects.nonNull(returnMediaType)) {
+            if (Objects.nonNull(httpService.getMediaTypeSubtypePrefix())) {
                 String specificReturnMediaType = getMediaTypeWithPrefix(httpService.getMediaTypeSubtypePrefix(),
                                                                         returnMediaType);
-                if (specificReturnMediaType != null) {
+                if (Objects.nonNull(specificReturnMediaType)) {
                     returnMediaType = specificReturnMediaType;
                 }
             }
@@ -354,18 +359,11 @@ public class HttpService implements Service {
     }
 
     private static BArray getMethodsBArray(List<String> methods) {
-        if (methods == null) {
+        if (Objects.isNull(methods)) {
             methods = Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD");
         }
         List<BString> methodsAsBString = methods.stream().map(StringUtils::fromString).collect(Collectors.toList());
         return ValueCreator.createArrayValue(methodsAsBString.toArray(BString[]::new));
-    }
-
-    private static void validateLinkRelationUniqueness(HttpResource targetResource, BString relation) {
-        if (targetResource.hasLinkedRelation(relation)) {
-            throw HttpUtil.createHttpError("resource link generation failed: cannot duplicate resource link relation:" +
-                                           " '" + relation.getValue() + "'", GENERIC_LISTENER_ERROR);
-        }
     }
 
     private static void updateResourceTree(HttpService httpService, List<HttpResource> httpResources,

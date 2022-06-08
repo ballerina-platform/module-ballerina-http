@@ -44,6 +44,7 @@ import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import static io.ballerina.stdlib.http.compiler.Constants.BALLERINA;
@@ -126,7 +127,7 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
             List<LinkedResource> linkedResources =
                     linksMetaData.getLinkedResourcesMap().get(linkedToResource.getName());
             if (linkedResources.size() == 1) {
-                if (linkedToResource.getMethod() == null) {
+                if (Objects.isNull(linkedToResource.getMethod())) {
                     return;
                 } else if (linkedResources.get(0).getMethod().equalsIgnoreCase(DEFAULT) ||
                            linkedResources.get(0).getMethod().equals(linkedToResource.getMethod())) {
@@ -136,7 +137,7 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
                     return;
                 }
             }
-            if (linkedToResource.getMethod() == null) {
+            if (Objects.isNull(linkedToResource.getMethod())) {
                 reportUnresolvedLinkedResource(syntaxNodeAnalysisContext, linkedToResource);
                 return;
             }

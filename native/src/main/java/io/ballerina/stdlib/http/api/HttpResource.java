@@ -37,6 +37,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -126,11 +127,11 @@ public class HttpResource implements Resource {
     }
 
     public boolean hasLinkedRelation(BString relation) {
-        if (this.linkedRelations.contains(relation)) {
-            return true;
-        }
+        return this.linkedRelations.contains(relation);
+    }
+
+    public void addLinkedRelation(BString relation) {
         this.linkedRelations.add(relation);
-        return false;
     }
 
     @Override
@@ -268,11 +269,11 @@ public class HttpResource implements Resource {
         BMap resourceConfigAnnotation = getResourceConfigAnnotation(resource);
 
         if (checkConfigAnnotationAvailability(resourceConfigAnnotation)) {
-            if (resourceConfigAnnotation.getStringValue(NAME) != null) {
+            if (Objects.nonNull(resourceConfigAnnotation.getStringValue(NAME))) {
                 httpResource.setResourceLinkName(resourceConfigAnnotation.getStringValue(NAME).getValue());
             }
-            if (resourceConfigAnnotation.getArrayValue(LINKED_TO) != null) {
-                httpResource.processLinkedResources(resourceConfigAnnotation.getArrayValue(LINKED_TO).getValues());
+            if (Objects.nonNull(resourceConfigAnnotation.getArrayValue(LINKED_TO))) {
+                httpResource.updateLinkedResources(resourceConfigAnnotation.getArrayValue(LINKED_TO).getValues());
             }
             httpResource.setConsumes(
                     getAsStringList(resourceConfigAnnotation.getArrayValue(CONSUMES_FIELD).getStringArray()));
@@ -287,12 +288,12 @@ public class HttpResource implements Resource {
         return httpResource;
     }
 
-    private void processLinkedResources(Object[] links) {
+    private void updateLinkedResources(Object[] links) {
         for (Object link : links) {
             BMap linkMap = (BMap) link;
             String name = linkMap.getStringValue(NAME).getValue().toLowerCase(Locale.getDefault());
             String relation = linkMap.getStringValue(RELATION).getValue().toLowerCase(Locale.getDefault());
-            String method = linkMap.getStringValue(METHOD) != null ?
+            String method = Objects.nonNull(linkMap.getStringValue(METHOD)) ?
                             linkMap.getStringValue(METHOD).getValue().toUpperCase(Locale.getDefault()) : null;
             this.addLinkedResource(new LinkedResourceInfo(name, relation, method));
         }

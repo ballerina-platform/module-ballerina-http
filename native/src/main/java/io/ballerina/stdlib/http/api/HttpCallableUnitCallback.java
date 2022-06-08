@@ -30,6 +30,8 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
+
 import static io.ballerina.stdlib.http.api.HttpConstants.BODY;
 import static io.ballerina.stdlib.http.api.HttpConstants.LINKS;
 import static io.ballerina.stdlib.http.api.HttpConstants.OBSERVABILITY_CONTEXT_PROPERTY;
@@ -85,15 +87,15 @@ public class HttpCallableUnitCallback implements Callback {
     }
 
     private boolean checkAddingLinks(Object result) {
-        if (links != null && !links.isEmpty()) {
+        if (Objects.nonNull(links) && !links.isEmpty()) {
             if (result instanceof BMap && !((BMap) result).containsKey(LINKS)) {
-                return addLinksToMap((BMap) result);
+                return checkAddingLinksToMap((BMap) result);
             }
         }
         return false;
     }
 
-    private boolean addLinksToMap(BMap result) {
+    private boolean checkAddingLinksToMap(BMap result) {
         try {
             if (isStatusCodeResponse(result)) {
                 if (hasJsonBody(result)) {
@@ -128,11 +130,11 @@ public class HttpCallableUnitCallback implements Callback {
         Object[] paramFeed = new Object[8];
         paramFeed[0] = result;
         paramFeed[1] = true;
-        paramFeed[2] = returnMediaType != null ? StringUtils.fromString(returnMediaType) : null;
+        paramFeed[2] = Objects.nonNull(returnMediaType) ? StringUtils.fromString(returnMediaType) : null;
         paramFeed[3] = true;
         paramFeed[4] = cacheConfig;
         paramFeed[5] = true;
-        paramFeed[6] = links != null && !links.isEmpty() && !isLinksAdded ? links : null;
+        paramFeed[6] = Objects.nonNull(links) && !links.isEmpty() && !isLinksAdded ? links : null;
         paramFeed[7] = true;
 
         invokeBalMethod(paramFeed, "returnResponse");

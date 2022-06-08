@@ -19,6 +19,7 @@
 package io.ballerina.stdlib.http.compiler;
 
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * Represents HTTP resource with link properties.
@@ -37,6 +38,6 @@ public class LinkedResource {
     }
 
     public String getMethod() {
-        return method != null ? method.toUpperCase(Locale.getDefault()) : null;
+        return Objects.nonNull(method) ? method.toUpperCase(Locale.getDefault()) : null;
     }
 }

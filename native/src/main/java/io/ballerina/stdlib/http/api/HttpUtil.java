@@ -105,6 +105,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -382,11 +383,11 @@ public class HttpUtil {
 
     private static void setMediaTypeSubtypePrefix(String mediaTypeSubtypePrefix, HttpCarbonMessage responseMsg) {
         String existingMediaType = responseMsg.getHeader(HttpHeaderNames.CONTENT_TYPE.toString());
-        if (existingMediaType == null) {
+        if (Objects.isNull(existingMediaType)) {
             return;
         }
         String specificMediaType = getMediaTypeWithPrefix(mediaTypeSubtypePrefix, existingMediaType);
-        if (specificMediaType != null) {
+        if (Objects.nonNull(specificMediaType)) {
             responseMsg.setHeader(HttpHeaderNames.CONTENT_TYPE.toString(), specificMediaType);
         }
     }

@@ -49,11 +49,11 @@ public class LinksMetaData {
         return hasNameReferenceObjects;
     }
 
-    public void setNameReferenceObjects() {
-        this.hasNameReferenceObjects = true;
+    public void setNameReferenceObjects(boolean hasNameReferenceObjects) {
+        this.hasNameReferenceObjects = hasNameReferenceObjects;
     }
 
-    public boolean addLinkedResource(String resourceName, String path, String method) {
+    public boolean checkAddingLinkedResource(String resourceName, String path, String method) {
         if (linkedResourcesMap.containsKey(resourceName)) {
             List<LinkedResource> linkedResources = linkedResourcesMap.get(resourceName);
             for (LinkedResource linkedResource : linkedResources) {
