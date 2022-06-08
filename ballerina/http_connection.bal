@@ -263,8 +263,7 @@ isolated function addLinkHeader(Response response, map<Link>? links) {
 isolated function createLinkHeaderValue(map<Link>? links) returns string? {
     if links != () {
         string[] linkValues = from var [rel, link] in links.entries() select createLink(rel, link);
-        return linkValues.reduce(isolated function (string header, string linkValue) returns string { 
-            return header == "" ? linkValue:header + ", " + linkValue; }, "");
+        return string:'join(", ", ...linkValues);
     }
     return;
 }
