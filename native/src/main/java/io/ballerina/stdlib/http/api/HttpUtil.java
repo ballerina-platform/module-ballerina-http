@@ -133,6 +133,7 @@ import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_PRO
 import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_SESSION_TIMEOUT;
 import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_TRUSTSTORE_FILE_PATH;
 import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_TRUSTSTORE_PASSWORD;
+import static io.ballerina.stdlib.http.api.HttpConstants.SINGLE_SLASH;
 import static io.ballerina.stdlib.http.transport.contract.Constants.ENCODING_GZIP;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_1_1_VERSION;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_2_0_VERSION;
@@ -381,6 +382,9 @@ public class HttpUtil {
 
     private static void setMediaTypeSubtypePrefix(String mediaTypeSubtypePrefix, HttpCarbonMessage responseMsg) {
         String existingMediaType = responseMsg.getHeader(HttpHeaderNames.CONTENT_TYPE.toString());
+        if (existingMediaType == null) {
+            return;
+        }
         String specificMediaType = getMediaTypeWithPrefix(mediaTypeSubtypePrefix, existingMediaType);
         if (specificMediaType != null) {
             responseMsg.setHeader(HttpHeaderNames.CONTENT_TYPE.toString(), specificMediaType);
@@ -389,13 +393,11 @@ public class HttpUtil {
 
     public static String getMediaTypeWithPrefix(String mediaTypeSubtypePrefix, String existingMediaType) {
         String specificMediaType = null;
-        if (existingMediaType != null) {
-            int index = existingMediaType.indexOf(HttpConstants.SINGLE_SLASH);
-            if (index > 0) {
-                String[] mediaType = existingMediaType.split(HttpConstants.SINGLE_SLASH);
-                specificMediaType = mediaType[0] + HttpConstants.SINGLE_SLASH + mediaTypeSubtypePrefix +
-                        HttpConstants.PLUS + mediaType[1];
-            }
+        int index = existingMediaType.indexOf(SINGLE_SLASH);
+        if (index > 0) {
+            String[] mediaType = existingMediaType.split(SINGLE_SLASH);
+            specificMediaType = mediaType[0] + SINGLE_SLASH + mediaTypeSubtypePrefix +
+                    HttpConstants.PLUS + mediaType[1];
         }
         return specificMediaType;
     }
@@ -1363,7 +1365,7 @@ public class HttpUtil {
     }
 
     public static String sanitizeBasePath(String basePath) {
-        basePath = basePath.trim().replace(HttpConstants.DOUBLE_SLASH, HttpConstants.SINGLE_SLASH);
+        basePath = basePath.trim().replace(HttpConstants.DOUBLE_SLASH, SINGLE_SLASH);
 
         if (!basePath.startsWith(HttpConstants.DEFAULT_BASE_PATH)) {
             basePath = HttpConstants.DEFAULT_BASE_PATH.concat(basePath);

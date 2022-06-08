@@ -1,3 +1,19 @@
+// Copyright (c) 2022 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+//
+// WSO2 Inc. licenses this file to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file except
+// in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied. See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
 import ballerina/http;
 import ballerina/test;
 
@@ -22,7 +38,7 @@ function testDuplicateResourceName() {
     };
     error? err = hateoasRuntimeErrorServerEP.attach(duplicateResourceNameService, "service1");
     if err is error {
-        test:assertEquals(err.message(), "service registration failed: cannot duplicate resource name:" +
+        test:assertEquals(err.message(), "resource link generation failed: cannot duplicate resource link name:" +
                           " 'resource1' unless they have the same path");
     } else {
         test:assertFail("Found unexpected result");
@@ -52,7 +68,7 @@ function testDuplicateLinkRelation() {
     };
     error? err = hateoasRuntimeErrorServerEP.attach(duplicateResourceNameService, "service2");
     if err is error {
-        test:assertEquals(err.message(), "service registration failed: cannot duplicate resource relation:" +
+        test:assertEquals(err.message(), "resource link generation failed: cannot duplicate resource link relation:" +
                           " 'relation1'");
     } else {
         test:assertFail("Found unexpected result");
@@ -71,7 +87,7 @@ function testLinkedResourceNotFound() {
     };
     error? err = hateoasRuntimeErrorServerEP.attach(duplicateResourceNameService, "service3");
     if err is error {
-        test:assertEquals(err.message(), "service registration failed: cannot find resource with name:" +
+        test:assertEquals(err.message(), "resource link generation failed: cannot find resource with resource link name:" +
                           " 'resource1'");
     } else {
         test:assertFail("Found unexpected result");
@@ -97,8 +113,8 @@ function testLinkedResourceNotFoundWithMethod() {
     };
     error? err = hateoasRuntimeErrorServerEP.attach(duplicateResourceNameService, "service4");
     if err is error {
-        test:assertEquals(err.message(), "service registration failed: cannot find GET resource with name:" +
-                          " 'resource1'");
+        test:assertEquals(err.message(), "resource link generation failed: cannot find GET resource with resource link " +
+                          "name: 'resource1'");
     } else {
         test:assertFail("Found unexpected result");
     }
@@ -124,7 +140,7 @@ function testUnresolvedLinkedResource() {
     };
     error? err = hateoasRuntimeErrorServerEP.attach(duplicateResourceNameService, "service5");
     if err is error {
-        test:assertEquals(err.message(), "service registration failed: cannot resolve resource name: " +
+        test:assertEquals(err.message(), "resource link generation failed: cannot resolve resource link name: " +
                           "'resource1' since multiple occurrences found");
     } else {
         test:assertFail("Found unexpected result");

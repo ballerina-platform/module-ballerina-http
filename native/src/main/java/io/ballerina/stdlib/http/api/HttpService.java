@@ -49,7 +49,9 @@ import java.util.stream.Stream;
 
 import static io.ballerina.runtime.api.utils.StringUtils.fromString;
 import static io.ballerina.stdlib.http.api.HttpConstants.DEFAULT_BASE_PATH;
+import static io.ballerina.stdlib.http.api.HttpErrorType.GENERIC_LISTENER_ERROR;
 import static io.ballerina.stdlib.http.api.HttpUtil.checkConfigAnnotationAvailability;
+import static io.ballerina.stdlib.http.api.HttpUtil.getMediaTypeWithPrefix;
 
 /**
  * {@code HttpService} This is the http wrapper for the {@code Service} implementation.
@@ -268,7 +270,7 @@ public class HttpService implements Service {
 
     private static void processLinks(HttpService httpService, List<HttpResource> httpResources) {
         for (HttpResource targetResource : httpResources) {
-            for (HttpResource.LinkedResource link : targetResource.getLinkedResources()) {
+            for (HttpResource.LinkedResourceInfo link : targetResource.getLinkedResources()) {
                 HttpResource linkedResource = null;
                 for (HttpResource resource : httpResources) {
                     linkedResource = getLinkedResource(link, linkedResource, resource);
@@ -277,16 +279,16 @@ public class HttpService implements Service {
                     setLinkToResource(httpService, targetResource, link, linkedResource);
                 } else {
                     String msg = "cannot find" + (link.getMethod() != null ? " " + link.getMethod()  : "") +
-                                 " resource with name: '" + link.getName() + "'";
-                    throw new BallerinaConnectorException(msg);
+                                 " resource with resource link name: '" + link.getName() + "'";
+                    throw HttpUtil.createHttpError("resource link generation failed: " + msg, GENERIC_LISTENER_ERROR);
                 }
             }
         }
     }
 
-    private static HttpResource getLinkedResource(HttpResource.LinkedResource link, HttpResource linkedResource,
+    private static HttpResource getLinkedResource(HttpResource.LinkedResourceInfo link, HttpResource linkedResource,
                                                   HttpResource resource) {
-        if (resource.getResourceName() != null && resource.getResourceName().equalsIgnoreCase(link.getName())) {
+        if (resource.getResourceLinkName() != null && resource.getResourceLinkName().equalsIgnoreCase(link.getName())) {
             if (link.getMethod() != null) {
                 if (resource.getMethods() == null) {
                     if (linkedResource == null) {
@@ -299,8 +301,9 @@ public class HttpService implements Service {
                 if (linkedResource == null) {
                     linkedResource = resource;
                 } else {
-                    throw new BallerinaConnectorException("cannot resolve resource name: '" + link.getName()
-                                                          + "' since multiple occurrences found");
+                    throw HttpUtil.createHttpError("resource link generation failed: cannot resolve resource link " +
+                                                   "name: '" + link.getName() + "' since multiple occurrences found",
+                                                    GENERIC_LISTENER_ERROR);
                 }
             }
         }
@@ -308,24 +311,24 @@ public class HttpService implements Service {
     }
 
     private static void validateResourceName(HttpResource targetResource, List<HttpResource> resources) {
-        if (targetResource.getResourceName() == null) {
+        if (targetResource.getResourceLinkName() == null) {
             return;
         }
         for (HttpResource resource : resources) {
-            if (resource.getResourceName() == null) {
+            if (resource.getResourceLinkName() == null) {
                 continue;
             }
-            if (targetResource.getResourceName().equalsIgnoreCase(resource.getResourceName()) &&
+            if (targetResource.getResourceLinkName().equalsIgnoreCase(resource.getResourceLinkName()) &&
                     !targetResource.getResourcePathSignature().equals(resource.getResourcePathSignature())) {
-                throw new BallerinaConnectorException("cannot duplicate resource name: '" +
-                                                      targetResource.getResourceName() + "' unless they " +
-                                                      "have the same path");
+                throw HttpUtil.createHttpError("resource link generation failed: cannot duplicate resource link name:" +
+                                               " '" + targetResource.getResourceLinkName() + "' unless they have the " +
+                                               "same path", GENERIC_LISTENER_ERROR);
             }
         }
     }
 
     private static void setLinkToResource(HttpService httpService, HttpResource targetResource,
-                                          HttpResource.LinkedResource link, HttpResource linkedResource) {
+                                          HttpResource.LinkedResourceInfo link, HttpResource linkedResource) {
         BMap<BString, Object> linkMap = ValueCreatorUtils.createHTTPRecordValue(HttpConstants.LINK);
         BString relation = fromString(link.getRelationship());
         validateLinkRelationUniqueness(targetResource, relation);
@@ -335,14 +338,14 @@ public class HttpService implements Service {
         BArray methods = getMethodsBArray(linkedResource.getMethods());
         linkMap.put(HttpConstants.LINK_METHODS, methods);
         String returnMediaType = linkedResource.getReturnMediaType();
-        if (httpService.getMediaTypeSubtypePrefix() != null) {
-            String specificReturnMediaType = HttpUtil.getMediaTypeWithPrefix(httpService.getMediaTypeSubtypePrefix(),
-                                                                             returnMediaType);
-            if (specificReturnMediaType != null) {
-                returnMediaType = specificReturnMediaType;
-            }
-        }
         if (returnMediaType != null) {
+            if (httpService.getMediaTypeSubtypePrefix() != null) {
+                String specificReturnMediaType = getMediaTypeWithPrefix(httpService.getMediaTypeSubtypePrefix(),
+                                                                        returnMediaType);
+                if (specificReturnMediaType != null) {
+                    returnMediaType = specificReturnMediaType;
+                }
+            }
             BArray types = ValueCreator.createArrayValue(TypeCreator.createArrayType(PredefinedTypes.TYPE_STRING));
             types.append(fromString(returnMediaType));
             linkMap.put(HttpConstants.LINK_TYPES, types);
@@ -360,7 +363,8 @@ public class HttpService implements Service {
 
     private static void validateLinkRelationUniqueness(HttpResource targetResource, BString relation) {
         if (targetResource.hasLinkedRelation(relation)) {
-            throw new BallerinaConnectorException("cannot duplicate resource relation: '" + relation.getValue() + "'");
+            throw HttpUtil.createHttpError("resource link generation failed: cannot duplicate resource link relation:" +
+                                           " '" + relation.getValue() + "'", GENERIC_LISTENER_ERROR);
         }
     }
 

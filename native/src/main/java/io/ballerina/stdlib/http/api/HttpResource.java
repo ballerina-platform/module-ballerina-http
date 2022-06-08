@@ -65,9 +65,9 @@ public class HttpResource implements Resource {
             StringUtils.fromString(ModuleUtils.getHttpPackageIdentifier() + ":" + ANN_NAME_RESOURCE_CONFIG);
     private static final String RETURN_ANNOT_PREFIX = "$returns$";
 
-    private String name;
-    private List<LinkedResource> linkedResources = new ArrayList<>();
-    private BMap links = ValueCreator.createMapValue();
+    private String resourceLinkName;
+    private List<LinkedResourceInfo> linkedResources = new ArrayList<>();
+    private BMap<BString, Object> links = ValueCreator.createMapValue();
     private List<BString> linkedRelations = new ArrayList<>();
     private MethodType balResource;
     private List<String> methods;
@@ -101,37 +101,36 @@ public class HttpResource implements Resource {
 
     }
 
-    public String getResourceName() {
-        return name;
+    public String getResourceLinkName() {
+        return resourceLinkName;
     }
 
-    public void setResourceName(String name) {
-        this.name = name;
+    public void setResourceLinkName(String name) {
+        this.resourceLinkName = name;
     }
 
-    public List<LinkedResource> getLinkedResources() {
+    public List<LinkedResourceInfo> getLinkedResources() {
         return linkedResources;
     }
 
-    public void addLinkedResource(LinkedResource linkedResource) {
-        this.linkedResources.add(linkedResource);
+    public void addLinkedResource(LinkedResourceInfo linkedResourceInfo) {
+        this.linkedResources.add(linkedResourceInfo);
     }
 
     public void addLink(BString relation, BMap link) {
         this.links.put(relation, link);
     }
 
-    public BMap getLinks() {
+    public BMap<BString, Object> getLinks() {
         return this.links;
     }
 
     public boolean hasLinkedRelation(BString relation) {
         if (this.linkedRelations.contains(relation)) {
             return true;
-        } else {
-            this.linkedRelations.add(relation);
-            return false;
         }
+        this.linkedRelations.add(relation);
+        return false;
     }
 
     @Override
@@ -270,7 +269,7 @@ public class HttpResource implements Resource {
 
         if (checkConfigAnnotationAvailability(resourceConfigAnnotation)) {
             if (resourceConfigAnnotation.getStringValue(NAME) != null) {
-                httpResource.setResourceName(resourceConfigAnnotation.getStringValue(NAME).getValue());
+                httpResource.setResourceLinkName(resourceConfigAnnotation.getStringValue(NAME).getValue());
             }
             if (resourceConfigAnnotation.getArrayValue(LINKED_TO) != null) {
                 httpResource.processLinkedResources(resourceConfigAnnotation.getArrayValue(LINKED_TO).getValues());
@@ -289,12 +288,13 @@ public class HttpResource implements Resource {
     }
 
     private void processLinkedResources(Object[] links) {
-        for (Object link: links) {
-            String name = ((BMap) link).getStringValue(NAME).getValue().toLowerCase(Locale.getDefault());
-            String relation = ((BMap) link).getStringValue(RELATION).getValue().toLowerCase(Locale.getDefault());
-            String method = ((BMap) link).getStringValue(METHOD) != null ?
-                            ((BMap) link).getStringValue(METHOD).getValue().toUpperCase(Locale.getDefault()) : null;
-            this.addLinkedResource(new LinkedResource(name, relation, method));
+        for (Object link : links) {
+            BMap linkMap = (BMap) link;
+            String name = linkMap.getStringValue(NAME).getValue().toLowerCase(Locale.getDefault());
+            String relation = linkMap.getStringValue(RELATION).getValue().toLowerCase(Locale.getDefault());
+            String method = linkMap.getStringValue(METHOD) != null ?
+                            linkMap.getStringValue(METHOD).getValue().toUpperCase(Locale.getDefault()) : null;
+            this.addLinkedResource(new LinkedResourceInfo(name, relation, method));
         }
     }
 
@@ -391,8 +391,7 @@ public class HttpResource implements Resource {
     }
 
     public String getResourcePathSignature() {
-        String resourceNameSignature = this.getName();
-        return resourceNameSignature.replaceFirst("\\$[^\\$]*", "");
+        return this.getName().replaceFirst("\\$[^$]*", "");
     }
 
     // Followings added due to WebSub requirement
@@ -409,14 +408,14 @@ public class HttpResource implements Resource {
     }
 
     /**
-     * Linked resource implementation.
+     * Linked resource information.
      */
-    public static class LinkedResource {
+    public static class LinkedResourceInfo {
         private final String name;
         private final String relationship;
         private final String method;
 
-        public LinkedResource(String name, String relationship, String method) {
+        public LinkedResourceInfo(String name, String relationship, String method) {
             this.name = name;
             this.relationship = relationship;
             this.method = method;
