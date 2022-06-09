@@ -128,7 +128,7 @@ public isolated client class Caller {
     }
 
     private isolated function returnResponse(anydata|StatusCodeResponse|Response message, string? returnMediaType,
-        HttpCacheConfig? cacheConfig) returns ListenerError? {
+        HttpCacheConfig? cacheConfig, map<Link>? links) returns ListenerError? {
         Response response = new;
         boolean setETag = cacheConfig is () ? false: cacheConfig.setETag;
         boolean cacheCompatibleType = false;
@@ -176,6 +176,7 @@ public isolated client class Caller {
                 response.setLastModified();
             }
         }
+        addLinkHeader(response, links);
         return nativeRespond(self, response);
     }
 
@@ -248,6 +249,41 @@ isolated function retrieveMediaType(StatusCodeResponse resp, string? retrievedMe
         return retrievedMediaType;
     }
     return;
+}
+
+isolated function addLinkHeader(Response response, map<Link>? links) {
+    if !response.hasHeader("Link") {
+        string? headerValue = createLinkHeaderValue(links);
+        if headerValue is string {
+            response.addHeader("Link", headerValue);
+        }
+    }
+}
+
+isolated function createLinkHeaderValue(map<Link>? links) returns string? {
+    if links != () {
+        string[] linkValues = from var [rel, link] in links.entries() select createLink(rel, link);
+        return string:'join(", ", ...linkValues);
+    }
+    return;
+}
+
+isolated function createLink(string rel, Link link) returns string {
+    string header = string`<${link.href}>; rel="${rel}"`;
+    string[]? methods = link?.methods;
+    string[]? types = link?.types;
+    if methods !is () {
+        header += string`; methods="${arrayToString(methods)}"`;
+    }
+    if types !is () {
+        header += string`; types="${arrayToString(types)}"`;
+    }
+    return header;
+}
+
+isolated function arrayToString(string[] arr) returns string {
+    string arrayString = arr.toString();
+    return arrayString.substring(1, arrayString.length() - 1);
 }
 
 isolated function setPayload(anydata payload, Response response, string? mediaType = (), boolean setETag = false) {

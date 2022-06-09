@@ -36,14 +36,19 @@ import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
+import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
+import io.ballerina.compiler.syntax.tree.MappingFieldNode;
 import io.ballerina.compiler.syntax.tree.MetadataNode;
+import io.ballerina.compiler.syntax.tree.NameReferenceNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.ParameterNode;
 import io.ballerina.compiler.syntax.tree.PositionalArgumentNode;
 import io.ballerina.compiler.syntax.tree.RequiredParameterNode;
+import io.ballerina.compiler.syntax.tree.ResourcePathParameterNode;
 import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
@@ -53,25 +58,35 @@ import io.ballerina.tools.diagnostics.Location;
 import org.wso2.ballerinalang.compiler.diagnostic.properties.BSymbolicProperty;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_ANNOTATION_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_ANNOTATION_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_OBJ_NAME;
+import static io.ballerina.stdlib.http.compiler.Constants.EMPTY;
 import static io.ballerina.stdlib.http.compiler.Constants.FIELD_RESPONSE_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.GET;
 import static io.ballerina.stdlib.http.compiler.Constants.HEAD;
 import static io.ballerina.stdlib.http.compiler.Constants.HEADER_ANNOTATION_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.HEADER_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
+import static io.ballerina.stdlib.http.compiler.Constants.LINKED_TO;
+import static io.ballerina.stdlib.http.compiler.Constants.METHOD;
+import static io.ballerina.stdlib.http.compiler.Constants.NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.OPTIONS;
+import static io.ballerina.stdlib.http.compiler.Constants.PARAM;
 import static io.ballerina.stdlib.http.compiler.Constants.PAYLOAD_ANNOTATION_TYPE;
+import static io.ballerina.stdlib.http.compiler.Constants.RELATION;
 import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_CONTEXT_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.RESOURCE_CONFIG_ANNOTATION;
+import static io.ballerina.stdlib.http.compiler.Constants.SELF;
+import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.getNodeString;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.isAnyDataType;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.retrieveEffectiveTypeDesc;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.updateDiagnostic;
@@ -81,15 +96,17 @@ import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.updateDia
  */
 class HttpResourceValidator {
 
-    static void validateResource(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member) {
-        extractResourceAnnotationAndValidate(ctx, member);
+    static void validateResource(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
+                                 LinksMetaData linksMetaData) {
+        extractResourceAnnotationAndValidate(ctx, member, linksMetaData);
         extractInputParamTypeAndValidate(ctx, member, false);
         extractReturnTypeAndValidate(ctx, member);
         validateHttpCallerUsage(ctx, member);
     }
 
     private static void extractResourceAnnotationAndValidate(SyntaxNodeAnalysisContext ctx,
-                                                             FunctionDefinitionNode member) {
+                                                             FunctionDefinitionNode member,
+                                                             LinksMetaData linksMetaData) {
         Optional<MetadataNode> metadataNodeOptional = member.metadata();
         if (metadataNodeOptional.isEmpty()) {
             return;
@@ -101,10 +118,125 @@ class HttpResourceValidator {
             if (annotReference.kind() == SyntaxKind.QUALIFIED_NAME_REFERENCE) {
                 String[] strings = annotName.split(Constants.COLON);
                 if (RESOURCE_CONFIG_ANNOTATION.equals(strings[strings.length - 1].trim())) {
+                    validateLinksInResourceConfig(ctx, member, annotation, linksMetaData);
                     continue;
                 }
             }
             reportInvalidResourceAnnotation(ctx, annotReference.location(), annotName);
+        }
+    }
+
+    private static void validateLinksInResourceConfig(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
+                                                      AnnotationNode annotation, LinksMetaData linksMetaData) {
+        Optional<MappingConstructorExpressionNode> optionalMapping = annotation.annotValue();
+        if (optionalMapping.isEmpty()) {
+            return;
+        }
+        MappingConstructorExpressionNode mapping = optionalMapping.get();
+        for (MappingFieldNode field : mapping.fields()) {
+            if (field.kind() == SyntaxKind.SPECIFIC_FIELD) {
+                String fieldName = getNodeString(((SpecificFieldNode) field).fieldName(), true);
+                switch (fieldName) {
+                    case NAME:
+                        validateResourceNameField(ctx, member, (SpecificFieldNode) field, linksMetaData);
+                        break;
+                    case LINKED_TO:
+                        validateLinkedToFields(ctx, (SpecificFieldNode) field, linksMetaData);
+                        break;
+                    default: break;
+                }
+            }
+        }
+    }
+
+    private static void validateResourceNameField(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
+                                                  SpecificFieldNode field, LinksMetaData linksMetaData) {
+        Optional<ExpressionNode> fieldValueExpression = field.valueExpr();
+        if (fieldValueExpression.isEmpty()) {
+            return;
+        }
+        Node fieldValueNode = fieldValueExpression.get();
+        if (fieldValueNode instanceof NameReferenceNode) {
+            linksMetaData.markNameRefObjsAvailable();
+            return;
+        }
+        String resourceName = getNodeString(fieldValueNode, false);
+        String path = getRelativePathFromFunctionNode(member);
+        String method = getNodeString(member.functionName(), false);
+        if (linksMetaData.isValidLinkedResource(resourceName, path)) {
+            linksMetaData.addLinkedResource(resourceName, path, method);
+        } else {
+            reportInvalidResourceName(ctx, field.location(), resourceName);
+        }
+    }
+
+    private static String getRelativePathFromFunctionNode(FunctionDefinitionNode member) {
+        NodeList<Node> nodes = member.relativeResourcePath();
+        String path = EMPTY;
+        for (Node node : nodes) {
+            String token = node instanceof ResourcePathParameterNode ? PARAM : getNodeString(node, true);
+            path = path.equals(EMPTY) ? getNodeString(node, true) : path + token;
+        }
+        return path;
+    }
+
+    private static void validateLinkedToFields(SyntaxNodeAnalysisContext ctx, SpecificFieldNode field,
+                                               LinksMetaData linksMetaData) {
+        Optional<ExpressionNode> fieldValueExpression = field.valueExpr();
+        if (fieldValueExpression.isEmpty()) {
+            return;
+        }
+        Node fieldValueNode = fieldValueExpression.get();
+        Map<String, LinkedToResource> linkedResources = new HashMap<>();
+        if (!(fieldValueNode instanceof ListConstructorExpressionNode)) {
+            return;
+        }
+        for (Node node : ((ListConstructorExpressionNode) fieldValueNode).expressions()) {
+            populateLinkedToResources(ctx, linkedResources, node);
+        }
+        linksMetaData.addLinkedToResourceMap(linkedResources);
+    }
+
+    private static void populateLinkedToResources(SyntaxNodeAnalysisContext ctx,
+                                                  Map<String, LinkedToResource> linkedResources, Node node) {
+        if (!(node instanceof MappingConstructorExpressionNode)) {
+            return;
+        }
+        String name = null;
+        String method = null;
+        String relation = SELF;
+        for (Node fieldNode : ((MappingConstructorExpressionNode) node).fields()) {
+            if (!(fieldNode instanceof SpecificFieldNode)) {
+                continue;
+            }
+            String linkedToFieldName = getNodeString(((SpecificFieldNode) fieldNode).fieldName(), true);
+            Optional<ExpressionNode> linkedToFieldValueExpression = ((SpecificFieldNode) fieldNode).valueExpr();
+            if (linkedToFieldValueExpression.isEmpty()) {
+                continue;
+            }
+            Node linkedToFieldValue = linkedToFieldValueExpression.get();
+            if (linkedToFieldValue instanceof NameReferenceNode) {
+                break;
+            }
+            switch (linkedToFieldName) {
+                case NAME:
+                    name = getNodeString(linkedToFieldValue, false);
+                    break;
+                case RELATION:
+                    relation = getNodeString(linkedToFieldValue, false);
+                    break;
+                case METHOD:
+                    method = getNodeString(linkedToFieldValue, false);
+                    break;
+                default: break;
+            }
+        }
+        if (Objects.nonNull(name)) {
+            if (linkedResources.containsKey(relation)) {
+                reportInvalidLinkRelation(ctx, node.location(), relation);
+                return;
+            }
+            linkedResources.put(relation, new LinkedToResource(name, method, node));
         }
     }
 
@@ -903,5 +1035,15 @@ class HttpResourceValidator {
     private static void reportInvalidRecordFieldType(SyntaxNodeAnalysisContext ctx, Location location,
                                                      String paramName, String typeName) {
         updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_145, typeName, paramName);
+    }
+
+    private static void reportInvalidResourceName(SyntaxNodeAnalysisContext ctx, Location location,
+                                                  String resourceName) {
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_146, resourceName);
+    }
+
+    private static void reportInvalidLinkRelation(SyntaxNodeAnalysisContext ctx, Location location,
+                                                  String relation) {
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_147, relation);
     }
 }

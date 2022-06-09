@@ -176,13 +176,15 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
     }
 
     private void returnResponse(Object result) {
-        Object[] paramFeed = new Object[6];
+        Object[] paramFeed = new Object[8];
         paramFeed[0] = result;
         paramFeed[1] = true;
         paramFeed[2] = null;
         paramFeed[3] = true;
         paramFeed[4] = null;
         paramFeed[5] = true;
+        paramFeed[6] = null;
+        paramFeed[7] = true;
 
         invokeBalMethod(paramFeed, "returnResponse");
     }

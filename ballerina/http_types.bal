@@ -98,7 +98,7 @@ public type CommonClientConfiguration record {|
 # Represents a server-provided hyperlink
 public type Link record {
     # Names the relationship of the linked target to the current representation
-    string rel;
+    string rel?;
     # Target URL
     string href;
     # Expected resource representation media types
@@ -109,8 +109,18 @@ public type Link record {
 
 # Represents available server-provided links
 public type Links record {|
-    # Array of available links
-    Link[] links;
+    # Map of available links
+    map<Link> _links;
+|};
+
+public type LinkedTo record {|
+    # Name of the linked resource
+    string name;
+    # Name of the relationship between the linked resource and the current resource.
+    # Defaulted to the IANA link relation `self`
+    string relation = "self";
+    # Method allowed in the linked resource
+    string method?;
 |};
 
 # Represents the parsed header value details
