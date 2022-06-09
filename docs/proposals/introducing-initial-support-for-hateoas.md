@@ -1,3 +1,11 @@
+# Proposal: Introducing initial support for HATEOAS
+
+_Owners_: @shafreenAnfar @chamil321 @ayeshLK @TharmiganK  
+_Reviewers_: @nadeeshaan @chamil321 @TharmiganK    
+_Created_: 2022/06/09  
+_Updated_: 2022/06/09  
+_Issue_: [#2391](https://github.com/ballerina-platform/ballerina-standard-library/issues/2391)
+
 ## Summary
 
 Hypermedia As the Engine Of Application State (HATEOAS) is one of the key principles in REST though it is often ignored.
