@@ -341,6 +341,7 @@ function testIntTableDatabinding() returns error? {
 function testIntTableOrMapofIntArrayDatabinding() returns error? {
     table<map<int>>|map<int>[] response = check clientDBBackendClient->get("/anydataTest/intTableType");
     if response is map<int>[] {
+        test:assertTrue(response.length() >= 1, msg = "Response length is invalid");
         map<int> entry = response[0];
         int? val1 = entry["id"];
         int? val2 = entry["title"];
