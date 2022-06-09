@@ -1697,9 +1697,9 @@ service on new http:Listener(port) {
         // Create a link between this resource and "Payment" resource
         linkedTo: [{ name: "Payment", rel: "payment" }]
     }
-    resouce function post 'order(@http:Payload Order 'order) returns 
+    resource function post 'order(@http:Payload Order 'order) returns 
             http:Accepted|http:InternalServerError {
-        // Business logic
+        // some logic
     }
     
     @http:ResourceConfig {
@@ -1707,7 +1707,7 @@ service on new http:Listener(port) {
     }
     resource function put payment/[string id](@http:Payload Payment payment) returns 
             http:Ok|http:InternalServerError {
-        // Business logic
+        // some logic
     }
 }
 ```
@@ -1725,16 +1725,16 @@ service on new http:Listener(port) {
             { name: "Orders", rel: "remove",  method: "DELETE" }
         ]
     }
-    resouce function put orders/[string id](@http:Payload Order 'order) returns 
+    resource function put orders/[string id](@http:Payload Order 'order) returns 
             http:Ok|http:InternalServerError {
-        // Business logic
+        // some logic
     }
     
     @http:ResourceConfig {
         name : "Orders"
     }
     resource function delete orders/[string id]() returns http:Ok|http:InternalServerError {
-        // Business logic
+        // some logic
     }
 }
 ```
@@ -1768,8 +1768,8 @@ service on new http:Listener(port) {
     @http:ResourceConfig {
         linkedTo: [{ name: "Payment", rel: "payment" }]
     }
-    resouce function get orders/[string id]() returns Order|http:NotFound {
-        // Business logic
+    resource function get orders/[string id]() returns Order|http:NotFound {
+        // some logic
     }
     
     @http:ResourceConfig {
@@ -1777,7 +1777,7 @@ service on new http:Listener(port) {
     }
     resource function put payment/[string id](@http:Payload Payment payment) returns 
             http:Ok|http:InternalServerError {
-        // Business logic
+        // some logic
     }
 }
 ```
@@ -1804,9 +1804,9 @@ service on new http:Listener(port) {
     @http:ResourceConfig {
         linkedTo: [{ name: "Payment", rel: "payment" }]
     }
-    resouce function post order(@http:Payload Order 'order) returns 
+    resource function post order(@http:Payload Order 'order) returns 
             http:Accepted|http:InternalServerError {
-        // Business logic
+        // some logic
         // return http:Accepted without body
     }
     
@@ -1815,7 +1815,7 @@ service on new http:Listener(port) {
     }
     resource function put payment/[string id](@http:Payload Payment payment) returns 
             http:Ok|http:InternalServerError {
-        // Business logic
+        // some logic
     }
 }
 ```
@@ -1824,7 +1824,7 @@ The response will have the following header :
 link: "</payment/{id}>; rel=\"payment\"; methods=\"\"PUT\"\""
 ```
 
-The `Links` will not overwrite the payload or the header if the user has defined them already.
+The `Links` will not overwrite the payload or the header if the user has already added the links.
 
 ## 8. Interceptor and error handling
 ### 8.1 Interceptor
