@@ -31,7 +31,7 @@ API.
 You can see that there is a set of resources but to make sense out of it you have to read some document related to this 
 API. Now consider the same REST API with the Hypermedia constraint applied to it.
 
-<img width="1225" alt="Screen Shot 2022-06-10 at 9 06 32 AM" src="https://user-images.githubusercontent.com/63336800/172985817-13e63fef-ef33-465f-8bc5-78dd0cded70d.png">
+<img width="1225" alt="Screen Shot 2022-06-10 at 12 05 56 PM" src="https://user-images.githubusercontent.com/63336800/173005597-d08c052a-4cb6-46bf-9ec9-23b6e29df05b.png">
 
 Instantly, it changes the outlook of the API. API becomes self-descriptive and easy to make sense. There is no need to 
 read another document to understand it. Moving the API close to a Web like experience. There are other benefits that 
