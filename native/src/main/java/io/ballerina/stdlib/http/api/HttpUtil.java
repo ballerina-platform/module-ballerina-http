@@ -63,7 +63,6 @@ import io.ballerina.stdlib.http.transport.contract.exceptions.EndpointTimeOutExc
 import io.ballerina.stdlib.http.transport.contract.exceptions.PromiseRejectedException;
 import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorException;
 import io.ballerina.stdlib.http.transport.contract.exceptions.SslException;
-import io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpWsConnectorFactory;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.ConnectionManager;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.PoolConfiguration;
 import io.ballerina.stdlib.http.transport.message.Http2PushPromise;
@@ -1154,7 +1153,7 @@ public class HttpUtil {
     }
 
     public static HttpWsConnectorFactory createHttpWsConnectionFactory() {
-        return new DefaultHttpWsConnectorFactory();
+        return DefaultHttpWsConnectorFactoryHolder.getHttpConnectorFactory();
     }
 
     public static void checkAndObserveHttpRequest(Environment environment, HttpCarbonMessage message) {

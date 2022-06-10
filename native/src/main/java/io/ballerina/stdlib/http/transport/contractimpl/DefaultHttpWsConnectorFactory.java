@@ -49,9 +49,6 @@ import java.util.Map;
 
 import javax.net.ssl.SSLException;
 
-import static io.ballerina.stdlib.http.api.ThreadPerTaskExecutorFactory.getBossGroupThreadPerTaskExecutor;
-import static io.ballerina.stdlib.http.api.ThreadPerTaskExecutorFactory.getClientGroupThreadPerTaskExecutor;
-import static io.ballerina.stdlib.http.api.ThreadPerTaskExecutorFactory.getWorkerGroupThreadPerTaskExecutor;
 import static io.ballerina.stdlib.http.transport.contract.Constants.PIPELINING_THREAD_COUNT;
 import static io.ballerina.stdlib.http.transport.contract.Constants.PIPELINING_THREAD_POOL_NAME;
 
@@ -69,15 +66,15 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
 
     public DefaultHttpWsConnectorFactory() {
         int availableProcessors = Runtime.getRuntime().availableProcessors();
-        bossGroup = new NioEventLoopGroup(availableProcessors, getBossGroupThreadPerTaskExecutor());
-        workerGroup = new NioEventLoopGroup(availableProcessors * 2, getWorkerGroupThreadPerTaskExecutor());
-        clientGroup = new NioEventLoopGroup(availableProcessors * 2, getClientGroupThreadPerTaskExecutor());
+        bossGroup = new NioEventLoopGroup(availableProcessors);
+        workerGroup = new NioEventLoopGroup(availableProcessors * 2);
+        clientGroup = new NioEventLoopGroup(availableProcessors * 2);
     }
 
     public DefaultHttpWsConnectorFactory(int serverSocketThreads, int childSocketThreads, int clientThreads) {
-        bossGroup = new NioEventLoopGroup(serverSocketThreads, getBossGroupThreadPerTaskExecutor());
-        workerGroup = new NioEventLoopGroup(childSocketThreads, getWorkerGroupThreadPerTaskExecutor());
-        clientGroup = new NioEventLoopGroup(clientThreads, getClientGroupThreadPerTaskExecutor());
+        bossGroup = new NioEventLoopGroup(serverSocketThreads);
+        workerGroup = new NioEventLoopGroup(childSocketThreads);
+        clientGroup = new NioEventLoopGroup(clientThreads);
     }
 
     @Override
@@ -112,7 +109,7 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
             serverConnectorBootstrap.setPipeliningThreadGroup(pipeliningGroup);
         }
 
-        return serverConnectorBootstrap.getServerConnector(listenerConfig.getHost(), listenerConfig.getPort(), this);
+        return serverConnectorBootstrap.getServerConnector(listenerConfig.getHost(), listenerConfig.getPort());
     }
 
     private void setSslContext(ServerConnectorBootstrap serverConnectorBootstrap, SSLConfig sslConfig,
