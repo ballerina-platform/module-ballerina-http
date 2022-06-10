@@ -22,6 +22,7 @@ Disclaimer: Please note that some nitty gritty details of the API have been inte
 |--------------|-------------------------------------------------------------------------------------------------------|
 | room         | Refers to a resource that provides information about snowpeak rooms                                   |
 | reservation  | Indicates a resource where reservation is accepted                                                    |
+| status       | Identifies a resource that represents the context's status.                                           |
 | cancel       | Refers to a resource that can be used to cancel the link's context                                    |
 | edit         | Refers to a resource that can be used to edit the link's context                                      |
 | payment      | Indicates a resource where payment is accepted                                                        |
@@ -29,7 +30,7 @@ Disclaimer: Please note that some nitty gritty details of the API have been inte
 
 A link relation is a string attached to a hypermedia control, which describes the state transition that will occur if the client follows the link. Relation semantics basically explains why you should follow a particular link. 
 
-Note that *edit* and *payment* are [IANA registered relations](https://www.iana.org/assignments/link-relations/link-relations.xhtml)
+Note that *status*, *edit* and *payment* are [IANA registered relations](https://www.iana.org/assignments/link-relations/link-relations.xhtml)
 
 ## HTTP Idioms
 Before solving the challenge, it is expected that as a REST API user, you would understand the basic HTTP verbs such as GET, POST, PUT, DELETE, PATCH and HTTP response status codes such as 200 (OK), 201 (Created), 401 (Conflict), etc. 
@@ -62,36 +63,25 @@ Great, now there is some additional information to play with. Again, remember ou
    {
      "name": "Alps",
      "id": "l1000",
-     "address": "NC 29384, some place, switzerland",
-     "_links": {
-       "room": {
-         "href": "/snowpeak/locations/l1000/rooms",
-         "types": [
-           "application/vnd.snowpeak.resort+json"
-         ],
-         "methods": [
-           "GET"
-         ]
-       }
-     }
+     "address": "NC 29384, some place, switzerland"
    },
    {
      "name": "Pilatus",
      "id": "l2000",
-     "address": "NC 29444, some place, switzerland",
-     "_links": {
-       "room": {
-         "href": "/snowpeak/locations/l2000/rooms", 
-         "types": [
-           "application/vnd.snowpeak.resort+json"
-         ],
-         "methods": [
-           "GET"
-         ]
-       }
-     }
+     "address": "NC 29444, some place, switzerland"
    }
- ]
+ ],
+ "_links": {
+   "room": {
+     "href": "/snowpeak/locations/{id}/rooms", 
+     "types": [
+       "application/vnd.snowpeak.resort+json"
+     ],
+     "methods": [
+       "GET"
+     ]
+   }
+ } 
 }
 ```
 It seems as per the response Snowpeak offers two locations. If you are interested in taking the first option, as per the link section in the response, the next possible request is again a GET request to the given URL. The relation of the target URL is `room`, which basically hints that this is a link to GET room(s).
@@ -114,20 +104,57 @@ That looks like the next step to take or the link to activate/follow to reach ou
  ],
  "_links": {
    "reservation": {
-     "href": "/snowpeak/reservation",
+     "href": "/snowpeak/reservations",
      "types": [
        "application/vnd.snowpeak.resort+json"
      ],
      "methods": [
-       "PUT"
+       "POST"
      ]
    }
  }
 }
 ```
-It seems only DELUXE rooms are available but that is fine. The goal is to make a reservation for any room. This time the decision is quite straightforward as there is on target URL with relation `reservation` which probably indicates that you should follow the given link to achieve the goal. Unlike the previous two requests, in this case, the server is suggesting that you need to send a PUT request. Again for application semantics, let’s look for that target URL in swagger-editor.  
+It seems only DELUXE rooms are available but that is fine. The goal is to make a reservation for any room. This time the decision is quite straightforward as there is on target URL with relation `reservation` which probably indicates that you should follow the given link to achieve the goal. Unlike the previous two requests, in this case, the server is suggesting that you need to send a POST request. Again for application semantics, let’s look for that target URL in swagger-editor.  
 
 You will see that you have all the application semantic information to follow the target URL. In response, you should get the below response.
+> **Note:** From this state, rather than giving only the `status` relation, you can send all the links related to
+> `Reservation` state. We give only `status` relation to separate the states `Reservations` and `Reservation` for
+> better understanding
+
+```json
+{
+ "id": "re1000",
+ "expiryDate": "2021-07-01",
+ "lastUpdated": "2021-06-29T13:01:30Z",
+ "currency": "USD",
+ "total": 400,
+ "reservation": {
+   "reserveRooms": [
+     {
+       "id": "r1000",
+       "count": 2
+     }
+   ],
+   "startDate": "2021-08-01",
+   "endDate": "2021-08-03"
+ },
+ "state": "VALID",
+ "_links": {
+   "status": {
+     "href": "/snowpeak/reservations/{id}",
+     "types": [
+       "application/vnd.snowpeak.resort+json"
+     ],
+     "methods": [
+       "GET"
+     ]
+   }
+ }
+}
+```
+
+As in the representation, now you have a reservation ID. So, as the next step, let's follow the `status` link. Again, semantic details of the target URL can be found in the swagger-editor.
 
 ```json
 {
@@ -149,7 +176,7 @@ You will see that you have all the application semantic information to follow th
  "state": "VALID",
  "_links": {
    "cancel": {
-     "href": "/snowpeak/reservation/re1000",
+     "href": "/snowpeak/reservations/{id}",
      "types": [
        "application/vnd.snowpeak.resort+json"
      ],
@@ -158,7 +185,7 @@ You will see that you have all the application semantic information to follow th
      ]
    },
    "edit": {
-     "href": "/snowpeak/reservation/re1000",
+     "href": "/snowpeak/reservations/{id}",
      "types": [
        "application/vnd.snowpeak.resort+json"
      ],
@@ -167,7 +194,7 @@ You will see that you have all the application semantic information to follow th
      ]
    },
    "payment": {
-     "href": "/snowpeak/payment/re1000",
+     "href": "/snowpeak/payments/{id}",
      "types": [
        "application/vnd.snowpeak.resort+json"
      ],
@@ -178,7 +205,8 @@ You will see that you have all the application semantic information to follow th
  }
 }
 ```
-As in the representation, now you have a reservation ID. The server sends back an array of possible steps you can take. As the next step you can follow `cancel`, `edit` or `payment` options. In this case following the `payment` seems to be the right option as our goal is to reserve a room. So, as the next step, let's follow the `payment` link. Again, semantic details of the target URL can be found in the swagger-editor. 
+
+Now the server sends back an array of possible steps you can take. As the next step you can follow `cancel`, `edit` or`payment` options. In this case following the `payment` seems to be the right option as our goal is to reserve a room. So, as the next step, let's follow the `payment` link. Again, semantic details of the target URL can be found in the swagger-editor.
 
 Doing so should result in the below response. 
 
@@ -335,13 +363,18 @@ service /snowpeak on new http:Listener(port) {
    resource function get locations/[string id]/rooms(string startDate, string endDate)
                returns rep:Rooms|rep:SnowpeakInternalError {}
  
-   resource function put reservation(@http:Payload rep:Reservation reservation)
-               returns rep:ReservationCreated|rep:ReservationConflict|rep:SnowpeakInternalError {}
+  resource function post reservations(@http:Payload rep:Reservation reservation)
+              returns rep:ReservationCreated|rep:SnowpeakInternalError {}
+             
+  resource function get reservations/[string id]() returns rep:ReservationReceipt|rep:SnowpeakInternalError {}     
  
-   resource function delete reservation/[string id]() returns
+  resource function put reservations/[string id](@http:Payload rep:Reservation reservation)
+              returns rep:ReservationUpdated|rep:ReservationConflict|rep:SnowpeakInternalError {}
+
+  resource function delete reservations/[string id]() returns
                            rep:ReservationCanceled|rep:SnowpeakInternalError {}
  
-   resource function put payment/[string id](@http:Payload rep:Payment payment)
+  resource function put payments/[string id](@http:Payload rep:Payment payment)
                returns rep:PaymentCreated|rep:PaymentConflict|rep:SnowpeakInternalError {}
 }
 ```
@@ -386,10 +419,10 @@ In the event of an error the API returns a SnowpeakInternalError which is transl
 Let's look at something more interesting,
 
 ```ballerina
-resource function post reservation(@http:Payload Reservation reservation)
-               returns ReservationCreated|ReservationConflict|SnowpeakInternalError{}
+resource function post payments/[string id](@http:Payload rep:Payment payment)
+               returns rep:PaymentCreated|rep:PaymentConflict|rep:SnowpeakInternalError {}
 ```
-If you can remember the state diagram, it was depicting that unsafe and idempotent state transition is possible from rooms to reservation. As a result of this transition you need to create a new reservation resource. By now you know that the PUT verb is used to create a resource as well as update a resource. Therefore PUT is used as the accessor in front of the resource URL. There are three possible responses, one is `ReservationCreated`, `ReservationConflict` or `SnowpeakInternalError`, these responses are mapped in Ballerina as follows,
+If you can remember the state diagram, it was depicting that unsafe and idempotent state transition is possible from reservation to payment. As a result of this transition you need to create a new payment resource. By now you know that the PUT verb is used to create a resource as well as update a resource. Therefore, PUT is used as the accessor in front of the resource URL. There are three possible responses, one is `PaymentCreated`, `PaymentConflict` or `SnowpeakInternalError`, these responses are mapped in Ballerina as follows,
 
 ```ballerina
 type ReservationCreated record {|
@@ -407,7 +440,7 @@ public type SnowpeakInternalError record {|
    SnowpeakError body;
 |};
 ```
-Note: documentation is removed from the code just for brevity.
+> **Note:** documentation is removed from the code just for brevity.
  
 For each status code Ballerina provides a predefined type which can be used to create more specific subtypes. In this case we have created three new subtypes using the types http:Created, http:Conflict and http:InternalServerError. Not only doing so improves the readability of the code but also helps generate a meaningful OAS from the code.
 
@@ -451,7 +484,7 @@ type Links record {|
    Link[] links;
 |};
 ```
-Note: Documentation is stripped out for brevity.
+> **Note:** Documentation is stripped out for brevity.
 
 Now, when creating the value for Location record, you need to fill the `rel` and `href` fields. mediaTypes and actions fields are optional because this information could be retrieved from OAS as well. It is important to choose the right values for the `rel` field. It basically says why one should follow a given link. For IANA registered relations check [here](https://www.iana.org/assignments/link-relations/link-relations.xhtml). When extending this list it is usually a good practise to extend it under your domain. So that there won't be any conflicts of extended relations.
 
