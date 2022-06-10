@@ -18,7 +18,6 @@ import ballerina/http;
 
 # Represents location
 public type Location record {|
-    *http:Links;
     # Name of the location
     string name;
     # Unique identification of the location
@@ -68,7 +67,6 @@ public type Room record {|
 |};
 # Represents a collection of resort rooms
 public type Rooms record {|
-    *http:Links;
     # Array of rooms
     Room[] rooms;
 |};
@@ -91,7 +89,6 @@ public type Reservation record {|
 |};
 # Represents a receipt for the reservation
 public type ReservationReceipt record {|
-    *http:Links;
     # Unique identification of the receipt
     string id;
     # Expiry date in yyyy-mm-dd
@@ -114,23 +111,23 @@ public type SnowpeakError record {|
 |};
 # The response for successful reservation update
 public type ReservationUpdated record {|
-    *http:Ok; 
+    *http:Ok;
     # The payload for successful reservation update
     ReservationReceipt body;
 |};
 # The response for successful reservation creation
 public type ReservationCreated record {|
-    *http:Created; 
-    # The payload for successful reservation creation 
+    *http:Created;
+    # The payload for successful reservation creation
     ReservationReceipt body;
 |};
-# The response for the unsuccessful reservation creation 
+# The response for the unsuccessful reservation creation
 public type ReservationConflict record {|
-    *http:Conflict; 
+    *http:Conflict;
     # The payload for the unsuccessful reservation creation
     SnowpeakError body;
 |};
-# The response for the successful reservation cancelation 
+# The response for the successful reservation cancelation
 public type ReservationCanceled record {|
     *http:Ok;
     # The payload for the successful reservation deletion
@@ -146,12 +143,11 @@ public type Payment record {|
     # Expiration month of the card in mm
     int expiryMonth;
     # Expiaration year of the card in yyyy
-    int expiryYear; 
+    int expiryYear;
 |};
 
 # Reperesents receipt for the payment
 public type PaymentReceipt record {|
-    *http:Links;
     # Unique identification 
     string id;
     # Currency used in price

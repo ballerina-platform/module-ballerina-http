@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/http;
+import ballerina/regex;
 import 'client.representations as rep;
 
 public function main() returns error? {
@@ -29,7 +30,8 @@ public function main() returns error? {
     // get the available rooms
     string startDate = "2021-08-01";
     string endDate = "2021-08-01";
-    string targetUrl = string `${locations.locations[0].links[0].href}?startDate=${startDate}&endDate=${endDate}`;
+    string targetUrl = string `${regex:replace(string`${locations._links.get("room").href}`,
+                                               "\\{id}", locations.locations[0].id)}?startDate=${startDate}&endDate=${endDate}`;
     rep:Rooms rooms = check snowpeak->get(targetUrl);
 
     // make the reservation
@@ -43,7 +45,27 @@ public function main() returns error? {
         "startDate": "2021-08-01",
         "endDate": "2021-08-03"
     };
-    rep:ReservationReceipt recervationReciept = check snowpeak->put(rooms.links[0].href, reservation);
+    rep:ReservationReceipt reservationReceipt = check snowpeak->post(rooms._links.get("reservation").href, reservation);
+
+    // get the reservation
+    targetUrl = string `${regex:replace(string`${reservationReceipt._links.get("status").href}`,
+                                        "\\{id}", reservationReceipt.id)}`;
+    reservationReceipt = check snowpeak->get(targetUrl);
+
+    // update the reservation
+    reservation = {
+        "reserveRooms": [
+            {
+                "id": rooms.rooms[0].id,
+                "count": 3
+            }
+        ],
+        "startDate": "2021-08-01",
+        "endDate": "2021-08-03"
+    };
+    targetUrl = string `${regex:replace(string`${reservationReceipt._links.get("edit").href}`,
+                                        "\\{id}", reservationReceipt.id)}`;
+    rep:ReservationReceipt updatedReservationReceipt = check snowpeak->put(targetUrl, reservation);
 
     // do the payment
     rep:Payment payment = {
@@ -52,5 +74,7 @@ public function main() returns error? {
         "expiryMonth": 9,
         "expiryYear": 2033
     };
-    rep:PaymentReceipt paymentReceipt = check snowpeak->put(recervationReciept.links[2].href, payment);
+    targetUrl = string `${regex:replace(string`${updatedReservationReceipt._links.get("payment").href}`,
+                                        "\\{id}", updatedReservationReceipt.id)}`;
+    rep:PaymentReceipt paymentReceipt = check snowpeak->put(targetUrl, payment);
 }
