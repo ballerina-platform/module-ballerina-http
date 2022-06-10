@@ -120,7 +120,7 @@ This repository only contains the source code for the package.
 
    * [Oracle](https://www.oracle.com/java/technologies/javase-jdk11-downloads.html)
    
-   * [OpenJDK](https://adoptopenjdk.net/)
+   * [OpenJDK](https://adoptium.net/)
    
         > **Note:** Set the JAVA_HOME environment variable to the path name of the directory into which you installed JDK.
 
