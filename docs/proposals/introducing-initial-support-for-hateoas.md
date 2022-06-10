@@ -26,12 +26,12 @@ It also brings direction as to what might user could do next. Similar to Web pag
 dynamic along with this constraint. Consider the below diagram which represents a set of resources in a resort reservation
 API.
 
-![ResortReservationResources](https://user-images.githubusercontent.com/6178058/141685330-35ace274-5884-456a-a60c-325c03992744.png)
+<img width="1225" alt="Screen Shot 2022-06-10 at 9 10 33 AM" src="https://user-images.githubusercontent.com/63336800/172985777-2afcc8e2-435c-4d20-a409-35e764e29a89.png">
 
 You can see that there is a set of resources but to make sense out of it you have to read some document related to this 
 API. Now consider the same REST API with the Hypermedia constraint applied to it.
 
-![ResortReservationResourcesWithLinks](https://user-images.githubusercontent.com/6178058/141691384-e490d2a2-c431-40a6-89a9-1b6d5383e9b9.png)
+<img width="1225" alt="Screen Shot 2022-06-10 at 9 06 32 AM" src="https://user-images.githubusercontent.com/63336800/172985817-13e63fef-ef33-465f-8bc5-78dd0cded70d.png">
 
 Instantly, it changes the outlook of the API. API becomes self-descriptive and easy to make sense. There is no need to 
 read another document to understand it. Moving the API close to a Web like experience. There are other benefits that 
@@ -171,7 +171,7 @@ public type Location record {|
 ```
 ```ballerina
 public type Location record {|
-    *hateoas:Links;
+    *http:Links;
     string name;
     string id;
     string address;
