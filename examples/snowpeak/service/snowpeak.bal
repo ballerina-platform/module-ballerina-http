@@ -21,7 +21,7 @@ import 'service.mock;
 configurable int port = 9090;
 
 # A fake mountain resort
-@http:ServiceConfig { mediaTypeSubtypePrefix: "vnd.snowpeak.reservation", cors: { allowOrigins: ["*"] }}
+@http:ServiceConfig { mediaTypeSubtypePrefix: "vnd.snowpeak.resort", cors: { allowOrigins: ["*"] }}
 service /snowpeak on new http:Listener(port) {
 
     # Snowpeak locations resource
@@ -31,7 +31,8 @@ service /snowpeak on new http:Listener(port) {
         name: "Locations",
         linkedTo: [{ name: "Rooms", relation: "room" }]
     }
-    resource function get locations() returns @http:Cache rep:Locations|rep:SnowpeakInternalError {
+    resource function get locations() returns @http:Payload{mediaType: "application/json"}
+                @http:Cache rep:Locations|rep:SnowpeakInternalError {
         do {
             return check mock:getLocations();
         } on fail var e {
@@ -50,7 +51,7 @@ service /snowpeak on new http:Listener(port) {
         linkedTo: [{ name: "Reservations", relation: "reservation" }]
     }
     resource function get locations/[string id]/rooms(string startDate, string endDate)
-                returns rep:Rooms|rep:SnowpeakInternalError {
+                returns @http:Payload{mediaType: "application/json"} rep:Rooms|rep:SnowpeakInternalError {
         do {
             return check mock:getRooms(startDate, endDate);
         } on fail var e {
@@ -67,7 +68,7 @@ service /snowpeak on new http:Listener(port) {
         linkedTo: [{ name: "Reservation", relation: "status", method: "get" }]
     }
     resource function post reservations(@http:Payload rep:Reservation reservation)
-                returns rep:ReservationCreated|rep:SnowpeakInternalError {
+                returns @http:Payload{mediaType: "application/json"} rep:ReservationCreated|rep:SnowpeakInternalError {
         do {
             return check mock:createReservation(reservation);
         } on fail var e {
@@ -86,7 +87,8 @@ service /snowpeak on new http:Listener(port) {
             { name: "Payment", relation: "payment" }
         ]
     }
-    resource function get reservations/[string id]() returns rep:ReservationReceipt|rep:SnowpeakInternalError {
+    resource function get reservations/[string id]() returns @http:Payload{mediaType: "application/json"}
+                @http:Cache rep:ReservationReceipt|rep:SnowpeakInternalError {
         do {
             return check mock:getReservation();
         } on fail var e {
@@ -107,7 +109,7 @@ service /snowpeak on new http:Listener(port) {
         ]
     }
     resource function put reservations/[string id](@http:Payload rep:Reservation reservation)
-                returns rep:ReservationUpdated|rep:ReservationConflict|rep:SnowpeakInternalError {
+                returns @http:Payload{mediaType: "application/json"} rep:ReservationUpdated|rep:ReservationConflict|rep:SnowpeakInternalError {
         do {
             return check mock:updateReservation(id, reservation);
         } on fail var e {
@@ -122,7 +124,7 @@ service /snowpeak on new http:Listener(port) {
     @http:ResourceConfig {
         name: "Reservation"
     }
-    resource function delete reservations/[string id]() returns
+    resource function delete reservations/[string id]() returns @http:Payload{mediaType: "application/json"}
                             rep:ReservationCanceled|rep:SnowpeakInternalError {
         do {
             return check mock:cancelReservation(id);
@@ -140,7 +142,7 @@ service /snowpeak on new http:Listener(port) {
         name: "Payment"
     }
     resource function put payments/[string id](@http:Payload rep:Payment payment)
-                returns rep:PaymentCreated|rep:PaymentConflict|rep:SnowpeakInternalError {
+                returns @http:Payload{mediaType: "application/json"} rep:PaymentCreated|rep:PaymentConflict|rep:SnowpeakInternalError {
         do {
             return check mock:createPayment(id, payment);
         } on fail var e {

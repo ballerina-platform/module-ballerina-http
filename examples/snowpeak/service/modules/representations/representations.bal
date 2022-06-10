@@ -127,14 +127,14 @@ public type ReservationConflict record {|
     # The payload for the unsuccessful reservation creation
     SnowpeakError body;
 |};
-# The response for the successful reservation cancelation
+# The response for the successful reservation cancellation
 public type ReservationCanceled record {|
     *http:Ok;
     # The payload for the successful reservation deletion
     ReservationReceipt body;
 |};
 
-# Reperesents payement for rooms
+# Represents payment for rooms
 public type Payment record {|
     # Name of the card holder
     string cardholderName;
@@ -142,11 +142,11 @@ public type Payment record {|
     int cardNumber;
     # Expiration month of the card in mm
     int expiryMonth;
-    # Expiaration year of the card in yyyy
+    # Expiration year of the card in yyyy
     int expiryYear;
 |};
 
-# Reperesents receipt for the payment
+# Represents receipt for the payment
 public type PaymentReceipt record {|
     # Unique identification 
     string id;
