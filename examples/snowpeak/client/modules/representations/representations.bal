@@ -114,19 +114,19 @@ public type SnowpeakError record {|
 |};
 # The response for successful reservation update
 public type ReservationUpdated record {|
-    *http:Ok;
+    *http:Ok; 
     # The payload for successful reservation update
     ReservationReceipt body;
 |};
 # The response for successful reservation creation
 public type ReservationCreated record {|
-    *http:Created;
-    # The payload for successful reservation creation
+    *http:Created; 
+    # The payload for successful reservation creation 
     ReservationReceipt body;
 |};
-# The response for the unsuccessful reservation creation
+# The response for the unsuccessful reservation creation 
 public type ReservationConflict record {|
-    *http:Conflict;
+    *http:Conflict; 
     # The payload for the unsuccessful reservation creation
     SnowpeakError body;
 |};
@@ -146,7 +146,7 @@ public type Payment record {|
     # Expiration month of the card in mm
     int expiryMonth;
     # Expiration year of the card in yyyy
-    int expiryYear;
+    int expiryYear; 
 |};
 
 # Represents receipt for the payment
