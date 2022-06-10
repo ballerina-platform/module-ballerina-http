@@ -18,16 +18,16 @@ Disclaimer: Please note that some nitty gritty details of the API have been inte
 2. Relation semantics. The following are the relation semantics for this API.
 
 
-| Reations      | Description |
-| ----------- | ----------- |
-| room      | Refers to a resource that provides information about snowpeak rooms       |
-| reservation   | Indicates a resource where reservation is accepted        |
-| cancel| Refers to a resource that can be used to cancel the link's context |
-|edit| Refers to a resource that can be used to edit the link's context |
-|payment | Indicates a resource where payment is accepted|
-|service-desc| Identifies service description for the context that is primarily intended for consumption by machines|
+| Relations    | Description                                                                                           |
+|--------------|-------------------------------------------------------------------------------------------------------|
+| room         | Refers to a resource that provides information about snowpeak rooms                                   |
+| reservation  | Indicates a resource where reservation is accepted                                                    |
+| cancel       | Refers to a resource that can be used to cancel the link's context                                    |
+| edit         | Refers to a resource that can be used to edit the link's context                                      |
+| payment      | Indicates a resource where payment is accepted                                                        |
+| service-desc | Identifies service description for the context that is primarily intended for consumption by machines |
 
-A link relation is a string attached to a hypemedia control, which describes the state transition that will occur if the client follows the link. Relation semantics basically explains why you should follow a particular link. 
+A link relation is a string attached to a hypermedia control, which describes the state transition that will occur if the client follows the link. Relation semantics basically explains why you should follow a particular link. 
 
 Note that *edit* and *payment* are [IANA registered relations](https://www.iana.org/assignments/link-relations/link-relations.xhtml)
 
@@ -63,35 +63,33 @@ Great, now there is some additional information to play with. Again, remember ou
      "name": "Alps",
      "id": "l1000",
      "address": "NC 29384, some place, switzerland",
-     "links": [
-       {
-         "rel": "room",
+     "_links": {
+       "room": {
          "href": "/snowpeak/locations/l1000/rooms",
          "types": [
-           "applicaion/vnd.snowpeak.resort+json"
+           "application/vnd.snowpeak.resort+json"
          ],
          "methods": [
            "GET"
          ]
        }
-     ]
+     }
    },
    {
      "name": "Pilatus",
      "id": "l2000",
      "address": "NC 29444, some place, switzerland",
-     "links": [
-       {
-         "rel": "room",
-         "href": "/snowpeak/locations/l2000/rooms",
+     "_links": {
+       "room": {
+         "href": "/snowpeak/locations/l2000/rooms", 
          "types": [
-           "applicaion/vnd.snowpeak.resort+json"
+           "application/vnd.snowpeak.resort+json"
          ],
          "methods": [
            "GET"
          ]
        }
-     ]
+     }
    }
  ]
 }
@@ -114,18 +112,17 @@ That looks like the next step to take or the link to activate/follow to reach ou
      "count": 3
    }
  ],
- "links": [
-   {
-     "rel": "reservation",
+ "_links": {
+   "reservation": {
      "href": "/snowpeak/reservation",
      "types": [
-       "applicaion/vnd.snowpeak.resort+json"
+       "application/vnd.snowpeak.resort+json"
      ],
      "methods": [
        "PUT"
      ]
    }
- ]
+ }
 }
 ```
 It seems only DELUXE rooms are available but that is fine. The goal is to make a reservation for any room. This time the decision is quite straightforward as there is on target URL with relation `reservation` which probably indicates that you should follow the given link to achieve the goal. Unlike the previous two requests, in this case, the server is suggesting that you need to send a PUT request. Again for application semantics, let’s look for that target URL in swagger-editor.  
@@ -150,38 +147,35 @@ You will see that you have all the application semantic information to follow th
    "endDate": "2021-08-03"
  },
  "state": "VALID",
- "links": [
-   {
-     "rel": "cancel",
+ "_links": {
+   "cancel": {
      "href": "/snowpeak/reservation/re1000",
      "types": [
-       "applicaion/vnd.snowpeak.resort+json"
+       "application/vnd.snowpeak.resort+json"
      ],
      "methods": [
        "DELETE"
      ]
    },
-   {
-     "rel": "edit",
+   "edit": {
      "href": "/snowpeak/reservation/re1000",
      "types": [
-       "applicaion/vnd.snowpeak.resort+json"
+       "application/vnd.snowpeak.resort+json"
      ],
      "methods": [
        "PUT"
      ]
    },
-   {
-     "rel": "payment",
+   "payment": {
      "href": "/snowpeak/payment/re1000",
      "types": [
-       "applicaion/vnd.snowpeak.resort+json"
+       "application/vnd.snowpeak.resort+json"
      ],
      "methods": [
        "PUT"
      ]
    }
- ]
+ }
 }
 ```
 As in the representation, now you have a reservation ID. The server sends back an array of possible steps you can take. As the next step you can follow `cancel`, `edit` or `payment` options. In this case following the `payment` seems to be the right option as our goal is to reserve a room. So, as the next step, let's follow the `payment` link. Again, semantic details of the target URL can be found in the swagger-editor. 
@@ -205,8 +199,7 @@ Doing so should result in the below response.
      "price": 200,
      "count": 1
    }
- ],
- "links": []
+ ]
 }
 ```
 Above 200 - OK response with room status RESERVED basically lets us know that the room is reserved. Also, as in the previous representation, the server has not sent links to follow. This means we have completed the business workflow. In other words, you have successfully achieved the goal.  
@@ -243,11 +236,11 @@ Also it is good to remind ourselves of the technology stack of the Web as REST A
 
 ![image](_resources/web-tech-stack.png)
 
-URL is used to uniquely identify and address a resource. HTTP is used to describe how to interact with a resource. Hypemedia is used to present what comes next.
+URL is used to uniquely identify and address a resource. HTTP is used to describe how to interact with a resource. Hypermedia is used to present what comes next.
 
 ## So-Called REST APIs
 
-Ever since the REST architecture pattern was introduced by Roy Fielding in 2000, there has been a massive adoption. People started with RPC and then moved on to use vendor neutral SOAP based web services. Many of those SOAP based web services were converted into REST APIs. Single URL SOAP based web services with multiple SOAP actions were converted into REST APIs with multiple URLs and multiple verbs. However, people didn’t really go all the way and finish off their REST APIs with HATEOAS. A key constraint that is often ignored. The same applies for the newly built so-called REST APIs as well. Therefore many REST APIs out there are not actually REST APIs. In fact, to make matters worse over time people started using the term “REST” to describe all the none-SOAP services.
+Ever since the REST architecture pattern was introduced by Roy Fielding in 2000, there has been a massive adoption. People started with RPC and then moved on to use vendor neutral SOAP based web services. Many of those SOAP based web services were converted into REST APIs. Single URL SOAP based web services with multiple SOAP actions were converted into REST APIs with multiple URLs and multiple verbs. However, people didn’t really go all the way and finish off their REST APIs with HATEOAS. A key constraint that is often ignored. The same applies for the newly built so-called REST APIs as well. Therefore, many REST APIs out there are not actually REST APIs. In fact, to make matters worse over time people started using the term “REST” to describe all the none-SOAP services.
 
 Roy Fielding noticed that many are actually calling those types of APIs as REST APIs. [Here](https://roy.gbiv.com/untangled/2008/rest-apis-must-be-hypertext-driven) is what he had to say about it. Therefore, most APIs out there are actually not REST APIs, we are better off calling them maybe Web APIs. Anyway, maybe this is what happens when you come up with a good set of principles but don't bother to enforce them.
 
@@ -305,7 +298,7 @@ public type Locations record {|
 
 Location has three fields: name, id and address. Each field is documented along with the Location record. Documentation is very important because it helps readers of the code to understand the code better and at the same time it helps API users understand the API as this documentation is mapped into OpenAPI documentation as descriptions. Many developers tend to think of documentation as a second class thing but it is not.
 
-`*http:Links` syntax basically copies fields in the Links record to Location record. Links record is simply an array of Link records that basically have all the fields related to hyperlinks. 
+`*http:Links` syntax basically copies fields in the Links record to Location record. Links record is simply an array of Link records that basically have all the fields related to the hyperlinks. 
 
 Likewise for each representation which goes back and forth between the client and server, there is a defined record. Check the [representation](https://github.com/ballerina-platform/module-ballerina-http/tree/example2/examples/snowpeak/service/modules/representations) module for more information.
 
@@ -320,7 +313,7 @@ However, the purpose of a media type is to provide application semantics. Applic
 Domain specific media-type prefix can be configured in Ballerina HTTP services as follows.
 
 ```ballerina
-@http:ServiceConfig { mediaTypeSubtypePrefix: "vnd.snowpeak.reservation" }
+@http:ServiceConfig { mediaTypeSubtypePrefix: "vnd.snowpeak.resort" }
 service /snowpeak on new http:Listener(port) {}
 ```
 
@@ -363,23 +356,23 @@ There is a popular fallacy that URLs need to be meaningful and well-designed. Bu
 ### Adding Protocol Semantics to Resources
 Now that we have defined resource representations, resources and URLs as the next step we can add protocol semantics. Since HTTP is the de facto transport protocol for REST, protocol semantics are tightly coupled to HTTP idioms. For any given REST API the operations are fixed. However, those fixed number of operations can be used to implement an infinite number of REST APIs. Basic CRUD (Create, Read, Update, Delete) operations are mapped into HTTP verbs. Following are the HTTP verbs and it is protocol semantics.
 
-|Verb|Sementics|
-|-|-|
-|GET|Lets you retrieve a resource representation. GET requests are always safe and subject to caching. Since it is safe it is idempotent as well|
-|POST| Lets you create a new resource or append a new resource to a collection of resources|
-|PUT|Lets you create a new resource or update an existing resource|
-|PATCH|Lets you partially update an existing resource whereas PUT update the entire resource|
-|DELETE|Lets you delete a resource|
+| Verb   | Semantics                                                                                                                                   |
+|--------|---------------------------------------------------------------------------------------------------------------------------------------------|
+| GET    | Lets you retrieve a resource representation. GET requests are always safe and subject to caching. Since it is safe it is idempotent as well |
+| POST   | Lets you create a new resource or append a new resource to a collection of resources                                                        |
+| PUT    | Lets you create a new resource or update an existing resource                                                                               |
+| PATCH  | Lets you partially update an existing resource whereas PUT update the entire resource                                                       |
+| DELETE | Lets you delete a resource                                                                                                                  |
 
 HEAD and OPTIONS verbs are used to introspect resources. Also note that LINK and UNLINK verbs are no longer used officially. 
 
 At the same it is expected to make sense of HTTP response status codes such as,
 
-Success - 200 (OK), 201 (Created), 202 (Accepted), etc
-Client Failure - 401 (Unauthorized), 409 (Conflict), 405 (Method not allowed), etc 
+Success - 200 (OK), 201 (Created), 202 (Accepted), etc.
+Client Failure - 401 (Unauthorized), 409 (Conflict), 405 (Method not allowed), etc. 
 Server Failure - 500 (Internal server error), 502 (Gateway timeout), etc
 
-This is what `uniform interface` constraint means. It basically means we should only have a small number of operations(verbs) with well defined and widely accepted semantics. These operations can be used to build any type of distributed application.
+This is what `uniform interface` constraint means. It basically means we should only have a small number of operations(verbs) with well-defined and widely accepted semantics. These operations can be used to build any type of distributed application.
 
 All right now that you have some idea about protocol semantics, let’s see how it is added in Ballerina. Ballerina lets you add operations/accessors just before the resource path. For example, consider the following,
 
@@ -460,7 +453,7 @@ type Links record {|
 ```
 Note: Documentation is stripped out for brevity.
 
-Now, when creating the value for Location record, you need to fill the `rel` and `href` fields. mediaTypes and actions fields are optional because those information could be retrieved from OAS as well. It is important to choose the right values for the `rel` field. It basically says why one should follow a given link. For IANA registered relations check [here](https://www.iana.org/assignments/link-relations/link-relations.xhtml). When extending this list it is usually a good practise to extend it under your domain. So that there won't be any conflicts of extended relations.
+Now, when creating the value for Location record, you need to fill the `rel` and `href` fields. mediaTypes and actions fields are optional because this information could be retrieved from OAS as well. It is important to choose the right values for the `rel` field. It basically says why one should follow a given link. For IANA registered relations check [here](https://www.iana.org/assignments/link-relations/link-relations.xhtml). When extending this list it is usually a good practise to extend it under your domain. So that there won't be any conflicts of extended relations.
 
 ### Data Modeling with Hyperlinks
 Also note that the same links could be used for data modeling as well, which helps load information as lazily as possible. In case you have large representations, you may be able to partition it into more granular representations and then refer to those from the original representation using links. Doing so could result in more fine grained and cache friendly resource representations. 
@@ -473,10 +466,10 @@ Well you might think having to send multiple requests back and forth to get all 
 Alright now you know how to design and implement a good REST API using Ballerina. But we haven’t still discussed Caching and Statelessness which play a key role in REST APIs. Safe (which is also idempotent) requests can be cached by proxy-servers, CDNs, clients, etc. This is possible mainly because of the well-defined verbs that are there in HTTP. In other words any response for GET requests can be instructed to cache on the client side. This allows the REST APIs to scale well just like the web does. Here is how you can configure caching in Ballerina.
 
 ```ballerina
-resource function get locations() returns @CacheControl Location[]{}
+resource function get locations() returns @Cache Location[]{}
 ```
 
-There are things you configure in @CachControl annotation. For more information see the API docs.
+There are things you configure in @Cache annotation. For more information see the API docs.
 
 #### Statelessness 
 When it comes to REST APIs stateless means, API implementation should not maintain client state. In other words, all the client state is with the client. Client needs to send the state back and forth as needed. Therefore, each client request does not depend on the previous client request. This again helps the RESP APIs to scale. 
