@@ -33,8 +33,8 @@ service on new http:Listener(9090) {
     @http:ResourceConfig {
         name: "Resource1",
         linkedTo: [
-            {name: "resource1", method: "POST"},
-            {name: "resource3", method: "get", relation: "get"},
+            {name: "resource1", method: http:POST},
+            {name: "resource3", method: http:GET, relation: "get"},
             {name: "resource3", method: "post", relation: "add"}
         ]
     }

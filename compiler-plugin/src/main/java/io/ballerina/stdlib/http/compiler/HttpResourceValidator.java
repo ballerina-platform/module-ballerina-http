@@ -205,6 +205,7 @@ class HttpResourceValidator {
         String name = null;
         String method = null;
         String relation = SELF;
+        boolean nameRefMethodAvailable = false;
         for (Node fieldNode : ((MappingConstructorExpressionNode) node).fields()) {
             if (!(fieldNode instanceof SpecificFieldNode)) {
                 continue;
@@ -216,7 +217,12 @@ class HttpResourceValidator {
             }
             Node linkedToFieldValue = linkedToFieldValueExpression.get();
             if (linkedToFieldValue instanceof NameReferenceNode) {
-                break;
+                if (!linkedToFieldName.equals(METHOD)) {
+                    break;
+                } else {
+                    nameRefMethodAvailable = true;
+                    continue;
+                }
             }
             switch (linkedToFieldName) {
                 case NAME:
@@ -236,7 +242,7 @@ class HttpResourceValidator {
                 reportInvalidLinkRelation(ctx, node.location(), relation);
                 return;
             }
-            linkedResources.put(relation, new LinkedToResource(name, method, node));
+            linkedResources.put(relation, new LinkedToResource(name, method, node, nameRefMethodAvailable));
         }
     }
 

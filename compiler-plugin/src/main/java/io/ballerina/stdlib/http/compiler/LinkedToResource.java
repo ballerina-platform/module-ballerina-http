@@ -30,11 +30,13 @@ public class LinkedToResource {
     private final String name;
     private final String method;
     private Node node;
+    boolean nameRefMethodAvailable;
 
-    public LinkedToResource(String name, String method, Node node) {
+    public LinkedToResource(String name, String method, Node node, boolean nameRefMethodAvailable) {
         this.name = name;
         this.method = method;
         this.node = node;
+        this.nameRefMethodAvailable = nameRefMethodAvailable;
     }
 
     public String getName() {
@@ -47,5 +49,9 @@ public class LinkedToResource {
 
     public Node getNode() {
         return node;
+    }
+
+    public boolean hasNameRefMethodAvailable() {
+        return this.nameRefMethodAvailable;
     }
 }
