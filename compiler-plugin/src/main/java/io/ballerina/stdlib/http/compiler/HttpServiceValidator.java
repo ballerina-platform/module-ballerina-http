@@ -115,7 +115,9 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
         if (!linksMetaData.hasNameReferenceObjects()) {
             for (Map<String, LinkedToResource> linkedToResourceMap : linksMetaData.getLinkedToResourceMaps()) {
                 for (LinkedToResource linkedToResource : linkedToResourceMap.values()) {
-                    checkLinkedResourceExistence(syntaxNodeAnalysisContext, linksMetaData, linkedToResource);
+                    if (!linkedToResource.hasNameRefMethodAvailable()) {
+                        checkLinkedResourceExistence(syntaxNodeAnalysisContext, linksMetaData, linkedToResource);
+                    }
                 }
             }
         }
