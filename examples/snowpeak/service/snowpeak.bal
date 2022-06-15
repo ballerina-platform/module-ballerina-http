@@ -65,32 +65,16 @@ service /snowpeak on new http:Listener(port) {
     # + return - `ReservationCreated` or `SnowpeakError` representation
     @http:ResourceConfig {
         name: "Reservations",
-        linkedTo: [{ name: "Reservation", relation: "status", method: "get" }]
-    }
-    resource function post reservations(@http:Payload rep:Reservation reservation)
-                returns @http:Payload{mediaType: "application/json"} rep:ReservationCreated|rep:SnowpeakInternalError {
-        do {
-            return check mock:createReservation(reservation);
-        } on fail var e {
-            return <rep:SnowpeakInternalError>{ body: { msg: e.toString() }};
-        }
-    }
-
-    # Snowpeak reservation resource
-    #
-    # + return - `ReservationReceipt` or `SnowpeakError` representation
-    @http:ResourceConfig {
-        name: "Reservation",
         linkedTo: [
             { name: "Reservation", relation: "edit", method: "put" },
             { name: "Reservation", relation: "cancel", method: "delete" },
             { name: "Payment", relation: "payment" }
         ]
     }
-    resource function get reservations/[string id]() returns @http:Payload{mediaType: "application/json"}
-                @http:Cache rep:ReservationReceipt|rep:SnowpeakInternalError {
+    resource function put reservations(@http:Payload rep:Reservation reservation)
+                returns @http:Payload{mediaType: "application/json"} rep:ReservationCreated|rep:ReservationConflict|rep:SnowpeakInternalError {
         do {
-            return check mock:getReservation();
+            return check mock:createReservation(reservation);
         } on fail var e {
             return <rep:SnowpeakInternalError>{ body: { msg: e.toString() }};
         }
@@ -103,8 +87,7 @@ service /snowpeak on new http:Listener(port) {
     @http:ResourceConfig {
         name: "Reservation",
         linkedTo: [
-            { name: "Reservation", relation: "status", method: "get" },
-            { name: "Reservation", relation: "edit", method: "put" },
+            { name: "Reservation", relation: "cancel", method: "delete" },
             { name: "Payment", relation: "payment" }
         ]
     }

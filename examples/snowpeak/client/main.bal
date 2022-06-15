@@ -45,12 +45,7 @@ public function main() returns error? {
         "startDate": "2021-08-01",
         "endDate": "2021-08-03"
     };
-    rep:ReservationReceipt reservationReceipt = check snowpeak->post(rooms._links.get("reservation").href, reservation);
-
-    // get the reservation
-    targetUrl = string `${regex:replace(string`${reservationReceipt._links.get("status").href}`,
-                                        "\\{id}", reservationReceipt.id)}`;
-    reservationReceipt = check snowpeak->get(targetUrl);
+    rep:ReservationReceipt reservationReceipt = check snowpeak->put(rooms._links.get("reservation").href, reservation);
 
     // update the reservation
     reservation = {

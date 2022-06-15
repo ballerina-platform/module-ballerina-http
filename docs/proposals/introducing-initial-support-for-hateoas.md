@@ -26,12 +26,12 @@ It also brings direction as to what might user could do next. Similar to Web pag
 dynamic along with this constraint. Consider the below diagram which represents a set of resources in a resort reservation
 API.
 
-![resources](https://user-images.githubusercontent.com/63336800/173050259-9a24eaef-0fbf-41ff-9568-587de8557c3f.png)
+![make-a-reservation-states](https://user-images.githubusercontent.com/63336800/173808358-365774ad-fd43-4dd5-82ef-b2bdb9830351.png)
 
 You can see that there is a set of resources but to make sense out of it you have to read some document related to this 
 API. Now consider the same REST API with the Hypermedia constraint applied to it.
 
-![resources-with-links](https://user-images.githubusercontent.com/63336800/173050225-122ed4ee-b24a-4718-adbe-6bd7211b5bb2.png)
+![make-a-reservation-state-diagram](https://user-images.githubusercontent.com/63336800/173808478-5e7fefa8-ed59-4847-83ca-d60e7bfada10.png)
 
 Instantly, it changes the outlook of the API. API becomes self-descriptive and easy to make sense. There is no need to 
 read another document to understand it. Moving the API close to a Web like experience. There are other benefits that 
@@ -89,7 +89,7 @@ additionally specify the linked resource method.
 service /snowpeak on new http:Listener(port) {
 
     @http:ResourceConfig {
-        name: "Reservations",
+        name: "Reservation",
         linkedTo: [ 
              { names: "Payments", relation: "payment" },
              { names: "Reservations", relation: "edit", method: "put" },
@@ -102,7 +102,7 @@ service /snowpeak on new http:Listener(port) {
     }
 
     @http:ResourceConfig {
-        name: "Reservations"
+        name: "Reservation"
     }
     resource function delete reservations/[string id]() returns 
                             rep:ReservationCanceled|rep:SnowpeakInternalError {
@@ -110,7 +110,7 @@ service /snowpeak on new http:Listener(port) {
     }
     
     @http:ResourceConfig {
-        name: "Payments"
+        name: "Payment"
     }
     resource function get payments/[string id](@http:Payload rep:Payment payment) 
                 returns rep:PaymentCreated|rep:PaymentConflict|rep:SnowpeakInternalError {

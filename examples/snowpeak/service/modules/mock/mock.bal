@@ -76,27 +76,6 @@ public isolated function createReservation(rep:Reservation reservation) returns 
     };
 }
 
-public isolated function getReservation() returns rep:ReservationReceipt|error {
-    return {
-        id: "re1000",
-        expiryDate: "2021-07-01",
-        lastUpdated: "2021-06-29T13:01:30Z",
-        currency: "USD",
-        total: 600.00,
-        state: rep:VALID,
-        reservation: {
-            reserveRooms: [
-                {
-                    id: "r1000",
-                    count: 2
-                }
-            ],
-            startDate: "2021-08-01",
-            endDate: "2021-08-03"
-        }
-    };
-}
-
 public isolated function updateReservation(string id, rep:Reservation reservation) returns rep:ReservationUpdated|error {
     return {
         headers: {
