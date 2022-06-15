@@ -24,27 +24,25 @@ public isolated function getLocations() returns rep:Locations|error {
                 name: "Alps",
                 id: "l1000",
                 address: "NC 29384, some place, switzerland",
-                links: [
-                    {
-                        rel: "room",
+                _links: {
+                    room: {
                         href: "/snowpeak/locations/l1000/rooms",
                         types: ["applicaion/vnd.snowpeak.resort+json"],
                         methods: [http:GET]
                     }
-                ]
+                }
             },
             {
                 name: "Pilatus",
                 id: "l2000",
                 address: "NC 29444, some place, switzerland",
-                links: [
-                    {
-                        rel: "room",
+                _links: {
+                    room: {
                         href: "/snowpeak/locations/l2000/rooms",
                         types: ["applicaion/vnd.snowpeak.resort+json"],
                         methods: [http:GET]
                     }
-                ]
+                }
             }
         ]
     };
@@ -64,14 +62,13 @@ public isolated function getRooms(string startDate, string endDate) returns rep:
                 count: 3
             }
         ],
-        links: [
-            {
-                rel: "reservation",
+        _links: {
+            reservation: {
                 href: "/snowpeak/reservation",
                 types: ["applicaion/vnd.snowpeak.resort+json"],
                 methods: [http:PUT]
             }
-        ]
+        }
     };
 }
 
@@ -97,26 +94,23 @@ public isolated function createReservation(rep:Reservation reservation) returns 
                 startDate: "2021-08-01",
                 endDate: "2021-08-03"
             },
-            links: [
-                {
-                    rel: "cancel",
+            _links: {
+                cancel: {
                     href: "/snowpeak/reservation/re1000",
                     types: ["applicaion/vnd.snowpeak.resort+json"],
                     methods: [http:DELETE]
                 },
-                {
-                    rel: "edit",
+                edit: {
                     href: "/snowpeak/reservation/re1000",
                     types: ["applicaion/vnd.snowpeak.resort+json"],
                     methods: [http:PUT]
                 },
-                {
-                    rel: "payment",
+                payment: {
                     href: "/snowpeak/payment/re1000",
                     types: ["applicaion/vnd.snowpeak.resort+json"],
                     methods: [http:PUT]
                 }
-            ]
+            }
         }
     };
 }
@@ -140,7 +134,7 @@ public isolated function cancelReservation(string id) returns rep:ReservationCan
                 startDate: "2021-08-01",
                 endDate: "2021-08-03"
             },
-            links: []
+            _links: {}
         }
     };
 }
@@ -167,7 +161,7 @@ public isolated function createPayment(string id, rep:Payment payment) returns r
                     count: 1
                 }
             ],
-            links: []
+            _links: {}
         }
     };
 }
