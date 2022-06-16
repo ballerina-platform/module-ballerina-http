@@ -22,13 +22,13 @@ proposal HATEOAS is referred to as Hypermedia constraint.
 ## Motivation
 
 Hypermedia constraint is a key principle in REST for a reason. It brings the connectedness to a set of scattered resources.
-It also brings direction as to what might user could do next. Similar to Web pages REST APIs becomes self-descriptive and
+It also brings direction as to what the user might do next. Similar to Web pages, REST APIs become self-descriptive and
 dynamic along with this constraint. Consider the below diagram which represents a set of resources in a resort reservation
 API.
 
 ![make-a-reservation-states](https://user-images.githubusercontent.com/63336800/173808358-365774ad-fd43-4dd5-82ef-b2bdb9830351.png)
 
-You can see that there is a set of resources but to make sense out of it you have to read some document related to this 
+You can see that there is a set of resources but to make sense out of it you have to read some documents related to this 
 API. Now consider the same REST API with the Hypermedia constraint applied to it.
 
 ![make-a-reservation-state-diagram](https://user-images.githubusercontent.com/63336800/173808478-5e7fefa8-ed59-4847-83ca-d60e7bfada10.png)
@@ -45,7 +45,7 @@ In order to get the connectedness of resources as depicted in the second image, 
 - Resource names of the resources connected to
 - Relation (i.e. cancel, edit, payment, etc)
 
-None of this information is captured in the resource signatures at the moment. Therefore, in order to add these 
+None of this information is captured in the resource signatures at the moment. Therefore, in order to add this 
 additional information, `@ResourceConfig` annotation is enriched with the following record and the name field.
 
 ```ballerina
@@ -58,7 +58,7 @@ type LinkedTo record {|
     string method?;
 |};
 ```
-Let's consider the above resort reservation example. As you can see, `locations` resource is connected to `rooms` resource.
+Let's consider the above resort reservation example. As you can see, `locations` resource is connected to the `rooms` resource.
 This connection can be captured in the code as follows.
 
 ```ballerina
