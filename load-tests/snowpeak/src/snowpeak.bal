@@ -25,7 +25,7 @@ configurable int port = 9090;
 service /snowpeak on new http:Listener(port) {
 
     # Snowpeak locations resource
-    #
+    # 
     # + return - `Location` or `SnowpeakError` representation
     @http:ResourceConfig {
         name: "Locations",
@@ -40,8 +40,8 @@ service /snowpeak on new http:Listener(port) {
         }
     }
 
-    # Snowpeak rooms resource
-    #
+    # Snowpeak rooms resource 
+    # 
     # + id - Unique identification of location
     # + startDate - Start date in format yyyy-mm-dd
     # + endDate - End date in format yyyy-mm-dd
@@ -101,7 +101,7 @@ service /snowpeak on new http:Listener(port) {
     }
 
     # Snowpeak cancel reservation resource
-    #
+    # 
     # + id - Unique identification of reservation
     # + return - `ReservationCanceled` or `SnowpeakError` representation
     @http:ResourceConfig {
@@ -116,8 +116,8 @@ service /snowpeak on new http:Listener(port) {
         }
     }
 
-    # Snowpeak payment resource
-    #
+    # Snowpeak payment resource 
+    # 
     # + id - Unique identification of reservation
     # + payment - Payment representation
     # + return - `PaymentCreated`, `PaymentConflict` or `SnowpeakError` representation

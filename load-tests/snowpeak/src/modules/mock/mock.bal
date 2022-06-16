@@ -17,7 +17,7 @@
 import snowpeak.representations as rep;
 
 public isolated function getLocations() returns rep:Locations|error {
-    return {
+    return { 
         locations: [
             {
                 name: "Alps",
