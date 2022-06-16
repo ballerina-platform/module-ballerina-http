@@ -81,7 +81,7 @@ service /snowpeak on new http:Listener(port) {
     }
 }
 ```
-In the case of links pointing to the same resource (same path) as in the `reservations` resource (i.e. edit, cancel), 
+In the case of links pointing to the same resource (same path) as in the `reservation` resource (i.e. edit, cancel), 
 resource name can be duplicated. But to resolve conflicts in finding the exact linked resource, the `linkTo` should 
 additionally specify the linked resource method.
 
@@ -126,24 +126,30 @@ Once this information is captured, it is used to generate the OpenAPI documentat
 information related to connectedness as default values.
 
 ```yaml
-Location:
-  - required:
-    - address
-    - id
-    - name
-    type: object
-    properties:
-      name:
-        type: string
-        description: Name of the location
-      id:
-        type: string
-        description: Unique identification
-      address:
-        type: string
-        description: Address of the location
-      links: 
-        type: array
+Locations:
+  required:
+    - locations
+    - _links
+  type: object
+  properties:
+    locations:
+      required:
+        - address
+        - id
+        - name
+      type: array
+      items:
+        name:
+          type: string
+          description: Name of the location
+        id:
+          type: string
+          description: Unique identification
+        address:
+          type: string
+          description: Address of the location
+    _links: 
+        type: map
         items: 
           type: object
           properties:
@@ -168,13 +174,15 @@ public type Location record {|
     string id;
     string address;
 |};
+
+public type Locations record {|
+    Location[] locations;
+|};
 ```
 ```ballerina
-public type Location record {|
+public type Locations record {|
     *http:Links;
-    string name;
-    string id;
-    string address;
+    Location[] locations;
 |};
 ```
 > **Note**: Following is the definition of http:Link
@@ -189,7 +197,7 @@ public type Link record {
 
 # Represents available server-provided links
 public type Links record {|
-    map<Links> _links; // Key is the relation
+    map<Link> _links; // Key is the relation
 |};
 ```
 
@@ -201,29 +209,35 @@ Consider the below resource.
     name: "Locations",
     linkedTo: [ {names: "Rooms", relation: "room"} ]
 }
-resource function get locations() returns rep:Location[]|rep:SnowpeakInternalError {
-   return [{
-      name: "Alps",
-      id: "l1000",
-      address: "NC 29384, some place, switzerland"
-   }]
+resource function get locations() returns rep:Locations|rep:SnowpeakInternalError {
+   return {
+      locations : [
+         {
+            name: "Alps",
+            id: "l1000",
+            address: "NC 29384, some place, switzerland"
+         }
+      ]
+   };
 }
 ```
 Final output of the response.
 ```json
-[
-  {
-     "name":"Alps",
-     "id":"l1000",
-     "address":"NC 29384, some place, switzerland",
-     "_links":{
-        "room":{
-           "href":"/snowpeak/locations/{id}/rooms",
-           "methods":["GET"]
+{
+    "locations" : [
+        {
+            "name": "Alps",
+            "id": "l1000",
+            "address": "NC 29384, some place, switzerland"
         }
-     }
-  }
-]
+    ],
+    "_links" : {
+        "room": {
+            "href": "/snowpeak/locations/{id}/rooms",
+            "methods": ["GET"]
+        }
+    }
+}
 ```
 
 For the non-json payloads the links will be added as `Link` header. Sample `Link` header is given below :

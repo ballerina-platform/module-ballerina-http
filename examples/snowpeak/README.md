@@ -272,7 +272,6 @@ As mentioned earlier, the Ballerina programming language is used to develop this
 ```ballerina
 # Represents locations
 type Location record {|
-   *http:Links;
    # Name of the location
    string name;
    # Unique identification
@@ -282,6 +281,7 @@ type Location record {|
 |};
 # Represents a collection of locations
 public type Locations record {|
+   *http:Links;
    # collection of locations
    Location[] locations;
 |};
@@ -289,7 +289,7 @@ public type Locations record {|
 
 Location has three fields: name, id and address. Each field is documented along with the Location record. Documentation is very important because it helps readers of the code to understand the code better and at the same time it helps API users understand the API as this documentation is mapped into OpenAPI documentation as descriptions. Many developers tend to think of documentation as a second class thing but it is not.
 
-`*http:Links` syntax basically copies fields in the Links record to Location record. Links record is simply an array of Link records that basically have all the fields related to the hyperlinks. 
+`*http:Links` syntax basically copies fields in the Links record to Locations record. Links record is simply an array of Link records that basically have all the fields related to the hyperlinks. 
 
 Likewise for each representation which goes back and forth between the client and server, there is a defined record. Check the [representation](https://github.com/ballerina-platform/module-ballerina-http/tree/example2/examples/snowpeak/service/modules/representations) module for more information.
 
@@ -326,16 +326,16 @@ service /snowpeak on new http:Listener(port) {
    resource function get locations/[string id]/rooms(string startDate, string endDate)
                returns rep:Rooms|rep:SnowpeakInternalError {}
  
-  resource function put reservations(@http:Payload rep:Reservation reservation)
-              returns rep:ReservationCreated|rep:ReservationConflict|rep:SnowpeakInternalError {}   
+   resource function put reservations(@http:Payload rep:Reservation reservation)
+               returns rep:ReservationCreated|rep:ReservationConflict|rep:SnowpeakInternalError {}   
              
-  resource function put reservations/[string id](@http:Payload rep:Reservation reservation)
-              returns rep:ReservationUpdated|rep:ReservationConflict|rep:SnowpeakInternalError {}
+   resource function put reservations/[string id](@http:Payload rep:Reservation reservation)
+               returns rep:ReservationUpdated|rep:ReservationConflict|rep:SnowpeakInternalError {}
 
-  resource function delete reservations/[string id]() returns
-                           rep:ReservationCanceled|rep:SnowpeakInternalError {}
+   resource function delete reservations/[string id]() returns
+               rep:ReservationCanceled|rep:SnowpeakInternalError {}
  
-  resource function put payments/[string id](@http:Payload rep:Payment payment)
+   resource function put payments/[string id](@http:Payload rep:Payment payment)
                returns rep:PaymentCreated|rep:PaymentConflict|rep:SnowpeakInternalError {}
 }
 ```
@@ -422,32 +422,44 @@ The experience you would have with a well-written REST API is very similar to th
 
 Now going back to the implementation of Snowpeak API. By now you know that links in the response are simply the arrows in the state diagram. That is why it is very important to draw a state machine for your REST API.
 
-In Ballerina to implement the Hypermedia constraint you need to do two things. As you already know when defining representations you need to include the Links record to your representations.
+In Ballerina, you can implement the static Hypermedia constraint using the `ResourceConfig` annotation. For each resource you can define the linked resources using `linkedTo` field in the `ResourceConfig` annotation. 
 
+The `linkedTo` field is defined as below,
 ```ballerina
-# Represents locations
-type Location record {|
-   *Links;
-   string name;
-   string id;
-   string address;
-|};
-```
-The Links record definition is as below,
-```ballerina
-type Link record {|
-   string rel;
-   string href;
-   string[] mediaTypes?;
-   Action[] actions?;
-|};
-type Links record {|
-   Link[] links;
+LinkedTo[] linkedTo;
+
+type LinkedTo record {|
+    string name;
+    string relation = "self";
+    string method?;
 |};
 ```
 > **Note:** Documentation is stripped out for brevity.
 
-Now, when creating the value for Location record, you need to fill the `rel` and `href` fields. mediaTypes and actions fields are optional because this information could be retrieved from OAS as well. It is important to choose the right values for the `rel` field. It basically says why one should follow a given link. For IANA registered relations check [here](https://www.iana.org/assignments/link-relations/link-relations.xhtml). When extending this list it is usually a good practise to extend it under your domain. So that there won't be any conflicts of extended relations.
+At runtime the `Links` object will be created using the `linkedTo` configuration and will be injected to the returned representation. So the representations does not need to include `Links`. The following is an example of adding a `Link` to a resource.
+
+```ballerina
+service /snowpeak on new http:Listener(port) {
+
+    @http:ResourceConfig {
+        name: "Locations",
+        linkedTo: [ {names: "Rooms", relation: "room"} ]
+    }
+    resource function get locations() returns @http:Cache rep:Locations|rep:SnowpeakInternalError {
+       // some logic
+    }
+
+    @http:ResourceConfig {
+        name: "Rooms"
+    }
+    resource function get locations/[string id]/rooms(string startDate, string endDate) 
+                returns rep:Rooms|rep:SnowpeakInternalError {
+        // some logic
+    }
+}
+```
+
+Now, when creating the `Locations` resource, you need to fill the `linkedTo` field with all the linked resources. Linked resources are identified using the name and the optional method fields. It is important to choose the right values for the `relation` field. It basically says why one should follow a given link. For IANA registered relations check [here](https://www.iana.org/assignments/link-relations/link-relations.xhtml). When extending this list it is usually a good practise to extend it under your domain. So that there won't be any conflicts of extended relations.
 
 ### Data Modeling with Hyperlinks
 Also note that the same links could be used for data modeling as well, which helps load information as lazily as possible. In case you have large representations, you may be able to partition it into more granular representations and then refer to those from the original representation using links. Doing so could result in more fine grained and cache friendly resource representations. 
