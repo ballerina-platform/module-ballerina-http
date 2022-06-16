@@ -149,19 +149,32 @@ Locations:
           type: string
           description: Address of the location
     _links: 
-        type: map
-        items: 
-          type: object
-          properties:
-            rel: 
+      type: object
+      additionalProperties: 
+        required:
+          - href
+        type: object
+        properties:
+          rel: 
+            type: string
+          href: 
+            type: string
+          methods: 
+            type: array
+            items:
               type: string
-              default: "room"
-            href: 
+              enum:
+                - OPTIONS
+                - HEAD
+                - PATCH
+                - DELETE
+                - PUT
+                - POST
+                - GET
+          types:
+            type: array
+            items:
               type: string
-              default: "/snowpeak/locations/{id}/rooms"
-            method: 
-              type: string
-              default: "GET"
 ```
 
 ### Run-Time
