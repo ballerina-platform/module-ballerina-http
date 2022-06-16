@@ -459,7 +459,7 @@ service /snowpeak on new http:Listener(port) {
 }
 ```
 
-Now, when creating the `Locations` resource, you need to fill the `linkedTo` field with all the linked resources. Linked resources are identified using the name and the optional method fields. It is important to choose the right values for the `relation` field. It basically says why one should follow a given link. For IANA registered relations check [here](https://www.iana.org/assignments/link-relations/link-relations.xhtml). When extending this list it is usually a good practise to extend it under your domain. So that there won't be any conflicts of extended relations.
+Now, when creating each resource, you need to fill the `linkedTo` field with all the linked resources. Linked resources are identified using the name and the optional method name. It is important to choose the right values for the `relation` field. It basically says why one should follow a given link. For IANA registered relations check [here](https://www.iana.org/assignments/link-relations/link-relations.xhtml). When extending this list it is usually a good practise to extend it under your domain. So that there won't be any conflicts of extended relations.
 
 ### Data Modeling with Hyperlinks
 Also note that the same links could be used for data modeling as well, which helps load information as lazily as possible. In case you have large representations, you may be able to partition it into more granular representations and then refer to those from the original representation using links. Doing so could result in more fine grained and cache friendly resource representations. 
