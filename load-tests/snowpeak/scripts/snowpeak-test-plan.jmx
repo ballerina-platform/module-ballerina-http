@@ -40,13 +40,14 @@
           <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
           <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
           <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
-          <stringProp name="HTTPSampler.connect_timeout"></stringProp>
-          <stringProp name="HTTPSampler.response_timeout"></stringProp>
+          <stringProp name="HTTPSampler.implementation">HttpClient4</stringProp>
+          <stringProp name="HTTPSampler.connect_timeout">10000</stringProp>
+          <stringProp name="HTTPSampler.response_timeout">30000</stringProp>
         </HTTPSamplerProxy>
         <hashTree>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="Response Assertion" enabled="true">
             <stringProp name="JSON_PATH">$</stringProp>
-            <stringProp name="EXPECTED_VALUE">{&quot;locations&quot;:[{&quot;name&quot;:&quot;Alps&quot;,&quot;id&quot;:&quot;l1000&quot;,&quot;address&quot;:&quot;NC 29384, some place, switzerland&quot;},{&quot;name&quot;:&quot;Pilatus&quot;,&quot;id&quot;:&quot;l2000&quot;,&quot;address&quot;:&quot;NC 29444, some place, switzerland&quot;}], &quot;_links&quot;:{&quot;room&quot;:{&quot;rel&quot;:&quot;room&quot;,&quot;href&quot;:&quot;\/snowpeak\/locations\/{id}\/rooms&quot;,&quot;types&quot;:[&quot;application\/vnd.snowpeak.resort+json&quot;],&quot;methods&quot;:[&quot;GET&quot;]}}}</stringProp>
+            <stringProp name="EXPECTED_VALUE">{&quot;locations&quot;:[{&quot;name&quot;:&quot;Alps&quot;,&quot;id&quot;:&quot;l1000&quot;,&quot;address&quot;:&quot;NC 29384, some place, switzerland&quot;},{&quot;name&quot;:&quot;Pilatus&quot;,&quot;id&quot;:&quot;l2000&quot;,&quot;address&quot;:&quot;NC 29444, some place, switzerland&quot;}], &quot;_links&quot;:{&quot;room&quot;:{&quot;rel&quot;:&quot;room&quot;,&quot;href&quot;:&quot;/snowpeak/locations/{id}/rooms&quot;,&quot;types&quot;:[&quot;application/vnd.snowpeak.resort+json&quot;],&quot;methods&quot;:[&quot;GET&quot;]}}}</stringProp>
             <boolProp name="JSONVALIDATION">true</boolProp>
             <boolProp name="EXPECT_NULL">false</boolProp>
             <boolProp name="INVERT">false</boolProp>

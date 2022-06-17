@@ -18,11 +18,9 @@ import ballerina/http;
 import snowpeak.representations as rep;
 import snowpeak.mock;
 
-configurable int port = 9090;
-
 # A fake mountain resort
 @http:ServiceConfig { mediaTypeSubtypePrefix: "vnd.snowpeak.resort", cors: { allowOrigins: ["*"] }}
-service /snowpeak on new http:Listener(port) {
+service /snowpeak on new http:Listener(9090) {
 
     # Snowpeak locations resource
     # 
