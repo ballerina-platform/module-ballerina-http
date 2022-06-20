@@ -842,7 +842,7 @@ resource function get fruit(string? colour, http:Caller caller) {
 ##### 2.3.5.3. Default response status codes
 
 To improve the developer experience for RestFul API development, following default status codes will be used in outbound 
-response when returning `anydata` or `nil` directly from resource function.
+response when returning `anydata` or `nil` directly from a resource function.
 
 | Resource Accessor | Semantics                                                     | Status Code             |
 |-------------------|---------------------------------------------------------------|-------------------------|
