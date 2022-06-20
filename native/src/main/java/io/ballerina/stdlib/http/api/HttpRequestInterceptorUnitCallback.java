@@ -176,7 +176,7 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
     }
 
     private void returnResponse(Object result) {
-        Object[] paramFeed = new Object[8];
+        Object[] paramFeed = new Object[10];
         paramFeed[0] = result;
         paramFeed[1] = true;
         paramFeed[2] = null;
@@ -185,6 +185,8 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
         paramFeed[5] = true;
         paramFeed[6] = null;
         paramFeed[7] = true;
+        paramFeed[8] = null;
+        paramFeed[9] = true;
 
         invokeBalMethod(paramFeed, "returnResponse");
     }

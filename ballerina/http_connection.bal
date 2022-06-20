@@ -128,7 +128,7 @@ public isolated client class Caller {
     }
 
     private isolated function returnResponse(anydata|StatusCodeResponse|Response message, string? returnMediaType,
-        HttpCacheConfig? cacheConfig, map<Link>? links) returns ListenerError? {
+        HttpCacheConfig? cacheConfig, map<Link>? links, string? resourceAction) returns ListenerError? {
         Response response = new;
         boolean setETag = cacheConfig is () ? false: cacheConfig.setETag;
         boolean cacheCompatibleType = false;
@@ -141,8 +141,8 @@ public isolated client class Caller {
                 InternalServerError errResponse = {};
                 response = createStatusCodeResponse(errResponse);
             } else {
-                Accepted AcceptedResponse = {};
-                response = createStatusCodeResponse(AcceptedResponse);
+                StatusCodeResponse constructedResponse = resourceAction == HTTP_POST ? <Created>{} : <Accepted>{};
+                response = createStatusCodeResponse(constructedResponse);
             }
         } else if message is StatusCodeResponse {
             if message is SuccessStatusCodeResponse {
@@ -162,6 +162,9 @@ public isolated client class Caller {
             setPayload(message, response, returnMediaType, setETag);
             if returnMediaType is string {
                 response.setHeader(CONTENT_TYPE, returnMediaType);
+            }
+            if resourceAction == HTTP_POST {
+                response.statusCode = STATUS_CREATED;
             }
             cacheCompatibleType = true;
         } else {

@@ -96,7 +96,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
                 executeMainResourceOnMessage(inboundMessage);
             } catch (Exception ex) {
                 HttpCallableUnitCallback callback = new HttpCallableUnitCallback(inboundMessage,
-                        httpServicesRegistry.getRuntime(), null, null, null);
+                        httpServicesRegistry.getRuntime());
                 callback.invokeErrorInterceptors(HttpUtil.createError(ex), false);
             }
         }
@@ -175,8 +175,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
             inboundMessage.setProperty(HttpConstants.OBSERVABILITY_CONTEXT_PROPERTY, observerContext);
         }
         Runtime runtime = httpServicesRegistry.getRuntime();
-        Callback callback = new HttpCallableUnitCallback(inboundMessage, runtime, httpResource.getReturnMediaType(),
-                            httpResource.getResponseCacheConfig(), httpResource.getLinks());
+        Callback callback = new HttpCallableUnitCallback(inboundMessage, runtime, httpResource);
         BObject service = httpResource.getParentService().getBalService();
         String resourceName = httpResource.getName();
         if (service.getType().isIsolated() && service.getType().isIsolated(resourceName)) {
@@ -272,7 +271,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
             }
         } catch (BallerinaConnectorException ex) {
             HttpCallableUnitCallback callback = new HttpCallableUnitCallback(inboundMessage,
-                                                httpServicesRegistry.getRuntime(), null, null, null);
+                    httpServicesRegistry.getRuntime());
             callback.invokeErrorInterceptors(HttpUtil.createError(ex), false);
         }
     }
