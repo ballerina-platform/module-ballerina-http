@@ -557,7 +557,7 @@ function testDatabindingWithReadOnlyRecordsAddAlbum() returns error? {
     json newAlbum = {"id":"4", "title":"Blackout", "artist":"Scorpions", "price":27.99};
     http:Response|error response = dataBindingClient->post("/readonlyRecord/albums", newAlbum);
     if response is http:Response {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        test:assertEquals(response.statusCode, 201, msg = "Found unexpected output");
         assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_JSON);
         assertJsonPayloadtoJsonString(response.getJsonPayload(), newAlbum);
     } else {
