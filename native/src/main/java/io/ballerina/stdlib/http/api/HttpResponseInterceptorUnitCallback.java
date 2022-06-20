@@ -23,6 +23,7 @@ import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.types.ServiceType;
+import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
@@ -30,11 +31,17 @@ import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.api.nativeimpl.connection.Respond;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
+import java.util.Objects;
+
+import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_RESOURCE;
+
 /**
  * {@code HttpResponseInterceptorUnitCallback} is the responsible for acting on notifications received from Ballerina
  * side when a response interceptor service is invoked.
  */
 public class HttpResponseInterceptorUnitCallback implements Callback {
+    private static final String ILLEGAL_FUNCTION_INVOKED = "illegal return: response has already been sent";
+
     private final HttpCarbonMessage requestMessage;
     private final BObject caller;
     private final BObject response;
@@ -42,8 +49,8 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
     private final BObject requestCtx;
     private final DataContext dataContext;
     private final Runtime runtime;
+    private String resourceAccessor;
 
-    private static final String ILLEGAL_FUNCTION_INVOKED = "illegal return: response has already been sent";
 
     public HttpResponseInterceptorUnitCallback(HttpCarbonMessage requestMessage, BObject caller, BObject response,
                                                Environment env, DataContext dataContext, Runtime runtime) {
@@ -54,6 +61,10 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
         this.environment = env;
         this.dataContext = dataContext;
         this.runtime = runtime;
+        HttpResource resource = (HttpResource) requestMessage.getProperty(HTTP_RESOURCE);
+        if (Objects.nonNull(resource)) {
+            this.resourceAccessor = resource.getBalResource().getAccessor();
+        }
     }
 
     @Override
@@ -154,7 +165,7 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
         paramFeed[5] = true;
         paramFeed[6] = null;
         paramFeed[7] = true;
-        paramFeed[8] = null;
+        paramFeed[8] = Objects.nonNull(resourceAccessor) ? StringUtils.fromString(resourceAccessor) : null;
         paramFeed[9] = true;
 
         invokeBalMethod(paramFeed, "returnResponse");
