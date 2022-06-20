@@ -49,7 +49,6 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
     private final BObject requestCtx;
     private final DataContext dataContext;
     private final Runtime runtime;
-    private String resourceAccessor;
 
 
     public HttpResponseInterceptorUnitCallback(HttpCarbonMessage requestMessage, BObject caller, BObject response,
@@ -61,10 +60,6 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
         this.environment = env;
         this.dataContext = dataContext;
         this.runtime = runtime;
-        HttpResource resource = (HttpResource) requestMessage.getProperty(HTTP_RESOURCE);
-        if (Objects.nonNull(resource)) {
-            this.resourceAccessor = resource.getBalResource().getAccessor();
-        }
     }
 
     @Override
@@ -165,7 +160,7 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
         paramFeed[5] = true;
         paramFeed[6] = null;
         paramFeed[7] = true;
-        paramFeed[8] = Objects.nonNull(resourceAccessor) ? StringUtils.fromString(resourceAccessor) : null;
+        paramFeed[8] = null;
         paramFeed[9] = true;
 
         invokeBalMethod(paramFeed, "returnResponse");

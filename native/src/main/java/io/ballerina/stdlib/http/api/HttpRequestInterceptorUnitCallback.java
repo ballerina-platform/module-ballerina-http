@@ -31,8 +31,6 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
 import java.util.Objects;
 
-import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_RESOURCE;
-
 /**
  * {@code HttpRequestInterceptorUnitCallback} is the responsible for acting on notifications received from Ballerina
  * side when a request interceptor service is invoked.
@@ -46,7 +44,7 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
     private final HttpCarbonMessage requestMessage;
     private final BallerinaHTTPConnectorListener ballerinaHTTPConnectorListener;
     private final BObject requestCtx;
-    private String resourceAccessor;
+    private final String resourceAccessor;
 
     HttpRequestInterceptorUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime,
                                        BallerinaHTTPConnectorListener ballerinaHTTPConnectorListener) {
@@ -55,10 +53,18 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
         this.requestCtx = (BObject) requestMessage.getProperty(HttpConstants.REQUEST_CONTEXT);
         this.ballerinaHTTPConnectorListener = ballerinaHTTPConnectorListener;
         this.caller = (BObject) requestMessage.getProperty(HttpConstants.CALLER);
-        HttpResource resource = (HttpResource) requestMessage.getProperty(HTTP_RESOURCE);
-        if (Objects.nonNull(resource)) {
-            this.resourceAccessor = resource.getBalResource().getAccessor();
-        }
+        this.resourceAccessor = null;
+    }
+
+    HttpRequestInterceptorUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime,
+                                       BallerinaHTTPConnectorListener ballerinaHTTPConnectorListener,
+                                       InterceptorResource resource) {
+        this.runtime = runtime;
+        this.requestMessage = requestMessage;
+        this.requestCtx = (BObject) requestMessage.getProperty(HttpConstants.REQUEST_CONTEXT);
+        this.ballerinaHTTPConnectorListener = ballerinaHTTPConnectorListener;
+        this.caller = (BObject) requestMessage.getProperty(HttpConstants.CALLER);
+        this.resourceAccessor = resource.getBalResource().getAccessor();
     }
 
     @Override

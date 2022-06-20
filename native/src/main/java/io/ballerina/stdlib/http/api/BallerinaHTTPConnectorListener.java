@@ -228,7 +228,8 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         Object[] signatureParams = HttpDispatcher.getSignatureParameters(resource, inboundMessage, endpointConfig);
 
         Runtime runtime = registry.getRuntime();
-        Callback callback = new HttpRequestInterceptorUnitCallback(inboundMessage, runtime, this);
+        Callback callback = new HttpRequestInterceptorUnitCallback(
+                inboundMessage, runtime, this, resource);
         BObject service = resource.getParentService().getBalService();
         String resourceName = resource.getName();
 
