@@ -30,14 +30,6 @@ service /differentStatusCodes on httpStatusCodeListenerEP {
         return http:OK;
     }
 
-    resource function get okNillableResponse() returns http:Ok? {
-        return;
-    }
-
-    resource function post okNillableResponse() returns http:Ok? {
-        return;
-    }
-
     resource function get createdWithBody() returns http:Created {
         return {headers:{"Location":"/newResourceURI"}, body: "Created Response"};
     }
@@ -106,28 +98,6 @@ function testOKWithoutBody() returns error? {
     http:Response|error response = httpStatusCodeClient->get("/differentStatusCodes/okWithoutBody");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        assertHeaderValue(check response.getHeader(CONTENT_LENGTH), "0");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
-}
-
-@test:Config {}
-function testOkNillableResponseWithGet() returns error? {
-    http:Response|error response = httpStatusCodeClient->get("/differentStatusCodes/okNillableResponse");
-    if response is http:Response {
-        test:assertEquals(response.statusCode, 202, msg = "Found unexpected output");
-        assertHeaderValue(check response.getHeader(CONTENT_LENGTH), "0");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
-}
-
-@test:Config {}
-function testOkNillableResponseWithPost() returns error? {
-    http:Response|error response = httpStatusCodeClient->post("/differentStatusCodes/okNillableResponse", new http:Request());
-    if response is http:Response {
-        test:assertEquals(response.statusCode, 202, msg = "Found unexpected output");
         assertHeaderValue(check response.getHeader(CONTENT_LENGTH), "0");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
