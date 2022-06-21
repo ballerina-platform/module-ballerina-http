@@ -114,7 +114,7 @@ function testOKWithoutBody() returns error? {
 
 @test:Config {}
 function testOkNillableResponseWithGet() returns error? {
-    http:Response|error response = httpStatusCodeClient->get("/differentStatusCodes/okWithoutBody", new http:Request());
+    http:Response|error response = httpStatusCodeClient->get("/differentStatusCodes/okWithoutBody");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         assertHeaderValue(check response.getHeader(CONTENT_LENGTH), "0");
