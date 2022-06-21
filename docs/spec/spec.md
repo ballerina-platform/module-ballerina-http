@@ -850,11 +850,13 @@ response when returning `anydata` directly from a resource function.
 
 | Resource Accessor | Semantics                                                     | Status Code             |
 |-------------------|---------------------------------------------------------------|-------------------------|
-| GET               | Let's retrieve the resource                                   | 200 OK                  |
-| POST              | Let's create a new resource                                   | 201 Created             |
-| PUT               | Let's create a new resource or update an existing resource    | 200 OK                  |
-| PATCH             | Let's partially update an existing resource                   | 200 OK                  |
-| DELETE            | Lets delete an existing resource                              | 200 OK                  |
+| GET               | Retrieve the resource                                         | 200 OK                  |
+| POST              | Create a new resource                                         | 201 Created             |
+| PUT               | Create a new resource or update an existing resource          | 200 OK                  |
+| PATCH             | Partially update an existing resource                         | 200 OK                  |
+| DELETE            | Delete an existing resource                                   | 200 OK                  |
+| HEAD              | Retrieve headers                                              | 200 OK                  |
+| OPTIONS           | Retrieve permitted communication options                      | 200 OK                  |
 
 #### 2.3.6. Introspection resource
 
