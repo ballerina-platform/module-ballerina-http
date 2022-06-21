@@ -29,13 +29,15 @@ public isolated client class Caller {
     public final readonly & Remote remoteAddress;
     public final readonly & Local localAddress;
     public final string protocol;
+    private final string resourceAction;
     private ListenerConfiguration config = {};
     private boolean present = false;
 
-    isolated function init(Remote remoteAddress, Local localAddress, string protocol) {
+    isolated function init(Remote remoteAddress, Local localAddress, string protocol, string resourceAction) {
         self.remoteAddress = remoteAddress.cloneReadOnly();
         self.localAddress = localAddress.cloneReadOnly();
         self.protocol = protocol;
+        self.resourceAction = resourceAction;
     }
 
     # Sends the outbound response to the caller.
@@ -44,7 +46,8 @@ public isolated client class Caller {
     # + return - An `http:ListenerError` if failed to respond or else `()`
     remote isolated function respond(ResponseMessage|StatusCodeResponse|error message = ()) returns ListenerError? {
         if message is ResponseMessage {
-            return nativeRespond(self, check buildResponse(message));
+            Response response = check buildResponse(message, self.resourceAction);
+            return nativeRespond(self, response);
         } else if message is StatusCodeResponse {
             return nativeRespond(self, createStatusCodeResponse(message));
         } else if message is error {
@@ -128,7 +131,7 @@ public isolated client class Caller {
     }
 
     private isolated function returnResponse(anydata|StatusCodeResponse|Response message, string? returnMediaType,
-        HttpCacheConfig? cacheConfig, map<Link>? links, string? resourceAction) returns ListenerError? {
+        HttpCacheConfig? cacheConfig, map<Link>? links) returns ListenerError? {
         Response response = new;
         boolean setETag = cacheConfig is () ? false: cacheConfig.setETag;
         boolean cacheCompatibleType = false;
@@ -141,7 +144,7 @@ public isolated client class Caller {
                 InternalServerError errResponse = {};
                 response = createStatusCodeResponse(errResponse);
             } else {
-                StatusCodeResponse constructedResponse = resourceAction == HTTP_POST ? <Created>{} : <Accepted>{};
+                Accepted constructedResponse = {};
                 response = createStatusCodeResponse(constructedResponse);
             }
         } else if message is StatusCodeResponse {
@@ -163,7 +166,7 @@ public isolated client class Caller {
             if returnMediaType is string {
                 response.setHeader(CONTENT_TYPE, returnMediaType);
             }
-            if resourceAction == HTTP_POST {
+            if self.resourceAction == HTTP_POST {
                 response.statusCode = STATUS_CREATED;
             }
             cacheCompatibleType = true;

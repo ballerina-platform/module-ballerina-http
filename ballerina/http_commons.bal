@@ -103,13 +103,15 @@ isolated function processJsonContent(anydata message) returns json|ClientError {
     return result;
 }
 
-isolated function buildResponse(ResponseMessage message) returns Response|ListenerError {
-    Response response = new;
+isolated function buildResponse(ResponseMessage message, string resourceAction) returns Response|ListenerError {
     if message is () {
-        return response;
-    } else if message is Response {
-        response = message;
-    } else if message is string {
+        return new Response();
+    }
+    if message is Response {
+        return message;
+    }
+    Response response = new;
+    if message is string {
         response.setTextPayload(message);
     } else if message is xml {
         response.setXmlPayload(message);
@@ -129,6 +131,9 @@ isolated function buildResponse(ResponseMessage message) returns Response|Listen
     } else {
         string errorMsg = "invalid response body type. expected one of the types: http:Response|xml|json|table<map<json>>|(map<json>|table<map<json>>)[]|mime:Entity[]|stream<byte[], io:Error?>";
         panic error InitializingOutboundResponseError(errorMsg);
+    }
+    if resourceAction == HTTP_POST {
+        response.statusCode = STATUS_CREATED;
     }
     return response;
 }

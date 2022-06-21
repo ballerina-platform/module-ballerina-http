@@ -22,14 +22,11 @@ import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.types.ServiceType;
-import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
-
-import java.util.Objects;
 
 /**
  * {@code HttpRequestInterceptorUnitCallback} is the responsible for acting on notifications received from Ballerina
@@ -44,7 +41,6 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
     private final HttpCarbonMessage requestMessage;
     private final BallerinaHTTPConnectorListener ballerinaHTTPConnectorListener;
     private final BObject requestCtx;
-    private final String resourceAccessor;
 
     HttpRequestInterceptorUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime,
                                        BallerinaHTTPConnectorListener ballerinaHTTPConnectorListener) {
@@ -53,18 +49,6 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
         this.requestCtx = (BObject) requestMessage.getProperty(HttpConstants.REQUEST_CONTEXT);
         this.ballerinaHTTPConnectorListener = ballerinaHTTPConnectorListener;
         this.caller = (BObject) requestMessage.getProperty(HttpConstants.CALLER);
-        this.resourceAccessor = null;
-    }
-
-    HttpRequestInterceptorUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime,
-                                       BallerinaHTTPConnectorListener ballerinaHTTPConnectorListener,
-                                       InterceptorResource resource) {
-        this.runtime = runtime;
-        this.requestMessage = requestMessage;
-        this.requestCtx = (BObject) requestMessage.getProperty(HttpConstants.REQUEST_CONTEXT);
-        this.ballerinaHTTPConnectorListener = ballerinaHTTPConnectorListener;
-        this.caller = (BObject) requestMessage.getProperty(HttpConstants.CALLER);
-        this.resourceAccessor = resource.getBalResource().getAccessor();
     }
 
     @Override
@@ -192,7 +176,7 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
     }
 
     private void returnResponse(Object result) {
-        Object[] paramFeed = new Object[10];
+        Object[] paramFeed = new Object[8];
         paramFeed[0] = result;
         paramFeed[1] = true;
         paramFeed[2] = null;
@@ -201,8 +185,6 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
         paramFeed[5] = true;
         paramFeed[6] = null;
         paramFeed[7] = true;
-        paramFeed[8] = Objects.nonNull(resourceAccessor) ? StringUtils.fromString(resourceAccessor) : null;
-        paramFeed[9] = true;
 
         invokeBalMethod(paramFeed, "returnResponse");
     }

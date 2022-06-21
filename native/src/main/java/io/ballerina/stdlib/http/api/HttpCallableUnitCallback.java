@@ -54,31 +54,29 @@ public class HttpCallableUnitCallback implements Callback {
     private final BMap cacheConfig;
     private final HttpCarbonMessage requestMessage;
     private final BMap links;
-    private final String resourceAccessor;
 
     HttpCallableUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime, HttpResource resource) {
         this.requestMessage = requestMessage;
-        this.caller = getCaller(requestMessage);
         this.runtime = runtime;
         this.returnMediaType = resource.getReturnMediaType();
         this.cacheConfig = resource.getResponseCacheConfig();
         this.links = resource.getLinks();
-        this.resourceAccessor = resource.getBalResource().getAccessor().toUpperCase(Locale.getDefault());
+        String resourceAccessor = resource.getBalResource().getAccessor().toUpperCase(Locale.getDefault());
+        this.caller = getCaller(requestMessage, resourceAccessor);
     }
 
     HttpCallableUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime) {
         this.requestMessage = requestMessage;
-        this.caller = getCaller(requestMessage);
         this.runtime = runtime;
         this.returnMediaType = null;
         this.cacheConfig = null;
         this.links = null;
-        this.resourceAccessor = null;
+        this.caller = getCaller(requestMessage, null);
     }
 
-    private BObject getCaller(HttpCarbonMessage requestMessage) {
+    private BObject getCaller(HttpCarbonMessage requestMessage, String resourceAccessor) {
         BObject caller = requestMessage.getProperty(HttpConstants.CALLER) == null ?
-                         ValueCreatorUtils.createCallerObject(requestMessage) :
+                         ValueCreatorUtils.createCallerObject(requestMessage, resourceAccessor) :
                          (BObject) requestMessage.getProperty(HttpConstants.CALLER);
         caller.addNativeData(HttpConstants.TRANSPORT_MESSAGE, requestMessage);
         requestMessage.setProperty(HttpConstants.CALLER, caller);
@@ -146,7 +144,7 @@ public class HttpCallableUnitCallback implements Callback {
     }
 
     private void returnResponse(Object result, boolean isLinksAdded) {
-        Object[] paramFeed = new Object[10];
+        Object[] paramFeed = new Object[8];
         paramFeed[0] = result;
         paramFeed[1] = true;
         paramFeed[2] = Objects.nonNull(returnMediaType) ? StringUtils.fromString(returnMediaType) : null;
@@ -155,8 +153,6 @@ public class HttpCallableUnitCallback implements Callback {
         paramFeed[5] = true;
         paramFeed[6] = Objects.nonNull(links) && !links.isEmpty() && !isLinksAdded ? links : null;
         paramFeed[7] = true;
-        paramFeed[8] = Objects.nonNull(resourceAccessor) ? StringUtils.fromString(resourceAccessor) : null;
-        paramFeed[9] = true;
 
         invokeBalMethod(paramFeed, "returnResponse");
     }
