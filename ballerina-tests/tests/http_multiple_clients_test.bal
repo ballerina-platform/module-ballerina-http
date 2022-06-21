@@ -69,7 +69,7 @@ service /backend on multipleClientListener2 {
 function testH1Client() returns error? {
     http:Response|error response = multipleClientTestClient->get("/globalClientTest/h1");
     if response is http:Response {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        test:assertEquals(response.statusCode, 201, msg = "Found unexpected output");
         assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Connection and upgrade headers are not present--HTTP/1.1 request--1.1");
     } else {
@@ -81,7 +81,7 @@ function testH1Client() returns error? {
 function testH2Client() returns error? {
     http:Response|error response = multipleClientTestClient->get("/globalClientTest/h2");
     if response is http:Response {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        test:assertEquals(response.statusCode, 201, msg = "Found unexpected output");
         assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Connection and upgrade headers are not present--HTTP/2 with prior knowledge--2.0");
     } else {

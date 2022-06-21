@@ -115,7 +115,7 @@ function testBasicHttp2Failover() returns error? {
     http:Client testClient = check new("http://localhost:9314");
     http:Response|error response = testClient->post("/failoverDemoService06/index", requestPayload);
     if response is http:Response {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        test:assertEquals(response.statusCode, 201, msg = "Found unexpected output");
         assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTrueTextPayload(response.getTextPayload(), "Failover start index is : 0");
     } else {
@@ -124,7 +124,7 @@ function testBasicHttp2Failover() returns error? {
 
     response = testClient->post("/failoverDemoService06/index", requestPayload);
     if response is http:Response {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        test:assertEquals(response.statusCode, 201, msg = "Found unexpected output");
         assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTrueTextPayload(response.getTextPayload(), "Failover start index is : 2");
     } else {
