@@ -103,7 +103,7 @@ isolated function processJsonContent(anydata message) returns json|ClientError {
     return result;
 }
 
-isolated function buildResponse(ResponseMessage message, string resourceAction) returns Response|ListenerError {
+isolated function buildResponse(ResponseMessage message, string resourceAccessor) returns Response|ListenerError {
     if message is () {
         return new Response();
     }
@@ -132,7 +132,7 @@ isolated function buildResponse(ResponseMessage message, string resourceAction) 
         string errorMsg = "invalid response body type. expected one of the types: http:Response|xml|json|table<map<json>>|(map<json>|table<map<json>>)[]|mime:Entity[]|stream<byte[], io:Error?>";
         panic error InitializingOutboundResponseError(errorMsg);
     }
-    if resourceAction == HTTP_POST {
+    if resourceAccessor == HTTP_POST {
         response.statusCode = STATUS_CREATED;
     }
     return response;

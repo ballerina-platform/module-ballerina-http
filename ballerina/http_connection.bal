@@ -29,15 +29,15 @@ public isolated client class Caller {
     public final readonly & Remote remoteAddress;
     public final readonly & Local localAddress;
     public final string protocol;
-    private final string resourceAction;
+    private final string resourceAccessor;
     private ListenerConfiguration config = {};
     private boolean present = false;
 
-    isolated function init(Remote remoteAddress, Local localAddress, string protocol, string resourceAction) {
+    isolated function init(Remote remoteAddress, Local localAddress, string protocol, string resourceAccessor) {
         self.remoteAddress = remoteAddress.cloneReadOnly();
         self.localAddress = localAddress.cloneReadOnly();
         self.protocol = protocol;
-        self.resourceAction = resourceAction;
+        self.resourceAccessor = resourceAccessor;
     }
 
     # Sends the outbound response to the caller.
@@ -46,7 +46,7 @@ public isolated client class Caller {
     # + return - An `http:ListenerError` if failed to respond or else `()`
     remote isolated function respond(ResponseMessage|StatusCodeResponse|error message = ()) returns ListenerError? {
         if message is ResponseMessage {
-            Response response = check buildResponse(message, self.resourceAction);
+            Response response = check buildResponse(message, self.resourceAccessor);
             return nativeRespond(self, response);
         } else if message is StatusCodeResponse {
             return nativeRespond(self, createStatusCodeResponse(message));
@@ -166,7 +166,7 @@ public isolated client class Caller {
             if returnMediaType is string {
                 response.setHeader(CONTENT_TYPE, returnMediaType);
             }
-            if self.resourceAction == HTTP_POST {
+            if self.resourceAccessor == HTTP_POST {
                 response.statusCode = STATUS_CREATED;
             }
             cacheCompatibleType = true;
