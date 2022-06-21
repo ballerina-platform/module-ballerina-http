@@ -419,7 +419,7 @@ resource function post foo(@http:CallerInfo {respondType:Person}  http:Caller hc
 }
 ```
 
-When the caller `respond()` method is invoked from within HTTP post resource by providing `anydata` payload, the status 
+When the caller `respond()` method is invoked from HTTP post resource by providing `anydata` payload, the status 
 code of the outbound response will be set to HTTP Created (201) by default.
 
 ##### 2.3.4.2. http:Request
@@ -845,7 +845,7 @@ resource function get fruit(string? colour, http:Caller caller) {
 
 ##### 2.3.5.3. Default response status codes
 
-To improve the developer experience for RestFul API development, following default status codes will be used in outbound 
+To improve the developer experience for RESTful API development, following default status codes will be used in outbound 
 response when returning `anydata` directly from a resource function.
 
 | Resource Accessor | Semantics                                                     | Status Code             |
