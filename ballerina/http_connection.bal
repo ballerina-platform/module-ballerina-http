@@ -144,8 +144,8 @@ public isolated client class Caller {
                 InternalServerError errResponse = {};
                 response = createStatusCodeResponse(errResponse);
             } else {
-                Accepted constructedResponse = {};
-                response = createStatusCodeResponse(constructedResponse);
+                Accepted acceptedResponse = {};
+                response = createStatusCodeResponse(acceptedResponse);
             }
         } else if message is StatusCodeResponse {
             if message is SuccessStatusCodeResponse {
