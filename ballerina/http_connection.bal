@@ -29,11 +29,11 @@ public isolated client class Caller {
     public final readonly & Remote remoteAddress;
     public final readonly & Local localAddress;
     public final string protocol;
-    private final string resourceAccessor;
+    private final string? resourceAccessor;
     private ListenerConfiguration config = {};
     private boolean present = false;
 
-    isolated function init(Remote remoteAddress, Local localAddress, string protocol, string resourceAccessor) {
+    isolated function init(Remote remoteAddress, Local localAddress, string protocol, string? resourceAccessor) {
         self.remoteAddress = remoteAddress.cloneReadOnly();
         self.localAddress = localAddress.cloneReadOnly();
         self.protocol = protocol;

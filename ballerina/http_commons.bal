@@ -103,7 +103,7 @@ isolated function processJsonContent(anydata message) returns json|ClientError {
     return result;
 }
 
-isolated function buildResponse(ResponseMessage message, string resourceAccessor) returns Response|ListenerError {
+isolated function buildResponse(ResponseMessage message, string? resourceAccessor) returns Response|ListenerError {
     if message is () {
         return new Response();
     }
