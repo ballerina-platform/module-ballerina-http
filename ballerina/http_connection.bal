@@ -29,7 +29,7 @@ public isolated client class Caller {
     public final readonly & Remote remoteAddress;
     public final readonly & Local localAddress;
     public final string protocol;
-    private final string? resourceAccessor;
+    private string? resourceAccessor;
     private ListenerConfiguration config = {};
     private boolean present = false;
 
@@ -46,7 +46,7 @@ public isolated client class Caller {
     # + return - An `http:ListenerError` if failed to respond or else `()`
     remote isolated function respond(ResponseMessage|StatusCodeResponse|error message = ()) returns ListenerError? {
         if message is ResponseMessage {
-            Response response = check buildResponse(message, self.resourceAccessor);
+            Response response = check buildResponse(message, self.getResourceAccessor());
             return nativeRespond(self, response);
         } else if message is StatusCodeResponse {
             return nativeRespond(self, createStatusCodeResponse(message));
@@ -55,6 +55,12 @@ public isolated client class Caller {
         } else {
             string errorMsg = "invalid response body type. expected one of the types: http:ResponseMessage|http:StatusCodeResponse|error";
             panic error ListenerError(errorMsg);
+        }
+    }
+
+    private isolated function getResourceAccessor() returns string? {
+        lock {
+            return self.resourceAccessor;
         }
     }
 
@@ -166,7 +172,7 @@ public isolated client class Caller {
             if returnMediaType is string {
                 response.setHeader(CONTENT_TYPE, returnMediaType);
             }
-            if self.resourceAccessor == HTTP_POST {
+            if self.getResourceAccessor() == HTTP_POST {
                 response.statusCode = STATUS_CREATED;
             }
             cacheCompatibleType = true;
