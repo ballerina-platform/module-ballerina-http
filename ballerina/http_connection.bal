@@ -29,7 +29,7 @@ public isolated client class Caller {
     public final readonly & Remote remoteAddress;
     public final readonly & Local localAddress;
     public final string protocol;
-    private final string? resourceAccessor;
+    private string? resourceAccessor;
     private ListenerConfiguration config = {};
     private boolean present = false;
 
