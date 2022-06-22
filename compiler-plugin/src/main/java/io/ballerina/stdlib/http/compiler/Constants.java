@@ -44,7 +44,7 @@ public class Constants {
     public static final String FIELD_RESPONSE_TYPE = "respondType";
     public static final String RESPOND_METHOD_NAME = "respond";
     public static final String ERROR = "annotations:error";
-    public static final String ALLOWED_RETURN_UNION = "anydata|http:Response|http:StatusCodeRecord|error";
+    public static final String ALLOWED_RETURN_UNION = "anydata|http:Response|http:StatusCodeResponse|error";
     public static final String REQUEST_INTERCEPTOR = "RequestInterceptor";
     public static final String RESPONSE_INTERCEPTOR = "ResponseInterceptor";
     public static final String REQUEST_ERROR_INTERCEPTOR = "RequestErrorInterceptor";
@@ -54,7 +54,7 @@ public class Constants {
     public static final String HTTP_REQUEST_ERROR_INTERCEPTOR = "http:RequestErrorInterceptor";
     public static final String HTTP_RESPONSE_INTERCEPTOR = "http:ResponseInterceptor";
     public static final String HTTP_RESPONSE_ERROR_INTERCEPTOR = "http:ResponseErrorInterceptor";
-    public static final String ALLOWED_INTERCEPTOR_RETURN_UNION = "anydata|http:Response|http:StatusCodeRecord|" +
+    public static final String ALLOWED_INTERCEPTOR_RETURN_UNION = "anydata|http:Response|http:StatusCodeResponse|" +
                                                                   "http:NextService|error?";
     public static final String DEFAULT = "default";
     public static final String GET = "get";
@@ -62,12 +62,19 @@ public class Constants {
     public static final String OPTIONS = "options";
     public static final String INTERCEPT_RESPONSE = "interceptResponse";
     public static final String INTERCEPT_RESPONSE_ERROR = "interceptResponseError";
+    public static final String NAME = "name";
+    public static final String LINKED_TO = "linkedTo";
+    public static final String METHOD = "method";
+    public static final String RELATION = "relation";
+    public static final String PARAM = "$param$";
+    public static final String SELF = "self";
 
+    public static final String EMPTY = "";
     public static final String COLON = ":";
     public static final String PLUS = "+";
     public static final String COMMA_WITH_SPACE = ", ";
     public static final String DEFAULT_PATH_REGEX = "\\[\\s*(string)\\s*(\\.{3})\\s*\\w+\\s*\\]";
     public static final String SUFFIX_SEPARATOR_REGEX = "\\+";
     public static final String MEDIA_TYPE_SUBTYPE_REGEX = "^(\\w)+(\\s*\\.\\s*(\\w)+)*(\\s*\\+\\s*(\\w)+)*";
-    public static final String UNNECESSARY_CHARS_REGEX = "\"|\\n";
+    public static final String UNNECESSARY_CHARS_REGEX = "^'|\"|\\n";
 }

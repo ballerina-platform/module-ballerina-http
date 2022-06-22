@@ -314,7 +314,7 @@ isolated function getInvalidTypeError() returns ClientError {
     return error GenericClientError("Invalid return type found for the HTTP operation");
 }
 
-isolated function createErrorForNoPayload(mime:Error err) returns GenericClientError {
+isolated function createErrorForNoPayload(mime:Error err) returns ClientError {
     return error NoContentError("No content", err);
 }
 

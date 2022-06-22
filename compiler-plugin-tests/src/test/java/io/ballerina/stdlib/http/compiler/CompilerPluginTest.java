@@ -52,6 +52,11 @@ import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP
 import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_135;
 import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_140;
 import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_144;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_146;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_147;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_148;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_149;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_150;
 
 /**
  * This class includes tests for Ballerina Http compiler plugin.
@@ -118,13 +123,13 @@ public class CompilerPluginTest {
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.errorCount(), 4);
         assertError(diagnosticResult, 0, "invalid resource method return type: expected " +
-                "'anydata|http:Response|http:StatusCodeRecord|error', but found 'http:Client'", HTTP_102);
+                "'anydata|http:Response|http:StatusCodeResponse|error', but found 'http:Client'", HTTP_102);
         assertError(diagnosticResult, 1, "invalid resource method return type: expected " +
-                "'anydata|http:Response|http:StatusCodeRecord|error', but found 'error[]'", HTTP_102);
+                "'anydata|http:Response|http:StatusCodeResponse|error', but found 'error[]'", HTTP_102);
         assertError(diagnosticResult, 2, "invalid resource method return type: expected 'anydata|http:Response" +
-                "|http:StatusCodeRecord|error', but found 'map<http:Client>'", HTTP_102);
+                "|http:StatusCodeResponse|error', but found 'map<http:Client>'", HTTP_102);
         assertError(diagnosticResult, 3, "invalid resource method return type: expected " +
-                "'anydata|http:Response|http:StatusCodeRecord|error', but found 'readonly & error[]'", HTTP_102);
+                "'anydata|http:Response|http:StatusCodeResponse|error', but found 'readonly & error[]'", HTTP_102);
     }
 
     @Test
@@ -142,7 +147,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_4");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 6);
+        Assert.assertEquals(diagnosticResult.errorCount(), 8);
         assertError(diagnosticResult, 0, "invalid multiple resource parameter annotations for 'abc': expected one of " +
                 "the following types: 'http:Payload', 'http:CallerInfo', 'http:Header'", HTTP_108);
         assertError(diagnosticResult, 1, "invalid usage of payload annotation for a non entity body " +
@@ -155,6 +160,10 @@ public class CompilerPluginTest {
                 "'http:Payload', 'http:CallerInfo', 'http:Headers'", CompilerPluginTestConstants.HTTP_104);
         assertTrue(diagnosticResult, 5, "invalid payload parameter type: 'string|ballerina/http:",
                     CompilerPluginTestConstants.HTTP_107);
+        assertTrue(diagnosticResult, 6, "incompatible record field type: 'ballerina/mime:",
+                   CompilerPluginTestConstants.HTTP_145);
+        assertTrue(diagnosticResult, 7, "incompatible record field type: 'ballerina/http:",
+                   CompilerPluginTestConstants.HTTP_145);
     }
 
     @Test
@@ -469,7 +478,7 @@ public class CompilerPluginTest {
         assertError(diagnosticResult, 4, "invalid interceptor resource method: expected default " +
                 "resource method: 'default', but found 'get'", CompilerPluginTestConstants.HTTP_128);
         assertError(diagnosticResult, 5, "invalid interceptor resource method return type: expected " +
-                "'anydata|http:Response|http:StatusCodeRecord|http:NextService|error?', but found 'error[]'",
+                "'anydata|http:Response|http:StatusCodeResponse|http:NextService|error?', but found 'error[]'",
                 CompilerPluginTestConstants.HTTP_126);
         assertError(diagnosticResult, 6, "invalid multiple interceptor resource functions",
                 CompilerPluginTestConstants.HTTP_124);
@@ -506,7 +515,7 @@ public class CompilerPluginTest {
         assertError(diagnosticResult, 24, "invalid parameter type: 'string' in 'interceptResponse' remote method",
                 HTTP_140);
         assertError(diagnosticResult, 25, "invalid interceptor remote method return type: expected " +
-                "'anydata|http:Response|http:StatusCodeRecord|http:NextService|error?', but found 'http:Client'",
+                "'anydata|http:Response|http:StatusCodeResponse|http:NextService|error?', but found 'http:Client'",
                 CompilerPluginTestConstants.HTTP_141);
         assertError(diagnosticResult, 26, "return type annotation is not supported in interceptor service",
                 CompilerPluginTestConstants.HTTP_142);
@@ -578,5 +587,26 @@ public class CompilerPluginTest {
                 "expected: 'string','int','float','decimal','boolean', an array of the above types or a record " +
                 "which consists of the above types", HTTP_109);
         assertTrue(diagnosticResult, 5, "invalid type of caller param 'host': expected 'http:Caller'", HTTP_111);
+    }
+
+    @Test
+    public void testLinksInResources() {
+        Package currentPackage = loadPackage("sample_package_25");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.errorCount(), 8);
+        assertTrue(diagnosticResult, 0, "duplicate link relation: 'self'. Resource only supports unique relations",
+                HTTP_147);
+        assertTrue(diagnosticResult, 1, "duplicate link relation: 'self'. Resource only supports unique relations",
+                HTTP_147);
+        assertTrue(diagnosticResult, 2, "resource link name: 'resource1' conflicts with the path. Resource names can " +
+                "be reused only when the resources have the same path", HTTP_146);
+        assertTrue(diagnosticResult, 3, "duplicate link relation: 'add'. Resource only supports unique relations",
+                HTTP_147);
+        assertTrue(diagnosticResult, 4, "resource link name: 'resource3' conflicts with the path. Resource names can " +
+                "be reused only when the resources have the same path", HTTP_146);
+        assertTrue(diagnosticResult, 5, "cannot find resource with resource link name: 'resource5'", HTTP_148);
+        assertTrue(diagnosticResult, 6, "cannot find 'POST' resource with resource link name: 'resource1'", HTTP_150);
+        assertTrue(diagnosticResult, 7, "cannot resolve linked resource without method", HTTP_149);
     }
 }

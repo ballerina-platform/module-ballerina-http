@@ -27,8 +27,15 @@ import io.ballerina.runtime.observability.ObserveUtils;
 import io.ballerina.runtime.observability.ObserverContext;
 import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
+
+import static io.ballerina.stdlib.http.api.HttpConstants.BODY;
+import static io.ballerina.stdlib.http.api.HttpConstants.LINKS;
 import static io.ballerina.stdlib.http.api.HttpConstants.OBSERVABILITY_CONTEXT_PROPERTY;
+import static io.ballerina.stdlib.http.api.HttpConstants.STATUS;
 import static java.lang.System.err;
 
 /**
@@ -43,14 +50,17 @@ public class HttpCallableUnitCallback implements Callback {
     private final BMap cacheConfig;
     private HttpCarbonMessage requestMessage;
     private static final String ILLEGAL_FUNCTION_INVOKED = "illegal return: response has already been sent";
+    private final BMap links;
+    private static final Logger logger = LoggerFactory.getLogger(HttpCallableUnitCallback.class);
 
     HttpCallableUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime, String returnMediaType,
-                             BMap cacheConfig) {
+                             BMap cacheConfig, BMap links) {
         this.requestMessage = requestMessage;
         this.caller = getCaller(requestMessage);
         this.runtime = runtime;
         this.returnMediaType = returnMediaType;
         this.cacheConfig = cacheConfig;
+        this.links = links;
     }
 
     private BObject getCaller(HttpCarbonMessage requestMessage) {
@@ -60,6 +70,43 @@ public class HttpCallableUnitCallback implements Callback {
         caller.addNativeData(HttpConstants.TRANSPORT_MESSAGE, requestMessage);
         requestMessage.setProperty(HttpConstants.CALLER, caller);
         return caller;
+    }
+
+    private boolean isLinksAvailableInResource() {
+        return Objects.nonNull(links) && !links.isEmpty();
+    }
+
+    private boolean isStatusCodeResponse(BMap result) {
+        return result.containsKey(STATUS) && result.get(STATUS) instanceof BObject;
+    }
+
+    private boolean hasJsonBodyWithoutLinks(BMap result) {
+        return result.containsKey(BODY) && result.get(BODY) instanceof BMap &&
+                !((BMap) result.get(BODY)).containsKey(LINKS);
+    }
+
+    private boolean isLinksSupportedInPayload(Object result) {
+        if (result instanceof BMap && !((BMap) result).containsKey(LINKS)) {
+            if (isStatusCodeResponse((BMap) result)) {
+                return hasJsonBodyWithoutLinks((BMap) result);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private void addLinksToStatusCodeResponse(Object result) {
+        ((BMap) ((BMap) result).get(BODY)).put(LINKS, links);
+    }
+
+    private void addLinksToPayload(Object result) {
+        if (result instanceof BMap) {
+            if (isStatusCodeResponse((BMap) result)) {
+                addLinksToStatusCodeResponse(result);
+            } else {
+                ((BMap) result).put(LINKS, links);
+            }
+        }
     }
 
     @Override
@@ -73,17 +120,28 @@ public class HttpCallableUnitCallback implements Callback {
             invokeErrorInterceptors((BError) result, true);
             return;
         }
-        returnResponse(result);
+        if (isLinksAvailableInResource() && isLinksSupportedInPayload(result)) {
+            try {
+                addLinksToPayload(result);
+                returnResponse(result, true);
+                return;
+            } catch (Exception ex) {
+                logger.error(ex.getMessage());
+            }
+        }
+        returnResponse(result, false);
     }
 
-    private void returnResponse(Object result) {
-        Object[] paramFeed = new Object[6];
+    private void returnResponse(Object result, boolean isLinksAdded) {
+        Object[] paramFeed = new Object[8];
         paramFeed[0] = result;
         paramFeed[1] = true;
-        paramFeed[2] = returnMediaType != null ? StringUtils.fromString(returnMediaType) : null;
+        paramFeed[2] = Objects.nonNull(returnMediaType) ? StringUtils.fromString(returnMediaType) : null;
         paramFeed[3] = true;
         paramFeed[4] = cacheConfig;
         paramFeed[5] = true;
+        paramFeed[6] = Objects.nonNull(links) && !links.isEmpty() && !isLinksAdded ? links : null;
+        paramFeed[7] = true;
 
         invokeBalMethod(paramFeed, "returnResponse");
     }
@@ -131,6 +189,12 @@ public class HttpCallableUnitCallback implements Callback {
     @Override
     public void notifyFailure(BError error) { // handles panic and check_panic
         cleanupRequestMessage();
+        // This check is added to update the status code with respect to the auth errors.
+        if (error.getType().getName().equals(HttpErrorType.LISTENER_AUTHN_ERROR.getErrorName())) {
+            requestMessage.setHttpStatusCode(401);
+        } else if (error.getType().getName().equals(HttpErrorType.LISTENER_AUTHZ_ERROR.getErrorName())) {
+            requestMessage.setHttpStatusCode(403);
+        }
         if (alreadyResponded(error)) {
             return;
         }

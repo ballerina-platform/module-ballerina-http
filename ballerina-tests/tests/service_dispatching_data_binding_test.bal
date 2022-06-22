@@ -306,7 +306,7 @@ function testDataBindingIncompatibleJSONPayloadType() {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(),
-            "data binding failed: error PayloadBindingError (\"incompatible type found: 'json'\")");
+            "data binding failed: incompatible type found: 'json'");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -334,7 +334,7 @@ function testDataBindingWithoutPayload() {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(),
-            "data binding failed: error NoContentError (\"String payload is null\")");
+            "data binding failed: String payload is null");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -348,7 +348,7 @@ function testDataBindingIncompatibleXMLPayload() {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTrueTextPayload(response.getTextPayload(),
-            "data binding failed: error(\"{ballerina/lang.value}ConversionError\"");
+            "data binding failed: {ballerina/lang.value}ConversionError");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -362,7 +362,7 @@ function testDataBindingIncompatibleStructPayload() {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(),
-        "data binding failed: error PayloadBindingError (\"incompatible type found: 'http_tests:Person'\")");
+        "data binding failed: incompatible type found: 'http_tests:Person'");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -386,11 +386,11 @@ function testDataBindingStructWithNoMatchingContent() {
     http:Response|error response = dataBindingClient->post("/dataBinding/body6", req);
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        assertTrueTextPayload(response.getTextPayload(), "data binding failed: error(\"{ballerina/lang");
-        assertTrueTextPayload(response.getTextPayload(), ".value}ConversionError\",message=\"'map<json>' ");
+        assertTrueTextPayload(response.getTextPayload(), "data binding failed: {ballerina/lang");
+        assertTrueTextPayload(response.getTextPayload(), ".value}ConversionError, {\"message\":\"'map<json>' ");
         assertTrueTextPayload(response.getTextPayload(), "value cannot be converted to 'http_tests:Person':");
         assertTrueTextPayload(response.getTextPayload(), "missing required field 'age' of type 'int' in record 'http_tests:Person'");
-        assertTrueTextPayload(response.getTextPayload(), "field 'team' cannot be added to the closed record 'http_tests:Person'\")");
+        assertTrueTextPayload(response.getTextPayload(), "field 'team' cannot be added to the closed record 'http_tests:Person'\"");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -403,12 +403,12 @@ function testDataBindingStructWithInvalidTypes() {
     http:Response|error response = dataBindingClient->post("/dataBinding/body7", req);
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        assertTrueTextPayload(response.getTextPayload(), "data binding failed: error(\"{ballerina/lang.value}");
+        assertTrueTextPayload(response.getTextPayload(), "data binding failed: {ballerina/lang.value}");
         assertTrueTextPayload(response.getTextPayload(), "'map<json>' value cannot be converted to 'http_tests:Stock'");
         assertTrueTextPayload(response.getTextPayload(), "missing required field 'price' of type 'float' in record 'http_tests:Stock'");
         assertTrueTextPayload(response.getTextPayload(), "missing required field 'id' of type 'int' in record 'http_tests:Stock'");
         assertTrueTextPayload(response.getTextPayload(), "field 'name' cannot be added to the closed record 'http_tests:Stock'");
-        assertTrueTextPayload(response.getTextPayload(), "field 'team' cannot be added to the closed record 'http_tests:Stock'\")");
+        assertTrueTextPayload(response.getTextPayload(), "field 'team' cannot be added to the closed record 'http_tests:Stock'");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -421,8 +421,8 @@ function testDataBindingWithRecordArrayNegative() {
     http:Response|error response = dataBindingClient->post("/dataBinding/body8", req);
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        assertTrueTextPayload(response.getTextPayload(), "data binding failed: error(\"{ballerina/lang.value}" +
-            "ConversionError\",message=\"'json[]' value cannot be converted to 'http_tests:Person[]");
+        assertTrueTextPayload(response.getTextPayload(), "data binding failed: {ballerina/lang.value}" +
+            "ConversionError, {\"message\":\"'json[]' value cannot be converted to 'http_tests:Person[]'");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -520,7 +520,7 @@ function testDataBindingWithMapOfStringEmptyPayload() {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(),
-            "data binding failed: error NoContentError (\"String payload is null\")");
+            "data binding failed: String payload is null");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

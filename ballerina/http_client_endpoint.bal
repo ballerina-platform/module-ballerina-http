@@ -668,7 +668,7 @@ isolated function processResponse(Response|ClientError response, TargetType targ
             if payload is NoContentError {
                 return createResponseError(statusCode, reasonPhrase, headers);
             }
-            return error PayloadBindingError("http:ApplicationResponseError creation failed: " + statusCode.toString() +
+            return error PayloadBindingClientError("http:ApplicationResponseError creation failed: " + statusCode.toString() +
                 " response payload extraction failed", payload);
         } else {
             return createResponseError(statusCode, reasonPhrase, headers, payload);

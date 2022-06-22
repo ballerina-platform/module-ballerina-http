@@ -98,6 +98,13 @@ public enum HttpDiagnosticCodes {
     HTTP_143("HTTP_143", "%s function should have the mandatory parameter 'error'", ERROR),
     HTTP_144("HTTP_144", "rest fields are not allowed for header binding records. Use 'http:Headers' type to access " +
             "all headers", ERROR),
+    HTTP_145("HTTP_145", "incompatible record field type: '%s' in payload parameter: '%s'", ERROR),
+    HTTP_146("HTTP_146", "resource link name: '%s' conflicts with the path. Resource names can be reused only when " +
+            "the resources have the same path", ERROR),
+    HTTP_147("HTTP_147", "duplicate link relation: '%s'. Resource only supports unique relations" , ERROR),
+    HTTP_148("HTTP_148", "cannot find resource with resource link name: '%s'" , ERROR),
+    HTTP_149("HTTP_149", "cannot resolve linked resource without method" , ERROR),
+    HTTP_150("HTTP_150", "cannot find '%s' resource with resource link name: '%s'" , ERROR),
 
     HTTP_HINT_101("HTTP_HINT_101", "Payload annotation can be added", INTERNAL),
     HTTP_HINT_102("HTTP_HINT_102", "Header annotation can be added", INTERNAL),

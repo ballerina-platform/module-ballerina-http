@@ -65,9 +65,10 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
     private final ChannelGroup allChannels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
     public DefaultHttpWsConnectorFactory() {
-        bossGroup = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors());
-        workerGroup = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors() * 2);
-        clientGroup = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors() * 2);
+        int availableProcessors = Runtime.getRuntime().availableProcessors();
+        bossGroup = new NioEventLoopGroup(availableProcessors);
+        workerGroup = new NioEventLoopGroup(availableProcessors * 2);
+        clientGroup = new NioEventLoopGroup(availableProcessors * 2);
     }
 
     public DefaultHttpWsConnectorFactory(int serverSocketThreads, int childSocketThreads, int clientThreads) {

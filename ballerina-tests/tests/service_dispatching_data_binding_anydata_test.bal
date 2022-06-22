@@ -18,6 +18,8 @@ import ballerina/lang.'string as strings;
 import ballerina/test;
 import ballerina/http;
 
+type newXmlElement xml:Element;
+
 final http:Client anydataBindingClient = check new("http://localhost:" + generalPort.toString());
 
 service /anydataB on generalListener {
@@ -301,6 +303,23 @@ service /anydataB on generalListener {
             return {result: "It's nil"};
         }
     }
+
+    // builtin subtypes
+    resource function post checkXmlElement(@http:Payload xml:Element payload) returns xml:Element {
+        return payload;
+    }
+
+    resource function post checkCustomXmlElement(@http:Payload newXmlElement payload) returns newXmlElement {
+        return payload;
+    }
+
+    resource function post checkStrChar(@http:Payload string:Char payload) returns string:Char {
+        return payload;
+    }
+
+    resource function post checkIntSigned32(@http:Payload int:Signed32 payload) returns int:Signed32 {
+        return payload;
+    }
 }
 
 @test:Config {}
@@ -353,7 +372,7 @@ function testDataBindingWithMapOfIntUrlEncoded() returns error? {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(),
-        "data binding failed: error PayloadBindingError (\"incompatible type found: 'map<int>'\")");
+        "data binding failed: incompatible type found: 'map<int>'");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -417,7 +436,7 @@ function testDataBindingStringArrayNegative() {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(),
-        "data binding failed: error PayloadBindingError (\"incompatible array element type found: 'string'\")");
+        "data binding failed: incompatible array element type found: 'string'");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -486,7 +505,7 @@ function testDataBindingWithTableofMapOfStringByTypeNegative() returns error? {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTrueTextPayload(response.getTextPayload(),
-        "data binding failed: error(\"{ballerina/lang.value}ConversionError\"");
+        "data binding failed: {ballerina/lang.value}ConversionError");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -560,7 +579,7 @@ function testDataBindingByteArrayWithJson() {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTrueTextPayload(response.getTextPayload(),
-            "data binding failed: error(\"unrecognized token 'WSO2'");
+            "data binding failed: unrecognized token 'WSO2'");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -579,7 +598,7 @@ function testDataBindingOctetStreamNegative() {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(),
-            "data binding failed: error PayloadBindingError (\"incompatible type found: 'http_tests:Person'\")");
+            "data binding failed: incompatible type found: 'http_tests:Person'");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -663,7 +682,7 @@ function testDataBindingXmlNegative() {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(),
-            "data binding failed: error PayloadBindingError (\"incompatible type found: 'map<int>'\")");
+            "data binding failed: incompatible type found: 'map<int>'");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -676,7 +695,7 @@ function testDataBindingXmlArray() {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTrueTextPayload(response.getTextPayload(),
-            "data binding failed: error(\"{ballerina/lang.value}ConversionError\"");
+            "data binding failed: {ballerina/lang.value}ConversionError");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -690,7 +709,7 @@ function testDataBindingXmlArrayByType() {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTrueTextPayload(response.getTextPayload(),
-            "data binding failed: error(\"{ballerina/lang.value}ConversionError\"");
+            "data binding failed: {ballerina/lang.value}ConversionError");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -705,7 +724,7 @@ function testDataBindingWithMapOfXml() {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTrueTextPayload(response.getTextPayload(),
-            "data binding failed: error(\"{ballerina/lang.value}ConversionError\"");
+            "data binding failed: {ballerina/lang.value}ConversionError");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -721,7 +740,7 @@ function testDataBindingWithMapOfXmlByType() returns error? {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTrueTextPayload(response.getTextPayload(),
-            "data binding failed: error(\"{ballerina/lang.value}ConversionError\"");
+            "data binding failed: {ballerina/lang.value}ConversionError");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -738,7 +757,7 @@ function testDataBindingWithTableofMapOfXml() {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTrueTextPayload(response.getTextPayload(),
-            "data binding failed: error(\"{ballerina/lang.value}ConversionError\"");
+            "data binding failed: {ballerina/lang.value}ConversionError");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -878,7 +897,7 @@ function testDataBindingUnionStringArrayJsonWithTextPlain() {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(),
-            "data binding failed: error PayloadBindingError (\"incompatible type found: '(json|string[])'\")");
+            "data binding failed: incompatible type found: '(json|string[])'");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -896,4 +915,32 @@ function testDataBindingUnionTypesWithReadonlyByteArrWithNil() returns error? {
     string payload = "";
     json response = check anydataBindingClient->post("/anydataB/checkUnionTypesWithReadonlyByteArrWithNil", payload);
     assertJsonPayload(response, {result: "It's nil"});
+}
+
+@test:Config {}
+function testDataBindingSubtypeXmlElement() returns error? {
+    xml:Element payload = xml `<placeOrder><order-status>PLACED</order-status><order-id>ORD-1234</order-id></placeOrder>`;
+    xml:Element response = check anydataBindingClient->post("/anydataB/checkXmlElement", payload);
+    test:assertEquals(response, payload);
+}
+
+@test:Config {}
+function testDataBindingCustomSubtypeXmlElement() returns error? {
+    xml:Element payload = xml `<placeOrder><order-status>PLACED</order-status><order-id>ORD-1234</order-id></placeOrder>`;
+    xml:Element response = check anydataBindingClient->post("/anydataB/checkCustomXmlElement", payload);
+    test:assertEquals(response, payload);
+}
+
+@test:Config {}
+function testDataBindingSubtypeStringChar() returns error? {
+    string:Char payload = "t";
+    string:Char response = check anydataBindingClient->post("/anydataB/checkStrChar", payload);
+    test:assertEquals(response, payload);
+}
+
+@test:Config {}
+function testDataBindingSubtypeIntSigned32() returns error? {
+    int:Signed32 payload = 123;
+    int:Signed32 response = check anydataBindingClient->post("/anydataB/checkIntSigned32", payload);
+    test:assertEquals(response, payload);
 }

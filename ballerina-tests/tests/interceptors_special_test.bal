@@ -92,6 +92,7 @@ function testRequestInterceptorCallerRespondsError() returns error? {
     assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
     assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
     assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("error-type"), "NormalError");
 }
 
 
@@ -119,6 +120,7 @@ function testResponseInterceptorCallerRespondsError() returns error? {
     assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
     assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
     assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("error-type"), "NormalError");
 }
 
 final http:Client requestInterceptorDataBindingClientEP1 = check new("http://localhost:" + requestInterceptorDataBindingTestPort1.toString());

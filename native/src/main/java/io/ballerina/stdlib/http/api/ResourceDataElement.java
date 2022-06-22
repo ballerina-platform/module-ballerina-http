@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.api;
 
+import io.ballerina.runtime.api.values.BError;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.uri.DispatcherUtil;
 import io.ballerina.stdlib.http.uri.parser.DataElement;
@@ -30,6 +31,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static io.ballerina.stdlib.http.api.HttpErrorType.GENERIC_LISTENER_ERROR;
+import static io.ballerina.stdlib.http.api.HttpErrorType.RESOURCE_DISPATCHING_ERROR;
 
 /**
  * Http Node Item for URI template tree.
@@ -100,7 +102,7 @@ public class ResourceDataElement implements DataElement<Resource, HttpCarbonMess
             validateProduces(httpResource, carbonMessage);
             dataReturnAgent.setData(httpResource);
             return true;
-        } catch (BallerinaConnectorException e) {
+        } catch (BError e) {
             dataReturnAgent.setError(e);
             return false;
         }
@@ -133,7 +135,7 @@ public class ResourceDataElement implements DataElement<Resource, HttpCarbonMess
         }
         if (!isOptionsRequest) {
             carbonMessage.setHttpStatusCode(405);
-            throw new BallerinaConnectorException("Method not allowed");
+            throw HttpUtil.createHttpError("Method not allowed", RESOURCE_DISPATCHING_ERROR);
         }
         return null;
     }
@@ -185,7 +187,8 @@ public class ResourceDataElement implements DataElement<Resource, HttpCarbonMess
             }
         }
         cMsg.setHttpStatusCode(415);
-        throw new BallerinaConnectorException();
+        throw HttpUtil.createHttpError("content-type : " + contentMediaType + " is not supported",
+                                       RESOURCE_DISPATCHING_ERROR);
     }
 
     private String extractContentMediaType(String header) {
@@ -228,7 +231,7 @@ public class ResourceDataElement implements DataElement<Resource, HttpCarbonMess
             }
         }
         cMsg.setHttpStatusCode(406);
-        throw new BallerinaConnectorException();
+        throw HttpUtil.createHttpError("", RESOURCE_DISPATCHING_ERROR);
     }
 
     private List<String> extractAcceptMediaTypes(String header) {

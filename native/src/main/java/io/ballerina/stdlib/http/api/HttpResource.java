@@ -17,6 +17,7 @@
 */
 package io.ballerina.stdlib.http.api;
 
+import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.MethodType;
 import io.ballerina.runtime.api.types.RemoteMethodType;
 import io.ballerina.runtime.api.types.ResourceMethodType;
@@ -36,6 +37,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -52,6 +54,10 @@ public class HttpResource implements Resource {
 
     private static final Logger log = LoggerFactory.getLogger(HttpResource.class);
 
+    private static final BString NAME = StringUtils.fromString("name");
+    private static final BString LINKED_TO = StringUtils.fromString("linkedTo");
+    private static final BString RELATION = StringUtils.fromString("relation");
+    private static final BString METHOD = StringUtils.fromString("method");
     private static final BString CONSUMES_FIELD = StringUtils.fromString("consumes");
     private static final BString PRODUCES_FIELD = StringUtils.fromString("produces");
     private static final BString CORS_FIELD = StringUtils.fromString("cors");
@@ -60,6 +66,10 @@ public class HttpResource implements Resource {
             StringUtils.fromString(ModuleUtils.getHttpPackageIdentifier() + ":" + ANN_NAME_RESOURCE_CONFIG);
     private static final String RETURN_ANNOT_PREFIX = "$returns$";
 
+    private String resourceLinkName;
+    private List<LinkedResourceInfo> linkedResources = new ArrayList<>();
+    private BMap<BString, Object> links = ValueCreator.createMapValue();
+    private List<BString> linkedRelations = new ArrayList<>();
     private MethodType balResource;
     private List<String> methods;
     private String path;
@@ -90,6 +100,38 @@ public class HttpResource implements Resource {
 
     protected HttpResource() {
 
+    }
+
+    public String getResourceLinkName() {
+        return resourceLinkName;
+    }
+
+    public void setResourceLinkName(String name) {
+        this.resourceLinkName = name;
+    }
+
+    public List<LinkedResourceInfo> getLinkedResources() {
+        return linkedResources;
+    }
+
+    public void addLinkedResource(LinkedResourceInfo linkedResourceInfo) {
+        this.linkedResources.add(linkedResourceInfo);
+    }
+
+    public void addLink(BString relation, BMap link) {
+        this.links.put(relation, link);
+    }
+
+    public BMap<BString, Object> getLinks() {
+        return this.links;
+    }
+
+    public boolean hasLinkedRelation(BString relation) {
+        return this.linkedRelations.contains(relation);
+    }
+
+    public void addLinkedRelation(BString relation) {
+        this.linkedRelations.add(relation);
     }
 
     @Override
@@ -227,6 +269,12 @@ public class HttpResource implements Resource {
         BMap resourceConfigAnnotation = getResourceConfigAnnotation(resource);
 
         if (checkConfigAnnotationAvailability(resourceConfigAnnotation)) {
+            if (Objects.nonNull(resourceConfigAnnotation.getStringValue(NAME))) {
+                httpResource.setResourceLinkName(resourceConfigAnnotation.getStringValue(NAME).getValue());
+            }
+            if (Objects.nonNull(resourceConfigAnnotation.getArrayValue(LINKED_TO))) {
+                httpResource.updateLinkedResources(resourceConfigAnnotation.getArrayValue(LINKED_TO).getValues());
+            }
             httpResource.setConsumes(
                     getAsStringList(resourceConfigAnnotation.getArrayValue(CONSUMES_FIELD).getStringArray()));
             httpResource.setProduces(
@@ -238,6 +286,17 @@ public class HttpResource implements Resource {
         processResourceCors(httpResource, httpService);
         httpResource.prepareAndValidateSignatureParams();
         return httpResource;
+    }
+
+    private void updateLinkedResources(Object[] links) {
+        for (Object link : links) {
+            BMap linkMap = (BMap) link;
+            String name = linkMap.getStringValue(NAME).getValue().toLowerCase(Locale.getDefault());
+            String relation = linkMap.getStringValue(RELATION).getValue().toLowerCase(Locale.getDefault());
+            String method = Objects.nonNull(linkMap.getStringValue(METHOD)) ?
+                            linkMap.getStringValue(METHOD).getValue().toUpperCase(Locale.getDefault()) : null;
+            this.addLinkedResource(new LinkedResourceInfo(name, relation, method));
+        }
     }
 
     /**
@@ -332,6 +391,10 @@ public class HttpResource implements Resource {
         return (parentService.getBasePath() + getPath()).replaceAll("/+", SINGLE_SLASH);
     }
 
+    public String getResourcePathSignature() {
+        return this.getName().replaceFirst("\\$[^$]*", "");
+    }
+
     // Followings added due to WebSub requirement
     public void setPath(String path) {
         this.path = path;
@@ -343,5 +406,32 @@ public class HttpResource implements Resource {
 
     public RemoteMethodType getRemoteFunction() {
         return (RemoteMethodType) balResource;
+    }
+
+    /**
+     * Linked resource information.
+     */
+    public static class LinkedResourceInfo {
+        private final String name;
+        private final String relationship;
+        private final String method;
+
+        public LinkedResourceInfo(String name, String relationship, String method) {
+            this.name = name;
+            this.relationship = relationship;
+            this.method = method;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getRelationship() {
+            return relationship;
+        }
+
+        public String getMethod() {
+            return method;
+        }
     }
 }

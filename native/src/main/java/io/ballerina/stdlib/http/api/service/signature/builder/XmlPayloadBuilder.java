@@ -26,6 +26,9 @@ import io.ballerina.stdlib.http.api.HttpErrorType;
 import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.mime.util.EntityBodyHandler;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * The xml type payload builder.
  *
@@ -33,6 +36,9 @@ import io.ballerina.stdlib.mime.util.EntityBodyHandler;
  */
 public class XmlPayloadBuilder extends AbstractPayloadBuilder {
     private final Type payloadType;
+    private static final List<Integer> allowedList = Arrays.asList(
+            TypeTags.XML_TAG, TypeTags.XML_ELEMENT_TAG, TypeTags.XML_COMMENT_TAG, TypeTags.XML_PI_TAG,
+            TypeTags.XML_TEXT_TAG);
 
     public XmlPayloadBuilder(Type payloadType) {
         this.payloadType = payloadType;
@@ -40,7 +46,7 @@ public class XmlPayloadBuilder extends AbstractPayloadBuilder {
 
     @Override
     public Object getValue(BObject entity, boolean readonly) {
-        if (isSubtypeOfAllowedType(payloadType, TypeTags.XML_TAG)) {
+        if (allowedList.stream().anyMatch(allowedTag -> isSubtypeOfAllowedType(payloadType, allowedTag))) {
             BXml bxml = EntityBodyHandler.constructXmlDataSource(entity);
             EntityBodyHandler.addMessageDataSource(entity, bxml);
             if (readonly) {
@@ -49,6 +55,6 @@ public class XmlPayloadBuilder extends AbstractPayloadBuilder {
             return bxml;
         }
         throw HttpUtil.createHttpError("incompatible type found: '" + payloadType.toString() + "'",
-                                       HttpErrorType.PAYLOAD_BINDING_ERROR);
+                                       HttpErrorType.PAYLOAD_BINDING_LISTENER_ERROR);
     }
 }

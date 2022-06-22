@@ -4,11 +4,10 @@ _Owners_: @shafreenAnfar @TharmiganK @ayeshLK @chamil321
 _Reviewers_: @shafreenAnfar @bhashinee @TharmiganK @ldclakmal  
 _Created_: 2021/12/23  
 _Updated_: 2022/04/08   
-_Edition_: Swan Lake  
-_Issue_: [#572](https://github.com/ballerina-platform/ballerina-standard-library/issues/572)
+_Edition_: Swan Lake
 
 
-# Introduction
+## Introduction
 This is the specification for the HTTP standard library of [Ballerina language](https://ballerina.io/), which provides HTTP client-server functionalities to produce and consume HTTP APIs.  
 
 The HTTP library specification has evolved and may continue to evolve in the future. The released versions of the specification can be found under the relevant GitHub tag. 
@@ -17,7 +16,7 @@ If you have any feedback or suggestions about the library, start a discussion vi
 
 The conforming implementation of the specification is released and included in the distribution. Any deviation from the specification is considered a bug.
 
-# Contents
+## Contents
 
 1. [Overview](#1-overview)
 2. [Components](#2-components)
@@ -77,6 +76,9 @@ The conforming implementation of the specification is released and included in t
 6. [Request and Response](#6-request-and-response)
 7. [Header and Payload](#7-header-and-payload)
     * 7.1. [Parse header functions](#71-parse-header-functions)
+    * 7.2. [Links support](#72-links-support)
+      * 7.2.1 [LinkedTo record](#721-linkedto-record)
+      * 7.2.2 [Links in the response](#722-links-in-the-response)
 8. [Interceptor and error handling](#8-interceptor-and-error-handling)
     * 8.1. [Interceptor](#81-interceptor)
         * 8.1.1. [Request interceptor](#811-request-interceptor)
@@ -91,9 +93,11 @@ The conforming implementation of the specification is released and included in t
             * 8.1.4.2. [Listener level](#8142-listener-level)
             * 8.1.4.3. [Execution order of interceptors](#8143-execution-order-of-interceptors)
         * 8.1.5. [Data binding](#815-data-binding)
-     * 8.2. [Error handling](#82-error-handling)
-        * 8.2.1. [Trace log](#821-trace-log)
-        * 8.2.2. [Access log](#822-access-log)
+    * 8.2. [Error handling](#82-error-handling)
+      * 8.2.1. [Error interceptors](#821-error-interceptors)
+      * 8.2.2. [Error types](#822-error-types)
+      * 8.2.3. [Trace log](#823-trace-log)
+      * 8.2.4. [Access log](#824-access-log)
 9. [Security](#9-security)
     * 9.1. [Authentication and Authorization](#91-authentication-and-authorization)
         * 9.1.1. [Declarative Approach](#911-declarative-approach)
@@ -1423,11 +1427,13 @@ compression, auth are defined in the resource config.
 ```ballerina
 # ResourceConfig definition
 public type HttpResourceConfig record {|
+    string name?;
     string[] consumes = [];
     string[] produces = [];
     CorsConfig cors = {};
     boolean transactionInfectable = true;
     ListenerAuthConfig[]|Scopes auth?;
+    LinkedTo[] linkedTo?;
 |};
 
 @http:ResourceConfig {
@@ -1641,6 +1647,183 @@ parseHeader(string headerValue) returns HeaderValue[]|ClientError  {
 
 }
 ```
+
+### 7.2 Links support
+Hypermedia As the Engine Of Application State (HATEOAS) is one of the key principles in REST, which brings the 
+connectedness to a set of scattered resources. It also brings direction as to what might user could do next. Similar 
+to Web pages REST APIs becomes self-descriptive and dynamic along with this principle.
+
+As an initial support to HATEOAS, HTTP package has the ability to statically record the connectedness of resources 
+through `Links` object. `Links` is a map of `Link` objects which represent the connectedness between resources. The 
+`Link` record is defines as follows :
+```ballerina
+public type Link record {
+    # Names the relationship of the linked target to the current representation
+    string rel?;
+    # Target URL
+    string href;
+    # Expected resource representation media types
+    string[] types?;
+    # Allowed resource methods
+    Method[] methods?;
+};
+```
+
+This `Links` is generated from the `linkedTo` field in the `ResourceConfig` annotation, and added either to the 
+payload or as a `Link` header depends on the payload type.
+
+#### 7.2.1 LinkedTo record
+The `LinkedTo` record is defined as follows :
+```ballerina
+public type LinkedTo record {|
+    string name;
+    string relation = "self";
+    string method?;
+|};
+```
+
+This record represents a connectedness between two resources. All the fields in the `LinkedTo` record is 
+**case-insensitive**. The `relation` field is defaulted to the IANA link relation `self`, and for a specific resource, 
+the linked resources should have a **unique** relation.  
+
+The linked resource is resolved using the resource link name specified in the `name` field. To 
+find the linked resource, the linked resource should be configured with the same name through `ResourceConfig` 
+annotation. Following is a simple example of creating links :
+```ballerina
+service on new http:Listener(port) {
+
+    @http:ResourceConfig {
+        // Create a link between this resource and "Payment" resource
+        linkedTo: [{ name: "Payment", rel: "payment" }]
+    }
+    resource function post 'order(@http:Payload Order 'order) returns 
+            http:Accepted|http:InternalServerError {
+        // some logic
+    }
+    
+    @http:ResourceConfig {
+        name: "Payment"
+    }
+    resource function put payment/[string id](@http:Payload Payment payment) returns 
+            http:Ok|http:InternalServerError {
+        // some logic
+    }
+}
+```
+
+Resource link name can be duplicated only when the resources have the same path. In this case, the `method` of the 
+linked resource should be specified in the `LinkedTo` record to resolve conflicts. Following is an example when we have two 
+resources with the same resource link name :
+```ballerina
+service on new http:Listener(port) {
+
+    @http:ResourceConfig {
+        name: "Orders",
+        linkedTo: [
+            { name: "Orders", rel: "edit",  method: "PUT" },
+            { name: "Orders", rel: "remove",  method: "DELETE" }
+        ]
+    }
+    resource function put orders/[string id](@http:Payload Order 'order) returns 
+            http:Ok|http:InternalServerError {
+        // some logic
+    }
+    
+    @http:ResourceConfig {
+        name : "Orders"
+    }
+    resource function delete orders/[string id]() returns http:Ok|http:InternalServerError {
+        // some logic
+    }
+}
+```
+
+#### 7.2.2 Links in the response
+The static `Links` generated from the `linkedTo` field will be injected to the payload when the payload media-type is 
+JSON, and it is not `readonly`. Suppose the user returns the below record type, the runtime will inject the `Links` 
+record as in the latter. So the response should be considered as a record with `Links` field.
+
+```ballerina
+public type 'Order record {|
+    string item_name;
+    string id;
+    string quantity;
+|};
+```
+
+```ballerina
+public type 'Order record {|
+    *http:Links;
+    string item_name;
+    string id;
+    string quantity;
+|};
+```
+
+Following is an example of `Links` in payload :
+```ballerina
+service on new http:Listener(port) {
+
+    @http:ResourceConfig {
+        linkedTo: [{ name: "Payment", rel: "payment" }]
+    }
+    resource function get orders/[string id]() returns Order|http:NotFound {
+        // some logic
+    }
+    
+    @http:ResourceConfig {
+        name: "Payment"
+    }
+    resource function put payment/[string id](@http:Payload Payment payment) returns 
+            http:Ok|http:InternalServerError {
+        // some logic
+    }
+}
+```
+The response payload to the GET resource will look like this :
+```json
+{
+   "item_name": "latte",
+   "quantity": 2,
+   "_links":{
+      "payment":{
+         "rel": "payment",
+         "href": "/payment/{id}",
+         "methods":["PUT"]
+      }
+   }
+}
+```
+
+When there is no payload or when `Links` not supported in the payload, the `Links` will be added as a `Link` header. 
+Following is an example of `Links` in `Link` header:
+```ballerina
+service on new http:Listener(port) {
+
+    @http:ResourceConfig {
+        linkedTo: [{ name: "Payment", rel: "payment" }]
+    }
+    resource function post order(@http:Payload Order 'order) returns 
+            http:Accepted|http:InternalServerError {
+        // some logic
+        // return http:Accepted without body
+    }
+    
+    @http:ResourceConfig {
+        name: "Payment"
+    }
+    resource function put payment/[string id](@http:Payload Payment payment) returns 
+            http:Ok|http:InternalServerError {
+        // some logic
+    }
+}
+```
+The response will have the following header :
+```
+link: "</payment/{id}>; rel=\"payment\"; methods=\"\"PUT\"\""
+```
+
+The `Links` will not overwrite the payload or the header if the user has already added the links.
 
 ## 8. Interceptor and error handling
 ### 8.1 Interceptor
@@ -1869,7 +2052,155 @@ relevant order even though the end service does not exist.
 parameters. In order to get hold of the headers and the payload, users must use @http:Payload and @http:Headers.
 
 ### 8.2 Error handling
-### 8.2.1 Trace log
+
+#### 8.2.1 Error interceptors
+
+Error handling is an integral part of any network program. Errors can be returned by many components such as interceptors,
+dispatcher, data-binder, security handlers, etc. These errors are often handled by a default handler and sent back as 
+`500 Internal Server Error` with an entity-body. However, this often causes problems because when designing any API 
+consistency matters. Therefore, all the responses must have a consistent format. 
+
+As a result, almost all the real API requires overriding the default error handler and replacing it with their own
+error handlers. This can be done by error interceptors discussed in [Request error interceptor and response error 
+interceptor](#813-request-error-interceptor-and-response-error-interceptor). These error handlers can be placed 
+anywhere in the pipeline. The only mandatory argument in error interceptors is `error`. Just like a main service, it 
+is possible to return values from error handlers which will send back as HTTP responses. This overrides the current response
+and results in triggering the next response interceptor. Following is such an example :
+```ballerina
+service class ResponseErrorInterceptor {
+   *http:ResponseErrorInterceptor;
+ 
+   remote function interceptResponseError(error err) returns http:NotFound {
+       http:NotFound nf = { body: { msg: err.message()} };
+       return nf;
+   }
+}
+```
+
+The HTTP module also have a `DefaultErrorInterceptor` which is a `ResponseErrorInterceptor`. This will be added by 
+the listener and will be executed at last when there is an error. Hence, any error which is not handled by other 
+error interceptors will be finally handled by this default error handler. In essence, the internal default error interceptor
+will look like this :
+```ballerina
+service class DefaultErrorInterceptor {
+    *http:ResponseErrorInterceptor;
+
+    remote function interceptResponseError(error err) returns http:Response {
+        http:Response res = new;
+        res.setTextPayload(err.message());
+        // By default, the error response is set to 500 - Internal Server Error
+        // However, if the error is an internal error which has a different error
+        // status code (4XX or 5XX) then this 500 status code will be overwritten 
+        // by the original status code.
+        res.statusCode = 500;
+        return res;
+    }
+}
+```
+
+In order to overwrite this default error handling behavior, a custom `ResponseErrorInterceptor` can be placed as the 
+first interceptor in the listener level configuration which will be executed at last just before the  `DefaultErrorHandler`.
+
+#### 8.2.2 Error types
+
+In addition to error interceptors, HTTP module provides distinct error types in order to intercept errors and handle 
+them differently. These error types have a hierarchical structure starting from the basic `HttpError`. The following 
+table summarizes the error types which can be intercepted by the error interceptors:
+
+<table>
+<thead>
+  <tr>
+    <th></th>
+    <th>Error</th>
+    <th>Error Type</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td rowspan="5">Executing Interceptors - Interceptor Level</td>
+    <td>500 - no next service to be returned</td>
+    <td rowspan="4">InterceptorReturnError</td>
+  </tr>
+  <tr>
+    <td>500 - request context object does not contain the configured interceptors</td>
+  </tr>
+  <tr>
+    <td>500 - next interceptor service did not match with the configuration</td>
+  </tr>
+  <tr>
+    <td>500 - target service did not match with the configuration</td>
+  </tr>
+  <tr>
+    <td>Other errors occurred during the resource/remote function execution</td>
+    <td><i>Same as the returned error type</i></td>
+  </tr>
+  <tr>
+    <td rowspan="3">Finding Service - Listener Level</td>
+    <td>404 - no service has registered for listener</td>
+    <td rowspan="3">ServiceDispatchingError</td>
+  </tr>
+  <tr>
+    <td>404 - no matching service found for path</td>
+  </tr>
+  <tr>
+    <td>400 - Found non-matrix parameter in path</td>
+  </tr>
+  <tr>
+    <td rowspan="2">Finding Resource - Service Level</td>
+    <td>404 - no matching resource found for path</td>
+     <td rowspan="4">ResourceDispatchingError</td>
+  </tr>
+  <tr>
+    <td>405 - Method not allowed</td>
+  </tr>
+  <tr>
+    <td rowspan="2">Consumes & Produces - Service Level</td>
+    <td>406 - Not Acceptable</td>
+  </tr>
+  <tr>
+    <td>415 - Unsupported Media Type</td>
+  </tr>
+  <tr>
+    <td rowspan="6">Databinding - Service Level</td>
+    <td>400 - Error in casting path param</td>
+    <td>PathParameterBindingError</td>
+  </tr>
+  <tr>
+    <td>400 - no query param value found</td>
+    <td rowspan="2">QueryParameterBindingError</td>
+  </tr>
+  <tr>
+    <td>400 - Error in casting query param </td>
+  </tr>
+  <tr>
+    <td>400 - no header value found</td>
+    <td rowspan="2">HeaderBindingError</td>
+  </tr>
+  <tr>
+    <td>400 - header binding failed </td>
+  </tr>
+  <tr>
+    <td>400 - data binding failed</td>
+    <td>PayloadBindingError</td>
+  </tr>
+  <tr>
+    <td rowspan="2">Security - Resource Level</td>
+    <td>401 - Unauthorized errors</td>
+    <td>ListenerAuthnError</td>
+  </tr>
+  <tr>
+    <td>403 - Forbidden errors</td>
+    <td>ListenerAuthzError</td>
+  </tr>
+  <tr>
+    <td>Resource execution -  Resource Level</td>
+    <td>500 - Returned errors</td>
+    <td><i>Same as the returned error type</i></td>
+  </tr>
+</tbody>
+</table>
+
+#### 8.2.3 Trace log
 The HTTP trace logs can be used to monitor the HTTP traffic that goes in and out of Ballerina.
 The HTTP trace logs are **disabled as default**.
 To enable trace logs, the log level has to be set to TRACE using the runtime argument:
@@ -1891,7 +2222,7 @@ path = "testTraceLog.txt"   # Optional
 host = "localhost"          # Optional
 port = 8080                 # Optional
 ```
-### 8.2.2 Access log
+#### 8.2.4 Access log
 
 Ballerina supports HTTP access logs for HTTP services. The access log format used is the combined log format.
 The HTTP access logs are **disabled as default**.

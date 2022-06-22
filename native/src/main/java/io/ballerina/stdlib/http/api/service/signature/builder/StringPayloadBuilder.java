@@ -54,7 +54,7 @@ public class StringPayloadBuilder extends AbstractPayloadBuilder {
     }
 
     private Object createValue(Type payloadType, boolean readonly, BString dataSource) {
-        if (payloadType.getTag() == TypeTags.STRING_TAG) {
+        if (payloadType.getTag() == TypeTags.STRING_TAG || payloadType.getTag() == TypeTags.CHAR_STRING_TAG) {
             return dataSource;
         } else if (payloadType.getTag() == TypeTags.ARRAY_TAG) {
             return StringToByteArrayConverter.convert((ArrayType) payloadType, dataSource, readonly);
@@ -71,6 +71,6 @@ public class StringPayloadBuilder extends AbstractPayloadBuilder {
             }
         }
         throw HttpUtil.createHttpError("incompatible type found: '" + payloadType.toString() + "'",
-                                       HttpErrorType.PAYLOAD_BINDING_ERROR);
+                                       HttpErrorType.PAYLOAD_BINDING_LISTENER_ERROR);
     }
 }

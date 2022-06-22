@@ -34,6 +34,7 @@ function testNoServiceRegistered() returns error? {
     assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
     assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
     assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("error-type"), "DispatchingError-Service");
 }
 
 final http:Client serviceErrorHandlingClientEP = check new("http://localhost:" + serviceErrorHandlingTestPort.toString());
@@ -47,7 +48,7 @@ listener http:Listener serviceErrorHandlingServerEP = new(serviceErrorHandlingTe
 
 service /foo on serviceErrorHandlingServerEP {
 
-    resource function get bar1(@http:Header string header) returns string {
+    resource function get bar1(@http:Header int header) returns int {
         return header;
     }
 
@@ -67,6 +68,22 @@ service /foo on serviceErrorHandlingServerEP {
     resource function get callerError(http:Caller caller) returns error? {
         check caller->respond(error("Error from resource"));
     }
+
+    resource function get query(int id) returns string {
+        return "hello world";
+    }
+
+    resource function get person/[int id]() returns int {
+        return id;
+    }
+
+    @http:ResourceConfig {
+        consumes: ["application/json"],
+        produces: ["application/xml"]
+    }
+    resource function post info(@http:Payload json msg) returns xml {
+        return xml `<greeting>hello</greeting>`;
+    }
 }
 
 @test:Config{}
@@ -77,6 +94,7 @@ function testNoMatchingServiceRegistered() returns error? {
     assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
     assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
     assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("error-type"), "DispatchingError-Service");
 }
 
 @test:Config{}
@@ -87,6 +105,7 @@ function testNoMatchingResourceFound() returns error? {
     assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
     assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
     assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("error-type"), "DispatchingError-Resource");
 }
 
 @test:Config{}
@@ -97,6 +116,15 @@ function testHeaderNotFound() returns error? {
     assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
     assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
     assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("error-type"), "HeaderBindingError");
+
+    res = check serviceErrorHandlingClientEP->get("/foo/bar1", {"header": "hi"});
+    test:assertEquals(res.statusCode, 400);
+    assertTextPayload(res.getTextPayload(), "header binding failed for parameter: 'header'");
+    assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
+    assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("error-type"), "HeaderBindingError");
 
     res = check serviceErrorHandlingClientEP->get("/foo/bar2");
     test:assertEquals(res.statusCode, 500);
@@ -104,6 +132,7 @@ function testHeaderNotFound() returns error? {
     assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
     assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
     assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("error-type"), "HeaderNotFoundError");
 }
 
 @test:Config{}
@@ -114,6 +143,7 @@ function testMethodNotAllowed() returns error? {
     assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
     assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
     assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("error-type"), "DispatchingError-Resource");
 }
 
 @test:Config{}
@@ -124,6 +154,7 @@ function testDataBindingFailed() returns error? {
     assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
     assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
     assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("error-type"), "PayloadBindingError");
 }
 
 @test:Config{}
@@ -134,6 +165,7 @@ function testResourceReturnsError() returns error? {
     assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
     assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
     assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("error-type"), "NormalError");
 }
 
 @test:Config{}
@@ -144,4 +176,144 @@ function testResourceCallerRespondsError() returns error? {
     assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
     assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
     assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("error-type"), "NormalError");
+}
+
+@test:Config{}
+function testQueryParamError() returns error? {
+    http:Response res = check serviceErrorHandlingClientEP->get("/foo/query");
+    test:assertEquals(res.statusCode, 400);
+    assertTrueTextPayload(res.getTextPayload(), "no query param value found for 'id'");
+    assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
+    assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("error-type"), "QueryParamBindingError");
+
+    res = check serviceErrorHandlingClientEP->get("/foo/query?id=hello");
+    test:assertEquals(res.statusCode, 400);
+    assertTrueTextPayload(res.getTextPayload(), "error in casting query param : 'id");
+    assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
+    assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("error-type"), "QueryParamBindingError");
+}
+
+@test:Config{}
+function testPathParamError() returns error? {
+    http:Response res = check serviceErrorHandlingClientEP->get("/foo/person/hello");
+    test:assertEquals(res.statusCode, 400);
+    assertTrueTextPayload(res.getTextPayload(), "error in casting path parameter : 'id'");
+    assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
+    assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("error-type"), "PathParamBindingError");
+}
+
+@test:Config{}
+function testConsumesProducesError() returns error? {
+    http:Request req = new;
+    req.setXmlPayload(xml `<name>john</name>`);
+    http:Response res = check serviceErrorHandlingClientEP->post("/foo/info", req);
+    test:assertEquals(res.statusCode, 415);
+    assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
+    assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("error-type"), "DispatchingError-Resource");
+
+    req = new;
+    req.setJsonPayload({name: "john"});
+    req.setHeader("accept", "application/json");
+    res = check serviceErrorHandlingClientEP->post("/foo/info", req);
+    test:assertEquals(res.statusCode, 406);
+    assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
+    assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("error-type"), "DispatchingError-Resource");
+}
+
+listener http:Listener authErrorHandlingServerEP = new(authErrorHandlingTestPort, config = {
+    interceptors : [
+        new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultRequestInterceptor(),
+        new DefaultRequestErrorInterceptor(), new LastRequestInterceptor(), new DefaultResponseInterceptor()
+    ],
+    secureSocket : {
+        key: {
+            path: KEYSTORE_PATH,
+            password: "ballerina"
+        }
+    }
+});
+
+// Basic auth (file user store) secured service
+@http:ServiceConfig {
+    auth: [
+        {
+            fileUserStoreConfig: {},
+            scopes: ["write", "update"]
+        }
+    ]
+}
+service /auth on authErrorHandlingServerEP {
+    resource function get .() returns string {
+        return "Hello World!";
+    }
+}
+
+@test:Config{}
+function testAuthnError() returns error? {
+    http:Client clientEP = check new("https://localhost:" + authErrorHandlingTestPort.toString(),
+        auth = {
+            username: "peter",
+            password: "123"
+        },
+        secureSocket = {
+            cert: {
+                path: TRUSTSTORE_PATH,
+                password: "ballerina"
+            }
+        }
+    );
+    http:Response res = check clientEP->get("/auth");
+    test:assertEquals(res.statusCode, 401);
+    assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
+    assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("error-type"), "ListenerAuthenticationError");
+
+    clientEP = check new("https://localhost:" + authErrorHandlingTestPort.toString(),
+        secureSocket = {
+            cert: {
+                path: TRUSTSTORE_PATH,
+                password: "ballerina"
+            }
+        }
+    );
+    res = check clientEP->get("/auth");
+    test:assertEquals(res.statusCode, 401);
+    assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
+    assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("error-type"), "ListenerAuthenticationError");
+}
+
+@test:Config{}
+function testAuthzError() returns error? {
+    http:Client clientEP = check new("https://localhost:" + authErrorHandlingTestPort.toString(),
+        auth = {
+            username: "bob",
+            password: "yyy"
+        },
+        secureSocket = {
+            cert: {
+                path: TRUSTSTORE_PATH,
+                password: "ballerina"
+            }
+        }
+    );
+    http:Response res = check clientEP->get("/auth");
+    test:assertEquals(res.statusCode, 403);
+    assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
+    assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("error-type"), "ListenerAuthorizationError");
 }

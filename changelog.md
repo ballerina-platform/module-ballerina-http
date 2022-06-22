@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+- [Implement immediateStop in HTTP listener](https://github.com/ballerina-platform/ballerina-standard-library/issues/1794)
+- [Add initial support for HATEOAS](https://github.com/ballerina-platform/ballerina-standard-library/issues/2391)
+
+## [2.3.0] - 2022-05-30
+
+### Added
 - [Introduce response and response error interceptors](https://github.com/ballerina-platform/ballerina-standard-library/issues/2684)
 - [Allow records to be annotated with @http:Header](https://github.com/ballerina-platform/ballerina-standard-library/issues/2699)
 - [Add basic type support for header params in addition to `string`, `string[]`](https://github.com/ballerina-platform/ballerina-standard-library/issues/2807)
@@ -21,11 +27,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Add common constants for HTTP status-code responses](https://github.com/ballerina-platform/ballerina-standard-library/issues/1540)
 - [Add code-actions to generate interceptor method template](https://github.com/ballerina-platform/ballerina-standard-library/issues/2664)
 - [Add OpenAPI definition field in `@http:ServiceConfig`](https://github.com/ballerina-platform/ballerina-standard-library/issues/2881)
+- [Introduce new HTTP error types](https://github.com/ballerina-platform/ballerina-standard-library/issues/2845)
 
 ### Changed
 - [Append the scheme of the HTTP client URL based on the client configurations](https://github.com/ballerina-platform/ballerina-standard-library/issues/2816)
 - [Refactor auth-desugar respond with DefaultErrorInterceptor](https://github.com/ballerina-platform/ballerina-standard-library/issues/2823)
 - [Hide subtypes of http:Client](https://github.com/ballerina-platform/ballerina-standard-library/issues/504)
+
+### Fixed
+- [Validate record field types for resource input params](https://github.com/ballerina-platform/ballerina-standard-library/issues/2862)
 
 ## [2.2.1] - 2022-03-02
 

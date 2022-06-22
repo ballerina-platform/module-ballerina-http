@@ -202,7 +202,7 @@ public class ServerConnectorBootstrap {
         HttpServerConnector(String id, String host, int port) {
             this.host = host;
             this.port = port;
-            this.connectorID =  id;
+            this.connectorID = id;
             httpServerChannelInitializer.setInterfaceId(id);
         }
 
@@ -241,6 +241,20 @@ public class ServerConnectorBootstrap {
             }
 
             return connectorStopped;
+        }
+
+        @Override
+        public void immediateStop() {
+            httpServerChannelInitializer.getServerPipeline().close().addListener(future -> {
+                if (future.isSuccess()) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("HTTP listener on host {} and port {} has immediately stopped", getHost(), getPort());
+                    }
+                } else {
+                    throw new Exception("Failed to stop the listener on " + getHost() + ":" + getPort() +
+                                                "immediately");
+                }
+            });
         }
 
         @Override

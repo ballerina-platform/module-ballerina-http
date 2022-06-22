@@ -176,19 +176,19 @@ isolated function nilablejsonPayloadBuilder(Response response, typedesc<anydata>
     }
 }
 
-isolated function createPayloadBindingError(error result) returns PayloadBindingError {
+isolated function createPayloadBindingError(error result) returns PayloadBindingClientError {
     string errPrefix = "Payload binding failed: ";
     var errMsg = result.detail()["message"];
     if errMsg is string {
-        return error PayloadBindingError(errPrefix + errMsg, result);
+        return error PayloadBindingClientError(errPrefix + errMsg, result);
     }
-    return error PayloadBindingError(errPrefix + result.message(), result);
+    return error PayloadBindingClientError(errPrefix + result.message(), result);
 }
 
-isolated function getCommonError(Response response, TargetType targetType) returns PayloadBindingError {
+isolated function getCommonError(Response response, TargetType targetType) returns PayloadBindingClientError {
     string contentType = response.getContentType();
     string mimeType = contentType == "" ? "no" : "'" + contentType + "'";
-    return error PayloadBindingError("incompatible " + targetType.toString() + " found for " + mimeType + " mime type");
+    return error PayloadBindingClientError("incompatible " + targetType.toString() + " found for " + mimeType + " mime type");
 }
 
 isolated function typeIncludedInUnion(typedesc unionType, any targetType) returns boolean = @java:Method {

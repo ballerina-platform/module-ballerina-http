@@ -135,8 +135,8 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
                 if (result.equals(interceptor)) {
                     sendResponseToNextService();
                 } else {
-                    BError err = HttpUtil.createHttpError("next interceptor service did not match " +
-                            "with the configuration", HttpErrorType.GENERIC_LISTENER_ERROR);
+                    BError err = HttpUtil.createHttpError("next interceptor service did not match with the " +
+                                                          "configuration", HttpErrorType.INTERCEPTOR_RETURN_ERROR);
                     requestMessage.setHttpStatusCode(500);
                     invokeErrorInterceptors(err, true);
                 }
@@ -145,13 +145,15 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
     }
 
     private void returnResponse(Object result) {
-        Object[] paramFeed = new Object[6];
+        Object[] paramFeed = new Object[8];
         paramFeed[0] = result;
         paramFeed[1] = true;
         paramFeed[2] = null;
         paramFeed[3] = true;
         paramFeed[4] = null;
         paramFeed[5] = true;
+        paramFeed[6] = null;
+        paramFeed[7] = true;
 
         invokeBalMethod(paramFeed, "returnResponse");
     }

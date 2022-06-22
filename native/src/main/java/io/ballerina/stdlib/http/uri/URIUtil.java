@@ -22,8 +22,9 @@ import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
-import io.ballerina.stdlib.http.api.BallerinaConnectorException;
 import io.ballerina.stdlib.http.api.HttpConstants;
+import io.ballerina.stdlib.http.api.HttpErrorType;
+import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
 import java.io.UnsupportedEncodingException;
@@ -109,7 +110,8 @@ public class URIUtil {
     }
 
 
-    public static String extractMatrixParams(String path, Map<String, Map<String, String>> matrixParams) {
+    public static String extractMatrixParams(String path, Map<String, Map<String, String>> matrixParams,
+                                             HttpCarbonMessage inboundReqMsg) {
         if (path.startsWith("/")) {
             path = path.substring(1);
         }
@@ -123,9 +125,9 @@ public class URIUtil {
             for (int i = 1; i < splitPathSegment.length; i++) {
                 String[] splitMatrixParam = splitPathSegment[i].split("=");
                 if (splitMatrixParam.length != 2) {
-                    throw new BallerinaConnectorException(
-                            String.format("Found non-matrix parameter '%s' in path '%s'",
-                                          splitPathSegment[i], path));
+                    inboundReqMsg.setHttpStatusCode(400);
+                    throw HttpUtil.createHttpError(String.format("found non-matrix parameter '%s' in path '%s'",
+                                                   splitPathSegment[i], path), HttpErrorType.SERVICE_DISPATCHING_ERROR);
                 }
                 segmentMatrixParams.put(splitMatrixParam[0], splitMatrixParam[1]);
             }
