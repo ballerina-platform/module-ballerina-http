@@ -349,7 +349,7 @@ public class SSLHandlerFactory {
         if (sslConfig.getTrustStore() != null) {
             sslContextBuilder = clientContextBuilderWithKs(provider);
         } else if (sslConfig.useJavaDefaults()) {
-            sslContextBuilder = useSystemDefaults(provider);
+            sslContextBuilder = createSslCtxWithSystemDefaults(provider);
         } else {
             sslContextBuilder = clientContextBuilderWithCerts(provider);
         }
@@ -373,7 +373,7 @@ public class SSLHandlerFactory {
         sslContextBuilder.protocols(sslConfig.getEnableProtocols());
     }
 
-    private SslContextBuilder useSystemDefaults(SslProvider sslProvider) {
+    private SslContextBuilder createSslCtxWithSystemDefaults(SslProvider sslProvider) {
         return SslContextBuilder.forClient().sslProvider(sslProvider).keyManager(kmf);
     }
 
