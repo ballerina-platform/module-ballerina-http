@@ -205,7 +205,7 @@ function testDefaultStatusCodesWithInterceptors() returns error? {
     test:assertEquals(res.statusCode, 200, "Invalid status code received");
     assertTextPayload(res.getTextPayload(), "Hello, World!");
     // test interceptor resource function
-    http:Response res = check requestInterceptorServiceConfigClientEP2->post("/defaultStatusCode", "Hello, World!");
+    res = check requestInterceptorServiceConfigClientEP2->post("/defaultStatusCode", "Hello, World!");
     test:assertEquals(res.statusCode, 201, "Invalid status code received");
     assertTextPayload(res.getTextPayload(), "Hello, World!");
 }
