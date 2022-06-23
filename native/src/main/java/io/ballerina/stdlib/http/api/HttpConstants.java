@@ -252,6 +252,7 @@ public class HttpConstants {
     // ServeConnector struct indices
     public static final BString HTTP_CONNECTOR_CONFIG_FIELD = StringUtils.fromString("config");
     public static final BString SERVICE_ENDPOINT_CONFIG_FIELD = StringUtils.fromString("config");
+    public static final BString RESOURCE_ACCESSOR = StringUtils.fromString("resourceAccessor");
     public static final String SERVICE_ENDPOINT_CONNECTION_FIELD = "caller";
 
     //Connection struct indexes

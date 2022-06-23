@@ -27,6 +27,10 @@ service "/url" on httpReturnNilListener  {
         return; // 202 response
     }
 
+    resource function post nil() {
+        return; // 202 response
+    }
+
     resource function get empty() {
         // 202 response
     }
@@ -62,6 +66,16 @@ service "/url" on httpReturnNilListener  {
 @test:Config {}
 function testNilReturn() {
     http:Response|error response = httpReturnNilClient->get("/url/nil");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 202, msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testNilReturnWithPost() {
+    http:Response|error response = httpReturnNilClient->post("/url/nil", new http:Request());
     if response is http:Response {
         test:assertEquals(response.statusCode, 202, msg = "Found unexpected output");
     } else {

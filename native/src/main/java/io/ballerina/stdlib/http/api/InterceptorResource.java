@@ -98,7 +98,7 @@ public class InterceptorResource implements Resource {
 
     private void validateAndPopulateMethod() {
         String accessor = getBalResource().getAccessor();
-        if (HttpConstants.DEFAULT_HTTP_METHOD.equals(accessor.toLowerCase(Locale.getDefault()))) {
+        if (HttpUtil.isDefaultResource(accessor)) {
             // TODO: Fix this properly
             // setting method as null means that no specific method. Resource is exposed for any method match
             this.methods = null;

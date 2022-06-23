@@ -113,7 +113,7 @@ public function testHeadWithInlineHeadersMap() returns error? {
 public function testPostWithInlineHeadersMap() returns error? {
     http:Response|error resp = outReqHeadClient->post("/mytest/headers", "abc", headers = {"x-type": "joe", "y-type": ["yello", "go"]});
     if resp is http:Response {
-        test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
+        test:assertEquals(resp.statusCode, 201, msg = "Found unexpected output");
         test:assertEquals(check resp.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(resp.getTextPayload(), "joe:yello:text/plain");
     } else {
@@ -183,7 +183,7 @@ public function testExecuteWithInlineHeadersMap() returns error? {
     http:Response|error resp = outReqHeadClient->execute("POST", "/mytest/headers", "abc",
         {"x-type": "joe", "y-type": ["hello", "go"]});
     if resp is http:Response {
-        test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
+        test:assertEquals(resp.statusCode, 201, msg = "Found unexpected output");
         test:assertEquals(check resp.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(resp.getTextPayload(), "joe:hello:text/plain");
     } else {
@@ -359,7 +359,7 @@ public function testFOOptionsWithInlineHeadersMap() returns error? {
 public function testFOPostWithInlineHeadersMap() returns error? {
     http:Response|error resp = outRequestFOClient->post("/mytest/headers", "abc", headers = {"x-type": "joe", "y-type": ["yello", "go"]});
     if resp is http:Response {
-        test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
+        test:assertEquals(resp.statusCode, 201, msg = "Found unexpected output");
         test:assertEquals(check resp.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(resp.getTextPayload(), "joe:yello:text/plain");
     } else {
@@ -455,7 +455,7 @@ public function testLBOptionsWithInlineHeadersMap() returns error? {
 public function testLBPostWithInlineHeadersMap() returns error? {
     http:Response|error resp = outRequestLBClient->post("/mytest/headers", "abc", headers = {"x-type": "joe", "y-type": ["yello", "go"]});
     if resp is http:Response {
-        test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
+        test:assertEquals(resp.statusCode, 201, msg = "Found unexpected output");
         test:assertEquals(check resp.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(resp.getTextPayload(), "joe:yello:text/plain");
     } else {

@@ -776,6 +776,15 @@ public class HttpUtil {
     }
 
     /**
+     * Validated whether a given resource is a `default` resource.
+     * @param resourceAccessor Resource accessor for the current resource
+     * @return {@code true} if the provided `resourceAccessor` is `default`, {@code false} otherwise
+     */
+    public static boolean isDefaultResource(String resourceAccessor) {
+        return HttpConstants.DEFAULT_HTTP_METHOD.equals(resourceAccessor.toLowerCase(Locale.getDefault()));
+    }
+
+    /**
      * Populate inbound response with headers and entity.
      * @param inboundResponse  Ballerina struct to represent response
      * @param entity    Entity of the response
