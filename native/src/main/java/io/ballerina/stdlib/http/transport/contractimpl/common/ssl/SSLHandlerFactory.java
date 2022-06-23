@@ -39,6 +39,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -348,6 +349,8 @@ public class SSLHandlerFactory {
                 Http2SecurityUtil.CIPHERS;
         if (sslConfig.getTrustStore() != null) {
             sslContextBuilder = clientContextBuilderWithKs(provider);
+        } else if (sslConfig.useJavaDefaults()) {
+            sslContextBuilder = useSystemDefaults(provider);
         } else {
             sslContextBuilder = clientContextBuilderWithCerts(provider);
         }
@@ -369,6 +372,10 @@ public class SSLHandlerFactory {
 
     private void setSslProtocol(SslContextBuilder sslContextBuilder) {
         sslContextBuilder.protocols(sslConfig.getEnableProtocols());
+    }
+
+    private SslContextBuilder useSystemDefaults(SslProvider sslProvider) {
+        return SslContextBuilder.forClient().sslProvider(sslProvider).keyManager(kmf);
     }
 
     private void setAlpnConfigs(SslContextBuilder sslContextBuilder) {

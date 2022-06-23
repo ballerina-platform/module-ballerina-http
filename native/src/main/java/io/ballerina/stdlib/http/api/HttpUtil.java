@@ -1209,18 +1209,15 @@ public class HttpUtil {
         String httpVersion = clientEndpointConfig.getStringValue(HttpConstants.CLIENT_EP_HTTP_VERSION).getValue();
         if (scheme.equals(HttpConstants.PROTOCOL_HTTPS)) {
             if (httpVersion.equals(HTTP_2_0_VERSION)) {
-                if (secureSocket == null) {
-                    throw createHttpError("The secureSocket configuration should be provided to establish " +
-                            "an HTTPS connection", HttpErrorType.SSL_ERROR);
-                } else {
-                    boolean enable = secureSocket.getBooleanValue(HttpConstants.SECURESOCKET_CONFIG_DISABLE_SSL);
-                    Object cert = secureSocket.get(HttpConstants.SECURESOCKET_CONFIG_CERT);
-                    if (enable && cert == null) {
-                        // https://github.com/ballerina-platform/ballerina-standard-library/issues/483
-                        throw createHttpError("Need to configure cert with client SSL certificates file for " +
-                                        "HTTP 2.0", HttpErrorType.SSL_ERROR);
-                    }
-                }
+//                if (secureSocket != null) {
+//                    boolean enable = secureSocket.getBooleanValue(HttpConstants.SECURESOCKET_CONFIG_DISABLE_SSL);
+//                    Object cert = secureSocket.get(HttpConstants.SECURESOCKET_CONFIG_CERT);
+//                    if (enable && cert == null) {
+//                        // https://github.com/ballerina-platform/ballerina-standard-library/issues/483
+//                        throw createHttpError("Need to configure cert with client SSL certificates file for " +
+//                                        "HTTP 2.0", HttpErrorType.SSL_ERROR);
+//                    }
+//                }
             }
             if (secureSocket != null) {
                 HttpUtil.populateSSLConfiguration(senderConfiguration, secureSocket);
