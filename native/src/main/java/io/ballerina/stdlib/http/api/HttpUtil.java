@@ -1218,11 +1218,18 @@ public class HttpUtil {
 //                                        "HTTP 2.0", HttpErrorType.SSL_ERROR);
 //                    }
 //                }
-            }
-            if (secureSocket != null) {
-                HttpUtil.populateSSLConfiguration(senderConfiguration, secureSocket);
-            } else {
-                senderConfiguration.useJavaDefaults();
+                if (secureSocket != null) {
+                    boolean enable = secureSocket.getBooleanValue(HttpConstants.SECURESOCKET_CONFIG_DISABLE_SSL);
+                    Object cert = secureSocket.get(HttpConstants.SECURESOCKET_CONFIG_CERT);
+                    if (enable && cert == null) {
+                        // https://github.com/ballerina-platform/ballerina-standard-library/issues/483
+                        throw createHttpError("Need to configure cert with client SSL certificates file for " +
+                                "HTTP 2.0", HttpErrorType.SSL_ERROR);
+                    }
+                    HttpUtil.populateSSLConfiguration(senderConfiguration, secureSocket);
+                } else {
+                    senderConfiguration.useJavaDefaults();
+                }
             }
         }
         if (HTTP_1_1_VERSION.equals(httpVersion)) {
