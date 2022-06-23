@@ -392,18 +392,15 @@ public class HttpDispatcher {
 
     static BObject getCaller(Resource resource, HttpCarbonMessage httpCarbonMessage,
                              BMap<BString, Object> endpointConfig) {
-        Object availableCallerObj = httpCarbonMessage.getProperty(HttpConstants.CALLER);
         String resourceAccessor = resource.getBalResource().getAccessor().toUpperCase(Locale.getDefault());
-        if (Objects.nonNull(availableCallerObj)) {
-            BObject caller = (BObject) availableCallerObj;
-            Object currentResourceAccessor = caller.get(HttpConstants.RESOURCE_ACCESSOR);
-            if (Objects.isNull(currentResourceAccessor) ||
-                    HttpUtil.isDefaultResource(((BString) currentResourceAccessor).getValue())) {
-                caller.set(HttpConstants.RESOURCE_ACCESSOR, StringUtils.fromString(resourceAccessor));
-            }
-            return caller;
+        final BObject httpCaller = Objects.isNull(httpCarbonMessage.getProperty(HttpConstants.CALLER)) ?
+                ValueCreatorUtils.createCallerObject(httpCarbonMessage, resourceAccessor) :
+                (BObject) httpCarbonMessage.getProperty(HttpConstants.CALLER);
+        Object currentResourceAccessor = httpCaller.get(HttpConstants.RESOURCE_ACCESSOR);
+        if (Objects.isNull(currentResourceAccessor) ||
+                HttpUtil.isDefaultResource(((BString) currentResourceAccessor).getValue())) {
+            httpCaller.set(HttpConstants.RESOURCE_ACCESSOR, StringUtils.fromString(resourceAccessor));
         }
-        final BObject httpCaller = ValueCreatorUtils.createCallerObject(httpCarbonMessage, resourceAccessor);
         HttpUtil.enrichHttpCallerWithConnectionInfo(httpCaller, httpCarbonMessage, resource, endpointConfig);
         HttpUtil.enrichHttpCallerWithNativeData(httpCaller, httpCarbonMessage, endpointConfig);
         httpCarbonMessage.setProperty(HttpConstants.CALLER, httpCaller);
