@@ -60,17 +60,3 @@ public function testHttp2Ssl1() returns error? {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
     }
 }
-
-http:ClientConfiguration http2SslClientConf2 = {
-    httpVersion: "2.0"
-};
-
-@test:Config {}
-public function testHttp2Ssl2() {
-    http:Client|http:ClientError httpClient = new("https://localhost:9206", http2SslClientConf2);
-    if httpClient is http:ClientError {
-        test:assertEquals(httpClient.message(), "The secureSocket configuration should be provided to establish an HTTPS connection");
-    } else {
-        test:assertFail(msg = "Found unexpected output: Expected an error message for not configuring secureSocket");
-    }
-}
