@@ -18,8 +18,7 @@ import ballerina/http;
 import ballerina/test;
 
 http:ClientConfiguration defaultCertsConfig = {
-    httpVersion: "2.0",
-    http2Settings: { http2PriorKnowledge: true }
+    httpVersion: "2.0"
 };
 
 http:ClientConfiguration defaultCertsConfigWithPriorKnowledge = {
