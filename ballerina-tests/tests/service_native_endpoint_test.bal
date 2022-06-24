@@ -65,6 +65,7 @@ function testLocalStructInConnection() {
         var payload = response.getJsonPayload();
         if payload is map<json> {
             map<json> localContent = <map<json>>payload["local"];
+            test:assertEquals(localContent["host"], "localhost", msg = "Found unexpected output");
             test:assertEquals(localContent["port"], serviceEndpointTest, msg = "Found unexpected output");
         } else if payload is error {
             test:assertFail(msg = "Found unexpected output type: " + payload.message());
