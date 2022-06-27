@@ -58,6 +58,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.NoSuchElementException;
+import java.util.concurrent.CountDownLatch;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_OUTBOUND_REQUEST;
 
@@ -80,6 +81,8 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
     private EventLoopGroup clientEventGroup;
     private BootstrapConfiguration bootstrapConfig;
     private int configHashCode;
+    private CountDownLatch countDownLatch = new CountDownLatch(1);
+    private boolean firstCall = true;
 
     public DefaultHttpClientConnector(ConnectionManager connectionManager, SenderConfiguration senderConfiguration,
                                       BootstrapConfiguration bootstrapConfig, EventLoopGroup clientEventGroup,
@@ -182,11 +185,13 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
             final HttpRoute route = getTargetRoute(senderConfiguration.getScheme(), httpOutboundRequest,
                                                    this.configHashCode);
             if (isHttp2) {
+                waitTillInProgress();
                 // See whether an already upgraded HTTP/2 connection is available
                 Http2ClientChannel activeHttp2ClientChannel = http2ConnectionManager.borrowChannel(http2SourceHandler,
                                                                                                    route);
 
                 if (activeHttp2ClientChannel != null) {
+                    countDownLatch.countDown();
                     outboundMsgHolder.setHttp2ClientChannel(activeHttp2ClientChannel);
                     setHttp2ForwardedExtension(outboundMsgHolder);
                     new RequestWriteStarter(outboundMsgHolder, activeHttp2ClientChannel).startWritingContent();
@@ -254,6 +259,7 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
                     connectionManager.getHttp2ConnectionManager().
                             addHttp2ClientChannel(freshHttp2ClientChannel.getChannel().eventLoop(), route,
                                                   freshHttp2ClientChannel);
+                    countDownLatch.countDown();
                     freshHttp2ClientChannel.getConnection().remote().flowController().listener(
                             new ClientRemoteFlowControlListener(freshHttp2ClientChannel));
                     freshHttp2ClientChannel.addDataEventListener(
@@ -312,6 +318,18 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
             return notifyListenerAndGetErrorResponseFuture(failedCause);
         }
         return httpResponseFuture;
+    }
+
+    private synchronized void waitTillInProgress() {
+        try {
+            if (firstCall) {
+                firstCall = false;
+            } else {
+                countDownLatch.await();
+            }
+        } catch (InterruptedException e) {
+            LOG.warn("Interrupted before initiating the target channel");
+        }
     }
 
     private void setHttp2ForwardedExtension(OutboundMsgHolder outboundMsgHolder) {

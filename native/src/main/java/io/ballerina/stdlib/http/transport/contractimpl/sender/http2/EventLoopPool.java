@@ -63,8 +63,8 @@ class EventLoopPool {
         Http2ClientChannel fetchTargetChannel() {
             if (!http2ClientChannels.isEmpty()) {
                 Http2ClientChannel http2ClientChannel = http2ClientChannels.peek();
-                Channel channel = http2ClientChannel.getChannel();
-                if (!channel.isActive()) {  // if channel is not active, forget it and fetch next one
+                Channel channel = http2ClientChannel.getChannel().parent();
+                if (channel != null && !channel.isActive()) {  // if channel is not active, forget it and fetch next one
                     http2ClientChannels.remove(http2ClientChannel);
                     return fetchTargetChannel();
                 }
