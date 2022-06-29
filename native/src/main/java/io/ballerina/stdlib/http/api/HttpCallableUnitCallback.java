@@ -30,6 +30,7 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Locale;
 import java.util.Objects;
 
 import static io.ballerina.stdlib.http.api.HttpConstants.BODY;
@@ -44,28 +45,38 @@ import static java.lang.System.err;
  * @since 0.94
  */
 public class HttpCallableUnitCallback implements Callback {
+    private static final Logger logger = LoggerFactory.getLogger(HttpCallableUnitCallback.class);
+    private static final String ILLEGAL_FUNCTION_INVOKED = "illegal return: response has already been sent";
+
     private final BObject caller;
     private final Runtime runtime;
     private final String returnMediaType;
     private final BMap cacheConfig;
-    private HttpCarbonMessage requestMessage;
-    private static final String ILLEGAL_FUNCTION_INVOKED = "illegal return: response has already been sent";
+    private final HttpCarbonMessage requestMessage;
     private final BMap links;
-    private static final Logger logger = LoggerFactory.getLogger(HttpCallableUnitCallback.class);
 
-    HttpCallableUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime, String returnMediaType,
-                             BMap cacheConfig, BMap links) {
+    HttpCallableUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime, HttpResource resource) {
         this.requestMessage = requestMessage;
-        this.caller = getCaller(requestMessage);
         this.runtime = runtime;
-        this.returnMediaType = returnMediaType;
-        this.cacheConfig = cacheConfig;
-        this.links = links;
+        this.returnMediaType = resource.getReturnMediaType();
+        this.cacheConfig = resource.getResponseCacheConfig();
+        this.links = resource.getLinks();
+        String resourceAccessor = resource.getBalResource().getAccessor().toUpperCase(Locale.getDefault());
+        this.caller = getCaller(requestMessage, resourceAccessor);
     }
 
-    private BObject getCaller(HttpCarbonMessage requestMessage) {
+    HttpCallableUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime) {
+        this.requestMessage = requestMessage;
+        this.runtime = runtime;
+        this.returnMediaType = null;
+        this.cacheConfig = null;
+        this.links = null;
+        this.caller = getCaller(requestMessage, null);
+    }
+
+    private BObject getCaller(HttpCarbonMessage requestMessage, String resourceAccessor) {
         BObject caller = requestMessage.getProperty(HttpConstants.CALLER) == null ?
-                         ValueCreatorUtils.createCallerObject(requestMessage) :
+                         ValueCreatorUtils.createCallerObject(requestMessage, resourceAccessor) :
                          (BObject) requestMessage.getProperty(HttpConstants.CALLER);
         caller.addNativeData(HttpConstants.TRANSPORT_MESSAGE, requestMessage);
         requestMessage.setProperty(HttpConstants.CALLER, caller);

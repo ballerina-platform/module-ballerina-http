@@ -32,13 +32,17 @@ The conforming implementation of the specification is released and included in t
         * 2.3.1. [Accessor](#231-accessor)
         * 2.3.2. [Resource-name](#232-resource-name)
         * 2.3.3. [Path parameter](#233-path-parameter)
-        * 2.3.4. [Return types](#234-return-types)
+        * 2.3.4. [Signature parameters](#234-signature-parameters)
             * 2.3.4.1. [Caller](#2341-httpcaller)
             * 2.3.4.2. [Request](#2342-httprequest)
             * 2.3.4.3. [Query param](#2343-query-parameter)
             * 2.3.4.4. [Payload param](#2344-payload-parameter)
             * 2.3.4.5. [Header param](#2345-header-parameter)
-      * 2.3.5. [Introspection resource](#235-introspection-resource)
+        * 2.3.5. [Return types](#235-return-types)
+            * 2.3.5.1. [Status Code Response](#2351-status-code-response)
+            * 2.3.5.2. [Return nil](#2352-return-nil)
+            * 2.3.5.3. [Default response status codes](#2353-default-response-status-codes)
+        * 2.3.6. [Introspection resource](#236-introspection-resource)
     * 2.4. [Client](#24-client)
         * 2.4.1. [Client types](#241-client-types)
             * 2.4.1.1. [Security](#2411-security)
@@ -413,6 +417,10 @@ resource function post foo(@http:CallerInfo {respondType:Person}  http:Caller hc
     hc->respond(p);
 }
 ```
+
+When the caller `respond()` method is invoked from HTTP post resource by providing `anydata` payload, the status 
+code of the outbound response will be set to HTTP Created (201) by default.
+
 ##### 2.3.4.2. http:Request
 
 The `http:Request` represents the request which is sent and received over the network which includes headers and 
@@ -731,7 +739,7 @@ service /headerparamservice on HeaderBindingIdealEP {
 </table>
 
 
-#### 2.3.4. Return types
+#### 2.3.5. Return types
 The resource function supports anydata, error?, http:Response and http:StatusCodeResponse as return types. 
 Whenever user returns a particular output, that will result in an HTTP response to the caller who initiated the 
 call. Therefore, user does not necessarily depend on the `http:Caller` and its remote methods to proceed with the 
@@ -763,7 +771,7 @@ Based on the return types respective header value is added as the `Content-type`
 | map\<json\>, table<map\<json\>>, map\<json\>[], table<map\<json\>>)[] | application/json         |
 | http:StatusCodeResponse                                               | application/json         |
 
-#### 2.3.4.1. Status Code Response
+##### 2.3.5.1. Status Code Response
 
 The status code response records are defined in the HTTP module for every HTTP status code. It improves readability & 
 helps OpenAPI spec generation. 
@@ -800,7 +808,7 @@ resource function get greeting() returns http:Ok|http:InternalServerError {
 }
 ```
 
-#### 2.3.4.2. Return nil
+##### 2.3.5.2. Return nil
 
 Return nil from the resource has few meanings. 
 
@@ -833,7 +841,23 @@ resource function get fruit(string? colour, http:Caller caller) {
     return; // 500 internal Server Error
 }
 ```
-#### 2.3.5. Introspection resource
+
+##### 2.3.5.3. Default response status codes
+
+To improve the developer experience for RESTful API development, following default status codes will be used in outbound 
+response when returning `anydata` directly from a resource function.
+
+| Resource Accessor | Semantics                                                     | Status Code             |
+|-------------------|---------------------------------------------------------------|-------------------------|
+| GET               | Retrieve the resource                                         | 200 OK                  |
+| POST              | Create a new resource                                         | 201 Created             |
+| PUT               | Create a new resource or update an existing resource          | 200 OK                  |
+| PATCH             | Partially update an existing resource                         | 200 OK                  |
+| DELETE            | Delete an existing resource                                   | 200 OK                  |
+| HEAD              | Retrieve headers                                              | 200 OK                  |
+| OPTIONS           | Retrieve permitted communication options                      | 200 OK                  |
+
+#### 2.3.6. Introspection resource
 
 The introspection resource is internally generated for each service and host the openAPI doc can be generated 
 (or retrieved) at runtime when requested from the hosted service itself. In order to get the openAPI doc hosted

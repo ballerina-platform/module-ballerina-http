@@ -29,13 +29,15 @@ public isolated client class Caller {
     public final readonly & Remote remoteAddress;
     public final readonly & Local localAddress;
     public final string protocol;
+    private string? resourceAccessor;
     private ListenerConfiguration config = {};
     private boolean present = false;
 
-    isolated function init(Remote remoteAddress, Local localAddress, string protocol) {
+    isolated function init(Remote remoteAddress, Local localAddress, string protocol, string? resourceAccessor) {
         self.remoteAddress = remoteAddress.cloneReadOnly();
         self.localAddress = localAddress.cloneReadOnly();
         self.protocol = protocol;
+        self.resourceAccessor = resourceAccessor;
     }
 
     # Sends the outbound response to the caller.
@@ -44,7 +46,8 @@ public isolated client class Caller {
     # + return - An `http:ListenerError` if failed to respond or else `()`
     remote isolated function respond(ResponseMessage|StatusCodeResponse|error message = ()) returns ListenerError? {
         if message is ResponseMessage {
-            return nativeRespond(self, check buildResponse(message));
+            Response response = check buildResponse(message, self.getResourceAccessor());
+            return nativeRespond(self, response);
         } else if message is StatusCodeResponse {
             return nativeRespond(self, createStatusCodeResponse(message));
         } else if message is error {
@@ -52,6 +55,12 @@ public isolated client class Caller {
         } else {
             string errorMsg = "invalid response body type. expected one of the types: http:ResponseMessage|http:StatusCodeResponse|error";
             panic error ListenerError(errorMsg);
+        }
+    }
+
+    private isolated function getResourceAccessor() returns string? {
+        lock {
+            return self.resourceAccessor;
         }
     }
 
@@ -141,8 +150,8 @@ public isolated client class Caller {
                 InternalServerError errResponse = {};
                 response = createStatusCodeResponse(errResponse);
             } else {
-                Accepted AcceptedResponse = {};
-                response = createStatusCodeResponse(AcceptedResponse);
+                Accepted acceptedResponse = {};
+                response = createStatusCodeResponse(acceptedResponse);
             }
         } else if message is StatusCodeResponse {
             if message is SuccessStatusCodeResponse {
@@ -162,6 +171,9 @@ public isolated client class Caller {
             setPayload(message, response, returnMediaType, setETag);
             if returnMediaType is string {
                 response.setHeader(CONTENT_TYPE, returnMediaType);
+            }
+            if self.getResourceAccessor() == HTTP_POST {
+                response.statusCode = STATUS_CREATED;
             }
             cacheCompatibleType = true;
         } else {

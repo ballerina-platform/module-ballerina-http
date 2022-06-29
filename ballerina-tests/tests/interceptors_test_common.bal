@@ -597,3 +597,11 @@ service class ResponseInterceptorNegative1 {
        return new DefaultResponseInterceptor();
     }
 }
+
+service class RequestIntercepterReturnsString {
+    *http:RequestInterceptor;
+
+    resource function post .(@http:Payload string payload) returns string {
+        return payload;
+    }
+}

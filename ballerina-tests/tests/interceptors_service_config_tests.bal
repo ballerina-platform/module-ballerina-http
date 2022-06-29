@@ -187,3 +187,25 @@ function testRequestInterceptorServiceConfig2() returns error? {
     assertHeaderValue(check res.getHeader("response-interceptor-setpayload"), "true");
     assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
 }
+
+@http:ServiceConfig {
+    interceptors: [new RequestIntercepterReturnsString()]
+}
+service /defaultStatusCode on requestInterceptorServiceConfigServerEP2 {
+
+    resource function get .() returns string {
+        return "Hello, World!";
+    }
+}
+
+@test:Config {}
+function testDefaultStatusCodesWithInterceptors() returns error? {
+    // test original resource function
+    http:Response res = check requestInterceptorServiceConfigClientEP2->get("/defaultStatusCode");
+    test:assertEquals(res.statusCode, 200, "Invalid status code received");
+    assertTextPayload(res.getTextPayload(), "Hello, World!");
+    // test interceptor resource function
+    res = check requestInterceptorServiceConfigClientEP2->post("/defaultStatusCode", "Hello, World!");
+    test:assertEquals(res.statusCode, 201, "Invalid status code received");
+    assertTextPayload(res.getTextPayload(), "Hello, World!");
+}

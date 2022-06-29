@@ -136,7 +136,6 @@ import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_TRU
 import static io.ballerina.stdlib.http.api.HttpConstants.SINGLE_SLASH;
 import static io.ballerina.stdlib.http.transport.contract.Constants.ENCODING_GZIP;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_1_1_VERSION;
-import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_2_0_VERSION;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_TRANSFER_ENCODING_IDENTITY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.PROMISED_STREAM_REJECTED_ERROR;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_CLOSED_BEFORE_INITIATING_100_CONTINUE_RESPONSE;
@@ -776,6 +775,15 @@ public class HttpUtil {
     }
 
     /**
+     * Validated whether a given resource is a `default` resource.
+     * @param resourceAccessor Resource accessor for the current resource
+     * @return {@code true} if the provided `resourceAccessor` is `default`, {@code false} otherwise
+     */
+    public static boolean isDefaultResource(String resourceAccessor) {
+        return HttpConstants.DEFAULT_HTTP_METHOD.equals(resourceAccessor.toLowerCase(Locale.getDefault()));
+    }
+
+    /**
      * Populate inbound response with headers and entity.
      * @param inboundResponse  Ballerina struct to represent response
      * @param entity    Entity of the response
@@ -1208,20 +1216,6 @@ public class HttpUtil {
                 .getMapValue(HttpConstants.ENDPOINT_CONFIG_SECURESOCKET);
         String httpVersion = clientEndpointConfig.getStringValue(HttpConstants.CLIENT_EP_HTTP_VERSION).getValue();
         if (scheme.equals(HttpConstants.PROTOCOL_HTTPS)) {
-            if (httpVersion.equals(HTTP_2_0_VERSION)) {
-                if (secureSocket == null) {
-                    throw createHttpError("The secureSocket configuration should be provided to establish " +
-                            "an HTTPS connection", HttpErrorType.SSL_ERROR);
-                } else {
-                    boolean enable = secureSocket.getBooleanValue(HttpConstants.SECURESOCKET_CONFIG_DISABLE_SSL);
-                    Object cert = secureSocket.get(HttpConstants.SECURESOCKET_CONFIG_CERT);
-                    if (enable && cert == null) {
-                        // https://github.com/ballerina-platform/ballerina-standard-library/issues/483
-                        throw createHttpError("Need to configure cert with client SSL certificates file for " +
-                                        "HTTP 2.0", HttpErrorType.SSL_ERROR);
-                    }
-                }
-            }
             if (secureSocket != null) {
                 HttpUtil.populateSSLConfiguration(senderConfiguration, secureSocket);
             } else {
