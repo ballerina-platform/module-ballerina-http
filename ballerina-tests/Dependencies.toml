@@ -9,7 +9,7 @@ dependencies-toml-version = "2"
 [[package]]
 org = "ballerina"
 name = "auth"
-version = "2.3.0"
+version = "2.3.1"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "crypto"},
@@ -121,7 +121,8 @@ dependencies = [
 	{org = "ballerina", name = "url"}
 ]
 modules = [
-	{org = "ballerina", packageName = "http_tests", moduleName = "http_tests"}
+	{org = "ballerina", packageName = "http_tests", moduleName = "http_tests"},
+	{org = "ballerina", packageName = "http_tests", moduleName = "http_tests.http_1_1"}
 ]
 
 [[package]]
@@ -149,7 +150,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "jwt"
-version = "2.3.0"
+version = "2.3.1"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "cache"},
@@ -313,7 +314,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "oauth2"
-version = "2.3.0"
+version = "2.3.1"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "cache"},
