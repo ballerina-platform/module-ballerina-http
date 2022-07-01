@@ -19,19 +19,23 @@
 package io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
 
 import io.netty.channel.Channel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- * Per pool for eventloops.
+ * The ChannelPool maintained for HTTP2 requests. Each channel is grouped per route.
  *
  * @since 6.0.273
  */
-class EventLoopPool {
+class Http2ChannelPool {
 
+    private static final Logger LOG = LoggerFactory.getLogger(Http2ChannelPool.class);
     private Map<String, PerRouteConnectionPool> perRouteConnectionPools = new HashMap<>();
 
     PerRouteConnectionPool fetchPerRoutePool(String key) {
@@ -47,23 +51,29 @@ class EventLoopPool {
      */
     static class PerRouteConnectionPool {
 
-        private BlockingQueue<Http2ClientChannel> http2ClientChannels = new LinkedBlockingQueue<>();
+        private final BlockingQueue<Http2ClientChannel> http2ClientChannels = new LinkedBlockingQueue<>();
         // Maximum number of allowed active streams
-        private int maxActiveStreams;
+        private final int maxActiveStreams;
+        private CountDownLatch countDownLatch = new CountDownLatch(1);
+        private boolean emptyChannels = true;
 
         PerRouteConnectionPool(int maxActiveStreams) {
             this.maxActiveStreams = maxActiveStreams;
         }
 
         /**
-         * Fetches an active {@code TargetChannel} from the pool.
+         * Fetches an active {@code TargetChannel} from the pool. The first thread will add the channel to the pool. It
+         * is handled using a CountDownLatch. Subsequent threads will reuse the channel. Once the maxActiveStreams
+         * reaches in the channel, a new channel will be added to handle the excess requests. At that point also new
+         * channel addition happens through a synchronized manner to avoid multiple channels getting added to the pool.
          *
          * @return active TargetChannel
          */
-        Http2ClientChannel fetchTargetChannel() {
+        synchronized Http2ClientChannel fetchTargetChannel() {
+            waitTillInProgress();
             if (!http2ClientChannels.isEmpty()) {
                 Http2ClientChannel http2ClientChannel = http2ClientChannels.peek();
-                if (http2ClientChannel == null) {
+                if (http2ClientChannel == null) {  // if channel is not active, forget it and fetch next one
                     return fetchTargetChannel();
                 }
                 Channel channel = http2ClientChannel.getChannel();
@@ -72,13 +82,25 @@ class EventLoopPool {
                     return fetchTargetChannel();
                 }
                 // increment and get active stream count
-                int activeSteamCount = http2ClientChannel.incrementActiveStreamCount();
+                int activeStreamCount = http2ClientChannel.incrementActiveStreamCount();
 
-                if (activeSteamCount < maxActiveStreams) {  // safe to fetch the Target Channel
+                if (activeStreamCount < maxActiveStreams) {  // safe to fetch the Target Channel
                     return http2ClientChannel;
-                } else if (activeSteamCount == maxActiveStreams) {  // no more streams except this one can be opened
+                } else if (activeStreamCount == maxActiveStreams) {  // no more streams except this one can be opened
                     http2ClientChannel.markAsExhausted();
                     http2ClientChannels.remove(http2ClientChannel);
+                    // When the stream count reaches maxActiveStreams, a new channel will be added only if the
+                    // channel queue is empty. This process is synchronized as transport thread can return channels
+                    // after being reset. If such channel is returned before the new CountDownLatch, the subsequent
+                    // ballerina thread will not take http1.1 thread as the channels queue is not empty. In such cases,
+                    // threads wait on the countdown latch cannot be released until another thread is returned. Hence
+                    // synchronized on a lock
+                    synchronized (this) {
+                        if (http2ClientChannels.isEmpty()) {
+                            emptyChannels = true;
+                            countDownLatch = new CountDownLatch(1);
+                        }
+                    }
                     return http2ClientChannel;
                 } else {
                     http2ClientChannels.remove(http2ClientChannel);
@@ -90,10 +112,25 @@ class EventLoopPool {
 
         void addChannel(Http2ClientChannel http2ClientChannel) {
             http2ClientChannels.add(http2ClientChannel);
+            synchronized (this) {
+                countDownLatch.countDown();
+            }
         }
 
         void removeChannel(Http2ClientChannel http2ClientChannel) {
             http2ClientChannels.remove(http2ClientChannel);
+        }
+
+        private void waitTillInProgress() {
+            try {
+                if (emptyChannels) {
+                    emptyChannels = false;
+                } else {
+                    countDownLatch.await();
+                }
+            } catch (InterruptedException e) {
+                LOG.warn("Interrupted before adding the target channel");
+            }
         }
     }
 }

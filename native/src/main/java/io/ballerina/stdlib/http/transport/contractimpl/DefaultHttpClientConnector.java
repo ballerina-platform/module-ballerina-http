@@ -187,8 +187,7 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
             if (isHttp2) {
                 waitTillInProgress();
                 // See whether an already upgraded HTTP/2 connection is available
-                Http2ClientChannel activeHttp2ClientChannel = http2ConnectionManager.borrowChannel(http2SourceHandler,
-                                                                                                   route);
+                Http2ClientChannel activeHttp2ClientChannel = http2ConnectionManager.borrowChannel(route);
 
                 if (activeHttp2ClientChannel != null) {
                     countDownLatch.countDown();
@@ -256,9 +255,7 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
 
                 private void prepareTargetChannelForHttp2() {
                     freshHttp2ClientChannel.setSocketIdleTimeout(socketIdleTimeout);
-                    connectionManager.getHttp2ConnectionManager().
-                            addHttp2ClientChannel(freshHttp2ClientChannel.getChannel().eventLoop(), route,
-                                                  freshHttp2ClientChannel);
+                    connectionManager.getHttp2ConnectionManager().addHttp2ClientChannel(route, freshHttp2ClientChannel);
                     countDownLatch.countDown();
                     freshHttp2ClientChannel.getConnection().remote().flowController().listener(
                             new ClientRemoteFlowControlListener(freshHttp2ClientChannel));
