@@ -214,11 +214,11 @@ Roy Fielding did ask those questions in his dissertation “Architectural Styles
 
 As you noticed in the previous section, there are a lot of similarities between REST APIs and the World Wide Web. I think now you know why. The following are key tenets one needs to keep in mind when designing REST APIs.
 
-Addressable resources 
-Representation oriented 
-A uniform constrained interface 
-Stateless communication
-Hypermedia As The Engine Of Application State (HATEOAS)
+- Addressable resources 
+- Representation oriented 
+- A uniform constrained interface 
+- Stateless communication
+- Hypermedia As The Engine Of Application State (HATEOAS)
 
 Also it is good to remind ourselves of the technology stack of the World Wide Web as REST API implementations strongly depend on the same stack.
 
