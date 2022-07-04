@@ -36,7 +36,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 class Http2ChannelPool {
 
     private static final Logger LOG = LoggerFactory.getLogger(Http2ChannelPool.class);
-    private Map<String, PerRouteConnectionPool> perRouteConnectionPools = new HashMap<>();
+    private final Map<String, PerRouteConnectionPool> perRouteConnectionPools = new HashMap<>();
 
     PerRouteConnectionPool fetchPerRoutePool(String key) {
         return perRouteConnectionPools.get(key);
@@ -55,7 +55,8 @@ class Http2ChannelPool {
         // Maximum number of allowed active streams
         private final int maxActiveStreams;
         private CountDownLatch countDownLatch = new CountDownLatch(1);
-        private boolean emptyChannels = true;
+        private final Object lock = new Object();
+        private boolean initializer = true;
 
         PerRouteConnectionPool(int maxActiveStreams) {
             this.maxActiveStreams = maxActiveStreams;
@@ -95,9 +96,9 @@ class Http2ChannelPool {
                     // ballerina thread will not take http1.1 thread as the channels queue is not empty. In such cases,
                     // threads wait on the countdown latch cannot be released until another thread is returned. Hence
                     // synchronized on a lock
-                    synchronized (this) {
+                    synchronized (lock) {
                         if (http2ClientChannels.isEmpty()) {
-                            emptyChannels = true;
+                            initializer = true;
                             countDownLatch = new CountDownLatch(1);
                         }
                     }
@@ -112,7 +113,7 @@ class Http2ChannelPool {
 
         void addChannel(Http2ClientChannel http2ClientChannel) {
             http2ClientChannels.add(http2ClientChannel);
-            synchronized (this) {
+            synchronized (lock) {
                 countDownLatch.countDown();
             }
         }
@@ -123,8 +124,8 @@ class Http2ChannelPool {
 
         private void waitTillInProgress() {
             try {
-                if (emptyChannels) {
-                    emptyChannels = false;
+                if (initializer) {
+                    initializer = false;
                 } else {
                     countDownLatch.await();
                 }
