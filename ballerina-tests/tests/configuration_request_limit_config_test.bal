@@ -42,6 +42,13 @@ http:ListenerConfiguration midSizeHeaderConfig = {
     }
 };
 
+http:ListenerConfiguration http2lowHeaderConfig = {
+    httpVersion: "2.0",
+    requestLimits: {
+        maxHeaderSize: 30
+    }
+};
+
 http:ListenerConfiguration lowPayloadConfig = {
     requestLimits: {
         maxEntityBodySize: 10
@@ -52,6 +59,7 @@ listener http:Listener normalRequestLimitEP = new(requestLimitsTestPort1, urlLim
 listener http:Listener lowRequestLimitEP = new(requestLimitsTestPort2, lowUrlLimitConfig);
 listener http:Listener lowHeaderLimitEP = new(requestLimitsTestPort3, lowHeaderConfig);
 listener http:Listener midHeaderLimitEP = new(requestLimitsTestPort4, midSizeHeaderConfig);
+listener http:Listener http2HeaderLimitEP = new(requestLimitsTestPort5, http2lowHeaderConfig);
 listener http:Listener lowPayloadLimitEP = new(requestLimitsTestPort6, lowPayloadConfig);
 
 service /requestUriLimit on normalRequestLimitEP {
@@ -85,6 +93,13 @@ service /requestHeaderLimit on midHeaderLimitEP {
 service /requestPayloadLimit on lowPayloadLimitEP {
 
     resource function post test(http:Caller caller, http:Request req) returns error? {
+        check caller->respond("Hello World!!!");
+    }
+}
+
+service /http2service on http2HeaderLimitEP {
+
+    resource function get invalidHeaderSize(http:Caller caller, http:Request req) returns error? {
         check caller->respond("Hello World!!!");
     }
 }
