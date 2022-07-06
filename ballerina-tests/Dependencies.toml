@@ -121,8 +121,7 @@ dependencies = [
 	{org = "ballerina", name = "url"}
 ]
 modules = [
-	{org = "ballerina", packageName = "http_tests", moduleName = "http_tests"},
-	{org = "ballerina", packageName = "http_tests", moduleName = "http_tests.http_2_0"}
+	{org = "ballerina", packageName = "http_tests", moduleName = "http_tests"}
 ]
 
 [[package]]
