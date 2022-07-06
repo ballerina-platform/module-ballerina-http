@@ -64,6 +64,11 @@ const string APPLICATION_BINARY = "application/octet-stream";
 
 const string errorMessage = "Found an unexpected output:";
 
+const int HTTP2_PORT_RANGE = 10000;
+
+isolated function getHttp2Port(int port) returns int {
+    return HTTP2_PORT_RANGE + port;
+}
 
 isolated function getContentDispositionForFormData(string partName)
                                     returns (mime:ContentDisposition) {

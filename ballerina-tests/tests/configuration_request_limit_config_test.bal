@@ -42,13 +42,6 @@ http:ListenerConfiguration midSizeHeaderConfig = {
     }
 };
 
-http:ListenerConfiguration http2lowHeaderConfig = {
-    httpVersion: "2.0",
-    requestLimits: {
-        maxHeaderSize: 30
-    }
-};
-
 http:ListenerConfiguration lowPayloadConfig = {
     requestLimits: {
         maxEntityBodySize: 10
@@ -59,7 +52,6 @@ listener http:Listener normalRequestLimitEP = new(requestLimitsTestPort1, urlLim
 listener http:Listener lowRequestLimitEP = new(requestLimitsTestPort2, lowUrlLimitConfig);
 listener http:Listener lowHeaderLimitEP = new(requestLimitsTestPort3, lowHeaderConfig);
 listener http:Listener midHeaderLimitEP = new(requestLimitsTestPort4, midSizeHeaderConfig);
-listener http:Listener http2HeaderLimitEP = new(requestLimitsTestPort5, http2lowHeaderConfig);
 listener http:Listener lowPayloadLimitEP = new(requestLimitsTestPort6, lowPayloadConfig);
 
 service /requestUriLimit on normalRequestLimitEP {
@@ -86,13 +78,6 @@ service /lowRequestHeaderLimit on lowHeaderLimitEP {
 service /requestHeaderLimit on midHeaderLimitEP {
 
     resource function get validHeaderSize(http:Caller caller, http:Request req) returns error? {
-        check caller->respond("Hello World!!!");
-    }
-}
-
-service /http2service on http2HeaderLimitEP {
-
-    resource function get invalidHeaderSize(http:Caller caller, http:Request req) returns error? {
         check caller->respond("Hello World!!!");
     }
 }
@@ -166,18 +151,6 @@ function getLargeHeader() returns string {
         i = i + 1;
     }
     return header.toString();
-}
-
-// Tests the fallback behaviour when header size is greater than the configured http2 service
-@test:Config {}
-function testHttp2ServiceInvalidHeaderLength() returns error? {
-    http:Client limitClient = check new("http://localhost:" + requestLimitsTestPort5.toString());
-    http:Response|error response = limitClient->get("/http2service/invalidHeaderSize", {"X-Test":getLargeHeader()});
-    if response is http:Response {
-        test:assertEquals(response.statusCode, 431, msg = "Found unexpected output");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
 }
 
 //Tests the behaviour when payload size is greater than the configured threshold
