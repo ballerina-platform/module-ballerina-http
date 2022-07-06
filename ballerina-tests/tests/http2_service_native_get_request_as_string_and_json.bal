@@ -28,7 +28,7 @@ service /MyService on generalHTTP2Listener {
     }
 }
 
-final http:Client requestClient2 = check new("http://localhost:" + http2GeneralPort.toString(), 
+final http:Client http2RequestClient2 = check new("http://localhost:" + http2GeneralPort.toString(), 
     httpVersion = "2.0", http2Settings = { http2PriorKnowledge: true });
 
 @test:Config {}
@@ -37,7 +37,7 @@ public function testHttp2AccessingPayloadAsTextAndJSON()  {
     string path = "/MyService/myResource";
     http:Request req = new;
     req.setTextPayload(payload);
-    http:Response|error response = requestClient2->post(path, req);
+    http:Response|error response = http2RequestClient2->post(path, req);
     if response is http:Response {
         assertJsonPayload(response.getTextPayload(), "bar");
     } else {
