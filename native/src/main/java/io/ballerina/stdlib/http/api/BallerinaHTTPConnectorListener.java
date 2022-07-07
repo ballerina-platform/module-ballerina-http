@@ -139,7 +139,8 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
 
     private boolean checkForInterceptorDataBinding(HttpCarbonMessage inboundMessage, int interceptorServiceIndex,
                                                    InterceptorResource interceptorResource) {
-        if (HttpDispatcher.shouldDiffer(interceptorResource) && inboundMessage.isAccessedInNonInterceptorService()) {
+        if (!inboundMessage.isLastHttpContentArrived() && HttpDispatcher.shouldDiffer(interceptorResource) &&
+                inboundMessage.isAccessedInNonInterceptorService()) {
             inboundMessage.setProperty(HttpConstants.WAIT_FOR_FULL_REQUEST, true);
             inboundMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE, true);
             inboundMessage.setProperty(HttpConstants.REQUEST_INTERCEPTOR_INDEX, interceptorServiceIndex);
@@ -257,7 +258,8 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         httpResource = HttpDispatcher.findResource(httpServicesRegistry, inboundMessage);
         // Checking whether main resource has data-binding and if we already executed an interceptor resource
         // we skip getting the full request
-        if (HttpDispatcher.shouldDiffer(httpResource) && inboundMessage.isAccessedInNonInterceptorService()) {
+        if (!inboundMessage.isLastHttpContentArrived() && HttpDispatcher.shouldDiffer(httpResource) &&
+                inboundMessage.isAccessedInNonInterceptorService()) {
             inboundMessage.setProperty(HTTP_RESOURCE, httpResource);
             inboundMessage.setProperty(HttpConstants.WAIT_FOR_FULL_REQUEST, true);
             //Removes inbound content listener since data binding waits for all contents to be received

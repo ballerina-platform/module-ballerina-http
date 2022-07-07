@@ -18,7 +18,9 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.listener.states.http2;
 
+import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
+import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorException;
 import io.ballerina.stdlib.http.transport.contractimpl.Http2OutboundRespListener;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil;
@@ -64,7 +66,8 @@ public class ReceivingEntityBody implements ListenerState {
     }
 
     @Override
-    public void readInboundRequestBody(Http2SourceHandler http2SourceHandler, Http2DataFrame dataFrame) {
+    public void readInboundRequestBody(Http2SourceHandler http2SourceHandler, Http2DataFrame dataFrame)
+            throws ServerConnectorException {
         int streamId = dataFrame.getStreamId();
         ByteBuf data = dataFrame.getData();
         HttpCarbonMessage sourceReqCMsg = http2SourceHandler.getStreamIdRequestMap().get(streamId)
@@ -76,6 +79,9 @@ public class ReceivingEntityBody implements ListenerState {
             }
             if (dataFrame.isEndOfStream()) {
                 sourceReqCMsg.addHttpContent(new DefaultLastHttpContent(data));
+                if (isDiffered(sourceReqCMsg)) {
+                    http2SourceHandler.getServerConnectorFuture().notifyHttpListener(sourceReqCMsg);
+                }
                 sourceReqCMsg.setLastHttpContentArrived();
                 http2MessageStateContext.setListenerState(new EntityBodyReceived(http2MessageStateContext));
             } else {
@@ -135,5 +141,10 @@ public class ReceivingEntityBody implements ListenerState {
                                            Http2OutboundRespListener http2OutboundRespListener, int streamId) {
         handleIncompleteInboundMessage(http2OutboundRespListener.getInboundRequestMsg(),
                                        REMOTE_CLIENT_CLOSED_WHILE_READING_INBOUND_REQUEST_BODY);
+    }
+
+    private boolean isDiffered(HttpCarbonMessage sourceReqCmsg) {
+        //Http resource stored in the HTTPCarbonMessage means execution waits till payload.
+        return sourceReqCmsg.getProperty(HttpConstants.WAIT_FOR_FULL_REQUEST) != null;
     }
 }
