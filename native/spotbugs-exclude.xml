@@ -38,6 +38,10 @@
         <Bug pattern="DLS_DEAD_LOCAL_STORE" />
     </Match>
     <Match>
+        <Class name="io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ChannelPool$PerRouteConnectionPool" />
+        <Bug pattern="IS2_INCONSISTENT_SYNC" />
+    </Match>
+    <Match>
         <Class name="io.ballerina.stdlib.http.transport.contractimpl.common.certificatevalidation.ocsp.OCSPVerifier" />
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE" />
     </Match>

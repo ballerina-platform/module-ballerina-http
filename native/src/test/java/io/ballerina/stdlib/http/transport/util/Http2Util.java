@@ -42,7 +42,6 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.HTTPS_SCHEME
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_2_0;
 import static io.ballerina.stdlib.http.transport.contract.Constants.OPTIONAL;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotEquals;
 
 /**
  * Utilities required for HTTP/2 test cases.
@@ -119,10 +118,8 @@ public class Http2Util {
     }
 
     public static void assertResult(String response1, String response2, String response3, String response4) {
-        assertNotEquals(response1, response2,
-                        "Client uses two different pools, hence response 1 and 2 should not be equal");
-        assertNotEquals(response3, response4,
-                        "Client uses two different pools, hence response 3 and 4 should not be equal");
+        assertEquals(response1, response2, "Client uses the same pool, hence response 1 and 3 should be equal");
+        assertEquals(response3, response4, "Client uses the same pool, hence response 1 and 3 should be equal");
         assertEquals(response1, response3, "Client uses the same pool, hence response 1 and 3 should be equal");
         assertEquals(response2, response4, "Client uses the same pool, hence response 2 and 4 should be equal");
     }

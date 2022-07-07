@@ -75,7 +75,7 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
     private int socketIdleTimeout;
     private String httpVersion;
     private ChunkConfig chunkConfig;
-    private boolean isHttp2;
+    private boolean http2;
     private ForwardedExtensionConfig forwardedExtensionConfig;
     private EventLoopGroup clientEventGroup;
     private BootstrapConfiguration bootstrapConfig;
@@ -89,7 +89,7 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
         this.senderConfiguration = senderConfiguration;
         initTargetChannelProperties(senderConfiguration);
         if (Constants.HTTP_2_0.equals(senderConfiguration.getHttpVersion())) {
-            isHttp2 = true;
+            http2 = true;
         }
         this.clientEventGroup = clientEventGroup;
         this.bootstrapConfig = bootstrapConfig;
@@ -181,10 +181,9 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
              */
             final HttpRoute route = getTargetRoute(senderConfiguration.getScheme(), httpOutboundRequest,
                                                    this.configHashCode);
-            if (isHttp2) {
+            if (http2) {
                 // See whether an already upgraded HTTP/2 connection is available
-                Http2ClientChannel activeHttp2ClientChannel = http2ConnectionManager.borrowChannel(http2SourceHandler,
-                                                                                                   route);
+                Http2ClientChannel activeHttp2ClientChannel = http2ConnectionManager.borrowChannel(route);
 
                 if (activeHttp2ClientChannel != null) {
                     outboundMsgHolder.setHttp2ClientChannel(activeHttp2ClientChannel);
@@ -251,9 +250,7 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
 
                 private void prepareTargetChannelForHttp2() {
                     freshHttp2ClientChannel.setSocketIdleTimeout(socketIdleTimeout);
-                    connectionManager.getHttp2ConnectionManager().
-                            addHttp2ClientChannel(freshHttp2ClientChannel.getChannel().eventLoop(), route,
-                                                  freshHttp2ClientChannel);
+                    connectionManager.getHttp2ConnectionManager().addHttp2ClientChannel(route, freshHttp2ClientChannel);
                     freshHttp2ClientChannel.getConnection().remote().flowController().listener(
                             new ClientRemoteFlowControlListener(freshHttp2ClientChannel));
                     freshHttp2ClientChannel.addDataEventListener(
