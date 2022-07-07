@@ -72,6 +72,18 @@ public class Http2ConnectionManager {
         if (perRouteConnectionPool != null) {
             return perRouteConnectionPool;
         }
+        return createPerRouteConnectionPool(pool, key);
+    }
+
+    /**
+     * Create the per route pool synchronized manner to avoid multiple pool creating for the same route.
+     *
+     * @param pool the HTTP2 channel pool
+     * @param key  the route key
+     * @return PerRouteConnectionPool
+     */
+    private synchronized Http2ChannelPool.PerRouteConnectionPool createPerRouteConnectionPool(
+            Http2ChannelPool pool, String key) {
         return pool.getPerRouteConnectionPools()
                 .computeIfAbsent(key, p -> new Http2ChannelPool.PerRouteConnectionPool(
                         this.poolConfiguration.getHttp2MaxActiveStreamsPerConnection()));

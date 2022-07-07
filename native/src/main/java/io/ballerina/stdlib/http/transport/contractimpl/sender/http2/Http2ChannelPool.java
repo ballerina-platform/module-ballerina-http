@@ -54,9 +54,9 @@ class Http2ChannelPool {
         private final BlockingQueue<Http2ClientChannel> http2ClientChannels = new LinkedBlockingQueue<>();
         // Maximum number of allowed active streams
         private final int maxActiveStreams;
-        private CountDownLatch countDownLatch = new CountDownLatch(1);
+        private CountDownLatch newChannelInitializerLatch = new CountDownLatch(1);
         private final Object lock = new Object();
-        private boolean initializer = true;
+        private boolean newChannelInitializer = true;
 
         PerRouteConnectionPool(int maxActiveStreams) {
             this.maxActiveStreams = maxActiveStreams;
@@ -71,7 +71,7 @@ class Http2ChannelPool {
          * @return active TargetChannel
          */
         synchronized Http2ClientChannel fetchTargetChannel() {
-            waitTillInProgress();
+            waitTillNewChannelInitialized();
             if (!http2ClientChannels.isEmpty()) {
                 Http2ClientChannel http2ClientChannel = http2ClientChannels.peek();
                 if (http2ClientChannel == null) {  // if channel is not active, forget it and fetch next one
@@ -98,8 +98,8 @@ class Http2ChannelPool {
                     // synchronized on a lock
                     synchronized (lock) {
                         if (http2ClientChannels.isEmpty()) {
-                            initializer = true;
-                            countDownLatch = new CountDownLatch(1);
+                            newChannelInitializer = true;
+                            newChannelInitializerLatch = new CountDownLatch(1);
                         }
                     }
                     return http2ClientChannel;
@@ -114,7 +114,7 @@ class Http2ChannelPool {
         void addChannel(Http2ClientChannel http2ClientChannel) {
             http2ClientChannels.add(http2ClientChannel);
             synchronized (lock) {
-                countDownLatch.countDown();
+                newChannelInitializerLatch.countDown();
             }
         }
 
@@ -122,12 +122,12 @@ class Http2ChannelPool {
             http2ClientChannels.remove(http2ClientChannel);
         }
 
-        private void waitTillInProgress() {
+        private void waitTillNewChannelInitialized() {
             try {
-                if (initializer) {
-                    initializer = false;
+                if (newChannelInitializer) {
+                    newChannelInitializer = false;
                 } else {
-                    countDownLatch.await();
+                    newChannelInitializerLatch.await();
                 }
             } catch (InterruptedException e) {
                 LOG.warn("Interrupted before adding the target channel");
