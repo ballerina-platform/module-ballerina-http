@@ -652,7 +652,7 @@ public class HttpCarbonMessage {
         }
     }
 
-    synchronized boolean isLastHttpContentArrived() {
+    public synchronized boolean isLastHttpContentArrived() {
         return lastHttpContentArrived;
     }
 

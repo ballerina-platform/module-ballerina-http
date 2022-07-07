@@ -20,6 +20,7 @@ package io.ballerina.stdlib.http.transport.contractimpl.listener.states.http2;
 
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
+import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorException;
 import io.ballerina.stdlib.http.transport.contractimpl.Http2OutboundRespListener;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil;
@@ -64,7 +65,7 @@ public class Response100ContinueSent implements ListenerState {
 
     @Override
     public void readInboundRequestBody(Http2SourceHandler http2SourceHandler, Http2DataFrame dataFrame)
-            throws Http2Exception {
+            throws Http2Exception, ServerConnectorException {
         //Client might start sending request body without waiting for the 100-continue response.
         http2MessageStateContext.setListenerState(new ReceivingEntityBody(http2MessageStateContext));
         http2MessageStateContext.getListenerState().readInboundRequestBody(http2SourceHandler, dataFrame);

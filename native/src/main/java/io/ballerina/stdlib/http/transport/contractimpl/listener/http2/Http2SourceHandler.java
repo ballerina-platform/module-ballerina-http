@@ -20,6 +20,7 @@ package io.ballerina.stdlib.http.transport.contractimpl.listener.http2;
 
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
+import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorException;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.HttpServerChannelInitializer;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.states.http2.EntityBodyReceived;
@@ -154,7 +155,7 @@ public final class Http2SourceHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Http2Exception {
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Http2Exception, ServerConnectorException {
         if (msg instanceof Http2HeadersFrame) {
             Http2HeadersFrame headersFrame = (Http2HeadersFrame) msg;
             Http2MessageStateContext http2MessageStateContext = new Http2MessageStateContext();
