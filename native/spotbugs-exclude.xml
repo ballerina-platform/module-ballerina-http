@@ -39,7 +39,6 @@
     </Match>
     <Match>
         <Class name="io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ChannelPool$PerRouteConnectionPool" />
-        <Field name="countDownLatch" />
         <Bug pattern="IS2_INCONSISTENT_SYNC" />
     </Match>
     <Match>

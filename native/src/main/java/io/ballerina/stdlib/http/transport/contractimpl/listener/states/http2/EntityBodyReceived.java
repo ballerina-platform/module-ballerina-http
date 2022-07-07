@@ -124,13 +124,13 @@ public class EntityBodyReceived implements ListenerState {
     @Override
     public void handleAbruptChannelClosure(ServerConnectorFuture serverConnectorFuture, ChannelHandlerContext ctx,
                                            Http2OutboundRespListener http2OutboundRespListener, int streamId) {
-        http2OutboundRespListener.getOutboundResponseMsg().setIoException(
-                new IOException(REMOTE_CLIENT_CLOSED_BEFORE_INITIATING_OUTBOUND_RESPONSE));
         try {
             serverConnectorFuture.notifyErrorListener(
                     new ClientClosedConnectionException(REMOTE_CLIENT_CLOSED_BEFORE_INITIATING_OUTBOUND_RESPONSE));
         } catch (ServerConnectorException e) {
             LOG.error(CONNECTOR_NOTIFYING_ERROR, e);
         }
+        http2OutboundRespListener.getOutboundResponseMsg().setIoException(
+                new IOException(REMOTE_CLIENT_CLOSED_BEFORE_INITIATING_OUTBOUND_RESPONSE));
     }
 }

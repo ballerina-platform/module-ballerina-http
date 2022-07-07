@@ -90,7 +90,7 @@ function testEchoServiceByBasePath() returns error? {
     req.setTextPayload(requestMessage);
     http:Response|error response = echoServiceClient->post("/echoServiceTest1", req);
     if response is http:Response {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        test:assertEquals(response.statusCode, 201, msg = "Found unexpected output");
         assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), requestMessage);
     } else {

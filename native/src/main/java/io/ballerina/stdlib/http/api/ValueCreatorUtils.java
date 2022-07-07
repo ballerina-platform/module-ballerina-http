@@ -53,7 +53,7 @@ public class ValueCreatorUtils {
         return createObjectValue(ModuleUtils.getHttpPackage(), HttpConstants.REQUEST_CACHE_CONTROL);
     }
 
-    public static BObject createCallerObject(HttpCarbonMessage inboundMsg) {
+    public static BObject createCallerObject(HttpCarbonMessage inboundMsg, String resourceAccessor) {
         BMap<BString, Object> remote = ValueCreatorUtils.createHTTPRecordValue(HttpConstants.REMOTE);
         BMap<BString, Object> local = ValueCreatorUtils.createHTTPRecordValue(HttpConstants.LOCAL);
 
@@ -75,7 +75,8 @@ public class ValueCreatorUtils {
             local.put(HttpConstants.LOCAL_PORT_FIELD, localPort);
         }
         return ValueCreator.createObjectValue(ModuleUtils.getHttpPackage(), HttpConstants.CALLER,
-                remote, local, fromString((String) inboundMsg.getProperty(HttpConstants.PROTOCOL)));
+                remote, local, fromString((String) inboundMsg.getProperty(HttpConstants.PROTOCOL)),
+                fromString(resourceAccessor));
     }
 
     static BObject createHeadersObject() {

@@ -35,10 +35,10 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
  * @since SL Beta 4
  */
 public class HttpRequestInterceptorUnitCallback implements Callback {
+    private static final String ILLEGAL_FUNCTION_INVOKED = "illegal return: response has already been sent";
     private final BObject caller;
     private final Runtime runtime;
     private final HttpCarbonMessage requestMessage;
-    private static final String ILLEGAL_FUNCTION_INVOKED = "illegal return: response has already been sent";
     private final BallerinaHTTPConnectorListener ballerinaHTTPConnectorListener;
     private final BObject requestCtx;
 

@@ -484,7 +484,7 @@ function testPostWithByteChannel() returns error? {
 function testPostWithByteStream() returns error? {
     http:Response|error response = httpClientActionClient->post("/handleByteStream", "Sample Text");
     if response is http:Response {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        test:assertEquals(response.statusCode, 201, msg = "Found unexpected output");
         assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Sample Text");
     } else {
@@ -496,7 +496,7 @@ function testPostWithByteStream() returns error? {
 function testPostWithByteStreamToText() returns error? {
     http:Response|error response = httpClientActionClient->post("/handleByteStreamToText", "Sample Text");
     if response is http:Response {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        test:assertEquals(response.statusCode, 201, msg = "Found unexpected output");
         assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Sample Text");
     } else {
@@ -508,7 +508,7 @@ function testPostWithByteStreamToText() returns error? {
 function testPostWithTextToByteStream() returns error? {
     http:Response|error response = httpClientActionClient->post("/handleTextToByteStream", "Sample Text");
     if response is http:Response {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        test:assertEquals(response.statusCode, 201, msg = "Found unexpected output");
         assertHeaderValue(check response.getHeader(CONTENT_TYPE), TEXT_PLAIN);
         assertTextPayload(response.getTextPayload(), "Sample Text");
     } else {

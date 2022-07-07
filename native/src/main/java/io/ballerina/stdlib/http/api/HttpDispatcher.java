@@ -45,7 +45,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 import static io.ballerina.runtime.api.TypeTags.ARRAY_TAG;
 import static io.ballerina.stdlib.http.api.HttpConstants.DEFAULT_HOST;
@@ -390,9 +392,15 @@ public class HttpDispatcher {
 
     static BObject getCaller(Resource resource, HttpCarbonMessage httpCarbonMessage,
                              BMap<BString, Object> endpointConfig) {
-        final BObject httpCaller = httpCarbonMessage.getProperty(HttpConstants.CALLER) == null ?
-                ValueCreatorUtils.createCallerObject(httpCarbonMessage) :
+        String resourceAccessor = resource.getBalResource().getAccessor().toUpperCase(Locale.getDefault());
+        final BObject httpCaller = Objects.isNull(httpCarbonMessage.getProperty(HttpConstants.CALLER)) ?
+                ValueCreatorUtils.createCallerObject(httpCarbonMessage, resourceAccessor) :
                 (BObject) httpCarbonMessage.getProperty(HttpConstants.CALLER);
+        Object currentResourceAccessor = httpCaller.get(HttpConstants.RESOURCE_ACCESSOR);
+        if (Objects.isNull(currentResourceAccessor) ||
+                HttpUtil.isDefaultResource(((BString) currentResourceAccessor).getValue())) {
+            httpCaller.set(HttpConstants.RESOURCE_ACCESSOR, StringUtils.fromString(resourceAccessor));
+        }
         HttpUtil.enrichHttpCallerWithConnectionInfo(httpCaller, httpCarbonMessage, resource, endpointConfig);
         HttpUtil.enrichHttpCallerWithNativeData(httpCaller, httpCarbonMessage, endpointConfig);
         httpCarbonMessage.setProperty(HttpConstants.CALLER, httpCaller);

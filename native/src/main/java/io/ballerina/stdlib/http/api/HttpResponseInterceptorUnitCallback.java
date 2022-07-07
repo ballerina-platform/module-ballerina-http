@@ -35,6 +35,8 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
  * side when a response interceptor service is invoked.
  */
 public class HttpResponseInterceptorUnitCallback implements Callback {
+    private static final String ILLEGAL_FUNCTION_INVOKED = "illegal return: response has already been sent";
+
     private final HttpCarbonMessage requestMessage;
     private final BObject caller;
     private final BObject response;
@@ -43,7 +45,6 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
     private final DataContext dataContext;
     private final Runtime runtime;
 
-    private static final String ILLEGAL_FUNCTION_INVOKED = "illegal return: response has already been sent";
 
     public HttpResponseInterceptorUnitCallback(HttpCarbonMessage requestMessage, BObject caller, BObject response,
                                                Environment env, DataContext dataContext, Runtime runtime) {

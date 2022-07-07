@@ -96,7 +96,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
                 executeMainResourceOnMessage(inboundMessage);
             } catch (Exception ex) {
                 HttpCallableUnitCallback callback = new HttpCallableUnitCallback(inboundMessage,
-                        httpServicesRegistry.getRuntime(), null, null, null);
+                        httpServicesRegistry.getRuntime());
                 callback.invokeErrorInterceptors(HttpUtil.createError(ex), false);
             }
         }
@@ -139,7 +139,8 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
 
     private boolean checkForInterceptorDataBinding(HttpCarbonMessage inboundMessage, int interceptorServiceIndex,
                                                    InterceptorResource interceptorResource) {
-        if (HttpDispatcher.shouldDiffer(interceptorResource) && inboundMessage.isAccessedInNonInterceptorService()) {
+        if (!inboundMessage.isLastHttpContentArrived() && HttpDispatcher.shouldDiffer(interceptorResource) &&
+                inboundMessage.isAccessedInNonInterceptorService()) {
             inboundMessage.setProperty(HttpConstants.WAIT_FOR_FULL_REQUEST, true);
             inboundMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE, true);
             inboundMessage.setProperty(HttpConstants.REQUEST_INTERCEPTOR_INDEX, interceptorServiceIndex);
@@ -175,8 +176,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
             inboundMessage.setProperty(HttpConstants.OBSERVABILITY_CONTEXT_PROPERTY, observerContext);
         }
         Runtime runtime = httpServicesRegistry.getRuntime();
-        Callback callback = new HttpCallableUnitCallback(inboundMessage, runtime, httpResource.getReturnMediaType(),
-                            httpResource.getResponseCacheConfig(), httpResource.getLinks());
+        Callback callback = new HttpCallableUnitCallback(inboundMessage, runtime, httpResource);
         BObject service = httpResource.getParentService().getBalService();
         String resourceName = httpResource.getName();
         if (service.getType().isIsolated() && service.getType().isIsolated(resourceName)) {
@@ -229,7 +229,8 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         Object[] signatureParams = HttpDispatcher.getSignatureParameters(resource, inboundMessage, endpointConfig);
 
         Runtime runtime = registry.getRuntime();
-        Callback callback = new HttpRequestInterceptorUnitCallback(inboundMessage, runtime, this);
+        Callback callback = new HttpRequestInterceptorUnitCallback(
+                inboundMessage, runtime, this);
         BObject service = resource.getParentService().getBalService();
         String resourceName = resource.getName();
 
@@ -257,7 +258,8 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         httpResource = HttpDispatcher.findResource(httpServicesRegistry, inboundMessage);
         // Checking whether main resource has data-binding and if we already executed an interceptor resource
         // we skip getting the full request
-        if (HttpDispatcher.shouldDiffer(httpResource) && inboundMessage.isAccessedInNonInterceptorService()) {
+        if (!inboundMessage.isLastHttpContentArrived() && HttpDispatcher.shouldDiffer(httpResource) &&
+                inboundMessage.isAccessedInNonInterceptorService()) {
             inboundMessage.setProperty(HTTP_RESOURCE, httpResource);
             inboundMessage.setProperty(HttpConstants.WAIT_FOR_FULL_REQUEST, true);
             //Removes inbound content listener since data binding waits for all contents to be received
@@ -272,7 +274,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
             }
         } catch (BallerinaConnectorException ex) {
             HttpCallableUnitCallback callback = new HttpCallableUnitCallback(inboundMessage,
-                                                httpServicesRegistry.getRuntime(), null, null, null);
+                    httpServicesRegistry.getRuntime());
             callback.invokeErrorInterceptors(HttpUtil.createError(ex), false);
         }
     }

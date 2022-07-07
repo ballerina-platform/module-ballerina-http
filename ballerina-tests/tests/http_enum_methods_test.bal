@@ -63,7 +63,7 @@ public function testHttpEnumMethods() {
 
     response = clientEPTest->execute(http:POST, "/test", "testMsg");
     if response is http:Response {
-        test:assertEquals(response.statusCode, 200);
+        test:assertEquals(response.statusCode, 201);
         test:assertEquals(response.getTextPayload(), "PostTest");
     } else {
         test:assertFail("Found unexpected output");

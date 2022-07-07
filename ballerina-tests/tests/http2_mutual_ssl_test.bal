@@ -123,18 +123,6 @@ http:ClientConfiguration http2MutualSslClientConf2 = {
     http2Settings: { http2PriorKnowledge: true }
 };
 
-// https://github.com/ballerina-platform/ballerina-standard-library/issues/483
-@test:Config {}
-public function testHttp2MutualSsl2() {
-    http:Client|error httpClient = new("https://localhost:9204", http2MutualSslClientConf2);
-    string expectedErrMsg = "Need to configure cert with client SSL certificates file for HTTP 2.0";
-    if httpClient is error {
-        test:assertEquals(httpClient.message(), expectedErrMsg);
-    } else {
-        test:assertFail(msg = "Expected mutual SSL error not found");
-    }
-}
-
 http:ClientConfiguration http2MutualSslClientConf3 = {
     secureSocket: {
         enable: false,

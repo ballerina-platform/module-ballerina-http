@@ -4,11 +4,10 @@ _Owners_: @shafreenAnfar @TharmiganK @ayeshLK @chamil321
 _Reviewers_: @shafreenAnfar @bhashinee @TharmiganK @ldclakmal  
 _Created_: 2021/12/23  
 _Updated_: 2022/04/08   
-_Edition_: Swan Lake  
-_Issue_: [#572](https://github.com/ballerina-platform/ballerina-standard-library/issues/572)
+_Edition_: Swan Lake
 
 
-# Introduction
+## Introduction
 This is the specification for the HTTP standard library of [Ballerina language](https://ballerina.io/), which provides HTTP client-server functionalities to produce and consume HTTP APIs.  
 
 The HTTP library specification has evolved and may continue to evolve in the future. The released versions of the specification can be found under the relevant GitHub tag. 
@@ -17,7 +16,7 @@ If you have any feedback or suggestions about the library, start a discussion vi
 
 The conforming implementation of the specification is released and included in the distribution. Any deviation from the specification is considered a bug.
 
-# Contents
+## Contents
 
 1. [Overview](#1-overview)
 2. [Components](#2-components)
@@ -33,13 +32,17 @@ The conforming implementation of the specification is released and included in t
         * 2.3.1. [Accessor](#231-accessor)
         * 2.3.2. [Resource-name](#232-resource-name)
         * 2.3.3. [Path parameter](#233-path-parameter)
-        * 2.3.4. [Return types](#234-return-types)
+        * 2.3.4. [Signature parameters](#234-signature-parameters)
             * 2.3.4.1. [Caller](#2341-httpcaller)
             * 2.3.4.2. [Request](#2342-httprequest)
             * 2.3.4.3. [Query param](#2343-query-parameter)
             * 2.3.4.4. [Payload param](#2344-payload-parameter)
             * 2.3.4.5. [Header param](#2345-header-parameter)
-      * 2.3.5. [Introspection resource](#235-introspection-resource)
+        * 2.3.5. [Return types](#235-return-types)
+            * 2.3.5.1. [Status Code Response](#2351-status-code-response)
+            * 2.3.5.2. [Return nil](#2352-return-nil)
+            * 2.3.5.3. [Default response status codes](#2353-default-response-status-codes)
+        * 2.3.6. [Introspection resource](#236-introspection-resource)
     * 2.4. [Client](#24-client)
         * 2.4.1. [Client types](#241-client-types)
             * 2.4.1.1. [Security](#2411-security)
@@ -414,6 +417,10 @@ resource function post foo(@http:CallerInfo {respondType:Person}  http:Caller hc
     hc->respond(p);
 }
 ```
+
+When the caller `respond()` method is invoked from HTTP post resource by providing `anydata` payload, the status 
+code of the outbound response will be set to HTTP Created (201) by default.
+
 ##### 2.3.4.2. http:Request
 
 The `http:Request` represents the request which is sent and received over the network which includes headers and 
@@ -732,7 +739,7 @@ service /headerparamservice on HeaderBindingIdealEP {
 </table>
 
 
-#### 2.3.4. Return types
+#### 2.3.5. Return types
 The resource function supports anydata, error?, http:Response and http:StatusCodeResponse as return types. 
 Whenever user returns a particular output, that will result in an HTTP response to the caller who initiated the 
 call. Therefore, user does not necessarily depend on the `http:Caller` and its remote methods to proceed with the 
@@ -764,7 +771,7 @@ Based on the return types respective header value is added as the `Content-type`
 | map\<json\>, table<map\<json\>>, map\<json\>[], table<map\<json\>>)[] | application/json         |
 | http:StatusCodeResponse                                               | application/json         |
 
-#### 2.3.4.1. Status Code Response
+##### 2.3.5.1. Status Code Response
 
 The status code response records are defined in the HTTP module for every HTTP status code. It improves readability & 
 helps OpenAPI spec generation. 
@@ -801,7 +808,7 @@ resource function get greeting() returns http:Ok|http:InternalServerError {
 }
 ```
 
-#### 2.3.4.2. Return nil
+##### 2.3.5.2. Return nil
 
 Return nil from the resource has few meanings. 
 
@@ -834,7 +841,23 @@ resource function get fruit(string? colour, http:Caller caller) {
     return; // 500 internal Server Error
 }
 ```
-#### 2.3.5. Introspection resource
+
+##### 2.3.5.3. Default response status codes
+
+To improve the developer experience for RESTful API development, following default status codes will be used in outbound 
+response when returning `anydata` directly from a resource function.
+
+| Resource Accessor | Semantics                                                     | Status Code             |
+|-------------------|---------------------------------------------------------------|-------------------------|
+| GET               | Retrieve the resource                                         | 200 OK                  |
+| POST              | Create a new resource                                         | 201 Created             |
+| PUT               | Create a new resource or update an existing resource          | 200 OK                  |
+| PATCH             | Partially update an existing resource                         | 200 OK                  |
+| DELETE            | Delete an existing resource                                   | 200 OK                  |
+| HEAD              | Retrieve headers                                              | 200 OK                  |
+| OPTIONS           | Retrieve permitted communication options                      | 200 OK                  |
+
+#### 2.3.6. Introspection resource
 
 The introspection resource is internally generated for each service and host the openAPI doc can be generated 
 (or retrieved) at runtime when requested from the hosted service itself. In order to get the openAPI doc hosted
@@ -1697,9 +1720,9 @@ service on new http:Listener(port) {
         // Create a link between this resource and "Payment" resource
         linkedTo: [{ name: "Payment", rel: "payment" }]
     }
-    resouce function post 'order(@http:Payload Order 'order) returns 
+    resource function post 'order(@http:Payload Order 'order) returns 
             http:Accepted|http:InternalServerError {
-        // Business logic
+        // some logic
     }
     
     @http:ResourceConfig {
@@ -1707,7 +1730,7 @@ service on new http:Listener(port) {
     }
     resource function put payment/[string id](@http:Payload Payment payment) returns 
             http:Ok|http:InternalServerError {
-        // Business logic
+        // some logic
     }
 }
 ```
@@ -1725,16 +1748,16 @@ service on new http:Listener(port) {
             { name: "Orders", rel: "remove",  method: "DELETE" }
         ]
     }
-    resouce function put orders/[string id](@http:Payload Order 'order) returns 
+    resource function put orders/[string id](@http:Payload Order 'order) returns 
             http:Ok|http:InternalServerError {
-        // Business logic
+        // some logic
     }
     
     @http:ResourceConfig {
         name : "Orders"
     }
     resource function delete orders/[string id]() returns http:Ok|http:InternalServerError {
-        // Business logic
+        // some logic
     }
 }
 ```
@@ -1768,8 +1791,8 @@ service on new http:Listener(port) {
     @http:ResourceConfig {
         linkedTo: [{ name: "Payment", rel: "payment" }]
     }
-    resouce function get orders/[string id]() returns Order|http:NotFound {
-        // Business logic
+    resource function get orders/[string id]() returns Order|http:NotFound {
+        // some logic
     }
     
     @http:ResourceConfig {
@@ -1777,7 +1800,7 @@ service on new http:Listener(port) {
     }
     resource function put payment/[string id](@http:Payload Payment payment) returns 
             http:Ok|http:InternalServerError {
-        // Business logic
+        // some logic
     }
 }
 ```
@@ -1804,9 +1827,9 @@ service on new http:Listener(port) {
     @http:ResourceConfig {
         linkedTo: [{ name: "Payment", rel: "payment" }]
     }
-    resouce function post order(@http:Payload Order 'order) returns 
+    resource function post order(@http:Payload Order 'order) returns 
             http:Accepted|http:InternalServerError {
-        // Business logic
+        // some logic
         // return http:Accepted without body
     }
     
@@ -1815,7 +1838,7 @@ service on new http:Listener(port) {
     }
     resource function put payment/[string id](@http:Payload Payment payment) returns 
             http:Ok|http:InternalServerError {
-        // Business logic
+        // some logic
     }
 }
 ```
@@ -1824,7 +1847,7 @@ The response will have the following header :
 link: "</payment/{id}>; rel=\"payment\"; methods=\"\"PUT\"\""
 ```
 
-The `Links` will not overwrite the payload or the header if the user has defined them already.
+The `Links` will not overwrite the payload or the header if the user has already added the links.
 
 ## 8. Interceptor and error handling
 ### 8.1 Interceptor

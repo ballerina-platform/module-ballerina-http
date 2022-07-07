@@ -47,7 +47,7 @@ service /httpServerFieldEcho1 on httpServerFieldListenerEP1 {
 function testHeaderServerFromSuccessResponse() {
     http:Response|error response = httpServerFieldClient->post("/httpServerFieldEcho1", "{\"exchange\":\"nyse\",\"name\":\"WSO2\",\"value\":\"127.50\"}");
     if response is http:Response {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        test:assertEquals(response.statusCode, 201, msg = "Found unexpected output");
         test:assertEquals(response.server, "Mysql");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -62,7 +62,7 @@ function testSetServerHeaderManuallyFromSuccessResponse() {
     req.setTextPayload("{\"exchange\":\"nyse\",\"name\":\"WSO2\",\"value\":\"127.50\"}");
     http:Response|error response = httpServerFieldClient->post("/httpServerFieldEcho1", req);
     if response is http:Response {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        test:assertEquals(response.statusCode, 201, msg = "Found unexpected output");
         test:assertEquals(response.server, "Mysql");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -103,7 +103,7 @@ function testDefaultHeaderServerFromSuccessResponse() {
     req.setTextPayload(requestMessage);
     http:Response|error response = echoServiceClient->post("/echoServiceTest1", req);
     if response is http:Response {
-        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        test:assertEquals(response.statusCode, 201, msg = "Found unexpected output");
         test:assertEquals(response.server, "ballerina");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
