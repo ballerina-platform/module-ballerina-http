@@ -503,12 +503,14 @@ public class HttpConstants {
     public static final BString REMOTE_STRUCT_FIELD = StringUtils.fromString("remoteAddress");
     public static final BString REMOTE_HOST_FIELD = StringUtils.fromString("host");
     public static final BString REMOTE_PORT_FIELD = StringUtils.fromString("port");
+    public static final BString REMOTE_IP_FIELD = StringUtils.fromString("ip");
     public static final String REMOTE_SOCKET_ADDRESS = "remoteSocketAddress";
 
     //Local struct field names
     public static final BString LOCAL_STRUCT_INDEX = StringUtils.fromString("localAddress");
     public static final BString LOCAL_HOST_FIELD = StringUtils.fromString("host");
     public static final BString LOCAL_PORT_FIELD = StringUtils.fromString("port");
+    public static final BString LOCAL_IP_FIELD = StringUtils.fromString("ip");
 
     //Link struct field names
     public static final String LINK = "Link";
