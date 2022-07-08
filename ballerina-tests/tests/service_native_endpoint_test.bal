@@ -32,8 +32,8 @@ service /serviceEndpointHello on serviceEndpointTestEP {
 
     resource function get local(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
-        json connectionJson = {local:{host:caller.localAddress.host, port:caller.localAddress.port,
-                                address:caller.localAddress.ip}};
+        json connectionJson = { local: { host:caller.localAddress.host, port:caller.localAddress.port,
+                                         address:caller.localAddress.ip }};
         res.statusCode = 200;
         res.setJsonPayload(connectionJson);
         check caller->respond(res);
