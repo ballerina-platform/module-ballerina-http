@@ -32,7 +32,8 @@ service /serviceEndpointHello on serviceEndpointTestEP {
 
     resource function get local(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
-        json connectionJson = {local:{host:caller.localAddress.host, port:caller.localAddress.port}};
+        json connectionJson = {local:{host:caller.localAddress.host, port:caller.localAddress.port,
+                                address:caller.localAddress.ip}};
         res.statusCode = 200;
         res.setJsonPayload(connectionJson);
         check caller->respond(res);
@@ -66,6 +67,7 @@ function testLocalStructInConnection() {
         if payload is map<json> {
             map<json> localContent = <map<json>>payload["local"];
             test:assertEquals(localContent["port"], serviceEndpointTest, msg = "Found unexpected output");
+            test:assertEquals(localContent["address"], "127.0.0.1", msg = "Found unexpected output");
         } else if payload is error {
             test:assertFail(msg = "Found unexpected output type: " + payload.message());
         }
