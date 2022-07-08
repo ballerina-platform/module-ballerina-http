@@ -99,18 +99,6 @@ http:ClientConfiguration certsClientConf2 = {
     httpVersion: "2.0"
 };
 
-// https://github.com/ballerina-platform/ballerina-standard-library/issues/483
-@test:Config {}
-public function mutualSslWithCerts2() {
-    http:Client|error clientEP = new("https://localhost:9110", certsClientConf2);
-    string expectedErrMsg = "Need to configure cert with client SSL certificates file for HTTP 2.0";
-    if clientEP is error {
-        test:assertEquals(clientEP.message(), expectedErrMsg);
-    } else {
-        test:assertFail(msg = "Expected mutual SSL error not found");
-    }
-}
-
 http:ClientConfiguration certsClientConf3 = {
     secureSocket: {
         enable: false,

@@ -348,6 +348,8 @@ public class SSLHandlerFactory {
                 Http2SecurityUtil.CIPHERS;
         if (sslConfig.getTrustStore() != null) {
             sslContextBuilder = clientContextBuilderWithKs(provider);
+        } else if (sslConfig.useJavaDefaults()) {
+            sslContextBuilder = createSslCtxWithSystemDefaults(provider);
         } else {
             sslContextBuilder = clientContextBuilderWithCerts(provider);
         }
@@ -369,6 +371,10 @@ public class SSLHandlerFactory {
 
     private void setSslProtocol(SslContextBuilder sslContextBuilder) {
         sslContextBuilder.protocols(sslConfig.getEnableProtocols());
+    }
+
+    private SslContextBuilder createSslCtxWithSystemDefaults(SslProvider sslProvider) {
+        return SslContextBuilder.forClient().sslProvider(sslProvider).keyManager(kmf);
     }
 
     private void setAlpnConfigs(SslContextBuilder sslContextBuilder) {

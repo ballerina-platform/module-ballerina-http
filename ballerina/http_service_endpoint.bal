@@ -118,20 +118,24 @@ isolated function externInitEndpoint(Listener listenerObj, ListenerConfiguration
 
 # Presents a read-only view of the remote address.
 #
-# + host - The remote host IP
+# + host - The remote host name
 # + port - The remote port
+# + ip - The remote IP address
 public type Remote record {|
-    string host = "";
-    int port = 0;
+    string host;
+    int port;
+    string ip;
 |};
 
 # Presents a read-only view of the local address.
 #
-# + host - The local host name/IP
+# + host - The local host name
 # + port - The local port
+# + ip - The local IP address
 public type Local record {|
-    string host = "";
-    int port = 0;
+    string host;
+    int port;
+    string ip;
 |};
 
 # Provides a set of configurations for HTTP service endpoints.
@@ -150,7 +154,7 @@ public type ListenerConfiguration record {|
     string host = "0.0.0.0";
     ListenerHttp1Settings http1Settings = {};
     ListenerSecureSocket? secureSocket = ();
-    string httpVersion = "1.1";
+    string httpVersion = HTTP_2_0;
     decimal timeout = DEFAULT_LISTENER_TIMEOUT;
     string? server = ();
     RequestLimitConfigs requestLimits = {};

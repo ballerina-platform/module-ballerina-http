@@ -19,6 +19,7 @@
 package io.ballerina.stdlib.http.transport.contractimpl.listener.states.http2;
 
 import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
+import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorException;
 import io.ballerina.stdlib.http.transport.contractimpl.Http2OutboundRespListener;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.http2.Http2SourceHandler;
 import io.ballerina.stdlib.http.transport.message.Http2DataFrame;
@@ -51,8 +52,10 @@ public interface ListenerState {
      * @param http2SourceHandler HTTP2 source handler
      * @param dataFrame          inbound data frame
      * @throws Http2Exception if an error occurs while reading
+     * @throws ServerConnectorException if an error occurs while notifying to server connector future
      */
-    void readInboundRequestBody(Http2SourceHandler http2SourceHandler, Http2DataFrame dataFrame) throws Http2Exception;
+    void readInboundRequestBody(Http2SourceHandler http2SourceHandler, Http2DataFrame dataFrame)
+            throws Http2Exception, ServerConnectorException;
 
     /**
      * Writes headers of outbound response.

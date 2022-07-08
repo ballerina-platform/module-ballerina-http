@@ -91,7 +91,7 @@ public class SendingHeaders implements ListenerState {
 
     @Override
     public void readInboundRequestBody(Http2SourceHandler http2SourceHandler, Http2DataFrame dataFrame) throws
-            Http2Exception {
+            Http2Exception, ServerConnectorException {
         // In bidirectional streaming case, while sending the request data frames, server response data frames can
         // receive. In order to handle it. we need to change the states depending on the action.
         http2MessageStateContext.setListenerState(new ReceivingEntityBody(http2MessageStateContext));

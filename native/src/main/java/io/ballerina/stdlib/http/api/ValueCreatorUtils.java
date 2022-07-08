@@ -60,19 +60,23 @@ public class ValueCreatorUtils {
         Object remoteSocketAddress = inboundMsg.getProperty(HttpConstants.REMOTE_ADDRESS);
         if (remoteSocketAddress instanceof InetSocketAddress) {
             InetSocketAddress inetSocketAddress = (InetSocketAddress) remoteSocketAddress;
-            BString remoteHost = fromString(inetSocketAddress.getHostString());
+            String remoteHost = inetSocketAddress.getHostString();
             long remotePort = inetSocketAddress.getPort();
-            remote.put(HttpConstants.REMOTE_HOST_FIELD, remoteHost);
+            String remoteIP = inetSocketAddress.getAddress().getHostAddress();
+            remote.put(HttpConstants.REMOTE_HOST_FIELD, fromString(remoteHost));
             remote.put(HttpConstants.REMOTE_PORT_FIELD, remotePort);
+            remote.put(HttpConstants.REMOTE_IP_FIELD, fromString(remoteIP));
         }
 
         Object localSocketAddress = inboundMsg.getProperty(HttpConstants.LOCAL_ADDRESS);
         if (localSocketAddress instanceof InetSocketAddress) {
             InetSocketAddress inetSocketAddress = (InetSocketAddress) localSocketAddress;
-            String localHost = inetSocketAddress.getHostName();
+            String localHost = inetSocketAddress.getHostString();
             long localPort = inetSocketAddress.getPort();
+            String localIP = inetSocketAddress.getAddress().getHostAddress();
             local.put(HttpConstants.LOCAL_HOST_FIELD, fromString(localHost));
             local.put(HttpConstants.LOCAL_PORT_FIELD, localPort);
+            local.put(HttpConstants.LOCAL_IP_FIELD, fromString(localIP));
         }
         return ValueCreator.createObjectValue(ModuleUtils.getHttpPackage(), HttpConstants.CALLER,
                 remote, local, fromString((String) inboundMsg.getProperty(HttpConstants.PROTOCOL)),

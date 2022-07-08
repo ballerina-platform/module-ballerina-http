@@ -90,16 +90,16 @@ service /requestHeaderLimit on midHeaderLimitEP {
     }
 }
 
-service /http2service on http2HeaderLimitEP {
+service /requestPayloadLimit on lowPayloadLimitEP {
 
-    resource function get invalidHeaderSize(http:Caller caller, http:Request req) returns error? {
+    resource function post test(http:Caller caller, http:Request req) returns error? {
         check caller->respond("Hello World!!!");
     }
 }
 
-service /requestPayloadLimit on lowPayloadLimitEP {
+service /http2service on http2HeaderLimitEP {
 
-    resource function post test(http:Caller caller, http:Request req) returns error? {
+    resource function get invalidHeaderSize(http:Caller caller, http:Request req) returns error? {
         check caller->respond("Hello World!!!");
     }
 }
@@ -166,18 +166,6 @@ function getLargeHeader() returns string {
         i = i + 1;
     }
     return header.toString();
-}
-
-// Tests the fallback behaviour when header size is greater than the configured http2 service
-@test:Config {}
-function testHttp2ServiceInvalidHeaderLength() returns error? {
-    http:Client limitClient = check new("http://localhost:" + requestLimitsTestPort5.toString());
-    http:Response|error response = limitClient->get("/http2service/invalidHeaderSize", {"X-Test":getLargeHeader()});
-    if response is http:Response {
-        test:assertEquals(response.statusCode, 431, msg = "Found unexpected output");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
 }
 
 //Tests the behaviour when payload size is greater than the configured threshold

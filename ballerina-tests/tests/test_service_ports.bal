@@ -19,12 +19,14 @@ import ballerina/http;
 listener http:Listener generalListener = new(generalPort);
 
 listener http:Listener generalHTTP2Listener = new http:Listener(http2GeneralPort, {httpVersion: "2.0"});
+listener http:Listener generalHTTPS2Listener = new http:Listener(http2SslGeneralPort, http2SslServiceConf);
 listener http:Listener HTTP2BackendListener = new http:Listener(http2BackendPort, {httpVersion: "2.0"});
 
 const int generalPort = 9000;
 
 const int http2GeneralPort = 9100;
 const int http2BackendPort = 9101;
+const int http2SslGeneralPort = 9107;
 
 const int uriTemplateTest1 = 9004;
 const int uriTemplateTest2 = 9005;
@@ -106,7 +108,7 @@ const int clientDatabindingTestPort3 = 9551;
 const int queryParamBindingTest = 9552;
 const int basePathTest = 9553;
 const int resourceReturnTest = 9554;
-const int requestLimitsTestPort5 = 9555;
+const int requestLimitsTestPort5 = 19555;
 const int requestLimitsTestPort6 = 9556;
 const int responseLimitsTestPort1 = 9557;
 const int responseLimitsTestPort2 = 9558;
