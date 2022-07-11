@@ -39,12 +39,13 @@ function testNoServiceRegistered() returns error? {
 
 final http:Client serviceErrorHandlingClientEP = check new("http://localhost:" + serviceErrorHandlingTestPort.toString(), httpVersion = "1.1");
 
-listener http:Listener serviceErrorHandlingServerEP = new(serviceErrorHandlingTestPort, httpVersion = "1.1", config = {
-    interceptors : [
+listener http:Listener serviceErrorHandlingServerEP = new(serviceErrorHandlingTestPort, 
+    httpVersion = "1.1"
+    interceptors = [
         new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultRequestInterceptor(), 
         new DefaultRequestErrorInterceptor(), new LastRequestInterceptor(), new DefaultResponseInterceptor()
     ]
-});
+);
 
 service /foo on serviceErrorHandlingServerEP {
 
@@ -231,18 +232,19 @@ function testConsumesProducesError() returns error? {
     assertHeaderValue(check res.getHeader("error-type"), "DispatchingError-Resource");
 }
 
-listener http:Listener authErrorHandlingServerEP = new(authErrorHandlingTestPort, httpVersion = "1.1", config = {
-    interceptors : [
+listener http:Listener authErrorHandlingServerEP = new(authErrorHandlingTestPort, 
+    httpVersion = "1.1",
+    interceptors = [
         new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultRequestInterceptor(),
         new DefaultRequestErrorInterceptor(), new LastRequestInterceptor(), new DefaultResponseInterceptor()
     ],
-    secureSocket : {
+    secureSocket = {
         key: {
             path: KEYSTORE_PATH,
             password: "ballerina"
         }
     }
-});
+);
 
 // Basic auth (file user store) secured service
 @http:ServiceConfig {

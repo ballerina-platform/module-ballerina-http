@@ -19,12 +19,13 @@ import ballerina/test;
 
 final http:Client requestInterceptorServiceConfigClientEP1 = check new("http://localhost:" + requestInterceptorServiceConfigTestPort1.toString(), httpVersion = "1.1");
 
-listener http:Listener requestInterceptorServiceConfigServerEP1 = new(requestInterceptorServiceConfigTestPort1, httpVersion = "1.1", config = {
-    interceptors: [
+listener http:Listener requestInterceptorServiceConfigServerEP1 = new(requestInterceptorServiceConfigTestPort1, 
+    httpVersion = "1.1",
+    interceptors = [
         new DefaultRequestInterceptor(), new LastResponseInterceptor(), new RequestInterceptorWithVariable("request-interceptor-listener"), 
         new ResponseInterceptorWithVariable("response-interceptor-listener"), new DefaultResponseInterceptor()
     ]
-});
+);
 
 @http:ServiceConfig {
     interceptors : [

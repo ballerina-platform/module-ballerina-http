@@ -101,9 +101,8 @@ function testRequestInterceptorReturnsError() returns error? {
 
 final http:Client responseInterceptorReturnsErrorTestClientEP = check new("http://localhost:" + responseInterceptorReturnsErrorTestPort.toString(), httpVersion = "1.1");
 
-listener http:Listener responseInterceptorReturnsErrorTestServerEP = new(responseInterceptorReturnsErrorTestPort, httpVersion = "1.1", config = {
-    interceptors : [new LastResponseInterceptor(), new ResponseInterceptorReturnsError(), new DefaultResponseInterceptor()]
-});
+listener http:Listener responseInterceptorReturnsErrorTestServerEP = new(responseInterceptorReturnsErrorTestPort, 
+    httpVersion = "1.1", interceptors = [new LastResponseInterceptor(), new ResponseInterceptorReturnsError(), new DefaultResponseInterceptor()]);
 
 service / on responseInterceptorReturnsErrorTestServerEP {
 

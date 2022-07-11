@@ -19,9 +19,10 @@ import ballerina/test;
 
 final http:Client requestInterceptorNegativeClientEP1 = check new("http://localhost:" + requestInterceptorNegativeTestPort1.toString(), httpVersion = "1.1");
 
-listener http:Listener requestInterceptorNegativeServerEP1 = new(requestInterceptorNegativeTestPort1, httpVersion = "1.1", config = {
-    interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorNegative1(), new LastRequestInterceptor()]
-});
+listener http:Listener requestInterceptorNegativeServerEP1 = new(requestInterceptorNegativeTestPort1, 
+    httpVersion = "1.1",
+    interceptors = [new DefaultRequestInterceptor(), new RequestInterceptorNegative1(), new LastRequestInterceptor()]
+);
 
 @test:Config{}
 function testRequestInterceptorNegative1() returns error? {
@@ -32,9 +33,10 @@ function testRequestInterceptorNegative1() returns error? {
 
 final http:Client requestInterceptorNegativeClientEP2 = check new("http://localhost:" + requestInterceptorNegativeTestPort2.toString(), httpVersion = "1.1");
 
-listener http:Listener requestInterceptorNegativeServerEP2 = new(requestInterceptorNegativeTestPort2, httpVersion = "1.1", config = {
-    interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorNegative2(), new LastRequestInterceptor()]
-});
+listener http:Listener requestInterceptorNegativeServerEP2 = new(requestInterceptorNegativeTestPort2, 
+    httpVersion = "1.1"
+    interceptors = [new DefaultRequestInterceptor(), new RequestInterceptorNegative2(), new LastRequestInterceptor()]
+);
 
 service / on requestInterceptorNegativeServerEP2 {
 
@@ -52,9 +54,10 @@ function testRequestInterceptorNegative2() returns error? {
 
 final http:Client requestInterceptorNegativeClientEP3 = check new("http://localhost:" + requestInterceptorNegativeTestPort3.toString(), httpVersion = "1.1");
 
-listener http:Listener requestInterceptorNegativeServerEP3 = new(requestInterceptorNegativeTestPort3, httpVersion = "1.1", config = {
-    interceptors : [new DefaultRequestInterceptor()]
-});
+listener http:Listener requestInterceptorNegativeServerEP3 = new(requestInterceptorNegativeTestPort3, 
+    httpVersion = "1.1"
+    interceptors = [new DefaultRequestInterceptor()]
+);
 
 service / on requestInterceptorNegativeServerEP3 {
 
@@ -82,9 +85,10 @@ function testRequestInterceptorNegative3() returns error? {
 
 final http:Client requestInterceptorNegativeClientEP4 = check new("http://localhost:" + requestInterceptorNegativeTestPort4.toString(), httpVersion = "1.1");
 
-listener http:Listener requestInterceptorNegativeServerEP4 = new(requestInterceptorNegativeTestPort4, httpVersion = "1.1", config = {
-    interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorSkip()]
-});
+listener http:Listener requestInterceptorNegativeServerEP4 = new(requestInterceptorNegativeTestPort4, 
+    httpVersion = "1.1",
+    interceptors = [new DefaultRequestInterceptor(), new RequestInterceptorSkip()]
+);
 
 service / on requestInterceptorNegativeServerEP4 {
 
@@ -102,9 +106,10 @@ function testRequestInterceptorNegative4() returns error? {
 
 final http:Client requestInterceptorNegativeClientEP5 = check new("http://localhost:" + requestInterceptorNegativeTestPort5.toString(), httpVersion = "1.1");
 
-listener http:Listener requestInterceptorNegativeServerEP5 = new(requestInterceptorNegativeTestPort5, httpVersion = "1.1", config = {
-    interceptors : [new DefaultRequestInterceptor(), new LastRequestInterceptor(), new RequestErrorInterceptorReturnsErrorMsg()]
-});
+listener http:Listener requestInterceptorNegativeServerEP5 = new(requestInterceptorNegativeTestPort5, 
+    httpVersion = "1.1",
+    interceptors = [new DefaultRequestInterceptor(), new LastRequestInterceptor(), new RequestErrorInterceptorReturnsErrorMsg()]
+);
 
 service /hello on requestInterceptorNegativeServerEP5 {
 
@@ -121,9 +126,10 @@ function testRequestInterceptorNegative5() returns error? {
 
 final http:Client requestInterceptorNegativeClientEP6 = check new("http://localhost:" + requestInterceptorNegativeTestPort6.toString(), httpVersion = "1.1");
 
-listener http:Listener requestInterceptorNegativeServerEP6 = new(requestInterceptorNegativeTestPort6, httpVersion = "1.1", config = {
-    interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorNegative3()]
-});
+listener http:Listener requestInterceptorNegativeServerEP6 = new(requestInterceptorNegativeTestPort6, 
+    httpVersion = "1.1",
+    interceptors = [new DefaultRequestInterceptor(), new RequestInterceptorNegative3()]
+);
 
 service / on requestInterceptorNegativeServerEP6 {
 
@@ -141,12 +147,13 @@ function testRequestInterceptorNegative6() returns error? {
 
 final http:Client responseInterceptorNegativeClientEP1 = check new("http://localhost:" + responseInterceptorNegativeTestPort1.toString(), httpVersion = "1.1");
 
-listener http:Listener responseInterceptorNegativeServerEP1 = new(responseInterceptorNegativeTestPort1, httpVersion = "1.1", config = {
-    interceptors : [
+listener http:Listener responseInterceptorNegativeServerEP1 = new(responseInterceptorNegativeTestPort1, 
+    httpVersion = "1.1",
+    interceptors = [
         new DefaultRequestInterceptor(), new ResponseInterceptorNegative1(), new LastRequestInterceptor(), 
         new DefaultResponseInterceptor()
     ]
-});
+);
 
 service / on responseInterceptorNegativeServerEP1 {
     resource function 'default .() returns string {
