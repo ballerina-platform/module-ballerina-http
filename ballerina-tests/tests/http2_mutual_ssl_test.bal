@@ -35,8 +35,7 @@ http:ListenerConfiguration http2MutualSslServiceConf = {
             versions: ["TLSv1.2","TLSv1.1"]
         },
         ciphers:["TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"]
-    },
-    httpVersion: "2.0"
+    }
 };
 
 listener http:Listener http2Listener = new(9204, http2MutualSslServiceConf);
@@ -92,7 +91,6 @@ http:ClientConfiguration http2MutualSslClientConf1 = {
         },
         ciphers: ["TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"]
     },
-    httpVersion: "2.0",
     http2Settings: { http2PriorKnowledge: true }
 };
 
@@ -119,7 +117,6 @@ http:ClientConfiguration http2MutualSslClientConf2 = {
         },
         ciphers: ["TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"]
     },
-    httpVersion: "2.0",
     http2Settings: { http2PriorKnowledge: true }
 };
 
@@ -136,7 +133,6 @@ http:ClientConfiguration http2MutualSslClientConf3 = {
         },
         ciphers: ["TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"]
     },
-    httpVersion: "2.0",
     http2Settings: { http2PriorKnowledge: true }
 };
 
@@ -154,8 +150,7 @@ public function testHttp2MutualSsl3() returns error? {
 http:ClientConfiguration http2MutualSslClientConf4 = {
     secureSocket: {
         enable: false
-    },
-    httpVersion: "2.0"
+    }
 };
 
 @test:Config {}

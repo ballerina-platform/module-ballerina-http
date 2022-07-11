@@ -22,12 +22,13 @@ import ballerina/io;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener retryTestserviceEndpoint1 = new(retryFunctionTestPort1);
-listener http:Listener retryTestserviceEndpoint2 = new(retryFunctionTestPort2);
-final http:Client retryFunctionTestClient = check new("http://localhost:" + retryFunctionTestPort1.toString());
+listener http:Listener retryTestserviceEndpoint1 = new(retryFunctionTestPort1, httpVersion = "1.1");
+listener http:Listener retryTestserviceEndpoint2 = new(retryFunctionTestPort2, httpVersion = "1.1");
+final http:Client retryFunctionTestClient = check new("http://localhost:" + retryFunctionTestPort1.toString(), httpVersion = "1.1");
 
 // Define the end point to the call the `mockHelloService`.
 final http:Client retryBackendClientEP = check new("http://localhost:" + retryFunctionTestPort1.toString(),
+    httpVersion = "1.1",
     retryConfig= {
         interval: 3,
         count: 3,
@@ -36,16 +37,17 @@ final http:Client retryBackendClientEP = check new("http://localhost:" + retryFu
     timeout= 2
 );
 
-final http:Client internalErrorEP = check new("http://localhost:" + retryFunctionTestPort2.toString(), {
-    retryConfig: {
+final http:Client internalErrorEP = check new("http://localhost:" + retryFunctionTestPort2.toString(), 
+    httpVersion = "1.1", 
+    retryConfig = {
         interval: 3,
         count: 3,
         backOffFactor: 2.0,
         maxWaitInterval: 20,
         statusCodes: [501, 502, 503]
     },
-    timeout: 2
-});
+    timeout = 2
+);
 
 service /retryDemoService on retryTestserviceEndpoint1 {
     // Create a REST resource within the API.

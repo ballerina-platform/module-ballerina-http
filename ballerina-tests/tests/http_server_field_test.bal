@@ -20,8 +20,8 @@ import ballerina/http;
 
 // listener http:Listener echoEP1 = new(9094, {server: "Mysql"});
 
-listener http:Listener httpServerFieldListenerEP1 = new(httpServerFieldTestPort1, server = "Mysql");
-final http:Client httpServerFieldClient = check new("http://localhost:" + httpServerFieldTestPort1.toString());
+listener http:Listener httpServerFieldListenerEP1 = new(httpServerFieldTestPort1, server = "Mysql", httpVersion = "1.1");
+final http:Client httpServerFieldClient = check new("http://localhost:" + httpServerFieldTestPort1.toString(), httpVersion = "1.1");
 
 service /httpServerFieldEcho1 on httpServerFieldListenerEP1 {
 

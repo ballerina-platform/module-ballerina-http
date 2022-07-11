@@ -22,11 +22,11 @@ import ballerina/mime;
 import ballerina/url;
 import ballerina/lang.'string as strings;
 
-listener http:Listener clientDBProxyListener = new(clientDatabindingTestPort1);
-listener http:Listener clientDBBackendListener = new(clientDatabindingTestPort2);
+listener http:Listener clientDBProxyListener = new(clientDatabindingTestPort1, httpVersion = "1.1");
+listener http:Listener clientDBBackendListener = new(clientDatabindingTestPort2, httpVersion = "1.1");
 listener http:Listener clientDBBackendListener2 = new(clientDatabindingTestPort3);
-final http:Client clientDBTestClient = check new("http://localhost:" + clientDatabindingTestPort1.toString());
-final http:Client clientDBBackendClient = check new("http://localhost:" + clientDatabindingTestPort2.toString());
+final http:Client clientDBTestClient = check new("http://localhost:" + clientDatabindingTestPort1.toString(), httpVersion = "1.1");
+final http:Client clientDBBackendClient = check new("http://localhost:" + clientDatabindingTestPort2.toString(), httpVersion = "1.1");
 
 type ClientDBPerson record {|
     string name;
@@ -257,17 +257,14 @@ service /passthrough on clientDBProxyListener {
 
     resource function get redirect(http:Caller caller, http:Request req) returns error? {
         http:Client redirectClient = check new("http://localhost:" + clientDatabindingTestPort3.toString(),
-                                                        {followRedirects: {enabled: true, maxCount: 5}});
+            httpVersion = "1.1", followRedirects = { enabled: true, maxCount: 5 });
         json p = check redirectClient->post("/redirect1/", "want json", targetType = json);
         check caller->respond(p);
     }
 
     resource function get 'retry(http:Caller caller, http:Request request) returns error? {
-        http:Client retryClient = check new("http://localhost:" + clientDatabindingTestPort2.toString(), {
-                retryConfig: { interval: 3, count: 3, backOffFactor: 2.0,
-                maxWaitInterval: 2 },  timeout: 2
-            }
-        );
+        http:Client retryClient = check new("http://localhost:" + clientDatabindingTestPort2.toString(), 
+            httpVersion = "1.1", retryConfig = { interval: 3, count: 3, backOffFactor: 2.0, maxWaitInterval: 2 },  timeout = 2);
         string r = check retryClient->forward("/backend/getRetryResponse", request);
         check caller->respond(r);
     }

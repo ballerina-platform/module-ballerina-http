@@ -17,8 +17,8 @@
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener pathParamCheckListener = new(pathParamCheckTestPort);
-final http:Client pathParamTestClient = check new("http://localhost:" + pathParamCheckTestPort.toString());
+listener http:Listener pathParamCheckListener = new(pathParamCheckTestPort, httpVersion = "1.1");
+final http:Client pathParamTestClient = check new("http://localhost:" + pathParamCheckTestPort.toString(), httpVersion = "1.1");
 
 service / on pathParamCheckListener {
     

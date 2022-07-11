@@ -18,9 +18,9 @@ import ballerina/http;
 import ballerina/log;
 import ballerina/test;
 
-listener http:Listener backendEp = new(9119, {httpVersion: "2.0"});
-final http:Client trailerClientEp = check new("http://localhost:9119", { httpVersion: "2.0", http2Settings: {
-    http2PriorKnowledge: true }});
+listener http:Listener backendEp = new(9119);
+final http:Client trailerClientEp = check new("http://localhost:9119", 
+    http2Settings = { http2PriorKnowledge: true });
 
 service /trailerInitiator on new http:Listener(9118) {
 

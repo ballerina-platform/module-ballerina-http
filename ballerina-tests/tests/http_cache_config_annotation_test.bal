@@ -19,9 +19,11 @@ import ballerina/lang.runtime as runtime;
 import ballerina/http;
 import ballerina/crypto;
 
-final http:Client cacheClientEP = check new("http://localhost:" + cacheAnnotationTestPort1.toString(), { cache: { enabled: false }});
+final http:Client cacheClientEP = check new("http://localhost:" + cacheAnnotationTestPort1.toString(), 
+    httpVersion = "1.1", cache = { enabled: false });
 
-final http:Client cacheBackendEP = check new("http://localhost:" + cacheAnnotationTestPort2.toString(), { cache: { isShared: true } });
+final http:Client cacheBackendEP = check new("http://localhost:" + cacheAnnotationTestPort2.toString(), 
+    httpVersion = "1.1", cache = { isShared: true });
 
 isolated int numberOfProxyHitsNew = 0;
 isolated int noCacheHitCountNew = 0;

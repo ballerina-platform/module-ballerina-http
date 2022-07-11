@@ -29,7 +29,7 @@ service /MyService on generalHTTP2Listener {
 }
 
 final http:Client http2RequestClient2 = check new("http://localhost:" + http2GeneralPort.toString(), 
-    httpVersion = "2.0", http2Settings = { http2PriorKnowledge: true });
+    http2Settings = { http2PriorKnowledge: true });
 
 @test:Config {}
 public function testHttp2AccessingPayloadAsTextAndJSON()  {

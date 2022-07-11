@@ -20,10 +20,10 @@ import ballerina/mime;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener expectContinueListenerEP1 = new(expectContinueTestPort1);
-listener http:Listener expectContinueListenerEP2 = new(expectContinueTestPort2);
+listener http:Listener expectContinueListenerEP1 = new(expectContinueTestPort1, httpVersion = "1.1");
+listener http:Listener expectContinueListenerEP2 = new(expectContinueTestPort2, httpVersion = "1.1");
 
-final http:Client expectContinueClient = check new("http://localhost:" + expectContinueTestPort2.toString());
+final http:Client expectContinueClient = check new("http://localhost:" + expectContinueTestPort2.toString(), httpVersion = "1.1");
 
 service /'continue on expectContinueListenerEP1 {
 

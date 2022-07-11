@@ -17,11 +17,14 @@
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener cachingProxyListener = new(cachingTestPort3);
-listener http:Listener cachingBackendListener = new(cachingTestPort4);
-final http:Client cachingProxyTestClient = check new("http://localhost:" + cachingTestPort3.toString(), { cache: { enabled: false }});
+listener http:Listener cachingProxyListener = new(cachingTestPort3, httpVersion = "1.1");
+listener http:Listener cachingBackendListener = new(cachingTestPort4, httpVersion = "1.1");
 
-final http:Client cachingEP1 = check new("http://localhost:" + cachingTestPort4.toString(), { cache: { isShared: true } });
+final http:Client cachingProxyTestClient = check new("http://localhost:" + cachingTestPort3.toString(), 
+    httpVersion = "1.1", cache = { enabled: false });
+
+final http:Client cachingEP1 = check new("http://localhost:" + cachingTestPort4.toString(), 
+    httpVersion = "1.1", cache = { isShared: true });
 
 service /cachingProxyService on cachingProxyListener {
 

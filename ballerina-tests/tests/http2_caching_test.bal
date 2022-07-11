@@ -24,10 +24,11 @@ int http2CachingTestPort2 = getHttp2Port(cachingTestPort2);
 listener http:Listener http2CachingListener1 = new(http2CachingTestPort1);
 listener http:Listener http2CachingListener2 = new(http2CachingTestPort2);
 final http:Client http2CachingTestClient = check new("http://localhost:" + http2CachingTestPort1.toString(), 
-    httpVersion = "2.0", http2Settings = { http2PriorKnowledge: true }, cache = { enabled: false });
+    http2Settings = { http2PriorKnowledge: true }, cache = { enabled: false });
 
 final http:Client http2CachingEP = check new("http://localhost:" + http2CachingTestPort2.toString(), 
-    httpVersion = "2.0", http2Settings = { http2PriorKnowledge: true }, cache = { isShared: true });
+    http2Settings = { http2PriorKnowledge: true }, cache = { isShared: true });
+
 int http2CachingProxyHitcount = 0;
 
 service /cache on http2CachingListener1 {

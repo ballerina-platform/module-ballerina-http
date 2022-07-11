@@ -18,7 +18,6 @@ import ballerina/http;
 import ballerina/test;
 
 listener http:Listener serviceEndpointWithSSL = new(9105, {
-    httpVersion: "2.0",
     secureSocket: {
         key: {
             path: "tests/certsandkeys/ballerinaKeystore.p12",

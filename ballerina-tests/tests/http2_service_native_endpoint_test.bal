@@ -21,7 +21,7 @@ int http2serviceEndpointTest = getHttp2Port(serviceEndpointTest);
 
 listener http:Listener http2ServiceEndpointTestEP = new(http2serviceEndpointTest);
 final http:Client httpServiceEndpointClient = check new("http://localhost:" + http2serviceEndpointTest.toString(), 
-    httpVersion = "2.0", http2Settings = { http2PriorKnowledge: true });
+    http2Settings = { http2PriorKnowledge: true });
 
 service /serviceEndpointHello on http2ServiceEndpointTestEP {
 

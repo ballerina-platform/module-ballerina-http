@@ -19,9 +19,10 @@ import ballerina/log;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener circuitBreakerEP03 = new(9309);
+listener http:Listener circuitBreakerEP03 = new(9309, httpVersion = "1.1");
 
 http:ClientConfiguration conf03 = {
+    httpVersion: "1.1",
     circuitBreaker: {
         rollingWindow: {
             timeWindow: 60,
@@ -62,7 +63,7 @@ service /cb on circuitBreakerEP03 {
     }
 }
 
-service /simple on new http:Listener(8089) {
+service /simple on new http:Listener(8089, httpVersion = "1.1") {
     
     resource function 'default .(http:Caller caller, http:Request req) {
         error? responseToCaller = caller->respond("Hello World!!!");
@@ -73,7 +74,7 @@ service /simple on new http:Listener(8089) {
 }
 
 //Test for circuit breaker getState functionality
-final http:Client testGetStateClient = check new("http://localhost:9309");
+final http:Client testGetStateClient = check new("http://localhost:9309", httpVersion = "1.1");
 
 @test:Config{ dataProvider:getStateResponseDataProvider }
 function testGetState(DataFeed dataFeed) returns error? {

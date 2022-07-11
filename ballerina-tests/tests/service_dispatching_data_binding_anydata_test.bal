@@ -20,7 +20,7 @@ import ballerina/http;
 
 type newXmlElement xml:Element;
 
-final http:Client anydataBindingClient = check new("http://localhost:" + generalPort.toString());
+final http:Client anydataBindingClient = check new("http://localhost:" + generalPort.toString(), httpVersion = "1.1");
 
 service /anydataB on generalListener {
 

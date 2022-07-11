@@ -18,8 +18,8 @@ import ballerina/test;
 import ballerina/http;
 import ballerina/lang.runtime as runtime;
 
-listener http:Listener callerActionListener = new(callerActionTestPort);
-final http:Client callerActionTestClient = check new("http://localhost:" + callerActionTestPort.toString());
+listener http:Listener callerActionListener = new(callerActionTestPort, httpVersion = "1.1");
+final http:Client callerActionTestClient = check new("http://localhost:" + callerActionTestPort.toString(), httpVersion = "1.1");
 
 isolated string globalLvlStr = "sample value";
 

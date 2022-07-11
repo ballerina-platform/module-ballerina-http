@@ -24,31 +24,33 @@ const string ERROR = "error";
 const string SUCCESS = "success";
 
 http:ClientConfiguration statusLineLimitConfig = {
+    httpVersion: "1.1",
     responseLimits: {
         maxStatusLineLength: 1024
     }
 };
 
 http:ClientConfiguration headerLimitConfig = {
+    httpVersion: "1.1",
     responseLimits: {
         maxHeaderSize: 1024
     }
 };
 
 http:ClientConfiguration  entityBodyLimitConfig = {
+    httpVersion: "1.1",
     responseLimits: {
         maxEntityBodySize: 1024
     }
 };
 
 http:ClientConfiguration http2headerLimitConfig = {
-    httpVersion: "2.0",
     responseLimits: {
         maxHeaderSize: 1024
     }
 };
 
-listener http:Listener statusLineEP = new(responseLimitsTestPort1);
+listener http:Listener statusLineEP = new(responseLimitsTestPort1, httpVersion = "1.1");
 listener http:Listener responseLimitBackendEP = new(responseLimitsTestPort2);
 
 final http:Client limitTestClient = check new("http://localhost:" + responseLimitsTestPort1.toString());

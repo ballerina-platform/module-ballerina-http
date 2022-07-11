@@ -22,7 +22,7 @@ int http2ServiceDetachTest = getHttp2Port(serviceDetachTest);
 
 listener http:Listener http2ServiceDetachTestEP = new(http2ServiceDetachTest);
 final http:Client http2ServiceDetachClient = check new("http://localhost:" + http2ServiceDetachTest.toString(), 
-    httpVersion = "2.0", http2Settings = { http2PriorKnowledge: true });
+    http2Settings = { http2PriorKnowledge: true });
 
 service /mock1 on http2ServiceDetachTestEP {
     resource function get .(http:Caller caller, http:Request req) returns error? {

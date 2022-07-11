@@ -19,37 +19,41 @@ import ballerina/test;
 import ballerina/http;
 
 http:ListenerConfiguration urlLimitConfig = {
+    httpVersion: "1.1",
     requestLimits: {
         maxUriLength: 1024
     }
 };
 
 http:ListenerConfiguration lowUrlLimitConfig = {
+    httpVersion: "1.1",
     requestLimits: {
         maxUriLength: 2
     }
 };
 
 http:ListenerConfiguration lowHeaderConfig = {
+    httpVersion: "1.1",
     requestLimits: {
         maxHeaderSize: 30
     }
 };
 
 http:ListenerConfiguration midSizeHeaderConfig = {
+    httpVersion: "1.1",
     requestLimits: {
         maxHeaderSize: 100
     }
 };
 
 http:ListenerConfiguration http2lowHeaderConfig = {
-    httpVersion: "2.0",
     requestLimits: {
         maxHeaderSize: 30
     }
 };
 
 http:ListenerConfiguration lowPayloadConfig = {
+    httpVersion: "1.1",
     requestLimits: {
         maxEntityBodySize: 10
     }
@@ -107,7 +111,7 @@ service /http2service on http2HeaderLimitEP {
 //Tests the behaviour when url length is less than the configured threshold
 @test:Config {}
 function testValidUrlLength() returns error? {
-    http:Client limitClient = check new("http://localhost:" + requestLimitsTestPort1.toString());
+    http:Client limitClient = check new("http://localhost:" + requestLimitsTestPort1.toString(), httpVersion = "1.1");
     http:Response|error response = limitClient->get("/requestUriLimit/validUrl");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
@@ -121,7 +125,7 @@ function testValidUrlLength() returns error? {
 //Tests the behaviour when url length is greater than the configured threshold
 @test:Config {}
 function testInvalidUrlLength() returns error? {
-    http:Client limitClient = check new("http://localhost:" + requestLimitsTestPort2.toString());
+    http:Client limitClient = check new("http://localhost:" + requestLimitsTestPort2.toString(), httpVersion = "1.1");
     http:Response|error response = limitClient->get("/lowRequestUriLimit/invalidUrl");
     if response is http:Response {
         //414 Request-URI Too Long
@@ -134,7 +138,7 @@ function testInvalidUrlLength() returns error? {
 //Tests the behaviour when header size is less than the configured threshold
 @test:Config {}
 function testValidHeaderLength() returns error? {
-    http:Client limitClient = check new("http://localhost:" + requestLimitsTestPort4.toString());
+    http:Client limitClient = check new("http://localhost:" + requestLimitsTestPort4.toString(), httpVersion = "1.1");
     http:Response|error response = limitClient->get("/requestHeaderLimit/validHeaderSize");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
@@ -148,7 +152,7 @@ function testValidHeaderLength() returns error? {
 //Tests the behaviour when header size is greater than the configured threshold
 @test:Config {}
 function testInvalidHeaderLength() returns error? {
-    http:Client limitClient = check new("http://localhost:" + requestLimitsTestPort3.toString());
+    http:Client limitClient = check new("http://localhost:" + requestLimitsTestPort3.toString(), httpVersion = "1.1");
     http:Response|error response = limitClient->get("/lowRequestHeaderLimit/invalidHeaderSize", {"X-Test":getLargeHeader()});
     if response is http:Response {
         //431 Request Header Fields Too Large
@@ -173,7 +177,7 @@ function getLargeHeader() returns string {
 function testInvalidPayloadSize() returns error? {
     http:Request req = new;
     req.setTextPayload("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-    http:Client limitClient = check new("http://localhost:" + requestLimitsTestPort6.toString());
+    http:Client limitClient = check new("http://localhost:" + requestLimitsTestPort6.toString(), httpVersion = "1.1");
     http:Response|error response = limitClient->post("/requestPayloadLimit/test", req);
     if response is http:Response {
         //413 Payload Too Large

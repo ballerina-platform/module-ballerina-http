@@ -19,14 +19,15 @@ import ballerina/test;
 
 @test:Config {}
 public function testEmptyKeystore() {
-    http:Listener|http:Error testListener = new(9249, {
-                           secureSocket: {
-                               key: {
-                                   path: "",
-                                   password: "ballerina"
-                                }
-                           }
-                       });
+    http:Listener|http:Error testListener = new(9249, 
+        httpVersion = "1.1", 
+        secureSocket = {
+            key: {
+                path: "",
+                password: "ballerina"
+            }
+        }
+    );
     if testListener is http:Listener {
         test:assertFail(msg = "Found unexpected output: Expected an keystore file not found error" );
     } else {
@@ -36,14 +37,15 @@ public function testEmptyKeystore() {
 
 @test:Config {}
 public function testEmptyKeystorePassword() {
-    http:Listener|http:Error testListener = new(9249, {
-                           secureSocket: {
-                               key: {
-                                   path: "tests/certsandkeys/ballerinaKeystore.p12",
-                                   password: ""
-                                }
-                           }
-                       });
+    http:Listener|http:Error testListener = new(9249, 
+        httpVersion = "1.1", 
+        secureSocket = {
+            key: {
+                path: "tests/certsandkeys/ballerinaKeystore.p12",
+                password: ""
+            }
+        }
+    );
     if (testListener is http:Listener) {
         test:assertFail(msg = "Found unexpected output: Expected an keystore password not found error" );
     } else {
@@ -53,14 +55,15 @@ public function testEmptyKeystorePassword() {
 
 @test:Config {}
 public function testEmptyCertFile() {
-    http:Listener|http:Error testListener = new(9249, {
-                           secureSocket: {
-                               key: {
-                                   certFile: "",
-                                   keyFile: "tests/certsandkeys/private.key"
-                                }
-                           }
-                       });
+    http:Listener|http:Error testListener = new(9249, 
+        httpVersion = "1.1", 
+        secureSocket = {
+            key: {
+                certFile: "",
+                keyFile: "tests/certsandkeys/private.key"
+            }
+        }
+    );
     if (testListener is http:Listener) {
         test:assertFail(msg = "Found unexpected output: Expected an empty cert file error" );
     } else {
@@ -70,14 +73,15 @@ public function testEmptyCertFile() {
 
 @test:Config {}
 public function testEmptyKeyFile() {
-    http:Listener|http:Error testListener = new(9249, {
-                           secureSocket: {
-                               key: {
-                                   certFile: "tests/certsandkeys/public.crt",
-                                   keyFile: ""
-                                }
-                           }
-                       });
+    http:Listener|http:Error testListener = new(9249, 
+        httpVersion = "1.1", 
+        secureSocket = {
+            key: {
+                certFile: "tests/certsandkeys/public.crt",
+                keyFile: ""
+            }
+        }
+    );
     if (testListener is http:Listener) {
         test:assertFail(msg = "Found unexpected output: Expected an key file error" );
     } else {
@@ -87,8 +91,9 @@ public function testEmptyKeyFile() {
 
 @test:Config {}
 public function testEmptyTrusStoreFile() {
-    http:Listener|http:Error testListener = new(9249, {
-        secureSocket: {
+    http:Listener|http:Error testListener = new(9249, 
+        httpVersion = "1.1", 
+        secureSocket = {
             key: {
                 certFile: "tests/certsandkeys/public.crt",
                 keyFile: "tests/certsandkeys/private.key"
@@ -98,7 +103,7 @@ public function testEmptyTrusStoreFile() {
                 cert: ""
             }
         }
-    });
+    );
     if (testListener is http:Listener) {
         test:assertFail(msg = "Found unexpected output: Expected an empty cert file error" );
     } else {
@@ -108,8 +113,9 @@ public function testEmptyTrusStoreFile() {
 
 @test:Config {}
 public function testEmptyTrusStorePassword() {
-    http:Listener|http:Error testListener = new(9249, {
-        secureSocket: {
+    http:Listener|http:Error testListener = new(9249, 
+        httpVersion = "1.1",
+        secureSocket = {
             key: {
                 certFile: "tests/certsandkeys/public.crt",
                 keyFile: "tests/certsandkeys/private.key"
@@ -122,7 +128,7 @@ public function testEmptyTrusStorePassword() {
                 }
             }
         }
-    });
+    );
     if (testListener is http:Listener) {
         test:assertFail(msg = "Found unexpected output: Expected an empty password error" );
     } else {
@@ -132,9 +138,10 @@ public function testEmptyTrusStorePassword() {
 
 @test:Config {}
 public function testEmptyTrustStore() {
-    http:Listener|http:Error testListener = new(9249, {
-        host: "",
-        secureSocket: {
+    http:Listener|http:Error testListener = new(9249, 
+        httpVersion = "1.1", 
+        host = "",
+        secureSocket = {
             key: {
                 certFile: "tests/certsandkeys/public.crt",
                 keyFile: "tests/certsandkeys/private.key"
@@ -147,7 +154,7 @@ public function testEmptyTrustStore() {
                 }
             }
         }
-    });
+    );
     if (testListener is http:Listener) {
         test:assertFail(msg = "Found unexpected output: Expected an empty truststore error" );
     } else {
@@ -177,11 +184,12 @@ public function testIncorrectIdletimeout() {
 
 @test:Config {}
 public function testIncorrectRequestLimitHeaderSize() {
-    http:Listener|http:Error testListener = new(9244, {
-                                      requestLimits: {
-                                          maxHeaderSize: -1
-                                      }
-                                 });
+    http:Listener|http:Error testListener = new(9244, 
+        httpVersion = "1.1", 
+        requestLimits = {
+            maxHeaderSize: -1
+        }
+    );
     if (testListener is http:Listener) {
         test:assertFail(msg = "Found unexpected output: Expected a timeout config error" );
     } else {

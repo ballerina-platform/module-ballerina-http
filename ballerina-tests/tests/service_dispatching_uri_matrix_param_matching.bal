@@ -17,7 +17,7 @@
 import ballerina/test;
 import ballerina/http;
 
-final http:Client matrixClient = check new("http://localhost:" + generalPort.toString());
+final http:Client matrixClient = check new("http://localhost:" + generalPort.toString(), httpVersion = "1.1");
 
 service /hello on generalListener {
 

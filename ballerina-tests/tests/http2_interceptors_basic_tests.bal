@@ -20,7 +20,7 @@ import ballerina/test;
 int http2InterceptorBasicTestsPort1 = getHttp2Port(interceptorBasicTestsPort1);
 
 final http:Client http2InterceptorsBasicTestsClientEP1 = check new("http://localhost:" + http2InterceptorBasicTestsPort1.toString(), 
-    httpVersion = "2.0", http2Settings = { http2PriorKnowledge: true });
+    http2Settings = { http2PriorKnowledge: true });
 
 listener http:Listener http2InterceptorsBasicTestsServerEP1 = new(http2InterceptorBasicTestsPort1);
 
@@ -105,7 +105,7 @@ function tesHttp2RequestInterceptorReturnsError() returns error? {
 int http2ResponseInterceptorReturnsErrorTestPort = getHttp2Port(responseInterceptorReturnsErrorTestPort);
 
 final http:Client http2ResponseInterceptorReturnsErrorTestClientEP = check new("http://localhost:" + http2ResponseInterceptorReturnsErrorTestPort.toString(), 
-    httpVersion = "2.0", http2Settings = { http2PriorKnowledge: true });
+    http2Settings = { http2PriorKnowledge: true });
 
 listener http:Listener http2ResponseInterceptorReturnsErrorTestServerEP = new(http2ResponseInterceptorReturnsErrorTestPort, config = {
     interceptors : [new LastResponseInterceptor(), new ResponseInterceptorReturnsError(), new DefaultResponseInterceptor()]
@@ -128,7 +128,7 @@ function tesHttp2ResponseInterceptorReturnsError() returns error? {
 int http2InterceptorBasicTestsPort2 = getHttp2Port(interceptorBasicTestsPort2);
 
 final http:Client http2InterceptorsBasicTestsClientEP2 = check new("http://localhost:" + http2InterceptorBasicTestsPort2.toString(), 
-    httpVersion = "2.0", http2Settings = { http2PriorKnowledge: true });
+    http2Settings = { http2PriorKnowledge: true });
 
 listener http:Listener http2InterceptorsBasicTestsServerEP2 = new(http2InterceptorBasicTestsPort2);
 
@@ -277,7 +277,7 @@ function tesHttp2RequestInterceptorSetPayload() returns error? {
 int http2InterceptorBasicTestsPort3 = getHttp2Port(interceptorBasicTestsPort3);
 
 final http:Client http2InterceptorsBasicTestsClientEP3 = check new("http://localhost:" + http2InterceptorBasicTestsPort3.toString(), 
-    httpVersion = "2.0", http2Settings = { http2PriorKnowledge: true });
+    http2Settings = { http2PriorKnowledge: true });
 
 listener http:Listener http2InterceptorsBasicTestsServerEP3 = new(http2InterceptorBasicTestsPort3);
 
@@ -378,7 +378,7 @@ function tesHttp2RequestInterceptorHttpVerb() returns error? {
 int http2RequestInterceptorBasePathTestPort = getHttp2Port(requestInterceptorBasePathTestPort);
 
 final http:Client http2RequestInterceptorBasePathClientEP = check new("http://localhost:" + http2RequestInterceptorBasePathTestPort.toString(), 
-    httpVersion = "2.0", http2Settings = { http2PriorKnowledge: true });
+    http2Settings = { http2PriorKnowledge: true });
 
 listener http:Listener http2RequestInterceptorBasePathServerEP = new(http2RequestInterceptorBasePathTestPort);
 
@@ -420,7 +420,7 @@ function tesHttp2RequestInterceptorBasePath() returns error? {
 int http2GetRequestInterceptorBasePathTestPort = getHttp2Port(getRequestInterceptorBasePathTestPort);
 
 final http:Client http2GetRequestInterceptorBasePathClientEP = check new("http://localhost:" + http2GetRequestInterceptorBasePathTestPort.toString(), 
-    httpVersion = "2.0", http2Settings = { http2PriorKnowledge: true });
+    http2Settings = { http2PriorKnowledge: true });
 
 listener http:Listener http2GetRequestInterceptorBasePathServerEP = new(http2GetRequestInterceptorBasePathTestPort);
 

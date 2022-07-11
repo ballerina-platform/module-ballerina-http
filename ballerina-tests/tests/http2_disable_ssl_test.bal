@@ -24,8 +24,7 @@ http:ListenerConfiguration helloWorldEPConfig = {
             path: "tests/certsandkeys/ballerinaKeystore.p12",
             password: "ballerina"
         }
-    },
-    httpVersion: "2.0"
+    }
 };
 
 listener http:Listener sslServerEp = new(9114, config = helloWorldEPConfig);
@@ -42,8 +41,7 @@ service /hello on sslServerEp {
 http:ClientConfiguration sslDisabledConfig = {
     secureSocket: {
         enable: false
-    },
-    httpVersion: "2.0"
+    }
 };
 
 @test:Config {}

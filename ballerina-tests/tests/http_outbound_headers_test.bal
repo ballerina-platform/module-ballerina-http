@@ -17,28 +17,30 @@
 import ballerina/http;
 import ballerina/test;
 
-listener http:Listener outRequestOptionsTestEP = new(outRequestOptionsTest);
+listener http:Listener outRequestOptionsTestEP = new(outRequestOptionsTest, httpVersion = "1.1");
 
-final http:Client outReqHeadClient = check new("http://localhost:" + outRequestOptionsTest.toString());
+final http:Client outReqHeadClient = check new("http://localhost:" + outRequestOptionsTest.toString(), httpVersion = "1.1");
 
 // Define the failover client 
-final http:FailoverClient outRequestFOClient = check new({
-    timeout: 5,
-    failoverCodes: [501, 502, 503],
-    interval: 5,
-    targets: [
+final http:FailoverClient outRequestFOClient = check new(
+    httpVersion = "1.1", 
+    timeout = 5,
+    failoverCodes = [501, 502, 503],
+    interval = 5,
+    targets = [
         { url: "http://localhost:3467/inavalidEP" },
         { url: "http://localhost:" + outRequestOptionsTest.toString() }
     ]
-});
+);
 
 // Define the load balance client 
-final http:LoadBalanceClient outRequestLBClient = check new({
-    targets: [
+final http:LoadBalanceClient outRequestLBClient = check new(
+    httpVersion = "1.1",
+    targets = [
         { url: "http://localhost:" + outRequestOptionsTest.toString() }
     ],
-    timeout: 5
-});
+    timeout = 5
+);
 
 @test:Config {}
 public function testGetWithInlineHeadersMap() returns error? {

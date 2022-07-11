@@ -18,11 +18,13 @@ import ballerina/log;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener httpClientContinueListenerEP1 = new(httpClientContinueTestPort1);
-listener http:Listener httpClientContinueListenerEP2 = new(httpClientContinueTestPort2);
-final http:Client httpClientContinueClient = check new("http://localhost:" + httpClientContinueTestPort2.toString());
+listener http:Listener httpClientContinueListenerEP1 = new(httpClientContinueTestPort1, httpVersion = "1.1");
+listener http:Listener httpClientContinueListenerEP2 = new(httpClientContinueTestPort2, httpVersion = "1.1");
+final http:Client httpClientContinueClient = check new("http://localhost:" + httpClientContinueTestPort2.toString(), 
+    httpVersion = "1.1");
 
-final http:Client continueClient = check new("http://localhost:" + httpClientContinueTestPort1.toString(), { cache: { enabled: false }});
+final http:Client continueClient = check new("http://localhost:" + httpClientContinueTestPort1.toString(), 
+    httpVersion = "1.1", cache = { enabled: false });
 
 service /'continue on httpClientContinueListenerEP1 {
 
@@ -93,7 +95,7 @@ service /'continue on httpClientContinueListenerEP2  {
 }
 @test:Config {}
 function testContinueActionWithMain() returns error? {
-    http:Client clientEP = check new("http://localhost:" + httpClientContinueTestPort1.toString());
+    http:Client clientEP = check new("http://localhost:" + httpClientContinueTestPort1.toString(), httpVersion = "1.1");
     http:Request req = new();
     req.addHeader("content-type", "text/plain");
     req.addHeader("Expect", "100-continue");

@@ -19,9 +19,9 @@ import ballerina/test;
 import ballerina/lang.runtime;
 import ballerina/lang.'string as strings;
 
-final http:Client requestInterceptorWithCallerRespondClientEP = check new("http://localhost:" + requestInterceptorWithCallerRespondTestPort.toString());
+final http:Client requestInterceptorWithCallerRespondClientEP = check new("http://localhost:" + requestInterceptorWithCallerRespondTestPort.toString(), httpVersion = "1.1");
 
-listener http:Listener requestInterceptorWithCallerRespondServerEP = new(requestInterceptorWithCallerRespondTestPort, config = {
+listener http:Listener requestInterceptorWithCallerRespondServerEP = new(requestInterceptorWithCallerRespondTestPort, httpVersion = "1.1", config = {
     interceptors : [
         new DefaultRequestInterceptor(), new LastResponseInterceptor(), new DefaultResponseInterceptor(),
         new RequestInterceptorCallerRespond(), new LastRequestInterceptor()
@@ -45,9 +45,9 @@ function testRequestInterceptorWithCallerRespond() returns error? {
     assertTextPayload(check res.getTextPayload(), "Response from caller inside interceptor");
 }
 
-final http:Client responseInterceptorWithCallerRespondClientEP = check new("http://localhost:" + responseInterceptorWithCallerRespondTestPort.toString());
+final http:Client responseInterceptorWithCallerRespondClientEP = check new("http://localhost:" + responseInterceptorWithCallerRespondTestPort.toString(), httpVersion = "1.1");
 
-listener http:Listener responseInterceptorWithCallerRespondServerEP = new(responseInterceptorWithCallerRespondTestPort, config = {
+listener http:Listener responseInterceptorWithCallerRespondServerEP = new(responseInterceptorWithCallerRespondTestPort, httpVersion = "1.1", config = {
     interceptors : [new LastResponseInterceptor(), new ResponseInterceptorCallerRespond(), new DefaultResponseInterceptor()]
 });
 
@@ -68,9 +68,9 @@ function testResponseInterceptorWithCallerRespond() returns error? {
     assertTextPayload(check res.getTextPayload(), "Response from caller inside response interceptor");
 }
 
-final http:Client requestInterceptorCallerRespondErrorTestClientEP = check new("http://localhost:" + requestInterceptorCallerRespondErrorTestPort.toString());
+final http:Client requestInterceptorCallerRespondErrorTestClientEP = check new("http://localhost:" + requestInterceptorCallerRespondErrorTestPort.toString(), httpVersion = "1.1");
 
-listener http:Listener requestInterceptorCallerRespondErrorTestServerEP = new(requestInterceptorCallerRespondErrorTestPort, config = {
+listener http:Listener requestInterceptorCallerRespondErrorTestServerEP = new(requestInterceptorCallerRespondErrorTestPort, httpVersion = "1.1", config = {
     interceptors : [
         new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultResponseInterceptor(),
         new RequestInterceptorReturnsError(), new DefaultRequestInterceptor(), new LastRequestInterceptor()
@@ -96,9 +96,9 @@ function testRequestInterceptorCallerRespondsError() returns error? {
 }
 
 
-final http:Client responseInterceptorCallerRespondErrorTestClientEP = check new("http://localhost:" + responseInterceptorCallerRespondErrorTestPort.toString());
+final http:Client responseInterceptorCallerRespondErrorTestClientEP = check new("http://localhost:" + responseInterceptorCallerRespondErrorTestPort.toString(), httpVersion = "1.1");
 
-listener http:Listener responseInterceptorCallerRespondErrorTestServerEP = new(responseInterceptorCallerRespondErrorTestPort, config = {
+listener http:Listener responseInterceptorCallerRespondErrorTestServerEP = new(responseInterceptorCallerRespondErrorTestPort, httpVersion = "1.1", config = {
     interceptors: [
         new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultResponseInterceptor(),
         new ResponseInterceptorCallerRespondError()
@@ -123,9 +123,9 @@ function testResponseInterceptorCallerRespondsError() returns error? {
     assertHeaderValue(check res.getHeader("error-type"), "NormalError");
 }
 
-final http:Client requestInterceptorDataBindingClientEP1 = check new("http://localhost:" + requestInterceptorDataBindingTestPort1.toString());
+final http:Client requestInterceptorDataBindingClientEP1 = check new("http://localhost:" + requestInterceptorDataBindingTestPort1.toString(), httpVersion = "1.1");
 
-listener http:Listener requestInterceptorDataBindingServerEP1 = new(requestInterceptorDataBindingTestPort1, config = {
+listener http:Listener requestInterceptorDataBindingServerEP1 = new(requestInterceptorDataBindingTestPort1, httpVersion = "1.1", config = {
     interceptors : [new DefaultRequestInterceptor(), new DataBindingRequestInterceptor(), new RequestErrorInterceptorReturnsErrorMsg(), new LastRequestInterceptor()]
 });
 
@@ -141,9 +141,9 @@ service / on requestInterceptorDataBindingServerEP1 {
     }
 }
 
-final http:Client requestInterceptorDataBindingClientEP2 = check new("http://localhost:" + requestInterceptorDataBindingTestPort2.toString());
+final http:Client requestInterceptorDataBindingClientEP2 = check new("http://localhost:" + requestInterceptorDataBindingTestPort2.toString(), httpVersion = "1.1");
 
-listener http:Listener requestInterceptorDataBindingServerEP2 = new(requestInterceptorDataBindingTestPort2, config = {
+listener http:Listener requestInterceptorDataBindingServerEP2 = new(requestInterceptorDataBindingTestPort2, httpVersion = "1.1", config = {
     interceptors : [new DataBindingRequestInterceptor(), new LastRequestInterceptor()]
 });
 
@@ -206,9 +206,9 @@ function testRequestInterceptorDataBindingWithLargePayload() returns error? {
     assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
 }
 
-final http:Client requestInterceptorWithoutCtxNextClientEP = check new("http://localhost:" + requestInterceptorWithoutCtxNextTestPort.toString());
+final http:Client requestInterceptorWithoutCtxNextClientEP = check new("http://localhost:" + requestInterceptorWithoutCtxNextTestPort.toString(), httpVersion = "1.1");
 
-listener http:Listener requestInterceptorWithoutCtxNextServerEP = new(requestInterceptorWithoutCtxNextTestPort, config = {
+listener http:Listener requestInterceptorWithoutCtxNextServerEP = new(requestInterceptorWithoutCtxNextTestPort, httpVersion = "1.1", config = {
     interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorWithoutCtxNext(), new LastRequestInterceptor()]
 });
 
@@ -225,9 +225,9 @@ function testRequestInterceptorWithoutCtxNext() returns error? {
     test:assertEquals(res.statusCode, 202);
 }
 
-final http:Client responseInterceptorWithoutCtxNextClientEP = check new("http://localhost:" + responseInterceptorWithoutCtxNextTestPort.toString());
+final http:Client responseInterceptorWithoutCtxNextClientEP = check new("http://localhost:" + responseInterceptorWithoutCtxNextTestPort.toString(), httpVersion = "1.1");
 
-listener http:Listener responseInterceptorWithoutCtxNextServerEP = new(responseInterceptorWithoutCtxNextTestPort, config = {
+listener http:Listener responseInterceptorWithoutCtxNextServerEP = new(responseInterceptorWithoutCtxNextTestPort, httpVersion = "1.1", config = {
     interceptors : [new LastResponseInterceptor(), new ResponseInterceptorWithoutCtxNext(), new DefaultResponseInterceptor()]
 });
 
@@ -247,9 +247,9 @@ function testResponseInterceptorWithoutCtxNext() returns error? {
     assertTextPayload(check res.getTextPayload(), "Response from response interceptor");
 }
 
-final http:Client requestInterceptorSkipClientEP = check new("http://localhost:" + requestInterceptorSkipTestPort.toString());
+final http:Client requestInterceptorSkipClientEP = check new("http://localhost:" + requestInterceptorSkipTestPort.toString(), httpVersion = "1.1");
 
-listener http:Listener requestInterceptorSkipServerEP = new(requestInterceptorSkipTestPort, config = {
+listener http:Listener requestInterceptorSkipServerEP = new(requestInterceptorSkipTestPort, httpVersion = "1.1", config = {
     interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorSkip(), new RequestInterceptorWithoutCtxNext(), new LastRequestInterceptor()]
 });
 
@@ -272,9 +272,9 @@ function testRequestInterceptorSkip() returns error? {
     assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
 }
 
-final http:Client responseInterceptorSkipClientEP = check new("http://localhost:" + responseInterceptorSkipTestPort.toString());
+final http:Client responseInterceptorSkipClientEP = check new("http://localhost:" + responseInterceptorSkipTestPort.toString(), httpVersion = "1.1");
 
-listener http:Listener responseInterceptorSkipServerEP = new(responseInterceptorSkipTestPort, config = {
+listener http:Listener responseInterceptorSkipServerEP = new(responseInterceptorSkipTestPort, httpVersion = "1.1", config = {
     interceptors : [
         new LastResponseInterceptor(), new ResponseInterceptorWithoutCtxNext(), new ResponseInterceptorSkip(), 
         new DefaultResponseInterceptor()
@@ -297,9 +297,9 @@ function testResponseInterceptorSkip() returns error? {
     assertHeaderValue(check res.getHeader("skip-interceptor"), "true");
 }
 
-final http:Client requestInterceptorCallerRespondContinueClientEP = check new("http://localhost:" + requestInterceptorCallerRespondContinueTestPort.toString());
+final http:Client requestInterceptorCallerRespondContinueClientEP = check new("http://localhost:" + requestInterceptorCallerRespondContinueTestPort.toString(), httpVersion = "1.1");
 
-listener http:Listener requestInterceptorCallerRespondContinueServerEP = new(requestInterceptorCallerRespondContinueTestPort, config = {
+listener http:Listener requestInterceptorCallerRespondContinueServerEP = new(requestInterceptorCallerRespondContinueTestPort, httpVersion = "1.1", config = {
     interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorCallerRespondContinue(), new LastRequestInterceptor()]
 });
 
@@ -326,9 +326,9 @@ function testRequestInterceptorCallerRespondContinue() returns error? {
     }
 }
 
-final http:Client responseInterceptorCallerRespondContinueClientEP = check new("http://localhost:" + responseInterceptorCallerRespondContinueTestPort.toString());
+final http:Client responseInterceptorCallerRespondContinueClientEP = check new("http://localhost:" + responseInterceptorCallerRespondContinueTestPort.toString(), httpVersion = "1.1");
 
-listener http:Listener responseInterceptorCallerRespondContinueServerEP = new(responseInterceptorCallerRespondContinueTestPort, config = {
+listener http:Listener responseInterceptorCallerRespondContinueServerEP = new(responseInterceptorCallerRespondContinueTestPort, httpVersion = "1.1", config = {
     interceptors : [new LastResponseInterceptor(), new ResponseInterceptorCallerRespondContinue(), new DefaultResponseInterceptor()]
 });
 
@@ -349,9 +349,9 @@ function testResponseInterceptorCallerRespondContinue() returns error? {
     assertTextPayload(check res.getTextPayload(), "Response from caller inside response interceptor");
 }
 
-final http:Client requestInterceptorCtxNextClientEP = check new("http://localhost:" + requestInterceptorCtxNextTestPort.toString());
+final http:Client requestInterceptorCtxNextClientEP = check new("http://localhost:" + requestInterceptorCtxNextTestPort.toString(), httpVersion = "1.1");
 
-listener http:Listener requestInterceptorCtxNextServerEP = new(requestInterceptorCtxNextTestPort, config = {
+listener http:Listener requestInterceptorCtxNextServerEP = new(requestInterceptorCtxNextTestPort, httpVersion = "1.1", config = {
     interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorCtxNext(), new LastRequestInterceptor()]
 });
 
@@ -377,9 +377,9 @@ function testRequestInterceptorCtxNext() returns error? {
     }
 }
 
-final http:Client requestInterceptorStringPayloadBindingClientEP = check new("http://localhost:" + requestInterceptorStringPayloadBindingTestPort.toString());
+final http:Client requestInterceptorStringPayloadBindingClientEP = check new("http://localhost:" + requestInterceptorStringPayloadBindingTestPort.toString(), httpVersion = "1.1");
 
-listener http:Listener requestInterceptorStringPayloadBindingServerEP = new(requestInterceptorStringPayloadBindingTestPort, config = {
+listener http:Listener requestInterceptorStringPayloadBindingServerEP = new(requestInterceptorStringPayloadBindingTestPort, httpVersion = "1.1", config = {
     interceptors : [new DefaultRequestInterceptor(), new StringPayloadBindingRequestInterceptor(), new LastRequestInterceptor()]
 });
 
@@ -403,9 +403,9 @@ function testRequestInterceptorStringPayloadBinding() returns error? {
     assertHeaderValue(check res.getHeader("request-payload"), "request from client");
 }
 
-final http:Client requestInterceptorRecordPayloadBindingClientEP = check new("http://localhost:" + requestInterceptorRecordPayloadBindingTestPort.toString());
+final http:Client requestInterceptorRecordPayloadBindingClientEP = check new("http://localhost:" + requestInterceptorRecordPayloadBindingTestPort.toString(), httpVersion = "1.1");
 
-listener http:Listener requestInterceptorRecordPayloadBindingServerEP = new(requestInterceptorRecordPayloadBindingTestPort, config = {
+listener http:Listener requestInterceptorRecordPayloadBindingServerEP = new(requestInterceptorRecordPayloadBindingTestPort, httpVersion = "1.1", config = {
     interceptors : [new DefaultRequestInterceptor(), new RecordPayloadBindingRequestInterceptor(), new LastRequestInterceptor()]
 });
 
@@ -430,9 +430,9 @@ function testRequestInterceptorRecordPayloadBinding() returns error? {
     assertHeaderValue(check res.getHeader("request-payload"), person.toJsonString());
 }
 
-final http:Client requestInterceptorRecordArrayPayloadBindingClientEP = check new("http://localhost:" + requestInterceptorRecordArrayPayloadBindingTestPort.toString());
+final http:Client requestInterceptorRecordArrayPayloadBindingClientEP = check new("http://localhost:" + requestInterceptorRecordArrayPayloadBindingTestPort.toString(), httpVersion = "1.1");
 
-listener http:Listener requestInterceptorRecordArrayPayloadBindingServerEP = new(requestInterceptorRecordArrayPayloadBindingTestPort, config = {
+listener http:Listener requestInterceptorRecordArrayPayloadBindingServerEP = new(requestInterceptorRecordArrayPayloadBindingTestPort, httpVersion = "1.1", config = {
     interceptors : [new DefaultRequestInterceptor(), new RecordArrayPayloadBindingRequestInterceptor(), new LastRequestInterceptor()]
 });
 
@@ -457,9 +457,9 @@ function testRequestInterceptorRecordArrayPayloadBinding() returns error? {
     assertHeaderValue(check res.getHeader("request-payload"), persons.toJsonString());
 }
 
-final http:Client requestInterceptorByteArrayPayloadBindingClientEP = check new("http://localhost:" + requestInterceptorByteArrayPayloadBindingTestPort.toString());
+final http:Client requestInterceptorByteArrayPayloadBindingClientEP = check new("http://localhost:" + requestInterceptorByteArrayPayloadBindingTestPort.toString(), httpVersion = "1.1");
 
-listener http:Listener requestInterceptorByteArrayPayloadBindingServerEP = new(requestInterceptorByteArrayPayloadBindingTestPort, config = {
+listener http:Listener requestInterceptorByteArrayPayloadBindingServerEP = new(requestInterceptorByteArrayPayloadBindingTestPort, httpVersion = "1.1", config = {
     interceptors : [new DefaultRequestInterceptor(), new ByteArrayPayloadBindingRequestInterceptor(), new LastRequestInterceptor()]
 });
 
@@ -486,9 +486,9 @@ function testRequestInterceptorByteArrayPayloadBinding() returns error? {
     assertHeaderValue(check res.getHeader("request-payload"), person);
 }
 
-final http:Client requestInterceptorWithQueryParamClientEP = check new("http://localhost:" + requestInterceptorWithQueryParamTestPort.toString());
+final http:Client requestInterceptorWithQueryParamClientEP = check new("http://localhost:" + requestInterceptorWithQueryParamTestPort.toString(), httpVersion = "1.1");
 
-listener http:Listener requestInterceptorWithQueryParamServerEP = new(requestInterceptorWithQueryParamTestPort, config = {
+listener http:Listener requestInterceptorWithQueryParamServerEP = new(requestInterceptorWithQueryParamTestPort, httpVersion = "1.1", config = {
     interceptors : [new DefaultRequestInterceptor(), new RequestInterceptorWithQueryParam(), new LastRequestInterceptor()]
 });
 
@@ -517,9 +517,9 @@ function testRequestInterceptorWithQueryParam() returns error? {
     assertHeaderValue(check res.getHeader("q2"), "6");
 }
 
-final http:Client interceptorReturnsStatusClientEP = check new("http://localhost:" + interceptorReturnsStatusTestPort.toString());
+final http:Client interceptorReturnsStatusClientEP = check new("http://localhost:" + interceptorReturnsStatusTestPort.toString(), httpVersion = "1.1");
 
-listener http:Listener interceptorReturnsStatusServerEP = check new(interceptorReturnsStatusTestPort);
+listener http:Listener interceptorReturnsStatusServerEP = check new(interceptorReturnsStatusTestPort, httpVersion = "1.1");
 
 @http:ServiceConfig {
     interceptors: [new RequestInterceptorReturnsStatusCodeResponse()]
@@ -569,9 +569,9 @@ function testResponseInterceptorReturnsStatus() returns error? {
     assertHeaderValue(check res.getHeader("last-interceptor"), "response-interceptor-returns-status");
 }
 
-final http:Client interceptorExecutionOrderClientEP = check new("http://localhost:" + interceptorExecutionOrderTestPort.toString());
+final http:Client interceptorExecutionOrderClientEP = check new("http://localhost:" + interceptorExecutionOrderTestPort.toString(), httpVersion = "1.1");
 
-listener http:Listener interceptorExecutionOrderServerEP = check new(interceptorExecutionOrderTestPort, config = {
+listener http:Listener interceptorExecutionOrderServerEP = check new(interceptorExecutionOrderTestPort, httpVersion = "1.1", config = {
     interceptors: [
         new DefaultRequestInterceptor(), new LastResponseInterceptor(), new RequestInterceptorCheckHeader("listener-header"), 
         new ResponseInterceptorWithVariable("listener-response"), new RequestInterceptorWithVariable("listener-request")

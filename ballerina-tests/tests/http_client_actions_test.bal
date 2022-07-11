@@ -20,11 +20,14 @@ import ballerina/lang.'string as strings;
 import ballerina/mime;
 import ballerina/test;
 
-listener http:Listener httpClientActionListenerEP1 = new(httpClientActionTestPort1);
-listener http:Listener httpClientActionListenerEP2 = new(httpClientActionTestPort2);
-final http:Client httpClientActionClient = check new("http://localhost:" + httpClientActionTestPort2.toString() + "/httpClientActionTestService");
+listener http:Listener httpClientActionListenerEP1 = new(httpClientActionTestPort1, httpVersion = "1.1");
+listener http:Listener httpClientActionListenerEP2 = new(httpClientActionTestPort2, httpVersion = "1.1");
 
-final http:Client clientEP2 = check new("http://localhost:" + httpClientActionTestPort1.toString(), { cache: { enabled: false }});
+final http:Client httpClientActionClient = check new("http://localhost:" + httpClientActionTestPort2.toString() + "/httpClientActionTestService", 
+    httpVersion = "1.1");
+
+final http:Client clientEP2 = check new("http://localhost:" + httpClientActionTestPort1.toString(), 
+    httpVersion = "1.1", cache = { enabled: false });
 
 
 service /httpClientActionBE on httpClientActionListenerEP1 {
@@ -628,7 +631,7 @@ function testClientInitWithMalformedURL() {
 @test:Config {}
 public function testProxyClientError() {
     http:Client|error clientEP = new("http://localhost:9218",
-        { http1Settings: { proxy: { host:"ballerina", port:9219 }}});
+        httpVersion = "1.1", http1Settings = { proxy: { host:"ballerina", port:9219 }});
     if (clientEP is error) {
         test:assertEquals(clientEP.message(), "Failed to resolve host: ballerina", msg = "Found unexpected output");
     } else {

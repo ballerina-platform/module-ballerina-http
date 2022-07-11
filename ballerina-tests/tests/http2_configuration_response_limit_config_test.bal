@@ -24,7 +24,6 @@ const string ERROR = "error";
 const string SUCCESS = "success";
 
 http:ClientConfiguration http2StatusLineLimitConfig = {
-    httpVersion: "2.0", 
     http2Settings: { 
         http2PriorKnowledge: true 
     },
@@ -33,8 +32,7 @@ http:ClientConfiguration http2StatusLineLimitConfig = {
     }
 };
 
-http:ClientConfiguration http2HeaderLimitConfig = {
-    httpVersion: "2.0", 
+http:ClientConfiguration http2HeaderLimitConfig = { 
     http2Settings: { 
         http2PriorKnowledge: true 
     },
@@ -44,7 +42,6 @@ http:ClientConfiguration http2HeaderLimitConfig = {
 };
 
 http:ClientConfiguration  http2EntityBodyLimitConfig = {
-    httpVersion: "2.0", 
     http2Settings: { 
         http2PriorKnowledge: true 
     },

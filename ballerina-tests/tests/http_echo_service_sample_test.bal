@@ -21,10 +21,11 @@ import ballerina/http;
 configurable string keystore = ?;
 configurable string truststore = ?;
 
-listener http:Listener echoServiceTestListenerEP = new(echoServiceTestPort);
-final http:Client echoServiceClient = check new("http://localhost:" + echoServiceTestPort.toString());
+listener http:Listener echoServiceTestListenerEP = new(echoServiceTestPort, httpVersion = "1.1");
+final http:Client echoServiceClient = check new("http://localhost:" + echoServiceTestPort.toString(), httpVersion = "1.1");
 
 http:ListenerConfiguration echoHttpsServiceTestListenerEPConfig = {
+    httpVersion: "1.1",
     secureSocket: {
         key: {
             path: keystore,
@@ -36,6 +37,7 @@ http:ListenerConfiguration echoHttpsServiceTestListenerEPConfig = {
 listener http:Listener echoHttpsServiceTestListenerEP = new(echoHttpsServiceTestPort, echoHttpsServiceTestListenerEPConfig);
 
 http:ClientConfiguration echoHttpsServiceClientConfig = {
+    httpVersion: "1.1",
     secureSocket: {
         cert: {
             path: truststore,

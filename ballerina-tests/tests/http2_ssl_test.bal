@@ -24,8 +24,7 @@ http:ListenerConfiguration http2SslServiceConf = {
             path: "tests/certsandkeys/ballerinaKeystore.p12",
             password: "ballerina"
         }
-    },
-    httpVersion: "2.0"
+    }
 };
 
 listener http:Listener http2SslListener = new(9206, http2SslServiceConf);
@@ -46,8 +45,7 @@ http:ClientConfiguration http2SslClientConf1 = {
             path: "tests/certsandkeys/ballerinaTruststore.p12",
             password: "ballerina"
         }
-    },
-    httpVersion: "2.0"
+    }
 };
 
 @test:Config {}

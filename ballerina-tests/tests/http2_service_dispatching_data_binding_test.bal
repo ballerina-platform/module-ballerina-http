@@ -17,7 +17,7 @@
 import ballerina/http;
 import ballerina/test;
 
-final http:Client http2DataBindingClient = check new("http://localhost:" + http2GeneralPort.toString(), { httpVersion: "2.0" });
+final http:Client http2DataBindingClient = check new("http://localhost:" + http2GeneralPort.toString());
 
 final http:Client http2SslDataBindingClient = check new("https://localhost:" + http2SslGeneralPort.toString(), http2SslClientConf1);
 

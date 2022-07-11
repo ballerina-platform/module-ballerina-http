@@ -20,15 +20,14 @@ import ballerina/log;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener failoverEP06 = new(9314, { httpVersion: "2.0" });
+listener http:Listener failoverEP06 = new(9314);
 
-listener http:Listener backendEP06 = new(8094, { httpVersion: "2.0" });
+listener http:Listener backendEP06 = new(8094);
 
 final http:FailoverClient foBackendEP06 = check new({
     timeout: 5,
     failoverCodes: [500, 501, 502, 503],
     interval: 5,
-    httpVersion: "2.0",
     // Define set of HTTP Clients that needs to be Failover.
     targets: [
         { url: "http://localhost:8094/delay" },
