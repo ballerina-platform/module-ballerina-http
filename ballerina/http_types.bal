@@ -93,6 +93,8 @@ public type CommonClientConfiguration record {|
     CookieConfig? cookieConfig = ();
     # Configurations associated with inbound response size limits
     ResponseLimitConfigs responseLimits = {};
+    # Proxy server related options
+    ProxyConfig? proxy = ();
 |};
 
 # Represents a server-provided hyperlink
