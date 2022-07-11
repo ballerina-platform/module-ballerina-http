@@ -55,7 +55,7 @@ function testRequestInterceptorNegative2() returns error? {
 final http:Client requestInterceptorNegativeClientEP3 = check new("http://localhost:" + requestInterceptorNegativeTestPort3.toString(), httpVersion = "1.1");
 
 listener http:Listener requestInterceptorNegativeServerEP3 = new(requestInterceptorNegativeTestPort3, 
-    httpVersion = "1.1"
+    httpVersion = "1.1",
     interceptors = [new DefaultRequestInterceptor()]
 );
 

@@ -631,7 +631,7 @@ function testClientInitWithMalformedURL() {
 @test:Config {}
 public function testProxyClientError() {
     http:Client|error clientEP = new("http://localhost:9218",
-        httpVersion = "1.1", http1Settings = { proxy: { host:"ballerina", port:9219 }});
+        httpVersion = "1.1", proxy = { host:"ballerina", port:9219 });
     if (clientEP is error) {
         test:assertEquals(clientEP.message(), "Failed to resolve host: ballerina", msg = "Found unexpected output");
     } else {
