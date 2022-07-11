@@ -23,10 +23,10 @@ import ballerina/test;
 listener http:Listener httpClientActionListenerEP1 = new(httpClientActionTestPort1, httpVersion = "1.1");
 listener http:Listener httpClientActionListenerEP2 = new(httpClientActionTestPort2, httpVersion = "1.1");
 
-final http:Client httpClientActionClient = check new("http://localhost:" + httpClientActionTestPort2.toString() + "/httpClientActionTestService", 
+final http:Client httpClientActionClient = check new("http://localhost:" + httpClientActionTestPort2.toString() + "/httpClientActionTestService",
     httpVersion = "1.1");
 
-final http:Client clientEP2 = check new("http://localhost:" + httpClientActionTestPort1.toString(), 
+final http:Client clientEP2 = check new("http://localhost:" + httpClientActionTestPort1.toString(),
     httpVersion = "1.1", cache = { enabled: false });
 
 

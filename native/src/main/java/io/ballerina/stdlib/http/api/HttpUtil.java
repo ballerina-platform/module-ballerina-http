@@ -1222,28 +1222,24 @@ public class HttpUtil {
                 senderConfiguration.useJavaDefaults();
             }
         }
-        if (HTTP_1_1_VERSION.equals(httpVersion)) {
-            BMap<BString, Object> http1Settings = (BMap<BString, Object>) clientEndpointConfig
-                    .get(HttpConstants.HTTP1_SETTINGS);
-            BMap proxy = http1Settings.getMapValue(HttpConstants.PROXY_STRUCT_REFERENCE);
-            if (proxy != null) {
-                String proxyHost = proxy.getStringValue(HttpConstants.PROXY_HOST).getValue();
-                int proxyPort = proxy.getIntValue(HttpConstants.PROXY_PORT).intValue();
-                String proxyUserName = proxy.getStringValue(HttpConstants.PROXY_USERNAME).getValue();
-                String proxyPassword = proxy.getStringValue(HttpConstants.PROXY_PASSWORD).getValue();
-                try {
-                    proxyServerConfiguration = new ProxyServerConfiguration(proxyHost, proxyPort);
-                } catch (UnknownHostException e) {
-                    throw new BallerinaConnectorException("Failed to resolve host: " + proxyHost, e);
-                }
-                if (!proxyUserName.isEmpty()) {
-                    proxyServerConfiguration.setProxyUsername(proxyUserName);
-                }
-                if (!proxyPassword.isEmpty()) {
-                    proxyServerConfiguration.setProxyPassword(proxyPassword);
-                }
-                senderConfiguration.setProxyServerConfiguration(proxyServerConfiguration);
+        BMap proxy = clientEndpointConfig.getMapValue(HttpConstants.PROXY_STRUCT_REFERENCE);
+        if (proxy != null) {
+            String proxyHost = proxy.getStringValue(HttpConstants.PROXY_HOST).getValue();
+            int proxyPort = proxy.getIntValue(HttpConstants.PROXY_PORT).intValue();
+            String proxyUserName = proxy.getStringValue(HttpConstants.PROXY_USERNAME).getValue();
+            String proxyPassword = proxy.getStringValue(HttpConstants.PROXY_PASSWORD).getValue();
+            try {
+                proxyServerConfiguration = new ProxyServerConfiguration(proxyHost, proxyPort);
+            } catch (UnknownHostException e) {
+                throw new BallerinaConnectorException("Failed to resolve host: " + proxyHost, e);
             }
+            if (!proxyUserName.isEmpty()) {
+                proxyServerConfiguration.setProxyUsername(proxyUserName);
+            }
+            if (!proxyPassword.isEmpty()) {
+                proxyServerConfiguration.setProxyPassword(proxyPassword);
+            }
+            senderConfiguration.setProxyServerConfiguration(proxyServerConfiguration);
         }
         double timeout = ((BDecimal) clientEndpointConfig.get(HttpConstants.CLIENT_EP_ENDPOINT_TIMEOUT)).floatValue();
         if (timeout < 0) {
