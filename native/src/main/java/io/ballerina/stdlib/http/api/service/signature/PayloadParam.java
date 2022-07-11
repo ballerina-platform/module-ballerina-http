@@ -23,6 +23,7 @@ import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.IntersectionType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.UnionType;
+import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.stdlib.http.api.HttpConstants;
@@ -142,9 +143,10 @@ public class PayloadParam implements Parameter {
         try {
             switch (payloadType.getTag()) {
                 case ARRAY_TAG:
-                    if (((ArrayType) payloadType).getElementType().getTag() == TypeTags.BYTE_TAG) {
+                    int actualTypeTag = TypeUtils.getReferredType(((ArrayType) payloadType).getElementType()).getTag();
+                    if (actualTypeTag == TypeTags.BYTE_TAG) {
                         paramFeed[index++] = dataSource;
-                    } else if (((ArrayType) payloadType).getElementType().getTag() == TypeTags.RECORD_TYPE_TAG) {
+                    } else if (actualTypeTag == TypeTags.RECORD_TYPE_TAG) {
                         paramFeed[index++]  = JsonToRecordConverter.convert(payloadType, inRequestEntity, readonly);
                     } else {
                         throw HttpUtil.createHttpError("incompatible element type found inside an array " +

@@ -188,8 +188,7 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
 
     private void handoverChannelToHttp2ConnectionManager() {
         Http2ClientChannel upgradedHttp2ClientChannel = targetChannel.getHttp2ClientChannel();
-        connectionManager.getHttp2ConnectionManager().addHttp2ClientChannel(targetChannel.getChannel().eventLoop(),
-                                                                            targetChannel.getHttpRoute(),
+        connectionManager.getHttp2ConnectionManager().addHttp2ClientChannel(targetChannel.getHttpRoute(),
                                                                             upgradedHttp2ClientChannel);
         upgradedHttp2ClientChannel.getConnection().remote().flowController().listener(
             new ClientRemoteFlowControlListener(upgradedHttp2ClientChannel));
