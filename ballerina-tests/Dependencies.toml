@@ -54,9 +54,6 @@ dependencies = [
 	{org = "ballerina", name = "regex"},
 	{org = "ballerina", name = "time"}
 ]
-modules = [
-	{org = "ballerina", packageName = "file", moduleName = "file"}
-]
 
 [[package]]
 org = "ballerina"
@@ -94,7 +91,6 @@ org = "ballerina"
 name = "http_tests"
 version = "2.3.1"
 dependencies = [
-	{org = "ballerina", name = "file"},
 	{org = "ballerina", name = "http"},
 	{org = "ballerina", name = "io"},
 	{org = "ballerina", name = "jballerina.java"},
