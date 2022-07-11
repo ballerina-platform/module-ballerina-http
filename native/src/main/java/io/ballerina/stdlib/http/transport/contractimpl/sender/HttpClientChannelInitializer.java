@@ -20,6 +20,7 @@ import io.ballerina.stdlib.http.transport.contract.config.InboundMsgSizeValidati
 import io.ballerina.stdlib.http.transport.contract.config.KeepAliveConfig;
 import io.ballerina.stdlib.http.transport.contract.config.ProxyServerConfiguration;
 import io.ballerina.stdlib.http.transport.contract.config.SenderConfiguration;
+import io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpClientUpgradeHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.common.BackPressureHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.common.FrameLogger;
 import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
@@ -41,7 +42,6 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpClientCodec;
-import io.netty.handler.codec.http.HttpClientUpgradeHandler;
 import io.netty.handler.codec.http.HttpContentDecompressor;
 import io.netty.handler.codec.http2.DefaultHttp2Connection;
 import io.netty.handler.codec.http2.DelegatingDecompressorFrameListener;
@@ -235,8 +235,8 @@ public class HttpClientChannelInitializer extends ChannelInitializer<SocketChann
         pipeline.addLast(Constants.HTTP_CLIENT_CODEC, sourceCodec);
         addCommonHandlers(pipeline);
         Http2ClientUpgradeCodec upgradeCodec = new Http2ClientUpgradeCodec(http2ConnectionHandler);
-        HttpClientUpgradeHandler upgradeHandler = new HttpClientUpgradeHandler(sourceCodec, upgradeCodec,
-                                                                               Integer.MAX_VALUE);
+        DefaultHttpClientUpgradeHandler upgradeHandler = new DefaultHttpClientUpgradeHandler(sourceCodec, upgradeCodec,
+                                                                                             Integer.MAX_VALUE);
         pipeline.addLast(Constants.HTTP2_UPGRADE_HANDLER, upgradeHandler);
         addResponseLimitValidationHandlers(pipeline);
         pipeline.addLast(Constants.TARGET_HANDLER, targetHandler);
