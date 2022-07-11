@@ -34,7 +34,7 @@ function testRequestInterceptorNegative1() returns error? {
 final http:Client requestInterceptorNegativeClientEP2 = check new("http://localhost:" + requestInterceptorNegativeTestPort2.toString(), httpVersion = "1.1");
 
 listener http:Listener requestInterceptorNegativeServerEP2 = new(requestInterceptorNegativeTestPort2, 
-    httpVersion = "1.1"
+    httpVersion = "1.1",
     interceptors = [new DefaultRequestInterceptor(), new RequestInterceptorNegative2(), new LastRequestInterceptor()]
 );
 

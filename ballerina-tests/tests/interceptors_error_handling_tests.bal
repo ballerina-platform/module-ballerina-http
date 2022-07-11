@@ -19,12 +19,13 @@ import ballerina/test;
 
 final http:Client noServiceRegisteredClientEP = check new("http://localhost:" + noServiceRegisteredTestPort.toString(), httpVersion = "1.1");
 
-listener http:Listener noServiceRegisteredServerEP = new(noServiceRegisteredTestPort, httpVersion = "1.1", config = {
-    interceptors : [
+listener http:Listener noServiceRegisteredServerEP = new(noServiceRegisteredTestPort, 
+    httpVersion = "1.1",
+    interceptors = [
         new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultRequestInterceptor(), 
         new DefaultRequestErrorInterceptor(), new LastRequestInterceptor(), new DefaultResponseInterceptor()
     ]
-});
+);
 
 @test:Config{}
 function testNoServiceRegistered() returns error? {
@@ -40,7 +41,7 @@ function testNoServiceRegistered() returns error? {
 final http:Client serviceErrorHandlingClientEP = check new("http://localhost:" + serviceErrorHandlingTestPort.toString(), httpVersion = "1.1");
 
 listener http:Listener serviceErrorHandlingServerEP = new(serviceErrorHandlingTestPort, 
-    httpVersion = "1.1"
+    httpVersion = "1.1",
     interceptors = [
         new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultRequestInterceptor(), 
         new DefaultRequestErrorInterceptor(), new LastRequestInterceptor(), new DefaultResponseInterceptor()
