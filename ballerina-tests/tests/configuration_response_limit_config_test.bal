@@ -53,7 +53,7 @@ http:ClientConfiguration http2headerLimitConfig = {
 listener http:Listener statusLineEP = new(responseLimitsTestPort1, httpVersion = "1.1");
 listener http:Listener responseLimitBackendEP = new(responseLimitsTestPort2);
 
-final http:Client limitTestClient = check new("http://localhost:" + responseLimitsTestPort1.toString());
+final http:Client limitTestClient = check new("http://localhost:" + responseLimitsTestPort1.toString(), httpVersion = "1.1");
 final http:Client statusLimitClient = check new("http://localhost:" + responseLimitsTestPort2.toString()
         + "/backend/statustest", statusLineLimitConfig);
 final http:Client headerLimitClient = check new("http://localhost:" + responseLimitsTestPort2.toString()
