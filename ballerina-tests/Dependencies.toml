@@ -43,6 +43,9 @@ dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "time"}
 ]
+modules = [
+	{org = "ballerina", packageName = "crypto", moduleName = "crypto"}
+]
 
 [[package]]
 org = "ballerina"
@@ -95,9 +98,11 @@ name = "http_tests"
 version = "2.3.1"
 dependencies = [
 	{org = "ballerina", name = "auth"},
+	{org = "ballerina", name = "crypto"},
 	{org = "ballerina", name = "http"},
 	{org = "ballerina", name = "io"},
 	{org = "ballerina", name = "jwt"},
+	{org = "ballerina", name = "lang.runtime"},
 	{org = "ballerina", name = "lang.string"},
 	{org = "ballerina", name = "log"},
 	{org = "ballerina", name = "mime"},
@@ -199,6 +204,9 @@ version = "0.0.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
+]
+modules = [
+	{org = "ballerina", packageName = "lang.runtime", moduleName = "lang.runtime"}
 ]
 
 [[package]]
