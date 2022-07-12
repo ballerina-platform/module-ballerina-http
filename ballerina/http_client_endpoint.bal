@@ -672,7 +672,12 @@ isolated function processResponse(Response|ClientError response, TargetType targ
             return createResponseError(statusCode, reasonPhrase, headers, payload);
         }
     }
-    return performDataBinding(response, targetType);
+    if targetType is typedesc<anydata> {
+        anydata payload = check performDataBinding(response, targetType);
+        return performDataValidation(payload, targetType);
+    } else {
+        panic error GenericClientError("invalid payload target type");
+    }
 }
 
 isolated function getPayload(Response response) returns anydata|error {
