@@ -42,7 +42,7 @@ service /helloWorldWithSSL on serviceEndpointWithSSL {
 
 @test:Config {}
 public function testFallback() returns error? {
-    http:Client clientEP = check new("http://localhost:9100");
+    http:Client clientEP = check new("http://localhost:9100", httpVersion = "1.1");
     http:Response|error resp = clientEP->get("/helloWorldWithoutSSL");
     if resp is http:Response {
         assertTextPayload(resp.getTextPayload(), "Version: 1.1");
@@ -53,14 +53,15 @@ public function testFallback() returns error? {
 
 @test:Config {}
 public function testFallbackWithSSL() returns error? {
-    http:Client clientEP = check new("https://localhost:9105", {
-        secureSocket: {
+    http:Client clientEP = check new("https://localhost:9105", 
+        httpVersion = "1.1", 
+        secureSocket = {
             cert: {
                 path: "tests/certsandkeys/ballerinaTruststore.p12",
                 password: "ballerina"
             }
         }
-    });
+    );
     http:Response|error resp = clientEP->get("/helloWorldWithSSL");
     if resp is http:Response {
         assertTextPayload(resp.getTextPayload(), "Version: 1.1");
