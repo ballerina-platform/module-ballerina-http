@@ -227,9 +227,10 @@ service /testRedirectService on serviceEndpoint3 {
 
     resource function get doPost(http:Caller caller, http:Request request) returns error? {
         http:ClientConfiguration endPoint4Config = {
+            httpVersion: "1.1",
             followRedirects: { enabled: true, allowAuthHeaders : true }
         };
-        http:Client endPoint4 = check new("http://localhost:9103", endPoint4Config );
+        http:Client endPoint4 = check new("http://localhost:9103", endPoint4Config);
         http:Request req = new;
         req.setHeader("Proxy-Authorization", "Basic YWxhZGRpbjpvcGVuc2VzYW1l");
         req.setTextPayload("Payload redirected");
@@ -250,9 +251,10 @@ service /testRedirectService on serviceEndpoint3 {
 
     resource function get doHead(http:Caller caller, http:Request request) returns error? {
         http:ClientConfiguration endPoint4Config = {
+            httpVersion: "1.1",
             followRedirects: { enabled: true, allowAuthHeaders : true }
         };
-        http:Client endPoint4 = check new("http://localhost:9103", endPoint4Config );
+        http:Client endPoint4 = check new("http://localhost:9103", endPoint4Config);
         http:Response|error response = endPoint4->head("/redirect1/handleHead", {"X-Redirect-Action": "HTTP_TEMPORARY_REDIRECT"});
         if response is http:Response {
             var value = response.getHeader("X-Redirect-Details");
@@ -270,9 +272,10 @@ service /testRedirectService on serviceEndpoint3 {
 
     resource function get doExecute(http:Caller caller, http:Request request) returns error? {
         http:ClientConfiguration endPoint4Config = {
+            httpVersion: "1.1",
             followRedirects: { enabled: true, allowAuthHeaders : true }
         };
-        http:Client endPoint4 = check new("http://localhost:9103", endPoint4Config );
+        http:Client endPoint4 = check new("http://localhost:9103", endPoint4Config);
         http:Request req = new;
         req.setHeader("Proxy-Authorization", "Basic YWxhZGRpbjpvcGVuc2VzYW1l");
         req.setTextPayload("Payload redirected");
@@ -293,9 +296,10 @@ service /testRedirectService on serviceEndpoint3 {
 
     resource function get doPatch(http:Caller caller, http:Request request) returns error? {
         http:ClientConfiguration endPoint4Config = {
+            httpVersion: "1.1",
             followRedirects: { enabled: true, allowAuthHeaders : true }
         };
-        http:Client endPoint4 = check new("http://localhost:9103", endPoint4Config );
+        http:Client endPoint4 = check new("http://localhost:9103", endPoint4Config);
         http:Request req = new;
         req.setHeader("Proxy-Authorization", "Basic YWxhZGRpbjpvcGVuc2VzYW1l");
         req.setTextPayload("Payload redirected");
@@ -316,9 +320,10 @@ service /testRedirectService on serviceEndpoint3 {
 
     resource function get doDelete(http:Caller caller, http:Request request) returns error? {
         http:ClientConfiguration endPoint4Config = {
+            httpVersion: "1.1",
             followRedirects: { enabled: true, allowAuthHeaders : true }
         };
-        http:Client endPoint4 = check new("http://localhost:9103", endPoint4Config );
+        http:Client endPoint4 = check new("http://localhost:9103", endPoint4Config);
         http:Request req = new;
         req.setHeader("Proxy-Authorization", "Basic YWxhZGRpbjpvcGVuc2VzYW1l");
         req.setTextPayload("Payload redirected");
@@ -339,6 +344,7 @@ service /testRedirectService on serviceEndpoint3 {
 
     resource function get doOptions(http:Caller caller, http:Request request) returns error? {
         http:ClientConfiguration endPoint4Config = {
+            httpVersion: "1.1",
             followRedirects: { enabled: true, allowAuthHeaders : true }
         };
         http:Client endPoint4 = check new("http://localhost:9103", endPoint4Config);
@@ -377,7 +383,7 @@ service /testRedirectService on serviceEndpoint3 {
     }
 
     resource function get testMultipart(http:Caller caller, http:Request req) returns error? {
-        http:Client endPoint3 = check new("http://localhost:9103", followRedirects = { enabled: true });
+        http:Client endPoint3 = check new("http://localhost:9103", httpVersion = "1.1", followRedirects = { enabled: true });
         mime:Entity jsonBodyPart = new;
         jsonBodyPart.setContentDisposition(getContentDispositionForFormData("json part"));
         jsonBodyPart.setJson({"name": "wso2"});

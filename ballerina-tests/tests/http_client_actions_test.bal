@@ -620,7 +620,7 @@ function testClientPathWithWhitespaces() returns error? {
 
 @test:Config {}
 function testClientInitWithMalformedURL() {
-    http:Client|error httpEndpoint = new ("httpeds://bar.com/foo");
+    http:Client|error httpEndpoint = new ("httpeds://bar.com/foo", httpVersion = "1.1");
     if (httpEndpoint is error) {
         test:assertEquals(httpEndpoint.message(), "malformed URL: httpeds://bar.com/foo", msg = "Found unexpected output");
     } else {
@@ -641,7 +641,7 @@ public function testProxyClientError() {
 
 @test:Config {}
 function testClientInitWithoutScheme() {
-    http:Client|error httpEndpoint = new ("bar.com/foo");
+    http:Client|error httpEndpoint = new ("bar.com/foo", httpVersion = "1.1");
     if httpEndpoint is error {
         test:assertFail(msg = "Found unexpected output type");
     }
@@ -649,7 +649,7 @@ function testClientInitWithoutScheme() {
 
 @test:Config {}
 function testClientInitWithEmptyUrl() {
-    http:Client|error httpEndpoint = new ("");
+    http:Client|error httpEndpoint = new ("", httpVersion = "1.1");
     if (httpEndpoint is error) {
         test:assertEquals(httpEndpoint.message(), "malformed URL: ", msg = "Found unexpected output");
     } else {

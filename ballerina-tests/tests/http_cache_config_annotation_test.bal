@@ -40,7 +40,7 @@ final readonly & json nocachePayload2 = { "message": "2nd response" };
 final readonly & http:Ok ok = {body : mustRevalidatePayload1};
 final readonly & http:InternalServerError err = {body : errorBody};
 
-service / on new http:Listener(cacheAnnotationTestPort1) {
+service / on new http:Listener(cacheAnnotationTestPort1, httpVersion = "1.1") {
 
     resource function get noCache(http:Request req) returns http:Response|http:InternalServerError {
         http:Response|error response = cacheBackendEP->forward("/nocacheBE", req);
@@ -96,7 +96,7 @@ service / on new http:Listener(cacheAnnotationTestPort1) {
     }
 }
 
-service / on new http:Listener(cacheAnnotationTestPort2) {
+service / on new http:Listener(cacheAnnotationTestPort2, httpVersion = "1.1") {
 
     resource function default nocacheBE(http:Request req) returns @http:Cache{noCache : true, maxAge : -1,
             mustRevalidate : false} json {
