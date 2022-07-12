@@ -41,6 +41,7 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonRequest;
 import io.ballerina.stdlib.http.transport.message.PooledDataStreamerFactory;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -206,6 +207,16 @@ public class Http2StateUtil {
                                          HttpResponseFuture outboundRespStatusFuture,
                                          int originalStreamId) throws Http2Exception {
         int promisedStreamId = getNextStreamId(conn);
+        if (promisedStreamId < 0) {
+            ByteBuf debugData = ByteBufUtil.writeAscii(ctx.alloc(), "stream identifiers are exhausted");
+            ChannelFuture channelFuture = encoder.writeGoAway(ctx, conn.local().lastStreamCreated(),
+                                                              Http2Error.ENHANCE_YOUR_CALM.code(), debugData,
+                                                              ctx.newPromise());
+            encoder.flowController().writePendingBytes();
+            ctx.flush();
+            Util.checkForResponseWriteStatus(inboundRequestMsg, outboundRespStatusFuture, channelFuture);
+            return;
+        }
         // Update streamIds
         pushPromise.setPromisedStreamId(promisedStreamId);
         pushPromise.setStreamId(originalStreamId);
