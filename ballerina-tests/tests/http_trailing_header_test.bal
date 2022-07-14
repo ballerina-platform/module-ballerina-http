@@ -18,11 +18,10 @@ import ballerina/test;
 import ballerina/http;
 import ballerina/log;
 
-listener http:Listener trailingHeaderListenerEP1 = new(trailingHeaderTestPort1);
-listener http:Listener trailingHeaderListenerEP2 = new(trailingHeaderTestPort2);
-final http:Client trailingHeaderClient = check new("http://localhost:" + trailingHeaderTestPort1.toString());
-
-final http:Client clientEp = check new("http://localhost:" + trailingHeaderTestPort2.toString());
+listener http:Listener trailingHeaderListenerEP1 = new(trailingHeaderTestPort1, httpVersion = "1.1");
+listener http:Listener trailingHeaderListenerEP2 = new(trailingHeaderTestPort2, httpVersion = "1.1");
+final http:Client trailingHeaderClient = check new("http://localhost:" + trailingHeaderTestPort1.toString(), httpVersion = "1.1");
+final http:Client clientEp = check new("http://localhost:" + trailingHeaderTestPort2.toString(), httpVersion = "1.1");
 
 service /initiator on trailingHeaderListenerEP1 {
 

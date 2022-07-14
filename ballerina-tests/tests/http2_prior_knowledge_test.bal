@@ -17,11 +17,11 @@
 import ballerina/http;
 import ballerina/test;
 
-final http:Client h2WithPriorKnowledge = check new("http://localhost:9101", httpVersion = "2.0", http2Settings = {
-                http2PriorKnowledge: true }, poolConfig = {});
+final http:Client h2WithPriorKnowledge = check new("http://localhost:9101", 
+    http2Settings = { http2PriorKnowledge: true }, poolConfig = {});
 
-final http:Client h2WithoutPriorKnowledge = check new("http://localhost:9101", { httpVersion: "2.0", http2Settings: {
-                http2PriorKnowledge: false }, poolConfig: {} });
+final http:Client h2WithoutPriorKnowledge = check new("http://localhost:9101", 
+    http2Settings = { http2PriorKnowledge: false }, poolConfig = {});
 
 service /priorKnowledge on generalHTTP2Listener {
 

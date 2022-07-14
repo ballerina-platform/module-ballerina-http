@@ -22,13 +22,14 @@ import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener failoverEP00 = new(9300);
+listener http:Listener failoverEP00 = new(9300, httpVersion = "1.1");
 
 // Create an endpoint with port 8080 for the mock backend services.
-listener http:Listener backendEP00 = new(8080);
+listener http:Listener backendEP00 = new(8080, httpVersion = "1.1");
 
 // Define the failover client end point to call the backend services.
 final http:FailoverClient foBackendEP00 = check new(
+    httpVersion = "1.1",
     timeout = 5,
     failoverCodes = [501, 502, 503],
     interval = 5,
@@ -41,29 +42,31 @@ final http:FailoverClient foBackendEP00 = check new(
     ]
 );
 
-final http:FailoverClient foBackendFailureEP00 = check new({
-    timeout: 5,
-    failoverCodes: [501, 502, 503],
-    interval: 5,
+final http:FailoverClient foBackendFailureEP00 = check new(
+    httpVersion = "1.1", 
+    timeout = 5,
+    failoverCodes = [501, 502, 503],
+    interval = 5,
     // Define set of HTTP Clients that needs to be Failover.
-    targets: [
+    targets = [
         { url: "http://localhost:3467/inavalidEP" },
         { url: "http://localhost:8080/echo00" },
         { url: "http://localhost:8080/echo00" }
     ]
-});
+);
 
-final http:FailoverClient foStatusCodesEP00 = check new({
-    timeout: 5,
-    failoverCodes: [501, 502, 503],
-    interval: 5,
+final http:FailoverClient foStatusCodesEP00 = check new(
+    httpVersion = "1.1",
+    timeout = 5,
+    failoverCodes = [501, 502, 503],
+    interval = 5,
     // Define set of HTTP Clients that needs to be Failover.
-    targets: [
+    targets = [
         { url: "http://localhost:8080/failureStatusCodeService" },
         { url: "http://localhost:8080/failureStatusCodeService" },
         { url: "http://localhost:8080/failureStatusCodeService" }
     ]
-});
+);
 
 service /failoverDemoService00 on failoverEP00 {
     resource function 'default typical(http:Caller caller, http:Request request) {

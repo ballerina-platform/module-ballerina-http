@@ -20,9 +20,10 @@ import ballerina/log;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener LBbackendListener = new(8093);
+listener http:Listener LBbackendListener = new(8093, httpVersion = "1.1");
 
 final http:LoadBalanceClient lbBackendEP = check new(
+    httpVersion = "1.1",
     targets = [
         { url: "http://localhost:8093/LBMock1" },
         { url: "http://localhost:8093/LBMock2" },
@@ -31,38 +32,41 @@ final http:LoadBalanceClient lbBackendEP = check new(
     timeout = 5
 );
 
-final http:LoadBalanceClient lbFailoverBackendEP = check new({
-    targets: [
+final http:LoadBalanceClient lbFailoverBackendEP = check new(
+    httpVersion = "1.1",
+    targets = [
         { url: "http://localhost:8093/LBMock4" },
         { url: "http://localhost:8093/LBMock2" },
         { url: "http://localhost:8093/LBMock3" }
     ],
-    failover: true,
-    timeout: 2
-});
+    failover = true,
+    timeout = 2
+);
 
-final http:LoadBalanceClient delayedBackendEP = check new({
-    targets: [
+final http:LoadBalanceClient delayedBackendEP = check new(
+    httpVersion = "1.1",
+    targets = [
         { url: "http://localhost:8093/LBMock4" },
         { url: "http://localhost:8093/LBMock5" }
     ],
-    failover: true,
-    timeout: 2
-});
+    failover = true,
+    timeout = 2
+);
 
 CustomLoadBalancerRule customLbRule = new CustomLoadBalancerRule(2);
 
-final http:LoadBalanceClient customLbBackendEP = check new({
-    targets: [
+final http:LoadBalanceClient customLbBackendEP = check new(
+    httpVersion = "1.1",
+    targets = [
         { url: "http://localhost:8093/LBMock1" },
         { url: "http://localhost:8093/LBMock2" },
         { url: "http://localhost:8093/LBMock3" }
     ],
-    lbRule: customLbRule,
-    timeout: 5
-});
+    lbRule = customLbRule,
+    timeout = 5
+);
 
-service /loadBalancerDemoService on new http:Listener(9313) {
+service /loadBalancerDemoService on new http:Listener(9313, httpVersion = "1.1") {
     resource function 'default roundRobin(http:Caller caller, http:Request req) {
         json requestPayload = { "name": "Ballerina" };
         http:Response|error response = lbBackendEP->post("/", requestPayload);
@@ -224,7 +228,7 @@ public isolated class CustomLoadBalancerRule {
 }
 
 //Test for round robin implementation algorithm of load balancer
-final http:Client roundRobinLoadBalanceTestClient = check new("http://localhost:9313");
+final http:Client roundRobinLoadBalanceTestClient = check new("http://localhost:9313", httpVersion = "1.1");
 
 @test:Config{ dataProvider:roundRobinResponseDataProvider }
 function roundRobinLoadBalanceTest(DataFeed dataFeed) returns error? {

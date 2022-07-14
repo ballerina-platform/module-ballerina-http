@@ -19,16 +19,16 @@ import ballerina/http;
 
 int http2AcceptEncodingHeaderTestPort = getHttp2Port(acceptEncodingHeaderTestPort);
 
-listener http:Listener http2AcceptEncodingListenerEP = new(http2AcceptEncodingHeaderTestPort, {server: "Mysql"});
+listener http:Listener http2AcceptEncodingListenerEP = new(http2AcceptEncodingHeaderTestPort, server = "Mysql");
 
 final http:Client http2AcceptEncodingAutoEP = check new("http://localhost:" + http2AcceptEncodingHeaderTestPort.toString() + "/hello", 
-    httpVersion = "2.0", http2Settings = { http2PriorKnowledge: true }, compression = http:COMPRESSION_AUTO);
+    http2Settings = { http2PriorKnowledge: true }, compression = http:COMPRESSION_AUTO);
 
 final http:Client http2AcceptEncodingEnableEP = check new("http://localhost:" + http2AcceptEncodingHeaderTestPort.toString() + "/hello", 
-    httpVersion = "2.0", http2Settings = { http2PriorKnowledge: true }, compression = http:COMPRESSION_ALWAYS);
+    http2Settings = { http2PriorKnowledge: true }, compression = http:COMPRESSION_ALWAYS);
 
 final http:Client http2AcceptEncodingDisableEP = check new("http://localhost:" + http2AcceptEncodingHeaderTestPort.toString() + "/hello", 
-    httpVersion = "2.0", http2Settings = { http2PriorKnowledge: true }, compression = http:COMPRESSION_NEVER);
+    http2Settings = { http2PriorKnowledge: true }, compression = http:COMPRESSION_NEVER);
 
 service /hello on http2AcceptEncodingListenerEP {
 

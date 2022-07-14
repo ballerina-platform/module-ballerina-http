@@ -17,11 +17,11 @@
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener httpHeaderListenerEP1 = new(httpHeaderTestPort1);
-listener http:Listener httpHeaderListenerEP2 = new(httpHeaderTestPort2);
-final http:Client httpHeaderClient = check new("http://localhost:" + httpHeaderTestPort1.toString());
+listener http:Listener httpHeaderListenerEP1 = new(httpHeaderTestPort1, httpVersion = "1.1");
+listener http:Listener httpHeaderListenerEP2 = new(httpHeaderTestPort2, httpVersion = "1.1");
 
-final http:Client stockqEP = check new("http://localhost:" + httpHeaderTestPort2.toString());
+final http:Client httpHeaderClient = check new("http://localhost:" + httpHeaderTestPort1.toString(), httpVersion = "1.1");
+final http:Client stockqEP = check new("http://localhost:" + httpHeaderTestPort2.toString(), httpVersion = "1.1");
 
 service /headerService on httpHeaderListenerEP1 {
 

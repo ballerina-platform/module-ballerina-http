@@ -21,7 +21,7 @@ int http2ConnectionNativeTest = getHttp2Port(connectionNativeTest);
 
 listener http:Listener http2ConnectionNativeTestEP = new(http2ConnectionNativeTest);
 final http:Client http2ConnectionNativeClient = check new("http://localhost:" + http2ConnectionNativeTest.toString(),
-    httpVersion = "2.0", http2Settings = { http2PriorKnowledge: true });
+    http2Settings = { http2PriorKnowledge: true });
 
 service /connectionNativeHello on http2ConnectionNativeTestEP {
     

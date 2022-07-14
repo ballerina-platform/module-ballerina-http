@@ -18,18 +18,19 @@ import ballerina/http;
 import ballerina/lang.runtime;
 import ballerina/test;
 
-final http:Client foClientEP = check new ("http://localhost:" + foClientWithoutStatusCodeTestPort1.toString());
+final http:Client foClientEP = check new ("http://localhost:" + foClientWithoutStatusCodeTestPort1.toString(), httpVersion = "1.1");
 
-final http:FailoverClient foBackendEP = check new ({
-    timeout: 5,
-    failoverCodes: [],
-    interval: 5,
-    targets: [
+final http:FailoverClient foBackendEP = check new (
+    httpVersion = "1.1",
+    timeout = 5,
+    failoverCodes = [],
+    interval = 5,
+    targets = [
             {url: "http://nonexistentEP/mock1"},
             {url: "http://localhost:" + foClientWithoutStatusCodeTestPort2.toString() + "/echo"},
             {url: "http://localhost:" + foClientWithoutStatusCodeTestPort2.toString() + "/mock"}
         ]
-});
+);
 
 service / on new http:Listener(foClientWithoutStatusCodeTestPort1) {
     resource function 'default fo() returns string|error {

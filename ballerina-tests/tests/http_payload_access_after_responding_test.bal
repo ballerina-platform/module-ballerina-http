@@ -18,9 +18,11 @@ import ballerina/test;
 import ballerina/http;
 import ballerina/lang.runtime as runtime;
 
-listener http:Listener payloadAccessAfterRespondListener = new(payloadAccessAfterRespondingTestPort);
-final http:Client payloadAccessAfterRespondBackendClient = check new("http://localhost:" + payloadAccessAfterRespondingTestPort.toString());
-final http:Client payloadAccessAfterRespondTestClient = check new("http://localhost:" + payloadAccessAfterRespondingTestPort.toString());
+listener http:Listener payloadAccessAfterRespondListener = new(payloadAccessAfterRespondingTestPort, httpVersion = "1.1");
+final http:Client payloadAccessAfterRespondBackendClient = check new("http://localhost:" + payloadAccessAfterRespondingTestPort.toString(), 
+    httpVersion = "1.1");
+final http:Client payloadAccessAfterRespondTestClient = check new("http://localhost:" + payloadAccessAfterRespondingTestPort.toString(), 
+    httpVersion = "1.1");
 
 isolated error? requestJsonPayloadError = ();
 isolated error? requestXmlPayloadError = ();

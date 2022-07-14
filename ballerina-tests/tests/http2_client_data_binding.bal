@@ -30,9 +30,9 @@ listener http:Listener http2ClientDBProxyListener = new(http2ClientDatabindingTe
 listener http:Listener http2ClientDBBackendListener = new(http2ClientDatabindingTestPort2);
 listener http:Listener http2ClientDBBackendListener2 = new(http2ClientDatabindingTestPort3);
 final http:Client http2ClientDBTestClient = check new("http://localhost:" + http2ClientDatabindingTestPort1.toString(), 
-    httpVersion = "2.0", http2Settings = { http2PriorKnowledge: true });
+    http2Settings = { http2PriorKnowledge: true });
 final http:Client http2ClientDBBackendClient = check new("http://localhost:" + http2ClientDatabindingTestPort2.toString(), 
-    httpVersion = "2.0", http2Settings = { http2PriorKnowledge: true });
+    http2Settings = { http2PriorKnowledge: true });
 
 int http2ClientDBCounter = 0;
 

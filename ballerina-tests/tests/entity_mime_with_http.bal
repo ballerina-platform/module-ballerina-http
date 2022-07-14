@@ -157,7 +157,7 @@ function testPayloadInResponse() {
     }
 }
 
-final http:Client mimeClient = check new("http://localhost:" + generalPort.toString());
+final http:Client mimeClient = check new("http://localhost:" + generalPort.toString(), httpVersion = "1.1");
 
 // Access entity to read payload and send back
 @test:Config {}

@@ -28,9 +28,9 @@ isolated function retrieveAndIncrementHttp2RetryCounter() returns int {
     }
 }
 
-listener http:Listener http2RetryTestserviceEndpoint1 = new(http2RetryFunctionTestPort1, { httpVersion: "2.0" });
+listener http:Listener http2RetryTestserviceEndpoint1 = new(http2RetryFunctionTestPort1);
 
-final http:Client http2RetryFunctionTestClient = check new("http://localhost:" + http2RetryFunctionTestPort1.toString(), { httpVersion: "2.0" });
+final http:Client http2RetryFunctionTestClient = check new("http://localhost:" + http2RetryFunctionTestPort1.toString());
 
 // Define the end point to the call the `mockHelloService`.
 final http:Client http2RetryBackendClientEP = check new("http://localhost:9606", {
@@ -40,8 +40,7 @@ final http:Client http2RetryBackendClientEP = check new("http://localhost:9606",
         count: 4,
         backOffFactor: 0.5
     },
-    timeout: 2,
-    httpVersion: "2.0"
+    timeout: 2
 });
 
 service /retryDemoService on http2RetryTestserviceEndpoint1 {

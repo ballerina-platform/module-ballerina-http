@@ -88,11 +88,9 @@ service /restBucks on new http:Listener(http2HateoasTestPort) {
     }
 }
 
-http:Client http2JsonClientEP = check new(string`http://localhost:${http2HateoasTestPort}/restBucks`, 
-    httpVersion = "2.0", http2Settings = { http2PriorKnowledge: true });
+http:Client http2JsonClientEP = check new(string`http://localhost:${http2HateoasTestPort}/restBucks`, http2Settings = { http2PriorKnowledge: true });
 
-// todo: disabled the test case due to missing HTTP2 feature
-// @test:Config {}
+@test:Config {}
 function testHttp2HateoasLinks1() returns error? {
     record{*http:Links; *OrderReceipt;} orderReceipt = check http2JsonClientEP->post("/order", mockOrder);
     map<http:Link> expectedLinks = {
@@ -164,8 +162,7 @@ function testHttp2HateoasLinkHeaderWithReadOnlyPayload() returns error? {
     
 }
 
-// todo: disabled the test case due to missing HTTP2 feature
-// @test:Config {}
+@test:Config {}
 function testHttp2HateoasLinks2() returns error? {
     record{*http:Links; *OrderReceipt;} orderReceipt = check http2JsonClientEP->put("/orders/001", mockOrder);
     map<http:Link> expectedLinks = {
@@ -215,8 +212,7 @@ function testHttp2HateoasLinkHeaderWithoutBody() returns error? {
     test:assertEquals(parsedLinkHeader, expectedLinkHeader);
 }
 
-// todo: disabled the test case due to missing HTTP2 feature
-// @test:Config {}
+@test:Config {}
 function testHttp2HateoasLinksInBody() returns error? {
     record{*http:Links; *PaymentReceipt;} paymentReceipt = check http2JsonClientEP->put("/payment/001", mockPayment);
     map<http:Link> expectedLinks = {

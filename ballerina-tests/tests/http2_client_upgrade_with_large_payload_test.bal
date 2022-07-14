@@ -17,9 +17,9 @@
 import ballerina/http;
 import ballerina/test;
 
-final http:Client eP1 = check new("http://localhost:9106", { httpVersion: "2.0" });
+final http:Client eP1 = check new("http://localhost:9106");
 
-service /http2EchoService on new http:Listener(9106, { httpVersion: "2.0" }) {
+service /http2EchoService on new http:Listener(9106) {
 
     resource function post echoResource(http:Caller caller, http:Request request) returns error? {
         http:Response response = new;

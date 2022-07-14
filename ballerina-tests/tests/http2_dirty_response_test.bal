@@ -23,7 +23,7 @@ int http2DirtyResponseTestPort = getHttp2Port(dirtyResponseTestPort);
 
 listener http:Listener http2DirtyResponseListener = new(http2DirtyResponseTestPort);
 final http:Client http2DirtyResponseTestClient = check new("http://localhost:" + http2DirtyResponseTestPort.toString(), 
-    httpVersion = "2.0", http2Settings = { http2PriorKnowledge: true });
+    http2Settings = { http2PriorKnowledge: true });
 
 
 http:Response http2DirtyResponse = getSingletonResponse();

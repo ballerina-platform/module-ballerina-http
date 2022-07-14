@@ -28,7 +28,7 @@ service /MyService on generalListener {
     }
 }
 
-final http:Client requestClient2 = check new("http://localhost:" + generalPort.toString());
+final http:Client requestClient2 = check new("http://localhost:" + generalPort.toString(), httpVersion = "1.1");
 
 @test:Config {}
 public function testAccessingPayloadAsTextAndJSON()  {

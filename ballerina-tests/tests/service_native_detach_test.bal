@@ -18,8 +18,8 @@ import ballerina/log;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener serviceDetachTestEP = new(serviceDetachTest);
-final http:Client serviceDetachClient = check new("http://localhost:" + serviceDetachTest.toString());
+listener http:Listener serviceDetachTestEP = new(serviceDetachTest, httpVersion = "1.1");
+final http:Client serviceDetachClient = check new("http://localhost:" + serviceDetachTest.toString(), httpVersion = "1.1");
 
 service /mock1 on serviceDetachTestEP {
     resource function get .(http:Caller caller, http:Request req) returns error? {

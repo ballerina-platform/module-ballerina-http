@@ -22,48 +22,51 @@ import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener failoverEP02 = new(9302);
+listener http:Listener failoverEP02 = new(9302, httpVersion = "1.1");
 
 // Create an endpoint with port 8082 for the mock backend services.
-listener http:Listener backendEP02 = new(8082);
+listener http:Listener backendEP02 = new(8082, httpVersion = "1.1");
 
 // Define the failover client end point to call the backend services.
-final http:FailoverClient foBackendEP02 = check new({
-    timeout: 5,
-    failoverCodes: [501, 502, 503],
-    interval: 5,
+final http:FailoverClient foBackendEP02 = check new(
+    httpVersion = "1.1",
+    timeout = 5,
+    failoverCodes = [501, 502, 503],
+    interval = 5,
     // Define set of HTTP Clients that needs to be Failover.
-    targets: [
+    targets = [
         { url: "http://localhost:3467/inavalidEP" },
         { url: "http://localhost:8082/echo02" },
         { url: "http://localhost:8082/mock02" },
         { url: "http://localhost:8082/mock02" }
     ]
-});
+);
 
-final http:FailoverClient foBackendFailureEP02 = check new({
-    timeout: 5,
-    failoverCodes: [501, 502, 503],
-    interval: 5,
+final http:FailoverClient foBackendFailureEP02 = check new(
+    httpVersion = "1.1",
+    timeout = 5,
+    failoverCodes = [501, 502, 503],
+    interval = 5,
     // Define set of HTTP Clients that needs to be Failover.
-    targets: [
+    targets = [
         { url: "http://localhost:3467/inavalidEP" },
         { url: "http://localhost:8082/echo02" },
         { url: "http://localhost:8082/echo02" }
     ]
-});
+);
 
-final http:FailoverClient foStatusCodesEP02 = check new({
-    timeout: 5,
-    failoverCodes: [501, 502, 503],
-    interval: 5,
+final http:FailoverClient foStatusCodesEP02 = check new(
+    httpVersion = "1.1",
+    timeout = 5,
+    failoverCodes = [501, 502, 503],
+    interval = 5,
     // Define set of HTTP Clients that needs to be Failover.
-    targets: [
+    targets = [
         { url: "http://localhost:8082/failureStatusCodeService02" },
         { url: "http://localhost:8082/failureStatusCodeService02" },
         { url: "http://localhost:8082/failureStatusCodeService02" }
     ]
-});
+);
 
 service /failoverDemoService02 on failoverEP02 {
     resource function 'default invokeAllFailureEndpoint02(http:Caller caller, http:Request request) {

@@ -32,7 +32,7 @@ service /entityService on generalHTTP2Listener {
 }
 
 final http:Client http2EntityClient = check new("http://localhost:" + http2GeneralPort.toString(), 
-    httpVersion = "2.0", http2Settings = { http2PriorKnowledge: true });
+    http2Settings = { http2PriorKnowledge: true });
 
 // Test addHeader function within a service
 @test:Config {

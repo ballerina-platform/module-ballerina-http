@@ -72,7 +72,7 @@ service /mimeTest on generalHTTP2Listener {
 }
 
 final http:Client http2MimeClient = check new("http://localhost:" + http2GeneralPort.toString(), 
-    httpVersion = "2.0", http2Settings = { http2PriorKnowledge: true });
+    http2Settings = { http2PriorKnowledge: true });
 
 // Access entity to read payload and send back
 @test:Config {}

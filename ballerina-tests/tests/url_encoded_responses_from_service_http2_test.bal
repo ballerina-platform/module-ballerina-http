@@ -19,7 +19,7 @@ import ballerina/mime;
 import ballerina/test;
 
 final http:Client http2UrlEncodedResponsesTestClient = check new("http://localhost:" + http2GeneralPort.toString(), 
-    httpVersion = "2.0", http2Settings = { http2PriorKnowledge: true });
+    http2Settings = { http2PriorKnowledge: true });
 
 service /urlEncodedResponses on generalHTTP2Listener {
     resource function get accepted() returns AcceptedResponse {

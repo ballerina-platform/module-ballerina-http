@@ -16,11 +16,11 @@
 
 import ballerina/http;
 
-listener http:Listener generalListener = new(generalPort);
+listener http:Listener generalListener = new(generalPort, httpVersion = "1.1");
 
-listener http:Listener generalHTTP2Listener = new http:Listener(http2GeneralPort, {httpVersion: "2.0"});
+listener http:Listener generalHTTP2Listener = new http:Listener(http2GeneralPort);
 listener http:Listener generalHTTPS2Listener = new http:Listener(http2SslGeneralPort, http2SslServiceConf);
-listener http:Listener HTTP2BackendListener = new http:Listener(http2BackendPort, {httpVersion: "2.0"});
+listener http:Listener HTTP2BackendListener = new http:Listener(http2BackendPort);
 
 const int generalPort = 9000;
 

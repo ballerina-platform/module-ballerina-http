@@ -17,18 +17,15 @@
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener http2ClientContinueListenerEP = check new(http2ClientContinueTestPort, { httpVersion: "2.0" });
+listener http:Listener http2ClientContinueListenerEP = check new(http2ClientContinueTestPort);
 
 final http:Client http2ContinueClientWithPriorKnowledge = check new ("http://localhost:" + http2ClientContinueTestPort.toString(), {
-    httpVersion: "2.0",
     http2Settings: {
         http2PriorKnowledge: true
     }
 });
 
-final http:Client http2ContinueClientWithoutPriorKnowledge = check new ("http://localhost:" + http2ClientContinueTestPort.toString(), {
-    httpVersion: "2.0"
-});
+final http:Client http2ContinueClientWithoutPriorKnowledge = check new ("http://localhost:" + http2ClientContinueTestPort.toString());
 
 
 service /'continue on http2ClientContinueListenerEP {

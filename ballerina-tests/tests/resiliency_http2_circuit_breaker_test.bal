@@ -19,7 +19,7 @@ import ballerina/log;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener circuitBreakerEP07 = new(9315, { httpVersion: "2.0" });
+listener http:Listener circuitBreakerEP07 = new(9315);
 
 http:ClientConfiguration conf07 = {
     circuitBreaker: {
@@ -32,7 +32,6 @@ http:ClientConfiguration conf07 = {
         resetTime: 2,
         statusCodes: [500, 501, 502, 503]
     },
-    httpVersion: "2.0",
     http2Settings: { http2PriorKnowledge: true }
 };
 
@@ -56,7 +55,7 @@ service /cb on circuitBreakerEP07 {
     }
 }
 
-service /hello07 on new http:Listener(8095, httpVersion = "2.0") {
+service /hello07 on new http:Listener(8095) {
 
     resource function 'default .(http:Caller caller, http:Request req) {
         http:Response res = new;
