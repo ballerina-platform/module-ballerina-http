@@ -58,7 +58,7 @@ isolated function buildRequest(RequestMessage message, string? mediaType) return
         request.setByteStream(message);
     } else if message is mime:Entity[] {
         request.setBodyParts(message);
-    } else if message is anydata {
+    } else {
         match mediaType {
             mime:APPLICATION_FORM_URLENCODED => {
                 map<string>|error pairs = val:cloneWithType(message);
@@ -73,10 +73,6 @@ isolated function buildRequest(RequestMessage message, string? mediaType) return
                 request.setJsonPayload(payload);
             }
         }
-
-    } else {
-        string errorMsg = "invalid request body type. expected one of the types: http:Request|xml|json|table<map<json>>|(map<json>|table<map<json>>)[]|mime:Entity[]|stream<byte[], io:Error?>";
-        panic error InitializingOutboundRequestError(errorMsg);
     }
     return request;
 }
@@ -121,16 +117,13 @@ isolated function buildResponse(ResponseMessage message, string? resourceAccesso
         response.setByteStream(message);
     } else if message is mime:Entity[] {
         response.setBodyParts(message);
-    } else if message is anydata {
+    } else {
         var result = trap val:toJson(message);
         if result is error {
             return error InitializingOutboundResponseError("json conversion error: " + result.message(), result);
         } else {
             response.setJsonPayload(result);
         }
-    } else {
-        string errorMsg = "invalid response body type. expected one of the types: http:Response|xml|json|table<map<json>>|(map<json>|table<map<json>>)[]|mime:Entity[]|stream<byte[], io:Error?>";
-        panic error InitializingOutboundResponseError(errorMsg);
     }
     if resourceAccessor == HTTP_POST {
         response.statusCode = STATUS_CREATED;
