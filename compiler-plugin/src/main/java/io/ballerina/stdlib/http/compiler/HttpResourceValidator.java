@@ -561,7 +561,7 @@ class HttpResourceValidator {
             }
             return isValidPayloadParamType(typeDescriptor, ctx, paramLocation, paramName);
         }
-        if (isAnyDataType(kind)) {
+        if (isAnyDataType(kind) || kind == TypeDescKind.SINGLETON) {
             return true;
         } else if (kind == TypeDescKind.ARRAY) {
             TypeSymbol arrTypeSymbol = ((ArrayTypeSymbol) typeDescriptor).memberTypeDescriptor();
