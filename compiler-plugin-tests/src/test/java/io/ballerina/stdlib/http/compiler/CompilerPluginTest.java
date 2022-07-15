@@ -101,16 +101,6 @@ public class CompilerPluginTest {
     }
 
     @Test
-    public void testSample() {
-        Package currentPackage = loadPackage("sample_package");
-        PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        long availableErrors = diagnosticResult.diagnostics().stream()
-                .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR)).count();
-        Assert.assertEquals(availableErrors, 0);
-    }
-
-    @Test
     public void testInvalidMethodTypes() {
         Package currentPackage = loadPackage("sample_package_1");
         PackageCompilation compilation = currentPackage.getCompilation();
