@@ -164,8 +164,8 @@ public class CompilerPluginTest {
                    CompilerPluginTestConstants.HTTP_145);
         assertTrue(diagnosticResult, 7, "incompatible record field type: 'ballerina/http:",
                    CompilerPluginTestConstants.HTTP_145);
-        assertError(diagnosticResult, 8, "invalid payload parameter type: '[int, string, http_test/sample_4:0.1.0:User]'",
-                   CompilerPluginTestConstants.HTTP_107);
+        assertError(diagnosticResult, 8, "invalid payload parameter type: '[int, string, " +
+                "http_test/sample_4:0.1.0:User]'", CompilerPluginTestConstants.HTTP_107);
     }
 
     @Test
