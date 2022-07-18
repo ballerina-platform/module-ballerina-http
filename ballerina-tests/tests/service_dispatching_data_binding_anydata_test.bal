@@ -44,6 +44,16 @@ type Restaurant record {|
     Menu[] menus;
 |};
 
+public type User readonly & record {|
+    int id;
+    int age;
+|};
+
+type RestaurantNew record {|
+    *Restaurant;
+    [int, string, decimal, float, User] address;
+|};
+
 type newXmlElement xml:Element;
 
 final http:Client anydataBindingClient = check new("http://localhost:" + generalPort.toString(), httpVersion = "1.1");
@@ -130,6 +140,10 @@ service /anydataB on generalListener {
         } else {
             return <http:InternalServerError> {body:"No entry found"};
         }
+    }
+
+    resource function post checkRecordWithTuple(@http:Payload RestaurantNew restaurant) returns RestaurantNew {
+        return restaurant;
     }
 
     // byte[]
@@ -605,6 +619,25 @@ function testDataBindingWithTableofRecordByType() returns error? {
                ];
     json response = check anydataBindingClient->post("/anydataB/checkRecordTable", j, mediaType = "application/abc");
     assertJsonPayload(response, j[0]);
+}
+
+@test:Config {}
+function testDataBindingRecordWithTuple() returns error? {
+    RestaurantNew restaurant = {
+        name: "name1",
+        city: "city1",
+        address: [10, "street", 9, 12.45, { id: 4012, age: 36 }],
+        description: "description1",
+        menus: [
+            {
+                _id : 5,
+                'type : "LUNCH",
+                items : []
+            }
+        ]
+    };
+    RestaurantNew response = check anydataBindingClient->post("/anydataB/checkRecordWithTuple", restaurant);
+    test:assertEquals(response, restaurant);
 }
 
 @test:Config {}
