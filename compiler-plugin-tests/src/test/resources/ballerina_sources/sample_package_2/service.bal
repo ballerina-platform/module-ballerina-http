@@ -44,11 +44,6 @@ service http:Service on new http:Listener(9090) {
         return;
     }
 
-    resource function get greeting4() returns http:Client { // Compiler error
-        http:Client httpClient = checkpanic new("path");
-        return httpClient;
-    }
-
     resource function get greeting5() returns Person {
         return {id:123, name: "john"};
     }

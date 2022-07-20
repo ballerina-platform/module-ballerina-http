@@ -121,14 +121,12 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_2");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 4);
+        Assert.assertEquals(diagnosticResult.errorCount(), 3);
         assertError(diagnosticResult, 0, "invalid resource method return type: expected " +
-                "'anydata|http:Response|http:StatusCodeResponse|error', but found 'http:Client'", HTTP_102);
-        assertError(diagnosticResult, 1, "invalid resource method return type: expected " +
                 "'anydata|http:Response|http:StatusCodeResponse|error', but found 'error[]'", HTTP_102);
-        assertError(diagnosticResult, 2, "invalid resource method return type: expected 'anydata|http:Response" +
+        assertError(diagnosticResult, 1, "invalid resource method return type: expected 'anydata|http:Response" +
                 "|http:StatusCodeResponse|error', but found 'map<http:Client>'", HTTP_102);
-        assertError(diagnosticResult, 3, "invalid resource method return type: expected " +
+        assertError(diagnosticResult, 2, "invalid resource method return type: expected " +
                 "'anydata|http:Response|http:StatusCodeResponse|error', but found 'readonly & error[]'", HTTP_102);
     }
 
