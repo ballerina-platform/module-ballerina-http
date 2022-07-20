@@ -16,7 +16,7 @@ path = "../native/build/libs/http-native-2.4.0-SNAPSHOT.jar"
 groupId = "io.ballerina.stdlib"
 artifactId = "mime-native"
 version = "2.4.0"
-path = "./lib/mime-native-2.4.0-20220719-160100-385c5af.jar"
+path = "./lib/mime-native-2.4.0-20220720-115500-9fe8dcf.jar"
 
 [[platform.java11.dependency]]
 path = "./lib/netty-common-4.1.77.Final.jar"
