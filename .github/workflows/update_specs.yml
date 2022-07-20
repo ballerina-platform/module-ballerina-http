@@ -31,8 +31,9 @@ jobs:
           --data "{
             \"event_type\": \"update-stdlib-specs\",
             \"client_payload\": {
-              \"module\": \"http\"
-              \"file_dir\": \"module-ballerina-http/docs/spec\"
+              \"module_name\": \"module-ballerina-http\",
+              \"short_name\": \"http\",
+              \"file_dir\": \"module-ballerina-http/docs/spec\",
               \"release_date\": \"${{ steps.date.outputs.date }}\"
             }
           }"
