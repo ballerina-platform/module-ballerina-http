@@ -6,7 +6,7 @@ on:
       - master
       - 2201.1.x
     paths:
-      - 'docs/spec/spec.md'
+      - 'docs/spec/'
 
 jobs:
   update_specs:
@@ -32,7 +32,7 @@ jobs:
             \"event_type\": \"update-stdlib-specs\",
             \"client_payload\": {
               \"module\": \"http\"
-              \"file_url\": \"https://raw.githubusercontent.com/ballerina-platform/module-ballerina-http/master/docs/spec/spec.md\"
+              \"file_dir\": \"module-ballerina-http/docs/spec\"
               \"release_date\": \"${{ steps.date.outputs.date }}\"
             }
           }"
