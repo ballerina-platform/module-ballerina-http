@@ -271,6 +271,7 @@ org = "ballerina"
 name = "os"
 version = "1.4.0"
 dependencies = [
+	{org = "ballerina", name = "io"},
 	{org = "ballerina", name = "jballerina.java"}
 ]
 
