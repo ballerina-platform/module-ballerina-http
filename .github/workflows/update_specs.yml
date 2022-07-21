@@ -1,0 +1,39 @@
+name: Update Specifications
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+      - 2201.1.x
+    paths:
+      - 'docs/spec/'
+
+jobs:
+  update_specs:
+    name: Update Specifications
+    if: github.repository_owner == 'ballerina-platform'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+
+      - name: Trigger Workflow
+        run: |
+          curl -X POST \
+          'https://api.github.com/repos/ballerina-platform/ballerina-dev-website/dispatches' \
+          -H 'Accept: application/vnd.github.v3+json' \
+          -H 'Authorization: Bearer ${{ secrets.BALLERINA_BOT_TOKEN }}' \
+          --data "{
+            \"event_type\": \"update-stdlib-specs\",
+            \"client_payload\": {
+              \"module_name\": \"module-ballerina-http\",
+              \"short_name\": \"http\",
+              \"file_dir\": \"module-ballerina-http/docs/spec\",
+              \"release_date\": \"${{ steps.date.outputs.date }}\"
+            }
+          }"
