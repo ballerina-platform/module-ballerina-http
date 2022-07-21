@@ -346,6 +346,16 @@ type Restaurant record {|
     Menu[] menus;
 |};
 
+public type User readonly & record {|
+    int id;
+    int age;
+|};
+
+type RestaurantNew record {|
+    *Restaurant;
+    [int, string, decimal, float, User] address;
+|};
+
 service on new http:Listener(9091) {
 
     resource function post menuType(@http:Payload MenuType menuType)
@@ -360,6 +370,15 @@ service on new http:Listener(9091) {
 
     resource function post restaurants(@http:Payload Restaurant restaurant)
             returns http:Created {
+        return http:CREATED;
+    }
+
+    resource function post restaurantsNew(@http:Payload RestaurantNew restaurant) returns RestaurantNew {
+        return restaurant;
+    }
+
+    // error
+    resource function post address(@http:Payload [int, string, User] address) returns http:Created {
         return http:CREATED;
     }
 }
