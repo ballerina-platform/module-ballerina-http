@@ -39,6 +39,7 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -89,8 +90,8 @@ public class HttpClientAction extends AbstractHTTPAction {
 
     public static Object postResource(Environment env, BObject client, BArray path, Object message, Object headers,
                                       Object mediaType, BTypedesc targetType, BMap params) {
-        return invokeClientMethod(env, client, makeRequestPath(path, params), message, mediaType, headers, targetType,
-                                  "processPost");
+        return invokeClientMethod(env, client, constructRequestPath(path, params), message, mediaType, headers,
+                                  targetType, "processPost");
     }
 
     public static Object post(Environment env, BObject client, BString path, Object message, Object headers,
@@ -100,8 +101,8 @@ public class HttpClientAction extends AbstractHTTPAction {
 
     public static Object putResource(Environment env, BObject client, BArray path, Object message, Object headers,
                                       Object mediaType, BTypedesc targetType, BMap params) {
-        return invokeClientMethod(env, client, makeRequestPath(path, params), message, mediaType, headers, targetType,
-                                  "processPut");
+        return invokeClientMethod(env, client, constructRequestPath(path, params), message, mediaType, headers,
+                                  targetType, "processPut");
     }
 
     public static Object put(Environment env, BObject client, BString path, Object message, Object headers,
@@ -111,8 +112,8 @@ public class HttpClientAction extends AbstractHTTPAction {
 
     public static Object patchResource(Environment env, BObject client, BArray path, Object message, Object headers,
                                       Object mediaType, BTypedesc targetType, BMap params) {
-        return invokeClientMethod(env, client, makeRequestPath(path, params), message, mediaType, headers, targetType,
-                                  "processPatch");
+        return invokeClientMethod(env, client, constructRequestPath(path, params), message, mediaType, headers,
+                                  targetType, "processPatch");
     }
 
     public static Object patch(Environment env, BObject client, BString path, Object message, Object headers,
@@ -122,8 +123,8 @@ public class HttpClientAction extends AbstractHTTPAction {
 
     public static Object deleteResource(Environment env, BObject client, BArray path, Object message, Object headers,
                                       Object mediaType, BTypedesc targetType, BMap params) {
-        return invokeClientMethod(env, client, makeRequestPath(path, params), message, mediaType, headers, targetType,
-                                  "processDelete");
+        return invokeClientMethod(env, client, constructRequestPath(path, params), message, mediaType, headers,
+                                  targetType, "processDelete");
     }
 
     public static Object delete(Environment env, BObject client, BString path, Object message, Object headers,
@@ -133,7 +134,7 @@ public class HttpClientAction extends AbstractHTTPAction {
 
     public static Object getResource(Environment env, BObject client, BArray path, Object headers, BTypedesc targetType,
                                      BMap params) {
-        return invokeClientMethod(env, client, makeRequestPath(path, params), headers, targetType, "processGet");
+        return invokeClientMethod(env, client, constructRequestPath(path, params), headers, targetType, "processGet");
     }
 
     public static Object get(Environment env, BObject client, BString path, Object headers, BTypedesc targetType) {
@@ -142,7 +143,7 @@ public class HttpClientAction extends AbstractHTTPAction {
 
     public static Object headResource(Environment env, BObject client, BArray path, Object headers, BMap params) {
         Object[] paramFeed = new Object[4];
-        paramFeed[0] = makeRequestPath(path, params);
+        paramFeed[0] = constructRequestPath(path, params);
         paramFeed[1] = true;
         paramFeed[2] = headers;
         paramFeed[3] = true;
@@ -151,7 +152,8 @@ public class HttpClientAction extends AbstractHTTPAction {
 
     public static Object optionsResource(Environment env, BObject client, BArray path, Object headers,
                                          BTypedesc targetType, BMap params) {
-        return invokeClientMethod(env, client, makeRequestPath(path, params), headers, targetType, "processOptions");
+        return invokeClientMethod(env, client, constructRequestPath(path, params), headers, targetType,
+                                  "processOptions");
     }
 
     public static Object options(Environment env, BObject client, BString path, Object headers, BTypedesc targetType) {
@@ -254,9 +256,9 @@ public class HttpClientAction extends AbstractHTTPAction {
         return subMap;
     }
 
-    private static BString makeRequestPath(BArray pathArray, BMap params) {
+    private static BString constructRequestPath(BArray pathArray, BMap params) {
         String joinedPath = SINGLE_SLASH + String.join(SINGLE_SLASH, pathArray.getStringArray());
-        String queryParams = makeQueryParams(params);
+        String queryParams = constructQueryString(params);
         if (queryParams.isEmpty()) {
             return StringUtils.fromString(joinedPath);
         } else {
@@ -264,8 +266,8 @@ public class HttpClientAction extends AbstractHTTPAction {
         }
     }
 
-    private static String makeQueryParams(BMap params) {
-        ArrayList<String> queryParams = new ArrayList<>();
+    private static String constructQueryString(BMap params) {
+        List<String> queryParams = new ArrayList<>();
         BString[] keys = (BString[]) params.getKeys();
         if (keys.length == 0) {
             return "";
