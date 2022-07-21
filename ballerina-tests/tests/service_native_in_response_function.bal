@@ -195,7 +195,7 @@ function testResposeGetCookies() {
     test:assertEquals(cookiesInResponse[0].name, "SID002", msg = "Invalid cookie name");
 }
 
-listener http:Listener responseEp = new(responseTest);
+listener http:Listener responseEp = new(responseTest, httpVersion = "1.1");
 
 service /response on responseEp {
 
@@ -331,7 +331,7 @@ service /response on responseEp {
     }
 }
 
-final http:Client responseClient = check new("http://localhost:" + responseTest.toString());
+final http:Client responseClient = check new("http://localhost:" + responseTest.toString(), httpVersion = "1.1");
 
 // Test addHeader function within a service
 @test:Config {}

@@ -25,9 +25,9 @@ int http2StreamTest1 = getHttp2Port(streamTest1);
 int http2StreamTest2 = getHttp2Port(streamTest2);
 
 final http:Client http2StreamTestClient = check new ("http://localhost:" + http2StreamTest1.toString(), 
-    httpVersion = "2.0", http2Settings = { http2PriorKnowledge: true });
+    http2Settings = { http2PriorKnowledge: true });
 final http:Client http2StreamBackendClient = check new ("http://localhost:" + http2StreamTest2.toString(), 
-    httpVersion = "2.0", http2Settings = { http2PriorKnowledge: true });
+    http2Settings = { http2PriorKnowledge: true });
 
 service /'stream on new http:Listener(http2StreamTest1) {
     resource function get fileupload(http:Caller caller) {

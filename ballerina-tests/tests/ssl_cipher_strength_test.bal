@@ -18,6 +18,7 @@ import ballerina/http;
 import ballerina/test;
 
 http:ListenerConfiguration strongCipherConfig = {
+    httpVersion: "1.1",
     secureSocket: {
         key: {
             path: "tests/certsandkeys/ballerinaKeystore.p12",
@@ -45,6 +46,7 @@ service /strongService on strongCipher {
 }
 
 http:ListenerConfiguration weakCipherConfig = {
+    httpVersion: "1.1",
     secureSocket: {
         key: {
             path: "tests/certsandkeys/ballerinaKeystore.p12",
@@ -73,8 +75,9 @@ service /weakService on weakCipher {
 
 @test:Config {}
 public function testWithStrongClientWithWeakService() returns error? {
-    http:Client clientEP = check new("https://localhost:9227", {
-        secureSocket: {
+    http:Client clientEP = check new("https://localhost:9227", 
+        httpVersion = "1.1",
+        secureSocket = {
             key: {
                 path: "tests/certsandkeys/ballerinaKeystore.p12",
                 password: "ballerina"
@@ -85,7 +88,7 @@ public function testWithStrongClientWithWeakService() returns error? {
             },
             ciphers: ["TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"]
         }
-    });
+    );
     http:Response|error resp = clientEP->get("/weakService/");
     if resp is http:Response {
         test:assertFail(msg = "Found unexpected output: Expected an error" );
@@ -96,8 +99,9 @@ public function testWithStrongClientWithWeakService() returns error? {
 
 @test:Config {}
 public function testWithStrongClientWithStrongService() returns error? {
-    http:Client clientEP = check new("https://localhost:9226", {
-        secureSocket: {
+    http:Client clientEP = check new("https://localhost:9226", 
+        httpVersion = "1.1",
+        secureSocket = {
             key: {
                 path: "tests/certsandkeys/ballerinaKeystore.p12",
                 password: "ballerina"
@@ -108,7 +112,7 @@ public function testWithStrongClientWithStrongService() returns error? {
             },
             ciphers: ["TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"]
         }
-    });
+    );
     http:Response|error resp = clientEP->get("/strongService/");
     if resp is http:Response {
         var payload = resp.getTextPayload();

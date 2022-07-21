@@ -17,7 +17,7 @@
 import ballerina/http;
 import ballerina/test;
 
-listener http:Listener hateoasRuntimeErrorServerEP = check new(hateoasRuntimeErrorPort);
+listener http:Listener hateoasRuntimeErrorServerEP = check new(hateoasRuntimeErrorPort, httpVersion = "1.1");
 
 @test:Config{}
 function testDuplicateResourceName() {

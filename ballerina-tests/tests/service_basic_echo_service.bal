@@ -18,8 +18,8 @@ import ballerina/mime;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener serviceTestEP = new(serviceTest);
-final http:Client stClient = check new("http://localhost:" + serviceTest.toString());
+listener http:Listener serviceTestEP = new(serviceTest, httpVersion = "1.1");
+final http:Client stClient = check new("http://localhost:" + serviceTest.toString(), httpVersion = "1.1");
 
 isolated string globalLevelStr = "";
 

@@ -17,9 +17,9 @@
 import ballerina/http;
 import ballerina/test;
 
-final http:Client callerRespondTestClientEP = check new("http://localhost:" + callerRespondTestPort.toString());
+final http:Client callerRespondTestClientEP = check new("http://localhost:" + callerRespondTestPort.toString(), httpVersion = "1.1");
 
-listener http:Listener callerRespondTestServerEP = new(callerRespondTestPort);
+listener http:Listener callerRespondTestServerEP = new(callerRespondTestPort, httpVersion = "1.1");
 
 service / on callerRespondTestServerEP {
 

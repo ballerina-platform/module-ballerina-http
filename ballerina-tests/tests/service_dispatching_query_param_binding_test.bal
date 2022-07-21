@@ -18,8 +18,8 @@ import ballerina/http;
 import ballerina/test;
 import ballerina/url;
 
-listener http:Listener QueryBindingEP = new(queryParamBindingTest);
-final http:Client queryBindingClient = check new("http://localhost:" + queryParamBindingTest.toString());
+listener http:Listener QueryBindingEP = new(queryParamBindingTest, httpVersion = "1.1");
+final http:Client queryBindingClient = check new("http://localhost:" + queryParamBindingTest.toString(), httpVersion = "1.1");
 
 service /queryparamservice on QueryBindingEP {
 

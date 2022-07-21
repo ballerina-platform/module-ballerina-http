@@ -99,7 +99,7 @@ service /requestPayloadLimit on http2LowPayloadLimitEP {
 @test:Config {}
 function testHttp2ValidUrlLength() returns error? {
     http:Client limitClient = check new("http://localhost:" + http2RequestLimitsTestPort1.toString(), 
-        httpVersion = "2.0", http2Settings = { http2PriorKnowledge: true });
+        http2Settings = { http2PriorKnowledge: true });
     http:Response response = check limitClient->get("/requestUriLimit/validUrl");
     test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
     assertHeaderValue(check response.getHeader(mime:CONTENT_TYPE), TEXT_PLAIN);
@@ -111,7 +111,7 @@ function testHttp2ValidUrlLength() returns error? {
 // @test:Config {}
 function testHttp2InvalidUrlLength() returns error? {
     http:Client limitClient = check new("http://localhost:" + http2RequestLimitsTestPort2.toString(), 
-        httpVersion = "2.0", http2Settings = { http2PriorKnowledge: true });
+        http2Settings = { http2PriorKnowledge: true });
     http:Response response = check limitClient->get("/lowRequestUriLimit/invalidUrl");
     //414 Request-URI Too Long
     test:assertEquals(response.statusCode, 414, msg = "Found unexpected output");
@@ -121,7 +121,7 @@ function testHttp2InvalidUrlLength() returns error? {
 @test:Config {}
 function testHttp2ValidHeaderLength() returns error? {
     http:Client limitClient = check new("http://localhost:" + http2RequestLimitsTestPort4.toString(), 
-        httpVersion = "2.0", http2Settings = { http2PriorKnowledge: true });
+        http2Settings = { http2PriorKnowledge: true });
     http:Response response = check limitClient->get("/requestHeaderLimit/validHeaderSize");
     test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
     assertHeaderValue(check response.getHeader(mime:CONTENT_TYPE), TEXT_PLAIN);
@@ -132,7 +132,7 @@ function testHttp2ValidHeaderLength() returns error? {
 @test:Config {}
 function testHttp2InvalidHeaderLength() returns error? {
     http:Client limitClient = check new("http://localhost:" + http2RequestLimitsTestPort3.toString(), 
-        httpVersion = "2.0", http2Settings = { http2PriorKnowledge: true });
+        http2Settings = { http2PriorKnowledge: true });
     http:Response response = check limitClient->get("/lowRequestHeaderLimit/invalidHeaderSize", {"X-Test":getLargeHeader()});
     //431 Request Header Fields Too Large
     test:assertEquals(response.statusCode, 431, msg = "Found unexpected output");
@@ -142,7 +142,7 @@ function testHttp2InvalidHeaderLength() returns error? {
 @test:Config {}
 function testHttp2Http2ServiceInvalidHeaderLength() returns error? {
     http:Client limitClient = check new("http://localhost:" + requestLimitsTestPort5.toString(), 
-        httpVersion = "2.0", http2Settings = { http2PriorKnowledge: true });
+        http2Settings = { http2PriorKnowledge: true });
     http:Response response = check limitClient->get("/http2service/invalidHeaderSize", {"X-Test":getLargeHeader()});
     test:assertEquals(response.statusCode, 431, msg = "Found unexpected output");
 }
@@ -154,7 +154,7 @@ function testHttp2InvalidPayloadSize() returns error? {
     http:Request req = new;
     req.setTextPayload("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
     http:Client limitClient = check new("http://localhost:" + http2RequestLimitsTestPort6.toString(), 
-        httpVersion = "2.0", http2Settings = { http2PriorKnowledge: true });
+        http2Settings = { http2PriorKnowledge: true });
     http:Response response = check limitClient->post("/requestPayloadLimit/test", req);
     //413 Payload Too Large
     test:assertEquals(response.statusCode, 413, msg = "Found unexpected output");

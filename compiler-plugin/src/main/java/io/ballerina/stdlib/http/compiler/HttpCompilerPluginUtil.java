@@ -127,7 +127,7 @@ public class HttpCompilerPluginUtil {
         }
         TypeDescKind kind = returnTypeSymbol.typeKind();
         if (isAnyDataType(kind) || kind == TypeDescKind.ERROR || kind == TypeDescKind.NIL ||
-                kind == TypeDescKind.ANYDATA) {
+                kind == TypeDescKind.ANYDATA || kind == TypeDescKind.SINGLETON) {
             return;
         }
         if (kind == TypeDescKind.INTERSECTION) {

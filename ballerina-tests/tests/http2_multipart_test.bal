@@ -19,12 +19,10 @@ import ballerina/log;
 import ballerina/mime;
 import ballerina/test;
 
-final http:Client mimeClientEP1 = check new("http://localhost:9100", { httpVersion: "2.0" });
-final http:Client mimeClientEP2 = check new("http://localhost:9100", { httpVersion: "2.0" });
-final http:Client priorKnowclientEP1 = check new("http://localhost:9100", { httpVersion: "2.0",
-                                    http2Settings: { http2PriorKnowledge: true } });
-final http:Client priorKnowclientEP2 = check new("http://localhost:9100", { httpVersion: "2.0",
-                                    http2Settings: { http2PriorKnowledge: true } });
+final http:Client mimeClientEP1 = check new("http://localhost:9100");
+final http:Client mimeClientEP2 = check new("http://localhost:9100");
+final http:Client priorKnowclientEP1 = check new("http://localhost:9100", http2Settings = { http2PriorKnowledge: true });
+final http:Client priorKnowclientEP2 = check new("http://localhost:9100", http2Settings = { http2PriorKnowledge: true });
 
 service /multiparts on generalHTTP2Listener {
 

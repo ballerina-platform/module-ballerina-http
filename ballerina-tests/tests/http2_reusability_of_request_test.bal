@@ -24,10 +24,10 @@ int http2ReuseRequestTestPort = getHttp2Port(reuseRequestTestPort);
 
 listener http:Listener http2ReuseRequestListenerEP = new(http2ReuseRequestTestPort);
 final http:Client http2ReuseRequestClient = check new("http://localhost:" + http2ReuseRequestTestPort.toString(), 
-    httpVersion = "2.0", http2Settings = { http2PriorKnowledge: true });
+    http2Settings = { http2PriorKnowledge: true });
 
 final http:Client http2ClientEP1 = check new("http://localhost:" + http2ReuseRequestTestPort.toString() + "/testService_2", 
-    httpVersion = "2.0", http2Settings = { http2PriorKnowledge: true });
+    http2Settings = { http2PriorKnowledge: true });
 
 service /reuseObj on http2ReuseRequestListenerEP {
 

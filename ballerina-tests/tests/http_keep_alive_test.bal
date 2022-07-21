@@ -17,30 +17,30 @@
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener keepAliveListenerEP = new(keepAliveClientTestPort);
-final http:Client keepAliveClient = check new("http://localhost:" + keepAliveClientTestPort.toString());
+listener http:Listener keepAliveListenerEP = new(keepAliveClientTestPort, httpVersion = "1.1");
+final http:Client keepAliveClient = check new("http://localhost:" + keepAliveClientTestPort.toString(), httpVersion = "1.1");
 
-final http:Client http_1_1_default = check new("http://localhost:" + keepAliveClientTestPort.toString());
+final http:Client http_1_1_default = check new("http://localhost:" + keepAliveClientTestPort.toString(), httpVersion = "1.1");
 
 final http:Client http_1_1_auto = check new("http://localhost:" + keepAliveClientTestPort.toString(),
-                                 { http1Settings : { keepAlive: http:KEEPALIVE_AUTO }});
+    httpVersion = "1.1", http1Settings = { keepAlive: http:KEEPALIVE_AUTO });
 
-final http:Client http_1_1_always = check new("http://localhost:" + keepAliveClientTestPort.toString(),
-                                 { http1Settings : { keepAlive: http:KEEPALIVE_ALWAYS }});
+final http:Client http_1_1_always = check new("http://localhost:" + keepAliveClientTestPort.toString(), 
+    httpVersion = "1.1", http1Settings = { keepAlive: http:KEEPALIVE_ALWAYS });
 
-final http:Client http_1_1_never = check new("http://localhost:" + keepAliveClientTestPort.toString(),
-                                 { http1Settings : { keepAlive: http:KEEPALIVE_NEVER }});
+final http:Client http_1_1_never = check new("http://localhost:" + keepAliveClientTestPort.toString(), 
+    httpVersion = "1.1", http1Settings = { keepAlive: http:KEEPALIVE_NEVER });
 
-final http:Client http_1_0_default = check new("http://localhost:" + keepAliveClientTestPort.toString(), { httpVersion: "1.0" } );
+final http:Client http_1_0_default = check new("http://localhost:" + keepAliveClientTestPort.toString(), httpVersion = "1.0" );
 
-final http:Client http_1_0_auto = check new("http://localhost:" + keepAliveClientTestPort.toString(),
-                                 { httpVersion: "1.0", http1Settings : { keepAlive: http:KEEPALIVE_AUTO }});
+final http:Client http_1_0_auto = check new("http://localhost:" + keepAliveClientTestPort.toString(), 
+    httpVersion = "1.0", http1Settings = { keepAlive: http:KEEPALIVE_AUTO });
 
-final http:Client http_1_0_always = check new("http://localhost:" + keepAliveClientTestPort.toString(),
-                                 { httpVersion: "1.0", http1Settings : { keepAlive: http:KEEPALIVE_ALWAYS }});
+final http:Client http_1_0_always = check new("http://localhost:" + keepAliveClientTestPort.toString(), 
+    httpVersion = "1.0", http1Settings = { keepAlive: http:KEEPALIVE_ALWAYS });
 
-final http:Client http_1_0_never = check new("http://localhost:" + keepAliveClientTestPort.toString(),
-                                 { httpVersion: "1.0", http1Settings : { keepAlive: http:KEEPALIVE_NEVER }});
+final http:Client http_1_0_never = check new("http://localhost:" + keepAliveClientTestPort.toString(), 
+    httpVersion = "1.0", http1Settings = { keepAlive: http:KEEPALIVE_NEVER });
 
 service /keepAliveTest on keepAliveListenerEP {
 

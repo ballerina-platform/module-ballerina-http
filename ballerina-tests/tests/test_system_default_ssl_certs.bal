@@ -17,18 +17,9 @@
 import ballerina/http;
 import ballerina/test;
 
-http:ClientConfiguration defaultCertsConfig = {
-    httpVersion: "2.0"
-};
-
-http:ClientConfiguration defaultCertsConfigWithPriorKnowledge = {
-    httpVersion: "2.0",
-    http2Settings: { http2PriorKnowledge: true }
-};
-
 @test:Config {}
 public function testHttp2WithSystemDefaultCerts() returns error? {
-    http:Client httpClient = check new("https://www.google.com", defaultCertsConfig);
+    http:Client httpClient = check new("https://www.google.com");
     string|error resp = httpClient->get("/");
     if resp is error {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());
@@ -37,7 +28,7 @@ public function testHttp2WithSystemDefaultCerts() returns error? {
 
 @test:Config {}
 public function testHttp2PriorKnowledgeWithSystemDefaultCerts() returns error? {
-    http:Client httpClient = check new("https://www.google.com", defaultCertsConfigWithPriorKnowledge);
+    http:Client httpClient = check new("https://www.google.com", http2Settings = { http2PriorKnowledge: true });
     string|error resp = httpClient->get("/");
     if resp is error {
         test:assertFail(msg = "Found unexpected output: " +  resp.message());

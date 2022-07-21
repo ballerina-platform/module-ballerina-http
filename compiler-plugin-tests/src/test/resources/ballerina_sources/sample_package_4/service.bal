@@ -319,3 +319,67 @@ service http:Service on new http:Listener(9090) {
         return "done"; //error
     }
 }
+
+enum MenuType {
+    BREAK_FAST,
+    LUNCH,
+    DINNER
+}
+
+type Item record {|
+    int _id;
+    string name;
+    string description;
+    decimal price;
+|};
+
+type Menu record {|
+    int _id;
+    MenuType 'type;
+    Item[] items;
+|};
+
+type Restaurant record {|
+    string name;
+    string city;
+    string description;
+    Menu[] menus;
+|};
+
+public type User readonly & record {|
+    int id;
+    int age;
+|};
+
+type RestaurantNew record {|
+    *Restaurant;
+    [int, string, decimal, float, User] address;
+|};
+
+service on new http:Listener(9091) {
+
+    resource function post menuType(@http:Payload MenuType menuType)
+            returns http:Accepted {
+        return http:ACCEPTED;
+    }
+
+    resource function post menu(@http:Payload Menu menu)
+            returns http:Created {
+        return http:CREATED;
+    }
+
+    resource function post restaurants(@http:Payload Restaurant restaurant)
+            returns http:Created {
+        return http:CREATED;
+    }
+
+    resource function post restaurantsNew(@http:Payload RestaurantNew restaurant) returns RestaurantNew {
+        return restaurant;
+    }
+
+    // error
+    resource function post address(@http:Payload [int, string, User] address) returns http:Created {
+        return http:CREATED;
+    }
+}
+

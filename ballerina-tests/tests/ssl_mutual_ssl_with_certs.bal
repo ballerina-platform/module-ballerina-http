@@ -18,6 +18,7 @@ import ballerina/http;
 import ballerina/test;
 
 http:ListenerConfiguration mutualSslCertServiceConf = {
+    httpVersion: "1.1",
     secureSocket: {
         key: {
             certFile: "tests/certsandkeys/public.crt",
@@ -67,6 +68,7 @@ service /mutualSSLService on mutualSSLListener {
 }
 
 http:ClientConfiguration mutualSslCertClientConf1 = {
+    httpVersion: "1.1",
     secureSocket: {
         cert: "tests/certsandkeys/public.crt",
         key: {
@@ -93,6 +95,7 @@ public function testMutualSslWithCerts1() returns error? {
 }
 
 http:ClientConfiguration mutualSslCertClientConf2 = {
+    httpVersion: "1.1",
     secureSocket: {
         key: {
             keyFile: "tests/certsandkeys/private.key",
@@ -114,6 +117,7 @@ public function testMutualSslWithCerts2() returns error? {
 }
 
 http:ClientConfiguration mutualSslCertClientConf3 = {
+    httpVersion: "1.1",
     secureSocket: {
         enable: false,
         key: {

@@ -19,7 +19,7 @@ import ballerina/log;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener CookieTestserverEP = new (9253);
+listener http:Listener CookieTestserverEP = new (9253, httpVersion = "1.1");
 
 service /cookie on CookieTestserverEP {
 
@@ -332,9 +332,8 @@ service /cookieDemo on CookieTestserverEP {
 @test:Config {}
 public isolated function testSendRequestsByCookieClient() returns error? {
     http:CsvPersistentCookieHandler myPersistentStore = new("./cookie-test-data/client-1.csv");
-    http:Client cookieClientEndpoint = check new("http://localhost:9253", {
-            cookieConfig: { enabled: true, persistentCookieHandler: myPersistentStore }
-        });
+    http:Client cookieClientEndpoint = check new("http://localhost:9253", 
+        httpVersion = "1.1", cookieConfig = { enabled: true, persistentCookieHandler: myPersistentStore });
     // Server sends the cookies in the response for the first request.
     http:Response|error response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies");
     // Second request is with a cookie header and server sends more cookies in the response.
@@ -353,9 +352,8 @@ public isolated function testSendRequestsByCookieClient() returns error? {
 @test:Config {}
 public isolated function testRemoveSessionCookieByClient() returns error? {
     http:CsvPersistentCookieHandler myPersistentStore = new("./cookie-test-data/client-2.csv");
-    http:Client cookieClientEndpoint = check new("http://localhost:9253", {
-            cookieConfig: { enabled: true, persistentCookieHandler: myPersistentStore }
-        });
+    http:Client cookieClientEndpoint = check new("http://localhost:9253", 
+        httpVersion = "1.1", cookieConfig = { enabled: true, persistentCookieHandler: myPersistentStore });
     // Server sends cookies in the response for the first request.
     http:Response|error response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies");
     // Removes a session cookie.
@@ -381,9 +379,8 @@ public isolated function testRemoveSessionCookieByClient() returns error? {
 // cookie in the cookie store
 @test:Config {}
 public isolated function testAddSimilarSessionCookies() returns error? {
-    http:Client cookieClientEndpoint = check new("http://localhost:9253", {
-            cookieConfig: { enabled: true }
-        });
+    http:Client cookieClientEndpoint = check new("http://localhost:9253", 
+        httpVersion = "1.1", cookieConfig = { enabled: true });
     // Server sends similar session cookies in the response for the first request.
     http:Response|error response = cookieClientEndpoint->get("/cookie/addSimilarSessionCookie");
     // Sends second request after replacing the old cookie with the new.
@@ -399,9 +396,8 @@ public isolated function testAddSimilarSessionCookies() returns error? {
 @test:Config {}
 public isolated function testRemoveSessionCookieByServer() returns error? {
     http:CsvPersistentCookieHandler myPersistentStore = new("./cookies-test-data/client-4.csv");
-    http:Client cookieClientEndpoint = check new("http://localhost:9253", {
-            cookieConfig: { enabled: true, persistentCookieHandler: myPersistentStore }
-        });
+    http:Client cookieClientEndpoint = check new("http://localhost:9253", 
+        httpVersion = "1.1", cookieConfig = { enabled: true, persistentCookieHandler: myPersistentStore });
     // Server sends the session cookies in the response for the first request.
     http:Response|error response = cookieClientEndpoint->get("/cookie/removeSessionCookie");
     // Server removes an existing session cookie in the cookie store by sending an expired cookie in the response.
@@ -419,25 +415,25 @@ public isolated function testRemoveSessionCookieByServer() returns error? {
 @test:Config {}
 public isolated function testSendRequestsByClient() returns error? {
     http:CsvPersistentCookieHandler myPersistentStore = new("./cookie-test-data/client-6.csv");
-    http:Client cookieClientEndpoint = check new("http://localhost:9253", {
-            retryConfig: {
-                interval: 3,
-                count: 3,
-                backOffFactor: 2.0,
-                maxWaitInterval: 20
+    http:Client cookieClientEndpoint = check new("http://localhost:9253", 
+        httpVersion = "1.1", 
+        retryConfig = {
+            interval: 3,
+            count: 3,
+            backOffFactor: 2.0,
+            maxWaitInterval: 20
+        },
+        circuitBreaker = {
+            rollingWindow: {
+                timeWindow: 10,
+                bucketSize: 2,
+                requestVolumeThreshold: 0
             },
-            circuitBreaker: {
-                rollingWindow: {
-                    timeWindow: 10,
-                    bucketSize: 2,
-                    requestVolumeThreshold: 0
-                },
-                failureThreshold: 0.2,
-                resetTime: 10,
-                statusCodes: [400, 404, 500]
-            },
-            cookieConfig: { enabled: true, persistentCookieHandler: myPersistentStore }
-        });
+            failureThreshold: 0.2,
+            resetTime: 10,
+            statusCodes: [400, 404, 500]
+        },
+        cookieConfig = { enabled: true, persistentCookieHandler: myPersistentStore });
     // Server sends cookies in the response for the first request.
     http:Response|error response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies");
     // Second request is with a cookie header and server sends more cookies in the response.
@@ -456,9 +452,8 @@ public isolated function testSendRequestsByClient() returns error? {
 @test:Config {}
 public function testRemovePersistentCookieByClient() returns error? {
     http:CsvPersistentCookieHandler myPersistentStore = new("./cookie-test-data/client-7.csv");
-    http:Client cookieClientEndpoint = check new("http://localhost:9253", {
-            cookieConfig: { enabled: true, persistentCookieHandler: myPersistentStore }
-        });
+    http:Client cookieClientEndpoint = check new("http://localhost:9253", 
+        httpVersion = "1.1", cookieConfig = { enabled: true, persistentCookieHandler: myPersistentStore });
     // Server sends the cookies in the response for the first request.
     http:Response|error response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies");
     // Removes a persistent cookie.
@@ -485,9 +480,8 @@ public function testRemovePersistentCookieByClient() returns error? {
 @test:Config {}
 public function testAddSimilarPersistentCookies() returns error? {
     http:CsvPersistentCookieHandler myPersistentStore = new("./cookie-test-data/client-8.csv");
-    http:Client cookieClientEndpoint = check new("http://localhost:9253", {
-            cookieConfig: { enabled: true, persistentCookieHandler: myPersistentStore }
-        });
+    http:Client cookieClientEndpoint = check new("http://localhost:9253", 
+        httpVersion = "1.1", cookieConfig = { enabled: true, persistentCookieHandler: myPersistentStore });
     // Server sends similar persistent cookies in the response for the first request.
     http:Response|error response = cookieClientEndpoint->get("/cookie/sendSimilarPersistentCookies");
     // Sends the second request after replacing the old cookie with the new.
@@ -505,9 +499,8 @@ public function testAddSimilarPersistentCookies() returns error? {
 @test:Config {}
 public function testSendSimilarPersistentAndSessionCookies_1() returns error? {
     http:CsvPersistentCookieHandler myPersistentStore = new("./cookie-test-data/client-9.csv");
-    http:Client cookieClientEndpoint = check new("http://localhost:9253", {
-            cookieConfig: { enabled: true, persistentCookieHandler: myPersistentStore }
-        });
+    http:Client cookieClientEndpoint = check new("http://localhost:9253", 
+        httpVersion = "1.1", cookieConfig = { enabled: true, persistentCookieHandler: myPersistentStore });
     // Server sends a session cookie and a similar persistent cookie in the response for the first request.
     http:Response|error response = cookieClientEndpoint->get("/cookie/sendSimilarPersistentAndSessionCookies_1");
     // Sends the second request after replacing the session cookie with the new persistent cookie.
@@ -525,9 +518,8 @@ public function testSendSimilarPersistentAndSessionCookies_1() returns error? {
 @test:Config {}
 public function testSendSimilarPersistentAndSessionCookies_2() returns error? {
     http:CsvPersistentCookieHandler myPersistentStore = new("./cookie-test-data/client-10.csv");
-    http:Client cookieClientEndpoint = check new("http://localhost:9253", {
-            cookieConfig: { enabled: true, persistentCookieHandler: myPersistentStore }
-        });
+    http:Client cookieClientEndpoint = check new("http://localhost:9253", 
+        httpVersion = "1.1", cookieConfig = { enabled: true, persistentCookieHandler: myPersistentStore });
     // Server sends a persistent cookie and a similar session cookie in the response for the first request.
     http:Response|error response = cookieClientEndpoint->get("/cookie/sendSimilarPersistentAndSessionCookies_2");
     // Sends the second request after replacing the persistent cookie with the new session cookie.
@@ -544,9 +536,8 @@ public function testSendSimilarPersistentAndSessionCookies_2() returns error? {
 @test:Config {}
 public function testRemovePersistentCookieByServer() returns error? {
     http:CsvPersistentCookieHandler myPersistentStore = new("./cookie-test-data/client-11.csv");
-    http:Client cookieClientEndpoint = check new("http://localhost:9253", {
-            cookieConfig: { enabled: true, persistentCookieHandler: myPersistentStore }
-        });
+    http:Client cookieClientEndpoint = check new("http://localhost:9253", 
+        httpVersion = "1.1", cookieConfig = { enabled: true, persistentCookieHandler: myPersistentStore });
     // Server sends cookies in the response for the first request.
     http:Response|error response = cookieClientEndpoint->get("/cookie/removePersistentCookieByServer");
     // Server removes an existing persistent cookie in the cookie store by sending an expired cookie in the response.
@@ -564,9 +555,8 @@ public function testRemovePersistentCookieByServer() returns error? {
 // Test to send persistent cookies when the persistentCookieHandler is not configured
 @test:Config {}
 public function testSendPersistentCookiesWithoutPersistentCookieHandler() returns error? {
-    http:Client cookieClientEndpoint = check new("http://localhost:9253", {
-            cookieConfig: { enabled: true }
-        });
+    http:Client cookieClientEndpoint = check new("http://localhost:9253", 
+        httpVersion = "1.1", cookieConfig = { enabled: true });
     // Server sends the cookies in the response for the first request.
     http:Response|error response = cookieClientEndpoint->get("/cookie/addPersistentAndSessionCookies");
     // Second request is with a cookie header and server sends more cookies in the response.
@@ -583,7 +573,7 @@ public function testSendPersistentCookiesWithoutPersistentCookieHandler() return
 // Test the cookie validation when using the getCookies()
 @test:Config {}
 public function testCookieValidation() returns error? {
-    http:Client clientEP = check new("http://localhost:9253");
+    http:Client clientEP = check new("http://localhost:9253", httpVersion = "1.1");
     http:Response|error response = clientEP->get("/cookie/validateCookie", {"Cookie":"user=John; asd=; =sdsdfsf; =gffg; "});
     if response is http:Response {
         assertTextPayload(response.getTextPayload(), "Valid cookies: user=John,asd=,");
@@ -596,9 +586,8 @@ public function testCookieValidation() returns error? {
 // Test to send persistent cookies when the persistentCookieHandler is not configured
 @test:Config {}
 public function testPostSendPersistentCookiesWithoutPersistentCookieHandler() returns error? {
-    http:Client cookieClientEndpoint = check new("http://localhost:9253", {
-            cookieConfig: { enabled: true }
-        });
+    http:Client cookieClientEndpoint = check new("http://localhost:9253", 
+        httpVersion = "1.1", cookieConfig = { enabled: true });
     // Server sends the cookies in the response for the first request.
     http:Response|error response = cookieClientEndpoint->post("/cookie/addPersistentAndSessionCookiesDefault", "");
     // Second request is with a cookie header and server sends more cookies in the response.
@@ -614,9 +603,8 @@ public function testPostSendPersistentCookiesWithoutPersistentCookieHandler() re
 
 @test:Config {}
 public function testPutSendPersistentCookiesWithoutPersistentCookieHandler() returns error? {
-    http:Client cookieClientEndpoint = check new("http://localhost:9253", {
-            cookieConfig: { enabled: true }
-        });
+    http:Client cookieClientEndpoint = check new("http://localhost:9253", 
+        httpVersion = "1.1", cookieConfig = { enabled: true });
     // Server sends the cookies in the response for the first request.
     http:Response|error response = cookieClientEndpoint->put("/cookie/addPersistentAndSessionCookiesDefault", "");
     // Second request is with a cookie header and server sends more cookies in the response.
@@ -632,9 +620,8 @@ public function testPutSendPersistentCookiesWithoutPersistentCookieHandler() ret
 
 @test:Config {}
 public function testPatchSendPersistentCookiesWithoutPersistentCookieHandler() returns error? {
-    http:Client cookieClientEndpoint = check new("http://localhost:9253", {
-            cookieConfig: { enabled: true }
-        });
+    http:Client cookieClientEndpoint = check new("http://localhost:9253", 
+        httpVersion = "1.1", cookieConfig = { enabled: true });
     // Server sends the cookies in the response for the first request.
     http:Response|error response = cookieClientEndpoint->patch("/cookie/addPersistentAndSessionCookiesDefault", "");
     // Second request is with a cookie header and server sends more cookies in the response.
@@ -650,9 +637,8 @@ public function testPatchSendPersistentCookiesWithoutPersistentCookieHandler() r
 
 @test:Config {}
 public function testDeleteSendPersistentCookiesWithoutPersistentCookieHandler() returns error? {
-    http:Client cookieClientEndpoint = check new("http://localhost:9253", {
-            cookieConfig: { enabled: true }
-        });
+    http:Client cookieClientEndpoint = check new("http://localhost:9253", 
+        httpVersion = "1.1", cookieConfig = { enabled: true });
     // Server sends the cookies in the response for the first request.
     http:Response|error response = cookieClientEndpoint->delete("/cookie/addPersistentAndSessionCookiesDefault", "");
     // Second request is with a cookie header and server sends more cookies in the response.
@@ -668,9 +654,8 @@ public function testDeleteSendPersistentCookiesWithoutPersistentCookieHandler() 
 
 @test:Config {}
 public function testHeadSendPersistentCookiesWithoutPersistentCookieHandler() returns error? {
-    http:Client cookieClientEndpoint = check new("http://localhost:9253", {
-            cookieConfig: { enabled: true }
-        });
+    http:Client cookieClientEndpoint = check new("http://localhost:9253", 
+        httpVersion = "1.1", cookieConfig = { enabled: true });
     // Server sends the cookies in the response for the first request.
     http:Response|error response = cookieClientEndpoint->head("/cookie/addPersistentAndSessionCookiesDefault");
     // Second request is with a cookie header and server sends more cookies in the response.
@@ -684,9 +669,8 @@ public function testHeadSendPersistentCookiesWithoutPersistentCookieHandler() re
 
 @test:Config {}
 public function testOptionsSendPersistentCookiesWithoutPersistentCookieHandler() returns error? {
-    http:Client cookieClientEndpoint = check new("http://localhost:9253", {
-            cookieConfig: { enabled: true }
-        });
+    http:Client cookieClientEndpoint = check new("http://localhost:9253", 
+        httpVersion = "1.1", cookieConfig = { enabled: true });
     // Server sends the cookies in the response for the first request.
     http:Response|error response = cookieClientEndpoint->options("/cookie/addPersistentAndSessionCookiesDefault");
     // Second request is with a cookie header and server sends more cookies in the response.
@@ -702,9 +686,8 @@ public function testOptionsSendPersistentCookiesWithoutPersistentCookieHandler()
 
 @test:Config {}
 public function testExecuteSendPersistentCookiesWithoutPersistentCookieHandler() returns error? {
-    http:Client cookieClientEndpoint = check new("http://localhost:9253", {
-            cookieConfig: { enabled: true }
-        });
+    http:Client cookieClientEndpoint = check new("http://localhost:9253", 
+        httpVersion = "1.1", cookieConfig = { enabled: true });
     // Server sends the cookies in the response for the first request.
     http:Response|error response = cookieClientEndpoint->execute("GET",
         "/cookie/addPersistentAndSessionCookiesDefault", "");
@@ -721,9 +704,8 @@ public function testExecuteSendPersistentCookiesWithoutPersistentCookieHandler()
 
 @test:Config {}
 public function testCaseSensitiveDomain() returns error? {
-    http:Client httpClient = check new("http://localhost:9253/cookieDemo", {
-          cookieConfig: { enabled: true }
-      });
+    http:Client httpClient = check new("http://localhost:9253/cookieDemo", 
+        httpVersion = "1.1", cookieConfig = { enabled: true });
     http:Request request = new;
     json jsonPart = {
         name: "John",

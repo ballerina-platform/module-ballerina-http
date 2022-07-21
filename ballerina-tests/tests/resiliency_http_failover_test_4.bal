@@ -22,48 +22,51 @@ import ballerina/mime;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener failoverEP04 = new(9304);
+listener http:Listener failoverEP04 = new(9304, httpVersion = "1.1");
 
 // Create an endpoint with port 8184 for the mock backend services.
-listener http:Listener backendEP04 = new(8184);
+listener http:Listener backendEP04 = new(8184, httpVersion = "1.1");
 
 // Define the failover client end point to call the backend services.
-final http:FailoverClient foBackendEP04 = check new({
-    timeout: 5,
-    failoverCodes: [501, 502, 503],
-    interval: 5,
+final http:FailoverClient foBackendEP04 = check new(
+    httpVersion = "1.1",
+    timeout = 5,
+    failoverCodes = [501, 502, 503],
+    interval = 5,
     // Define set of HTTP Clients that needs to be Failover.
-    targets: [
+    targets = [
         { url: "http://localhost:3467/inavalidEP" },
         { url: "http://localhost:8184/echo04" },
         { url: "http://localhost:8184/mock04" },
         { url: "http://localhost:8184/mock04" }
     ]
-});
+);
 
-final http:FailoverClient foBackendFailureEP04 = check new({
-    timeout: 5,
-    failoverCodes: [501, 502, 503],
-    interval: 5,
+final http:FailoverClient foBackendFailureEP04 = check new(
+    httpVersion = "1.1",
+    timeout = 5,
+    failoverCodes = [501, 502, 503],
+    interval = 5,
     // Define set of HTTP Clients that needs to be Failover.
-    targets: [
+    targets = [
         { url: "http://localhost:3467/inavalidEP" },
         { url: "http://localhost:8184/echo04" },
         { url: "http://localhost:8184/echo04" }
     ]
-});
+);
 
-final http:FailoverClient foStatusCodesEP04 = check new({
-    timeout: 5,
-    failoverCodes: [501, 502, 503],
-    interval: 5,
+final http:FailoverClient foStatusCodesEP04 = check new(
+    httpVersion = "1.1",
+    timeout = 5,
+    failoverCodes = [501, 502, 503],
+    interval = 5,
     // Define set of HTTP Clients that needs to be Failover.
-    targets: [
+    targets = [
         { url: "http://localhost:8184/failureStatusCodeService04" },
         { url: "http://localhost:8184/failureStatusCodeService04" },
         { url: "http://localhost:8184/failureStatusCodeService04" }
     ]
-});
+);
 
 service /failoverDemoService04 on failoverEP04 {
     resource function 'default invokeAllFailureEndpoint04(http:Caller caller, http:Request request) {
@@ -232,7 +235,7 @@ service /failureStatusCodeService04 on backendEP04 {
 function testResponseWithErrorStatusCodes() returns error? {
     string expectedMessage = "All the failover endpoints failed. " +
                 "Last endpoint returned response is: 503 Service Unavailable";
-    http:Client testClient = check new("http://localhost:9304");
+    http:Client testClient = check new("http://localhost:9304", httpVersion = "1.1");
     http:Response|error response = testClient->post("/failoverDemoService04/invokeAllFailureStatusCodesEndpoint", requestPayload);
     if response is http:Response {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");

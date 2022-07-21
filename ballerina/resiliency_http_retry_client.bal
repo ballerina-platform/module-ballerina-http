@@ -68,10 +68,8 @@ client isolated class RetryClient {
         var result = performRetryAction(path, <Request>message, HTTP_POST, self);
         if result is HttpFuture {
             return getInvalidTypeError();
-        } else if result is Response || result is ClientError {
-            return result;
         } else {
-            panic error ClientError("invalid response type received");
+            return result;
         }
     }
 
@@ -85,10 +83,8 @@ client isolated class RetryClient {
         var result = performRetryAction(path, <Request>message, HTTP_HEAD, self);
         if result is HttpFuture {
             return getInvalidTypeError();
-        } else if result is Response || result is ClientError {
-            return result;
         } else {
-            panic error ClientError("invalid response type received");
+            return result;
         }
     }
 
@@ -102,10 +98,8 @@ client isolated class RetryClient {
         var result = performRetryAction(path, <Request>message, HTTP_PUT, self);
         if result is HttpFuture {
             return getInvalidTypeError();
-        } else if result is Response || result is ClientError {
-            return result;
         } else {
-            panic error ClientError("invalid response type received");
+            return result;
         }
     }
 
@@ -119,10 +113,8 @@ client isolated class RetryClient {
         var result = performRetryAction(path, request, HTTP_FORWARD, self);
         if result is HttpFuture {
             return getInvalidTypeError();
-        } else if result is Response || result is ClientError {
-            return result;
         } else {
-            panic error ClientError("invalid response type received");
+            return result;
         }
     }
 
@@ -138,10 +130,8 @@ client isolated class RetryClient {
         var result = performRetryClientExecuteAction(path, <Request>message, httpVerb, self);
         if result is HttpFuture {
             return getInvalidTypeError();
-        } else if result is Response || result is ClientError {
-            return result;
         } else {
-            panic error ClientError("invalid response type received");
+            return result;
         }
     }
 
@@ -155,10 +145,8 @@ client isolated class RetryClient {
         var result = performRetryAction(path, <Request>message, HTTP_PATCH, self);
         if result is HttpFuture {
             return getInvalidTypeError();
-        } else if result is Response || result is ClientError {
-            return result;
         } else {
-            panic error ClientError("invalid response type received");
+            return result;
         }
     }
 
@@ -172,10 +160,8 @@ client isolated class RetryClient {
         var result = performRetryAction(path, <Request>message, HTTP_DELETE, self);
         if result is HttpFuture {
             return getInvalidTypeError();
-        } else if result is Response || result is ClientError {
-            return result;
         } else {
-            panic error ClientError("invalid response type received");
+            return result;
         }
     }
 
@@ -189,10 +175,8 @@ client isolated class RetryClient {
         var result = performRetryAction(path, <Request>message, HTTP_GET, self);
         if result is HttpFuture {
             return getInvalidTypeError();
-        } else if result is Response || result is ClientError {
-            return result;
         } else {
-            panic error ClientError("invalid response type received");
+            return result;
         }
     }
 
@@ -206,10 +190,8 @@ client isolated class RetryClient {
         var result = performRetryAction(path, <Request>message, HTTP_OPTIONS, self);
         if result is HttpFuture {
             return getInvalidTypeError();
-        } else if result is Response || result is ClientError {
-            return result;
         } else {
-            panic error ClientError("invalid response type received");
+            return result;
         }
     }
 
@@ -225,10 +207,8 @@ client isolated class RetryClient {
         var result = performRetryClientExecuteAction(path, <Request>message, HTTP_SUBMIT, self, verb = httpVerb);
         if result is Response {
             return getInvalidTypeError();
-        } else if result is HttpFuture || result is ClientError {
-            return result;
         } else {
-            panic error ClientError("invalid response type received");
+            return result;
         }
     }
 
@@ -339,13 +319,11 @@ isolated function performRetryAction(string path, Request request, HttpOperation
                                 backOffFactor, maxWaitInterval);
                 httpConnectorErr = response;
             }
-        } else if backendResponse is ClientError {
+        } else {
             [interval, currentRetryCount] =
                             calculateEffectiveIntervalAndRetryCount(retryClient, currentRetryCount, interval,
                             backOffFactor, maxWaitInterval);
             httpConnectorErr = backendResponse;
-        } else {
-            panic error ClientError("invalid response type received");
         }
         runtime:sleep(interval);
     }

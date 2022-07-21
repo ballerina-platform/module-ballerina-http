@@ -22,8 +22,10 @@ import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Module;
 import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.creators.ErrorCreator;
+import io.ballerina.runtime.api.types.FunctionType;
 import io.ballerina.runtime.api.types.MethodType;
 import io.ballerina.runtime.api.types.ObjectType;
+import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.TypeId;
 import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
@@ -113,6 +115,7 @@ import static io.ballerina.runtime.api.constants.RuntimeConstants.BALLERINA_VERS
 import static io.ballerina.runtime.api.utils.StringUtils.fromString;
 import static io.ballerina.runtime.api.utils.StringUtils.fromStringArray;
 import static io.ballerina.runtime.api.utils.StringUtils.fromStringSet;
+import static io.ballerina.runtime.api.utils.TypeUtils.getReferredType;
 import static io.ballerina.runtime.observability.ObservabilityConstants.PROPERTY_HTTP_HOST;
 import static io.ballerina.runtime.observability.ObservabilityConstants.PROPERTY_HTTP_PORT;
 import static io.ballerina.runtime.observability.ObservabilityConstants.PROPERTY_KEY_HTTP_STATUS_CODE;
@@ -1817,6 +1820,15 @@ public class HttpUtil {
             errorMsg += ", " + details.toString();
         }
         return errorMsg;
+    }
+
+    public static Type[] getParameterTypes(FunctionType function) {
+        io.ballerina.runtime.api.types.Parameter[] params = function.getParameters();
+        Type[] paramTypes = new Type[params.length];
+        for (int i = 0; i < params.length; i++) {
+            paramTypes[i] = getReferredType(params[i].type);
+        }
+        return paramTypes;
     }
 
     private HttpUtil() {

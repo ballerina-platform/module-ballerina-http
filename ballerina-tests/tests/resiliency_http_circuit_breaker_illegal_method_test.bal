@@ -17,7 +17,7 @@
 import ballerina/test;
 import ballerina/http;
 
-final http:Client backendClientNegative = check new("http://localhost:8086");
+final http:Client backendClientNegative = check new("http://localhost:8086", httpVersion = "1.1");
 
 @test:Config {}
 function testInvokingCBRelatedMethodOnNonCBClients() {

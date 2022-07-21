@@ -20,10 +20,10 @@ import ballerina/test;
 import ballerina/http;
 
 listener http:Listener serverPushFrontendEP = new(serverPushTestPort1);
-listener http:Listener serverPushBackendEP = new(serverPushTestPort2, { httpVersion: "2.0" });
+listener http:Listener serverPushBackendEP = new(serverPushTestPort2);
 
 final http:Client serverPushClient = check new("http://localhost:" + serverPushTestPort1.toString());
-final http:Client backendClientEP = check new("http://localhost:" + serverPushTestPort2.toString(), { httpVersion: "2.0" });
+final http:Client backendClientEP = check new("http://localhost:" + serverPushTestPort2.toString());
 
 service /frontendHttpService on serverPushFrontendEP {
 

@@ -27,8 +27,7 @@ http:ListenerConfiguration sslConf = {
             verifyClient: http:REQUIRE,
             cert: "tests/certsandkeys/public.crt"
         }
-    },
-    httpVersion: "2.0"
+    }
 };
 
 listener http:Listener mutualSslistener = new(9110, sslConf);
@@ -74,8 +73,7 @@ http:ClientConfiguration certsClientConf1 = {
             keyFile: "tests/certsandkeys/private.key",
             certFile: "tests/certsandkeys/public.crt"
         }
-    },
-    httpVersion: "2.0"
+    }
 };
 
 @test:Config {}
@@ -95,8 +93,7 @@ http:ClientConfiguration certsClientConf2 = {
             keyFile: "tests/certsandkeys/private.key",
             certFile: "tests/certsandkeys/public.crt"
         }
-    },
-    httpVersion: "2.0"
+    }
 };
 
 http:ClientConfiguration certsClientConf3 = {
@@ -106,8 +103,7 @@ http:ClientConfiguration certsClientConf3 = {
             keyFile: "tests/certsandkeys/private.key",
             certFile: "tests/certsandkeys/public.crt"
         }
-    },
-    httpVersion: "2.0"
+    }
 };
 
 @test:Config {}

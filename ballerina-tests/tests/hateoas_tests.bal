@@ -90,7 +90,7 @@ function getMockPaymentReceipt(Payment payment) returns PaymentReceipt {
 @http:ServiceConfig {
     mediaTypeSubtypePrefix: "vnd.restBucks"
 }
-service /restBucks on new http:Listener(hateoasTestPort) {
+service /restBucks on new http:Listener(hateoasTestPort, httpVersion = "1.1") {
 
     @http:ResourceConfig {
         name: "order",
@@ -156,7 +156,7 @@ service /restBucks on new http:Listener(hateoasTestPort) {
     }
 }
 
-http:Client jsonClientEP = check new(string`http://localhost:${hateoasTestPort}/restBucks`);
+http:Client jsonClientEP = check new(string`http://localhost:${hateoasTestPort}/restBucks`, httpVersion = "1.1");
 
 @test:Config {}
 function testHateoasLinks1() returns error? {

@@ -18,9 +18,45 @@ import ballerina/lang.'string as strings;
 import ballerina/test;
 import ballerina/http;
 
+enum MenuType {
+    BREAK_FAST,
+    LUNCH,
+    DINNER
+}
+
+type MenuItem record {|
+    int _id;
+    string name;
+    string description;
+    decimal price;
+|};
+
+type Menu record {|
+    int _id;
+    MenuType 'type;
+    MenuItem[] items;
+|};
+
+type Restaurant record {|
+    string name;
+    string city;
+    string description;
+    Menu[] menus;
+|};
+
+public type User readonly & record {|
+    int id;
+    int age;
+|};
+
+type RestaurantNew record {|
+    *Restaurant;
+    [int, string, decimal, float, User] address;
+|};
+
 type newXmlElement xml:Element;
 
-final http:Client anydataBindingClient = check new("http://localhost:" + generalPort.toString());
+final http:Client anydataBindingClient = check new("http://localhost:" + generalPort.toString(), httpVersion = "1.1");
 
 service /anydataB on generalListener {
 
@@ -104,6 +140,10 @@ service /anydataB on generalListener {
         } else {
             return <http:InternalServerError> {body:"No entry found"};
         }
+    }
+
+    resource function post checkRecordWithTuple(@http:Payload RestaurantNew restaurant) returns RestaurantNew {
+        return restaurant;
     }
 
     // byte[]
@@ -319,6 +359,15 @@ service /anydataB on generalListener {
 
     resource function post checkIntSigned32(@http:Payload int:Signed32 payload) returns int:Signed32 {
         return payload;
+    }
+
+    // enums
+    resource function post checkEnum(@http:Payload MenuType menuType) returns MenuType {
+        return menuType;
+    }
+
+    resource function post checkRecordWithEnum(@http:Payload Restaurant restaurant) returns Restaurant {
+        return restaurant;
     }
 }
 
@@ -570,6 +619,25 @@ function testDataBindingWithTableofRecordByType() returns error? {
                ];
     json response = check anydataBindingClient->post("/anydataB/checkRecordTable", j, mediaType = "application/abc");
     assertJsonPayload(response, j[0]);
+}
+
+@test:Config {}
+function testDataBindingRecordWithTuple() returns error? {
+    RestaurantNew restaurant = {
+        name: "name1",
+        city: "city1",
+        address: [10, "street", 9, 12.45, { id: 4012, age: 36 }],
+        description: "description1",
+        menus: [
+            {
+                _id : 5,
+                'type : "LUNCH",
+                items : []
+            }
+        ]
+    };
+    RestaurantNew response = check anydataBindingClient->post("/anydataB/checkRecordWithTuple", restaurant);
+    test:assertEquals(response, restaurant);
 }
 
 @test:Config {}
@@ -943,4 +1011,28 @@ function testDataBindingSubtypeIntSigned32() returns error? {
     int:Signed32 payload = 123;
     int:Signed32 response = check anydataBindingClient->post("/anydataB/checkIntSigned32", payload);
     test:assertEquals(response, payload);
+}
+
+@test:Config {}
+function testDataBindingEnum() returns error? {
+    MenuType response = check anydataBindingClient->post("/anydataB/checkEnum", "DINNER");
+    test:assertEquals(response, "DINNER");
+}
+
+@test:Config {}
+function testDataBindingRecordWithEnum() returns error? {
+    Restaurant restaurant = {
+        name : "name1",
+        city : "city1",
+        description : "description1",
+        menus : [
+            {
+                _id : 5,
+                'type : "LUNCH",
+                items : []
+            }
+        ]
+    };
+    Restaurant response = check anydataBindingClient->post("/anydataB/checkRecordWithEnum", restaurant);
+    test:assertEquals(response, restaurant);
 }
