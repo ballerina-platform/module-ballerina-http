@@ -193,12 +193,11 @@ isolated function getCommonError(Response response, TargetType targetType) retur
 }
 
 isolated function performDataValidation(anydata payload, typedesc<anydata> targetType) returns anydata|ClientError {
-    anydata|error validPayload = constraint:validate(payload, targetType);
-    if validPayload is error {
-        return error PayloadValidationClientError("payload validation failed: " + validPayload.message(), validPayload);
-    } else {
-        return payload;
+    anydata|error validationResult = constraint:validate(payload, targetType);
+    if validationResult is error {
+        return error PayloadValidationClientError("payload validation failed: " + validationResult.message(), validationResult);
     }
+    return payload;
 }
 
 isolated function typeIncludedInUnion(typedesc unionType, any targetType) returns boolean = @java:Method {

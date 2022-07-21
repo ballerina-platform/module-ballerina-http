@@ -58,9 +58,11 @@ public class PayloadParam implements Parameter {
     private boolean nilable;
     private final List<String> mediaTypes = new ArrayList<>();
     private Type customParameterType;
+    private final boolean requireConstraintValidation;
 
-    PayloadParam(String token) {
+    PayloadParam(String token, boolean constraintValidation) {
         this.token = token;
+        this.requireConstraintValidation = constraintValidation;
     }
 
     public void init(Type type, Type customParameterType, int index) {
@@ -149,19 +151,21 @@ public class PayloadParam implements Parameter {
                 case ARRAY_TAG:
                     int actualTypeTag = TypeUtils.getReferredType(((ArrayType) payloadType).getElementType()).getTag();
                     if (actualTypeTag == TypeTags.BYTE_TAG) {
-                        paramFeed[index++] = dataSource;
+                        paramFeed[index++] = constraintValidation(dataSource);
                     } else if (actualTypeTag == TypeTags.RECORD_TYPE_TAG) {
-                        paramFeed[index++]  = JsonToRecordConverter.convert(payloadType, inRequestEntity, readonly);
+                        dataSource = JsonToRecordConverter.convert(payloadType, inRequestEntity, readonly);
+                        paramFeed[index++]  = constraintValidation(dataSource);
                     } else {
                         throw HttpUtil.createHttpError("incompatible element type found inside an array " +
                                                        ((ArrayType) payloadType).getElementType().getName());
                     }
                     break;
                 case TypeTags.RECORD_TYPE_TAG:
-                    paramFeed[index++]  = JsonToRecordConverter.convert(payloadType, inRequestEntity, readonly);
+                    dataSource = JsonToRecordConverter.convert(payloadType, inRequestEntity, readonly);
+                    paramFeed[index++]  = constraintValidation(dataSource);
                     break;
                 default:
-                    paramFeed[index++] = dataSource;
+                    paramFeed[index++] = constraintValidation(dataSource);
             }
         } catch (BError ex) {
             httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
@@ -177,14 +181,7 @@ public class PayloadParam implements Parameter {
             String contentType = HttpUtil.getContentTypeFromTransportMessage(inboundMessage);
             AbstractPayloadBuilder payloadBuilder = getBuilder(contentType, payloadType);
             Object payloadBuilderValue = payloadBuilder.getValue(inRequestEntity, this.readonly);
-            Object result = Constraints.validate(payloadBuilderValue,
-                                                 ValueCreator.createTypedescValue(this.customParameterType));
-            if (result instanceof BError) {
-                throw HttpUtil.createHttpError(
-                        "payload validation failed: " + HttpUtil.getPrintableErrorMsg((BError) result),
-                        HttpErrorType.PAYLOAD_VALIDATION_LISTENER_ERROR);
-            }
-            paramFeed[index] = payloadBuilderValue;
+            paramFeed[index] = constraintValidation(payloadBuilderValue);
             inboundMessage.setProperty(HttpConstants.ENTITY_OBJ, inRequestEntity);
             return ++index;
         } catch (BError ex) {
@@ -200,5 +197,18 @@ public class PayloadParam implements Parameter {
             throw HttpUtil.createHttpError("data binding failed: " + HttpUtil.getPrintableErrorMsg(ex),
                                            HttpErrorType.PAYLOAD_BINDING_LISTENER_ERROR);
         }
+    }
+
+    private Object constraintValidation(Object payloadBuilderValue) {
+        if (requireConstraintValidation) {
+            Object result = Constraints.validate(payloadBuilderValue,
+                                                 ValueCreator.createTypedescValue(this.customParameterType));
+            if (result instanceof BError) {
+                throw HttpUtil.createHttpError(
+                        "payload validation failed: " + HttpUtil.getPrintableErrorMsg((BError) result),
+                        HttpErrorType.PAYLOAD_VALIDATION_LISTENER_ERROR);
+            }
+        }
+        return payloadBuilderValue;
     }
 }

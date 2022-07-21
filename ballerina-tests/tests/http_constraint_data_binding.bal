@@ -18,9 +18,12 @@ import ballerina/constraint;
 import ballerina/http;
 import ballerina/test;
 
-final http:Client clientValidationTestClient = check new("http://localhost:" + clientDatabindingTestPort2.toString());
+final http:Client clientValidationTestClient =
+    check new("http://localhost:" + clientDatabindingTestPort2.toString(), httpVersion = "1.1");
+final http:Client clientValidationLessTestClient =
+    check new("http://localhost:" + clientDatabindingTestPort2.toString(), httpVersion = "1.1", validation = false);
 
-type ValidationPerson record {|
+public type ValidationPerson record {|
     @constraint:String {
         maxLength: 5,
         minLength: 2
@@ -35,14 +38,14 @@ type ValidationPerson record {|
 @constraint:Float {
     minValue: 5.2
 }
-type Price float;
+public type Price float;
 
 @constraint:Array {
     length: 2
 }
-type Weight decimal[];
+public type Weight decimal[];
 
-type ValidationItem record {|
+public type ValidationItem record {|
     Weight weight;
 |};
 
@@ -75,6 +78,27 @@ service /validation on clientDBBackendListener {
     resource function post getWeight(@http:Payload ValidationItem item) returns ValidationItem {
         return item;
     }
+
+    resource function post getUnion(@http:Payload ValidationPerson person) returns string {
+        return person.name;
+    }
+}
+
+@http:ServiceConfig {
+    validation : false
+}
+service /noValidation on clientDBBackendListener {
+    resource function post getRecord(@http:Payload ValidationPerson person) returns string {
+        return person.name;
+    }
+
+    resource function post getPrice(@http:Payload Price price) returns float {
+        return price;
+    }
+
+    resource function post getWeight(@http:Payload ValidationItem item) returns ValidationItem {
+        return item;
+    }
 }
 
 @test:Config {}
@@ -84,10 +108,20 @@ function testConstraintRecordStringField() returns error? {
 }
 
 @test:Config {}
+function testConstraintRecordStringFieldWithUnion() returns error? {
+    ValidationPerson|string person = check clientValidationTestClient->get("/validation/getRecord?name=wso2&age=15");
+    if (person is ValidationPerson) {
+        test:assertEquals(person.name, "wso2");
+    } else {
+        test:assertFail(msg = "Found unexpected output type");
+    }
+}
+
+@test:Config {}
 function testConstraintRecordStringFieldMinLengthError() {
     ValidationPerson|error err = clientValidationTestClient->get("/validation/getRecord?name=a&age=15");
     if err is http:PayloadValidationError {
-        test:assertEquals(err.message(), "payload validation failed: Validation failed for 'minLength' constraint(s).");
+        test:assertEquals(err.message(), "payload validation failed: Validation failed for '$.name:minLength' constraint(s).");
     } else {
         test:assertFail(msg = "Found unexpected output type");
     }
@@ -97,7 +131,7 @@ function testConstraintRecordStringFieldMinLengthError() {
 function testConstraintRecordStringFieldMaxLengthError() {
     ValidationPerson|error err = clientValidationTestClient->get("/validation/getRecord?name=ballerina&age=15");
     if err is http:PayloadValidationError {
-        test:assertEquals(err.message(), "payload validation failed: Validation failed for 'maxLength' constraint(s).");
+        test:assertEquals(err.message(), "payload validation failed: Validation failed for '$.name:maxLength' constraint(s).");
     } else {
         test:assertFail(msg = "Found unexpected output type");
     }
@@ -108,7 +142,7 @@ function testConstraintRecordIntFieldMaxLengthError() {
     ValidationPerson|error err = clientValidationTestClient->get("/validation/getRecord?name=ballerina&age=5");
     if err is error {
         test:assertEquals(err.message(),
-            "payload validation failed: Validation failed for 'maxLength','minValueExclusive' constraint(s).");
+            "payload validation failed: Validation failed for '$.age:minValueExclusive','$.name:maxLength' constraint(s).");
     } else {
         test:assertFail(msg = "Found unexpected output type");
     }
@@ -125,7 +159,7 @@ function testConstraintTypeFloatField() returns error? {
 function testConstraintTypeFloatFieldMinValueError() {
     Price|error err = clientValidationTestClient->get("/validation/getPrice?price=5.1");
     if err is error {
-        test:assertEquals(err.message(), "payload validation failed: Validation failed for 'minValue' constraint(s).");
+        test:assertEquals(err.message(), "payload validation failed: Validation failed for '$:minValue' constraint(s).");
     } else {
         test:assertFail(msg = "Found unexpected output type");
     }
@@ -141,7 +175,7 @@ function testConstraintTypeArrayField() returns error? {
 function testConstraintTypeArrayFieldError(){
     ValidationItem|error err = clientValidationTestClient->get("/validation/get3Weight");
     if err is error {
-        test:assertEquals(err.message(), "payload validation failed: Validation failed for 'length' constraint(s).");
+        test:assertEquals(err.message(), "payload validation failed: Validation failed for '$.weight:length' constraint(s).");
     } else {
         test:assertFail(msg = "Found unexpected output type");
     }
@@ -151,6 +185,14 @@ function testConstraintTypeArrayFieldError(){
 function testResourceConstraintRecordStringField() returns error? {
     ValidationPerson p = {name: "wso2", age: 7};
     string name = check clientValidationTestClient->post("/validation/getRecord", p);
+    test:assertEquals(name, "wso2");
+}
+
+
+@test:Config {}
+function testResourceConstraintRecordStringFieldWithUnion() returns error? {
+    ValidationPerson p = {name: "wso2", age: 7};
+    string name = check clientValidationTestClient->post("/validation/getUnion", p);
     test:assertEquals(name, "wso2");
 }
 
@@ -234,4 +276,55 @@ function testResourceConstraintTypeArrayFieldError() {
     } else {
         test:assertFail(msg = "Found unexpected output type");
     }
+}
+
+@test:Config {}
+function testResourceConstraintRecordIntFieldMaxLengthErrorValidationFalse() returns error? {
+    ValidationPerson p = {name: "name", age: 5};
+    string name = check clientValidationTestClient->post("/noValidation/getRecord", p);
+    test:assertEquals(name, "name");
+}
+
+@test:Config {}
+function testResourceConstraintRecordStringFieldMaxLengthErrorValidationFalse() returns error? {
+    ValidationPerson p = {name: "ballerina", age: 15};
+    string name = check clientValidationTestClient->post("/noValidation/getRecord", p);
+    test:assertEquals(name, "ballerina");
+}
+
+@test:Config {}
+function testResourceConstraintTypeArrayFieldErrorValidationFalse() returns error? {
+    ValidationItem item = {weight: [2.3d, 5.4d, 6.7d]};
+    ValidationItem validationItem = check clientValidationLessTestClient->post("/noValidation/getWeight", item);
+    test:assertEquals(validationItem.weight, [2.3d, 5.4d, 6.7d]);
+}
+
+@test:Config {}
+function testResourceConstraintTypeFloatFieldMinValueErrorValidationFalse() returns error? {
+    Price price = check clientValidationLessTestClient->post("/noValidation/getPrice", 4.1f);
+    test:assertEquals(price, 4.1f);
+}
+
+@test:Config {}
+function testConstraintRecordStringFieldMinLengthErrorValidationFalse() returns error? {
+    ValidationPerson person = check clientValidationLessTestClient->get("/validation/getRecord?name=a&age=15");
+    test:assertEquals(person.name, "a");
+}
+
+@test:Config {}
+function testConstraintRecordIntFieldMaxLengthErrorValidationFalse() returns error? {
+    ValidationPerson person = check clientValidationLessTestClient->get("/validation/getRecord?name=ballerina&age=5");
+    test:assertEquals(person.age, 5);
+}
+
+@test:Config {}
+function testConstraintTypeFloatFieldMinValueErrorValidationFalse() returns error? {
+    Price price = check clientValidationLessTestClient->get("/validation/getPrice?price=5.1");
+    test:assertEquals(price, 5.1f);
+}
+
+@test:Config {}
+function testConstraintTypeArrayFieldErrorValidationFalse() returns error? {
+    ValidationItem item = check clientValidationLessTestClient->get("/validation/get3Weight");
+    test:assertEquals(item.weight, [2.3d, 5.4d, 6.7d]);
 }
