@@ -530,13 +530,13 @@ isolated function getFormDataMap(string formData) returns map<string>|ClientErro
     return parameters;
 }
 
-public type SimpleParamType boolean|int|float|decimal|string;
-public type ParamType SimpleParamType[]|SimpleParamType;
+public type SimpleQueryParamType boolean|int|float|decimal|string;
+public type QueryParamType SimpleQueryParamType[]|SimpleQueryParamType;
 
-public type Params record {|
+public type QueryParams record {|
     never headers?;
     never targetType?;
     never message?;
     never mediaType?;
-    ParamType...;
+    QueryParamType...;
 |};
