@@ -537,6 +537,10 @@ public type SimpleQueryParamType boolean|int|float|decimal|string;
 public type QueryParamType SimpleQueryParamType[]|SimpleQueryParamType;
 
 # Defines the record type of query parameters supported with client resource methods.
+# + headers - headers which cannot be used as a query field
+# + targetType - targetType which cannot be used as a query field
+# + message - message which cannot be used as a query field
+# + mediaType - mediaType which cannot be used as a query field
 public type QueryParams record {|
     never headers?;
     never targetType?;
