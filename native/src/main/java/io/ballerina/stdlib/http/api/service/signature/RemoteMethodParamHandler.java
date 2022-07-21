@@ -50,7 +50,7 @@ public class RemoteMethodParamHandler {
 
     private void validateSignatureParams() {
         for (int index = 0; index < paramTypes.length; index++) {
-            Type parameterType = getParameterTypes(remoteMethod)[index];
+            Type parameterType = this.paramTypes[index];
             String typeName = parameterType.toString();
             switch (typeName) {
                 case REQUEST_CONTEXT_TYPE:

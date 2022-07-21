@@ -16,6 +16,9 @@ path = "../native/build/libs/http-native-@project.version@.jar"
 path = "./lib/mime-native-@stdlib.mimenative.version@.jar"
 
 [[platform.java11.dependency]]
+path = "./lib/constraint-native-@stdlib.constraintnative.version@.jar"
+
+[[platform.java11.dependency]]
 path = "./lib/netty-common-@netty.version@.jar"
 
 [[platform.java11.dependency]]

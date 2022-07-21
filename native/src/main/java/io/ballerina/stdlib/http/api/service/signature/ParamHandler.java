@@ -107,8 +107,10 @@ public class ParamHandler {
         if (paramTypes.length == pathParamCount) {
             return;
         }
+        Type[] customParameterTypes = HttpUtil.getCustomParameterTypes(resource);
         for (int index = pathParamCount; index < paramTypes.length; index++) {
-            Type parameterType = getParameterTypes(resource)[index];
+            Type parameterType = this.paramTypes[index];
+
             String typeName = parameterType.toString();
             switch (typeName) {
                 case REQUEST_CONTEXT_TYPE:
@@ -158,7 +160,7 @@ public class ParamHandler {
                     String paramName = resource.getParamNames()[index];
                     HeaderParam headerParam;
                     if (payloadParam != null && paramName.equals(payloadParam.getToken())) {
-                        payloadParam.init(parameterType, index);
+                        payloadParam.init(parameterType, customParameterTypes[index], index);
                         getOtherParamList().add(payloadParam);
                     } else if ((headerParam = headerParams.get(paramName)) != null) {
                         headerParam.init(parameterType, index);
@@ -294,8 +296,7 @@ public class ParamHandler {
     }
 
     private void validatePathParam(ResourceMethodType resource, int pathParamCount) {
-        Type[] parameterTypes = getParameterTypes(resource);
-        Arrays.stream(parameterTypes, 0, pathParamCount).forEach(type -> {
+        Arrays.stream(this.paramTypes, 0, pathParamCount).forEach(type -> {
             int typeTag = type.getTag();
             if (isValidBasicType(typeTag) || (typeTag == TypeTags.ARRAY_TAG && isValidBasicType(
                     ((ArrayType) type).getElementType().getTag()))) {

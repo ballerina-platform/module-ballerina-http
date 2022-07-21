@@ -77,6 +77,8 @@ public type PayloadValidationError distinct PayloadBindingError;
 
 type PayloadValidationClientError ClientError & PayloadValidationError;
 
+type PayloadValidationListenerError ListenerError & PayloadValidationError;
+
 # Represents an error, which occurred due to a query parameter binding.
 public type QueryParameterBindingError distinct ListenerError;
 

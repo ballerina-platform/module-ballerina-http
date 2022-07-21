@@ -64,6 +64,7 @@ public enum HttpErrorType {
     HEADER_NOT_FOUND_ERROR("HeaderNotFoundError"),
     CLIENT_ERROR("ClientError"),
     PAYLOAD_BINDING_LISTENER_ERROR("PayloadBindingListenerError"),
+    PAYLOAD_VALIDATION_LISTENER_ERROR("PayloadValidationListenerError"),
     HEADER_BINDING_ERROR("HeaderBindingError"),
     QUERY_PARAM_BINDING_ERROR("QueryParameterBindingError"),
     PATH_PARAM_BINDING_ERROR("PathParameterBindingError"),
