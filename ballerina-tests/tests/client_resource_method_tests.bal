@@ -48,8 +48,9 @@ service /foo on clientResourceMethodsServerEP {
         return greeting + " from POST " + path;
     }
 
-    resource function post person(@http:Payload Person person) returns string {
-        return "Greetings! from POST person to " + person.name;
+    resource function post person(@http:Payload Person person, @http:Header string? x\-header, int id) returns string {
+        string greeting = x\-header ?: "Greetings!";
+        return greeting + " from POST person to " + person.name + " with id : " + id.toString();
     }
 
     resource function put [string path](http:Request req, string[]? names) returns string|error {
@@ -119,8 +120,10 @@ function testClientPostResource() returns error? {
     test:assertEquals(response, "Hi from POST bar to John");
 
     Person person = { name: "Henry", age: 35 };
-    response = check clientResourceMethodsClientEP->/foo/person.post(person);
-    test:assertEquals(response, "Greetings! from POST person to Henry");
+    response = check clientResourceMethodsClientEP->/foo/person.post(person, id = 1234);
+    test:assertEquals(response, "Greetings! from POST person to Henry with id : 1234");
+    response = check clientResourceMethodsClientEP->/foo/person.post(person, {x\-header : "Hello"}, id = 1234);
+    test:assertEquals(response, "Hello from POST person to Henry with id : 1234");
     response = check clientResourceMethodsClientEP->/foo/bar.post(payload, mediaType = mime:APPLICATION_FORM_URLENCODED);
     test:assertEquals(response, "key1=value1&key2=value2");
 }
