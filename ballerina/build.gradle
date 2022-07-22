@@ -136,6 +136,7 @@ dependencies {
 task updateTomlFiles {
     doLast {
         def stdlibDependentMimeNativeVersion = project.stdlibMimeVersion
+        def stdlibDependentMimeVersion = stripBallerinaExtensionVersion("${stdlibDependentMimeNativeVersion}")
         def stdlibDependentConstraintNativeVersion = project.stdlibConstraintVersion
         def stdlibDependentNettyVersion = project.nettyVersion
         def stdlibDependentWso2CommonsPoolVersion = project.wso2CommonsPoolVersion
@@ -154,6 +155,7 @@ task updateTomlFiles {
         newBallerinaToml = newBallerinaToml.replace("@tcnative.version@", stdlibDependentNettyTcnativeVersion)
         newBallerinaToml = newBallerinaToml.replace("@mimepull.version@", stdlibDependentMimepullVersion)
         newBallerinaToml = newBallerinaToml.replace("@testng.version@", stdlibDependentTestngVersion)
+        newBallerinaToml = newBallerinaToml.replace("@mime.version@", stdlibDependentMimeVersion)
         ballerinaTomlFile.text = newBallerinaToml
 
         def newCompilerPluginToml = compilerPluginTomlFilePlaceHolder.text.replace("@project.version@", project.version)

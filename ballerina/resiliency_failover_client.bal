@@ -66,6 +66,22 @@ public client isolated class FailoverClient {
         return;
     }
 
+    # The POST resource function implementation of the Failover Connector.
+    #
+    # + path - Request path
+    # + message - An HTTP outbound request or any allowed payload
+    # + headers - The entity headers
+    # + mediaType - The MIME type header of the request entity
+    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + params - The query parameters
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    resource function post [string ...path](RequestMessage message, map<string|string[]>? headers = (), string? mediaType = (),
+            TargetType targetType = <>, *QueryParams params) returns targetType|ClientError = @java:Method {
+        'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
+        name: "postResource"
+    } external;
+
     # The POST remote function implementation of the Failover Connector.
     #
     # + path - Resource path
@@ -92,6 +108,22 @@ public client isolated class FailoverClient {
             return processResponse(result, targetType, self.requireValidation);
         }
     }
+
+    # The PUT resource function implementation of the Failover Connector.
+    #
+    # + path - Request path
+    # + message - An HTTP outbound request or any allowed payload
+    # + headers - The entity headers
+    # + mediaType - The MIME type header of the request entity
+    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + params - The query parameters
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    resource function put [string ...path](RequestMessage message, map<string|string[]>? headers = (), string? mediaType = (),
+            TargetType targetType = <>, *QueryParams params) returns targetType|ClientError = @java:Method {
+        'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
+        name: "putResource"
+    } external;
 
     # The PUT remote function  implementation of the Failover Connector.
     #
@@ -120,6 +152,22 @@ public client isolated class FailoverClient {
         }
     }
 
+    # The PATCH resource function implementation of the Failover Connector.
+    #
+    # + path - Request path
+    # + message - An HTTP outbound request or any allowed payload
+    # + headers - The entity headers
+    # + mediaType - The MIME type header of the request entity
+    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + params - The query parameters
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    resource function patch [string ...path](RequestMessage message, map<string|string[]>? headers = (), string? mediaType = (),
+            TargetType targetType = <>, *QueryParams params) returns targetType|ClientError = @java:Method {
+        'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
+        name: "patchResource"
+    } external;
+
     # The PATCH remote function implementation of the Failover Connector.
     #
     # + path - Resource path
@@ -146,6 +194,22 @@ public client isolated class FailoverClient {
             return processResponse(result, targetType, self.requireValidation);
         }
     }
+
+    # The DELETE resource function implementation of the Failover Connector.
+    #
+    # + path - Request path
+    # + message - An optional HTTP outbound request or any allowed payload
+    # + headers - The entity headers
+    # + mediaType - The MIME type header of the request entity
+    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + params - The query parameters
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    resource function delete [string ...path](RequestMessage message = (), map<string|string[]>? headers = (), string? mediaType = (),
+            TargetType targetType = <>, *QueryParams params) returns targetType|ClientError = @java:Method {
+        'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
+        name: "deleteResource"
+    } external;
 
     # The DELETE remote function implementation of the Failover Connector.
     #
@@ -174,6 +238,18 @@ public client isolated class FailoverClient {
         }
     }
 
+    # The HEAD resource function implementation of the Failover Connector.
+    #
+    # + path - Request path
+    # + headers - The entity headers
+    # + params - The query parameters
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    resource function head [string ...path](map<string|string[]>? headers = (), *QueryParams params)
+            returns Response|ClientError = @java:Method {
+        'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
+        name: "headResource"
+    } external;
+
     # The HEAD remote function implementation of the Failover Connector.
     #
     # + path - Resource path
@@ -188,6 +264,20 @@ public client isolated class FailoverClient {
             return result;
         }
     }
+
+    # The GET resource function implementation of the Failover Connector.
+    #
+    # + path - Request path
+    # + headers - The entity headers
+    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + params - The query parameters
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    resource function get [string ...path](map<string|string[]>? headers = (), TargetType targetType = <>,
+            *QueryParams params) returns targetType|ClientError = @java:Method {
+        'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
+        name: "getResource"
+    } external;
 
     # The GET remote function implementation of the Failover Connector.
     #
@@ -211,6 +301,20 @@ public client isolated class FailoverClient {
             return processResponse(result, targetType, self.requireValidation);
         }
     }
+
+    # The OPTIONS resource function implementation of the Failover Connector.
+    #
+    # + path - Request path
+    # + headers - The entity headers
+    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + params - The query parameters
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    resource function options [string ...path](map<string|string[]>? headers = (), TargetType targetType = <>,
+            *QueryParams params) returns targetType|ClientError = @java:Method {
+        'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
+        name: "optionsResource"
+    } external;
 
     # The OPTIONS remote function implementation of the Failover Connector.
     #

@@ -57,6 +57,22 @@ public client isolated class Client {
         return;
     }
 
+    # The client resource function to send HTTP POST requests to HTTP endpoints.
+    #
+    # + path - Request path
+    # + message - An HTTP outbound request or any allowed payload
+    # + headers - The entity headers
+    # + mediaType - The MIME type header of the request entity
+    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + params - The query parameters
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    resource function post [string ...path](RequestMessage message, map<string|string[]>? headers = (), string? mediaType = (),
+            TargetType targetType = <>, *QueryParams params) returns targetType|ClientError = @java:Method {
+        'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
+        name: "postResource"
+    } external;
+
     # The `Client.post()` function can be used to send HTTP POST requests to HTTP endpoints.
     #
     # + path - Resource path
@@ -82,6 +98,22 @@ public client isolated class Client {
         }
         return processResponse(response, targetType, self.requireValidation);
     }
+
+    # The client resource function to send HTTP PUT requests to HTTP endpoints.
+    #
+    # + path - Request path
+    # + message - An HTTP outbound request or any allowed payload
+    # + headers - The entity headers
+    # + mediaType - The MIME type header of the request entity
+    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + params - The query parameters
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    resource function put [string ...path](RequestMessage message, map<string|string[]>? headers = (), string? mediaType = (),
+            TargetType targetType = <>, *QueryParams params) returns targetType|ClientError = @java:Method {
+        'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
+        name: "putResource"
+    } external;
 
     # The `Client.put()` function can be used to send HTTP PUT requests to HTTP endpoints.
     #
@@ -109,6 +141,22 @@ public client isolated class Client {
         return processResponse(response, targetType, self.requireValidation);
     }
 
+    # The client resource function to send HTTP PATCH requests to HTTP endpoints.
+    #
+    # + path - Request path
+    # + message - An HTTP outbound request or any allowed payload
+    # + headers - The entity headers
+    # + mediaType - The MIME type header of the request entity
+    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + params - The query parameters
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    resource function patch [string ...path](RequestMessage message, map<string|string[]>? headers = (), string? mediaType = (),
+            TargetType targetType = <>, *QueryParams params) returns targetType|ClientError = @java:Method {
+        'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
+        name: "patchResource"
+    } external;
+
     # The `Client.patch()` function can be used to send HTTP PATCH requests to HTTP endpoints.
     #
     # + path - Resource path
@@ -134,6 +182,22 @@ public client isolated class Client {
         }
         return processResponse(response, targetType, self.requireValidation);
     }
+
+    # The client resource function to send HTTP DELETE requests to HTTP endpoints.
+    #
+    # + path - Request path
+    # + message - An optional HTTP outbound request or any allowed payload
+    # + headers - The entity headers
+    # + mediaType - The MIME type header of the request entity
+    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + params - The query parameters
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    resource function delete [string ...path](RequestMessage message = (), map<string|string[]>? headers = (), string? mediaType = (),
+            TargetType targetType = <>, *QueryParams params) returns targetType|ClientError = @java:Method {
+        'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
+        name: "deleteResource"
+    } external;
 
     # The `Client.delete()` function can be used to send HTTP DELETE requests to HTTP endpoints.
     #
@@ -161,6 +225,18 @@ public client isolated class Client {
         return processResponse(response, targetType, self.requireValidation);
     }
 
+    # The client resource function to send HTTP HEAD requests to HTTP endpoints.
+    #
+    # + path - Request path
+    # + headers - The entity headers
+    # + params - The query parameters
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    resource function head [string ...path](map<string|string[]>? headers = (), *QueryParams params)
+            returns Response|ClientError = @java:Method {
+        'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
+        name: "headResource"
+    } external;
+
     # The `Client.head()` function can be used to send HTTP HEAD requests to HTTP endpoints.
     #
     # + path - Resource path
@@ -174,6 +250,20 @@ public client isolated class Client {
         }
         return response;
     }
+    
+    # The client resource function to send HTTP GET requests to HTTP endpoints.
+    #
+    # + path - Request path
+    # + headers - The entity headers
+    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + params - The query parameters
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    resource function get [string ...path](map<string|string[]>? headers = (), TargetType targetType = <>,
+            *QueryParams params) returns targetType|ClientError = @java:Method {
+        'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
+        name: "getResource"
+    } external;
 
     # The `Client.get()` function can be used to send HTTP GET requests to HTTP endpoints.
     #
@@ -196,6 +286,20 @@ public client isolated class Client {
         }
         return processResponse(response, targetType, self.requireValidation);
     }
+
+    # The client resource function to send HTTP OPTIONS requests to HTTP endpoints.
+    #
+    # + path - Request path
+    # + headers - The entity headers
+    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + params - The query parameters
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    resource function options [string ...path](map<string|string[]>? headers = (), TargetType targetType = <>,
+            *QueryParams params) returns targetType|ClientError = @java:Method {
+        'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
+        name: "optionsResource"
+    } external;
 
     # The `Client.options()` function can be used to send HTTP OPTIONS requests to HTTP endpoints.
     #
@@ -400,9 +504,11 @@ public type ClientConfiguration record {|
 #
 # + keepAlive - Specifies whether to reuse a connection for multiple requests
 # + chunking - The chunking behaviour of the request
+# + proxy - Proxy server related options
 public type ClientHttp1Settings record {|
     KeepAlive keepAlive = KEEPALIVE_AUTO;
     Chunking chunking = CHUNKING_AUTO;
+    ProxyConfig? proxy = ();
 |};
 
 # Provides inbound response status line, total header and entity body size threshold configurations.

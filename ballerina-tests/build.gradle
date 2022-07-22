@@ -212,7 +212,7 @@ task stopLdapServer() {
     }
 }
 
-ballerinaTest.finalizedBy stopLdapServer
-ballerinaTest.dependsOn startLdapServer
-test.dependsOn ballerinaTest
+//ballerinaTest.finalizedBy stopLdapServer
+//ballerinaTest.dependsOn startLdapServer
+//test.dependsOn ballerinaTest
 build.dependsOn test
