@@ -1232,6 +1232,7 @@ public class HttpUtil {
                     .get(HttpConstants.HTTP1_SETTINGS);
             BMap proxyFromHttp1Settings = http1Settings.getMapValue(HttpConstants.PROXY_STRUCT_REFERENCE);
             if (proxyFromHttp1Settings != null) {
+                // TODO: Remove this warning once ballerina deprecated annotation is supported for record fields.
                 err.println(HttpConstants.HTTP_RUNTIME_WARNING_PREFIX + HttpConstants.DEPRECATED_PROXY_CONFIG_WARNING);
                 if (proxy == null) {
                     proxy = proxyFromHttp1Settings;
