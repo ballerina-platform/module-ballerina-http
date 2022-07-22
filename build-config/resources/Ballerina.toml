@@ -7,12 +7,15 @@ keywords = ["http", "network", "service", "listener", "client"]
 repository = "https://github.com/ballerina-platform/module-ballerina-http"
 icon = "icon.png"
 license = ["Apache-2.0"]
-distribution = "2201.1.0"
+distribution = "2201.2.0"
 
 [[platform.java11.dependency]]
 path = "../native/build/libs/http-native-@project.version@.jar"
 
 [[platform.java11.dependency]]
+groupId = "io.ballerina.stdlib"
+artifactId = "mime-native"
+version = "@mime.version@"
 path = "./lib/mime-native-@stdlib.mimenative.version@.jar"
 
 [[platform.java11.dependency]]
