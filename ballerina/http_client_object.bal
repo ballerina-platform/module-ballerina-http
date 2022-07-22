@@ -17,6 +17,89 @@
 # The representation of the http Client object type for managing resilient clients.
 public type ClientObject client object {
 
+    # The client resource function to send HTTP POST requests to HTTP endpoints.
+    #
+    # + path - Request path
+    # + message - An HTTP outbound request or any allowed payload
+    # + headers - The entity headers
+    # + mediaType - The MIME type header of the request entity
+    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + params - The query parameters
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    resource function post [string ...path](RequestMessage message, map<string|string[]>? headers = (), string? mediaType = (),
+            TargetType targetType = <>, *QueryParams params) returns targetType|ClientError;
+
+    # The client resource function to send HTTP PUT requests to HTTP endpoints.
+    #
+    # + path - Request path
+    # + message - An HTTP outbound request or any allowed payload
+    # + headers - The entity headers
+    # + mediaType - The MIME type header of the request entity
+    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + params - The query parameters
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    resource function put [string ...path](RequestMessage message, map<string|string[]>? headers = (), string? mediaType = (),
+            TargetType targetType = <>, *QueryParams params) returns targetType|ClientError;
+
+    # The client resource function to send HTTP PATCH requests to HTTP endpoints.
+    #
+    # + path - Request path
+    # + message - An HTTP outbound request or any allowed payload
+    # + headers - The entity headers
+    # + mediaType - The MIME type header of the request entity
+    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + params - The query parameters
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    resource function patch [string ...path](RequestMessage message, map<string|string[]>? headers = (), string? mediaType = (),
+            TargetType targetType = <>, *QueryParams params) returns targetType|ClientError;
+
+    # The client resource function to send HTTP DELETE requests to HTTP endpoints.
+    #
+    # + path - Request path
+    # + message - An optional HTTP outbound request or any allowed payload
+    # + headers - The entity headers
+    # + mediaType - The MIME type header of the request entity
+    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + params - The query parameters
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    resource function delete [string ...path](RequestMessage message = (), map<string|string[]>? headers = (), string? mediaType = (),
+            TargetType targetType = <>, *QueryParams params) returns targetType|ClientError;
+
+    # The client resource function to send HTTP HEAD requests to HTTP endpoints.
+    #
+    # + path - Request path
+    # + headers - The entity headers
+    # + params - The query parameters
+    # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
+    resource function head [string ...path](map<string|string[]>? headers = (), *QueryParams params)
+            returns Response|ClientError;
+
+    # The client resource function to send HTTP GET requests to HTTP endpoints.
+    #
+    # + path - Request path
+    # + headers - The entity headers
+    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + params - The query parameters
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    resource function get [string ...path](map<string|string[]>? headers = (), TargetType targetType = <>,
+            *QueryParams params) returns targetType|ClientError;
+
+    # The client resource function to send HTTP OPTIONS requests to HTTP endpoints.
+    #
+    # + path - Request path
+    # + headers - The entity headers
+    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + params - The query parameters
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    resource function options [string ...path](map<string|string[]>? headers = (), TargetType targetType = <>,
+            *QueryParams params) returns targetType|ClientError;
+
     # The `Client.post()` function can be used to send HTTP POST requests to HTTP endpoints.
     #
     # + path - Resource path
