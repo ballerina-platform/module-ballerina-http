@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Add proxy support for HTTP2 client](https://github.com/ballerina-platform/module-ballerina-http/pull/1128)
 - [Make http2 the default transport in http](https://github.com/ballerina-platform/ballerina-standard-library/issues/454)
 - [Add support for client resource methods in HTTP client](https://github.com/ballerina-platform/ballerina-standard-library/issues/3102)
+- [Add constraint validation to HTTP payload binding](https://github.com/ballerina-platform/ballerina-standard-library/issues/3108)
 
 ### Changed
 - [Update default response status as HTTP 201 for POST resources](https://github.com/ballerina-platform/ballerina-standard-library/issues/2469)
