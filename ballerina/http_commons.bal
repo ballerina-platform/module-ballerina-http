@@ -529,3 +529,22 @@ isolated function getFormDataMap(string formData) returns map<string>|ClientErro
     }
     return parameters;
 }
+
+# Defines the possible simple query parameter types.
+public type SimpleQueryParamType boolean|int|float|decimal|string;
+
+# Defines the query parameter type supported with client resource methods.
+public type QueryParamType SimpleQueryParamType[]|SimpleQueryParamType;
+
+# Defines the record type of query parameters supported with client resource methods.
+# + headers - headers which cannot be used as a query field
+# + targetType - targetType which cannot be used as a query field
+# + message - message which cannot be used as a query field
+# + mediaType - mediaType which cannot be used as a query field
+public type QueryParams record {|
+    never headers?;
+    never targetType?;
+    never message?;
+    never mediaType?;
+    QueryParamType...;
+|};
