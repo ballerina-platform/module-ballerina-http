@@ -38,6 +38,7 @@ public class HttpConstants {
     public static final String HTTP_ENDPOINT_STOPPED = "[ballerina/http] stopped HTTP/WS listener ";
     public static final String HTTP_RUNTIME_WARNING_PREFIX = "warning: [ballerina/http] ";
     public static final String HTTPS_RECOMMENDATION_ERROR = "HTTPS is recommended but using HTTP";
+    public static final String DEPRECATED_PROXY_CONFIG_WARNING = "Proxy setting inside http1Settings is deprecated";
 
     public static final String BASE_PATH = "BASE_PATH";
     public static final String SUB_PATH = "SUB_PATH";

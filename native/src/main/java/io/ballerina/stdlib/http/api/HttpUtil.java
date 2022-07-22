@@ -167,6 +167,7 @@ import static io.ballerina.stdlib.mime.util.MimeConstants.OCTET_STREAM;
 import static io.ballerina.stdlib.mime.util.MimeConstants.REQUEST_ENTITY_FIELD;
 import static io.ballerina.stdlib.mime.util.MimeConstants.RESPONSE_ENTITY_FIELD;
 import static io.netty.handler.codec.http.HttpHeaderNames.CACHE_CONTROL;
+import static java.lang.System.err;
 
 /**
  * Utility class providing utility methods.
@@ -1226,6 +1227,17 @@ public class HttpUtil {
             }
         }
         BMap proxy = clientEndpointConfig.getMapValue(HttpConstants.PROXY_STRUCT_REFERENCE);
+        if (HTTP_1_1_VERSION.equals(httpVersion)) {
+            BMap<BString, Object> http1Settings = (BMap<BString, Object>) clientEndpointConfig
+                    .get(HttpConstants.HTTP1_SETTINGS);
+            BMap proxyFromHttp1Settings = http1Settings.getMapValue(HttpConstants.PROXY_STRUCT_REFERENCE);
+            if (proxyFromHttp1Settings != null) {
+                err.println(HttpConstants.HTTP_RUNTIME_WARNING_PREFIX + HttpConstants.DEPRECATED_PROXY_CONFIG_WARNING);
+                if (proxy == null) {
+                    proxy = proxyFromHttp1Settings;
+                }
+            }
+        }
         if (proxy != null) {
             String proxyHost = proxy.getStringValue(HttpConstants.PROXY_HOST).getValue();
             int proxyPort = proxy.getIntValue(HttpConstants.PROXY_PORT).intValue();
