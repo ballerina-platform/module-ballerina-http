@@ -21,6 +21,23 @@ import ballerina/mime;
 import ballerina/url;
 
 final http:Client clientResourceMethodsClientEP = check new("http://localhost:" + clientResourceMethodsTestPort.toString());
+
+final http:FailoverClient failoverClientEP = check new(
+    timeout = 5,
+    failoverCodes = [501, 502, 503],
+    interval = 5,
+    targets = [
+        { url: "http://localhost:" + clientResourceMethodsTestPort.toString() }
+    ]
+);
+
+final http:LoadBalanceClient loadBalancerClientEP = check new(
+    targets = [
+        { url: "http://localhost:" + clientResourceMethodsTestPort.toString() }
+    ],
+    timeout = 5
+);
+
 listener http:Listener clientResourceMethodsServerEP = check new(clientResourceMethodsTestPort);
 
 service /foo on clientResourceMethodsServerEP {
@@ -168,3 +185,31 @@ function testClientOptionsResource() returns error? {
     string response = check clientResourceMethodsClientEP->/foo/bar.options(name = "John", headers = {x\-greeting : "Hey"});
     test:assertEquals(response, "Hey from OPTIONS bar to John");
 }
+
+@test:Config {}
+function testResourceMethodsInFailoverClient() returns error? {
+    check testResourceMethodsWithOtherPublicClients(failoverClientEP);
+}
+
+@test:Config {}
+function testResourceMethodsInLoadBalancerClient() returns error? {
+    check testResourceMethodsWithOtherPublicClients(loadBalancerClientEP);
+}
+
+function testResourceMethodsWithOtherPublicClients(http:ClientObject clientEP) returns error? {
+    string response = check clientEP->/foo/bar.post("Hello");
+    test:assertEquals(response, "Hello from POST bar");
+    response = check clientEP->/foo/bar.put("Hello");
+    test:assertEquals(response, "Hello from PUT bar");
+    response = check clientEP->/foo/bar.patch("Hi", params = {"id": 4321, "name": "James"});
+    test:assertEquals(response, "Hi from PATCH bar to James with user id : 4321");
+    response = check clientEP->/foo/bar.delete("Hello", {x\-names: ["John", "James"]});
+    test:assertEquals(response, "Hello from DELETE bar to John, Hello from DELETE bar to James");
+    response = check clientEP->/foo/bar();
+    test:assertEquals(response, "Greetings! from GET bar");
+    response = check clientEP->/foo/bar.options({x\-greeting : "Hey"}, name = "John");
+    test:assertEquals(response, "Hey from OPTIONS bar to John");
+    http:Response resp = check clientEP->/foo/barBaz.head({x\-greeting : "Hey"}, {"name": "George"});
+    assertTextPayload(resp.getTextPayload(), "Hey from HEAD barBaz to George");
+}
+
