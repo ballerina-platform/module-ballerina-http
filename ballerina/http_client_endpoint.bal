@@ -501,9 +501,11 @@ public type ClientConfiguration record {|
 #
 # + keepAlive - Specifies whether to reuse a connection for multiple requests
 # + chunking - The chunking behaviour of the request
+# + proxy - Proxy server related options
 public type ClientHttp1Settings record {|
     KeepAlive keepAlive = KEEPALIVE_AUTO;
     Chunking chunking = CHUNKING_AUTO;
+    ProxyConfig? proxy = ();
 |};
 
 # Provides inbound response status line, total header and entity body size threshold configurations.
