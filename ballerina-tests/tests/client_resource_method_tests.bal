@@ -1,0 +1,215 @@
+// Copyright (c) 2022 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+//
+// WSO2 Inc. licenses this file to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file except
+// in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
+import ballerina/test;
+import ballerina/http;
+import ballerina/lang.'string as strings;
+import ballerina/mime;
+import ballerina/url;
+
+final http:Client clientResourceMethodsClientEP = check new("http://localhost:" + clientResourceMethodsTestPort.toString());
+
+final http:FailoverClient failoverClientEP = check new(
+    timeout = 5,
+    failoverCodes = [501, 502, 503],
+    interval = 5,
+    targets = [
+        { url: "http://localhost:" + clientResourceMethodsTestPort.toString() }
+    ]
+);
+
+final http:LoadBalanceClient loadBalancerClientEP = check new(
+    targets = [
+        { url: "http://localhost:" + clientResourceMethodsTestPort.toString() }
+    ],
+    timeout = 5
+);
+
+listener http:Listener clientResourceMethodsServerEP = check new(clientResourceMethodsTestPort);
+
+service /foo on clientResourceMethodsServerEP {
+
+    resource function get [string path](@http:Header string? x\-name, int? id) returns string {
+        if x\-name is string {
+            return "Greetings! from GET " + path + " to " + x\-name;
+        }
+        if id is int {
+            return "Greetings! from GET " + path + " to user id : " + id.toString();
+        }
+        return "Greetings! from GET " + path;
+    }
+
+    resource function post [string path](http:Request req, string? name) returns string|error {
+        string contentType = req.getContentType();
+        string greeting = check req.getTextPayload();
+        if contentType == mime:APPLICATION_FORM_URLENCODED {
+            string decodedContent = check url:decode(greeting, "UTF-8");
+            return decodedContent;
+        }
+        if name is string {
+            return greeting + " from POST " + path + " to " + name;
+        }
+        return greeting + " from POST " + path;
+    }
+
+    resource function post person(@http:Payload Person person, @http:Header string? x\-header, int id) returns string {
+        string greeting = x\-header ?: "Greetings!";
+        return greeting + " from POST person to " + person.name + " with id : " + id.toString();
+    }
+
+    resource function put [string path](http:Request req, string[]? names) returns string|error {
+        string greeting = check req.getTextPayload();
+        if names is () {
+            return greeting + " from PUT " + path;
+        } else {
+            string[] msg = [];
+            foreach string name in names {
+                msg.push(greeting + " from PUT " + path + " to " + name);
+            }
+            return strings:'join(", ", ...msg);
+        }
+    }
+
+    resource function delete [string path](@http:Header string[] x\-names, @http:Payload string? payload) returns string {
+        string greeting = payload ?: "Hi";
+        string[] msg = [];
+        foreach string name in x\-names {
+            msg.push(greeting + " from DELETE " + path + " to " + name);
+        }
+        return strings:'join(", ", ...msg);
+    }
+
+    resource function patch [string path](@http:Payload string greeting, string name, int id) returns string {
+        return greeting + " from PATCH " + path + " to " + name + " with user id : " + id.toString();
+    }
+
+    resource function head [string path](@http:Header string x\-greeting, string name) returns string {
+        return x\-greeting + " from HEAD " + path + " to " + name;
+    }
+
+    resource function options [string path](@http:Header string x\-greeting, string name) returns string {
+        return x\-greeting + " from OPTIONS " + path + " to " + name;
+    }
+}
+
+@test:Config {}
+function testClientGetResource() returns error?{
+    string response = check clientResourceMethodsClientEP->/foo/bar();
+    test:assertEquals(response, "Greetings! from GET bar");
+    response = check clientResourceMethodsClientEP->/foo/baz.get();
+    test:assertEquals(response, "Greetings! from GET baz");
+
+    string[] paths = ["foo", "baz"];
+    response = check clientResourceMethodsClientEP->/[paths[0]]/bar({"x-name" : "James"});
+    test:assertEquals(response, "Greetings! from GET bar to James");
+    response = check clientResourceMethodsClientEP->/[...paths](id = 1234);
+    test:assertEquals(response, "Greetings! from GET baz to user id : 1234");
+
+    response = check clientResourceMethodsClientEP->/foo/bar(id = 1234, headers = {"x-name" : "James"});
+    test:assertEquals(response, "Greetings! from GET bar to James");
+
+    var resp = check clientResourceMethodsClientEP->/foo/bar(targetType = string, id = 1234);
+    test:assertEquals(resp, "Greetings! from GET bar to user id : 1234");
+    resp = check clientResourceMethodsClientEP->/foo/bar({"x-name" : "James"}, string, id = 1234);
+    test:assertEquals(resp, "Greetings! from GET bar to James");
+}
+
+@test:Config {}
+function testClientPostResource() returns error? {
+    string response = check clientResourceMethodsClientEP->/foo/bar.post("Hello");
+    test:assertEquals(response, "Hello from POST bar");
+    response = check clientResourceMethodsClientEP->/foo/baz.post("Hello", name = "James");
+    test:assertEquals(response, "Hello from POST baz to James");
+    response = check clientResourceMethodsClientEP->/foo/bar.post(name = "John", message = "Hi");
+    test:assertEquals(response, "Hi from POST bar to John");
+
+    Person person = { name: "Henry", age: 35 };
+    response = check clientResourceMethodsClientEP->/foo/person.post(person, id = 1234);
+    test:assertEquals(response, "Greetings! from POST person to Henry with id : 1234");
+    response = check clientResourceMethodsClientEP->/foo/person.post(person, {x\-header : "Hello"}, id = 1234);
+    test:assertEquals(response, "Hello from POST person to Henry with id : 1234");
+    response = check clientResourceMethodsClientEP->/foo/bar.post(payload, mediaType = mime:APPLICATION_FORM_URLENCODED);
+    test:assertEquals(response, "key1=value1&key2=value2");
+}
+
+@test:Config {}
+function testClientPutResource() returns error? {
+    http:Request req = new;
+    req.setTextPayload("Howdy!");
+    string response = check clientResourceMethodsClientEP->/foo/baz.put(req);
+    test:assertEquals(response, "Howdy! from PUT baz");
+    response = check clientResourceMethodsClientEP->/foo/baz.put("Hello", names = ["John", "James", "Howard"]);
+    test:assertEquals(response, "Hello from PUT baz to John, Hello from PUT baz to James, Hello from PUT baz to Howard");
+    response = check clientResourceMethodsClientEP->/foo/baz.put(names = ["John", 4, true, 5.64], message = "Hello");
+    test:assertEquals(response, "Hello from PUT baz to John, Hello from PUT baz to 4, Hello from PUT baz to true, " +
+                                "Hello from PUT baz to 5.64");
+}
+
+@test:Config {}
+function testClientDeleteResource() returns error? {
+    string response = check clientResourceMethodsClientEP->/foo/bar.delete(headers = {x\-names: ["John", "James"]});
+    test:assertEquals(response, "Hi from DELETE bar to John, Hi from DELETE bar to James");
+    response = check clientResourceMethodsClientEP->/foo/bar.delete("Hello", {x\-names: ["John", "James"]});
+    test:assertEquals(response, "Hello from DELETE bar to John, Hello from DELETE bar to James");
+}
+
+@test:Config {}
+function testClientPatchResource() returns error? {
+    string response = check clientResourceMethodsClientEP->/foo/bar.patch("Hello", name = "John", id = 1234);
+    test:assertEquals(response, "Hello from PATCH bar to John with user id : 1234");
+    response = check clientResourceMethodsClientEP->/foo/bar.patch("Hi", params = {"id": 4321, "name": "James"});
+    test:assertEquals(response, "Hi from PATCH bar to James with user id : 4321");
+}
+
+@test:Config {}
+function testClientHeadResource() returns error? {
+    http:Response response = check clientResourceMethodsClientEP->/foo/barBaz.head({x\-greeting : "Hey"}, {"name": "George"});
+    assertTextPayload(response.getTextPayload(), "Hey from HEAD barBaz to George");
+}
+
+@test:Config {}
+function testClientOptionsResource() returns error? {
+    string response = check clientResourceMethodsClientEP->/foo/bar.options(name = "John", headers = {x\-greeting : "Hey"});
+    test:assertEquals(response, "Hey from OPTIONS bar to John");
+}
+
+@test:Config {}
+function testResourceMethodsInFailoverClient() returns error? {
+    check testResourceMethodsWithOtherPublicClients(failoverClientEP);
+}
+
+@test:Config {}
+function testResourceMethodsInLoadBalancerClient() returns error? {
+    check testResourceMethodsWithOtherPublicClients(loadBalancerClientEP);
+}
+
+function testResourceMethodsWithOtherPublicClients(http:ClientObject clientEP) returns error? {
+    string response = check clientEP->/foo/bar.post("Hello");
+    test:assertEquals(response, "Hello from POST bar");
+    response = check clientEP->/foo/bar.put("Hello");
+    test:assertEquals(response, "Hello from PUT bar");
+    response = check clientEP->/foo/bar.patch("Hi", params = {"id": 4321, "name": "James"});
+    test:assertEquals(response, "Hi from PATCH bar to James with user id : 4321");
+    response = check clientEP->/foo/bar.delete("Hello", {x\-names: ["John", "James"]});
+    test:assertEquals(response, "Hello from DELETE bar to John, Hello from DELETE bar to James");
+    response = check clientEP->/foo/bar();
+    test:assertEquals(response, "Greetings! from GET bar");
+    response = check clientEP->/foo/bar.options({x\-greeting : "Hey"}, name = "John");
+    test:assertEquals(response, "Hey from OPTIONS bar to John");
+    http:Response resp = check clientEP->/foo/barBaz.head({x\-greeting : "Hey"}, {"name": "George"});
+    assertTextPayload(resp.getTextPayload(), "Hey from HEAD barBaz to George");
+}
+

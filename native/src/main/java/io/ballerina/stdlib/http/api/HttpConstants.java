@@ -38,6 +38,8 @@ public class HttpConstants {
     public static final String HTTP_ENDPOINT_STOPPED = "[ballerina/http] stopped HTTP/WS listener ";
     public static final String HTTP_RUNTIME_WARNING_PREFIX = "warning: [ballerina/http] ";
     public static final String HTTPS_RECOMMENDATION_ERROR = "HTTPS is recommended but using HTTP";
+    public static final String DEPRECATED_PROXY_CONFIG_WARNING = "Usage of proxy setting inside http1Settings is " +
+                                                                 "deprecated";
 
     public static final String BASE_PATH = "BASE_PATH";
     public static final String SUB_PATH = "SUB_PATH";
@@ -538,6 +540,11 @@ public class HttpConstants {
     public static final String COLON = ":";
     public static final String DOLLAR = "$";
     public static final String SINGLE_SLASH = "/";
+    public static final String QUESTION_MARK = "?";
+    public static final String AND_SIGN = "&";
+    public static final String EQUAL_SIGN = "=";
+    public static final String EMPTY = "";
+    public static final String QUOTATION_MARK = "\"";
     public static final String DOUBLE_SLASH = "//";
     public static final String REGEX = "(?<!(http:|https:))//";
     public static final String SCHEME_SEPARATOR = "://";

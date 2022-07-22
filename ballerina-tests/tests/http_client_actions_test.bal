@@ -640,6 +640,17 @@ public function testProxyClientError() {
 }
 
 @test:Config {}
+public function testProxyClientErrorWithDeprecatedConfig() {
+    http:Client|error clientEP = new("http://localhost:9218",
+             { httpVersion : "1.1", http1Settings: { proxy: { host:"ballerina", port:9219 }}});
+    if (clientEP is error) {
+        test:assertEquals(clientEP.message(), "Failed to resolve host: ballerina", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type");
+    }
+}
+
+@test:Config {}
 function testClientInitWithoutScheme() {
     http:Client|error httpEndpoint = new ("bar.com/foo", httpVersion = "1.1");
     if httpEndpoint is error {

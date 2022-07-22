@@ -49,6 +49,7 @@ import static io.ballerina.stdlib.http.api.HttpConstants.ANN_NAME_HEADER;
 import static io.ballerina.stdlib.http.api.HttpConstants.ANN_NAME_PAYLOAD;
 import static io.ballerina.stdlib.http.api.HttpConstants.COLON;
 import static io.ballerina.stdlib.http.api.HttpConstants.PROTOCOL_HTTP;
+import static io.ballerina.stdlib.http.api.HttpUtil.getParameterTypes;
 
 /**
  * This class holds the resource signature parameters.
@@ -88,7 +89,7 @@ public class ParamHandler {
     public ParamHandler(ResourceMethodType resource, int pathParamCount) {
         this.resource = resource;
         this.pathParamCount = pathParamCount;
-        this.paramTypes = resource.getParameterTypes();
+        this.paramTypes = getParameterTypes(resource);
         populatePathParamTokens(resource, pathParamCount);
         populatePayloadAndHeaderParamTokens(resource);
         validateSignatureParams();
@@ -107,7 +108,7 @@ public class ParamHandler {
             return;
         }
         for (int index = pathParamCount; index < paramTypes.length; index++) {
-            Type parameterType = resource.getParameterTypes()[index];
+            Type parameterType = getParameterTypes(resource)[index];
             String typeName = parameterType.toString();
             switch (typeName) {
                 case REQUEST_CONTEXT_TYPE:
@@ -293,7 +294,7 @@ public class ParamHandler {
     }
 
     private void validatePathParam(ResourceMethodType resource, int pathParamCount) {
-        Type[] parameterTypes = resource.getParameterTypes();
+        Type[] parameterTypes = getParameterTypes(resource);
         Arrays.stream(parameterTypes, 0, pathParamCount).forEach(type -> {
             int typeTag = type.getTag();
             if (isValidBasicType(typeTag) || (typeTag == TypeTags.ARRAY_TAG && isValidBasicType(

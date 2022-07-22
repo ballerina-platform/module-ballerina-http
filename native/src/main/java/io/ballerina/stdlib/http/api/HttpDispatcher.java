@@ -52,6 +52,7 @@ import java.util.Objects;
 import static io.ballerina.runtime.api.TypeTags.ARRAY_TAG;
 import static io.ballerina.stdlib.http.api.HttpConstants.DEFAULT_HOST;
 import static io.ballerina.stdlib.http.api.HttpConstants.EXTRA_PATH_INDEX;
+import static io.ballerina.stdlib.http.api.HttpUtil.getParameterTypes;
 import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castParam;
 import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castParamArray;
 
@@ -291,7 +292,7 @@ public class HttpDispatcher {
         BError error = (BError) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
         BObject httpCaller = getCaller(resource, httpCarbonMessage, endpointConfig);
         ParamHandler paramHandler = resource.getParamHandler();
-        int sigParamCount = resource.getBalResource().getParameterTypes().length;
+        int sigParamCount = getParameterTypes(resource.getBalResource()).length;
         Object[] paramFeed = new Object[sigParamCount * 2];
         int pathParamCount = paramHandler.getPathParamTokenLength();
         boolean treatNilableAsOptional = resource.isTreatNilableAsOptional();
@@ -444,7 +445,7 @@ public class HttpDispatcher {
                 // application deal with the value.
             }
             int paramIndex = actualSignatureParamIndex * 2;
-            Type pathParamType = resource.getBalResource().getParameterTypes()[actualSignatureParamIndex++];
+            Type pathParamType = getParameterTypes(resource.getBalResource())[actualSignatureParamIndex++];
 
             try {
                 if (pathParamType.getTag() == ARRAY_TAG) {

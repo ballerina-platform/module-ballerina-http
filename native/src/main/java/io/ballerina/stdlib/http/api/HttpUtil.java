@@ -22,8 +22,10 @@ import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Module;
 import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.creators.ErrorCreator;
+import io.ballerina.runtime.api.types.FunctionType;
 import io.ballerina.runtime.api.types.MethodType;
 import io.ballerina.runtime.api.types.ObjectType;
+import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.TypeId;
 import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
@@ -113,6 +115,7 @@ import static io.ballerina.runtime.api.constants.RuntimeConstants.BALLERINA_VERS
 import static io.ballerina.runtime.api.utils.StringUtils.fromString;
 import static io.ballerina.runtime.api.utils.StringUtils.fromStringArray;
 import static io.ballerina.runtime.api.utils.StringUtils.fromStringSet;
+import static io.ballerina.runtime.api.utils.TypeUtils.getReferredType;
 import static io.ballerina.runtime.observability.ObservabilityConstants.PROPERTY_HTTP_HOST;
 import static io.ballerina.runtime.observability.ObservabilityConstants.PROPERTY_HTTP_PORT;
 import static io.ballerina.runtime.observability.ObservabilityConstants.PROPERTY_KEY_HTTP_STATUS_CODE;
@@ -164,6 +167,7 @@ import static io.ballerina.stdlib.mime.util.MimeConstants.OCTET_STREAM;
 import static io.ballerina.stdlib.mime.util.MimeConstants.REQUEST_ENTITY_FIELD;
 import static io.ballerina.stdlib.mime.util.MimeConstants.RESPONSE_ENTITY_FIELD;
 import static io.netty.handler.codec.http.HttpHeaderNames.CACHE_CONTROL;
+import static java.lang.System.err;
 
 /**
  * Utility class providing utility methods.
@@ -1223,6 +1227,18 @@ public class HttpUtil {
             }
         }
         BMap proxy = clientEndpointConfig.getMapValue(HttpConstants.PROXY_STRUCT_REFERENCE);
+        if (HTTP_1_1_VERSION.equals(httpVersion)) {
+            BMap<BString, Object> http1Settings = (BMap<BString, Object>) clientEndpointConfig
+                    .get(HttpConstants.HTTP1_SETTINGS);
+            BMap proxyFromHttp1Settings = http1Settings.getMapValue(HttpConstants.PROXY_STRUCT_REFERENCE);
+            if (proxyFromHttp1Settings != null) {
+                // TODO: Remove this warning once ballerina deprecated annotation is supported for record fields.
+                err.println(HttpConstants.HTTP_RUNTIME_WARNING_PREFIX + HttpConstants.DEPRECATED_PROXY_CONFIG_WARNING);
+                if (proxy == null) {
+                    proxy = proxyFromHttp1Settings;
+                }
+            }
+        }
         if (proxy != null) {
             String proxyHost = proxy.getStringValue(HttpConstants.PROXY_HOST).getValue();
             int proxyPort = proxy.getIntValue(HttpConstants.PROXY_PORT).intValue();
@@ -1817,6 +1833,15 @@ public class HttpUtil {
             errorMsg += ", " + details.toString();
         }
         return errorMsg;
+    }
+
+    public static Type[] getParameterTypes(FunctionType function) {
+        io.ballerina.runtime.api.types.Parameter[] params = function.getParameters();
+        Type[] paramTypes = new Type[params.length];
+        for (int i = 0; i < params.length; i++) {
+            paramTypes[i] = getReferredType(params[i].type);
+        }
+        return paramTypes;
     }
 
     private HttpUtil() {

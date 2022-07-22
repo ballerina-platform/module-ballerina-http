@@ -27,6 +27,7 @@ import java.util.List;
 
 import static io.ballerina.stdlib.http.api.HttpConstants.COLON;
 import static io.ballerina.stdlib.http.api.HttpConstants.PROTOCOL_HTTP;
+import static io.ballerina.stdlib.http.api.HttpUtil.getParameterTypes;
 
 /**
  * This class holds the response interceptor remote signature parameters.
@@ -43,13 +44,13 @@ public class RemoteMethodParamHandler {
 
     public RemoteMethodParamHandler(RemoteMethodType remoteMethod) {
         this.remoteMethod = remoteMethod;
-        this.paramTypes = remoteMethod.getParameterTypes();
+        this.paramTypes = getParameterTypes(remoteMethod);
         validateSignatureParams();
     }
 
     private void validateSignatureParams() {
         for (int index = 0; index < paramTypes.length; index++) {
-            Type parameterType = remoteMethod.getParameterTypes()[index];
+            Type parameterType = getParameterTypes(remoteMethod)[index];
             String typeName = parameterType.toString();
             switch (typeName) {
                 case REQUEST_CONTEXT_TYPE:

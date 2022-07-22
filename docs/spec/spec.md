@@ -56,8 +56,9 @@ The conforming implementation of the specification is released and included in t
         * 2.4.2. [Client actions](#242-client-action)
             * 2.4.2.1. [Entity body methods](#2421-entity-body-methods)
             * 2.4.2.2. [Non entity body methods](#2422-non-entity-body-methods)
-            * 2.4.2.3. [Forward/execute methods](#2423-forwardexecute-methods)
-            * 2.4.2.4. [HTTP2 additional methods](#2424-http2-additional-methods)
+            * 2.4.2.3. [Resource methods](#2423-resource-methods)
+            * 2.4.2.4. [Forward/execute methods](#2424-forwardexecute-methods)
+            * 2.4.2.5. [HTTP2 additional methods](#2425-http2-additional-methods)
         * 2.4.3. [Client actions return types](#243-client-action-return-types)
 3. [Request-routing](#3-request-routing)
     * 3.1. [Uri and http method match](#31-uri-and-http-method-match)
@@ -1224,7 +1225,71 @@ map<string|string[]> headers = {
 string resp = check httpClient->get("/data", headers);
 ````
 
-###### 2.4.2.3 Forward/Execute methods
+###### 2.4.2.3 Resource methods
+
+In addition to the above remote method actions, HTTP client supports executing standard HTTP methods through resource 
+methods. The following are the definitions of those resource methods :
+
+```ballerina
+# The post resource function can be used to send HTTP POST requests to HTTP endpoints.
+resource function post [string ...path](RequestMessage message, map<string|string[]>? headers = (), string? mediaType = (),
+            TargetType targetType = <>, *QueryParams params) returns targetType|ClientError;
+
+# The put resource function can be used to send HTTP PUT requests to HTTP endpoints.            
+resource function put [string ...path](RequestMessage message, map<string|string[]>? headers = (), string? mediaType = (),
+            TargetType targetType = <>, *QueryParams params) returns targetType|ClientError;
+
+# The patch resource function can be used to send HTTP PATCH requests to HTTP endpoints.              
+resource function patch [string ...path](RequestMessage message, map<string|string[]>? headers = (), string? mediaType = (),
+            TargetType targetType = <>, *QueryParams params) returns targetType|ClientError;
+
+# The delete resource function can be used to send HTTP DELETE requests to HTTP endpoints.              
+resource function delete [string ...path](RequestMessage message = (), map<string|string[]>? headers = (), string? mediaType = (),
+            TargetType targetType = <>, *QueryParams params) returns targetType|ClientError;
+
+# The head resource function can be used to send HTTP HEAD requests to HTTP endpoints.              
+resource function head [string ...path](map<string|string[]>? headers = (), *QueryParams params)
+            returns Response|ClientError; 
+
+# The get resource function can be used to send HTTP GET requests to HTTP endpoints.              
+resource function get [string ...path](map<string|string[]>? headers = (), TargetType targetType = <>,
+            *QueryParams params) returns targetType|ClientError;
+
+# The options resource function can be used to send HTTP OPTIONS requests to HTTP endpoints.              
+resource function options [string ...path](map<string|string[]>? headers = (), TargetType targetType = <>,
+            *QueryParams params) returns targetType|ClientError;                                               
+```
+
+The query parameter is passed as field-value pair in the resource method call. The following are examples of such 
+resource method calls :
+
+```ballerina
+// Making a GET request
+http:Client httpClient = check new ("https://www.example.com");
+map<string|string[]> headers = {
+   "my-header": "my-header-value",
+   "header-2": ["foo", "bar"]
+};
+string resp = check httpClient->/date.get(headers, id = 123);
+// Same as the following :
+// string response = check httpClient->get("/date?id&123", headers);
+```
+
+```ballerina
+// Making a POST request
+http:Client httpClient = check new ("https://www.example.com");
+json payload = {
+   name: "foo",
+   age: 25,
+   address: "area 51"
+};
+map<string> headers = { "my-header": "my-header-value" };
+string response = check httpClient->/some/endpoint(payload, headers, "application/json", name = "foo", id = 123);
+// Same as the following :
+// string response = check httpClient->post("/some/endpoint?name=foo&id=123", payload, headers, "application/json");
+```
+
+###### 2.4.2.4 Forward/Execute methods
 
 In addition to the standard HTTP methods, `forward` function can be used to proxy an inbound request using the incoming 
 HTTP request method. Also `execute` remote function is useful to send request with custom HTTP verbs such as `move`, 
@@ -1242,7 +1307,7 @@ remote isolated function forward(string path, Request request, TargetType target
         returns  targetType|ClientError;
 ```
 
-###### 2.4.2.4 HTTP2 additional methods
+###### 2.4.2.5 HTTP2 additional methods
 Following are the HTTP2 client related additional remote functions to deal with promises and responses.
 
 ```ballerina

@@ -44,6 +44,7 @@ import java.util.stream.Stream;
 import static io.ballerina.stdlib.http.api.HttpConstants.ANN_NAME_RESOURCE_CONFIG;
 import static io.ballerina.stdlib.http.api.HttpConstants.SINGLE_SLASH;
 import static io.ballerina.stdlib.http.api.HttpUtil.checkConfigAnnotationAvailability;
+import static io.ballerina.stdlib.http.api.HttpUtil.getParameterTypes;
 
 /**
  * {@code HttpResource} This is the http wrapper for the {@code Resource} implementation.
@@ -401,7 +402,7 @@ public class HttpResource implements Resource {
     }
 
     public List<Type> getParamTypes() {
-        return new ArrayList<>(Arrays.asList(this.balResource.getParameterTypes()));
+        return new ArrayList<>(Arrays.asList(getParameterTypes(this.balResource)));
     }
 
     public RemoteMethodType getRemoteFunction() {

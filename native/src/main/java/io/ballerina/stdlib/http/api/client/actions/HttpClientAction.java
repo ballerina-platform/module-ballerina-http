@@ -22,6 +22,8 @@ import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Future;
 import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.async.Callback;
+import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
@@ -35,18 +37,26 @@ import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
 import io.ballerina.stdlib.http.transport.message.Http2PushPromise;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import static io.ballerina.runtime.observability.ObservabilityConstants.KEY_OBSERVER_CONTEXT;
+import static io.ballerina.stdlib.http.api.HttpConstants.AND_SIGN;
 import static io.ballerina.stdlib.http.api.HttpConstants.CLIENT_ENDPOINT_CONFIG;
 import static io.ballerina.stdlib.http.api.HttpConstants.CLIENT_ENDPOINT_SERVICE_URI;
 import static io.ballerina.stdlib.http.api.HttpConstants.CURRENT_TRANSACTION_CONTEXT_PROPERTY;
+import static io.ballerina.stdlib.http.api.HttpConstants.EMPTY;
+import static io.ballerina.stdlib.http.api.HttpConstants.EQUAL_SIGN;
 import static io.ballerina.stdlib.http.api.HttpConstants.MAIN_STRAND;
 import static io.ballerina.stdlib.http.api.HttpConstants.ORIGIN_HOST;
 import static io.ballerina.stdlib.http.api.HttpConstants.POOLED_BYTE_BUFFER_FACTORY;
+import static io.ballerina.stdlib.http.api.HttpConstants.QUESTION_MARK;
+import static io.ballerina.stdlib.http.api.HttpConstants.QUOTATION_MARK;
 import static io.ballerina.stdlib.http.api.HttpConstants.REMOTE_ADDRESS;
+import static io.ballerina.stdlib.http.api.HttpConstants.SINGLE_SLASH;
 import static io.ballerina.stdlib.http.api.HttpConstants.SRC_HANDLER;
 
 /**
@@ -78,9 +88,21 @@ public class HttpClientAction extends AbstractHTTPAction {
         clientConnector.rejectPushResponse(http2PushPromise);
     }
 
+    public static Object postResource(Environment env, BObject client, BArray path, Object message, Object headers,
+                                      Object mediaType, BTypedesc targetType, BMap params) {
+        return invokeClientMethod(env, client, constructRequestPath(path, params), message, mediaType, headers,
+                                  targetType, "processPost");
+    }
+
     public static Object post(Environment env, BObject client, BString path, Object message, Object headers,
                               Object mediaType, BTypedesc targetType) {
         return invokeClientMethod(env, client, path, message, mediaType, headers, targetType, "processPost");
+    }
+
+    public static Object putResource(Environment env, BObject client, BArray path, Object message, Object headers,
+                                      Object mediaType, BTypedesc targetType, BMap params) {
+        return invokeClientMethod(env, client, constructRequestPath(path, params), message, mediaType, headers,
+                                  targetType, "processPut");
     }
 
     public static Object put(Environment env, BObject client, BString path, Object message, Object headers,
@@ -88,9 +110,21 @@ public class HttpClientAction extends AbstractHTTPAction {
         return invokeClientMethod(env, client, path, message, mediaType, headers, targetType, "processPut");
     }
 
+    public static Object patchResource(Environment env, BObject client, BArray path, Object message, Object headers,
+                                      Object mediaType, BTypedesc targetType, BMap params) {
+        return invokeClientMethod(env, client, constructRequestPath(path, params), message, mediaType, headers,
+                                  targetType, "processPatch");
+    }
+
     public static Object patch(Environment env, BObject client, BString path, Object message, Object headers,
                                Object mediaType, BTypedesc targetType) {
         return invokeClientMethod(env, client, path, message, mediaType, headers, targetType, "processPatch");
+    }
+
+    public static Object deleteResource(Environment env, BObject client, BArray path, Object message, Object headers,
+                                      Object mediaType, BTypedesc targetType, BMap params) {
+        return invokeClientMethod(env, client, constructRequestPath(path, params), message, mediaType, headers,
+                                  targetType, "processDelete");
     }
 
     public static Object delete(Environment env, BObject client, BString path, Object message, Object headers,
@@ -98,8 +132,28 @@ public class HttpClientAction extends AbstractHTTPAction {
         return invokeClientMethod(env, client, path, message, mediaType, headers, targetType, "processDelete");
     }
 
+    public static Object getResource(Environment env, BObject client, BArray path, Object headers, BTypedesc targetType,
+                                     BMap params) {
+        return invokeClientMethod(env, client, constructRequestPath(path, params), headers, targetType, "processGet");
+    }
+
     public static Object get(Environment env, BObject client, BString path, Object headers, BTypedesc targetType) {
         return invokeClientMethod(env, client, path, headers, targetType, "processGet");
+    }
+
+    public static Object headResource(Environment env, BObject client, BArray path, Object headers, BMap params) {
+        Object[] paramFeed = new Object[4];
+        paramFeed[0] = constructRequestPath(path, params);
+        paramFeed[1] = true;
+        paramFeed[2] = headers;
+        paramFeed[3] = true;
+        return invokeClientMethod(env, client, "head", paramFeed);
+    }
+
+    public static Object optionsResource(Environment env, BObject client, BArray path, Object headers,
+                                         BTypedesc targetType, BMap params) {
+        return invokeClientMethod(env, client, constructRequestPath(path, params), headers, targetType,
+                                  "processOptions");
     }
 
     public static Object options(Environment env, BObject client, BString path, Object headers, BTypedesc targetType) {
@@ -200,6 +254,34 @@ public class HttpClientAction extends AbstractHTTPAction {
             subMap.put(MAIN_STRAND, true);
         }
         return subMap;
+    }
+
+    private static BString constructRequestPath(BArray pathArray, BMap params) {
+        String joinedPath = SINGLE_SLASH + String.join(SINGLE_SLASH, pathArray.getStringArray());
+        String queryParams = constructQueryString(params);
+        if (queryParams.isEmpty()) {
+            return StringUtils.fromString(joinedPath);
+        } else {
+            return StringUtils.fromString(joinedPath + QUESTION_MARK + queryParams);
+        }
+    }
+
+    private static String constructQueryString(BMap params) {
+        List<String> queryParams = new ArrayList<>();
+        BString[] keys = (BString[]) params.getKeys();
+        if (keys.length == 0) {
+            return "";
+        }
+        for (BString key : keys) {
+            Object value = params.get(key);
+            String valueString = value.toString();
+            if (value instanceof BArray) {
+                valueString = valueString.substring(1, valueString.length() - 1);
+                valueString = valueString.replace(QUOTATION_MARK, EMPTY);
+            }
+            queryParams.add(key.getValue() + EQUAL_SIGN + valueString);
+        }
+        return String.join(AND_SIGN, queryParams);
     }
 
     private HttpClientAction() {
