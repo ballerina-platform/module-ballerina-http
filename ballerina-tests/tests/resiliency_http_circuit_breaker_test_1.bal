@@ -16,7 +16,7 @@
 //
 
 import ballerina/lang.runtime as runtime;
-import ballerina/log;
+// import ballerina/log;
 import ballerina/test;
 import ballerina/http;
 
@@ -60,7 +60,7 @@ service /cb on circuitBreakerEP00 {
         if backendRes is http:Response {
             error? responseToCaller = caller->respond(backendRes);
             if responseToCaller is error {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response response = new;
@@ -68,7 +68,7 @@ service /cb on circuitBreakerEP00 {
             response.setPayload(backendRes.message());
             error? responseToCaller = caller->respond(response);
             if responseToCaller is error {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
@@ -89,7 +89,7 @@ service /hello on new http:Listener(8086, httpVersion = "1.1") {
         }
         error? responseToCaller = caller->respond("Hello World!!!");
         if responseToCaller is error {
-            log:printError("Error sending response from mock service", 'error = responseToCaller);
+            // log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }

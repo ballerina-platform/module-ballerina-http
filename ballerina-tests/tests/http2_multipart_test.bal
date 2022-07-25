@@ -15,7 +15,7 @@
 // under the License.
 
 import ballerina/http;
-import ballerina/log;
+// import ballerina/log;
 import ballerina/mime;
 import ballerina/test;
 
@@ -38,13 +38,13 @@ service /multiparts on generalHTTP2Listener {
             }
             response.setBodyParts(respBodyParts);
         } else {
-            log:printError(bodyParts.message());
+            // log:printError(bodyParts.message());
             response.setPayload("Error in decoding multiparts!");
             response.statusCode = 500;
         }
         error? result = caller->respond(response);
         if result is error {
-            log:printError("Error sending response", 'error = result);
+            // log:printError("Error sending response", 'error = result);
         }
     }
 
@@ -65,7 +65,7 @@ service /multiparts on generalHTTP2Listener {
             }
             check caller->respond(finalMessage);
         } else {
-            log:printError("Error sending response", 'error = finalResponse);
+            // log:printError("Error sending response", 'error = finalResponse);
         }
     }
 
@@ -91,7 +91,7 @@ service /multiparts on generalHTTP2Listener {
         if returnResponse is http:Response {
             error? result = caller->respond(returnResponse);
             if result is error {
-                log:printError("Error sending response", 'error = result);
+                // log:printError("Error sending response", 'error = result);
             }
         } else {
             http:Response response = new;
@@ -99,7 +99,7 @@ service /multiparts on generalHTTP2Listener {
             response.statusCode = 500;
             error? result = caller->respond(response);
             if result is error {
-                log:printError("Error sending response", 'error = result);
+                // log:printError("Error sending response", 'error = result);
             }
         }
     }

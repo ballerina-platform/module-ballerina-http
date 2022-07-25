@@ -16,7 +16,7 @@
 //
 
 import ballerina/lang.runtime as runtime;
-import ballerina/log;
+// import ballerina/log;
 import ballerina/test;
 import ballerina/http;
 
@@ -73,7 +73,7 @@ service /loadBalancerDemoService on new http:Listener(9313, httpVersion = "1.1")
         if response is http:Response {
             error? responseToCaller = caller->respond(response);
             if responseToCaller is error {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response outResponse = new;
@@ -81,7 +81,7 @@ service /loadBalancerDemoService on new http:Listener(9313, httpVersion = "1.1")
             outResponse.setPayload(response.message());
             error? responseToCaller = caller->respond(outResponse);
             if responseToCaller is error {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
@@ -92,7 +92,7 @@ service /loadBalancerDemoService on new http:Listener(9313, httpVersion = "1.1")
         if response is http:Response {
             error? responseToCaller = caller->respond(response);
             if responseToCaller is error {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response outResponse = new;
@@ -100,7 +100,7 @@ service /loadBalancerDemoService on new http:Listener(9313, httpVersion = "1.1")
             outResponse.setPayload(response.message());
             error? responseToCaller = caller->respond(outResponse);
             if responseToCaller is error {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
@@ -111,7 +111,7 @@ service /loadBalancerDemoService on new http:Listener(9313, httpVersion = "1.1")
         if response is http:Response {
             error? responseToCaller = caller->respond(response);
             if responseToCaller is error {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response outResponse = new;
@@ -119,7 +119,7 @@ service /loadBalancerDemoService on new http:Listener(9313, httpVersion = "1.1")
             outResponse.setPayload(response.message());
             error? responseToCaller = caller->respond(outResponse);
             if responseToCaller is error {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
@@ -130,7 +130,7 @@ service /loadBalancerDemoService on new http:Listener(9313, httpVersion = "1.1")
         if response is http:Response {
             error? responseToCaller = caller->respond(response);
             if responseToCaller is error {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response outResponse = new;
@@ -138,7 +138,7 @@ service /loadBalancerDemoService on new http:Listener(9313, httpVersion = "1.1")
             outResponse.setPayload(response.message());
             error? responseToCaller = caller->respond(outResponse);
             if responseToCaller is error {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
@@ -148,7 +148,7 @@ service /LBMock1 on LBbackendListener {
     resource function 'default .(http:Caller caller, http:Request req) {
         error? responseToCaller = caller->respond("Mock1 Resource is Invoked.");
         if responseToCaller is error {
-            log:printError("Error sending response from mock service", 'error = responseToCaller);
+            // log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }
@@ -157,7 +157,7 @@ service /LBMock2 on LBbackendListener {
     resource function 'default .(http:Caller caller, http:Request req) {
         error? responseToCaller = caller->respond("Mock2 Resource is Invoked.");
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", 'error = responseToCaller);
+            // log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }
@@ -166,7 +166,7 @@ service /LBMock3 on LBbackendListener {
     resource function 'default .(http:Caller caller, http:Request req) {
         error? responseToCaller = caller->respond("Mock3 Resource is Invoked.");
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", 'error = responseToCaller);
+            // log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }
@@ -176,7 +176,7 @@ service /LBMock4 on LBbackendListener {
         runtime:sleep(5);
         error? responseToCaller = caller->respond("Mock4 Resource is Invoked.");
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", 'error = responseToCaller);
+            // log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }
@@ -186,7 +186,7 @@ service /LBMock5 on LBbackendListener {
         runtime:sleep(5);
         error? responseToCaller = caller->respond("Mock5 Resource is Invoked.");
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", 'error = responseToCaller);
+            // log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }

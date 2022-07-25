@@ -15,7 +15,7 @@
 // under the License.
 
 import ballerina/file;
-import ballerina/log;
+// import ballerina/log;
 import ballerina/test;
 import ballerina/http;
 
@@ -362,7 +362,7 @@ public isolated function testRemoveSessionCookieByClient() returns error? {
         http:CookieHandlingError? removeResult =
                 myCookieStore.removeCookie("SID003", "localhost:9253", "/cookie/addPersistentAndSessionCookies");
         if removeResult is http:CookieHandlingError {
-            log:printError("Error retrieving", 'error = removeResult);
+            // log:printError("Error retrieving", 'error = removeResult);
         }
     }
     // Sends a request again after one session cookie is removed.
@@ -462,7 +462,7 @@ public function testRemovePersistentCookieByClient() returns error? {
         http:CookieHandlingError? removeResult =
             myCookieStore.removeCookie("SID001", "localhost:9253", "/cookie/addPersistentAndSessionCookies");
         if removeResult is http:CookieHandlingError {
-            log:printError("Error retrieving", 'error = removeResult);
+            // log:printError("Error retrieving", 'error = removeResult);
         }
     }
     // Sends a request again after one persistent cookie is removed.

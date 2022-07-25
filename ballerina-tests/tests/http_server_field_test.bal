@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/log;
+// import ballerina/log;
 import ballerina/test;
 import ballerina/http;
 
@@ -33,10 +33,10 @@ service /httpServerFieldEcho1 on httpServerFieldListenerEP1 {
         } else {
             resp.statusCode = 500;
             resp.setPayload(payload.message());
-            log:printError("Failed to retrieve payload from request: " + payload.message());
+            // log:printError("Failed to retrieve payload from request: " + payload.message());
             var responseError = caller->respond(resp);
             if (responseError is error) {
-                log:printError("Error sending response", 'error = responseError);
+                // log:printError("Error sending response", 'error = responseError);
             }
         }
     }

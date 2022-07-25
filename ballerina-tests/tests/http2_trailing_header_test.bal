@@ -15,7 +15,7 @@
 // under the License.
 
 import ballerina/http;
-import ballerina/log;
+// import ballerina/log;
 import ballerina/test;
 
 listener http:Listener backendEp = new(9119);
@@ -30,7 +30,7 @@ service /trailerInitiator on new http:Listener(9118) {
             string trailerHeaderValue = check responseFromBackend.getHeader("trailer");
             string|error textPayload = responseFromBackend.getTextPayload();
             if textPayload is error {
-                log:printError("Error reading payload", 'error = textPayload);
+                // log:printError("Error reading payload", 'error = textPayload);
             }
             string firstTrailer = check responseFromBackend.getHeader("foo", position = "trailing");
             string secondTrailer = check responseFromBackend.getHeader("baz", position = "trailing");
@@ -81,7 +81,7 @@ service /passthroughservice on backendEp {
         http:Response responseFromBackend = check trailerClientEp->forward("/backend/echoResponseWithTrailer", request);
         string|error textPayload = responseFromBackend.getTextPayload();
         if textPayload is error {
-            log:printError("Error reading payload", 'error = textPayload);
+            // log:printError("Error reading payload", 'error = textPayload);
         }
         responseFromBackend.setHeader("baz", "this trailer will get replaced", position = "trailing");
         responseFromBackend.setHeader("barr", "this is a new trailer", position = "trailing");

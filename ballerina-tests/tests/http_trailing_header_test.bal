@@ -16,7 +16,7 @@
 
 import ballerina/test;
 import ballerina/http;
-import ballerina/log;
+// import ballerina/log;
 
 listener http:Listener trailingHeaderListenerEP1 = new(trailingHeaderTestPort1, httpVersion = "1.1");
 listener http:Listener trailingHeaderListenerEP2 = new(trailingHeaderTestPort2, httpVersion = "1.1");
@@ -30,7 +30,7 @@ service /initiator on trailingHeaderListenerEP1 {
         if responseFromBackend is http:Response {
             string|error textPayload = responseFromBackend.getTextPayload();
             if textPayload is error {
-                log:printError("Error reading payload", 'error = textPayload);
+                // log:printError("Error reading payload", 'error = textPayload);
             }
 
             string trailerHeaderValue = "No trailer header";
@@ -114,7 +114,7 @@ service /passthroughsvc on trailingHeaderListenerEP2 {
         if responseFromBackend is http:Response {
             string|error textPayload = responseFromBackend.getTextPayload();
             if textPayload is error {
-                log:printError("Error reading payload", 'error = textPayload);
+                // log:printError("Error reading payload", 'error = textPayload);
             }
             responseFromBackend.setHeader("baz", "this trailer will get replaced", position = "trailing");
             responseFromBackend.setHeader("barr", "this is a new trailer", position = "trailing");

@@ -16,7 +16,7 @@
 
 import ballerina/lang.runtime as runtime;
 import ballerina/test;
-import ballerina/log;
+// import ballerina/log;
 import ballerina/http;
 import ballerina/mime;
 import ballerina/url;
@@ -226,7 +226,7 @@ service /passthrough on http2ClientDBProxyListener {
         // This is to check any compile failures with multiple default-able args
         json|error hello = http2ClientDBBackendClient->get("/backend/getJson");
         if hello is error {
-            log:printError("Error reading payload", 'error = hello);
+            // log:printError("Error reading payload", 'error = hello);
         }
         json p = check http2ClientDBBackendClient->get("/backend/getJson");
         payload = payload + p.toJsonString();

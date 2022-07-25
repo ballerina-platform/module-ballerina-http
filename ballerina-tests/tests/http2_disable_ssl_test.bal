@@ -15,7 +15,7 @@
 // under the License.
 
 import ballerina/http;
-import ballerina/log;
+// import ballerina/log;
 import ballerina/test;
 
 http:ListenerConfiguration helloWorldEPConfig = {
@@ -33,7 +33,7 @@ service /hello on sslServerEp {
     resource function get .(http:Caller caller, http:Request req) {
         error? result = caller->respond("Hello World!");
         if result is error {
-            log:printError("Failed to respond", 'error = result);
+            // log:printError("Failed to respond", 'error = result);
         }
     }
 }

@@ -16,7 +16,7 @@
 
 import ballerina/http;
 import ballerina/io;
-import ballerina/log;
+// import ballerina/log;
 import ballerina/mime;
 import ballerina/test;
 import ballerina/file;
@@ -34,12 +34,12 @@ service /'stream on new http:Listener(streamTest1, httpVersion = "1.1") {
         if clientResponse is http:Response {
             res = clientResponse;
         } else {
-            log:printError("Error occurred while sending data to the client ", 'error = clientResponse);
+            // log:printError("Error occurred while sending data to the client ", 'error = clientResponse);
             setError(res, clientResponse);
         }
         var result = caller->respond(res);
         if result is error {
-            log:printError("Error while while sending response to the caller", 'error = result);
+            // log:printError("Error while while sending response to the caller", 'error = result);
         }
     }
 
@@ -48,7 +48,7 @@ service /'stream on new http:Listener(streamTest1, httpVersion = "1.1") {
         res.setFileAsPayload("tests/datafiles/BallerinaLang.pdf", contentType = mime:APPLICATION_PDF);
         var result = caller->respond(res);
         if result is error {
-            log:printError("Error while while sending response to the caller", 'error = result);
+            // log:printError("Error while while sending response to the caller", 'error = result);
         }
     }
 }
@@ -62,7 +62,7 @@ service /streamBack on new http:Listener(streamTest2, httpVersion = "1.1") {
             io:Error? result = io:fileWriteBlocksFromStream("tests/tempfiles/ReceivedFile.pdf", streamer);
 
             if result is error {
-                log:printError("error occurred while writing ", 'error = result);
+                // log:printError("error occurred while writing ", 'error = result);
                 setError(res, result);
             } else {
                 res.setPayload("File Received!");
@@ -70,14 +70,14 @@ service /streamBack on new http:Listener(streamTest2, httpVersion = "1.1") {
             }
             var cr = streamer.close();
             if (cr is error) {
-                log:printError("Error occurred while closing the stream: ", 'error = cr);
+                // log:printError("Error occurred while closing the stream: ", 'error = cr);
             }
         } else {
             setError(res, streamer);
         }
         var result = caller->respond(res);
         if result is error {
-           log:printError("Error occurred while sending response", 'error = result);
+           // log:printError("Error occurred while sending response", 'error = result);
         }
     }
 }
@@ -107,7 +107,7 @@ function testConsumedStream() returns error? {
     if response is http:Response {
         byte[]|error bytes = response.getBinaryPayload();
         if bytes is error {
-            log:printError("Error reading payload", 'error = bytes);
+            // log:printError("Error reading payload", 'error = bytes);
         }
         stream<byte[], io:Error?>|error streamer = response.getByteStream();
         if (streamer is stream<byte[], io:Error?>) {
