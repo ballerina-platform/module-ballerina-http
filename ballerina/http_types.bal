@@ -95,6 +95,8 @@ public type CommonClientConfiguration record {|
     ResponseLimitConfigs responseLimits = {};
     # Proxy server related options
     ProxyConfig? proxy = ();
+    # Enables the inbound payload validation functionalty which provided by the constraint package. Enabled by default
+    boolean validation = true;
 |};
 
 # Represents a server-provided hyperlink

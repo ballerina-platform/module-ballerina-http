@@ -292,7 +292,8 @@ public class HttpDispatcher {
         BError error = (BError) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
         BObject httpCaller = getCaller(resource, httpCarbonMessage, endpointConfig);
         ParamHandler paramHandler = resource.getParamHandler();
-        int sigParamCount = getParameterTypes(resource.getBalResource()).length;
+        Type[] parameterTypes = getParameterTypes(resource.getBalResource());
+        int sigParamCount = parameterTypes.length;
         Object[] paramFeed = new Object[sigParamCount * 2];
         int pathParamCount = paramHandler.getPathParamTokenLength();
         boolean treatNilableAsOptional = resource.isTreatNilableAsOptional();
@@ -302,7 +303,8 @@ public class HttpDispatcher {
             HttpResourceArguments resourceArgumentValues =
                     (HttpResourceArguments) httpCarbonMessage.getProperty(HttpConstants.RESOURCE_ARGS);
             updateWildcardToken(resource.getWildcardToken(), pathParamCount - 1, resourceArgumentValues.getMap());
-            populatePathParams(resource, paramFeed, resourceArgumentValues, pathParamCount, httpCarbonMessage);
+            populatePathParams(resource, paramFeed, resourceArgumentValues, pathParamCount, httpCarbonMessage,
+                               parameterTypes);
         }
         // Following was written assuming that they are validated
         for (Parameter param : paramHandler.getOtherParamList()) {
@@ -432,7 +434,8 @@ public class HttpDispatcher {
 
     private static void populatePathParams(Resource resource, Object[] paramFeed,
                                            HttpResourceArguments resourceArgumentValues, int pathParamCount,
-                                           HttpCarbonMessage inboundRequest) {
+                                           HttpCarbonMessage inboundRequest,
+                                           Type[] parameterTypes) {
 
         String[] pathParamTokens = Arrays.copyOfRange(resource.getBalResource().getParamNames(), 0, pathParamCount);
         int actualSignatureParamIndex = 0;
@@ -445,7 +448,7 @@ public class HttpDispatcher {
                 // application deal with the value.
             }
             int paramIndex = actualSignatureParamIndex * 2;
-            Type pathParamType = getParameterTypes(resource.getBalResource())[actualSignatureParamIndex++];
+            Type pathParamType = parameterTypes[actualSignatureParamIndex++];
 
             try {
                 if (pathParamType.getTag() == ARRAY_TAG) {

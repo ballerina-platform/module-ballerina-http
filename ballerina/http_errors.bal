@@ -70,7 +70,14 @@ public type NoContentError distinct ClientError;
 
 type PayloadBindingClientError ClientError & PayloadBindingError; 
 
-type PayloadBindingListenerError ListenerError & PayloadBindingError; 
+type PayloadBindingListenerError ListenerError & PayloadBindingError;
+
+# Represents an error, which occurred due to payload constraint validation.
+public type PayloadValidationError distinct PayloadBindingError;
+
+type PayloadValidationClientError ClientError & PayloadValidationError;
+
+type PayloadValidationListenerError ListenerError & PayloadValidationError;
 
 # Represents an error, which occurred due to a query parameter binding.
 public type QueryParameterBindingError distinct ListenerError;

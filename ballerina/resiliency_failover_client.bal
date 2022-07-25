@@ -32,12 +32,14 @@ type FailoverInferredConfig record {|
 # + succeededEndpointIndex - Index of the `CallerActions[]` array which given a successful response
 # + failoverInferredConfig - Configurations derived from `FailoverConfig`
 # + failoverClientsArray - Array of `Client` for target endpoints
+# + requireValidation - Enables the inbound payload validation functionalty which provided by the constraint package
 public client isolated class FailoverClient {
     *ClientObject;
 
     private int succeededEndpointIndex;
     private final FailoverInferredConfig & readonly failoverInferredConfig;
     private final Client?[] failoverClientsArray;
+    private final boolean requireValidation;
 
     # Failover caller actions which provides failover capabilities to an HTTP client endpoint.
     #
@@ -60,6 +62,7 @@ public client isolated class FailoverClient {
             failoverInterval:failoverClientConfig.interval
         };
         self.failoverInferredConfig = failoverInferredConfig.cloneReadOnly();
+        self.requireValidation = failoverClientConfig.validation;
         return;
     }
 
@@ -102,7 +105,7 @@ public client isolated class FailoverClient {
         if result is HttpFuture {
             return getInvalidTypeError();
         } else {
-            return processResponse(result, targetType);
+            return processResponse(result, targetType, self.requireValidation);
         }
     }
 
@@ -145,7 +148,7 @@ public client isolated class FailoverClient {
         if result is HttpFuture {
             return getInvalidTypeError();
         } else {
-            return processResponse(result, targetType);
+            return processResponse(result, targetType, self.requireValidation);
         }
     }
 
@@ -188,7 +191,7 @@ public client isolated class FailoverClient {
         if result is HttpFuture {
             return getInvalidTypeError();
         } else {
-            return processResponse(result, targetType);
+            return processResponse(result, targetType, self.requireValidation);
         }
     }
 
@@ -231,7 +234,7 @@ public client isolated class FailoverClient {
         if result is HttpFuture {
             return getInvalidTypeError();
         } else {
-            return processResponse(result, targetType);
+            return processResponse(result, targetType, self.requireValidation);
         }
     }
 
@@ -295,7 +298,7 @@ public client isolated class FailoverClient {
         if result is HttpFuture {
             return getInvalidTypeError();
         } else {
-            return processResponse(result, targetType);
+            return processResponse(result, targetType, self.requireValidation);
         }
     }
 
@@ -332,7 +335,7 @@ public client isolated class FailoverClient {
         if result is HttpFuture {
             return getInvalidTypeError();
         } else {
-            return processResponse(result, targetType);
+            return processResponse(result, targetType, self.requireValidation);
         }
     }
 
@@ -361,7 +364,7 @@ public client isolated class FailoverClient {
         if result is HttpFuture {
             return getInvalidTypeError();
         } else {
-            return processResponse(result, targetType);
+            return processResponse(result, targetType, self.requireValidation);
         }
     }
 
@@ -383,7 +386,7 @@ public client isolated class FailoverClient {
         if result is HttpFuture {
             return getInvalidTypeError();
         } else {
-            return processResponse(result, targetType);
+            return processResponse(result, targetType, self.requireValidation);
         }
     }
 
@@ -662,7 +665,8 @@ isolated function createClientEPConfigFromFailoverEPConfig(FailoverClientConfigu
         compression:foConfig.compression,
         auth:foConfig.auth,
         cookieConfig:foConfig.cookieConfig,
-        responseLimits:foConfig.responseLimits
+        responseLimits:foConfig.responseLimits,
+        validation:foConfig.validation
     };
     return clientEPConfig;
 }

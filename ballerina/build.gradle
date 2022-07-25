@@ -74,6 +74,9 @@ dependencies {
     externalJars(group: 'io.ballerina.stdlib', name: 'mime-native', version: "${stdlibMimeVersion}") {
         transitive = false
     }
+    externalJars(group: 'io.ballerina.stdlib', name: 'constraint-native', version: "${stdlibConstraintVersion}") {
+        transitive = false
+    }
     externalJars(group: 'io.netty', name: 'netty-common', version: "${nettyVersion}") {
         transitive = false
     }
@@ -134,6 +137,7 @@ task updateTomlFiles {
     doLast {
         def stdlibDependentMimeNativeVersion = project.stdlibMimeVersion
         def stdlibDependentMimeVersion = stripBallerinaExtensionVersion("${stdlibDependentMimeNativeVersion}")
+        def stdlibDependentConstraintNativeVersion = project.stdlibConstraintVersion
         def stdlibDependentNettyVersion = project.nettyVersion
         def stdlibDependentWso2CommonsPoolVersion = project.wso2CommonsPoolVersion
         def stdlibDependentBouncycastleVersion = project.bouncycastleVersion
@@ -144,6 +148,7 @@ task updateTomlFiles {
         def newBallerinaToml = ballerinaTomlFilePlaceHolder.text.replace("@project.version@", project.version)
         newBallerinaToml = newBallerinaToml.replace("@toml.version@", tomlVersion)
         newBallerinaToml = newBallerinaToml.replace("@stdlib.mimenative.version@", stdlibDependentMimeNativeVersion)
+        newBallerinaToml = newBallerinaToml.replace("@stdlib.constraintnative.version@", stdlibDependentConstraintNativeVersion)
         newBallerinaToml = newBallerinaToml.replace("@netty.version@", stdlibDependentNettyVersion)
         newBallerinaToml = newBallerinaToml.replace("@commmon.pool.version@", stdlibDependentWso2CommonsPoolVersion)
         newBallerinaToml = newBallerinaToml.replace("@bouncycastle.version@", stdlibDependentBouncycastleVersion)

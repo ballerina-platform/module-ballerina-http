@@ -153,7 +153,7 @@ public class InterceptorResource implements Resource {
     }
 
     private void prepareAndValidateSignatureParams() {
-        paramHandler = new ParamHandler(getBalResource(), this.pathParamCount);
+        paramHandler = new ParamHandler(getBalResource(), this.pathParamCount, false);
     }
 
     @Override

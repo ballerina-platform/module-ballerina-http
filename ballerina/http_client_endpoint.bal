@@ -28,12 +28,14 @@ import ballerina/time;
 # + httpClient - Chain of different HTTP clients which provides the capability for initiating contact with a remote
 #                HTTP service in resilient manner
 # + cookieStore - Stores the cookies of the client
+# + requireValidation - Enables the inbound payload validation functionalty which provided by the constraint package
 public client isolated class Client {
     *ClientObject;
 
     private final string url;
     private CookieStore? cookieStore = ();
     final HttpClient httpClient;
+    private final boolean requireValidation;
 
     # Gets invoked to initialize the `client`. During initialization, the configurations provided through the `config`
     # record is used to determine which type of additional behaviours are added to the endpoint (e.g., caching,
@@ -51,6 +53,7 @@ public client isolated class Client {
             }
         }
         self.httpClient = check initialize(url, config, self.cookieStore);
+        self.requireValidation = config.validation;
         return;
     }
 
@@ -93,7 +96,7 @@ public client isolated class Client {
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, HTTP_POST, response.statusCode, self.url);
         }
-        return processResponse(response, targetType);
+        return processResponse(response, targetType, self.requireValidation);
     }
 
     # The client resource function to send HTTP PUT requests to HTTP endpoints.
@@ -135,7 +138,7 @@ public client isolated class Client {
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, HTTP_PUT, response.statusCode, self.url);
         }
-        return processResponse(response, targetType);
+        return processResponse(response, targetType, self.requireValidation);
     }
 
     # The client resource function to send HTTP PATCH requests to HTTP endpoints.
@@ -177,7 +180,7 @@ public client isolated class Client {
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, HTTP_PATCH, response.statusCode, self.url);
         }
-        return processResponse(response, targetType);
+        return processResponse(response, targetType, self.requireValidation);
     }
 
     # The client resource function to send HTTP DELETE requests to HTTP endpoints.
@@ -219,7 +222,7 @@ public client isolated class Client {
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, HTTP_DELETE, response.statusCode, self.url);
         }
-        return processResponse(response, targetType);
+        return processResponse(response, targetType, self.requireValidation);
     }
 
     # The client resource function to send HTTP HEAD requests to HTTP endpoints.
@@ -281,7 +284,7 @@ public client isolated class Client {
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, HTTP_GET, response.statusCode, self.url);
         }
-        return processResponse(response, targetType);
+        return processResponse(response, targetType, self.requireValidation);
     }
 
     # The client resource function to send HTTP OPTIONS requests to HTTP endpoints.
@@ -317,7 +320,7 @@ public client isolated class Client {
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, HTTP_OPTIONS, response.statusCode, self.url);
         }
-        return processResponse(response, targetType);
+        return processResponse(response, targetType, self.requireValidation);
     }
 
     # Invokes an HTTP call with the specified HTTP verb.
@@ -345,7 +348,7 @@ public client isolated class Client {
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, httpVerb, response.statusCode, self.url);
         }
-        return processResponse(response, targetType);
+        return processResponse(response, targetType, self.requireValidation);
     }
 
     # The `Client.forward()` function can be used to invoke an HTTP call with inbound request's HTTP verb
@@ -366,7 +369,7 @@ public client isolated class Client {
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, request.method, response.statusCode, self.url);
         }
-        return processResponse(response, targetType);
+        return processResponse(response, targetType, self.requireValidation);
     }
 
     # Submits an HTTP request to a service with the specified HTTP verb.
@@ -759,7 +762,8 @@ isolated function createDefaultClient(string url, ClientConfiguration configurat
     return createHttpSecureClient(url, configuration);
 }
 
-isolated function processResponse(Response|ClientError response, TargetType targetType) returns Response|anydata|ClientError {
+isolated function processResponse(Response|ClientError response, TargetType targetType, boolean requireValidation)
+        returns Response|anydata|ClientError {
     if targetType is typedesc<Response> || response is ClientError {
         return response;
     }
@@ -778,7 +782,15 @@ isolated function processResponse(Response|ClientError response, TargetType targ
             return createResponseError(statusCode, reasonPhrase, headers, payload);
         }
     }
-    return performDataBinding(response, targetType);
+    if targetType is typedesc<anydata> {
+        anydata payload = check performDataBinding(response, targetType);
+        if requireValidation {
+            return performDataValidation(payload, targetType);
+        }
+        return payload;
+    } else {
+        panic error GenericClientError("invalid payload target type");
+    }
 }
 
 isolated function getPayload(Response response) returns anydata|error {

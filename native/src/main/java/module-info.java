@@ -23,6 +23,7 @@ module io.ballerina.stdlib.http {
     requires io.ballerina.lang.value;
     requires io.ballerina.stdlib.mime;
     requires io.ballerina.stdlib.io;
+    requires io.ballerina.stdlib.constraint;
     requires org.bouncycastle.provider;
     requires org.bouncycastle.pkix;
     requires java.xml.bind;

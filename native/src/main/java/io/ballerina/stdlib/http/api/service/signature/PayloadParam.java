@@ -19,6 +19,7 @@
 package io.ballerina.stdlib.http.api.service.signature;
 
 import io.ballerina.runtime.api.TypeTags;
+import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.IntersectionType;
 import io.ballerina.runtime.api.types.Type;
@@ -26,6 +27,7 @@ import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.stdlib.constraint.Constraints;
 import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.api.HttpErrorType;
 import io.ballerina.stdlib.http.api.HttpUtil;
@@ -55,13 +57,17 @@ public class PayloadParam implements Parameter {
     private boolean readonly;
     private boolean nilable;
     private final List<String> mediaTypes = new ArrayList<>();
+    private Type customParameterType;
+    private final boolean requireConstraintValidation;
 
-    PayloadParam(String token) {
+    PayloadParam(String token, boolean constraintValidation) {
         this.token = token;
+        this.requireConstraintValidation = constraintValidation;
     }
 
-    public void init(Type type, int index) {
+    public void init(Type type, Type customParameterType, int index) {
         this.type = type;
+        this.customParameterType = customParameterType;
         this.index = index;
         validatePayloadParam(type);
     }
@@ -145,19 +151,21 @@ public class PayloadParam implements Parameter {
                 case ARRAY_TAG:
                     int actualTypeTag = TypeUtils.getReferredType(((ArrayType) payloadType).getElementType()).getTag();
                     if (actualTypeTag == TypeTags.BYTE_TAG) {
-                        paramFeed[index++] = dataSource;
+                        paramFeed[index++] = constraintValidation(dataSource);
                     } else if (actualTypeTag == TypeTags.RECORD_TYPE_TAG) {
-                        paramFeed[index++]  = JsonToRecordConverter.convert(payloadType, inRequestEntity, readonly);
+                        dataSource = JsonToRecordConverter.convert(payloadType, inRequestEntity, readonly);
+                        paramFeed[index++]  = constraintValidation(dataSource);
                     } else {
                         throw HttpUtil.createHttpError("incompatible element type found inside an array " +
                                                        ((ArrayType) payloadType).getElementType().getName());
                     }
                     break;
                 case TypeTags.RECORD_TYPE_TAG:
-                    paramFeed[index++]  = JsonToRecordConverter.convert(payloadType, inRequestEntity, readonly);
+                    dataSource = JsonToRecordConverter.convert(payloadType, inRequestEntity, readonly);
+                    paramFeed[index++]  = constraintValidation(dataSource);
                     break;
                 default:
-                    paramFeed[index++] = dataSource;
+                    paramFeed[index++] = constraintValidation(dataSource);
             }
         } catch (BError ex) {
             httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
@@ -172,7 +180,8 @@ public class PayloadParam implements Parameter {
         try {
             String contentType = HttpUtil.getContentTypeFromTransportMessage(inboundMessage);
             AbstractPayloadBuilder payloadBuilder = getBuilder(contentType, payloadType);
-            paramFeed[index] = payloadBuilder.getValue(inRequestEntity, this.readonly);
+            Object payloadBuilderValue = payloadBuilder.getValue(inRequestEntity, this.readonly);
+            paramFeed[index] = constraintValidation(payloadBuilderValue);
             inboundMessage.setProperty(HttpConstants.ENTITY_OBJ, inRequestEntity);
             return ++index;
         } catch (BError ex) {
@@ -182,8 +191,24 @@ public class PayloadParam implements Parameter {
                 return ++index;
             }
             inboundMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
+            if (HttpErrorType.PAYLOAD_VALIDATION_LISTENER_ERROR.getErrorName().equals(typeName)) {
+                throw ex;
+            }
             throw HttpUtil.createHttpError("data binding failed: " + HttpUtil.getPrintableErrorMsg(ex),
                                            HttpErrorType.PAYLOAD_BINDING_LISTENER_ERROR);
         }
+    }
+
+    private Object constraintValidation(Object payloadBuilderValue) {
+        if (requireConstraintValidation) {
+            Object result = Constraints.validate(payloadBuilderValue,
+                                                 ValueCreator.createTypedescValue(this.customParameterType));
+            if (result instanceof BError) {
+                throw HttpUtil.createHttpError(
+                        "payload validation failed: " + HttpUtil.getPrintableErrorMsg((BError) result),
+                        HttpErrorType.PAYLOAD_VALIDATION_LISTENER_ERROR);
+            }
+        }
+        return payloadBuilderValue;
     }
 }

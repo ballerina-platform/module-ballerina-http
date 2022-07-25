@@ -35,7 +35,6 @@ import static io.ballerina.stdlib.http.api.HttpUtil.getParameterTypes;
 public class RemoteMethodParamHandler {
 
     private final Type[] paramTypes;
-    private final RemoteMethodType remoteMethod;
     private final List<Parameter> otherParamList = new ArrayList<>();
 
     private static final String RES_TYPE = PROTOCOL_HTTP + COLON + HttpConstants.RESPONSE;
@@ -43,14 +42,13 @@ public class RemoteMethodParamHandler {
     private static final String CALLER_TYPE = PROTOCOL_HTTP + COLON + HttpConstants.CALLER;
 
     public RemoteMethodParamHandler(RemoteMethodType remoteMethod) {
-        this.remoteMethod = remoteMethod;
         this.paramTypes = getParameterTypes(remoteMethod);
         validateSignatureParams();
     }
 
     private void validateSignatureParams() {
         for (int index = 0; index < paramTypes.length; index++) {
-            Type parameterType = getParameterTypes(remoteMethod)[index];
+            Type parameterType = this.paramTypes[index];
             String typeName = parameterType.toString();
             switch (typeName) {
                 case REQUEST_CONTEXT_TYPE:

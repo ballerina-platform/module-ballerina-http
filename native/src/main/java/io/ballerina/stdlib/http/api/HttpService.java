@@ -69,6 +69,7 @@ public class HttpService implements Service {
     private static final BString OPENAPI_DEF_FIELD = fromString("openApiDefinition");
     private static final BString MEDIA_TYPE_SUBTYPE_PREFIX = fromString("mediaTypeSubtypePrefix");
     private static final BString TREAT_NILABLE_AS_OPTIONAL = fromString("treatNilableAsOptional");
+    private static final BString DATA_VALIDATION = fromString("validation");
 
     private BObject balService;
     private List<HttpResource> resources;
@@ -86,6 +87,7 @@ public class HttpService implements Service {
     private List<HTTPInterceptorServicesRegistry> interceptorServicesRegistries;
     private BArray balInterceptorServicesArray;
     private byte[] introspectionPayload = new byte[0];
+    private Boolean constraintValidation = true;
 
     protected HttpService(BObject service, String basePath) {
         this.balService = service;
@@ -240,6 +242,7 @@ public class HttpService implements Service {
                         .getValue().trim());
             }
             httpService.setTreatNilableAsOptional(serviceConfig.getBooleanValue(TREAT_NILABLE_AS_OPTIONAL));
+            httpService.setConstraintValidation(serviceConfig.getBooleanValue(DATA_VALIDATION));
         } else {
             httpService.setHostName(HttpConstants.DEFAULT_HOST);
         }
@@ -477,5 +480,13 @@ public class HttpService implements Service {
     public boolean hasInterceptors() {
         return Objects.nonNull(this.getInterceptorServicesRegistries()) &&
                 !this.getInterceptorServicesRegistries().isEmpty();
+    }
+
+    public boolean getConstraintValidation() {
+        return constraintValidation;
+    }
+
+    private void setConstraintValidation(boolean constraintValidation) {
+        this.constraintValidation = constraintValidation;
     }
 }

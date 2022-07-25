@@ -87,6 +87,7 @@ public class HttpResource implements Resource {
     private String returnMediaType;
     private BMap cacheConfig;
     private boolean treatNilableAsOptional;
+    private boolean constraintValidation;
 
     protected HttpResource(MethodType resource, HttpService parentService) {
         this.balResource = resource;
@@ -285,8 +286,17 @@ public class HttpResource implements Resource {
                     .setTransactionInfectable(resourceConfigAnnotation.getBooleanValue(TRANSACTION_INFECTABLE_FIELD));
         }
         processResourceCors(httpResource, httpService);
+        httpResource.setConstraintValidation(httpService.getConstraintValidation());
         httpResource.prepareAndValidateSignatureParams();
         return httpResource;
+    }
+
+    private void setConstraintValidation(boolean constraintValidation) {
+        this.constraintValidation = constraintValidation;
+    }
+
+    private boolean getConstraintValidation() {
+        return this.constraintValidation;
     }
 
     private void updateLinkedResources(Object[] links) {
@@ -345,7 +355,7 @@ public class HttpResource implements Resource {
     }
 
     private void prepareAndValidateSignatureParams() {
-        paramHandler = new ParamHandler(getBalResource(), this.pathParamCount);
+        paramHandler = new ParamHandler(getBalResource(), this.pathParamCount, this.getConstraintValidation());
     }
 
     @Override

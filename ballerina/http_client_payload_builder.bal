@@ -17,6 +17,7 @@
 import ballerina/log;
 import ballerina/regex;
 import ballerina/jballerina.java;
+import ballerina/constraint;
 
 type nilType typedesc<()>;
 type xmlType typedesc<xml>;
@@ -189,6 +190,14 @@ isolated function getCommonError(Response response, TargetType targetType) retur
     string contentType = response.getContentType();
     string mimeType = contentType == "" ? "no" : "'" + contentType + "'";
     return error PayloadBindingClientError("incompatible " + targetType.toString() + " found for " + mimeType + " mime type");
+}
+
+isolated function performDataValidation(anydata payload, typedesc<anydata> targetType) returns anydata|ClientError {
+    anydata|error validationResult = constraint:validate(payload, targetType);
+    if validationResult is error {
+        return error PayloadValidationClientError("payload validation failed: " + validationResult.message(), validationResult);
+    }
+    return payload;
 }
 
 isolated function typeIncludedInUnion(typedesc unionType, any targetType) returns boolean = @java:Method {
