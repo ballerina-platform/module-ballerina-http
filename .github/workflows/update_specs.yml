@@ -1,4 +1,8 @@
 name: Update Specifications
+
+env:
+  SPEC_FOLDER_PATH: 'docs/spec'
+
 on:
   workflow_dispatch:
   push:
@@ -6,7 +10,7 @@ on:
       - master
       - 2201.1.x
     paths:
-      - 'docs/spec/'
+      - ${{ env.SPEC_FOLDER_PATH }}
 
 jobs:
   update_specs:
@@ -22,6 +26,12 @@ jobs:
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
 
+      - name: Get Repo Name
+        id: repo_name
+        run: |
+          MODULE=${{ github.event.repository.name }}
+          echo "::set-output name=short_name::${MODULE##*-}"
+
       - name: Trigger Workflow
         run: |
           curl -X POST \
@@ -31,9 +41,9 @@ jobs:
           --data "{
             \"event_type\": \"update-stdlib-specs\",
             \"client_payload\": {
-              \"module_name\": \"module-ballerina-http\",
-              \"short_name\": \"http\",
-              \"file_dir\": \"module-ballerina-http/docs/spec\",
+              \"module_name\": \"${{ github.event.repository.name }}\",
+              \"short_name\": \"${{ steps.repo_name.outputs.short_name }}\",
+              \"file_dir\": \"${{ github.event.repository.name }}/${{ env.SPEC_FOLDER_PATH }}\",
               \"release_date\": \"${{ steps.date.outputs.date }}\"
             }
           }"
