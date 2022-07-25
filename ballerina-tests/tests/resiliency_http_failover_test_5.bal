@@ -16,7 +16,7 @@
 //
 
 import ballerina/lang.runtime as runtime;
-import ballerina/log;
+// import ballerina/log;
 import ballerina/test;
 import ballerina/http;
 
@@ -47,7 +47,7 @@ service /failoverDemoService05 on failoverEP05 {
             string responseMessage = "Failover start index is : " + startIndex;
             error? responseToCaller = caller->respond(responseMessage);
             if responseToCaller is error {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response response = new;
@@ -55,7 +55,7 @@ service /failoverDemoService05 on failoverEP05 {
             response.setPayload(backendRes.message());
             error? responseToCaller = caller->respond(response);
             if responseToCaller is error {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
@@ -68,7 +68,7 @@ service /delay on backendEP05 {
         runtime:sleep(30);
         error? responseToCaller = caller->respond("Delayed resource is invoked");
         if responseToCaller is error {
-            log:printError("Error sending response from mock service", 'error = responseToCaller);
+            // log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }
@@ -78,7 +78,7 @@ service /mock05 on backendEP05 {
     resource function 'default .(http:Caller caller, http:Request req) {
         error? responseToCaller = caller->respond("Mock Resource is Invoked.");
         if responseToCaller is error {
-            log:printError("Error sending response from mock service", 'error = responseToCaller);
+            // log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }

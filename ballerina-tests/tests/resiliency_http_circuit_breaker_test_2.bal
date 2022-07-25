@@ -15,7 +15,7 @@
 // under the License.
 //
 
-import ballerina/log;
+// import ballerina/log;
 import ballerina/test;
 import ballerina/http;
 
@@ -85,7 +85,7 @@ service /cb on circuitBreakerEP01 {
         if backendRes is http:Response {
             error? responseToCaller = caller->respond(backendRes);
             if responseToCaller is error {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response response = new;
@@ -93,7 +93,7 @@ service /cb on circuitBreakerEP01 {
             response.setHeader(CB_HEADER, CB_FAILURE_HEADER_VALUE);
             error? responseToCaller = caller->respond(response);
             if responseToCaller is error {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
@@ -109,7 +109,7 @@ service /cb on circuitBreakerEP01 {
         if backendRes is http:Response {
             error? responseToCaller = caller->respond(backendRes);
             if responseToCaller is error {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response response = new;
@@ -117,7 +117,7 @@ service /cb on circuitBreakerEP01 {
             response.setHeader(ALLOW_HEADER, CB_FAILUE_ALLOW_HEADER_VALUE);
             error? responseToCaller = caller->respond(response);
             if responseToCaller is error {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
@@ -163,7 +163,7 @@ isolated function handleBackendResponse(http:Caller caller, http:Response|error 
     if backendRes is http:Response {
         error? responseToCaller = caller->respond(backendRes);
         if responseToCaller is error {
-            log:printError("Error sending response", 'error = responseToCaller);
+            // log:printError("Error sending response", 'error = responseToCaller);
         }
     } else {
         http:Response response = new;
@@ -171,7 +171,7 @@ isolated function handleBackendResponse(http:Caller caller, http:Response|error 
         response.setPayload(backendRes.message());
         error? responseToCaller = caller->respond(response);
         if responseToCaller is error {
-            log:printError("Error sending response", 'error = responseToCaller);
+            // log:printError("Error sending response", 'error = responseToCaller);
         }
     }
 }
@@ -181,7 +181,7 @@ service /healthy on new http:Listener(8087, httpVersion = "1.1") {
     resource function 'default .(http:Caller caller, http:Request req) {
         error? responseToCaller = caller->respond("Hello World!!!");
         if responseToCaller is error {
-            log:printError("Error sending response from mock service", 'error = responseToCaller);
+            // log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 
@@ -190,7 +190,7 @@ service /healthy on new http:Listener(8087, httpVersion = "1.1") {
         res.setHeader(CB_HEADER, CB_SUCCESS_HEADER_VALUE);
         error? responseToCaller = caller->respond(res);
         if responseToCaller is error {
-            log:printError("Error sending response from mock service", 'error = responseToCaller);
+            // log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 
@@ -199,7 +199,7 @@ service /healthy on new http:Listener(8087, httpVersion = "1.1") {
         res.setHeader(ALLOW_HEADER, CB_SUCCESS_ALLOW_HEADER_VALUE);
         error? responseToCaller = caller->respond(res);
         if responseToCaller is error {
-            log:printError("Error sending response from mock service", 'error = responseToCaller);
+            // log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }

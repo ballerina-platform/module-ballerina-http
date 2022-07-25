@@ -16,7 +16,7 @@
 
 import ballerina/jballerina.java;
 import ballerina/lang.runtime as runtime;
-import ballerina/log;
+// import ballerina/log;
 import ballerina/test;
 import ballerina/http;
 
@@ -52,7 +52,7 @@ service /pipeliningTest on pipeliningListenerEP1 {
         error? result = caller->respond(response);
         if result is error {
             error err = result;
-            log:printError(err.message(), 'error = result);
+            // log:printError(err.message(), 'error = result);
         }
     }
 }
@@ -83,7 +83,7 @@ service /pipelining on pipeliningListenerEP2 {
 
         var responseError = caller->respond(response);
         if responseError is error {
-            log:printError("Pipeline timeout:" + responseError.message(), 'error = responseError);
+            // log:printError("Pipeline timeout:" + responseError.message(), 'error = responseError);
         }
     }
 }
@@ -98,7 +98,7 @@ service /pipeliningLimit on pipeliningListenerEP3 {
 
         var responseError = caller->respond(response);
         if responseError is error {
-            log:printError("Pipeline limit exceeded:" + responseError.message(), 'error = responseError);
+            // log:printError("Pipeline limit exceeded:" + responseError.message(), 'error = responseError);
         }
     }
 }

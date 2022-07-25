@@ -434,7 +434,7 @@ resource function get person(http:Request req) {
 }
 ```
 
-See section [Request and Response] to find out more. 
+See section [Request and Response](#6-request-and-response) to find out more. 
 
 ##### 2.3.4.3. Query parameter
 
@@ -535,7 +535,7 @@ service /queryparamservice on QueryBindingIdealEP {
 </tr>
 </table>
 
-See section [Query] to understand accessing query param via the request object.
+See section [Query](#52-query) to understand accessing query param via the request object.
 
 ##### 2.3.4.4. Payload parameter
 
@@ -620,7 +620,7 @@ process. Payload binding is not recommended if the service behaves as a proxy/pa
 not accessed.
 
 User may specify the expected content type in the annotation to shape the resource as described in section [Payload 
-binding parameter]
+binding parameter](#431-payload-binding-parameter)
 
 ##### 2.3.4.5. Header parameter
 

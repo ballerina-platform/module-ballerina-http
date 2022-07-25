@@ -16,7 +16,7 @@
 
 import ballerina/test;
 import ballerina/http;
-import ballerina/log;
+// import ballerina/log;
 
 listener http:Listener httpReturnNilListener = new(httpReturnNilTestPort, httpVersion = "1.1");
 final http:Client httpReturnNilClient = check new("http://localhost:" + httpReturnNilTestPort.toString(), httpVersion = "1.1");
@@ -38,7 +38,7 @@ service "/url" on httpReturnNilListener  {
     resource function get end(http:Caller caller) {
         error? err = caller->respond("hi"); // 200 response
         if err is error {
-           log:printError("Error occurred while sending response", 'error = err);
+           // log:printError("Error occurred while sending response", 'error = err);
         }
         return; // consider as exec end
     }
@@ -55,7 +55,7 @@ service "/url" on httpReturnNilListener  {
         if success {
             error? err = caller->respond("success");
             if err is error {
-               log:printError("Error occurred while sending response", 'error = err);
+               // log:printError("Error occurred while sending response", 'error = err);
             }
             return;
         }

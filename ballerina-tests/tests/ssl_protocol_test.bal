@@ -15,7 +15,7 @@
 // under the License.
 
 import ballerina/http;
-import ballerina/log;
+// import ballerina/log;
 import ballerina/lang.'string as strings;
 import ballerina/test;
 
@@ -40,7 +40,7 @@ service /protocol on sslProtocolListener {
     resource function get protocolResource(http:Caller caller, http:Request req) {
         error? result = caller->respond("Hello World!");
         if result is error {
-           log:printError("Failed to respond", 'error = result);
+           // log:printError("Failed to respond", 'error = result);
         }
     }
 }

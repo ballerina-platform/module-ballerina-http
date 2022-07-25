@@ -15,7 +15,7 @@
 // under the License.
 
 import ballerina/http;
-import ballerina/log;
+// import ballerina/log;
 import ballerina/test;
 
 const string X_TEST_TYPE = "x-test-type";
@@ -79,7 +79,7 @@ service /responseLimit on statusLineEP {
         if clientResponse is http:Response {
             error? result = caller->respond(clientResponse);
             if result is error {
-                log:printError("Error sending passthru response", 'error = result);
+                // log:printError("Error sending passthru response", 'error = result);
             }
         } else {
             http:Response res = new;
@@ -87,7 +87,7 @@ service /responseLimit on statusLineEP {
             res.setPayload(clientResponse.toString());
             error? result = caller->respond(res);
             if result is error {
-                log:printError("Error sending error response", 'error = result);
+                // log:printError("Error sending error response", 'error = result);
             }
         }
     }
@@ -155,7 +155,7 @@ function getStringLengthOf(int length) returns string {
 function sendResponse(http:Caller caller, http:Response res) {
     error? result = caller->respond(res);
     if result is error {
-        log:printError("Error sending backend response", 'error = result);
+        // log:printError("Error sending backend response", 'error = result);
     }
 }
 

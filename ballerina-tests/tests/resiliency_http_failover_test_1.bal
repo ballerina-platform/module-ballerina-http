@@ -15,7 +15,7 @@
 // under the License.
 //
 
-import ballerina/log;
+// import ballerina/log;
 import ballerina/io;
 import ballerina/mime;
 import ballerina/lang.runtime as runtime;
@@ -74,7 +74,7 @@ service /failoverDemoService01 on failoverEP01 {
         if backendRes is http:Response {
             error? responseToCaller = caller->respond(backendRes);
             if responseToCaller is error {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response response = new;
@@ -82,7 +82,7 @@ service /failoverDemoService01 on failoverEP01 {
             response.setPayload(backendRes.message());
             error? responseToCaller = caller->respond(response);
             if responseToCaller is error {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
@@ -92,7 +92,7 @@ service /failoverDemoService01 on failoverEP01 {
         if backendRes is http:Response {
             error? responseToCaller = caller->respond(backendRes);
             if responseToCaller is error {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response response = new;
@@ -100,7 +100,7 @@ service /failoverDemoService01 on failoverEP01 {
             response.setPayload(backendRes.message());
             error? responseToCaller = caller->respond(response);
             if responseToCaller is error {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
@@ -110,7 +110,7 @@ service /failoverDemoService01 on failoverEP01 {
         if backendRes is http:Response {
             error? responseToCaller = caller->respond(backendRes);
             if responseToCaller is error {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response response = new;
@@ -118,7 +118,7 @@ service /failoverDemoService01 on failoverEP01 {
             response.setPayload(backendRes.message());
             error? responseToCaller = caller->respond(response);
             if responseToCaller is error {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
@@ -130,7 +130,7 @@ service /failoverDemoService01 on failoverEP01 {
             string responseMessage = "Failover start index is : " + startIndex;
             error? responseToCaller = caller->respond(responseMessage);
             if responseToCaller is error {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response response = new;
@@ -138,7 +138,7 @@ service /failoverDemoService01 on failoverEP01 {
             response.setPayload(backendRes.message());
             error? responseToCaller = caller->respond(response);
             if responseToCaller is error {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
@@ -151,7 +151,7 @@ service /echo01 on backendEP01 {
         runtime:sleep(30);
         error? responseToCaller = caller->respond("echo Resource is invoked");
         if responseToCaller is error {
-            log:printError("Error sending response from mock service", 'error = responseToCaller);
+            // log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }
@@ -173,7 +173,7 @@ service /mock01 on backendEP01 {
             && req.getContentType().startsWith(http:MULTIPART_AS_PRIMARY_TYPE)) {
             var mimeEntity = req.getBodyParts();
             if (mimeEntity is error) {
-                log:printError(mimeEntity.message());
+                // log:printError(mimeEntity.message());
                 response.setPayload("Error in decoding multiparts!");
                 response.statusCode = 500;
             } else {
@@ -182,7 +182,7 @@ service /mock01 on backendEP01 {
                         && bodyPart.getContentType().startsWith(http:MULTIPART_AS_PRIMARY_TYPE)) {
                         var nestedMimeEntity = bodyPart.getBodyParts();
                         if (nestedMimeEntity is error) {
-                            log:printError(nestedMimeEntity.message());
+                            // log:printError(nestedMimeEntity.message());
                             response.setPayload("Error in decoding nested multiparts!");
                             response.statusCode = 500;
                         } else {
@@ -192,7 +192,7 @@ service /mock01 on backendEP01 {
                                 // invoking the endpoint to create a message datasource.
                                 byte[]|error childBlobContent = childPart.getByteArray();
                                 if childBlobContent is error {
-                                    log:printError("Error reading payload", 'error = childBlobContent);
+                                    // log:printError("Error reading payload", 'error = childBlobContent);
                                 }
                             }
                             io:println(bodyPart.getContentType());
@@ -201,7 +201,7 @@ service /mock01 on backendEP01 {
                     } else {
                         byte[]|error bodyPartBlobContent = bodyPart.getByteArray();
                         if bodyPartBlobContent is error {
-                            log:printError("Error reading payload", 'error = bodyPartBlobContent);
+                            // log:printError("Error reading payload", 'error = bodyPartBlobContent);
                         }
                     }
                 }
@@ -213,7 +213,7 @@ service /mock01 on backendEP01 {
 
         error? responseToCaller = caller->respond(response);
         if responseToCaller is error {
-            log:printError("Error sending response from mock service", 'error = responseToCaller);
+            // log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }
@@ -226,7 +226,7 @@ service /failureStatusCodeService01 on backendEP01 {
         outResponse.setPayload("Failure status code scenario");
         error? responseToCaller = caller->respond(outResponse);
         if responseToCaller is error {
-            log:printError("Error sending response from mock service", 'error = responseToCaller);
+            // log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }

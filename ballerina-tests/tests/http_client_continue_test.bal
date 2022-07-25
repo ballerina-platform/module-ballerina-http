@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/log;
+// import ballerina/log;
 import ballerina/test;
 import ballerina/http;
 
@@ -34,7 +34,7 @@ service /'continue on httpClientContinueListenerEP1 {
             if mediaType.toLowerAscii() == "text/plain" {
                 error? result = caller->continue();
                 if result is error {
-                    log:printError("Error sending response", 'error = result);
+                    // log:printError("Error sending response", 'error = result);
                 }
             } else {
                 http:Response res = new;
@@ -42,7 +42,7 @@ service /'continue on httpClientContinueListenerEP1 {
                 res.setPayload("Unprocessable Entity");
                 error? result = caller->respond(res);
                 if result is error {
-                    log:printError("Error sending response", 'error = result);
+                    // log:printError("Error sending response", 'error = result);
                 }
                 return;
             }
@@ -54,14 +54,14 @@ service /'continue on httpClientContinueListenerEP1 {
             res.setPayload("Hello World!\n");
             error? result = caller->respond(res);
             if result is error {
-                log:printError("Error sending response", 'error = result);
+                // log:printError("Error sending response", 'error = result);
             }
         } else {
             res.statusCode = 500;
             res.setPayload(payload.message());
             error? result = caller->respond(res);
             if result is error {
-                log:printError("Error sending response", 'error = result);
+                // log:printError("Error sending response", 'error = result);
             }
         }
     }
