@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/log;
+// import ballerina/log;
 import ballerina/test;
 import ballerina/http;
 
@@ -31,7 +31,7 @@ service /mock1 on serviceDetachTestEP {
         }
         error? responseToCaller = caller->respond("Mock1 invoked. Mock2 attached. Mock3 attached");
         if responseToCaller is error {
-            log:printError("Error sending response from mock service", 'error = responseToCaller);
+            // log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }
@@ -46,7 +46,7 @@ isolated http:Service mock2 = service object {
         }
         error? responseToCaller = caller->respond("Mock2 resource was invoked");
         if responseToCaller is error {
-            log:printError("Error sending response from mock service", 'error = responseToCaller);
+            // log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 };
@@ -61,7 +61,7 @@ isolated http:Service mock3 = service object {
         }
         error? responseToCaller = caller->respond("Mock3 invoked. Mock2 detached. Mock4 attached");
         if responseToCaller is error {
-            log:printError("Error sending response from mock service", 'error = responseToCaller);
+            // log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 };
@@ -76,7 +76,7 @@ isolated http:Service mock4 = service object {
         }
         error? responseToCaller = caller->respond("Mock4 invoked. Mock2 attached");
         if responseToCaller is error {
-            log:printError("Error sending response from mock service", 'error = responseToCaller);
+            // log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 };
@@ -85,7 +85,7 @@ isolated http:Service mock5 = service object {
     resource function get mock5Resource(http:Caller caller, http:Request req) {
         error? responseToCaller = caller->respond("Mock5 invoked");
         if responseToCaller is error {
-            log:printError("Error sending response from mock service", 'error = responseToCaller);
+            // log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 };

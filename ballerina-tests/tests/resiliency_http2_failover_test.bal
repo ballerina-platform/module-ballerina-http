@@ -16,7 +16,7 @@
 //
 
 import ballerina/lang.runtime as runtime;
-import ballerina/log;
+// import ballerina/log;
 import ballerina/test;
 import ballerina/http;
 
@@ -64,7 +64,7 @@ service /delay on backendEP06 {
         runtime:sleep(10);
         error? responseToCaller = caller->respond("Delayed resource is invoked");
         if responseToCaller is error {
-            log:printError("Error sending response from delay service", 'error = responseToCaller);
+            // log:printError("Error sending response from delay service", 'error = responseToCaller);
         }
     }
 }
@@ -78,7 +78,7 @@ service /'error on backendEP06 {
         response.setPayload("Response from error Service with error status code.");
         error? responseToCaller = caller->respond(response);
         if responseToCaller is error {
-            log:printError("Error sending response from error service", 'error = responseToCaller);
+            // log:printError("Error sending response from error service", 'error = responseToCaller);
         }
     }
 }
@@ -89,14 +89,14 @@ service /mock on backendEP06 {
     resource function get .(http:Caller caller, http:Request req) {
         error? responseToCaller = caller->respond("Mock Resource is Invoked.");
         if responseToCaller is error {
-            log:printError("Error sending response from mock service", 'error = responseToCaller);
+            // log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }
 
 function handleResponseToCaller(error? responseToCaller) {
     if responseToCaller is error {
-        log:printError("Error sending response from failover service.", 'error = responseToCaller);
+        // log:printError("Error sending response from failover service.", 'error = responseToCaller);
     }
 }
 

@@ -16,7 +16,7 @@
 
 import ballerina/http;
 import ballerina/io;
-import ballerina/log;
+// import ballerina/log;
 import ballerina/mime;
 import ballerina/test;
 
@@ -125,13 +125,13 @@ service /reuseObj on reuseRequestListenerEP {
                         secondVal = result2.message();
                     }
                 } else {
-                    log:printError(secondResponse.message(), 'error = secondResponse);
+                    // log:printError(secondResponse.message(), 'error = secondResponse);
                 }
             } else {
-                log:printError(firstResponse.message(), 'error = firstResponse);
+                // log:printError(firstResponse.message(), 'error = firstResponse);
             }
         } else {
-            log:printError(entity.message(), 'error = entity);
+            // log:printError(entity.message(), 'error = entity);
         }
         testResponse.setTextPayload(firstVal + secondVal);
         check caller->respond(testResponse);
@@ -204,10 +204,10 @@ service /reuseObj on reuseRequestListenerEP {
     //             testResponse.setTextPayload(firstVal + secondVal);
     //             check caller->respond(testResponse);
     //         } else {
-    //             log:printError(firstResponse.message(), 'error = firstResponse);
+    //             // log:printError(firstResponse.message(), 'error = firstResponse);
     //         }
     //     } else {
-    //         log:printError(byteChannel.message(), 'error = byteChannel);
+    //         // log:printError(byteChannel.message(), 'error = byteChannel);
     //     }
     // }
 
@@ -243,10 +243,10 @@ service /reuseObj on reuseRequestListenerEP {
                 testResponse.setTextPayload(firstVal + secondVal);
                 check caller->respond(testResponse);
             } else {
-                log:printError(firstResponse.message(), 'error = firstResponse);
+                // log:printError(firstResponse.message(), 'error = firstResponse);
             }
         } else {
-            log:printError(byteStream.message(), 'error = byteStream);
+            // log:printError(byteStream.message(), 'error = byteStream);
         }
     }
 }

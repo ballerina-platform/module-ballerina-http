@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/log;
+// import ballerina/log;
 import ballerina/mime;
 import ballerina/test;
 import ballerina/http;
@@ -40,7 +40,7 @@ service /serialize on serializeXmlListener {
         if (returnResponse is http:Response) {
             error? result = caller->respond(returnResponse);
             if result is error {
-                log:printError("Error sending response", 'error = result);
+                // log:printError("Error sending response", 'error = result);
             }
         } else {
             http:Response response = new;
@@ -48,7 +48,7 @@ service /serialize on serializeXmlListener {
             response.statusCode = 500;
             error? result = caller->respond(response);
             if result is error {
-                log:printError("Error sending response", 'error = result);
+                // log:printError("Error sending response", 'error = result);
             }
         }
     }
@@ -68,13 +68,13 @@ service /serialize on serializeXmlListener {
                 break; //Accepts only one part
             }
         } else {
-            log:printError(bodyParts.message());
+            // log:printError(bodyParts.message());
             response.setPayload("Error in decoding multiparts!");
             response.statusCode = 500;
         }
         error? result = caller->respond(response);
         if result is error {
-            log:printError("Error sending response", 'error = result);
+            // log:printError("Error sending response", 'error = result);
         }
     }
 }

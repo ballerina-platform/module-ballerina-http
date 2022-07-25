@@ -15,7 +15,7 @@
 // under the License.
 //
 
-import ballerina/log;
+// import ballerina/log;
 import ballerina/test;
 import ballerina/http;
 
@@ -54,7 +54,7 @@ service /errornous on new http:Listener(8090, httpVersion = "1.1") {
         res.setPayload("Internal error occurred while processing the request.");
         error? responseToCaller = caller->respond(res);
         if responseToCaller is error {
-            log:printError("Error sending response from mock service", 'error = responseToCaller);
+            // log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }

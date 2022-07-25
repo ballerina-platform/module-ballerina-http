@@ -16,7 +16,7 @@
 
 import ballerina/jballerina.java;
 import ballerina/lang.runtime as runtime;
-import ballerina/log;
+// import ballerina/log;
 import ballerina/mime;
 import ballerina/io;
 import ballerina/test;
@@ -58,7 +58,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
         if backendResponse is http:Response {
             error? responseToCaller = caller->respond(backendResponse);
             if responseToCaller is error {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response response = new;
@@ -66,7 +66,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
             response.setPayload(backendResponse.message());
             error? responseToCaller = caller->respond(response);
             if responseToCaller is error {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
@@ -76,7 +76,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
         if backendResponse is http:Response {
             error? responseToCaller = caller->respond(backendResponse);
             if responseToCaller is error {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response response = new;
@@ -84,7 +84,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
             response.setPayload(backendResponse.message());
             error? responseToCaller = caller->respond(response);
             if responseToCaller is error {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
@@ -94,7 +94,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
         if backendResponse is http:Response {
             error? responseToCaller = caller->respond(backendResponse);
             if responseToCaller is error {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response response = new;
@@ -102,7 +102,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
             response.setPayload(backendResponse.message());
             error? responseToCaller = caller->respond(response);
             if responseToCaller is error {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
@@ -112,7 +112,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
         if backendResponse is http:Response {
             error? responseToCaller = caller->respond(backendResponse);
             if (responseToCaller is error) {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response response = new;
@@ -120,7 +120,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
             response.setPayload(backendResponse.message());
             error? responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
@@ -130,7 +130,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
         if backendResponse is http:Response {
             error? responseToCaller = caller->respond(backendResponse);
             if (responseToCaller is error) {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response response = new;
@@ -138,7 +138,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
             response.setPayload(backendResponse.message());
             error? responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
@@ -148,7 +148,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
         if backendResponse is http:Response {
             error? responseToCaller = caller->respond(backendResponse);
             if (responseToCaller is error) {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response response = new;
@@ -156,7 +156,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
             response.setPayload(backendResponse.message());
             error? responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
@@ -166,7 +166,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
         if backendResponse is http:Response {
             error? responseToCaller = caller->respond(backendResponse);
             if (responseToCaller is error) {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response response = new;
@@ -174,7 +174,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
             response.setPayload(backendResponse.message());
             error? responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
@@ -199,8 +199,7 @@ service /mockHelloService on retryTestserviceEndpoint1 {
             count = retryCounter;
         }
         if (count % 4 != 0) {
-            log:printInfo(
-                "Request received from the client to delayed service.");
+            // log:printInfo("Request received from the client to delayed service.");
             // Delay the response by 5000 milliseconds to
             // mimic network level delays.
             runtime:sleep(5);
@@ -209,10 +208,10 @@ service /mockHelloService on retryTestserviceEndpoint1 {
             error? result = caller->respond(res);
 
             if result is error {
-                log:printError("Error sending response from mock service", 'error = result);
+                // log:printError("Error sending response from mock service", 'error = result);
             }
         } else {
-            log:printInfo("Request received from the client to healthy service.");
+            // log:printInfo("Request received from the client to healthy service.");
             http:Response response = new;
             if (req.hasHeader(mime:CONTENT_TYPE)
                 && req.getContentType().startsWith(http:MULTIPART_AS_PRIMARY_TYPE)) {
@@ -223,7 +222,7 @@ service /mockHelloService on retryTestserviceEndpoint1 {
                             && bodyPart.getContentType().startsWith(http:MULTIPART_AS_PRIMARY_TYPE)) {
                             var nestedParts = bodyPart.getBodyParts();
                             if (nestedParts is error) {
-                                log:printError(nestedParts.message());
+                                // log:printError(nestedParts.message());
                                 response.setPayload("Error in decoding nested multiparts!");
                                 response.statusCode = 500;
                             } else {
@@ -233,7 +232,7 @@ service /mockHelloService on retryTestserviceEndpoint1 {
                                     // invoking the endpoint to create a message datasource.
                                     byte[]|error childBlobContent = childPart.getByteArray();
                                     if childBlobContent is error {
-                                        log:printError("Error reading payload", 'error = childBlobContent);
+                                        // log:printError("Error reading payload", 'error = childBlobContent);
                                     }
                                 }
                                 io:println(bodyPart.getContentType());
@@ -242,13 +241,13 @@ service /mockHelloService on retryTestserviceEndpoint1 {
                         } else {
                             byte[]|error bodyPartBlobContent = bodyPart.getByteArray();
                             if bodyPartBlobContent is error {
-                                log:printError("Error reading payload", 'error = bodyPartBlobContent);
+                                // log:printError("Error reading payload", 'error = bodyPartBlobContent);
                             }
                         }
                     }
                     response.setBodyParts(bodyParts, req.getContentType());
                 } else {
-                    log:printError(bodyParts.message());
+                    // log:printError(bodyParts.message());
                     response.setPayload("Error in decoding multiparts!");
                     response.statusCode = 500;
                 }
@@ -257,7 +256,7 @@ service /mockHelloService on retryTestserviceEndpoint1 {
             }
             error? responseToCaller = caller->respond(response);
             if (responseToCaller is error) {
-                log:printError("Error sending response from mock service", 'error = responseToCaller);
+                // log:printError("Error sending response from mock service", 'error = responseToCaller);
             }
         }
     }
@@ -271,7 +270,7 @@ service /mockHelloService on retryTestserviceEndpoint1 {
         waitForRetry(count);
         error? responseToCaller = caller->respond("HTTP GET method invocation is successful");
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", 'error = responseToCaller);
+            // log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 
@@ -286,7 +285,7 @@ service /mockHelloService on retryTestserviceEndpoint1 {
         res.setHeader("X-Head-Retry-Count", count.toString());
         error? responseToCaller = caller->respond(res);
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", 'error = responseToCaller);
+            // log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 
@@ -301,7 +300,7 @@ service /mockHelloService on retryTestserviceEndpoint1 {
         res.setTextPayload("HTTP PUT method invocation is successful");
         error? responseToCaller = caller->respond(res);
         if (responseToCaller is error) {
-            log:printError("Error sending response from put mock service", 'error = responseToCaller);
+            // log:printError("Error sending response from put mock service", 'error = responseToCaller);
         }
     }
 
@@ -316,7 +315,7 @@ service /mockHelloService on retryTestserviceEndpoint1 {
         res.setTextPayload("HTTP PATCH method invocation is successful");
         error? responseToCaller = caller->respond(res);
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", 'error = responseToCaller);
+            // log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 
@@ -331,7 +330,7 @@ service /mockHelloService on retryTestserviceEndpoint1 {
         res.setTextPayload("HTTP DELETE method invocation is successful");
         error? responseToCaller = caller->respond(res);
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", 'error = responseToCaller);
+            // log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 
@@ -346,15 +345,14 @@ service /mockHelloService on retryTestserviceEndpoint1 {
         res.setHeader("Allow", "OPTIONS, GET, HEAD, POST");
         error? responseToCaller = caller->respond(res);
         if (responseToCaller is error) {
-            log:printError("Error sending response from mock service", 'error = responseToCaller);
+            // log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }
 
 isolated function waitForRetry(int counter) {
     if (counter % 4 != 0) {
-        log:printInfo(
-            "Request received from the client to delayed service.");
+        // log:printInfo("Request received from the client to delayed service.");
         // Delay the response by 5000 milliseconds to
         // mimic network level delays.
         runtime:sleep(5);
@@ -368,7 +366,7 @@ service /retryStatusService on retryTestserviceEndpoint1 {
             if backendResponse is http:Response {
                 var responseError = caller->respond(backendResponse);
                 if (responseError is error) {
-                    log:printError("Error sending response", 'error = responseError);
+                    // log:printError("Error sending response", 'error = responseError);
                 }
             } else {
                 http:Response errorResponse = new;
@@ -376,7 +374,7 @@ service /retryStatusService on retryTestserviceEndpoint1 {
                 errorResponse.setPayload(backendResponse.message());
                 var responseError = caller->respond(errorResponse);
                 if (responseError is error) {
-                    log:printError("Error sending response", 'error = responseError);
+                    // log:printError("Error sending response", 'error = responseError);
                 }
             }
         } else if (check request.getHeader("x-retry") == "internalError") {
@@ -384,7 +382,7 @@ service /retryStatusService on retryTestserviceEndpoint1 {
             if backendResponse is http:Response {
                 var responseError = caller->respond(backendResponse);
                 if (responseError is error) {
-                    log:printError("Error sending response", 'error = responseError);
+                    // log:printError("Error sending response", 'error = responseError);
                 }
             } else {
                 http:Response errorResponse = new;
@@ -392,7 +390,7 @@ service /retryStatusService on retryTestserviceEndpoint1 {
                 errorResponse.setPayload(backendResponse.message());
                 var responseError = caller->respond(errorResponse);
                 if (responseError is error) {
-                    log:printError("Error sending response", 'error = responseError);
+                    // log:printError("Error sending response", 'error = responseError);
                 }
             }
         }
@@ -414,12 +412,12 @@ service /mockStatusCodeService on retryTestserviceEndpoint2 {
             res.setPayload("Gateway Timed out.");
             var responseError = caller->respond(res);
             if (responseError is error) {
-                log:printError("Error sending response from the service", 'error = responseError);
+                // log:printError("Error sending response from the service", 'error = responseError);
             }
         } else {
             var responseError = caller->respond("Hello World!!!");
             if (responseError is error) {
-                log:printError("Error sending response from the service", 'error = responseError);
+                // log:printError("Error sending response from the service", 'error = responseError);
             }
         }
     }
@@ -430,7 +428,7 @@ service /mockStatusCodeService on retryTestserviceEndpoint2 {
         res.setPayload("Gateway Timed out.");
         var responseError = caller->respond(res);
         if (responseError is error) {
-            log:printError("Error sending response from the service", 'error = responseError);
+            // log:printError("Error sending response from the service", 'error = responseError);
         }
     }
 }

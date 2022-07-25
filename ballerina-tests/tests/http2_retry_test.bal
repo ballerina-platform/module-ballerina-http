@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/log;
+// import ballerina/log;
 import ballerina/test;
 import ballerina/http;
 
@@ -54,7 +54,7 @@ service /retryDemoService on http2RetryTestserviceEndpoint1 {
             if backendResponse is http:Response {
                 error? responseToCaller = caller->respond(backendResponse);
                 if responseToCaller is error {
-                    log:printError("Error sending response", 'error = responseToCaller);
+                    // log:printError("Error sending response", 'error = responseToCaller);
                 }
             } else {
                 respondWithError(caller, backendResponse);
@@ -78,11 +78,11 @@ service /retryDemoService on http2RetryTestserviceEndpoint1 {
                 if nextPromiseResult is http:PushPromise {
                     pushPromise = nextPromiseResult;
                 } else {
-                    log:printError("Error occurred while fetching a push promise");
+                    // log:printError("Error occurred while fetching a push promise");
                     json errMsg = { "error": "error occurred while fetching a push promise" };
                     check caller->respond(errMsg);
                 }
-                log:printInfo(string`Received Promise for path [${pushPromise.path}]`);
+                // log:printInfo(string`Received Promise for path [${pushPromise.path}]`);
                 // Store required promises
                 promises[promiseCount] = pushPromise;
                 promiseCount = promiseCount + 1;
@@ -101,7 +101,7 @@ service /retryDemoService on http2RetryTestserviceEndpoint1 {
             if result is http:Response {
                 response = result;
             } else {
-                log:printError("Error occurred while fetching response");
+                // log:printError("Error occurred while fetching response");
                 json errMsg = { "error": "error occurred while fetching response" };
                 check caller->respond(errMsg);
             }
@@ -109,10 +109,10 @@ service /retryDemoService on http2RetryTestserviceEndpoint1 {
             var responsePayload = response.getJsonPayload();
             json responseJsonPayload = {};
             if responsePayload is json {
-                log:printInfo("Received main response ", mainMsg = responsePayload);
+                // log:printInfo("Received main response ", mainMsg = responsePayload);
                 responseJsonPayload = responsePayload;
             } else {
-                log:printError("Received Error response ", errorMsg = responsePayload.message());
+                // log:printError("Received Error response ", errorMsg = responsePayload.message());
                 json errMsg = { "error": "expected response message not received" };
                 check caller->respond(errMsg);
             }
@@ -126,7 +126,7 @@ service /retryDemoService on http2RetryTestserviceEndpoint1 {
                 if promisedResponseResult is http:Response {
                     promisedResponse = promisedResponseResult;
                 } else {
-                    log:printError("Error occurred while fetching promised response");
+                    // log:printError("Error occurred while fetching promised response");
                     json errMsg = { "error": "error occurred while fetching promised response" };
                     check caller->respond(errMsg);
                 }
@@ -147,7 +147,7 @@ service /retryDemoService on http2RetryTestserviceEndpoint1 {
             };
             error? responseToCaller = caller->respond(constructedResponse);
             if responseToCaller is error {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             respondWithError(caller, <error>backendFuture);
@@ -161,7 +161,7 @@ isolated function respondWithError(http:Caller caller, error currentError) {
     response.setPayload(currentError.message());
     error? responseToCaller = caller->respond(response);
     if responseToCaller is error {
-        log:printError("Error sending response", 'error = responseToCaller);
+        // log:printError("Error sending response", 'error = responseToCaller);
     }
 }
 
@@ -174,7 +174,7 @@ service /mockHelloService on http2RetryTestserviceEndpoint1 {
         waitForRetry(counter);
         error? responseToCaller = caller->respond("Hello World!!!");
         if responseToCaller is error {
-            log:printError("Error sending response from mock service", 'error = responseToCaller);
+            // log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 

@@ -15,7 +15,7 @@
 // under the License.
 
 import ballerina/lang.'string as strings;
-import ballerina/log;
+// import ballerina/log;
 import ballerina/mime;
 import ballerina/test;
 import ballerina/http;
@@ -185,7 +185,7 @@ service / on inResponseCachedPayloadListener {
         http:Response resp = check diseaseEndpoint -> get("/getXml");
         byte[]|error b = resp.getBinaryPayload(); // represents cache behaviour
         if b is error {
-            log:printError(b.message());
+            // log:printError(b.message());
         }
         return resp.getJsonPayload();
     }
@@ -195,7 +195,7 @@ service / on inResponseCachedPayloadListener {
         http:Response resp = check diseaseEndpoint -> get("/getJson");
         byte[]|error b = resp.getBinaryPayload(); // represents cache behaviour
         if b is error {
-            log:printError(b.message());
+            // log:printError(b.message());
         }
         return resp.getXmlPayload();
     }

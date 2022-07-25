@@ -15,7 +15,7 @@
 // under the License.
 
 import ballerina/http;
-import ballerina/log;
+// import ballerina/log;
 import ballerina/test;
 
 final http:Client h2Client = check new("http://localhost:9100", {
@@ -60,7 +60,7 @@ service /continueService on new http:Listener(9128) {
 
 function handleRespError(error? result) {
     if result is error {
-        log:printError(result.message(), 'error = result);
+        // log:printError(result.message(), 'error = result);
     }
 }
 

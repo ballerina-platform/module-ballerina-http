@@ -15,7 +15,7 @@
 // under the License.
 
 import ballerina/jballerina.java;
-import ballerina/log;
+// import ballerina/log;
 import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/http;
@@ -29,13 +29,13 @@ service /idleTimeout on idleTimeoutListenerEP {
     resource function post timeout408(http:Caller caller, http:Request req) {
         var result = req.getTextPayload();
         if result is string {
-            log:printInfo(result);
+            // log:printInfo(result);
         } else  {
-            log:printError("Error reading request", 'error = result);
+            // log:printError("Error reading request", 'error = result);
         }
         var responseError = caller->respond("some");
         if responseError is error {
-            log:printError("Error sending response", 'error = responseError);
+            // log:printError("Error sending response", 'error = responseError);
         }
     }
 
@@ -43,7 +43,7 @@ service /idleTimeout on idleTimeoutListenerEP {
         runtime:sleep(3);
         var responseError = caller->respond("some");
         if responseError is error {
-            log:printError("Error sending response", 'error = responseError);
+            // log:printError("Error sending response", 'error = responseError);
         }
     }
 }

@@ -15,7 +15,7 @@
 // under the License.
 //
 
-import ballerina/log;
+// import ballerina/log;
 import ballerina/test;
 import ballerina/http;
 
@@ -49,7 +49,7 @@ service /cb on circuitBreakerEP03 {
             }
             error? responseToCaller = caller->respond(backendRes);
             if responseToCaller is error {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         } else {
             http:Response response = new;
@@ -57,7 +57,7 @@ service /cb on circuitBreakerEP03 {
             response.setPayload(backendRes.message());
             error? responseToCaller = caller->respond(response);
             if responseToCaller is error {
-                log:printError("Error sending response", 'error = responseToCaller);
+                // log:printError("Error sending response", 'error = responseToCaller);
             }
         }
     }
@@ -68,7 +68,7 @@ service /simple on new http:Listener(8089, httpVersion = "1.1") {
     resource function 'default .(http:Caller caller, http:Request req) {
         error? responseToCaller = caller->respond("Hello World!!!");
         if responseToCaller is error {
-            log:printError("Error sending response from mock service", 'error = responseToCaller);
+            // log:printError("Error sending response from mock service", 'error = responseToCaller);
         }
     }
 }

@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/log;
+// import ballerina/log;
 import ballerina/jballerina.java;
 import ballerina/mime;
 import ballerina/test;
@@ -30,19 +30,19 @@ service /'continue on expectContinueListenerEP1 {
     resource function 'default .(http:Caller caller, http:Request request) {
         if request.expects100Continue() {
             if request.hasHeader("X-Status") {
-                log:printInfo("Sending 100-Continue response");
+                // log:printInfo("Sending 100-Continue response");
                 var responseError = caller->continue();
                 if responseError is error {
-                    log:printError("Error sending response", 'error = responseError);
+                    // log:printError("Error sending response", 'error = responseError);
                 }
             } else {
-                log:printInfo("Ignore payload by sending 417 response");
+                // log:printInfo("Ignore payload by sending 417 response");
                 http:Response res = new;
                 res.statusCode = 417;
                 res.setPayload("Do not send me any payload");
                 var responseError = caller->respond(res);
                 if responseError is error {
-                    log:printError("Error sending response", 'error = responseError);
+                    // log:printError("Error sending response", 'error = responseError);
                 }
                 return;
             }
@@ -54,15 +54,15 @@ service /'continue on expectContinueListenerEP1 {
         if result is string {
             var responseError = caller->respond(result);
             if responseError is error {
-                log:printError("Error sending response", 'error = responseError);
+                // log:printError("Error sending response", 'error = responseError);
             }
         } else {
             res.statusCode = 500;
             res.setPayload(result.message());
-            log:printError("Failed to retrieve payload from request: " + result.message());
+            // log:printError("Failed to retrieve payload from request: " + result.message());
             var responseError = caller->respond(res);
             if responseError is error {
-                log:printError("Error sending response", 'error = responseError);
+                // log:printError("Error sending response", 'error = responseError);
             }
         }
     }
@@ -85,10 +85,10 @@ service /'continue on expectContinueListenerEP1 {
             }
             var responseError = caller->respond(replyMsg);
             if responseError is error {
-                log:printError(responseError.message(), 'error = responseError);
+                // log:printError(responseError.message(), 'error = responseError);
             }
         } else {
-            log:printError(bodyParts.message(), 'error = bodyParts);
+            // log:printError(bodyParts.message(), 'error = bodyParts);
         }
     }
 
@@ -97,17 +97,17 @@ service /'continue on expectContinueListenerEP1 {
             req.removeHeader("Expect");
             var responseError = caller->continue();
             if responseError is error {
-                log:printError("Error sending response", 'error = responseError);
+                // log:printError("Error sending response", 'error = responseError);
             }
         }
         http:Response|error res = expectContinueClient->forward("/backend/hello", req);
         if res is http:Response {
             var responseError = caller->respond(res);
             if responseError is error {
-                log:printError("Error sending response", 'error = responseError);
+                // log:printError("Error sending response", 'error = responseError);
             }
         } else {
-            log:printError(res.message(), 'error = res);
+            // log:printError(res.message(), 'error = res);
         }
     }
 }
@@ -123,7 +123,7 @@ service /backend on expectContinueListenerEP2 {
         }
         var responseError = caller->respond(response);
         if responseError is error {
-            log:printError("Error sending response", 'error = responseError);
+            // log:printError("Error sending response", 'error = responseError);
         }
     }
 }
