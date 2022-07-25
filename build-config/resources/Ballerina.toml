@@ -19,6 +19,9 @@ version = "@mime.version@"
 path = "./lib/mime-native-@stdlib.mimenative.version@.jar"
 
 [[platform.java11.dependency]]
+groupId = "io.ballerina.stdlib"
+artifactId = "constraint-native"
+version = "@constraint.version@"
 path = "./lib/constraint-native-@stdlib.constraintnative.version@.jar"
 
 [[platform.java11.dependency]]

@@ -784,7 +784,7 @@ isolated function processResponse(Response|ClientError response, TargetType targ
     }
     if targetType is typedesc<anydata> {
         anydata payload = check performDataBinding(response, targetType);
-        if (requireValidation) {
+        if requireValidation {
             return performDataValidation(payload, targetType);
         }
         return payload;
