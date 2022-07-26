@@ -27,6 +27,7 @@ const int generalPort = 9000;
 const int http2GeneralPort = 9100;
 const int http2BackendPort = 9101;
 const int http2SslGeneralPort = 9107;
+const int httpSslGeneralPort = 9108;
 
 const int uriTemplateTest1 = 9004;
 const int uriTemplateTest2 = 9005;

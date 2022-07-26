@@ -113,6 +113,10 @@ class Http2ChannelPool {
 
         void addChannel(Http2ClientChannel http2ClientChannel) {
             http2ClientChannels.add(http2ClientChannel);
+            releaseCountdown();
+        }
+
+        void releaseCountdown() {
             synchronized (lock) {
                 newChannelInitializerLatch.countDown();
             }
