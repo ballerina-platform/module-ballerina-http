@@ -73,6 +73,18 @@ service class ByteArrayPayloadBindingRequestInterceptor {
     }
 }
 
+service class RequestInterceptorConsumePayload {
+    *http:RequestInterceptor;
+
+    resource function post [string path](http:RequestContext ctx, http:Request req, boolean consumePayloadInInterceptor)
+            returns http:NextService|error? {
+        if consumePayloadInInterceptor {
+            json _ = check req.getJsonPayload();
+        }
+        return ctx.next();
+    }
+}
+
 service class RequestInterceptorSetPayload {
     *http:RequestInterceptor;
 

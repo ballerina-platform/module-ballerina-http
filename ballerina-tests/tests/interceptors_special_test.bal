@@ -675,3 +675,69 @@ function testInterceptorExecutionOrder() returns error? {
     assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
     assertHeaderValue(check res.getHeader("default-response-interceptor"), "true");
 }
+
+final http:Client interceptorBackendClientEP = check new ("http://localhost:" + interceptorBackendTestPort.toString());
+final http:Client interceptorPassthroughClientEP = check new ("http://localhost:" + interceptorPassthroughTestPort.toString());
+
+listener http:Listener interceptorPassthroughServer = check new (interceptorPassthroughTestPort);
+listener http:Listener interceptorBackendServer = check new (interceptorBackendTestPort);
+
+@http:ServiceConfig {
+    interceptors: [new RequestInterceptorConsumePayload()]
+}
+service /foo on interceptorPassthroughServer {
+
+    resource function post bar(http:Request req, boolean consumePayload) returns json|error {
+        if consumePayload {
+            json _ = check req.getJsonPayload();
+        }
+        json res = check interceptorBackendClientEP->forward("/foo/bar", req);
+        return { body: res };
+    }
+
+    resource function post baz(http:Request req, boolean consumePayload) returns json|error {
+        if consumePayload {
+            json _ = check req.getJsonPayload();
+        }
+        json res = check interceptorBackendClientEP->execute(http:POST, "/foo/bar", req);
+        return { body: res };
+    }
+}
+
+
+service /foo on interceptorBackendServer {
+
+    resource function post bar(@http:Payload json payload) returns json {
+        return { echo: payload };
+    }
+}
+
+function dualBooleanStringValues() returns string[][] {
+    return [
+        ["true", "true"],
+        ["true", "false"],
+        ["false", "true"],
+        ["false", "false"]
+    ];
+}
+
+@test:Config{
+    dataProvider: dualBooleanStringValues
+}
+function testInterceptorPassthroughForward(string consumePayload, string consumePayloadInInterceptor) returns error? {
+    string path = "/foo/bar?consumePayload=" + consumePayload + "&consumePayloadInInterceptor=" + consumePayloadInInterceptor;
+    json payload = check interceptorPassthroughClientEP->post(path, { id: 1010, name: "John" });
+    json expectedPayload = { body: { echo: { id: 1010, name: "John" } } };
+    test:assertEquals(payload, expectedPayload);
+}
+
+@test:Config{
+    dataProvider: dualBooleanStringValues
+}
+function testInterceptorPassthroughExecute(string consumePayload, string consumePayloadInInterceptor) returns error? {
+    string path = "/foo/baz?consumePayload=" + consumePayload + "&consumePayloadInInterceptor=" + consumePayloadInInterceptor;
+    json payload = check interceptorPassthroughClientEP->post(path, { id: 1010, name: "John" });
+    json expectedPayload = { body: { echo: { id: 1010, name: "John" } } };
+    test:assertEquals(payload, expectedPayload);
+}
+

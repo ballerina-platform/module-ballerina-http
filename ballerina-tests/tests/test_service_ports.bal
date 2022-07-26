@@ -185,6 +185,8 @@ const int hateoasTestPort = 9628;
 const int hateoasRuntimeErrorPort = 9629;
 const int http2ClientContinueTestPort = 9630;
 const int clientResourceMethodsTestPort = 9631;
+const int interceptorPassthroughTestPort = 9632;
+const int interceptorBackendTestPort = 9633;
 
 //HTTP2
 const int serverPushTestPort1 = 9701;
