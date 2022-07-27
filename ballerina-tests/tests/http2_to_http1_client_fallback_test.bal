@@ -27,7 +27,7 @@ listener http:Listener generalSSLListener = new(httpSslGeneralPort, {
     }
 });
 
-final http:Client fallbackClient = check new("http://localhost:" + generalPort.toString(), httpVersion = "2.0");
+final http:Client fallbackClient = check new("http://localhost:" + generalPort.toString());
 final http:Client fallbackSslClient = check new("https://localhost:" + httpSslGeneralPort.toString(), http2SslClientConf1);
 const string version_1_1 = "Version: 1.1";
 
@@ -46,7 +46,7 @@ service /helloWorldWithSSL on generalSSLListener {
 }
 
 @test:Config {}
-public function testClientFallbackFromH2T0H1() returns error? {
+public function testClientFallbackFromH2ToH1() returns error? {
     string payload = check fallbackClient->get("/helloWorldWithoutSSL");
     test:assertEquals(payload, version_1_1, msg = "Found unexpected output");
 
@@ -55,7 +55,7 @@ public function testClientFallbackFromH2T0H1() returns error? {
 }
 
 @test:Config {}
-public function testSslClientFallbackFromH2T0H1() returns error? {
+public function testSslClientFallbackFromH2ToH1() returns error? {
     string payload = check fallbackSslClient->get("/helloWorldWithSSL");
     test:assertEquals(payload, version_1_1, msg = "Found unexpected output");
 
