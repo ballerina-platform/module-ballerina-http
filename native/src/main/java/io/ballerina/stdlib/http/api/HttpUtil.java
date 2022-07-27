@@ -713,7 +713,7 @@ public class HttpUtil {
 
         populateEntity(inboundRequest, entity, inboundRequestMsg);
         inboundRequest.set(REQUEST_ENTITY_FIELD, entity);
-        inboundRequest.addNativeData(IS_BODY_BYTE_CHANNEL_ALREADY_SET, false);
+        inboundRequest.addNativeData(IS_BODY_BYTE_CHANNEL_ALREADY_SET, checkEntityBodyAvailability(entity));
 
         String cacheControlHeader = inboundRequestMsg.getHeader(CACHE_CONTROL.toString());
         if (cacheControlHeader != null) {
