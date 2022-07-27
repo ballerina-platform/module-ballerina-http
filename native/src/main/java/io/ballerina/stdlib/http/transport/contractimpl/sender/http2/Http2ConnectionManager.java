@@ -61,6 +61,21 @@ public class Http2ConnectionManager {
     }
 
     /**
+     * Release the count down latch. If the connection upgrade is rejected, the H2Pool count down latch will not be
+     * release as the channel is not added. In such instances, forcefully reduces the count down to allow subsequent
+     * requests to proceed.
+     *
+     * @param httpRoute  the route key
+     */
+    public void releasePerRoutePoolLatch(HttpRoute httpRoute) {
+        String key = generateKey(httpRoute);
+        Http2ChannelPool.PerRouteConnectionPool perRouteConnectionPool = this.http2ChannelPool.fetchPerRoutePool(key);
+        if (perRouteConnectionPool != null) {
+            perRouteConnectionPool.releaseCountdown();
+        }
+    }
+
+    /**
      * Get or create the per route pool.
      *
      * @param pool the HTTP2 channel pool

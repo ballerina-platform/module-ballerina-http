@@ -142,6 +142,8 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
             HttpClientUpgradeHandler.UpgradeEvent upgradeEvent = (HttpClientUpgradeHandler.UpgradeEvent) evt;
             if (HttpClientUpgradeHandler.UpgradeEvent.UPGRADE_SUCCESSFUL.name().equals(upgradeEvent.name())) {
                 executePostUpgradeActions(ctx);
+            } else if (HttpClientUpgradeHandler.UpgradeEvent.UPGRADE_REJECTED.name().equals(upgradeEvent.name())) {
+                releasePerRoutePoolLatchOnFailure();
             }
             ctx.fireUserEventTriggered(evt);
         } else {
@@ -162,6 +164,7 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
             // When closing the channel, if it is already closed it will trigger this event. So we can ignore this.
             LOG.debug("Input side of the connection is already shutdown");
         } else {
+            releasePerRoutePoolLatchOnFailure();
             LOG.warn("Unexpected user event {} triggered", evt);
         }
     }
@@ -201,6 +204,10 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
         if (ctx != null && ctx.channel().isActive()) {
             ctx.close();
         }
+    }
+
+    private void releasePerRoutePoolLatchOnFailure() {
+        connectionManager.getHttp2ConnectionManager().releasePerRoutePoolLatch(targetChannel.getHttpRoute());
     }
 
     public void setHttpResponseFuture(HttpResponseFuture httpResponseFuture) {
