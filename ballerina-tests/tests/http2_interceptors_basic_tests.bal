@@ -375,6 +375,37 @@ function tesHttp2RequestInterceptorHttpVerb() returns error? {
     assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
 }
 
+@http:ServiceConfig {
+    interceptors : [
+        new DefaultRequestInterceptor(), new GetFooRequestInterceptor(), new LastResponseInterceptor(),
+        new DefaultResponseErrorInterceptor()
+    ]
+}
+service /interceptorPathAndVerb on http2InterceptorsBasicTestsServerEP3 {
+
+    resource function 'default foo(http:Caller caller, http:Request req) returns error? {
+        http:Response res = new();
+        res.setHeader("default-request-interceptor", check req.getHeader("default-request-interceptor"));
+        check caller->respond(res);
+    }
+}
+
+@test:Config{}
+function tesHttp2RequestInterceptorPathAndVerb() returns error? {
+    http:Response res = check http2InterceptorsBasicTestsClientEP3->post("/interceptorPathAndVerb/foo", "testMessage");
+    assertHeaderValue(check res.getHeader("last-interceptor"), "default-request-interceptor");
+    assertHeaderValue(check res.getHeader("default-request-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+
+    res = check http2InterceptorsBasicTestsClientEP3->get("/interceptorPathAndVerb/bar");
+    test:assertEquals(res.statusCode, 404);
+    assertTextPayload(res.getTextPayload(), "no matching resource found for path : /interceptorPathAndVerb/bar , method : GET");
+    assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
+    assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("error-type"), "DispatchingError-Resource");
+}
+
 int http2RequestInterceptorBasePathTestPort = getHttp2Port(requestInterceptorBasePathTestPort);
 
 final http:Client http2RequestInterceptorBasePathClientEP = check new("http://localhost:" + http2RequestInterceptorBasePathTestPort.toString(), 
