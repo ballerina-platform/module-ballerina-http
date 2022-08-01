@@ -134,6 +134,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
                 return true;
             }
         }
+        inboundMessage.removeProperty(HttpConstants.REQUEST_INTERCEPTOR_INDEX);
         return false;
     }
 
