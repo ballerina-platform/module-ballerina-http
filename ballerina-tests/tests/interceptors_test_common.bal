@@ -260,6 +260,16 @@ service class GetRequestInterceptor {
     }
 }
 
+service class GetFooRequestInterceptor {
+    *http:RequestInterceptor;
+
+    resource function get [string... path](http:RequestContext ctx, http:Request req) returns http:NextService|error? {
+       req.setHeader("get-foo-interceptor", "true");
+       ctx.set("last-interceptor", "get-foo-interceptor");
+       return ctx.next();
+    }
+}
+
 service class PostRequestInterceptor {
     *http:RequestInterceptor;
 
