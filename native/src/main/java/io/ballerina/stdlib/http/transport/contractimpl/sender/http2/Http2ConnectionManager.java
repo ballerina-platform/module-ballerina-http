@@ -94,10 +94,6 @@ public class Http2ConnectionManager {
      * @return PerRouteConnectionPool
      */
     private Http2ChannelPool getOrCreateEventLoopPool(EventLoop eventLoop) {
-        final Http2ChannelPool pool = h2ChannelPools.get(eventLoop);
-        if (pool != null) {
-            return pool;
-        }
         return h2ChannelPools.computeIfAbsent(eventLoop, e -> new Http2ChannelPool());
     }
 
