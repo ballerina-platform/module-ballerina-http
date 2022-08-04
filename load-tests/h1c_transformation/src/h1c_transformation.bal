@@ -15,7 +15,6 @@
 // under the License.
 
 import ballerina/http;
-import ballerina/log;
 import ballerina/xmldata;
 
 final http:Client nettyEP = check new("http://netty:8688", httpVersion = "1.1");
@@ -32,21 +31,18 @@ service /transform on new http:Listener(9090, httpVersion = "1.1") {
                 if (response is http:Response) {
                     return response;
                 } else {
-                    log:printError("Error at h1c_transformation", 'error = response);
                     http:Response res = new;
                     res.statusCode = 500;
                     res.setPayload(response.message());
                     return res;
                 }
             } else if xmlPayload is xmldata:Error {
-                log:printError("Error at h1c_transformation", 'error = xmlPayload);
                 http:Response res = new;
                 res.statusCode = 400;
                 res.setPayload(xmlPayload.message());
                 return res;
             }
         } else {
-            log:printError("Error at h1c_transformation", 'error = payload);
             http:Response res = new;
             res.statusCode = 400;
             res.setPayload(payload.message());

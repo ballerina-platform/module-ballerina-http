@@ -15,7 +15,6 @@
 // under the License.
 
 import ballerina/http;
-import ballerina/log;
 import ballerina/xmldata;
 
 listener http:Listener securedEP = new(9090,
@@ -51,21 +50,18 @@ service /transform on securedEP {
                 if response is http:Response {
                     return response;
                 } else {
-                    log:printError("Error at h1_transformation", 'error = response);
                     http:Response res = new;
                     res.statusCode = 500;
                     res.setPayload(response.message());
                     return res;
                 }
             } else if xmlPayload is xmldata:Error {
-                log:printError("Error at h1_transformation", 'error = xmlPayload);
                 http:Response res = new;
                 res.statusCode = 400;
                 res.setPayload(xmlPayload.message());
                 return res;
             }
         } else {
-            log:printError("Error at h1_transformation", 'error = payload);
             http:Response res = new;
             res.statusCode = 400;
             res.setPayload(payload.message());
