@@ -16,17 +16,16 @@
 
 import ballerina/http;
 
-listener http:Listener securedEP = new(9090, {
-    httpVersion: "2.0",
-    secureSocket:  {
+listener http:Listener securedEP = new(9090, 
+    secureSocket =  {
         key: {
             path: "./security/ballerinaKeystore.p12",
             password: "ballerina"
         }
     }
-});
+);
 
-final http:Client nettyEP = check new("http://netty:8688");
+final http:Client nettyEP = check new("http://netty:8688", httpVersion = "1.1");
 
 service /passthrough on securedEP {
     resource function post .(http:Request clientRequest) returns http:Response|error {

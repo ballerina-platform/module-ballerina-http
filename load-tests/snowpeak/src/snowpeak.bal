@@ -20,7 +20,7 @@ import snowpeak.mock;
 
 # A fake mountain resort
 @http:ServiceConfig { mediaTypeSubtypePrefix: "vnd.snowpeak.resort", cors: { allowOrigins: ["*"] }}
-service /snowpeak on new http:Listener(9090) {
+service /snowpeak on new http:Listener(9090, httpVersion = "1.1") {
 
     # Snowpeak locations resource
     # 
