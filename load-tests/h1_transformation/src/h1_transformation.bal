@@ -40,7 +40,7 @@ final http:Client nettyEP = check new("https://localhost:8688",
 );
 
 service /transform on securedEP {
-    resource function post .(http:Request req) returns http:Response|error {
+    resource function post .(http:Request req) returns http:Response|error? {
         json|error payload = req.getJsonPayload();
         if payload is json {
             xml|xmldata:Error? xmlPayload = xmldata:fromJson(payload);

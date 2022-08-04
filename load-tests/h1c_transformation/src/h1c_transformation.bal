@@ -21,7 +21,7 @@ import ballerina/xmldata;
 final http:Client nettyEP = check new("http://netty:8688", httpVersion = "1.1");
 
 service /transform on new http:Listener(9090, httpVersion = "1.1") {
-    resource function post .(http:Request req) returns http:Response|error {
+    resource function post .(http:Request req) returns http:Response|error? {
         json|error payload = req.getJsonPayload();
         if payload is json {
             xml|xmldata:Error? xmlPayload = xmldata:fromJson(payload);
