@@ -16,7 +16,7 @@
 
 import ballerina/http;
 
-listener http:Listener securedEP = new(9090);
+listener http:Listener securedEP = new(9090, httpVersion = "1.1");
 
 service /hello on securedEP {
     resource function get .() returns json {
