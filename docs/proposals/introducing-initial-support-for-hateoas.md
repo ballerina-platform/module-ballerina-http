@@ -188,15 +188,15 @@ public type Location record {|
     string address;
 |};
 
-public type Locations record {|
+public type Locations record {
     Location[] locations;
-|};
+};
 ```
 ```ballerina
-public type Locations record {|
+public type Locations record {
     *http:Links;
     Location[] locations;
-|};
+};
 ```
 > **Note**: Following is the definition of http:Link
 ```ballerina
@@ -257,6 +257,8 @@ For the non-json payloads the links will be added as `Link` header. Sample `Link
 ```
 link: </snowpeak/locations/{id}/rooms>; rel="room"; methods="\"GET\""
 ```
+> **Note**: The links will not be added either in payload or in header if the resource returns a `http:Response`.
+
 > **Note**: If the links are already added by the user either in the payload or as `Link` header, then the response 
 > will not be overwritten by the links generated from `linkedTo` configuration
 
