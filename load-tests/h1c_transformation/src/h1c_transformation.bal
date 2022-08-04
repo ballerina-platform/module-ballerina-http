@@ -21,7 +21,7 @@ import ballerina/xmldata;
 final http:Client nettyEP = check new("http://netty:8688", httpVersion = "1.1");
 
 service /transform on new http:Listener(9090, httpVersion = "1.1") {
-    resource function post .(http:Caller caller, http:Request req) returns error? {
+    resource function post .(http:Request req) returns http:Response|error {
         json|error payload = req.getJsonPayload();
         if payload is json {
             xml|xmldata:Error? xmlPayload = xmldata:fromJson(payload);
@@ -30,27 +30,27 @@ service /transform on new http:Listener(9090, httpVersion = "1.1") {
                 clinetreq.setXmlPayload(xmlPayload);
                 http:Response|http:ClientError response = nettyEP->post("/service/EchoService", clinetreq);
                 if (response is http:Response) {
-                    return caller->respond(response);
+                    return response;
                 } else {
                     log:printError("Error at h1c_transformation", 'error = response);
                     http:Response res = new;
                     res.statusCode = 500;
                     res.setPayload(response.message());
-                    return caller->respond(res);
+                    return res;
                 }
             } else if xmlPayload is xmldata:Error {
                 log:printError("Error at h1c_transformation", 'error = xmlPayload);
                 http:Response res = new;
                 res.statusCode = 400;
                 res.setPayload(xmlPayload.message());
-                return caller->respond(res);
+                return res;
             }
         } else {
             log:printError("Error at h1c_transformation", 'error = payload);
             http:Response res = new;
             res.statusCode = 400;
             res.setPayload(payload.message());
-            return caller->respond(res);
+            return res;
         }
     }
 }

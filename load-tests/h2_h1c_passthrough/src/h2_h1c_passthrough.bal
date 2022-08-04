@@ -17,7 +17,6 @@
 import ballerina/http;
 
 listener http:Listener securedEP = new(9090, 
-    httpVersion = "2.0",
     secureSocket =  {
         key: {
             path: "./security/ballerinaKeystore.p12",

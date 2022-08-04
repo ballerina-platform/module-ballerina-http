@@ -15,14 +15,13 @@
 // under the License.
 
 import ballerina/http;
-import ballerina/log;
 
 listener http:Listener securedEP = new (9090,
     httpVersion = "1.1",
     secureSocket = {
         key: {
             path: "./security/ballerinaKeystore.p12",
-        password: "ballerina"
+            password: "ballerina"
         }
     }
 );
@@ -39,8 +38,8 @@ final http:Client nettyEP = check new("https://netty:8688",
 );
 
 service /passthrough on securedEP {
-    resource function post .(http:Caller caller, http:Request clientRequest) returns error? {
+    resource function post .(http:Request clientRequest) returns http:Response|error {
         http:Response response = check nettyEP->forward("/service/EchoService", clientRequest);
-        return caller->respond(response);
+        return response;
     }
 }

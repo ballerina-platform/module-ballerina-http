@@ -19,8 +19,8 @@ import ballerina/http;
 final http:Client nettyEP = check new("http://netty:8688", httpVersion = "1.1");
 
 service /passthrough on new http:Listener(9090, httpVersion = "1.1") {
-    resource function post .(http:Caller caller, http:Request clientRequest) returns error? {
+    resource function post .(http:Request clientRequest) returns http:Response|error {
         http:Response response = check nettyEP->forward("/service/EchoService", clientRequest);
-        return caller->respond(response);
+        return response;
     }
 }
