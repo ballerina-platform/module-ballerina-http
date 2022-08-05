@@ -292,7 +292,7 @@ isolated function arrayToString(string[] arr) returns string {
 }
 
 isolated function addLinksToPayload(anydata message, map<Link>? links) returns [boolean, anydata] {
-    if links !is () {
+    if links is map<Link> {
         if message is map<anydata> && !message.hasKey("_links") {
             error? err = trap addLinksToJsonPayload(message, links);
             if err !is error {
