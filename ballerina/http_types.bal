@@ -66,7 +66,7 @@ type HTTPError record {
 # Common client configurations for the next level clients.
 public type CommonClientConfiguration record {|
     # The HTTP version understood by the client
-    string httpVersion = HTTP_2_0;
+    HttpVersion httpVersion = HTTP_2_0;
     # Configurations related to HTTP/1.x protocol
     ClientHttp1Settings http1Settings = {};
     # Configurations related to HTTP/2 protocol

@@ -154,7 +154,7 @@ public type ListenerConfiguration record {|
     string host = "0.0.0.0";
     ListenerHttp1Settings http1Settings = {};
     ListenerSecureSocket? secureSocket = ();
-    string httpVersion = HTTP_2_0;
+    HttpVersion httpVersion = HTTP_2_0;
     decimal timeout = DEFAULT_LISTENER_TIMEOUT;
     string? server = ();
     RequestLimitConfigs requestLimits = {};
@@ -176,7 +176,7 @@ public type InferredListenerConfiguration record {|
     string host;
     ListenerHttp1Settings http1Settings;
     ListenerSecureSocket? secureSocket;
-    string httpVersion;
+    HttpVersion httpVersion;
     decimal timeout;
     string? server;
     RequestLimitConfigs requestLimits;

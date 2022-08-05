@@ -17,7 +17,7 @@
 import ballerina/log;
 
 type RedirectInferredConfig record {|
-    string httpVersion;
+    HttpVersion httpVersion;
     ClientHttp1Settings http1Settings;
     ClientHttp2Settings http2Settings;
     decimal timeout;
