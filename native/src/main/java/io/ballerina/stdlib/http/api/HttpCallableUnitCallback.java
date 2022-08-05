@@ -27,16 +27,11 @@ import io.ballerina.runtime.observability.ObserveUtils;
 import io.ballerina.runtime.observability.ObserverContext;
 import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Locale;
 import java.util.Objects;
 
-import static io.ballerina.stdlib.http.api.HttpConstants.BODY;
-import static io.ballerina.stdlib.http.api.HttpConstants.LINKS;
 import static io.ballerina.stdlib.http.api.HttpConstants.OBSERVABILITY_CONTEXT_PROPERTY;
-import static io.ballerina.stdlib.http.api.HttpConstants.STATUS;
 import static java.lang.System.err;
 
 /**
@@ -45,7 +40,6 @@ import static java.lang.System.err;
  * @since 0.94
  */
 public class HttpCallableUnitCallback implements Callback {
-    private static final Logger logger = LoggerFactory.getLogger(HttpCallableUnitCallback.class);
     private static final String ILLEGAL_FUNCTION_INVOKED = "illegal return: response has already been sent";
 
     private final BObject caller;
@@ -83,43 +77,6 @@ public class HttpCallableUnitCallback implements Callback {
         return caller;
     }
 
-    private boolean isLinksAvailableInResource() {
-        return Objects.nonNull(links) && !links.isEmpty();
-    }
-
-    private boolean isStatusCodeResponse(BMap result) {
-        return result.containsKey(STATUS) && result.get(STATUS) instanceof BObject;
-    }
-
-    private boolean hasJsonBodyWithoutLinks(BMap result) {
-        return result.containsKey(BODY) && result.get(BODY) instanceof BMap &&
-                !((BMap) result.get(BODY)).containsKey(LINKS);
-    }
-
-    private boolean isLinksSupportedInPayload(Object result) {
-        if (result instanceof BMap && !((BMap) result).containsKey(LINKS)) {
-            if (isStatusCodeResponse((BMap) result)) {
-                return hasJsonBodyWithoutLinks((BMap) result);
-            }
-            return true;
-        }
-        return false;
-    }
-
-    private void addLinksToStatusCodeResponse(Object result) {
-        ((BMap) ((BMap) result).get(BODY)).put(LINKS, links);
-    }
-
-    private void addLinksToPayload(Object result) {
-        if (result instanceof BMap) {
-            if (isStatusCodeResponse((BMap) result)) {
-                addLinksToStatusCodeResponse(result);
-            } else {
-                ((BMap) result).put(LINKS, links);
-            }
-        }
-    }
-
     @Override
     public void notifySuccess(Object result) {
         cleanupRequestMessage();
@@ -131,19 +88,10 @@ public class HttpCallableUnitCallback implements Callback {
             invokeErrorInterceptors((BError) result, true);
             return;
         }
-        if (isLinksAvailableInResource() && isLinksSupportedInPayload(result)) {
-            try {
-                addLinksToPayload(result);
-                returnResponse(result, true);
-                return;
-            } catch (Exception ex) {
-                logger.error(ex.getMessage());
-            }
-        }
-        returnResponse(result, false);
+        returnResponse(result);
     }
 
-    private void returnResponse(Object result, boolean isLinksAdded) {
+    private void returnResponse(Object result) {
         Object[] paramFeed = new Object[8];
         paramFeed[0] = result;
         paramFeed[1] = true;
@@ -151,7 +99,7 @@ public class HttpCallableUnitCallback implements Callback {
         paramFeed[3] = true;
         paramFeed[4] = cacheConfig;
         paramFeed[5] = true;
-        paramFeed[6] = Objects.nonNull(links) && !links.isEmpty() && !isLinksAdded ? links : null;
+        paramFeed[6] = Objects.nonNull(links) && !links.isEmpty() ? links : null;
         paramFeed[7] = true;
 
         invokeBalMethod(paramFeed, "returnResponse");

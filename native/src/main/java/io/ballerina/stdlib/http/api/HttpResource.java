@@ -17,7 +17,9 @@
 */
 package io.ballerina.stdlib.http.api;
 
+import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
+import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.types.MethodType;
 import io.ballerina.runtime.api.types.RemoteMethodType;
 import io.ballerina.runtime.api.types.ResourceMethodType;
@@ -42,6 +44,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static io.ballerina.stdlib.http.api.HttpConstants.ANN_NAME_RESOURCE_CONFIG;
+import static io.ballerina.stdlib.http.api.HttpConstants.LINK;
 import static io.ballerina.stdlib.http.api.HttpConstants.SINGLE_SLASH;
 import static io.ballerina.stdlib.http.api.HttpUtil.checkConfigAnnotationAvailability;
 import static io.ballerina.stdlib.http.api.HttpUtil.getParameterTypes;
@@ -66,10 +69,12 @@ public class HttpResource implements Resource {
     private static final BString HTTP_RESOURCE_CONFIG =
             StringUtils.fromString(ModuleUtils.getHttpPackageIdentifier() + ":" + ANN_NAME_RESOURCE_CONFIG);
     private static final String RETURN_ANNOT_PREFIX = "$returns$";
+    private static final MapType LINK_MAP_TYPE = TypeCreator.createMapType(TypeCreator.createRecordType(
+            LINK, ModuleUtils.getHttpPackage(), 0, false, 0));
 
     private String resourceLinkName;
     private List<LinkedResourceInfo> linkedResources = new ArrayList<>();
-    private BMap<BString, Object> links = ValueCreator.createMapValue();
+    private BMap<BString, Object> links = ValueCreator.createMapValue(LINK_MAP_TYPE);
     private List<BString> linkedRelations = new ArrayList<>();
     private MethodType balResource;
     private List<String> methods;

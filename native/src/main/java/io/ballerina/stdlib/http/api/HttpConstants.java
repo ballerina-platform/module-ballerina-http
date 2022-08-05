@@ -520,11 +520,6 @@ public class HttpConstants {
     public static final BString LINK_HREF = StringUtils.fromString("href");
     public static final BString LINK_METHODS = StringUtils.fromString("methods");
     public static final BString LINK_TYPES = StringUtils.fromString("types");
-    public static final BString LINKS = StringUtils.fromString("_links");
-
-    //StatusCodeResponse field named
-    public static final BString STATUS = StringUtils.fromString("status");
-    public static final BString BODY = StringUtils.fromString("body");
 
     //WebSocket Related constants for WebSocket upgrade
     public static final String NATIVE_DATA_WEBSOCKET_CONNECTION_MANAGER = "NATIVE_DATA_WEBSOCKET_CONNECTION_MANAGER";

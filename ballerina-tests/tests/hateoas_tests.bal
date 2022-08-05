@@ -31,13 +31,25 @@ type Order record {|
     string status = "PENDING";
 |};
 
-type OrderReceipt record {|
+type OrderReceipt record {
+    string id;
+    *Order;
+    decimal cost;
+};
+
+type OrderReceiptClosed record {|
     string id;
     *Order;
     decimal cost;
 |};
 
-type PaymentReceipt record {|
+type PaymentReceipt record {
+    string id;
+    *Order;
+    *Payment;
+};
+
+type PaymentReceiptClosed record {|
     string id;
     *Order;
     *Payment;
@@ -71,11 +83,33 @@ function getMockOrderReceipt(Order 'order) returns OrderReceipt {
     };
 }
 
+function getMockOrderReceiptClosed(Order 'order) returns OrderReceiptClosed {
+    return {
+        id: "001",
+        location: 'order.location,
+        item: 'order.item,
+        status: "PAYMENT_REQUIRED",
+        cost: 23.50
+    };
+}
+
 function getMockOrder() returns Order {
     return mockOrder;
 }
 
 function getMockPaymentReceipt(Payment payment) returns PaymentReceipt {
+    return {
+        id: "001",
+        location: mockOrder.location,
+        item: mockOrder.item,
+        status: "PREPARING",
+        amount: payment.amount,
+        cardHolderName: payment.cardHolderName,
+        cardNumber: payment.cardNumber
+    };
+}
+
+function getMockPaymentReceiptClosed(Payment payment) returns PaymentReceiptClosed {
     return {
         id: "001",
         location: mockOrder.location,
@@ -101,8 +135,11 @@ service /restBucks on new http:Listener(hateoasTestPort, httpVersion = "1.1") {
             {name: "payment", relation: "payment"}
         ]
     }
-    resource function post 'order(@http:Payload Order 'order)
-            returns @http:Payload{mediaType: "application/json"} OrderReceipt {
+    resource function post 'order(@http:Payload Order 'order, boolean closed)
+            returns @http:Payload{mediaType: "application/json"} OrderReceipt|OrderReceiptClosed {
+        if closed {
+            return getMockOrderReceiptClosed('order);
+        }        
         return getMockOrderReceipt('order);
     }
 
@@ -150,8 +187,11 @@ service /restBucks on new http:Listener(hateoasTestPort, httpVersion = "1.1") {
             {name: "orders", relation: "status", method: "get"}
         ]
     }
-    resource function put payment/[string id](@http:Payload Payment payment)
+    resource function put payment/[string id](@http:Payload Payment payment, boolean closed)
             returns @http:Payload{mediaType: "application/json"} http:Accepted {
+        if closed {
+            return {body : getMockPaymentReceiptClosed(payment)};
+        }
         return {body : getMockPaymentReceipt(payment)};
     }
 }
@@ -160,7 +200,7 @@ http:Client jsonClientEP = check new(string`http://localhost:${hateoasTestPort}/
 
 @test:Config {}
 function testHateoasLinks1() returns error? {
-    record{*http:Links; *OrderReceipt;} orderReceipt = check jsonClientEP->post("/order", mockOrder);
+    record{*http:Links; *OrderReceipt;} orderReceipt = check jsonClientEP->post("/order?closed=false", mockOrder);
     map<http:Link> expectedLinks = {
         "update": {
             rel: "update",
@@ -188,6 +228,45 @@ function testHateoasLinks1() returns error? {
         }
     };
     test:assertEquals(orderReceipt._links, expectedLinks);
+}
+
+@test:Config {}
+function testHateoasLinkHeaderWithClosedRecord() returns error? {
+    http:Response res = check jsonClientEP->post("/order?closed=true", mockOrder);
+    test:assertTrue(res.hasHeader("Link"));
+    string linkHeader = check res.getHeader("Link");
+    http:HeaderValue[] parsedLinkHeader = check http:parseHeader(linkHeader);
+    http:HeaderValue[] expectedLinkHeader = [
+        { 
+            value: "</restBucks/orders/{id}>", 
+            params: {
+                rel: "\"update\"", 
+                methods: "\"\"PUT\"\"",
+                types: "\"\"application/vnd.restBucks+json\"\""}
+        },
+        { 
+            value: "</restBucks/orders/{id}>", 
+            params: {
+                rel: "\"status\"", 
+                methods: "\"\"GET\",\"POST\",\"PUT\",\"PATCH\",\"DELETE\",\"OPTIONS\",\"HEAD\"\"",
+                types: "\"\"application/vnd.restBucks+json\"\""}
+        },
+        { 
+            value: "</restBucks/orders/{id}>", 
+            params: {
+                rel: "\"cancel\"", 
+                methods: "\"\"DELETE\"\"",
+                types: "\"\"application/vnd.restBucks+json\"\""}
+        },
+        { 
+            value: "</restBucks/payment/{id}>", 
+            params: {
+                rel: "\"payment\"", 
+                methods: "\"\"PUT\"\"",
+                types: "\"\"application/vnd.restBucks+json\"\""}
+        }
+    ];
+    test:assertEquals(parsedLinkHeader, expectedLinkHeader);
 }
 
 @test:Config {}
@@ -227,7 +306,6 @@ function testHateoasLinkHeaderWithReadOnlyPayload() returns error? {
         }
     ];
     test:assertEquals(parsedLinkHeader, expectedLinkHeader);
-    
 }
 
 @test:Config {}
@@ -282,7 +360,7 @@ function testHateoasLinkHeaderWithoutBody() returns error? {
 
 @test:Config {}
 function testHateoasLinksInBody() returns error? {
-    record{*http:Links; *PaymentReceipt;} paymentReceipt = check jsonClientEP->put("/payment/001", mockPayment);
+    record{*http:Links; *PaymentReceipt;} paymentReceipt = check jsonClientEP->put("/payment/001?closed=false", mockPayment);
     map<http:Link> expectedLinks = {
         "self": {
             rel: "self",
@@ -300,3 +378,27 @@ function testHateoasLinksInBody() returns error? {
     test:assertEquals(paymentReceipt._links, expectedLinks);
 }
 
+@test:Config {}
+function testHateoasLinkHeaderWithClosedRecordInBody() returns error? {
+    http:Response res = check jsonClientEP->put("/payment/001?closed=true", mockPayment);
+    test:assertTrue(res.hasHeader("Link"));
+    string linkHeader = check res.getHeader("Link");
+    http:HeaderValue[] parsedLinkHeader = check http:parseHeader(linkHeader);
+    http:HeaderValue[] expectedLinkHeader = [
+        { 
+            value: "</restBucks/payment/{id}>", 
+            params: {
+                rel: "\"self\"", 
+                methods: "\"\"PUT\"\"",
+                types: "\"\"application/vnd.restBucks+json\"\""}
+        },
+        { 
+            value: "</restBucks/orders/{id}>", 
+            params: {
+                rel: "\"status\"", 
+                methods: "\"\"GET\",\"POST\",\"PUT\",\"PATCH\",\"DELETE\",\"OPTIONS\",\"HEAD\"\"",
+                types: "\"\"application/vnd.restBucks+json\"\""}
+        }
+    ];
+    test:assertEquals(parsedLinkHeader, expectedLinkHeader);
+}

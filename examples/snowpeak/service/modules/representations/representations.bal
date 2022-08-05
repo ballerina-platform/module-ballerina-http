@@ -26,10 +26,10 @@ public type Location record {|
     string address;
 |};
 # Represents a collection of locations
-public type Locations record {|
+public type Locations record {
     # collection of locations
     Location[] locations;
-|};
+};
 
 public enum RoomCategory {
     DELUXE,
@@ -66,10 +66,10 @@ public type Room record {|
     int count;
 |};
 # Represents a collection of resort rooms
-public type Rooms record {|
+public type Rooms record {
     # Array of rooms
     Room[] rooms;
-|};
+};
 
 # Represents rooms be reserved
 public type ReserveRoom record {|

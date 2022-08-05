@@ -280,11 +280,11 @@ type Location record {|
    string address;
 |};
 # Represents a collection of locations
-public type Locations record {|
+public type Locations record {
    *http:Links;
    # collection of locations
    Location[] locations;
-|};
+};
 ```
 
 Location has three fields: name, id and address. Each field is documented along with the Location record. Documentation is very important because it helps readers of the code to understand the code better and at the same time it helps API users understand the API as this documentation is mapped into OpenAPI documentation as descriptions. Many developers tend to think of documentation as a second class thing but it is not.

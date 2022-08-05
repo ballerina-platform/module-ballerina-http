@@ -148,11 +148,11 @@ public isolated client class Caller {
                 response = createStatusCodeResponse(errResponse);
             } else {
                 Accepted acceptedResponse = {};
-                response = createStatusCodeResponse(acceptedResponse);
+                response = createStatusCodeResponse(acceptedResponse, links = links);
             }
         } else if message is StatusCodeResponse {
             if message is SuccessStatusCodeResponse {
-                response = createStatusCodeResponse(message, returnMediaType, setETag);
+                response = createStatusCodeResponse(message, returnMediaType, setETag, links);
                 cacheCompatibleType = true;
             } else {
                 response = createStatusCodeResponse(message, returnMediaType);
@@ -165,7 +165,7 @@ public isolated client class Caller {
                 response.setHeader(CONTENT_TYPE, returnMediaType);
             }
         } else {
-            setPayload(message, response, returnMediaType, setETag);
+            setPayload(message, response, returnMediaType, setETag, links);
             if returnMediaType is string {
                 response.setHeader(CONTENT_TYPE, returnMediaType);
             }
@@ -182,7 +182,6 @@ public isolated client class Caller {
                 response.setLastModified();
             }
         }
-        addLinkHeader(response, links);
         return nativeRespond(self, response);
     }
 
@@ -203,7 +202,7 @@ public isolated client class Caller {
     }
 }
 
-isolated function createStatusCodeResponse(StatusCodeResponse message, string? returnMediaType = (), boolean setETag = false)
+isolated function createStatusCodeResponse(StatusCodeResponse message, string? returnMediaType = (), boolean setETag = false, map<Link>? links = ())
     returns Response {
     Response response = new;
     response.statusCode = message.status.code;
@@ -233,7 +232,7 @@ isolated function createStatusCodeResponse(StatusCodeResponse message, string? r
         }
     }
     string? mediaType = retrieveMediaType(message, returnMediaType);
-    setPayload(message?.body, response, mediaType, setETag);
+    setPayload(message?.body, response, mediaType, setETag, links);
     // Update content-type header according to the priority. (Highest to lowest)
     // 1. MediaType field in response record
     // 2. Payload annotation mediaType value
@@ -292,7 +291,28 @@ isolated function arrayToString(string[] arr) returns string {
     return arrayString.substring(1, arrayString.length() - 1);
 }
 
-isolated function setPayload(anydata payload, Response response, string? mediaType = (), boolean setETag = false) {
+isolated function addLinksToPayload(anydata message, map<Link>? links) returns [boolean, anydata] {
+    if links is map<Link> {
+        if message is map<anydata> && !message.hasKey("_links") {
+            error? err = trap addLinksToJsonPayload(message, links);
+            if err !is error {
+                return [true, message];
+            }
+        }
+    }
+    return [false, message];
+}
+
+isolated function addLinksToJsonPayload(map<anydata> message, map<Link> links) {
+    message["_links"] = links.toJson();
+}
+
+isolated function setPayload(anydata message, Response response, string? mediaType = (), boolean setETag = false, map<Link>? links = ()) {
+    [boolean, anydata] [isLinksAddedToPayload, payload] = addLinksToPayload(message, links);
+    if !isLinksAddedToPayload {
+        addLinkHeader(response, links);
+    }
+
     if payload is () {
         return;
     }
