@@ -25,8 +25,8 @@ function setErrorResponse(http:Response response, error err) {
     response.setPayload(err.message());
 }
 
-listener http:Listener multipartReqEP = new(multipartRequestTest, httpVersion = "1.1");
-final http:Client multipartReqClient = check new("http://localhost:" + multipartRequestTest.toString(), httpVersion = "1.1");
+listener http:Listener multipartReqEP = new(multipartRequestTest, httpVersion = http:HTTP_1_1);
+final http:Client multipartReqClient = check new("http://localhost:" + multipartRequestTest.toString(), httpVersion = http:HTTP_1_1);
 
 service /test on multipartReqEP {
 

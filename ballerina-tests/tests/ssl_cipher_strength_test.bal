@@ -18,7 +18,7 @@ import ballerina/http;
 import ballerina/test;
 
 http:ListenerConfiguration strongCipherConfig = {
-    httpVersion: "1.1",
+    httpVersion: http:HTTP_1_1,
     secureSocket: {
         key: {
             path: "tests/certsandkeys/ballerinaKeystore.p12",
@@ -46,7 +46,7 @@ service /strongService on strongCipher {
 }
 
 http:ListenerConfiguration weakCipherConfig = {
-    httpVersion: "1.1",
+    httpVersion: http:HTTP_1_1,
     secureSocket: {
         key: {
             path: "tests/certsandkeys/ballerinaKeystore.p12",
@@ -76,7 +76,7 @@ service /weakService on weakCipher {
 @test:Config {}
 public function testWithStrongClientWithWeakService() returns error? {
     http:Client clientEP = check new("https://localhost:9227", 
-        httpVersion = "1.1",
+        httpVersion = http:HTTP_1_1,
         secureSocket = {
             key: {
                 path: "tests/certsandkeys/ballerinaKeystore.p12",
@@ -100,7 +100,7 @@ public function testWithStrongClientWithWeakService() returns error? {
 @test:Config {}
 public function testWithStrongClientWithStrongService() returns error? {
     http:Client clientEP = check new("https://localhost:9226", 
-        httpVersion = "1.1",
+        httpVersion = http:HTTP_1_1,
         secureSocket = {
             key: {
                 path: "tests/certsandkeys/ballerinaKeystore.p12",

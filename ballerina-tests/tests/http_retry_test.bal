@@ -22,13 +22,13 @@ import ballerina/io;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener retryTestserviceEndpoint1 = new(retryFunctionTestPort1, httpVersion = "1.1");
-listener http:Listener retryTestserviceEndpoint2 = new(retryFunctionTestPort2, httpVersion = "1.1");
-final http:Client retryFunctionTestClient = check new("http://localhost:" + retryFunctionTestPort1.toString(), httpVersion = "1.1");
+listener http:Listener retryTestserviceEndpoint1 = new(retryFunctionTestPort1, httpVersion = http:HTTP_1_1);
+listener http:Listener retryTestserviceEndpoint2 = new(retryFunctionTestPort2, httpVersion = http:HTTP_1_1);
+final http:Client retryFunctionTestClient = check new("http://localhost:" + retryFunctionTestPort1.toString(), httpVersion = http:HTTP_1_1);
 
 // Define the end point to the call the `mockHelloService`.
 final http:Client retryBackendClientEP = check new("http://localhost:" + retryFunctionTestPort1.toString(),
-    httpVersion = "1.1",
+    httpVersion = http:HTTP_1_1,
     retryConfig= {
         interval: 3,
         count: 3,
@@ -38,7 +38,7 @@ final http:Client retryBackendClientEP = check new("http://localhost:" + retryFu
 );
 
 final http:Client internalErrorEP = check new("http://localhost:" + retryFunctionTestPort2.toString(), 
-    httpVersion = "1.1", 
+    httpVersion = http:HTTP_1_1,
     retryConfig = {
         interval: 3,
         count: 3,

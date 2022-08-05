@@ -22,10 +22,10 @@ import ballerina/http;
 
 isolated int forceCloseStateCount = 0;
 
-listener http:Listener circuitBreakerEP02 = new(9308, httpVersion = "1.1");
+listener http:Listener circuitBreakerEP02 = new(9308, httpVersion = http:HTTP_1_1);
 
 http:ClientConfiguration conf02 = {
-    httpVersion: "1.1",
+    httpVersion: http:HTTP_1_1,
     circuitBreaker: {
         rollingWindow: {
             timeWindow: 60,
@@ -74,7 +74,7 @@ service /cb on circuitBreakerEP02 {
     }
 }
 
-service /unhealthy on new http:Listener(8088, httpVersion = "1.1") {
+service /unhealthy on new http:Listener(8088, httpVersion = http:HTTP_1_1) {
 
     resource function 'default .(http:Caller caller, http:Request req) {
         int count = 0;
@@ -95,7 +95,7 @@ service /unhealthy on new http:Listener(8088, httpVersion = "1.1") {
 }
 
 //Test for circuit breaker forceClose functionality
-final http:Client testForceCloseClient = check new("http://localhost:9308", httpVersion = "1.1");
+final http:Client testForceCloseClient = check new("http://localhost:9308", httpVersion = http:HTTP_1_1);
 
 @test:Config{
     dataProvider:forceCloseResponseDataProvider

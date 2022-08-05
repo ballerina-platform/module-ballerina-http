@@ -20,14 +20,14 @@ import ballerina/lang.'string as strings;
 import ballerina/mime;
 import ballerina/test;
 
-listener http:Listener httpClientActionListenerEP1 = new(httpClientActionTestPort1, httpVersion = "1.1");
-listener http:Listener httpClientActionListenerEP2 = new(httpClientActionTestPort2, httpVersion = "1.1");
+listener http:Listener httpClientActionListenerEP1 = new(httpClientActionTestPort1, httpVersion = http:HTTP_1_1);
+listener http:Listener httpClientActionListenerEP2 = new(httpClientActionTestPort2, httpVersion = http:HTTP_1_1);
 
 final http:Client httpClientActionClient = check new("http://localhost:" + httpClientActionTestPort2.toString() + "/httpClientActionTestService",
-    httpVersion = "1.1");
+    httpVersion = http:HTTP_1_1);
 
 final http:Client clientEP2 = check new("http://localhost:" + httpClientActionTestPort1.toString(),
-    httpVersion = "1.1", cache = { enabled: false });
+    httpVersion = http:HTTP_1_1, cache = { enabled: false });
 
 
 service /httpClientActionBE on httpClientActionListenerEP1 {
@@ -620,7 +620,7 @@ function testClientPathWithWhitespaces() returns error? {
 
 @test:Config {}
 function testClientInitWithMalformedURL() {
-    http:Client|error httpEndpoint = new ("httpeds://bar.com/foo", httpVersion = "1.1");
+    http:Client|error httpEndpoint = new ("httpeds://bar.com/foo", httpVersion = http:HTTP_1_1);
     if (httpEndpoint is error) {
         test:assertEquals(httpEndpoint.message(), "malformed URL: httpeds://bar.com/foo", msg = "Found unexpected output");
     } else {
@@ -631,7 +631,7 @@ function testClientInitWithMalformedURL() {
 @test:Config {}
 public function testProxyClientError() {
     http:Client|error clientEP = new("http://localhost:9218",
-        httpVersion = "1.1", proxy = { host:"ballerina", port:9219 });
+        httpVersion = http:HTTP_1_1, proxy = { host:"ballerina", port:9219 });
     if (clientEP is error) {
         test:assertEquals(clientEP.message(), "Failed to resolve host: ballerina", msg = "Found unexpected output");
     } else {
@@ -652,7 +652,7 @@ public function testProxyClientErrorWithDeprecatedConfig() {
 
 @test:Config {}
 function testClientInitWithoutScheme() {
-    http:Client|error httpEndpoint = new ("bar.com/foo", httpVersion = "1.1");
+    http:Client|error httpEndpoint = new ("bar.com/foo", httpVersion = http:HTTP_1_1);
     if httpEndpoint is error {
         test:assertFail(msg = "Found unexpected output type");
     }
@@ -660,7 +660,7 @@ function testClientInitWithoutScheme() {
 
 @test:Config {}
 function testClientInitWithEmptyUrl() {
-    http:Client|error httpEndpoint = new ("", httpVersion = "1.1");
+    http:Client|error httpEndpoint = new ("", httpVersion = http:HTTP_1_1);
     if (httpEndpoint is error) {
         test:assertEquals(httpEndpoint.message(), "malformed URL: ", msg = "Found unexpected output");
     } else {

@@ -17,9 +17,9 @@
 import ballerina/http;
 import ballerina/test;
 
-final http:Client clientEPTest = check new ("http://localhost:" + httpEnumMethodsTestPort.toString(), httpVersion = "1.1");
+final http:Client clientEPTest = check new ("http://localhost:" + httpEnumMethodsTestPort.toString(), httpVersion = http:HTTP_1_1);
 
-service / on new http:Listener(httpEnumMethodsTestPort, httpVersion = "1.1") {
+service / on new http:Listener(httpEnumMethodsTestPort, httpVersion = http:HTTP_1_1) {
 
     resource function get test() returns string {
         return "GetTest";

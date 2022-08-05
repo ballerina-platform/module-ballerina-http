@@ -124,7 +124,7 @@ function getMockPaymentReceiptClosed(Payment payment) returns PaymentReceiptClos
 @http:ServiceConfig {
     mediaTypeSubtypePrefix: "vnd.restBucks"
 }
-service /restBucks on new http:Listener(hateoasTestPort, httpVersion = "1.1") {
+service /restBucks on new http:Listener(hateoasTestPort, httpVersion = http:HTTP_1_1) {
 
     @http:ResourceConfig {
         name: "order",
@@ -196,7 +196,7 @@ service /restBucks on new http:Listener(hateoasTestPort, httpVersion = "1.1") {
     }
 }
 
-http:Client jsonClientEP = check new(string`http://localhost:${hateoasTestPort}/restBucks`, httpVersion = "1.1");
+http:Client jsonClientEP = check new(string`http://localhost:${hateoasTestPort}/restBucks`, httpVersion = http:HTTP_1_1);
 
 @test:Config {}
 function testHateoasLinks1() returns error? {

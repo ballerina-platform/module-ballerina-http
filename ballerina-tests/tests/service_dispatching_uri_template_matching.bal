@@ -20,8 +20,8 @@ import ballerina/lang.'boolean as langboolean;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener utmTestEP = new(uriTemplateMatchingTest, httpVersion = "1.1");
-final http:Client utmClient = check new("http://localhost:" + uriTemplateMatchingTest.toString(), httpVersion = "1.1");
+listener http:Listener utmTestEP = new(uriTemplateMatchingTest, httpVersion = http:HTTP_1_1);
+final http:Client utmClient = check new("http://localhost:" + uriTemplateMatchingTest.toString(), httpVersion = http:HTTP_1_1);
 
 service /hello on utmTestEP {
 

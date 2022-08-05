@@ -19,8 +19,8 @@ import ballerina/io;
 import ballerina/mime;
 import ballerina/test;
 
-listener http:Listener mockEP2 = new(9091, httpVersion = "1.1");
-final http:Client multipartRespClient = check new("http://localhost:9091", httpVersion = "1.1");
+listener http:Listener mockEP2 = new(9091, httpVersion = http:HTTP_1_1);
+final http:Client multipartRespClient = check new("http://localhost:9091", httpVersion = http:HTTP_1_1);
 
 service /multipart on mockEP2 {
     resource function get encode_out_response(http:Caller caller, http:Request request) returns error? {

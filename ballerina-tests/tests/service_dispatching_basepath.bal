@@ -17,8 +17,8 @@
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener basePathTestEP = new(basePathTest, httpVersion = "1.1");
-final http:Client basePathTestClient = check new("http://localhost:" + basePathTest.toString(), httpVersion = "1.1");
+listener http:Listener basePathTestEP = new(basePathTest, httpVersion = http:HTTP_1_1);
+final http:Client basePathTestClient = check new("http://localhost:" + basePathTest.toString(), httpVersion = http:HTTP_1_1);
 
 service http:Service /my/Tes\@tHello/go on basePathTestEP {
     resource function get foo(http:Caller caller) returns error? {

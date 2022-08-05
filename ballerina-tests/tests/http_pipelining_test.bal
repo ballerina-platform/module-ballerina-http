@@ -20,9 +20,9 @@ import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener pipeliningListenerEP1 = new(pipeliningTestPort1, httpVersion = "1.1");
-listener http:Listener pipeliningListenerEP2 = new(pipeliningTestPort2, httpVersion = "1.1", timeout = 1);
-listener http:Listener pipeliningListenerEP3 = new(pipeliningTestPort3, httpVersion = "1.1", http1Settings = { maxPipelinedRequests: 2 });
+listener http:Listener pipeliningListenerEP1 = new(pipeliningTestPort1, httpVersion = http:HTTP_1_1);
+listener http:Listener pipeliningListenerEP2 = new(pipeliningTestPort2, httpVersion = http:HTTP_1_1, timeout = 1);
+listener http:Listener pipeliningListenerEP3 = new(pipeliningTestPort3, httpVersion = http:HTTP_1_1, http1Settings = { maxPipelinedRequests: 2 });
 
 service /pipeliningTest on pipeliningListenerEP1 {
 

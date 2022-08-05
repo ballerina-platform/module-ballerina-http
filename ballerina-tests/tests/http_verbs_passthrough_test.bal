@@ -17,9 +17,9 @@
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener httpVerbListenerEP = new(httpVerbTestPort, httpVersion = "1.1");
-final http:Client httpVerbClient = check new("http://localhost:" + httpVerbTestPort.toString(), httpVersion = "1.1");
-final http:Client endPoint = check new("http://localhost:" + httpVerbTestPort.toString(), httpVersion = "1.1");
+listener http:Listener httpVerbListenerEP = new(httpVerbTestPort, httpVersion = http:HTTP_1_1);
+final http:Client httpVerbClient = check new("http://localhost:" + httpVerbTestPort.toString(), httpVersion = http:HTTP_1_1);
+final http:Client endPoint = check new("http://localhost:" + httpVerbTestPort.toString(), httpVersion = http:HTTP_1_1);
 
 service /headQuote on httpVerbListenerEP {
 

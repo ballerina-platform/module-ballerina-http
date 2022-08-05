@@ -56,7 +56,7 @@ type RestaurantNew record {|
 
 type newXmlElement xml:Element;
 
-final http:Client anydataBindingClient = check new("http://localhost:" + generalPort.toString(), httpVersion = "1.1");
+final http:Client anydataBindingClient = check new("http://localhost:" + generalPort.toString(), httpVersion = http:HTTP_1_1);
 
 service /anydataB on generalListener {
 

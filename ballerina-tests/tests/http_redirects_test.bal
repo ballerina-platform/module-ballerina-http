@@ -19,12 +19,12 @@ import ballerina/io;
 import ballerina/mime;
 import ballerina/test;
 
-listener http:Listener serviceEndpoint2 = new(9102, httpVersion = "1.1");
+listener http:Listener serviceEndpoint2 = new(9102, httpVersion = http:HTTP_1_1);
 
-listener http:Listener serviceEndpoint3 = new(9103, httpVersion = "1.1");
+listener http:Listener serviceEndpoint3 = new(9103, httpVersion = http:HTTP_1_1);
 
 http:ListenerConfiguration httpsEPConfig = {
-    httpVersion: "1.1",
+    httpVersion: http:HTTP_1_1,
     secureSocket: {
         key: {
             path: "tests/certsandkeys/ballerinaKeystore.p12",
@@ -36,24 +36,24 @@ http:ListenerConfiguration httpsEPConfig = {
 listener http:Listener httpsEP = new(9104, httpsEPConfig);
 
 http:ClientConfiguration endPoint1Config = {
-    httpVersion: "1.1",
+    httpVersion: http:HTTP_1_1,
     followRedirects: { enabled: true, maxCount: 3 }
 };
 
 http:ClientConfiguration endPoint2Config = {
-    httpVersion: "1.1",
+    httpVersion: http:HTTP_1_1,
     followRedirects: { enabled: true, maxCount: 5 }
 };
 
 // Type should be `final readonly & http:ClientConfiguration` to preserve the isolated root inside an isolated
 // resource. But it is not possible until https://github.com/ballerina-platform/ballerina-spec/issues/544 is fixed
 final http:ClientConfiguration endPoint3Config = {
-    httpVersion: "1.1",
+    httpVersion: http:HTTP_1_1,
     followRedirects: { enabled: true }
 };
 
 http:ClientConfiguration endPoint5Config = {
-    httpVersion: "1.1",
+    httpVersion: http:HTTP_1_1,
     followRedirects: { enabled: true },
     secureSocket: {
         cert: {
@@ -63,10 +63,10 @@ http:ClientConfiguration endPoint5Config = {
     }
 };
 
-final http:Client endPoint1 = check new("http://localhost:9103", httpVersion = "1.1", followRedirects = { enabled: true, maxCount: 3 });
+final http:Client endPoint1 = check new("http://localhost:9103", httpVersion = http:HTTP_1_1, followRedirects = { enabled: true, maxCount: 3 });
 final http:Client endPoint2 = check new("http://localhost:9103", endPoint2Config );
 final http:Client endPoint3 = check new("http://localhost:9102", endPoint3Config );
-final http:Client endPoint4 = check new("http://localhost:9103", httpVersion = "1.1");
+final http:Client endPoint4 = check new("http://localhost:9103", httpVersion = http:HTTP_1_1);
 final http:Client endPoint5 = check new("https://localhost:9104", endPoint5Config );
 
 service /testRedirectService on serviceEndpoint3 {
@@ -227,7 +227,7 @@ service /testRedirectService on serviceEndpoint3 {
 
     resource function get doPost(http:Caller caller, http:Request request) returns error? {
         http:ClientConfiguration endPoint4Config = {
-            httpVersion: "1.1",
+            httpVersion: http:HTTP_1_1,
             followRedirects: { enabled: true, allowAuthHeaders : true }
         };
         http:Client endPoint4 = check new("http://localhost:9103", endPoint4Config);
@@ -251,7 +251,7 @@ service /testRedirectService on serviceEndpoint3 {
 
     resource function get doHead(http:Caller caller, http:Request request) returns error? {
         http:ClientConfiguration endPoint4Config = {
-            httpVersion: "1.1",
+            httpVersion: http:HTTP_1_1,
             followRedirects: { enabled: true, allowAuthHeaders : true }
         };
         http:Client endPoint4 = check new("http://localhost:9103", endPoint4Config);
@@ -272,7 +272,7 @@ service /testRedirectService on serviceEndpoint3 {
 
     resource function get doExecute(http:Caller caller, http:Request request) returns error? {
         http:ClientConfiguration endPoint4Config = {
-            httpVersion: "1.1",
+            httpVersion: http:HTTP_1_1,
             followRedirects: { enabled: true, allowAuthHeaders : true }
         };
         http:Client endPoint4 = check new("http://localhost:9103", endPoint4Config);
@@ -296,7 +296,7 @@ service /testRedirectService on serviceEndpoint3 {
 
     resource function get doPatch(http:Caller caller, http:Request request) returns error? {
         http:ClientConfiguration endPoint4Config = {
-            httpVersion: "1.1",
+            httpVersion: http:HTTP_1_1,
             followRedirects: { enabled: true, allowAuthHeaders : true }
         };
         http:Client endPoint4 = check new("http://localhost:9103", endPoint4Config);
@@ -320,7 +320,7 @@ service /testRedirectService on serviceEndpoint3 {
 
     resource function get doDelete(http:Caller caller, http:Request request) returns error? {
         http:ClientConfiguration endPoint4Config = {
-            httpVersion: "1.1",
+            httpVersion: http:HTTP_1_1,
             followRedirects: { enabled: true, allowAuthHeaders : true }
         };
         http:Client endPoint4 = check new("http://localhost:9103", endPoint4Config);
@@ -344,7 +344,7 @@ service /testRedirectService on serviceEndpoint3 {
 
     resource function get doOptions(http:Caller caller, http:Request request) returns error? {
         http:ClientConfiguration endPoint4Config = {
-            httpVersion: "1.1",
+            httpVersion: http:HTTP_1_1,
             followRedirects: { enabled: true, allowAuthHeaders : true }
         };
         http:Client endPoint4 = check new("http://localhost:9103", endPoint4Config);
@@ -383,7 +383,7 @@ service /testRedirectService on serviceEndpoint3 {
     }
 
     resource function get testMultipart(http:Caller caller, http:Request req) returns error? {
-        http:Client endPoint3 = check new("http://localhost:9103", httpVersion = "1.1", followRedirects = { enabled: true });
+        http:Client endPoint3 = check new("http://localhost:9103", httpVersion = http:HTTP_1_1, followRedirects = { enabled: true });
         mime:Entity jsonBodyPart = new;
         jsonBodyPart.setContentDisposition(getContentDispositionForFormData("json part"));
         jsonBodyPart.setJson({"name": "wso2"});
@@ -558,7 +558,7 @@ service /redirect3 on httpsEP {
     groups: ["httpRedirect"]
 }
 public function testHttpRedirects() returns error? {
-    http:Client httpClient = check new("http://localhost:9103", httpVersion = "1.1");
+    http:Client httpClient = check new("http://localhost:9103", httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/");
     if resp is http:Response {
         assertRedirectResponse(resp, "http://localhost:9102/redirect2");
@@ -571,7 +571,7 @@ public function testHttpRedirects() returns error? {
     groups: ["httpRedirect"]
 }
 public function testMaxRedirect() returns error? {
-    http:Client httpClient = check new("http://localhost:9103", httpVersion = "1.1");
+    http:Client httpClient = check new("http://localhost:9103", httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/maxRedirect");
     if resp is http:Response {
         assertRedirectResponse(resp, "/redirect1/round5:http://localhost:9103/redirect1/round4");
@@ -584,7 +584,7 @@ public function testMaxRedirect() returns error? {
     groups: ["httpRedirect"]
 }
 public function testCrossDomain() returns error? {
-    http:Client httpClient = check new("http://localhost:9103", httpVersion = "1.1");
+    http:Client httpClient = check new("http://localhost:9103", httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/noRedirect");
     if resp is http:Response {
         assertRedirectResponse(resp, "hello world:http://localhost:9102/redirect2");
@@ -597,7 +597,7 @@ public function testCrossDomain() returns error? {
     groups: ["httpRedirect"]
 }
 public function testNoRedirect() returns error? {
-    http:Client httpClient = check new("http://localhost:9103", httpVersion = "1.1");
+    http:Client httpClient = check new("http://localhost:9103", httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/crossDomain");
     if resp is http:Response {
         assertRedirectResponse(resp, "hello world:http://localhost:9102/redirect2");
@@ -610,7 +610,7 @@ public function testNoRedirect() returns error? {
     groups: ["httpRedirect"]
 }
 public function testRedirectOff() returns error? {
-    http:Client httpClient = check new("http://localhost:9103", httpVersion = "1.1");
+    http:Client httpClient = check new("http://localhost:9103", httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/redirectOff");
     if resp is http:Response {
         assertRedirectResponse(resp, "/redirect1/round2:");
@@ -623,7 +623,7 @@ public function testRedirectOff() returns error? {
     groups: ["httpRedirect"]
 }
 public function testQPWithRelativePath() returns error? {
-    http:Client httpClient = check new("http://localhost:9103", httpVersion = "1.1");
+    http:Client httpClient = check new("http://localhost:9103", httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/qpWithRelativePath");
     if resp is http:Response {
         assertRedirectResponse(resp, "value:ballerina:http://localhost:9103/redirect1/processQP?key=value&lang=ballerina");
@@ -636,7 +636,7 @@ public function testQPWithRelativePath() returns error? {
     groups: ["httpRedirect"]
 }
 public function testQPWithAbsolutePath() returns error? {
-    http:Client httpClient = check new("http://localhost:9103", httpVersion = "1.1");
+    http:Client httpClient = check new("http://localhost:9103", httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/qpWithAbsolutePath");
     if resp is http:Response {
         assertRedirectResponse(resp, "value:ballerina:http://localhost:9103/redirect1/processQP?key=value&lang=ballerina");
@@ -649,7 +649,7 @@ public function testQPWithAbsolutePath() returns error? {
     groups: ["httpRedirect"]
 }
 public function testOriginalRequestWithQP() returns error? {
-    http:Client httpClient = check new("http://localhost:9103", httpVersion = "1.1");
+    http:Client httpClient = check new("http://localhost:9103", httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/originalRequestWithQP");
     if resp is http:Response {
         assertRedirectResponse(resp, "hello world:http://localhost:9102/redirect2");
@@ -662,7 +662,7 @@ public function testOriginalRequestWithQP() returns error? {
     groups: ["httpRedirect"]
 }
 public function test303Status() returns error? {
-    http:Client httpClient = check new("http://localhost:9103", httpVersion = "1.1");
+    http:Client httpClient = check new("http://localhost:9103", httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/test303");
     if resp is http:Response {
         assertRedirectResponse(resp, "hello world:http://localhost:9102/redirect2");
@@ -675,7 +675,7 @@ public function test303Status() returns error? {
     groups: ["httpRedirect"]
 }
 public function testRedirectWithHTTPs() returns error? {
-    http:Client httpClient = check new("http://localhost:9103", httpVersion = "1.1");
+    http:Client httpClient = check new("http://localhost:9103", httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/httpsRedirect");
     if resp is http:Response {
         assertRedirectResponse(resp, "HTTPs Result:https://localhost:9104/redirect3/result");
@@ -688,7 +688,7 @@ public function testRedirectWithHTTPs() returns error? {
     groups: ["httpRedirect"]
 }
 public function testRedirectWithPOST() returns error? {
-    http:Client httpClient = check new("http://localhost:9103", httpVersion = "1.1");
+    http:Client httpClient = check new("http://localhost:9103", httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/doPost");
     if resp is http:Response {
         assertRedirectResponse(resp, "Received:Payload redirected:Proxy:http://localhost:9102/redirect2/echo");
@@ -701,7 +701,7 @@ public function testRedirectWithPOST() returns error? {
     groups: ["httpRedirect"]
 }
 public function testRedirectWithHead() returns error? {
-    http:Client httpClient = check new("http://localhost:9103", httpVersion = "1.1");
+    http:Client httpClient = check new("http://localhost:9103", httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/doHead");
     if resp is http:Response {
         assertRedirectResponse(resp, "Received:No Proxy:HTTP_TEMPORARY_REDIRECT:http://localhost:9102/redirect2/echo");
@@ -714,7 +714,7 @@ public function testRedirectWithHead() returns error? {
     groups: ["httpRedirect"]
 }
 public function testRedirectWithExecute() returns error? {
-    http:Client httpClient = check new("http://localhost:9103", httpVersion = "1.1");
+    http:Client httpClient = check new("http://localhost:9103", httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/doExecute");
     if resp is http:Response {
         assertRedirectResponse(resp, "Received:Payload redirected:Proxy:http://localhost:9102/redirect2/echo");
@@ -727,7 +727,7 @@ public function testRedirectWithExecute() returns error? {
     groups: ["httpRedirect"]
 }
 public function testRedirectWithPatch() returns error? {
-    http:Client httpClient = check new("http://localhost:9103", httpVersion = "1.1");
+    http:Client httpClient = check new("http://localhost:9103", httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/doPatch");
     if resp is http:Response {
         assertRedirectResponse(resp, "Received:Payload redirected:Proxy:http://localhost:9102/redirect2/echo");
@@ -740,7 +740,7 @@ public function testRedirectWithPatch() returns error? {
     groups: ["httpRedirect"]
 }
 public function testRedirectWithDelete() returns error? {
-    http:Client httpClient = check new("http://localhost:9103", httpVersion = "1.1");
+    http:Client httpClient = check new("http://localhost:9103", httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/doDelete");
     if resp is http:Response {
         assertRedirectResponse(resp, "Received:Payload redirected:Proxy:http://localhost:9102/redirect2/echo");
@@ -753,7 +753,7 @@ public function testRedirectWithDelete() returns error? {
     groups: ["httpRedirect"]
 }
 public function testRedirectWithOptions() returns error? {
-    http:Client httpClient = check new("http://localhost:9103", httpVersion = "1.1");
+    http:Client httpClient = check new("http://localhost:9103", httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/doOptions");
     if resp is http:Response {
         assertRedirectResponse(resp, "Received:OPTIONS, HEAD:http://localhost:9102/redirect2/echo");
@@ -766,7 +766,7 @@ public function testRedirectWithOptions() returns error? {
     groups: ["httpRedirect"]
 }
 public function testWithHTTPs() returns error? {
-    http:Client httpClient = check new("http://localhost:9103", httpVersion = "1.1");
+    http:Client httpClient = check new("http://localhost:9103", httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/doSecurePut");
     if resp is http:Response {
         assertRedirectResponse(resp, "Received:Secure payload:No Proxy:http://localhost:9102/redirect2/echo");
@@ -779,7 +779,7 @@ public function testWithHTTPs() returns error? {
     groups: ["httpRedirect"]
 }
 public function testMultipartRedirect() returns error? {
-    http:Client httpClient = check new("http://localhost:9103", httpVersion = "1.1");
+    http:Client httpClient = check new("http://localhost:9103", httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/testMultipart");
     if resp is http:Response {
         assertRedirectResponse(resp, "{\"name\":\"wso2\"}:http://localhost:9102/redirect2/echo");

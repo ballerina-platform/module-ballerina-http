@@ -175,13 +175,13 @@ function negativeTestAddCookieWithInvalidMaxAge() {
     test:assertEquals(res.getCookies().length(), 0, msg = "Output mismatched");
 }
 
-listener http:Listener inResponseCachedPayloadListener = new(inResponseCachedPayloadTestPort, httpVersion = "1.1");
-listener http:Listener inResponseCachedPayloadBEListener = new(inResponseCachedPayloadTestBEPort, httpVersion = "1.1");
-http:Client inRespCacheTestClient = check new("http://localhost:" + inResponseCachedPayloadTestPort.toString(), httpVersion = "1.1");
+listener http:Listener inResponseCachedPayloadListener = new(inResponseCachedPayloadTestPort, httpVersion = http:HTTP_1_1);
+listener http:Listener inResponseCachedPayloadBEListener = new(inResponseCachedPayloadTestBEPort, httpVersion = http:HTTP_1_1);
+http:Client inRespCacheTestClient = check new("http://localhost:" + inResponseCachedPayloadTestPort.toString(), httpVersion = http:HTTP_1_1);
 
 service / on inResponseCachedPayloadListener {
     resource function get checkJson() returns json|error {
-        http:Client diseaseEndpoint = check new ("http://localhost:" + inResponseCachedPayloadTestBEPort.toString(), httpVersion = "1.1");
+        http:Client diseaseEndpoint = check new ("http://localhost:" + inResponseCachedPayloadTestBEPort.toString(), httpVersion = http:HTTP_1_1);
         http:Response resp = check diseaseEndpoint -> get("/getXml");
         byte[]|error b = resp.getBinaryPayload(); // represents cache behaviour
         if b is error {
@@ -191,7 +191,7 @@ service / on inResponseCachedPayloadListener {
     }
 
     resource function get checkXml() returns xml|error {
-        http:Client diseaseEndpoint = check new ("http://localhost:" + inResponseCachedPayloadTestBEPort.toString(), httpVersion = "1.1");
+        http:Client diseaseEndpoint = check new ("http://localhost:" + inResponseCachedPayloadTestBEPort.toString(), httpVersion = http:HTTP_1_1);
         http:Response resp = check diseaseEndpoint -> get("/getJson");
         byte[]|error b = resp.getBinaryPayload(); // represents cache behaviour
         if b is error {

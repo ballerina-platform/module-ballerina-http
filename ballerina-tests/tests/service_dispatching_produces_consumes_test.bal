@@ -18,7 +18,7 @@ import ballerina/mime;
 import ballerina/test;
 import ballerina/http;
 
-final http:Client pcClient = check new("http://localhost:" + generalPort.toString(), httpVersion = "1.1");
+final http:Client pcClient = check new("http://localhost:" + generalPort.toString(), httpVersion = http:HTTP_1_1);
 
 service /echo66 on generalListener {
     @http:ResourceConfig {

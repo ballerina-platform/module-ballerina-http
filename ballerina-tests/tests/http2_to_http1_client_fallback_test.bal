@@ -18,7 +18,7 @@ import ballerina/http;
 import ballerina/test;
 
 listener http:Listener generalSSLListener = new(httpSslGeneralPort, {
-    httpVersion: "1.1",
+    httpVersion: http:HTTP_1_1,
     secureSocket: {
         key: {
             path: "tests/certsandkeys/ballerinaKeystore.p12",

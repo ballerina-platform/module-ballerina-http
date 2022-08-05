@@ -18,8 +18,8 @@ import ballerina/test;
 import ballerina/http;
 // import ballerina/log;
 
-listener http:Listener httpReturnNilListener = new(httpReturnNilTestPort, httpVersion = "1.1");
-final http:Client httpReturnNilClient = check new("http://localhost:" + httpReturnNilTestPort.toString(), httpVersion = "1.1");
+listener http:Listener httpReturnNilListener = new(httpReturnNilTestPort, httpVersion = http:HTTP_1_1);
+final http:Client httpReturnNilClient = check new("http://localhost:" + httpReturnNilTestPort.toString(), httpVersion = http:HTTP_1_1);
 
 service "/url" on httpReturnNilListener  {
 

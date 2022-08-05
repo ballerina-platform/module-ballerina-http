@@ -17,8 +17,8 @@
 import ballerina/test;
 import ballerina/http;
 
-final http:Client serviceSpecificClientEP = check new("http://localhost:" + serviceMediaTypeSubtypePrefixPort.toString(), httpVersion = "1.1");
-listener http:Listener serviceSpecificListener = new(serviceMediaTypeSubtypePrefixPort, httpVersion = "1.1");
+final http:Client serviceSpecificClientEP = check new("http://localhost:" + serviceMediaTypeSubtypePrefixPort.toString(), httpVersion = http:HTTP_1_1);
+listener http:Listener serviceSpecificListener = new(serviceMediaTypeSubtypePrefixPort, httpVersion = http:HTTP_1_1);
 
 @http:ServiceConfig {
     mediaTypeSubtypePrefix : "testServicePrefix1"

@@ -18,7 +18,7 @@ import ballerina/http;
 import ballerina/test;
 
 http:ClientConfiguration conf1 = {
-    httpVersion: "1.1",
+    httpVersion: http:HTTP_1_1,
     circuitBreaker: {
         rollingWindow: {
             timeWindow: 60,
@@ -32,10 +32,10 @@ http:ClientConfiguration conf1 = {
 };
 
 final http:Client cbrBackend = check new ("http://localhost:" + cBClientWithoutStatusCodesTestPort1.toString(), conf1);
-final http:Client cbrClient = check new ("http://localhost:" + cBClientWithoutStatusCodesTestPort2.toString(), httpVersion = "1.1");
+final http:Client cbrClient = check new ("http://localhost:" + cBClientWithoutStatusCodesTestPort2.toString(), httpVersion = http:HTTP_1_1);
 final http:Client nonExistingBackend = check new ("https://nuwandiasbanda.com", conf1);
 
-service / on new http:Listener(cBClientWithoutStatusCodesTestPort2, httpVersion = "1.1") {
+service / on new http:Listener(cBClientWithoutStatusCodesTestPort2, httpVersion = http:HTTP_1_1) {
 
     resource function get test1() returns string|error {
         return cbrBackend->get("/hello");
@@ -46,7 +46,7 @@ service / on new http:Listener(cBClientWithoutStatusCodesTestPort2, httpVersion 
     }
 }
 
-service / on new http:Listener(cBClientWithoutStatusCodesTestPort1, httpVersion = "1.1") {
+service / on new http:Listener(cBClientWithoutStatusCodesTestPort1, httpVersion = http:HTTP_1_1) {
     private int counter = 1;
     resource function get hello() returns string|http:InternalServerError {
         lock {

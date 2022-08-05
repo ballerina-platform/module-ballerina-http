@@ -37,7 +37,7 @@ service /forwardedBackend on generalHTTP2Listener {
 
 @test:Config {}
 public function testForwardHeader() returns error? {
-    http:Client clientEP = check new("http://localhost:9000", httpVersion = "1.1");
+    http:Client clientEP = check new("http://localhost:9000", httpVersion = http:HTTP_1_1);
     http:Response|error resp = clientEP->get("/initiatingService/initiatingResource");
     if resp is http:Response {
         assertHeaderValue(check resp.getHeader("forwarded"), "for=127.0.0.1; by=127.0.0.1; proto=http");

@@ -18,14 +18,14 @@ import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener cachingListener1 = new(cachingTestPort1, httpVersion = "1.1");
-listener http:Listener cachingListener2 = new(cachingTestPort2, httpVersion = "1.1");
+listener http:Listener cachingListener1 = new(cachingTestPort1, httpVersion = http:HTTP_1_1);
+listener http:Listener cachingListener2 = new(cachingTestPort2, httpVersion = http:HTTP_1_1);
 
 final http:Client cachingTestClient = check new("http://localhost:" + cachingTestPort1.toString(), 
-    httpVersion = "1.1", cache = { enabled: false });
+    httpVersion = http:HTTP_1_1, cache = { enabled: false });
 
 final http:Client cachingEP = check new("http://localhost:" + cachingTestPort2.toString(), 
-    httpVersion = "1.1", cache = { isShared: true });
+    httpVersion = http:HTTP_1_1, cache = { isShared: true });
 int cachingProxyHitcount = 0;
 
 service /cache on cachingListener1 {

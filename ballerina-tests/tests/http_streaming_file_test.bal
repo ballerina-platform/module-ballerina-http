@@ -21,10 +21,10 @@ import ballerina/mime;
 import ballerina/test;
 import ballerina/file;
 
-final http:Client streamTestClient = check new ("http://localhost:" + streamTest1.toString(), httpVersion = "1.1");
-final http:Client streamBackendClient = check new ("http://localhost:" + streamTest2.toString(), httpVersion = "1.1");
+final http:Client streamTestClient = check new ("http://localhost:" + streamTest1.toString(), httpVersion = http:HTTP_1_1);
+final http:Client streamBackendClient = check new ("http://localhost:" + streamTest2.toString(), httpVersion = http:HTTP_1_1);
 
-service /'stream on new http:Listener(streamTest1, httpVersion = "1.1") {
+service /'stream on new http:Listener(streamTest1, httpVersion = http:HTTP_1_1) {
     resource function get fileupload(http:Caller caller) {
         http:Request request = new;
         request.setFileAsPayload("tests/datafiles/BallerinaLang.pdf", contentType = mime:APPLICATION_PDF);
@@ -53,7 +53,7 @@ service /'stream on new http:Listener(streamTest1, httpVersion = "1.1") {
     }
 }
 
-service /streamBack on new http:Listener(streamTest2, httpVersion = "1.1") {
+service /streamBack on new http:Listener(streamTest2, httpVersion = http:HTTP_1_1) {
     resource function post receiver(http:Caller caller, http:Request request) returns error? {
         http:Response res = new;
         stream<byte[], io:Error?>|error streamer = request.getByteStream();

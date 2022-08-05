@@ -16,7 +16,7 @@
 
 import ballerina/http;
 
-listener http:Listener generalListener = new(generalPort, httpVersion = "1.1");
+listener http:Listener generalListener = new(generalPort, httpVersion = http:HTTP_1_1);
 
 listener http:Listener generalHTTP2Listener = new http:Listener(http2GeneralPort);
 listener http:Listener generalHTTPS2Listener = new http:Listener(http2SslGeneralPort, http2SslServiceConf);

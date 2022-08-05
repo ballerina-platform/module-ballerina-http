@@ -24,8 +24,8 @@ type ReadonlyPerson record {|
     int age;
 |};
 
-listener http:Listener readonlyParamEP = new(readonlyQueryTestPort, httpVersion = "1.1");
-final http:Client readonlyParamClient = check new("http://localhost:" + readonlyQueryTestPort.toString(), httpVersion = "1.1");
+listener http:Listener readonlyParamEP = new(readonlyQueryTestPort, httpVersion = http:HTTP_1_1);
+final http:Client readonlyParamClient = check new("http://localhost:" + readonlyQueryTestPort.toString(), httpVersion = http:HTTP_1_1);
 
 service /readonlyQuery on readonlyParamEP {
     resource function get ofStringArr(readonly & string[] person) returns json {

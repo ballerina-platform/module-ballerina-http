@@ -17,10 +17,10 @@
 import ballerina/http;
 import ballerina/test;
 
-listener http:Listener listenerWithoutSecureSocketConfig = new (clientSchemeTestHttpListenerTestPort, httpVersion = "1.1");
+listener http:Listener listenerWithoutSecureSocketConfig = new (clientSchemeTestHttpListenerTestPort, httpVersion = http:HTTP_1_1);
 
 listener http:Listener listenerWithSecureSocketConfig = new (clientSchemeTestHttpsListenerTestPort,
-    httpVersion = "1.1", 
+    httpVersion = http:HTTP_1_1,
     secureSocket = {
         key: {
             certFile: "tests/certsandkeys/public.crt",
@@ -55,30 +55,30 @@ service / on listenerWithoutSecureSocketConfig, listenerWithSecureSocketConfig {
 
 // scenario 1 - without client configurations
 
-final http:Client clientWithoutScheme = check new ("localhost:" + clientSchemeTestHttpListenerTestPort.toString(), httpVersion = "1.1");
+final http:Client clientWithoutScheme = check new ("localhost:" + clientSchemeTestHttpListenerTestPort.toString(), httpVersion = http:HTTP_1_1);
 
-final http:Client clientWithHttpScheme = check new ("http://localhost:" + clientSchemeTestHttpListenerTestPort.toString(), httpVersion = "1.1");
+final http:Client clientWithHttpScheme = check new ("http://localhost:" + clientSchemeTestHttpListenerTestPort.toString(), httpVersion = http:HTTP_1_1);
 
-final http:Client clientWithHttpsScheme = check new ("https://example.com", httpVersion = "1.1");
+final http:Client clientWithHttpsScheme = check new ("https://example.com", httpVersion = http:HTTP_1_1);
 
 // scenario 2 - with client secure socket configurations
 
 final http:Client clientWithoutSchemeWithSecureSocketConfig = check new ("localhost:" + clientSchemeTestHttpsListenerTestPort.toString(),
-    httpVersion = "1.1",
+    httpVersion = http:HTTP_1_1,
     secureSocket = {
         cert: "tests/certsandkeys/public.crt"
     }
 );
 
 final http:Client clientWithHttpSchemeWithSecureSocketConfig = check new ("http://localhost:" + clientSchemeTestHttpListenerTestPort.toString(),
-    httpVersion = "1.1",
+    httpVersion = http:HTTP_1_1,
     secureSocket = {
         cert: "tests/certsandkeys/public.crt"
     }
 );
 
 final http:Client clientWithHttpsSchemeWithSecureSocketConfig = check new ("https://localhost:" + clientSchemeTestHttpsListenerTestPort.toString(),
-    httpVersion = "1.1",
+    httpVersion = http:HTTP_1_1,
     secureSocket = {
         cert: "tests/certsandkeys/public.crt"
     }
@@ -87,7 +87,7 @@ final http:Client clientWithHttpsSchemeWithSecureSocketConfig = check new ("http
 // scenario 3 - with client auth configurations
 
 final http:Client clientWithoutSchemeWithAuthConfig = check new ("example.com",
-    httpVersion = "1.1",
+    httpVersion = http:HTTP_1_1,
     auth = {
         username: "ballerina",
         issuer: "wso2",
@@ -104,7 +104,7 @@ final http:Client clientWithoutSchemeWithAuthConfig = check new ("example.com",
 );
 
 final http:Client clientWithHttpSchemeWithAuthConfig = check new ("http://localhost:" + clientSchemeTestHttpListenerTestPort.toString(),
-    httpVersion = "1.1",
+    httpVersion = http:HTTP_1_1,
     auth = {
         username: "ballerina",
         issuer: "wso2",
@@ -121,7 +121,7 @@ final http:Client clientWithHttpSchemeWithAuthConfig = check new ("http://localh
 );
 
 final http:Client clientWithHttpsSchemeWithAuthConfig = check new ("https://example.com",
-    httpVersion = "1.1",
+    httpVersion = http:HTTP_1_1,
     auth = {
         username: "ballerina",
         issuer: "wso2",
@@ -140,7 +140,7 @@ final http:Client clientWithHttpsSchemeWithAuthConfig = check new ("https://exam
 // scenario 4 - with client secure socket and client auth configurations
 
 final http:Client clientWithoutSchemeWithAuthAndSecureSocketConfig = check new ("localhost:" + clientSchemeTestHttpsListenerTestPort.toString(),
-    httpVersion = "1.1",
+    httpVersion = http:HTTP_1_1,
     auth = {
         username: "ballerina",
         issuer: "wso2",
@@ -160,7 +160,7 @@ final http:Client clientWithoutSchemeWithAuthAndSecureSocketConfig = check new (
 );
 
 final http:Client clientWithHttpSchemeWithAuthAndSecureSocketConfig = check new ("http://localhost:" + clientSchemeTestHttpListenerTestPort.toString(),
-    httpVersion = "1.1",
+    httpVersion = http:HTTP_1_1,
     auth = {
         username: "ballerina",
         issuer: "wso2",
@@ -180,7 +180,7 @@ final http:Client clientWithHttpSchemeWithAuthAndSecureSocketConfig = check new 
 );
 
 final http:Client clientWithHttpsSchemeWithAuthAndSecureSocketConfig = check new ("https://localhost:" + clientSchemeTestHttpsListenerTestPort.toString(),
-    httpVersion = "1.1",
+    httpVersion = http:HTTP_1_1,
     auth = {
         username: "ballerina",
         issuer: "wso2",

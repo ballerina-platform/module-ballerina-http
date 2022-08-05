@@ -23,10 +23,10 @@ import ballerina/http;
 int requestCount = 0;
 int actualCount = 0;
 
-listener http:Listener circuitBreakerEP06 = new(9312, httpVersion = "1.1");
+listener http:Listener circuitBreakerEP06 = new(9312, httpVersion = http:HTTP_1_1);
 
 http:ClientConfiguration conf06 = {
-    httpVersion: "1.1",
+    httpVersion: http:HTTP_1_1,
     circuitBreaker: {
         rollingWindow: {
             timeWindow: 60,
@@ -72,7 +72,7 @@ service /cb on circuitBreakerEP06 {
     }
 }
 
-service /hello06 on new http:Listener(8092, httpVersion = "1.1") {
+service /hello06 on new http:Listener(8092, httpVersion = http:HTTP_1_1) {
 
     resource function 'default .(http:Caller caller, http:Request req) {
         int count = 0;
@@ -95,7 +95,7 @@ service /hello06 on new http:Listener(8092, httpVersion = "1.1") {
 }
 
 //Test for circuit breaker trail failure functionality
-final http:Client testTrialRunFailureClient = check new("http://localhost:9312", httpVersion = "1.1");
+final http:Client testTrialRunFailureClient = check new("http://localhost:9312", httpVersion = http:HTTP_1_1);
 
 @test:Config{ dataProvider:trialRunFailureResponseDataProvider }
 function testCBTrialRunFailure(DataFeed dataFeed) returns error? {

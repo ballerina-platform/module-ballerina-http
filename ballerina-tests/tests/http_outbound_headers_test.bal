@@ -17,13 +17,13 @@
 import ballerina/http;
 import ballerina/test;
 
-listener http:Listener outRequestOptionsTestEP = new(outRequestOptionsTest, httpVersion = "1.1");
+listener http:Listener outRequestOptionsTestEP = new(outRequestOptionsTest, httpVersion = http:HTTP_1_1);
 
-final http:Client outReqHeadClient = check new("http://localhost:" + outRequestOptionsTest.toString(), httpVersion = "1.1");
+final http:Client outReqHeadClient = check new("http://localhost:" + outRequestOptionsTest.toString(), httpVersion = http:HTTP_1_1);
 
 // Define the failover client 
 final http:FailoverClient outRequestFOClient = check new(
-    httpVersion = "1.1", 
+    httpVersion = http:HTTP_1_1,
     timeout = 5,
     failoverCodes = [501, 502, 503],
     interval = 5,
@@ -35,7 +35,7 @@ final http:FailoverClient outRequestFOClient = check new(
 
 // Define the load balance client 
 final http:LoadBalanceClient outRequestLBClient = check new(
-    httpVersion = "1.1",
+    httpVersion = http:HTTP_1_1,
     targets = [
         { url: "http://localhost:" + outRequestOptionsTest.toString() }
     ],

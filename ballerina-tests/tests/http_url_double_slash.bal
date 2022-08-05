@@ -17,11 +17,11 @@
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener httpUrlListenerEP1 = new(httpUrlTestPort1, httpVersion = "1.1");
-listener http:Listener httpUrlListenerEP2 = new(httpUrlTestPort2, httpVersion = "1.1");
-final http:Client httpUrlClient = check new("http://localhost:" + httpUrlTestPort1.toString(), httpVersion = "1.1");
+listener http:Listener httpUrlListenerEP1 = new(httpUrlTestPort1, httpVersion = http:HTTP_1_1);
+listener http:Listener httpUrlListenerEP2 = new(httpUrlTestPort2, httpVersion = http:HTTP_1_1);
+final http:Client httpUrlClient = check new("http://localhost:" + httpUrlTestPort1.toString(), httpVersion = http:HTTP_1_1);
 
-final http:Client urlClient = check new("http://localhost:" + httpUrlTestPort2.toString() + "//url", httpVersion = "1.1", cache = { enabled: false });
+final http:Client urlClient = check new("http://localhost:" + httpUrlTestPort2.toString() + "//url", httpVersion = http:HTTP_1_1, cache = { enabled: false });
 
 service "/url//test" on httpUrlListenerEP2 {
 
@@ -62,7 +62,7 @@ function testUrlDoubleSlash() returns error? {
 
 @test:Config {}
 function testResourcePathWithoutStartingSlash() returns error? {
-    http:Client httpUrlClient = check new("http://localhost:" + httpUrlTestPort1.toString() + "/", httpVersion = "1.1");
+    http:Client httpUrlClient = check new("http://localhost:" + httpUrlTestPort1.toString() + "/", httpVersion = http:HTTP_1_1);
     http:Response|error response = httpUrlClient->get("url");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
@@ -76,7 +76,7 @@ function testResourcePathWithoutStartingSlash() returns error? {
 
 @test:Config {}
 function testResourcePathWithEmptyPath() returns error? {
-    http:Client httpUrlClient = check new("http://localhost:" + httpUrlTestPort1.toString() + "/url/", httpVersion = "1.1");
+    http:Client httpUrlClient = check new("http://localhost:" + httpUrlTestPort1.toString() + "/url/", httpVersion = http:HTTP_1_1);
     http:Response|error response = httpUrlClient->get("");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
@@ -91,7 +91,7 @@ function testResourcePathWithEmptyPath() returns error? {
 
 @test:Config {}
 function testResourcePathWithQueryParam() returns error? {
-    http:Client httpUrlClient = check new("http://localhost:" + httpUrlTestPort1.toString() + "/url", httpVersion = "1.1");
+    http:Client httpUrlClient = check new("http://localhost:" + httpUrlTestPort1.toString() + "/url", httpVersion = http:HTTP_1_1);
     http:Response|error response = httpUrlClient->get("?abc=go&xyz=no");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
@@ -105,7 +105,7 @@ function testResourcePathWithQueryParam() returns error? {
 
 @test:Config {}
 function testResourcePathWithFragmentParam() returns error? {
-    http:Client httpUrlClient = check new("http://localhost:" + httpUrlTestPort1.toString() + "/url", httpVersion = "1.1");
+    http:Client httpUrlClient = check new("http://localhost:" + httpUrlTestPort1.toString() + "/url", httpVersion = http:HTTP_1_1);
     http:Response|error response = httpUrlClient->get("#foo");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
@@ -119,7 +119,7 @@ function testResourcePathWithFragmentParam() returns error? {
 
 @test:Config {}
 function testResourcePathNegative() returns error? {
-    http:Client httpUrlClient = check new("http://localhost:" + httpUrlTestPort1.toString(), httpVersion = "1.1");
+    http:Client httpUrlClient = check new("http://localhost:" + httpUrlTestPort1.toString(), httpVersion = http:HTTP_1_1);
     http:Response|error response = httpUrlClient->get("url");
     if response is error {
         test:assertEquals(response.message(),

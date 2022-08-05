@@ -21,14 +21,14 @@ import ballerina/url;
 import ballerina/mime;
 import ballerina/test;
 
-final http:Client clientUrlEncodedTestClient = check new(string`http://localhost:${clientFormUrlEncodedTestPort.toString()}/databinding`, httpVersion = "1.1");
+final http:Client clientUrlEncodedTestClient = check new(string`http://localhost:${clientFormUrlEncodedTestPort.toString()}/databinding`, httpVersion = http:HTTP_1_1);
 final string expectedResponse = "URL_ENCODED_key1=value1&key2=value2";
 final readonly & map<string> payload = {
     "key1": "value1",
     "key2": "value2"
 };
 
-service /databinding on new http:Listener(clientFormUrlEncodedTestPort, httpVersion = "1.1") {
+service /databinding on new http:Listener(clientFormUrlEncodedTestPort, httpVersion = http:HTTP_1_1) {
     resource function 'default .(http:Request req) returns string|error {
         string contentType = req.getContentType();
         contentType = contentType == mime:APPLICATION_FORM_URLENCODED ? "URL_ENCODED": "INVALID";

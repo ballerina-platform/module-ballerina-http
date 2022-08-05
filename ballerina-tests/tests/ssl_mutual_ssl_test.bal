@@ -18,7 +18,7 @@ import ballerina/http;
 import ballerina/test;
 
 http:ListenerConfiguration mutualSslServiceConf = {
-    httpVersion: "1.1",
+    httpVersion: http:HTTP_1_1,
     secureSocket: {
         key: {
             path: "tests/certsandkeys/ballerinaKeystore.p12",
@@ -76,7 +76,7 @@ service /helloWorld15 on echo15 {
     }
 }
 
-listener http:Listener echoDummy15 = new(9117, httpVersion = "1.1");
+listener http:Listener echoDummy15 = new(9117, httpVersion = http:HTTP_1_1);
 
 service /echoDummyService15 on echoDummy15 {
 
@@ -88,7 +88,7 @@ service /echoDummyService15 on echoDummy15 {
 }
 
 http:ClientConfiguration mutualSslClientConf1 = {
-    httpVersion: "1.1",
+    httpVersion: http:HTTP_1_1,
     secureSocket: {
         key: {
             path: "tests/certsandkeys/ballerinaKeystore.p12",
@@ -125,7 +125,7 @@ public function testMutualSsl1() returns error? {
 }
 
 http:ClientConfiguration mutualSslClientConf2 = {
-    httpVersion: "1.1",
+    httpVersion: http:HTTP_1_1,
     secureSocket: {
         key: {
             path: "tests/certsandkeys/ballerinaKeystore.p12",
@@ -154,7 +154,7 @@ public function testMutualSsl2() returns error? {
 }
 
 http:ClientConfiguration mutualSslClientConf3 = {
-    httpVersion: "1.1",
+    httpVersion: http:HTTP_1_1,
     secureSocket: {
         enable: false,
         key: {

@@ -18,10 +18,10 @@ import ballerina/http;
 import ballerina/lang.runtime;
 import ballerina/test;
 
-final http:Client foClientEP = check new ("http://localhost:" + foClientWithoutStatusCodeTestPort1.toString(), httpVersion = "1.1");
+final http:Client foClientEP = check new ("http://localhost:" + foClientWithoutStatusCodeTestPort1.toString(), httpVersion = http:HTTP_1_1);
 
 final http:FailoverClient foBackendEP = check new (
-    httpVersion = "1.1",
+    httpVersion = http:HTTP_1_1,
     timeout = 5,
     failoverCodes = [],
     interval = 5,
