@@ -19,8 +19,8 @@ import ballerina/test;
 import ballerina/http;
 import ballerina/lang.runtime;
 
-listener http:Listener dirtyResponseListener = new(dirtyResponseTestPort, httpVersion = "1.1");
-final http:Client dirtyResponseTestClient = check new("http://localhost:" + dirtyResponseTestPort.toString(), httpVersion = "1.1");
+listener http:Listener dirtyResponseListener = new(dirtyResponseTestPort, httpVersion = http:HTTP_1_1);
+final http:Client dirtyResponseTestClient = check new("http://localhost:" + dirtyResponseTestPort.toString(), httpVersion = http:HTTP_1_1);
 
 
 http:Response dirtyResponse = getSingletonResponse();

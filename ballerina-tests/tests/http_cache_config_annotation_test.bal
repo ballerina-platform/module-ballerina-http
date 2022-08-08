@@ -20,10 +20,10 @@ import ballerina/http;
 import ballerina/crypto;
 
 final http:Client cacheClientEP = check new("http://localhost:" + cacheAnnotationTestPort1.toString(), 
-    httpVersion = "1.1", cache = { enabled: false });
+    httpVersion = http:HTTP_1_1, cache = { enabled: false });
 
 final http:Client cacheBackendEP = check new("http://localhost:" + cacheAnnotationTestPort2.toString(), 
-    httpVersion = "1.1", cache = { isShared: true });
+    httpVersion = http:HTTP_1_1, cache = { isShared: true });
 
 isolated int numberOfProxyHitsNew = 0;
 isolated int noCacheHitCountNew = 0;
@@ -40,7 +40,7 @@ final readonly & json nocachePayload2 = { "message": "2nd response" };
 final readonly & http:Ok ok = {body : mustRevalidatePayload1};
 final readonly & http:InternalServerError err = {body : errorBody};
 
-service / on new http:Listener(cacheAnnotationTestPort1, httpVersion = "1.1") {
+service / on new http:Listener(cacheAnnotationTestPort1, httpVersion = http:HTTP_1_1) {
 
     resource function get noCache(http:Request req) returns http:Response|http:InternalServerError {
         http:Response|error response = cacheBackendEP->forward("/nocacheBE", req);
@@ -96,7 +96,7 @@ service / on new http:Listener(cacheAnnotationTestPort1, httpVersion = "1.1") {
     }
 }
 
-service / on new http:Listener(cacheAnnotationTestPort2, httpVersion = "1.1") {
+service / on new http:Listener(cacheAnnotationTestPort2, httpVersion = http:HTTP_1_1) {
 
     resource function default nocacheBE(http:Request req) returns @http:Cache{noCache : true, maxAge : -1,
             mustRevalidate : false} json {

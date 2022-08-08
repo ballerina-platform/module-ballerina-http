@@ -17,8 +17,8 @@
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener corsConfigEP = new(corsConfigTest, httpVersion = "1.1");
-final http:Client corsClient = check new("http://localhost:" + corsConfigTest.toString(), httpVersion = "1.1");
+listener http:Listener corsConfigEP = new(corsConfigTest, httpVersion = http:HTTP_1_1);
+final http:Client corsClient = check new("http://localhost:" + corsConfigTest.toString(), httpVersion = http:HTTP_1_1);
 
 @http:ServiceConfig {
     cors:{

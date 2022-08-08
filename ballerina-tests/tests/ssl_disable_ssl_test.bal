@@ -18,7 +18,7 @@ import ballerina/http;
 import ballerina/test;
 
 http:ListenerConfiguration serviceConf = {
-    httpVersion: "1.1",
+    httpVersion: http:HTTP_1_1,
     secureSocket: {
         key: {
             path: "tests/certsandkeys/ballerinaKeystore.p12",
@@ -39,7 +39,7 @@ service /httpsService on httpsListener {
 }
 
 http:ClientConfiguration disableSslClientConf1 = {
-    httpVersion: "1.1",
+    httpVersion: http:HTTP_1_1,
     secureSocket: {
         enable: false
     }

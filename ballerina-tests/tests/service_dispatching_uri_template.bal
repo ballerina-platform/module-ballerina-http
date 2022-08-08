@@ -18,11 +18,11 @@ import ballerina/io;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener utTestEP = new(uriTemplateTest1, httpVersion = "1.1");
-listener http:Listener utTestEPWithNoServicesAttached = new(uriTemplateTest2, httpVersion = "1.1");
+listener http:Listener utTestEP = new(uriTemplateTest1, httpVersion = http:HTTP_1_1);
+listener http:Listener utTestEPWithNoServicesAttached = new(uriTemplateTest2, httpVersion = http:HTTP_1_1);
 
-final http:Client utClient1 = check new("http://localhost:" + uriTemplateTest1.toString(), httpVersion = "1.1");
-final http:Client utClient2 = check new("http://localhost:" + uriTemplateTest2.toString(), httpVersion = "1.1");
+final http:Client utClient1 = check new("http://localhost:" + uriTemplateTest1.toString(), httpVersion = http:HTTP_1_1);
+final http:Client utClient2 = check new("http://localhost:" + uriTemplateTest2.toString(), httpVersion = http:HTTP_1_1);
 
 service /ecommerceservice on utTestEP {
 

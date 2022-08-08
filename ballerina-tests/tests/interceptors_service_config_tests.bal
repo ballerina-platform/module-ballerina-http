@@ -17,10 +17,10 @@
 import ballerina/http;
 import ballerina/test;
 
-final http:Client requestInterceptorServiceConfigClientEP1 = check new("http://localhost:" + requestInterceptorServiceConfigTestPort1.toString(), httpVersion = "1.1");
+final http:Client requestInterceptorServiceConfigClientEP1 = check new("http://localhost:" + requestInterceptorServiceConfigTestPort1.toString(), httpVersion = http:HTTP_1_1);
 
 listener http:Listener requestInterceptorServiceConfigServerEP1 = new(requestInterceptorServiceConfigTestPort1, 
-    httpVersion = "1.1",
+    httpVersion = http:HTTP_1_1,
     interceptors = [
         new DefaultRequestInterceptor(), new LastResponseInterceptor(), new RequestInterceptorWithVariable("request-interceptor-listener"), 
         new ResponseInterceptorWithVariable("response-interceptor-listener"), new DefaultResponseInterceptor()
@@ -112,9 +112,9 @@ function testRequestInterceptorServiceConfig1() returns error? {
     assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
 }
 
-final http:Client requestInterceptorServiceConfigClientEP2 = check new("http://localhost:" + requestInterceptorServiceConfigTestPort2.toString(), httpVersion = "1.1");
+final http:Client requestInterceptorServiceConfigClientEP2 = check new("http://localhost:" + requestInterceptorServiceConfigTestPort2.toString(), httpVersion = http:HTTP_1_1);
 
-listener http:Listener requestInterceptorServiceConfigServerEP2 = new(requestInterceptorServiceConfigTestPort2, httpVersion = "1.1");
+listener http:Listener requestInterceptorServiceConfigServerEP2 = new(requestInterceptorServiceConfigTestPort2, httpVersion = http:HTTP_1_1);
 
 @http:ServiceConfig {
     interceptors : [

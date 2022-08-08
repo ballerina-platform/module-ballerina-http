@@ -17,17 +17,17 @@
 import ballerina/http;
 import ballerina/test;
 
-final http:Client clientTest1 = check new ("http://localhost:" + clientForwardTestPort1.toString(), httpVersion = "1.1");
-final http:Client clientTest2 = check new ("http://localhost:" + clientForwardTestPort2.toString(), httpVersion = "1.1");
+final http:Client clientTest1 = check new ("http://localhost:" + clientForwardTestPort1.toString(), httpVersion = http:HTTP_1_1);
+final http:Client clientTest2 = check new ("http://localhost:" + clientForwardTestPort2.toString(), httpVersion = http:HTTP_1_1);
 
-service / on new http:Listener(clientForwardTestPort2, httpVersion = "1.1") {
+service / on new http:Listener(clientForwardTestPort2, httpVersion = http:HTTP_1_1) {
 
     resource function get test() returns string {
         return "HelloWorld";
     }
 }
 
-service / on new http:Listener(clientForwardTestPort1, httpVersion = "1.1") {
+service / on new http:Listener(clientForwardTestPort1, httpVersion = http:HTTP_1_1) {
 
     resource function get test(http:Request req) returns http:Response|error {
         http:Request req_new = new;

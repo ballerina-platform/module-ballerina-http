@@ -20,14 +20,14 @@ import ballerina/lang.runtime as runtime;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener failoverEP05 = new(9305, httpVersion = "1.1");
+listener http:Listener failoverEP05 = new(9305, httpVersion = http:HTTP_1_1);
 
 // Create an endpoint with port 8085 for the mock backend services.
-listener http:Listener backendEP05 = new(8085, httpVersion = "1.1");
+listener http:Listener backendEP05 = new(8085, httpVersion = http:HTTP_1_1);
 
 // Define the failover client end point to call the backend services.
 final http:FailoverClient foBackendEP05 = check new(
-    httpVersion = "1.1",
+    httpVersion = http:HTTP_1_1,
     timeout = 5,
     failoverCodes = [501, 502, 503],
     interval = 5,
@@ -86,7 +86,7 @@ service /mock05 on backendEP05 {
 //Test to verify whether failover will test from last successful endpoint
 @test:Config {}
 function testFailoverStartingPosition() returns error? {
-    http:Client testClient = check new("http://localhost:9305", httpVersion = "1.1");
+    http:Client testClient = check new("http://localhost:9305", httpVersion = http:HTTP_1_1);
     http:Response|error response = testClient->post("/failoverDemoService05/failoverStartIndex", requestPayload);
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");

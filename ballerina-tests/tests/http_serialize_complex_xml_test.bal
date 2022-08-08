@@ -20,8 +20,8 @@ import ballerina/test;
 import ballerina/http;
 import ballerina/io;
 
-listener http:Listener serializeXmlListener = new(serializeXmlTestPort, httpVersion = "1.1");
-final http:Client xmlClientEP = check new("http://localhost:" + serializeXmlTestPort.toString(), httpVersion = "1.1");
+listener http:Listener serializeXmlListener = new(serializeXmlTestPort, httpVersion = http:HTTP_1_1);
+final http:Client xmlClientEP = check new("http://localhost:" + serializeXmlTestPort.toString(), httpVersion = http:HTTP_1_1);
 
 service /serialize on serializeXmlListener {
 
@@ -81,7 +81,7 @@ service /serialize on serializeXmlListener {
 
 @test:Config {}
 function testXmlSerialization() returns error? {
-    http:Client serializeClient = check new("http://localhost:" + serializeXmlTestPort.toString(), httpVersion = "1.1");
+    http:Client serializeClient = check new("http://localhost:" + serializeXmlTestPort.toString(), httpVersion = http:HTTP_1_1);
     http:Response response = check serializeClient->get("/serialize/xml");
     test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
     assertHeaderValue(check response.getHeader(CONTENT_TYPE), APPLICATION_XML);

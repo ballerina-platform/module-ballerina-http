@@ -19,9 +19,9 @@ import ballerina/http;
 import ballerina/test;
 
 final http:Client clientValidationTestClient =
-    check new("http://localhost:" + clientDatabindingTestPort2.toString(), httpVersion = "1.1");
+    check new("http://localhost:" + clientDatabindingTestPort2.toString(), httpVersion = http:HTTP_1_1);
 final http:Client clientValidationLessTestClient =
-    check new("http://localhost:" + clientDatabindingTestPort2.toString(), httpVersion = "1.1", validation = false);
+    check new("http://localhost:" + clientDatabindingTestPort2.toString(), httpVersion = http:HTTP_1_1, validation = false);
 
 public type ValidationPerson record {|
     @constraint:String {

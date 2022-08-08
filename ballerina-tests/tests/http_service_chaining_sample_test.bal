@@ -18,11 +18,11 @@ import ballerina/io;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener serviceChainingListenerEP = new(serviceChainingTestPort, httpVersion = "1.1");
-final http:Client serviceChainingClient = check new("http://localhost:" + serviceChainingTestPort.toString(), httpVersion = "1.1");
+listener http:Listener serviceChainingListenerEP = new(serviceChainingTestPort, httpVersion = http:HTTP_1_1);
+final http:Client serviceChainingClient = check new("http://localhost:" + serviceChainingTestPort.toString(), httpVersion = http:HTTP_1_1);
 
-final http:Client bankInfoService = check new("http://localhost:" + serviceChainingTestPort.toString() + "/bankinfo/product", httpVersion = "1.1");
-final http:Client branchLocatorService = check new("http://localhost:" + serviceChainingTestPort.toString() + "/branchlocator/product", httpVersion = "1.1");
+final http:Client bankInfoService = check new("http://localhost:" + serviceChainingTestPort.toString() + "/bankinfo/product", httpVersion = http:HTTP_1_1);
+final http:Client branchLocatorService = check new("http://localhost:" + serviceChainingTestPort.toString() + "/branchlocator/product", httpVersion = http:HTTP_1_1);
 
 service /ABCBank on serviceChainingListenerEP {
 

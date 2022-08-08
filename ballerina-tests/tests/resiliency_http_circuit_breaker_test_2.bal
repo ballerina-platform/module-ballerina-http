@@ -29,10 +29,10 @@ isolated function retrieveAndIncrementCounter() returns int {
     }
 }
 
-listener http:Listener circuitBreakerEP01 = new(9307, httpVersion = "1.1");
+listener http:Listener circuitBreakerEP01 = new(9307, httpVersion = http:HTTP_1_1);
 
 http:ClientConfiguration conf01 = {
-    httpVersion: "1.1",
+    httpVersion: http:HTTP_1_1,
     circuitBreaker: {
         rollingWindow: {
             timeWindow: 60,
@@ -176,7 +176,7 @@ isolated function handleBackendResponse(http:Caller caller, http:Response|error 
     }
 }
 
-service /healthy on new http:Listener(8087, httpVersion = "1.1") {
+service /healthy on new http:Listener(8087, httpVersion = http:HTTP_1_1) {
 
     resource function 'default .(http:Caller caller, http:Request req) {
         error? responseToCaller = caller->respond("Hello World!!!");
@@ -206,7 +206,7 @@ service /healthy on new http:Listener(8087, httpVersion = "1.1") {
 
 
 //Test for circuit breaker forceOpen functionality
-final http:Client testForceOpenClient = checkpanic new("http://localhost:9307", httpVersion = "1.1");
+final http:Client testForceOpenClient = checkpanic new("http://localhost:9307", httpVersion = http:HTTP_1_1);
 
 @test:Config{ 
     groups: ["circuitBreakerForceOpen"],

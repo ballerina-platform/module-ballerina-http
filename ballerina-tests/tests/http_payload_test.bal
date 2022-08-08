@@ -18,10 +18,10 @@ import ballerina/mime;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener httpPayloadListenerEP1 = new(httpPayloadTestPort1, httpVersion = "1.1");
-listener http:Listener httpPayloadListenerEP2 = new(httpPayloadTestPort2, httpVersion = "1.1");
-final http:Client httpPayloadClient = check new("http://localhost:" + httpPayloadTestPort1.toString(), httpVersion = "1.1");
-final http:Client clientEP19 = check new("http://localhost:" + httpPayloadTestPort2.toString(), httpVersion = "1.1");
+listener http:Listener httpPayloadListenerEP1 = new(httpPayloadTestPort1, httpVersion = http:HTTP_1_1);
+listener http:Listener httpPayloadListenerEP2 = new(httpPayloadTestPort2, httpVersion = http:HTTP_1_1);
+final http:Client httpPayloadClient = check new("http://localhost:" + httpPayloadTestPort1.toString(), httpVersion = http:HTTP_1_1);
+final http:Client clientEP19 = check new("http://localhost:" + httpPayloadTestPort2.toString(), httpVersion = http:HTTP_1_1);
 
 service /testService16 on httpPayloadListenerEP1 {
 

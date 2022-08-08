@@ -17,10 +17,10 @@
 import ballerina/http;
 import ballerina/test;
 
-final http:Client noServiceRegisteredClientEP = check new("http://localhost:" + noServiceRegisteredTestPort.toString(), httpVersion = "1.1");
+final http:Client noServiceRegisteredClientEP = check new("http://localhost:" + noServiceRegisteredTestPort.toString(), httpVersion = http:HTTP_1_1);
 
 listener http:Listener noServiceRegisteredServerEP = new(noServiceRegisteredTestPort, 
-    httpVersion = "1.1",
+    httpVersion = http:HTTP_1_1,
     interceptors = [
         new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultRequestInterceptor(), 
         new DefaultRequestErrorInterceptor(), new LastRequestInterceptor(), new DefaultResponseInterceptor()
@@ -38,10 +38,10 @@ function testNoServiceRegistered() returns error? {
     assertHeaderValue(check res.getHeader("error-type"), "DispatchingError-Service");
 }
 
-final http:Client serviceErrorHandlingClientEP = check new("http://localhost:" + serviceErrorHandlingTestPort.toString(), httpVersion = "1.1");
+final http:Client serviceErrorHandlingClientEP = check new("http://localhost:" + serviceErrorHandlingTestPort.toString(), httpVersion = http:HTTP_1_1);
 
 listener http:Listener serviceErrorHandlingServerEP = new(serviceErrorHandlingTestPort, 
-    httpVersion = "1.1",
+    httpVersion = http:HTTP_1_1,
     interceptors = [
         new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultRequestInterceptor(), 
         new DefaultRequestErrorInterceptor(), new LastRequestInterceptor(), new DefaultResponseInterceptor()
@@ -234,7 +234,7 @@ function testConsumesProducesError() returns error? {
 }
 
 listener http:Listener authErrorHandlingServerEP = new(authErrorHandlingTestPort, 
-    httpVersion = "1.1",
+    httpVersion = http:HTTP_1_1,
     interceptors = [
         new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultRequestInterceptor(),
         new DefaultRequestErrorInterceptor(), new LastRequestInterceptor(), new DefaultResponseInterceptor()
@@ -265,7 +265,7 @@ service /auth on authErrorHandlingServerEP {
 @test:Config{}
 function testAuthnError() returns error? {
     http:Client clientEP = check new("https://localhost:" + authErrorHandlingTestPort.toString(),
-        httpVersion = "1.1",
+        httpVersion = http:HTTP_1_1,
         auth = {
             username: "peter",
             password: "123"
@@ -303,7 +303,7 @@ function testAuthnError() returns error? {
 @test:Config{}
 function testAuthzError() returns error? {
     http:Client clientEP = check new("https://localhost:" + authErrorHandlingTestPort.toString(),
-        httpVersion = "1.1",
+        httpVersion = http:HTTP_1_1,
         auth = {
             username: "bob",
             password: "yyy"

@@ -17,13 +17,13 @@
 import ballerina/http;
 import ballerina/test;
 
-listener http:Listener listenerMethodListener = new(listenerMethodTestPort1, httpVersion = "1.1");
-final http:Client listenerMethodTestClient = check new("http://localhost:" + listenerMethodTestPort1.toString(), httpVersion = "1.1");
-final http:Client backendGraceStopTestClient = check new("http://localhost:" + listenerMethodTestPort2.toString(), httpVersion = "1.1");
-final http:Client backendImmediateStopTestClient = check new("http://localhost:" + listenerMethodTestPort3.toString(), httpVersion = "1.1");
+listener http:Listener listenerMethodListener = new(listenerMethodTestPort1, httpVersion = http:HTTP_1_1);
+final http:Client listenerMethodTestClient = check new("http://localhost:" + listenerMethodTestPort1.toString(), httpVersion = http:HTTP_1_1);
+final http:Client backendGraceStopTestClient = check new("http://localhost:" + listenerMethodTestPort2.toString(), httpVersion = http:HTTP_1_1);
+final http:Client backendImmediateStopTestClient = check new("http://localhost:" + listenerMethodTestPort3.toString(), httpVersion = http:HTTP_1_1);
 
-isolated http:Listener listenerMethodGracebackendEP = check new(listenerMethodTestPort2, httpVersion = "1.1");
-isolated http:Listener listenerMethodImmediatebackendEP = check new(listenerMethodTestPort3, httpVersion = "1.1");
+isolated http:Listener listenerMethodGracebackendEP = check new(listenerMethodTestPort2, httpVersion = http:HTTP_1_1);
+isolated http:Listener listenerMethodImmediatebackendEP = check new(listenerMethodTestPort3, httpVersion = http:HTTP_1_1);
 
 service /startService on listenerMethodListener {
     resource function get health() {}
@@ -104,7 +104,7 @@ function testGracefulStopMethod() returns error? {
 @test:Config {dependsOn:[testGracefulStopMethod]}
 function testInvokingStoppedService() returns error? {
     final http:Client backendGraceStopTestClient = check new("http://localhost:" + listenerMethodTestPort2.toString(),
-        httpVersion = "1.1", http1Settings = { keepAlive: http:KEEPALIVE_NEVER });
+        httpVersion = http:HTTP_1_1, http1Settings = { keepAlive: http:KEEPALIVE_NEVER });
     http:Response|error response = backendGraceStopTestClient->get("/mock1");
     if response is error {
         // Output depends on the closure time. The error implies that the listener has stopped.
@@ -145,7 +145,7 @@ function testImmediateStopMethod() returns error? {
 @test:Config {dependsOn:[testImmediateStopMethod]}
 function testInvokingStoppedImmediateService() returns error? {
     final http:Client backendImmediateStopTestClient = check new("http://localhost:" + listenerMethodTestPort2.toString(), 
-        httpVersion = "1.1", http1Settings = { keepAlive: http:KEEPALIVE_NEVER });
+        httpVersion = http:HTTP_1_1, http1Settings = { keepAlive: http:KEEPALIVE_NEVER });
     http:Response|error response = backendImmediateStopTestClient->get("/mock1");
     if response is error {
         // Output depends on the closure time. The error implies that the listener has stopped.

@@ -199,7 +199,7 @@ isolated function createDummyRequest() returns http:Request {
     http:Request request = new;
     request.rawPath = "/foo/bar";
     request.method = "GET";
-    request.httpVersion = "1.1";
+    request.httpVersion = http:HTTP_1_1;
     return request;
 }
 

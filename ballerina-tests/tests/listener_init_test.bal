@@ -20,7 +20,7 @@ import ballerina/test;
 @test:Config {}
 public function testEmptyKeystore() {
     http:Listener|http:Error testListener = new(9249, 
-        httpVersion = "1.1", 
+        httpVersion = http:HTTP_1_1,
         secureSocket = {
             key: {
                 path: "",
@@ -38,7 +38,7 @@ public function testEmptyKeystore() {
 @test:Config {}
 public function testEmptyKeystorePassword() {
     http:Listener|http:Error testListener = new(9249, 
-        httpVersion = "1.1", 
+        httpVersion = http:HTTP_1_1,
         secureSocket = {
             key: {
                 path: "tests/certsandkeys/ballerinaKeystore.p12",
@@ -56,7 +56,7 @@ public function testEmptyKeystorePassword() {
 @test:Config {}
 public function testEmptyCertFile() {
     http:Listener|http:Error testListener = new(9249, 
-        httpVersion = "1.1", 
+        httpVersion = http:HTTP_1_1,
         secureSocket = {
             key: {
                 certFile: "",
@@ -74,7 +74,7 @@ public function testEmptyCertFile() {
 @test:Config {}
 public function testEmptyKeyFile() {
     http:Listener|http:Error testListener = new(9249, 
-        httpVersion = "1.1", 
+        httpVersion = http:HTTP_1_1,
         secureSocket = {
             key: {
                 certFile: "tests/certsandkeys/public.crt",
@@ -92,7 +92,7 @@ public function testEmptyKeyFile() {
 @test:Config {}
 public function testEmptyTrusStoreFile() {
     http:Listener|http:Error testListener = new(9249, 
-        httpVersion = "1.1", 
+        httpVersion = http:HTTP_1_1,
         secureSocket = {
             key: {
                 certFile: "tests/certsandkeys/public.crt",
@@ -114,7 +114,7 @@ public function testEmptyTrusStoreFile() {
 @test:Config {}
 public function testEmptyTrusStorePassword() {
     http:Listener|http:Error testListener = new(9249, 
-        httpVersion = "1.1",
+        httpVersion = http:HTTP_1_1,
         secureSocket = {
             key: {
                 certFile: "tests/certsandkeys/public.crt",
@@ -139,7 +139,7 @@ public function testEmptyTrusStorePassword() {
 @test:Config {}
 public function testEmptyTrustStore() {
     http:Listener|http:Error testListener = new(9249, 
-        httpVersion = "1.1", 
+        httpVersion = http:HTTP_1_1,
         host = "",
         secureSocket = {
             key: {
@@ -185,7 +185,7 @@ public function testIncorrectIdletimeout() {
 @test:Config {}
 public function testIncorrectRequestLimitHeaderSize() {
     http:Listener|http:Error testListener = new(9244, 
-        httpVersion = "1.1", 
+        httpVersion = http:HTTP_1_1,
         requestLimits = {
             maxHeaderSize: -1
         }

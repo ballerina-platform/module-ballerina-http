@@ -24,21 +24,21 @@ const string ERROR = "error";
 const string SUCCESS = "success";
 
 http:ClientConfiguration statusLineLimitConfig = {
-    httpVersion: "1.1",
+    httpVersion: http:HTTP_1_1,
     responseLimits: {
         maxStatusLineLength: 1024
     }
 };
 
 http:ClientConfiguration headerLimitConfig = {
-    httpVersion: "1.1",
+    httpVersion: http:HTTP_1_1,
     responseLimits: {
         maxHeaderSize: 1024
     }
 };
 
 http:ClientConfiguration  entityBodyLimitConfig = {
-    httpVersion: "1.1",
+    httpVersion: http:HTTP_1_1,
     responseLimits: {
         maxEntityBodySize: 1024
     }
@@ -50,10 +50,10 @@ http:ClientConfiguration http2headerLimitConfig = {
     }
 };
 
-listener http:Listener statusLineEP = new(responseLimitsTestPort1, httpVersion = "1.1");
-listener http:Listener responseLimitBackendEP = new(responseLimitsTestPort2, httpVersion = "1.1");
+listener http:Listener statusLineEP = new(responseLimitsTestPort1, httpVersion = http:HTTP_1_1);
+listener http:Listener responseLimitBackendEP = new(responseLimitsTestPort2, httpVersion = http:HTTP_1_1);
 
-final http:Client limitTestClient = check new("http://localhost:" + responseLimitsTestPort1.toString(), httpVersion = "1.1");
+final http:Client limitTestClient = check new("http://localhost:" + responseLimitsTestPort1.toString(), httpVersion = http:HTTP_1_1);
 final http:Client statusLimitClient = check new("http://localhost:" + responseLimitsTestPort2.toString()
         + "/backend/statustest", statusLineLimitConfig);
 final http:Client headerLimitClient = check new("http://localhost:" + responseLimitsTestPort2.toString()

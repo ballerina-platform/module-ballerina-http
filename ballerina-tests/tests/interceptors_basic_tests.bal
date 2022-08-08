@@ -17,9 +17,9 @@
 import ballerina/http;
 import ballerina/test;
 
-final http:Client interceptorsBasicTestsClientEP1 = check new("http://localhost:" + interceptorBasicTestsPort1.toString(), httpVersion = "1.1");
+final http:Client interceptorsBasicTestsClientEP1 = check new("http://localhost:" + interceptorBasicTestsPort1.toString(), httpVersion = http:HTTP_1_1);
 
-listener http:Listener interceptorsBasicTestsServerEP1 = new(interceptorBasicTestsPort1, httpVersion = "1.1");
+listener http:Listener interceptorsBasicTestsServerEP1 = new(interceptorBasicTestsPort1, httpVersion = http:HTTP_1_1);
 
 @http:ServiceConfig {
     interceptors : [new DefaultRequestInterceptor(), new LastRequestInterceptor(), new DefaultRequestErrorInterceptor()]
@@ -99,10 +99,10 @@ function testRequestInterceptorReturnsError() returns error? {
     assertTextPayload(check res.getTextPayload(), "Request interceptor returns an error");
 }
 
-final http:Client responseInterceptorReturnsErrorTestClientEP = check new("http://localhost:" + responseInterceptorReturnsErrorTestPort.toString(), httpVersion = "1.1");
+final http:Client responseInterceptorReturnsErrorTestClientEP = check new("http://localhost:" + responseInterceptorReturnsErrorTestPort.toString(), httpVersion = http:HTTP_1_1);
 
 listener http:Listener responseInterceptorReturnsErrorTestServerEP = new(responseInterceptorReturnsErrorTestPort, 
-    httpVersion = "1.1", interceptors = [new LastResponseInterceptor(), new ResponseInterceptorReturnsError(), new DefaultResponseInterceptor()]);
+    httpVersion = http:HTTP_1_1, interceptors = [new LastResponseInterceptor(), new ResponseInterceptorReturnsError(), new DefaultResponseInterceptor()]);
 
 service / on responseInterceptorReturnsErrorTestServerEP {
 
@@ -118,9 +118,9 @@ function testResponseInterceptorReturnsError() returns error? {
     assertTextPayload(check res.getTextPayload(), "Response interceptor returns an error");
 }
 
-final http:Client interceptorsBasicTestsClientEP2 = check new("http://localhost:" + interceptorBasicTestsPort2.toString(), httpVersion = "1.1");
+final http:Client interceptorsBasicTestsClientEP2 = check new("http://localhost:" + interceptorBasicTestsPort2.toString(), httpVersion = http:HTTP_1_1);
 
-listener http:Listener interceptorsBasicTestsServerEP2 = new(interceptorBasicTestsPort2, httpVersion = "1.1");
+listener http:Listener interceptorsBasicTestsServerEP2 = new(interceptorBasicTestsPort2, httpVersion = http:HTTP_1_1);
 
 @http:ServiceConfig {
     interceptors : [
@@ -264,9 +264,9 @@ function testRequestInterceptorSetPayload() returns error? {
     assertHeaderValue(check res.getHeader("request-interceptor-setpayload"), "true");
 }
 
-final http:Client interceptorsBasicTestsClientEP3 = check new("http://localhost:" + interceptorBasicTestsPort3.toString(), httpVersion = "1.1");
+final http:Client interceptorsBasicTestsClientEP3 = check new("http://localhost:" + interceptorBasicTestsPort3.toString(), httpVersion = http:HTTP_1_1);
 
-listener http:Listener interceptorsBasicTestsServerEP3 = new(interceptorBasicTestsPort3, httpVersion = "1.1");
+listener http:Listener interceptorsBasicTestsServerEP3 = new(interceptorBasicTestsPort3, httpVersion = http:HTTP_1_1);
 
 @http:ServiceConfig {
     interceptors : [new LastResponseInterceptor(), new ResponseInterceptorSetPayload(), new DefaultResponseInterceptor()]
@@ -362,9 +362,9 @@ function testRequestInterceptorHttpVerb() returns error? {
     assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
 }
 
-final http:Client requestInterceptorBasePathClientEP = check new("http://localhost:" + requestInterceptorBasePathTestPort.toString(), httpVersion = "1.1");
+final http:Client requestInterceptorBasePathClientEP = check new("http://localhost:" + requestInterceptorBasePathTestPort.toString(), httpVersion = http:HTTP_1_1);
 
-listener http:Listener requestInterceptorBasePathServerEP = new(requestInterceptorBasePathTestPort, httpVersion = "1.1");
+listener http:Listener requestInterceptorBasePathServerEP = new(requestInterceptorBasePathTestPort, httpVersion = http:HTTP_1_1);
 
 @http:ServiceConfig {
     interceptors : [new DefaultRequestInterceptor(), new DefaultRequestInterceptorBasePath(), new LastRequestInterceptor()]
@@ -401,9 +401,9 @@ function testRequestInterceptorBasePath() returns error? {
     assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
 }
 
-final http:Client getRequestInterceptorBasePathClientEP = check new("http://localhost:" + getRequestInterceptorBasePathTestPort.toString(), httpVersion = "1.1");
+final http:Client getRequestInterceptorBasePathClientEP = check new("http://localhost:" + getRequestInterceptorBasePathTestPort.toString(), httpVersion = http:HTTP_1_1);
 
-listener http:Listener getRequestInterceptorBasePathServerEP = new(getRequestInterceptorBasePathTestPort, httpVersion = "1.1");
+listener http:Listener getRequestInterceptorBasePathServerEP = new(getRequestInterceptorBasePathTestPort, httpVersion = http:HTTP_1_1);
 
 @http:ServiceConfig {
     interceptors : [new DefaultRequestInterceptor(), new GetRequestInterceptorBasePath(), new LastRequestInterceptor()]

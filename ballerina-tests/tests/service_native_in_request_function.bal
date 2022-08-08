@@ -466,7 +466,7 @@ service /requesthello on generalListener {
     }
 }
 
-final http:Client requestClient = check new("http://localhost:" + generalPort.toString(), httpVersion = "1.1");
+final http:Client requestClient = check new("http://localhost:" + generalPort.toString(), httpVersion = http:HTTP_1_1);
 
 // Test addHeader function within a service
 @test:Config {}

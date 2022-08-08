@@ -19,10 +19,10 @@
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener circuitBreakerEP05 = new(9311, httpVersion = "1.1");
+listener http:Listener circuitBreakerEP05 = new(9311, httpVersion = http:HTTP_1_1);
 
 http:ClientConfiguration conf05 = {
-    httpVersion: "1.1",
+    httpVersion: http:HTTP_1_1,
     circuitBreaker: {
         rollingWindow: {
             timeWindow: 60,
@@ -59,7 +59,7 @@ service /cb on circuitBreakerEP05 {
     }
 }
 
-service /statuscode on new http:Listener(8091, httpVersion = "1.1") {
+service /statuscode on new http:Listener(8091, httpVersion = http:HTTP_1_1) {
 
     resource function 'default .(http:Caller caller, http:Request req) {
         http:Response res = new;
@@ -73,7 +73,7 @@ service /statuscode on new http:Listener(8091, httpVersion = "1.1") {
 }
 
 //Test for circuit breaker failure status codes functionality 
-final http:Client testCBStatusCodesClient = check new("http://localhost:9311", httpVersion = "1.1");
+final http:Client testCBStatusCodesClient = check new("http://localhost:9311", httpVersion = http:HTTP_1_1);
 
 @test:Config{ 
     groups: ["circuitBreakerStatusCodeResponse"],

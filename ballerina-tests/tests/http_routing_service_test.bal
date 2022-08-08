@@ -18,11 +18,11 @@ import ballerina/io;
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener httpRoutingListenerEP = new(httpRoutingTestPort, httpVersion = "1.1");
-final http:Client httpRoutingClient = check new("http://localhost:" + httpRoutingTestPort.toString(), httpVersion = "1.1");
+listener http:Listener httpRoutingListenerEP = new(httpRoutingTestPort, httpVersion = http:HTTP_1_1);
+final http:Client httpRoutingClient = check new("http://localhost:" + httpRoutingTestPort.toString(), httpVersion = http:HTTP_1_1);
 
-final http:Client nasdaqEP = check new("http://localhost:" + httpRoutingTestPort.toString() + "/nasdaqStocks", httpVersion = "1.1");
-final http:Client nyseEP2 = check new("http://localhost:" + httpRoutingTestPort.toString() + "/nyseStocks", httpVersion = "1.1");
+final http:Client nasdaqEP = check new("http://localhost:" + httpRoutingTestPort.toString() + "/nasdaqStocks", httpVersion = http:HTTP_1_1);
+final http:Client nyseEP2 = check new("http://localhost:" + httpRoutingTestPort.toString() + "/nyseStocks", httpVersion = http:HTTP_1_1);
 
 service /contentBasedRouting on httpRoutingListenerEP {
 

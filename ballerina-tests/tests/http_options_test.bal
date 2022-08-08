@@ -17,8 +17,8 @@
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener httpOptionsListenerEP = new(httpOptionsTestPort, httpVersion = "1.1");
-final http:Client httpOptionsClient = check new("http://localhost:" + httpOptionsTestPort.toString(), httpVersion = "1.1");
+listener http:Listener httpOptionsListenerEP = new(httpOptionsTestPort, httpVersion = http:HTTP_1_1);
+final http:Client httpOptionsClient = check new("http://localhost:" + httpOptionsTestPort.toString(), httpVersion = http:HTTP_1_1);
 
 service /echoDummy on httpOptionsListenerEP {
 

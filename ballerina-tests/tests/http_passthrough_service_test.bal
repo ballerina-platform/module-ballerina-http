@@ -19,12 +19,12 @@ import ballerina/lang.'string as strings;
 import ballerina/mime;
 import ballerina/test;
 
-listener http:Listener passthroughEP1 = new(9113, httpVersion = "1.1");
+listener http:Listener passthroughEP1 = new(9113, httpVersion = http:HTTP_1_1);
 
 service /passthrough on passthroughEP1 {
 
     resource function get .(http:Caller caller, http:Request clientRequest) returns error? {
-        http:Client nyseEP1 = check new("http://localhost:9113", httpVersion = "1.1");
+        http:Client nyseEP1 = check new("http://localhost:9113", httpVersion = http:HTTP_1_1);
         http:Response|error response = nyseEP1->post("/nyseStock/stocks", clientRequest);
         if response is http:Response {
             check caller->respond(response);
@@ -34,7 +34,7 @@ service /passthrough on passthroughEP1 {
     }
 
     resource function post forwardMultipart(http:Caller caller, http:Request clientRequest) returns error? {
-        http:Client nyseEP1 = check new("http://localhost:9113", httpVersion = "1.1");
+        http:Client nyseEP1 = check new("http://localhost:9113", httpVersion = http:HTTP_1_1);
         http:Response|error response = nyseEP1->forward("/nyseStock/stocksAsMultiparts", clientRequest);
         if response is http:Response {
             check caller->respond(response);
@@ -44,7 +44,7 @@ service /passthrough on passthroughEP1 {
     }
 
     resource function post forward(http:Request clientRequest) returns http:Ok|http:InternalServerError|error {
-        http:Client nyseEP1 = check new("http://localhost:9113", httpVersion = "1.1");
+        http:Client nyseEP1 = check new("http://localhost:9113", httpVersion = http:HTTP_1_1);
         http:Response|error response = nyseEP1->forward("/nyseStock/entityCheck", clientRequest);
         if response is http:Response {
             var entity = response.getEntity();
@@ -106,7 +106,7 @@ service /nyseStock on passthroughEP1 {
 
 @test:Config {}
 public function testPassthroughServiceByBasePath() returns error? {
-    http:Client httpClient = check new("http://localhost:9113", httpVersion = "1.1");
+    http:Client httpClient = check new("http://localhost:9113", httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/passthrough");
     if resp is http:Response {
         string contentType = check resp.getHeader("content-type");
@@ -124,7 +124,7 @@ public function testPassthroughServiceByBasePath() returns error? {
 
 @test:Config {}
 public function testPassthroughServiceWithMimeEntity() returns error? {
-    http:Client httpClient = check new("http://localhost:9113", httpVersion = "1.1");
+    http:Client httpClient = check new("http://localhost:9113", httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->post("/passthrough/forward", "Hello from POST!");
     if resp is http:Response {
         string contentType = check resp.getHeader("content-type");
@@ -142,7 +142,7 @@ public function testPassthroughServiceWithMimeEntity() returns error? {
 
 @test:Config {}
 public function testPassthroughWithMultiparts() returns error? {
-    http:Client httpClient = check new("http://localhost:9113", httpVersion = "1.1");
+    http:Client httpClient = check new("http://localhost:9113", httpVersion = http:HTTP_1_1);
     mime:Entity textPart1 = new;
     textPart1.setText("Part1");
     textPart1.setHeader("Content-Type", "text/plain; charset=UTF-8");

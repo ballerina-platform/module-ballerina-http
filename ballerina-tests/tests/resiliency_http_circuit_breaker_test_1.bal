@@ -22,10 +22,10 @@ import ballerina/http;
 
 isolated int cbCounter = 1;
 
-listener http:Listener circuitBreakerEP00 = new(9306, httpVersion = "1.1");
+listener http:Listener circuitBreakerEP00 = new(9306, httpVersion = http:HTTP_1_1);
 
 http:ClientConfiguration conf = {
-    httpVersion: "1.1",
+    httpVersion: http:HTTP_1_1,
     circuitBreaker: {
         rollingWindow: {
             timeWindow: 60,
@@ -77,7 +77,7 @@ service /cb on circuitBreakerEP00 {
 // This sample service is used to mock connection timeouts and service outages.
 // Mock a service outage by stopping/starting this service.
 // This should run separately from the `circuitBreakerDemo` service.
-service /hello on new http:Listener(8086, httpVersion = "1.1") {
+service /hello on new http:Listener(8086, httpVersion = http:HTTP_1_1) {
 
     resource function 'default typical(http:Caller caller, http:Request req) {
         int count = 0;
@@ -95,7 +95,7 @@ service /hello on new http:Listener(8086, httpVersion = "1.1") {
 }
 
 //Test basic circuit breaker functionality
-final http:Client testTypicalBackendTimeoutClient = check new("http://localhost:9306", httpVersion = "1.1");
+final http:Client testTypicalBackendTimeoutClient = check new("http://localhost:9306", httpVersion = http:HTTP_1_1);
 
 @test:Config {
     dataProvider:responseDataProvider
