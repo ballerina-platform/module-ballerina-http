@@ -11,11 +11,3 @@ max_cpu="2000m"
 [cloud.deployment.autoscaling]
 min_replicas=1
 max_replicas=1
-
-[[cloud.config.maps]]
-file="./security/ballerinaKeystore.p12"
-mount_path="/home/ballerina/security" 
-
-[[cloud.config.maps]]
-file="./security/ballerinaTruststore.p12"
-mount_path="/home/ballerina/security" 
