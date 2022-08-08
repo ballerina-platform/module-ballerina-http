@@ -130,7 +130,7 @@ function testHttp2HateoasLinks1() returns error? {
 
 @test:Config {}
 function testHttp2HateoasLinkHeaderWithClosedRecord() returns error? {
-    http:Response res = check jsonClientEP->post("/order?closed=true", mockOrder);
+    http:Response res = check http2JsonClientEP->post("/order?closed=true", mockOrder);
     test:assertTrue(res.hasHeader("Link"));
     string linkHeader = check res.getHeader("Link");
     http:HeaderValue[] parsedLinkHeader = check http:parseHeader(linkHeader);
@@ -139,29 +139,29 @@ function testHttp2HateoasLinkHeaderWithClosedRecord() returns error? {
             value: "</restBucks/orders/{id}>", 
             params: {
                 rel: "\"update\"", 
-                methods: "\"\"PUT\"\"",
-                types: "\"\"application/vnd.restBucks+json\"\""}
+                methods: "\"PUT\"",
+                types: "\"application/vnd.restBucks+json\""}
         },
         { 
             value: "</restBucks/orders/{id}>", 
             params: {
-                rel: "\"status\"", 
-                methods: "\"\"GET\",\"POST\",\"PUT\",\"PATCH\",\"DELETE\",\"OPTIONS\",\"HEAD\"\"",
-                types: "\"\"application/vnd.restBucks+json\"\""}
+                rel: "\"status\"",
+                methods: "\"GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD\"",
+                types: "\"application/vnd.restBucks+json\""}
         },
         { 
             value: "</restBucks/orders/{id}>", 
             params: {
-                rel: "\"cancel\"", 
-                methods: "\"\"DELETE\"\"",
-                types: "\"\"application/vnd.restBucks+json\"\""}
+                rel: "\"cancel\"",
+                methods: "\"DELETE\"",
+                types: "\"application/vnd.restBucks+json\""}
         },
         { 
             value: "</restBucks/payment/{id}>", 
             params: {
-                rel: "\"payment\"", 
-                methods: "\"\"PUT\"\"",
-                types: "\"\"application/vnd.restBucks+json\"\""}
+                rel: "\"payment\"",
+                methods: "\"PUT\"",
+                types: "\"application/vnd.restBucks+json\""}
         }
     ];
     test:assertEquals(parsedLinkHeader, expectedLinkHeader);
@@ -177,30 +177,30 @@ function testHttp2HateoasLinkHeaderWithReadOnlyPayload() returns error? {
         { 
             value: "</restBucks/orders/{id}>", 
             params: {
-                rel: "\"self\"", 
-                methods: "\"\"GET\",\"POST\",\"PUT\",\"PATCH\",\"DELETE\",\"OPTIONS\",\"HEAD\"\"",
-                types: "\"\"application/vnd.restBucks+json\"\""}
+                rel: "\"self\"",
+                methods: "\"GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD\"",
+                types: "\"application/vnd.restBucks+json\""}
         },
         { 
             value: "</restBucks/orders/{id}>", 
             params: {
-                rel: "\"update\"", 
-                methods: "\"\"PUT\"\"",
-                types: "\"\"application/vnd.restBucks+json\"\""}
+                rel: "\"update\"",
+                methods: "\"PUT\"",
+                types: "\"application/vnd.restBucks+json\""}
         },
         { 
             value: "</restBucks/orders/{id}>", 
             params: {
-                rel: "\"cancel\"", 
-                methods: "\"\"DELETE\"\"",
-                types: "\"\"application/vnd.restBucks+json\"\""}
+                rel: "\"cancel\"",
+                methods: "\"DELETE\"",
+                types: "\"application/vnd.restBucks+json\""}
         },
         { 
             value: "</restBucks/payment/{id}>", 
             params: {
-                rel: "\"payment\"", 
-                methods: "\"\"PUT\"\"",
-                types: "\"\"application/vnd.restBucks+json\"\""}
+                rel: "\"payment\"",
+                methods: "\"PUT\"",
+                types: "\"application/vnd.restBucks+json\""}
         }
     ];
     test:assertEquals(parsedLinkHeader, expectedLinkHeader);
@@ -249,9 +249,9 @@ function testHttp2HateoasLinkHeaderWithoutBody() returns error? {
         { 
             value: "</restBucks/orders/{id}>", 
             params: {
-                rel: "\"self\"", 
-                methods: "\"\"DELETE\"\"",
-                types: "\"\"application/vnd.restBucks+json\"\""}
+                rel: "\"self\"",
+                methods: "\"DELETE\"",
+                types: "\"application/vnd.restBucks+json\""}
         }
     ];
     test:assertEquals(parsedLinkHeader, expectedLinkHeader);
@@ -279,7 +279,7 @@ function testHttp2HateoasLinksInBody() returns error? {
 
 @test:Config {}
 function testHttp2HateoasLinkHeaderWithClosedRecordInBody() returns error? {
-    http:Response res = check jsonClientEP->put("/payment/001?closed=true", mockPayment);
+    http:Response res = check http2JsonClientEP->put("/payment/001?closed=true", mockPayment);
     test:assertTrue(res.hasHeader("Link"));
     string linkHeader = check res.getHeader("Link");
     http:HeaderValue[] parsedLinkHeader = check http:parseHeader(linkHeader);
@@ -287,16 +287,16 @@ function testHttp2HateoasLinkHeaderWithClosedRecordInBody() returns error? {
         { 
             value: "</restBucks/payment/{id}>", 
             params: {
-                rel: "\"self\"", 
-                methods: "\"\"PUT\"\"",
-                types: "\"\"application/vnd.restBucks+json\"\""}
+                rel: "\"self\"",
+                methods: "\"PUT\"",
+                types: "\"application/vnd.restBucks+json\""}
         },
         { 
             value: "</restBucks/orders/{id}>", 
             params: {
-                rel: "\"status\"", 
-                methods: "\"\"GET\",\"POST\",\"PUT\",\"PATCH\",\"DELETE\",\"OPTIONS\",\"HEAD\"\"",
-                types: "\"\"application/vnd.restBucks+json\"\""}
+                rel: "\"status\"",
+                methods: "\"GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD\"",
+                types: "\"application/vnd.restBucks+json\""}
         }
     ];
     test:assertEquals(parsedLinkHeader, expectedLinkHeader);
