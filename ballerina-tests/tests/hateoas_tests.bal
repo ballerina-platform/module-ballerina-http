@@ -241,29 +241,29 @@ function testHateoasLinkHeaderWithClosedRecord() returns error? {
             value: "</restBucks/orders/{id}>", 
             params: {
                 rel: "\"update\"", 
-                methods: "\"\"PUT\"\"",
-                types: "\"\"application/vnd.restBucks+json\"\""}
+                methods: "\"PUT\"",
+                types: "\"application/vnd.restBucks+json\""}
         },
         { 
             value: "</restBucks/orders/{id}>", 
             params: {
                 rel: "\"status\"", 
-                methods: "\"\"GET\",\"POST\",\"PUT\",\"PATCH\",\"DELETE\",\"OPTIONS\",\"HEAD\"\"",
-                types: "\"\"application/vnd.restBucks+json\"\""}
+                methods: "\"GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD\"",
+                types: "\"application/vnd.restBucks+json\""}
         },
         { 
             value: "</restBucks/orders/{id}>", 
             params: {
                 rel: "\"cancel\"", 
-                methods: "\"\"DELETE\"\"",
-                types: "\"\"application/vnd.restBucks+json\"\""}
+                methods: "\"DELETE\"",
+                types: "\"application/vnd.restBucks+json\""}
         },
         { 
             value: "</restBucks/payment/{id}>", 
             params: {
                 rel: "\"payment\"", 
-                methods: "\"\"PUT\"\"",
-                types: "\"\"application/vnd.restBucks+json\"\""}
+                methods: "\"PUT\"",
+                types: "\"application/vnd.restBucks+json\""}
         }
     ];
     test:assertEquals(parsedLinkHeader, expectedLinkHeader);
@@ -280,29 +280,29 @@ function testHateoasLinkHeaderWithReadOnlyPayload() returns error? {
             value: "</restBucks/orders/{id}>", 
             params: {
                 rel: "\"self\"", 
-                methods: "\"\"GET\",\"POST\",\"PUT\",\"PATCH\",\"DELETE\",\"OPTIONS\",\"HEAD\"\"",
-                types: "\"\"application/vnd.restBucks+json\"\""}
+                methods: "\"GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD\"",
+                types: "\"application/vnd.restBucks+json\""}
         },
         { 
             value: "</restBucks/orders/{id}>", 
             params: {
                 rel: "\"update\"", 
-                methods: "\"\"PUT\"\"",
-                types: "\"\"application/vnd.restBucks+json\"\""}
+                methods: "\"PUT\"",
+                types: "\"application/vnd.restBucks+json\""}
         },
         { 
             value: "</restBucks/orders/{id}>", 
             params: {
                 rel: "\"cancel\"", 
-                methods: "\"\"DELETE\"\"",
-                types: "\"\"application/vnd.restBucks+json\"\""}
+                methods: "\"DELETE\"",
+                types: "\"application/vnd.restBucks+json\""}
         },
         { 
             value: "</restBucks/payment/{id}>", 
             params: {
                 rel: "\"payment\"", 
-                methods: "\"\"PUT\"\"",
-                types: "\"\"application/vnd.restBucks+json\"\""}
+                methods: "\"PUT\"",
+                types: "\"application/vnd.restBucks+json\""}
         }
     ];
     test:assertEquals(parsedLinkHeader, expectedLinkHeader);
@@ -351,8 +351,8 @@ function testHateoasLinkHeaderWithoutBody() returns error? {
             value: "</restBucks/orders/{id}>", 
             params: {
                 rel: "\"self\"", 
-                methods: "\"\"DELETE\"\"",
-                types: "\"\"application/vnd.restBucks+json\"\""}
+                methods: "\"DELETE\"",
+                types: "\"application/vnd.restBucks+json\""}
         }
     ];
     test:assertEquals(parsedLinkHeader, expectedLinkHeader);
@@ -389,15 +389,15 @@ function testHateoasLinkHeaderWithClosedRecordInBody() returns error? {
             value: "</restBucks/payment/{id}>", 
             params: {
                 rel: "\"self\"", 
-                methods: "\"\"PUT\"\"",
-                types: "\"\"application/vnd.restBucks+json\"\""}
+                methods: "\"PUT\"",
+                types: "\"application/vnd.restBucks+json\""}
         },
         { 
             value: "</restBucks/orders/{id}>", 
             params: {
                 rel: "\"status\"", 
-                methods: "\"\"GET\",\"POST\",\"PUT\",\"PATCH\",\"DELETE\",\"OPTIONS\",\"HEAD\"\"",
-                types: "\"\"application/vnd.restBucks+json\"\""}
+                methods: "\"GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD\"",
+                types: "\"application/vnd.restBucks+json\""}
         }
     ];
     test:assertEquals(parsedLinkHeader, expectedLinkHeader);
