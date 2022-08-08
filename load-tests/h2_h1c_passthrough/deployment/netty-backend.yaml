@@ -18,9 +18,7 @@ spec:
         image: ldclakmal/netty-echo-backend:latest
         ports:
         - containerPort: 8688
-        env:
-        - name: "SSL"
-          value: "true"
+
 ---
 apiVersion: v1
 kind: Service
