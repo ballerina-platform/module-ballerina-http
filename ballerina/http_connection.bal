@@ -268,7 +268,7 @@ isolated function addLinkHeader(Response response, map<Link>? links) {
 isolated function createLinkHeaderValue(map<Link>? links) returns string? {
     if links != () {
         string[] linkValues = from var [rel, link] in links.entries() select createLink(rel, link);
-        return string:'join(", ", ...linkValues);
+        return arrayToString(linkValues);
     }
     return;
 }
@@ -287,8 +287,7 @@ isolated function createLink(string rel, Link link) returns string {
 }
 
 isolated function arrayToString(string[] arr) returns string {
-    string arrayString = arr.toString();
-    return arrayString.substring(1, arrayString.length() - 1);
+    return string:'join(", ", ...arr);
 }
 
 isolated function addLinksToPayload(anydata message, map<Link>? links) returns [boolean, anydata] {
