@@ -18,24 +18,24 @@ import ballerina/http;
 import ballerina/xmldata;
 
 listener http:Listener securedEP = new(9090,
-    httpVersion = "1.1",
     secureSocket = {
         key: {
             path: "./security/ballerinaKeystore.p12",
             password: "ballerina"
         }
-    }
+    },
+    httpVersion = "1.1"
 );
 
 final http:Client nettyEP = check new("https://localhost:8688",
-    httpVersion = "1.1",
     secureSocket = {
         cert: {
             path: "./security/ballerinaTruststore.p12",
             password: "ballerina"
         },
         verifyHostName: false
-    }
+    },
+    httpVersion = "1.1"
 );
 
 service /transform on securedEP {
