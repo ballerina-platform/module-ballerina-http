@@ -27,7 +27,7 @@ listener http:Listener securedEP = new(9090,
     httpVersion = "1.1"
 );
 
-final http:Client nettyEP = check new("https://localhost:8688",
+final http:Client nettyEP = check new("https://netty:8688",
     secureSocket = {
         cert: {
             path: "./security/ballerinaTruststore.p12",
