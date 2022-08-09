@@ -342,13 +342,15 @@ class HttpResourceValidator {
                                 break;
                         }
                     } else {
-                        reportInvalidParameterType(ctx, paramLocation, paramType);
+                        if (!isAllowedQueryParamType(typeDescKind)) {
+                            reportInvalidParameterType(ctx, paramLocation, paramType);
+                        }
                     }
                 } else if (isAllowedQueryParamType(kind)) {
                     // Allowed query param types
                 } else if (kind == TypeDescKind.MAP) {
                     TypeSymbol constrainedTypeSymbol = ((MapTypeSymbol) typeSymbol).typeParam();
-                    TypeDescKind constrainedType = constrainedTypeSymbol.typeKind();
+                    TypeDescKind constrainedType = getReferencedTypeDescKind(constrainedTypeSymbol);
                     if (constrainedType != TypeDescKind.JSON) {
                         reportInvalidQueryParameterType(ctx, paramLocation, paramName);
                         continue;
@@ -356,7 +358,7 @@ class HttpResourceValidator {
                 } else if (kind == TypeDescKind.ARRAY) {
                     // Allowed query param array types
                     TypeSymbol arrTypeSymbol = ((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor();
-                    TypeDescKind elementKind = arrTypeSymbol.typeKind();
+                    TypeDescKind elementKind = getReferencedTypeDescKind(arrTypeSymbol);
                     if (elementKind == TypeDescKind.MAP) {
                         TypeSymbol constrainedTypeSymbol = ((MapTypeSymbol) arrTypeSymbol).typeParam();
                         TypeDescKind constrainedType = constrainedTypeSymbol.typeKind();
@@ -382,7 +384,7 @@ class HttpResourceValidator {
                         continue;
                     }
                     for (TypeSymbol type : symbolList) {
-                        TypeDescKind elementKind = type.typeKind();
+                        TypeDescKind elementKind = getReferencedTypeDescKind(type);
                         if (elementKind == TypeDescKind.ARRAY) {
                             TypeSymbol arrTypeSymbol = ((ArrayTypeSymbol) type).memberTypeDescriptor();
                             TypeDescKind arrElementKind = arrTypeSymbol.typeKind();
@@ -966,6 +968,15 @@ class HttpResourceValidator {
         } else {
             return TypeDescKind.ERROR.equals(typeKind) || TypeDescKind.NIL.equals(typeKind);
         }
+    }
+
+    private static TypeDescKind getReferencedTypeDescKind(TypeSymbol typeSymbol) {
+        TypeDescKind kind = typeSymbol.typeKind();
+        if (kind == TypeDescKind.TYPE_REFERENCE) {
+            TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor();
+            kind = typeDescriptor.typeKind();
+        }
+        return kind;
     }
 
     private static void reportInvalidResourceAnnotation(SyntaxNodeAnalysisContext ctx, Location location,

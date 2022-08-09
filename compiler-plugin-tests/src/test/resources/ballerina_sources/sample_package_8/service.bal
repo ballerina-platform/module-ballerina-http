@@ -21,6 +21,10 @@ type Caller record {|
     int id;
 |};
 
+// This is user-defined type
+public type Count int;
+public type TypeJson json;
+
 service http:Service on new http:Listener(9090) {
 
     resource function get callerInfo1(string a, int[] b, float? c, decimal[]? d) returns string {
@@ -101,5 +105,25 @@ service http:Service on new http:Listener(9090) {
 
     resource function get callerErr10(json[] d, xml e) returns string {
             return "done";
+    }
+
+    resource function get pets(Count count) returns http:Ok {
+        http:Ok ok = {body: ()};
+        return ok;
+    }
+
+    resource function get petsUnion(Count? count) returns http:Ok {
+        http:Ok ok = {body: ()};
+        return ok;
+    }
+
+    resource function get petsArr(Count[] count) returns http:Ok {
+        http:Ok ok = {body: ()};
+        return ok;
+    }
+
+    resource function get petsMap(map<TypeJson> count) returns http:Ok {
+        http:Ok ok = {body: ()};
+        return ok;
     }
 }
