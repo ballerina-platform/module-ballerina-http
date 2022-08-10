@@ -25,6 +25,7 @@ import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
@@ -91,7 +92,8 @@ public class AllQueryParams implements Parameter {
                 BArray queryValueArr = (BArray) queryValue;
                 Type paramType = queryParam.getType();
                 if (paramType.getTag() == ARRAY_TAG) {
-                    int elementTypeTag = ((ArrayType) paramType).getElementType().getTag();
+                    Type elementType = ((ArrayType) paramType).getElementType();
+                    int elementTypeTag = TypeUtils.getReferredType(elementType).getTag();
                     BArray paramArray = ParamUtils.castParamArray(elementTypeTag, queryValueArr.getStringArray());
                     if (queryParam.isReadonly()) {
                         paramArray.freezeDirect();
