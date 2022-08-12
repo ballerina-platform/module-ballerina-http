@@ -31,6 +31,7 @@ import io.ballerina.stdlib.http.transport.contractimpl.listener.http2.Http2ToHtt
 import io.ballerina.stdlib.http.transport.contractimpl.listener.http2.Http2WithPriorKnowledgeHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.CertificateValidationHandler;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
@@ -107,14 +108,15 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
     private long pipeliningLimit;
     private EventExecutorGroup pipeliningGroup;
     private boolean webSocketCompressionEnabled;
-    private ChannelPipeline serverPipeline;
+    private Channel pipelineChannel;
 
     @Override
     public void initChannel(SocketChannel ch) throws Exception {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Initializing source channel pipeline");
         }
-        serverPipeline = ch.pipeline();
+        ChannelPipeline serverPipeline = ch.pipeline();
+        pipelineChannel = serverPipeline.channel();
 
         if (http2Enabled) {
             if (sslHandlerFactory != null) {
@@ -392,8 +394,8 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
         this.webSocketCompressionEnabled = webSocketCompressionEnabled;
     }
 
-    public ChannelPipeline getServerPipeline() {
-        return serverPipeline;
+    public Channel getPipelineChannel() {
+        return pipelineChannel;
     }
 
     /**

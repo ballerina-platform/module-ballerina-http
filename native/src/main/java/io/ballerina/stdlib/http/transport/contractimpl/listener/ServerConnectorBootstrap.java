@@ -245,7 +245,7 @@ public class ServerConnectorBootstrap {
 
         @Override
         public void immediateStop() {
-            httpServerChannelInitializer.getServerPipeline().close().addListener(future -> {
+            httpServerChannelInitializer.getPipelineChannel().close().addListener(future -> {
                 if (future.isSuccess()) {
                     if (log.isDebugEnabled()) {
                         log.debug("HTTP listener on host {} and port {} has immediately stopped", getHost(), getPort());
