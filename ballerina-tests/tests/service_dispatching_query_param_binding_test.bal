@@ -24,6 +24,9 @@ final http:Client queryBindingClient = check new("http://localhost:" + queryPara
 // This is user-defined type
 public type Count int;
 public type TypeJson json;
+public type Name string;
+public type FirstName Name;
+public type FullName FirstName;
 
 service /queryparamservice on QueryBindingEP {
 
@@ -105,6 +108,10 @@ service /queryparamservice on QueryBindingEP {
 
     resource function get petsMap(map<TypeJson> count) returns json {
         return count;
+    }
+    
+    resource function get nestedTypeRef(FullName name) returns string {
+        return name;
     }
 }
 
@@ -357,6 +364,9 @@ function testTypeReferenceQueryParamBinding() returns error? {
 
     response = check queryBindingClient->get("/queryparamservice/petsArr?count=30,20,10");
     assertTextPayload(response.getTextPayload(), "30");
+    
+    response = check queryBindingClient->get("/queryparamservice/nestedTypeRef?name=wso2");
+    assertTextPayload(response.getTextPayload(), "wso2");
 }
 
 @test:Config {}

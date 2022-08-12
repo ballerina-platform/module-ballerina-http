@@ -24,6 +24,9 @@ type Caller record {|
 // This is user-defined type
 public type Count int;
 public type TypeJson json;
+public type Name string;
+public type FirstName Name;
+public type FullName FirstName;
 
 service http:Service on new http:Listener(9090) {
 
@@ -123,6 +126,11 @@ service http:Service on new http:Listener(9090) {
     }
 
     resource function get petsMap(map<TypeJson> count) returns http:Ok {
+        http:Ok ok = {body: ()};
+        return ok;
+    }
+
+    resource function get nestedTypeRef(FullName names) returns http:Ok {
         http:Ok ok = {body: ()};
         return ok;
     }
