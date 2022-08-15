@@ -101,25 +101,21 @@ function testHttp2HateoasLinks1() returns error? {
     record{*http:Links; *OrderReceipt;} orderReceipt = check http2JsonClientEP->post("/order?closed=false", mockOrder);
     map<http:Link> expectedLinks = {
         "update": {
-            rel: "update",
             href: "/restBucks/orders/{id}",
             types: ["application/vnd.restBucks+json"],
             methods: [http:PUT]
         },
         "status": {
-            rel: "status",
             href: "/restBucks/orders/{id}",
             types: ["application/vnd.restBucks+json"],
             methods: ["GET","POST","PUT","PATCH","DELETE","OPTIONS","HEAD"]
         },
         "cancel": {
-            rel: "cancel",
             href: "/restBucks/orders/{id}",
             types: ["application/vnd.restBucks+json"],
             methods: [http:DELETE]
         },
         "payment": {
-            rel: "payment",
             href: "/restBucks/payment/{id}",
             types: ["application/vnd.restBucks+json"],
             methods: [http:PUT]
@@ -212,25 +208,21 @@ function testHttp2HateoasLinks2() returns error? {
     record{*http:Links; *OrderReceipt;} orderReceipt = check http2JsonClientEP->put("/orders/001", mockOrder);
     map<http:Link> expectedLinks = {
         "self": {
-            rel: "self",
             href: "/restBucks/orders/{id}",
             types: ["application/vnd.restBucks+json"],
             methods: [http:PUT]
         },
         "status": {
-            rel: "status",
             href: "/restBucks/orders/{id}",
             types: ["application/vnd.restBucks+json"],
             methods: ["GET","POST","PUT","PATCH","DELETE","OPTIONS","HEAD"]
         },
         "cancel": {
-            rel: "cancel",
             href: "/restBucks/orders/{id}",
             types: ["application/vnd.restBucks+json"],
             methods: [http:DELETE]
         },
         "payment": {
-            rel: "payment",
             href: "/restBucks/payment/{id}",
             types: ["application/vnd.restBucks+json"],
             methods: [http:PUT]
@@ -262,13 +254,11 @@ function testHttp2HateoasLinksInBody() returns error? {
     record{*http:Links; *PaymentReceipt;} paymentReceipt = check http2JsonClientEP->put("/payment/001?closed=false", mockPayment);
     map<http:Link> expectedLinks = {
         "self": {
-            rel: "self",
             href: "/restBucks/payment/{id}",
             types: ["application/vnd.restBucks+json"],
             methods: [http:PUT]
         },
         "status": {
-            rel: "status",
             href: "/restBucks/orders/{id}",
             types: ["application/vnd.restBucks+json"],
             methods: ["GET","POST","PUT","PATCH","DELETE","OPTIONS","HEAD"]
