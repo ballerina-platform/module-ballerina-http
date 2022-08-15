@@ -340,7 +340,6 @@ public class HttpService implements Service {
                                            " '" + relation.getValue() + "'", GENERIC_LISTENER_ERROR);
         }
         targetResource.addLinkedRelation(relation);
-        linkMap.put(HttpConstants.LINK_REL, relation);
         BString href = fromString(linkedResource.getAbsoluteResourcePath());
         linkMap.put(HttpConstants.LINK_HREF, href);
         BArray methods = getMethodsBArray(linkedResource.getMethods());

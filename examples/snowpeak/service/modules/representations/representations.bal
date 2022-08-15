@@ -159,10 +159,10 @@ public type PaymentReceipt record {|
     # Booked rooms
     Room[] rooms;
 |};
-# The response for the successful payment cration
+# The response for the successful payment creation
 public type PaymentCreated record {|
     *http:Created;
-    # The payload for the successful payment cration
+    # The payload for the successful payment creation
     PaymentReceipt body;
 |};
 # The response for the unsuccessful payment creation

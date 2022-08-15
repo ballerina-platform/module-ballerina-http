@@ -16,18 +16,44 @@
 
 import ballerina/http;
 
+type Location record {|
+    string name;
+    string id;
+    string address;
+|};
+
+type Locations record {|
+    *http:Links;
+    Location[] locations;
+|};
+
+function areMapsSimilar(map<anydata> target, map<anydata> input) returns boolean {
+    foreach string key in target.keys() {
+        if !input.hasKey(key) {
+            return false;
+        }
+        if target[key] != input[key] {
+            return false;
+        }
+    }
+    return true;
+}
+
 final http:Client snowpeakEP = check new("http://snowpeak:9090");
 
 service /passthrough on new http:Listener(9091) {
     resource function get .() returns http:Ok|http:InternalServerError|error {
-        http:Response res = check snowpeakEP->get("/snowpeak/locations");
-        if res.hasHeader("Link") {
-            string linkHeader = check res.getHeader("Link");
-            string expectedLinkHeader = "</snowpeak/locations/{id}/rooms>; rel=\"room\"; methods=\"\"GET\"\"; " +
-                                        "types=\"\"application/vnd.snowpeak.resort+json\"\"";
-            if linkHeader == expectedLinkHeader {
-                return http:OK;
+        Locations locations = check snowpeakEP->get("/snowpeak/locations");
+        map<http:Link> links = locations._links;
+        map<http:Link> targetLinks = {
+            room: {
+                href: "/snowpeak/locations/{id}/rooms",
+                methods: [http:GET],
+                types: ["application/vnd.snowpeak.resort+json"]
             }
+        };
+        if areMapsSimilar(targetLinks, links) {
+            return http:OK;
         }
         return http:INTERNAL_SERVER_ERROR;
     }
