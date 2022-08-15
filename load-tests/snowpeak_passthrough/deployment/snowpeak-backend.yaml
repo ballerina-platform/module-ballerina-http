@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: snowpeak-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: snowpeak-backend
+  template:
+    metadata:
+      labels:
+        app: snowpeak-backend
+        logs: "true"
+    spec:
+      containers:
+      - name: snowpeak-container
+        image: ktharmi176/snowpeak:latest
+        ports:
+        - containerPort: 9090
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: snowpeak
+spec:
+  type: ClusterIP
+  ports:
+  - port: 9090
+  selector:
+    app: snowpeak-backend

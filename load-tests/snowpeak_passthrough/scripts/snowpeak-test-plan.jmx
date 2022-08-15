@@ -23,6 +23,7 @@
         <boolProp name="ThreadGroup.scheduler">true</boolProp>
         <stringProp name="ThreadGroup.duration">${__P(duration)}</stringProp>
         <stringProp name="ThreadGroup.delay"></stringProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
       </ThreadGroup>
       <hashTree>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Retrieve Available Locations" enabled="true">
@@ -30,10 +31,10 @@
             <collectionProp name="Arguments.arguments"/>
           </elementProp>
           <stringProp name="HTTPSampler.domain">${__P(host,localhost)}</stringProp>
-          <stringProp name="HTTPSampler.port">${__P(port,9090)}</stringProp>
+          <stringProp name="HTTPSampler.port">${__P(port,9091)}</stringProp>
           <stringProp name="HTTPSampler.protocol">${__P(protocol,http)}</stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">/snowpeak/locations</stringProp>
+          <stringProp name="HTTPSampler.path">/passthrough</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -45,14 +46,15 @@
           <stringProp name="HTTPSampler.response_timeout">30000</stringProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="Response Assertion" enabled="true">
-            <stringProp name="JSON_PATH">$</stringProp>
-            <stringProp name="EXPECTED_VALUE">{&quot;locations&quot;:[{&quot;name&quot;:&quot;Alps&quot;,&quot;id&quot;:&quot;l1000&quot;,&quot;address&quot;:&quot;NC 29384, some place, switzerland&quot;},{&quot;name&quot;:&quot;Pilatus&quot;,&quot;id&quot;:&quot;l2000&quot;,&quot;address&quot;:&quot;NC 29444, some place, switzerland&quot;}],&quot;_links&quot;:{&quot;room&quot;:{&quot;rel&quot;:&quot;room&quot;,&quot;href&quot;:&quot;\/snowpeak\/locations\/{id}\/rooms&quot;,&quot;types&quot;:[&quot;application\/vnd.snowpeak.resort+json&quot;],&quot;methods&quot;:[&quot;GET&quot;]}}}</stringProp>
-            <boolProp name="JSONVALIDATION">true</boolProp>
-            <boolProp name="EXPECT_NULL">false</boolProp>
-            <boolProp name="INVERT">false</boolProp>
-            <boolProp name="ISREGEX">false</boolProp>
-          </JSONPathAssertion>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Status Code Assertion" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="49586">200</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.custom_message"></stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">2</intProp>
+          </ResponseAssertion>
           <hashTree/>
         </hashTree>
       </hashTree>

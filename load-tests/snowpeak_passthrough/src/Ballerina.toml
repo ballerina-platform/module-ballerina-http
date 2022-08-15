@@ -1,6 +1,6 @@
 [package]
 org = "ballerina"
-name = "snowpeak"
+name = "snowpeak_passthrough"
 version = "1.0.0"
 
 [build-options]
