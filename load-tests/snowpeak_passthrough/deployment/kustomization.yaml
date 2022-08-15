@@ -1,0 +1,4 @@
+resources:
+  - snowpeak_passthrough.yaml
+  - ingress.yaml
+  - snowpeak-backend.yaml
