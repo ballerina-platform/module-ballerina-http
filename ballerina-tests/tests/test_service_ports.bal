@@ -188,6 +188,7 @@ const int http2ClientContinueTestPort = 9630;
 const int clientResourceMethodsTestPort = 9631;
 const int interceptorPassthroughTestPort = 9632;
 const int interceptorBackendTestPort = 9633;
+const int interceptorUserAgentTestPort = 9634;
 
 //HTTP2
 const int serverPushTestPort1 = 9701;

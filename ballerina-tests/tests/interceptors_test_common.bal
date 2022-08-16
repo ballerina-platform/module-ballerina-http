@@ -358,6 +358,16 @@ service class RequestInterceptorWithVariable {
     }
 }
 
+service class RequestInterceptorUserAgentField {
+    *http:RequestInterceptor;
+
+    resource function 'default [string... path](http:RequestContext ctx, http:Request req) returns http:NextService|error? {
+        req.setHeader("req-interceptor-user-agent", req.userAgent);
+        ctx.set("last-interceptor", "user-agent-interceptor");
+        return ctx.next();
+    }
+}
+
 service class RequestInterceptorNegative1 {
     *http:RequestInterceptor;
 
