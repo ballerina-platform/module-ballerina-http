@@ -730,7 +730,9 @@ public class HttpUtil {
             BString agent = fromString(
                     inboundRequestMsg.getHeader(HttpHeaderNames.USER_AGENT.toString()));
             inboundRequestObj.set(HttpConstants.REQUEST_USER_AGENT_FIELD, agent);
-            inboundRequestMsg.removeHeader(HttpHeaderNames.USER_AGENT.toString());
+            if (inboundRequestMsg.isAccessedInNonInterceptorService()) {
+                inboundRequestMsg.removeHeader(HttpHeaderNames.USER_AGENT.toString());
+            }
         }
     }
 

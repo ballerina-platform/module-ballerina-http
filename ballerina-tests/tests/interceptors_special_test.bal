@@ -741,3 +741,30 @@ function testInterceptorPassthroughExecute(string consumePayload, string consume
     test:assertEquals(payload, expectedPayload);
 }
 
+final http:Client interceptorUserAgentClientEP = check new("http://localhost:" + interceptorUserAgentTestPort.toString(), httpVersion = http:HTTP_1_1);
+
+@http:ServiceConfig {
+    interceptors: [new DefaultRequestInterceptor(), new RequestInterceptorUserAgentField(), new LastRequestInterceptor()]
+}
+service on new http:Listener(interceptorUserAgentTestPort) {
+
+    resource function get test(http:Request req, http:Caller caller) returns error? {
+        http:Response res = new();
+        res.setHeader("default-request-interceptor", check req.getHeader("default-request-interceptor"));
+        res.setHeader("req-interceptor-user-agent", check req.getHeader("req-interceptor-user-agent"));
+        res.setHeader("last-request-interceptor", check req.getHeader("last-request-interceptor"));
+        res.setHeader("req-user-agent", req.userAgent);
+        res.setHeader("last-interceptor", check req.getHeader("last-interceptor"));
+        check caller->respond(res);
+    }
+}
+
+@test:Config{}
+function testUserAgentHeaderWithInterceptors() returns error? {
+    http:Response res = check interceptorUserAgentClientEP->get("/test", {"user-agent": "httpTest/1.0"});
+    assertHeaderValue(check res.getHeader("last-interceptor"), "user-agent-interceptor");
+    assertHeaderValue(check res.getHeader("default-request-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
+    assertHeaderValue(check res.getHeader("req-interceptor-user-agent"), "httpTest/1.0");
+    assertHeaderValue(check res.getHeader("req-user-agent"), "httpTest/1.0");
+}
