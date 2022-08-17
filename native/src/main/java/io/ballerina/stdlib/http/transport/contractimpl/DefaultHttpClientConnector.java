@@ -298,6 +298,7 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
                     httpResponseFuture.notifyHttpListener(cause);
                     httpOutboundRequest
                             .setIoException(new IOException(REMOTE_SERVER_CLOSED_BEFORE_INITIATING_OUTBOUND_REQUEST));
+                    connectionManager.getHttp2ConnectionManager().releasePerRoutePoolLatch(route);
                 }
             });
         } catch (NoSuchElementException failedCause) {
