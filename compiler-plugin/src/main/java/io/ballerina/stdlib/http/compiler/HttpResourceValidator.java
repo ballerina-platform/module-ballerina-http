@@ -342,13 +342,15 @@ class HttpResourceValidator {
                                 break;
                         }
                     } else {
-                        reportInvalidParameterType(ctx, paramLocation, paramType);
+                        if (!isAllowedQueryParamType(typeDescKind, typeDescriptor)) {
+                            reportInvalidParameterType(ctx, paramLocation, paramType);
+                        }
                     }
-                } else if (isAllowedQueryParamType(kind)) {
+                } else if (isAllowedQueryParamType(kind, typeSymbol)) {
                     // Allowed query param types
                 } else if (kind == TypeDescKind.MAP) {
                     TypeSymbol constrainedTypeSymbol = ((MapTypeSymbol) typeSymbol).typeParam();
-                    TypeDescKind constrainedType = constrainedTypeSymbol.typeKind();
+                    TypeDescKind constrainedType = getReferencedTypeDescKind(constrainedTypeSymbol);
                     if (constrainedType != TypeDescKind.JSON) {
                         reportInvalidQueryParameterType(ctx, paramLocation, paramName);
                         continue;
@@ -356,7 +358,7 @@ class HttpResourceValidator {
                 } else if (kind == TypeDescKind.ARRAY) {
                     // Allowed query param array types
                     TypeSymbol arrTypeSymbol = ((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor();
-                    TypeDescKind elementKind = arrTypeSymbol.typeKind();
+                    TypeDescKind elementKind = getReferencedTypeDescKind(arrTypeSymbol);
                     if (elementKind == TypeDescKind.MAP) {
                         TypeSymbol constrainedTypeSymbol = ((MapTypeSymbol) arrTypeSymbol).typeParam();
                         TypeDescKind constrainedType = constrainedTypeSymbol.typeKind();
@@ -365,7 +367,7 @@ class HttpResourceValidator {
                         }
                         continue;
                     }
-                    if (!isAllowedQueryParamType(elementKind)) {
+                    if (!isAllowedQueryParamType(elementKind, arrTypeSymbol)) {
                         reportInvalidQueryParameterType(ctx, paramLocation, paramName);
                         continue;
                     }
@@ -382,10 +384,10 @@ class HttpResourceValidator {
                         continue;
                     }
                     for (TypeSymbol type : symbolList) {
-                        TypeDescKind elementKind = type.typeKind();
+                        TypeDescKind elementKind = getReferencedTypeDescKind(type);
                         if (elementKind == TypeDescKind.ARRAY) {
                             TypeSymbol arrTypeSymbol = ((ArrayTypeSymbol) type).memberTypeDescriptor();
-                            TypeDescKind arrElementKind = arrTypeSymbol.typeKind();
+                            TypeDescKind arrElementKind = getReferencedTypeDescKind(arrTypeSymbol);
                             if (arrElementKind == TypeDescKind.MAP) {
                                 TypeSymbol constrainedTypeSymbol = ((MapTypeSymbol) arrTypeSymbol).typeParam();
                                 TypeDescKind constrainedType = constrainedTypeSymbol.typeKind();
@@ -393,7 +395,7 @@ class HttpResourceValidator {
                                     continue;
                                 }
                             }
-                            if (isAllowedQueryParamType(arrElementKind)) {
+                            if (isAllowedQueryParamType(arrElementKind, arrTypeSymbol)) {
                                 continue;
                             }
                         } else if (elementKind == TypeDescKind.MAP) {
@@ -403,7 +405,7 @@ class HttpResourceValidator {
                                 continue;
                             }
                         } else {
-                            if (elementKind == TypeDescKind.NIL || isAllowedQueryParamType(elementKind)) {
+                            if (elementKind == TypeDescKind.NIL || isAllowedQueryParamType(elementKind, type)) {
                                 continue;
                             }
                         }
@@ -806,7 +808,11 @@ class HttpResourceValidator {
         return respondNodeVisitor.getRespondStatementNodes();
     }
 
-    private static boolean isAllowedQueryParamType(TypeDescKind kind) {
+    private static boolean isAllowedQueryParamType(TypeDescKind kind, TypeSymbol typeSymbol) {
+        if (kind == TypeDescKind.TYPE_REFERENCE) {
+            TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor();
+            kind =  getReferencedTypeDescKind(typeDescriptor);
+        }
         return kind == TypeDescKind.STRING || kind == TypeDescKind.INT || kind == TypeDescKind.FLOAT ||
                 kind == TypeDescKind.DECIMAL || kind == TypeDescKind.BOOLEAN;
     }
@@ -966,6 +972,15 @@ class HttpResourceValidator {
         } else {
             return TypeDescKind.ERROR.equals(typeKind) || TypeDescKind.NIL.equals(typeKind);
         }
+    }
+
+    private static TypeDescKind getReferencedTypeDescKind(TypeSymbol typeSymbol) {
+        TypeDescKind kind = typeSymbol.typeKind();
+        if (kind == TypeDescKind.TYPE_REFERENCE) {
+            TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor();
+            kind = getReferencedTypeDescKind(typeDescriptor);
+        }
+        return kind;
     }
 
     private static void reportInvalidResourceAnnotation(SyntaxNodeAnalysisContext ctx, Location location,

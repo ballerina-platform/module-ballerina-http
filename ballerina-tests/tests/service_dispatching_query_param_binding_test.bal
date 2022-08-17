@@ -21,6 +21,13 @@ import ballerina/url;
 listener http:Listener QueryBindingEP = new(queryParamBindingTest, httpVersion = http:HTTP_1_1);
 final http:Client queryBindingClient = check new("http://localhost:" + queryParamBindingTest.toString(), httpVersion = http:HTTP_1_1);
 
+// This is user-defined type
+public type Count int;
+public type TypeJson json;
+public type Name string;
+public type FirstName Name;
+public type FullName FirstName;
+
 service /queryparamservice on QueryBindingEP {
 
     resource function get .(string foo, http:Caller caller, int bar, http:Request req) returns error? {
@@ -34,19 +41,19 @@ service /queryparamservice on QueryBindingEP {
         check caller->respond(responseJson);
     }
 
-    resource function get q2(int[] id, string[] PersoN, float[] val, boolean[] isPresent, 
+    resource function get q2(int[] id, string[] PersoN, float[] val, boolean[] isPresent,
             http:Caller caller, decimal[] dc) returns error? {
         json responseJson = { iValue: id, sValue: PersoN, fValue: val, bValue: isPresent, dValue: dc };
         check caller->respond(responseJson);
     }
 
-    resource function get q3(http:Caller caller, int? id, string? PersoN, float? val, 
+    resource function get q3(http:Caller caller, int? id, string? PersoN, float? val,
             boolean? isPresent, decimal? dc) returns error? {
         json responseJson = { iValue: id, sValue: PersoN, fValue: val, bValue: isPresent, dValue: dc };
         check caller->respond(responseJson);
     }
 
-    resource function get q4(int[]? id, string[]? PersoN, float[]? val, boolean[]? isPresent, 
+    resource function get q4(int[]? id, string[]? PersoN, float[]? val, boolean[]? isPresent,
             http:Caller caller, decimal[]? dc) returns error? {
         json responseJson = { iValue: id, sValue: PersoN, fValue: val, bValue: isPresent, dValue: dc };
         check caller->respond(responseJson);
@@ -82,6 +89,29 @@ service /queryparamservice on QueryBindingEP {
 
     resource function get q10(string? x\-Type) returns string {
         return x\-Type ?: "default";
+    }
+
+    resource function get pets(Count count) returns http:Ok {
+        http:Ok ok = {body: count};
+        return ok;
+    }
+
+    resource function get petsUnion(Count? count) returns http:Ok {
+        http:Ok ok = {body: "nil"};
+        return ok;
+    }
+
+    resource function get petsArr(Count[] count) returns http:Ok {
+        http:Ok ok = {body: count[0]};
+        return ok;
+    }
+
+    resource function get petsMap(map<TypeJson> count) returns json {
+        return count;
+    }
+    
+    resource function get nestedTypeRef(FullName name) returns string {
+        return name;
     }
 }
 
@@ -322,4 +352,27 @@ function testOptionalRepeatingQueryParamBinding() {
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
+}
+
+@test:Config {}
+function testTypeReferenceQueryParamBinding() returns error? {
+    http:Response response = check queryBindingClient->get("/queryparamservice/pets?count=10");
+    assertTextPayload(response.getTextPayload(), "10");
+
+    response = check queryBindingClient->get("/queryparamservice/petsUnion?");
+    assertTextPayload(response.getTextPayload(), "nil");
+
+    response = check queryBindingClient->get("/queryparamservice/petsArr?count=30,20,10");
+    assertTextPayload(response.getTextPayload(), "30");
+    
+    response = check queryBindingClient->get("/queryparamservice/nestedTypeRef?name=wso2");
+    assertTextPayload(response.getTextPayload(), "wso2");
+}
+
+@test:Config {}
+function testTypeReferenceConstrainedMapQueryParamBinding() returns error? {
+    map<json> jsonObj = { name : "test", value : "json" };
+    string jsonEncoded = check url:encode(jsonObj.toJsonString(), "UTF-8");
+    http:Response response = check queryBindingClient->get("/queryparamservice/petsMap?count=" + jsonEncoded);
+    assertJsonPayloadtoJsonString(response.getJsonPayload(), jsonObj);
 }

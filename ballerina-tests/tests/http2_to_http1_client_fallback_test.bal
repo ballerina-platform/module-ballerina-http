@@ -58,7 +58,10 @@ public function testClientFallbackFromH2ToH1() returns error? {
 public function testSslClientFallbackFromH2ToH1() returns error? {
     string payload = check fallbackSslClient->get("/helloWorldWithSSL");
     test:assertEquals(payload, version_1_1, msg = "Found unexpected output");
+}
 
-    payload = check fallbackSslClient->get("/helloWorldWithSSL");
+@test:Config {dependsOn:[testSslClientFallbackFromH2ToH1]}
+public function testSslClientFallbackFromH2ToH1Subsequent() returns error? {
+    string payload = check fallbackSslClient->get("/helloWorldWithSSL");
     test:assertEquals(payload, version_1_1, msg = "Found unexpected output");
 }
