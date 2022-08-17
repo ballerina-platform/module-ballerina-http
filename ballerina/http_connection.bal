@@ -207,7 +207,12 @@ public isolated client class Caller {
     }
 
     private isolated function logError(error errorResponse) {
-        log:printError(errorResponse.message(), stackTrace = getStackTraceWithCause(errorResponse));
+        string errorMsg = errorResponse.message();
+        var errorDetail = errorResponse.detail();
+        if errorDetail != {} {
+            errorMsg += " " + errorDetail.toString();
+        }
+        log:printError(errorMsg, stackTrace = getStackTraceWithCause(errorResponse));
     }
 }
 
