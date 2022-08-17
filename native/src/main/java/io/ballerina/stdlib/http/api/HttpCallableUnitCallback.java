@@ -105,14 +105,16 @@ public class HttpCallableUnitCallback implements Callback {
         invokeBalMethod(paramFeed, "returnResponse");
     }
 
-    private void returnErrorResponse(BError error) {
-        Object[] paramFeed = new Object[6];
+    private void returnErrorResponse(BError error, boolean logError) {
+        Object[] paramFeed = new Object[8];
         paramFeed[0] = error;
         paramFeed[1] = true;
-        paramFeed[2] = returnMediaType != null ? StringUtils.fromString(returnMediaType) : null;
+        paramFeed[2] = logError;
         paramFeed[3] = true;
-        paramFeed[4] = requestMessage.getHttpStatusCode();
+        paramFeed[4] = returnMediaType != null ? StringUtils.fromString(returnMediaType) : null;
         paramFeed[5] = true;
+        paramFeed[6] = requestMessage.getHttpStatusCode();
+        paramFeed[7] = true;
 
         invokeBalMethod(paramFeed, "returnErrorResponse");
     }
@@ -148,24 +150,24 @@ public class HttpCallableUnitCallback implements Callback {
     @Override
     public void notifyFailure(BError error) { // handles panic and check_panic
         cleanupRequestMessage();
+        boolean printError = true;
         // This check is added to update the status code with respect to the auth errors.
         if (error.getType().getName().equals(HttpErrorType.LISTENER_AUTHN_ERROR.getErrorName())) {
             requestMessage.setHttpStatusCode(401);
+            printError = false;
         } else if (error.getType().getName().equals(HttpErrorType.LISTENER_AUTHZ_ERROR.getErrorName())) {
             requestMessage.setHttpStatusCode(403);
+            printError = false;
         }
         if (alreadyResponded(error)) {
             return;
         }
-        invokeErrorInterceptors(error, true);
+        invokeErrorInterceptors(error, printError);
     }
 
     public void invokeErrorInterceptors(BError error, boolean printError) {
         requestMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR, error);
-        if (printError) {
-            error.printStackTrace();
-        }
-        returnErrorResponse(error);
+        returnErrorResponse(error, printError);
     }
 
     public void sendFailureResponse(BError error) {

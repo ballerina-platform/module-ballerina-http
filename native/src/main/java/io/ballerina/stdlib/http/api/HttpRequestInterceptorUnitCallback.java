@@ -74,7 +74,8 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
     public void invokeErrorInterceptors(BError error, boolean printError) {
         requestMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR, error);
         if (printError) {
-            error.printStackTrace();
+            invokeBalLogErrorMethod(error);
+            return;
         }
         ballerinaHTTPConnectorListener.onMessage(requestMessage);
     }
@@ -82,13 +83,15 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
     public void returnErrorResponse(Object error) {
         cleanupRequestMessage();
 
-        Object[] paramFeed = new Object[6];
+        Object[] paramFeed = new Object[8];
         paramFeed[0] = error;
         paramFeed[1] = true;
-        paramFeed[2] = null;
+        paramFeed[2] = false;
         paramFeed[3] = true;
-        paramFeed[4] = requestMessage.getHttpStatusCode();
+        paramFeed[4] = null;
         paramFeed[5] = true;
+        paramFeed[6] = requestMessage.getHttpStatusCode();
+        paramFeed[7] = true;
 
         invokeBalMethod(paramFeed, "returnErrorResponse");
     }
@@ -187,6 +190,27 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
         paramFeed[7] = true;
 
         invokeBalMethod(paramFeed, "returnResponse");
+    }
+
+    private void invokeBalLogErrorMethod(BError error) {
+        Object[] paramFeed = new Object[2];
+        paramFeed[0] = error;
+        paramFeed[1] = true;
+        Callback returnCallback = new Callback() {
+            @Override
+            public void notifySuccess(Object result) {
+                ballerinaHTTPConnectorListener.onMessage(requestMessage);
+            }
+
+            @Override
+            public void notifyFailure(BError result) {
+                cleanupRequestMessage();
+                HttpUtil.handleFailure(requestMessage, result, false);
+            }
+        };
+        runtime.invokeMethodAsyncSequentially(
+                caller, "logError", null, ModuleUtils.getNotifySuccessMetaData(),
+                returnCallback, null, PredefinedTypes.TYPE_NULL, paramFeed);
     }
 
     private void invokeBalMethod(Object[] paramFeed, String methodName) {

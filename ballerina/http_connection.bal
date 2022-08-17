@@ -19,6 +19,7 @@ import ballerina/lang.value as val;
 import ballerina/lang.'string as strings;
 import ballerina/url;
 import ballerina/mime;
+import ballerina/log;
 
 # The caller actions for responding to client requests.
 #
@@ -51,7 +52,7 @@ public isolated client class Caller {
         } else if message is StatusCodeResponse {
             return nativeRespond(self, createStatusCodeResponse(message));
         } else {
-            return self.returnErrorResponse(message);
+            return self.returnErrorResponse(message, true);
         }
     }
 
@@ -185,8 +186,12 @@ public isolated client class Caller {
         return nativeRespond(self, response);
     }
 
-    private isolated function returnErrorResponse(error errorResponse, string? returnMediaType = (), int? statusCode = ()) returns ListenerError? {
+    private isolated function returnErrorResponse(error errorResponse, boolean logError, string? returnMediaType = (),
+            int? statusCode = ()) returns ListenerError? {
         Response response = new;
+        if logError {
+            self.logError(errorResponse);
+        }
         if errorResponse is ApplicationResponseError {
             InternalServerError err = {
                 headers: errorResponse.detail().headers,
@@ -200,6 +205,20 @@ public isolated client class Caller {
         }
         return nativeRespondError(self, response, errorResponse);
     }
+
+    private isolated function logError(error errorResponse) {
+        log:printError(errorResponse.message(), stackTrace = getStackTraceWithCause(errorResponse));
+    }
+}
+
+isolated function getStackTraceWithCause(error err) returns error:StackFrame[] {
+    error:StackFrame[] stackFrames = err.stackTrace();
+    error? errCause = err.cause();
+    while errCause != () {
+        stackFrames.push(...errCause.stackTrace());
+        errCause = errCause.cause();
+    }
+    return stackFrames;
 }
 
 isolated function createStatusCodeResponse(StatusCodeResponse message, string? returnMediaType = (), boolean setETag = false, map<Link>? links = ())

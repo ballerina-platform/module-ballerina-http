@@ -74,10 +74,7 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
 
     private void invokeErrorInterceptors(BError error, boolean printError) {
         requestMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR, error);
-        if (printError) {
-            error.printStackTrace();
-        }
-        returnErrorResponse(error);
+        returnErrorResponse(error, printError);
     }
 
     public void sendFailureResponse(BError error) {
@@ -164,14 +161,16 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
                         (int) requestMessage.getProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX));
     }
 
-    public void returnErrorResponse(BError error) {
-        Object[] paramFeed = new Object[6];
+    public void returnErrorResponse(BError error, boolean logError) {
+        Object[] paramFeed = new Object[8];
         paramFeed[0] = error;
         paramFeed[1] = true;
-        paramFeed[2] = null;
+        paramFeed[2] = logError;
         paramFeed[3] = true;
-        paramFeed[4] = requestMessage.getHttpStatusCode();
+        paramFeed[4] = null;
         paramFeed[5] = true;
+        paramFeed[6] = requestMessage.getHttpStatusCode();
+        paramFeed[7] = true;
 
         invokeBalMethod(paramFeed, "returnErrorResponse");
     }
