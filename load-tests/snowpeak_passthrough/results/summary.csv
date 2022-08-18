@@ -1,3 +1,4 @@
 Label,# Samples,Average,Median,90% Line,95% Line,99% Line,Min,Max,Error %,Throughput,Received KB/sec,Std. Dev.,Date,Payload,Users
 Retrieve Available Locations,7608155,26,17,60,66,81,0,492,0.00%,2186.2,211.3,21.43,1660570467,50,60
 Retrieve Available Locations,8163447,25,16,59,64,76,0,469,0.00%,2345.9,226.7,20.45,1660650210,50,60
+Retrieve Available Locations,7963648,25,16,59,65,79,0,367,0.00%,2288.5,221.1,20.99,1660817678,50,60
