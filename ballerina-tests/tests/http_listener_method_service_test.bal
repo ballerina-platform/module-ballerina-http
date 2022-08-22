@@ -22,7 +22,8 @@ final http:Client listenerMethodTestClient = check new("http://localhost:" + lis
 final http:Client backendGraceStopTestClient = check new("http://localhost:" + listenerMethodTestPort2.toString(), httpVersion = http:HTTP_1_1);
 final http:Client backendImmediateStopTestClient = check new("http://localhost:" + listenerMethodTestPort3.toString(), httpVersion = http:HTTP_1_1);
 
-isolated http:Listener listenerMethodGracebackendEP = check new(listenerMethodTestPort2, httpVersion = http:HTTP_1_1);
+isolated http:Listener listenerMethodGracebackendEP = check new(listenerMethodTestPort2,
+    httpVersion = http:HTTP_1_1, gracefulStopTimeout = 5);
 isolated http:Listener listenerMethodImmediatebackendEP = check new(listenerMethodTestPort3, httpVersion = http:HTTP_1_1);
 
 service /startService on listenerMethodListener {

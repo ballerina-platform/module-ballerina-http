@@ -160,7 +160,7 @@ public type ListenerConfiguration record {|
     string? server = ();
     RequestLimitConfigs requestLimits = {};
     Interceptor[] interceptors?;
-    decimal gracefulStopTimeout = DEFAULT_LISTENER_TIMEOUT;
+    decimal gracefulStopTimeout = DEFAULT_GRACEFULSTOP_TIMEOUT;
 |};
 
 # Provides a set of cloneable configurations for HTTP listener.

@@ -72,7 +72,7 @@ public type CommonClientConfiguration record {|
     # Configurations related to HTTP/2 protocol
     ClientHttp2Settings http2Settings = {};
     # The maximum time to wait (in seconds) for a response before closing the connection
-    decimal timeout = 60;
+    decimal timeout = 30;
     # The choice of setting `forwarded`/`x-forwarded` header
     string forwarded = "disable";
     # Configurations associated with Redirection
