@@ -394,6 +394,7 @@ public class HttpConstants {
     public static final String ENDPOINT_CONFIG_CHUNKING = "chunking";
     public static final BString ENDPOINT_CONFIG_VERSION = StringUtils.fromString("httpVersion");
     public static final String ENDPOINT_REQUEST_LIMITS = "requestLimits";
+    public static final BString ENDPOINT_CONFIG_GRACEFUL_STOP_TIMEOUT = StringUtils.fromString("gracefulStopTimeout");
 
     public static final BString MAX_URI_LENGTH = StringUtils.fromString("maxUriLength");
     public static final BString MAX_STATUS_LINE_LENGTH = StringUtils.fromString("maxStatusLineLength");

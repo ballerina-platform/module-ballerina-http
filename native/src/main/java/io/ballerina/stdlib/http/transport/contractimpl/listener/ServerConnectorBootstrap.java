@@ -60,6 +60,7 @@ public class ServerConnectorBootstrap {
     private boolean initialized;
     private boolean isHttps = false;
     private ChannelGroup allChannels;
+    private int gracefulStopTimeout = 0;
 
     public ServerConnectorBootstrap(ChannelGroup allChannels) {
         serverBootstrap = new ServerBootstrap();
@@ -189,6 +190,10 @@ public class ServerConnectorBootstrap {
         httpServerChannelInitializer.setWebSocketCompressionEnabled(webSocketCompressionEnabled);
     }
 
+    public void setGracefulStopTimeout(int gracefulStopTimeout) {
+        this.gracefulStopTimeout = gracefulStopTimeout;
+    }
+
     class HttpServerConnector implements ServerConnector {
 
        private final Logger log = LoggerFactory.getLogger(HttpServerConnector.class);
@@ -244,18 +249,9 @@ public class ServerConnectorBootstrap {
         }
 
         @Override
-        public void immediateStop() {
-            httpServerChannelInitializer.getPipelineChannel().close().addListener(future -> {
-                if (future.isSuccess()) {
-                    this.stop();
-                    if (log.isDebugEnabled()) {
-                        log.debug("HTTP listener on host {} and port {} has immediately stopped", getHost(), getPort());
-                    }
-                } else {
-                    throw new Exception("Failed to stop the listener on " + getHost() + ":" + getPort() +
-                                                "immediately");
-                }
-            });
+        public boolean immediateStop() {
+            setGracefulStopTimeout(0);
+            return this.stop();
         }
 
         @Override
@@ -298,6 +294,7 @@ public class ServerConnectorBootstrap {
             ChannelFuture future = getChannelFuture();
             if (future != null) {
                 //Close will stop accepting new connections.
+                Thread.sleep(gracefulStopTimeout);
                 future.channel().close().sync();
                 if (log.isDebugEnabled()) {
                     log.debug("HttpConnectorListener stopped listening on host {} and port {}", getHost(), getPort());

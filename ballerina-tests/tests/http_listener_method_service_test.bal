@@ -134,16 +134,14 @@ function testAvailabilityOfAttachedImmediateService() returns error? {
 
 @test:Config {dependsOn:[testAvailabilityOfAttachedImmediateService]}
 function testImmediateStopMethod() returns error? {
-    http:Response|error response = backendImmediateStopTestClient->get("/mock3");
-    if response is error {
-        test:assertEquals(response.message(), "Remote host closed the connection before initiating inbound response");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: http:Response");
-    }
+    string response = check backendImmediateStopTestClient->get("/mock3");
+    test:assertEquals(response, "Mock3 invoked!", msg = "Found unexpected output");
 }
 
 @test:Config {dependsOn:[testImmediateStopMethod]}
 function testInvokingStoppedImmediateService() returns error? {
+    final http:Client backendImmediateStopTestClient = check new("http://localhost:" + listenerMethodTestPort3.toString(),
+        httpVersion = http:HTTP_1_1, http1Settings = { keepAlive: http:KEEPALIVE_NEVER });
     http:Response|error response = backendImmediateStopTestClient->get("/mock1");
     if response is error {
         // Output depends on the closure time. The error implies that the listener has stopped.

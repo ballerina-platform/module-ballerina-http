@@ -1489,6 +1489,13 @@ public class HttpUtil {
         }
         listenerConfiguration.setSocketIdleTimeout((int) (idleTimeout * 1000));
 
+        double gracefulStopTimeout = ((BDecimal) endpointConfig.get(
+                HttpConstants.ENDPOINT_CONFIG_GRACEFUL_STOP_TIMEOUT)).floatValue();
+        if (gracefulStopTimeout < 0) {
+            throw new BallerinaConnectorException("gracefulStop timeout cannot be negative");
+        }
+        listenerConfiguration.setGracefulStopTimeout((int) (gracefulStopTimeout * 1000));
+
         // Set HTTP version
         if (httpVersion != null) {
             listenerConfiguration.setVersion(httpVersion);

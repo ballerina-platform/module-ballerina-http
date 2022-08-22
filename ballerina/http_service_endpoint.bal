@@ -150,6 +150,7 @@ public type Local record {|
 # + server - The server name which should appear as a response header
 # + requestLimits - Configurations associated with inbound request size limits
 # + interceptors - An array of interceptor services
+# + gracefulStopTimeout - Grace period of time in seconds for listener gracefulStop
 public type ListenerConfiguration record {|
     string host = "0.0.0.0";
     ListenerHttp1Settings http1Settings = {};
@@ -159,6 +160,7 @@ public type ListenerConfiguration record {|
     string? server = ();
     RequestLimitConfigs requestLimits = {};
     Interceptor[] interceptors?;
+    decimal gracefulStopTimeout = DEFAULT_LISTENER_TIMEOUT;
 |};
 
 # Provides a set of cloneable configurations for HTTP listener.
