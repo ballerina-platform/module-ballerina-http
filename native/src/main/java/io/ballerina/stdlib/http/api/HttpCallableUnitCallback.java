@@ -60,7 +60,7 @@ public class HttpCallableUnitCallback implements Callback {
         this.immediateStopFuture = immediateStopFuture;
     }
 
-    public HttpCallableUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime) {
+    HttpCallableUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime) {
         this.requestMessage = requestMessage;
         this.runtime = runtime;
         this.returnMediaType = null;

@@ -22,6 +22,11 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
 import java.util.Objects;
 
+/**
+ * {@code HttpCallbackPanic} is the responsible for acting on notifications received from a resource panic.
+ *
+ * @since 2022.2.0
+ */
 public class HttpCallbackPanic extends HttpCallbackReturn {
     private final ImmediateStopFuture immediateStopFuture;
 
@@ -34,8 +39,7 @@ public class HttpCallbackPanic extends HttpCallbackReturn {
     public void notifySuccess(Object result) {
         super.notifySuccess(result);
         if (Objects.nonNull(this.immediateStopFuture)) {
-            this.immediateStopFuture.Stop();
-            System.exit(0);
+            this.immediateStopFuture.stop();
         }
     }
 

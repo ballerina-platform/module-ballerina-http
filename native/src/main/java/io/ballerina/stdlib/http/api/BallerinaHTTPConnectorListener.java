@@ -276,9 +276,8 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
                 extractPropertiesAndStartResourceExecution(inboundMessage, httpResource);
             }
         } catch (BallerinaConnectorException ex) {
-            HttpCallableUnitCallback callback = new HttpCallableUnitCallback(inboundMessage,
-                                                                             httpServicesRegistry.getRuntime(),
-                                                                             httpResource, immediateStopFuture);
+            HttpCallableUnitCallback callback = new HttpCallableUnitCallback(
+                    inboundMessage, httpServicesRegistry.getRuntime(), httpResource, immediateStopFuture);
             callback.invokeErrorInterceptors(HttpUtil.createError(ex), false);
         }
     }
@@ -316,6 +315,5 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
 
     public void setImmediateStopNotifier(ImmediateStopFuture immediateStopFuture) {
         this.immediateStopFuture = immediateStopFuture;
-
     }
 }

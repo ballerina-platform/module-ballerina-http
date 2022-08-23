@@ -23,6 +23,11 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
 import static io.ballerina.stdlib.http.api.HttpConstants.OBSERVABILITY_CONTEXT_PROPERTY;
 
+/**
+ * {@code HttpCallbackUtils} holds the utility functions related to Http callbacks.
+ *
+ * @since 2022.2.0
+ */
 public class HttpCallbackUtils {
 
     protected static void stopObserverContext(HttpCarbonMessage requestMessage) {

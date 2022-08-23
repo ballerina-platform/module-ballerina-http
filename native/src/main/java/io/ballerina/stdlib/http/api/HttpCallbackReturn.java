@@ -20,8 +20,13 @@ import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
+/**
+ * {@code HttpCallbackReturn} is the responsible for acting on notifications received from a resource return.
+ *
+ * @since 2022.2.0
+ */
 public class HttpCallbackReturn implements Callback {
-    HttpCarbonMessage requestMessage;
+    protected final HttpCarbonMessage requestMessage;
 
     public HttpCallbackReturn(HttpCarbonMessage requestMessage) {
         this.requestMessage = requestMessage;
