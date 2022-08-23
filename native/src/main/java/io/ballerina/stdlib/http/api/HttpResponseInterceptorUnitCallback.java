@@ -28,7 +28,10 @@ import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.api.nativeimpl.connection.Respond;
+import io.ballerina.stdlib.http.transport.contract.ImmediateStopFuture;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
+
+import java.util.Objects;
 
 /**
  * {@code HttpResponseInterceptorUnitCallback} is the responsible for acting on notifications received from Ballerina
@@ -82,12 +85,6 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
 
     public void sendFailureResponse(BError error) {
         HttpUtil.handleFailure(requestMessage, error, false);
-    }
-
-    private void printStacktraceIfError(Object result) {
-        if (result instanceof BError) {
-            ((BError) result).printStackTrace();
-        }
     }
 
     private void sendResponseToNextService() {
@@ -156,7 +153,7 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
         paramFeed[6] = null;
         paramFeed[7] = true;
 
-        invokeBalMethod(paramFeed, "returnResponse");
+        invokeBalMethod(paramFeed, "returnResponse", new HttpCallbackReturn(requestMessage));
     }
 
     private int getResponseInterceptorId() {
@@ -173,21 +170,17 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
         paramFeed[4] = requestMessage.getHttpStatusCode();
         paramFeed[5] = true;
 
-        invokeBalMethod(paramFeed, "returnErrorResponse");
+        Object immediateStopFuture = requestMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_PANIC_ERROR);
+        Callback returnCallback;
+        if (Objects.nonNull(immediateStopFuture)) {
+            returnCallback = new HttpCallbackPanic(requestMessage, (ImmediateStopFuture) immediateStopFuture);
+        } else {
+            returnCallback = new HttpCallbackReturn(requestMessage);
+        }
+        invokeBalMethod(paramFeed, "returnErrorResponse", returnCallback);
     }
 
-    private void invokeBalMethod(Object[] paramFeed, String methodName) {
-        Callback returnCallback = new Callback() {
-            @Override
-            public void notifySuccess(Object result) {
-                printStacktraceIfError(result);
-            }
-
-            @Override
-            public void notifyFailure(BError result) {
-                sendFailureResponse(result);
-            }
-        };
+    private void invokeBalMethod(Object[] paramFeed, String methodName, Callback returnCallback) {
         runtime.invokeMethodAsyncSequentially(
                 caller, methodName, null, ModuleUtils.getNotifySuccessMetaData(),
                 returnCallback, null, PredefinedTypes.TYPE_NULL, paramFeed);

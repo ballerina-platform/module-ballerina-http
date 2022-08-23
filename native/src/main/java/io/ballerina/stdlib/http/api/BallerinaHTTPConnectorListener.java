@@ -27,6 +27,7 @@ import io.ballerina.runtime.observability.ObserveUtils;
 import io.ballerina.runtime.observability.ObserverContext;
 import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.transport.contract.HttpConnectorListener;
+import io.ballerina.stdlib.http.transport.contract.ImmediateStopFuture;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +58,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
 
     protected final BMap endpointConfig;
     protected final Object listenerLevelInterceptors;
+    protected ImmediateStopFuture immediateStopFuture;
 
     public BallerinaHTTPConnectorListener(HTTPServicesRegistry httpServicesRegistry,
                                           List<HTTPInterceptorServicesRegistry> httpInterceptorServicesRegistries,
@@ -177,7 +179,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
             inboundMessage.setProperty(HttpConstants.OBSERVABILITY_CONTEXT_PROPERTY, observerContext);
         }
         Runtime runtime = httpServicesRegistry.getRuntime();
-        Callback callback = new HttpCallableUnitCallback(inboundMessage, runtime, httpResource);
+        Callback callback = new HttpCallableUnitCallback(inboundMessage, runtime, httpResource, immediateStopFuture);
         BObject service = httpResource.getParentService().getBalService();
         String resourceName = httpResource.getName();
         if (service.getType().isIsolated() && service.getType().isIsolated(resourceName)) {
@@ -275,7 +277,8 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
             }
         } catch (BallerinaConnectorException ex) {
             HttpCallableUnitCallback callback = new HttpCallableUnitCallback(inboundMessage,
-                    httpServicesRegistry.getRuntime());
+                                                                             httpServicesRegistry.getRuntime(),
+                                                                             httpResource, immediateStopFuture);
             callback.invokeErrorInterceptors(HttpUtil.createError(ex), false);
         }
     }
@@ -309,5 +312,10 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         } catch (Exception e) {
             inboundMessage.setProperty(HttpConstants.TARGET_SERVICE, HttpUtil.createError(e));
         }
+    }
+
+    public void setImmediateStopNotifier(ImmediateStopFuture immediateStopFuture) {
+        this.immediateStopFuture = immediateStopFuture;
+
     }
 }

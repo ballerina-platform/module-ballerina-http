@@ -23,15 +23,13 @@ import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
-import io.ballerina.runtime.observability.ObserveUtils;
-import io.ballerina.runtime.observability.ObserverContext;
 import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
+import io.ballerina.stdlib.http.transport.contract.ImmediateStopFuture;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
 import java.util.Locale;
 import java.util.Objects;
 
-import static io.ballerina.stdlib.http.api.HttpConstants.OBSERVABILITY_CONTEXT_PROPERTY;
 import static java.lang.System.err;
 
 /**
@@ -48,8 +46,10 @@ public class HttpCallableUnitCallback implements Callback {
     private final BMap cacheConfig;
     private final HttpCarbonMessage requestMessage;
     private final BMap links;
+    private final ImmediateStopFuture immediateStopFuture;
 
-    HttpCallableUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime, HttpResource resource) {
+    public HttpCallableUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime, HttpResource resource,
+                             ImmediateStopFuture immediateStopFuture) {
         this.requestMessage = requestMessage;
         this.runtime = runtime;
         this.returnMediaType = resource.getReturnMediaType();
@@ -57,15 +57,17 @@ public class HttpCallableUnitCallback implements Callback {
         this.links = resource.getLinks();
         String resourceAccessor = resource.getBalResource().getAccessor().toUpperCase(Locale.getDefault());
         this.caller = getCaller(requestMessage, resourceAccessor);
+        this.immediateStopFuture = immediateStopFuture;
     }
 
-    HttpCallableUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime) {
+    public HttpCallableUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime) {
         this.requestMessage = requestMessage;
         this.runtime = runtime;
         this.returnMediaType = null;
         this.cacheConfig = null;
         this.links = null;
         this.caller = getCaller(requestMessage, null);
+        this.immediateStopFuture = null;
     }
 
     private BObject getCaller(HttpCarbonMessage requestMessage, String resourceAccessor) {
@@ -81,7 +83,7 @@ public class HttpCallableUnitCallback implements Callback {
     public void notifySuccess(Object result) {
         cleanupRequestMessage();
         if (alreadyResponded(result)) {
-            stopObserverContext();
+            HttpCallbackUtils.stopObserverContext(requestMessage);
             return;
         }
         if (result instanceof BError) {
@@ -102,7 +104,7 @@ public class HttpCallableUnitCallback implements Callback {
         paramFeed[6] = Objects.nonNull(links) && !links.isEmpty() ? links : null;
         paramFeed[7] = true;
 
-        invokeBalMethod(paramFeed, "returnResponse");
+        invokeBalMethod(paramFeed, "returnResponse", new HttpCallbackReturn(requestMessage));
     }
 
     private void returnErrorResponse(BError error) {
@@ -114,35 +116,13 @@ public class HttpCallableUnitCallback implements Callback {
         paramFeed[4] = requestMessage.getHttpStatusCode();
         paramFeed[5] = true;
 
-        invokeBalMethod(paramFeed, "returnErrorResponse");
+        invokeBalMethod(paramFeed, "returnErrorResponse", new HttpCallbackPanic(requestMessage, immediateStopFuture));
     }
 
-    private void invokeBalMethod(Object[] paramFeed, String methodName) {
-        Callback returnCallback = new Callback() {
-            @Override
-            public void notifySuccess(Object result) {
-                stopObserverContext();
-                printStacktraceIfError(result);
-            }
-
-            @Override
-            public void notifyFailure(BError result) {
-                sendFailureResponse(result);
-            }
-        };
+    private void invokeBalMethod(Object[] paramFeed, String methodName, Callback returnCallback) {
         runtime.invokeMethodAsyncSequentially(
                 caller, methodName, null, ModuleUtils.getNotifySuccessMetaData(),
                 returnCallback, null, PredefinedTypes.TYPE_NULL, paramFeed);
-    }
-
-    private void stopObserverContext() {
-        if (ObserveUtils.isObservabilityEnabled()) {
-            ObserverContext observerContext = (ObserverContext) requestMessage
-                    .getProperty(OBSERVABILITY_CONTEXT_PROPERTY);
-            if (observerContext.isManuallyClosed()) {
-                ObserveUtils.stopObservationWithContext(observerContext);
-            }
-        }
     }
 
     @Override
@@ -157,6 +137,7 @@ public class HttpCallableUnitCallback implements Callback {
         if (alreadyResponded(error)) {
             return;
         }
+        requestMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_PANIC_ERROR, this.immediateStopFuture);
         invokeErrorInterceptors(error, true);
     }
 
@@ -168,10 +149,6 @@ public class HttpCallableUnitCallback implements Callback {
         returnErrorResponse(error);
     }
 
-    public void sendFailureResponse(BError error) {
-        stopObserverContext();
-        HttpUtil.handleFailure(requestMessage, error, true);
-    }
 
     private void cleanupRequestMessage() {
         requestMessage.waitAndReleaseAllEntities();
@@ -182,17 +159,11 @@ public class HttpCallableUnitCallback implements Callback {
             HttpUtil.methodInvocationCheck(requestMessage, HttpConstants.INVALID_STATUS_CODE, ILLEGAL_FUNCTION_INVOKED);
         } catch (BError e) {
             if (result != null) { // handles nil return and end of resource exec
-                printStacktraceIfError(result);
+                HttpCallbackUtils.printStacktraceIfError(result);
                 err.println(HttpConstants.HTTP_RUNTIME_WARNING_PREFIX + e.getMessage());
             }
             return true;
         }
         return false;
-    }
-
-    private void printStacktraceIfError(Object result) {
-        if (result instanceof BError) {
-            ((BError) result).printStackTrace();
-        }
     }
 }

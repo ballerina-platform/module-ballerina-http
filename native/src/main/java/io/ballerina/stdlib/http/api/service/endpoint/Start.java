@@ -30,6 +30,7 @@ import io.ballerina.stdlib.http.api.HttpErrorType;
 import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.transport.contract.ServerConnector;
 import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
+import io.ballerina.stdlib.http.transport.contractimpl.listener.HTTPImmediateStopFuture;
 
 import static io.ballerina.stdlib.http.api.HttpConstants.SERVER_CONNECTOR_FUTURE;
 import static io.ballerina.stdlib.http.api.HttpConstants.SERVICE_ENDPOINT_CONFIG;
@@ -72,6 +73,7 @@ public class Start extends AbstractHttpNativeFunction {
         HttpConnectorPortBindingListener portBindingListener = new HttpConnectorPortBindingListener();
         serverConnectorFuture.setHttpConnectorListener(httpListener);
         serverConnectorFuture.setPortBindingEventListener(portBindingListener);
+        httpListener.setImmediateStopNotifier(new HTTPImmediateStopFuture(serverConnector));
 
         try {
             serverConnectorFuture.sync();

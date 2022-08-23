@@ -144,7 +144,7 @@ function testImmediateStopMethod() returns error? {
 
 @test:Config {dependsOn:[testImmediateStopMethod]}
 function testInvokingStoppedImmediateService() returns error? {
-    final http:Client backendImmediateStopTestClient = check new("http://localhost:" + listenerMethodTestPort2.toString(), 
+    final http:Client backendImmediateStopTestClient = check new("http://localhost:" + listenerMethodTestPort2.toString(),
         httpVersion = http:HTTP_1_1, http1Settings = { keepAlive: http:KEEPALIVE_NEVER });
     http:Response|error response = backendImmediateStopTestClient->get("/mock1");
     if response is error {

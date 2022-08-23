@@ -369,6 +369,7 @@ public class HttpConstants {
     public static final String REQUEST_INTERCEPTOR_INDEX = "REQUEST_INTERCEPTOR_INDEX";
     public static final String RESPONSE_INTERCEPTOR_INDEX = "RESPONSE_INTERCEPTOR_INDEX";
     public static final String INTERCEPTOR_SERVICE_ERROR = "INTERCEPTOR_SERVICE_ERROR";
+    public static final String INTERCEPTOR_SERVICE_PANIC_ERROR = "INTERCEPTOR_SERVICE_PANIC_ERROR";
     public static final String WAIT_FOR_FULL_REQUEST = "WAIT_FOR_FULL_REQUEST";
     public static final String HTTP_NORMAL = "Normal";
     public static final String REQUEST_INTERCEPTOR = "RequestInterceptor";
@@ -394,6 +395,7 @@ public class HttpConstants {
     public static final String ENDPOINT_CONFIG_CHUNKING = "chunking";
     public static final BString ENDPOINT_CONFIG_VERSION = StringUtils.fromString("httpVersion");
     public static final String ENDPOINT_REQUEST_LIMITS = "requestLimits";
+    public static final BString ENDPOINT_CONFIG_GRACEFUL_STOP_TIMEOUT = StringUtils.fromString("gracefulStopTimeout");
 
     public static final BString MAX_URI_LENGTH = StringUtils.fromString("maxUriLength");
     public static final BString MAX_STATUS_LINE_LENGTH = StringUtils.fromString("maxStatusLineLength");
