@@ -294,8 +294,9 @@ public class ServerConnectorBootstrap {
             ChannelFuture future = getChannelFuture();
             if (future != null) {
                 //Close will stop accepting new connections.
+                ChannelFuture closeFuture = future.channel().close();
                 Thread.sleep(gracefulStopTimeout);
-                future.channel().close().sync();
+                closeFuture.sync();
                 if (log.isDebugEnabled()) {
                     log.debug("HttpConnectorListener stopped listening on host {} and port {}", getHost(), getPort());
                 }
