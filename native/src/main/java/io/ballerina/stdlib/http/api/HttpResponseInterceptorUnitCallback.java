@@ -30,6 +30,8 @@ import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.api.nativeimpl.connection.Respond;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
+import java.util.Objects;
+
 /**
  * {@code HttpResponseInterceptorUnitCallback} is the responsible for acting on notifications received from Ballerina
  * side when a response interceptor service is invoked.
@@ -181,6 +183,10 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
             @Override
             public void notifySuccess(Object result) {
                 printStacktraceIfError(result);
+                Object isPanic = requestMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_PANIC_ERROR);
+                if (Objects.nonNull(isPanic) && (boolean) isPanic) {
+                    System.exit(0);
+                }
             }
 
             @Override

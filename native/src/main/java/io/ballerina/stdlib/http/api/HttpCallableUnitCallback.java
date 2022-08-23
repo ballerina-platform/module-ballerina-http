@@ -123,6 +123,10 @@ public class HttpCallableUnitCallback implements Callback {
             public void notifySuccess(Object result) {
                 stopObserverContext();
                 printStacktraceIfError(result);
+                Object isPanic = requestMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_PANIC_ERROR);
+                if (Objects.nonNull(isPanic) && (boolean) isPanic) {
+                    System.exit(0);
+                }
             }
 
             @Override
@@ -157,6 +161,7 @@ public class HttpCallableUnitCallback implements Callback {
         if (alreadyResponded(error)) {
             return;
         }
+        requestMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_PANIC_ERROR, true);
         invokeErrorInterceptors(error, true);
     }
 
