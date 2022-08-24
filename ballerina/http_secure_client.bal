@@ -214,8 +214,11 @@ isolated function enrichRequest(ClientAuthHandler clientAuthHandler, Request req
         return clientAuthHandler.enrich(req);
     } else if clientAuthHandler is ClientSelfSignedJwtAuthHandler {
         return clientAuthHandler.enrich(req);
-    } else {
+    } else if clientAuthHandler is ClientOAuth2Handler {
         return clientAuthHandler->enrich(req);
+    } else {
+        string errorMsg = "Invalid client auth-handler found. Expected one of http:ClientBasicAuthHandler|http:ClientBearerTokenAuthHandler|http:ClientSelfSignedJwtAuthHandler|http:ClientOAuth2Handler.";
+        panic error ClientError(errorMsg);
     }
 }
 

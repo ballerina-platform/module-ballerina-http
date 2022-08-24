@@ -50,8 +50,11 @@ public isolated client class Caller {
             return nativeRespond(self, response);
         } else if message is StatusCodeResponse {
             return nativeRespond(self, createStatusCodeResponse(message));
-        } else {
+        } else if message is error {
             return self.returnErrorResponse(message);
+        } else {
+            string errorMsg = "invalid response body type. expected one of the types: http:ResponseMessage|http:StatusCodeResponse|error";
+            panic error ListenerError(errorMsg);
         }
     }
 
@@ -164,7 +167,7 @@ public isolated client class Caller {
             if returnMediaType is string && !response.hasHeader(CONTENT_TYPE) {
                 response.setHeader(CONTENT_TYPE, returnMediaType);
             }
-        } else {
+        } else if message is anydata {
             setPayload(message, response, returnMediaType, setETag, links);
             if returnMediaType is string {
                 response.setHeader(CONTENT_TYPE, returnMediaType);
@@ -173,6 +176,9 @@ public isolated client class Caller {
                 response.statusCode = STATUS_CREATED;
             }
             cacheCompatibleType = true;
+        } else {
+            string errorMsg = "invalid response body type. expected one of the types: anydata|http:StatusCodeResponse|http:Response";
+            panic error ListenerError(errorMsg);
         }
         if cacheCompatibleType && (cacheConfig is HttpCacheConfig) {
             ResponseCacheControl responseCacheControl = new;
