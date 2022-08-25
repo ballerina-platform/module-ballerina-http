@@ -401,7 +401,7 @@ function testHeaderObjectBinding() {
     http:Response|error response = headerBindingClient->get("/headerparamservice/q4", headers);
     if response is http:Response {
         json expected = { val1: "World", val2: "Write", val3: true, val4: ["All", "Ballerina"],
-                                val5: ["bar", "baz", "connection", "daz", "Foo", "host", "X-Type"]};
+                                val5: ["bar", "baz", "connection", "daz", "Foo", "host", "user-agent", "X-Type"]};
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
