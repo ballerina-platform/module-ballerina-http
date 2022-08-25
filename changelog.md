@@ -19,6 +19,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Changed
 - [Update default response status as HTTP 201 for POST resources](https://github.com/ballerina-platform/ballerina-standard-library/issues/2469)
 
+
+### Fixed
+- [User-Agent header is set to a default value or empty in http post request](https://github.com/ballerina-platform/ballerina-standard-library/issues/3283)
+
 ## [2.3.0] - 2022-05-30
 
 ### Added
