@@ -273,6 +273,16 @@ service /headerRecord on HeaderBindingEP {
         }
         return { header1 : j1, header2 : j2, header3 : j3, header4 : j4};
     }
+
+    resource function post userAgentWithPayload(@http:Payload string payloadVal,
+            @http:Header {name: "user-agent"} string? userAgent) returns json {
+        return {"hello": userAgent};
+    }
+
+    resource function get userAgentWithRequest(http:Request req,
+            @http:Header {name: "user-agent"} string? userAgent) returns json {
+        return {"hello": userAgent};
+    }
 }
 
 @test:Config {}
@@ -693,4 +703,14 @@ function testHeaderParamsCastingError() returns error? {
         {"daid" : ["3.4", "5.6", "hello", "8"]});
     test:assertEquals(response.statusCode, 400);
     assertTextPayload(response.getTextPayload(), "header binding failed for parameter: 'daid'");
+}
+
+@test:Config {}
+function userAgentHeaderBindingTest() returns error? {
+    json response = check headerBindingClient->post("/headerRecord/userAgentWithPayload", "world",
+        {"user-agent": "slbeta3"});
+    assertJsonValue(response, "hello", "slbeta3");
+
+    response = check headerBindingClient->get("/headerRecord/userAgentWithRequest", {"user-agent": "slbeta4"});
+    assertJsonValue(response, "hello", "slbeta4");
 }
