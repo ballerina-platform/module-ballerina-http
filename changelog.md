@@ -7,6 +7,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Fixed
+- [User-Agent header is set to a default value or empty in http post request](https://github.com/ballerina-platform/ballerina-standard-library/issues/3283)
+
+## [2.3.0] - 2022-05-30
+
 ### Added
 - [Introduce response and response error interceptors](https://github.com/ballerina-platform/ballerina-standard-library/issues/2684)
 - [Allow records to be annotated with @http:Header](https://github.com/ballerina-platform/ballerina-standard-library/issues/2699)
