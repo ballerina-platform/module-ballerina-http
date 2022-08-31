@@ -1759,8 +1759,8 @@ public type Link record {
 };
 ```
 
-This `Links` is generated from the `linkedTo` field in the `ResourceConfig` annotation, and added either to the 
-payload or as a `Link` header depends on the payload type. This `Links` will not be added when a `http:Response` is 
+This `Links` is generated from the `linkedTo` field in the `ResourceConfig` annotation and added either to the 
+payload or as a `Link` header depending on the payload type. This `Links` will not be added when an `http:Response` is 
 returned.
 
 #### 7.2.1 LinkedTo record
@@ -1830,9 +1830,9 @@ service on new http:Listener(port) {
 ```
 
 #### 7.2.2 Links in the response
-The static `Links` generated from the `linkedTo` field will be injected to the json payload when it is not 
+The static `Links` generated from the `linkedTo` field will be injected into the JSON payload when it is not 
 a closed record and not `readonly`. Suppose the user returns the below record type, the runtime will inject the `Links` 
-record as in the latter. So the response should be considered as a record with `Links` field.
+record as in the latter. Therefore, the response should be considered as a record with the `Links` field.
 
 ```ballerina
 public type 'Order record {
@@ -2494,7 +2494,8 @@ http:Client c = check new ("https://localhost:9090",
 );
 
 public function main() returns error? {
-    json response = check c->get("/foo/bar");
+    http:Request req = new;
+    json response = check c->post("/foo/bar", req);
     // evaluate response
 }
 ```
@@ -2511,7 +2512,8 @@ http:Client c = check new ("https://localhost:9090",
 );
 
 public function main() returns error? {
-    json response = check c->get("/foo/bar");
+    http:Request req = new;
+    json response = check c->post("/foo/bar", req);
     // evaluate response
 }
 ```
@@ -2537,7 +2539,8 @@ http:Client c = check new ("https://localhost:9090",
 );
 
 public function main() returns error? {
-    json response = check c->get("/foo/bar");
+    http:Request req = new;
+    json response = check c->post("/foo/bar", req);
     // evaluate response
 }
 ```
@@ -2552,7 +2555,8 @@ http:Client c = check new ("https://localhost:9090",
 );
 
 public function main() returns error? {
-    json response = check c->get("/foo/bar");
+    http:Request req = new;
+    json response = check c->post("/foo/bar", req);
     // evaluate response
 }
 ```
@@ -2569,7 +2573,8 @@ http:OAuth2ClientCredentialsGrantConfig config = {
 http:Client c = check new ("https://localhost:9090", auth = config);
 
 public function main() returns error? {
-    json response = check c->get("/foo/bar");
+    http:Request req = new;
+    json response = check c->post("/foo/bar", req);
     // evaluate response
 }
 ```
@@ -2590,11 +2595,11 @@ http:ListenerFileUserStoreBasicAuthHandler handler = new (config);
 service /foo on new http:Listener(9090) {
     resource function post bar(@http:Header string Authorization) returns string|http:Unauthorized|http:Forbidden {
         auth:UserDetails|http:Unauthorized authn = handler.authenticate(Authorization);
-        if (authn is http:Unauthorized) {
+        if authn is http:Unauthorized {
             return authn;
         }
         http:Forbidden? authz = handler.authorize(<auth:UserDetails>authn, "admin");
-        if (authz is http:Forbidden) {
+        if authz is http:Forbidden {
             return authz;
         }
         // business logic
@@ -2643,11 +2648,11 @@ http:ListenerLdapUserStoreBasicAuthHandler handler = new (config);
 service /foo on new http:Listener(9090) {
     resource function post bar(@http:Header string Authorization) returns string|http:Unauthorized|http:Forbidden {
         auth:UserDetails|http:Unauthorized authn = handler->authenticate(Authorization);
-        if (authn is http:Unauthorized) {
+        if authn is http:Unauthorized {
             return authn;
         }
         http:Forbidden? authz = handler->authorize(<auth:UserDetails>authn, "admin");
-        if (authz is http:Forbidden) {
+        if authz is http:Forbidden {
             return authz;
         }
         // business logic
@@ -2672,11 +2677,11 @@ http:ListenerJwtAuthHandler handler = new (config);
 service /foo on new http:Listener(9090) {
     resource function post bar(@http:Header string Authorization) returns string|http:Unauthorized|http:Forbidden {
         jwt:Payload|http:Unauthorized authn = handler.authenticate(Authorization);
-        if (authn is http:Unauthorized) {
+        if authn is http:Unauthorized {
             return authn;
         }
         http:Forbidden? authz = handler.authorize(<jwt:Payload>authn, "admin");
-        if (authz is http:Forbidden) {
+        if authz is http:Forbidden {
             return authz;
         }
         // business logic
@@ -2696,7 +2701,7 @@ http:ListenerOAuth2Handler handler = new (config);
 service /foo on new http:Listener(9090) {
     resource function post bar(@http:Header string authorization) returns string|http:Unauthorized|http:Forbidden {
         oauth2:IntrospectionResponse|http:Unauthorized|http:Forbidden auth = handler->authorize(authorization, "admin");
-        if (auth is http:Unauthorized || auth is http:Forbidden) {
+        if auth is http:Unauthorized || auth is http:Forbidden {
             return auth;
         }
         // business logic
@@ -2718,7 +2723,7 @@ http:Client c = check new ("https://localhost:9090");
 public function main() returns error? {
     http:Request req = new;
     req = check handler.enrich(req);
-    json response = check c->get("/foo/bar");
+    json response = check c->post("/foo/bar", req);
     // evaluate response
 }
 ```
@@ -2738,7 +2743,7 @@ http:Client c = check new ("https://localhost:9090");
 public function main() returns error? {
     http:Request req = new;
     req = check handler.enrich(req);
-    json response = check c->get("/foo/bar");
+    json response = check c->post("/foo/bar", req);
     // evaluate response
 }
 ```
@@ -2764,7 +2769,7 @@ http:Client c = check new ("https://localhost:9090");
 public function main() returns error? {
     http:Request req = new;
     req = check handler.enrich(req);
-    json response = check c->get("/foo/bar");
+    json response = check c->post("/foo/bar", req);
     // evaluate response
 }
 ```
@@ -2782,7 +2787,7 @@ http:Client c = check new ("https://localhost:9090");
 public function main() returns error? {
     http:Request req = new;
     req = check handler.enrich(req);
-    json response = check c->get("/foo/bar");
+    json response = check c->post("/foo/bar", req);
     // evaluate response
 }
 ```
@@ -2802,7 +2807,7 @@ http:Client c = check new ("https://localhost:9090");
 public function main() returns error? {
     http:Request req = new;
     req = check handler->enrich(req);
-    json response = check c->get("/foo/bar");
+    json response = check c->post("/foo/bar", req);
     // evaluate response
 }
 ```
@@ -2876,7 +2881,8 @@ http:Client securedEP = check new("https://localhost:9090",
 );
 
 public function main() returns error? {
-    string response = check securedEP->get("/foo/bar");
+    http:Request req = new;
+    string response = check securedEP->post("/foo/bar", req);
     io:println(response);
 }
 ```
@@ -2899,7 +2905,8 @@ http:Client securedEP = check new("https://localhost:9090",
     }
 );
 public function main() returns error? {
-    string response = check securedEP->get("/foo/bar");
+    http:Request req = new;
+    string response = check securedEP->post("/foo/bar", req);
     io:println(response);
 }
 ```
