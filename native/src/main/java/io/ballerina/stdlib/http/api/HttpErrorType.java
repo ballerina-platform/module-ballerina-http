@@ -72,8 +72,8 @@ public enum HttpErrorType {
     REQ_DISPATCHING_ERROR("RequestDispatchingError"),
     SERVICE_DISPATCHING_ERROR("ServiceDispatchingError"),
     RESOURCE_DISPATCHING_ERROR("ResourceDispatchingError"),
-    LISTENER_AUTHZ_ERROR("ListenerAuthzError"),
-    LISTENER_AUTHN_ERROR("ListenerAuthnError");
+    INTERNAL_LISTENER_AUTHZ_ERROR("InternalListenerAuthzError"),
+    INTERNAL_LISTENER_AUTHN_ERROR("InternalListenerAuthnError");
 
     private final String errorName;
 
