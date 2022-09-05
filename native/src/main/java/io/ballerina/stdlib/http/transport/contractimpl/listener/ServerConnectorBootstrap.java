@@ -32,17 +32,21 @@ import io.ballerina.stdlib.http.transport.contractimpl.common.ssl.SSLHandlerFact
 import io.ballerina.stdlib.http.transport.internal.HandlerExecutor;
 import io.ballerina.stdlib.http.transport.internal.HttpTransportContextHolder;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.group.ChannelGroup;
+import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.ssl.SslContext;
 import io.netty.util.concurrent.EventExecutorGroup;
+import io.netty.util.concurrent.GlobalEventExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.util.Objects;
 
 import javax.net.ssl.SSLContext;
 
@@ -60,12 +64,13 @@ public class ServerConnectorBootstrap {
     private boolean initialized;
     private boolean isHttps = false;
     private ChannelGroup allChannels;
+    private final ChannelGroup listenerChannels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);;
     private int gracefulStopTimeout = 0;
 
     public ServerConnectorBootstrap(ChannelGroup allChannels) {
         serverBootstrap = new ServerBootstrap();
         httpServerChannelInitializer = new HttpServerChannelInitializer();
-        httpServerChannelInitializer.setAllChannels(allChannels);
+        httpServerChannelInitializer.setAllChannels(allChannels, listenerChannels);
         serverBootstrap.childHandler(httpServerChannelInitializer);
         HttpTransportContextHolder.getInstance().setHandlerExecutor(new HandlerExecutor());
         initialized = true;
@@ -190,6 +195,10 @@ public class ServerConnectorBootstrap {
         httpServerChannelInitializer.setWebSocketCompressionEnabled(webSocketCompressionEnabled);
     }
 
+    public ChannelGroup getListenerChannels() {
+        return listenerChannels;
+    }
+
     public void setGracefulStopTimeout(int gracefulStopTimeout) {
         this.gracefulStopTimeout = gracefulStopTimeout;
     }
@@ -198,11 +207,11 @@ public class ServerConnectorBootstrap {
 
        private final Logger log = LoggerFactory.getLogger(HttpServerConnector.class);
 
-        private ChannelFuture channelFuture;
         private ServerConnectorFuture serverConnectorFuture;
         private String host;
         private int port;
         private String connectorID;
+        private Channel serverChannel;
 
         HttpServerConnector(String id, String host, int port) {
             this.host = host;
@@ -213,7 +222,10 @@ public class ServerConnectorBootstrap {
 
         @Override
         public ServerConnectorFuture start() {
-            channelFuture = bindInterface();
+            ChannelFuture channelFuture = bindInterface();
+            if (Objects.nonNull(channelFuture)) {
+                serverChannel = channelFuture.channel();
+            }
             serverConnectorFuture = new HttpWsServerConnectorFuture(channelFuture, allChannels);
             channelFuture.addListener(future -> {
                 if (future.isSuccess()) {
@@ -259,8 +271,8 @@ public class ServerConnectorBootstrap {
             return this.connectorID;
         }
 
-        private ChannelFuture getChannelFuture() {
-            return channelFuture;
+        private Channel getServerChannel() {
+            return serverChannel;
         }
 
         @Override
@@ -291,12 +303,17 @@ public class ServerConnectorBootstrap {
             }
 
             //Remove cached channels and close them.
-            ChannelFuture future = getChannelFuture();
-            if (future != null) {
+            Channel listenerChannel = getServerChannel();
+            if (listenerChannel != null) {
                 //Close will stop accepting new connections.
-                ChannelFuture closeFuture = future.channel().close();
-                Thread.sleep(gracefulStopTimeout);
-                closeFuture.sync();
+                ChannelFuture closeFuture = listenerChannel.close().sync();
+                closeFuture.addListener(future -> {
+                    if (future.isSuccess()) {
+                        Thread.sleep(gracefulStopTimeout);
+                        //Close will close existing connections after above grace period.
+                        getListenerChannels().close().sync();
+                    }
+                });
                 if (log.isDebugEnabled()) {
                     log.debug("HttpConnectorListener stopped listening on host {} and port {}", getHost(), getPort());
                 }
