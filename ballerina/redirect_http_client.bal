@@ -99,8 +99,10 @@ client isolated class RedirectClient {
         var result = self.performRedirectIfEligible(path, <Request>message, HTTP_GET);
         if result is HttpFuture {
             return getInvalidTypeError();
-        } else {
+        } else if result is Response || result is ClientError {
             return result;
+        } else {
+            panic error ClientError("invalid response type received");
         }
     }
 
@@ -115,8 +117,10 @@ client isolated class RedirectClient {
         var result =  self.performRedirectIfEligible(path, <Request>message, HTTP_POST);
         if result is HttpFuture {
             return getInvalidTypeError();
-        } else {
+        } else if result is Response || result is ClientError {
             return result;
+        } else {
+            panic error ClientError("invalid response type received");
         }
     }
 
@@ -130,8 +134,10 @@ client isolated class RedirectClient {
         var result = self.performRedirectIfEligible(path, <Request>message, HTTP_HEAD);
         if result is HttpFuture {
             return getInvalidTypeError();
-        } else {
+        } else if result is Response || result is ClientError {
             return result;
+        } else {
+            panic error ClientError("invalid response type received");
         }
     }
 
@@ -145,8 +151,10 @@ client isolated class RedirectClient {
         var result = self.performRedirectIfEligible(path, <Request>message, HTTP_PUT);
         if result is HttpFuture {
             return getInvalidTypeError();
-        } else {
+        } else if result is Response || result is ClientError {
             return result;
+        } else {
+            panic error ClientError("invalid response type received");
         }
     }
 
@@ -175,8 +183,10 @@ client isolated class RedirectClient {
             var result = self.performRedirectIfEligible(path, request, extractHttpOperation(httpVerb));
             if result is HttpFuture {
                 return getInvalidTypeError();
-            } else {
+            } else if result is Response || result is ClientError {
                 return result;
+            } else {
+                panic error ClientError("invalid response type received");
             }
         }
     }
@@ -191,8 +201,10 @@ client isolated class RedirectClient {
         var result = self.performRedirectIfEligible(path, <Request>message, HTTP_PATCH);
         if result is HttpFuture {
             return getInvalidTypeError();
-        } else {
+        } else if result is Response || result is ClientError {
             return result;
+        } else {
+            panic error ClientError("invalid response type received");
         }
     }
 
@@ -206,8 +218,10 @@ client isolated class RedirectClient {
         var result = self.performRedirectIfEligible(path, <Request>message, HTTP_DELETE);
         if result is HttpFuture {
             return getInvalidTypeError();
-        } else {
+        } else if result is Response || result is ClientError {
             return result;
+        } else {
+            panic error ClientError("invalid response type received");
         }
     }
 
@@ -221,8 +235,10 @@ client isolated class RedirectClient {
         var result = self.performRedirectIfEligible(path, <Request>message, HTTP_OPTIONS);
         if result is HttpFuture {
             return getInvalidTypeError();
-        } else {
+        } else if result is Response || result is ClientError {
             return result;
+        } else {
+            panic error ClientError("invalid response type received");
         }
     }
 

@@ -273,6 +273,16 @@ service /headerRecord on HeaderBindingEP {
         }
         return { header1 : j1, header2 : j2, header3 : j3, header4 : j4};
     }
+
+    resource function post userAgentWithPayload(@http:Payload string payloadVal,
+            @http:Header {name: "user-agent"} string? userAgent) returns json {
+        return {"hello": userAgent};
+    }
+
+    resource function get userAgentWithRequest(http:Request req,
+            @http:Header {name: "user-agent"} string? userAgent) returns json {
+        return {"hello": userAgent};
+    }
 }
 
 @test:Config {}
@@ -391,7 +401,7 @@ function testHeaderObjectBinding() {
     http:Response|error response = headerBindingClient->get("/headerparamservice/q4", headers);
     if response is http:Response {
         json expected = { val1: "World", val2: "Write", val3: true, val4: ["All", "Ballerina"],
-                                val5: ["bar", "baz", "connection", "daz", "Foo", "host", "X-Type"]};
+                                val5: ["bar", "baz", "connection", "daz", "Foo", "host", "user-agent", "X-Type"]};
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -401,7 +411,8 @@ function testHeaderObjectBinding() {
     response = headerBindingClient->get("/headerparamservice/q4", headers2);
     if response is http:Response {
         json expected = { val1: "foo header not found", val2: "Http header does not exist", val3: false,
-                                val4: ["Http header does not exist"],  val5: ["bar", "connection", "host", "X-Type"]};
+                                val4: ["Http header does not exist"],
+                                val5: ["bar", "connection", "host", "user-agent", "X-Type"]};
         assertJsonPayloadtoJsonString(response.getJsonPayload(), expected);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -693,4 +704,14 @@ function testHeaderParamsCastingError() returns error? {
         {"daid" : ["3.4", "5.6", "hello", "8"]});
     test:assertEquals(response.statusCode, 400);
     assertTextPayload(response.getTextPayload(), "header binding failed for parameter: 'daid'");
+}
+
+@test:Config {}
+function userAgentHeaderBindingTest() returns error? {
+    json response = check headerBindingClient->post("/headerRecord/userAgentWithPayload", "world",
+        {"user-agent": "slbeta3"});
+    assertJsonValue(response, "hello", "slbeta3");
+
+    response = check headerBindingClient->get("/headerRecord/userAgentWithRequest", {"user-agent": "slbeta4"});
+    assertJsonValue(response, "hello", "slbeta4");
 }
