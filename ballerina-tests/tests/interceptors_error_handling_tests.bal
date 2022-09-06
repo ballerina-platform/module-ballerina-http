@@ -262,7 +262,8 @@ service /auth on authErrorHandlingServerEP {
     }
 }
 
-@test:Config{}
+// Disabled due to https://github.com/ballerina-platform/ballerina-standard-library/issues/3318
+@test:Config{enable: false}
 function testAuthnError() returns error? {
     http:Client clientEP = check new("https://localhost:" + authErrorHandlingTestPort.toString(),
         httpVersion = http:HTTP_1_1,
