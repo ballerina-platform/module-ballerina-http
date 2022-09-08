@@ -8,6 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+- [Kill the application when a resource function panics](https://github.com/ballerina-platform/ballerina-standard-library/issues/2714)
+- [Add a grace period for graceful stop of the listener](https://github.com/ballerina-platform/ballerina-standard-library/issues/3277)
+
+### Changed
+- [Reduce Listener default timeout to 60s and Client default timeout to 30s](https://github.com/ballerina-platform/ballerina-standard-library/issues/3278)
+
+## [2.4.0] - 2022-09-08
+
+### Added
 - [Implement immediateStop in HTTP listener](https://github.com/ballerina-platform/ballerina-standard-library/issues/1794)
 - [Add initial support for HATEOAS](https://github.com/ballerina-platform/ballerina-standard-library/issues/2391)
 - [Add IP address to both local and remote addresses](https://github.com/ballerina-platform/ballerina-standard-library/issues/3085)
@@ -15,11 +24,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Make http2 the default transport in http](https://github.com/ballerina-platform/ballerina-standard-library/issues/454)
 - [Add support for client resource methods in HTTP client](https://github.com/ballerina-platform/ballerina-standard-library/issues/3102)
 - [Add constraint validation to HTTP payload binding](https://github.com/ballerina-platform/ballerina-standard-library/issues/3108)
-- [Kill the application when a resource function panics](https://github.com/ballerina-platform/ballerina-standard-library/issues/2714)
 
 ### Changed
 - [Update default response status as HTTP 201 for POST resources](https://github.com/ballerina-platform/ballerina-standard-library/issues/2469)
-
 
 ### Fixed
 - [User-Agent header is set to a default value or empty in http post request](https://github.com/ballerina-platform/ballerina-standard-library/issues/3283)

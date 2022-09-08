@@ -98,6 +98,7 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
         serverConnectorBootstrap.addChunkingBehaviour(listenerConfig.getChunkConfig());
         serverConnectorBootstrap.addKeepAliveBehaviour(listenerConfig.getKeepAliveConfig());
         serverConnectorBootstrap.addServerHeader(listenerConfig.getServerHeader());
+        serverConnectorBootstrap.setGracefulStopTimeout(listenerConfig.getGracefulStopTimeout());
 
         serverConnectorBootstrap.setPipeliningEnabled(listenerConfig.isPipeliningEnabled());
         serverConnectorBootstrap.setWebSocketCompressionEnabled(listenerConfig.isWebSocketCompressionEnabled());
