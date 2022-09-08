@@ -103,6 +103,12 @@ public type ListenerAuthnError distinct ListenerAuthError;
 # Defines the authorization error types that returned from listener.
 public type ListenerAuthzError distinct ListenerAuthError;
 
+# Defined for internal use when panicing from the auth_desugar
+type InternalListenerAuthnError distinct ListenerAuthError;
+
+# Defined for internal use when panicing from the auth_desugar
+type InternalListenerAuthzError distinct ListenerAuthError;
+
 # Defines the client error types that returned while sending outbound request.
 public type OutboundRequestError distinct ClientError;
 

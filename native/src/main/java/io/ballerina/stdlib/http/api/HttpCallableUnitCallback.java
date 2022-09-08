@@ -117,12 +117,16 @@ public class HttpCallableUnitCallback implements Callback {
         invokeBalMethod(paramFeed, "returnErrorResponse");
     }
 
-    private void invokeBalMethod(Object[] paramFeed, String methodName) {
+    public void invokeBalMethod(Object[] paramFeed, String methodName) {
         Callback returnCallback = new Callback() {
             @Override
             public void notifySuccess(Object result) {
                 stopObserverContext();
                 printStacktraceIfError(result);
+                Object isPanic = requestMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_PANIC_ERROR);
+                if (Objects.nonNull(isPanic) && (boolean) isPanic) {
+                    System.exit(0);
+                }
             }
 
             @Override
@@ -149,10 +153,12 @@ public class HttpCallableUnitCallback implements Callback {
     public void notifyFailure(BError error) { // handles panic and check_panic
         cleanupRequestMessage();
         // This check is added to update the status code with respect to the auth errors.
-        if (error.getType().getName().equals(HttpErrorType.LISTENER_AUTHN_ERROR.getErrorName())) {
+        if (error.getType().getName().equals(HttpErrorType.INTERNAL_LISTENER_AUTHN_ERROR.getErrorName())) {
             requestMessage.setHttpStatusCode(401);
-        } else if (error.getType().getName().equals(HttpErrorType.LISTENER_AUTHZ_ERROR.getErrorName())) {
+        } else if (error.getType().getName().equals(HttpErrorType.INTERNAL_LISTENER_AUTHZ_ERROR.getErrorName())) {
             requestMessage.setHttpStatusCode(403);
+        } else {
+            requestMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_PANIC_ERROR, true);
         }
         if (alreadyResponded(error)) {
             return;

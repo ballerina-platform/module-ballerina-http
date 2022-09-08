@@ -103,6 +103,7 @@ The conforming implementation of the specification is released and included in t
       * 8.2.2. [Error types](#822-error-types)
       * 8.2.3. [Trace log](#823-trace-log)
       * 8.2.4. [Access log](#824-access-log)
+      * 8.2.5. [Panic inside resource](#825-panic-inside-resource)
 9. [Security](#9-security)
     * 9.1. [Authentication and Authorization](#91-authentication-and-authorization)
         * 9.1.1. [Declarative Approach](#911-declarative-approach)
@@ -2338,6 +2339,12 @@ console = true              # Default is false
 # Specify the file path to save the access logs  
 path = "testAccessLog.txt"  # Optional
 ```
+
+#### 8.2.5 Panic inside resource
+
+Ballering consider panic as a catastrophic error and non recoverable. Hence immediate application termination is 
+performed to fail fast after responding to the request. This behaviour will be more useful in cloud environments as 
+well.
 
 ## 9. Security
 
