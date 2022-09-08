@@ -134,13 +134,13 @@ function testAvailabilityOfAttachedImmediateService() returns error? {
 }
 
 @test:Config {dependsOn:[testAvailabilityOfAttachedImmediateService]}
-function testImmediateStopMethod() {
+function testImmediateStopMethod() returns error? {
     runtime:sleep(5);
     http:Response|error response = backendImmediateStopTestClient->get("/mock3");
     if response is error {
         test:assertEquals(response.message(), "Remote host closed the connection before initiating inbound response");
     } else {
-        test:assertFail(msg = "Found unexpected output type: http:Response");
+        assertTextPayload(check response.getTextPayload(), "Mock3 invoked!");
     }
 }
 
