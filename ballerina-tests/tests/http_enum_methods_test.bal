@@ -108,3 +108,13 @@ public function testHttpEnumMethods() {
         test:assertFail("Found unexpected output");
     }
 }
+
+@test:Config{}
+public function testMixedCaseMethods() returns error? {
+    string payload = check clientEPTest->execute("get", "/test", "testMsg");
+    test:assertEquals(payload, "GetTest");
+    payload = check clientEPTest->execute("Get", "/test", "testMsg");
+    test:assertEquals(payload, "GetTest");
+    payload = check clientEPTest->execute("gEt", "/test", "testMsg");
+    test:assertEquals(payload, "GetTest");
+}

@@ -103,6 +103,7 @@ The conforming implementation of the specification is released and included in t
       * 8.2.2. [Error types](#822-error-types)
       * 8.2.3. [Trace log](#823-trace-log)
       * 8.2.4. [Access log](#824-access-log)
+      * 8.2.5. [Panic inside resource](#825-panic-inside-resource)
 9. [Security](#9-security)
     * 9.1. [Authentication and Authorization](#91-authentication-and-authorization)
         * 9.1.1. [Declarative Approach](#911-declarative-approach)
@@ -145,7 +146,23 @@ In addition to functional requirements, this library deals with nonfunctional re
 ### 2.1. Listener
 The HTTP listener object receives network data from a remote process according to the HTTP transport protocol and 
 translates the received data into invocations on the resources functions of services that have been 
-attached to the listener object. The listener provides the interface between network and services.
+attached to the listener object. The listener provides the interface between network and services. When initiating
+the listener, the port is a compulsory parameter whereas the second parameter is the listenerConfiguration which
+changes the behaviour of the listener based on the requirement. By default, HTTP listener supports
+HTTP2 version.
+
+```ballerina
+public type ListenerConfiguration record {|
+    string host = "0.0.0.0";
+    ListenerHttp1Settings http1Settings = {};
+    ListenerSecureSocket? secureSocket = ();
+    HttpVersion httpVersion = HTTP_2_0;
+    decimal timeout = DEFAULT_LISTENER_TIMEOUT;
+    string? server = ();
+    RequestLimitConfigs requestLimits = {};
+    Interceptor[] interceptors?;
+|};
+```
 
 As defined in [Ballerina 2021R1 Section 5.7.4](https://ballerina.io/spec/lang/2021R1/#section_5.7.4) the Listener has 
 the object constructor and life cycle methods such as attach(), detach(), 'start(), gracefulStop(), and immediateStop().
@@ -158,8 +175,7 @@ attach() and start() methods. HTTP listener can be declared as follows honoring 
 ```ballerina
 // Listener object constructor
 listener http:Listener serviceListener = new(9090);
-```
-```ballerina
+
 // Service attaches to the Listener
 service http:Service /foo/bar on serviceListener {
     resource function get sayHello(http:Caller caller) {}
@@ -171,11 +187,11 @@ service http:Service /foo/bar on serviceListener {
 Users can programmatically start the listener by calling each lifecycle method as follows.
 
 ```ballerina
+// Listener object constructor
+listener http:Listener serviceListener = new(9090);
+
 public function main() {
-    // Listener object constructor
-    listener http:Listener serviceListener = new(9090);
-    
-    error? err1 = serviceListener.attach(s, “/foo/bar”);
+    error? err1 = serviceListener.attach(s, "/foo/bar");
     error? err2 = serviceListener.start();
     //...
     error? err3 = serviceListener.gracefulStop();
@@ -183,7 +199,7 @@ public function main() {
 
 http:Service s = service object {
     resource function get sayHello(http:Caller caller) {}
-}
+};
 ```
 
 ### 2.2. Service
@@ -208,15 +224,13 @@ defaulted to `/` when not defined. If the base path contains any special charact
 as string literals
 
 ```ballerina
-service hello\-world new http:Listener(9090) {
+service /hello\-world on new http:Listener(9090) {
    resource function get foo() {
-
    }
 }
 
-service http:Service "hello-world" new http:Listener(9090) {
+service http:Service "hello-world" on new http:Listener(9090) {
    resource function get foo() {
-
    }
 }
 ```
@@ -249,13 +263,12 @@ service isolated class SClass {
    }
 }
 
-public function main() returns error? {
-   http:Listener serviceListener = check new (9090);
+listener http:Listener serviceListener = check new (9090);
+
+public function main() {
    http:Service httpService = new SClass();
-   
    error? err1 = serviceListener.attach(httpService, ["foo", "bar"]);
    error? err2 = serviceListener.'start();
-   runtime:registerListener(serviceListener);
 }
 ```
 
@@ -273,7 +286,6 @@ http:Service httpService = @http:ServiceConfig {} service object {
 public function main() {
    error? err1 = serviceListener.attach(httpService, "/foo/bar");
    error? err2 = serviceListener.start();
-   runtime:registerListener(serviceListener);
 }
 ```
 
@@ -333,7 +345,7 @@ resource function get data/[int age]/[string name]/[boolean status]/[float weigh
    int balAge = age + 1;
    float balWeight = weight + 2.95;
    string balName = name + " lang";
-   if (status) {
+   if status {
        balName = name;
    }
    json responseJson = { Name:name, Age:balAge, Weight:balWeight, Status:status, Lang: balName};
@@ -415,7 +427,7 @@ denoted in the CallerInfo annotation. At the moment, in terms of responding erro
 ```ballerina
 resource function post foo(@http:CallerInfo {respondType:Person}  http:Caller hc) {
     Person p = {};
-    hc->respond(p);
+    error? result = hc->respond(p);
 }
 ```
 
@@ -472,7 +484,7 @@ not present in the request. In order to avoid the missing detail, a service leve
 @http:ServiceConfig {
     treatNilableAsOptional : false
 }
-service /queryparamservice on QueryBindingIdealEP {
+service /queryparamservice on new http:Listener(9090) {
 
     resource function get test1(string foo, int bar) returns json {
         json responseJson = { value1: foo, value2: bar};
@@ -672,9 +684,9 @@ typed param in the signature. It does not need the annotation and not ordered.
 
 ```ballerina
 resource function get hello3(http:Headers headers) {
-   String|error referer = headers.getHeader("Referer");
-   String[]|error accept = headers.getHeaders("Accept");
-   String[] keys = headers.getHeaderNames();
+    string|http:HeaderNotFoundError referer = headers.getHeader("Referer");
+    string[]|http:HeaderNotFoundError accept = headers.getHeaders("Accept");
+    string[] keys = headers.getHeaderNames();
 }
 ```
 
@@ -797,7 +809,6 @@ Following is the `http:Ok` definition. Likewise, all the status codes are provid
 
 ```ballerina
 public type Ok record {
-   readonly StatusOk status;
    string mediaType;
    map<string|string[]> headers?;
    anydata body?;
@@ -871,7 +882,7 @@ Sample service
 import ballerina/http;
 
 service /hello on new http:Listener(9090) {
-    resource function get greeting() returns string{
+    resource function get greeting() returns string {
         return "Hello world";
     }
 }
@@ -979,11 +990,11 @@ http:Client clientEP = check new ("http://localhost:9090", { httpVersion: "2.0" 
 ```
 
 #### 2.4.1 Client types
-The client configuration can be used to enhance the client behaviour.
+The client configuration can be used to enhance the client behaviour. By default HTTP client supports HTTP2 version.
 
 ```ballerina
 public type ClientConfiguration record {|
-    string httpVersion = HTTP_1_1;
+    string httpVersion = HTTP_2_0;
     ClientHttp1Settings http1Settings = {};
     ClientHttp2Settings http2Settings = {};
     decimal timeout = 60;
@@ -998,6 +1009,8 @@ public type ClientConfiguration record {|
     CookieConfig? cookieConfig = ();
     ResponseLimitConfigs responseLimits = {};
     ClientSecureSocket? secureSocket = ();
+    ProxyConfig? proxy = ();
+    boolean validation = true;
 |};
 ```
 
@@ -2326,6 +2339,12 @@ console = true              # Default is false
 # Specify the file path to save the access logs  
 path = "testAccessLog.txt"  # Optional
 ```
+
+#### 8.2.5 Panic inside resource
+
+Ballering consider panic as a catastrophic error and non recoverable. Hence immediate application termination is 
+performed to fail fast after responding to the request. This behaviour will be more useful in cloud environments as 
+well.
 
 ## 9. Security
 
