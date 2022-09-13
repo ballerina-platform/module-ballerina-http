@@ -26,9 +26,10 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "cache"
-version = "3.2.2"
+version = "3.3.0"
 scope = "testOnly"
 dependencies = [
+	{org = "ballerina", name = "constraint"},
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "task"},
 	{org = "ballerina", name = "time"}
