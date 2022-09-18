@@ -37,8 +37,9 @@ public interface ServerConnector {
 
     /**
      * Stop the server connector immediately.
+     * @return state of action.
      */
-    void immediateStop();
+    boolean immediateStop();
 
     /**
      * Returns the unique ID of the server-connector.

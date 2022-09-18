@@ -30,8 +30,12 @@ const string HTTP_SCHEME = "http://";
 # Represents https protocol scheme
 const string HTTPS_SCHEME = "https://";
 
-# Constant for the default listener endpoint timeout
-const decimal DEFAULT_LISTENER_TIMEOUT = 120; //2 mins
+# Constant for the default listener endpoint timeout in seconds
+public const decimal DEFAULT_LISTENER_TIMEOUT = 60;
+
+//TODO change following config to 10s once https://github.com/ballerina-platform/ballerina-lang/issues/37630 is fixed
+# Constant for the default listener gracefulStop timeout in seconds
+public const decimal DEFAULT_GRACEFULSTOP_TIMEOUT = 0;
 
 # Constant for the default failover starting index for failover endpoints
 const int DEFAULT_FAILOVER_EP_STARTING_INDEX = 0;

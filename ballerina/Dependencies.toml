@@ -25,8 +25,9 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "cache"
-version = "3.2.2"
+version = "3.3.0"
 dependencies = [
+	{org = "ballerina", name = "constraint"},
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "task"},
 	{org = "ballerina", name = "time"}
@@ -77,7 +78,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "http"
-version = "2.4.0"
+version = "2.4.1"
 dependencies = [
 	{org = "ballerina", name = "auth"},
 	{org = "ballerina", name = "cache"},

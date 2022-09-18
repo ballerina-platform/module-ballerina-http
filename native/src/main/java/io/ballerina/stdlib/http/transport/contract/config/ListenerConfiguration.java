@@ -55,6 +55,7 @@ public class ListenerConfiguration extends SslConfiguration {
     private boolean pipeliningEnabled;
     private boolean webSocketCompressionEnabled;
     private long pipeliningLimit;
+    private int gracefulStopTimeout = 0;
     private int soBackLog;
     private int connectTimeOut;
     private int receiveBufferSize;
@@ -207,6 +208,14 @@ public class ListenerConfiguration extends SslConfiguration {
 
     public void setWebSocketCompressionEnabled(boolean webSocketCompressionEnabled) {
         this.webSocketCompressionEnabled = webSocketCompressionEnabled;
+    }
+
+    public void setGracefulStopTimeout(int gracefulStopTimeout) {
+        this.gracefulStopTimeout = gracefulStopTimeout;
+    }
+
+    public int getGracefulStopTimeout() {
+        return gracefulStopTimeout;
     }
 
     public int getSoBackLog() {

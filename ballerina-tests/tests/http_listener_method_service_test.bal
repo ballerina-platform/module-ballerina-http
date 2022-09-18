@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/http;
+import ballerina/lang.runtime as runtime;
 import ballerina/test;
 
 listener http:Listener listenerMethodListener = new(listenerMethodTestPort1, httpVersion = http:HTTP_1_1);
@@ -22,7 +23,8 @@ final http:Client listenerMethodTestClient = check new("http://localhost:" + lis
 final http:Client backendGraceStopTestClient = check new("http://localhost:" + listenerMethodTestPort2.toString(), httpVersion = http:HTTP_1_1);
 final http:Client backendImmediateStopTestClient = check new("http://localhost:" + listenerMethodTestPort3.toString(), httpVersion = http:HTTP_1_1);
 
-isolated http:Listener listenerMethodGracebackendEP = check new(listenerMethodTestPort2, httpVersion = http:HTTP_1_1);
+isolated http:Listener listenerMethodGracebackendEP = check new(listenerMethodTestPort2, httpVersion = http:HTTP_1_1
+, gracefulStopTimeout = 5);
 isolated http:Listener listenerMethodImmediatebackendEP = check new(listenerMethodTestPort3, httpVersion = http:HTTP_1_1);
 
 service /startService on listenerMethodListener {
@@ -103,8 +105,7 @@ function testGracefulStopMethod() returns error? {
 
 @test:Config {dependsOn:[testGracefulStopMethod]}
 function testInvokingStoppedService() returns error? {
-    final http:Client backendGraceStopTestClient = check new("http://localhost:" + listenerMethodTestPort2.toString(),
-        httpVersion = http:HTTP_1_1, http1Settings = { keepAlive: http:KEEPALIVE_NEVER });
+    runtime:sleep(10);
     http:Response|error response = backendGraceStopTestClient->get("/mock1");
     if response is error {
         // Output depends on the closure time. The error implies that the listener has stopped.
@@ -134,18 +135,17 @@ function testAvailabilityOfAttachedImmediateService() returns error? {
 
 @test:Config {dependsOn:[testAvailabilityOfAttachedImmediateService]}
 function testImmediateStopMethod() returns error? {
+    runtime:sleep(5);
     http:Response|error response = backendImmediateStopTestClient->get("/mock3");
     if response is error {
         test:assertEquals(response.message(), "Remote host closed the connection before initiating inbound response");
     } else {
-        test:assertFail(msg = "Found unexpected output type: http:Response");
+        assertTextPayload(check response.getTextPayload(), "Mock3 invoked!");
     }
 }
 
 @test:Config {dependsOn:[testImmediateStopMethod]}
-function testInvokingStoppedImmediateService() returns error? {
-    final http:Client backendImmediateStopTestClient = check new("http://localhost:" + listenerMethodTestPort2.toString(), 
-        httpVersion = http:HTTP_1_1, http1Settings = { keepAlive: http:KEEPALIVE_NEVER });
+function testInvokingStoppedImmediateService() {
     http:Response|error response = backendImmediateStopTestClient->get("/mock1");
     if response is error {
         // Output depends on the closure time. The error implies that the listener has stopped.

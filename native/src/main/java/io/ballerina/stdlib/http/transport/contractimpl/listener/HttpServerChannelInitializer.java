@@ -31,7 +31,6 @@ import io.ballerina.stdlib.http.transport.contractimpl.listener.http2.Http2ToHtt
 import io.ballerina.stdlib.http.transport.contractimpl.listener.http2.Http2WithPriorKnowledgeHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.CertificateValidationHandler;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
@@ -103,12 +102,12 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
     private int cacheDelay;
     private int cacheSize;
     private ChannelGroup allChannels;
+    private ChannelGroup listenerChannels;
     private boolean ocspStaplingEnabled = false;
     private boolean pipeliningEnabled;
     private long pipeliningLimit;
     private EventExecutorGroup pipeliningGroup;
     private boolean webSocketCompressionEnabled;
-    private Channel pipelineChannel;
 
     @Override
     public void initChannel(SocketChannel ch) throws Exception {
@@ -116,7 +115,6 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
             LOG.debug("Initializing source channel pipeline");
         }
         ChannelPipeline serverPipeline = ch.pipeline();
-        pipelineChannel = serverPipeline.channel();
 
         if (http2Enabled) {
             if (sslHandlerFactory != null) {
@@ -236,7 +234,8 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
         serverPipeline.addLast(Constants.HTTP_SOURCE_HANDLER,
                                new SourceHandler(this.serverConnectorFuture, this.interfaceId, this.chunkConfig,
                                                  keepAliveConfig, this.serverName, this.allChannels,
-                                       this.pipeliningEnabled, this.pipeliningLimit, this.pipeliningGroup));
+                                                 this.listenerChannels, this.pipeliningEnabled, this.pipeliningLimit,
+                                                 this.pipeliningGroup));
         if (socketIdleTimeout >= 0) {
             serverPipeline.addBefore(Constants.HTTP_SOURCE_HANDLER, Constants.IDLE_STATE_HANDLER,
                                      new IdleStateHandler(0, 0, socketIdleTimeout, TimeUnit.MILLISECONDS));
@@ -394,10 +393,6 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
         this.webSocketCompressionEnabled = webSocketCompressionEnabled;
     }
 
-    public Channel getPipelineChannel() {
-        return pipelineChannel;
-    }
-
     /**
      * Handler which handles ALPN.
      */
@@ -456,7 +451,8 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
         }
     }
 
-    void setAllChannels(ChannelGroup allChannels) {
+    void setAllChannels(ChannelGroup allChannels, ChannelGroup listenerChannels) {
         this.allChannels = allChannels;
+        this.listenerChannels = listenerChannels;
     }
 }
