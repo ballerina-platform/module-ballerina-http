@@ -150,6 +150,7 @@ public type Local record {|
 # + server - The server name which should appear as a response header
 # + requestLimits - Configurations associated with inbound request size limits
 # + interceptors - An array of interceptor services
+# + socketConfig - Provides settings related to server socket configuration
 public type ListenerConfiguration record {|
     string host = "0.0.0.0";
     ListenerHttp1Settings http1Settings = {};
@@ -159,6 +160,7 @@ public type ListenerConfiguration record {|
     string? server = ();
     RequestLimitConfigs requestLimits = {};
     Interceptor[] interceptors?;
+    ServerSocketConfig socketConfig = {};
 |};
 
 # Provides a set of cloneable configurations for HTTP listener.
@@ -243,6 +245,27 @@ public type ListenerSecureSocket record {|
     boolean shareSession = true;
     decimal handshakeTimeout?;
     decimal sessionTimeout?;
+|};
+
+# Provides settings related to server socket configuration.
+#
+# + soBackLog - Requested maximum length of the queue of incoming connections.
+# + connectTimeOut - Connect timeout of the channel in seconds. If the Channel does not support connect operation,
+# this property is not used at all, and therefore will be ignored.
+# + receiveBufferSize - The value of the SO_RCVBUF option for this ServerSocket, that is the proposed buffer size
+# that will be used for Sockets accepted from this ServerSocket.
+# + sendBufferSize - Represents the StandardSocketOptions.SO_SNDBUF option.
+# + tcpNoDelay - Represents the StandardSocketOptions.TCP_NODELAY option
+# + socketReuse - Enable/disable the SO_REUSEADDR socket option.
+# + keepAlive - Represents the StandardSocketOptions.SO_KEEPALIVE option.
+public type ServerSocketConfig record {|
+    int soBackLog = 100;
+    decimal connectTimeOut = 15;
+    int receiveBufferSize = 1048576;
+    int sendBufferSize = 1048576;
+    boolean tcpNoDelay = true;
+    boolean socketReuse = false;
+    boolean keepAlive = true;
 |};
 
 # Represents combination of certificate, private key and private key password if encrypted.

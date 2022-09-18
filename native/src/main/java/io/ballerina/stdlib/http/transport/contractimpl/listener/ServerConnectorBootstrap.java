@@ -85,6 +85,8 @@ public class ServerConnectorBootstrap {
         serverBootstrap.childOption(ChannelOption.TCP_NODELAY, serverBootstrapConfiguration.isTcpNoDelay());
         serverBootstrap.childOption(ChannelOption.SO_RCVBUF, serverBootstrapConfiguration.getReceiveBufferSize());
         serverBootstrap.childOption(ChannelOption.SO_SNDBUF, serverBootstrapConfiguration.getSendBufferSize());
+        serverBootstrap.childOption(ChannelOption.SO_KEEPALIVE, serverBootstrapConfiguration.isKeepAlive());
+        serverBootstrap.childOption(ChannelOption.SO_REUSEADDR, serverBootstrapConfiguration.isSocketReuse());
 
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Netty Server Socket BACKLOG %d", serverBootstrapConfiguration.getSoBackLog()));

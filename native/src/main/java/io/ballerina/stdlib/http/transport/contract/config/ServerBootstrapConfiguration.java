@@ -25,14 +25,23 @@ import java.util.Map;
  */
 public class ServerBootstrapConfiguration {
 
-    private boolean tcpNoDelay;
-    private boolean keepAlive;
-    private boolean socketReuse;
-    private int connectTimeOut;
-    private int receiveBufferSize;
-    private int sendBufferSize;
-    private int soBackLog;
-    private int socketTimeOut;
+    private final boolean tcpNoDelay;
+    private final boolean keepAlive;
+    private final boolean socketReuse;
+    private final int connectTimeOut;
+    private final int receiveBufferSize;
+    private final int sendBufferSize;
+    private final int soBackLog;
+
+    public ServerBootstrapConfiguration(ListenerConfiguration listenerConfiguration) {
+        this.connectTimeOut = listenerConfiguration.getConnectTimeOut() * 1000;
+        this.receiveBufferSize = listenerConfiguration.getReceiveBufferSize();
+        this.sendBufferSize = listenerConfiguration.getSendBufferSize();
+        this.tcpNoDelay = listenerConfiguration.isTcpNoDelay();
+        this.socketReuse = listenerConfiguration.isSocketReuse();
+        this.keepAlive = listenerConfiguration.isSocketKeepAlive();
+        this.soBackLog = listenerConfiguration.getSoBackLog();
+    }
 
     public ServerBootstrapConfiguration(Map<String, Object> properties) {
 
@@ -55,8 +64,6 @@ public class ServerBootstrapConfiguration {
                 properties, Constants.SERVER_BOOTSTRAP_SO_REUSE, false);
 
         soBackLog = Util.getIntProperty(properties, Constants.SERVER_BOOTSTRAP_SO_BACKLOG, 100);
-
-        socketTimeOut = Util.getIntProperty(properties, Constants.SERVER_BOOTSTRAP_SO_TIMEOUT, 15);
     }
 
     public boolean isTcpNoDelay() {
@@ -85,9 +92,5 @@ public class ServerBootstrapConfiguration {
 
     public int getSoBackLog() {
         return soBackLog;
-    }
-
-    public int getSoTimeOut() {
-        return socketTimeOut;
     }
 }

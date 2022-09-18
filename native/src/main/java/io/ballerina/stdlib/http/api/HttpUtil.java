@@ -124,6 +124,13 @@ import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_
 import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_PEER_ADDRESS;
 import static io.ballerina.stdlib.http.api.HttpConstants.ANN_CONFIG_ATTR_COMPRESSION_CONTENT_TYPES;
 import static io.ballerina.stdlib.http.api.HttpConstants.ANN_CONFIG_ATTR_SSL_ENABLED_PROTOCOLS;
+import static io.ballerina.stdlib.http.api.HttpConstants.BOOTSTRAP_CONFIG_CONNECT_TIMEOUT;
+import static io.ballerina.stdlib.http.api.HttpConstants.BOOTSTRAP_CONFIG_KEEP_ALIVE;
+import static io.ballerina.stdlib.http.api.HttpConstants.BOOTSTRAP_CONFIG_RECEIVE_BUFFER_SIZE;
+import static io.ballerina.stdlib.http.api.HttpConstants.BOOTSTRAP_CONFIG_SEND_BUFFER_SIZE;
+import static io.ballerina.stdlib.http.api.HttpConstants.BOOTSTRAP_CONFIG_SOCKET_REUSE;
+import static io.ballerina.stdlib.http.api.HttpConstants.BOOTSTRAP_CONFIG_SO_BACKLOG;
+import static io.ballerina.stdlib.http.api.HttpConstants.BOOTSTRAP_CONFIG_TCP_NO_DELAY;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_HEADERS;
 import static io.ballerina.stdlib.http.api.HttpConstants.RESOLVED_REQUESTED_URI;
 import static io.ballerina.stdlib.http.api.HttpConstants.RESPONSE_CACHE_CONTROL;
@@ -1447,6 +1454,7 @@ public class HttpUtil {
      * @param endpointConfig    listener endpoint configuration.
      * @return                  transport listener configuration instance.
      */
+    @SuppressWarnings("unchecked")
     public static ListenerConfiguration getListenerConfig(long port, BMap endpointConfig) {
         String host = endpointConfig.getStringValue(HttpConstants.ENDPOINT_CONFIG_HOST).getValue();
         BMap<BString, Object> sslConfig = endpointConfig.getMapValue(HttpConstants.ENDPOINT_CONFIG_SECURESOCKET);
@@ -1494,12 +1502,35 @@ public class HttpUtil {
         BString serverName = endpointConfig.getStringValue(HttpConstants.SERVER_NAME);
         listenerConfiguration.setServerHeader(serverName != null ? serverName.getValue() : getServerName());
 
+        BMap<BString, Object> bootStrapConfig = endpointConfig.getMapValue(HttpConstants.BOOTSTRAP_CONFIG_SETTINGS);
+        if (bootStrapConfig != null) {
+            setServerSocketConfig(bootStrapConfig, listenerConfiguration);
+        }
+
         if (sslConfig != null) {
             return setSslConfig(sslConfig, listenerConfiguration);
         }
 
         listenerConfiguration.setPipeliningEnabled(true); //Pipelining is enabled all the time
         return listenerConfiguration;
+    }
+
+    private static void setServerSocketConfig(BMap<BString, Object> bootStrapConfig,
+                                              ListenerConfiguration listenerConfig) {
+        int connectTimeOut = bootStrapConfig.getIntValue(BOOTSTRAP_CONFIG_CONNECT_TIMEOUT).intValue();
+        listenerConfig.setConnectTimeOut(connectTimeOut);
+        int receiveBufferSize = bootStrapConfig.getIntValue(BOOTSTRAP_CONFIG_RECEIVE_BUFFER_SIZE).intValue();
+        listenerConfig.setReceiveBufferSize(receiveBufferSize);
+        int sendBufferSize = bootStrapConfig.getIntValue(BOOTSTRAP_CONFIG_SEND_BUFFER_SIZE).intValue();
+        listenerConfig.setSendBufferSize(sendBufferSize);
+        int soBackLog = bootStrapConfig.getIntValue(BOOTSTRAP_CONFIG_SO_BACKLOG).intValue();
+        listenerConfig.setSoBackLog(soBackLog);
+        boolean tcpNoDelay = bootStrapConfig.getBooleanValue(BOOTSTRAP_CONFIG_TCP_NO_DELAY);
+        listenerConfig.setTcpNoDelay(tcpNoDelay);
+        boolean socketReuse = bootStrapConfig.getBooleanValue(BOOTSTRAP_CONFIG_SOCKET_REUSE);
+        listenerConfig.setSocketReuse(socketReuse);
+        boolean keepAlive = bootStrapConfig.getBooleanValue(BOOTSTRAP_CONFIG_KEEP_ALIVE);
+        listenerConfig.setSocketKeepAlive(keepAlive);
     }
 
     // TODO : Move this to `register` after this issue is fixed

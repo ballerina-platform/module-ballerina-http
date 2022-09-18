@@ -434,6 +434,15 @@ public class HttpConstants {
     public static final BString SECURESOCKET_CONFIG_CERT_VALIDATION_TYPE_OCSP_STAPLING =
             StringUtils.fromString("OCSP_STAPLING");
 
+    public static final BString BOOTSTRAP_CONFIG_SETTINGS = StringUtils.fromString("socketConfig");
+    public static final BString BOOTSTRAP_CONFIG_CONNECT_TIMEOUT = StringUtils.fromString("connectTimeOut");
+    public static final BString BOOTSTRAP_CONFIG_RECEIVE_BUFFER_SIZE = StringUtils.fromString("receiveBufferSize");
+    public static final BString BOOTSTRAP_CONFIG_SEND_BUFFER_SIZE = StringUtils.fromString("sendBufferSize");
+    public static final BString BOOTSTRAP_CONFIG_TCP_NO_DELAY = StringUtils.fromString("tcpNoDelay");
+    public static final BString BOOTSTRAP_CONFIG_SOCKET_REUSE = StringUtils.fromString("socketReuse");
+    public static final BString BOOTSTRAP_CONFIG_KEEP_ALIVE = StringUtils.fromString("keepAlive");
+    public static final BString BOOTSTRAP_CONFIG_SO_BACKLOG = StringUtils.fromString("soBackLog");
+
     //Client Endpoint (CallerActions)
     public static final String CLIENT_ENDPOINT_SERVICE_URI = "url";
     public static final String CLIENT_ENDPOINT_CONFIG = "config";

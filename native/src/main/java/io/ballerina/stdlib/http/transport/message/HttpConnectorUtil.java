@@ -2,7 +2,6 @@ package io.ballerina.stdlib.http.transport.message;
 
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.config.SenderConfiguration;
-import io.ballerina.stdlib.http.transport.contract.config.ServerBootstrapConfiguration;
 import io.ballerina.stdlib.http.transport.contract.config.TransportProperty;
 import io.ballerina.stdlib.http.transport.contract.config.TransportsConfiguration;
 
@@ -51,25 +50,6 @@ public class HttpConnectorUtil {
 
         }
         return transportProperties;
-    }
-
-    /**
-     * Create server bootstrap configuration from given transport property set.
-     *
-     * @param transportPropertiesSet Set of transport properties which should be converted
-     *                               to {@link ServerBootstrapConfiguration}.
-     * @return ServerBootstrapConfiguration which is created from given Set of transport properties.
-     */
-    public static ServerBootstrapConfiguration getServerBootstrapConfiguration(Set<TransportProperty>
-            transportPropertiesSet) {
-        Map<String, Object> transportProperties = new HashMap<>();
-
-        if (transportPropertiesSet != null && !transportPropertiesSet.isEmpty()) {
-            transportProperties = transportPropertiesSet.stream().collect(
-                    Collectors.toMap(TransportProperty::getName, TransportProperty::getValue));
-        }
-        // Create Bootstrap Configuration from listener parameters
-        return new ServerBootstrapConfiguration(transportProperties);
     }
 
     private HttpConnectorUtil() {
