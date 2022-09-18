@@ -124,13 +124,6 @@ import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_
 import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_PEER_ADDRESS;
 import static io.ballerina.stdlib.http.api.HttpConstants.ANN_CONFIG_ATTR_COMPRESSION_CONTENT_TYPES;
 import static io.ballerina.stdlib.http.api.HttpConstants.ANN_CONFIG_ATTR_SSL_ENABLED_PROTOCOLS;
-import static io.ballerina.stdlib.http.api.HttpConstants.BOOTSTRAP_CONFIG_CONNECT_TIMEOUT;
-import static io.ballerina.stdlib.http.api.HttpConstants.BOOTSTRAP_CONFIG_KEEP_ALIVE;
-import static io.ballerina.stdlib.http.api.HttpConstants.BOOTSTRAP_CONFIG_RECEIVE_BUFFER_SIZE;
-import static io.ballerina.stdlib.http.api.HttpConstants.BOOTSTRAP_CONFIG_SEND_BUFFER_SIZE;
-import static io.ballerina.stdlib.http.api.HttpConstants.BOOTSTRAP_CONFIG_SOCKET_REUSE;
-import static io.ballerina.stdlib.http.api.HttpConstants.BOOTSTRAP_CONFIG_SO_BACKLOG;
-import static io.ballerina.stdlib.http.api.HttpConstants.BOOTSTRAP_CONFIG_TCP_NO_DELAY;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_HEADERS;
 import static io.ballerina.stdlib.http.api.HttpConstants.RESOLVED_REQUESTED_URI;
 import static io.ballerina.stdlib.http.api.HttpConstants.RESPONSE_CACHE_CONTROL;
@@ -144,6 +137,13 @@ import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_SES
 import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_TRUSTSTORE_FILE_PATH;
 import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_TRUSTSTORE_PASSWORD;
 import static io.ballerina.stdlib.http.api.HttpConstants.SINGLE_SLASH;
+import static io.ballerina.stdlib.http.api.HttpConstants.SOCKET_CONFIG_CONNECT_TIMEOUT;
+import static io.ballerina.stdlib.http.api.HttpConstants.SOCKET_CONFIG_KEEP_ALIVE;
+import static io.ballerina.stdlib.http.api.HttpConstants.SOCKET_CONFIG_RECEIVE_BUFFER_SIZE;
+import static io.ballerina.stdlib.http.api.HttpConstants.SOCKET_CONFIG_SEND_BUFFER_SIZE;
+import static io.ballerina.stdlib.http.api.HttpConstants.SOCKET_CONFIG_SOCKET_REUSE;
+import static io.ballerina.stdlib.http.api.HttpConstants.SOCKET_CONFIG_SO_BACKLOG;
+import static io.ballerina.stdlib.http.api.HttpConstants.SOCKET_CONFIG_TCP_NO_DELAY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.ENCODING_GZIP;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_1_1_VERSION;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_TRANSFER_ENCODING_IDENTITY;
@@ -1509,9 +1509,9 @@ public class HttpUtil {
         BString serverName = endpointConfig.getStringValue(HttpConstants.SERVER_NAME);
         listenerConfiguration.setServerHeader(serverName != null ? serverName.getValue() : getServerName());
 
-        BMap<BString, Object> bootStrapConfig = endpointConfig.getMapValue(HttpConstants.BOOTSTRAP_CONFIG_SETTINGS);
-        if (bootStrapConfig != null) {
-            setServerSocketConfig(bootStrapConfig, listenerConfiguration);
+        BMap<BString, Object> serverSocketConfig = endpointConfig.getMapValue(HttpConstants.SERVER_SOCKET_CONFIG);
+        if (serverSocketConfig != null) {
+            setServerSocketConfig(serverSocketConfig, listenerConfiguration);
         }
 
         if (sslConfig != null) {
@@ -1522,21 +1522,21 @@ public class HttpUtil {
         return listenerConfiguration;
     }
 
-    private static void setServerSocketConfig(BMap<BString, Object> bootStrapConfig,
+    private static void setServerSocketConfig(BMap<BString, Object> serverSocketConfig,
                                               ListenerConfiguration listenerConfig) {
-        int connectTimeOut = bootStrapConfig.getIntValue(BOOTSTRAP_CONFIG_CONNECT_TIMEOUT).intValue();
+        double connectTimeOut = ((BDecimal) serverSocketConfig.get(SOCKET_CONFIG_CONNECT_TIMEOUT)).floatValue();
         listenerConfig.setConnectTimeOut(connectTimeOut);
-        int receiveBufferSize = bootStrapConfig.getIntValue(BOOTSTRAP_CONFIG_RECEIVE_BUFFER_SIZE).intValue();
+        int receiveBufferSize = serverSocketConfig.getIntValue(SOCKET_CONFIG_RECEIVE_BUFFER_SIZE).intValue();
         listenerConfig.setReceiveBufferSize(receiveBufferSize);
-        int sendBufferSize = bootStrapConfig.getIntValue(BOOTSTRAP_CONFIG_SEND_BUFFER_SIZE).intValue();
+        int sendBufferSize = serverSocketConfig.getIntValue(SOCKET_CONFIG_SEND_BUFFER_SIZE).intValue();
         listenerConfig.setSendBufferSize(sendBufferSize);
-        int soBackLog = bootStrapConfig.getIntValue(BOOTSTRAP_CONFIG_SO_BACKLOG).intValue();
+        int soBackLog = serverSocketConfig.getIntValue(SOCKET_CONFIG_SO_BACKLOG).intValue();
         listenerConfig.setSoBackLog(soBackLog);
-        boolean tcpNoDelay = bootStrapConfig.getBooleanValue(BOOTSTRAP_CONFIG_TCP_NO_DELAY);
+        boolean tcpNoDelay = serverSocketConfig.getBooleanValue(SOCKET_CONFIG_TCP_NO_DELAY);
         listenerConfig.setTcpNoDelay(tcpNoDelay);
-        boolean socketReuse = bootStrapConfig.getBooleanValue(BOOTSTRAP_CONFIG_SOCKET_REUSE);
+        boolean socketReuse = serverSocketConfig.getBooleanValue(SOCKET_CONFIG_SOCKET_REUSE);
         listenerConfig.setSocketReuse(socketReuse);
-        boolean keepAlive = bootStrapConfig.getBooleanValue(BOOTSTRAP_CONFIG_KEEP_ALIVE);
+        boolean keepAlive = serverSocketConfig.getBooleanValue(SOCKET_CONFIG_KEEP_ALIVE);
         listenerConfig.setSocketKeepAlive(keepAlive);
     }
 

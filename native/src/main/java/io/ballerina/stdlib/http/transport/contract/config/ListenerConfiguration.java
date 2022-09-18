@@ -230,8 +230,8 @@ public class ListenerConfiguration extends SslConfiguration {
         return connectTimeOut;
     }
 
-    public void setConnectTimeOut(int connectTimeOut) {
-        this.connectTimeOut = connectTimeOut * 1000;
+    public void setConnectTimeOut(double connectTimeOut) {
+        this.connectTimeOut = (int) (connectTimeOut * 1000);
     }
 
     public int getReceiveBufferSize() {
