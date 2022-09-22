@@ -18,6 +18,10 @@
 public const int STATUS_CONTINUE = 100;
 # The HTTP response status code: 101 Switching Protocols
 public const int STATUS_SWITCHING_PROTOCOLS = 101;
+# The HTTP response status code: 102 Processing
+public const int STATUS_PROCESSING = 102;
+# The HTTP response status code: 103 Early Hints
+public const int STATUS_EARLY_HINTS = 103;
 
 # The HTTP response status code: 200 OK
 public const int STATUS_OK = 200;
@@ -33,6 +37,12 @@ public const int STATUS_NO_CONTENT = 204;
 public const int STATUS_RESET_CONTENT = 205;
 # The HTTP response status code: 206 Partial Content
 public const int STATUS_PARTIAL_CONTENT = 206;
+# The HTTP response status code: 207 Multi-Status
+public const int STATUS_MULTI_STATUS = 207;
+# The HTTP response status code: 208 Already Reported
+public const int STATUS_ALREADY_REPORTED = 208;
+# The HTTP response status code: 226 IM Used
+public const int STATUS_IM_USED = 226;
 
 # The HTTP response status code: 300 Multiple Choices
 public const int STATUS_MULTIPLE_CHOICES = 300;
@@ -87,12 +97,26 @@ public const int STATUS_UNSUPPORTED_MEDIA_TYPE = 415;
 public const int STATUS_RANGE_NOT_SATISFIABLE = 416;
 # The HTTP response status code: 417 Expectation Failed
 public const int STATUS_EXPECTATION_FAILED = 417;
+# The HTTP response status code: 421 Misdirected Request
+public const int STATUS_MISDIRECTED_REQUEST = 421;
+# The HTTP response status code: 422 Unprocessable Entity
+public const int STATUS_UNPROCESSABLE_ENTITY = 422;
+# The HTTP response status code: 423 Locked
+public const int STATUS_LOCKED = 423;
+# The HTTP response status code: 424 Failed Dependency
+public const int STATUS_FAILED_DEPENDENCY = 424;
+# The HTTP response status code: 425 Too Early
+public const int STATUS_TOO_EARLY = 425;
 # The HTTP response status code: 426 Upgrade Required
 public const int STATUS_UPGRADE_REQUIRED = 426;
+# The HTTP response status code: 428 Precondition Required
+public const int STATUS_PREDICTION_REQUIRED = 428;
 # The HTTP response status code: 429 Too Many Requests
 public const int STATUS_TOO_MANY_REQUESTS = 429;
 # The HTTP response status code: 431 Request Header Fields Too Large
 public const int STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE = 431;
+# The HTTP response status code: 451 Unavailable Due To Legal Reasons
+public const int STATUS_UNAVAILABLE_DUE_TO_LEGAL_REASONS = 451;
 
 # The HTTP response status code: 500 Internal Server Error
 public const int STATUS_INTERNAL_SERVER_ERROR = 500;
@@ -106,3 +130,13 @@ public const int STATUS_SERVICE_UNAVAILABLE = 503;
 public const int STATUS_GATEWAY_TIMEOUT = 504;
 # The HTTP response status code: 505 HTTP Version Not Supported
 public const int STATUS_HTTP_VERSION_NOT_SUPPORTED = 505;
+# The HTTP response status code: 506 Variant Also Negotiates
+public const int STATUS_VARIANT_ALSO_NEGOTIATES = 506;
+# The HTTP response status code: 507 Insufficient Storage
+public const int STATUS_INSUFFICIENT_STORAGE = 507;
+# The HTTP response status code: 508 Loop Detected
+public const int STATUS_LOOP_DETECTED = 508;
+# The HTTP response status code: 510 Not Extended
+public const int STATUS_NOT_EXTENDED = 510;
+# The HTTP response status code: 511 Network Authorization Required
+public const int STATUS_NETWORK_AUTHORIZATION_REQUIRED = 511;
