@@ -327,7 +327,7 @@ service /snowpeak on new http:Listener(port) {
                returns rep:Rooms|rep:SnowpeakInternalError {}
  
    resource function post reservations(@http:Payload rep:Reservation reservation)
-               returns rep:ReservationCreated|rep:ReservationConflict|rep:SnowpeakInternalError {}   
+               returns rep:ReservationReceipt|rep:ReservationConflict|rep:SnowpeakInternalError {}   
              
    resource function put reservations/[string id](@http:Payload rep:Reservation reservation)
                returns rep:ReservationUpdated|rep:ReservationConflict|rep:SnowpeakInternalError {}
@@ -336,7 +336,7 @@ service /snowpeak on new http:Listener(port) {
                rep:ReservationCanceled|rep:SnowpeakInternalError {}
  
    resource function post payments/[string id](@http:Payload rep:Payment payment)
-               returns rep:PaymentCreated|rep:PaymentConflict|rep:SnowpeakInternalError {}
+               returns rep:PaymentReceipt|rep:PaymentConflict|rep:SnowpeakInternalError {}
 }
 ```
 The code is somewhat self-descriptive. The following sections take each part of the code and explain it in detail.
