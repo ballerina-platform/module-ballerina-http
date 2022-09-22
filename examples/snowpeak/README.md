@@ -381,16 +381,21 @@ Let's look at something more interesting,
 
 ```ballerina
 resource function post reservations(@http:Payload Reservation reservation)
-               returns ReservationCreated|ReservationConflict|SnowpeakInternalError{}
+               returns ReservationReceipt|ReservationConflict|SnowpeakInternalError{}
 ```
-If you can remember the state diagram, it was depicting that unsafe and idempotent state transition is possible from rooms to reservation. As a result of this transition you need to create a new reservation resource. By now you know that the PUT verb is used to create a resource as well as update a resource. Therefore, PUT is used as the accessor in front of the resource URL. There are three possible responses, one is `ReservationCreated`, `ReservationConflict` or `SnowpeakInternalError`, these responses are mapped in Ballerina as follows,
+If you can remember the state diagram, it was depicting that unsafe state transition is possible from rooms to reservation. As a result of this transition you need to create a new reservation resource. By now you know that the POST verb is used to create a resource. Therefore, POST is used as the accessor in front of the resource URL. There are three possible responses, one is `ReservationReceipt`, `ReservationConflict` or `SnowpeakInternalError`, these responses are mapped in Ballerina as follows,
 
 ```ballerina
-type ReservationCreated record {|
-   *http:Created;
-   ReservationReceipt body;
+public type ReservationReceipt record {|
+    string id;
+    string expiryDate;
+    string lastUpdated;
+    string currency;
+    decimal total;
+    Reservation reservation;
+    ReservationState state;
 |};
- 
+
 type ReservationConflict record {|
    *http:Conflict;
    string body = "Error occurred while updating the reservation";
