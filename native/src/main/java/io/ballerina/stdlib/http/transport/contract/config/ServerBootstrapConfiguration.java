@@ -34,7 +34,7 @@ public class ServerBootstrapConfiguration {
     private final int soBackLog;
 
     public ServerBootstrapConfiguration(ListenerConfiguration listenerConfiguration) {
-        this.connectTimeOut = listenerConfiguration.getConnectTimeOut() * 1000;
+        this.connectTimeOut = listenerConfiguration.getConnectTimeOut();
         this.receiveBufferSize = listenerConfiguration.getReceiveBufferSize();
         this.sendBufferSize = listenerConfiguration.getSendBufferSize();
         this.tcpNoDelay = listenerConfiguration.isTcpNoDelay();

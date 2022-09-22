@@ -298,7 +298,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "log"
-version = "2.4.0"
+version = "2.4.1"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "io"},

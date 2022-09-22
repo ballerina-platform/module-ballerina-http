@@ -54,12 +54,10 @@ public class ServerBootstrapConfigurationTest {
     @Test
     public void testGetSoTimeout() {
         ServerBootstrapConfiguration serverBootstrapConfiguration = new ServerBootstrapConfiguration(new HashMap<>());
-        Assert.assertEquals(serverBootstrapConfiguration.getConnectTimeOut(), 15);
-
+        Assert.assertEquals(serverBootstrapConfiguration.getConnectTimeOut(), 15000);
         HashMap<String, Object> properties = new HashMap<>();
-        properties.put(Constants.SERVER_BOOTSTRAP_CONNECT_TIME_OUT, 10);
+        properties.put(Constants.SERVER_BOOTSTRAP_CONNECT_TIME_OUT, 10000);
         serverBootstrapConfiguration = new ServerBootstrapConfiguration(properties);
-        Assert.assertEquals(serverBootstrapConfiguration.getConnectTimeOut(), 10);
+        Assert.assertEquals(serverBootstrapConfiguration.getConnectTimeOut(), 10000);
     }
-
 }

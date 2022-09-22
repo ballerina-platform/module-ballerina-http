@@ -16,11 +16,9 @@
 package io.ballerina.stdlib.http.transport.contractimpl.sender.channel;
 
 import io.ballerina.stdlib.http.transport.contract.Constants;
-import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
+import io.ballerina.stdlib.http.transport.contract.config.SenderConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Map;
 
 /**
  * A class represents client bootstrap configurations.
@@ -29,35 +27,22 @@ public class BootstrapConfiguration {
 
     private static final Logger LOG = LoggerFactory.getLogger(BootstrapConfiguration.class);
 
-    private boolean tcpNoDelay;
-    private boolean keepAlive;
-    private boolean socketReuse;
-    private int connectTimeOut;
-    private int receiveBufferSize;
-    private int sendBufferSize;
-    private int socketTimeout;
+    private final boolean tcpNoDelay;
+    private final boolean keepAlive;
+    private final boolean socketReuse;
+    private final int connectTimeOut;
+    private final int receiveBufferSize;
+    private final int sendBufferSize;
+    private final int socketTimeout;
 
-    public BootstrapConfiguration(Map<String, Object> properties) {
-
-        connectTimeOut = Util.getIntProperty(
-                properties, Constants.CLIENT_BOOTSTRAP_CONNECT_TIME_OUT, 15000);
-
-        tcpNoDelay = Util.getBooleanProperty(
-                properties, Constants.CLIENT_BOOTSTRAP_TCP_NO_DELY, true);
-
-        receiveBufferSize = Util.getIntProperty(
-                properties, Constants.CLIENT_BOOTSTRAP_RECEIVE_BUFFER_SIZE, 1048576);
-
-        sendBufferSize = Util.getIntProperty(
-                properties, Constants.CLIENT_BOOTSTRAP_SEND_BUFFER_SIZE, 1048576);
-
-        socketTimeout = Util.getIntProperty(properties, Constants.CLIENT_BOOTSTRAP_SO_TIMEOUT, 15);
-
-        keepAlive = Util.getBooleanProperty(
-                properties, Constants.CLIENT_BOOTSTRAP_KEEPALIVE, true);
-
-        socketReuse = Util.getBooleanProperty(
-                properties, Constants.CLIENT_BOOTSTRAP_SO_REUSE, false);
+    public BootstrapConfiguration(SenderConfiguration senderConfiguration) {
+        this.connectTimeOut = senderConfiguration.getConnectTimeOut();
+        this.receiveBufferSize = senderConfiguration.getReceiveBufferSize();
+        this.sendBufferSize = senderConfiguration.getSendBufferSize();
+        this.tcpNoDelay = senderConfiguration.isTcpNoDelay();
+        this.socketReuse = senderConfiguration.isSocketReuse();
+        this.keepAlive = senderConfiguration.isSocketKeepAlive();
+        this.socketTimeout = senderConfiguration.getSocketTimeout();
 
         String logValue = "{}:{}";
         LOG.debug(logValue, Constants.CLIENT_BOOTSTRAP_TCP_NO_DELY , tcpNoDelay);

@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.api.client.endpoint;
 
+import io.ballerina.runtime.api.values.BDecimal;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
@@ -35,6 +36,13 @@ import java.net.URL;
 import java.util.Map;
 
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP2_PRIOR_KNOWLEDGE;
+import static io.ballerina.stdlib.http.api.HttpConstants.SOCKET_CONFIG_CONNECT_TIMEOUT;
+import static io.ballerina.stdlib.http.api.HttpConstants.SOCKET_CONFIG_KEEP_ALIVE;
+import static io.ballerina.stdlib.http.api.HttpConstants.SOCKET_CONFIG_RECEIVE_BUFFER_SIZE;
+import static io.ballerina.stdlib.http.api.HttpConstants.SOCKET_CONFIG_SEND_BUFFER_SIZE;
+import static io.ballerina.stdlib.http.api.HttpConstants.SOCKET_CONFIG_SOCKET_REUSE;
+import static io.ballerina.stdlib.http.api.HttpConstants.SOCKET_CONFIG_SO_TIMEOUT;
+import static io.ballerina.stdlib.http.api.HttpConstants.SOCKET_CONFIG_TCP_NO_DELAY;
 import static io.ballerina.stdlib.http.api.HttpUtil.getConnectionManager;
 import static io.ballerina.stdlib.http.api.HttpUtil.populateSenderConfigurations;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_2_0_VERSION;
@@ -124,6 +132,12 @@ public class CreateSimpleHttpClient {
                 poolManager = getConnectionManager(userDefinedPoolConfig);
             }
 
+            BMap<BString, Object> clientSocketConfig =
+                    (BMap<BString, Object>) clientEndpointConfig.getMapValue(HttpConstants.SOCKET_CONFIG);
+            if (clientSocketConfig != null) {
+                setClientSocketConfig(clientSocketConfig, senderConfiguration);
+            }
+
             HttpClientConnector httpClientConnector = HttpUtil.createHttpWsConnectionFactory()
                     .createHttpClientConnector(properties, senderConfiguration, poolManager);
             httpClient.addNativeData(HttpConstants.CLIENT, httpClientConnector);
@@ -138,6 +152,24 @@ public class CreateSimpleHttpClient {
     private static boolean isClientSecurityConfigured(BMap<BString, Object> clientEndpointConfig) {
         return clientEndpointConfig.get(HttpConstants.ENDPOINT_CONFIG_SECURESOCKET) != null ||
                 clientEndpointConfig.get(HttpConstants.CLIENT_EP_AUTH) != null;
+    }
+
+    private static void setClientSocketConfig(BMap<BString, Object> serverSocketConfig,
+                                              SenderConfiguration senderConfig) {
+        double connectTimeOut = ((BDecimal) serverSocketConfig.get(SOCKET_CONFIG_CONNECT_TIMEOUT)).floatValue();
+        senderConfig.setConnectTimeOut(connectTimeOut);
+        int receiveBufferSize = serverSocketConfig.getIntValue(SOCKET_CONFIG_RECEIVE_BUFFER_SIZE).intValue();
+        senderConfig.setReceiveBufferSize(receiveBufferSize);
+        int sendBufferSize = serverSocketConfig.getIntValue(SOCKET_CONFIG_SEND_BUFFER_SIZE).intValue();
+        senderConfig.setSendBufferSize(sendBufferSize);
+        double soTimeOut = ((BDecimal) serverSocketConfig.get(SOCKET_CONFIG_SO_TIMEOUT)).floatValue();
+        senderConfig.setSocketTimeout(soTimeOut);
+        boolean tcpNoDelay = serverSocketConfig.getBooleanValue(SOCKET_CONFIG_TCP_NO_DELAY);
+        senderConfig.setTcpNoDelay(tcpNoDelay);
+        boolean socketReuse = serverSocketConfig.getBooleanValue(SOCKET_CONFIG_SOCKET_REUSE);
+        senderConfig.setSocketReuse(socketReuse);
+        boolean keepAlive = serverSocketConfig.getBooleanValue(SOCKET_CONFIG_KEEP_ALIVE);
+        senderConfig.setSocketKeepAlive(keepAlive);
     }
 
     private CreateSimpleHttpClient() {

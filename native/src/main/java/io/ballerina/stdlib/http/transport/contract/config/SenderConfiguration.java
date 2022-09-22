@@ -49,6 +49,13 @@ public class SenderConfiguration extends SslConfiguration {
     private PoolConfiguration poolConfiguration;
     private InboundMsgSizeValidationConfig responseSizeValidationConfig = new InboundMsgSizeValidationConfig();
     private ForwardedExtensionConfig forwardedExtensionConfig = ForwardedExtensionConfig.DISABLE;
+    private int connectTimeOut;
+    private int receiveBufferSize;
+    private int sendBufferSize;
+    private boolean tcpNoDelay;
+    private boolean socketReuse;
+    private boolean socketKeepAlive;
+    private int socketTimeout;
 
     public SenderConfiguration() {
         this.poolConfiguration = new PoolConfiguration();
@@ -150,5 +157,61 @@ public class SenderConfiguration extends SslConfiguration {
 
     public void setMsgSizeValidationConfig(InboundMsgSizeValidationConfig responseSizeValidationConfig) {
         this.responseSizeValidationConfig = responseSizeValidationConfig;
+    }
+
+    public int getConnectTimeOut() {
+        return connectTimeOut;
+    }
+
+    public void setConnectTimeOut(double connectTimeOut) {
+        this.connectTimeOut = (int) (connectTimeOut * 1000);
+    }
+
+    public int getReceiveBufferSize() {
+        return receiveBufferSize;
+    }
+
+    public void setReceiveBufferSize(int receiveBufferSize) {
+        this.receiveBufferSize = receiveBufferSize;
+    }
+
+    public int getSendBufferSize() {
+        return sendBufferSize;
+    }
+
+    public void setSendBufferSize(int sendBufferSize) {
+        this.sendBufferSize = sendBufferSize;
+    }
+
+    public boolean isTcpNoDelay() {
+        return tcpNoDelay;
+    }
+
+    public void setTcpNoDelay(boolean tcpNoDelay) {
+        this.tcpNoDelay = tcpNoDelay;
+    }
+
+    public boolean isSocketReuse() {
+        return socketReuse;
+    }
+
+    public void setSocketReuse(boolean socketReuse) {
+        this.socketReuse = socketReuse;
+    }
+
+    public boolean isSocketKeepAlive() {
+        return socketKeepAlive;
+    }
+
+    public void setSocketKeepAlive(boolean socketKeepAlive) {
+        this.socketKeepAlive = socketKeepAlive;
+    }
+
+    public int getSocketTimeout() {
+        return socketTimeout;
+    }
+
+    public void setSocketTimeout(double socketTimeout) {
+        this.socketTimeout = (int) (socketTimeout * 1000);
     }
 }

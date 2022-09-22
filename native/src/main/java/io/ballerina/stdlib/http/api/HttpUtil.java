@@ -1509,7 +1509,7 @@ public class HttpUtil {
         BString serverName = endpointConfig.getStringValue(HttpConstants.SERVER_NAME);
         listenerConfiguration.setServerHeader(serverName != null ? serverName.getValue() : getServerName());
 
-        BMap<BString, Object> serverSocketConfig = endpointConfig.getMapValue(HttpConstants.SERVER_SOCKET_CONFIG);
+        BMap<BString, Object> serverSocketConfig = endpointConfig.getMapValue(HttpConstants.SOCKET_CONFIG);
         if (serverSocketConfig != null) {
             setServerSocketConfig(serverSocketConfig, listenerConfiguration);
         }
