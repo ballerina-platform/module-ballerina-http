@@ -16,17 +16,20 @@
 
 // Remove the union once https://github.com/ballerina-platform/ballerina-lang/issues/30490 is fixed.
 # Defines the possible status code response record types.
-public type StatusCodeResponse Continue|SwitchingProtocols|Ok|Created|Accepted|NonAuthoritativeInformation|NoContent|
-    ResetContent|PartialContent|MultipleChoices|MovedPermanently|Found|SeeOther|NotModified|UseProxy|TemporaryRedirect|
-    PermanentRedirect|BadRequest|Unauthorized|PaymentRequired|Forbidden|NotFound|MethodNotAllowed|NotAcceptable|
+public type StatusCodeResponse Continue|SwitchingProtocols|Processing|EarlyHints|Ok|Created|Accepted|
+    NonAuthoritativeInformation|NoContent|ResetContent|PartialContent|MultiStatus|AlreadyReported|IMUsed|
+    MultipleChoices|MovedPermanently|Found|SeeOther|NotModified|UseProxy|TemporaryRedirect|PermanentRedirect|
+    BadRequest|Unauthorized|PaymentRequired|Forbidden|NotFound|MethodNotAllowed|NotAcceptable|
     ProxyAuthenticationRequired|RequestTimeout|Conflict|Gone|LengthRequired|PreconditionFailed|PayloadTooLarge|
-    UriTooLong|UnsupportedMediaType|RangeNotSatisfiable|ExpectationFailed|UpgradeRequired|TooManyRequests|
+    UriTooLong|UnsupportedMediaType|RangeNotSatisfiable|ExpectationFailed|MisdirectedRequest|UnprocessableEntity|
+    Locked|FailedDependency|TooEarly|PreconditionRequired|UnavailableDueToLegalReasons|UpgradeRequired|TooManyRequests|
     RequestHeaderFieldsTooLarge|InternalServerError|NotImplemented|BadGateway|ServiceUnavailable|GatewayTimeout|
-    HttpVersionNotSupported;
+    HttpVersionNotSupported|VariantAlsoNegotiates|InsufficientStorage|LoopDetected|NotExtended|
+    NetworkAuthorizationRequired;
 
 # Defines the possible success status code response record types.
 type SuccessStatusCodeResponse Ok|Created|Accepted|NonAuthoritativeInformation|NoContent|ResetContent|
-    PartialContent;
+    PartialContent|MultiStatus|AlreadyReported|IMUsed;
 
 # The `Status` object creates the distinction for the different response status code types.
 #
@@ -61,6 +64,22 @@ public readonly class StatusContinue {
 public readonly class StatusSwitchingProtocols {
     *Status;
     public STATUS_SWITCHING_PROTOCOLS code = STATUS_SWITCHING_PROTOCOLS;
+}
+
+# Represents the status code of `STATUS_PROCESSING`.
+#
+# + code - The response status code
+public readonly class StatusProcessing {
+    *Status;
+    public STATUS_PROCESSING code = STATUS_PROCESSING;
+}
+
+# Represents the status code of `STATUS_EARLY_HINTS`.
+#
+# + code - The response status code
+public readonly class StatusEarlyHints {
+    *Status;
+    public STATUS_EARLY_HINTS code = STATUS_EARLY_HINTS;
 }
 
 # Represents the status code of `STATUS_OK`.
@@ -117,6 +136,30 @@ public readonly class StatusResetContent {
 public readonly class StatusPartialContent {
     *Status;
     public STATUS_PARTIAL_CONTENT code = STATUS_PARTIAL_CONTENT;
+}
+
+# Represents the status code of `STATUS_MULTI_STATUS`.
+#
+# + code - The response status code
+public readonly class StatusMultiStatus {
+    *Status;
+    public STATUS_MULTI_STATUS code = STATUS_MULTI_STATUS;
+}
+
+# Represents the status code of `STATUS_ALREADY_REPORTED`.
+#
+# + code - The response status code
+public readonly class StatusAlreadyReported {
+    *Status;
+    public STATUS_ALREADY_REPORTED code = STATUS_ALREADY_REPORTED;
+}
+
+# Represents the status code of `STATUS_IM_USED`.
+#
+# + code - The response status code
+public readonly class StatusIMUsed {
+    *Status;
+    public STATUS_IM_USED code = STATUS_IM_USED;
 }
 
 # Represents the status code of `STATUS_MULTIPLE_CHOICES`.
@@ -327,12 +370,60 @@ public readonly class StatusExpectationFailed {
     public STATUS_EXPECTATION_FAILED code = STATUS_EXPECTATION_FAILED;
 }
 
+# Represents the status code of `STATUS_MISDIRECTED_REQUEST`.
+#
+# + code - The response status code
+public readonly class StatusMisdirectedRequest {
+    *Status;
+    public STATUS_MISDIRECTED_REQUEST code = STATUS_MISDIRECTED_REQUEST;
+}
+
+# Represents the status code of `STATUS_UNPROCESSABLE_ENTITY`.
+#
+# + code - The response status code
+public readonly class StatusUnprocessableEntity {
+    *Status;
+    public STATUS_UNPROCESSABLE_ENTITY code = STATUS_UNPROCESSABLE_ENTITY;
+}
+
+# Represents the status code of `STATUS_LOCKED`.
+#
+# + code - The response status code
+public readonly class StatusLocked {
+    *Status;
+    public STATUS_LOCKED code = STATUS_LOCKED;
+}
+
+# Represents the status code of `STATUS_FAILED_DEPENDENCY`.
+#
+# + code - The response status code
+public readonly class StatusFailedDependency {
+    *Status;
+    public STATUS_FAILED_DEPENDENCY code = STATUS_FAILED_DEPENDENCY;
+}
+
+# Represents the status code of `STATUS_TOO_EARLY`.
+#
+# + code - The response status code
+public readonly class StatusTooEarly {
+    *Status;
+    public STATUS_TOO_EARLY code = STATUS_TOO_EARLY;
+}
+
 # Represents the status code of `STATUS_UPGRADE_REQUIRED`.
 #
 # + code - The response status code
 public readonly class StatusUpgradeRequired {
     *Status;
     public STATUS_UPGRADE_REQUIRED code = STATUS_UPGRADE_REQUIRED;
+}
+
+# Represents the status code of `STATUS_PREDICTION_REQUIRED`.
+#
+# + code - The response status code
+public readonly class StatusPreconditionRequired {
+    *Status;
+    public STATUS_PREDICTION_REQUIRED code = STATUS_PREDICTION_REQUIRED;
 }
 
 # Represents the status code of `STATUS_TOO_MANY_REQUESTS`.
@@ -349,6 +440,14 @@ public readonly class StatusTooManyRequests {
 public readonly class StatusRequestHeaderFieldsTooLarge {
     *Status;
     public STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE code = STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE;
+}
+
+# Represents the status code of `STATUS_UNAVAILABLE_DUE_TO_LEGAL_REASONS`.
+#
+# + code - The response status code
+public readonly class StatusUnavailableDueToLegalReasons {
+    *Status;
+    public STATUS_UNAVAILABLE_DUE_TO_LEGAL_REASONS code = STATUS_UNAVAILABLE_DUE_TO_LEGAL_REASONS;
 }
 
 # Represents the status code of `STATUS_INTERNAL_SERVER_ERROR`.
@@ -399,9 +498,51 @@ public readonly class StatusHttpVersionNotSupported {
     public STATUS_HTTP_VERSION_NOT_SUPPORTED code = STATUS_HTTP_VERSION_NOT_SUPPORTED;
 }
 
+# Represents the status code of `STATUS_VARIANT_ALSO_NEGOTIATES`.
+#
+# + code - The response status code
+public readonly class StatusVariantAlsoNegotiates {
+    *Status;
+    public STATUS_VARIANT_ALSO_NEGOTIATES code = STATUS_VARIANT_ALSO_NEGOTIATES;
+}
+
+# Represents the status code of `STATUS_INSUFFICIENT_STORAGE`.
+#
+# + code - The response status code
+public readonly class StatusInsufficientStorage {
+    *Status;
+    public STATUS_INSUFFICIENT_STORAGE code = STATUS_INSUFFICIENT_STORAGE;
+}
+
+# Represents the status code of `STATUS_LOOP_DETECTED`.
+#
+# + code - The response status code
+public readonly class StatusLoopDetected {
+    *Status;
+    public STATUS_LOOP_DETECTED code = STATUS_LOOP_DETECTED;
+}
+
+# Represents the status code of `STATUS_NOT_EXTENDED`.
+#
+# + code - The response status code
+public readonly class StatusNotExtended {
+    *Status;
+    public STATUS_NOT_EXTENDED code = STATUS_NOT_EXTENDED;
+}
+
+# Represents the status code of `STATUS_NETWORK_AUTHORIZATION_REQUIRED`.
+#
+# + code - The response status code
+public readonly class StatusNetworkAuthorizationRequired {
+    *Status;
+    public STATUS_NETWORK_AUTHORIZATION_REQUIRED code = STATUS_NETWORK_AUTHORIZATION_REQUIRED;
+}
+
 // Status code object initialization
 final StatusContinue STATUS_CONTINUE_OBJ = new;
 final StatusSwitchingProtocols STATUS_SWITCHING_PROTOCOLS_OBJ = new;
+final StatusProcessing STATUS_PROCESSING_OBJ = new;
+final StatusEarlyHints STATUS_EARLY_HINTS_OBJ = new;
 final StatusOK STATUS_OK_OBJ = new;
 final StatusCreated STATUS_CREATED_OBJ = new;
 final StatusAccepted STATUS_ACCEPTED_OBJ = new;
@@ -409,6 +550,9 @@ final StatusNonAuthoritativeInformation STATUS_NON_AUTHORITATIVE_INFORMATION_OBJ
 final StatusNoContent STATUS_NO_CONTENT_OBJ = new;
 final StatusResetContent STATUS_RESET_CONTENT_OBJ = new;
 final StatusPartialContent STATUS_PARTIAL_CONTENT_OBJ = new;
+final StatusMultiStatus STATUS_MULTI_STATUS_OBJ = new;
+final StatusAlreadyReported STATUS_ALREADY_REPORTED_OBJ = new;
+final StatusIMUsed STATUS_IM_USED_OBJ = new;
 final StatusMultipleChoices STATUS_MULTIPLE_CHOICES_OBJ = new;
 final StatusMovedPermanently STATUS_MOVED_PERMANENTLY_OBJ = new;
 final StatusFound STATUS_FOUND_OBJ = new;
@@ -435,6 +579,13 @@ final StatusUriTooLong STATUS_URI_TOO_LONG_OBJ = new;
 final StatusUnsupportedMediaType STATUS_UNSUPPORTED_MEDIA_TYPE_OBJ = new;
 final StatusRangeNotSatisfiable STATUS_RANGE_NOT_SATISFIABLE_OBJ = new;
 final StatusExpectationFailed STATUS_EXPECTATION_FAILED_OBJ = new;
+final StatusMisdirectedRequest STATUS_MISDIRECTED_REQUEST_OBJ = new;
+final StatusUnprocessableEntity STATUS_UNPROCESSABLE_ENTITY_OBJ = new;
+final StatusLocked STATUS_LOCKED_OBJ = new;
+final StatusFailedDependency STATUS_FAILED_DEPENDENCY_OBJ = new;
+final StatusTooEarly STATUS_TOO_EARLY_OBJ = new;
+final StatusPreconditionRequired STATUS_PREDICTION_REQUIRED_OBJ = new;
+final StatusUnavailableDueToLegalReasons STATUS_UNAVAILABLE_DUE_TO_LEGAL_REASONS_OBJ = new;
 final StatusUpgradeRequired STATUS_UPGRADE_REQUIRED_OBJ = new;
 final StatusTooManyRequests STATUS_TOO_MANY_REQUESTS_OBJ = new;
 final StatusRequestHeaderFieldsTooLarge STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE_OBJ = new;
@@ -444,6 +595,11 @@ final StatusBadGateway STATUS_BAD_GATEWAY_OBJ = new;
 final StatusServiceUnavailable STATUS_SERVICE_UNAVAILABLE_OBJ = new;
 final StatusGatewayTimeout STATUS_GATEWAY_TIMEOUT_OBJ = new;
 final StatusHttpVersionNotSupported STATUS_HTTP_VERSION_NOT_SUPPORTED_OBJ = new;
+final StatusVariantAlsoNegotiates STATUS_VARIANT_ALSO_NEGOTIATES_OBJ = new;
+final StatusInsufficientStorage STATUS_INSUFFICIENT_STORAGE_OBJ = new;
+final StatusLoopDetected STATUS_LOOP_DETECTED_OBJ = new;
+final StatusNotExtended STATUS_NOT_EXTENDED_OBJ = new;
+final StatusNetworkAuthorizationRequired STATUS_NETWORK_AUTHORIZATION_REQUIRED_OBJ = new;
 
 // Status code record types
 # The status code response record of `Continue`.
@@ -460,6 +616,22 @@ public type Continue record {|
 public type SwitchingProtocols record {|
     *CommonResponse;
     readonly StatusSwitchingProtocols status = STATUS_SWITCHING_PROTOCOLS_OBJ;
+|};
+
+# The status code response record of `Processing`.
+#
+# + status - The response status code obj
+public type Processing record {|
+    *CommonResponse;
+    readonly StatusProcessing status = STATUS_PROCESSING_OBJ;
+|};
+
+# The status code response record of `EarlyHints`.
+#
+# + status - The response status code obj
+public type EarlyHints record {|
+    *CommonResponse;
+    readonly StatusEarlyHints status = STATUS_EARLY_HINTS_OBJ;
 |};
 
 # The status code response record of `Ok`.
@@ -517,6 +689,30 @@ public type ResetContent record {|
 public type PartialContent record {|
     *CommonResponse;
     readonly StatusPartialContent status = STATUS_PARTIAL_CONTENT_OBJ;
+|};
+
+# The status code response record of `MultiStatus`.
+#
+# + status - The response status code obj
+public type MultiStatus record {|
+    *CommonResponse;
+    readonly StatusMultiStatus status = STATUS_MULTI_STATUS_OBJ;
+|};
+
+# The status code response record of `AlreadyReported`.
+#
+# + status - The response status code obj
+public type AlreadyReported record {|
+    *CommonResponse;
+    readonly StatusAlreadyReported status = STATUS_ALREADY_REPORTED_OBJ;
+|};
+
+# The status code response record of `IMUsed`.
+#
+# + status - The response status code obj
+public type IMUsed record {|
+    *CommonResponse;
+    readonly StatusIMUsed status = STATUS_IM_USED_OBJ;
 |};
 
 # The status code response record of `MultipleChoices`.
@@ -727,6 +923,62 @@ public type ExpectationFailed record {|
     readonly StatusExpectationFailed status = STATUS_EXPECTATION_FAILED_OBJ;
 |};
 
+# The status code response record of `MisdirectedRequest`.
+#
+# + status - The response status code obj
+public type MisdirectedRequest record {|
+    *CommonResponse;
+    readonly StatusMisdirectedRequest status = STATUS_MISDIRECTED_REQUEST_OBJ;
+|};
+
+# The status code response record of `UnprocessableEntity`.
+#
+# + status - The response status code obj
+public type UnprocessableEntity record {|
+    *CommonResponse;
+    readonly StatusUnprocessableEntity status = STATUS_UNPROCESSABLE_ENTITY_OBJ;
+|};
+
+# The status code response record of `Locked`.
+#
+# + status - The response status code obj
+public type Locked record {|
+    *CommonResponse;
+    readonly StatusLocked status = STATUS_LOCKED_OBJ;
+|};
+
+# The status code response record of `FailedDependency`.
+#
+# + status - The response status code obj
+public type FailedDependency record {|
+    *CommonResponse;
+    readonly StatusFailedDependency status = STATUS_FAILED_DEPENDENCY_OBJ;
+|};
+
+# The status code response record of `TooEarly`.
+#
+# + status - The response status code obj
+public type TooEarly record {|
+    *CommonResponse;
+    readonly StatusTooEarly status = STATUS_TOO_EARLY_OBJ;
+|};
+
+# The status code response record of `PreconditionRequired`.
+#
+# + status - The response status code obj
+public type PreconditionRequired record {|
+    *CommonResponse;
+    readonly StatusPreconditionRequired status = STATUS_PREDICTION_REQUIRED_OBJ;
+|};
+
+# The status code response record of `UnavailableDueToLegalReasons`.
+#
+# + status - The response status code obj
+public type UnavailableDueToLegalReasons record {|
+    *CommonResponse;
+    readonly StatusUnavailableDueToLegalReasons status = STATUS_UNAVAILABLE_DUE_TO_LEGAL_REASONS_OBJ;
+|};
+
 # The status code response record of `UpgradeRequired`.
 #
 # + status - The response status code obj
@@ -799,11 +1051,57 @@ public type HttpVersionNotSupported record {|
     readonly StatusHttpVersionNotSupported status = STATUS_HTTP_VERSION_NOT_SUPPORTED_OBJ;
 |};
 
+# The status code response record of `VariantAlsoNegotiates`.
+#
+# + status - The response status code obj
+public type VariantAlsoNegotiates record {|
+    *CommonResponse;
+    readonly StatusVariantAlsoNegotiates status = STATUS_VARIANT_ALSO_NEGOTIATES_OBJ;
+|};
+
+# The status code response record of `InsufficientStorage`.
+#
+# + status - The response status code obj
+public type InsufficientStorage record {|
+    *CommonResponse;
+    readonly StatusInsufficientStorage status = STATUS_INSUFFICIENT_STORAGE_OBJ;
+|};
+
+# The status code response record of `LoopDetected`.
+#
+# + status - The response status code obj
+public type LoopDetected record {|
+    *CommonResponse;
+    readonly StatusLoopDetected status = STATUS_LOOP_DETECTED_OBJ;
+|};
+
+# The status code response record of `NotExtended`.
+#
+# + status - The response status code obj
+public type NotExtended record {|
+    *CommonResponse;
+    readonly StatusNotExtended status = STATUS_NOT_EXTENDED_OBJ;
+|};
+
+# The status code response record of `NetworkAuthorizationRequired`.
+#
+# + status - The response status code obj
+public type NetworkAuthorizationRequired record {|
+    *CommonResponse;
+    readonly StatusNetworkAuthorizationRequired status = STATUS_NETWORK_AUTHORIZATION_REQUIRED_OBJ;
+|};
+
 # The common status code response constant of `Continue`.
 public final readonly & Continue CONTINUE = {};
 
 # The common status code response constant of `SwitchingProtocols`.
 public final readonly & SwitchingProtocols SWITCHING_PROTOCOLS = {};
+
+# The common status code response constant of `Processing`.
+public final readonly & Processing PROCESSING = {};
+
+# The common status code response constant of `EarlyHints`.
+public final readonly & EarlyHints EARLY_HINTS = {};
 
 # The common status code response constant of `Ok`.
 public final readonly & Ok OK = {};
@@ -825,6 +1123,15 @@ public final readonly & ResetContent RESET_CONTENT = {};
 
 # The common status code response constant of `PartialContent`.
 public final readonly & PartialContent PARTIAL_CONTENT = {};
+
+# The common status code response constant of `MultiStatus`.
+public final readonly & MultiStatus MULTI_STATUS = {};
+
+# The common status code response constant of `AlreadyReported`.
+public final readonly & AlreadyReported ALREADY_REPORTED = {};
+
+# The common status code response constant of `IMUsed`.
+public final readonly & IMUsed IM_USED = {};
 
 # The common status code response constant of `MultipleChoices`.
 public final readonly & MultipleChoices MULTIPLE_CHOICES = {};
@@ -904,6 +1211,27 @@ public final readonly & RangeNotSatisfiable RANGE_NOT_SATISFIABLE = {};
 # The common status code response constant of `ExpectationFailed`.
 public final readonly & ExpectationFailed EXPECTATION_FAILED = {};
 
+# The common status code response constant of `MisdirectedRequest`.
+public final readonly & MisdirectedRequest MISDIRECTED_REQUEST = {};
+
+# The common status code response constant of `UnprocessableEntity`.
+public final readonly & UnprocessableEntity UNPROCESSABLE_ENTITY = {};
+
+# The common status code response constant of `Locked`.
+public final readonly & Locked LOCKED = {};
+
+# The common status code response constant of `FailedDependency`.
+public final readonly & FailedDependency FAILED_DEPENDENCY = {};
+
+# The common status code response constant of `TooEarly`.
+public final readonly & TooEarly TOO_EARLY = {};
+
+# The common status code response constant of `PreconditionRequired`.
+public final readonly & PreconditionRequired PREDICTION_REQUIRED = {};
+
+# The common status code response constant of `UnavailableDueToLegalReasons`.
+public final readonly & UnavailableDueToLegalReasons UNAVAILABLE_DUE_TO_LEGAL_REASONS = {};
+
 # The common status code response constant of `UpgradeRequired`.
 public final readonly & UpgradeRequired UPGRADE_REQUIRED = {};
 
@@ -930,3 +1258,18 @@ public final readonly & GatewayTimeout GATEWAY_TIMEOUT = {};
 
 # The common status code response constant of `HttpVersionNotSupported`.
 public final readonly & HttpVersionNotSupported HTTP_VERSION_NOT_SUPPORTED = {};
+
+# The common status code response constant of `VariantAlsoNegotiates`.
+public final readonly & VariantAlsoNegotiates VARIANT_ALSO_NEGOTIATES = {};
+
+# The common status code response constant of `InsufficientStorage`.
+public final readonly & InsufficientStorage INSUFFICIENT_STORAGE = {};
+
+# The common status code response constant of `LoopDetected`.
+public final readonly & LoopDetected LOOP_DETECTED = {};
+
+# The common status code response constant of `NotExtended`.
+public final readonly & NotExtended NOT_EXTENDED = {};
+
+# The common status code response constant of `NetworkAuthorizationRequired`.
+public final readonly & NetworkAuthorizationRequired NETWORK_AUTHORIZATION_REQUIRED = {};
