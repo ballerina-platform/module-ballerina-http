@@ -115,12 +115,6 @@ public type ReservationUpdated record {|
     # The payload for successful reservation update
     ReservationReceipt body;
 |};
-# The response for successful reservation creation
-public type ReservationCreated record {|
-    *http:Created; 
-    # The payload for successful reservation creation 
-    ReservationReceipt body;
-|};
 # The response for the unsuccessful reservation creation 
 public type ReservationConflict record {|
     *http:Conflict; 
@@ -158,12 +152,6 @@ public type PaymentReceipt record {|
     string lastUpdated;
     # Booked rooms
     Room[] rooms;
-|};
-# The response for the successful payment creation
-public type PaymentCreated record {|
-    *http:Created;
-    # The payload for the successful payment creation
-    PaymentReceipt body;
 |};
 # The response for the unsuccessful payment creation
 public type PaymentConflict record {|

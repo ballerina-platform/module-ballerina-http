@@ -66,12 +66,12 @@ service /snowpeak on new http:Listener(port) {
     @http:ResourceConfig {
         name: "Reservations",
         linkedTo: [
-            { name: "Reservation", relation: "edit", method: "post" },
+            { name: "Reservation", relation: "edit", method: "put" },
             { name: "Reservation", relation: "cancel", method: "delete" },
             { name: "Payment", relation: "payment" }
         ]
     }
-    resource function put reservations(@http:Payload rep:Reservation reservation)
+    resource function post reservations(@http:Payload rep:Reservation reservation)
                 returns rep:ReservationReceipt|rep:ReservationConflict|rep:SnowpeakInternalError {
         do {
             return check mock:createReservation(reservation);
@@ -91,7 +91,7 @@ service /snowpeak on new http:Listener(port) {
             { name: "Payment", relation: "payment" }
         ]
     }
-    resource function post reservations/[string id](@http:Payload rep:Reservation reservation)
+    resource function put reservations/[string id](@http:Payload rep:Reservation reservation)
                 returns rep:ReservationUpdated|rep:ReservationConflict|rep:SnowpeakInternalError {
         do {
             return check mock:updateReservation(id, reservation);
