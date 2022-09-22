@@ -77,9 +77,16 @@ service /differentStatusCodes on httpStatusCodeListenerEP {
     resource function get serverErrWithoutBody() returns http:InternalServerError {
         return http:INTERNAL_SERVER_ERROR;
     }
+
+    resource function get networkAuthorizationRequired/[boolean constReq]() returns http:NetworkAuthorizationRequired {
+        if constReq {
+            return http:NETWORK_AUTHORIZATION_REQUIRED;
+        }
+       return {body: "Authorization Required"};
+    }
 }
 
-//Test ballerina ok() function with entity body
+Test ballerina ok() function with entity body
 @test:Config {}
 function testOKWithBody() returns error? {
     http:Response|error response = httpStatusCodeClient->get("/differentStatusCodes/okWithBody");
@@ -312,6 +319,7 @@ function testInternalServerErrWithoutBody() {
     }
 }
 
+
 //Test ballerina internalServerError() function without entity body
 @test:Config {}
 function testDataBindingInternalServerErrWithoutBody() {
@@ -322,5 +330,27 @@ function testDataBindingInternalServerErrWithoutBody() {
         test:assertTrue(response.detail().body is (), msg = "Mismatched payload");
     } else {
         test:assertFail(msg = "Found unexpected output type: json");
+    }
+}
+
+@test:Config {}
+function testNetworkAuthorizationRequired() {
+    http:Response|error response = httpStatusCodeClient->get
+    ("/differentStatusCodes/networkAuthorizationRequired/false");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 511, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Network Authentication Required", msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Network Authentication Required", msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(), "Authorization Required");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+
+    response = httpStatusCodeClient->get("/differentStatusCodes/networkAuthorizationRequired/true");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 511, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Network Authentication Required", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
