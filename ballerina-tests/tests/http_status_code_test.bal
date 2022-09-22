@@ -78,6 +78,118 @@ service /differentStatusCodes on httpStatusCodeListenerEP {
         return http:INTERNAL_SERVER_ERROR;
     }
 
+    resource function get statusProcessing/[boolean constReq]() returns http:Processing {
+        if constReq {
+            return http:PROCESSING;
+        }
+       return {body: "It's Processing"};
+    }
+
+    resource function get statusEarlyHints/[boolean constReq]() returns http:EarlyHints {
+        if constReq {
+            return http:EARLY_HINTS;
+        }
+       return {body: "It's EarlyHints"};
+    }
+
+    resource function get statusMultiStatus/[boolean constReq]() returns http:MultiStatus {
+        if constReq {
+            return http:MULTI_STATUS;
+        }
+       return {body: "It's MultiStatus"};
+    }
+
+    resource function get statusAlreadyReported/[boolean constReq]() returns http:AlreadyReported {
+        if constReq {
+            return http:ALREADY_REPORTED;
+        }
+       return {body: "It's AlreadyReported"};
+    }
+
+    resource function get statusIMUsed/[boolean constReq]() returns http:IMUsed {
+        if constReq {
+            return http:IM_USED;
+        }
+       return {body: "It's IMUsed"};
+    }
+
+    resource function get statusMisdirectedRequest/[boolean constReq]() returns http:MisdirectedRequest {
+        if constReq {
+            return http:MISDIRECTED_REQUEST;
+        }
+       return {body: "It's MisdirectedRequest"};
+    }
+
+    resource function get statusUnprocessableEntity/[boolean constReq]() returns http:UnprocessableEntity {
+        if constReq {
+            return http:UNPROCESSABLE_ENTITY;
+        }
+       return {body: "It's UnprocessableEntity"};
+    }
+
+    resource function get statusLocked/[boolean constReq]() returns http:Locked {
+        if constReq {
+            return http:LOCKED;
+        }
+       return {body: "It's Locked"};
+    }
+
+    resource function get statusFailedDependency/[boolean constReq]() returns http:FailedDependency {
+        if constReq {
+            return http:FAILED_DEPENDENCY;
+        }
+       return {body: "It's FailedDependency"};
+    }
+
+    resource function get statusTooEarly/[boolean constReq]() returns http:TooEarly {
+        if constReq {
+            return http:TOO_EARLY;
+        }
+       return {body: "It's TooEarly"};
+    }
+
+    resource function get statusPreconditionRequired/[boolean constReq]() returns http:PreconditionRequired {
+        if constReq {
+            return http:PREDICTION_REQUIRED;
+        }
+       return {body: "It's PreconditionRequired"};
+    }
+
+    resource function get statusUnavailableDueToLegalReasons/[boolean constReq]() returns http:UnavailableDueToLegalReasons {
+        if constReq {
+            return http:UNAVAILABLE_DUE_TO_LEGAL_REASONS;
+        }
+       return {body: "It's UnavailableDueToLegalReasons"};
+    }
+
+    resource function get statusVariantAlsoNegotiates/[boolean constReq]() returns http:VariantAlsoNegotiates {
+        if constReq {
+            return http:VARIANT_ALSO_NEGOTIATES;
+        }
+       return {body: "It's VariantAlsoNegotiates"};
+    }
+
+    resource function get statusInsufficientStorage/[boolean constReq]() returns http:InsufficientStorage {
+        if constReq {
+            return http:INSUFFICIENT_STORAGE;
+        }
+       return {body: "It's InsufficientStorage"};
+    }
+
+    resource function get statusLoopDetected/[boolean constReq]() returns http:LoopDetected {
+        if constReq {
+            return http:LOOP_DETECTED;
+        }
+       return {body: "It's LoopDetected"};
+    }
+
+    resource function get statusNotExtended/[boolean constReq]() returns http:NotExtended {
+        if constReq {
+            return http:NOT_EXTENDED;
+        }
+       return {body: "It's NotExtended"};
+    }
+
     resource function get networkAuthorizationRequired/[boolean constReq]() returns http:NetworkAuthorizationRequired {
         if constReq {
             return http:NETWORK_AUTHORIZATION_REQUIRED;
@@ -86,7 +198,7 @@ service /differentStatusCodes on httpStatusCodeListenerEP {
     }
 }
 
-Test ballerina ok() function with entity body
+//Test ballerina ok() function with entity body
 @test:Config {}
 function testOKWithBody() returns error? {
     http:Response|error response = httpStatusCodeClient->get("/differentStatusCodes/okWithBody");
@@ -334,12 +446,328 @@ function testDataBindingInternalServerErrWithoutBody() {
 }
 
 @test:Config {}
+function testStatusProcessing() {
+    http:Response|error response = httpStatusCodeClient->get("/differentStatusCodes/statusProcessing/false");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 102, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Processing", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+
+    response = httpStatusCodeClient->get("/differentStatusCodes/statusProcessing/true");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 102, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Processing", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testStatusEarlyHints() {
+    http:Response|error response = httpStatusCodeClient->get("/differentStatusCodes/statusEarlyHints/false");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 103, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Informational (103)", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+
+    response = httpStatusCodeClient->get("/differentStatusCodes/statusEarlyHints/true");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 103, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Informational (103)", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testStatusMultiStatus() {
+    http:Response|error response = httpStatusCodeClient->get("/differentStatusCodes/statusMultiStatus/false");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 207, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Multi-Status", msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(), "It's MultiStatus");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+
+    response = httpStatusCodeClient->get("/differentStatusCodes/statusMultiStatus/true");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 207, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Multi-Status", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testStatusAlreadyReported() {
+    http:Response|error response = httpStatusCodeClient->get("/differentStatusCodes/statusAlreadyReported/false");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 208, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Success (208)", msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(), "It's AlreadyReported");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+
+    response = httpStatusCodeClient->get("/differentStatusCodes/statusAlreadyReported/true");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 208, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Success (208)", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testStatusIMUsed() {
+    http:Response|error response = httpStatusCodeClient->get("/differentStatusCodes/statusIMUsed/false");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 226, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Success (226)", msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(), "It's IMUsed");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+
+    response = httpStatusCodeClient->get("/differentStatusCodes/statusIMUsed/true");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 226, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Success (226)", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testStatusMisdirectedRequest() {
+    http:Response|error response = httpStatusCodeClient->get("/differentStatusCodes/statusMisdirectedRequest/false");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 421, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Misdirected Request", msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(), "It's MisdirectedRequest");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+
+    response = httpStatusCodeClient->get("/differentStatusCodes/statusMisdirectedRequest/true");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 421, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Misdirected Request", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testStatusUnprocessableEntity() {
+    http:Response|error response = httpStatusCodeClient->get("/differentStatusCodes/statusUnprocessableEntity/false");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 422, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Unprocessable Entity", msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(), "It's UnprocessableEntity");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+
+    response = httpStatusCodeClient->get("/differentStatusCodes/statusUnprocessableEntity/true");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 422, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Unprocessable Entity", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testStatusLocked() {
+    http:Response|error response = httpStatusCodeClient->get("/differentStatusCodes/statusLocked/false");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 423, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Locked", msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(), "It's Locked");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+
+    response = httpStatusCodeClient->get("/differentStatusCodes/statusLocked/true");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 423, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Locked", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testStatusFailedDependency() {
+    http:Response|error response = httpStatusCodeClient->get("/differentStatusCodes/statusFailedDependency/false");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 424, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Failed Dependency", msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(), "It's FailedDependency");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+
+    response = httpStatusCodeClient->get("/differentStatusCodes/statusFailedDependency/true");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 424, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Failed Dependency", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testStatusTooEarly() {
+    http:Response|error response = httpStatusCodeClient->get("/differentStatusCodes/statusTooEarly/false");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 425, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Unordered Collection", msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(), "It's TooEarly");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+
+    response = httpStatusCodeClient->get("/differentStatusCodes/statusTooEarly/true");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 425, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Unordered Collection", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testStatusPreconditionRequired() {
+    http:Response|error response = httpStatusCodeClient->get("/differentStatusCodes/statusPreconditionRequired/false");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 428, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Precondition Required", msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(), "It's PreconditionRequired");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+
+    response = httpStatusCodeClient->get("/differentStatusCodes/statusPreconditionRequired/true");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 428, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Precondition Required", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testStatusUnavailableDueToLegalReasons() {
+    http:Response|error response = httpStatusCodeClient->get("/differentStatusCodes/statusUnavailableDueToLegalReasons/false");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 451, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Client Error (451)", msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(), "It's UnavailableDueToLegalReasons");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+
+    response = httpStatusCodeClient->get("/differentStatusCodes/statusUnavailableDueToLegalReasons/true");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 451, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Client Error (451)", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testStatusVariantAlsoNegotiates() {
+    http:Response|error response = httpStatusCodeClient->get("/differentStatusCodes/statusVariantAlsoNegotiates/false");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 506, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Variant Also Negotiates", msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(), "It's VariantAlsoNegotiates");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+
+    response = httpStatusCodeClient->get("/differentStatusCodes/statusVariantAlsoNegotiates/true");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 506, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Variant Also Negotiates", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testStatusInsufficientStorage() {
+    http:Response|error response = httpStatusCodeClient->get("/differentStatusCodes/statusInsufficientStorage/false");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 507, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Insufficient Storage", msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(), "It's InsufficientStorage");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+
+    response = httpStatusCodeClient->get("/differentStatusCodes/statusInsufficientStorage/true");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 507, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Insufficient Storage", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testStatusLoopDetected() {
+    http:Response|error response = httpStatusCodeClient->get("/differentStatusCodes/statusLoopDetected/false");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 508, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Server Error (508)", msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(), "It's LoopDetected");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+
+    response = httpStatusCodeClient->get("/differentStatusCodes/statusLoopDetected/true");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 508, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Server Error (508)", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testStatusNotExtended() {
+    http:Response|error response = httpStatusCodeClient->get("/differentStatusCodes/statusNotExtended/false");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 510, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Not Extended", msg = "Found unexpected output");
+        assertTextPayload(response.getTextPayload(), "It's NotExtended");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+
+    response = httpStatusCodeClient->get("/differentStatusCodes/statusNotExtended/true");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 510, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Not Extended", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
 function testNetworkAuthorizationRequired() {
-    http:Response|error response = httpStatusCodeClient->get
-    ("/differentStatusCodes/networkAuthorizationRequired/false");
+    http:Response|error response = httpStatusCodeClient->get("/differentStatusCodes/networkAuthorizationRequired/false");
     if response is http:Response {
         test:assertEquals(response.statusCode, 511, msg = "Found unexpected output");
-        test:assertEquals(response.reasonPhrase, "Network Authentication Required", msg = "Found unexpected output");
         test:assertEquals(response.reasonPhrase, "Network Authentication Required", msg = "Found unexpected output");
         assertTextPayload(response.getTextPayload(), "Authorization Required");
     } else {
