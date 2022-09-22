@@ -326,7 +326,7 @@ service /snowpeak on new http:Listener(port) {
    resource function get locations/[string id]/rooms(string startDate, string endDate)
                returns rep:Rooms|rep:SnowpeakInternalError {}
  
-   resource function put reservations(@http:Payload rep:Reservation reservation)
+   resource function post reservations(@http:Payload rep:Reservation reservation)
                returns rep:ReservationCreated|rep:ReservationConflict|rep:SnowpeakInternalError {}   
              
    resource function put reservations/[string id](@http:Payload rep:Reservation reservation)
@@ -335,7 +335,7 @@ service /snowpeak on new http:Listener(port) {
    resource function delete reservations/[string id]() returns
                rep:ReservationCanceled|rep:SnowpeakInternalError {}
  
-   resource function put payments/[string id](@http:Payload rep:Payment payment)
+   resource function post payments/[string id](@http:Payload rep:Payment payment)
                returns rep:PaymentCreated|rep:PaymentConflict|rep:SnowpeakInternalError {}
 }
 ```

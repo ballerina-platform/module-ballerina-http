@@ -50,28 +50,23 @@ public isolated function getRooms(string startDate, string endDate) returns rep:
     };
 }
 
-public isolated function createReservation(rep:Reservation reservation) returns rep:ReservationCreated|error {
+public isolated function createReservation(rep:Reservation reservation) returns rep:ReservationReceipt|error {
     return {
-        headers: {
-            location: "/snowpeak/reservations/re1000"
-        },
-        body: {
-            id: "re1000",
-            expiryDate: "2021-07-01",
-            lastUpdated: "2021-06-29T13:01:30Z",
-            currency: "USD",
-            total: 400.00,
-            state: rep:VALID,
-            reservation: {
-                reserveRooms: [
-                    {
-                        id: "r1000",
-                        count: 2
-                    }
-                ],
-                startDate: "2021-08-01",
-                endDate: "2021-08-03"
-            }
+        id: "re1000",
+        expiryDate: "2021-07-01",
+        lastUpdated: "2021-06-29T13:01:30Z",
+        currency: "USD",
+        total: 400.00,
+        state: rep:VALID,
+        reservation: {
+            reserveRooms: [
+                {
+                    id: "r1000",
+                    count: 2
+                }
+            ],
+            startDate: "2021-08-01",
+            endDate: "2021-08-03"
         }
     };
 }
@@ -125,29 +120,24 @@ public isolated function cancelReservation(string id) returns rep:ReservationCan
     };
 }
 
-public isolated function createPayment(string id, rep:Payment payment) returns rep:PaymentCreated|error {
+public isolated function createPayment(string id, rep:Payment payment) returns rep:PaymentReceipt|error {
     return {
-        headers: {
-            location: "/snowpeak/reservations/p1000"
-        },
-        body: {
-            id: "p1000",
-            currency: "USD",
-            total: 400.00,
-            lastUpdated: "2021-06-29T13:01:30Z",
-            rooms: [
-                    {
-                    id: "r1000",
-                    category: rep:DELUXE,
-                    capacity: 5,
-                    wifi: true,
-                    status: rep:RESERVED,
-                    currency: "USD",
-                    price: 200.00,
-                    count: 1
-                }
-            ]
-        }
+        id: "p1000",
+        currency: "USD",
+        total: 400.00,
+        lastUpdated: "2021-06-29T13:01:30Z",
+        rooms: [
+                {
+                id: "r1000",
+                category: rep:DELUXE,
+                capacity: 5,
+                wifi: true,
+                status: rep:RESERVED,
+                currency: "USD",
+                price: 200.00,
+                count: 1
+            }
+        ]
     };
 }
 
