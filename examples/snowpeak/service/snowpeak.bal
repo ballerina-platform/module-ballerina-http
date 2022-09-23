@@ -71,8 +71,8 @@ service /snowpeak on new http:Listener(port) {
             { name: "Payment", relation: "payment" }
         ]
     }
-    resource function put reservations(@http:Payload rep:Reservation reservation)
-                returns @http:Payload{mediaType: "application/json"} rep:ReservationCreated|rep:ReservationConflict|rep:SnowpeakInternalError {
+    resource function post reservations(@http:Payload rep:Reservation reservation)
+                returns @http:Payload{mediaType: "application/json"} rep:ReservationReceipt|rep:ReservationConflict|rep:SnowpeakInternalError {
         do {
             return check mock:createReservation(reservation);
         } on fail var e {
@@ -107,8 +107,8 @@ service /snowpeak on new http:Listener(port) {
     @http:ResourceConfig {
         name: "Reservation"
     }
-    resource function delete reservations/[string id]() returns @http:Payload{mediaType: "application/json"}
-                            rep:ReservationCanceled|rep:SnowpeakInternalError {
+    resource function delete reservations/[string id]() returns
+                            @http:Payload{mediaType: "application/json"} rep:ReservationCanceled|rep:SnowpeakInternalError {
         do {
             return check mock:cancelReservation(id);
         } on fail var e {
@@ -124,8 +124,8 @@ service /snowpeak on new http:Listener(port) {
     @http:ResourceConfig {
         name: "Payment"
     }
-    resource function put payments/[string id](@http:Payload rep:Payment payment)
-                returns @http:Payload{mediaType: "application/json"} rep:PaymentCreated|rep:PaymentConflict|rep:SnowpeakInternalError {
+    resource function post payments/[string id](@http:Payload rep:Payment payment)
+                returns @http:Payload{mediaType: "application/json"} rep:PaymentReceipt|rep:PaymentConflict|rep:SnowpeakInternalError {
         do {
             return check mock:createPayment(id, payment);
         } on fail var e {
