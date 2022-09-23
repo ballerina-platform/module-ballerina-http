@@ -88,7 +88,7 @@ public type Reservation record {|
     string endDate;
 |};
 # Represents a receipt for the reservation
-public type ReservationReceipt record {|
+public type ReservationReceipt record {
     # Unique identification of the receipt
     string id;
     # Expiry date in yyyy-mm-dd
@@ -103,7 +103,7 @@ public type ReservationReceipt record {|
     Reservation reservation;
     # State of the reservation
     ReservationState state;
-|};
+};
 # Represents the unexpected error
 public type SnowpeakError record {|
     # Error message
