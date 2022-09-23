@@ -386,7 +386,7 @@ resource function post reservations(@http:Payload Reservation reservation)
 If you can remember the state diagram, it was depicting that unsafe state transition is possible from rooms to reservation. As a result of this transition you need to create a new reservation resource. By now you know that the POST verb is used to create a resource. Therefore, POST is used as the accessor in front of the resource URL. There are three possible responses, one is `ReservationReceipt`, `ReservationConflict` or `SnowpeakInternalError`, these responses are mapped in Ballerina as follows,
 
 ```ballerina
-public type ReservationReceipt record {|
+public type ReservationReceipt record {
     string id;
     string expiryDate;
     string lastUpdated;
@@ -394,7 +394,7 @@ public type ReservationReceipt record {|
     decimal total;
     Reservation reservation;
     ReservationState state;
-|};
+};
 
 type ReservationConflict record {|
    *http:Conflict;
