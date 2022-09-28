@@ -1,0 +1,173 @@
+[
+    {
+        "name": "io.netty.handler.ssl.OpenSslSessionCache",
+        "methods": [
+            {
+                "name": "getSession",
+                "parameterTypes": [
+                    "long",
+                    "byte[]"
+                ]
+            },
+            {
+                "name": "sessionCreated",
+                "parameterTypes": [
+                    "long",
+                    "long"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "io.netty.handler.ssl.ReferenceCountedOpenSslContext$AbstractCertificateVerifier",
+        "methods": [
+            {
+                "name": "verify",
+                "parameterTypes": [
+                    "long",
+                    "byte[][]",
+                    "java.lang.String"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "io.netty.handler.ssl.ReferenceCountedOpenSslServerContext$ExtendedTrustManagerVerifyCallback"
+    },
+    {
+        "name": "io.netty.handler.ssl.ReferenceCountedOpenSslServerContext$OpenSslServerCertificateCallback",
+        "methods": [
+            {
+                "name": "handle",
+                "parameterTypes": [
+                    "long",
+                    "byte[]",
+                    "byte[][]"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "io.netty.handler.ssl.ReferenceCountedOpenSslServerContext$OpenSslSniHostnameMatcher",
+        "methods": [
+            {
+                "name": "match",
+                "parameterTypes": [
+                    "long",
+                    "java.lang.String"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "io.netty.handler.ssl.OpenSslClientSessionCache"
+    },
+    {
+        "name": "io.netty.handler.ssl.ReferenceCountedOpenSslClientContext$ExtendedTrustManagerVerifyCallback"
+    },
+    {
+        "name": "io.netty.handler.ssl.ReferenceCountedOpenSslClientContext$OpenSslClientCertificateCallback",
+        "methods": [
+            {
+                "name": "handle",
+                "parameterTypes": [
+                    "long",
+                    "byte[]",
+                    "byte[][]"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "io.netty.internal.tcnative.Buffer"
+    },
+    {
+        "name": "io.netty.internal.tcnative.CertificateCallbackTask",
+        "methods": [
+            {
+                "name": "<init>",
+                "parameterTypes": [
+                    "long",
+                    "byte[]",
+                    "byte[][]",
+                    "io.netty.internal.tcnative.CertificateCallback"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "io.netty.internal.tcnative.CertificateVerifierTask",
+        "methods": [
+            {
+                "name": "<init>",
+                "parameterTypes": [
+                    "long",
+                    "byte[][]",
+                    "java.lang.String",
+                    "io.netty.internal.tcnative.CertificateVerifier"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "io.netty.internal.tcnative.Library"
+    },
+    {
+        "name": "io.netty.internal.tcnative.NativeStaticallyReferencedJniMethods"
+    },
+    {
+        "name": "io.netty.internal.tcnative.SSL"
+    },
+    {
+        "name": "io.netty.internal.tcnative.SSLContext"
+    },
+    {
+        "name": "io.netty.internal.tcnative.SSLPrivateKeyMethodDecryptTask",
+        "methods": [
+            {
+                "name": "<init>",
+                "parameterTypes": [
+                    "long",
+                    "byte[]",
+                    "io.netty.internal.tcnative.AsyncSSLPrivateKeyMethod"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "io.netty.internal.tcnative.SSLPrivateKeyMethodSignTask",
+        "methods": [
+            {
+                "name": "<init>",
+                "parameterTypes": [
+                    "long",
+                    "int",
+                    "byte[]",
+                    "io.netty.internal.tcnative.AsyncSSLPrivateKeyMethod"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "io.netty.internal.tcnative.SSLPrivateKeyMethodTask",
+        "fields": [
+            {
+                "name": "resultBytes"
+            }
+        ]
+    },
+    {
+        "name": "io.netty.internal.tcnative.SSLSession"
+    },
+    {
+        "name": "io.netty.internal.tcnative.SSLTask",
+        "fields": [
+            {
+                "name": "complete"
+            },
+            {
+                "name": "returnValue"
+            }
+        ]
+    }
+]
