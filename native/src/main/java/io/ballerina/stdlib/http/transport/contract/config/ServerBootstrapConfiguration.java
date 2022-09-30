@@ -61,7 +61,7 @@ public class ServerBootstrapConfiguration {
                 properties, Constants.SERVER_BOOTSTRAP_TCP_NO_DELY, true);
 
         socketReuse = Util.getBooleanProperty(
-                properties, Constants.SERVER_BOOTSTRAP_SO_REUSE, false);
+                properties, Constants.SERVER_BOOTSTRAP_SO_REUSE, true);
 
         soBackLog = Util.getIntProperty(properties, Constants.SERVER_BOOTSTRAP_SO_BACKLOG, 100);
     }

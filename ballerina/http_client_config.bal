@@ -171,7 +171,7 @@ public type ClientSocketConfig record {|
     int receiveBufferSize = 1048576;
     int sendBufferSize = 1048576;
     boolean tcpNoDelay = true;
-    boolean socketReuse = false;
+    boolean socketReuse = true;
     boolean keepAlive = false;
 |};
 
