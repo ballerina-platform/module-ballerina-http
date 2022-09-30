@@ -252,21 +252,9 @@ public type ListenerSecureSocket record {|
 # Provides settings related to server socket configuration.
 #
 # + soBackLog - Requested maximum length of the queue of incoming connections.
-# + connectTimeOut - Connect timeout of the channel in seconds. If the Channel does not support connect operation,
-# this property is not used at all, and therefore will be ignored.
-# + receiveBufferSize - Sets the SO_RCVBUF option to the specified value for this server Socket.
-# + sendBufferSize - Sets the SO_SNDBUF option to the specified value for this Socket.
-# + tcpNoDelay - Enable/disable TCP_NODELAY (disable/enable Nagle's algorithm).
-# + socketReuse - Enable/disable the SO_REUSEADDR socket option.
-# + keepAlive - Enable/disable SO_KEEPALIVE.
 public type ServerSocketConfig record {|
+    *ClientSocketConfig;
     int soBackLog = 100;
-    decimal connectTimeOut = 15;
-    int receiveBufferSize = 1048576;
-    int sendBufferSize = 1048576;
-    boolean tcpNoDelay = true;
-    boolean socketReuse = false;
-    boolean keepAlive = true;
 |};
 
 # Represents combination of certificate, private key and private key password if encrypted.

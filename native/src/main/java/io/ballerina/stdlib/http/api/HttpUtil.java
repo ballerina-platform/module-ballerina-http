@@ -1530,14 +1530,14 @@ public class HttpUtil {
         listenerConfig.setReceiveBufferSize(receiveBufferSize);
         int sendBufferSize = serverSocketConfig.getIntValue(SOCKET_CONFIG_SEND_BUFFER_SIZE).intValue();
         listenerConfig.setSendBufferSize(sendBufferSize);
-        int soBackLog = serverSocketConfig.getIntValue(SOCKET_CONFIG_SO_BACKLOG).intValue();
-        listenerConfig.setSoBackLog(soBackLog);
         boolean tcpNoDelay = serverSocketConfig.getBooleanValue(SOCKET_CONFIG_TCP_NO_DELAY);
         listenerConfig.setTcpNoDelay(tcpNoDelay);
         boolean socketReuse = serverSocketConfig.getBooleanValue(SOCKET_CONFIG_SOCKET_REUSE);
         listenerConfig.setSocketReuse(socketReuse);
         boolean keepAlive = serverSocketConfig.getBooleanValue(SOCKET_CONFIG_KEEP_ALIVE);
         listenerConfig.setSocketKeepAlive(keepAlive);
+        int soBackLog = serverSocketConfig.getIntValue(SOCKET_CONFIG_SO_BACKLOG).intValue();
+        listenerConfig.setSoBackLog(soBackLog);
     }
 
     // TODO : Move this to `register` after this issue is fixed

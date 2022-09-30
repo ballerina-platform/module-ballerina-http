@@ -166,15 +166,13 @@ public type CookieConfig record {|
 # + tcpNoDelay - Enable/disable TCP_NODELAY (disable/enable Nagle's algorithm).
 # + socketReuse - Enable/disable the SO_REUSEADDR socket option.
 # + keepAlive - Enable/disable SO_KEEPALIVE.
-# + socketTimeOut - Enable/disable SO_TIMEOUT with the specified timeout, in seconds.
 public type ClientSocketConfig record {|
     decimal connectTimeOut = 15;
     int receiveBufferSize = 1048576;
     int sendBufferSize = 1048576;
     boolean tcpNoDelay = true;
     boolean socketReuse = false;
-    boolean keepAlive = true;
-    decimal socketTimeOut = 15;
+    boolean keepAlive = false;
 |};
 
 # Represents HTTP methods.

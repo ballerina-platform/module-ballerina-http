@@ -33,7 +33,6 @@ public class BootstrapConfiguration {
     private final int connectTimeOut;
     private final int receiveBufferSize;
     private final int sendBufferSize;
-    private final int socketTimeout;
 
     public BootstrapConfiguration(SenderConfiguration senderConfiguration) {
         this.connectTimeOut = senderConfiguration.getConnectTimeOut();
@@ -42,14 +41,12 @@ public class BootstrapConfiguration {
         this.tcpNoDelay = senderConfiguration.isTcpNoDelay();
         this.socketReuse = senderConfiguration.isSocketReuse();
         this.keepAlive = senderConfiguration.isSocketKeepAlive();
-        this.socketTimeout = senderConfiguration.getSocketTimeout();
 
         String logValue = "{}:{}";
         LOG.debug(logValue, Constants.CLIENT_BOOTSTRAP_TCP_NO_DELY , tcpNoDelay);
         LOG.debug(logValue, Constants.CLIENT_BOOTSTRAP_CONNECT_TIME_OUT, connectTimeOut);
         LOG.debug(logValue, Constants.CLIENT_BOOTSTRAP_RECEIVE_BUFFER_SIZE, receiveBufferSize);
         LOG.debug(logValue, Constants.CLIENT_BOOTSTRAP_SEND_BUFFER_SIZE, sendBufferSize);
-        LOG.debug(logValue, Constants.CLIENT_BOOTSTRAP_SO_TIMEOUT, socketTimeout);
         LOG.debug(logValue, Constants.CLIENT_BOOTSTRAP_KEEPALIVE, keepAlive);
         LOG.debug(logValue, Constants.CLIENT_BOOTSTRAP_SO_REUSE, socketReuse);
     }
@@ -76,9 +73,5 @@ public class BootstrapConfiguration {
 
     public boolean isSocketReuse() {
         return socketReuse;
-    }
-
-    public int getSocketTimeout() {
-        return socketTimeout;
     }
 }

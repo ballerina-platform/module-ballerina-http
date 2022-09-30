@@ -49,13 +49,12 @@ public class SenderConfiguration extends SslConfiguration {
     private PoolConfiguration poolConfiguration;
     private InboundMsgSizeValidationConfig responseSizeValidationConfig = new InboundMsgSizeValidationConfig();
     private ForwardedExtensionConfig forwardedExtensionConfig = ForwardedExtensionConfig.DISABLE;
-    private int connectTimeOut;
-    private int receiveBufferSize;
-    private int sendBufferSize;
-    private boolean tcpNoDelay;
-    private boolean socketReuse;
-    private boolean socketKeepAlive;
-    private int socketTimeout;
+    private int connectTimeOut = 15000;
+    private int receiveBufferSize = 1048576;
+    private int sendBufferSize = 1048576;
+    private boolean tcpNoDelay = true;
+    private boolean socketReuse = false;
+    private boolean socketKeepAlive = true;
 
     public SenderConfiguration() {
         this.poolConfiguration = new PoolConfiguration();
@@ -205,13 +204,5 @@ public class SenderConfiguration extends SslConfiguration {
 
     public void setSocketKeepAlive(boolean socketKeepAlive) {
         this.socketKeepAlive = socketKeepAlive;
-    }
-
-    public int getSocketTimeout() {
-        return socketTimeout;
-    }
-
-    public void setSocketTimeout(double socketTimeout) {
-        this.socketTimeout = (int) (socketTimeout * 1000);
     }
 }

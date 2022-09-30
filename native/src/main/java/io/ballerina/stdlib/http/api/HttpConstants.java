@@ -445,7 +445,6 @@ public class HttpConstants {
     public static final BString SOCKET_CONFIG_TCP_NO_DELAY = StringUtils.fromString("tcpNoDelay");
     public static final BString SOCKET_CONFIG_SOCKET_REUSE = StringUtils.fromString("socketReuse");
     public static final BString SOCKET_CONFIG_KEEP_ALIVE = StringUtils.fromString("keepAlive");
-    public static final BString SOCKET_CONFIG_SO_TIMEOUT = StringUtils.fromString("socketTimeOut");
 
     //Client Endpoint (CallerActions)
     public static final String CLIENT_ENDPOINT_SERVICE_URI = "url";

@@ -122,7 +122,6 @@ public class PoolableTargetChannelFactory implements PoolableObjectFactory {
         clientBootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, bootstrapConfiguration.getConnectTimeOut());
         clientBootstrap.option(ChannelOption.SO_RCVBUF, bootstrapConfiguration.getReceiveBufferSize());
         clientBootstrap.option(ChannelOption.SO_SNDBUF, bootstrapConfiguration.getSendBufferSize());
-        clientBootstrap.option(ChannelOption.SO_TIMEOUT, bootstrapConfiguration.getSocketTimeout());
         return clientBootstrap;
     }
 
