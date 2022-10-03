@@ -49,6 +49,12 @@ public class SenderConfiguration extends SslConfiguration {
     private PoolConfiguration poolConfiguration;
     private InboundMsgSizeValidationConfig responseSizeValidationConfig = new InboundMsgSizeValidationConfig();
     private ForwardedExtensionConfig forwardedExtensionConfig = ForwardedExtensionConfig.DISABLE;
+    private int connectTimeOut = 15000;
+    private int receiveBufferSize = 1048576;
+    private int sendBufferSize = 1048576;
+    private boolean tcpNoDelay = true;
+    private boolean socketReuse = false;
+    private boolean socketKeepAlive = true;
 
     public SenderConfiguration() {
         this.poolConfiguration = new PoolConfiguration();
@@ -150,5 +156,53 @@ public class SenderConfiguration extends SslConfiguration {
 
     public void setMsgSizeValidationConfig(InboundMsgSizeValidationConfig responseSizeValidationConfig) {
         this.responseSizeValidationConfig = responseSizeValidationConfig;
+    }
+
+    public int getConnectTimeOut() {
+        return connectTimeOut;
+    }
+
+    public void setConnectTimeOut(double connectTimeOut) {
+        this.connectTimeOut = (int) (connectTimeOut * 1000);
+    }
+
+    public int getReceiveBufferSize() {
+        return receiveBufferSize;
+    }
+
+    public void setReceiveBufferSize(int receiveBufferSize) {
+        this.receiveBufferSize = receiveBufferSize;
+    }
+
+    public int getSendBufferSize() {
+        return sendBufferSize;
+    }
+
+    public void setSendBufferSize(int sendBufferSize) {
+        this.sendBufferSize = sendBufferSize;
+    }
+
+    public boolean isTcpNoDelay() {
+        return tcpNoDelay;
+    }
+
+    public void setTcpNoDelay(boolean tcpNoDelay) {
+        this.tcpNoDelay = tcpNoDelay;
+    }
+
+    public boolean isSocketReuse() {
+        return socketReuse;
+    }
+
+    public void setSocketReuse(boolean socketReuse) {
+        this.socketReuse = socketReuse;
+    }
+
+    public boolean isSocketKeepAlive() {
+        return socketKeepAlive;
+    }
+
+    public void setSocketKeepAlive(boolean socketKeepAlive) {
+        this.socketKeepAlive = socketKeepAlive;
     }
 }

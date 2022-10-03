@@ -513,7 +513,8 @@ isolated function createClientEPConfigFromLoalBalanceEPConfig(LoadBalanceClientC
         auth:lbConfig.auth,
         cookieConfig:lbConfig.cookieConfig,
         responseLimits:lbConfig.responseLimits,
-        validation:lbConfig.validation
+        validation:lbConfig.validation,
+        socketConfig:lbConfig.socketConfig
     };
     return clientEPConfig;
 }

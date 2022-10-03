@@ -56,6 +56,13 @@ public class ListenerConfiguration extends SslConfiguration {
     private boolean webSocketCompressionEnabled;
     private long pipeliningLimit;
     private int gracefulStopTimeout = 0;
+    private int soBackLog;
+    private int connectTimeOut;
+    private int receiveBufferSize;
+    private int sendBufferSize;
+    private boolean tcpNoDelay;
+    private boolean socketReuse;
+    private boolean socketKeepAlive;
 
     public ListenerConfiguration() {
     }
@@ -209,5 +216,61 @@ public class ListenerConfiguration extends SslConfiguration {
 
     public int getGracefulStopTimeout() {
         return gracefulStopTimeout;
+    }
+
+    public int getSoBackLog() {
+        return soBackLog;
+    }
+
+    public void setSoBackLog(int soBackLog) {
+        this.soBackLog = soBackLog;
+    }
+
+    public int getConnectTimeOut() {
+        return connectTimeOut;
+    }
+
+    public void setConnectTimeOut(double connectTimeOut) {
+        this.connectTimeOut = (int) (connectTimeOut * 1000);
+    }
+
+    public int getReceiveBufferSize() {
+        return receiveBufferSize;
+    }
+
+    public void setReceiveBufferSize(int receiveBufferSize) {
+        this.receiveBufferSize = receiveBufferSize;
+    }
+
+    public int getSendBufferSize() {
+        return sendBufferSize;
+    }
+
+    public void setSendBufferSize(int sendBufferSize) {
+        this.sendBufferSize = sendBufferSize;
+    }
+
+    public boolean isTcpNoDelay() {
+        return tcpNoDelay;
+    }
+
+    public void setTcpNoDelay(boolean tcpNoDelay) {
+        this.tcpNoDelay = tcpNoDelay;
+    }
+
+    public boolean isSocketReuse() {
+        return socketReuse;
+    }
+
+    public void setSocketReuse(boolean socketReuse) {
+        this.socketReuse = socketReuse;
+    }
+
+    public boolean isSocketKeepAlive() {
+        return socketKeepAlive;
+    }
+
+    public void setSocketKeepAlive(boolean keepAlive) {
+        this.socketKeepAlive = keepAlive;
     }
 }

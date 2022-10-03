@@ -120,6 +120,8 @@ public class PoolableTargetChannelFactory implements PoolableObjectFactory {
         clientBootstrap.option(ChannelOption.TCP_NODELAY, bootstrapConfiguration.isTcpNoDelay());
         clientBootstrap.option(ChannelOption.SO_REUSEADDR, bootstrapConfiguration.isSocketReuse());
         clientBootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, bootstrapConfiguration.getConnectTimeOut());
+        clientBootstrap.option(ChannelOption.SO_RCVBUF, bootstrapConfiguration.getReceiveBufferSize());
+        clientBootstrap.option(ChannelOption.SO_SNDBUF, bootstrapConfiguration.getSendBufferSize());
         return clientBootstrap;
     }
 

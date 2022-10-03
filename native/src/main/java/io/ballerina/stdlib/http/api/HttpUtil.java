@@ -137,6 +137,13 @@ import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_SES
 import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_TRUSTSTORE_FILE_PATH;
 import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_TRUSTSTORE_PASSWORD;
 import static io.ballerina.stdlib.http.api.HttpConstants.SINGLE_SLASH;
+import static io.ballerina.stdlib.http.api.HttpConstants.SOCKET_CONFIG_CONNECT_TIMEOUT;
+import static io.ballerina.stdlib.http.api.HttpConstants.SOCKET_CONFIG_KEEP_ALIVE;
+import static io.ballerina.stdlib.http.api.HttpConstants.SOCKET_CONFIG_RECEIVE_BUFFER_SIZE;
+import static io.ballerina.stdlib.http.api.HttpConstants.SOCKET_CONFIG_SEND_BUFFER_SIZE;
+import static io.ballerina.stdlib.http.api.HttpConstants.SOCKET_CONFIG_SOCKET_REUSE;
+import static io.ballerina.stdlib.http.api.HttpConstants.SOCKET_CONFIG_SO_BACKLOG;
+import static io.ballerina.stdlib.http.api.HttpConstants.SOCKET_CONFIG_TCP_NO_DELAY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.ENCODING_GZIP;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_1_1_VERSION;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_TRANSFER_ENCODING_IDENTITY;
@@ -1447,6 +1454,7 @@ public class HttpUtil {
      * @param endpointConfig    listener endpoint configuration.
      * @return                  transport listener configuration instance.
      */
+    @SuppressWarnings("unchecked")
     public static ListenerConfiguration getListenerConfig(long port, BMap endpointConfig) {
         String host = endpointConfig.getStringValue(HttpConstants.ENDPOINT_CONFIG_HOST).getValue();
         BMap<BString, Object> sslConfig = endpointConfig.getMapValue(HttpConstants.ENDPOINT_CONFIG_SECURESOCKET);
@@ -1501,12 +1509,35 @@ public class HttpUtil {
         BString serverName = endpointConfig.getStringValue(HttpConstants.SERVER_NAME);
         listenerConfiguration.setServerHeader(serverName != null ? serverName.getValue() : getServerName());
 
+        BMap<BString, Object> serverSocketConfig = endpointConfig.getMapValue(HttpConstants.SOCKET_CONFIG);
+        if (serverSocketConfig != null) {
+            setServerSocketConfig(serverSocketConfig, listenerConfiguration);
+        }
+
         if (sslConfig != null) {
             return setSslConfig(sslConfig, listenerConfiguration);
         }
 
         listenerConfiguration.setPipeliningEnabled(true); //Pipelining is enabled all the time
         return listenerConfiguration;
+    }
+
+    private static void setServerSocketConfig(BMap<BString, Object> serverSocketConfig,
+                                              ListenerConfiguration listenerConfig) {
+        double connectTimeOut = ((BDecimal) serverSocketConfig.get(SOCKET_CONFIG_CONNECT_TIMEOUT)).floatValue();
+        listenerConfig.setConnectTimeOut(connectTimeOut);
+        int receiveBufferSize = serverSocketConfig.getIntValue(SOCKET_CONFIG_RECEIVE_BUFFER_SIZE).intValue();
+        listenerConfig.setReceiveBufferSize(receiveBufferSize);
+        int sendBufferSize = serverSocketConfig.getIntValue(SOCKET_CONFIG_SEND_BUFFER_SIZE).intValue();
+        listenerConfig.setSendBufferSize(sendBufferSize);
+        boolean tcpNoDelay = serverSocketConfig.getBooleanValue(SOCKET_CONFIG_TCP_NO_DELAY);
+        listenerConfig.setTcpNoDelay(tcpNoDelay);
+        boolean socketReuse = serverSocketConfig.getBooleanValue(SOCKET_CONFIG_SOCKET_REUSE);
+        listenerConfig.setSocketReuse(socketReuse);
+        boolean keepAlive = serverSocketConfig.getBooleanValue(SOCKET_CONFIG_KEEP_ALIVE);
+        listenerConfig.setSocketKeepAlive(keepAlive);
+        int soBackLog = serverSocketConfig.getIntValue(SOCKET_CONFIG_SO_BACKLOG).intValue();
+        listenerConfig.setSoBackLog(soBackLog);
     }
 
     // TODO : Move this to `register` after this issue is fixed

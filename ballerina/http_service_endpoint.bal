@@ -151,6 +151,7 @@ public type Local record {|
 # + requestLimits - Configurations associated with inbound request size limits
 # + interceptors - An array of interceptor services
 # + gracefulStopTimeout - Grace period of time in seconds for listener gracefulStop
+# + socketConfig - Provides settings related to server socket configuration
 public type ListenerConfiguration record {|
     string host = "0.0.0.0";
     ListenerHttp1Settings http1Settings = {};
@@ -161,6 +162,7 @@ public type ListenerConfiguration record {|
     RequestLimitConfigs requestLimits = {};
     Interceptor[] interceptors?;
     decimal gracefulStopTimeout = DEFAULT_GRACEFULSTOP_TIMEOUT;
+    ServerSocketConfig socketConfig = {};
 |};
 
 # Provides a set of cloneable configurations for HTTP listener.
@@ -245,6 +247,14 @@ public type ListenerSecureSocket record {|
     boolean shareSession = true;
     decimal handshakeTimeout?;
     decimal sessionTimeout?;
+|};
+
+# Provides settings related to server socket configuration.
+#
+# + soBackLog - Requested maximum length of the queue of incoming connections.
+public type ServerSocketConfig record {|
+    *ClientSocketConfig;
+    int soBackLog = 100;
 |};
 
 # Represents combination of certificate, private key and private key password if encrypted.

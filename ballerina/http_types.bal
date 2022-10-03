@@ -97,6 +97,8 @@ public type CommonClientConfiguration record {|
     ProxyConfig? proxy = ();
     # Enables the inbound payload validation functionalty which provided by the constraint package. Enabled by default
     boolean validation = true;
+    # Provides settings related to client socket configuration
+    ClientSocketConfig socketConfig = {};
 |};
 
 # Represents a server-provided hyperlink

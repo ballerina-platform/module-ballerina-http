@@ -688,7 +688,8 @@ isolated function createClientEPConfigFromFailoverEPConfig(FailoverClientConfigu
         auth:foConfig.auth,
         cookieConfig:foConfig.cookieConfig,
         responseLimits:foConfig.responseLimits,
-        validation:foConfig.validation
+        validation:foConfig.validation,
+        socketConfig:foConfig.socketConfig
     };
     return clientEPConfig;
 }

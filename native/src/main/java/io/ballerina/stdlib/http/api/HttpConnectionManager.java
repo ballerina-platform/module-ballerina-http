@@ -24,7 +24,6 @@ import io.ballerina.stdlib.http.transport.contract.config.SenderConfiguration;
 import io.ballerina.stdlib.http.transport.contract.config.ServerBootstrapConfiguration;
 import io.ballerina.stdlib.http.transport.contract.config.TransportProperty;
 import io.ballerina.stdlib.http.transport.contract.config.TransportsConfiguration;
-import io.ballerina.stdlib.http.transport.message.HttpConnectorUtil;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -41,13 +40,10 @@ public class HttpConnectionManager {
     private static final HttpConnectionManager instance = new HttpConnectionManager();
     private final Map<String, ServerConnector> startupDelayedHTTPServerConnectors = new HashMap<>();
     private final Map<String, HttpServerConnectorContext> serverConnectorPool = new HashMap<>();
-    private ServerBootstrapConfiguration serverBootstrapConfiguration;
     private final TransportsConfiguration trpConfig;
 
     private HttpConnectionManager() {
         trpConfig = buildDefaultTransportConfig();
-        serverBootstrapConfiguration = HttpConnectorUtil
-                .getServerBootstrapConfiguration(trpConfig.getTransportProperties());
     }
 
     public static HttpConnectionManager getInstance() {
@@ -74,8 +70,7 @@ public class HttpConnectionManager {
             listenerConfig.setHttpAccessLogEnabled(true);
         }
 
-        serverBootstrapConfiguration = HttpConnectorUtil
-                .getServerBootstrapConfiguration(trpConfig.getTransportProperties());
+        ServerBootstrapConfiguration serverBootstrapConfiguration = new ServerBootstrapConfiguration(listenerConfig);;
         HttpWsConnectorFactory httpConnectorFactory = HttpUtil.createHttpWsConnectionFactory();
         ServerConnector serverConnector =
                 httpConnectorFactory.createServerConnector(serverBootstrapConfiguration, listenerConfig);
