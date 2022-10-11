@@ -190,7 +190,8 @@ public class HttpConstants {
     public static final String MAJOR_VERSION = "{major}";
     public static final String MINOR_VERSION = "{minor}";
     public static final String STAR_IDENTIFIER = "*";
-    public static final String DOUBLE_STAR_IDENTIFIER = "**";
+    public static final String PATH_PARAM_IDENTIFIER = "^";
+    public static final String PATH_REST_PARAM_IDENTIFIER = "^^";
     public static final String OPEN_CURL_IDENTIFIER = "{";
     public static final String CLOSE_CURL_IDENTIFIER = "}";
     public static final String DOT_IDENTIFIER = ".";
