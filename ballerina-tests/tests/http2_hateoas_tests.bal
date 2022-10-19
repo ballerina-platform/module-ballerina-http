@@ -81,7 +81,8 @@ service /restBucks on new http:Listener(http2HateoasTestPort) {
             {name: "orders", relation: "status", method: "get"}
         ]
     }
-    resource function put payment/[string id](@http:Payload Payment payment, boolean closed) returns http:Accepted {
+    resource function put payment/[string id](@http:Payload Payment payment, boolean closed)
+            returns @http:Payload{mediaType: "application/json"} http:Accepted {
         if closed {
             return {body : getMockPaymentReceiptClosed(payment)};
         }
@@ -107,7 +108,6 @@ function testHttp2HateoasLinks1() returns error? {
         },
         "cancel": {
             href: "/restBucks/orders/{id}",
-            types: ["application/vnd.restBucks+json"],
             methods: [http:DELETE]
         },
         "payment": {
@@ -144,8 +144,7 @@ function testHttp2HateoasLinkHeaderWithClosedRecord() returns error? {
             value: "</restBucks/orders/{id}>", 
             params: {
                 rel: "\"cancel\"",
-                methods: "\"DELETE\"",
-                types: "\"application/vnd.restBucks+json\""}
+                methods: "\"DELETE\""}
         },
         { 
             value: "</restBucks/payment/{id}>", 
@@ -183,8 +182,7 @@ function testHttp2HateoasLinkHeaderWithReadOnlyPayload() returns error? {
             value: "</restBucks/orders/{id}>", 
             params: {
                 rel: "\"cancel\"",
-                methods: "\"DELETE\"",
-                types: "\"application/vnd.restBucks+json\""}
+                methods: "\"DELETE\""}
         },
         { 
             value: "</restBucks/payment/{id}>", 
@@ -214,7 +212,6 @@ function testHttp2HateoasLinks2() returns error? {
         },
         "cancel": {
             href: "/restBucks/orders/{id}",
-            types: ["application/vnd.restBucks+json"],
             methods: [http:DELETE]
         },
         "payment": {
@@ -237,8 +234,7 @@ function testHttp2HateoasLinkHeaderWithoutBody() returns error? {
             value: "</restBucks/orders/{id}>", 
             params: {
                 rel: "\"self\"",
-                methods: "\"DELETE\"",
-                types: "\"application/vnd.restBucks+json\""}
+                methods: "\"DELETE\""}
         }
     ];
     test:assertEquals(parsedLinkHeader, expectedLinkHeader);
