@@ -26,7 +26,7 @@ service /snowpeak on new http:Listener(port) {
 
     # Snowpeak locations resource
     # 
-    # + return - `Location` or `SnowpeakError` representation
+    # + return - `Locations` or `SnowpeakError` representation
     @http:ResourceConfig {
         name: "Locations",
         linkedTo: [{ name: "Rooms", relation: "room" }]
@@ -61,7 +61,7 @@ service /snowpeak on new http:Listener(port) {
     # Snowpeak create reservation resource
     #
     # + reservation - Reservation representation
-    # + return - `ReservationCreated` or `SnowpeakError` representation
+    # + return - `ReservationReceipt` or `ReservationConflict` or `SnowpeakError` representation
     @http:ResourceConfig {
         name: "Reservations",
         linkedTo: [
@@ -118,7 +118,7 @@ service /snowpeak on new http:Listener(port) {
     # 
     # + id - Unique identification of reservation
     # + payment - Payment representation
-    # + return - `PaymentCreated`, `PaymentConflict` or `SnowpeakError` representation
+    # + return - `PaymentReceipt`, `PaymentConflict` or `SnowpeakError` representation
     @http:ResourceConfig {
         name: "Payment"
     }

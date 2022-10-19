@@ -328,7 +328,7 @@ public class CompilerPluginTest {
         Assert.assertEquals(diagnosticResult.errorCount(), 5);
         // These are the errors returned from language compiler, so skipped the codes
         assertError(diagnosticResult, 0, "incompatible.types", null);
-        assertError(diagnosticResult, 1, "incompatible.types", null);
+        assertError(diagnosticResult, 1, "error.constructor.compatible.type.not.found", null);
     }
 
     @Test

@@ -204,11 +204,11 @@ public class HttpResource implements Resource {
         int count = 0;
         for (String segment : paths) {
             resourcePath.append(HttpConstants.SINGLE_SLASH);
-            if (HttpConstants.STAR_IDENTIFIER.equals(segment)) {
+            if (HttpConstants.PATH_PARAM_IDENTIFIER.equals(segment)) {
                 String pathSegment = resourceFunctionType.getParamNames()[count++];
                 resourcePath.append(HttpConstants.OPEN_CURL_IDENTIFIER)
                         .append(pathSegment).append(HttpConstants.CLOSE_CURL_IDENTIFIER);
-            } else if (HttpConstants.DOUBLE_STAR_IDENTIFIER.equals(segment)) {
+            } else if (HttpConstants.PATH_REST_PARAM_IDENTIFIER.equals(segment)) {
                 this.wildcardToken = resourceFunctionType.getParamNames()[count++];
                 resourcePath.append(HttpConstants.STAR_IDENTIFIER);
             } else if (HttpConstants.DOT_IDENTIFIER.equals(segment)) {
