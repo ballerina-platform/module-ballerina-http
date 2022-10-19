@@ -17,13 +17,16 @@
 */
 package io.ballerina.stdlib.http.api;
 
+import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
+import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.types.MethodType;
 import io.ballerina.runtime.api.types.RemoteMethodType;
 import io.ballerina.runtime.api.types.ResourceMethodType;
 import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BMap;
@@ -37,15 +40,21 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static io.ballerina.stdlib.http.api.HttpConstants.ANN_NAME_RESOURCE_CONFIG;
+import static io.ballerina.stdlib.http.api.HttpConstants.APPLICATION_JSON;
+import static io.ballerina.stdlib.http.api.HttpConstants.APPLICATION_OCTET_STREAM;
+import static io.ballerina.stdlib.http.api.HttpConstants.APPLICATION_XML;
 import static io.ballerina.stdlib.http.api.HttpConstants.LINK;
 import static io.ballerina.stdlib.http.api.HttpConstants.SINGLE_SLASH;
+import static io.ballerina.stdlib.http.api.HttpConstants.TEXT_PLAIN;
 import static io.ballerina.stdlib.http.api.HttpUtil.checkConfigAnnotationAvailability;
 import static io.ballerina.stdlib.http.api.HttpUtil.getParameterTypes;
 
@@ -76,6 +85,9 @@ public class HttpResource implements Resource {
     private List<LinkedResourceInfo> linkedResources = new ArrayList<>();
     private BMap<BString, Object> links = ValueCreator.createMapValue(LINK_MAP_TYPE);
     private List<BString> linkedRelations = new ArrayList<>();
+    private Set<String> linkReturnContentTypes = new HashSet<>();
+    private static final List<Integer> returnTypeTagsWithoutContentType = Arrays.asList(
+            TypeTags.NULL_TAG, TypeTags.OBJECT_TYPE_TAG, TypeTags.ERROR_TAG);
     private MethodType balResource;
     private List<String> methods;
     private String path;
@@ -293,6 +305,7 @@ public class HttpResource implements Resource {
         processResourceCors(httpResource, httpService);
         httpResource.setConstraintValidation(httpService.getConstraintValidation());
         httpResource.prepareAndValidateSignatureParams();
+        httpResource.setLinkReturnMediaTypes();
         return httpResource;
     }
 
@@ -397,6 +410,47 @@ public class HttpResource implements Resource {
 
     String getReturnMediaType() {
         return returnMediaType;
+    }
+
+    public void setLinkReturnMediaTypes() {
+        if (Objects.nonNull(this.returnMediaType)) {
+            linkReturnContentTypes.add(this.returnMediaType);
+        } else {
+            updateLinkReturnMediaTypes(getBalResource().getType().getReturnType());
+        }
+    }
+
+    public Set<String> getLinkReturnContentTypes() {
+        return linkReturnContentTypes;
+    }
+
+    private void updateLinkReturnMediaTypes(Type returnType) {
+        if (returnType.getTag() == TypeTags.UNION_TAG) {
+            List<Type> memberTypes = ((UnionType) returnType).getMemberTypes();
+            for (Type memberType : memberTypes) {
+                updateLinkReturnMediaTypes(memberType);
+            }
+        } else if (returnType.getTag() == TypeTags.ARRAY_TAG) {
+            Type elementType = ((ArrayType) returnType).getElementType();
+            if (elementType.getTag() == TypeTags.BYTE_TAG) {
+                linkReturnContentTypes.add(APPLICATION_OCTET_STREAM);
+            } else {
+                linkReturnContentTypes.add(APPLICATION_JSON);
+            }
+        } else if (returnTypeTagsWithoutContentType.stream().allMatch(typeTag -> returnType.getTag() != typeTag)) {
+            linkReturnContentTypes.add(getMediaTypeForBasicReturnType(returnType.getTag()));
+        }
+    }
+
+    private String getMediaTypeForBasicReturnType(int typeTag) {
+        switch (typeTag) {
+            case TypeTags.STRING_TAG:
+                return TEXT_PLAIN;
+            case TypeTags.XML_TAG:
+                return APPLICATION_XML;
+            default:
+                return APPLICATION_JSON;
+        }
     }
 
     BMap getResponseCacheConfig() {
