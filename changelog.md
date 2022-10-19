@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Add a grace period for graceful stop of the listener](https://github.com/ballerina-platform/ballerina-standard-library/issues/3277)
 - [Add missing HTTP status codes](https://github.com/ballerina-platform/ballerina-standard-library/issues/3393)
 - [Make socket configuration configurable in both ListenerConfig and Client config](https://github.com/ballerina-platform/ballerina-standard-library/issues/3246)
+- [Populate HATEOAS link's types field based on the resource return type](https://github.com/ballerina-platform/ballerina-standard-library/issues/3404)
 
 ### Changed
 - [Reduce Listener default timeout to 60s and Client default timeout to 30s](https://github.com/ballerina-platform/ballerina-standard-library/issues/3278)
