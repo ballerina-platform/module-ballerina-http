@@ -85,7 +85,7 @@ public class HttpResource implements Resource {
     private List<LinkedResourceInfo> linkedResources = new ArrayList<>();
     private BMap<BString, Object> links = ValueCreator.createMapValue(LINK_MAP_TYPE);
     private List<BString> linkedRelations = new ArrayList<>();
-    private Set<String> linkReturnContentTypes = new HashSet<>();
+    private Set<String> linkReturnMediaTypes = new HashSet<>();
     private static final List<Integer> returnTypeTagsWithoutContentType = Arrays.asList(
             TypeTags.NULL_TAG, TypeTags.OBJECT_TYPE_TAG, TypeTags.ERROR_TAG);
     private MethodType balResource;
@@ -414,14 +414,14 @@ public class HttpResource implements Resource {
 
     public void setLinkReturnMediaTypes() {
         if (Objects.nonNull(this.returnMediaType)) {
-            linkReturnContentTypes.add(this.returnMediaType);
+            linkReturnMediaTypes.add(this.returnMediaType);
         } else {
             updateLinkReturnMediaTypes(getBalResource().getType().getReturnType());
         }
     }
 
-    public Set<String> getLinkReturnContentTypes() {
-        return linkReturnContentTypes;
+    public Set<String> getLinkReturnMediaTypes() {
+        return linkReturnMediaTypes;
     }
 
     private void updateLinkReturnMediaTypes(Type returnType) {
@@ -433,12 +433,12 @@ public class HttpResource implements Resource {
         } else if (returnType.getTag() == TypeTags.ARRAY_TAG) {
             Type elementType = ((ArrayType) returnType).getElementType();
             if (elementType.getTag() == TypeTags.BYTE_TAG) {
-                linkReturnContentTypes.add(APPLICATION_OCTET_STREAM);
+                linkReturnMediaTypes.add(APPLICATION_OCTET_STREAM);
             } else {
-                linkReturnContentTypes.add(APPLICATION_JSON);
+                linkReturnMediaTypes.add(APPLICATION_JSON);
             }
         } else if (returnTypeTagsWithoutContentType.stream().allMatch(typeTag -> returnType.getTag() != typeTag)) {
-            linkReturnContentTypes.add(getMediaTypeForBasicReturnType(returnType.getTag()));
+            linkReturnMediaTypes.add(getMediaTypeForBasicReturnType(returnType.getTag()));
         }
     }
 

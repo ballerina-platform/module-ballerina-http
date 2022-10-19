@@ -345,8 +345,7 @@ public class HttpService implements Service {
         linkMap.put(HttpConstants.LINK_HREF, href);
         BArray methods = getMethodsBArray(linkedResource.getMethods());
         linkMap.put(HttpConstants.LINK_METHODS, methods);
-        // String returnMediaType = linkedResource.getReturnMediaType();
-        Set<String> returnMediaTypes = linkedResource.getLinkReturnContentTypes();
+        Set<String> returnMediaTypes = linkedResource.getLinkReturnMediaTypes();
         BArray types = ValueCreator.createArrayValue(TypeCreator.createArrayType(PredefinedTypes.TYPE_STRING));
         for (String returnMediaType : returnMediaTypes) {
             if (Objects.nonNull(returnMediaType)) {
