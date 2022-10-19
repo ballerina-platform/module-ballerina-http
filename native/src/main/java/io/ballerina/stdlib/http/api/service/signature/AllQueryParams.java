@@ -78,7 +78,11 @@ public class AllQueryParams implements Parameter {
             boolean queryExist = urlQueryParams.containsKey(StringUtils.fromString(token));
             Object queryValue = urlQueryParams.get(StringUtils.fromString(token));
             if (queryValue == null) {
-                if (queryParam.isNilable() && (treatNilableAsOptional || queryExist)) {
+                if (queryParam.isDefaultable()) {
+                    paramFeed[index++] = queryParam.getType().getZeroValue();
+                    paramFeed[index] = false;
+                    continue;
+                } else if (queryParam.isNilable() && (treatNilableAsOptional || queryExist)) {
                     paramFeed[index++] = null;
                     paramFeed[index] = true;
                     continue;
