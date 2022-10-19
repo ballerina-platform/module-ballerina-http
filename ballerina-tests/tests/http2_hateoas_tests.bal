@@ -33,8 +33,7 @@ service /restBucks on new http:Listener(http2HateoasTestPort) {
             {name: "payment", relation: "payment"}
         ]
     }
-    resource function post 'order(@http:Payload Order 'order, boolean closed)
-            returns @http:Payload{mediaType: "application/json"} OrderReceipt|OrderReceiptClosed {
+    resource function post 'order(@http:Payload Order 'order, boolean closed) returns OrderReceipt|OrderReceiptClosed {
         if closed {
             return getMockOrderReceiptClosed('order);
         }        
@@ -50,8 +49,7 @@ service /restBucks on new http:Listener(http2HateoasTestPort) {
             {name: "payment", relation: "payment"}
         ]
     }
-    resource function 'default orders/[string id]()
-            returns @http:Payload{mediaType: "application/json"} Order {
+    resource function 'default orders/[string id]() returns  Order {
         return getMockOrder();
     }
 
@@ -64,8 +62,7 @@ service /restBucks on new http:Listener(http2HateoasTestPort) {
             {name: "payment", relation: "payment"}
         ]
     }
-    resource function put orders/[string id](@http:Payload Order 'order)
-            returns @http:Payload{mediaType: "application/json"} OrderReceipt {
+    resource function put orders/[string id](@http:Payload Order 'order) returns OrderReceipt {
         return getMockOrderReceipt('order);
     }
 
@@ -73,8 +70,7 @@ service /restBucks on new http:Listener(http2HateoasTestPort) {
         name: "orders",
         linkedTo : [{name: "orders", method: "delete"}]
     }
-    resource function delete 'orders/[string id]()
-            returns @http:Payload{mediaType: "application/json"} http:Ok {
+    resource function delete 'orders/[string id]() returns http:Ok {
         return http:OK;
     }
 
@@ -85,8 +81,7 @@ service /restBucks on new http:Listener(http2HateoasTestPort) {
             {name: "orders", relation: "status", method: "get"}
         ]
     }
-    resource function put payment/[string id](@http:Payload Payment payment, boolean closed)
-            returns @http:Payload{mediaType: "application/json"} http:Accepted {
+    resource function put payment/[string id](@http:Payload Payment payment, boolean closed) returns http:Accepted {
         if closed {
             return {body : getMockPaymentReceiptClosed(payment)};
         }
