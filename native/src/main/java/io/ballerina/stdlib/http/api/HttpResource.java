@@ -23,11 +23,13 @@ import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.types.MethodType;
+import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.RemoteMethodType;
 import io.ballerina.runtime.api.types.ResourceMethodType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
@@ -54,9 +56,11 @@ import static io.ballerina.stdlib.http.api.HttpConstants.APPLICATION_OCTET_STREA
 import static io.ballerina.stdlib.http.api.HttpConstants.APPLICATION_XML;
 import static io.ballerina.stdlib.http.api.HttpConstants.LINK;
 import static io.ballerina.stdlib.http.api.HttpConstants.SINGLE_SLASH;
+import static io.ballerina.stdlib.http.api.HttpConstants.STATUS_CODE_RESPONSE_BODY_FIELD;
 import static io.ballerina.stdlib.http.api.HttpConstants.TEXT_PLAIN;
 import static io.ballerina.stdlib.http.api.HttpUtil.checkConfigAnnotationAvailability;
 import static io.ballerina.stdlib.http.api.HttpUtil.getParameterTypes;
+import static io.ballerina.stdlib.http.api.HttpUtil.isHttpStatusCodeResponseTypeWithBody;
 
 /**
  * {@code HttpResource} This is the http wrapper for the {@code Resource} implementation.
@@ -86,8 +90,6 @@ public class HttpResource implements Resource {
     private BMap<BString, Object> links = ValueCreator.createMapValue(LINK_MAP_TYPE);
     private List<BString> linkedRelations = new ArrayList<>();
     private Set<String> linkReturnMediaTypes = new HashSet<>();
-    private static final List<Integer> returnTypeTagsWithoutContentType = Arrays.asList(
-            TypeTags.NULL_TAG, TypeTags.OBJECT_TYPE_TAG, TypeTags.ERROR_TAG);
     private MethodType balResource;
     private List<String> methods;
     private String path;
@@ -305,7 +307,15 @@ public class HttpResource implements Resource {
         processResourceCors(httpResource, httpService);
         httpResource.setConstraintValidation(httpService.getConstraintValidation());
         httpResource.prepareAndValidateSignatureParams();
-        httpResource.setLinkReturnMediaTypes();
+        if (Objects.nonNull(httpResource.getResourceLinkName()) && httpResource.linkReturnMediaTypes.isEmpty()) {
+            Type resourceReturnType = httpResource.getBalResource().getType().getReturnType();
+            if (Objects.nonNull(httpResource.getParamHandler().getCallerInfoType())) {
+                // Overrides the resource return type if the caller is used with CallerInfo annotation, since compiler
+                // does not allow having caller and returning types which are not error or nil
+                resourceReturnType = httpResource.getParamHandler().getCallerInfoType();
+            }
+            httpResource.updateLinkReturnMediaTypesFromReturnType(resourceReturnType);
+        }
         return httpResource;
     }
 
@@ -393,12 +403,14 @@ public class HttpResource implements Resource {
                 Object mediaType = annotations.getMapValue(key).get(HttpConstants.ANN_FIELD_MEDIA_TYPE);
                 if (mediaType instanceof BString) {
                     this.returnMediaType = ((BString) mediaType).getValue();
+                    this.linkReturnMediaTypes.add(this.returnMediaType);
                 } else if (mediaType instanceof BArray) {
                     BArray mediaTypeArr = (BArray) mediaType;
                     if (mediaTypeArr.getLength() != 0) {
                         // When user provides an array of mediaTypes, the first element is considered for `Content-Type`
                         // of the response assuming the priority order.
                         this.returnMediaType = ((BArray) mediaType).get(0).toString();
+                        this.linkReturnMediaTypes.addAll(List.of(mediaTypeArr.getStringArray()));
                     }
                 }
             }
@@ -412,44 +424,50 @@ public class HttpResource implements Resource {
         return returnMediaType;
     }
 
-    public void setLinkReturnMediaTypes() {
-        if (Objects.nonNull(this.returnMediaType)) {
-            linkReturnMediaTypes.add(this.returnMediaType);
-        } else {
-            updateLinkReturnMediaTypes(getBalResource().getType().getReturnType());
-        }
-    }
-
     public Set<String> getLinkReturnMediaTypes() {
         return linkReturnMediaTypes;
     }
 
-    private void updateLinkReturnMediaTypes(Type returnType) {
+    private void updateLinkReturnMediaTypesFromReturnType(Type returnType) {
+        if (isHttpStatusCodeResponseTypeWithBody(returnType)) {
+            returnType = ((RecordType) returnType).getFields().get(STATUS_CODE_RESPONSE_BODY_FIELD).getFieldType();
+        }
+
+        if (returnType.getTag() == TypeTags.TYPE_REFERENCED_TYPE_TAG) {
+            returnType = TypeUtils.getReferredType(returnType);
+        }
+
         if (returnType.getTag() == TypeTags.UNION_TAG) {
             List<Type> memberTypes = ((UnionType) returnType).getMemberTypes();
             for (Type memberType : memberTypes) {
-                updateLinkReturnMediaTypes(memberType);
+                updateLinkReturnMediaTypesFromReturnType(memberType);
             }
-        } else if (returnType.getTag() == TypeTags.ARRAY_TAG) {
-            Type elementType = ((ArrayType) returnType).getElementType();
-            if (elementType.getTag() == TypeTags.BYTE_TAG) {
-                linkReturnMediaTypes.add(APPLICATION_OCTET_STREAM);
-            } else {
-                linkReturnMediaTypes.add(APPLICATION_JSON);
-            }
-        } else if (returnTypeTagsWithoutContentType.stream().allMatch(typeTag -> returnType.getTag() != typeTag)) {
-            linkReturnMediaTypes.add(getMediaTypeForBasicReturnType(returnType.getTag()));
+        } else {
+            updateMediaTypesForBasicReturnTypes(returnType);
         }
     }
 
-    private String getMediaTypeForBasicReturnType(int typeTag) {
-        switch (typeTag) {
+    private void updateMediaTypesForBasicReturnTypes(Type returnType) {
+        switch (returnType.getTag()) {
+            case TypeTags.NULL_TAG:
+            case TypeTags.OBJECT_TYPE_TAG:
+            case TypeTags.ERROR_TAG:
+            case TypeTags.ANYDATA_TAG:
+                break;
             case TypeTags.STRING_TAG:
-                return TEXT_PLAIN;
+                linkReturnMediaTypes.add(TEXT_PLAIN);
+                break;
             case TypeTags.XML_TAG:
-                return APPLICATION_XML;
+                linkReturnMediaTypes.add(APPLICATION_XML);
+                break;
+            case TypeTags.ARRAY_TAG:
+                Type elementType = ((ArrayType) returnType).getElementType();
+                linkReturnMediaTypes.add(elementType.getTag() == TypeTags.BYTE_TAG ?
+                                                 APPLICATION_OCTET_STREAM : APPLICATION_JSON);
+                break;
             default:
-                return APPLICATION_JSON;
+                linkReturnMediaTypes.add(APPLICATION_JSON);
+                break;
         }
     }
 

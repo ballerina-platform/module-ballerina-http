@@ -154,6 +154,7 @@ public class HttpConstants {
     public static final String ANN_NAME_CALLER_INFO = "CallerInfo";
     public static final String DIRTY_RESPONSE = "dirtyResponse";
     public static final BString ANN_FIELD_MEDIA_TYPE = StringUtils.fromString("mediaType");
+    public static final BString ANN_FIELD_RESPOND_TYPE = StringUtils.fromString("respondType");
     public static final BString ANN_FIELD_NAME = StringUtils.fromString("name");
     public static final String ANN_NAME_CACHE = "Cache";
 
@@ -286,6 +287,10 @@ public class HttpConstants {
     public static final BString RESOLVED_REQUESTED_URI_FIELD = StringUtils.fromString("resolvedRequestedURI");
     public static final BString RESPONSE_CACHE_CONTROL_FIELD = StringUtils.fromString("cacheControl");
     public static final String IN_RESPONSE_RECEIVED_TIME_FIELD = "receivedTime";
+
+    //StatusCodeResponse struct field names
+    public static final String STATUS_CODE_RESPONSE_BODY_FIELD = "body";
+    public static final String STATUS_CODE_RESPONSE_STATUS_FIELD = "status";
 
     //PushPromise struct field names
     public static final BString PUSH_PROMISE_PATH_FIELD = StringUtils.fromString("path");
