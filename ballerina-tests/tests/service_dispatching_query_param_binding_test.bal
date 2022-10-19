@@ -106,7 +106,7 @@ service /queryparamservice on QueryBindingEP {
         return ok;
     }
 
-    resource function get petsMap(map<TypeJson> count) returns json {
+        resource function get petsMap(map<TypeJson> count) returns json {
         return count;
     }
     
