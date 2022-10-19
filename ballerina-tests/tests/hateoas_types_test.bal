@@ -16,13 +16,26 @@
 
 import ballerina/http;
 import ballerina/test;
+import ballerina/time;
 
 public type ReturnType string|xml|map<string>;
+
+public type BodyMsg record {
+    string timestamp;
+    string message;
+};
+
+public type OkResponse record {|
+    *http:Ok;
+    BodyMsg body;
+|};
 
 service /hateoas on new http:Listener(hateoasTypesTestPort) {
 
     @http:ResourceConfig {
+        name: "link",
         linkedTo: [
+            {name: "link"},
             {name:"link1", relation: "link1"},
             {name:"link2", relation: "link2"},
             {name:"link3", relation: "link3"},
@@ -32,11 +45,12 @@ service /hateoas on new http:Listener(hateoasTypesTestPort) {
             {name:"link7", relation: "link7"},
             {name:"link8", relation: "link8"},
             {name:"link9", relation: "link9"},
-            {name:"link10", relation: "link10"}
+            {name:"link10", relation: "link10"},
+            {name:"link11", relation: "link11"}
         ]
     }
-    resource function get links() returns http:Ok {
-        return {body: {message: "Links returned"}};
+    resource function get links() returns OkResponse {
+        return {body: {message: "Links returned", timestamp: time:utcToString(time:utcNow())}};
     }
 
     @http:ResourceConfig {
@@ -100,7 +114,7 @@ service /hateoas on new http:Listener(hateoasTypesTestPort) {
     @http:ResourceConfig {
         name: "link9"
     }
-    resource function get link9() returns @http:Payload{mediaType: "application/json"} string|xml {
+    resource function get link9() returns @http:Payload{mediaType: ["application/json", "application/json+id"]} string|xml {
         return xml`<message>Hello, from resource link9</message>`;
     }
 
@@ -108,20 +122,31 @@ service /hateoas on new http:Listener(hateoasTypesTestPort) {
         name: "link10"
     }
     resource function get link10() { }
+
+    @http:ResourceConfig {
+        name: "link11"
+    }
+    resource function get link11(@http:CallerInfo{respondType: ReturnType} http:Caller caller){ }
 }
+
 
 
 final http:Client hateoasTypesTestClient = check new("http://localhost:" + hateoasTypesTestPort.toString());
 
 type HateoasTypesResponse record {|
     *http:Links;
-    string message;
+    *BodyMsg;
 |};
 
 @test:Config {}
 function testHateoasTypes() returns error? {
     HateoasTypesResponse response = check hateoasTypesTestClient->get("/hateoas/links");
     map<http:Link> expectedLinks = {
+        "self": {
+            href: "/hateoas/links",
+            types: [ "application/json" ],
+            methods: [ "GET" ]
+        },
         "link1": {
             href: "/hateoas/link1",
             types: [ "text/plain" ],
@@ -144,7 +169,6 @@ function testHateoasTypes() returns error? {
         },
         "link5": {
             href: "/hateoas/link5",
-            types: [ "application/json" ],
             methods: [ http:GET ]
         },
         "link6": {
@@ -170,12 +194,24 @@ function testHateoasTypes() returns error? {
         },
         "link9": {
             href: "/hateoas/link9",
-            types: [ "application/json" ],
+            types: [
+                "application/json",
+                "application/json+id"
+            ],
             methods: [ http:GET ]
         },
         "link10": {
             href: "/hateoas/link10",
             methods: [ http:GET ]
+        },
+        "link11": {
+            href: "/hateoas/link11",
+            types: [
+                "application/xml",
+                "application/json",
+                "text/plain"
+            ],
+            methods: [ "GET" ]
         }
     };
     test:assertEquals(response._links, expectedLinks);
