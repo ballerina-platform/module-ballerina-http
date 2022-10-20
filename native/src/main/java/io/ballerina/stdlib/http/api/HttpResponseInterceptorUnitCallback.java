@@ -30,6 +30,8 @@ import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.api.nativeimpl.connection.Respond;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
+import java.util.Objects;
+
 /**
  * {@code HttpResponseInterceptorUnitCallback} is the responsible for acting on notifications received from Ballerina
  * side when a response interceptor service is invoked.
@@ -157,6 +159,31 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
         paramFeed[7] = true;
 
         invokeBalMethod(paramFeed, "returnResponse");
+    }
+
+    @Override
+    public void invokeBalMethod(Object[] paramFeed, String methodName) {
+        Callback returnCallback = new Callback() {
+            @Override
+            public void notifySuccess(Object result) {
+                stopObserverContext();
+                dataContext.notifyOutboundResponseStatus(null);
+                printStacktraceIfError(result);
+                Object isPanic = requestMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_PANIC_ERROR);
+                if (Objects.nonNull(isPanic) && (boolean) isPanic) {
+                    System.exit(0);
+                }
+            }
+
+            @Override
+            public void notifyFailure(BError result) {
+                dataContext.notifyOutboundResponseStatus(null);
+                sendFailureResponse(result);
+            }
+        };
+        this.getRuntime().invokeMethodAsyncSequentially(
+                caller, methodName, null, ModuleUtils.getNotifySuccessMetaData(),
+                returnCallback, null, PredefinedTypes.TYPE_NULL, paramFeed);
     }
 
     private int getResponseInterceptorId() {

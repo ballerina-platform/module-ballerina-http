@@ -68,6 +68,10 @@ public class HttpCallableUnitCallback implements Callback {
         this.caller = getCaller(requestMessage, null);
     }
 
+    public Runtime getRuntime() {
+        return this.runtime;
+    }
+
     private BObject getCaller(HttpCarbonMessage requestMessage, String resourceAccessor) {
         BObject caller = requestMessage.getProperty(HttpConstants.CALLER) == null ?
                          ValueCreatorUtils.createCallerObject(requestMessage, resourceAccessor) :
@@ -135,7 +139,7 @@ public class HttpCallableUnitCallback implements Callback {
                 returnCallback, null, PredefinedTypes.TYPE_NULL, paramFeed);
     }
 
-    private void stopObserverContext() {
+    public void stopObserverContext() {
         if (ObserveUtils.isObservabilityEnabled()) {
             ObserverContext observerContext = (ObserverContext) requestMessage
                     .getProperty(OBSERVABILITY_CONTEXT_PROPERTY);
