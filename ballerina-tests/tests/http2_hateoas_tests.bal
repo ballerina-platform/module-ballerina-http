@@ -33,8 +33,7 @@ service /restBucks on new http:Listener(http2HateoasTestPort) {
             {name: "payment", relation: "payment"}
         ]
     }
-    resource function post 'order(@http:Payload Order 'order, boolean closed)
-            returns @http:Payload{mediaType: "application/json"} OrderReceipt|OrderReceiptClosed {
+    resource function post 'order(@http:Payload Order 'order, boolean closed) returns OrderReceipt|OrderReceiptClosed {
         if closed {
             return getMockOrderReceiptClosed('order);
         }        
@@ -50,8 +49,7 @@ service /restBucks on new http:Listener(http2HateoasTestPort) {
             {name: "payment", relation: "payment"}
         ]
     }
-    resource function 'default orders/[string id]()
-            returns @http:Payload{mediaType: "application/json"} Order {
+    resource function 'default orders/[string id]() returns  Order {
         return getMockOrder();
     }
 
@@ -64,8 +62,7 @@ service /restBucks on new http:Listener(http2HateoasTestPort) {
             {name: "payment", relation: "payment"}
         ]
     }
-    resource function put orders/[string id](@http:Payload Order 'order)
-            returns @http:Payload{mediaType: "application/json"} OrderReceipt {
+    resource function put orders/[string id](@http:Payload Order 'order) returns OrderReceipt {
         return getMockOrderReceipt('order);
     }
 
@@ -73,8 +70,7 @@ service /restBucks on new http:Listener(http2HateoasTestPort) {
         name: "orders",
         linkedTo : [{name: "orders", method: "delete"}]
     }
-    resource function delete 'orders/[string id]()
-            returns @http:Payload{mediaType: "application/json"} http:Ok {
+    resource function delete 'orders/[string id]() returns http:Ok {
         return http:OK;
     }
 
@@ -112,7 +108,6 @@ function testHttp2HateoasLinks1() returns error? {
         },
         "cancel": {
             href: "/restBucks/orders/{id}",
-            types: ["application/vnd.restBucks+json"],
             methods: [http:DELETE]
         },
         "payment": {
@@ -149,8 +144,7 @@ function testHttp2HateoasLinkHeaderWithClosedRecord() returns error? {
             value: "</restBucks/orders/{id}>", 
             params: {
                 rel: "\"cancel\"",
-                methods: "\"DELETE\"",
-                types: "\"application/vnd.restBucks+json\""}
+                methods: "\"DELETE\""}
         },
         { 
             value: "</restBucks/payment/{id}>", 
@@ -188,8 +182,7 @@ function testHttp2HateoasLinkHeaderWithReadOnlyPayload() returns error? {
             value: "</restBucks/orders/{id}>", 
             params: {
                 rel: "\"cancel\"",
-                methods: "\"DELETE\"",
-                types: "\"application/vnd.restBucks+json\""}
+                methods: "\"DELETE\""}
         },
         { 
             value: "</restBucks/payment/{id}>", 
@@ -219,7 +212,6 @@ function testHttp2HateoasLinks2() returns error? {
         },
         "cancel": {
             href: "/restBucks/orders/{id}",
-            types: ["application/vnd.restBucks+json"],
             methods: [http:DELETE]
         },
         "payment": {
@@ -242,8 +234,7 @@ function testHttp2HateoasLinkHeaderWithoutBody() returns error? {
             value: "</restBucks/orders/{id}>", 
             params: {
                 rel: "\"self\"",
-                methods: "\"DELETE\"",
-                types: "\"application/vnd.restBucks+json\""}
+                methods: "\"DELETE\""}
         }
     ];
     test:assertEquals(parsedLinkHeader, expectedLinkHeader);

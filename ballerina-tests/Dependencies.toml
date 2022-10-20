@@ -26,7 +26,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "cache"
-version = "3.4.0"
+version = "3.3.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "constraint"},
@@ -132,6 +132,7 @@ dependencies = [
 	{org = "ballerina", name = "oauth2"},
 	{org = "ballerina", name = "regex"},
 	{org = "ballerina", name = "test"},
+	{org = "ballerina", name = "time"},
 	{org = "ballerina", name = "url"}
 ]
 modules = [
@@ -408,6 +409,9 @@ version = "2.2.3"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
+]
+modules = [
+	{org = "ballerina", packageName = "time", moduleName = "time"}
 ]
 
 [[package]]
