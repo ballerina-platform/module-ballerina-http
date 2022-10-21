@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Changed
 - [Reduce Listener default timeout to 60s and Client default timeout to 30s](https://github.com/ballerina-platform/ballerina-standard-library/issues/3278)
 - [API Docs Updated](https://github.com/ballerina-platform/ballerina-standard-library/issues/3463)
+- [Improve data binding mime type match](https://github.com/ballerina-platform/ballerina-standard-library/issues/3542)
 
 ## [2.4.0] - 2022-09-08
 
