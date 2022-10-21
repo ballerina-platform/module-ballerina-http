@@ -45,7 +45,7 @@ public abstract class AbstractPayloadBuilder {
     private static final String XML_PATTERN = "^(application|text)\\/(.*[.+-]|)xml$";
     private static final String TEXT_PATTERN = "^(text)\\/(.*[.+-]|)plain$";
     private static final String OCTET_STREAM_PATTERN = "^(application)\\/(.*[.+-]|)octet-stream$";
-    private static final String URL_ENCODED_PATTERN = "^(application)\\/(.*[.+-]|)x-www-form-urlencode$";
+    private static final String URL_ENCODED_PATTERN = "^(application)\\/(.*[.+-]|)x-www-form-urlencoded$";
 
     /**
      * Get the built inbound payload after binding it to the respective type.
@@ -60,7 +60,7 @@ public abstract class AbstractPayloadBuilder {
         if (contentType == null || contentType.isEmpty()) {
             return getBuilderFromType(payloadType);
         }
-        contentType = contentType.toLowerCase(Locale.getDefault());
+        contentType = contentType.toLowerCase(Locale.getDefault()).trim();
         if (contentType.matches(XML_PATTERN)) {
             return new XmlPayloadBuilder(payloadType);
         } else if (contentType.matches(TEXT_PATTERN)) {

@@ -148,4 +148,4 @@ const string JSON_PATTERN = "^(application|text)\\/(.*[.+-]|)json$";
 const string XML_PATTERN = "^(application|text)\\/(.*[.+-]|)xml$";
 const string TEXT_PATTERN = "^(text)\\/(.*[.+-]|)plain$";
 const string OCTET_STREAM_PATTERN = "^(application)\\/(.*[.+-]|)octet-stream$";
-const string URL_ENCODED_PATTERN = "^(application)\\/(.*[.+-]|)x-www-form-urlencode$";
+const string URL_ENCODED_PATTERN = "^(application)\\/(.*[.+-]|)x-www-form-urlencoded$";
