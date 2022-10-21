@@ -47,6 +47,13 @@ service "//url" on httpUrlListenerEP1  {
     }
 }
 
+service / on httpUrlListenerEP1 {
+
+    resource function get foo() returns http:Ok {
+        return {body:{name:"foo"}};
+    }
+}
+
 //Test for handling double slashes
 @test:Config {}
 function testUrlDoubleSlash() returns error? {
@@ -140,4 +147,10 @@ function testResourcePath404Negative() returns error? {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
     return;
+}
+
+@test:Config{}
+public function testClientWithDoubleURLs() returns error? {
+    json response = check httpUrlClient->get("/foo");
+    test:assertEquals(response, {name:"foo"});
 }

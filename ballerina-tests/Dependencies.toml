@@ -26,7 +26,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "cache"
-version = "3.4.0"
+version = "3.3.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "constraint"},
