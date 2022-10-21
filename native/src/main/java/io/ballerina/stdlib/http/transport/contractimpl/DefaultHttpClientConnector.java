@@ -49,6 +49,7 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.ResponseHandle;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.EventLoop;
 import io.netty.channel.EventLoopGroup;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http2.Http2CodecUtil;
@@ -211,25 +212,32 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
                                   route.toString() + " " + "Original Channel ID is : " + channelFuture.channel().id());
                     }
 
-                    if (Constants.HTTP_SCHEME.equalsIgnoreCase(protocol) && http1xSrcHandlder != null) {
-                        channelFuture.channel().deregister().addListener(future ->
-                                                                             http1xSrcHandlder.getEventLoop()
-                                                                                 .register(channelFuture.channel())
-                                                                                 .addListener(
-                                                                                     future1 ->
-                                                                                         startExecutingOutboundRequest(
-                                                                                         protocol, channelFuture)));
-                    } else if (Constants.HTTP_SCHEME.equalsIgnoreCase(protocol) && http2SrcHandler != null) {
-                        channelFuture.channel().deregister().addListener(future ->
-                                                                             http2SrcHandler.getChannelHandlerContext()
-                                                                                 .channel().eventLoop()
-                                                                                 .register(channelFuture.channel())
-                                                                                 .addListener(future1 ->
-                                                                                         startExecutingOutboundRequest(
-                                                                                         protocol, channelFuture)));
+                    if (Constants.HTTP_SCHEME.equalsIgnoreCase(protocol)) {
+                        if (http1xSrcHandlder == null && http2SrcHandler == null) {
+                            startExecutingOutboundRequest(protocol, channelFuture);
+                        } else {
+                            EventLoop eventLoop = http1xSrcHandlder != null ? http1xSrcHandlder.getEventLoop() :
+                                    http2SrcHandler.getChannelHandlerContext().channel().eventLoop();
+                            executeOnEventLoop(protocol, channelFuture, eventLoop);
+                        }
                     } else {
                         startExecutingOutboundRequest(protocol, channelFuture);
                     }
+                }
+
+                private void executeOnEventLoop(String protocol, ChannelFuture channelFuture, EventLoop eventLoop) {
+                    if (http2) {
+                        registerOnSrcHandlerEventLoopAndExecute(eventLoop, protocol, channelFuture);
+                    } else {
+                        channelFuture.channel().deregister().addListener(
+                                future -> registerOnSrcHandlerEventLoopAndExecute(eventLoop, protocol, channelFuture));
+                    }
+                }
+
+                private void registerOnSrcHandlerEventLoopAndExecute(EventLoop eventLoop, String protocol,
+                                                                     ChannelFuture channelFuture) {
+                    eventLoop.register(channelFuture.channel()).addListener(
+                            future -> startExecutingOutboundRequest(protocol, channelFuture));
                 }
 
                 private void startExecutingOutboundRequest(String protocol, ChannelFuture channelFuture) {
