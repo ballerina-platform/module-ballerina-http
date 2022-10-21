@@ -41,11 +41,11 @@ import static io.ballerina.runtime.api.TypeTags.XML_TAG;
  */
 public abstract class AbstractPayloadBuilder {
 
-    private static final String JSON_PATTERN = "^.*json.*$";
-    private static final String XML_PATTERN = "^.*xml.*$";
-    private static final String TEXT_PATTERN = "^.*text.*$";
-    private static final String OCTET_STREAM_PATTERN = "^.*octet-stream.*$";
-    private static final String URL_ENCODED_PATTERN = "^.*x-www-form-urlencoded.*$";
+    private static final String JSON_PATTERN = "^(application|text)\\/(.*[.+-]|)json$";
+    private static final String XML_PATTERN = "^(application|text)\\/(.*[.+-]|)xml$";
+    private static final String TEXT_PATTERN = "^(text)\\/(.*[.+-]|)plain$";
+    private static final String OCTET_STREAM_PATTERN = "^(application)\\/(.*[.+-]|)octet-stream$";
+    private static final String URL_ENCODED_PATTERN = "^(application)\\/(.*[.+-]|)x-www-form-urlencode$";
 
     /**
      * Get the built inbound payload after binding it to the respective type.

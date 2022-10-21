@@ -16,7 +16,6 @@
 
 import ballerina/lang.runtime as runtime;
 import ballerina/test;
-// import ballerina/log;
 import ballerina/http;
 import ballerina/mime;
 import ballerina/url;
@@ -475,6 +474,85 @@ service /backend on http2ClientDBBackendListener {
     resource function get getFormData6() returns http:Ok|error {
         return { body : "first%20Name=WS%20O2", mediaType : "x-www-form-urlencoded"};
     }
+
+    resource function get getUncommonMimeType1() returns http:Ok {
+        return {body:{name:"Ballerina"}, mediaType: "text/javascript"};
+    }
+
+    resource function get getJsonMimeType1() returns http:Ok {
+        return {body:{name:"Ballerina"}, mediaType: "text/x-json"};
+    }
+
+    resource function get getJsonMimeType2() returns http:Ok {
+        return {body:{name:"Ballerina"}, mediaType: "application/vnd.json"};
+    }
+
+    resource function get getJsonMimeType3() returns http:Ok {
+        return {body:{name:"Ballerina"}, mediaType: "application/ld+json"};
+    }
+
+    resource function get getJsonMimeType4() returns http:Ok {
+        return {body:{name:"Ballerina"}, mediaType: "APPLICATION/JSON"};
+    }
+
+    resource function get getJsonMimeType5() returns http:Ok {
+        return {body:{name:"Ballerina"}, mediaType: "text/json"};
+    }
+
+    resource function get getJsonErrorMimeType1() returns http:Ok {
+        return {body:{name:"Inferred by type"}, mediaType: "openjson"};
+    }
+
+    resource function get getJsonErrorMimeType2() returns http:Ok {
+        return {body:{name:"Inferred by type"}, mediaType: "application/abcjson"};
+    }
+
+    resource function get getJsonErrorMimeType3() returns http:Ok {
+        return {body:{name:"Inferred by type"}, mediaType: "application/json+go"};
+    }
+
+    resource function get getJsonErrorMimeType4() returns http:Ok {
+        return {body:{name:"Inferred by type"}, mediaType: "image/svg+json"};
+    }
+}
+
+@test:Config{}
+public function testJsontErrorMimeTypeVariations() returns error? {
+    json response = check http2ClientDBBackendClient->get("/backend/getJsonErrorMimeType1");
+    test:assertEquals(response, {name:"Inferred by type"});
+
+    response = check http2ClientDBBackendClient->get("/backend/getJsonErrorMimeType2");
+    test:assertEquals(response, {name:"Inferred by type"});
+
+    response = check http2ClientDBBackendClient->get("/backend/getJsonErrorMimeType3");
+    test:assertEquals(response, {name:"Inferred by type"});
+
+    response = check http2ClientDBBackendClient->get("/backend/getJsonErrorMimeType4");
+    test:assertEquals(response, {name:"Inferred by type"});
+}
+
+@test:Config{}
+public function testJsontMimeTypeVariations() returns error? {
+    json response = check http2ClientDBBackendClient->get("/backend/getJsonMimeType1");
+    test:assertEquals(response, {name:"Ballerina"});
+
+    response = check http2ClientDBBackendClient->get("/backend/getJsonMimeType2");
+    test:assertEquals(response, {name:"Ballerina"});
+
+    response = check http2ClientDBBackendClient->get("/backend/getJsonMimeType3");
+    test:assertEquals(response, {name:"Ballerina"});
+
+    response = check http2ClientDBBackendClient->get("/backend/getJsonMimeType4");
+    test:assertEquals(response, {name:"Ballerina"});
+
+    response = check http2ClientDBBackendClient->get("/backend/getJsonMimeType5");
+    test:assertEquals(response, {name:"Ballerina"});
+}
+
+@test:Config{}
+public function testUncommonetMimeTypeVariations() returns error? {
+    json response = check http2ClientDBBackendClient->get("/backend/getUncommonMimeType1");
+    test:assertEquals(response, {name:"Ballerina"});
 }
 
 service /redirect1 on http2ClientDBBackendListener2 {
