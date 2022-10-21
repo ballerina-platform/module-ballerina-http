@@ -452,27 +452,27 @@ service /backend on http2ClientDBBackendListener {
         string encodedPayload1 = check url:encode("value 1", "UTF-8");
         string encodedPayload2 = check url:encode("value 2", "UTF-8");
         string payload = string `key1=${encodedPayload1}&key2=${encodedPayload2}`;
-        return { body : payload, mediaType : "x-www-form-urlencoded"};
+        return { body : payload, mediaType : "application/x-www-form-urlencoded"};
     }
 
     resource function get getFormData2() returns http:Ok|error {
-        return { body : "first%20Name=WS%20O2&tea%24%2Am=Bal%40Dance", mediaType : "x-www-form-urlencoded"};
+        return { body : "first%20Name=WS%20O2&tea%24%2Am=Bal%40Dance", mediaType : "application/x-www-form-urlencoded"};
     }
 
     resource function get getFormData3() returns http:Ok|error {
-        return { body : "first%20Name=WS%20O2&tea%24%2Am=", mediaType : "x-www-form-urlencoded"};
+        return { body : "first%20Name=WS%20O2&tea%24%2Am=", mediaType : "application/x-www-form-urlencoded"};
     }
 
     resource function get getFormData4() returns http:Ok|error {
-        return { body : "first%20Name=WS%20O2&=Bal%40Dance", mediaType : "x-www-form-urlencoded"};
+        return { body : "first%20Name=WS%20O2&=Bal%40Dance", mediaType : "application/x-www-form-urlencoded"};
     }
 
     resource function get getFormData5() returns http:Ok|error {
-        return { body : "", mediaType : "x-www-form-urlencoded"};
+        return { body : "", mediaType : "application/x-www-form-urlencoded"};
     }
 
     resource function get getFormData6() returns http:Ok|error {
-        return { body : "first%20Name=WS%20O2", mediaType : "x-www-form-urlencoded"};
+        return { body : "first%20Name=WS%20O2", mediaType : "application/x-www-form-urlencoded"};
     }
 
     resource function get getUncommonMimeType1() returns http:Ok {
