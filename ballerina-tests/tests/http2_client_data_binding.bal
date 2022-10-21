@@ -479,6 +479,22 @@ service /backend on http2ClientDBBackendListener {
         return {body:{name:"Ballerina"}, mediaType: "text/javascript"};
     }
 
+    resource function get getUncommonMimeType2() returns http:Ok {
+        return {body: xml `<name>Ballerina</name>`, mediaType: "application+hello/vnd.xml"};
+    }
+
+    resource function get getUncommonMimeType3() returns http:Ok {
+        return {body: xml `<name>Ballerina</name>`, mediaType: "openxml"};
+    }
+
+    resource function get getUncommonMimeType4() returns http:Ok {
+        return {body: xml `<name>Ballerina</name>`, mediaType: "application/abcxml"};
+    }
+
+    resource function get getUncommonMimeType5() returns http:Ok {
+        return {body: xml `<name>Ballerina</name>`, mediaType: "image/svg+xml"};
+    }
+
     resource function get getJsonMimeType1() returns http:Ok {
         return {body:{name:"Ballerina"}, mediaType: "text/x-json"};
     }
@@ -514,10 +530,35 @@ service /backend on http2ClientDBBackendListener {
     resource function get getJsonErrorMimeType4() returns http:Ok {
         return {body:{name:"Inferred by type"}, mediaType: "image/svg+json"};
     }
+
+    resource function get getXmlMimeType1() returns http:Ok {
+        return {body:xml `<name>Ballerina</name>`, mediaType: "application/atom+xml"};
+    }
+
+    resource function get getXmlMimeType2() returns http:Ok {
+        return {body:xml `<name>Ballerina</name>`, mediaType: "APPLICATION/XmL "};
+    }
+
+    resource function get getXmlMimeType3() returns http:Ok {
+        return {body:xml `<name>Ballerina</name>`, mediaType: " text/xml"};
+    }
 }
 
 @test:Config{}
-public function testJsontErrorMimeTypeVariations() returns error? {
+public function testXmlMimeTypeVariations() returns error? {
+    xml response = check http2ClientDBBackendClient->get("/backend/getXmlMimeType1");
+    test:assertEquals(response, xml `<name>Ballerina</name>`);
+
+    response = check http2ClientDBBackendClient->get("/backend/getXmlMimeType2");
+    test:assertEquals(response, xml `<name>Ballerina</name>`);
+
+    response = check http2ClientDBBackendClient->get("/backend/getXmlMimeType3");
+    test:assertEquals(response, xml `<name>Ballerina</name>`);
+
+}
+
+@test:Config{}
+public function testJsonErrorMimeTypeVariations() returns error? {
     json response = check http2ClientDBBackendClient->get("/backend/getJsonErrorMimeType1");
     test:assertEquals(response, {name:"Inferred by type"});
 
@@ -551,8 +592,21 @@ public function testJsontMimeTypeVariations() returns error? {
 
 @test:Config{}
 public function testUncommonetMimeTypeVariations() returns error? {
-    json response = check http2ClientDBBackendClient->get("/backend/getUncommonMimeType1");
-    test:assertEquals(response, {name:"Ballerina"});
+    // all these cases does not goto to a particular builder, but binding type is inferred by the return type
+    json jsonPayload = check http2ClientDBBackendClient->get("/backend/getUncommonMimeType1");
+    test:assertEquals(jsonPayload, {name:"Ballerina"});
+
+    xml xmlPayload = check http2ClientDBBackendClient->get("/backend/getUncommonMimeType2");
+    test:assertEquals(xmlPayload, xml `<name>Ballerina</name>`);
+
+    xmlPayload = check http2ClientDBBackendClient->get("/backend/getUncommonMimeType3");
+    test:assertEquals(xmlPayload, xml `<name>Ballerina</name>`);
+
+    xmlPayload = check http2ClientDBBackendClient->get("/backend/getUncommonMimeType4");
+    test:assertEquals(xmlPayload, xml `<name>Ballerina</name>`);
+
+    xmlPayload = check http2ClientDBBackendClient->get("/backend/getUncommonMimeType5");
+    test:assertEquals(xmlPayload, xml `<name>Ballerina</name>`);
 }
 
 service /redirect1 on http2ClientDBBackendListener2 {
