@@ -19,6 +19,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [API Docs Updated](https://github.com/ballerina-platform/ballerina-standard-library/issues/3463)
 - [Improve data binding mime type match](https://github.com/ballerina-platform/ballerina-standard-library/issues/3542)
 
+### Fixed
+- [Fix dispatching logic issue due to double slash in basePath](https://github.com/ballerina-platform/ballerina-standard-library/issues/3543)
+
 ## [2.4.0] - 2022-09-08
 
 ### Added
