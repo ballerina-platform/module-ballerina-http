@@ -1890,13 +1890,14 @@ The response payload to the GET resource will look like this :
    "quantity": 2,
    "_links":{
       "payment":{
-         "rel": "payment",
-         "href": "/payment/{id}",
+         "href": "/payment/{id}", 
+         "types": ["application/json"],
          "methods":["PUT"]
       }
    }
 }
 ```
+The fields of the `Link` are automatically populated from the resource specified in the `LinkedTo` configuration.
 
 When there is no payload or when `Links` not supported in the payload, the `Links` will be added as a `Link` header. 
 Following is an example of `Links` in `Link` header:

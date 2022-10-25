@@ -55,7 +55,7 @@ link: </snowpeak/openapi-doc-dygixywsw>;rel="service-desc"
 ```
 Now, to get the OAS, you need to send a GET request to the URL in the `link` header. In this case, you can import the OAS to the swagger-editor by giving the discovered URL.
 
-Great, now there is some additional information to play with. Again, remember our goal is to make a room reservation. Let’s start with the well-known URL and see what it has to offer. Doing a get request to that results in the below response. 
+Great, now there is some additional information to play with. Again, remember our goal is to make a room reservation. Let’s start with the well-known URL and see what it has to offer. Doing a GET request to that results in the below response. 
 
 ```json
 {
@@ -109,13 +109,13 @@ That looks like the next step to take or the link to activate/follow to reach ou
        "application/vnd.snowpeak.resort+json"
      ],
      "methods": [
-       "PUT"
+       "POST"
      ]
    }
  }
 }
 ```
-It seems only DELUXE rooms are available but that is fine. The goal is to make a reservation for any room. This time the decision is quite straightforward as there is on target URL with relation `reservation` which probably indicates that you should follow the given link to achieve the goal. Unlike the previous two requests, in this case, the server is suggesting that you need to send a PUT request. Again for application semantics, let’s look for that target URL in swagger-editor.  
+It seems only DELUXE rooms are available but that is fine. The goal is to make a reservation for any room. This time the decision is quite straightforward as there is one target URL with relation `reservation` which probably indicates that you should follow the given link to achieve the goal. Unlike the previous two requests, in this case, the server is suggesting that you need to send a POST request. Again for application semantics, let’s look for that target URL in swagger-editor.  
 
 You will see that you have all the application semantic information to follow the target URL. In response, you should get the below response.
 
@@ -162,7 +162,7 @@ You will see that you have all the application semantic information to follow th
        "application/vnd.snowpeak.resort+json"
      ],
      "methods": [
-       "PUT"
+       "POST"
      ]
    }
  }
@@ -220,10 +220,7 @@ As you noticed in the previous section, there are a lot of similarities between 
 - Stateless communication
 - Hypermedia As The Engine Of Application State (HATEOAS)
 
-Also it is good to remind ourselves of the technology stack of the World Wide Web as REST API implementations strongly depend on the same stack.
-
-
-Also it is good to remind ourselves of the technology stack of the Web as REST API implementations strongly depend on the same stack.
+Also it is good to remind ourselves of the technology stack of the World Wide Web and REST API implementations strongly depend on the same stack.
 
 ![image](_resources/web-tech-stack.png)
 
@@ -254,7 +251,7 @@ Now let’s start designing the workflow to make the reservation. As you noticed
 
 ![image](_resources/snowpeak-state-diagram.png)
 
-Note that the fields in each representation are not listed in each box for brevity. As you can see, there are four resources and multiple state transitions. On each state transition, you can see the relation, which helps us understand why we need to follow a particular state transition. Simply put, states become resources whereas state transitions become relations. If you want, you can exit from the payment but that part is omitted to keep things simple.
+Note that the fields in each representation are not listed in each box for brevity. As you can see, there are four resources and multiple state transitions. On each state transition, you can see the relation, which helps us understand why we need to follow a particular state transition. Simply put, states become resources whereas state transitions become relations.
 
 Lastly, if you really think about it, it is just a breakdown of hierarchical data linked by relations. 
 
@@ -289,7 +286,7 @@ public type Locations record {
 
 Location has three fields: name, id and address. Each field is documented along with the Location record. Documentation is very important because it helps readers of the code to understand the code better and at the same time it helps API users understand the API as this documentation is mapped into OpenAPI documentation as descriptions. Many developers tend to think of documentation as a second class thing but it is not.
 
-`*http:Links` syntax basically copies fields in the Links record to Locations record. Links record is simply an array of Link records that basically have all the fields related to the hyperlinks. 
+`*http:Links` syntax basically copies fields in the Links record to Locations record. Links record is simply a map of Link records that basically have all the fields related to the hyperlinks. 
 
 Likewise for each representation which goes back and forth between the client and server, there is a defined record. Check the [representation](https://github.com/ballerina-platform/module-ballerina-http/tree/example2/examples/snowpeak/service/modules/representations) module for more information.
 

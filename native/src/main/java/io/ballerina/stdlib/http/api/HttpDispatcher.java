@@ -52,6 +52,8 @@ import java.util.Objects;
 import static io.ballerina.runtime.api.TypeTags.ARRAY_TAG;
 import static io.ballerina.stdlib.http.api.HttpConstants.DEFAULT_HOST;
 import static io.ballerina.stdlib.http.api.HttpConstants.EXTRA_PATH_INDEX;
+import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_SCHEME;
+import static io.ballerina.stdlib.http.api.HttpConstants.SCHEME_SEPARATOR;
 import static io.ballerina.stdlib.http.api.HttpUtil.getParameterTypes;
 import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castParam;
 import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castParamArray;
@@ -87,7 +89,7 @@ public class HttpDispatcher {
             Map<String, Map<String, String>> matrixParams = new HashMap<>();
             String uriWithoutMatrixParams = URIUtil.extractMatrixParams(rawUri, matrixParams, inboundReqMsg);
 
-            URI validatedUri = getValidatedURI(uriWithoutMatrixParams);
+            URI validatedUri = getValidatedURI(HTTP_SCHEME + SCHEME_SEPARATOR + uriWithoutMatrixParams);
 
             String basePath = servicesRegistry.findTheMostSpecificBasePath(validatedUri.getRawPath(),
                                                                            servicesOnInterface, sortedServiceURIs);
@@ -147,7 +149,7 @@ public class HttpDispatcher {
             inboundReqMsg.setProperty(HttpConstants.TO, uriWithoutMatrixParams);
             inboundReqMsg.setProperty(HttpConstants.MATRIX_PARAMS, matrixParams);
 
-            URI validatedUri = getValidatedURI(uriWithoutMatrixParams);
+            URI validatedUri = getValidatedURI(HTTP_SCHEME + SCHEME_SEPARATOR + uriWithoutMatrixParams);
 
             String basePath = servicesRegistry.findTheMostSpecificBasePath(validatedUri.getRawPath(),
                                                                            servicesOnInterface, sortedServiceURIs);
