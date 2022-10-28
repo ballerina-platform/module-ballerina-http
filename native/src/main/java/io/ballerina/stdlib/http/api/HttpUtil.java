@@ -1185,7 +1185,11 @@ public class HttpUtil {
         if (observerContext != null) {
             HttpUtil.injectHeaders(message, ObserveUtils.getContextProperties(observerContext));
             observerContext.addTag(TAG_KEY_HTTP_METHOD, message.getHttpMethod());
-            observerContext.getSpan().addTag(TAG_KEY_HTTP_URL, String.valueOf(message.getProperty(HttpConstants.TO)));
+            // Check tracing is enabled
+            if (observerContext.getSpan() != null) {
+                observerContext.getSpan().addTag(TAG_KEY_HTTP_URL,
+                        String.valueOf(message.getProperty(HttpConstants.TO)));
+            }
             observerContext.addTag(TAG_KEY_PEER_ADDRESS,
                        message.getProperty(PROPERTY_HTTP_HOST) + ":" + message.getProperty(PROPERTY_HTTP_PORT));
             // Add HTTP Status Code tag. The HTTP status code will be set using the response message.
