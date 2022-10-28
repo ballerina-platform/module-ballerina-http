@@ -7,6 +7,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Fixed
+- [Fix stacklessConnectionClosed exception while calling backend with well known certs](https://github.com/ballerina-platform/ballerina-standard-library/issues/3507)
+
+## [2.4.0] - 2022-09-08
+
 ### Added
 - [Implement immediateStop in HTTP listener](https://github.com/ballerina-platform/ballerina-standard-library/issues/1794)
 - [Add initial support for HATEOAS](https://github.com/ballerina-platform/ballerina-standard-library/issues/2391)

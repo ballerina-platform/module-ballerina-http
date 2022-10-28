@@ -36,11 +36,12 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http2.Http2CodecUtil;
 import io.netty.handler.codec.http2.Http2ConnectionPrefaceAndSettingsFrameWrittenEvent;
 import io.netty.handler.ssl.SslCloseCompletionEvent;
-import io.netty.handler.ssl.SslHandshakeCompletionEvent;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Objects;
 
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.createInboundRespCarbonMsg;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.safelyRemoveHandlers;
@@ -147,8 +148,6 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
                 releasePerRoutePoolLatchOnFailure();
             }
             ctx.fireUserEventTriggered(evt);
-        } else if (evt instanceof SslHandshakeCompletionEvent) {
-            ctx.fireUserEventTriggered(evt);
         } else {
             logTheErrorMsg(evt);
         }
@@ -210,7 +209,11 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
     }
 
     private void releasePerRoutePoolLatchOnFailure() {
-        connectionManager.getHttp2ConnectionManager().releasePerRoutePoolLatch(targetChannel.getHttpRoute());
+        // When SSL completion event is received via UserEventTriggered method, this method can be called before
+        // assigning value to connectionManager. Hence the null check
+        if (Objects.nonNull(connectionManager)) {
+            connectionManager.getHttp2ConnectionManager().releasePerRoutePoolLatch(targetChannel.getHttpRoute());
+        }
     }
 
     public void setHttpResponseFuture(HttpResponseFuture httpResponseFuture) {
