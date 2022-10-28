@@ -36,6 +36,7 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http2.Http2CodecUtil;
 import io.netty.handler.codec.http2.Http2ConnectionPrefaceAndSettingsFrameWrittenEvent;
 import io.netty.handler.ssl.SslCloseCompletionEvent;
+import io.netty.handler.ssl.SslHandshakeCompletionEvent;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
@@ -145,6 +146,8 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
             } else if (HttpClientUpgradeHandler.UpgradeEvent.UPGRADE_REJECTED.name().equals(upgradeEvent.name())) {
                 releasePerRoutePoolLatchOnFailure();
             }
+            ctx.fireUserEventTriggered(evt);
+        } else if (evt instanceof SslHandshakeCompletionEvent) {
             ctx.fireUserEventTriggered(evt);
         } else {
             logTheErrorMsg(evt);
