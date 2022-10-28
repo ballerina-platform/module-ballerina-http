@@ -209,7 +209,9 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
     }
 
     private void releasePerRoutePoolLatchOnFailure() {
-        if (Objects.nonNull(connectionManager) && Objects.nonNull(targetChannel)) {
+        // When SSL completion event is received via UserEventTriggered method, this method can be called before
+        // assigning value to connectionManager. Hence the null check
+        if (Objects.nonNull(connectionManager)) {
             connectionManager.getHttp2ConnectionManager().releasePerRoutePoolLatch(targetChannel.getHttpRoute());
         }
     }
