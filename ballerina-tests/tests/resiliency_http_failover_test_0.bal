@@ -148,7 +148,7 @@ service /failoverDemoService00 on failoverEP00 {
 service /echo00 on backendEP00 {
     resource function 'default .(http:Caller caller, http:Request req) {
         // Delay the response for 30000 milliseconds to mimic network level delays.
-        runtime:sleep(30000);
+        runtime:sleep(30);
         error? responseToCaller = caller->respond("echo Resource is invoked");
         if responseToCaller is error {
             // log:printError("Error sending response from mock service", 'error = responseToCaller);
@@ -166,7 +166,7 @@ service /mockResource on backendEP00 {
             count = counter00;
         }
         if (count % 5 == 0) {
-            runtime:sleep(30000);
+            runtime:sleep(30);
         }
         http:Response response = new;
         if (req.hasHeader(mime:CONTENT_TYPE)
