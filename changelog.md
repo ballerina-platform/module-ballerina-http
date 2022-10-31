@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [2.4.1] - 2022-10-31
+
 ### Fixed
 - [Fix stacklessConnectionClosed exception while calling backend with well known certs](https://github.com/ballerina-platform/ballerina-standard-library/issues/3507)
 - [Improve data binding mime type match](https://github.com/ballerina-platform/ballerina-standard-library/issues/3542)
