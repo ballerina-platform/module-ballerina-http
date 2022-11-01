@@ -111,6 +111,8 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
         BArray interceptors = (BArray) requestCtx.getNativeData(HttpConstants.INTERCEPTORS);
 
         if (alreadyResponded()) {
+            stopObserverContext();
+            dataContext.notifyOutboundResponseStatus(null);
             return;
         }
 
