@@ -121,7 +121,7 @@ public class HttpCallableUnitCallback implements Callback {
         invokeBalMethod(paramFeed, "returnErrorResponse");
     }
 
-    private void invokeBalMethod(Object[] paramFeed, String methodName) {
+    public void invokeBalMethod(Object[] paramFeed, String methodName) {
         Callback returnCallback = new Callback() {
             @Override
             public void notifySuccess(Object result) {
