@@ -34,7 +34,7 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
  * {@code HttpResponseInterceptorUnitCallback} is the responsible for acting on notifications received from Ballerina
  * side when a response interceptor service is invoked.
  */
-public class HttpResponseInterceptorUnitCallback implements Callback {
+public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallback {
     private static final String ILLEGAL_FUNCTION_INVOKED = "illegal return: response has already been sent";
 
     private final HttpCarbonMessage requestMessage;
@@ -43,18 +43,16 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
     private final Environment environment;
     private final BObject requestCtx;
     private final DataContext dataContext;
-    private final Runtime runtime;
-
 
     public HttpResponseInterceptorUnitCallback(HttpCarbonMessage requestMessage, BObject caller, BObject response,
                                                Environment env, DataContext dataContext, Runtime runtime) {
+        super(requestMessage, runtime);
         this.requestMessage = requestMessage;
         this.requestCtx = (BObject) requestMessage.getProperty(HttpConstants.REQUEST_CONTEXT);
         this.caller = caller;
         this.response = response;
         this.environment = env;
         this.dataContext = dataContext;
-        this.runtime = runtime;
     }
 
     @Override
@@ -72,7 +70,7 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
         invokeErrorInterceptors(error, false);
     }
 
-    private void invokeErrorInterceptors(BError error, boolean printError) {
+    public void invokeErrorInterceptors(BError error, boolean printError) {
         requestMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR, error);
         if (printError) {
             error.printStackTrace();
@@ -109,6 +107,8 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
         BArray interceptors = (BArray) requestCtx.getNativeData(HttpConstants.INTERCEPTORS);
 
         if (alreadyResponded()) {
+            stopObserverContext();
+            dataContext.notifyOutboundResponseStatus(null);
             return;
         }
 
@@ -159,6 +159,27 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
         invokeBalMethod(paramFeed, "returnResponse");
     }
 
+    @Override
+    public void invokeBalMethod(Object[] paramFeed, String methodName) {
+        Callback returnCallback = new Callback() {
+            @Override
+            public void notifySuccess(Object result) {
+                stopObserverContext();
+                dataContext.notifyOutboundResponseStatus(null);
+                printStacktraceIfError(result);
+            }
+
+            @Override
+            public void notifyFailure(BError result) {
+                dataContext.notifyOutboundResponseStatus(null);
+                sendFailureResponse(result);
+            }
+        };
+        this.getRuntime().invokeMethodAsyncSequentially(
+                caller, methodName, null, ModuleUtils.getNotifySuccessMetaData(),
+                returnCallback, null, PredefinedTypes.TYPE_NULL, paramFeed);
+    }
+
     private int getResponseInterceptorId() {
         return Math.min((int) requestCtx.getNativeData(HttpConstants.RESPONSE_INTERCEPTOR_INDEX),
                         (int) requestMessage.getProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX));
@@ -174,22 +195,5 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
         paramFeed[5] = true;
 
         invokeBalMethod(paramFeed, "returnErrorResponse");
-    }
-
-    private void invokeBalMethod(Object[] paramFeed, String methodName) {
-        Callback returnCallback = new Callback() {
-            @Override
-            public void notifySuccess(Object result) {
-                printStacktraceIfError(result);
-            }
-
-            @Override
-            public void notifyFailure(BError result) {
-                sendFailureResponse(result);
-            }
-        };
-        runtime.invokeMethodAsyncSequentially(
-                caller, methodName, null, ModuleUtils.getNotifySuccessMetaData(),
-                returnCallback, null, PredefinedTypes.TYPE_NULL, paramFeed);
     }
 }
