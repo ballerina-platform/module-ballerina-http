@@ -181,7 +181,8 @@ public class SendingEntityBody implements ListenerState {
                 Http2Headers http2Trailers = HttpConversionUtil.toHttp2Headers(trailers, true);
                 // Write trailing headers.
                 Http2StateUtil.writeHttp2ResponseHeaders(ctx, encoder, outboundRespStatusFuture, streamId,
-                                                         http2Trailers, true, http2OutboundRespListener);
+                                                         http2Trailers, true, http2OutboundRespListener,
+                                                         inboundRequestMsg);
             }
             http2OutboundRespListener.removeDefaultResponseWriter();
             http2MessageStateContext

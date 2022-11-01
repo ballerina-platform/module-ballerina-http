@@ -157,7 +157,7 @@ public class SendingHeaders implements ListenerState {
         Http2Headers http2Headers = HttpConversionUtil.toHttp2Headers(httpMessage, true);
         validatePromisedStreamState(originalStreamId, streamId, conn, inboundRequestMsg);
         Http2StateUtil.writeHttp2ResponseHeaders(ctx, encoder, outboundRespStatusFuture, streamId, http2Headers, false,
-                                                 http2OutboundRespListener);
+                                                 http2OutboundRespListener, inboundRequestMsg);
         http2MessageStateContext.setHeadersSent(true);
     }
 }
