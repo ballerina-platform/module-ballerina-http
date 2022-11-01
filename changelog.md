@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Fixed
+- [Add missing observer context closure](https://github.com/ballerina-platform/ballerina-lang/issues/38157)
+
 ## [2.4.1] - 2022-10-31
 
 ### Fixed
