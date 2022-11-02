@@ -111,6 +111,7 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
 
         if (alreadyResponded()) {
             dataContext.notifyOutboundResponseStatus(null);
+            stopObserverContext();
             return;
         }
 
