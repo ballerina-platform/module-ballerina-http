@@ -173,20 +173,23 @@ public class Http2StateUtil {
     public static void writeHttp2ResponseHeaders(ChannelHandlerContext ctx, Http2ConnectionEncoder encoder,
                                                  HttpResponseFuture outboundRespStatusFuture, int streamId,
                                                  Http2Headers http2Headers, boolean endStream,
-                                                 Http2OutboundRespListener respListener) throws Http2Exception {
+                                                 Http2OutboundRespListener respListener,
+                                                 HttpCarbonMessage inboundRequestMsg) throws Http2Exception {
         for (Http2DataEventListener dataEventListener : respListener.getHttp2ServerChannel().getDataEventListeners()) {
             if (!dataEventListener.onHeadersWrite(ctx, streamId, http2Headers, endStream)) {
                 break;
             }
         }
-        if (endStream) {
-            respListener.getHttp2ServerChannel().getStreamIdRequestMap().remove(streamId);
-        }
         ChannelFuture channelFuture = encoder.writeHeaders(
             ctx, streamId, http2Headers, 0, endStream, ctx.newPromise());
         encoder.flowController().writePendingBytes();
         ctx.flush();
-        Util.addResponseWriteFailureListener(outboundRespStatusFuture, channelFuture, respListener);
+        if (endStream) {
+            respListener.getHttp2ServerChannel().getStreamIdRequestMap().remove(streamId);
+            Util.checkForResponseWriteStatus(inboundRequestMsg, outboundRespStatusFuture, channelFuture);
+        } else {
+            Util.addResponseWriteFailureListener(outboundRespStatusFuture, channelFuture, respListener);
+        }
     }
 
     /**

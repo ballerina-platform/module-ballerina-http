@@ -1,0 +1,24 @@
+{
+    "resources": {
+        "includes": [
+            {
+                "pattern": "\\QMETA-INF/native/libnetty_tcnative_linux_x86_64.so\\E"
+            },
+            {
+                "pattern": "\\QMETA-INF/native/libnetty_tcnative_linux_aarch_64.so\\E"
+            },
+            {
+                "pattern": "\\QMETA-INF/native/libnetty_tcnative_osx_x86_64.jnilib\\E"
+            },
+            {
+                "pattern": "\\QMETA-INF/native/libnetty_tcnative_osx_aarch_64.jnilib\\E"
+            },
+            {
+                "pattern": "\\QMETA-INF/native/netty_tcnative_windows_x86_64.dll\\E"
+            },
+            {
+                "pattern": "\\Qlogging.properties\\E"
+            }
+        ]
+    }
+}

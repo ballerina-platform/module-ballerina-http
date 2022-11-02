@@ -166,7 +166,7 @@ service /mock01 on backendEP01 {
             count = counter01;
         }
         if (count % 5 == 0) {
-            runtime:sleep(30000);
+            runtime:sleep(30);
         }
         http:Response response = new;
         if (req.hasHeader(mime:CONTENT_TYPE)

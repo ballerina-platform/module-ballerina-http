@@ -44,6 +44,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -344,17 +345,21 @@ public class HttpService implements Service {
         linkMap.put(HttpConstants.LINK_HREF, href);
         BArray methods = getMethodsBArray(linkedResource.getMethods());
         linkMap.put(HttpConstants.LINK_METHODS, methods);
-        String returnMediaType = linkedResource.getReturnMediaType();
-        if (Objects.nonNull(returnMediaType)) {
-            if (Objects.nonNull(httpService.getMediaTypeSubtypePrefix())) {
-                String specificReturnMediaType = getMediaTypeWithPrefix(httpService.getMediaTypeSubtypePrefix(),
-                                                                        returnMediaType);
-                if (Objects.nonNull(specificReturnMediaType)) {
-                    returnMediaType = specificReturnMediaType;
+        Set<String> returnMediaTypes = linkedResource.getLinkReturnMediaTypes();
+        BArray types = ValueCreator.createArrayValue(TypeCreator.createArrayType(PredefinedTypes.TYPE_STRING));
+        for (String returnMediaType : returnMediaTypes) {
+            if (Objects.nonNull(returnMediaType)) {
+                if (Objects.nonNull(httpService.getMediaTypeSubtypePrefix())) {
+                    String specificReturnMediaType = getMediaTypeWithPrefix(httpService.getMediaTypeSubtypePrefix(),
+                                                                            returnMediaType);
+                    if (Objects.nonNull(specificReturnMediaType)) {
+                        returnMediaType = specificReturnMediaType;
+                    }
                 }
+                types.append(fromString(returnMediaType));
             }
-            BArray types = ValueCreator.createArrayValue(TypeCreator.createArrayType(PredefinedTypes.TYPE_STRING));
-            types.append(fromString(returnMediaType));
+        }
+        if (!types.isEmpty()) {
             linkMap.put(HttpConstants.LINK_TYPES, types);
         }
         targetResource.addLink(relation, linkMap);

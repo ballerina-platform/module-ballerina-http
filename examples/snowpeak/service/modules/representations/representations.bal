@@ -88,7 +88,7 @@ public type Reservation record {|
     string endDate;
 |};
 # Represents a receipt for the reservation
-public type ReservationReceipt record {|
+public type ReservationReceipt record {
     # Unique identification of the receipt
     string id;
     # Expiry date in yyyy-mm-dd
@@ -103,7 +103,7 @@ public type ReservationReceipt record {|
     Reservation reservation;
     # State of the reservation
     ReservationState state;
-|};
+};
 # Represents the unexpected error
 public type SnowpeakError record {|
     # Error message
@@ -113,12 +113,6 @@ public type SnowpeakError record {|
 public type ReservationUpdated record {|
     *http:Ok; 
     # The payload for successful reservation update
-    ReservationReceipt body;
-|};
-# The response for successful reservation creation
-public type ReservationCreated record {|
-    *http:Created; 
-    # The payload for successful reservation creation 
     ReservationReceipt body;
 |};
 # The response for the unsuccessful reservation creation 
@@ -158,12 +152,6 @@ public type PaymentReceipt record {|
     string lastUpdated;
     # Booked rooms
     Room[] rooms;
-|};
-# The response for the successful payment creation
-public type PaymentCreated record {|
-    *http:Created;
-    # The payload for the successful payment creation
-    PaymentReceipt body;
 |};
 # The response for the unsuccessful payment creation
 public type PaymentConflict record {|

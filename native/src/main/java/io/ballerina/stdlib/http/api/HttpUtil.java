@@ -21,10 +21,13 @@ package io.ballerina.stdlib.http.api;
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Module;
 import io.ballerina.runtime.api.Runtime;
+import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.creators.ErrorCreator;
+import io.ballerina.runtime.api.types.Field;
 import io.ballerina.runtime.api.types.FunctionType;
 import io.ballerina.runtime.api.types.MethodType;
 import io.ballerina.runtime.api.types.ObjectType;
+import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.TypeId;
 import io.ballerina.runtime.api.utils.JsonUtils;
@@ -144,6 +147,8 @@ import static io.ballerina.stdlib.http.api.HttpConstants.SOCKET_CONFIG_SEND_BUFF
 import static io.ballerina.stdlib.http.api.HttpConstants.SOCKET_CONFIG_SOCKET_REUSE;
 import static io.ballerina.stdlib.http.api.HttpConstants.SOCKET_CONFIG_SO_BACKLOG;
 import static io.ballerina.stdlib.http.api.HttpConstants.SOCKET_CONFIG_TCP_NO_DELAY;
+import static io.ballerina.stdlib.http.api.HttpConstants.STATUS_CODE_RESPONSE_BODY_FIELD;
+import static io.ballerina.stdlib.http.api.HttpConstants.STATUS_CODE_RESPONSE_STATUS_FIELD;
 import static io.ballerina.stdlib.http.transport.contract.Constants.ENCODING_GZIP;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_1_1_VERSION;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_TRANSFER_ENCODING_IDENTITY;
@@ -1180,7 +1185,11 @@ public class HttpUtil {
         if (observerContext != null) {
             HttpUtil.injectHeaders(message, ObserveUtils.getContextProperties(observerContext));
             observerContext.addTag(TAG_KEY_HTTP_METHOD, message.getHttpMethod());
-            observerContext.getSpan().addTag(TAG_KEY_HTTP_URL, String.valueOf(message.getProperty(HttpConstants.TO)));
+            // Check tracing is enabled
+            if (observerContext.getSpan() != null) {
+                observerContext.getSpan().addTag(TAG_KEY_HTTP_URL,
+                        String.valueOf(message.getProperty(HttpConstants.TO)));
+            }
             observerContext.addTag(TAG_KEY_PEER_ADDRESS,
                        message.getProperty(PROPERTY_HTTP_HOST) + ":" + message.getProperty(PROPERTY_HTTP_PORT));
             // Add HTTP Status Code tag. The HTTP status code will be set using the response message.
@@ -1888,6 +1897,20 @@ public class HttpUtil {
             paramTypes[i] = params[i].type;
         }
         return paramTypes;
+    }
+
+    // This method is used to identify the status code response records using the status object field, since there
+    // are no runtime api to check type inclusions in a record type. This method can be replaced once that is supported
+    // in runtime.
+    public static boolean isHttpStatusCodeResponseTypeWithBody(Type type) {
+        if (type instanceof RecordType) {
+            Map<String, Field> recordFields = ((RecordType) type).getFields();
+            Field statusField = recordFields.get(STATUS_CODE_RESPONSE_STATUS_FIELD);
+            Field bodyField = recordFields.get(STATUS_CODE_RESPONSE_BODY_FIELD);
+            return Objects.nonNull(statusField) && statusField.getFieldType().getTag() == TypeTags.OBJECT_TYPE_TAG &&
+                   Objects.nonNull(bodyField);
+        }
+        return false;
     }
 
     private HttpUtil() {

@@ -12,10 +12,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Add a grace period for graceful stop of the listener](https://github.com/ballerina-platform/ballerina-standard-library/issues/3277)
 - [Add missing HTTP status codes](https://github.com/ballerina-platform/ballerina-standard-library/issues/3393)
 - [Make socket configuration configurable in both ListenerConfig and Client config](https://github.com/ballerina-platform/ballerina-standard-library/issues/3246)
+- [Populate HATEOAS link's types field based on the resource return type](https://github.com/ballerina-platform/ballerina-standard-library/issues/3404)
 - [Add defaultable param support for query parameter](https://github.com/ballerina-platform/ballerina-standard-library/issues/1683)
 
 ### Changed
 - [Reduce Listener default timeout to 60s and Client default timeout to 30s](https://github.com/ballerina-platform/ballerina-standard-library/issues/3278)
+- [API Docs Updated](https://github.com/ballerina-platform/ballerina-standard-library/issues/3463)
+- [Improve data binding mime type match](https://github.com/ballerina-platform/ballerina-standard-library/issues/3542)
+
+### Fixed
+- [Fix dispatching logic issue due to double slash in basePath](https://github.com/ballerina-platform/ballerina-standard-library/issues/3543)
+- [Fix stacklessConnectionClosed exception while calling backend with well known certs](https://github.com/ballerina-platform/ballerina-standard-library/issues/3507)
 
 ## [2.4.0] - 2022-09-08
 

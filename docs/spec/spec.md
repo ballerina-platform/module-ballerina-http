@@ -12,7 +12,7 @@ This is the specification for the HTTP standard library of [Ballerina language](
 
 The HTTP library specification has evolved and may continue to evolve in the future. The released versions of the specification can be found under the relevant GitHub tag. 
 
-If you have any feedback or suggestions about the library, start a discussion via a [GitHub issue](https://github.com/ballerina-platform/ballerina-standard-library/issues) or in the [Slack channel](https://ballerina.io/community/). Based on the outcome of the discussion, the specification and implementation can be updated. Community feedback is always welcome. Any accepted proposal, which affects the specification is stored under `/docs/proposals`. Proposals under discussion can be found with the label `type/proposal` in GitHub.
+If you have any feedback or suggestions about the library, start a discussion via a [GitHub issue](https://github.com/ballerina-platform/ballerina-standard-library/issues) or in the [Discord server](https://discord.gg/ballerinalang). Based on the outcome of the discussion, the specification and implementation can be updated. Community feedback is always welcome. Any accepted proposal, which affects the specification is stored under `/docs/proposals`. Proposals under discussion can be found with the label `type/proposal` in GitHub.
 
 The conforming implementation of the specification is released and included in the distribution. Any deviation from the specification is considered a bug.
 
@@ -128,8 +128,8 @@ The conforming implementation of the specification is released and included in t
             * 9.1.2.9. [Client - Grant Types OAuth2](#9129-client---grant-types-oauth2)
    * 9.2. [SSL/TLS and Mutual SSL](#92-ssltls-and-mutual-ssl)
         * 9.2.1. [Listener - SSL/TLS](#921-listener---ssltls)
-        * 9.2.2. [Client - Mutual SSL](#922-listener---mutual-ssl)
-        * 9.2.3. [Listener - SSL/TLS](#923-client---ssltls)
+        * 9.2.2. [Listener - Mutual SSL](#922-listener---mutual-ssl)
+        * 9.2.3. [Client - SSL/TLS](#923-client---ssltls)
         * 9.2.4. [Client - Mutual SSL](#924-client---mutual-ssl)
 10. [Protocol-upgrade](#10-protocol-upgrade)
     * 10.1. [HTTP2](#101-http2)
@@ -1899,13 +1899,14 @@ The response payload to the GET resource will look like this :
    "quantity": 2,
    "_links":{
       "payment":{
-         "rel": "payment",
-         "href": "/payment/{id}",
+         "href": "/payment/{id}", 
+         "types": ["application/json"],
          "methods":["PUT"]
       }
    }
 }
 ```
+The fields of the `Link` are automatically populated from the resource specified in the `LinkedTo` configuration.
 
 When there is no payload or when `Links` not supported in the payload, the `Links` will be added as a `Link` header. 
 Following is an example of `Links` in `Link` header:

@@ -45,7 +45,7 @@ public function main() returns error? {
         "startDate": "2021-08-01",
         "endDate": "2021-08-03"
     };
-    rep:ReservationReceipt reservationReceipt = check snowpeak->put(rooms._links.get("reservation").href, reservation);
+    rep:ReservationReceipt reservationReceipt = check snowpeak->post(rooms._links.get("reservation").href, reservation);
 
     // update the reservation
     reservation = {
@@ -71,5 +71,5 @@ public function main() returns error? {
     };
     targetUrl = string `${regex:replace(string`${updatedReservationReceipt._links.get("payment").href}`,
                                         "\\{id}", updatedReservationReceipt.id)}`;
-    rep:PaymentReceipt paymentReceipt = check snowpeak->put(targetUrl, payment);
+    rep:PaymentReceipt paymentReceipt = check snowpeak->post(targetUrl, payment);
 }

@@ -26,7 +26,7 @@ type byteArrType typedesc<byte[]>;
 type mapStringType typedesc<map<string>>;
 
 isolated function performDataBinding(Response response, TargetType targetType) returns anydata|ClientError {
-    string contentType = response.getContentType();
+    string contentType = response.getContentType().trim();
     if contentType == "" {
         return getBuilderFromType(response, targetType);
     }

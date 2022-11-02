@@ -29,9 +29,11 @@ import io.ballerina.runtime.api.types.ResourceMethodType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
+import io.ballerina.runtime.api.values.BTypedesc;
 import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.api.HttpErrorType;
 import io.ballerina.stdlib.http.api.HttpUtil;
@@ -43,6 +45,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static io.ballerina.stdlib.http.api.HttpConstants.ANN_FIELD_RESPOND_TYPE;
 import static io.ballerina.stdlib.http.api.HttpConstants.ANN_NAME_CACHE;
 import static io.ballerina.stdlib.http.api.HttpConstants.ANN_NAME_CALLER_INFO;
 import static io.ballerina.stdlib.http.api.HttpConstants.ANN_NAME_HEADER;
@@ -60,6 +63,7 @@ public class ParamHandler {
 
     private final Type[] paramTypes;
     private final int pathParamCount;
+    private Type callerInfoType = null;
     private ResourceMethodType resource;
     private String[] pathParamTokens = new String[0];
     private List<Parameter> otherParamList = new ArrayList<>();
@@ -83,6 +87,8 @@ public class ParamHandler {
             ModuleUtils.getHttpPackageIdentifier() + COLON + ANN_NAME_CALLER_INFO;
     public static final String PAYLOAD_ANNOTATION = ModuleUtils.getHttpPackageIdentifier() + COLON + ANN_NAME_PAYLOAD;
     public static final String HEADER_ANNOTATION = ModuleUtils.getHttpPackageIdentifier() + COLON + ANN_NAME_HEADER;
+    public static final String CALLER_INFO_ANNOTATION = ModuleUtils.getHttpPackageIdentifier() + COLON
+            + ANN_NAME_CALLER_INFO;
     public static final String CACHE_ANNOTATION = ModuleUtils.getHttpPackageIdentifier() + COLON
             + ANN_NAME_CACHE;
 
@@ -196,6 +202,12 @@ public class ParamHandler {
                     }
                 } else if (HEADER_ANNOTATION.equals(key)) {
                     createHeaderParam(paramName, annotations);
+                } else if (CALLER_INFO_ANNOTATION.equals(key)) {
+                    BMap callerInfo = annotations.getMapValue(StringUtils.fromString(CALLER_INFO_ANNOTATION));
+                    Object respondType = callerInfo.get(ANN_FIELD_RESPOND_TYPE);
+                    if (respondType instanceof BTypedesc) {
+                        this.callerInfoType = TypeUtils.getReferredType(((BTypedesc) respondType).getDescribingType());
+                    }
                 }
             }
         }
@@ -342,5 +354,9 @@ public class ParamHandler {
             }
         }
         return queryParams;
+    }
+
+    public Type getCallerInfoType() {
+        return callerInfoType;
     }
 }
