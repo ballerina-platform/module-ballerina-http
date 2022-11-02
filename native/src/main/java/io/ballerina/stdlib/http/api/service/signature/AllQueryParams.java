@@ -92,6 +92,7 @@ public class AllQueryParams implements Parameter {
                                                    HttpErrorType.QUERY_PARAM_BINDING_ERROR);
                 }
             }
+
             try {
                 BArray queryValueArr = (BArray) queryValue;
                 Type paramType = queryParam.getType();

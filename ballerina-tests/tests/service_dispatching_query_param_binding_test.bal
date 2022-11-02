@@ -121,8 +121,39 @@ service /default on QueryBindingEP {
         return responseJson;
     }
 
+    resource function get checkstringNilable(string? foo = "hello") returns json {
+        json responseJson = { value1: foo};
+        return responseJson;
+    }
+
     resource function get checkInt(int foo = 10) returns json {
         json responseJson = { value1: foo};
+        return responseJson;
+    }
+
+    resource function get checkIntNilable(int? foo = 15) returns json {
+        json responseJson = { value1: foo};
+        return responseJson;
+    }
+
+    resource function get q1(float val = 1.11, boolean isPresent = true, decimal dc = 5.67d) returns json {
+        json responseJson = { fValue: val, bValue: isPresent, dValue: dc };
+        return responseJson;
+    }
+
+    resource function get q2(int[] id = [324441,5652], string[] PersoN = ["hello", "gool"],
+            float[] val = [1.11, 53.9], boolean[] isPresent = [true,false], decimal[] dc = [4.78, 5.67]) returns json {
+        json responseJson = { iValue: id, sValue: PersoN, fValue: val, bValue: isPresent, dValue: dc };
+        return responseJson;
+    }
+
+    resource function get q3(map<json> obj = { name : "test", value : "json" }) returns json {
+        return obj;
+    }
+
+    resource function get q4(map<json>[] objs = [{ name : "test1", value : "json1" },
+            { name : "test2", value : "json2" }]) returns json {
+        json responseJson = { objects : objs };
         return responseJson;
     }
 }
@@ -132,8 +163,35 @@ function testStringDefaultableQueryBinding() returns error? {
     json response = check queryBindingClient->get("/default/checkstring?foo=WSO2&bar=56");
     test:assertEquals(response, {value1:"WSO2"});
 
+    response = check queryBindingClient->get("/default/checkstring?foo=BALLERINA,WSO2&bar=56");
+    test:assertEquals(response, {value1:"BALLERINA"});
+
     response = check queryBindingClient->get("/default/checkstring?bar=12");
     test:assertEquals(response, {value1:"hello"});
+
+    response = check queryBindingClient->get("/default/checkstring?foo");
+    test:assertEquals(response, {value1:"hello"});
+
+    response = check queryBindingClient->get("/default/checkstring?foo=");
+    test:assertEquals(response, {value1:""});
+}
+
+@test:Config {}
+function testStringDefaultableNilableQueryBinding() returns error? {
+    json response = check queryBindingClient->get("/default/checkstringNilable?foo=WSO2&bar=56");
+    test:assertEquals(response, {value1:"WSO2"});
+
+    response = check queryBindingClient->get("/default/checkstringNilable?foo=BALLERINA,WSO2&bar=56");
+    test:assertEquals(response, {value1:"BALLERINA"});
+
+    response = check queryBindingClient->get("/default/checkstringNilable?bar=12");
+    test:assertEquals(response, {value1:"hello"});
+
+    response = check queryBindingClient->get("/default/checkstringNilable?foo");
+    test:assertEquals(response, {value1:"hello"});
+
+    response = check queryBindingClient->get("/default/checkstringNilable?foo=");
+    test:assertEquals(response, {value1:""});
 }
 
 @test:Config {}
@@ -141,10 +199,57 @@ function testIntDefaultableQueryBinding() returns error? {
     json response = check queryBindingClient->get("/default/checkInt?foo=23&bar=56");
     test:assertEquals(response, {value1:23});
 
+    response = check queryBindingClient->get("/default/checkInt?foo=20,30&bar=56");
+    test:assertEquals(response, {value1:20});
+
     response = check queryBindingClient->get("/default/checkInt?bar=12");
+    test:assertEquals(response, {value1:10});
+
+    response = check queryBindingClient->get("/default/checkInt?foo");
     test:assertEquals(response, {value1:10});
 }
 
+@test:Config {}
+function testIntDefaultableNilableQueryBinding() returns error? {
+    json response = check queryBindingClient->get("/default/checkIntNilable?foo=23&bar=56");
+    test:assertEquals(response, {value1:23});
+
+    response = check queryBindingClient->get("/default/checkIntNilable?foo=20,30&bar=56");
+    test:assertEquals(response, {value1:20});
+
+    response = check queryBindingClient->get("/default/checkIntNilable?bar=12");
+    test:assertEquals(response, {value1:15});
+
+    response = check queryBindingClient->get("/default/checkIntNilable?foo");
+    test:assertEquals(response, {value1:15});
+}
+
+@test:Config {}
+function testRestOfDefaultableQueryBinding() returns error? {
+    json response = check queryBindingClient->get("/default/q1");
+    assertJsonPayloadtoJsonString(response, {fValue: 1.11, bValue: true, dValue: 5.67});
+}
+
+@test:Config {}
+function testArrayRestOfDefaultableQueryBinding() returns error? {
+    json response = check queryBindingClient->get("/default/q2");
+    json expected = {iValue:[324441, 5652], sValue:["hello", "gool"], fValue:[1.11, 53.9], bValue:[true, false],
+        dValue:[4.78, 5.67]};
+    assertJsonPayloadtoJsonString(response, expected);
+}
+
+@test:Config {}
+function testMapJsonOfDefaultableQueryBinding() returns error? {
+    json response = check queryBindingClient->get("/default/q3");
+    assertJsonPayloadtoJsonString(response, { name : "test", value : "json" });
+}
+
+@test:Config {}
+function testMapJsonArrOfDefaultableQueryBinding() returns error? {
+    json response = check queryBindingClient->get("/default/q4");
+    assertJsonPayloadtoJsonString(response, { objects : [{ name : "test1", value : "json1" },
+        { name : "test2", value : "json2" }] });
+}
 
 @test:Config {}
 function testStringQueryBinding() {
