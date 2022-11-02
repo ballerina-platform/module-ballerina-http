@@ -34,6 +34,11 @@ service /queryparamservice on QueryBindingIdealEP {
         json responseJson = { value1: foo ?: "empty", value2: bar};
         return responseJson;
     }
+
+    resource function get test3(string? foo = "baz", int bar = 10) returns json {
+        json responseJson = { value1: foo ?: "empty", value2: bar};
+        return responseJson;
+    }
 }
 
 @test:Config {}
@@ -88,4 +93,16 @@ function testIdealQueryParamBindingWithNoQueryParamValue() {
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
+}
+
+@test:Config {}
+function testIdealQueryParamBindingWithDefaultableQueryParamValue() returns error? {
+    json response = check queryBindingIdealClient->get("/queryparamservice/test3?foo=WSO2&bar=56");
+    test:assertEquals(response, {value1:"WSO2", value2:56}, msg = "Found unexpected output");
+
+    response = check queryBindingIdealClient->get("/queryparamservice/test3?foo&bar");
+    test:assertEquals(response, {value1:"baz", value2:10}, msg = "Found unexpected output");
+
+    response = check queryBindingIdealClient->get("/queryparamservice/test3");
+    test:assertEquals(response, {value1:"baz", value2:10}, msg = "Found unexpected output");
 }
