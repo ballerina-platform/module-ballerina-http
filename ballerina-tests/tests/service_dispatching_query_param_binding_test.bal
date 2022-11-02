@@ -106,14 +106,45 @@ service /queryparamservice on QueryBindingEP {
         return ok;
     }
 
-        resource function get petsMap(map<TypeJson> count) returns json {
+    resource function get petsMap(map<TypeJson> count) returns json {
         return count;
     }
-    
+
     resource function get nestedTypeRef(FullName name) returns string {
         return name;
     }
 }
+
+service /default on QueryBindingEP {
+    resource function get checkstring(string foo = "hello") returns json {
+        json responseJson = { value1: foo};
+        return responseJson;
+    }
+
+    resource function get checkInt(int foo = 10) returns json {
+        json responseJson = { value1: foo};
+        return responseJson;
+    }
+}
+
+@test:Config {}
+function testStringDefaultableQueryBinding() returns error? {
+    json response = check queryBindingClient->get("/default/checkstring?foo=WSO2&bar=56");
+    test:assertEquals(response, {value1:"WSO2"});
+
+    response = check queryBindingClient->get("/default/checkstring?bar=12");
+    test:assertEquals(response, {value1:"hello"});
+}
+
+@test:Config {}
+function testIntDefaultableQueryBinding() returns error? {
+    json response = check queryBindingClient->get("/default/checkInt?foo=23&bar=56");
+    test:assertEquals(response, {value1:23});
+
+    response = check queryBindingClient->get("/default/checkInt?bar=12");
+    test:assertEquals(response, {value1:10});
+}
+
 
 @test:Config {}
 function testStringQueryBinding() {
