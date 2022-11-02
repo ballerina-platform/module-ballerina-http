@@ -302,8 +302,9 @@ public class ParamHandler {
 
     private void createQueryParam(int index, ResourceMethodType balResource, Type type, boolean nilable,
                                   boolean readonly) {
-        QueryParam queryParam = new QueryParam(type, HttpUtil.unescapeAndEncodeValue(
-                balResource.getParamNames()[index]), index, nilable, readonly);
+        io.ballerina.runtime.api.types.Parameter parameter = balResource.getParameters()[index];
+        QueryParam queryParam = new QueryParam(type, HttpUtil.unescapeAndEncodeValue(parameter.name), index, nilable,
+                                               readonly, parameter.isDefault);
         this.queryParams.add(queryParam);
     }
 

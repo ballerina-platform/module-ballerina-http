@@ -475,6 +475,15 @@ query param of the request URL has no corresponding parameter in the resource fu
 If the parameter is defined in the function, but there is no such query param in the URL, that request will lead 
 to a 400 BAD REQUEST error response unless the type is nilable (string?)
 
+If the query parameter is defined with a defaultable value in the resource signature, in the absence of particular
+query parameter, the default value will be assigned to the variable.
+
+```ballerina
+resource function get price(int id = 10) { 
+    
+}
+```
+
 The query param consists of query name and values. Sometimes user may send query without value(`foo:`). In such
 situations, when the query param type is nilable, the values returns nil and same happened when the complete query is
 not present in the request. In order to avoid the missing detail, a service level configuration has introduced naming
@@ -544,6 +553,28 @@ service /queryparamservice on new http:Listener(9090) {
 <td> No query</td>
 <td> nil </td>
 <td> Error : no query param value found for 'foo' </td>
+</tr>
+<tr>
+<td rowspan=4> 3 </td>
+<td rowspan=4> string foo = "baz"<br/> string? foo = "baz" </td>
+<td> foo=bar </td>
+<td> bar </td>
+<td> bar </td>
+</tr>
+<tr>
+<td> foo=</td>
+<td> "" </td>
+<td> "" </td>
+</tr>
+<tr>
+<td> foo</td>
+<td> baz </td>
+<td> baz </td>
+</tr>
+<tr>
+<td> No query</td>
+<td> baz </td>
+<td> baz </td>
 </tr>
 </table>
 
