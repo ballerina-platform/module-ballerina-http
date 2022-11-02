@@ -30,15 +30,17 @@ public class QueryParam {
     private final String token;
     private final boolean nilable;
     private final boolean readonly;
+    private final boolean defaultable;
     private final int index;
     private final Type type;
 
-    QueryParam(Type type, String token, int index, boolean nilable, boolean readonly) {
+    QueryParam(Type type, String token, int index, boolean nilable, boolean readonly, boolean defaultable) {
         this.type = type;
         this.token = token;
         this.index = index;
         this.nilable = nilable;
         this.readonly = readonly;
+        this.defaultable = defaultable;
     }
 
     public String getToken() {
@@ -59,5 +61,9 @@ public class QueryParam {
 
     public boolean isReadonly() {
         return this.readonly;
+    }
+
+    public boolean isDefaultable() {
+        return defaultable;
     }
 }

@@ -5,6 +5,11 @@ This file contains all the notable changes done to the Ballerina HTTP package th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to 
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- [Add defaultable param support for query parameter](https://github.com/ballerina-platform/ballerina-standard-library/issues/1683)
+
 ## [2.4.2] - 2022-11-02
 
 ### Fixed
@@ -29,7 +34,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Changed
 - [Update default response status as HTTP 201 for POST resources](https://github.com/ballerina-platform/ballerina-standard-library/issues/2469)
-
 
 ### Fixed
 - [User-Agent header is set to a default value or empty in http post request](https://github.com/ballerina-platform/ballerina-standard-library/issues/3283)
