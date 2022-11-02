@@ -547,6 +547,15 @@ service /queryparamservice on new http:Listener(9090) {
 </tr>
 </table>
 
+If the query parameter is defined with a defaultable value in the resource signature, in the absence of particular
+query parameter, the default value will be assigned to the variable.
+
+```ballerina
+resource function get price(int id = 10) { 
+    
+}
+```
+
 See section [Query](#52-query) to understand accessing query param via the request object.
 
 ##### 2.3.4.4. Payload parameter
