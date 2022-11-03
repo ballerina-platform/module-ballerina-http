@@ -14,7 +14,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/jballerina.java;
 // import ballerina/log;
 import ballerina/lang.runtime as runtime;
 import ballerina/test;
@@ -48,9 +47,9 @@ service /idleTimeout on idleTimeoutListenerEP {
     }
 }
 
-//Test header server name if 500 response is returned when the server times out. In this case a sleep is introduced in the server.
+//Test header server name if 408 response is returned when the server times out. In this case a sleep is introduced in the server.
 @test:Config {}
-function test500Response() {
+function test408Response() {
     http:Response|error response = idleTimeoutClient->get("/idleTimeout/timeout500");
     if response is http:Response {
         test:assertEquals(response.statusCode, 408, msg = "Found unexpected output");
@@ -59,16 +58,3 @@ function test500Response() {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
-
-// Tests if 408 response is returned when the request times out. In this case a delay is
-// introduced between the first and second chunk.
-@test:Config {
-    groups: ["disabledOnWindows"]
-}
-function test408Response() {
-    test:assertTrue(externTest408Response(idleTimeoutTestPort));
-}
-
-function externTest408Response(int servicePort) returns boolean = @java:Method {
-    'class: "io.ballerina.stdlib.http.testutils.ExternIdleTimeoutResponseTestUtil"
-} external;
