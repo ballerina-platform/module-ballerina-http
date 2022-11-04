@@ -26,9 +26,13 @@ import io.ballerina.runtime.api.types.ServiceType;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.observability.ObserveUtils;
+import io.ballerina.runtime.observability.ObserverContext;
 import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.api.nativeimpl.connection.Respond;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
+
+import static io.ballerina.stdlib.http.api.HttpConstants.OBSERVABILITY_CONTEXT_PROPERTY;
 
 /**
  * {@code HttpResponseInterceptorUnitCallback} is the responsible for acting on notifications received from Ballerina
@@ -108,6 +112,8 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
         BArray interceptors = (BArray) requestCtx.getNativeData(HttpConstants.INTERCEPTORS);
 
         if (alreadyResponded()) {
+            stopObserverContext();
+            dataContext.notifyOutboundResponseStatus(null);
             return;
         }
 
@@ -121,6 +127,16 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
             validateServiceReturnType(result, interceptorId, interceptors);
         } else {
             returnResponse(result);
+        }
+    }
+
+    private void stopObserverContext() {
+        if (ObserveUtils.isObservabilityEnabled()) {
+            ObserverContext observerContext = (ObserverContext) requestMessage
+                    .getProperty(OBSERVABILITY_CONTEXT_PROPERTY);
+            if (observerContext != null && observerContext.isManuallyClosed()) {
+                ObserveUtils.stopObservationWithContext(observerContext);
+            }
         }
     }
 
@@ -177,11 +193,14 @@ public class HttpResponseInterceptorUnitCallback implements Callback {
         Callback returnCallback = new Callback() {
             @Override
             public void notifySuccess(Object result) {
+                stopObserverContext();
+                dataContext.notifyOutboundResponseStatus(null);
                 printStacktraceIfError(result);
             }
 
             @Override
             public void notifyFailure(BError result) {
+                dataContext.notifyOutboundResponseStatus(null);
                 sendFailureResponse(result);
             }
         };
