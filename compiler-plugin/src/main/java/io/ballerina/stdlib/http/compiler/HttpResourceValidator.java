@@ -65,6 +65,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_ANNOTATION_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_ANNOTATION_TYPE;
@@ -622,9 +623,12 @@ class HttpResourceValidator {
         if (typeDescKind == TypeDescKind.RECORD) {
             Map<String, RecordFieldSymbol> recordFieldSymbols =
                     ((RecordTypeSymbol) typeDescriptor).fieldDescriptors();
+            final TypeSymbol effectiveParentType = typeDescriptor;
             recordFieldSymbols.forEach((key, value) -> {
                 TypeSymbol fieldTypeSymbol = value.typeDescriptor();
-                if (!isValidPayloadParamType(fieldTypeSymbol, ctx, paramLocation, paramName, true)) {
+                boolean validParam = isValidRecordParam(
+                        List.of(effectiveParentType), fieldTypeSymbol, ctx, paramLocation, paramName);
+                if (!validParam) {
                     reportInvalidRecordFieldType(ctx, paramLocation, paramName, fieldTypeSymbol.signature());
                 }
             });
@@ -632,6 +636,70 @@ class HttpResourceValidator {
         } else {
             return isValidPayloadParamType(typeDescriptor, ctx, paramLocation, paramName, isRecordField);
         }
+    }
+
+    private static boolean isValidRecordParam(List<TypeSymbol> parentTypes, TypeSymbol typeDescriptor,
+                                              SyntaxNodeAnalysisContext ctx, Location paramLocation, String paramName) {
+        if (typeDescriptor.typeKind() == TypeDescKind.TYPE_REFERENCE) {
+            TypeSymbol effectiveTypeDescriptor = ((TypeReferenceTypeSymbol) typeDescriptor).typeDescriptor();
+            if (effectiveTypeDescriptor.typeKind() == TypeDescKind.RECORD) {
+                List<TypeSymbol> newParentTypes = getParentTypes(effectiveTypeDescriptor, parentTypes);
+                return validateRecordTypeField(
+                        newParentTypes, ctx, paramLocation, paramName, (RecordTypeSymbol) effectiveTypeDescriptor);
+            }
+        } else if (typeDescriptor.typeKind() == TypeDescKind.RECORD) {
+            List<TypeSymbol> newParentTypes = getParentTypes(typeDescriptor, parentTypes);
+            return validateRecordTypeField(
+                    newParentTypes, ctx, paramLocation, paramName, (RecordTypeSymbol) typeDescriptor);
+        }
+        return isValidPayloadParamType(typeDescriptor, ctx, paramLocation, paramName, true);
+    }
+
+    private static List<TypeSymbol> getParentTypes(TypeSymbol currentParent, List<TypeSymbol> parentTypes) {
+        List<TypeSymbol> newParentTypes = new ArrayList<>(parentTypes);
+        if (!newParentTypes.contains(currentParent)) {
+            newParentTypes.add(currentParent);
+        }
+        return newParentTypes;
+    }
+
+    private static boolean validateRecordTypeField(List<TypeSymbol> parentTypes, SyntaxNodeAnalysisContext ctx,
+                                                   Location paramLocation, String paramName,
+                                                   RecordTypeSymbol typeDescriptor) {
+        Map<String, RecordFieldSymbol> recordFields = typeDescriptor.fieldDescriptors();
+        return recordFields.values().stream()
+                .map(RecordFieldSymbol::typeDescriptor)
+                .flatMap(ts -> getFlatTypes(ts).stream())
+                .filter(ts -> parentTypes.stream().noneMatch(parentType -> parentType.equals(ts)))
+                .map(ts -> isValidRecordParam(parentTypes, ts, ctx, paramLocation, paramName))
+                .reduce(true, (a, b) -> a && b);
+    }
+
+    private static List<TypeSymbol> getFlatTypes(TypeSymbol typeDescriptor) {
+        TypeDescKind typeKind = typeDescriptor.typeKind();
+        if (typeKind == TypeDescKind.ARRAY) {
+            // we have to use this approach because a collection could have elements of a reference-type, in order to
+            // get the flat type, we hv to re-evaluate the member-type descriptor for a collection.
+            // collection can be an array, map, table or a tuple.
+            return Stream.of(((ArrayTypeSymbol) typeDescriptor).memberTypeDescriptor())
+                    .flatMap(ts -> getFlatTypes(ts).stream())
+                    .collect(Collectors.toList());
+        } else if (typeKind == TypeDescKind.MAP) {
+            return Stream.of(((MapTypeSymbol) typeDescriptor).typeParam())
+                    .flatMap(ts -> getFlatTypes(ts).stream())
+                    .collect(Collectors.toList());
+        } else if (typeKind == TypeDescKind.TABLE) {
+            return Stream.of(((TableTypeSymbol) typeDescriptor).rowTypeParameter())
+                    .flatMap(ts -> getFlatTypes(ts).stream())
+                    .collect(Collectors.toList());
+        } else if (typeKind == TypeDescKind.TUPLE) {
+            return ((TupleTypeSymbol) typeDescriptor).memberTypeDescriptors().stream()
+                    .flatMap(ts -> getFlatTypes(ts).stream())
+                    .collect(Collectors.toList());
+        } else if (typeKind == TypeDescKind.TYPE_REFERENCE) {
+            return List.of(((TypeReferenceTypeSymbol) typeDescriptor).typeDescriptor());
+        }
+        return List.of(typeDescriptor);
     }
 
     private static void validateHeaderParamType(SyntaxNodeAnalysisContext ctx, Location paramLocation, Symbol param,
