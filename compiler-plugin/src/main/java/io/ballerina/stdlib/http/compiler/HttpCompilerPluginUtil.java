@@ -59,7 +59,7 @@ public class HttpCompilerPluginUtil {
 
     private static final List<TypeDescKind> allowedList = Arrays.asList(
             TypeDescKind.BOOLEAN, TypeDescKind.INT, TypeDescKind.FLOAT, TypeDescKind.DECIMAL,
-            TypeDescKind.STRING, TypeDescKind.XML, TypeDescKind.JSON, TypeDescKind.RECORD,
+            TypeDescKind.STRING, TypeDescKind.XML, TypeDescKind.JSON,
             TypeDescKind.ANYDATA, TypeDescKind.NIL, TypeDescKind.BYTE, TypeDescKind.STRING_CHAR,
             TypeDescKind.XML_ELEMENT, TypeDescKind.XML_COMMENT, TypeDescKind.XML_PROCESSING_INSTRUCTION,
             TypeDescKind.XML_TEXT, TypeDescKind.INT_SIGNED8, TypeDescKind.INT_UNSIGNED8,

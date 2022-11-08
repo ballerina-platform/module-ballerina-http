@@ -567,6 +567,20 @@ class HttpResourceValidator {
         }
         if (isAnyDataType(kind) || kind == TypeDescKind.SINGLETON) {
             return true;
+        } else if (kind == TypeDescKind.RECORD) {
+            Map<String, RecordFieldSymbol> recordFieldSymbols = ((RecordTypeSymbol) typeDescriptor).fieldDescriptors();
+            final TypeSymbol effectiveParentType = typeDescriptor;
+            List<RecordFieldSymbol> erroneousFields = recordFieldSymbols.values().stream()
+                    .filter(fieldSymbol -> {
+                        TypeSymbol fieldTypeSymbol = fieldSymbol.typeDescriptor();
+                        return !isValidRecordParam(
+                                List.of(effectiveParentType), fieldTypeSymbol, ctx, paramLocation, paramName);
+                    }).collect(Collectors.toList());
+            erroneousFields.forEach(fieldSymbol -> {
+                TypeSymbol fieldTypeSymbol = fieldSymbol.typeDescriptor();
+                reportInvalidRecordFieldType(ctx, paramLocation, paramName, fieldTypeSymbol.signature());
+            });
+            return erroneousFields.isEmpty();
         } else if (kind == TypeDescKind.ARRAY) {
             TypeSymbol arrTypeSymbol = ((ArrayTypeSymbol) typeDescriptor).memberTypeDescriptor();
             TypeDescKind elementKind = arrTypeSymbol.typeKind();

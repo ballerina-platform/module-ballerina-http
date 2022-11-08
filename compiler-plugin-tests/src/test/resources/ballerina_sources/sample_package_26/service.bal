@@ -17,23 +17,11 @@
 import ballerina/http;
 
 type SupplierInfo record {
-    readonly int supplierId = -1;
-    string name;
-    string shortName;
-    string email;
-    string phoneNumber;
     Quote[] quotes?;
 };
 
 type Quote record {
-    readonly int quoteId = -1;
     SupplierInfo supplier?;
-    int maxQuantity;
-    int period;
-    string brandName;
-    int unitPrice;
-    int expiryDate;
-    string regulatoryInfo;
 };
 
 service on new http:Listener(8081) {
@@ -43,5 +31,9 @@ service on new http:Listener(8081) {
 
     resource function post suppliers(@http:Payload SupplierInfo supplier) returns SupplierInfo|error {
         return supplier;
+    }
+
+    resource function post inline(@http:Payload record {string id; SupplierInfo supplier;} request) returns string|error {
+        return request.id;
     }
 }
