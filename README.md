@@ -6,6 +6,7 @@ Ballerina HTTP Library
   [![GitHub Last Commit](https://img.shields.io/github/last-commit/ballerina-platform/module-ballerina-http.svg)](https://github.com/ballerina-platform/module-ballerina-http/commits/master)
   [![Github issues](https://img.shields.io/github/issues/ballerina-platform/ballerina-standard-library/module/http.svg?label=Open%20Issues)](https://github.com/ballerina-platform/ballerina-standard-library/labels/module%2Fhttp)
   [![codecov](https://codecov.io/gh/ballerina-platform/module-ballerina-http/branch/master/graph/badge.svg)](https://codecov.io/gh/ballerina-platform/module-ballerina-http)
+  [![GraalVM Check](https://img.shields.io/github/workflow/status/ballerina-platform/module-ballerina-http/Build%20with%20bal%20test%20native?label=GraalVM%20Check)](https://github.com/ballerina-platform/module-ballerina-http/actions/workflows/build-with-bal-test-native.yml)
 
 This library provides APIs for connecting and interacting with HTTP and HTTP2 endpoints. It
 facilitates two types of network entry points as the `Client` and `Listener`.
