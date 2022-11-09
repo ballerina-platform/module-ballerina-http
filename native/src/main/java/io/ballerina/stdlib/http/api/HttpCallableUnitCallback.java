@@ -147,7 +147,7 @@ public class HttpCallableUnitCallback implements Callback {
         if (ObserveUtils.isObservabilityEnabled()) {
             ObserverContext observerContext = (ObserverContext) requestMessage
                     .getProperty(OBSERVABILITY_CONTEXT_PROPERTY);
-            if (observerContext.isManuallyClosed()) {
+            if (observerContext != null && observerContext.isManuallyClosed()) {
                 ObserveUtils.stopObservationWithContext(observerContext);
             }
         }
