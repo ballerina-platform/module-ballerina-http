@@ -24,6 +24,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Fix dispatching logic issue due to double slash in basePath](https://github.com/ballerina-platform/ballerina-standard-library/issues/3543)
 - [Fix stacklessConnectionClosed exception while calling backend with well known certs](https://github.com/ballerina-platform/ballerina-standard-library/issues/3507)
 - [Compilation failure when creating HTTP service](https://github.com/ballerina-platform/ballerina-standard-library/issues/3590)
+- [NPE when a request is sent to a non-existent path while Prometheus Metrics are enabled](https://github.com/ballerina-platform/ballerina-standard-library/issues/3605)
+- [H2 client request hangs when ALPN resolved to H1](https://github.com/ballerina-platform/ballerina-standard-library/issues/3650)
 
 ## [2.4.0] - 2022-09-08
 
