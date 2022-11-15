@@ -89,7 +89,7 @@ import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.RESOURCE_CONFIG_ANNOTATION;
 import static io.ballerina.stdlib.http.compiler.Constants.SELF;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.getNodeString;
-import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.isAnyDataType;
+import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.isAllowedPayloadType;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.retrieveEffectiveTypeDesc;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.updateDiagnostic;
 
@@ -565,7 +565,7 @@ class HttpResourceValidator {
             }
             return isValidPayloadParamType(typeDescriptor, ctx, paramLocation, paramName, isRecordField);
         }
-        if (isAnyDataType(kind) || kind == TypeDescKind.SINGLETON) {
+        if (isAllowedPayloadType(kind) || kind == TypeDescKind.SINGLETON) {
             return true;
         } else if (kind == TypeDescKind.RECORD) {
             Map<String, RecordFieldSymbol> recordFieldSymbols = ((RecordTypeSymbol) typeDescriptor).fieldDescriptors();

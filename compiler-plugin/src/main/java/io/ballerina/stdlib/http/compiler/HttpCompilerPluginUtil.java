@@ -57,10 +57,18 @@ import static io.ballerina.stdlib.http.compiler.Constants.UNNECESSARY_CHARS_REGE
  */
 public class HttpCompilerPluginUtil {
 
-    private static final List<TypeDescKind> allowedList = Arrays.asList(
+    private static final List<TypeDescKind> ALLOWED_PAYLOAD_TYPES = Arrays.asList(
             TypeDescKind.BOOLEAN, TypeDescKind.INT, TypeDescKind.FLOAT, TypeDescKind.DECIMAL,
             TypeDescKind.STRING, TypeDescKind.XML, TypeDescKind.JSON,
             TypeDescKind.ANYDATA, TypeDescKind.NIL, TypeDescKind.BYTE, TypeDescKind.STRING_CHAR,
+            TypeDescKind.XML_ELEMENT, TypeDescKind.XML_COMMENT, TypeDescKind.XML_PROCESSING_INSTRUCTION,
+            TypeDescKind.XML_TEXT, TypeDescKind.INT_SIGNED8, TypeDescKind.INT_UNSIGNED8,
+            TypeDescKind.INT_SIGNED16, TypeDescKind.INT_UNSIGNED16, TypeDescKind.INT_SIGNED32,
+            TypeDescKind.INT_UNSIGNED32);
+    private static final List<TypeDescKind> ALLOWED_RETURN_TYPES = Arrays.asList(
+            TypeDescKind.BOOLEAN, TypeDescKind.INT, TypeDescKind.FLOAT, TypeDescKind.DECIMAL,
+            TypeDescKind.STRING, TypeDescKind.XML, TypeDescKind.JSON,
+            TypeDescKind.ANYDATA, TypeDescKind.RECORD, TypeDescKind.NIL, TypeDescKind.BYTE, TypeDescKind.STRING_CHAR,
             TypeDescKind.XML_ELEMENT, TypeDescKind.XML_COMMENT, TypeDescKind.XML_PROCESSING_INSTRUCTION,
             TypeDescKind.XML_TEXT, TypeDescKind.INT_SIGNED8, TypeDescKind.INT_UNSIGNED8,
             TypeDescKind.INT_SIGNED16, TypeDescKind.INT_UNSIGNED16, TypeDescKind.INT_SIGNED32,
@@ -126,8 +134,8 @@ public class HttpCompilerPluginUtil {
             return;
         }
         TypeDescKind kind = returnTypeSymbol.typeKind();
-        if (isAnyDataType(kind) || kind == TypeDescKind.RECORD || kind == TypeDescKind.ERROR ||
-                kind == TypeDescKind.NIL || kind == TypeDescKind.ANYDATA || kind == TypeDescKind.SINGLETON) {
+        if (isAllowedReturnType(kind) || kind == TypeDescKind.ERROR || kind == TypeDescKind.NIL ||
+                kind == TypeDescKind.ANYDATA || kind == TypeDescKind.SINGLETON) {
             return;
         }
         if (kind == TypeDescKind.INTERSECTION) {
@@ -140,7 +148,8 @@ public class HttpCompilerPluginUtil {
             }
         } else if (kind == TypeDescKind.ARRAY) {
             TypeSymbol memberTypeDescriptor = ((ArrayTypeSymbol) returnTypeSymbol).memberTypeDescriptor();
-            validateArrayElementType(ctx, node, returnTypeStringValue, memberTypeDescriptor, diagnosticCode);
+            validateArrayElementTypeInReturnType(
+                    ctx, node, returnTypeStringValue, memberTypeDescriptor, diagnosticCode);
         } else if (kind == TypeDescKind.TYPE_REFERENCE) {
             TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) returnTypeSymbol).typeDescriptor();
             TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
@@ -173,16 +182,17 @@ public class HttpCompilerPluginUtil {
                 typeName.equals(Constants.RESPONSE_INTERCEPTOR)).isPresent();
     }
 
-    private static void validateArrayElementType(SyntaxNodeAnalysisContext ctx, Node node, String typeStringValue,
-                                                 TypeSymbol memberTypeDescriptor, HttpDiagnosticCodes diagnosticCode) {
+    private static void validateArrayElementTypeInReturnType(SyntaxNodeAnalysisContext ctx, Node node,
+                                                             String typeStringValue, TypeSymbol memberTypeDescriptor,
+                                                             HttpDiagnosticCodes diagnosticCode) {
         TypeDescKind kind = memberTypeDescriptor.typeKind();
-        if (isAnyDataType(kind) || kind == TypeDescKind.RECORD || kind == TypeDescKind.MAP ||
+        if (isAllowedReturnType(kind) || kind == TypeDescKind.RECORD || kind == TypeDescKind.MAP ||
                 kind == TypeDescKind.TABLE) {
             return;
         }
         if (kind == TypeDescKind.INTERSECTION) {
             TypeSymbol typeSymbol = ((IntersectionTypeSymbol) memberTypeDescriptor).effectiveTypeDescriptor();
-            validateArrayElementType(ctx, node, typeStringValue, typeSymbol, diagnosticCode);
+            validateArrayElementTypeInReturnType(ctx, node, typeStringValue, typeSymbol, diagnosticCode);
         } else if (kind == TypeDescKind.TYPE_REFERENCE) {
             TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) memberTypeDescriptor).typeDescriptor();
             TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
@@ -192,7 +202,7 @@ public class HttpCompilerPluginUtil {
             }
         } else if (kind == TypeDescKind.ARRAY) {
             memberTypeDescriptor = ((ArrayTypeSymbol) memberTypeDescriptor).memberTypeDescriptor();
-            validateArrayElementType(ctx, node, typeStringValue, memberTypeDescriptor, diagnosticCode);
+            validateArrayElementTypeInReturnType(ctx, node, typeStringValue, memberTypeDescriptor, diagnosticCode);
         } else {
             reportInvalidReturnType(ctx, node, typeStringValue, diagnosticCode);
         }
@@ -221,8 +231,12 @@ public class HttpCompilerPluginUtil {
         return typeDescKind;
     }
 
-    public static boolean isAnyDataType(TypeDescKind kind) {
-        return allowedList.stream().anyMatch(allowedKind -> kind == allowedKind);
+    public static boolean isAllowedPayloadType(TypeDescKind kind) {
+        return ALLOWED_PAYLOAD_TYPES.stream().anyMatch(allowedKind -> kind == allowedKind);
+    }
+
+    public static boolean isAllowedReturnType(TypeDescKind kind) {
+        return ALLOWED_RETURN_TYPES.stream().anyMatch(allowedKind -> kind == allowedKind);
     }
 
     private static void reportInvalidReturnType(SyntaxNodeAnalysisContext ctx, Node node,
