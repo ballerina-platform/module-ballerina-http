@@ -5,6 +5,14 @@ This file contains all the notable changes done to the Ballerina HTTP package th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to 
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [2.4.4] - 2022-11-15
+
+### Fixed
+- [NPE when a request is sent to a non-existent path while Prometheus Metrics are enabled](https://github.com/ballerina-platform/ballerina-standard-library/issues/3605)
+- [H2 client request hangs when ALPN resolved to H1](https://github.com/ballerina-platform/ballerina-standard-library/issues/3650)
+
 ## [2.4.3] - 2022-11-03
 
 ### Fixed
