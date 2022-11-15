@@ -619,4 +619,14 @@ public class CompilerPluginTest {
                 .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR)).count();
         Assert.assertEquals(availableErrors, 0);
     }
+
+    @Test
+    public void testRecursiveRecordDefinitionsAsReturnType() {
+        Package currentPackage = loadPackage("sample_package_27");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        long availableErrors = diagnosticResult.diagnostics().stream()
+                .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR)).count();
+        Assert.assertEquals(availableErrors, 0);
+    }
 }
