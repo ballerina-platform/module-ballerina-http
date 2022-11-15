@@ -25,7 +25,8 @@ type Quote record {
 };
 
 service on new http:Listener(8081) {
-    resource function get suppliers(@http:Payload SupplierInfo supplier) returns SupplierInfo|error {
-        return supplier;
+    resource function post suppliers(@http:Payload record {string id; SupplierInfo supplier;} request)
+            returns SupplierInfo|error {
+        return request.supplier;
     }
 }
