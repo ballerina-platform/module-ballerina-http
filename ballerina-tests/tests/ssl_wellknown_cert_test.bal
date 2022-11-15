@@ -58,6 +58,16 @@ function testWellknownCertBackendWithinService() returns error? {
 }
 
 @test:Config {}
+function testWellknownCertBackendWithinServiceDifferentClient() returns error? {
+    string response = check callCountryTestClient->get("/country/1");
+    test:assertEquals(response, "American Samoa", msg = "Found unexpected output");
+
+    http:Client callCountryTestClientDiff = check new("http://localhost:" + http2GeneralPort.toString());
+    response = check callCountryTestClientDiff->get("/country/1");
+    test:assertEquals(response, "American Samoa", msg = "Found unexpected output");
+}
+
+@test:Config {}
 function testWellknownCertBackendWithinLocalService() returns error? {
     string response = check callCountryTestClient->get("/countryLocal/1");
     test:assertEquals(response, "American Samoa", msg = "Found unexpected output");

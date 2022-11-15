@@ -262,6 +262,11 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
                 }
 
                 private void prepareTargetChannelForHttp(ChannelFuture channelFuture) {
+                    if (http2) {
+                        connectionManager.getHttp2ConnectionManager().releasePerRoutePoolLatch(
+                                targetChannel.getHttpRoute());
+                        http2 = false;
+                    }
                     // Response for the upgrade request will arrive in stream 1,
                     // so use 1 as the stream id.
                     freshHttp2ClientChannel.putInFlightMessage(Http2CodecUtil.HTTP_UPGRADE_STREAM_ID,
