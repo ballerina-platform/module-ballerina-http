@@ -126,8 +126,8 @@ public class HttpCompilerPluginUtil {
             return;
         }
         TypeDescKind kind = returnTypeSymbol.typeKind();
-        if (isAnyDataType(kind) || kind == TypeDescKind.ERROR || kind == TypeDescKind.NIL ||
-                kind == TypeDescKind.ANYDATA || kind == TypeDescKind.SINGLETON) {
+        if (isAnyDataType(kind) || kind == TypeDescKind.RECORD || kind == TypeDescKind.ERROR ||
+                kind == TypeDescKind.NIL || kind == TypeDescKind.ANYDATA || kind == TypeDescKind.SINGLETON) {
             return;
         }
         if (kind == TypeDescKind.INTERSECTION) {
@@ -176,7 +176,8 @@ public class HttpCompilerPluginUtil {
     private static void validateArrayElementType(SyntaxNodeAnalysisContext ctx, Node node, String typeStringValue,
                                                  TypeSymbol memberTypeDescriptor, HttpDiagnosticCodes diagnosticCode) {
         TypeDescKind kind = memberTypeDescriptor.typeKind();
-        if (isAnyDataType(kind) || kind == TypeDescKind.MAP || kind == TypeDescKind.TABLE) {
+        if (isAnyDataType(kind) || kind == TypeDescKind.RECORD || kind == TypeDescKind.MAP ||
+                kind == TypeDescKind.TABLE) {
             return;
         }
         if (kind == TypeDescKind.INTERSECTION) {
