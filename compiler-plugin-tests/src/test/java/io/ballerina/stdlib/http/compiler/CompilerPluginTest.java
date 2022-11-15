@@ -609,4 +609,24 @@ public class CompilerPluginTest {
         assertTrue(diagnosticResult, 6, "cannot find 'POST' resource with resource link name: 'resource1'", HTTP_150);
         assertTrue(diagnosticResult, 7, "cannot resolve linked resource without method", HTTP_149);
     }
+
+    @Test
+    public void testRecursiveRecordDefinitionsAsPayload() {
+        Package currentPackage = loadPackage("sample_package_26");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        long availableErrors = diagnosticResult.diagnostics().stream()
+                .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR)).count();
+        Assert.assertEquals(availableErrors, 0);
+    }
+
+    @Test
+    public void testRecursiveRecordDefinitionsAsReturnType() {
+        Package currentPackage = loadPackage("sample_package_27");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        long availableErrors = diagnosticResult.diagnostics().stream()
+                .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR)).count();
+        Assert.assertEquals(availableErrors, 0);
+    }
 }
