@@ -36,6 +36,7 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http2.Http2CodecUtil;
 import io.netty.handler.codec.http2.Http2ConnectionPrefaceAndSettingsFrameWrittenEvent;
 import io.netty.handler.ssl.SslCloseCompletionEvent;
+import io.netty.handler.ssl.SslHandshakeCompletionEvent;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
@@ -158,6 +159,8 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
             LOG.debug("Connection Preface and Settings frame written");
         } else if (evt instanceof SslCloseCompletionEvent) {
             LOG.debug("SSL close completion event received");
+        }  else if (evt instanceof SslHandshakeCompletionEvent) {
+            LOG.debug("SSL handshake completion event received");
         } else if (evt instanceof ChannelInputShutdownReadComplete) {
             // When you try to read from a channel which has already been closed by the peer,
             // 'java.io.IOException: Connection reset by peer' is thrown and it is a harmless exception.
