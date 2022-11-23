@@ -24,8 +24,10 @@ import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.flags.SymbolFlags;
 import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.MethodType;
+import io.ballerina.runtime.api.types.ObjectType;
 import io.ballerina.runtime.api.types.ServiceType;
 import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
@@ -393,7 +395,8 @@ public class HttpService implements Service {
     protected static BMap getServiceConfigAnnotation(BObject service, String packagePath,
                                                      String annotationName) {
         String key = packagePath.replaceAll(HttpConstants.REGEX, HttpConstants.SINGLE_SLASH);
-        return (BMap) (service.getType()).getAnnotation(fromString(key + ":" + annotationName));
+        return (BMap) ((ObjectType) TypeUtils.getReferredType(service.getType())).getAnnotation(
+                fromString(key + ":" + annotationName));
     }
 
     @Override
