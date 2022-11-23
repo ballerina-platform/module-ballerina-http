@@ -24,6 +24,7 @@ import io.ballerina.runtime.api.types.IntersectionType;
 import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.UnionType;
+import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.stdlib.http.api.HttpUtil;
 
 import java.util.ArrayList;
@@ -56,14 +57,20 @@ public class HeaderParam {
     }
 
     private void validateHeaderParamType(Type paramType) {
+
+        if (paramType.getTag() == TypeTags.TYPE_REFERENCED_TYPE_TAG) {
+            paramType = TypeUtils.getReferredType(paramType);
+        }
+
         if (paramType instanceof UnionType) {
             List<Type> memberTypes = ((UnionType) paramType).getMemberTypes();
             this.nilable = true;
             for (Type type : memberTypes) {
-                if (type.getTag() == TypeTags.NULL_TAG) {
+                Type referredType =  TypeUtils.getReferredType(type);
+                if (referredType.getTag() == TypeTags.NULL_TAG) {
                     continue;
                 }
-                if (type.getTag() == TypeTags.RECORD_TYPE_TAG) {
+                if (referredType.getTag() == TypeTags.RECORD_TYPE_TAG) {
                     validateHeaderParamType(type);
                     return;
                 }
@@ -81,10 +88,12 @@ public class HeaderParam {
             }
             this.readonly = true;
             for (Type type : memberTypes) {
-                if (type.getTag() == TypeTags.READONLY_TAG) {
+                Type referredType =  TypeUtils.getReferredType(type);
+
+                if (referredType.getTag() == TypeTags.READONLY_TAG) {
                     continue;
                 }
-                if (type.getTag() == TypeTags.UNION_TAG || type.getTag() == TypeTags.RECORD_TYPE_TAG) {
+                if (referredType.getTag() == TypeTags.UNION_TAG || referredType.getTag() == TypeTags.RECORD_TYPE_TAG) {
                     validateHeaderParamType(type);
                     return;
                 }
