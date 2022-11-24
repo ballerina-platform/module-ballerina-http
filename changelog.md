@@ -7,6 +7,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [2.4.5] - 2022-11-24
+
+### Fixed
+- [Resource methods of the http:Client class are not marked as isolated](https://github.com/ballerina-platform/ballerina-standard-library/issues/3705)
+
 ## [2.4.4] - 2022-11-15
 
 ### Fixed
