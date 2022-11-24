@@ -89,8 +89,8 @@ public client isolated class LoadBalanceClient {
             returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction"
     } external;
-
-    private isolated function processPost(string path, RequestMessage message, TargetType targetType,
+    
+    private isolated function processPost(string path, RequestMessage message, TargetType targetType, 
             string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
@@ -128,8 +128,8 @@ public client isolated class LoadBalanceClient {
             returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction"
     } external;
-
-    private isolated function processPut(string path, RequestMessage message, TargetType targetType,
+    
+    private isolated function processPut(string path, RequestMessage message, TargetType targetType, 
             string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
@@ -167,8 +167,8 @@ public client isolated class LoadBalanceClient {
             returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction"
     } external;
-
-    private isolated function processPatch(string path, RequestMessage message, TargetType targetType,
+    
+    private isolated function processPatch(string path, RequestMessage message, TargetType targetType, 
             string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
@@ -206,8 +206,8 @@ public client isolated class LoadBalanceClient {
             returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction"
     } external;
-
-    private isolated function processDelete(string path, RequestMessage message, TargetType targetType,
+    
+    private isolated function processDelete(string path, RequestMessage message, TargetType targetType, 
             string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
@@ -252,7 +252,7 @@ public client isolated class LoadBalanceClient {
     } external;
 
     # The GET remote function implementation of the LoadBalancer Connector.
-    #
+    # 
     # + path - Request path
     # + headers - The entity headers
     # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
@@ -262,7 +262,7 @@ public client isolated class LoadBalanceClient {
             returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction"
     } external;
-
+    
     private isolated function processGet(string path, map<string|string[]>? headers, TargetType targetType)
             returns Response|anydata|ClientError {
         Request req = buildRequestWithHeaders(headers);
