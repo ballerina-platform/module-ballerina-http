@@ -76,7 +76,7 @@ public client isolated class FailoverClient {
     # + params - The query parameters
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    resource function post [string ...path](RequestMessage message, map<string|string[]>? headers = (), string? mediaType = (),
+   isolated resource function post [string ...path](RequestMessage message, map<string|string[]>? headers = (), string? mediaType = (),
             TargetType targetType = <>, *QueryParams params) returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
         name: "postResource"
@@ -121,7 +121,7 @@ public client isolated class FailoverClient {
     # + params - The query parameters
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    resource function put [string ...path](RequestMessage message, map<string|string[]>? headers = (), string? mediaType = (),
+   isolated resource function put [string ...path](RequestMessage message, map<string|string[]>? headers = (), string? mediaType = (),
             TargetType targetType = <>, *QueryParams params) returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
         name: "putResource"
@@ -166,7 +166,7 @@ public client isolated class FailoverClient {
     # + params - The query parameters
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    resource function patch [string ...path](RequestMessage message, map<string|string[]>? headers = (), string? mediaType = (),
+   isolated resource function patch [string ...path](RequestMessage message, map<string|string[]>? headers = (), string? mediaType = (),
             TargetType targetType = <>, *QueryParams params) returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
         name: "patchResource"
@@ -211,7 +211,7 @@ public client isolated class FailoverClient {
     # + params - The query parameters
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    resource function delete [string ...path](RequestMessage message = (), map<string|string[]>? headers = (), string? mediaType = (),
+   isolated resource function delete [string ...path](RequestMessage message = (), map<string|string[]>? headers = (), string? mediaType = (),
             TargetType targetType = <>, *QueryParams params) returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
         name: "deleteResource"
@@ -252,7 +252,7 @@ public client isolated class FailoverClient {
     # + headers - The entity headers
     # + params - The query parameters
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    resource function head [string ...path](map<string|string[]>? headers = (), *QueryParams params)
+   isolated resource function head [string ...path](map<string|string[]>? headers = (), *QueryParams params)
             returns Response|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
         name: "headResource"
@@ -283,7 +283,7 @@ public client isolated class FailoverClient {
     # + params - The query parameters
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    resource function get [string ...path](map<string|string[]>? headers = (), TargetType targetType = <>,
+   isolated resource function get [string ...path](map<string|string[]>? headers = (), TargetType targetType = <>,
             *QueryParams params) returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
         name: "getResource"
@@ -322,7 +322,7 @@ public client isolated class FailoverClient {
     # + params - The query parameters
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    resource function options [string ...path](map<string|string[]>? headers = (), TargetType targetType = <>,
+   isolated resource function options [string ...path](map<string|string[]>? headers = (), TargetType targetType = <>,
             *QueryParams params) returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
         name: "optionsResource"
