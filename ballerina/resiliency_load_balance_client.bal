@@ -69,8 +69,8 @@ public client isolated class LoadBalanceClient {
     # + params - The query parameters
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    resource function post [string ...path](RequestMessage message, map<string|string[]>? headers = (), string? mediaType = (),
-            TargetType targetType = <>, *QueryParams params) returns targetType|ClientError = @java:Method {
+    isolated resource function post [string ...path](RequestMessage message, map<string|string[]>? headers = (), string?
+            mediaType = (),TargetType targetType = <>, *QueryParams params) returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
         name: "postResource"
     } external;
@@ -89,8 +89,8 @@ public client isolated class LoadBalanceClient {
             returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction"
     } external;
-    
-    private isolated function processPost(string path, RequestMessage message, TargetType targetType, 
+
+    private isolated function processPost(string path, RequestMessage message, TargetType targetType,
             string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
@@ -108,8 +108,8 @@ public client isolated class LoadBalanceClient {
     # + params - The query parameters
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    resource function put [string ...path](RequestMessage message, map<string|string[]>? headers = (), string? mediaType = (),
-            TargetType targetType = <>, *QueryParams params) returns targetType|ClientError = @java:Method {
+    isolated resource function put [string ...path](RequestMessage message, map<string|string[]>? headers = (), string?
+            mediaType = (), TargetType targetType = <>, *QueryParams params) returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
         name: "putResource"
     } external;
@@ -128,8 +128,8 @@ public client isolated class LoadBalanceClient {
             returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction"
     } external;
-    
-    private isolated function processPut(string path, RequestMessage message, TargetType targetType, 
+
+    private isolated function processPut(string path, RequestMessage message, TargetType targetType,
             string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
@@ -147,8 +147,8 @@ public client isolated class LoadBalanceClient {
     # + params - The query parameters
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    resource function patch [string ...path](RequestMessage message, map<string|string[]>? headers = (), string? mediaType = (),
-            TargetType targetType = <>, *QueryParams params) returns targetType|ClientError = @java:Method {
+    isolated resource function patch [string ...path](RequestMessage message, map<string|string[]>? headers = (),
+            string? mediaType = (),TargetType targetType = <>, *QueryParams params) returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
         name: "patchResource"
     } external;
@@ -167,8 +167,8 @@ public client isolated class LoadBalanceClient {
             returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction"
     } external;
-    
-    private isolated function processPatch(string path, RequestMessage message, TargetType targetType, 
+
+    private isolated function processPatch(string path, RequestMessage message, TargetType targetType,
             string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
@@ -186,8 +186,8 @@ public client isolated class LoadBalanceClient {
     # + params - The query parameters
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    resource function delete [string ...path](RequestMessage message = (), map<string|string[]>? headers = (), string? mediaType = (),
-            TargetType targetType = <>, *QueryParams params) returns targetType|ClientError = @java:Method {
+    isolated resource function delete [string ...path](RequestMessage message = (), map<string|string[]>? headers = (),
+            string? mediaType = (), TargetType targetType = <>, *QueryParams params) returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
         name: "deleteResource"
     } external;
@@ -206,8 +206,8 @@ public client isolated class LoadBalanceClient {
             returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction"
     } external;
-    
-    private isolated function processDelete(string path, RequestMessage message, TargetType targetType, 
+
+    private isolated function processDelete(string path, RequestMessage message, TargetType targetType,
             string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
@@ -221,7 +221,7 @@ public client isolated class LoadBalanceClient {
     # + headers - The entity headers
     # + params - The query parameters
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    resource function head [string ...path](map<string|string[]>? headers = (), *QueryParams params)
+    isolated resource function head [string ...path](map<string|string[]>? headers = (), *QueryParams params)
             returns Response|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
         name: "headResource"
@@ -245,14 +245,14 @@ public client isolated class LoadBalanceClient {
     # + params - The query parameters
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    resource function get [string ...path](map<string|string[]>? headers = (), TargetType targetType = <>,
+    isolated resource function get [string ...path](map<string|string[]>? headers = (), TargetType targetType = <>,
             *QueryParams params) returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
         name: "getResource"
     } external;
 
     # The GET remote function implementation of the LoadBalancer Connector.
-    # 
+    #
     # + path - Request path
     # + headers - The entity headers
     # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
@@ -262,7 +262,7 @@ public client isolated class LoadBalanceClient {
             returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction"
     } external;
-    
+
     private isolated function processGet(string path, map<string|string[]>? headers, TargetType targetType)
             returns Response|anydata|ClientError {
         Request req = buildRequestWithHeaders(headers);
@@ -278,7 +278,7 @@ public client isolated class LoadBalanceClient {
     # + params - The query parameters
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    resource function options [string ...path](map<string|string[]>? headers = (), TargetType targetType = <>,
+    isolated resource function options [string ...path](map<string|string[]>? headers = (), TargetType targetType = <>,
             *QueryParams params) returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
         name: "optionsResource"
