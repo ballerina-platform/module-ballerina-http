@@ -429,12 +429,13 @@ public class HttpResource implements Resource {
     }
 
     private void updateLinkReturnMediaTypesFromReturnType(Type returnType) {
-        if (isHttpStatusCodeResponseTypeWithBody(returnType)) {
-            returnType = ((RecordType) returnType).getFields().get(STATUS_CODE_RESPONSE_BODY_FIELD).getFieldType();
-        }
-
         if (returnType.getTag() == TypeTags.TYPE_REFERENCED_TYPE_TAG) {
             returnType = TypeUtils.getReferredType(returnType);
+        }
+
+        if (isHttpStatusCodeResponseTypeWithBody(returnType)) {
+            returnType = TypeUtils.getReferredType(
+                    ((RecordType) returnType).getFields().get(STATUS_CODE_RESPONSE_BODY_FIELD).getFieldType());
         }
 
         if (returnType.getTag() == TypeTags.UNION_TAG) {
