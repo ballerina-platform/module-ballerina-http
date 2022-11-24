@@ -76,7 +76,7 @@ function testWellknownCertBackendWithinLocalService() returns error? {
     test:assertEquals(response, "American Samoa", msg = "Found unexpected output");
 }
 
-@test:Config {}
+@test:Config {dependsOn:[testWellknownCertBackendWithinService]}
 function testWellknownCertBackendWithinFunction() returns error? {
     http:Client restCountriesEp = check new ("https://restcountries.com");
     Country[] countries = check restCountriesEp->get("/v2/callingcode/1");
