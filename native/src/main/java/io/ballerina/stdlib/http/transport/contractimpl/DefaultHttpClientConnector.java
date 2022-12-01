@@ -239,8 +239,14 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
                     } else {
                         // Response for the upgrade request will arrive in stream 1,
                         // so use 1 as the stream id.
+                        if (protocol.equalsIgnoreCase(Constants.HTTP1_TLS_PROTOCOL)) {
+                            connectionManager.getHttp2ConnectionManager().releasePerRoutePoolLatch(targetChannel
+                                    .getHttpRoute());
+                            http2 = false;
+                        }
                         prepareTargetChannelForHttp(channelFuture);
-                        if (protocol.equalsIgnoreCase(Constants.HTTP_SCHEME) &&
+                        if ((protocol.equalsIgnoreCase(Constants.HTTP1_CLEARTEXT_PROTOCOL) ||
+                                protocol.equalsIgnoreCase(Constants.HTTP1_TLS_PROTOCOL)) &&
                                 senderConfiguration.getProxyServerConfiguration() != null) {
                             httpOutboundRequest.setProperty(Constants.IS_PROXY_ENABLED, true);
                         }
@@ -262,11 +268,6 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
                 }
 
                 private void prepareTargetChannelForHttp(ChannelFuture channelFuture) {
-                    if (http2) {
-                        connectionManager.getHttp2ConnectionManager().releasePerRoutePoolLatch(
-                                targetChannel.getHttpRoute());
-                        http2 = false;
-                    }
                     // Response for the upgrade request will arrive in stream 1,
                     // so use 1 as the stream id.
                     freshHttp2ClientChannel.putInFlightMessage(Http2CodecUtil.HTTP_UPGRADE_STREAM_ID,
