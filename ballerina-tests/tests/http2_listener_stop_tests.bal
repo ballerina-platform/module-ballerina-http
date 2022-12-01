@@ -21,7 +21,7 @@ public function testHttp2ListenerStop1() returns error? {
     if response is string {
         test:assertEquals(response, "Hello");
     } else {
-        test:assertFail(msg = "Found unexpected error: " + response.message());
+        test:assertFail("Found unexpected error: " + response.message());
     }
 
     check serviceEP.immediateStop();
@@ -31,7 +31,7 @@ public function testHttp2ListenerStop1() returns error? {
     if response is error {
         test:assertEquals(response.message(), "Something wrong with the connection");
     } else {
-        test:assertFail(msg = "Found unexpected output: " + response);
+        test:assertFail("Found unexpected output: " + response);
     }
 
     http:Client client2 = check new ("localhost:" + http2ListenerStopTest1.toString());
@@ -39,7 +39,7 @@ public function testHttp2ListenerStop1() returns error? {
     if response is error {
         test:assertEquals(response.message(), "Something wrong with the connection");
     } else {
-        test:assertFail(msg = "Found unexpected output: " + response);
+        test:assertFail("Found unexpected output: " + response);
     }
 }
 
@@ -54,7 +54,7 @@ public function testHttp2ListenerStop2() returns error? {
     if response is string {
         test:assertEquals(response, "Hello");
     } else {
-        test:assertFail(msg = "Found unexpected error: " + response.message());
+        test:assertFail("Found unexpected error: " + response.message());
     }
 
     check serviceEP.immediateStop();
@@ -64,7 +64,7 @@ public function testHttp2ListenerStop2() returns error? {
     if response is error {
         test:assertEquals(response.message(), "Something wrong with the connection");
     } else {
-        test:assertFail(msg = "Found unexpected output: " + response);
+        test:assertFail("Found unexpected output: " + response);
     }
 
     http:Client client2 = check new ("localhost:" + http2ListenerStopTest1.toString(), http2Settings = { http2PriorKnowledge: true });
@@ -72,7 +72,7 @@ public function testHttp2ListenerStop2() returns error? {
     if response is error {
         test:assertEquals(response.message(), "Something wrong with the connection");
     } else {
-        test:assertFail(msg = "Found unexpected output: " + response);
+        test:assertFail("Found unexpected output: " + response);
     }
 }
 
@@ -98,7 +98,7 @@ public function testHttp2SecuredListenerStop1() returns error? {
     if response is string {
         test:assertEquals(response, "Hello");
     } else {
-        test:assertFail(msg = "Found unexpected error: " + response.message());
+        test:assertFail("Found unexpected error: " + response.message());
     }
 
     check securedEP.immediateStop();
@@ -108,7 +108,7 @@ public function testHttp2SecuredListenerStop1() returns error? {
     if response is error {
         test:assertEquals(response.message(), "Something wrong with the connection");
     } else {
-        test:assertFail(msg = "Found unexpected output: " + response);
+        test:assertFail("Found unexpected output: " + response);
     }
 
     http:Client client2 = check new ("localhost:" + http2SecuredListenerStopTest1.toString(),
@@ -120,7 +120,7 @@ public function testHttp2SecuredListenerStop1() returns error? {
     if response is error {
         test:assertEquals(response.message(), "Something wrong with the connection");
     } else {
-        test:assertFail(msg = "Found unexpected output: " + response);
+        test:assertFail("Found unexpected output: " + response);
     }
 }
 
@@ -147,7 +147,7 @@ public function testHttp2SecuredListenerStop2() returns error? {
     if response is string {
         test:assertEquals(response, "Hello");
     } else {
-        test:assertFail(msg = "Found unexpected error: " + response.message());
+        test:assertFail("Found unexpected error: " + response.message());
     }
 
     check securedEP.immediateStop();
@@ -157,7 +157,7 @@ public function testHttp2SecuredListenerStop2() returns error? {
     if response is error {
         test:assertEquals(response.message(), "Something wrong with the connection");
     } else {
-        test:assertFail(msg = "Found unexpected output: " + response);
+        test:assertFail("Found unexpected output: " + response);
     }
 
     http:Client client2 = check new ("localhost:" + http2SecuredListenerStopTest2.toString(),
@@ -170,6 +170,6 @@ public function testHttp2SecuredListenerStop2() returns error? {
     if response is error {
         test:assertEquals(response.message(), "Something wrong with the connection");
     } else {
-        test:assertFail(msg = "Found unexpected output: " + response);
+        test:assertFail("Found unexpected output: " + response);
     }
 }
