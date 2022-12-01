@@ -77,19 +77,19 @@ public function testHttp2ListenerStop2() returns error? {
 }
 
 @test:Config {}
-public function testHttp2SecuredListenerStop() returns error? {
-    http:Listener securedEP = check new (http2SecuredListenerStopTest,
+public function testHttp2SecuredListenerStop1() returns error? {
+    http:Listener securedEP = check new (http2SecuredListenerStopTest1,
         secureSocket = {
-        key: {
-            certFile: "tests/certsandkeys/public.crt",
-            keyFile: "tests/certsandkeys/private.key"
+            key: {
+                certFile: "tests/certsandkeys/public.crt",
+                keyFile: "tests/certsandkeys/private.key"
+            }
         }
-    }
     );
     check securedEP.attach(new HelloService());
     check securedEP.'start();
 
-    http:Client client1 = check new ("localhost:" + http2SecuredListenerStopTest.toString(),
+    http:Client client1 = check new ("localhost:" + http2SecuredListenerStopTest1.toString(),
         secureSocket = {
             cert: "tests/certsandkeys/public.crt"
         }
@@ -111,10 +111,60 @@ public function testHttp2SecuredListenerStop() returns error? {
         test:assertFail(msg = "Found unexpected output: " + response);
     }
 
-    http:Client client2 = check new ("localhost:" + http2SecuredListenerStopTest.toString(),
+    http:Client client2 = check new ("localhost:" + http2SecuredListenerStopTest1.toString(),
         secureSocket = {
             cert: "tests/certsandkeys/public.crt"
         }
+    );
+    response = client2->/hello;
+    if response is error {
+        test:assertEquals(response.message(), "Something wrong with the connection");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " + response);
+    }
+}
+
+@test:Config {}
+public function testHttp2SecuredListenerStop2() returns error? {
+    http:Listener securedEP = check new (http2SecuredListenerStopTest2,
+        secureSocket = {
+            key: {
+                certFile: "tests/certsandkeys/public.crt",
+                keyFile: "tests/certsandkeys/private.key"
+            }
+        }
+    );
+    check securedEP.attach(new HelloService());
+    check securedEP.'start();
+
+    http:Client client1 = check new ("localhost:" + http2SecuredListenerStopTest2.toString(),
+        secureSocket = {
+            cert: "tests/certsandkeys/public.crt"
+        },
+        http2Settings = { http2PriorKnowledge: true }
+    );
+    string|error response = client1->/hello;
+    if response is string {
+        test:assertEquals(response, "Hello");
+    } else {
+        test:assertFail(msg = "Found unexpected error: " + response.message());
+    }
+
+    check securedEP.immediateStop();
+    runtime:sleep(5);
+
+    response = client1->/hello;
+    if response is error {
+        test:assertEquals(response.message(), "Something wrong with the connection");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " + response);
+    }
+
+    http:Client client2 = check new ("localhost:" + http2SecuredListenerStopTest2.toString(),
+        secureSocket = {
+            cert: "tests/certsandkeys/public.crt"
+        },
+        http2Settings = { http2PriorKnowledge: true }
     );
     response = client2->/hello;
     if response is error {

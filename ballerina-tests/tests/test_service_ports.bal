@@ -202,7 +202,8 @@ const int http2RetryFunctionTestPort1 = 9706;
 const int http2RetryFunctionTestPort2 = 9707;
 const int http2ListenerStopTest1 = 9708;
 const int http2ListenerStopTest2 = 9708;
-const int http2SecuredListenerStopTest = 9710;
+const int http2SecuredListenerStopTest1 = 9710;
+const int http2SecuredListenerStopTest2 = 9711;
 
 //Security
 const int securedListenerPort = 9400;
