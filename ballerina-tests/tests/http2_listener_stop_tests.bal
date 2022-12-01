@@ -11,7 +11,7 @@ service class HelloService {
 }
 
 @test:Config {}
-public function testHTTP2ListenerStop1() returns error? {
+public function testHttp2ListenerStop1() returns error? {
     http:Listener serviceEP = check new (http2ListenerStopTest1);
     check serviceEP.attach(new HelloService());
     check serviceEP.'start();
@@ -27,17 +27,24 @@ public function testHTTP2ListenerStop1() returns error? {
     check serviceEP.immediateStop();
     runtime:sleep(5);
 
+    response = client1->/hello;
+    if response is error {
+        test:assertEquals(response.message(), "Something wrong with the connection");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " + response);
+    }
+
     http:Client client2 = check new ("localhost:" + http2ListenerStopTest1.toString());
     response = client2->/hello;
     if response is error {
         test:assertEquals(response.message(), "Something wrong with the connection");
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response);
+        test:assertFail(msg = "Found unexpected output: " + response);
     }
 }
 
 @test:Config {}
-public function testHTTP2ListenerStop2() returns error? {
+public function testHttp2ListenerStop2() returns error? {
     http:Listener serviceEP = check new (http2ListenerStopTest1);
     check serviceEP.attach(new HelloService());
     check serviceEP.'start();
@@ -53,17 +60,24 @@ public function testHTTP2ListenerStop2() returns error? {
     check serviceEP.immediateStop();
     runtime:sleep(5);
 
+    response = client1->/hello;
+    if response is error {
+        test:assertEquals(response.message(), "Something wrong with the connection");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " + response);
+    }
+
     http:Client client2 = check new ("localhost:" + http2ListenerStopTest1.toString(), http2Settings = { http2PriorKnowledge: true });
     response = client2->/hello;
     if response is error {
         test:assertEquals(response.message(), "Something wrong with the connection");
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response);
+        test:assertFail(msg = "Found unexpected output: " + response);
     }
 }
 
 @test:Config {}
-public function testHTTP2SecuredListenerStop() returns error? {
+public function testHttp2SecuredListenerStop() returns error? {
     http:Listener securedEP = check new (http2SecuredListenerStopTest,
         secureSocket = {
         key: {
@@ -90,6 +104,13 @@ public function testHTTP2SecuredListenerStop() returns error? {
     check securedEP.immediateStop();
     runtime:sleep(5);
 
+    response = client1->/hello;
+    if response is error {
+        test:assertEquals(response.message(), "Something wrong with the connection");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " + response);
+    }
+
     http:Client client2 = check new ("localhost:" + http2SecuredListenerStopTest.toString(),
         secureSocket = {
             cert: "tests/certsandkeys/public.crt"
@@ -99,6 +120,6 @@ public function testHTTP2SecuredListenerStop() returns error? {
     if response is error {
         test:assertEquals(response.message(), "Something wrong with the connection");
     } else {
-        test:assertFail(msg = "Found unexpected output type: " + response);
+        test:assertFail(msg = "Found unexpected output: " + response);
     }
 }
