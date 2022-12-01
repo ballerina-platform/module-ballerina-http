@@ -69,11 +69,11 @@ service /startService on listenerMethodListener {
         }
         lock {
             http:Service listenerMethodMock3 = service object {
-                resource function get .() returns string|error? {
+                resource function get .(http:Caller caller) returns error? {
+                    check caller->respond("Mock3 invoked!");
                     lock {
                         check listenerMethodImmediatebackendEP.immediateStop();
                     }
-                    return "Mock3 invoked!";
                 }
             };
             check listenerMethodImmediatebackendEP.attach(listenerMethodMock3, "mock3");
