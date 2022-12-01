@@ -26,6 +26,7 @@ import io.ballerina.stdlib.http.transport.message.Http2DataFrame;
 import io.ballerina.stdlib.http.transport.message.Http2HeadersFrame;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.group.ChannelGroup;
 import io.netty.handler.codec.http2.Http2ConnectionDecoder;
 import io.netty.handler.codec.http2.Http2ConnectionEncoder;
 import io.netty.handler.codec.http2.Http2ConnectionHandler;
@@ -54,13 +55,17 @@ public class Http2SourceConnectionHandler extends Http2ConnectionHandler {
     private ServerConnectorFuture serverConnectorFuture;
     private String serverName;
     private HttpServerChannelInitializer serverChannelInitializer;
+    private ChannelGroup allChannels;
+    private ChannelGroup listenerChannels;
 
     Http2SourceConnectionHandler(HttpServerChannelInitializer serverChannelInitializer,
                                  Http2ConnectionDecoder decoder, Http2ConnectionEncoder encoder,
                                  Http2Settings initialSettings,
                                  String interfaceId,
                                  ServerConnectorFuture serverConnectorFuture,
-                                 String serverName) {
+                                 String serverName,
+                                 ChannelGroup allChannels,
+                                 ChannelGroup listenerChannels) {
         super(decoder, encoder, initialSettings);
         this.serverChannelInitializer = serverChannelInitializer;
         this.encoder = encoder;
@@ -68,6 +73,8 @@ public class Http2SourceConnectionHandler extends Http2ConnectionHandler {
         this.serverConnectorFuture = serverConnectorFuture;
         this.serverName = serverName;
         http2FrameListener = new ServerFrameListener();
+        this.allChannels = allChannels;
+        this.listenerChannels = listenerChannels;
     }
 
     @Override
@@ -78,7 +85,7 @@ public class Http2SourceConnectionHandler extends Http2ConnectionHandler {
                 Constants.HTTP_TRACE_LOG_HANDLER, Constants.HTTP_ACCESS_LOG_HANDLER, Constants.HTTP2_EXCEPTION_HANDLER);
         // Add HTTP2 Source handler
         Http2SourceHandler http2SourceHandler = new Http2SourceHandler(serverChannelInitializer, encoder, interfaceId,
-                connection(), serverConnectorFuture, serverName);
+                connection(), serverConnectorFuture, serverName, allChannels, listenerChannels);
         ctx.pipeline().addLast(Constants.HTTP2_SOURCE_HANDLER, http2SourceHandler);
         ctx.pipeline().addLast(Constants.HTTP2_EXCEPTION_HANDLER, new Http2ExceptionHandler(this));
     }
@@ -102,6 +109,14 @@ public class Http2SourceConnectionHandler extends Http2ConnectionHandler {
      */
     Http2FrameListener getHttp2FrameListener() {
         return http2FrameListener;
+    }
+
+    public void setAllChannels(ChannelGroup allChannels) {
+        this.allChannels = allChannels;
+    }
+
+    public void setListenerChannels(ChannelGroup listenerChannels) {
+        this.listenerChannels = listenerChannels;
     }
 
     /**
