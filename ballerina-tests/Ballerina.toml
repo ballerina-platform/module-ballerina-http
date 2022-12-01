@@ -4,4 +4,4 @@ name = "http_tests"
 version = "2.5.1"
 
 [[platform.java11.dependency]]
-path = "../native/build/libs/http-native-2.5.1-SNAPSHOT.jar"
+path = "../native/build/libs/http-native-2.5.1.jar"
