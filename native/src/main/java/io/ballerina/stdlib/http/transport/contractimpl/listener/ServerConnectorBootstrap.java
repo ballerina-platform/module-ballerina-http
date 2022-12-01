@@ -307,15 +307,20 @@ public class ServerConnectorBootstrap {
             //Remove cached channels and close them.
             Channel listenerChannel = getServerChannel();
             if (listenerChannel != null) {
-                //Close will stop accepting new connections.
-                ChannelFuture closeFuture = listenerChannel.close().sync();
-                closeFuture.addListener(future -> {
-                    if (future.isSuccess()) {
+                try {
+                    //Close will stop accepting new connections.
+                    listenerChannel.close().sync();
+                    try {
                         Thread.sleep(gracefulStopTimeout);
-                        //Close will close existing connections after above grace period.
-                        getListenerChannels().close().sync();
+                    } catch (InterruptedException e) {
+                        log.warn("Couldn't complete the graceful time period");
                     }
-                });
+                    //Close will close existing connections after above grace period.
+                    getListenerChannels().close().sync();
+                } catch (InterruptedException e) {
+                    log.error("Failed to shutdown the listener", e);
+                }
+
                 if (log.isDebugEnabled()) {
                     log.debug("HttpConnectorListener stopped listening on host {} and port {}", getHost(), getPort());
                 }
