@@ -26,6 +26,7 @@ import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelPipeline;
+import io.netty.channel.group.ChannelGroup;
 import io.netty.handler.codec.http2.Http2CodecUtil;
 
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.safelyRemoveHandlers;
@@ -44,14 +45,20 @@ public class Http2WithPriorKnowledgeHandler extends ChannelInboundHandlerAdapter
     private String serverName;
     private ServerConnectorFuture serverConnectorFuture;
     private HttpServerChannelInitializer serverChannelInitializer;
+    private ChannelGroup allChannels;
+    private ChannelGroup listenerChannels;
 
     public Http2WithPriorKnowledgeHandler(String interfaceId, String serverName,
                                           ServerConnectorFuture serverConnectorFuture,
-                                          HttpServerChannelInitializer serverChannelInitializer) {
+                                          HttpServerChannelInitializer serverChannelInitializer,
+                                          ChannelGroup allChannels,
+                                          ChannelGroup listenerChannels) {
         this.interfaceId = interfaceId;
         this.serverName = serverName;
         this.serverConnectorFuture = serverConnectorFuture;
         this.serverChannelInitializer = serverChannelInitializer;
+        this.allChannels = allChannels;
+        this.listenerChannels = listenerChannels;
     }
 
     @Override
@@ -69,7 +76,8 @@ public class Http2WithPriorKnowledgeHandler extends ChannelInboundHandlerAdapter
                         Constants.HTTP2_UPGRADE_HANDLER,
                         Constants.HTTP2_SOURCE_CONNECTION_HANDLER,
                         new Http2SourceConnectionHandlerBuilder(
-                                interfaceId, serverConnectorFuture, serverName, serverChannelInitializer).build());
+                                interfaceId, serverConnectorFuture, serverName, serverChannelInitializer,
+                                allChannels, listenerChannels).build());
 
                 safelyRemoveHandlers(pipeline, Constants.HTTP2_UPGRADE_HANDLER,
                         Constants.HTTP_COMPRESSOR, Constants.HTTP_TRACE_LOG_HANDLER);
