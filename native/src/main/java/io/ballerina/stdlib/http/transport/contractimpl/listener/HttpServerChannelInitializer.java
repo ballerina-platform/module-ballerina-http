@@ -103,6 +103,7 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
     private int cacheDelay;
     private int cacheSize;
     private ChannelGroup allChannels;
+    private ChannelGroup listenerChannels;
     private boolean ocspStaplingEnabled = false;
     private boolean pipeliningEnabled;
     private long pipeliningLimit;
@@ -236,7 +237,8 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
         serverPipeline.addLast(Constants.HTTP_SOURCE_HANDLER,
                                new SourceHandler(this.serverConnectorFuture, this.interfaceId, this.chunkConfig,
                                                  keepAliveConfig, this.serverName, this.allChannels,
-                                       this.pipeliningEnabled, this.pipeliningLimit, this.pipeliningGroup));
+                                                 this.listenerChannels, this.pipeliningEnabled, this.pipeliningLimit,
+                                                 this.pipeliningGroup));
         if (socketIdleTimeout >= 0) {
             serverPipeline.addBefore(Constants.HTTP_SOURCE_HANDLER, Constants.IDLE_STATE_HANDLER,
                                      new IdleStateHandler(0, 0, socketIdleTimeout, TimeUnit.MILLISECONDS));
@@ -252,7 +254,7 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
     private void configureH2cPipeline(ChannelPipeline pipeline) {
         // Add handler to handle http2 requests without an upgrade
         pipeline.addLast(new Http2WithPriorKnowledgeHandler(
-                interfaceId, serverName, serverConnectorFuture, this));
+                interfaceId, serverName, serverConnectorFuture, this, allChannels, listenerChannels));
         // Add http2 upgrade decoder and upgrade handler
         final HttpServerCodec sourceCodec = new HttpServerCodec(reqSizeValidationConfig.getMaxInitialLineLength(),
                                                                 reqSizeValidationConfig.getMaxHeaderSize(),
@@ -262,8 +264,8 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
             if (AsciiString.contentEquals(Http2CodecUtil.HTTP_UPGRADE_PROTOCOL_NAME, protocol)) {
                 return new Http2ServerUpgradeCodec(
                         Constants.HTTP2_SOURCE_CONNECTION_HANDLER,
-                        new Http2SourceConnectionHandlerBuilder(
-                                interfaceId, serverConnectorFuture, serverName, this).build());
+                        new Http2SourceConnectionHandlerBuilder(interfaceId, serverConnectorFuture, serverName, this,
+                                                                allChannels, listenerChannels).build());
             } else {
                 return null;
             }
@@ -422,8 +424,9 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
                 // handles pipeline for HTTP/2 requests after SSL handshake
                 ctx.pipeline().addLast(
                         Constants.HTTP2_SOURCE_CONNECTION_HANDLER,
-                        new Http2SourceConnectionHandlerBuilder(
-                                interfaceId, serverConnectorFuture, serverName, channelInitializer).build());
+                        new Http2SourceConnectionHandlerBuilder(interfaceId, serverConnectorFuture, serverName,
+                                                                channelInitializer, allChannels,
+                                                                listenerChannels).build());
             } else if (ApplicationProtocolNames.HTTP_1_1.equals(protocol)) {
                 // handles pipeline for HTTP/1.x requests after SSL handshake
                 configureHttpPipeline(ctx.pipeline(), Constants.HTTP_SCHEME);
@@ -456,7 +459,8 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
         }
     }
 
-    void setAllChannels(ChannelGroup allChannels) {
+    void setAllChannels(ChannelGroup allChannels, ChannelGroup listenerChannels) {
         this.allChannels = allChannels;
+        this.listenerChannels = listenerChannels;
     }
 }

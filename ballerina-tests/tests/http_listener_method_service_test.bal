@@ -39,13 +39,13 @@ service /startService on listenerMethodListener {
         }
         lock {
             http:Service listenerMethodMock2 = service object {
-                resource function get .() returns string|error? {
+                resource function get .(http:Caller caller) returns error? {
                     // gracefulStop will unbind the listener port and stop accepting new connections.
                     // But already connection created clients can communicate until client close.
+                    check caller->respond("Mock2 invoked!");
                     lock {
                         check listenerMethodGracebackendEP.gracefulStop();
                     }
-                    return "Mock2 invoked!";
                 }
             };
             check listenerMethodGracebackendEP.attach(listenerMethodMock2, "mock2");

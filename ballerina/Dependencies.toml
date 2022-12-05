@@ -38,7 +38,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "constraint"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
 ]
@@ -108,7 +108,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "io"
-version = "1.3.0"
+version = "1.3.1"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "lang.value"}
@@ -311,7 +311,7 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "time"
-version = "2.2.2"
+version = "2.2.3"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
 ]
@@ -322,7 +322,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "url"
-version = "2.2.2"
+version = "2.2.3"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
 ]
