@@ -189,6 +189,8 @@ const int clientResourceMethodsTestPort = 9631;
 const int interceptorPassthroughTestPort = 9632;
 const int interceptorBackendTestPort = 9633;
 const int interceptorUserAgentTestPort = 9634;
+const int httpListenerStopTest = 9635;
+const int httpSecuredListenerStopTest = 9636;
 
 //HTTP2
 const int serverPushTestPort1 = 9701;
@@ -198,6 +200,10 @@ const int http2RedirectTestPort2 = 9704;
 const int http2RedirectTestPort3 = 9705;
 const int http2RetryFunctionTestPort1 = 9706;
 const int http2RetryFunctionTestPort2 = 9707;
+const int http2ListenerStopTest1 = 9708;
+const int http2ListenerStopTest2 = 9708;
+const int http2SecuredListenerStopTest1 = 9710;
+const int http2SecuredListenerStopTest2 = 9711;
 
 //Security
 const int securedListenerPort = 9400;
