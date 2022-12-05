@@ -77,6 +77,7 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
     private String serverName;
     private boolean idleTimeout;
     private ChannelGroup allChannels;
+    private ChannelGroup listenerChannels;
     protected ChannelHandlerContext ctx;
     private SocketAddress remoteAddress;
     private boolean connectedState;
@@ -88,8 +89,9 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
     private EventExecutorGroup pipeliningGroup;
 
     public SourceHandler(ServerConnectorFuture serverConnectorFuture, String interfaceId, ChunkConfig chunkConfig,
-                         KeepAliveConfig keepAliveConfig, String serverName, ChannelGroup allChannels, boolean
-                                 pipeliningEnabled, long pipeliningLimit, EventExecutorGroup pipeliningGroup) {
+                         KeepAliveConfig keepAliveConfig, String serverName, ChannelGroup allChannels,
+                         ChannelGroup listenerChannels, boolean pipeliningEnabled, long pipeliningLimit,
+                         EventExecutorGroup pipeliningGroup) {
         this.serverConnectorFuture = serverConnectorFuture;
         this.interfaceId = interfaceId;
         this.chunkConfig = chunkConfig;
@@ -98,6 +100,7 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
         this.idleTimeout = false;
         this.serverName = serverName;
         this.allChannels = allChannels;
+        this.listenerChannels = listenerChannels;
         this.pipeliningEnabled = pipeliningEnabled;
         this.pipeliningLimit = pipeliningLimit;
         this.pipeliningGroup = pipeliningGroup;
@@ -146,6 +149,7 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
         setConnectedState(true);
         this.ctx = ctx;
         this.allChannels.add(ctx.channel());
+        this.listenerChannels.add(ctx.channel());
         setPipeliningProperties();
         handlerExecutor = HttpTransportContextHolder.getInstance().getHandlerExecutor();
         if (handlerExecutor != null) {

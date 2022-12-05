@@ -103,6 +103,7 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
     private int cacheDelay;
     private int cacheSize;
     private ChannelGroup allChannels;
+    private ChannelGroup listenerChannels;
     private boolean ocspStaplingEnabled = false;
     private boolean pipeliningEnabled;
     private long pipeliningLimit;
@@ -236,7 +237,8 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
         serverPipeline.addLast(Constants.HTTP_SOURCE_HANDLER,
                                new SourceHandler(this.serverConnectorFuture, this.interfaceId, this.chunkConfig,
                                                  keepAliveConfig, this.serverName, this.allChannels,
-                                       this.pipeliningEnabled, this.pipeliningLimit, this.pipeliningGroup));
+                                                 this.listenerChannels, this.pipeliningEnabled, this.pipeliningLimit,
+                                                 this.pipeliningGroup));
         if (socketIdleTimeout >= 0) {
             serverPipeline.addBefore(Constants.HTTP_SOURCE_HANDLER, Constants.IDLE_STATE_HANDLER,
                                      new IdleStateHandler(0, 0, socketIdleTimeout, TimeUnit.MILLISECONDS));
@@ -456,7 +458,8 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
         }
     }
 
-    void setAllChannels(ChannelGroup allChannels) {
+    void setAllChannels(ChannelGroup allChannels, ChannelGroup listenerChannels) {
         this.allChannels = allChannels;
+        this.listenerChannels = listenerChannels;
     }
 }
