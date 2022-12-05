@@ -5,3 +5,6 @@ version = "@toml.version@"
 
 [[platform.java11.dependency]]
 path = "../native/build/libs/http-native-@project.version@.jar"
+
+[[platform.java11.dependency]]
+path = "../test-utils/build/libs/http-test-utils-@project.version@.jar"
