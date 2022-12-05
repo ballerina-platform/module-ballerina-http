@@ -88,4 +88,5 @@ path = "./lib/netty-tcnative-classes-2.0.52.Final.jar"
 path = "./lib/mimepull-1.9.11.jar"
 
 [[platform.java11.dependency]]
+scope = "testOnly"
 path = "./lib/testng-7.4.0.jar"
