@@ -22,6 +22,7 @@ import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
 import io.ballerina.stdlib.http.transport.contractimpl.common.FrameLogger;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.HttpServerChannelInitializer;
+import io.netty.channel.group.ChannelGroup;
 import io.netty.handler.codec.compression.StandardCompressionOptions;
 import io.netty.handler.codec.http2.AbstractHttp2ConnectionHandlerBuilder;
 import io.netty.handler.codec.http2.CompressorHttp2ConnectionEncoder;
@@ -44,14 +45,19 @@ public final class Http2SourceConnectionHandlerBuilder
     private ServerConnectorFuture serverConnectorFuture;
     private String serverName;
     private HttpServerChannelInitializer serverChannelInitializer;
+    private ChannelGroup allChannels;
+    private ChannelGroup listenerChannels;
 
     public Http2SourceConnectionHandlerBuilder(String interfaceId, ServerConnectorFuture serverConnectorFuture,
                                                String serverName,
-                                               HttpServerChannelInitializer serverChannelInitializer) {
+                                               HttpServerChannelInitializer serverChannelInitializer,
+                                               ChannelGroup allChannels, ChannelGroup listenerChannels) {
         this.interfaceId = interfaceId;
         this.serverConnectorFuture = serverConnectorFuture;
         this.serverName = serverName;
         this.serverChannelInitializer = serverChannelInitializer;
+        this.allChannels = allChannels;
+        this.listenerChannels = listenerChannels;
     }
 
     @Override
@@ -63,6 +69,8 @@ public final class Http2SourceConnectionHandlerBuilder
         connection(conn);
         Http2SourceConnectionHandler connectionHandler = super.build();
         if (connectionHandler != null) {
+            connectionHandler.setAllChannels(allChannels);
+            connectionHandler.setListenerChannels(listenerChannels);
             return connectionHandler;
         }
         return null;
@@ -75,7 +83,7 @@ public final class Http2SourceConnectionHandlerBuilder
                 encoder, StandardCompressionOptions.gzip(), StandardCompressionOptions.deflate());
         Http2SourceConnectionHandler sourceConnectionHandler = new Http2SourceConnectionHandler(
                 serverChannelInitializer, decoder, compressEncoder, initialSettings, interfaceId,
-                serverConnectorFuture, serverName);
+                serverConnectorFuture, serverName, allChannels, listenerChannels);
         frameListener(sourceConnectionHandler.getHttp2FrameListener());
         return sourceConnectionHandler;
     }

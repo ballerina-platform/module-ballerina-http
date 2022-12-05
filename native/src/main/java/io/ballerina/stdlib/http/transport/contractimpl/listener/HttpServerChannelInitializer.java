@@ -254,7 +254,7 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
     private void configureH2cPipeline(ChannelPipeline pipeline) {
         // Add handler to handle http2 requests without an upgrade
         pipeline.addLast(new Http2WithPriorKnowledgeHandler(
-                interfaceId, serverName, serverConnectorFuture, this));
+                interfaceId, serverName, serverConnectorFuture, this, allChannels, listenerChannels));
         // Add http2 upgrade decoder and upgrade handler
         final HttpServerCodec sourceCodec = new HttpServerCodec(reqSizeValidationConfig.getMaxInitialLineLength(),
                                                                 reqSizeValidationConfig.getMaxHeaderSize(),
@@ -265,7 +265,7 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
                 return new Http2ServerUpgradeCodec(
                         Constants.HTTP2_SOURCE_CONNECTION_HANDLER,
                         new Http2SourceConnectionHandlerBuilder(
-                                interfaceId, serverConnectorFuture, serverName, this).build());
+                                interfaceId, serverConnectorFuture, serverName, this, allChannels, listenerChannels).build());
             } else {
                 return null;
             }
@@ -424,8 +424,9 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
                 // handles pipeline for HTTP/2 requests after SSL handshake
                 ctx.pipeline().addLast(
                         Constants.HTTP2_SOURCE_CONNECTION_HANDLER,
-                        new Http2SourceConnectionHandlerBuilder(
-                                interfaceId, serverConnectorFuture, serverName, channelInitializer).build());
+                        new Http2SourceConnectionHandlerBuilder(interfaceId, serverConnectorFuture, serverName,
+                                                                channelInitializer, allChannels,
+                                                                listenerChannels).build());
             } else if (ApplicationProtocolNames.HTTP_1_1.equals(protocol)) {
                 // handles pipeline for HTTP/1.x requests after SSL handshake
                 configureHttpPipeline(ctx.pipeline(), Constants.HTTP_SCHEME);

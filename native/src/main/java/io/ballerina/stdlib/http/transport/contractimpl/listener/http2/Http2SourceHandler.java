@@ -33,6 +33,7 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonRequest;
 import io.ballerina.stdlib.http.transport.message.ServerRemoteFlowControlListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.group.ChannelGroup;
 import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -78,10 +79,12 @@ public final class Http2SourceHandler extends ChannelInboundHandlerAdapter {
     private Map<String, GenericObjectPool> targetChannelPool; //Keeps only h1 target channels
     private ServerRemoteFlowControlListener serverRemoteFlowControlListener;
     private SocketAddress remoteAddress;
+    private ChannelGroup allChannels;
+    private ChannelGroup listenerChannels;
 
     Http2SourceHandler(HttpServerChannelInitializer serverChannelInitializer, Http2ConnectionEncoder encoder,
                        String interfaceId, Http2Connection conn, ServerConnectorFuture serverConnectorFuture,
-                       String serverName) {
+                       String serverName, ChannelGroup allChannels, ChannelGroup listenerChannels) {
         this.serverChannelInitializer = serverChannelInitializer;
         this.encoder = encoder;
         this.interfaceId = interfaceId;
@@ -89,6 +92,8 @@ public final class Http2SourceHandler extends ChannelInboundHandlerAdapter {
         this.conn = conn;
         this.serverName = serverName;
         this.targetChannelPool = new ConcurrentHashMap<>();
+        this.allChannels = allChannels;
+        this.listenerChannels = listenerChannels;
         setRemoteFlowController();
         setDataEventListeners();
     }
@@ -111,6 +116,8 @@ public final class Http2SourceHandler extends ChannelInboundHandlerAdapter {
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
         super.handlerAdded(ctx);
         this.ctx = ctx;
+        this.allChannels.add(ctx.channel());
+        this.listenerChannels.add(ctx.channel());
         // Populate remote address
         this.remoteAddress = ctx.channel().remoteAddress();
         if (this.remoteAddress instanceof InetSocketAddress) {
