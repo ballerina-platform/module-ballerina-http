@@ -264,8 +264,8 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
             if (AsciiString.contentEquals(Http2CodecUtil.HTTP_UPGRADE_PROTOCOL_NAME, protocol)) {
                 return new Http2ServerUpgradeCodec(
                         Constants.HTTP2_SOURCE_CONNECTION_HANDLER,
-                        new Http2SourceConnectionHandlerBuilder(
-                                interfaceId, serverConnectorFuture, serverName, this, allChannels, listenerChannels).build());
+                        new Http2SourceConnectionHandlerBuilder(interfaceId, serverConnectorFuture, serverName, this,
+                                                                allChannels, listenerChannels).build());
             } else {
                 return null;
             }
