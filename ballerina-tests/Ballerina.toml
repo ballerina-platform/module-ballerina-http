@@ -4,4 +4,9 @@ name = "http_tests"
 version = "2.4.6"
 
 [[platform.java11.dependency]]
+scope = "testOnly"
 path = "../native/build/libs/http-native-2.4.6-SNAPSHOT.jar"
+
+[[platform.java11.dependency]]
+scope = "testOnly"
+path = "../test-utils/build/libs/http-test-utils-2.4.6-SNAPSHOT.jar"
