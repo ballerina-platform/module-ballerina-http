@@ -1,7 +1,7 @@
 [package]
 org = "ballerina"
 name = "http_tests"
-version = "2.4.5"
+version = "2.4.6"
 
 [[platform.java11.dependency]]
-path = "../native/build/libs/http-native-2.4.5.jar"
+path = "../native/build/libs/http-native-2.4.6-SNAPSHOT.jar"
