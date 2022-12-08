@@ -53,13 +53,13 @@ The defined `Client` endpoint can be used to call a remote service as follows:
 
 ```ballerina
 // Send a GET request to the specified endpoint.
-http:Response response = check clientEndpoint->get("/get?id=123");
+http:Response response = check clientEndpoint->/backend(id = 123);
 ```
 The payload can be retrieved as the return value from the remote function as follows:
 
 ```ballerina
 // Retrieve payload as json.
-json payload = check clientEndpoint->post("/backend/Json", "foo");
+json payload = check clientEndpoint->/backend/Json.post("foo");
 ```
 
 ### Listener
@@ -71,7 +71,7 @@ the `Listener`. The service type precisely describes the syntax for both the ser
 A `Service` represents a collection of network-accessible entry points and can be exposed via a `Listener` endpoint.
 A resource represents one such entry point and can have its own path, HTTP methods, body format, `consumes` and
 `produces` content types, CORS headers, etc. In resources, the HTTP method and resource path are mandatory parameters and
-the String literal and path parameters can be stated as the path. The resource function accepts the `http:Caller`, `http:Request`,
+the String literal and path parameters can be stated as the path. The resource method accepts the `http:Caller`, `http:Request`,
 `http:Headers`, query parameters, header parameters, and payload parameters as arguments. However, they are optional.
 
 When a `Service` receives a request, it is dispatched to the best-matched resource.
