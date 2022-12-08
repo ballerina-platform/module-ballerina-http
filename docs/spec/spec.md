@@ -373,7 +373,7 @@ resource function 'default [string... s]() {
 ```
 
 #### 2.3.4. Signature parameters
-The resource function can have the following parameters in the signature. There are not any mandatory params or any 
+The resource method can have the following parameters in the signature. There are not any mandatory params or any 
 particular order. But it’s a good practice to keep the optional param at the end.
 
 ```ballerina
@@ -1298,7 +1298,7 @@ resource function head [string ...path](map<string|string[]>? headers = (), *Que
 resource function get [string ...path](map<string|string[]>? headers = (), TargetType targetType = <>,
             *QueryParams params) returns targetType|ClientError;
 
-# The options resource function can be used to send HTTP OPTIONS requests to HTTP endpoints.              
+# The options resource method can be used to send HTTP OPTIONS requests to HTTP endpoints.              
 resource function options [string ...path](map<string|string[]>? headers = (), TargetType targetType = <>,
             *QueryParams params) returns targetType|ClientError;                                               
 ```
