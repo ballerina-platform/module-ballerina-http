@@ -1332,7 +1332,7 @@ string response = check httpClient->/addPerson/[profession].post(payload);
 
 * Query parameter
 
-A query parameter is passed as a field-value pair in the resource method call.
+A query parameter is passed as a key-value pair in the resource method call.
 The supported types are `string`, `int`, `float`, `boolean`, `decimal`, and the `array` types of the aforementioned types.
 The query param type can be nil as well.
 ```ballerina
