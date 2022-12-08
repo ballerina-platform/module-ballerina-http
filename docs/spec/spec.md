@@ -1327,7 +1327,7 @@ json payload = {
 };
 string response = check httpClient->/addPerson/[profession].post(payload);
 // Same as the following :
-// string response = check httpClient->post("/some/endpoint/chemist", payload);
+// string response = check httpClient->post("/addPerson/chemist", payload);
 ```
 
 * Query parameter
