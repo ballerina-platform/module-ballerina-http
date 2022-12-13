@@ -17,6 +17,14 @@
 import ballerina/http;
 import ballerina/test;
 
+
+service /payloadRetrieval on new http:Listener(requestPayloadRetrievalTestPort) {
+    resource function post . (http:Request req) returns int|error {
+        byte[] binaryPayload = check req.getBinaryPayload();
+        return binaryPayload.length();
+    }
+}
+
 @test:Config {
     groups: ["binaryPayloadRetrieval"]
 }
@@ -50,4 +58,41 @@ function testJsonToBinaryPayloadRetrieval() returns error? {
     req.setJsonPayload(payload);
     byte[] binaryPayload = check req.getBinaryPayload();
     test:assertEquals(payload.toString().toBytes().length(), binaryPayload.length());
+}
+
+final http:Client payloadRetrievalClient = check new(string `http://localhost:${requestPayloadRetrievalTestPort.toString()}/payloadRetrieval`);
+
+@test:Config {
+    groups: ["binaryPayloadRetrieval"]
+}
+function testStringToBinaryPayloadRetrievalWithService() returns error? {
+    http:Request req = new;
+    string payload = "This is a sample message";
+    req.setTextPayload(payload);
+    int payloadLength = check payloadRetrievalClient->/(req);
+    test:assertEquals(payload.toBytes().length(), payloadLength);
+}
+
+@test:Config {
+    groups: ["binaryPayloadRetrieval"]
+}
+function testXmlToBinaryPayloadRetrievalWithService() returns error? {
+    http:Request req = new;
+    xml payload = xml `<StorageServiceProperties><HourMetrics><Version>1.0</Version><Enabled>false</Enabled><RetentionPolicy><Enabled>false</Enabled></RetentionPolicy></HourMetrics></StorageServiceProperties>`;
+    req.setXmlPayload(payload);
+    int payloadLength = check payloadRetrievalClient->/(req);
+    test:assertEquals(payload.toString().toBytes().length(), payloadLength);
+}
+
+@test:Config {
+    groups: ["binaryPayloadRetrieval"]
+}
+function testJsonToBinaryPayloadRetrievalWithService() returns error? {
+    http:Request req = new;
+    json payload = {
+        "message": "This is a sample message"
+    };
+    req.setJsonPayload(payload);
+    int payloadLength = check payloadRetrievalClient->/(req);
+    test:assertEquals(payload.toString().toBytes().length(), payloadLength);
 }
