@@ -5,7 +5,14 @@ This file contains all the notable changes done to the Ballerina HTTP package th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to 
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.5.1] - 2022-12-01
+
+### Fixed
+
+- [Fix HTTP client creating more than one TCP connection](https://github.com/ballerina-platform/ballerina-standard-library/issues/3720)
+- [Fix issues with HTTP/2 listener stop](https://github.com/ballerina-platform/ballerina-standard-library/issues/3553)
+
+## [2.5.0] - 2022-11-29
 
 ### Added
 - [Kill the application when a resource function panics](https://github.com/ballerina-platform/ballerina-standard-library/issues/2714)
@@ -19,6 +26,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Reduce Listener default timeout to 60s and Client default timeout to 30s](https://github.com/ballerina-platform/ballerina-standard-library/issues/3278)
 - [API Docs Updated](https://github.com/ballerina-platform/ballerina-standard-library/issues/3463)
 - [Improve data binding mime type match](https://github.com/ballerina-platform/ballerina-standard-library/issues/3542)
+- [Mark client resource methods as isolated](https://github.com/ballerina-platform/ballerina-standard-library/issues/3705)
 
 ### Fixed
 - [Fix dispatching logic issue due to double slash in basePath](https://github.com/ballerina-platform/ballerina-standard-library/issues/3543)

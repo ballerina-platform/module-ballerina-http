@@ -251,22 +251,12 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
     private void configureH2cPipeline(ChannelPipeline pipeline) {
         // Add handler to handle http2 requests without an upgrade
         pipeline.addLast(new Http2WithPriorKnowledgeHandler(
-                interfaceId, serverName, serverConnectorFuture, this));
+                interfaceId, serverName, serverConnectorFuture, this, allChannels, listenerChannels));
         // Add http2 upgrade decoder and upgrade handler
         final HttpServerCodec sourceCodec = new HttpServerCodec(reqSizeValidationConfig.getMaxInitialLineLength(),
                                                                 reqSizeValidationConfig.getMaxHeaderSize(),
                                                                 reqSizeValidationConfig.getMaxChunkSize());
 
-        final HttpServerUpgradeHandler.UpgradeCodecFactory upgradeCodecFactory = protocol -> {
-            if (AsciiString.contentEquals(Http2CodecUtil.HTTP_UPGRADE_PROTOCOL_NAME, protocol)) {
-                return new Http2ServerUpgradeCodec(
-                        Constants.HTTP2_SOURCE_CONNECTION_HANDLER,
-                        new Http2SourceConnectionHandlerBuilder(
-                                interfaceId, serverConnectorFuture, serverName, this).build());
-            } else {
-                return null;
-            }
-        };
         pipeline.addLast(Constants.HTTP_SERVER_CODEC, sourceCodec);
         pipeline.addLast(Constants.HTTP_COMPRESSOR, new CustomHttpContentCompressor());
         if (httpTraceLogEnabled) {
@@ -276,10 +266,23 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
         if (httpAccessLogEnabled) {
             pipeline.addLast(HTTP_ACCESS_LOG_HANDLER, new HttpAccessLoggingHandler(ACCESS_LOG));
         }
-        pipeline.addLast(Constants.HTTP2_UPGRADE_HANDLER,
-                         new HttpServerUpgradeHandler(sourceCodec, upgradeCodecFactory, Integer.MAX_VALUE));
+
+        final HttpServerUpgradeHandler.UpgradeCodecFactory upgradeCodecFactory = protocol -> {
+            if (AsciiString.contentEquals(Http2CodecUtil.HTTP_UPGRADE_PROTOCOL_NAME, protocol)) {
+                return new Http2ServerUpgradeCodec(
+                        Constants.HTTP2_SOURCE_CONNECTION_HANDLER,
+                        new Http2SourceConnectionHandlerBuilder(
+                                interfaceId, serverConnectorFuture, serverName, this,
+                                this.allChannels, this.listenerChannels).build());
+            } else {
+                return null;
+            }
+        };
         /* Max size of the upgrade request is limited to 2GB. Need to see whether there is a better approach to handle
            large upgrade requests. Requests will be propagated to next handlers if no upgrade has been attempted */
+        pipeline.addLast(Constants.HTTP2_UPGRADE_HANDLER,
+                         new HttpServerUpgradeHandler(sourceCodec, upgradeCodecFactory, Integer.MAX_VALUE));
+
         pipeline.addLast(Constants.HTTP2_TO_HTTP_FALLBACK_HANDLER,
                          new Http2ToHttpFallbackHandler(this));
     }
@@ -418,7 +421,8 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
                 ctx.pipeline().addLast(
                         Constants.HTTP2_SOURCE_CONNECTION_HANDLER,
                         new Http2SourceConnectionHandlerBuilder(
-                                interfaceId, serverConnectorFuture, serverName, channelInitializer).build());
+                                interfaceId, serverConnectorFuture, serverName, channelInitializer,
+                                allChannels, listenerChannels).build());
             } else if (ApplicationProtocolNames.HTTP_1_1.equals(protocol)) {
                 // handles pipeline for HTTP/1.x requests after SSL handshake
                 configureHttpPipeline(ctx.pipeline(), Constants.HTTP_SCHEME);

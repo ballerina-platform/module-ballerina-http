@@ -41,13 +41,13 @@ service /startService on listenerMethodListener {
         }
         lock {
             http:Service listenerMethodMock2 = service object {
-                resource function get .() returns string|error? {
+                resource function get .(http:Caller caller) returns error? {
+                    check caller->respond("Mock2 invoked!");
                     // gracefulStop will unbind the listener port and stop accepting new connections.
                     // But already connection created clients can communicate until client close.
                     lock {
                         check listenerMethodGracebackendEP.gracefulStop();
                     }
-                    return "Mock2 invoked!";
                 }
             };
             check listenerMethodGracebackendEP.attach(listenerMethodMock2, "mock2");
@@ -69,11 +69,11 @@ service /startService on listenerMethodListener {
         }
         lock {
             http:Service listenerMethodMock3 = service object {
-                resource function get .() returns string|error? {
+                resource function get .(http:Caller caller) returns error? {
+                    check caller->respond("Mock3 invoked!");
                     lock {
                         check listenerMethodImmediatebackendEP.immediateStop();
                     }
-                    return "Mock3 invoked!";
                 }
             };
             check listenerMethodImmediatebackendEP.attach(listenerMethodMock3, "mock3");
