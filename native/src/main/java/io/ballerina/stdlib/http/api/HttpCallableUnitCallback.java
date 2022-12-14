@@ -129,7 +129,7 @@ public class HttpCallableUnitCallback implements Callback {
                 printStacktraceIfError(result);
                 Object isPanic = requestMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_PANIC_ERROR);
                 if (Objects.nonNull(isPanic) && (boolean) isPanic) {
-                    System.exit(0);
+                    System.exit(1);
                 }
             }
 
