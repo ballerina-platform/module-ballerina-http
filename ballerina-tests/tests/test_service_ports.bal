@@ -191,6 +191,7 @@ const int interceptorBackendTestPort = 9633;
 const int interceptorUserAgentTestPort = 9634;
 const int socketConfigListenerPort = 9635;
 const int hateoasTypesTestPort = 9636;
+const int requestPayloadRetrievalTestPort = 9637;
 
 //HTTP2
 const int serverPushTestPort1 = 9701;
