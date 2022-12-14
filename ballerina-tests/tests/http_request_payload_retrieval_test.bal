@@ -69,7 +69,7 @@ function testStringToBinaryPayloadRetrievalWithService() returns error? {
     http:Request req = new;
     string payload = "This is a sample message";
     req.setTextPayload(payload);
-    int payloadLength = check payloadRetrievalClient->/(req);
+    int payloadLength = check payloadRetrievalClient->post("/", req);
     test:assertEquals(payload.toBytes().length(), payloadLength);
 }
 
@@ -80,7 +80,7 @@ function testXmlToBinaryPayloadRetrievalWithService() returns error? {
     http:Request req = new;
     xml payload = xml `<StorageServiceProperties><HourMetrics><Version>1.0</Version><Enabled>false</Enabled><RetentionPolicy><Enabled>false</Enabled></RetentionPolicy></HourMetrics></StorageServiceProperties>`;
     req.setXmlPayload(payload);
-    int payloadLength = check payloadRetrievalClient->/(req);
+    int payloadLength = check payloadRetrievalClient->post("/", req);
     test:assertEquals(payload.toString().toBytes().length(), payloadLength);
 }
 
@@ -93,6 +93,6 @@ function testJsonToBinaryPayloadRetrievalWithService() returns error? {
         "message": "This is a sample message"
     };
     req.setJsonPayload(payload);
-    int payloadLength = check payloadRetrievalClient->/(req);
+    int payloadLength = check payloadRetrievalClient->post("/", req);
     test:assertEquals(payload.toString().toBytes().length(), payloadLength);
 }
