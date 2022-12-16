@@ -45,7 +45,6 @@ dependencies {
 
     implementation group: 'org.slf4j', name: 'slf4j-jdk14', version: "${slf4jVersion}"
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: "${commonsLang3Version}"
-    implementation group: 'org.testng', name: 'testng', version: "${testngVersion}"
     implementation group: 'com.google.code.gson', name: 'gson', version: "${gsonVersion}"
 
     // Transport related dependencies
@@ -70,6 +69,7 @@ dependencies {
 
     testImplementation group: 'org.mockito', name:'mockito-inline', version: "${mockitoVersion}"
     testImplementation group: 'org.mockito', name: 'mockito-junit-jupiter', version: "${mockitoVersion}"
+    testImplementation group: 'org.testng', name: 'testng', version: "${testngVersion}"
 }
 
 test {
