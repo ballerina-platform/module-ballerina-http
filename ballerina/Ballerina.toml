@@ -86,3 +86,6 @@ path = "./lib/netty-tcnative-classes-2.0.52.Final.jar"
 
 [[platform.java11.dependency]]
 path = "./lib/mimepull-1.9.11.jar"
+
+[[platform.java11.dependency]]
+path = "./lib/testng-7.4.0.jar"

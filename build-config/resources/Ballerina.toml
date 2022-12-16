@@ -86,3 +86,6 @@ path = "./lib/netty-tcnative-classes-@tcnative.version@.jar"
 
 [[platform.java11.dependency]]
 path = "./lib/mimepull-@mimepull.version@.jar"
+
+[[platform.java11.dependency]]
+path = "./lib/testng-@testng.version@.jar"

@@ -128,6 +128,9 @@ dependencies {
     externalJars(group: 'org.jvnet.mimepull', name: 'mimepull', version: "${mimepullVersion}") {
         transitive = false
     }
+    externalJars(group: 'org.testng', name: 'testng', version: "${testngVersion}") {
+        transitive = false
+    }
 }
 
 task updateTomlFiles {
@@ -198,7 +201,6 @@ updateTomlFiles.dependsOn copyStdlibs
 
 build.dependsOn "generatePomFileForMavenPublication"
 build.dependsOn ":${packageName}-native:build"
-build.dependsOn ":${packageName}-test-utils:build"
 build.dependsOn ":${packageName}-compiler-plugin:build"
 build.finalizedBy ":http-ballerina-tests:build"
 test.dependsOn ":${packageName}-native:build"
