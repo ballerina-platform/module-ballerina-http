@@ -24,7 +24,6 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testng.Assert;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -32,9 +31,9 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.LinkedList;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
+import static io.ballerina.stdlib.http.testutils.Assert.assertEquals;
+import static io.ballerina.stdlib.http.testutils.Assert.assertFalse;
+import static io.ballerina.stdlib.http.testutils.Assert.assertTrue;
 
 /**
  * Contains utility functions used for HTTP 1.1 pipelining tests.
