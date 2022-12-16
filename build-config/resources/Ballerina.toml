@@ -88,6 +88,12 @@ version = "@commmon.pool.version@"
 path = "./lib/commons-pool-@commmon.pool.version@.jar"
 
 [[platform.java11.dependency]]
+groupId = "io.netty"
+artifactId = "netty-transport-native-unix-common"
+version = "@netty.version@"
+path = "./lib/netty-transport-native-unix-common-@netty.version@.jar"
+
+[[platform.java11.dependency]]
 groupId = "org.bouncycastle"
 artifactId = "bcprov-jdk15on"
 version = "@bouncycastle.version@"
