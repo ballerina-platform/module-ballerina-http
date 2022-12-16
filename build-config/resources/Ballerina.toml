@@ -55,6 +55,9 @@ path = "./lib/netty-handler-proxy-@netty.version@.jar"
 path = "./lib/netty-codec-http2-@netty.version@.jar"
 
 [[platform.java11.dependency]]
+path = "./lib/netty-transport-native-unix-common-@netty.version@.jar"
+
+[[platform.java11.dependency]]
 path = "./lib/commons-pool-@commmon.pool.version@.jar"
 
 [[platform.java11.dependency]]
