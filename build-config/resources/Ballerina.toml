@@ -28,42 +28,81 @@ version = "@constraint.version@"
 path = "./lib/constraint-native-@stdlib.constraintnative.version@.jar"
 
 [[platform.java11.dependency]]
+groupId = "io.netty"
+artifactId = "netty-common"
+version = "@netty.version@"
 path = "./lib/netty-common-@netty.version@.jar"
 
 [[platform.java11.dependency]]
+groupId = "io.netty"
+artifactId = "netty-buffer"
+version = "@netty.version@"
 path = "./lib/netty-buffer-@netty.version@.jar"
 
 [[platform.java11.dependency]]
+groupId = "io.netty"
+artifactId = "netty-transport"
+version = "@netty.version@"
 path = "./lib/netty-transport-@netty.version@.jar"
 
 [[platform.java11.dependency]]
+groupId = "io.netty"
+artifactId = "netty-resolver"
+version = "@netty.version@"
 path = "./lib/netty-resolver-@netty.version@.jar"
 
 [[platform.java11.dependency]]
+groupId = "io.netty"
+artifactId = "netty-handler"
+version = "@netty.version@"
 path = "./lib/netty-handler-@netty.version@.jar"
 
 [[platform.java11.dependency]]
+groupId = "io.netty"
+artifactId = "netty-codec-http"
+version = "@netty.version@"
 path = "./lib/netty-codec-http-@netty.version@.jar"
 
 [[platform.java11.dependency]]
+groupId = "io.netty"
+artifactId = "netty-codec"
+version = "@netty.version@"
 path = "./lib/netty-codec-@netty.version@.jar"
 
 [[platform.java11.dependency]]
+groupId = "io.netty"
+artifactId = "netty-handler-proxy"
+version = "@netty.version@"
 path = "./lib/netty-handler-proxy-@netty.version@.jar"
 
 [[platform.java11.dependency]]
+groupId = "io.netty"
+artifactId = "netty-codec-http2"
+version = "@netty.version@"
 path = "./lib/netty-codec-http2-@netty.version@.jar"
 
 [[platform.java11.dependency]]
+groupId = "commons-pool.wso2"
+artifactId = "commons-pool"
+version = "@commmon.pool.version@"
 path = "./lib/commons-pool-@commmon.pool.version@.jar"
 
 [[platform.java11.dependency]]
+groupId = "org.bouncycastle"
+artifactId = "bcprov-jdk15on"
+version = "@bouncycastle.version@"
 path = "./lib/bcprov-jdk15on-@bouncycastle.version@.jar"
 
 [[platform.java11.dependency]]
+groupId = "org.bouncycastle"
+artifactId = "bcpkix-jdk15on"
+version = "@bouncycastle.version@"
 path = "./lib/bcpkix-jdk15on-@bouncycastle.version@.jar"
 
 [[platform.java11.dependency]]
+groupId = "io.netty"
+artifactId = "netty-tcnative-boringssl-static"
+version = "@tcnative.version@"
 path = "./lib/netty-tcnative-boringssl-static-@tcnative.version@.jar"
 
 [[platform.java11.dependency]]
@@ -82,7 +121,13 @@ path = "./lib/netty-tcnative-boringssl-static-@tcnative.version@-osx-aarch_64.ja
 path = "./lib/netty-tcnative-boringssl-static-@tcnative.version@-osx-x86_64.jar"
 
 [[platform.java11.dependency]]
+groupId = "io.netty"
+artifactId = "netty-tcnative-classes"
+version = "@tcnative.version@"
 path = "./lib/netty-tcnative-classes-@tcnative.version@.jar"
 
 [[platform.java11.dependency]]
+groupId = "org.jvnet.mimepull"
+artifactId = "mimepull"
+version = "@mimepull.version@"
 path = "./lib/mimepull-@mimepull.version@.jar"
