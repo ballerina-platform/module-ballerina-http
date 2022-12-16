@@ -164,7 +164,7 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
 
         //Cannot directly assign srcHandler and http2SourceHandler to inner class ConnectionAvailabilityListener hence
         //need two new separate variables
-        final SourceHandler http1xSrcHandlder = srcHandler;
+        final SourceHandler http1xSrcHandler = srcHandler;
         final Http2SourceHandler http2SrcHandler = http2SourceHandler;
 
         if (srcHandler == null && http2SourceHandler == null && LOG.isDebugEnabled()) {
@@ -211,9 +211,9 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
                                   route.toString() + " " + "Original Channel ID is : " + channelFuture.channel().id());
                     }
 
-                    if (Constants.HTTP_SCHEME.equalsIgnoreCase(protocol) && http1xSrcHandlder != null) {
+                    if (Constants.HTTP_SCHEME.equalsIgnoreCase(protocol) && http1xSrcHandler != null) {
                         channelFuture.channel().deregister().addListener(future ->
-                                                                             http1xSrcHandlder.getEventLoop()
+                                                                             http1xSrcHandler.getEventLoop()
                                                                                  .register(channelFuture.channel())
                                                                                  .addListener(
                                                                                      future1 ->
