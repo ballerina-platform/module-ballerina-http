@@ -50,6 +50,7 @@ dependencies {
     // Transport related dependencies
     implementation group: 'io.netty', name: 'netty-codec-http2', version:"${nettyVersion}"
     implementation group: 'io.netty', name: 'netty-handler-proxy', version:"${nettyVersion}"
+    implementation group: 'io.netty', name: 'netty-transport-native-unix-common', version:"${nettyVersion}"
     implementation group: 'io.netty', name: 'netty-tcnative-boringssl-static', version:"${nettyTcnativeVersion}"
     implementation 'io.netty:netty-tcnative-boringssl-static::windows-x86_64'
     implementation 'io.netty:netty-tcnative-boringssl-static::linux-aarch_64'
