@@ -21,7 +21,6 @@ package io.ballerina.stdlib.http.testutils;
 import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testng.Assert;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

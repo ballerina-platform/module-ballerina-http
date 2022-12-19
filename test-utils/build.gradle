@@ -33,7 +33,6 @@ dependencies {
 
     implementation group: 'org.ballerinalang', name: 'ballerina-runtime', version: "${ballerinaLangVersion}"
     implementation group: 'org.slf4j', name: 'slf4j-jdk14', version: "${slf4jVersion}"
-    implementation group: 'org.testng', name: 'testng', version: "${testngVersion}"
     implementation group: 'io.netty', name: 'netty-codec-http2', version:"${nettyVersion}"
     implementation group: 'io.netty', name: 'netty-handler-proxy', version:"${nettyVersion}"
 }
