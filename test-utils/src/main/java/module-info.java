@@ -22,7 +22,6 @@ module io.ballerina.stdlib.http.testutils {
     requires io.netty.codec.http;
     requires io.netty.common;
     requires org.slf4j;
-    requires org.testng;
     requires io.ballerina.runtime;
     requires io.netty.transport;
     requires io.ballerina.stdlib.http;
