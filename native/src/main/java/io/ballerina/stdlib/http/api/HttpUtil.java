@@ -32,6 +32,7 @@ import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.TypeId;
 import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BDecimal;
 import io.ballerina.runtime.api.values.BError;
@@ -1849,7 +1850,7 @@ public class HttpUtil {
 
     public static String getInterceptorServiceType(BObject interceptorService) {
         String interceptorServiceType = null;
-        ObjectType objectType = interceptorService.getType();
+        ObjectType objectType = (ObjectType) TypeUtils.getReferredType(interceptorService.getType());
         List<TypeId> typeIdList = objectType.getTypeIdSet().getIds();
         for (TypeId typeId : typeIdList) {
             switch (typeId.getName()) {

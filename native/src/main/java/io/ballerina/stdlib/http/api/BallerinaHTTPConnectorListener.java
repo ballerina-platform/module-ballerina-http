@@ -20,6 +20,8 @@ package io.ballerina.stdlib.http.api;
 import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.constants.RuntimeConstants;
+import io.ballerina.runtime.api.types.ObjectType;
+import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.observability.ObservabilityConstants;
@@ -180,7 +182,8 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         Callback callback = new HttpCallableUnitCallback(inboundMessage, runtime, httpResource);
         BObject service = httpResource.getParentService().getBalService();
         String resourceName = httpResource.getName();
-        if (service.getType().isIsolated() && service.getType().isIsolated(resourceName)) {
+        ObjectType serviceType = (ObjectType) TypeUtils.getReferredType(service.getType());
+        if (serviceType.isIsolated() && serviceType.isIsolated(resourceName)) {
             runtime.invokeMethodAsyncConcurrently(service, resourceName, null,
                                                   ModuleUtils.getOnMessageMetaData(), callback, properties,
                                                   httpResource.getBalResource().getReturnType(), signatureParams);
@@ -237,7 +240,8 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
 
         inboundMessage.removeProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
 
-        if (service.getType().isIsolated() && service.getType().isIsolated(resourceName)) {
+        ObjectType serviceType = (ObjectType) TypeUtils.getReferredType(service.getType());
+        if (serviceType.isIsolated() && serviceType.isIsolated(resourceName)) {
             runtime.invokeMethodAsyncConcurrently(service, resourceName, null,
                                                   ModuleUtils.getOnMessageMetaData(), callback, properties,
                                                   resource.getBalResource().getReturnType(), signatureParams);
