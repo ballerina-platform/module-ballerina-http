@@ -4,7 +4,7 @@ Ballerina HTTP Library
   [![Build](https://github.com/ballerina-platform/module-ballerina-http/actions/workflows/build-timestamped-master.yml/badge.svg)](https://github.com/ballerina-platform/module-ballerina-http/actions/workflows/build-timestamped-master.yml)
   [![codecov](https://codecov.io/gh/ballerina-platform/module-ballerina-http/branch/master/graph/badge.svg)](https://codecov.io/gh/ballerina-platform/module-ballerina-http)
   [![Trivy](https://github.com/ballerina-platform/module-ballerina-http/actions/workflows/trivy-scan.yml/badge.svg)](https://github.com/ballerina-platform/module-ballerina-http/actions/workflows/trivy-scan.yml)
-  [![GraalVM Check](https://img.shields.io/github/workflow/status/ballerina-platform/module-ballerina-http/Build%20with%20bal%20test%20native?label=GraalVM%20Check)](https://github.com/ballerina-platform/module-ballerina-http/actions/workflows/build-with-bal-test-native.yml)
+  [![GraalVM Check](https://github.com/ballerina-platform/module-ballerina-http/actions/workflows/build-with-bal-test-native.yml/badge.svg)](https://github.com/ballerina-platform/module-ballerina-http/actions/workflows/build-with-bal-test-native.yml)
   [![GitHub Last Commit](https://img.shields.io/github/last-commit/ballerina-platform/module-ballerina-http.svg)](https://github.com/ballerina-platform/module-ballerina-http/commits/master)
   [![Github issues](https://img.shields.io/github/issues/ballerina-platform/ballerina-standard-library/module/http.svg?label=Open%20Issues)](https://github.com/ballerina-platform/ballerina-standard-library/labels/module%2Fhttp)
 
@@ -53,13 +53,13 @@ The defined `Client` endpoint can be used to call a remote service as follows:
 
 ```ballerina
 // Send a GET request to the specified endpoint.
-http:Response response = check clientEndpoint->get("/get?id=123");
+http:Response response = check clientEndpoint->/backend(id = 123);
 ```
 The payload can be retrieved as the return value from the remote function as follows:
 
 ```ballerina
 // Retrieve payload as json.
-json payload = check clientEndpoint->post("/backend/Json", "foo");
+json payload = check clientEndpoint->/backend/Json.post("foo");
 ```
 
 ### Listener
@@ -71,7 +71,7 @@ the `Listener`. The service type precisely describes the syntax for both the ser
 A `Service` represents a collection of network-accessible entry points and can be exposed via a `Listener` endpoint.
 A resource represents one such entry point and can have its own path, HTTP methods, body format, `consumes` and
 `produces` content types, CORS headers, etc. In resources, the HTTP method and resource path are mandatory parameters and
-the String literal and path parameters can be stated as the path. The resource function accepts the `http:Caller`, `http:Request`,
+the String literal and path parameters can be stated as the path. The resource method accepts the `http:Caller`, `http:Request`,
 `http:Headers`, query parameters, header parameters, and payload parameters as arguments. However, they are optional.
 
 When a `Service` receives a request, it is dispatched to the best-matched resource.

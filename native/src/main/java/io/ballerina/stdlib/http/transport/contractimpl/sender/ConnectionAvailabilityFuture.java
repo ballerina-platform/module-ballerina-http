@@ -67,7 +67,7 @@ public class ConnectionAvailabilityFuture {
                         if (forceHttp2) {
                             notifySuccess(Constants.HTTP2_CLEARTEXT_PROTOCOL);
                         } else {
-                            notifySuccess(Constants.HTTP_SCHEME);
+                            notifySuccess(Constants.HTTP1_CLEARTEXT_PROTOCOL);
                         }
                     }
                 } else {
@@ -120,7 +120,7 @@ public class ConnectionAvailabilityFuture {
             if (forceHttp2) {
                 notifySuccess(Constants.HTTP2_CLEARTEXT_PROTOCOL);
             } else {
-                notifySuccess(Constants.HTTP_SCHEME);
+                notifySuccess(Constants.HTTP1_CLEARTEXT_PROTOCOL);
             }
         } else if (isFailure) {
             notifyFailure(throwable);

@@ -7,6 +7,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- [Application killed due to a panic has the exit code 0](https://github.com/ballerina-platform/ballerina-standard-library/issues/3796)
+- [Binary payload retrieved from the `http:Request` has different content-length than the original payload](https://github.com/ballerina-platform/ballerina-standard-library/issues/3662)
+- [Address CVE-2022-41915 netty Vulnerability](https://github.com/ballerina-platform/ballerina-standard-library/issues/3833)
+
+## [2.5.1] - 2022-12-01
+
+### Fixed
+
+- [Fix HTTP client creating more than one TCP connection](https://github.com/ballerina-platform/ballerina-standard-library/issues/3720)
+- [Fix issues with HTTP/2 listener stop](https://github.com/ballerina-platform/ballerina-standard-library/issues/3553)
+
+## [2.5.0] - 2022-11-29
+
 ### Added
 - [Kill the application when a resource function panics](https://github.com/ballerina-platform/ballerina-standard-library/issues/2714)
 - [Add a grace period for graceful stop of the listener](https://github.com/ballerina-platform/ballerina-standard-library/issues/3277)
@@ -19,6 +34,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Reduce Listener default timeout to 60s and Client default timeout to 30s](https://github.com/ballerina-platform/ballerina-standard-library/issues/3278)
 - [API Docs Updated](https://github.com/ballerina-platform/ballerina-standard-library/issues/3463)
 - [Improve data binding mime type match](https://github.com/ballerina-platform/ballerina-standard-library/issues/3542)
+- [Mark client resource methods as isolated](https://github.com/ballerina-platform/ballerina-standard-library/issues/3705)
 
 ### Fixed
 - [Fix dispatching logic issue due to double slash in basePath](https://github.com/ballerina-platform/ballerina-standard-library/issues/3543)

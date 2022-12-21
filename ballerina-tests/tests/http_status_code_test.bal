@@ -469,7 +469,7 @@ function testStatusEarlyHints() {
     http:Response|error response = httpStatusCodeClient->get("/differentStatusCodes/statusEarlyHints/false");
     if response is http:Response {
         test:assertEquals(response.statusCode, 103, msg = "Found unexpected output");
-        test:assertEquals(response.reasonPhrase, "Informational (103)", msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Early Hints", msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -477,7 +477,7 @@ function testStatusEarlyHints() {
     response = httpStatusCodeClient->get("/differentStatusCodes/statusEarlyHints/true");
     if response is http:Response {
         test:assertEquals(response.statusCode, 103, msg = "Found unexpected output");
-        test:assertEquals(response.reasonPhrase, "Informational (103)", msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Early Hints", msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

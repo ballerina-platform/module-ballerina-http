@@ -104,6 +104,9 @@ dependencies {
     externalJars(group: 'io.netty', name: 'netty-codec-http2', version: "${nettyVersion}") {
         transitive = false
     }
+    externalJars(group: 'io.netty', name: 'netty-transport-native-unix-common', version: "${nettyVersion}") {
+        transitive = false
+    }
     externalJars(group: 'commons-pool.wso2', name: 'commons-pool', version: "${wso2CommonsPoolVersion}") {
         transitive = false
     }
@@ -126,9 +129,6 @@ dependencies {
         transitive = false
     }
     externalJars(group: 'org.jvnet.mimepull', name: 'mimepull', version: "${mimepullVersion}") {
-        transitive = false
-    }
-    externalJars(group: 'org.testng', name: 'testng', version: "${testngVersion}") {
         transitive = false
     }
 }
@@ -201,6 +201,7 @@ updateTomlFiles.dependsOn copyStdlibs
 
 build.dependsOn "generatePomFileForMavenPublication"
 build.dependsOn ":${packageName}-native:build"
+build.dependsOn ":${packageName}-test-utils:build"
 build.dependsOn ":${packageName}-compiler-plugin:build"
 build.finalizedBy ":http-ballerina-tests:build"
 test.dependsOn ":${packageName}-native:build"
