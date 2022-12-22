@@ -137,3 +137,27 @@ groupId = "org.jvnet.mimepull"
 artifactId = "mimepull"
 version = "@mimepull.version@"
 path = "./lib/mimepull-@mimepull.version@.jar"
+
+[[platform.java11.dependency]]
+groupId = "io.netty"
+artifactId = "netty-codec-socks"
+version = "@netty.version@"
+path = "./lib/netty-codec-socks-@netty.version@.jar"
+
+[[platform.java11.dependency]]
+groupId = "org.jboss.marshalling"
+artifactId = "jboss-marshalling"
+version = "@marshalling.version@"
+path = "./lib/jboss-marshalling-@marshalling.version@.jar"
+
+[[platform.java11.dependency]]
+groupId = "net.jpountz.lz4"
+artifactId = "lz4"
+version = "@lz4.version@"
+path = "./lib/lz4-@lz4.version@.jar"
+
+[[platform.java11.dependency]]
+groupId = "com.google.protobufl"
+artifactId = "protobuf-java"
+version = "@protobuf.version@"
+path = "./lib/protobuf-java-@protobuf.version@.jar"
