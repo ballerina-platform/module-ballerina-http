@@ -9,6 +9,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Fixed
 
+- [Fix unnecessary warnings in native-image build](https://github.com/ballerina-platform/ballerina-standard-library/issues/3861)
+
+## [2.5.2] - 2022-12-22
+
+### Fixed
+
 - [Application killed due to a panic has the exit code 0](https://github.com/ballerina-platform/ballerina-standard-library/issues/3796)
 - [Binary payload retrieved from the `http:Request` has different content-length than the original payload](https://github.com/ballerina-platform/ballerina-standard-library/issues/3662)
 - [Address CVE-2022-41915 netty Vulnerability](https://github.com/ballerina-platform/ballerina-standard-library/issues/3833)
