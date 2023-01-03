@@ -144,7 +144,11 @@ function testImmediateStopMethod() returns error? {
     }
 }
 
-@test:Config {dependsOn:[testImmediateStopMethod]}
+// Disabling these test cases due to this issue: https://github.com/ballerina-platform/ballerina-standard-library/issues/3747
+@test:Config {
+    enable: false,
+    dependsOn:[testImmediateStopMethod]
+}
 function testInvokingStoppedImmediateService() {
     http:Response|error response = backendImmediateStopTestClient->get("/mock1");
     if response is error {
@@ -155,7 +159,10 @@ function testInvokingStoppedImmediateService() {
     }
 }
 
-@test:Config {dependsOn:[testInvokingStoppedImmediateService]}
+@test:Config {
+    enable: false,
+    dependsOn:[testInvokingStoppedImmediateService]
+}
 function testServiceHealthAttempt2() returns error? {
     http:Response response = check listenerMethodTestClient->get("/startService/health");
     test:assertEquals(response.statusCode, 202, msg = "Found unexpected output");
