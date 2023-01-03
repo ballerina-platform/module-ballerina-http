@@ -3,12 +3,6 @@ org = "ballerina"
 name = "@package.name@"
 version = "@toml.version@"
 
-[[dependency]]
-org = "ballerina"
-name = "@test.common@"
-repository = "local"
-version = "@toml.version@"
-
 [[platform.java11.dependency]]
 scope = "testOnly"
 path = "../../native/build/libs/http-native-@project.version@.jar"

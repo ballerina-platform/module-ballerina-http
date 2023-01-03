@@ -29,10 +29,12 @@ def packageOrg = "ballerina"
 def moduleName = "tests"
 def tomlVersion = stripBallerinaExtensionVersion("${project.version}")
 def ballerinaTomlFilePlaceHolder = new File("${project.rootDir}/build-config/resources/BallerinaTest.toml")
-def ballerinaTomlFile = new File("$project.projectDir/Ballerina.toml")
+def testCommonTomlFilePlaceHolder = new File("${project.rootDir}/build-config/resources/BallerinaTestCommon.toml")
 def ballerinaDist = "${project.rootDir}/target/ballerina-runtime"
 def distributionBinPath =  "${ballerinaDist}/bin"
 def testCoverageParam = "--code-coverage --coverage-format=xml --includes=io.ballerina.stdlib.http.*:ballerina.http*"
+def testPackages = ["http-interceptor-tests"]
+def testCommonPackage = "http-test-common"
 
 def stripBallerinaExtensionVersion(String extVersion) {
     if (extVersion.matches(project.ext.timestampedVersionRegex)) {
@@ -60,7 +62,12 @@ dependencies {
 }
 
 clean {
-    delete "$project.projectDir/target"
+    testPackages.each { testPackage ->
+        delete "${project.projectDir}/${testPackage}/Dependencies.toml"
+        delete "${project.projectDir}/${testPackage}/target"
+    }
+    delete "${project.projectDir}/${testCommonPackage}/Dependencies.toml"
+    delete "${project.projectDir}/${testCommonPackage}/target"
 }
 
 jar {
@@ -70,22 +77,38 @@ jar {
     }
 }
 
-task updateTomlVerions {
+task updateTomlVersions {
     doLast {
-        def newBallerinaToml = ballerinaTomlFilePlaceHolder.text.replace("@project.version@", project.version)
+        testPackages.each { testPackage ->
+            def ballerinaTomlFile =  new File("${project.projectDir}/${testPackage}/Ballerina.toml")
+            def newBallerinaToml = ballerinaTomlFilePlaceHolder.text.replace("@project.version@", project.version)
+            newBallerinaToml = newBallerinaToml.replace("@toml.version@", tomlVersion)
+            newBallerinaToml = newBallerinaToml.replace("@test.common@", testCommonPackage.replaceAll("-", "_"))
+            newBallerinaToml = newBallerinaToml.replace("@package.name@", testPackage.replaceAll("-", "_"))
+            ballerinaTomlFile.text = newBallerinaToml
+        }
+
+        def ballerinaTomlFile =  new File("${project.projectDir}/${testCommonPackage}/Ballerina.toml")
+        def newBallerinaToml = testCommonTomlFilePlaceHolder.text.replace("@project.version@", project.version)
         newBallerinaToml = newBallerinaToml.replace("@toml.version@", tomlVersion)
+        newBallerinaToml = newBallerinaToml.replace("@package.name@", testCommonPackage.replaceAll("-", "_"))
         ballerinaTomlFile.text = newBallerinaToml
     }
 }
 
 task commitTomlFiles {
     doLast {
+        def files = "${testCommonPackage}/Ballerina.toml ${testCommonPackage}/Dependencies.toml "
+        testPackages.each{ testPackage ->
+            files += "${testPackage}/Ballerina.toml ${testPackage}/Dependencies.toml"
+        }
+
         project.exec {
             ignoreExitValue true
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                commandLine 'cmd', '/c', "git commit -m \"[Automated] Update the native jar versions\" Ballerina.toml Dependencies.toml"
+                commandLine 'cmd', '/c', "git commit -m \"[Automated] Update the native jar versions\" ${files}"
             } else {
-                commandLine 'sh', '-c', "git commit -m '[Automated] Update the native jar versions' Ballerina.toml Dependencies.toml"
+                commandLine 'sh', '-c', "git commit -m '[Automated] Update the native jar versions' ${files}"
             }
         }
     }
@@ -128,27 +151,53 @@ task initializeVariables {
     }
 }
 
+task publishTestCommonPackageToLocal {
+    dependsOn(":${packageName}-${packageOrg}:build")
+    doLast {
+        exec {
+            workingDir "${project.projectDir}/${testCommonPackage}"
+            if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                commandLine 'cmd', '/c', "${distributionBinPath}/bal.bat pack && exit  %%ERRORLEVEL%%"
+            } else {
+                commandLine 'sh', '-c', "${distributionBinPath}/bal pack"
+            }
+        }
+        exec {
+            workingDir "${project.projectDir}/${testCommonPackage}"
+            if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                commandLine 'cmd', '/c', "${distributionBinPath}/bal.bat push --repository=local" +
+                        " && exit %%ERRORLEVEL%%"
+            } else {
+                commandLine 'sh', '-c', "${distributionBinPath}/bal push --repository=local"
+            }
+        }
+    }
+}
+
 task ballerinaTest {
     inputs.dir file(project.projectDir)
     dependsOn(":${packageName}-${packageOrg}:build")
-    dependsOn(updateTomlVerions)
+    dependsOn(updateTomlVersions)
     dependsOn(initializeVariables)
     dependsOn(":${packageName}-${packageOrg}-${moduleName}:compileJava")
     dependsOn(":${packageName}-${packageOrg}-${moduleName}:jar")
     dependsOn(":${packageName}-${packageOrg}-${moduleName}:processResources")
+    dependsOn(publishTestCommonPackageToLocal)
     finalizedBy(commitTomlFiles)
 
     doLast {
-        exec {
-            workingDir project.projectDir
-            environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
-            if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                commandLine 'cmd', '/c', "${balJavaDebugParam} ${distributionBinPath}/bal.bat test ${nativeFlag} " +
-                        "${testParams} ${groupParams} ${disableGroups} ${windowsDisableGroups} ${debugParams} && " +
-                        "exit %%ERRORLEVEL%%"
-            } else {
-                commandLine 'sh', '-c', "${balJavaDebugParam} ${distributionBinPath}/bal test ${nativeFlag} " +
-                        "${testParams} ${groupParams} ${disableGroups} ${debugParams}"
+        testPackages.each { testPackage ->
+            exec {
+                workingDir "${project.projectDir}/${testPackage}"
+                environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
+                if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                    commandLine 'cmd', '/c', "${balJavaDebugParam} ${distributionBinPath}/bal.bat test ${nativeFlag}" +
+                            " ${testParams} ${groupParams} ${disableGroups} ${windowsDisableGroups} ${debugParams}" +
+                            " && exit %%ERRORLEVEL%%"
+                } else {
+                    commandLine 'sh', '-c', "${distributionBinPath}/bal test ${nativeFlag} ${testParams}" +
+                            " ${groupParams} ${disableGroups} ${debugParams}"
+                }
             }
         }
     }
@@ -180,7 +229,7 @@ task startLdapServer() {
             if (!stdOut.toString().contains("openldap-server")) {
                 println "Starting LDAP server."
                 exec {
-                    commandLine 'sh', '-c', "docker-compose -f $project.projectDir/tests/openldap/docker-compose.yml up -d"
+                    commandLine 'sh', '-c', "docker-compose -f $project.projectDir/resources/openldap/docker-compose.yml up -d"
                     standardOutput = stdOut
                 }
                 println stdOut.toString()
