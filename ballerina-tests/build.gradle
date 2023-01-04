@@ -33,7 +33,7 @@ def testCommonTomlFilePlaceHolder = new File("${project.rootDir}/build-config/re
 def ballerinaDist = "${project.rootDir}/target/ballerina-runtime"
 def distributionBinPath =  "${ballerinaDist}/bin"
 def testCoverageParam = "--code-coverage --coverage-format=xml --includes=io.ballerina.stdlib.http.*:ballerina.http*"
-def testPackages = ["http-interceptor-tests", "http-resiliency-tests", "http-security-tests"]
+def testPackages = ["http-interceptor-tests", "http-resiliency-tests", "http-security-tests", "http2-tests"]
 def testCommonPackage = "http-test-common"
 
 def stripBallerinaExtensionVersion(String extVersion) {
@@ -121,6 +121,7 @@ def debugParams = ""
 def balJavaDebugParam = ""
 def testParams = ""
 def nativeFlag = ""
+def skipTests = false
 
 task initializeVariables {
     if (project.hasProperty("groups")) {
@@ -141,12 +142,12 @@ task initializeVariables {
 
 
     gradle.taskGraph.whenReady { graph ->
-        if (graph.hasTask(":${packageName}-ballerina:test")) {
+        if (graph.hasTask(":${packageName}-ballerina-tests:test")) {
             if (!project.hasProperty('balNativeTest')) {
                 testParams = "${testCoverageParam}"
             }
         } else {
-            testParams = "--skip-tests"
+            skipTests = true
         }
     }
 }
@@ -154,21 +155,23 @@ task initializeVariables {
 task publishTestCommonPackageToLocal {
     dependsOn(":${packageName}-${packageOrg}:build")
     doLast {
-        exec {
-            workingDir "${project.projectDir}/${testCommonPackage}"
-            if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                commandLine 'cmd', '/c', "${distributionBinPath}/bal.bat pack && exit  %%ERRORLEVEL%%"
-            } else {
-                commandLine 'sh', '-c', "${distributionBinPath}/bal pack"
+        if (!skipTests) {
+            exec {
+                workingDir "${project.projectDir}/${testCommonPackage}"
+                if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                    commandLine 'cmd', '/c', "${distributionBinPath}/bal.bat pack && exit  %%ERRORLEVEL%%"
+                } else {
+                    commandLine 'sh', '-c', "${distributionBinPath}/bal pack"
+                }
             }
-        }
-        exec {
-            workingDir "${project.projectDir}/${testCommonPackage}"
-            if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                commandLine 'cmd', '/c', "${distributionBinPath}/bal.bat push --repository=local" +
-                        " && exit %%ERRORLEVEL%%"
-            } else {
-                commandLine 'sh', '-c', "${distributionBinPath}/bal push --repository=local"
+            exec {
+                workingDir "${project.projectDir}/${testCommonPackage}"
+                if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                    commandLine 'cmd', '/c', "${distributionBinPath}/bal.bat push --repository=local" +
+                            " && exit %%ERRORLEVEL%%"
+                } else {
+                    commandLine 'sh', '-c', "${distributionBinPath}/bal push --repository=local"
+                }
             }
         }
     }
@@ -187,16 +190,18 @@ task ballerinaTest {
 
     doLast {
         testPackages.each { testPackage ->
-            exec {
-                workingDir "${project.projectDir}/${testPackage}"
-                environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
-                if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                    commandLine 'cmd', '/c', "${balJavaDebugParam} ${distributionBinPath}/bal.bat test ${nativeFlag}" +
-                            " ${testParams} ${groupParams} ${disableGroups} ${windowsDisableGroups} ${debugParams}" +
-                            " && exit %%ERRORLEVEL%%"
-                } else {
-                    commandLine 'sh', '-c', "${distributionBinPath}/bal test ${nativeFlag} ${testParams}" +
-                            " ${groupParams} ${disableGroups} ${debugParams}"
+            if (!skipTests) {
+                exec {
+                    workingDir "${project.projectDir}/${testPackage}"
+                    environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
+                    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                        commandLine 'cmd', '/c', "${balJavaDebugParam} ${distributionBinPath}/bal.bat test ${nativeFlag}" +
+                                " ${testParams} ${groupParams} ${disableGroups} ${windowsDisableGroups} ${debugParams}" +
+                                " && exit %%ERRORLEVEL%%"
+                    } else {
+                        commandLine 'sh', '-c', "${distributionBinPath}/bal test ${nativeFlag} ${testParams}" +
+                                " ${groupParams} ${disableGroups} ${debugParams}"
+                    }
                 }
             }
         }
