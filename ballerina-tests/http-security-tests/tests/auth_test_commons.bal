@@ -332,7 +332,7 @@ isolated function assertUnauthorized(http:Response|http:ClientError response) {
     }
 }
 
-type AuthResponse record {|
+public type AuthResponse record {|
     *http:Ok;
     json body?;
 |};
