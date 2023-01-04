@@ -16,6 +16,8 @@
 
 public const string KEYSTORE_PATH = "../resources/certsandkeys/ballerinaKeystore.p12";
 public const string TRUSTSTORE_PATH = "../resources/certsandkeys/ballerinaTruststore.p12";
+public const string CERT_FILE = "../resources/certsandkeys/public.crt";
+public const string KEY_FILE = "../resources/certsandkeys/private.key";
 
 public const string CONTENT_TYPE = "content-type";
 public const string ETAG = "etag";
