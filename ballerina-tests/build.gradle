@@ -64,10 +64,8 @@ dependencies {
 
 clean {
     testPackages.each { testPackage ->
-        delete "${project.projectDir}/${testPackage}/Dependencies.toml"
         delete "${project.projectDir}/${testPackage}/target"
     }
-    delete "${project.projectDir}/${testCommonPackage}/Dependencies.toml"
     delete "${project.projectDir}/${testCommonPackage}/target"
 }
 
