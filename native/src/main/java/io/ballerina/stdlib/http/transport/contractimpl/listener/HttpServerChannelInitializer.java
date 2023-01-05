@@ -171,6 +171,7 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
                     .getServerReferenceCountedOpenSslContext(ocspStaplingEnabled);
             sslHandler = context.newHandler(ch.alloc());
             sslEngine = sslHandler.engine();
+            Util.setAlpnProtocols(sslEngine);
 
             ReferenceCountedOpenSslEngine engine = (ReferenceCountedOpenSslEngine) sslEngine;
             engine.setOcspResponse(response.getEncoded());
@@ -184,6 +185,7 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
             } else {
                 sslEngine = sslHandlerFactory.buildServerSSLEngine(keystoreSslContext);
             }
+            Util.setAlpnProtocols(sslEngine);
             sslHandler = new SslHandler(sslEngine);
             setSslHandshakeTimeOut(sslConfig, sslHandler);
             serverPipeline.addLast(Constants.SSL_HANDLER, sslHandler);

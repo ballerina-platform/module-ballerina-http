@@ -140,6 +140,7 @@ public class Util {
     }
 
     private static final Logger LOG = LoggerFactory.getLogger(Util.class);
+    public static final String HTTP_1_1 = "http/1.1";
 
     private static String getStringValue(HttpCarbonMessage msg, String key, String defaultValue) {
         String value = (String) msg.getProperty(key);
@@ -1150,5 +1151,12 @@ public class Util {
         } else {
             ctx.channel().attr(Constants.MUTUAL_SSL_RESULT_ATTRIBUTE).set(MUTUAL_SSL_DISABLED);
         }
+    }
+
+    public static void setAlpnProtocols(SSLEngine sslEngine) {
+        SSLParameters sslParams = sslEngine.getSSLParameters();
+        String[] protocols = {HTTP_1_1};
+        sslParams.setApplicationProtocols(protocols);
+        sslEngine.setSSLParameters(sslParams);
     }
 }
