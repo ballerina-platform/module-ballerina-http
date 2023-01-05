@@ -144,6 +144,7 @@ public class HttpClientChannelInitializer extends ChannelInitializer<SocketChann
                 SSLEngine sslEngine = Util
                         .configureHttpPipelineForSSL(socketChannel, httpRoute.getHost(), httpRoute.getPort(),
                                 sslConfig);
+                Util.setAlpnProtocols(sslEngine);
                 clientPipeline.addLast(Constants.SSL_COMPLETION_HANDLER,
                         new SslHandshakeCompletionHandlerForClient(connectionAvailabilityFuture, this, targetHandler,
                                 sslEngine));
