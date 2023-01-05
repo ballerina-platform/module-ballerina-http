@@ -18,6 +18,15 @@ public const string KEYSTORE_PATH = "../resources/certsandkeys/ballerinaKeystore
 public const string TRUSTSTORE_PATH = "../resources/certsandkeys/ballerinaTruststore.p12";
 public const string CERT_FILE = "../resources/certsandkeys/public.crt";
 public const string KEY_FILE = "../resources/certsandkeys/private.key";
+public const string DATA_FILE = "../resources/datafiles/BallerinaLang.pdf";
+public const string RECEIVED_FILE = "../resources/tempfiles/ReceivedFile.pdf";
+public const string TEMP_FILES_DIR = "../resources/tempfiles";
+public const string TEXT_FILE = "../resources/datafiles/testFile.txt";
+public const string JSON_FILE = "../resources/datafiles/testJson.json";
+public const string XML_FILE = "../resources/datafiles/file.xml";
+public const string TMP_FILE = "../resources/datafiles/test.tmp";
+public const string HTTP2_XML_FILE = "../resources/datafiles/http2_test.xml";
+
 
 public const string CONTENT_TYPE = "content-type";
 public const string ETAG = "etag";

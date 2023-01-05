@@ -76,7 +76,7 @@ service /multiparts on generalHTTP2Listener {
         jsonBodyPart.setJson({"name": "wso2"});
         mime:Entity xmlFilePart = new;
         xmlFilePart.setContentDisposition(getContDisposition("xml file part"));
-        xmlFilePart.setFileAsEntityBody("../resources/datafiles/http2_test.xml",
+        xmlFilePart.setFileAsEntityBody(common:HTTP2_XML_FILE,
                                         contentType = mime:APPLICATION_XML);
         mime:Entity textPart = new;
         textPart.setText("text content", contentType = "text/plain");

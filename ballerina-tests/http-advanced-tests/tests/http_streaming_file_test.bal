@@ -1,4 +1,4 @@
-// Copyright (c) 2022 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+// Copyright (c) 2021 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
 //
 // WSO2 Inc. licenses this file to you under the Apache License,
 // Version 2.0 (the "License"); you may not use this file except
@@ -22,19 +22,14 @@ import ballerina/test;
 import ballerina/file;
 import ballerina/http_test_common as common;
 
-int http2StreamTest1 = common:getHttp2Port(streamTest1);
-int http2StreamTest2 = common:getHttp2Port(streamTest2);
+final http:Client streamTestClient = check new ("http://localhost:" + streamTest1.toString(), httpVersion = http:HTTP_1_1);
+final http:Client streamBackendClient = check new ("http://localhost:" + streamTest2.toString(), httpVersion = http:HTTP_1_1);
 
-final http:Client http2StreamTestClient = check new ("http://localhost:" + http2StreamTest1.toString(),
-    http2Settings = {http2PriorKnowledge: true});
-final http:Client http2StreamBackendClient = check new ("http://localhost:" + http2StreamTest2.toString(),
-    http2Settings = {http2PriorKnowledge: true});
-
-service /'stream on new http:Listener(http2StreamTest1) {
+service /'stream on new http:Listener(streamTest1, httpVersion = http:HTTP_1_1) {
     resource function get fileupload(http:Caller caller) {
         http:Request request = new;
         request.setFileAsPayload(common:DATA_FILE, contentType = mime:APPLICATION_PDF);
-        http:Response|error clientResponse = http2StreamBackendClient->post("/streamBack/receiver", request);
+        http:Response|error clientResponse = streamBackendClient->post("/streamBack/receiver", request);
 
         http:Response res = new;
         if clientResponse is http:Response {
@@ -59,7 +54,7 @@ service /'stream on new http:Listener(http2StreamTest1) {
     }
 }
 
-service /streamBack on new http:Listener(http2StreamTest2) {
+service /streamBack on new http:Listener(streamTest2, httpVersion = http:HTTP_1_1) {
     resource function post receiver(http:Caller caller, http:Request request) returns error? {
         http:Response res = new;
         stream<byte[], io:Error?>|error streamer = request.getByteStream();
@@ -88,33 +83,47 @@ service /streamBack on new http:Listener(http2StreamTest2) {
     }
 }
 
-@test:Config {}
-function testHttp2StreamingLargeFile() returns error? {
-    http:Response response = check http2StreamTestClient->get("/stream/fileupload");
-    test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-    common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:TEXT_PLAIN);
-    common:assertTextPayload(response.getTextPayload(), "File Received!");
+function setError(http:Response res, error err) {
+    res.statusCode = 500;
+    res.setPayload(err.message());
 }
 
 @test:Config {}
-function testHttp2ConsumedStream() returns error? {
+function testStreamingLargeFile() returns error? {
+    http:Response|error response = streamTestClient->get("/stream/fileupload");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:TEXT_PLAIN);
+        common:assertTextPayload(response.getTextPayload(), "File Received!");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testConsumedStream() returns error? {
     string msg = "Error occurred while retrieving the byte stream from the response";
     string cMsg = "Byte stream is not available but payload can be obtain either as xml, json, string or byte[] type";
-    http:Response response = check http2StreamTestClient->get("/stream/cacheFileupload");
-    byte[]|error bytes = response.getBinaryPayload();
-    if bytes is error {
-        // log:printError("Error reading payload", 'error = bytes);
-    }
-    stream<byte[], io:Error?>|error streamer = response.getByteStream();
-    if (streamer is stream<byte[], io:Error?>) {
-        test:assertFail(msg = "Found unexpected output type");
-    } else {
-        test:assertEquals(streamer.message(), msg, msg = "Found unexpected output");
-        error? cause = streamer.cause();
-        if (cause is error) {
-            test:assertEquals(cause.message(), cMsg, msg = "Found unexpected output");
-        } else {
-            test:assertFail(msg = "Found unexpected output type");
+    http:Response|error response = streamTestClient->get("/stream/cacheFileupload");
+    if response is http:Response {
+        byte[]|error bytes = response.getBinaryPayload();
+        if bytes is error {
+            // log:printError("Error reading payload", 'error = bytes);
         }
+        stream<byte[], io:Error?>|error streamer = response.getByteStream();
+        if (streamer is stream<byte[], io:Error?>) {
+            test:assertFail(msg = "Found unexpected output type");
+        } else {
+            test:assertEquals(streamer.message(), msg, msg = "Found unexpected output");
+            error? cause = streamer.cause();
+            if (cause is error) {
+                test:assertEquals(cause.message(), cMsg, msg = "Found unexpected output");
+            } else {
+                test:assertFail(msg = "Found unexpected output type");
+            }
+        }
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
+    return;
 }
