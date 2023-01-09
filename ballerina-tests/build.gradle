@@ -34,7 +34,8 @@ def ballerinaDist = "${project.rootDir}/target/ballerina-runtime"
 def distributionBinPath =  "${ballerinaDist}/bin"
 def testCoverageParam = "--code-coverage --coverage-format=xml --includes=io.ballerina.stdlib.http.*:ballerina.http*"
 def testPackages = ["http-interceptor-tests", "http-resiliency-tests", "http-security-tests",
-                    "http2-tests", "http-advanced-tests", "http-service-tests", "http-dispatching-tests"]
+                    "http2-tests", "http-advanced-tests", "http-service-tests", "http-dispatching-tests",
+                    "http-client-tests"]
 def testCommonPackage = "http-test-common"
 
 def stripBallerinaExtensionVersion(String extVersion) {
