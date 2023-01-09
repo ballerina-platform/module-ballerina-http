@@ -26,6 +26,8 @@ public const string JSON_FILE = "../resources/datafiles/testJson.json";
 public const string XML_FILE = "../resources/datafiles/file.xml";
 public const string TMP_FILE = "../resources/datafiles/test.tmp";
 public const string HTTP2_XML_FILE = "../resources/datafiles/http2_test.xml";
+public const string OPENAPI_DOC = "../resources/datafiles/testopenapidoc.json";
+public const string COMPLEX_XML_FILE = "../resources/datafiles/ComplexTestXmlSample.xml";
 
 
 public const string CONTENT_TYPE = "content-type";
