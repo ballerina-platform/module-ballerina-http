@@ -99,23 +99,7 @@ modules = [
 
 [[package]]
 org = "ballerina"
-name = "http_test_common"
-version = "2.6.0"
-scope = "testOnly"
-dependencies = [
-	{org = "ballerina", name = "lang.string"},
-	{org = "ballerina", name = "mime"},
-	{org = "ballerina", name = "regex"},
-	{org = "ballerina", name = "test"},
-	{org = "ballerina", name = "url"}
-]
-modules = [
-	{org = "ballerina", packageName = "http_test_common", moduleName = "http_test_common"}
-]
-
-[[package]]
-org = "ballerina"
-name = "http_tests"
+name = "http_misc_tests"
 version = "2.6.0"
 dependencies = [
 	{org = "ballerina", name = "http"},
@@ -129,7 +113,23 @@ dependencies = [
 	{org = "ballerina", name = "url"}
 ]
 modules = [
-	{org = "ballerina", packageName = "http_tests", moduleName = "http_tests"}
+	{org = "ballerina", packageName = "http_misc_tests", moduleName = "http_misc_tests"}
+]
+
+[[package]]
+org = "ballerina"
+name = "http_test_common"
+version = "2.6.0"
+scope = "testOnly"
+dependencies = [
+	{org = "ballerina", name = "lang.string"},
+	{org = "ballerina", name = "mime"},
+	{org = "ballerina", name = "regex"},
+	{org = "ballerina", name = "test"},
+	{org = "ballerina", name = "url"}
+]
+modules = [
+	{org = "ballerina", packageName = "http_test_common", moduleName = "http_test_common"}
 ]
 
 [[package]]
