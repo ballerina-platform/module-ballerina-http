@@ -64,10 +64,11 @@ dependencies {
 }
 
 clean {
+    delete "${project.projectDir}/${testCommonPackage}/target"
+
     testPackages.each { testPackage ->
         delete "${project.projectDir}/${testPackage}/target"
     }
-    delete "${project.projectDir}/${testCommonPackage}/target"
 }
 
 jar {
@@ -138,6 +139,14 @@ task initializeVariables {
     }
     if (project.hasProperty('balNativeTest')) {
         nativeFlag = '--native'
+    }
+    if (project.hasProperty('balTests')) {
+        testPackages = project.findProperty('balTests').toString().split(",")
+    }
+    if (project.hasProperty('skipBalTests')) {
+        project.findProperty('skipBalTests').toString().split(",").each {testPackage ->
+            testPackages.remove(testPackage)
+        }
     }
 
 
