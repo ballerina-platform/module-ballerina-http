@@ -1,6 +1,6 @@
 [package]
 org = "ballerina"
-name = "http_tests"
+name = "http_misc_tests"
 version = "2.6.0"
 
 [[dependency]]

@@ -33,9 +33,9 @@ def testCommonTomlFilePlaceHolder = new File("${project.rootDir}/build-config/re
 def ballerinaDist = "${project.rootDir}/target/ballerina-runtime"
 def distributionBinPath =  "${ballerinaDist}/bin"
 def testCoverageParam = "--code-coverage --coverage-format=xml --includes=io.ballerina.stdlib.http.*:ballerina.http*"
-def testPackages = ["http-interceptor-tests", "http-resiliency-tests", "http-security-tests",
-                    "http2-tests", "http-advanced-tests", "http-service-tests", "http-dispatching-tests",
-                    "http-client-tests", "http-tests"]
+def testPackages = ["http2-tests", "http-advanced-tests", "http-client-tests", "http-dispatching-tests",
+                    "http-interceptor-tests", "http-misc-tests", "http-resiliency-tests", "http-security-tests",
+                    "http-service-tests"]
 def testCommonPackage = "http-test-common"
 
 def stripBallerinaExtensionVersion(String extVersion) {
