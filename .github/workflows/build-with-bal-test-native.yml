@@ -29,3 +29,4 @@ jobs:
             native_image_options: ${{ inputs.native_image_options }}
             additional_ubuntu_build_flags: '-x :http-native:test -x :http-compiler-plugin-tests:test'
             additional_windows_build_flags: '-x :http-native:test -x :http-compiler-plugin-tests:test'
+            java_tool_options: '-Dfile.encoding=UTF8'
