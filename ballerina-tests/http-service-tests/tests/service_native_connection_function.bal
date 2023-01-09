@@ -18,10 +18,10 @@ import ballerina/test;
 import ballerina/http;
 import ballerina/http_test_common as common;
 
-listener http:Listener connectionNativeTestEP = new (connectionNativeTest, httpVersion = http:HTTP_1_1);
-final http:Client connectionNativeClient = check new ("http://localhost:" + connectionNativeTest.toString(), httpVersion = http:HTTP_1_1);
+listener http:Listener connectionNativeTestPortEP = new (connectionNativeTestPort, httpVersion = http:HTTP_1_1);
+final http:Client connectionNativeClient = check new ("http://localhost:" + connectionNativeTestPort.toString(), httpVersion = http:HTTP_1_1);
 
-service /connectionNativeHello on connectionNativeTestEP {
+service /connectionNativeHello on connectionNativeTestPortEP {
 
     resource function get redirect(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;

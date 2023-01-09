@@ -19,8 +19,8 @@ import ballerina/test;
 import ballerina/url;
 import ballerina/http_test_common as common;
 
-listener http:Listener QueryBindingEP = new (queryParamBindingTest, httpVersion = http:HTTP_1_1);
-final http:Client queryBindingClient = check new ("http://localhost:" + queryParamBindingTest.toString(), httpVersion = http:HTTP_1_1);
+listener http:Listener QueryBindingEP = new (queryParamBindingTestPort, httpVersion = http:HTTP_1_1);
+final http:Client queryBindingClient = check new ("http://localhost:" + queryParamBindingTestPort.toString(), httpVersion = http:HTTP_1_1);
 
 // This is user-defined type
 public type Count int;

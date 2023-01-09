@@ -29,9 +29,9 @@ isolated function retrieveAndIncrementHttp2RetryCounter() returns int {
     }
 }
 
-listener http:Listener http2RetryTestserviceEndpoint1 = new (http2RetryFunctionTestPort1);
+listener http:Listener http2RetryTestserviceEndpoint1 = new (http2RetryFunctionTestPort);
 
-final http:Client http2RetryFunctionTestClient = check new ("http://localhost:" + http2RetryFunctionTestPort1.toString());
+final http:Client http2RetryFunctionTestClient = check new ("http://localhost:" + http2RetryFunctionTestPort.toString());
 
 // Define the end point to the call the `mockHelloService`.
 final http:Client http2RetryBackendClientEP = check new ("http://localhost:9606", {

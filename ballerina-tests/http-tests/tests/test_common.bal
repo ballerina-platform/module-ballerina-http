@@ -14,13 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-const int retryFunctionTestPort1 = 9538;
-const int retryFunctionTestPort2 = 9539;
+import ballerina /http;
 
-const int cBClientWithoutStatusCodesTestPort1 = 9569;
-const int cBClientWithoutStatusCodesTestPort2 = 9570;
-
-const int foClientWithoutStatusCodeTestPort1 = 9571;
-const int foClientWithoutStatusCodeTestPort2 = 9572;
-
-const int http2RetryFunctionTestPort = 9706;
+listener http:Listener generalListener = new (generalPort, httpVersion = http:HTTP_1_1);
+listener http:Listener generalHTTP2Listener = new http:Listener(http2GeneralPort);

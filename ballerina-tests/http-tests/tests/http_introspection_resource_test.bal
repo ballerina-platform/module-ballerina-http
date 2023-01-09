@@ -19,8 +19,8 @@ import ballerina/http;
 import ballerina/io;
 import ballerina/http_test_common as common;
 
-listener http:Listener httpIntroResTestListener = new (introResTest, httpVersion = http:HTTP_1_1);
-final http:Client httpIntroResTestClient = check new ("http://localhost:" + introResTest.toString(), httpVersion = http:HTTP_1_1);
+listener http:Listener httpIntroResTestListener = new (introResTestPort, httpVersion = http:HTTP_1_1);
+final http:Client httpIntroResTestClient = check new ("http://localhost:" + introResTestPort.toString(), httpVersion = http:HTTP_1_1);
 
 service / on httpIntroResTestListener {
     resource function get greeting() returns string|error {

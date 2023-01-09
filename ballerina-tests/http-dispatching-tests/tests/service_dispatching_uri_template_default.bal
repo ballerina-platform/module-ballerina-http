@@ -18,13 +18,13 @@ import ballerina/test;
 import ballerina/http;
 import ballerina/http_test_common as common;
 
-listener http:Listener utdtestEP = new (uriTemplateDefaultTest1, httpVersion = http:HTTP_1_1);
-listener http:Listener utdmockEP1 = new (uriTemplateDefaultTest2, httpVersion = http:HTTP_1_1);
-listener http:Listener utdmockEP2 = new (uriTemplateDefaultTest3, httpVersion = http:HTTP_1_1);
+listener http:Listener utdtestEP = new (uriTemplateDefaultTestPort1, httpVersion = http:HTTP_1_1);
+listener http:Listener utdmockEP1 = new (uriTemplateDefaultTestPort2, httpVersion = http:HTTP_1_1);
+listener http:Listener utdmockEP2 = new (uriTemplateDefaultTestPort3, httpVersion = http:HTTP_1_1);
 
-final http:Client utdClient1 = check new ("http://localhost:" + uriTemplateDefaultTest1.toString(), httpVersion = http:HTTP_1_1);
-final http:Client utdClient2 = check new ("http://localhost:" + uriTemplateDefaultTest2.toString(), httpVersion = http:HTTP_1_1);
-final http:Client utdClient3 = check new ("http://localhost:" + uriTemplateDefaultTest3.toString(), httpVersion = http:HTTP_1_1);
+final http:Client utdClient1 = check new ("http://localhost:" + uriTemplateDefaultTestPort1.toString(), httpVersion = http:HTTP_1_1);
+final http:Client utdClient2 = check new ("http://localhost:" + uriTemplateDefaultTestPort2.toString(), httpVersion = http:HTTP_1_1);
+final http:Client utdClient3 = check new ("http://localhost:" + uriTemplateDefaultTestPort3.toString(), httpVersion = http:HTTP_1_1);
 
 @http:ServiceConfig {
     cors: {

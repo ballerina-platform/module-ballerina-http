@@ -18,7 +18,7 @@ import ballerina/test;
 import ballerina/http;
 import ballerina/http_test_common as common;
 
-int http2ConnectionNativeTest = common:getHttp2Port(connectionNativeTest);
+int http2ConnectionNativeTest = common:getHttp2Port(connectionNativeTestPort);
 
 listener http:Listener http2ConnectionNativeTestEP = new (http2ConnectionNativeTest);
 final http:Client http2ConnectionNativeClient = check new ("http://localhost:" + http2ConnectionNativeTest.toString(),

@@ -18,8 +18,8 @@ import ballerina/test;
 import ballerina/http;
 import ballerina/http_test_common as common;
 
-listener http:Listener basePathTestEP = new (basePathTest, httpVersion = http:HTTP_1_1);
-final http:Client basePathTestClient = check new ("http://localhost:" + basePathTest.toString(), httpVersion = http:HTTP_1_1);
+listener http:Listener basePathTestEP = new (basePathTestPort, httpVersion = http:HTTP_1_1);
+final http:Client basePathTestClient = check new ("http://localhost:" + basePathTestPort.toString(), httpVersion = http:HTTP_1_1);
 
 service http:Service /my/Tes\@tHello/go on basePathTestEP {
     resource function get foo(http:Caller caller) returns error? {

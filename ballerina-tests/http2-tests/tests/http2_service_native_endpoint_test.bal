@@ -18,10 +18,10 @@ import ballerina/test;
 import ballerina/http;
 import ballerina/http_test_common as common;
 
-int http2serviceEndpointTest = common:getHttp2Port(serviceEndpointTest);
+int http2serviceEndpointTestPort = common:getHttp2Port(serviceEndpointTestPort);
 
-listener http:Listener http2ServiceEndpointTestEP = new (http2serviceEndpointTest);
-final http:Client httpServiceEndpointClient = check new ("http://localhost:" + http2serviceEndpointTest.toString(),
+listener http:Listener http2ServiceEndpointTestEP = new (http2serviceEndpointTestPort);
+final http:Client httpServiceEndpointClient = check new ("http://localhost:" + http2serviceEndpointTestPort.toString(),
     http2Settings = {http2PriorKnowledge: true});
 
 service /serviceEndpointHello on http2ServiceEndpointTestEP {
@@ -69,7 +69,7 @@ function testHttp2LocalStructInConnection() {
         var payload = response.getJsonPayload();
         if payload is map<json> {
             map<json> localContent = <map<json>>payload["local"];
-            test:assertEquals(localContent["port"], http2serviceEndpointTest, msg = "Found unexpected output");
+            test:assertEquals(localContent["port"], http2serviceEndpointTestPort, msg = "Found unexpected output");
         } else if payload is error {
             test:assertFail(msg = "Found unexpected output type: " + payload.message());
         }

@@ -18,9 +18,9 @@ import ballerina/http;
 import ballerina/test;
 import ballerina/http_test_common as common;
 
-listener http:Listener outRequestTypeTestEP = new (outRequestTypeTest, httpVersion = http:HTTP_1_1);
+listener http:Listener outRequestTypeTestEP = new (outRequestTypeTestPort, httpVersion = http:HTTP_1_1);
 
-final http:Client outRequestClient = check new ("http://localhost:" + outRequestTypeTest.toString(), httpVersion = http:HTTP_1_1);
+final http:Client outRequestClient = check new ("http://localhost:" + outRequestTypeTestPort.toString(), httpVersion = http:HTTP_1_1);
 
 type CustomerTable table<map<json>>;
 

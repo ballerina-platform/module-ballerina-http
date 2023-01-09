@@ -22,7 +22,7 @@ configurable int backendPort = ?;
 configurable string basePath = ?;
 
 listener http:Listener backendEP = new (backendPort, httpVersion = http:HTTP_1_1);
-final http:Client scClient = check new ("http://localhost:" + serviceConfigTest.toString(), httpVersion = http:HTTP_1_1);
+final http:Client scClient = check new ("http://localhost:" + serviceConfigTestPort.toString(), httpVersion = http:HTTP_1_1);
 
 service /schello on backendEP {
     resource function get sayHello(http:Caller caller, http:Request request) returns error? {

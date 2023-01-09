@@ -20,8 +20,8 @@ import ballerina/lang.'string as strings;
 import ballerina/test;
 import ballerina/http_test_common as common;
 
-listener http:Listener resourceReturnTestEP = new (resourceReturnTest, httpVersion = http:HTTP_1_1);
-final http:Client resourceReturnTestClient = check new ("http://localhost:" + resourceReturnTest.toString(), httpVersion = http:HTTP_1_1);
+listener http:Listener resourceReturnTestEP = new (resourceReturnTestPort, httpVersion = http:HTTP_1_1);
+final http:Client resourceReturnTestClient = check new ("http://localhost:" + resourceReturnTestPort.toString(), httpVersion = http:HTTP_1_1);
 
 public type RetPerson record {
     string name;

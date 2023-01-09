@@ -22,8 +22,8 @@ import ballerina/test;
 import ballerina/file;
 import ballerina/http_test_common as common;
 
-int http2StreamTest1 = common:getHttp2Port(streamTest1);
-int http2StreamTest2 = common:getHttp2Port(streamTest2);
+int http2StreamTest1 = common:getHttp2Port(streamTestPort1);
+int http2StreamTest2 = common:getHttp2Port(streamTestPort2);
 
 final http:Client http2StreamTestClient = check new ("http://localhost:" + http2StreamTest1.toString(),
     http2Settings = {http2PriorKnowledge: true});

@@ -17,31 +17,31 @@
 import ballerina/http;
 import ballerina/test;
 
-listener http:Listener socketConfigListener = new(socketConfigListenerPort,
+listener http:Listener socketConfigListener = new (socketConfigListenerPort,
     httpVersion = http:HTTP_1_1,
     socketConfig = {
-        soBackLog : 100,
-        connectTimeOut : 15,
-        receiveBufferSize : 1048576,
-        sendBufferSize : 1048576,
-        tcpNoDelay : true,
-        socketReuse : false,
-        keepAlive : true
-    });
+    soBackLog: 100,
+    connectTimeOut: 15,
+    receiveBufferSize: 1048576,
+    sendBufferSize: 1048576,
+    tcpNoDelay: true,
+    socketReuse: false,
+    keepAlive: true
+});
 
-final http:Client socketConfigClient = check new("http://localhost:" + socketConfigListenerPort.toString(),
+final http:Client socketConfigClient = check new ("http://localhost:" + socketConfigListenerPort.toString(),
     httpVersion = http:HTTP_1_1,
     socketConfig = {
-        connectTimeOut : 15,
-        receiveBufferSize : 1048576,
-        sendBufferSize : 1048576,
-        tcpNoDelay : true,
-        socketReuse : false,
-        keepAlive : true
-    }
+    connectTimeOut: 15,
+    receiveBufferSize: 1048576,
+    sendBufferSize: 1048576,
+    tcpNoDelay: true,
+    socketReuse: false,
+    keepAlive: true
+}
 );
 
-service /serviceTest1 on socketConfigListener {
+service /serviceTestPort1 on socketConfigListener {
     resource function get .() returns string {
         return "Success";
     }
@@ -49,6 +49,6 @@ service /serviceTest1 on socketConfigListener {
 
 @test:Config {}
 function testSocketConfig() returns error? {
-    string payload = check socketConfigClient->get("/serviceTest1");
+    string payload = check socketConfigClient->get("/serviceTestPort1");
     test:assertEquals(payload, "Success", msg = "Found unexpected output");
 }

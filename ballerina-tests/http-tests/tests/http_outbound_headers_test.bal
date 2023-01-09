@@ -18,9 +18,9 @@ import ballerina/http;
 import ballerina/test;
 import ballerina/http_test_common as common;
 
-listener http:Listener outRequestOptionsTestEP = new (outRequestOptionsTest, httpVersion = http:HTTP_1_1);
+listener http:Listener outRequestOptionsTestEP = new (outRequestOptionsTestPort, httpVersion = http:HTTP_1_1);
 
-final http:Client outReqHeadClient = check new ("http://localhost:" + outRequestOptionsTest.toString(), httpVersion = http:HTTP_1_1);
+final http:Client outReqHeadClient = check new ("http://localhost:" + outRequestOptionsTestPort.toString(), httpVersion = http:HTTP_1_1);
 
 // Define the failover client 
 final http:FailoverClient outRequestFOClient = check new (
@@ -30,7 +30,7 @@ final http:FailoverClient outRequestFOClient = check new (
     interval = 5,
     targets = [
     {url: "http://localhost:3467/inavalidEP"},
-    {url: "http://localhost:" + outRequestOptionsTest.toString()}
+    {url: "http://localhost:" + outRequestOptionsTestPort.toString()}
 ]
 );
 
@@ -38,7 +38,7 @@ final http:FailoverClient outRequestFOClient = check new (
 final http:LoadBalanceClient outRequestLBClient = check new (
     httpVersion = http:HTTP_1_1,
     targets = [
-    {url: "http://localhost:" + outRequestOptionsTest.toString()}
+    {url: "http://localhost:" + outRequestOptionsTestPort.toString()}
 ],
     timeout = 5
 );

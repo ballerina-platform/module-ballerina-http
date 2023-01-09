@@ -18,10 +18,10 @@ import ballerina/test;
 import ballerina/http;
 import ballerina/http_test_common as common;
 
-listener http:Listener serviceEndpointTestEP = new (serviceEndpointTest, httpVersion = http:HTTP_1_1);
-final http:Client serviceEndpointClient = check new ("http://localhost:" + serviceEndpointTest.toString(), httpVersion = http:HTTP_1_1);
+listener http:Listener serviceEndpointTestPortEP = new (serviceEndpointTestPort, httpVersion = http:HTTP_1_1);
+final http:Client serviceEndpointClient = check new ("http://localhost:" + serviceEndpointTestPort.toString(), httpVersion = http:HTTP_1_1);
 
-service /serviceEndpointHello on serviceEndpointTestEP {
+service /serviceEndpointHello on serviceEndpointTestPortEP {
 
     resource function get protocol(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
@@ -72,7 +72,7 @@ function testLocalStructInConnection() {
         var payload = response.getJsonPayload();
         if payload is map<json> {
             map<json> localContent = <map<json>>payload["local"];
-            test:assertEquals(localContent["port"], serviceEndpointTest, msg = "Found unexpected output");
+            test:assertEquals(localContent["port"], serviceEndpointTestPort, msg = "Found unexpected output");
             test:assertEquals(localContent["address"], "127.0.0.1", msg = "Found unexpected output");
         } else if payload is error {
             test:assertFail(msg = "Found unexpected output type: " + payload.message());

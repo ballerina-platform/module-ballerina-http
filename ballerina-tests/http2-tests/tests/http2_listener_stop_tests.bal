@@ -13,11 +13,11 @@ service class HelloService {
 
 @test:Config {}
 public function testHttp2ListenerStop1() returns error? {
-    http:Listener serviceEP = check new (http2ListenerStopTest1);
+    http:Listener serviceEP = check new (http2ListenerStopTest);
     check serviceEP.attach(new HelloService());
     check serviceEP.'start();
 
-    http:Client client1 = check new ("localhost:" + http2ListenerStopTest1.toString());
+    http:Client client1 = check new ("localhost:" + http2ListenerStopTest.toString());
     string|error response = client1->/hello;
     if response is string {
         test:assertEquals(response, "Hello");
@@ -35,7 +35,7 @@ public function testHttp2ListenerStop1() returns error? {
         test:assertFail("Found unexpected output: " + response);
     }
 
-    http:Client client2 = check new ("localhost:" + http2ListenerStopTest1.toString());
+    http:Client client2 = check new ("localhost:" + http2ListenerStopTest.toString());
     response = client2->/hello;
     if response is error {
         test:assertEquals(response.message(), "Something wrong with the connection");
@@ -46,11 +46,11 @@ public function testHttp2ListenerStop1() returns error? {
 
 @test:Config {}
 public function testHttp2ListenerStop2() returns error? {
-    http:Listener serviceEP = check new (http2ListenerStopTest1);
+    http:Listener serviceEP = check new (http2ListenerStopTest);
     check serviceEP.attach(new HelloService());
     check serviceEP.'start();
 
-    http:Client client1 = check new ("localhost:" + http2ListenerStopTest1.toString(), http2Settings = {http2PriorKnowledge: true});
+    http:Client client1 = check new ("localhost:" + http2ListenerStopTest.toString(), http2Settings = {http2PriorKnowledge: true});
     string|error response = client1->/hello;
     if response is string {
         test:assertEquals(response, "Hello");
@@ -68,7 +68,7 @@ public function testHttp2ListenerStop2() returns error? {
         test:assertFail("Found unexpected output: " + response);
     }
 
-    http:Client client2 = check new ("localhost:" + http2ListenerStopTest1.toString(), http2Settings = {http2PriorKnowledge: true});
+    http:Client client2 = check new ("localhost:" + http2ListenerStopTest.toString(), http2Settings = {http2PriorKnowledge: true});
     response = client2->/hello;
     if response is error {
         test:assertEquals(response.message(), "Something wrong with the connection");

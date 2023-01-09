@@ -19,8 +19,8 @@ import ballerina/test;
 import ballerina/http;
 import ballerina/http_test_common as common;
 
-listener http:Listener serviceTestEP = new (serviceTest, httpVersion = http:HTTP_1_1);
-final http:Client stClient = check new ("http://localhost:" + serviceTest.toString(), httpVersion = http:HTTP_1_1);
+listener http:Listener serviceTestPortEP = new (serviceTestPort, httpVersion = http:HTTP_1_1);
+final http:Client stClient = check new ("http://localhost:" + serviceTestPort.toString(), httpVersion = http:HTTP_1_1);
 
 isolated string globalLevelStr = "";
 
@@ -36,7 +36,7 @@ isolated function getGlobalValue() returns string {
     }
 }
 
-service /echo on serviceTestEP {
+service /echo on serviceTestPortEP {
 
     resource function get message(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
@@ -148,7 +148,7 @@ service /echo on serviceTestEP {
 }
 
 @http:ServiceConfig {}
-service /hello on serviceTestEP {
+service /hello on serviceTestPortEP {
 
     @http:ResourceConfig {}
     resource function 'default echo(http:Caller caller, http:Request req) returns error? {

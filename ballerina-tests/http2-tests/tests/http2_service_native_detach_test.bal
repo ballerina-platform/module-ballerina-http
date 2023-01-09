@@ -19,7 +19,7 @@ import ballerina/test;
 import ballerina/http;
 import ballerina/http_test_common as common;
 
-int http2ServiceDetachTest = common:getHttp2Port(serviceDetachTest);
+int http2ServiceDetachTest = common:getHttp2Port(serviceDetachTestPort);
 
 listener http:Listener http2ServiceDetachTestEP = new (http2ServiceDetachTest);
 final http:Client http2ServiceDetachClient = check new ("http://localhost:" + http2ServiceDetachTest.toString(),

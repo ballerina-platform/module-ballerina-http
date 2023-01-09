@@ -22,7 +22,6 @@ public type Person record {|
     int age;
 |};
 
-
 service class DefaultRequestInterceptor {
     *http:RequestInterceptor;
 

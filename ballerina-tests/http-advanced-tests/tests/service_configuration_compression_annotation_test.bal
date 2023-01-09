@@ -18,8 +18,8 @@ import ballerina/test;
 import ballerina/http;
 import ballerina/http_test_common as common;
 
-listener http:Listener compressionTestEP = new (CompressionConfigTest, httpVersion = http:HTTP_1_1);
-final http:Client compressionClient = check new ("http://localhost:" + CompressionConfigTest.toString(), httpVersion = http:HTTP_1_1);
+listener http:Listener compressionTestEP = new (compressionConfigTestPort, httpVersion = http:HTTP_1_1);
+final http:Client compressionClient = check new ("http://localhost:" + compressionConfigTestPort.toString(), httpVersion = http:HTTP_1_1);
 
 @http:ServiceConfig {compression: {enable: http:COMPRESSION_AUTO}}
 service /autoCompress on compressionTestEP {

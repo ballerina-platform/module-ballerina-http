@@ -196,6 +196,19 @@ const string ACCESS_TOKEN_1 = "2YotnFZFEjr1zCsicMWpAA";
 const string ACCESS_TOKEN_2 = "1zCsicMWpAA2YotnFZFEjr";
 const string ACCESS_TOKEN_3 = "invalid-token";
 
+http:ListenerConfiguration http2SslServiceConf = {
+    secureSocket: {
+        key: {
+            path: common:KEYSTORE_PATH,
+            password: "ballerina"
+        }
+    }
+};
+
+listener http:Listener generalHTTP2Listener = new http:Listener(http2GeneralPort);
+listener http:Listener generalHTTPS2Listener = new http:Listener(http2SslGeneralPort, http2SslServiceConf);
+
+
 isolated function createDummyRequest() returns http:Request {
     http:Request request = new;
     request.rawPath = "/foo/bar";
