@@ -2,11 +2,3 @@
 org = "ballerina"
 name = "@package.name@"
 version = "@toml.version@"
-
-[[platform.java11.dependency]]
-scope = "testOnly"
-path = "../../native/build/libs/http-native-@project.version@.jar"
-
-[[platform.java11.dependency]]
-scope = "testOnly"
-path = "../../test-utils/build/libs/http-test-utils-@project.version@.jar"
