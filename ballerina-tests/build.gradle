@@ -99,9 +99,9 @@ task updateTomlVersions {
 
 task commitTomlFiles {
     doLast {
-        def files = "${testCommonPackage}/Ballerina.toml "
+        def files = "${testCommonPackage}/Ballerina.toml ${testCommonPackage}/Dependencies.toml "
         testPackages.each{ testPackage ->
-            files += "${testPackage}/Ballerina.toml "
+            files += "${testPackage}/Ballerina.toml ${testPackage}/Dependencies.toml "
         }
 
         project.exec {
