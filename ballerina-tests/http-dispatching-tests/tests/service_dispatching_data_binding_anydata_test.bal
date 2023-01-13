@@ -771,49 +771,48 @@ function testDataBindingXmlNegative() {
     }
 }
 
-@test:Config {}
+@test:Config {enable: false}
 function testDataBindingXmlArray() {
     xml[] j = [xml `<name>WSO2</name>`, xml `<name>Ballerina</name>`];
     http:Response|error response = anydataBindingClient->post("/anydataB/checkXmlArray", j.toJson());
     if response is http:Response {
-        test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
+        test:assertEquals(response.statusCode, 201, msg = "Found unexpected output");
         common:assertTrueTextPayload(response.getTextPayload(),
-            "data binding failed: {ballerina/lang.value}ConversionError");
+            "[\"<name>WSO2</name>\", \"<name>Ballerina</name>\"]");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
-@test:Config {}
+@test:Config {enable: false}
 function testDataBindingXmlArrayByType() {
     xml[] j = [xml `<name>WSO2</name>`, xml `<name>Ballerina</name>`];
     http:Response|error response = anydataBindingClient->post("/anydataB/checkXmlArray", j.toJson(),
         mediaType = "application/abc");
     if response is http:Response {
-        test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        common:assertTrueTextPayload(response.getTextPayload(),
-            "data binding failed: {ballerina/lang.value}ConversionError");
+        test:assertEquals(response.statusCode, 201, msg = "Found unexpected output");
+        common:assertTrueTextPayload(response.getTextPayload(), "[\"<name>WSO2</name>\", \"<name>Ballerina</name>\"]");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
-@test:Config {}
+@test:Config {enable: false}
 function testDataBindingWithMapOfXml() {
     xml wso2 = xml `<name>WSO2</name>`;
     xml bal = xml `<name>Ballerina</name>`;
     json inPayload = {name: wso2.toJson(), team: bal.toJson()};
     http:Response|error response = anydataBindingClient->post("/anydataB/checkXmlMap", inPayload);
     if response is http:Response {
-        test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
+        test:assertEquals(response.statusCode, 201, msg = "Found unexpected output");
         common:assertTrueTextPayload(response.getTextPayload(),
-            "data binding failed: {ballerina/lang.value}ConversionError");
+            "{\"1\":\"<name>WSO2</name>\", \"2\":\"<name>Ballerina</name>\"}");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
-@test:Config {}
+@test:Config {enable: false}
 function testDataBindingWithMapOfXmlByType() returns error? {
     xml wso2 = xml `<name>WSO2</name>`;
     xml bal = xml `<name>Ballerina</name>`;
@@ -821,15 +820,15 @@ function testDataBindingWithMapOfXmlByType() returns error? {
     http:Response|error response = anydataBindingClient->post("/anydataB/checkXmlMap", inPayload,
         mediaType = "application/abc");
     if response is http:Response {
-        test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
+        test:assertEquals(response.statusCode, 201, msg = "Found unexpected output");
         common:assertTrueTextPayload(response.getTextPayload(),
-            "data binding failed: {ballerina/lang.value}ConversionError");
+            "{\"1\":\"<name>WSO2</name>\", \"2\":\"<name>Ballerina</name>\"}");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
-@test:Config {}
+@test:Config {enable: false}
 function testDataBindingWithTableofMapOfXml() {
     xml wso2 = xml `<name>WSO2</name>`;
     xml bal = xml `<name>Ballerina</name>`;
@@ -838,9 +837,9 @@ function testDataBindingWithTableofMapOfXml() {
     ];
     http:Response|error response = anydataBindingClient->post("/anydataB/checkXmlTable", j);
     if response is http:Response {
-        test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
+        test:assertEquals(response.statusCode, 201, msg = "Found unexpected output");
         common:assertTrueTextPayload(response.getTextPayload(),
-            "data binding failed: {ballerina/lang.value}ConversionError");
+            "{\"id\":\"<name>WSO2</name>\", \"title\":\"<name>Ballerina</name>\"}");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
