@@ -771,7 +771,7 @@ function testDataBindingXmlNegative() {
     }
 }
 
-// enable after fixing https://github.com/ballerina-platform/ballerina-lang/issues/38715
+// TODO: enable after fixing https://github.com/ballerina-platform/ballerina-lang/issues/38715
 @test:Config {enable: false}
 function testDataBindingXmlArray() {
     xml[] j = [xml `<name>WSO2</name>`, xml `<name>Ballerina</name>`];
@@ -785,7 +785,7 @@ function testDataBindingXmlArray() {
     }
 }
 
-// enable after fixing https://github.com/ballerina-platform/ballerina-lang/issues/38715
+// TODO: enable after fixing https://github.com/ballerina-platform/ballerina-lang/issues/38715
 @test:Config {enable: false}
 function testDataBindingXmlArrayByType() {
     xml[] j = [xml `<name>WSO2</name>`, xml `<name>Ballerina</name>`];
@@ -799,7 +799,7 @@ function testDataBindingXmlArrayByType() {
     }
 }
 
-// enable after fixing https://github.com/ballerina-platform/ballerina-lang/issues/38715
+// TODO: enable after fixing https://github.com/ballerina-platform/ballerina-lang/issues/38715
 @test:Config {enable: false}
 function testDataBindingWithMapOfXml() {
     xml wso2 = xml `<name>WSO2</name>`;
@@ -815,7 +815,7 @@ function testDataBindingWithMapOfXml() {
     }
 }
 
-// enable after fixing https://github.com/ballerina-platform/ballerina-lang/issues/38715
+// TODO: enable after fixing https://github.com/ballerina-platform/ballerina-lang/issues/38715
 @test:Config {enable: false}
 function testDataBindingWithMapOfXmlByType() returns error? {
     xml wso2 = xml `<name>WSO2</name>`;
@@ -832,7 +832,7 @@ function testDataBindingWithMapOfXmlByType() returns error? {
     }
 }
 
-// enable after fixing https://github.com/ballerina-platform/ballerina-lang/issues/38715
+// TODO: enable after fixing https://github.com/ballerina-platform/ballerina-lang/issues/38715
 @test:Config {enable: false}
 function testDataBindingWithTableofMapOfXml() {
     xml wso2 = xml `<name>WSO2</name>`;
