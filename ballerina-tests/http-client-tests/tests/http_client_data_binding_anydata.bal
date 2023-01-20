@@ -357,7 +357,7 @@ function testIntTableDatabinding() returns error? {
 
 @test:Config {}
 function testIntTableOrMapofIntArrayDatabinding() returns error? {
-    table<map<int>>|map<int>[] response = check clientDBBackendClient->get("/anydataTest/intTableType");
+    map<int>[]|table<map<int>> response = check clientDBBackendClient->get("/anydataTest/intTableType");
     if response is map<int>[] {
         map<int> entry = response[0];
         int? val1 = entry["id"];
