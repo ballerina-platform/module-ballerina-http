@@ -46,6 +46,7 @@ import java.util.Optional;
 
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_CONTEXT_OBJ_NAME;
+import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.RESPONSE_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.getCtxTypes;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.subtypeOf;
@@ -223,6 +224,7 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
     private static void validateInputParamType(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
                                                String type, Map<String, TypeSymbol> typeSymbols) {
         boolean callerPresent = false;
+        boolean requestPresent = false;
         boolean responsePresent = false;
         boolean requestCtxPresent = false;
         boolean errorPresent = false;
@@ -250,6 +252,9 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
             if (subtypeOf(typeSymbols, typeSymbol, CALLER_OBJ_NAME)) {
                 callerPresent = isObjectPresent(ctx, paramLocation, callerPresent, paramName,
                         HttpDiagnosticCodes.HTTP_115);
+            } else if (subtypeOf(typeSymbols, typeSymbol, REQUEST_OBJ_NAME)) {
+                requestPresent = isObjectPresent(ctx, paramLocation, requestPresent, paramName,
+                        HttpDiagnosticCodes.HTTP_116);
             } else if (subtypeOf(typeSymbols, typeSymbol, RESPONSE_OBJ_NAME)) {
                 responsePresent = isObjectPresent(ctx, paramLocation, responsePresent, paramName,
                         HttpDiagnosticCodes.HTTP_139);

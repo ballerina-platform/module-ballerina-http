@@ -259,7 +259,9 @@ public class HttpDispatcher {
 
     public static Object[] getRemoteSignatureParameters(InterceptorService service, BObject response, BObject caller,
                                                         HttpCarbonMessage httpCarbonMessage, Runtime runtime) {
+        BObject inRequest = null;
         BObject requestCtx = getRequestCtx(httpCarbonMessage, runtime);
+        BObject entityObj = (BObject) httpCarbonMessage.getProperty(HttpConstants.ENTITY_OBJ);
         populatePropertiesForResponsePath(httpCarbonMessage, requestCtx);
         BError error = (BError) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
         RemoteMethodParamHandler paramHandler = service.getRemoteMethodParamHandler();
@@ -271,6 +273,14 @@ public class HttpDispatcher {
                 case HttpConstants.REQUEST_CONTEXT:
                     int index = ((NonRecurringParam) param).getIndex();
                     paramFeed[index++] = requestCtx;
+                    paramFeed[index] = true;
+                    break;
+                case HttpConstants.REQUEST:
+                    if (inRequest == null) {
+                        inRequest = createRequest(httpCarbonMessage, entityObj);
+                    }
+                    index = ((NonRecurringParam) param).getIndex();
+                    paramFeed[index++] = inRequest;
                     paramFeed[index] = true;
                     break;
                 case HttpConstants.STRUCT_GENERIC_ERROR:

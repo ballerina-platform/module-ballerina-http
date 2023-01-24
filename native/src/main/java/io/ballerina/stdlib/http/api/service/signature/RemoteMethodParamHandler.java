@@ -39,6 +39,7 @@ public class RemoteMethodParamHandler {
 
     private static final String RES_TYPE = PROTOCOL_HTTP + COLON + HttpConstants.RESPONSE;
     private static final String REQUEST_CONTEXT_TYPE = PROTOCOL_HTTP + COLON + HttpConstants.REQUEST_CONTEXT;
+    private static final String REQ_TYPE = PROTOCOL_HTTP + COLON + HttpConstants.REQUEST;
     private static final String CALLER_TYPE = PROTOCOL_HTTP + COLON + HttpConstants.CALLER;
 
     public RemoteMethodParamHandler(RemoteMethodType remoteMethod) {
@@ -54,6 +55,10 @@ public class RemoteMethodParamHandler {
                 case REQUEST_CONTEXT_TYPE:
                     NonRecurringParam requestContextParam = new NonRecurringParam(index, HttpConstants.REQUEST_CONTEXT);
                     getOtherParamList().add(requestContextParam);
+                    break;
+                case REQ_TYPE:
+                    NonRecurringParam requestParam = new NonRecurringParam(index, HttpConstants.REQUEST);
+                    getOtherParamList().add(requestParam);
                     break;
                 case HttpConstants.STRUCT_GENERIC_ERROR:
                     NonRecurringParam interceptorErrorParam = new NonRecurringParam(index,
