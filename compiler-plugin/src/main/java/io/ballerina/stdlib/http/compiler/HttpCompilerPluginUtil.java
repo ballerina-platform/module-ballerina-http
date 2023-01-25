@@ -149,7 +149,7 @@ public class HttpCompilerPluginUtil {
         } else if (kind == TypeDescKind.ARRAY) {
             TypeSymbol memberTypeDescriptor = ((ArrayTypeSymbol) returnTypeSymbol).memberTypeDescriptor();
             validateArrayElementTypeInReturnType(
-                    ctx, node, returnTypeStringValue, memberTypeDescriptor, diagnosticCode);
+                    ctx, node, returnTypeStringValue, memberTypeDescriptor, diagnosticCode, isInterceptorType);
         } else if (kind == TypeDescKind.TYPE_REFERENCE) {
             TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) returnTypeSymbol).typeDescriptor();
             TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
@@ -184,7 +184,8 @@ public class HttpCompilerPluginUtil {
 
     private static void validateArrayElementTypeInReturnType(SyntaxNodeAnalysisContext ctx, Node node,
                                                              String typeStringValue, TypeSymbol memberTypeDescriptor,
-                                                             HttpDiagnosticCodes diagnosticCode) {
+                                                             HttpDiagnosticCodes diagnosticCode,
+                                                             boolean isInterceptorType) {
         TypeDescKind kind = memberTypeDescriptor.typeKind();
         if (isAllowedReturnType(kind) || kind == TypeDescKind.RECORD || kind == TypeDescKind.MAP ||
                 kind == TypeDescKind.TABLE) {
@@ -192,17 +193,22 @@ public class HttpCompilerPluginUtil {
         }
         if (kind == TypeDescKind.INTERSECTION) {
             TypeSymbol typeSymbol = ((IntersectionTypeSymbol) memberTypeDescriptor).effectiveTypeDescriptor();
-            validateArrayElementTypeInReturnType(ctx, node, typeStringValue, typeSymbol, diagnosticCode);
+            validateArrayElementTypeInReturnType(ctx, node, typeStringValue, typeSymbol,
+                    diagnosticCode, isInterceptorType);
         } else if (kind == TypeDescKind.TYPE_REFERENCE) {
             TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) memberTypeDescriptor).typeDescriptor();
             TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
-            if (typeDescKind != TypeDescKind.RECORD && typeDescKind != TypeDescKind.MAP &&
-                    typeDescKind != TypeDescKind.TABLE) {
-                reportInvalidReturnType(ctx, node, typeStringValue, diagnosticCode);
+            if (typeDescKind == TypeDescKind.OBJECT) {
+                if (!isHttpModuleType(RESPONSE_OBJ_NAME, typeDescriptor)) {
+                    reportInvalidReturnType(ctx, node, typeStringValue, diagnosticCode);
+                }
+            } else {
+                validateReturnType(ctx, node, typeStringValue, typeDescriptor, diagnosticCode, isInterceptorType);
             }
         } else if (kind == TypeDescKind.ARRAY) {
             memberTypeDescriptor = ((ArrayTypeSymbol) memberTypeDescriptor).memberTypeDescriptor();
-            validateArrayElementTypeInReturnType(ctx, node, typeStringValue, memberTypeDescriptor, diagnosticCode);
+            validateArrayElementTypeInReturnType(ctx, node, typeStringValue, memberTypeDescriptor,
+                    diagnosticCode, isInterceptorType);
         } else {
             reportInvalidReturnType(ctx, node, typeStringValue, diagnosticCode);
         }
