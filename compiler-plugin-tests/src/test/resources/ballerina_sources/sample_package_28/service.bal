@@ -97,7 +97,7 @@ service on new http:Listener(4000) {
         return [response];
     }
 
-    resource function hello11 [string... path]() returns TestRecord11[] {;
+    resource function hello11 [string... path]() returns TestRecord11[] {
         return [xml`<A>Test</A>`];
     }
 }
