@@ -21,7 +21,7 @@ import http_service_tests.records;
 public type TestRecord records:RecordA|records:RecordA;
 
 service /unionReturnType on generalListener {
-    resource function unionResponse [string... path]() returns TestRecord[] {
+    resource function get unionResponse() returns TestRecord[] {
         records:RecordA response = {
             capacity: 10,
             elevationgain: 120,
