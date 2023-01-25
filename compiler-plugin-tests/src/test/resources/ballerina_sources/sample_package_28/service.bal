@@ -45,6 +45,8 @@ type TestRecord9 RecordA|error;
 
 type TestRecord10 records:RecordC|records:RecordD;
 
+type TestRecord11 records:RecordC|xml;
+
 service on new http:Listener(4000) {
 
     resource function hello1 [string... path]() returns TestRecord1[] {
@@ -93,5 +95,9 @@ service on new http:Listener(4000) {
             status: records:HOLD
         };
         return [response];
+    }
+
+    resource function hello11 [string... path]() returns TestRecord11[] {;
+        return [xml`<A>Test</A>`];
     }
 }
