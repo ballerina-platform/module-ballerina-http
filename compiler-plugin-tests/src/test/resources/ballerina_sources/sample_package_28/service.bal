@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/http;
+import sample_28.records;
 
 type RecordA record {|
     string name;
@@ -41,6 +42,8 @@ type TestRecord7 int|table<map<string>>;
 type TestRecord8 int|http:StatusCodeResponse;
 
 type TestRecord9 RecordA|error;
+
+type TestRecord10 records:RecordC|records:RecordD;
 
 service on new http:Listener(4000) {
 
@@ -78,5 +81,17 @@ service on new http:Listener(4000) {
 
     resource function hello9 [string... path]() returns TestRecord9[] {
         return [{name: "Hello, World"}];
+    }
+
+    resource function hello10 [string... path]() returns TestRecord10[] {
+        records:RecordC response = {
+            capacity: 10,
+            elevationgain: 120,
+            id: "2",
+            name: "Test",
+            night: false,
+            status: records:HOLD
+        };
+        return [response];
     }
 }
