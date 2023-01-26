@@ -32,6 +32,12 @@ type TestRecord3 RecordA|http:Client;
 
 type TestRecord4 RecordB|http:Client;
 
+type TestRecord5 RecordA|http:Response;
+
+type TestRecord6 int|http:StatusCodeResponse;
+
+type TestRecord7 RecordA|error;
+
 service on new http:Listener(4000) {
 
     resource function hello1 [string... path]() returns TestRecord1[] {
@@ -47,6 +53,26 @@ service on new http:Listener(4000) {
     }
 
     resource function hello4 [string... path]() returns TestRecord4[] {
-            return [{age: 12}];
-        }
+        return [{age: 12}];
+    }
+
+    resource function hello5 [string... path]() returns TestRecord5[] {
+        return [{name: "Hello, World"}];
+    }
+
+    resource function hello6 [string... path]() returns TestRecord6[] {
+        return [12];
+    }
+
+    resource function hello7 [string... path]() returns TestRecord7[] {
+        return [{name: "Hello, World"}];
+    }
+
+    resource function hello8 [string... path]() returns http:StatusCodeResponse[] {
+        return [http:ACCEPTED];
+    }
+
+    resource function hello9 [string... path]() returns error[] {
+        return [error("Test error")];
+    }
 }

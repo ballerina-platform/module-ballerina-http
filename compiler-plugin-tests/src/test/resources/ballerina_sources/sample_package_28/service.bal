@@ -31,21 +31,15 @@ type TestRecord2 RecordA|RecordB;
 
 type TestRecord3 RecordA|string;
 
-type TestRecord4 RecordA|http:Response;
+type TestRecord4 RecordA|map<string>;
 
-type TestRecord5 RecordA|map<string>;
+type TestRecord5 RecordA|table<map<string>>;
 
-type TestRecord6 RecordA|table<map<string>>;
+type TestRecord6 int|table<map<string>>;
 
-type TestRecord7 int|table<map<string>>;
+type TestRecord7 records:RecordC|records:RecordD;
 
-type TestRecord8 int|http:StatusCodeResponse;
-
-type TestRecord9 RecordA|error;
-
-type TestRecord10 records:RecordC|records:RecordD;
-
-type TestRecord11 records:RecordC|xml;
+type TestRecord8 records:RecordC|xml;
 
 service on new http:Listener(4000) {
 
@@ -62,30 +56,18 @@ service on new http:Listener(4000) {
     }
 
     resource function hello4 [string... path]() returns TestRecord4[] {
-        return [{name: "Hello, World"}];
-    }
-
-    resource function hello5 [string... path]() returns TestRecord5[] {
         return [{}];
     }
 
-    resource function hello6 [string... path]() returns TestRecord6[] {
+    resource function hello5 [string... path]() returns TestRecord5[] {
         return [{name: "Hello, World"}];
+    }
+
+    resource function hello6 [string... path]() returns TestRecord6[] {
+        return [1];
     }
 
     resource function hello7 [string... path]() returns TestRecord7[] {
-        return [1];
-    }
-
-    resource function hello8 [string... path]() returns TestRecord8[] {
-        return [1];
-    }
-
-    resource function hello9 [string... path]() returns TestRecord9[] {
-        return [{name: "Hello, World"}];
-    }
-
-    resource function hello10 [string... path]() returns TestRecord10[] {
         records:RecordC response = {
             capacity: 10,
             elevationgain: 120,
@@ -97,7 +79,7 @@ service on new http:Listener(4000) {
         return [response];
     }
 
-    resource function hello11 [string... path]() returns TestRecord11[] {
+    resource function hello8 [string... path]() returns TestRecord8[] {
         return [xml`<A>Test</A>`];
     }
 }

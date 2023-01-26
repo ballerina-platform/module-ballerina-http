@@ -645,7 +645,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_29");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 4);
+        Assert.assertEquals(diagnosticResult.errorCount(), 9);
         assertTrue(diagnosticResult, 0, "invalid resource method return type: expected " +
                 "'anydata|http:Response|http:StatusCodeResponse|error', but found 'TestRecord1[]'", HTTP_102);
         assertTrue(diagnosticResult, 1, "invalid resource method return type: expected " +
@@ -654,5 +654,15 @@ public class CompilerPluginTest {
                 "'anydata|http:Response|http:StatusCodeResponse|error', but found 'TestRecord3[]'", HTTP_102);
         assertTrue(diagnosticResult, 3, "invalid resource method return type: expected " +
                 "'anydata|http:Response|http:StatusCodeResponse|error', but found 'TestRecord4[]'", HTTP_102);
+        assertTrue(diagnosticResult, 4, "invalid resource method return type: expected " +
+                "'anydata|http:Response|http:StatusCodeResponse|error', but found 'TestRecord5[]'", HTTP_102);
+        assertTrue(diagnosticResult, 5, "invalid resource method return type: expected " +
+                "'anydata|http:Response|http:StatusCodeResponse|error', but found 'TestRecord6[]'", HTTP_102);
+        assertTrue(diagnosticResult, 6, "invalid resource method return type: expected " +
+                "'anydata|http:Response|http:StatusCodeResponse|error', but found 'TestRecord7[]'", HTTP_102);
+        assertTrue(diagnosticResult, 7, "invalid resource method return type: expected " +
+                "'anydata|http:Response|http:StatusCodeResponse|error', but found 'http:StatusCodeResponse[]'", HTTP_102);
+        assertTrue(diagnosticResult, 8, "invalid resource method return type: expected " +
+                "'anydata|http:Response|http:StatusCodeResponse|error', but found 'error[]'", HTTP_102);
     }
 }

@@ -149,7 +149,7 @@ public class HttpCompilerPluginUtil {
         } else if (kind == TypeDescKind.ARRAY) {
             TypeSymbol memberTypeDescriptor = ((ArrayTypeSymbol) returnTypeSymbol).memberTypeDescriptor();
             validateArrayElementTypeInReturnType(
-                    ctx, node, returnTypeStringValue, memberTypeDescriptor, diagnosticCode, isInterceptorType);
+                    ctx, node, returnTypeStringValue, memberTypeDescriptor, diagnosticCode);
         } else if (kind == TypeDescKind.TYPE_REFERENCE) {
             TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) returnTypeSymbol).typeDescriptor();
             TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
@@ -162,13 +162,13 @@ public class HttpCompilerPluginUtil {
             }
         } else if (kind == TypeDescKind.MAP) {
             TypeSymbol typeSymbol = ((MapTypeSymbol) returnTypeSymbol).typeParam();
-            validateReturnType(ctx, node, returnTypeStringValue, typeSymbol, diagnosticCode, isInterceptorType);
+            validateReturnType(ctx, node, returnTypeStringValue, typeSymbol, diagnosticCode, false);
         } else if (kind == TypeDescKind.TABLE) {
             TypeSymbol typeSymbol = ((TableTypeSymbol) returnTypeSymbol).rowTypeParameter();
             if (typeSymbol == null) {
                 reportInvalidReturnType(ctx, node, returnTypeStringValue, diagnosticCode);
             } else {
-                validateReturnType(ctx, node, returnTypeStringValue, typeSymbol, diagnosticCode, isInterceptorType);
+                validateReturnType(ctx, node, returnTypeStringValue, typeSymbol, diagnosticCode, false);
             }
         } else {
             reportInvalidReturnType(ctx, node, returnTypeStringValue, diagnosticCode);
@@ -184,8 +184,7 @@ public class HttpCompilerPluginUtil {
 
     private static void validateArrayElementTypeInReturnType(SyntaxNodeAnalysisContext ctx, Node node,
                                                              String typeStringValue, TypeSymbol memberTypeDescriptor,
-                                                             HttpDiagnosticCodes diagnosticCode,
-                                                             boolean isInterceptorType) {
+                                                             HttpDiagnosticCodes diagnosticCode) {
         TypeDescKind kind = memberTypeDescriptor.typeKind();
         if (isAllowedReturnType(kind) || kind == TypeDescKind.RECORD || kind == TypeDescKind.MAP ||
                 kind == TypeDescKind.TABLE) {
@@ -194,24 +193,53 @@ public class HttpCompilerPluginUtil {
         if (kind == TypeDescKind.INTERSECTION) {
             TypeSymbol typeSymbol = ((IntersectionTypeSymbol) memberTypeDescriptor).effectiveTypeDescriptor();
             validateArrayElementTypeInReturnType(ctx, node, typeStringValue, typeSymbol,
-                    diagnosticCode, isInterceptorType);
+                    diagnosticCode);
         } else if (kind == TypeDescKind.TYPE_REFERENCE) {
+            if (isStatusCodeResponseType((TypeReferenceTypeSymbol) memberTypeDescriptor)) {
+                reportInvalidReturnType(ctx, node, typeStringValue, diagnosticCode);
+                return;
+            }
             TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) memberTypeDescriptor).typeDescriptor();
             TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
-            if (typeDescKind == TypeDescKind.OBJECT) {
-                if (!isHttpModuleType(RESPONSE_OBJ_NAME, typeDescriptor)) {
-                    reportInvalidReturnType(ctx, node, typeStringValue, diagnosticCode);
+            if (typeDescKind == TypeDescKind.OBJECT || typeDescKind == TypeDescKind.ERROR) {
+                reportInvalidReturnType(ctx, node, typeStringValue, diagnosticCode);
+            } else if (typeDescKind == TypeDescKind.UNION) {
+                List<TypeSymbol> typeSymbols = ((UnionTypeSymbol) typeDescriptor).userSpecifiedMemberTypes();
+                for (TypeSymbol typeSymbol : typeSymbols) {
+                    TypeDescKind effectiveTypeDesc = retrieveEffectiveTypeDesc(typeSymbol);
+                    if (effectiveTypeDesc == TypeDescKind.OBJECT || effectiveTypeDesc == TypeDescKind.ERROR) {
+                        reportInvalidReturnType(ctx, node, typeStringValue, diagnosticCode);
+                        return;
+                    } else if (effectiveTypeDesc == TypeDescKind.TYPE_REFERENCE) {
+                        if (isStatusCodeResponseType((TypeReferenceTypeSymbol) typeSymbol)) {
+                            reportInvalidReturnType(ctx, node, typeStringValue, diagnosticCode);
+                            return;
+                        }
+                        Optional<String> definitionName = ((TypeReferenceTypeSymbol) typeSymbol).definition().getName();
+                        if (definitionName.isPresent() && definitionName.get().equals("StatusCodeResponse")) {
+                            reportInvalidReturnType(ctx, node, typeStringValue, diagnosticCode);
+                            return;
+                        }
+                        validateArrayElementTypeInReturnType(ctx, node, typeStringValue, typeSymbol, diagnosticCode);
+                    } else {
+                        validateReturnType(ctx, node, typeStringValue, typeSymbol, diagnosticCode, false);
+                    }
                 }
             } else {
-                validateReturnType(ctx, node, typeStringValue, typeDescriptor, diagnosticCode, isInterceptorType);
+                validateReturnType(ctx, node, typeStringValue, typeDescriptor, diagnosticCode, false);
             }
         } else if (kind == TypeDescKind.ARRAY) {
             memberTypeDescriptor = ((ArrayTypeSymbol) memberTypeDescriptor).memberTypeDescriptor();
             validateArrayElementTypeInReturnType(ctx, node, typeStringValue, memberTypeDescriptor,
-                    diagnosticCode, isInterceptorType);
+                    diagnosticCode);
         } else {
             reportInvalidReturnType(ctx, node, typeStringValue, diagnosticCode);
         }
+    }
+
+    public static boolean isStatusCodeResponseType(TypeReferenceTypeSymbol typeSymbol) {
+        Optional<String> definitionName = typeSymbol.definition().getName();
+        return definitionName.isPresent() && definitionName.get().equals("StatusCodeResponse");
     }
 
     public static boolean isHttpModuleType(String expectedType, TypeSymbol typeDescriptor) {
