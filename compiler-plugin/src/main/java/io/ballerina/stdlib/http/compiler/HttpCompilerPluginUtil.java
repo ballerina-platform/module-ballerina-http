@@ -238,8 +238,10 @@ public class HttpCompilerPluginUtil {
     }
 
     public static boolean isStatusCodeResponseType(TypeReferenceTypeSymbol typeSymbol) {
-        Optional<String> definitionName = typeSymbol.definition().getName();
-        return definitionName.isPresent() && definitionName.get().equals("StatusCodeResponse");
+        if (typeSymbol.getName().isPresent()) {
+            return typeSymbol.getName().get().equals("StatusCodeResponse");
+        }
+        return false;
     }
 
     public static boolean isHttpModuleType(String expectedType, TypeSymbol typeDescriptor) {
