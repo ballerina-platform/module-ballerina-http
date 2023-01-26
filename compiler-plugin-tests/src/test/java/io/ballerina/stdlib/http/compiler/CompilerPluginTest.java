@@ -660,8 +660,8 @@ public class CompilerPluginTest {
                 "'anydata|http:Response|http:StatusCodeResponse|error', but found 'TestRecord6[]'", HTTP_102);
         assertTrue(diagnosticResult, 6, "invalid resource method return type: expected " +
                 "'anydata|http:Response|http:StatusCodeResponse|error', but found 'TestRecord7[]'", HTTP_102);
-        assertTrue(diagnosticResult, 7, "invalid resource method return type: expected " +
-                "'anydata|http:Response|http:StatusCodeResponse|error', but found 'http:StatusCodeResponse[]'", HTTP_102);
+        assertTrue(diagnosticResult, 7, "invalid resource method return type: expected 'anydata|" +
+                "http:Response|http:StatusCodeResponse|error', but found 'http:StatusCodeResponse[]'", HTTP_102);
         assertTrue(diagnosticResult, 8, "invalid resource method return type: expected " +
                 "'anydata|http:Response|http:StatusCodeResponse|error', but found 'error[]'", HTTP_102);
     }
