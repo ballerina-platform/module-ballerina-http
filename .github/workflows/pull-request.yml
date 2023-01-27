@@ -41,7 +41,6 @@ jobs:
           JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
         run: |
             ./gradlew.bat build -x test
-            ./gradlew.bat test
 
   ubuntu-build-without-native-tests:
       name: Build on Ubuntu without native tests

@@ -104,6 +104,9 @@ dependencies {
     externalJars(group: 'io.netty', name: 'netty-codec-http2', version: "${nettyVersion}") {
         transitive = false
     }
+    externalJars(group: 'io.netty', name: 'netty-transport-native-unix-common', version: "${nettyVersion}") {
+        transitive = false
+    }
     externalJars(group: 'commons-pool.wso2', name: 'commons-pool', version: "${wso2CommonsPoolVersion}") {
         transitive = false
     }
@@ -128,7 +131,17 @@ dependencies {
     externalJars(group: 'org.jvnet.mimepull', name: 'mimepull', version: "${mimepullVersion}") {
         transitive = false
     }
-    externalJars(group: 'org.testng', name: 'testng', version: "${testngVersion}") {
+
+    externalJars(group: 'io.netty', name: 'netty-codec-socks', version: "${nettyVersion}") {
+        transitive = false
+    }
+    externalJars(group: 'net.jpountz.lz4', name: 'lz4', version: "${lz4Version}") {
+        transitive = false
+    }
+    externalJars(group: 'org.jboss.marshalling', name: 'jboss-marshalling', version: "${marshallingVersion}") {
+        transitive = false
+    }
+    externalJars(group: 'com.google.protobuf', name: 'protobuf-java', version: "${protobufVersion}") {
         transitive = false
     }
 }
@@ -145,6 +158,9 @@ task updateTomlFiles {
         def stdlibDependentNettyTcnativeVersion = project.nettyTcnativeVersion
         def stdlibDependentMimepullVersion = project.mimepullVersion
         def stdlibDependentTestngVersion = project.testngVersion
+        def stdlibDependentLz4Version = project.lz4Version
+        def stdlibDependentMarshallingVersion = project.marshallingVersion
+        def stdlibDependentProtobufVersion = project.protobufVersion
 
         def newBallerinaToml = ballerinaTomlFilePlaceHolder.text.replace("@project.version@", project.version)
         newBallerinaToml = newBallerinaToml.replace("@toml.version@", tomlVersion)
@@ -158,6 +174,9 @@ task updateTomlFiles {
         newBallerinaToml = newBallerinaToml.replace("@testng.version@", stdlibDependentTestngVersion)
         newBallerinaToml = newBallerinaToml.replace("@mime.version@", stdlibDependentMimeVersion)
         newBallerinaToml = newBallerinaToml.replace("@constraint.version@", stdlibDependentConstraintVersion)
+        newBallerinaToml = newBallerinaToml.replace("@lz4.version@", stdlibDependentLz4Version)
+        newBallerinaToml = newBallerinaToml.replace("@marshalling.version@", stdlibDependentMarshallingVersion)
+        newBallerinaToml = newBallerinaToml.replace("@protobuf.version@", stdlibDependentProtobufVersion)
         ballerinaTomlFile.text = newBallerinaToml
 
         def newCompilerPluginToml = compilerPluginTomlFilePlaceHolder.text.replace("@project.version@", project.version)
@@ -201,6 +220,7 @@ updateTomlFiles.dependsOn copyStdlibs
 
 build.dependsOn "generatePomFileForMavenPublication"
 build.dependsOn ":${packageName}-native:build"
+build.dependsOn ":${packageName}-test-utils:build"
 build.dependsOn ":${packageName}-compiler-plugin:build"
 build.finalizedBy ":http-ballerina-tests:build"
 test.dependsOn ":${packageName}-native:build"
