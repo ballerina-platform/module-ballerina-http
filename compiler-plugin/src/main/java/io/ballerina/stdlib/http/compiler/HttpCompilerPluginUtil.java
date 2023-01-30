@@ -50,6 +50,7 @@ import static io.ballerina.stdlib.http.compiler.Constants.BALLERINA;
 import static io.ballerina.stdlib.http.compiler.Constants.EMPTY;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
 import static io.ballerina.stdlib.http.compiler.Constants.RESPONSE_OBJ_NAME;
+import static io.ballerina.stdlib.http.compiler.Constants.STATUS_CODE_RESPONSE;
 import static io.ballerina.stdlib.http.compiler.Constants.UNNECESSARY_CHARS_REGEX;
 
 /**
@@ -195,7 +196,7 @@ public class HttpCompilerPluginUtil {
             validateArrayElementTypeInReturnType(ctx, node, typeStringValue, typeSymbol,
                     diagnosticCode);
         } else if (kind == TypeDescKind.TYPE_REFERENCE) {
-            if (isStatusCodeResponseType((TypeReferenceTypeSymbol) memberTypeDescriptor)) {
+            if (isHttpModuleType(STATUS_CODE_RESPONSE, memberTypeDescriptor)) {
                 reportInvalidReturnType(ctx, node, typeStringValue, diagnosticCode);
                 return;
             }
@@ -211,12 +212,7 @@ public class HttpCompilerPluginUtil {
                         reportInvalidReturnType(ctx, node, typeStringValue, diagnosticCode);
                         return;
                     } else if (effectiveTypeDesc == TypeDescKind.TYPE_REFERENCE) {
-                        if (isStatusCodeResponseType((TypeReferenceTypeSymbol) typeSymbol)) {
-                            reportInvalidReturnType(ctx, node, typeStringValue, diagnosticCode);
-                            return;
-                        }
-                        Optional<String> definitionName = ((TypeReferenceTypeSymbol) typeSymbol).definition().getName();
-                        if (definitionName.isPresent() && definitionName.get().equals("StatusCodeResponse")) {
+                        if (isHttpModuleType(STATUS_CODE_RESPONSE, typeSymbol)) {
                             reportInvalidReturnType(ctx, node, typeStringValue, diagnosticCode);
                             return;
                         }
@@ -230,18 +226,10 @@ public class HttpCompilerPluginUtil {
             }
         } else if (kind == TypeDescKind.ARRAY) {
             memberTypeDescriptor = ((ArrayTypeSymbol) memberTypeDescriptor).memberTypeDescriptor();
-            validateArrayElementTypeInReturnType(ctx, node, typeStringValue, memberTypeDescriptor,
-                    diagnosticCode);
+            validateArrayElementTypeInReturnType(ctx, node, typeStringValue, memberTypeDescriptor, diagnosticCode);
         } else {
             reportInvalidReturnType(ctx, node, typeStringValue, diagnosticCode);
         }
-    }
-
-    public static boolean isStatusCodeResponseType(TypeReferenceTypeSymbol typeSymbol) {
-        if (typeSymbol.getName().isPresent()) {
-            return typeSymbol.getName().get().equals("StatusCodeResponse");
-        }
-        return false;
     }
 
     public static boolean isHttpModuleType(String expectedType, TypeSymbol typeDescriptor) {
