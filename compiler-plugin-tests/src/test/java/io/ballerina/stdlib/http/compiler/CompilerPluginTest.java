@@ -631,8 +631,18 @@ public class CompilerPluginTest {
     }
 
     @Test
-    public void testRecursiveRecordDefinitionsWithUnionsAsReturnType() {
+    public void testRecursiveRecordDefinitionsWithUnionsAsPayload() {
         Package currentPackage = loadPackage("sample_package_28");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        long availableErrors = diagnosticResult.diagnostics().stream()
+                .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR)).count();
+        Assert.assertEquals(availableErrors, 0);
+    }
+
+    @Test
+    public void testRecursiveRecordDefinitionsWithReadonlyIntersectionAsPayload() {
+        Package currentPackage = loadPackage("sample_package_29");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         long availableErrors = diagnosticResult.diagnostics().stream()
