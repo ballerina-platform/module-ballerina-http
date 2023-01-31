@@ -20,7 +20,7 @@ public enum Status {
     SUCCESS,
     FAILURE
 }
-
+public type NewStatus int|string;
 service / on new http:Listener(9090) {
 
     resource function get albums(Status status) returns string[] {
@@ -31,7 +31,7 @@ service / on new http:Listener(9090) {
 
     resource function get songs(Status status1, Status status2, http:Caller caller) {}
 
-    //resource function get tracks(Status[] status) returns string {
-    //    return "ABC";
-    //}
+    resource function get tracks(Status[] status) returns string {
+        return "Track 1";
+    }
 }

@@ -299,11 +299,12 @@ class HttpResourceValidator {
                         reportInvalidIntersectionObjectType(ctx, paramLocation, paramName, typeName);
                         continue;
                     }
+                    if (isEnumQueryParamType(typeSymbol)) {
+                        continue;
+                    }
                     TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor();
                     TypeDescKind typeDescKind = typeDescriptor.typeKind();
-                    if (((TypeReferenceTypeSymbol) typeSymbol).definition().kind() == SymbolKind.ENUM) {
-                        continue;
-                    } else if (typeDescKind == TypeDescKind.OBJECT) {
+                    if (typeDescKind == TypeDescKind.OBJECT) {
                         Optional<ModuleSymbol> moduleSymbolOptional = typeDescriptor.getModule();
                         if (moduleSymbolOptional.isEmpty()) {
                             reportInvalidParameterType(ctx, paramLocation, paramType);
@@ -363,6 +364,9 @@ class HttpResourceValidator {
                     // Allowed query param array types
                     TypeSymbol arrTypeSymbol = ((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor();
                     TypeDescKind elementKind = getReferencedTypeDescKind(arrTypeSymbol);
+                    if (isEnumQueryParamType(arrTypeSymbol)) {
+                        continue;
+                    }
                     if (elementKind == TypeDescKind.MAP) {
                         TypeSymbol constrainedTypeSymbol = ((MapTypeSymbol) arrTypeSymbol).typeParam();
                         TypeDescKind constrainedType = constrainedTypeSymbol.typeKind();
@@ -900,6 +904,14 @@ class HttpResourceValidator {
         }
         return kind == TypeDescKind.STRING || kind == TypeDescKind.INT || kind == TypeDescKind.FLOAT ||
                 kind == TypeDescKind.DECIMAL || kind == TypeDescKind.BOOLEAN;
+    }
+
+    private static boolean isEnumQueryParamType(TypeSymbol typeSymbol) {
+        if (typeSymbol.typeKind() == TypeDescKind.TYPE_REFERENCE) {
+            TypeReferenceTypeSymbol referenceTypeSymbol = (TypeReferenceTypeSymbol) typeSymbol;
+            return referenceTypeSymbol.definition().kind() == SymbolKind.ENUM;
+        }
+        return false;
     }
 
     private static void extractReturnTypeAndValidate(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member) {
