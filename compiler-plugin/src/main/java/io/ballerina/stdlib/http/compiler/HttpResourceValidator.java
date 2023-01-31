@@ -30,6 +30,7 @@ import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
 import io.ballerina.compiler.api.symbols.RecordTypeSymbol;
 import io.ballerina.compiler.api.symbols.ResourceMethodSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.SymbolKind;
 import io.ballerina.compiler.api.symbols.TableTypeSymbol;
 import io.ballerina.compiler.api.symbols.TupleTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
@@ -300,7 +301,9 @@ class HttpResourceValidator {
                     }
                     TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor();
                     TypeDescKind typeDescKind = typeDescriptor.typeKind();
-                    if (typeDescKind == TypeDescKind.OBJECT) {
+                    if (((TypeReferenceTypeSymbol) typeSymbol).definition().kind() == SymbolKind.ENUM) {
+                        continue;
+                    } else if (typeDescKind == TypeDescKind.OBJECT) {
                         Optional<ModuleSymbol> moduleSymbolOptional = typeDescriptor.getModule();
                         if (moduleSymbolOptional.isEmpty()) {
                             reportInvalidParameterType(ctx, paramLocation, paramType);
