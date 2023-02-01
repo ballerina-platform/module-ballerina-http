@@ -22,6 +22,11 @@ public enum Status {
     NEW
 }
 
+public enum GENRE {
+    ROCK,
+    POP
+}
+
 service /enumQueryParam on generalListener {
     resource function get album(Status status) returns string {
         if status is OLD {
@@ -29,6 +34,13 @@ service /enumQueryParam on generalListener {
         }
         return "New album";
     }
+
+    resource function get artist(Status status, GENRE genre) returns string {
+            if status is OLD && genre is ROCK {
+                return "Old & Rock Artist";
+            }
+            return "Unknown Artist";
+        }
 
     resource function get song(Status[] status) returns string {
         if status[0] is OLD && status[1] is NEW {
@@ -46,8 +58,48 @@ function testEnumTypeForQueryParam() returns error? {
 }
 
 @test:Config {}
+function testMulitpleEnumsForQueryParam() returns error? {
+    http:Client 'client = check new("http://localhost:9000");
+    string response = check 'client->get("/enumQueryParam/artist?status=OLD&genre=ROCK");
+    test:assertEquals(response, "Old & Rock Artist");
+}
+
+@test:Config {}
 function testEnumArrayTypeForQueryParam() returns error? {
     http:Client 'client = check new("http://localhost:9000");
     string response = check 'client->get("/enumQueryParam/song?status=OLD&status=NEW");
     test:assertEquals(response, "Old & New Song");
+}
+
+@test:Config {}
+function testInvalidParamForEnumQueryParam() returns error? {
+    http:Client 'client = check new("http://localhost:9000");
+    string|error response = 'client->get("/enumQueryParam/album?status=UNKNOWN");
+    if response is error {
+        test:assertEquals(response.message(), "Bad Request");
+    } else {
+        test:assertFail("Expected an error");
+    }
+}
+
+@test:Config {}
+function testInvalidParamForSecondEnumQueryParam() returns error? {
+    http:Client 'client = check new("http://localhost:9000");
+    string|error response = 'client->get("/enumQueryParam/artist?status=OLD&genre=HIPHOP");
+    if response is error {
+        test:assertEquals(response.message(), "Bad Request");
+    } else {
+        test:assertFail("Expected an error");
+    }
+}
+
+@test:Config {}
+function testInvalidParamForEnumArrayQueryParam() returns error? {
+    http:Client 'client = check new("http://localhost:9000");
+    string|error response = 'client->get("/enumQueryParam/song?status=UNKNOWN&status=NEW");
+    if response is error {
+        test:assertEquals(response.message(), "Bad Request");
+    } else {
+        test:assertFail("Expected an error");
+    }
 }
