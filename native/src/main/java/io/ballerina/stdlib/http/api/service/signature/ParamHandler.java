@@ -263,8 +263,10 @@ public class ParamHandler {
         if (parameterType instanceof UnionType) {
             List<Type> memberTypes = ((UnionType) parameterType).getMemberTypes();
             int size = memberTypes.size();
-            if (!memberTypes.stream().allMatch(type -> type.getTag() == TypeTags.FINITE_TYPE_TAG) &&
-                    (size > 2 || !parameterType.isNilable())) {
+            if (memberTypes.stream().allMatch(type -> type.getTag() == TypeTags.FINITE_TYPE_TAG)) {
+                createQueryParam(index, balResource, parameterType, false, readonly);
+                return;
+            } else if (size > 2 || !parameterType.isNilable()) {
                 throw HttpUtil.createHttpError(
                         "invalid query param type '" + parameterType.getName() + "': a basic type or an array " +
                                 "of a basic type can only be union with '()' Eg: string|() or string[]|()");
