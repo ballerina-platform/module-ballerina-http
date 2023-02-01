@@ -27,6 +27,9 @@ public enum GENRE {
     POP
 }
 
+public type NewStatus Status;
+public type UpdatedStatus NewStatus;
+
 service /enumQueryParam on generalListener {
     resource function get album(Status status) returns string {
         if status is OLD {
@@ -45,6 +48,20 @@ service /enumQueryParam on generalListener {
     resource function get song(Status[] status) returns string {
         if status[0] is OLD && status[1] is NEW {
             return "Old & New Song";
+        }
+        return "Unknown Song";
+    }
+
+    resource function get newSong(NewStatus newStatus) returns string {
+        if newStatus is OLD {
+            return "Old Song";
+        }
+        return "Unknown Song";
+    }
+
+    resource function get updatedSong(UpdatedStatus updatedStatus) returns string {
+        if updatedStatus is OLD {
+            return "Old Song";
         }
         return "Unknown Song";
     }
@@ -69,6 +86,31 @@ function testEnumArrayTypeForQueryParam() returns error? {
     http:Client 'client = check new("http://localhost:9000");
     string response = check 'client->get("/enumQueryParam/song?status=OLD&status=NEW");
     test:assertEquals(response, "Old & New Song");
+}
+
+@test:Config {}
+function testReferredEnumTypeForQueryParam() returns error? {
+    http:Client 'client = check new("http://localhost:9000");
+    string response = check 'client->get("/enumQueryParam/newSong?newStatus=OLD");
+    test:assertEquals(response, "Old Song");
+}
+
+@test:Config {}
+function testNestedReferredEnumTypeForQueryParam() returns error? {
+    http:Client 'client = check new("http://localhost:9000");
+    string response = check 'client->get("/enumQueryParam/updatedSong?updatedStatus=OLD");
+    test:assertEquals(response, "Old Song");
+}
+
+@test:Config {}
+function testNestedReferredInvalidEnumTypeForQueryParam() returns error? {
+    http:Client 'client = check new("http://localhost:9000");
+    string|error response = 'client->get("/enumQueryParam/updatedSong?updatedStatus=Unknown");
+    if response is error {
+        test:assertEquals(response.message(), "Bad Request");
+    } else {
+        test:assertFail("Expected an error");
+    }
 }
 
 @test:Config {}
