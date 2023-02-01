@@ -30,7 +30,6 @@ import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
 import io.ballerina.compiler.api.symbols.RecordTypeSymbol;
 import io.ballerina.compiler.api.symbols.ResourceMethodSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
-import io.ballerina.compiler.api.symbols.SymbolKind;
 import io.ballerina.compiler.api.symbols.TableTypeSymbol;
 import io.ballerina.compiler.api.symbols.TupleTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
@@ -908,8 +907,13 @@ class HttpResourceValidator {
 
     private static boolean isEnumQueryParamType(TypeSymbol typeSymbol) {
         if (typeSymbol.typeKind() == TypeDescKind.TYPE_REFERENCE) {
-            TypeReferenceTypeSymbol referenceTypeSymbol = (TypeReferenceTypeSymbol) typeSymbol;
-            return referenceTypeSymbol.definition().kind() == SymbolKind.ENUM;
+            TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor();
+            if (typeDescriptor.typeKind() == TypeDescKind.TYPE_REFERENCE) {
+                return isEnumQueryParamType(typeDescriptor);
+            }
+            return typeDescriptor.typeKind() == TypeDescKind.UNION && ((UnionTypeSymbol) typeDescriptor)
+                    .memberTypeDescriptors().stream().allMatch(memberDescriptor ->
+                            memberDescriptor.typeKind() == TypeDescKind.SINGLETON);
         }
         return false;
     }
@@ -1037,9 +1041,7 @@ class HttpResourceValidator {
         if (isValidReturnTypeWithCaller(typeSymbol)) {
             return;
         }
-        updateDiagnostic(ctx, returnTypeLocation, HttpDiagnosticCodes.HTTP_118,
-                                                returnTypeDescription
-        );
+        updateDiagnostic(ctx, returnTypeLocation, HttpDiagnosticCodes.HTTP_118, returnTypeDescription);
     }
 
     public static boolean isHttpCaller(ParameterSymbol param) {
