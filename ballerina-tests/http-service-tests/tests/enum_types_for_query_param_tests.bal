@@ -105,43 +105,27 @@ function testNestedReferredEnumTypeForQueryParam() returns error? {
 @test:Config {}
 function testNestedReferredInvalidEnumTypeForQueryParam() returns error? {
     http:Client 'client = check new("http://localhost:9000");
-    string|http:Error response = 'client->get("/enumQueryParam/updatedSong?updatedStatus=Unknown");
-    if response is http:ClientRequestError {
-        test:assertEquals(response.detail().statusCode, 400);
-    } else {
-        test:assertFail("Expected a client request error");
-    }
+    http:Response response = check 'client->get("/enumQueryParam/updatedSong?updatedStatus=Unknown");
+    test:assertEquals(response.statusCode, 400, "Unexpected response status code");
 }
 
 @test:Config {}
 function testInvalidParamForEnumQueryParam() returns error? {
     http:Client 'client = check new("http://localhost:9000");
-    string|http:Error response = 'client->get("/enumQueryParam/album?status=UNKNOWN");
-    if response is http:ClientRequestError {
-        test:assertEquals(response.detail().statusCode, 400);
-    } else {
-        test:assertFail("Expected a client request error");
-    }
+    http:Response response = check 'client->get("/enumQueryParam/album?status=UNKNOWN");
+    test:assertEquals(response.statusCode, 400, "Unexpected response status code");
 }
 
 @test:Config {}
 function testInvalidParamForSecondEnumQueryParam() returns error? {
     http:Client 'client = check new("http://localhost:9000");
-    string|http:Error response = 'client->get("/enumQueryParam/artist?status=OLD&genre=HIPHOP");
-    if response is http:ClientRequestError {
-        test:assertEquals(response.detail().statusCode, 400);
-    } else {
-        test:assertFail("Expected a client request error");
-    }
+    http:Response response = check 'client->get("/enumQueryParam/artist?status=OLD&genre=HIPHOP");
+    test:assertEquals(response.statusCode, 400, "Unexpected response status code");
 }
 
 @test:Config {}
 function testInvalidParamForEnumArrayQueryParam() returns error? {
     http:Client 'client = check new("http://localhost:9000");
-    string|http:Error response = 'client->get("/enumQueryParam/song?status=UNKNOWN&status=NEW");
-    if response is http:ClientRequestError {
-        test:assertEquals(response.detail().statusCode, 400);
-    } else {
-        test:assertFail("Expected a client request error");
-    }
+    http:Response response = check 'client->get("/enumQueryParam/song?status=UNKNOWN&status=NEW");
+    test:assertEquals(response.statusCode, 400, "Unexpected response status code");
 }
