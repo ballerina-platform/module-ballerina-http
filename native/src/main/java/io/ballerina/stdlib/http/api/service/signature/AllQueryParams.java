@@ -152,7 +152,6 @@ public class AllQueryParams implements Parameter {
                 ((FiniteType) memberType).getValueSpace().contains(queryValue))) {
             return queryValue;
         }
-        throw HttpUtil.createHttpError("query param value '" + token + "' does not match enum type",
-                HttpErrorType.QUERY_PARAM_BINDING_ERROR);
+        throw new IllegalArgumentException("query param value '" + token + "' does not match enum type");
     }
 }
