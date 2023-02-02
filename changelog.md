@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 
 - [Add http/1.1 as the ALPN extension when communicating over HTTP/1.1](https://github.com/ballerina-platform/ballerina-standard-library/issues/3766)
+- [Added support for `enum` query params](https://github.com/ballerina-platform/ballerina-standard-library/issues/3924)
 
 ## [2.5.2] - 2022-12-22
 

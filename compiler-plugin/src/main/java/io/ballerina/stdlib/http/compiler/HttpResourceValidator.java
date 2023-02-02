@@ -300,7 +300,9 @@ class HttpResourceValidator {
                     }
                     TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor();
                     TypeDescKind typeDescKind = typeDescriptor.typeKind();
-                    if (typeDescKind == TypeDescKind.OBJECT) {
+                    if (isEnumQueryParamType(typeDescriptor)) {
+                        continue;
+                    } else if (typeDescKind == TypeDescKind.OBJECT) {
                         Optional<ModuleSymbol> moduleSymbolOptional = typeDescriptor.getModule();
                         if (moduleSymbolOptional.isEmpty()) {
                             reportInvalidParameterType(ctx, paramLocation, paramType);
@@ -360,6 +362,10 @@ class HttpResourceValidator {
                     // Allowed query param array types
                     TypeSymbol arrTypeSymbol = ((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor();
                     TypeDescKind elementKind = getReferencedTypeDescKind(arrTypeSymbol);
+                    if (arrTypeSymbol.typeKind() == TypeDescKind.TYPE_REFERENCE &&
+                            isEnumQueryParamType(((TypeReferenceTypeSymbol) arrTypeSymbol).typeDescriptor())) {
+                        continue;
+                    }
                     if (elementKind == TypeDescKind.MAP) {
                         TypeSymbol constrainedTypeSymbol = ((MapTypeSymbol) arrTypeSymbol).typeParam();
                         TypeDescKind constrainedType = constrainedTypeSymbol.typeKind();
@@ -899,6 +905,15 @@ class HttpResourceValidator {
                 kind == TypeDescKind.DECIMAL || kind == TypeDescKind.BOOLEAN;
     }
 
+    private static boolean isEnumQueryParamType(TypeSymbol typeDescriptor) {
+        if (typeDescriptor.typeKind() == TypeDescKind.TYPE_REFERENCE) {
+            return isEnumQueryParamType(((TypeReferenceTypeSymbol) typeDescriptor).typeDescriptor());
+        }
+        return typeDescriptor.typeKind() == TypeDescKind.UNION && ((UnionTypeSymbol) typeDescriptor)
+                .memberTypeDescriptors().stream().allMatch(memberDescriptor ->
+                        memberDescriptor.typeKind() == TypeDescKind.SINGLETON);
+    }
+
     private static void extractReturnTypeAndValidate(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member) {
         Optional<ReturnTypeDescriptorNode> returnTypeDescriptorNode = member.functionSignature().returnTypeDesc();
         if (returnTypeDescriptorNode.isEmpty()) {
@@ -1022,9 +1037,7 @@ class HttpResourceValidator {
         if (isValidReturnTypeWithCaller(typeSymbol)) {
             return;
         }
-        updateDiagnostic(ctx, returnTypeLocation, HttpDiagnosticCodes.HTTP_118,
-                                                returnTypeDescription
-        );
+        updateDiagnostic(ctx, returnTypeLocation, HttpDiagnosticCodes.HTTP_118, returnTypeDescription);
     }
 
     public static boolean isHttpCaller(ParameterSymbol param) {

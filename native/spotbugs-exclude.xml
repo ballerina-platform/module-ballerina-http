@@ -64,4 +64,8 @@
         <Class name="io.ballerina.stdlib.http.api.HttpIntrospectionResource" />
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE" />
     </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.api.service.signature.AllQueryParams" />
+        <Bug pattern="REC_CATCH_EXCEPTION" />
+    </Match>
 </FindBugsFilter>
