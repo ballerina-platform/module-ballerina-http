@@ -40,6 +40,7 @@ public class Constants {
     public static final String PAYLOAD_ANNOTATION_TYPE = "HttpPayload";
     public static final String CALLER_ANNOTATION_TYPE = "HttpCallerInfo";
     public static final String HEADER_ANNOTATION_TYPE = "HttpHeader";
+    public static final String QUERY_ANNOTATION_TYPE = "HttpQuery";
     public static final String CALLER_ANNOTATION_NAME = "CallerInfo";
     public static final String FIELD_RESPONSE_TYPE = "respondType";
     public static final String RESPOND_METHOD_NAME = "respond";
@@ -69,10 +70,12 @@ public class Constants {
     public static final String RELATION = "relation";
     public static final String PARAM = "$param$";
     public static final String SELF = "self";
+    public static final String MEDIA_TYPE_FIELD = "mediaType";
 
     public static final String EMPTY = "";
     public static final String COLON = ":";
     public static final String PLUS = "+";
+    public static final String SPACE = " ";
     public static final String COMMA_WITH_SPACE = ", ";
     public static final String DEFAULT_PATH_REGEX = "\\[\\s*(string)\\s*(\\.{3})\\s*\\w+\\s*\\]";
     public static final String SUFFIX_SEPARATOR_REGEX = "\\+";

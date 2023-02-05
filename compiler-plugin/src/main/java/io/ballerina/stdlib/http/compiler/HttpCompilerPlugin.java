@@ -30,6 +30,7 @@ import io.ballerina.stdlib.http.compiler.codeaction.AddResponseContentTypeCodeAc
 import io.ballerina.stdlib.http.compiler.codeaction.ChangeHeaderParamTypeToStringArrayCodeAction;
 import io.ballerina.stdlib.http.compiler.codeaction.ChangeHeaderParamTypeToStringCodeAction;
 import io.ballerina.stdlib.http.compiler.codeaction.ChangeReturnTypeWithCallerCodeAction;
+import io.ballerina.stdlib.http.compiler.codemodifier.HttpServiceModifier;
 
 import java.util.List;
 
@@ -40,6 +41,7 @@ public class HttpCompilerPlugin extends CompilerPlugin {
 
     @Override
     public void init(CompilerPluginContext context) {
+        context.addCodeModifier(new HttpServiceModifier());
         context.addCodeAnalyzer(new HttpServiceAnalyzer());
         getCodeActions().forEach(context::addCodeAction);
     }

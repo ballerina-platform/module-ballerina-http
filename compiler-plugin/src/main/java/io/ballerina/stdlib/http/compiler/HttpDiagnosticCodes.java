@@ -106,6 +106,8 @@ public enum HttpDiagnosticCodes {
     HTTP_149("HTTP_149", "cannot resolve linked resource without method" , ERROR),
     HTTP_150("HTTP_150", "cannot find '%s' resource with resource link name: '%s'" , ERROR),
 
+    HTTP_151("HTTP_151", "ambiguous payload and query parameter type: '%s'", ERROR),
+
     HTTP_HINT_101("HTTP_HINT_101", "Payload annotation can be added", INTERNAL),
     HTTP_HINT_102("HTTP_HINT_102", "Header annotation can be added", INTERNAL),
     HTTP_HINT_103("HTTP_HINT_103", "Response content-type can be added", INTERNAL),
