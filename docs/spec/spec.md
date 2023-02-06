@@ -813,7 +813,7 @@ Based on the return types respective header value is added as the `Content-type`
 | byte[]                                                                | application/octet-stream |
 | int, float, decimal, boolean                                          | application/json         |
 | map\<json\>, table<map\<json\>>, map\<json\>[], table<map\<json\>>)[] | application/json         |
-| http:StatusCodeResponse                                               | derived from body field  |
+| http:StatusCodeResponse                                               | derived from the body field  |
 
 ##### 2.3.5.1. Status Code Response
 
