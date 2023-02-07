@@ -695,4 +695,11 @@ public class CompilerPluginTest {
                 .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR)).count();
         Assert.assertEquals(availableErrors, 0);
     }
+
+    @Test
+    public void testCodeModifierPayloadAnnotation() {
+        Package currentPackage = loadPackage("sample_package_31");
+        DiagnosticResult modifierDiagnosticResult = currentPackage.runCodeGenAndModifyPlugins();
+        Assert.assertEquals(modifierDiagnosticResult.errorCount(), 0);
+    }
 }

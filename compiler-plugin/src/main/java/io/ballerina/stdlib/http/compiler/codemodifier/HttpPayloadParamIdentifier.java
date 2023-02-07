@@ -258,7 +258,7 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
             return tupleFieldSymbols.stream().anyMatch(field -> validateNonAnnotatedParams(analysisContext, field,
                                                                                            paramAvailability));
         } else if (isAllowedQueryParamBasicType(kind, typeSymbol)) {
-            return true;
+            return false;
         }
         return false;
     }
