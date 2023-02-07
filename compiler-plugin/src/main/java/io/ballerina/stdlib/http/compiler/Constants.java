@@ -28,6 +28,7 @@ public class Constants {
     public static final String REMOTE_KEYWORD = "remote";
     public static final String RESOURCE_KEYWORD = "resource";
     public static final String RESPONSE_OBJ_NAME = "Response";
+    public static final String STATUS_CODE_RESPONSE = "StatusCodeResponse";
     public static final String CALLER_OBJ_NAME = "Caller";
     public static final String REQUEST_OBJ_NAME = "Request";
     public static final String REQUEST_CONTEXT_OBJ_NAME = "RequestContext";

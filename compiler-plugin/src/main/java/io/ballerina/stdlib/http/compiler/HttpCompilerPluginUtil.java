@@ -26,6 +26,7 @@ import io.ballerina.compiler.api.symbols.MapTypeSymbol;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.TableTypeSymbol;
+import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
@@ -44,6 +45,7 @@ import io.ballerina.tools.diagnostics.Location;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 
 import static io.ballerina.stdlib.http.compiler.Constants.BALLERINA;
@@ -121,11 +123,83 @@ public class HttpCompilerPluginUtil {
         if (returnTypeSymbol.isEmpty()) {
             return;
         }
-        validateReturnType(ctx, returnTypeNode, returnType, returnTypeSymbol.get(), httpDiagnosticCode, true);
+        validateReturnTypeN(ctx, returnTypeNode, returnType, returnTypeSymbol.get(), httpDiagnosticCode, true);
         NodeList<AnnotationNode> annotations = returnTypeDescriptorNode.get().annotations();
         if (!annotations.isEmpty()) {
             reportReturnTypeAnnotationsAreNotAllowed(ctx, returnTypeDescriptorNode.get());
         }
+    }
+
+    public static void validateReturnTypeN(SyntaxNodeAnalysisContext ctx, Node node, String returnTypeStringValue,
+                                             TypeSymbol returnTypeSymbol, HttpDiagnosticCodes diagnosticCode,
+                                             boolean isInterceptorType) {
+
+        Optional<Map<String, Symbol>> symbolMap = ctx.semanticModel().types().typesInModule(BALLERINA, HTTP, EMPTY);
+        if (symbolMap.isPresent()) {
+            Symbol symbol = symbolMap.get().get(isInterceptorType ? "InterceptorResourceReturnedType" :
+                                                        "ResourceReturnedType");
+            if (symbol instanceof TypeDefinitionSymbol
+                    && returnTypeSymbol.subtypeOf(((TypeDefinitionSymbol) symbol).typeDescriptor())) {
+                return;
+            }
+        }
+        reportInvalidReturnType(ctx, node, returnTypeStringValue, diagnosticCode);
+    }
+
+    public static void validateReturnTypeNew(SyntaxNodeAnalysisContext ctx, Node node, String returnTypeStringValue,
+                                             TypeSymbol returnTypeSymbol, HttpDiagnosticCodes diagnosticCode,
+                                             boolean isInterceptorType) {
+        if (isInterceptorType && isServiceType(returnTypeSymbol)) {
+            return;
+        }
+
+        TypeDescKind kind = returnTypeSymbol.typeKind();
+        if (isResponseType(returnTypeSymbol) || isStatusCodeResponseType(ctx, returnTypeSymbol) ||
+                isAnydataType(ctx, returnTypeSymbol) || isErrorType(ctx, returnTypeSymbol)) {
+            return;
+        }
+
+        if (kind == TypeDescKind.INTERSECTION) {
+            TypeSymbol typeSymbol = ((IntersectionTypeSymbol) returnTypeSymbol).effectiveTypeDescriptor();
+            validateReturnTypeNew(ctx, node, returnTypeStringValue, typeSymbol, diagnosticCode, isInterceptorType);
+            return;
+        } else if (kind == TypeDescKind.UNION) {
+            List<TypeSymbol> typeSymbols = ((UnionTypeSymbol) returnTypeSymbol).memberTypeDescriptors();
+            for (TypeSymbol typeSymbol : typeSymbols) {
+                validateReturnTypeNew(ctx, node, returnTypeStringValue, typeSymbol, diagnosticCode, isInterceptorType);
+            }
+            return;
+        }
+
+        reportInvalidReturnType(ctx, node, returnTypeStringValue, diagnosticCode);
+    }
+
+    public static boolean isErrorType(SyntaxNodeAnalysisContext ctx, TypeSymbol returnTypeSymbol) {
+        return returnTypeSymbol.subtypeOf(ctx.semanticModel().types().ERROR);
+    }
+
+    public static boolean isAnydataType(SyntaxNodeAnalysisContext ctx, TypeSymbol returnTypeSymbol) {
+        return returnTypeSymbol.subtypeOf(ctx.semanticModel().types().ANYDATA);
+    }
+
+    public static boolean isStatusCodeResponseType(SyntaxNodeAnalysisContext ctx, TypeSymbol returnTypeSymbol) {
+        Optional<Map<String, Symbol>> symbolMap = ctx.semanticModel().types().typesInModule(BALLERINA, HTTP, EMPTY);
+        if (symbolMap.isPresent()) {
+            Symbol symbol = symbolMap.get().get(STATUS_CODE_RESPONSE);
+            return symbol instanceof TypeDefinitionSymbol
+                    && returnTypeSymbol.subtypeOf(((TypeDefinitionSymbol) symbol).typeDescriptor());
+        }
+        return false;
+    }
+
+    public static boolean isResponseType(TypeSymbol returnTypeSymbol) {
+        TypeDescKind kind = returnTypeSymbol.typeKind();
+        if (kind == TypeDescKind.TYPE_REFERENCE) {
+            TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) returnTypeSymbol).typeDescriptor();
+            TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
+            return typeDescKind == TypeDescKind.OBJECT && isHttpModuleType(RESPONSE_OBJ_NAME, typeDescriptor);
+        }
+        return false;
     }
 
     public static void validateReturnType(SyntaxNodeAnalysisContext ctx, Node node, String returnTypeStringValue,
