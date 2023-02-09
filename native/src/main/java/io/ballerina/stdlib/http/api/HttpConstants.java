@@ -219,6 +219,7 @@ public class HttpConstants {
     public static final String HTTP_FUTURE = "HttpFuture";
     public static final String PUSH_PROMISE = "PushPromise";
     public static final String ENTITY = "Entity";
+    public static final String MEDIA_TYPE = "MediaType";
     public static final String RESPONSE_CACHE_CONTROL = "ResponseCacheControl";
     public static final String REQUEST_CACHE_CONTROL = "RequestCacheControl";
     public static final String STRUCT_GENERIC_ERROR = "error";

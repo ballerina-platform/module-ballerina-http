@@ -25,6 +25,8 @@ import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BTypedesc;
+import io.ballerina.stdlib.http.api.ValueCreatorUtils;
+import io.ballerina.stdlib.mime.util.MimeUtil;
 
 import java.util.List;
 import java.util.Locale;
@@ -32,6 +34,7 @@ import java.util.Locale;
 import static io.ballerina.runtime.api.TypeTags.ARRAY_TAG;
 import static io.ballerina.runtime.api.TypeTags.STRING_TAG;
 import static io.ballerina.runtime.api.TypeTags.XML_TAG;
+import static io.ballerina.stdlib.mime.util.MimeConstants.MEDIA_TYPE_FIELD;
 
 /**
  * The abstract class to build and convert the payload based on the content-type header. If the content type is not
@@ -61,15 +64,19 @@ public abstract class AbstractPayloadBuilder {
             return getBuilderFromType(payloadType);
         }
         contentType = contentType.toLowerCase(Locale.getDefault()).trim();
-        if (contentType.matches(XML_PATTERN)) {
+        BObject mediaType = MimeUtil.parseMediaType(ValueCreatorUtils.createMediaTypeObject(), contentType);
+        BObject entity = ValueCreatorUtils.createEntityObject();
+        entity.set(MEDIA_TYPE_FIELD, mediaType);
+        String baseType = MimeUtil.getBaseType(entity);
+        if (baseType.matches(XML_PATTERN)) {
             return new XmlPayloadBuilder(payloadType);
-        } else if (contentType.matches(TEXT_PATTERN)) {
+        } else if (baseType.matches(TEXT_PATTERN)) {
             return new StringPayloadBuilder(payloadType);
-        } else if (contentType.matches(URL_ENCODED_PATTERN)) {
+        } else if (baseType.matches(URL_ENCODED_PATTERN)) {
             return new StringPayloadBuilder(payloadType);
-        } else if (contentType.matches(OCTET_STREAM_PATTERN)) {
+        } else if (baseType.matches(OCTET_STREAM_PATTERN)) {
             return new BinaryPayloadBuilder(payloadType);
-        } else if (contentType.matches(JSON_PATTERN)) {
+        } else if (baseType.matches(JSON_PATTERN)) {
             return new JsonPayloadBuilder(payloadType);
         } else {
             return getBuilderFromType(payloadType);
