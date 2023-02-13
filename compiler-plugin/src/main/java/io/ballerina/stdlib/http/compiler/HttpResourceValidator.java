@@ -669,7 +669,9 @@ class HttpResourceValidator {
             } else if (effectiveTypeDescriptor.typeKind() == TypeDescKind.UNION) {
                 List<TypeSymbol> typeDescriptors = ((UnionTypeSymbol) effectiveTypeDescriptor).memberTypeDescriptors();
                 return typeDescriptors.stream()
-                        .allMatch(td -> isValidRecordParam(newParentTypes, td, ctx, paramLocation, paramName));
+                        .allMatch(memberTypeDescriptor ->
+                                isValidRecordParam(
+                                        newParentTypes, memberTypeDescriptor, ctx, paramLocation, paramName));
             } else if (effectiveTypeDescriptor.typeKind() == TypeDescKind.INTERSECTION) {
                 TypeSymbol effectiveType = getEffectiveTypeFromReadonlyIntersection(
                         (IntersectionTypeSymbol) effectiveTypeDescriptor);
