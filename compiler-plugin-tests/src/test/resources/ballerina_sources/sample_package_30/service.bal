@@ -15,7 +15,7 @@
 // under the License.
 
 import ballerina/http;
-import sample_28.records;
+import sample_30.records;
 
 type RecordA record {|
     string name;

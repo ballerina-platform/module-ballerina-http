@@ -16,7 +16,7 @@
 
 import ballerina/http;
 import ballerina/test;
-import http_service_tests.records;
+import http_tests.records;
 
 public type TestRecord records:RecordA|records:RecordA;
 
