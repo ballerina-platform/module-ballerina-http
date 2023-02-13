@@ -622,7 +622,7 @@ isolated function createDefaultClient(string url, ClientConfiguration configurat
 
 isolated function processResponse(Response|ClientError response, TargetType targetType, boolean requireValidation)
         returns Response|anydata|ClientError {
-    if targetType is typedesc<Response> || response is ClientError {
+    if targetType is typedesc<Response> || targetType is typedesc<Response?> || response is ClientError {
         return response;
     }
     int statusCode = response.statusCode;
