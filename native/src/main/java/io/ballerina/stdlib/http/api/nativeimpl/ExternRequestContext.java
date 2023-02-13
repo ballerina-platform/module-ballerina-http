@@ -18,15 +18,30 @@
 package io.ballerina.stdlib.http.api.nativeimpl;
 
 import io.ballerina.runtime.api.values.BArray;
+import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.api.values.BString;
+import io.ballerina.runtime.api.values.BTypedesc;
 import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.api.HttpErrorType;
 import io.ballerina.stdlib.http.api.HttpUtil;
+import org.ballerinalang.langlib.value.EnsureType;
 
 /**
  * Utilities related to HTTP request context.
  */
 public class ExternRequestContext {
+
+    public static Object getWithType(BObject requestCtx, BString key, BTypedesc targetType) {
+        BMap attributes = requestCtx.getMapValue(HttpConstants.REQUEST_CTX_ATTRIBUTES);
+        try {
+            Object value = attributes.getOrThrow(key);
+            return EnsureType.ensureType(value, targetType);
+        } catch (Exception exp) {
+            return exp;
+        }
+    }
+
     public static Object next(BObject requestCtx) {
         BArray interceptors = getInterceptors(requestCtx);
         if (interceptors != null) {
