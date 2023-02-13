@@ -117,6 +117,10 @@ service /httpClientActionBE on httpClientActionListenerEP1 {
     resource function 'default a/b\ c/d(http:Caller caller, http:Request request) returns error? {
         check caller->respond("dispatched to white_spaced literal");
     }
+
+    resource function get greet () returns json {
+        return <json>{"greeting": "Hello World!"};
+    }
 }
 
 service /httpClientActionTestService on httpClientActionListenerEP2 {
@@ -420,6 +424,11 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
         http:Response response = check clientEP2->get("/httpClientActionBE/dispatched to white_spaced expression ");
         check caller->respond(response);
     }
+
+    resource function get hi (http:Caller caller) returns error? {
+        http:Response response = check clientEP2->get("/httpClientActionBE/greet");
+        check caller->respond(response);
+    }
 }
 
 @test:Config {}
@@ -665,5 +674,17 @@ function testClientInitWithEmptyUrl() {
         test:assertEquals(httpEndpoint.message(), "malformed URL: ", msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type");
+    }
+}
+
+@test:Config {}
+function testGetTargetType() returns error? {
+    http:Response|error response = httpClientActionClient->get("/hi");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:APPLICATION_JSON);
+        common:assertTextPayload(response.getTextPayload(), "{\"greeting\":\"Hello World!\"}");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
