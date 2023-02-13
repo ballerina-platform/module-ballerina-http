@@ -662,10 +662,23 @@ class HttpResourceValidator {
                                               SyntaxNodeAnalysisContext ctx, Location paramLocation, String paramName) {
         if (typeDescriptor.typeKind() == TypeDescKind.TYPE_REFERENCE) {
             TypeSymbol effectiveTypeDescriptor = ((TypeReferenceTypeSymbol) typeDescriptor).typeDescriptor();
+            List<TypeSymbol> newParentTypes = getParentTypes(effectiveTypeDescriptor, parentTypes);
             if (effectiveTypeDescriptor.typeKind() == TypeDescKind.RECORD) {
-                List<TypeSymbol> newParentTypes = getParentTypes(effectiveTypeDescriptor, parentTypes);
                 return validateRecordTypeField(
                         newParentTypes, ctx, paramLocation, paramName, (RecordTypeSymbol) effectiveTypeDescriptor);
+            } else if (effectiveTypeDescriptor.typeKind() == TypeDescKind.UNION) {
+                List<TypeSymbol> typeDescriptors = ((UnionTypeSymbol) effectiveTypeDescriptor).memberTypeDescriptors();
+                return typeDescriptors.stream()
+                        .allMatch(memberTypeDescriptor ->
+                                isValidRecordParam(
+                                        newParentTypes, memberTypeDescriptor, ctx, paramLocation, paramName));
+            } else if (effectiveTypeDescriptor.typeKind() == TypeDescKind.INTERSECTION) {
+                TypeSymbol effectiveType = getEffectiveTypeFromReadonlyIntersection(
+                        (IntersectionTypeSymbol) effectiveTypeDescriptor);
+                if (effectiveType == null) {
+                    return false;
+                }
+                return isValidRecordParam(newParentTypes, effectiveType, ctx, paramLocation, paramName);
             }
         } else if (typeDescriptor.typeKind() == TypeDescKind.RECORD) {
             List<TypeSymbol> newParentTypes = getParentTypes(typeDescriptor, parentTypes);
