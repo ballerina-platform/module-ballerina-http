@@ -50,6 +50,7 @@ import static io.ballerina.stdlib.http.compiler.Constants.BALLERINA;
 import static io.ballerina.stdlib.http.compiler.Constants.EMPTY;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
 import static io.ballerina.stdlib.http.compiler.Constants.RESPONSE_OBJ_NAME;
+import static io.ballerina.stdlib.http.compiler.Constants.STATUS_CODE_RESPONSE;
 import static io.ballerina.stdlib.http.compiler.Constants.UNNECESSARY_CHARS_REGEX;
 
 /**
@@ -162,13 +163,13 @@ public class HttpCompilerPluginUtil {
             }
         } else if (kind == TypeDescKind.MAP) {
             TypeSymbol typeSymbol = ((MapTypeSymbol) returnTypeSymbol).typeParam();
-            validateReturnType(ctx, node, returnTypeStringValue, typeSymbol, diagnosticCode, isInterceptorType);
+            validateReturnType(ctx, node, returnTypeStringValue, typeSymbol, diagnosticCode, false);
         } else if (kind == TypeDescKind.TABLE) {
             TypeSymbol typeSymbol = ((TableTypeSymbol) returnTypeSymbol).rowTypeParameter();
             if (typeSymbol == null) {
                 reportInvalidReturnType(ctx, node, returnTypeStringValue, diagnosticCode);
             } else {
-                validateReturnType(ctx, node, returnTypeStringValue, typeSymbol, diagnosticCode, isInterceptorType);
+                validateReturnType(ctx, node, returnTypeStringValue, typeSymbol, diagnosticCode, false);
             }
         } else {
             reportInvalidReturnType(ctx, node, returnTypeStringValue, diagnosticCode);
@@ -194,11 +195,33 @@ public class HttpCompilerPluginUtil {
             TypeSymbol typeSymbol = ((IntersectionTypeSymbol) memberTypeDescriptor).effectiveTypeDescriptor();
             validateArrayElementTypeInReturnType(ctx, node, typeStringValue, typeSymbol, diagnosticCode);
         } else if (kind == TypeDescKind.TYPE_REFERENCE) {
+            if (isHttpModuleType(STATUS_CODE_RESPONSE, memberTypeDescriptor)) {
+                reportInvalidReturnType(ctx, node, typeStringValue, diagnosticCode);
+                return;
+            }
             TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) memberTypeDescriptor).typeDescriptor();
             TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
-            if (typeDescKind != TypeDescKind.RECORD && typeDescKind != TypeDescKind.MAP &&
-                    typeDescKind != TypeDescKind.TABLE) {
+            if (typeDescKind == TypeDescKind.OBJECT || typeDescKind == TypeDescKind.ERROR) {
                 reportInvalidReturnType(ctx, node, typeStringValue, diagnosticCode);
+            } else if (typeDescKind == TypeDescKind.UNION) {
+                List<TypeSymbol> typeSymbols = ((UnionTypeSymbol) typeDescriptor).userSpecifiedMemberTypes();
+                for (TypeSymbol typeSymbol : typeSymbols) {
+                    TypeDescKind effectiveTypeDesc = retrieveEffectiveTypeDesc(typeSymbol);
+                    if (effectiveTypeDesc == TypeDescKind.OBJECT || effectiveTypeDesc == TypeDescKind.ERROR) {
+                        reportInvalidReturnType(ctx, node, typeStringValue, diagnosticCode);
+                        return;
+                    } else if (effectiveTypeDesc == TypeDescKind.TYPE_REFERENCE) {
+                        if (isHttpModuleType(STATUS_CODE_RESPONSE, typeSymbol)) {
+                            reportInvalidReturnType(ctx, node, typeStringValue, diagnosticCode);
+                            return;
+                        }
+                        validateArrayElementTypeInReturnType(ctx, node, typeStringValue, typeSymbol, diagnosticCode);
+                    } else {
+                        validateReturnType(ctx, node, typeStringValue, typeSymbol, diagnosticCode, false);
+                    }
+                }
+            } else {
+                validateReturnType(ctx, node, typeStringValue, typeDescriptor, diagnosticCode, false);
             }
         } else if (kind == TypeDescKind.ARRAY) {
             memberTypeDescriptor = ((ArrayTypeSymbol) memberTypeDescriptor).memberTypeDescriptor();
