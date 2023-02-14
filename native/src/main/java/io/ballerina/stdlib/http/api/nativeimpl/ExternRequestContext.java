@@ -18,6 +18,7 @@
 package io.ballerina.stdlib.http.api.nativeimpl;
 
 import io.ballerina.runtime.api.values.BArray;
+import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
@@ -38,7 +39,9 @@ public class ExternRequestContext {
             Object value = attributes.getOrThrow(key);
             return EnsureType.ensureType(value, targetType);
         } catch (Exception exp) {
-            return exp;
+            return HttpUtil.createHttpError("no attribute found for key: " + key.getValue(),
+                                            HttpErrorType.GENERIC_LISTENER_ERROR, 
+                                            exp instanceof BError ? (BError) exp : null);
         }
     }
 
