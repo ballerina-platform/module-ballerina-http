@@ -170,6 +170,7 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVE
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_HEADERS;
 import static io.ballerina.stdlib.mime.util.EntityBodyHandler.checkEntityBodyAvailability;
 import static io.ballerina.stdlib.mime.util.MimeConstants.BOUNDARY;
+import static io.ballerina.stdlib.mime.util.MimeConstants.CONTENT_TYPE;
 import static io.ballerina.stdlib.mime.util.MimeConstants.ENTITY_BYTE_CHANNEL;
 import static io.ballerina.stdlib.mime.util.MimeConstants.HEADERS_MAP_FIELD;
 import static io.ballerina.stdlib.mime.util.MimeConstants.HEADER_NAMES_ARRAY_FIELD;
@@ -1152,11 +1153,20 @@ public class HttpUtil {
      * @return The boundary string that was extracted from header or the newly generated one
      */
     public static String addBoundaryIfNotExist(HttpCarbonMessage transportMessage, String contentType) {
-        String boundaryString;
         String boundaryValue = HeaderUtil.extractBoundaryParameter(contentType);
-        boundaryString = boundaryValue != null ? sanitizeBoundary(boundaryValue) :
-                HttpUtil.addBoundaryParameter(transportMessage, contentType);
-        return boundaryString;
+        if (boundaryValue != null) {
+            boolean validateContentType = MimeUtil.isValidateContentType(contentType);
+            if (!validateContentType) {
+                String headerValue = HeaderUtil.getHeaderValue(contentType);
+                BMap<BString, Object> paramMap = HeaderUtil.getParamMap(contentType);
+                paramMap.put(StringUtils.fromString(BOUNDARY),
+                             StringUtils.fromString(MimeUtil.includeQuotes(boundaryValue)));
+                contentType = HeaderUtil.appendHeaderParams(new StringBuilder(headerValue).append(";"), paramMap);
+                transportMessage.setHeader(CONTENT_TYPE, contentType);
+            }
+            return boundaryValue;
+        }
+        return HttpUtil.addBoundaryParameter(transportMessage, contentType);
     }
 
     /**
@@ -1174,16 +1184,6 @@ public class HttpUtil {
                     boundaryString);
         }
         return boundaryString;
-    }
-
-    /**
-     * Sanitize the boundary string by removing leading and trailing double quotes.
-     *
-     * @param boundaryString Represent boundary string
-     * @return Sanitized boundary string
-     */
-    private static String sanitizeBoundary(String boundaryString) {
-        return boundaryString.replaceAll("^\"|\"$", "");
     }
 
     public static HttpWsConnectorFactory createHttpWsConnectionFactory() {

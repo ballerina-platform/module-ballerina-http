@@ -68,7 +68,7 @@ service /multipart on mockEP2 {
 
     resource function get boundaryCheck(http:Caller caller) returns error? {
         mime:Entity bodyPart1 = new;
-        bodyPart1.setJson({"bodyPart":"jsonPart"});
+        bodyPart1.setJson({"bodyPart": "jsonPart"});
         mime:Entity[] bodyParts = [bodyPart1];
 
         //Set the body parts to outbound response.
