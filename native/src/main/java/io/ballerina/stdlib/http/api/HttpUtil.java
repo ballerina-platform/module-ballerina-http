@@ -1154,8 +1154,8 @@ public class HttpUtil {
     public static String addBoundaryIfNotExist(HttpCarbonMessage transportMessage, String contentType) {
         String boundaryString;
         String boundaryValue = HeaderUtil.extractBoundaryParameter(contentType);
-        boundaryString = boundaryValue != null ? boundaryValue : HttpUtil.addBoundaryParameter(transportMessage,
-                                                                                               contentType);
+        boundaryString = boundaryValue != null ? sanitizeBoundary(boundaryValue) :
+                HttpUtil.addBoundaryParameter(transportMessage, contentType);
         return boundaryString;
     }
 
@@ -1176,8 +1176,18 @@ public class HttpUtil {
         return boundaryString;
     }
 
+    /**
+     * Sanitize the boundary string by removing leading and trailing double quotes.
+     *
+     * @param boundaryString Represent boundary string
+     * @return Sanitized boundary string
+     */
+    private static String sanitizeBoundary(String boundaryString) {
+        return boundaryString.replaceAll("^\"|\"$", "");
+    }
+
     public static HttpWsConnectorFactory createHttpWsConnectionFactory() {
-        return DefaultHttpWsConnectorFactoryHolder.getHttpConnectorFactory();
+        return io.ballerina.stdlib.http.api.DefaultHttpWsConnectorFactoryHolder.getHttpConnectorFactory();
     }
 
     public static void checkAndObserveHttpRequest(Environment environment, HttpCarbonMessage message) {

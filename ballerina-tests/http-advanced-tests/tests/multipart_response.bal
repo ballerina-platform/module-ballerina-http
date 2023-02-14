@@ -65,6 +65,18 @@ service /multipart on mockEP2 {
         }
         check caller->respond(outResponse);
     }
+
+    resource function get boundaryCheck() returns error? {
+        mime:Entity bodyPart1 = new;
+        bodyPart1.setJson({"bodyPart":"jsonPart"});
+        mime:Entity[] bodyParts = [bodyPart1];
+
+        //Set the body parts to outbound response.
+        http:Response outResponse = new;
+        string contentType = mime:MULTIPART_MIXED + "; boundary=\"------=_Part_0_814051860.1675096572056\"";
+        outResponse.setBodyParts(bodyParts, contentType);
+        checkpanic caller->respond(outResponse);
+    }
 }
 
 @test:Config {}
@@ -121,6 +133,27 @@ function testNestedPartsInOutResponse() {
                 i = i + 1;
             }
             test:assertEquals(payload, "Child Part 1Child Part 2", msg = common:errorMessage);
+        } else {
+            test:assertFail(msg = common:errorMessage + bodyParts.message());
+        }
+    } else {
+        test:assertFail(msg = common:errorMessage + response.message());
+    }
+}
+
+@test:Config {}
+function testMultipartsOutResponseWithDoubleQuotes() {
+    http:Response|error response = multipartRespClient->get("/multipart/boundaryCheck");
+    if response is http:Response {
+        mime:Entity[]|error bodyParts = response.getBodyParts();
+        if bodyParts is mime:Entity[] {
+            test:assertEquals(bodyParts.length(), 1, msg = common:errorMessage);
+            json|error jsonPart = bodyParts[0].getJson();
+            if jsonPart is json {
+                test:assertEquals(jsonPart.toJsonString(), "{\"" + "bodyPart" + "\":\"" + "jsonPart" + "\"}");
+            } else {
+                test:assertFail(msg = common:errorMessage + jsonPart.message());
+            }
         } else {
             test:assertFail(msg = common:errorMessage + bodyParts.message());
         }
