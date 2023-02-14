@@ -66,7 +66,7 @@ service /multipart on mockEP2 {
         check caller->respond(outResponse);
     }
 
-    resource function get boundaryCheck() returns error? {
+    resource function get boundaryCheck(http:Caller caller) returns error? {
         mime:Entity bodyPart1 = new;
         bodyPart1.setJson({"bodyPart":"jsonPart"});
         mime:Entity[] bodyParts = [bodyPart1];
@@ -75,7 +75,7 @@ service /multipart on mockEP2 {
         http:Response outResponse = new;
         string contentType = mime:MULTIPART_MIXED + "; boundary=\"------=_Part_0_814051860.1675096572056\"";
         outResponse.setBodyParts(bodyParts, contentType);
-        checkpanic caller->respond(outResponse);
+        check caller->respond(outResponse);
     }
 }
 
