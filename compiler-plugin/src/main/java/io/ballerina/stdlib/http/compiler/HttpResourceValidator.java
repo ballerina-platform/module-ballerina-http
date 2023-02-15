@@ -30,8 +30,6 @@ import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
 import io.ballerina.compiler.api.symbols.RecordTypeSymbol;
 import io.ballerina.compiler.api.symbols.ResourceMethodSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
-import io.ballerina.compiler.api.symbols.TableTypeSymbol;
-import io.ballerina.compiler.api.symbols.TupleTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
@@ -65,7 +63,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_ANNOTATION_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_ANNOTATION_TYPE;
@@ -89,8 +86,8 @@ import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.RESOURCE_CONFIG_ANNOTATION;
 import static io.ballerina.stdlib.http.compiler.Constants.SELF;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.getNodeString;
-import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.isAllowedPayloadType;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.retrieveEffectiveTypeDesc;
+import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.subtypeOfAnydata;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.updateDiagnostic;
 
 /**
@@ -101,7 +98,7 @@ class HttpResourceValidator {
     static void validateResource(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
                                  LinksMetaData linksMetaData, Map<String, TypeSymbol> typeSymbols) {
         extractResourceAnnotationAndValidate(ctx, member, linksMetaData);
-        extractInputParamTypeAndValidate(ctx, member, false);
+        extractInputParamTypeAndValidate(ctx, member, false, typeSymbols);
         extractReturnTypeAndValidate(ctx, member, typeSymbols);
         validateHttpCallerUsage(ctx, member);
     }
@@ -249,7 +246,8 @@ class HttpResourceValidator {
     }
 
     public static void extractInputParamTypeAndValidate(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
-                                                        boolean isErrorInterceptor) {
+                                                        boolean isErrorInterceptor,
+                                                        Map<String, TypeSymbol> typeSymbols) {
         boolean callerPresent = false;
         boolean requestPresent = false;
         boolean requestCtxPresent = false;
@@ -477,7 +475,7 @@ class HttpResourceValidator {
                             continue;
                         }
                         annotated = true;
-                        if (isValidPayloadParamType(typeDescriptor, ctx, paramLocation, paramName, false)) {
+                        if (subtypeOfAnydata(typeSymbols, typeDescriptor)) {
                             continue;
                         }
                         String paramTypeName = param.typeDescriptor().signature();
@@ -558,181 +556,6 @@ class HttpResourceValidator {
         if (!headerAnnotationPresent) {
             enableAddHeaderParamCodeAction(ctx, member.functionSignature().location());
         }
-    }
-
-    private static boolean isValidPayloadParamType(TypeSymbol typeDescriptor, SyntaxNodeAnalysisContext ctx,
-                                                   Location paramLocation, String paramName, boolean isRecordField) {
-        TypeDescKind kind = typeDescriptor.typeKind();
-        if (kind == TypeDescKind.INTERSECTION) {
-            typeDescriptor = getEffectiveTypeFromReadonlyIntersection((IntersectionTypeSymbol) typeDescriptor);
-            if (typeDescriptor == null) {
-                reportInvalidIntersectionType(ctx, paramLocation, paramName);
-                return false;
-            }
-            return isValidPayloadParamType(typeDescriptor, ctx, paramLocation, paramName, isRecordField);
-        }
-        if (isAllowedPayloadType(kind) || kind == TypeDescKind.SINGLETON) {
-            return true;
-        } else if (kind == TypeDescKind.RECORD) {
-            Map<String, RecordFieldSymbol> recordFieldSymbols = ((RecordTypeSymbol) typeDescriptor).fieldDescriptors();
-            final TypeSymbol effectiveParentType = typeDescriptor;
-            List<RecordFieldSymbol> erroneousFields = recordFieldSymbols.values().stream()
-                    .filter(fieldSymbol -> {
-                        TypeSymbol fieldTypeSymbol = fieldSymbol.typeDescriptor();
-                        return !isValidRecordParam(
-                                List.of(effectiveParentType), fieldTypeSymbol, ctx, paramLocation, paramName);
-                    }).collect(Collectors.toList());
-            erroneousFields.forEach(fieldSymbol -> {
-                TypeSymbol fieldTypeSymbol = fieldSymbol.typeDescriptor();
-                reportInvalidRecordFieldType(ctx, paramLocation, paramName, fieldTypeSymbol.signature());
-            });
-            return erroneousFields.isEmpty();
-        } else if (kind == TypeDescKind.ARRAY) {
-            TypeSymbol arrTypeSymbol = ((ArrayTypeSymbol) typeDescriptor).memberTypeDescriptor();
-            TypeDescKind elementKind = arrTypeSymbol.typeKind();
-            if (elementKind == TypeDescKind.INTERSECTION) {
-                arrTypeSymbol = ((IntersectionTypeSymbol) arrTypeSymbol).effectiveTypeDescriptor();
-                elementKind = arrTypeSymbol.typeKind();
-            }
-            if (elementKind == TypeDescKind.BYTE) {
-                return true;
-            }
-            return isValidPayloadParamType(arrTypeSymbol, ctx, paramLocation, paramName, isRecordField);
-        } else if (kind == TypeDescKind.TYPE_REFERENCE) {
-            return isValidTypeReferencedPayloadParam(typeDescriptor, ctx, paramLocation, paramName, isRecordField);
-        } else if (kind == TypeDescKind.MAP) {
-            typeDescriptor = ((MapTypeSymbol) typeDescriptor).typeParam();
-            return isValidPayloadParamType(typeDescriptor, ctx, paramLocation, paramName, isRecordField);
-        } else if (kind == TypeDescKind.TABLE) {
-            typeDescriptor = ((TableTypeSymbol) typeDescriptor).rowTypeParameter();
-            return isValidPayloadParamType(typeDescriptor, ctx, paramLocation, paramName, isRecordField);
-        } else if (kind == TypeDescKind.UNION) {
-            List<TypeSymbol> typeDescriptors = ((UnionTypeSymbol) typeDescriptor).memberTypeDescriptors();
-            for (TypeSymbol symbol: typeDescriptors) {
-                if (!isValidPayloadParamType(symbol, ctx, paramLocation, paramName, isRecordField)) {
-                    return false;
-                }
-            }
-            return true;
-        } else if (kind == TypeDescKind.TUPLE && isRecordField) {
-            List<TypeSymbol> tupleFieldSymbols = ((TupleTypeSymbol) typeDescriptor).memberTypeDescriptors();
-            tupleFieldSymbols.forEach(field -> {
-                if (!isValidPayloadParamType(field, ctx, paramLocation, paramName, true)) {
-                    reportInvalidRecordFieldType(ctx, paramLocation, paramName, field.signature());
-                }
-            });
-            return true;
-        }
-        return false;
-    }
-
-    private static boolean isValidTypeReferencedPayloadParam(TypeSymbol typeDescriptor, SyntaxNodeAnalysisContext ctx,
-                                                             Location paramLocation, String paramName,
-                                                             boolean isRecordField) {
-        typeDescriptor = ((TypeReferenceTypeSymbol) typeDescriptor).typeDescriptor();
-        String typeName = typeDescriptor.signature();
-        TypeDescKind typeDescKind = typeDescriptor.typeKind();
-        if (typeDescKind == TypeDescKind.INTERSECTION) {
-            typeDescriptor = getEffectiveTypeFromReadonlyIntersection((IntersectionTypeSymbol) typeDescriptor);
-            if (typeDescriptor == null) {
-                reportInvalidIntersectionType(ctx, paramLocation, typeName);
-                return true;
-            }
-            typeDescKind = typeDescriptor.typeKind();
-        }
-        if (typeDescKind == TypeDescKind.RECORD) {
-            Map<String, RecordFieldSymbol> recordFieldSymbols =
-                    ((RecordTypeSymbol) typeDescriptor).fieldDescriptors();
-            final TypeSymbol effectiveParentType = typeDescriptor;
-            recordFieldSymbols.forEach((key, value) -> {
-                TypeSymbol fieldTypeSymbol = value.typeDescriptor();
-                boolean validParam = isValidRecordParam(
-                        List.of(effectiveParentType), fieldTypeSymbol, ctx, paramLocation, paramName);
-                if (!validParam) {
-                    reportInvalidRecordFieldType(ctx, paramLocation, paramName, fieldTypeSymbol.signature());
-                }
-            });
-            return true;
-        } else {
-            return isValidPayloadParamType(typeDescriptor, ctx, paramLocation, paramName, isRecordField);
-        }
-    }
-
-    private static boolean isValidRecordParam(List<TypeSymbol> parentTypes, TypeSymbol typeDescriptor,
-                                              SyntaxNodeAnalysisContext ctx, Location paramLocation, String paramName) {
-        if (typeDescriptor.typeKind() == TypeDescKind.TYPE_REFERENCE) {
-            TypeSymbol effectiveTypeDescriptor = ((TypeReferenceTypeSymbol) typeDescriptor).typeDescriptor();
-            List<TypeSymbol> newParentTypes = getParentTypes(effectiveTypeDescriptor, parentTypes);
-            if (effectiveTypeDescriptor.typeKind() == TypeDescKind.RECORD) {
-                return validateRecordTypeField(
-                        newParentTypes, ctx, paramLocation, paramName, (RecordTypeSymbol) effectiveTypeDescriptor);
-            } else if (effectiveTypeDescriptor.typeKind() == TypeDescKind.UNION) {
-                List<TypeSymbol> typeDescriptors = ((UnionTypeSymbol) effectiveTypeDescriptor).memberTypeDescriptors();
-                return typeDescriptors.stream()
-                        .allMatch(memberTypeDescriptor ->
-                                isValidRecordParam(
-                                        newParentTypes, memberTypeDescriptor, ctx, paramLocation, paramName));
-            } else if (effectiveTypeDescriptor.typeKind() == TypeDescKind.INTERSECTION) {
-                TypeSymbol effectiveType = getEffectiveTypeFromReadonlyIntersection(
-                        (IntersectionTypeSymbol) effectiveTypeDescriptor);
-                if (effectiveType == null) {
-                    return false;
-                }
-                return isValidRecordParam(newParentTypes, effectiveType, ctx, paramLocation, paramName);
-            }
-        } else if (typeDescriptor.typeKind() == TypeDescKind.RECORD) {
-            List<TypeSymbol> newParentTypes = getParentTypes(typeDescriptor, parentTypes);
-            return validateRecordTypeField(
-                    newParentTypes, ctx, paramLocation, paramName, (RecordTypeSymbol) typeDescriptor);
-        }
-        return isValidPayloadParamType(typeDescriptor, ctx, paramLocation, paramName, true);
-    }
-
-    private static List<TypeSymbol> getParentTypes(TypeSymbol currentParent, List<TypeSymbol> parentTypes) {
-        List<TypeSymbol> newParentTypes = new ArrayList<>(parentTypes);
-        if (!newParentTypes.contains(currentParent)) {
-            newParentTypes.add(currentParent);
-        }
-        return newParentTypes;
-    }
-
-    private static boolean validateRecordTypeField(List<TypeSymbol> parentTypes, SyntaxNodeAnalysisContext ctx,
-                                                   Location paramLocation, String paramName,
-                                                   RecordTypeSymbol typeDescriptor) {
-        Map<String, RecordFieldSymbol> recordFields = typeDescriptor.fieldDescriptors();
-        return recordFields.values().stream()
-                .map(RecordFieldSymbol::typeDescriptor)
-                .flatMap(ts -> getFlatTypes(ts).stream())
-                .filter(ts -> parentTypes.stream().noneMatch(parentType -> parentType.equals(ts)))
-                .map(ts -> isValidRecordParam(parentTypes, ts, ctx, paramLocation, paramName))
-                .reduce(true, (a, b) -> a && b);
-    }
-
-    private static List<TypeSymbol> getFlatTypes(TypeSymbol typeDescriptor) {
-        TypeDescKind typeKind = typeDescriptor.typeKind();
-        if (typeKind == TypeDescKind.ARRAY) {
-            // we have to use this approach because a collection could have elements of a reference-type, in order to
-            // get the flat type, we hv to re-evaluate the member-type descriptor for a collection.
-            // collection can be an array, map, table or a tuple.
-            return Stream.of(((ArrayTypeSymbol) typeDescriptor).memberTypeDescriptor())
-                    .flatMap(ts -> getFlatTypes(ts).stream())
-                    .collect(Collectors.toList());
-        } else if (typeKind == TypeDescKind.MAP) {
-            return Stream.of(((MapTypeSymbol) typeDescriptor).typeParam())
-                    .flatMap(ts -> getFlatTypes(ts).stream())
-                    .collect(Collectors.toList());
-        } else if (typeKind == TypeDescKind.TABLE) {
-            return Stream.of(((TableTypeSymbol) typeDescriptor).rowTypeParameter())
-                    .flatMap(ts -> getFlatTypes(ts).stream())
-                    .collect(Collectors.toList());
-        } else if (typeKind == TypeDescKind.TUPLE) {
-            return ((TupleTypeSymbol) typeDescriptor).memberTypeDescriptors().stream()
-                    .flatMap(ts -> getFlatTypes(ts).stream())
-                    .collect(Collectors.toList());
-        } else if (typeKind == TypeDescKind.TYPE_REFERENCE) {
-            return List.of(((TypeReferenceTypeSymbol) typeDescriptor).typeDescriptor());
-        }
-        return List.of(typeDescriptor);
     }
 
     private static void validateHeaderParamType(SyntaxNodeAnalysisContext ctx, Location paramLocation, Symbol param,
@@ -1175,11 +998,6 @@ class HttpResourceValidator {
 
     private static void reportInvalidHeaderRecordRestFieldType(SyntaxNodeAnalysisContext ctx, Location location) {
         updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_144);
-    }
-
-    private static void reportInvalidRecordFieldType(SyntaxNodeAnalysisContext ctx, Location location,
-                                                     String paramName, String typeName) {
-        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_145, typeName, paramName);
     }
 
     private static void reportInvalidResourceName(SyntaxNodeAnalysisContext ctx, Location location,

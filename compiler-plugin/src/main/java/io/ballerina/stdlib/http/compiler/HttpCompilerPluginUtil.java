@@ -36,12 +36,12 @@ import io.ballerina.tools.diagnostics.DiagnosticInfo;
 import io.ballerina.tools.diagnostics.DiagnosticProperty;
 import io.ballerina.tools.diagnostics.Location;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
+import static io.ballerina.stdlib.http.compiler.Constants.ANYDATA;
 import static io.ballerina.stdlib.http.compiler.Constants.BALLERINA;
 import static io.ballerina.stdlib.http.compiler.Constants.EMPTY;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
@@ -53,15 +53,6 @@ import static io.ballerina.stdlib.http.compiler.Constants.UNNECESSARY_CHARS_REGE
  * Utility class providing http compiler plugin utility methods.
  */
 public class HttpCompilerPluginUtil {
-
-    private static final List<TypeDescKind> ALLOWED_PAYLOAD_TYPES = Arrays.asList(
-            TypeDescKind.BOOLEAN, TypeDescKind.INT, TypeDescKind.FLOAT, TypeDescKind.DECIMAL,
-            TypeDescKind.STRING, TypeDescKind.XML, TypeDescKind.JSON,
-            TypeDescKind.ANYDATA, TypeDescKind.NIL, TypeDescKind.BYTE, TypeDescKind.STRING_CHAR,
-            TypeDescKind.XML_ELEMENT, TypeDescKind.XML_COMMENT, TypeDescKind.XML_PROCESSING_INSTRUCTION,
-            TypeDescKind.XML_TEXT, TypeDescKind.INT_SIGNED8, TypeDescKind.INT_UNSIGNED8,
-            TypeDescKind.INT_SIGNED16, TypeDescKind.INT_UNSIGNED16, TypeDescKind.INT_SIGNED32,
-            TypeDescKind.INT_UNSIGNED32);
 
     public static void updateDiagnostic(SyntaxNodeAnalysisContext ctx, Location location,
                                         HttpDiagnosticCodes httpDiagnosticCodes) {
@@ -138,6 +129,10 @@ public class HttpCompilerPluginUtil {
         return false;
     }
 
+    public static boolean subtypeOfAnydata(Map<String, TypeSymbol> typeSymbols, TypeSymbol typeSymbol) {
+        return typeSymbol.subtypeOf(typeSymbols.get(ANYDATA));
+    }
+
     public static boolean isHttpModuleType(String expectedType, TypeSymbol typeDescriptor) {
         Optional<ModuleSymbol> module = typeDescriptor.getModule();
         if (module.isEmpty()) {
@@ -159,10 +154,6 @@ public class HttpCompilerPluginUtil {
             return ((IntersectionTypeSymbol) descriptor).effectiveTypeDescriptor().typeKind();
         }
         return typeDescKind;
-    }
-
-    public static boolean isAllowedPayloadType(TypeDescKind kind) {
-        return ALLOWED_PAYLOAD_TYPES.stream().anyMatch(allowedKind -> kind == allowedKind);
     }
 
     private static void reportInvalidReturnType(SyntaxNodeAnalysisContext ctx, Node node,
