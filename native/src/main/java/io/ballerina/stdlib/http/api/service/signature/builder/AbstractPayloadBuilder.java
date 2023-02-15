@@ -26,6 +26,7 @@ import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BTypedesc;
 import io.ballerina.stdlib.http.api.ValueCreatorUtils;
+import io.ballerina.stdlib.mime.util.HeaderUtil;
 import io.ballerina.stdlib.mime.util.MimeUtil;
 
 import java.util.List;
@@ -64,10 +65,7 @@ public abstract class AbstractPayloadBuilder {
             return getBuilderFromType(payloadType);
         }
         contentType = contentType.toLowerCase(Locale.getDefault()).trim();
-        BObject mediaType = MimeUtil.parseMediaType(ValueCreatorUtils.createMediaTypeObject(), contentType);
-        BObject entity = ValueCreatorUtils.createEntityObject();
-        entity.set(MEDIA_TYPE_FIELD, mediaType);
-        String baseType = MimeUtil.getBaseType(entity);
+        String baseType = HeaderUtil.getHeaderValue(contentType);
         if (baseType.matches(XML_PATTERN)) {
             return new XmlPayloadBuilder(payloadType);
         } else if (baseType.matches(TEXT_PATTERN)) {
