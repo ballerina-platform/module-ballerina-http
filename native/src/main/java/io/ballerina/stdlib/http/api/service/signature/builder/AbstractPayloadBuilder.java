@@ -25,9 +25,7 @@ import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BTypedesc;
-import io.ballerina.stdlib.http.api.ValueCreatorUtils;
 import io.ballerina.stdlib.mime.util.HeaderUtil;
-import io.ballerina.stdlib.mime.util.MimeUtil;
 
 import java.util.List;
 import java.util.Locale;
@@ -35,7 +33,6 @@ import java.util.Locale;
 import static io.ballerina.runtime.api.TypeTags.ARRAY_TAG;
 import static io.ballerina.runtime.api.TypeTags.STRING_TAG;
 import static io.ballerina.runtime.api.TypeTags.XML_TAG;
-import static io.ballerina.stdlib.mime.util.MimeConstants.MEDIA_TYPE_FIELD;
 
 /**
  * The abstract class to build and convert the payload based on the content-type header. If the content type is not
