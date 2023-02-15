@@ -17,40 +17,40 @@
 import ballerina/jballerina.java;
 import ballerina/lang.value;
 
-# Request context attribute type.
-public type ReqCtxAttribute value:Cloneable|isolated object {};
+# Request context member type.
+public type ReqCtxMember value:Cloneable|isolated object {};
 
-# Request context attribute type descriptor.
-public type ReqCtxAttributeType typedesc<ReqCtxAttribute>;
+# Request context member type descriptor.
+public type ReqCtxMemberType typedesc<ReqCtxMember>;
 
 # Represents an HTTP Context that allows user to pass data between interceptors.
 public isolated class RequestContext {
-    private final map<ReqCtxAttribute> attributes = {};
+    private final map<ReqCtxMember> members = {};
 
-    # Sets an attribute to the request context object.
+    # Sets a member to the request context object.
     #
-    # + key - Represents the attribute key
-    # + value - Represents the attribute value
-    public isolated function set(string key, ReqCtxAttribute value) {
+    # + key - Represents the member key
+    # + value - Represents the member value
+    public isolated function set(string key, ReqCtxMember value) {
         if value is value:Cloneable {
             lock {
-                self.attributes[key] = value.clone();
+                self.members[key] = value.clone();
             }
         }
         else {
             lock {
-                self.attributes[key] = value;
+                self.members[key] = value;
             }   
         }
     }
 
-    # Gets an attribute value from the request context object.
+    # Gets a member value from the request context object. It panics if there is no such member.
     #
-    # + key - Represents the attribute key
-    # + return - Attribute value
-    public isolated function get(string key) returns ReqCtxAttribute {
+    # + key - Represents the member key
+    # + return - Member value
+    public isolated function get(string key) returns ReqCtxMember {
         lock {
-            value:Cloneable|isolated object {} value = self.attributes.get(key);
+            value:Cloneable|isolated object {} value = self.members.get(key);
 
             if value is value:Cloneable {
                 return value.clone();
@@ -60,41 +60,42 @@ public isolated class RequestContext {
         }
     }
 
-    # Checks whether the request context object has an attribute corresponds to the key.
+    # Checks whether the request context object has a member corresponds to the key.
     #
-    # + key - Represents the attribute key
-    # + return - true if the attribute exists, else false
+    # + key - Represents the member key
+    # + return - true if the member exists, else false
     public isolated function hasKey(string key) returns boolean {
         lock {
-            return self.attributes.hasKey(key);
+            return self.members.hasKey(key);
         }
     }
 
-    # Returns the attribute keys of the request context object.
+    # Returns the member keys of the request context object.
     #
-    # + return - Array of attribute keys
+    # + return - Array of member keys
     public isolated function keys() returns string[] {
         lock {
-            return self.attributes.keys().clone();
+            return self.members.keys().clone();
         }
     }
 
-    # Gets an attribute value with type from the request context object.
+    # Gets a member value with type from the request context object.
     #
-    # + key - Represents the attribute key
-    # + targetType - Represents the expected type of the attribute value
-    # + return - Attribute value or an error if the attribute value is not of the expected type
-    public isolated function getWithType(string key, ReqCtxAttributeType targetType = <>)
+    # + key - Represents the member key
+    # + targetType - Represents the expected type of the member value
+    # + return - Attribute value or an error. The error is returned if the member does not exist or
+    #  if the member value is not of the expected type
+    public isolated function getWithType(string key, ReqCtxMemberType targetType = <>)
         returns targetType|ListenerError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternRequestContext"
     } external;
 
-    # Removes an attribute from the request context object. It panics if there is no such member.
+    # Removes a member from the request context object. It panics if there is no such member.
     #
-    # + key - Represents the attribute key
+    # + key - Represents the member key
     public isolated function remove(string key) {
         lock {
-            ReqCtxAttribute err = trap self.attributes.remove(key);
+            ReqCtxMember err = trap self.members.remove(key);
             if err is error {
                 panic err;
             }
