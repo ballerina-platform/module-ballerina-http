@@ -28,7 +28,8 @@ public class Constants {
     public static final String REMOTE_KEYWORD = "remote";
     public static final String RESOURCE_KEYWORD = "resource";
     public static final String RESPONSE_OBJ_NAME = "Response";
-    public static final String STATUS_CODE_RESPONSE = "StatusCodeResponse";
+    public static final String RESOURCE_RETURN_TYPE = "ResourceReturnType";
+    public static final String INTERCEPTOR_RESOURCE_RETURN_TYPE = "InterceptorResourceReturnType";
     public static final String CALLER_OBJ_NAME = "Caller";
     public static final String REQUEST_OBJ_NAME = "Request";
     public static final String REQUEST_CONTEXT_OBJ_NAME = "RequestContext";
@@ -44,20 +45,17 @@ public class Constants {
     public static final String CALLER_ANNOTATION_NAME = "CallerInfo";
     public static final String FIELD_RESPONSE_TYPE = "respondType";
     public static final String RESPOND_METHOD_NAME = "respond";
-    public static final String ERROR = "annotations:error";
     public static final String ALLOWED_RETURN_UNION = "anydata|http:Response|http:StatusCodeResponse|error";
     public static final String REQUEST_INTERCEPTOR = "RequestInterceptor";
     public static final String RESPONSE_INTERCEPTOR = "ResponseInterceptor";
     public static final String REQUEST_ERROR_INTERCEPTOR = "RequestErrorInterceptor";
     public static final String RESPONSE_ERROR_INTERCEPTOR = "ResponseErrorInterceptor";
-    public static final String SERVICE = "Service";
     public static final String HTTP_REQUEST_INTERCEPTOR = "http:RequestInterceptor";
     public static final String HTTP_REQUEST_ERROR_INTERCEPTOR = "http:RequestErrorInterceptor";
     public static final String HTTP_RESPONSE_INTERCEPTOR = "http:ResponseInterceptor";
     public static final String HTTP_RESPONSE_ERROR_INTERCEPTOR = "http:ResponseErrorInterceptor";
     public static final String ALLOWED_INTERCEPTOR_RETURN_UNION = "anydata|http:Response|http:StatusCodeResponse|" +
                                                                   "http:NextService|error?";
-    public static final String STATUS_CODE_RESPONSE = "StatusCodeResponse";
     public static final String DEFAULT = "default";
     public static final String GET = "get";
     public static final String HEAD = "head";

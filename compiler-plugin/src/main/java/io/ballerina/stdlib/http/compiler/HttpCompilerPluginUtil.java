@@ -18,19 +18,14 @@
 
 package io.ballerina.stdlib.http.compiler;
 
-import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
 import io.ballerina.compiler.api.symbols.FunctionSymbol;
 import io.ballerina.compiler.api.symbols.FunctionTypeSymbol;
 import io.ballerina.compiler.api.symbols.IntersectionTypeSymbol;
-import io.ballerina.compiler.api.symbols.MapTypeSymbol;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
-import io.ballerina.compiler.api.symbols.TableTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
-import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
-import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.Node;
@@ -51,8 +46,8 @@ import java.util.Optional;
 import static io.ballerina.stdlib.http.compiler.Constants.BALLERINA;
 import static io.ballerina.stdlib.http.compiler.Constants.EMPTY;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
-import static io.ballerina.stdlib.http.compiler.Constants.RESPONSE_OBJ_NAME;
-import static io.ballerina.stdlib.http.compiler.Constants.STATUS_CODE_RESPONSE;
+import static io.ballerina.stdlib.http.compiler.Constants.INTERCEPTOR_RESOURCE_RETURN_TYPE;
+import static io.ballerina.stdlib.http.compiler.Constants.RESOURCE_RETURN_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.UNNECESSARY_CHARS_REGEX;
 
 /**
@@ -64,14 +59,6 @@ public class HttpCompilerPluginUtil {
             TypeDescKind.BOOLEAN, TypeDescKind.INT, TypeDescKind.FLOAT, TypeDescKind.DECIMAL,
             TypeDescKind.STRING, TypeDescKind.XML, TypeDescKind.JSON,
             TypeDescKind.ANYDATA, TypeDescKind.NIL, TypeDescKind.BYTE, TypeDescKind.STRING_CHAR,
-            TypeDescKind.XML_ELEMENT, TypeDescKind.XML_COMMENT, TypeDescKind.XML_PROCESSING_INSTRUCTION,
-            TypeDescKind.XML_TEXT, TypeDescKind.INT_SIGNED8, TypeDescKind.INT_UNSIGNED8,
-            TypeDescKind.INT_SIGNED16, TypeDescKind.INT_UNSIGNED16, TypeDescKind.INT_SIGNED32,
-            TypeDescKind.INT_UNSIGNED32);
-    private static final List<TypeDescKind> ALLOWED_RETURN_TYPES = Arrays.asList(
-            TypeDescKind.BOOLEAN, TypeDescKind.INT, TypeDescKind.FLOAT, TypeDescKind.DECIMAL,
-            TypeDescKind.STRING, TypeDescKind.XML, TypeDescKind.JSON,
-            TypeDescKind.ANYDATA, TypeDescKind.RECORD, TypeDescKind.NIL, TypeDescKind.BYTE, TypeDescKind.STRING_CHAR,
             TypeDescKind.XML_ELEMENT, TypeDescKind.XML_COMMENT, TypeDescKind.XML_PROCESSING_INSTRUCTION,
             TypeDescKind.XML_TEXT, TypeDescKind.INT_SIGNED8, TypeDescKind.INT_UNSIGNED8,
             TypeDescKind.INT_SIGNED16, TypeDescKind.INT_UNSIGNED16, TypeDescKind.INT_SIGNED32,
@@ -123,187 +110,35 @@ public class HttpCompilerPluginUtil {
         if (returnTypeSymbol.isEmpty()) {
             return;
         }
-        validateReturnTypeN(ctx, returnTypeNode, returnType, returnTypeSymbol.get(), httpDiagnosticCode, true);
+        validateResourceReturnType(ctx, returnTypeNode, returnType, returnTypeSymbol.get(), httpDiagnosticCode, true);
         NodeList<AnnotationNode> annotations = returnTypeDescriptorNode.get().annotations();
         if (!annotations.isEmpty()) {
             reportReturnTypeAnnotationsAreNotAllowed(ctx, returnTypeDescriptorNode.get());
         }
     }
 
-    public static void validateReturnTypeN(SyntaxNodeAnalysisContext ctx, Node node, String returnTypeStringValue,
-                                             TypeSymbol returnTypeSymbol, HttpDiagnosticCodes diagnosticCode,
-                                             boolean isInterceptorType) {
-
-        Optional<Map<String, Symbol>> symbolMap = ctx.semanticModel().types().typesInModule(BALLERINA, HTTP, EMPTY);
-        if (symbolMap.isPresent()) {
-            Symbol symbol = symbolMap.get().get(isInterceptorType ? "InterceptorResourceReturnedType" :
-                                                        "ResourceReturnedType");
-            if (symbol instanceof TypeDefinitionSymbol
-                    && returnTypeSymbol.subtypeOf(((TypeDefinitionSymbol) symbol).typeDescriptor())) {
-                return;
-            }
+    public static void validateResourceReturnType(SyntaxNodeAnalysisContext ctx, Node node,
+                                                  String returnTypeStringValue, TypeSymbol returnTypeSymbol,
+                                                  HttpDiagnosticCodes diagnosticCode, boolean isInterceptorType) {
+        if (subtypeOfHttpModuleType(ctx, returnTypeSymbol,
+                isInterceptorType ? INTERCEPTOR_RESOURCE_RETURN_TYPE : RESOURCE_RETURN_TYPE)) {
+            return;
         }
         reportInvalidReturnType(ctx, node, returnTypeStringValue, diagnosticCode);
     }
 
-    public static void validateReturnTypeNew(SyntaxNodeAnalysisContext ctx, Node node, String returnTypeStringValue,
-                                             TypeSymbol returnTypeSymbol, HttpDiagnosticCodes diagnosticCode,
-                                             boolean isInterceptorType) {
-        if (isInterceptorType && isServiceType(returnTypeSymbol)) {
-            return;
-        }
-
-        TypeDescKind kind = returnTypeSymbol.typeKind();
-        if (isResponseType(returnTypeSymbol) || isStatusCodeResponseType(ctx, returnTypeSymbol) ||
-                isAnydataType(ctx, returnTypeSymbol) || isErrorType(ctx, returnTypeSymbol)) {
-            return;
-        }
-
-        if (kind == TypeDescKind.INTERSECTION) {
-            TypeSymbol typeSymbol = ((IntersectionTypeSymbol) returnTypeSymbol).effectiveTypeDescriptor();
-            validateReturnTypeNew(ctx, node, returnTypeStringValue, typeSymbol, diagnosticCode, isInterceptorType);
-            return;
-        } else if (kind == TypeDescKind.UNION) {
-            List<TypeSymbol> typeSymbols = ((UnionTypeSymbol) returnTypeSymbol).memberTypeDescriptors();
-            for (TypeSymbol typeSymbol : typeSymbols) {
-                validateReturnTypeNew(ctx, node, returnTypeStringValue, typeSymbol, diagnosticCode, isInterceptorType);
-            }
-            return;
-        }
-
-        reportInvalidReturnType(ctx, node, returnTypeStringValue, diagnosticCode);
-    }
-
-    public static boolean isErrorType(SyntaxNodeAnalysisContext ctx, TypeSymbol returnTypeSymbol) {
-        return returnTypeSymbol.subtypeOf(ctx.semanticModel().types().ERROR);
-    }
-
-    public static boolean isAnydataType(SyntaxNodeAnalysisContext ctx, TypeSymbol returnTypeSymbol) {
-        return returnTypeSymbol.subtypeOf(ctx.semanticModel().types().ANYDATA);
-    }
-
-    public static boolean isStatusCodeResponseType(SyntaxNodeAnalysisContext ctx, TypeSymbol returnTypeSymbol) {
+    public static boolean subtypeOfHttpModuleType(SyntaxNodeAnalysisContext ctx, TypeSymbol typeSymbol,
+                                                  String targetTypeName) {
         Optional<Map<String, Symbol>> symbolMap = ctx.semanticModel().types().typesInModule(BALLERINA, HTTP, EMPTY);
         if (symbolMap.isPresent()) {
-            Symbol symbol = symbolMap.get().get(STATUS_CODE_RESPONSE);
-            return symbol instanceof TypeDefinitionSymbol
-                    && returnTypeSymbol.subtypeOf(((TypeDefinitionSymbol) symbol).typeDescriptor());
+            Symbol symbol = symbolMap.get().get(targetTypeName);
+            if (symbol instanceof TypeSymbol) {
+                return typeSymbol.subtypeOf(((TypeSymbol) symbol));
+            } else if (symbol instanceof TypeDefinitionSymbol) {
+                return typeSymbol.subtypeOf(((TypeDefinitionSymbol) symbol).typeDescriptor());
+            }
         }
         return false;
-    }
-
-    public static boolean isResponseType(TypeSymbol returnTypeSymbol) {
-        TypeDescKind kind = returnTypeSymbol.typeKind();
-        if (kind == TypeDescKind.TYPE_REFERENCE) {
-            TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) returnTypeSymbol).typeDescriptor();
-            TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
-            return typeDescKind == TypeDescKind.OBJECT && isHttpModuleType(RESPONSE_OBJ_NAME, typeDescriptor);
-        }
-        return false;
-    }
-
-    public static void validateReturnType(SyntaxNodeAnalysisContext ctx, Node node, String returnTypeStringValue,
-                                           TypeSymbol returnTypeSymbol, HttpDiagnosticCodes diagnosticCode,
-                                           boolean isInterceptorType) {
-        if (isInterceptorType && isServiceType(returnTypeSymbol)) {
-            return;
-        }
-        TypeDescKind kind = returnTypeSymbol.typeKind();
-        if (isAllowedReturnType(kind) || kind == TypeDescKind.ERROR || kind == TypeDescKind.NIL ||
-                kind == TypeDescKind.ANYDATA || kind == TypeDescKind.SINGLETON) {
-            return;
-        }
-        if (kind == TypeDescKind.INTERSECTION) {
-            TypeSymbol typeSymbol = ((IntersectionTypeSymbol) returnTypeSymbol).effectiveTypeDescriptor();
-            validateReturnType(ctx, node, returnTypeStringValue, typeSymbol, diagnosticCode, isInterceptorType);
-        } else if (kind == TypeDescKind.UNION) {
-            List<TypeSymbol> typeSymbols = ((UnionTypeSymbol) returnTypeSymbol).memberTypeDescriptors();
-            for (TypeSymbol typeSymbol : typeSymbols) {
-                validateReturnType(ctx, node, returnTypeStringValue, typeSymbol, diagnosticCode, isInterceptorType);
-            }
-        } else if (kind == TypeDescKind.ARRAY) {
-            TypeSymbol memberTypeDescriptor = ((ArrayTypeSymbol) returnTypeSymbol).memberTypeDescriptor();
-            validateArrayElementTypeInReturnType(
-                    ctx, node, returnTypeStringValue, memberTypeDescriptor, diagnosticCode);
-        } else if (kind == TypeDescKind.TYPE_REFERENCE) {
-            TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) returnTypeSymbol).typeDescriptor();
-            TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
-            if (typeDescKind == TypeDescKind.OBJECT) {
-                if (!isHttpModuleType(RESPONSE_OBJ_NAME, typeDescriptor)) {
-                    reportInvalidReturnType(ctx, node, returnTypeStringValue, diagnosticCode);
-                }
-            } else {
-                validateReturnType(ctx, node, returnTypeStringValue, typeDescriptor, diagnosticCode, isInterceptorType);
-            }
-        } else if (kind == TypeDescKind.MAP) {
-            TypeSymbol typeSymbol = ((MapTypeSymbol) returnTypeSymbol).typeParam();
-            validateReturnType(ctx, node, returnTypeStringValue, typeSymbol, diagnosticCode, false);
-        } else if (kind == TypeDescKind.TABLE) {
-            TypeSymbol typeSymbol = ((TableTypeSymbol) returnTypeSymbol).rowTypeParameter();
-            if (typeSymbol == null) {
-                reportInvalidReturnType(ctx, node, returnTypeStringValue, diagnosticCode);
-            } else {
-                validateReturnType(ctx, node, returnTypeStringValue, typeSymbol, diagnosticCode, false);
-            }
-        } else {
-            reportInvalidReturnType(ctx, node, returnTypeStringValue, diagnosticCode);
-        }
-    }
-
-    private static boolean isServiceType(TypeSymbol returnTypeSymbol) {
-        Optional<String> optionalTypeName = returnTypeSymbol.getName();
-        return optionalTypeName.filter(typeName -> typeName.equals(Constants.SERVICE) ||
-                typeName.equals(Constants.REQUEST_INTERCEPTOR) ||
-                typeName.equals(Constants.RESPONSE_INTERCEPTOR)).isPresent();
-    }
-
-    private static void validateArrayElementTypeInReturnType(SyntaxNodeAnalysisContext ctx, Node node,
-                                                             String typeStringValue, TypeSymbol memberTypeDescriptor,
-                                                             HttpDiagnosticCodes diagnosticCode) {
-        TypeDescKind kind = memberTypeDescriptor.typeKind();
-        if (isAllowedReturnType(kind) || kind == TypeDescKind.RECORD || kind == TypeDescKind.MAP ||
-                kind == TypeDescKind.TABLE) {
-            return;
-        }
-        if (kind == TypeDescKind.INTERSECTION) {
-            TypeSymbol typeSymbol = ((IntersectionTypeSymbol) memberTypeDescriptor).effectiveTypeDescriptor();
-            validateArrayElementTypeInReturnType(ctx, node, typeStringValue, typeSymbol,
-                    diagnosticCode);
-        } else if (kind == TypeDescKind.TYPE_REFERENCE) {
-            if (isHttpModuleType(STATUS_CODE_RESPONSE, memberTypeDescriptor)) {
-                reportInvalidReturnType(ctx, node, typeStringValue, diagnosticCode);
-                return;
-            }
-            TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) memberTypeDescriptor).typeDescriptor();
-            TypeDescKind typeDescKind = retrieveEffectiveTypeDesc(typeDescriptor);
-            if (typeDescKind == TypeDescKind.OBJECT || typeDescKind == TypeDescKind.ERROR) {
-                reportInvalidReturnType(ctx, node, typeStringValue, diagnosticCode);
-            } else if (typeDescKind == TypeDescKind.UNION) {
-                List<TypeSymbol> typeSymbols = ((UnionTypeSymbol) typeDescriptor).userSpecifiedMemberTypes();
-                for (TypeSymbol typeSymbol : typeSymbols) {
-                    TypeDescKind effectiveTypeDesc = retrieveEffectiveTypeDesc(typeSymbol);
-                    if (effectiveTypeDesc == TypeDescKind.OBJECT || effectiveTypeDesc == TypeDescKind.ERROR) {
-                        reportInvalidReturnType(ctx, node, typeStringValue, diagnosticCode);
-                        return;
-                    } else if (effectiveTypeDesc == TypeDescKind.TYPE_REFERENCE) {
-                        if (isHttpModuleType(STATUS_CODE_RESPONSE, typeSymbol)) {
-                            reportInvalidReturnType(ctx, node, typeStringValue, diagnosticCode);
-                            return;
-                        }
-                        validateArrayElementTypeInReturnType(ctx, node, typeStringValue, typeSymbol, diagnosticCode);
-                    } else {
-                        validateReturnType(ctx, node, typeStringValue, typeSymbol, diagnosticCode, false);
-                    }
-                }
-            } else {
-                validateReturnType(ctx, node, typeStringValue, typeDescriptor, diagnosticCode, false);
-            }
-        } else if (kind == TypeDescKind.ARRAY) {
-            memberTypeDescriptor = ((ArrayTypeSymbol) memberTypeDescriptor).memberTypeDescriptor();
-            validateArrayElementTypeInReturnType(ctx, node, typeStringValue, memberTypeDescriptor, diagnosticCode);
-        } else {
-            reportInvalidReturnType(ctx, node, typeStringValue, diagnosticCode);
-        }
     }
 
     public static boolean isHttpModuleType(String expectedType, TypeSymbol typeDescriptor) {
@@ -331,10 +166,6 @@ public class HttpCompilerPluginUtil {
 
     public static boolean isAllowedPayloadType(TypeDescKind kind) {
         return ALLOWED_PAYLOAD_TYPES.stream().anyMatch(allowedKind -> kind == allowedKind);
-    }
-
-    public static boolean isAllowedReturnType(TypeDescKind kind) {
-        return ALLOWED_RETURN_TYPES.stream().anyMatch(allowedKind -> kind == allowedKind);
     }
 
     private static void reportInvalidReturnType(SyntaxNodeAnalysisContext ctx, Node node,
