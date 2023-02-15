@@ -136,3 +136,9 @@ public type HeaderValue record {|
     # Map of header parameters
     map<string> params;
 |};
+
+# Dummy types used in the compiler plugin
+type ResourceReturnType Response|StatusCodeResponse|anydata|error;
+type InterceptorResourceReturnType ResourceReturnType|NextService;
+type BasicType string|int|float|decimal|boolean?;
+type BasicArrayType string[]|int[]|float[]|decimal[]|boolean[]?;

@@ -46,6 +46,9 @@ import java.util.Optional;
 
 import static io.ballerina.stdlib.http.compiler.Constants.ANYDATA;
 import static io.ballerina.stdlib.http.compiler.Constants.BALLERINA;
+import static io.ballerina.stdlib.http.compiler.Constants.BASIC_ARRAY_TYPE;
+import static io.ballerina.stdlib.http.compiler.Constants.BASIC_TYPE;
+import static io.ballerina.stdlib.http.compiler.Constants.CALLER_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.EMPTY;
 import static io.ballerina.stdlib.http.compiler.Constants.ERROR;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
@@ -186,7 +189,8 @@ public class HttpCompilerPluginUtil {
         typeSymbols.put(ERROR, types.ERROR);
 
         // Get and populate ballerina http module types
-        String[] requiredTypeNames = {RESOURCE_RETURN_TYPE, INTERCEPTOR_RESOURCE_RETURN_TYPE};
+        String[] requiredTypeNames = {RESOURCE_RETURN_TYPE, INTERCEPTOR_RESOURCE_RETURN_TYPE, BASIC_TYPE,
+                BASIC_ARRAY_TYPE, CALLER_OBJ_NAME};
         Optional<Map<String, Symbol>> optionalMap = ctx.semanticModel().types().typesInModule(BALLERINA, HTTP, EMPTY);
         if (optionalMap.isPresent()) {
             Map<String, Symbol> symbolMap = optionalMap.get();

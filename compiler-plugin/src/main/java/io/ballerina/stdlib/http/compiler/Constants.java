@@ -32,6 +32,8 @@ public class Constants {
     public static final String ERROR = "error";
     public static final String RESOURCE_RETURN_TYPE = "ResourceReturnType";
     public static final String INTERCEPTOR_RESOURCE_RETURN_TYPE = "InterceptorResourceReturnType";
+    public static final String BASIC_TYPE = "BasicType";
+    public static final String BASIC_ARRAY_TYPE = "BasicArrayType";
     public static final String CALLER_OBJ_NAME = "Caller";
     public static final String REQUEST_OBJ_NAME = "Request";
     public static final String REQUEST_CONTEXT_OBJ_NAME = "RequestContext";

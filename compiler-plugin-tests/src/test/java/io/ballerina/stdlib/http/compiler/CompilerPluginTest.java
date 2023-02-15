@@ -176,9 +176,9 @@ public class CompilerPluginTest {
         assertError(diagnosticResult, 1, "invalid type of header param 'abc': One of the following types is " +
                 "expected: 'string','int','float','decimal','boolean', an array of the above types or a " +
                 "record which consists of the above types", HTTP_109);
-        assertError(diagnosticResult, 2, "invalid union type of header param 'abc': one of the 'string','int'," +
-                "'float','decimal','boolean' types, an array of the above types or a record which consists of " +
-                "the above types can only be union with '()'. Eg: string|() or string[]|()", HTTP_110);
+        assertError(diagnosticResult, 2, "invalid type of header param 'abc': One of the following types is " +
+                "expected: 'string','int','float','decimal','boolean', an array of the above types or a " +
+                "record which consists of the above types", HTTP_109);
         assertError(diagnosticResult, 3, "invalid union type of header param 'abc': one of the 'string','int'," +
                 "'float','decimal','boolean' types, an array of the above types or a record which consists of the " +
                 "above types can only be union with '()'. Eg: string|() or string[]|()", HTTP_110);

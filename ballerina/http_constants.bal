@@ -153,7 +153,3 @@ const string XML_PATTERN = "^(application|text)\\/(.*[.+-]|)xml$";
 const string TEXT_PATTERN = "^(text)\\/(.*[.+-]|)plain$";
 const string OCTET_STREAM_PATTERN = "^(application)\\/(.*[.+-]|)octet-stream$";
 const string URL_ENCODED_PATTERN = "^(application)\\/(.*[.+-]|)x-www-form-urlencoded$";
-
-# Dummy types used in the compiler plugin
-type ResourceReturnType Response|StatusCodeResponse|anydata|error;
-type InterceptorResourceReturnType ResourceReturnType|NextService;
