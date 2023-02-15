@@ -23,7 +23,6 @@ import io.ballerina.compiler.api.symbols.FunctionTypeSymbol;
 import io.ballerina.compiler.api.symbols.IntersectionTypeSymbol;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
-import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
@@ -93,6 +92,7 @@ public class HttpCompilerPluginUtil {
     }
 
     public static void extractInterceptorReturnTypeAndValidate(SyntaxNodeAnalysisContext ctx,
+                                                               Map<String, TypeSymbol> typeSymbols,
                                                                FunctionDefinitionNode member,
                                                                HttpDiagnosticCodes httpDiagnosticCode) {
         Optional<ReturnTypeDescriptorNode> returnTypeDescriptorNode = member.functionSignature().returnTypeDesc();
@@ -110,7 +110,8 @@ public class HttpCompilerPluginUtil {
         if (returnTypeSymbol.isEmpty()) {
             return;
         }
-        validateResourceReturnType(ctx, returnTypeNode, returnType, returnTypeSymbol.get(), httpDiagnosticCode, true);
+        validateResourceReturnType(ctx, returnTypeNode, typeSymbols, returnType, returnTypeSymbol.get(),
+                httpDiagnosticCode, true);
         NodeList<AnnotationNode> annotations = returnTypeDescriptorNode.get().annotations();
         if (!annotations.isEmpty()) {
             reportReturnTypeAnnotationsAreNotAllowed(ctx, returnTypeDescriptorNode.get());
@@ -118,25 +119,21 @@ public class HttpCompilerPluginUtil {
     }
 
     public static void validateResourceReturnType(SyntaxNodeAnalysisContext ctx, Node node,
-                                                  String returnTypeStringValue, TypeSymbol returnTypeSymbol,
-                                                  HttpDiagnosticCodes diagnosticCode, boolean isInterceptorType) {
-        if (subtypeOfHttpModuleType(ctx, returnTypeSymbol,
+                                                  Map<String, TypeSymbol> typeSymbols, String returnTypeStringValue,
+                                                  TypeSymbol returnTypeSymbol, HttpDiagnosticCodes diagnosticCode,
+                                                  boolean isInterceptorType) {
+        if (subtypeOfHttpModuleType(typeSymbols, returnTypeSymbol,
                 isInterceptorType ? INTERCEPTOR_RESOURCE_RETURN_TYPE : RESOURCE_RETURN_TYPE)) {
             return;
         }
         reportInvalidReturnType(ctx, node, returnTypeStringValue, diagnosticCode);
     }
 
-    public static boolean subtypeOfHttpModuleType(SyntaxNodeAnalysisContext ctx, TypeSymbol typeSymbol,
+    public static boolean subtypeOfHttpModuleType(Map<String, TypeSymbol> typeSymbols, TypeSymbol typeSymbol,
                                                   String targetTypeName) {
-        Optional<Map<String, Symbol>> symbolMap = ctx.semanticModel().types().typesInModule(BALLERINA, HTTP, EMPTY);
-        if (symbolMap.isPresent()) {
-            Symbol symbol = symbolMap.get().get(targetTypeName);
-            if (symbol instanceof TypeSymbol) {
-                return typeSymbol.subtypeOf(((TypeSymbol) symbol));
-            } else if (symbol instanceof TypeDefinitionSymbol) {
-                return typeSymbol.subtypeOf(((TypeDefinitionSymbol) symbol).typeDescriptor());
-            }
+        TypeSymbol targetTypeSymbol = typeSymbols.get(targetTypeName);
+        if (targetTypeSymbol != null) {
+            return typeSymbol.subtypeOf(targetTypeSymbol);
         }
         return false;
     }

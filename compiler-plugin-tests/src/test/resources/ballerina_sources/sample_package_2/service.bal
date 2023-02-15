@@ -225,22 +225,22 @@ service http:Service on new http:Listener(9090) {
                     </placeOrder>`;
     }
 
-    resource function get lift04(string id) returns ReturnValueStrNilArray {
+    resource function get resource1(string id) returns ReturnValueStrNilArray {
         string?[]? values = ["val1", ()];
         return values;
     }
 
-    resource function get lift10(string id) returns ReturnValuePrimitiveUnionArr {
+    resource function get resource2(string id) returns ReturnValuePrimitiveUnionArr {
         (string|int)[] values = ["val", 1];
         return values;
     }
 
-    resource function get lift11(string id) returns ReturnValueNilPrimitiveUnionArr {
+    resource function get resource3(string id) returns ReturnValueNilPrimitiveUnionArr {
         (string|int?)[]? values = ["val", 1, ()];
         return values;
     }
 
-    resource function get lift12(string id) returns ReturnValueNilPrimitiveUnionArrAlt {
+    resource function get resource4(string id) returns ReturnValueNilPrimitiveUnionArrAlt {
         (string|int?)[]? values = ["val", 1, ()];
         return values;
     }

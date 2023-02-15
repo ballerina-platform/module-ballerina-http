@@ -19,11 +19,13 @@
 package io.ballerina.stdlib.http.compiler;
 
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.Types;
 import io.ballerina.compiler.api.symbols.MethodSymbol;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.Qualifier;
 import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
@@ -42,12 +44,20 @@ import io.ballerina.tools.diagnostics.DiagnosticInfo;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 import io.ballerina.tools.diagnostics.Location;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
+import static io.ballerina.stdlib.http.compiler.Constants.ANYDATA;
+import static io.ballerina.stdlib.http.compiler.Constants.BALLERINA;
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_OBJ_NAME;
+import static io.ballerina.stdlib.http.compiler.Constants.EMPTY;
+import static io.ballerina.stdlib.http.compiler.Constants.ERROR;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
+import static io.ballerina.stdlib.http.compiler.Constants.INTERCEPTOR_RESOURCE_RETURN_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_CONTEXT_OBJ_NAME;
+import static io.ballerina.stdlib.http.compiler.Constants.RESOURCE_RETURN_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.RESPONSE_OBJ_NAME;
 
 /**
@@ -74,10 +84,36 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
         }
 
         NodeList<Node> members = classDefinitionNode.members();
-        validateInterceptorTypeAndProceed(syntaxNodeAnalysisContext, members);
+        validateInterceptorTypeAndProceed(syntaxNodeAnalysisContext, members, getCtxTypes(syntaxNodeAnalysisContext));
     }
 
-    private static void validateInterceptorTypeAndProceed(SyntaxNodeAnalysisContext ctx, NodeList<Node> members) {
+    private static Map<String, TypeSymbol> getCtxTypes(SyntaxNodeAnalysisContext ctx) {
+        Map<String, TypeSymbol> typeSymbols = new HashMap<>();
+        // Get and populate basic types
+        Types types = ctx.semanticModel().types();
+        typeSymbols.put(ANYDATA, types.ANYDATA);
+        typeSymbols.put(ERROR, types.ERROR);
+
+        // Get and populate ballerina http module types
+        String[] requiredTypeNames = {RESOURCE_RETURN_TYPE, INTERCEPTOR_RESOURCE_RETURN_TYPE};
+        Optional<Map<String, Symbol>> optionalMap = ctx.semanticModel().types().typesInModule(BALLERINA, HTTP, EMPTY);
+        if (optionalMap.isPresent()) {
+            Map<String, Symbol> symbolMap = optionalMap.get();
+            for (String typeName : requiredTypeNames) {
+                Symbol symbol = symbolMap.get(typeName);
+                if (symbol instanceof TypeSymbol) {
+                    typeSymbols.put(typeName, (TypeSymbol) symbol);
+                } else if (symbol instanceof TypeDefinitionSymbol) {
+                    typeSymbols.put(typeName, ((TypeDefinitionSymbol) symbol).typeDescriptor());
+                }
+            }
+        }
+
+        return typeSymbols;
+    }
+
+    private static void validateInterceptorTypeAndProceed(SyntaxNodeAnalysisContext ctx, NodeList<Node> members,
+                                                          Map<String, TypeSymbol> typeSymbols) {
         String interceptorType = null;
         for (Node member : members) {
             if (member.kind() == SyntaxKind.TYPE_REFERENCE) {
@@ -120,12 +156,12 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
             }
         }
         if (interceptorType != null) {
-            validateInterceptorMethod(ctx, members, interceptorType);
+            validateInterceptorMethod(ctx, members, interceptorType, typeSymbols);
         }
     }
 
     private static void validateInterceptorMethod(SyntaxNodeAnalysisContext ctx, NodeList<Node> members,
-                                                          String type) {
+                                                  String type, Map<String, TypeSymbol> typeSymbols) {
         FunctionDefinitionNode resourceFunctionNode = null;
         FunctionDefinitionNode remoteFunctionNode = null;
         for (Node member : members) {
@@ -149,13 +185,13 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
         }
         if (isResourceSupported(type)) {
             if (resourceFunctionNode != null) {
-                HttpInterceptorResourceValidator.validateResource(ctx, resourceFunctionNode, type);
+                HttpInterceptorResourceValidator.validateResource(ctx, resourceFunctionNode, type, typeSymbols);
             } else {
                 reportResourceFunctionNotFound(ctx, type);
             }
         } else {
             if (remoteFunctionNode != null) {
-                validateRemoteMethod(ctx, remoteFunctionNode, type);
+                validateRemoteMethod(ctx, remoteFunctionNode, type, typeSymbols);
             } else {
                 reportRemoteFunctionNotFound(ctx, type);
             }
@@ -213,9 +249,10 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
         return type.equals(Constants.REQUEST_INTERCEPTOR) || type.equals(Constants.REQUEST_ERROR_INTERCEPTOR);
     }
     private static void validateRemoteMethod(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
-                                             String type) {
+                                             String type, Map<String, TypeSymbol> typeSymbols) {
         validateInputParamType(ctx, member, type);
-        HttpCompilerPluginUtil.extractInterceptorReturnTypeAndValidate(ctx, member, HttpDiagnosticCodes.HTTP_141);
+        HttpCompilerPluginUtil.extractInterceptorReturnTypeAndValidate(ctx, typeSymbols, member,
+                HttpDiagnosticCodes.HTTP_141);
     }
 
     private static void validateInputParamType(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
@@ -237,11 +274,11 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
         for (ParameterSymbol param : parametersOptional.get()) {
             String paramType = param.typeDescriptor().signature();
             Optional<Location> paramLocationOptional = param.getLocation();
-            if (!paramLocationOptional.isEmpty()) {
+            if (paramLocationOptional.isPresent()) {
                 paramLocation = paramLocationOptional.get();
             }
             Optional<String> nameOptional = param.getName();
-            String paramName = nameOptional.isEmpty() ? "" : nameOptional.get();
+            String paramName = nameOptional.orElse("");
 
             TypeDescKind kind = param.typeDescriptor().typeKind();
             TypeSymbol typeSymbol = param.typeDescriptor();
@@ -295,7 +332,6 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
             } else {
                 reportInvalidParameterType(ctx, paramLocation, paramType);
             }
-            continue;
         }
         if (isResponseErrorInterceptor(type) && !errorPresent) {
             HttpCompilerPluginUtil.reportMissingParameterError(ctx, member.location(), Constants.REMOTE_KEYWORD);

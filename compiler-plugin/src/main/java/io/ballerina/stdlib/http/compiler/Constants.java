@@ -28,6 +28,8 @@ public class Constants {
     public static final String REMOTE_KEYWORD = "remote";
     public static final String RESOURCE_KEYWORD = "resource";
     public static final String RESPONSE_OBJ_NAME = "Response";
+    public static final String ANYDATA = "anydata";
+    public static final String ERROR = "error";
     public static final String RESOURCE_RETURN_TYPE = "ResourceReturnType";
     public static final String INTERCEPTOR_RESOURCE_RETURN_TYPE = "InterceptorResourceReturnType";
     public static final String CALLER_OBJ_NAME = "Caller";

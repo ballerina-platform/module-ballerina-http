@@ -18,9 +18,11 @@
 
 package io.ballerina.stdlib.http.compiler;
 
+import io.ballerina.compiler.api.Types;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.ServiceDeclarationSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
@@ -42,19 +44,25 @@ import io.ballerina.tools.diagnostics.DiagnosticFactory;
 import io.ballerina.tools.diagnostics.DiagnosticInfo;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import static io.ballerina.stdlib.http.compiler.Constants.ANYDATA;
 import static io.ballerina.stdlib.http.compiler.Constants.BALLERINA;
 import static io.ballerina.stdlib.http.compiler.Constants.COLON;
 import static io.ballerina.stdlib.http.compiler.Constants.DEFAULT;
+import static io.ballerina.stdlib.http.compiler.Constants.EMPTY;
+import static io.ballerina.stdlib.http.compiler.Constants.ERROR;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
+import static io.ballerina.stdlib.http.compiler.Constants.INTERCEPTOR_RESOURCE_RETURN_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.MEDIA_TYPE_SUBTYPE_PREFIX;
 import static io.ballerina.stdlib.http.compiler.Constants.MEDIA_TYPE_SUBTYPE_REGEX;
 import static io.ballerina.stdlib.http.compiler.Constants.PLUS;
 import static io.ballerina.stdlib.http.compiler.Constants.REMOTE_KEYWORD;
+import static io.ballerina.stdlib.http.compiler.Constants.RESOURCE_RETURN_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.SERVICE_CONFIG_ANNOTATION;
 import static io.ballerina.stdlib.http.compiler.Constants.SUFFIX_SEPARATOR_REGEX;
 import static io.ballerina.stdlib.http.compiler.Constants.UNNECESSARY_CHARS_REGEX;
@@ -103,11 +111,36 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
                 }
             } else if (member.kind() == SyntaxKind.RESOURCE_ACCESSOR_DEFINITION) {
                 HttpResourceValidator.validateResource(syntaxNodeAnalysisContext, (FunctionDefinitionNode) member,
-                                                       linksMetaData);
+                                                       linksMetaData, getCtxTypes(syntaxNodeAnalysisContext));
             }
         }
 
         validateResourceLinks(syntaxNodeAnalysisContext, linksMetaData);
+    }
+
+    private static Map<String, TypeSymbol> getCtxTypes(SyntaxNodeAnalysisContext ctx) {
+        Map<String, TypeSymbol> typeSymbols = new HashMap<>();
+        // Get and populate basic types
+        Types types = ctx.semanticModel().types();
+        typeSymbols.put(ANYDATA, types.ANYDATA);
+        typeSymbols.put(ERROR, types.ERROR);
+
+        // Get and populate ballerina http module types
+        String[] requiredTypeNames = {RESOURCE_RETURN_TYPE, INTERCEPTOR_RESOURCE_RETURN_TYPE};
+        Optional<Map<String, Symbol>> optionalMap = ctx.semanticModel().types().typesInModule(BALLERINA, HTTP, EMPTY);
+        if (optionalMap.isPresent()) {
+            Map<String, Symbol> symbolMap = optionalMap.get();
+            for (String typeName : requiredTypeNames) {
+                Symbol symbol = symbolMap.get(typeName);
+                if (symbol instanceof TypeSymbol) {
+                    typeSymbols.put(typeName, (TypeSymbol) symbol);
+                } else if (symbol instanceof TypeDefinitionSymbol) {
+                    typeSymbols.put(typeName, ((TypeDefinitionSymbol) symbol).typeDescriptor());
+                }
+            }
+        }
+
+        return typeSymbols;
     }
 
     private void validateResourceLinks(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext,
@@ -183,7 +216,7 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
     }
 
     private static void validateServiceConfigAnnotation(SyntaxNodeAnalysisContext ctx,
-                                                            Optional<MappingConstructorExpressionNode> maps) {
+                                                        Optional<MappingConstructorExpressionNode> maps) {
         MappingConstructorExpressionNode mapping = maps.get();
         for (MappingFieldNode field : mapping.fields()) {
             String fieldName = field.toString();

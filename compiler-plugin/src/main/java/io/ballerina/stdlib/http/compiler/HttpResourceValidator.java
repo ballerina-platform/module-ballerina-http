@@ -99,10 +99,10 @@ import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.updateDia
 class HttpResourceValidator {
 
     static void validateResource(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
-                                 LinksMetaData linksMetaData) {
+                                 LinksMetaData linksMetaData, Map<String, TypeSymbol> typeSymbols) {
         extractResourceAnnotationAndValidate(ctx, member, linksMetaData);
         extractInputParamTypeAndValidate(ctx, member, false);
-        extractReturnTypeAndValidate(ctx, member);
+        extractReturnTypeAndValidate(ctx, member, typeSymbols);
         validateHttpCallerUsage(ctx, member);
     }
 
@@ -764,7 +764,7 @@ class HttpResourceValidator {
                     TypeDescKind elementKind = type.typeKind();
                     if (elementKind == TypeDescKind.ARRAY) {
                         elementKind = ((ArrayTypeSymbol) type).memberTypeDescriptor().typeKind();
-                        checkAllowedHeaderParamUnionType(ctx, paramLocation, param, paramName, elementKind);
+                        checkAllowedHeaderParamUnionType(ctx, paramLocation, paramName, elementKind);
                         continue;
                     }
                     if (elementKind == TypeDescKind.TYPE_REFERENCE) {
@@ -801,7 +801,7 @@ class HttpResourceValidator {
 
 
     private static void checkAllowedHeaderParamUnionType(SyntaxNodeAnalysisContext ctx, Location paramLocation,
-                                                     Symbol param, String paramName, TypeDescKind elementKind) {
+                                                         String paramName, TypeDescKind elementKind) {
         if (!isAllowedHeaderParamPureType(elementKind)) {
             reportInvalidUnionHeaderType(ctx, paramLocation, paramName);
         }
@@ -894,7 +894,7 @@ class HttpResourceValidator {
                     TypeSymbol argTypeSymbol = ctx.semanticModel().type(argumentNode.expression()).get();
                     TypeSymbol annotValueSymbol =
                             (TypeSymbol) ctx.semanticModel().symbol(specificFieldNode.valueExpr().get()).get();
-                    if (!argTypeSymbol.assignableTo(annotValueSymbol)) {
+                    if (!argTypeSymbol.subtypeOf(annotValueSymbol)) {
                         reportInCompatibleCallerInfoType(ctx, argumentNode, expectedType);
                     }
                 }
@@ -927,7 +927,8 @@ class HttpResourceValidator {
                         memberDescriptor.typeKind() == TypeDescKind.SINGLETON);
     }
 
-    private static void extractReturnTypeAndValidate(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member) {
+    private static void extractReturnTypeAndValidate(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
+                                                     Map<String, TypeSymbol> typeSymbols) {
         Optional<ReturnTypeDescriptorNode> returnTypeDescriptorNode = member.functionSignature().returnTypeDesc();
         if (returnTypeDescriptorNode.isEmpty()) {
             return;
@@ -943,7 +944,7 @@ class HttpResourceValidator {
         if (returnTypeSymbol.isEmpty()) {
             return;
         }
-        HttpCompilerPluginUtil.validateResourceReturnType(ctx, returnTypeNode, returnTypeStringValue,
+        HttpCompilerPluginUtil.validateResourceReturnType(ctx, returnTypeNode, typeSymbols, returnTypeStringValue,
                                                           returnTypeSymbol.get(), HttpDiagnosticCodes.HTTP_102, false);
         validateAnnotationsAndEnableCodeActions(ctx, returnTypeNode, returnTypeSymbol.get(), returnTypeStringValue,
                                                 returnTypeDescriptorNode.get());
