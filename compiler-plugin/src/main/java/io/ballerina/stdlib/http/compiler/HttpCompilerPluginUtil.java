@@ -18,11 +18,13 @@
 
 package io.ballerina.stdlib.http.compiler;
 
+import io.ballerina.compiler.api.Types;
 import io.ballerina.compiler.api.symbols.FunctionSymbol;
 import io.ballerina.compiler.api.symbols.FunctionTypeSymbol;
 import io.ballerina.compiler.api.symbols.IntersectionTypeSymbol;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
@@ -36,6 +38,7 @@ import io.ballerina.tools.diagnostics.DiagnosticInfo;
 import io.ballerina.tools.diagnostics.DiagnosticProperty;
 import io.ballerina.tools.diagnostics.Location;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -44,6 +47,7 @@ import java.util.Optional;
 import static io.ballerina.stdlib.http.compiler.Constants.ANYDATA;
 import static io.ballerina.stdlib.http.compiler.Constants.BALLERINA;
 import static io.ballerina.stdlib.http.compiler.Constants.EMPTY;
+import static io.ballerina.stdlib.http.compiler.Constants.ERROR;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
 import static io.ballerina.stdlib.http.compiler.Constants.INTERCEPTOR_RESOURCE_RETURN_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.RESOURCE_RETURN_TYPE;
@@ -172,5 +176,30 @@ public class HttpCompilerPluginUtil {
     public static String getNodeString(Node node, boolean isCaseSensitive) {
         String nodeString = node.toString().replaceAll(UNNECESSARY_CHARS_REGEX, EMPTY).trim();
         return isCaseSensitive ? nodeString : nodeString.toLowerCase(Locale.getDefault());
+    }
+
+    public static Map<String, TypeSymbol> getCtxTypes(SyntaxNodeAnalysisContext ctx) {
+        Map<String, TypeSymbol> typeSymbols = new HashMap<>();
+        // Get and populate basic types
+        Types types = ctx.semanticModel().types();
+        typeSymbols.put(ANYDATA, types.ANYDATA);
+        typeSymbols.put(ERROR, types.ERROR);
+
+        // Get and populate ballerina http module types
+        String[] requiredTypeNames = {RESOURCE_RETURN_TYPE, INTERCEPTOR_RESOURCE_RETURN_TYPE};
+        Optional<Map<String, Symbol>> optionalMap = ctx.semanticModel().types().typesInModule(BALLERINA, HTTP, EMPTY);
+        if (optionalMap.isPresent()) {
+            Map<String, Symbol> symbolMap = optionalMap.get();
+            for (String typeName : requiredTypeNames) {
+                Symbol symbol = symbolMap.get(typeName);
+                if (symbol instanceof TypeSymbol) {
+                    typeSymbols.put(typeName, (TypeSymbol) symbol);
+                } else if (symbol instanceof TypeDefinitionSymbol) {
+                    typeSymbols.put(typeName, ((TypeDefinitionSymbol) symbol).typeDescriptor());
+                }
+            }
+        }
+
+        return typeSymbols;
     }
 }
