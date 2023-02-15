@@ -586,7 +586,7 @@ public class HttpConstants {
 
     public static final String OBSERVABILITY_CONTEXT_PROPERTY = "observabilityContext";
 
-    public static final BString REQUEST_CTX_ATTRIBUTES = StringUtils.fromString("attributes");
+    public static final BString REQUEST_CTX_MEMBERS = StringUtils.fromString("members");
 
     private HttpConstants() {
     }

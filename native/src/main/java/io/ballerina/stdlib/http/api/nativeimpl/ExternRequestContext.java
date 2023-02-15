@@ -34,13 +34,13 @@ import org.ballerinalang.langlib.value.EnsureType;
 public class ExternRequestContext {
 
     public static Object getWithType(BObject requestCtx, BString key, BTypedesc targetType) {
-        BMap attributes = requestCtx.getMapValue(HttpConstants.REQUEST_CTX_ATTRIBUTES);
+        BMap members = requestCtx.getMapValue(HttpConstants.REQUEST_CTX_MEMBERS);
         try {
-            Object value = attributes.getOrThrow(key);
+            Object value = members.getOrThrow(key);
             return EnsureType.ensureType(value, targetType);
         } catch (Exception exp) {
-            return HttpUtil.createHttpError("no attribute found for key: " + key.getValue(),
-                                            HttpErrorType.GENERIC_LISTENER_ERROR, 
+            return HttpUtil.createHttpError("no member found for key: " + key.getValue(),
+                                            HttpErrorType.GENERIC_LISTENER_ERROR,
                                             exp instanceof BError ? (BError) exp : null);
         }
     }
