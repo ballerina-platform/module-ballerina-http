@@ -97,9 +97,11 @@ service http:Service on new http:Listener(9090) {
         return [tbPerson, tbPerson].cloneReadOnly();
     }
 
-    resource function get returnReadonlyRecordArr() returns readonly & Person[] { // allowed
-        return [{id:123, name: "john"}, {id:124, name: "khan"}].cloneReadOnly();
-    }
+    // Disabling due to https://github.com/ballerina-platform/ballerina-lang/issues/39425
+    // Once it's fixed, this can be uncommented.
+    //resource function get returnReadonlyRecordArr() returns readonly & Person[] { // allowed
+    //    return [{id:123, name: "john"}, {id:124, name: "khan"}].cloneReadOnly();
+    //}
 
     // Currently following give error reported in https://github.com/ballerina-platform/ballerina-lang/issues/35332
     // Once it's fixed, uncomment the following case
