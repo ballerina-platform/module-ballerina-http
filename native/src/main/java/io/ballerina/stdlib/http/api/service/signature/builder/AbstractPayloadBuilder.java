@@ -26,6 +26,7 @@ import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BTypedesc;
 import io.ballerina.stdlib.mime.util.HeaderUtil;
+import io.ballerina.stdlib.mime.util.MimeConstants;
 
 import java.util.List;
 import java.util.Locale;
@@ -62,7 +63,12 @@ public abstract class AbstractPayloadBuilder {
             return getBuilderFromType(payloadType);
         }
         contentType = contentType.toLowerCase(Locale.getDefault()).trim();
-        String baseType = HeaderUtil.getHeaderValue(contentType);
+        String baseType;
+        if (contentType.contains(MimeConstants.SEMICOLON)) {
+            baseType = HeaderUtil.getHeaderValue(contentType);
+        } else {
+            baseType = contentType;
+        }
         if (baseType.matches(XML_PATTERN)) {
             return new XmlPayloadBuilder(payloadType);
         } else if (baseType.matches(TEXT_PATTERN)) {
