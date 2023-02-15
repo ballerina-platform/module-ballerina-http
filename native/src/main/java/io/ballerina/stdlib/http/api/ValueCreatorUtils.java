@@ -49,10 +49,6 @@ public class ValueCreatorUtils {
         return createObjectValue(MimeUtil.getMimePackage(), HttpConstants.ENTITY);
     }
 
-    public static BObject createMediaTypeObject() {
-        return createObjectValue(MimeUtil.getMimePackage(), HttpConstants.MEDIA_TYPE);
-    }
-
     public static BObject createRequestCacheControlObject() {
         return createObjectValue(ModuleUtils.getHttpPackage(), HttpConstants.REQUEST_CACHE_CONTROL);
     }
