@@ -22,7 +22,7 @@ import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.plugins.CodeModifier;
 import io.ballerina.projects.plugins.CodeModifierContext;
-import io.ballerina.stdlib.http.compiler.codemodifier.context.PayloadParamContext;
+import io.ballerina.stdlib.http.compiler.codemodifier.context.DocumentContext;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,7 +33,7 @@ import java.util.Map;
  * @since 2201.5.0
  */
 public class HttpServiceModifier extends CodeModifier {
-    private final Map<DocumentId, PayloadParamContext> payloadParamContextMap;
+    private final Map<DocumentId, DocumentContext> payloadParamContextMap;
 
     public HttpServiceModifier() {
         this.payloadParamContextMap = new HashMap<>();

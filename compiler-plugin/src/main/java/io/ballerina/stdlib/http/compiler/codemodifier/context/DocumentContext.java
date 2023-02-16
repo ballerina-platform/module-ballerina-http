@@ -18,8 +18,10 @@
 
 package io.ballerina.stdlib.http.compiler.codemodifier.context;
 
-import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -27,39 +29,28 @@ import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
  *
  *  @since 2201.5.0
  */
-public class PayloadParamContext {
+public class DocumentContext {
     private final SyntaxNodeAnalysisContext context;
-    private final ParameterSymbol parameterSymbol;
-    private final int serviceId;
-    private final int resourceId;
-    private final int index;
+    private final Map<Integer, ServiceContext> serviceContextMap;
 
-    public PayloadParamContext(SyntaxNodeAnalysisContext context, ParameterSymbol parameterSymbol, int serviceId,
-                               int resourceId, int index) {
+    public DocumentContext(SyntaxNodeAnalysisContext context) {
         this.context = context;
-        this.parameterSymbol = parameterSymbol;
-        this.serviceId = serviceId;
-        this.resourceId = resourceId;
-        this.index = index;
-    }
-
-    public ParameterSymbol getParameterSymbol() {
-        return parameterSymbol;
+        this.serviceContextMap = new HashMap<>();
     }
 
     public SyntaxNodeAnalysisContext getContext() {
         return context;
     }
 
-    public int getIndex() {
-        return index;
+    public void addServiceContext(ServiceContext serviceContext) {
+        serviceContextMap.put(serviceContext.getServiceId(), serviceContext);
     }
 
-    public int getResourceId() {
-        return resourceId;
+    public boolean containsService(int serviceId) {
+        return serviceContextMap.containsKey(serviceId);
     }
 
-    public int getServiceId() {
-        return serviceId;
+    public ServiceContext getServiceContext(int serviceId) {
+        return serviceContextMap.get(serviceId);
     }
 }
