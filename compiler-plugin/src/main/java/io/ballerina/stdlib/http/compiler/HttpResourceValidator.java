@@ -65,21 +65,28 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static io.ballerina.stdlib.http.compiler.Constants.BASIC_ARRAY_TYPE;
-import static io.ballerina.stdlib.http.compiler.Constants.BASIC_TYPE;
+import static io.ballerina.stdlib.http.compiler.Constants.BOOLEAN;
+import static io.ballerina.stdlib.http.compiler.Constants.BOOLEAN_ARRAY;
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_ANNOTATION_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_ANNOTATION_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_OBJ_NAME;
+import static io.ballerina.stdlib.http.compiler.Constants.DECIMAL;
+import static io.ballerina.stdlib.http.compiler.Constants.DECIMAL_ARRAY;
 import static io.ballerina.stdlib.http.compiler.Constants.EMPTY;
 import static io.ballerina.stdlib.http.compiler.Constants.FIELD_RESPONSE_TYPE;
+import static io.ballerina.stdlib.http.compiler.Constants.FLOAT;
+import static io.ballerina.stdlib.http.compiler.Constants.FLOAT_ARRAY;
 import static io.ballerina.stdlib.http.compiler.Constants.GET;
 import static io.ballerina.stdlib.http.compiler.Constants.HEAD;
 import static io.ballerina.stdlib.http.compiler.Constants.HEADER_ANNOTATION_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.HEADER_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
+import static io.ballerina.stdlib.http.compiler.Constants.INT;
+import static io.ballerina.stdlib.http.compiler.Constants.INT_ARRAY;
 import static io.ballerina.stdlib.http.compiler.Constants.LINKED_TO;
 import static io.ballerina.stdlib.http.compiler.Constants.METHOD;
 import static io.ballerina.stdlib.http.compiler.Constants.NAME;
+import static io.ballerina.stdlib.http.compiler.Constants.NIL;
 import static io.ballerina.stdlib.http.compiler.Constants.OPTIONS;
 import static io.ballerina.stdlib.http.compiler.Constants.PARAM;
 import static io.ballerina.stdlib.http.compiler.Constants.PAYLOAD_ANNOTATION_TYPE;
@@ -88,6 +95,8 @@ import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_CONTEXT_OBJ_NA
 import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.RESOURCE_CONFIG_ANNOTATION;
 import static io.ballerina.stdlib.http.compiler.Constants.SELF;
+import static io.ballerina.stdlib.http.compiler.Constants.STRING;
+import static io.ballerina.stdlib.http.compiler.Constants.STRING_ARRAY;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.getNodeString;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.retrieveEffectiveTypeDesc;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.subtypeOfAnydata;
@@ -543,7 +552,7 @@ class HttpResourceValidator {
         if (isValidBasicHeaderParamType(typeSymbol, typeSymbols)) {
             return;
         }
-        typeSymbol = getEffectiveTypeSymbol(ctx, paramLocation, paramName, typeSymbol);
+        typeSymbol = getEffectiveTypeSymbol(ctx, paramLocation, paramName, typeSymbol, typeSymbols);
         if (typeSymbol == null) {
             return;
         }
@@ -560,9 +569,21 @@ class HttpResourceValidator {
         reportInvalidHeaderParameterType(ctx, paramLocation, paramName, param);
     }
 
+    private static boolean isNilableType(TypeSymbol typeSymbol, Map<String, TypeSymbol> typeSymbols) {
+        return subtypeOfHttpModuleType(typeSymbols, typeSymbol, NIL);
+    }
+
     private static boolean isValidBasicHeaderParamType(TypeSymbol typeSymbol, Map<String, TypeSymbol> typeSymbols) {
-        return subtypeOfHttpModuleType(typeSymbols, typeSymbol, BASIC_TYPE) ||
-                subtypeOfHttpModuleType(typeSymbols, typeSymbol, BASIC_ARRAY_TYPE);
+        return subtypeOfHttpModuleType(typeSymbols, typeSymbol, STRING) ||
+                subtypeOfHttpModuleType(typeSymbols, typeSymbol, INT) ||
+                subtypeOfHttpModuleType(typeSymbols, typeSymbol, FLOAT) ||
+                subtypeOfHttpModuleType(typeSymbols, typeSymbol, DECIMAL) ||
+                subtypeOfHttpModuleType(typeSymbols, typeSymbol, BOOLEAN) ||
+                subtypeOfHttpModuleType(typeSymbols, typeSymbol, STRING_ARRAY) ||
+                subtypeOfHttpModuleType(typeSymbols, typeSymbol, INT_ARRAY) ||
+                subtypeOfHttpModuleType(typeSymbols, typeSymbol, FLOAT_ARRAY) ||
+                subtypeOfHttpModuleType(typeSymbols, typeSymbol, DECIMAL_ARRAY) ||
+                subtypeOfHttpModuleType(typeSymbols, typeSymbol, BOOLEAN_ARRAY);
     }
 
     private static void validateRecordFieldsOfHeaderParam(SyntaxNodeAnalysisContext ctx, ParameterSymbol param,
@@ -580,7 +601,8 @@ class HttpResourceValidator {
     }
 
     private static TypeSymbol getEffectiveTypeSymbol(SyntaxNodeAnalysisContext ctx, Location paramLocation,
-                                                     String paramName, TypeSymbol typeSymbol) {
+                                                     String paramName, TypeSymbol typeSymbol,
+                                                     Map<String, TypeSymbol> typeSymbols) {
         TypeDescKind typeDescKind = typeSymbol.typeKind();
         if (typeDescKind == TypeDescKind.UNION) {
             List<TypeSymbol> symbolList = ((UnionTypeSymbol) typeSymbol).memberTypeDescriptors();
@@ -589,9 +611,9 @@ class HttpResourceValidator {
                 reportInvalidUnionHeaderType(ctx, paramLocation, paramName);
                 return null;
             }
-            if (symbolList.get(0).typeKind() == TypeDescKind.NIL) {
+            if (isNilableType(symbolList.get(0), typeSymbols)) {
                 typeSymbol = symbolList.get(1);
-            } else if (symbolList.get(1).typeKind() == TypeDescKind.NIL) {
+            } else if (isNilableType(symbolList.get(1), typeSymbols)) {
                 typeSymbol = symbolList.get(0);
             } else {
                 reportInvalidUnionHeaderType(ctx, paramLocation, paramName);

@@ -30,6 +30,12 @@ type NestedRecord record {|
     RateLimitHeaders xRate;
 |};
 
+enum HeaderValue {
+    VALUE1 = "value1",
+    VALUE2 = "value2",
+    VALUE3 = "value3"
+};
+
 service http:Service on new http:Listener(9090) {
 
     resource function get headerString(@http:Header {name: "x-type"} string abc) returns string {
@@ -139,5 +145,9 @@ service http:Service on new http:Listener(9090) {
 
     resource function get headerRecordWithRecordField(@http:Header NestedRecord abc) returns string {
         return "done"; //error
+    }
+
+    resource function 'default [string... path](@http:Header HeaderValue? test) returns string {
+        return test.toString();
     }
 }
