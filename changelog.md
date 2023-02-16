@@ -7,10 +7,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+
+- [Introduce `getWithType()` method on request context objects](https://github.com/ballerina-platform/ballerina-standard-library/issues/3090)
+- [Introduce `hasKey()` and `keys()` methods on request context objects](https://github.com/ballerina-platform/ballerina-standard-library/issues/4070)
+
 ### Fixed
 
 - [Fix unnecessary warnings in native-image build](https://github.com/ballerina-platform/ballerina-standard-library/issues/3861)
 - [Http Compiler Plugin fails for payload type with cyclic fields](https://github.com/ballerina-platform/ballerina-standard-library/issues/3966)
+- [Fix union types getting restricted by compiler plugin](https://github.com/ballerina-platform/ballerina-standard-library/issues/3929)
 
 ## [2.5.2] - 2022-12-22
 
