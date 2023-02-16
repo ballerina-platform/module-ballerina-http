@@ -39,9 +39,11 @@ import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
 import io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes;
 import io.ballerina.stdlib.http.compiler.HttpServiceValidator;
+import io.ballerina.stdlib.http.compiler.codemodifier.context.DocumentContext;
 import io.ballerina.stdlib.http.compiler.codemodifier.context.ParamAvailability;
 import io.ballerina.stdlib.http.compiler.codemodifier.context.ParamData;
-import io.ballerina.stdlib.http.compiler.codemodifier.context.PayloadParamContext;
+import io.ballerina.stdlib.http.compiler.codemodifier.context.ResourceContext;
+import io.ballerina.stdlib.http.compiler.codemodifier.context.ServiceContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,10 +66,10 @@ import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.updateDia
  * @since 2201.5.0
  */
 public class HttpPayloadParamIdentifier extends HttpServiceValidator {
-    private final Map<DocumentId, PayloadParamContext> payloadParamContextMap;
+    private final Map<DocumentId, DocumentContext> documentContextMap;
 
-    public HttpPayloadParamIdentifier(Map<DocumentId, PayloadParamContext> payloadParamContextMap) {
-        this.payloadParamContextMap = payloadParamContextMap;
+    public HttpPayloadParamIdentifier(Map<DocumentId, DocumentContext> documentContextMap) {
+        this.documentContextMap = documentContextMap;
     }
 
     @Override
@@ -75,26 +77,26 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
         if (diagnosticContainsErrors(syntaxNodeAnalysisContext)) {
             return;
         }
-
         ServiceDeclarationNode serviceDeclarationNode = getServiceDeclarationNode(syntaxNodeAnalysisContext);
         if (serviceDeclarationNode == null) {
             return;
         }
         int serviceId = serviceDeclarationNode.hashCode();
         NodeList<Node> members = serviceDeclarationNode.members();
+        ServiceContext serviceContext = new ServiceContext(serviceId);
         for (Node member : members) {
             if (member.kind() == SyntaxKind.RESOURCE_ACCESSOR_DEFINITION) {
-                validateResource(syntaxNodeAnalysisContext, (FunctionDefinitionNode) member, serviceId);
+                validateResource(syntaxNodeAnalysisContext, (FunctionDefinitionNode) member, serviceContext);
             }
         }
     }
 
-    void validateResource(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member, int serviceId) {
-        extractInputParamTypeAndValidate(ctx, member, serviceId);
+    void validateResource(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member, ServiceContext serviceContext) {
+        extractInputParamTypeAndValidate(ctx, member, serviceContext);
     }
 
     void extractInputParamTypeAndValidate(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
-                                          int serviceId) {
+                                          ServiceContext serviceContext) {
 
         Optional<Symbol> resourceMethodSymbolOptional = ctx.semanticModel().symbol(member);
         int resourceId = member.hashCode();
@@ -142,12 +144,17 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
 
         for (ParamData nonAnnotatedParam : nonAnnotatedParams) {
             ParameterSymbol parameterSymbol = nonAnnotatedParam.getParameterSymbol();
-            if (validateNonAnnotatedParams(ctx, parameterSymbol.typeDescriptor(),
-                                           paramAvailability)) { //TODO change name of the func
+            if (validateNonAnnotatedParams(ctx, parameterSymbol.typeDescriptor(), paramAvailability)) {
                 paramAvailability.setPayloadParamSymbol(parameterSymbol);
-                this.payloadParamContextMap.put(ctx.documentId(),
-                                                new PayloadParamContext(ctx, parameterSymbol, serviceId, resourceId,
-                                                                        nonAnnotatedParam.getIndex()));
+                ResourceContext resourceContext =
+                        new ResourceContext(parameterSymbol, nonAnnotatedParam.getIndex());
+                DocumentContext documentContext = documentContextMap.get(ctx.documentId());
+                if (documentContext == null) {
+                    documentContext = new DocumentContext(ctx);
+                    documentContextMap.put(ctx.documentId(), documentContext);
+                }
+                serviceContext.setResourceContext(resourceId, resourceContext);
+                documentContext.addServiceContext(serviceContext);
             }
             if (paramAvailability.isErrorOccurred()) {
                 return;
@@ -236,7 +243,7 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
                 paramAvailability.setDefaultPayloadParam(true);
                 return true;
             } else if (isAllowedQueryParamBasicType(elementKind, arrTypeSymbol)) {
-                return true;
+                return false;
             } else if (elementKind == TypeDescKind.MAP || elementKind == TypeDescKind.RECORD) {
                 if (paramAvailability.isDefaultPayloadParam()) {
                     reportAmbiguousPayloadParam(analysisContext, typeSymbol);
@@ -266,6 +273,5 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
     private static void reportAmbiguousPayloadParam(SyntaxNodeAnalysisContext analysisContext, TypeSymbol typeSymbol) {
         updateDiagnostic(analysisContext, typeSymbol.getLocation().get(), HttpDiagnosticCodes.HTTP_151,
                          typeSymbol.getName());
-
     }
 }

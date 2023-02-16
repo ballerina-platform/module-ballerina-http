@@ -314,9 +314,9 @@ public class CompilerPluginTest {
         assertError(diagnosticResult, 8, "incompatible respond method argument type : expected " +
                 "'http:Error' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 9, "incompatible respond method argument type : expected " +
-                "'http:Ok' according to the 'http:CallerInfo' annotation", HTTP_114); 
+                "'http:Ok' according to the 'http:CallerInfo' annotation", HTTP_114);
         assertError(diagnosticResult, 10, "incompatible respond method argument type : expected " +
-                "'http:StatusCodeResponse' according to the 'http:CallerInfo' annotation", HTTP_114);       
+                "'http:StatusCodeResponse' according to the 'http:CallerInfo' annotation", HTTP_114);
     }
 
 
@@ -698,7 +698,7 @@ public class CompilerPluginTest {
 
     @Test
     public void testCodeModifierPayloadAnnotation() {
-        Package currentPackage = loadPackage("sample_package_31");
+        Package currentPackage = loadPackage("sample_package_33");
         DiagnosticResult modifierDiagnosticResult = currentPackage.runCodeGenAndModifyPlugins();
         Assert.assertEquals(modifierDiagnosticResult.errorCount(), 0);
     }

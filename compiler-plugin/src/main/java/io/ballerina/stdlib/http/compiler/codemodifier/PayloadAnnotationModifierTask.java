@@ -42,9 +42,10 @@ import io.ballerina.projects.Module;
 import io.ballerina.projects.ModuleId;
 import io.ballerina.projects.plugins.ModifierTask;
 import io.ballerina.projects.plugins.SourceModifierContext;
-import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
 import io.ballerina.stdlib.http.compiler.Constants;
-import io.ballerina.stdlib.http.compiler.codemodifier.context.PayloadParamContext;
+import io.ballerina.stdlib.http.compiler.codemodifier.context.DocumentContext;
+import io.ballerina.stdlib.http.compiler.codemodifier.context.ResourceContext;
+import io.ballerina.stdlib.http.compiler.codemodifier.context.ServiceContext;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 import io.ballerina.tools.text.TextDocument;
 
@@ -60,10 +61,10 @@ import java.util.Map;
  */
 public class PayloadAnnotationModifierTask implements ModifierTask<SourceModifierContext> {
 
-    private final Map<DocumentId, PayloadParamContext> payloadParamContextMap;
+    private final Map<DocumentId, DocumentContext> documentContextMap;
 
-    public PayloadAnnotationModifierTask(Map<DocumentId, PayloadParamContext> payloadParamContextMap) {
-        this.payloadParamContextMap = payloadParamContextMap;
+    public PayloadAnnotationModifierTask(Map<DocumentId, DocumentContext> documentContextMap) {
+        this.documentContextMap = documentContextMap;
     }
 
     @Override
@@ -75,29 +76,32 @@ public class PayloadAnnotationModifierTask implements ModifierTask<SourceModifie
             return;
         }
 
-        for (Map.Entry<DocumentId, PayloadParamContext> entry : payloadParamContextMap.entrySet()) {
+        for (Map.Entry<DocumentId, DocumentContext> entry : documentContextMap.entrySet()) {
             DocumentId documentId = entry.getKey();
-            PayloadParamContext payloadParamContext = entry.getValue();
-            SyntaxNodeAnalysisContext analysisContext = payloadParamContext.getContext();
-            ModuleId moduleId = analysisContext.moduleId();
-            Module currentModule = modifierContext.currentPackage().module(moduleId);
-            Document currentDoc = currentModule.document(documentId);
-            ModulePartNode rootNode = currentDoc.syntaxTree().rootNode();
-            NodeList<ModuleMemberDeclarationNode> newMembers = updateMemberNodes(rootNode.members(),
-                                                                                 payloadParamContext);
-            ModulePartNode newModulePart = rootNode.modify(rootNode.imports(), newMembers, rootNode.eofToken());
-            SyntaxTree updatedSyntaxTree = currentDoc.syntaxTree().modifyWith(newModulePart);
-            TextDocument textDocument = updatedSyntaxTree.textDocument();
-            if (currentModule.documentIds().contains(documentId)) {
-                modifierContext.modifySourceFile(textDocument, documentId);
-            } else {
-                modifierContext.modifyTestSourceFile(textDocument, documentId);
-            }
+            DocumentContext documentContext = entry.getValue();
+            modifyPayloadParam(modifierContext, documentId, documentContext);
+        }
+    }
+
+    private void modifyPayloadParam(SourceModifierContext modifierContext, DocumentId documentId,
+                                    DocumentContext documentContext) {
+        ModuleId moduleId = documentId.moduleId();
+        Module currentModule = modifierContext.currentPackage().module(moduleId);
+        Document currentDoc = currentModule.document(documentId);
+        ModulePartNode rootNode = currentDoc.syntaxTree().rootNode();
+        NodeList<ModuleMemberDeclarationNode> newMembers = updateMemberNodes(rootNode.members(), documentContext);
+        ModulePartNode newModulePart = rootNode.modify(rootNode.imports(), newMembers, rootNode.eofToken());
+        SyntaxTree updatedSyntaxTree = currentDoc.syntaxTree().modifyWith(newModulePart);
+        TextDocument textDocument = updatedSyntaxTree.textDocument();
+        if (currentModule.documentIds().contains(documentId)) {
+            modifierContext.modifySourceFile(textDocument, documentId);
+        } else {
+            modifierContext.modifyTestSourceFile(textDocument, documentId);
         }
     }
 
     private NodeList<ModuleMemberDeclarationNode> updateMemberNodes(NodeList<ModuleMemberDeclarationNode> oldMembers,
-                                                                    PayloadParamContext payloadParamContext) {
+                                                                    DocumentContext documentContext) {
 
         List<ModuleMemberDeclarationNode> updatedMembers = new ArrayList<>();
         for (ModuleMemberDeclarationNode memberNode : oldMembers) {
@@ -107,11 +111,11 @@ public class PayloadAnnotationModifierTask implements ModifierTask<SourceModifie
             }
             ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) memberNode;
             int serviceId = serviceNode.hashCode();
-
-            if (serviceId != payloadParamContext.getServiceId()) {
+            if (!documentContext.containsService(serviceId)) {
                 updatedMembers.add(memberNode);
                 continue;
             }
+            ServiceContext serviceContext = documentContext.getServiceContext(serviceId);
             NodeList<Node> members = serviceNode.members();
             List<Node> resourceMembers = new ArrayList<>();
             for (Node member : members) {
@@ -122,16 +126,17 @@ public class PayloadAnnotationModifierTask implements ModifierTask<SourceModifie
                 FunctionDefinitionNode resourceNode = (FunctionDefinitionNode) member;
                 int resourceId = resourceNode.hashCode();
 
-                if (resourceId != payloadParamContext.getResourceId()) {
+                if (!serviceContext.containsResource(resourceId)) {
                     resourceMembers.add(member);
                     continue;
                 }
+                ResourceContext resourceContext = serviceContext.getResourceContext(resourceId);
                 FunctionSignatureNode functionSignatureNode = resourceNode.functionSignature();
                 SeparatedNodeList<ParameterNode> parameterNodes = functionSignatureNode.parameters();
                 List<Node> newParameterNodes = new ArrayList<>();
                 int index = 0;
                 for (ParameterNode parameterNode : parameterNodes) {
-                    if (index++ != payloadParamContext.getIndex()) {
+                    if (index++ != resourceContext.getIndex()) {
                         newParameterNodes.add(parameterNode);
                         newParameterNodes.add(AbstractNodeFactory.createToken(SyntaxKind.COMMA_TOKEN));
                         continue;
