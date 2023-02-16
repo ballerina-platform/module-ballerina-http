@@ -83,6 +83,7 @@ import static io.ballerina.stdlib.http.compiler.Constants.NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.OPTIONS;
 import static io.ballerina.stdlib.http.compiler.Constants.PARAM;
 import static io.ballerina.stdlib.http.compiler.Constants.PAYLOAD_ANNOTATION_TYPE;
+import static io.ballerina.stdlib.http.compiler.Constants.QUERY_ANNOTATION_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.RELATION;
 import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_CONTEXT_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_OBJ_NAME;
@@ -349,75 +350,8 @@ class HttpResourceValidator {
                             reportInvalidParameterType(ctx, paramLocation, paramType);
                         }
                     }
-                } else if (isAllowedQueryParamType(kind, typeSymbol)) {
-                    // Allowed query param types
-                } else if (kind == TypeDescKind.MAP) {
-                    TypeSymbol constrainedTypeSymbol = ((MapTypeSymbol) typeSymbol).typeParam();
-                    TypeDescKind constrainedType = getReferencedTypeDescKind(constrainedTypeSymbol);
-                    if (constrainedType != TypeDescKind.JSON) {
-                        reportInvalidQueryParameterType(ctx, paramLocation, paramName);
-                        continue;
-                    }
-                } else if (kind == TypeDescKind.ARRAY) {
-                    // Allowed query param array types
-                    TypeSymbol arrTypeSymbol = ((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor();
-                    TypeDescKind elementKind = getReferencedTypeDescKind(arrTypeSymbol);
-                    if (arrTypeSymbol.typeKind() == TypeDescKind.TYPE_REFERENCE &&
-                            isEnumQueryParamType(((TypeReferenceTypeSymbol) arrTypeSymbol).typeDescriptor())) {
-                        continue;
-                    }
-                    if (elementKind == TypeDescKind.MAP) {
-                        TypeSymbol constrainedTypeSymbol = ((MapTypeSymbol) arrTypeSymbol).typeParam();
-                        TypeDescKind constrainedType = constrainedTypeSymbol.typeKind();
-                        if (constrainedType != TypeDescKind.JSON) {
-                            reportInvalidQueryParameterType(ctx, paramLocation, paramName);
-                        }
-                        continue;
-                    }
-                    if (!isAllowedQueryParamType(elementKind, arrTypeSymbol)) {
-                        reportInvalidQueryParameterType(ctx, paramLocation, paramName);
-                        continue;
-                    }
-                } else if (kind == TypeDescKind.UNION) {
-                    // Allowed query param union types
-                    List<TypeSymbol> symbolList = ((UnionTypeSymbol) typeSymbol).memberTypeDescriptors();
-                    int size = symbolList.size();
-                    if (size > 2) {
-                        reportInvalidUnionQueryType(ctx, paramLocation, paramName);
-                        continue;
-                    }
-                    if (symbolList.stream().noneMatch(type -> type.typeKind() == TypeDescKind.NIL)) {
-                        reportInvalidUnionQueryType(ctx, paramLocation, paramName);
-                        continue;
-                    }
-                    for (TypeSymbol type : symbolList) {
-                        TypeDescKind elementKind = getReferencedTypeDescKind(type);
-                        if (elementKind == TypeDescKind.ARRAY) {
-                            TypeSymbol arrTypeSymbol = ((ArrayTypeSymbol) type).memberTypeDescriptor();
-                            TypeDescKind arrElementKind = getReferencedTypeDescKind(arrTypeSymbol);
-                            if (arrElementKind == TypeDescKind.MAP) {
-                                TypeSymbol constrainedTypeSymbol = ((MapTypeSymbol) arrTypeSymbol).typeParam();
-                                TypeDescKind constrainedType = constrainedTypeSymbol.typeKind();
-                                if (constrainedType == TypeDescKind.JSON) {
-                                    continue;
-                                }
-                            }
-                            if (isAllowedQueryParamType(arrElementKind, arrTypeSymbol)) {
-                                continue;
-                            }
-                        } else if (elementKind == TypeDescKind.MAP) {
-                            TypeSymbol constrainedTypeSymbol = ((MapTypeSymbol) type).typeParam();
-                            TypeDescKind constrainedType = constrainedTypeSymbol.typeKind();
-                            if (constrainedType == TypeDescKind.JSON) {
-                                continue;
-                            }
-                        } else {
-                            if (elementKind == TypeDescKind.NIL || isAllowedQueryParamType(elementKind, type)) {
-                                continue;
-                            }
-                        }
-                        reportInvalidQueryParameterType(ctx, paramLocation, paramName);
-                    }
+                } else if (isValidQueryParamType(ctx, paramLocation, kind, typeSymbol, paramName)) {
+                    continue;
                 } else if (kind == TypeDescKind.ERROR) {
                     errorPresent = isObjectPresent(ctx, paramLocation, errorPresent, paramName,
                             HttpDiagnosticCodes.HTTP_122);
@@ -543,6 +477,18 @@ class HttpResourceValidator {
                         validateHeaderParamType(ctx, paramLocation, param, paramName, typeDescriptor);
                         break;
                     }
+                    case QUERY_ANNOTATION_TYPE: {
+                        if (annotated) {
+                            reportInvalidMultipleAnnotation(ctx, paramLocation, paramName);
+                            continue;
+                        }
+                        annotated = true;
+                        if (isValidQueryParamType(ctx, paramLocation, kind, typeDescriptor, paramName)) {
+                            continue;
+                        }
+                        reportInvalidQueryParameterType(ctx, paramLocation, paramName);
+                        break;
+                    }
                     default:
                         reportInvalidParameterAnnotation(ctx, paramLocation, paramName);
                         break;
@@ -558,6 +504,82 @@ class HttpResourceValidator {
         if (!headerAnnotationPresent) {
             enableAddHeaderParamCodeAction(ctx, member.functionSignature().location());
         }
+    }
+
+    private static boolean isValidQueryParamType(SyntaxNodeAnalysisContext ctx, Location paramLocation,
+                                                 TypeDescKind kind, TypeSymbol typeSymbol, String paramName) {
+        if (isAllowedQueryParamType(kind, typeSymbol)) {
+            // Allowed query param types
+            return true;
+        } else if (kind == TypeDescKind.MAP) {
+            TypeSymbol constrainedTypeSymbol = ((MapTypeSymbol) typeSymbol).typeParam();
+            TypeDescKind constrainedType = getReferencedTypeDescKind(constrainedTypeSymbol);
+            if (constrainedType != TypeDescKind.JSON) {
+                reportInvalidQueryParameterType(ctx, paramLocation, paramName);
+            }
+            return true;
+        } else if (kind == TypeDescKind.ARRAY) {
+            // Allowed query param array types
+            TypeSymbol arrTypeSymbol = ((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor();
+            TypeDescKind elementKind = getReferencedTypeDescKind(arrTypeSymbol);
+            if (arrTypeSymbol.typeKind() == TypeDescKind.TYPE_REFERENCE &&
+                    isEnumQueryParamType(((TypeReferenceTypeSymbol) arrTypeSymbol).typeDescriptor())) {
+                return true;
+            }
+            if (elementKind == TypeDescKind.MAP) {
+                TypeSymbol constrainedTypeSymbol = ((MapTypeSymbol) arrTypeSymbol).typeParam();
+                TypeDescKind constrainedType = constrainedTypeSymbol.typeKind();
+                if (constrainedType != TypeDescKind.JSON) {
+                    reportInvalidQueryParameterType(ctx, paramLocation, paramName);
+                }
+                return true;
+            }
+            if (!isAllowedQueryParamType(elementKind, arrTypeSymbol)) {
+                reportInvalidQueryParameterType(ctx, paramLocation, paramName);
+            }
+            return true;
+        } else if (kind == TypeDescKind.UNION) {
+            // Allowed query param union types
+            List<TypeSymbol> symbolList = ((UnionTypeSymbol) typeSymbol).memberTypeDescriptors();
+            int size = symbolList.size();
+            if (size > 2) {
+                reportInvalidUnionQueryType(ctx, paramLocation, paramName);
+                return true;
+            }
+            if (symbolList.stream().noneMatch(type -> type.typeKind() == TypeDescKind.NIL)) {
+                reportInvalidUnionQueryType(ctx, paramLocation, paramName);
+                return true;
+            }
+            for (TypeSymbol type : symbolList) {
+                TypeDescKind elementKind = getReferencedTypeDescKind(type);
+                if (elementKind == TypeDescKind.ARRAY) {
+                    TypeSymbol arrTypeSymbol = ((ArrayTypeSymbol) type).memberTypeDescriptor();
+                    TypeDescKind arrElementKind = getReferencedTypeDescKind(arrTypeSymbol);
+                    if (arrElementKind == TypeDescKind.MAP) {
+                        TypeSymbol constrainedTypeSymbol = ((MapTypeSymbol) arrTypeSymbol).typeParam();
+                        TypeDescKind constrainedType = constrainedTypeSymbol.typeKind();
+                        if (constrainedType == TypeDescKind.JSON) {
+                            return true;
+                        }
+                    }
+                    if (isAllowedQueryParamType(arrElementKind, arrTypeSymbol)) {
+                        return true;
+                    }
+                } else if (elementKind == TypeDescKind.MAP) {
+                    TypeSymbol constrainedTypeSymbol = ((MapTypeSymbol) type).typeParam();
+                    TypeDescKind constrainedType = constrainedTypeSymbol.typeKind();
+                    if (constrainedType == TypeDescKind.JSON) {
+                        return true;
+                    }
+                } else {
+                    if (elementKind == TypeDescKind.NIL || isAllowedQueryParamType(elementKind, type)) {
+                        return true;
+                    }
+                }
+                reportInvalidQueryParameterType(ctx, paramLocation, paramName);
+            }
+        }
+        return false;
     }
 
     private static boolean isValidPayloadParamType(TypeSymbol typeDescriptor, SyntaxNodeAnalysisContext ctx,

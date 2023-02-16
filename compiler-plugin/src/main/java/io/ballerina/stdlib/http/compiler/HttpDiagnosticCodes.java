@@ -36,12 +36,12 @@ public enum HttpDiagnosticCodes {
     HTTP_103("HTTP_103", "invalid resource method annotation type: expected 'http:" + RESOURCE_CONFIG_ANNOTATION +
             "', but found '%s'", ERROR),
     HTTP_104("HTTP_104", "invalid annotation type on param '%s': expected one of the following types: " +
-            "'http:Payload', 'http:CallerInfo', 'http:Headers'", ERROR),
+            "'http:Payload', 'http:CallerInfo', 'http:Header', 'http:Query'", ERROR),
     HTTP_105("HTTP_105", "invalid resource parameter '%s'", ERROR),
     HTTP_106("HTTP_106", "invalid resource parameter type: '%s'", ERROR),
     HTTP_107("HTTP_107", "invalid payload parameter type: '%s'", ERROR),
-    HTTP_108("HTTP_108", "invalid multiple resource parameter annotations for '%s'" +
-            ": expected one of the following types: 'http:Payload', 'http:CallerInfo', 'http:Header'", ERROR),
+    HTTP_108("HTTP_108", "invalid multiple resource parameter annotations for '%s': expected one of the following" +
+            " types: 'http:Payload', 'http:CallerInfo', 'http:Header', 'http:Query'", ERROR),
     HTTP_109("HTTP_109", "invalid type of header param '%s': One of the following types is expected: " +
             "'string','int','float','decimal','boolean', an array of the above types or a record which consists of " +
             "the above types", ERROR),

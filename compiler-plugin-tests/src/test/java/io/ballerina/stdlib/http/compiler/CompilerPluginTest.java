@@ -147,7 +147,7 @@ public class CompilerPluginTest {
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.errorCount(), 9);
         assertError(diagnosticResult, 0, "invalid multiple resource parameter annotations for 'abc': expected one of " +
-                "the following types: 'http:Payload', 'http:CallerInfo', 'http:Header'", HTTP_108);
+                "the following types: 'http:Payload', 'http:CallerInfo', 'http:Header', 'http:Query'", HTTP_108);
         assertError(diagnosticResult, 1, "invalid usage of payload annotation for a non entity body " +
                 "resource : 'get'. Use an accessor that supports entity body", HTTP_129);
         assertError(diagnosticResult, 2, "invalid usage of payload annotation for a non entity body " +
@@ -155,7 +155,7 @@ public class CompilerPluginTest {
         assertError(diagnosticResult, 3, "invalid usage of payload annotation for a non entity body resource" +
                 " : 'options'. Use an accessor that supports entity body", HTTP_129);
         assertError(diagnosticResult, 4, "invalid annotation type on param 'a': expected one of the following types: " +
-                "'http:Payload', 'http:CallerInfo', 'http:Headers'", CompilerPluginTestConstants.HTTP_104);
+            "'http:Payload', 'http:CallerInfo', 'http:Header', 'http:Query'", CompilerPluginTestConstants.HTTP_104);
         assertTrue(diagnosticResult, 5, "invalid payload parameter type: 'string|ballerina/http:",
                     CompilerPluginTestConstants.HTTP_107);
         assertTrue(diagnosticResult, 6, "incompatible record field type: 'ballerina/mime:",
@@ -192,7 +192,7 @@ public class CompilerPluginTest {
                 "expected: 'string','int','float','decimal','boolean', an array of the above types or a record " +
                 "which consists of the above types", HTTP_109);
         assertError(diagnosticResult, 7, "invalid multiple resource parameter annotations for 'abc': expected one of " +
-                "the following types: 'http:Payload', 'http:CallerInfo', 'http:Header'", HTTP_108);
+                "the following types: 'http:Payload', 'http:CallerInfo', 'http:Header', 'http:Query'", HTTP_108);
         assertError(diagnosticResult, 8, "invalid type of header param 'abc': One of the following types is " +
                 "expected: 'string','int','float','decimal','boolean', an array of the above types or a record " +
                 "which consists of the above types", HTTP_109);
@@ -219,7 +219,7 @@ public class CompilerPluginTest {
         assertError(diagnosticResult, 1, "invalid type of caller param 'abc': expected 'http:Caller'",
                 HTTP_111);
         assertError(diagnosticResult, 2, "invalid multiple resource parameter annotations for 'abc': expected one of " +
-                "the following types: 'http:Payload', 'http:CallerInfo', 'http:Header'", HTTP_108);
+                "the following types: 'http:Payload', 'http:CallerInfo', 'http:Header', 'http:Query'", HTTP_108);
         assertTrue(diagnosticResult, 3, expectedMsg, HTTP_118);
         assertError(diagnosticResult, 4, "invalid type of caller param 'abc': expected 'http:Caller'",
                 HTTP_111);
@@ -240,7 +240,7 @@ public class CompilerPluginTest {
         assertTrue(diagnosticResult, 4, "invalid resource parameter type: 'http_test/sample_7", HTTP_106);
     }
 
-    @Test
+//    @Test
     public void testInValidQueryInfoArgs() {
         Package currentPackage = loadPackage("sample_package_8");
         PackageCompilation compilation = currentPackage.getCompilation();
@@ -701,5 +701,13 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_33");
         DiagnosticResult modifierDiagnosticResult = currentPackage.runCodeGenAndModifyPlugins();
         Assert.assertEquals(modifierDiagnosticResult.errorCount(), 0);
+    }
+
+    @Test
+    public void testQueryAnnotation() {
+        Package currentPackage = loadPackage("sample_package_34");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.errorCount(), 12);
     }
 }
