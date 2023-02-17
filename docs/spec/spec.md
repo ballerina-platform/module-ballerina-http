@@ -451,8 +451,8 @@ See section [Request and Response](#6-request-and-response) to find out more.
 ##### 2.3.4.3. Query parameter
 
 The query param is a URL parameter which is available as a resource method parameter and it's not associated 
-with any annotation or additional detail. This parameter is not compulsory and not ordered. The type of query param 
-are as follows
+with any annotation or additional detail unless any default payload param is defined. This parameter is not compulsory 
+and not ordered. The type of query param are as follows
 
 ```ballerina
 type BasicType boolean|int|float|decimal|string|map<json>|enum;
@@ -467,6 +467,16 @@ Eg : “/hello?bar=hi&id=56”
 ```ballerina
 resource function get hello(string bar, int id) { 
     
+}
+```
+
+With the introduction of the default payload param support, the structured data types such as map<json> can be
+identified as payload param. To solve that ambiguity between the default payload and query param, the
+@http:Query annotation should be defined in front of the query param.
+
+```ballerina
+resource function post queryParamCheck(@http:Query map<json> q) returns map<json> {
+    return q; // q is payload param
 }
 ```
 
@@ -588,6 +598,23 @@ which retrieved by the `Content-type` header of the request. The data binding ha
 parameter type. The type of payload parameter can be one of the `anytype`. If the header is not present or not a 
 standard header, the binding type is inferred by the parameter type.
 
+The listener identifies the default payload parameter which is defined without the @http:Payload annotation when the 
+following conditions are met.
+- Parameters must include only one structured type of map/record or a list of map/record. But byte[] is an exception
+  and it is considered as a payload param.
+    - resource function post(Student[] p) {} -> Student[] is payload
+    - resource function post(int[] p) {} -> int[] is query
+    - resource function post(int p) {} -> int is query
+    - resource function post(Student p) {} -> Student is payload
+
+- If there is more than one structured type, the ambiguity must be resolved using @http:Payload annotation.
+    - resource function post(@http:Payload Student p, Student q) {} -> p is payload, q is query
+- If there are no structured types all are considered query params
+    - resource function post(@http:Payload string p, string q) {}
+- If the query param is structured, then @http:Query annotation is required.
+    - resource function post(@http:Query map<json> p) {}
+- The above rules are only applicable to POST, PUT, PATCH, DELETE and DEFAULT accessors
+
 Following table explains the compatible `anydata` types with each common media type. In the absence of a standard media 
 type, the binding type is inferred by the payload parameter type itself. If the type is not compatible with the media 
 type, error is returned.
@@ -638,7 +665,7 @@ The error which may occur during the process will be returned to the caller with
 status code of 400 BAD REQUEST. The successful binding will proceed the resource execution with the built payload.
 
 ```ballerina
-resource function post hello(@http:Payload json payload) { 
+resource function post hello(json payload) { 
     
 }
 ```
@@ -650,7 +677,7 @@ the process will happen according to the type `xml`.
 If the given types of the union are not compatible with the media type, an error is returned.
 
 ```ballerina
-resource function post album(@http:Payload json|xml payload) { 
+resource function post album(json|xml payload) { 
     
 }
 
