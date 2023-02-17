@@ -23,7 +23,6 @@ import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
 import java.util.HashMap;
 import java.util.Map;
 
-
 /**
  * {@code PayloadParamContext} contains details of unannotated payload parameter.
  *

@@ -187,7 +187,6 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
                 }
                 case DEFAULT: {
                 }
-
             }
         }
     }
