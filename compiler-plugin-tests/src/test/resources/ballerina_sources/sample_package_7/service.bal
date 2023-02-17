@@ -19,6 +19,7 @@ import ballerina/mime;
 
 type Caller record {|
     int id;
+    xml val;
 |};
 
 service http:Service on new http:Listener(9090) {

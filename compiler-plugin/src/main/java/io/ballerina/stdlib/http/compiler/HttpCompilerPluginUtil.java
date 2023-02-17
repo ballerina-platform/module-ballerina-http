@@ -55,11 +55,18 @@ import static io.ballerina.stdlib.http.compiler.Constants.EMPTY;
 import static io.ballerina.stdlib.http.compiler.Constants.ERROR;
 import static io.ballerina.stdlib.http.compiler.Constants.FLOAT;
 import static io.ballerina.stdlib.http.compiler.Constants.FLOAT_ARRAY;
+import static io.ballerina.stdlib.http.compiler.Constants.HEADER_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
 import static io.ballerina.stdlib.http.compiler.Constants.INT;
 import static io.ballerina.stdlib.http.compiler.Constants.INTERCEPTOR_RESOURCE_RETURN_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.INT_ARRAY;
+import static io.ballerina.stdlib.http.compiler.Constants.MAP_OF_JSON;
+import static io.ballerina.stdlib.http.compiler.Constants.MAP_OF_JSON_ARRAY;
 import static io.ballerina.stdlib.http.compiler.Constants.NIL;
+import static io.ballerina.stdlib.http.compiler.Constants.OBJECT;
+import static io.ballerina.stdlib.http.compiler.Constants.READONLY;
+import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_CONTEXT_OBJ_NAME;
+import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.RESOURCE_RETURN_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.STRING;
 import static io.ballerina.stdlib.http.compiler.Constants.STRING_ARRAY;
@@ -129,24 +136,20 @@ public class HttpCompilerPluginUtil {
                                                   Map<String, TypeSymbol> typeSymbols, String returnTypeStringValue,
                                                   TypeSymbol returnTypeSymbol, HttpDiagnosticCodes diagnosticCode,
                                                   boolean isInterceptorType) {
-        if (subtypeOfHttpModuleType(typeSymbols, returnTypeSymbol,
+        if (subtypeOf(typeSymbols, returnTypeSymbol,
                 isInterceptorType ? INTERCEPTOR_RESOURCE_RETURN_TYPE : RESOURCE_RETURN_TYPE)) {
             return;
         }
         reportInvalidReturnType(ctx, node, returnTypeStringValue, diagnosticCode);
     }
 
-    public static boolean subtypeOfHttpModuleType(Map<String, TypeSymbol> typeSymbols, TypeSymbol typeSymbol,
-                                                  String targetTypeName) {
+    public static boolean subtypeOf(Map<String, TypeSymbol> typeSymbols, TypeSymbol typeSymbol,
+                                    String targetTypeName) {
         TypeSymbol targetTypeSymbol = typeSymbols.get(targetTypeName);
         if (targetTypeSymbol != null) {
             return typeSymbol.subtypeOf(targetTypeSymbol);
         }
         return false;
-    }
-
-    public static boolean subtypeOfAnydata(Map<String, TypeSymbol> typeSymbols, TypeSymbol typeSymbol) {
-        return typeSymbol.subtypeOf(typeSymbols.get(ANYDATA));
     }
 
     public static boolean isHttpModuleType(String expectedType, TypeSymbol typeDescriptor) {
@@ -198,7 +201,8 @@ public class HttpCompilerPluginUtil {
     }
 
     private static void populateHttpModuleTypes(SyntaxNodeAnalysisContext ctx, Map<String, TypeSymbol> typeSymbols) {
-        String[] requiredTypeNames = {RESOURCE_RETURN_TYPE, INTERCEPTOR_RESOURCE_RETURN_TYPE, CALLER_OBJ_NAME};
+        String[] requiredTypeNames = {RESOURCE_RETURN_TYPE, INTERCEPTOR_RESOURCE_RETURN_TYPE,
+                CALLER_OBJ_NAME, REQUEST_OBJ_NAME, REQUEST_CONTEXT_OBJ_NAME, HEADER_OBJ_NAME};
         Optional<Map<String, Symbol>> optionalMap = ctx.semanticModel().types().typesInModule(BALLERINA, HTTP, EMPTY);
         if (optionalMap.isPresent()) {
             Map<String, Symbol> symbolMap = optionalMap.get();
@@ -233,5 +237,12 @@ public class HttpCompilerPluginUtil {
                 types.builder().ARRAY_TYPE.withType(types.FLOAT).build(), types.NIL).build());
         typeSymbols.put(DECIMAL_ARRAY, types.builder().UNION_TYPE.withMemberTypes(
                 types.builder().ARRAY_TYPE.withType(types.DECIMAL).build(), types.NIL).build());
+        typeSymbols.put(OBJECT, types.builder().OBJECT_TYPE.build());
+        typeSymbols.put(MAP_OF_JSON, types.builder().UNION_TYPE.withMemberTypes(
+                types.builder().MAP_TYPE.withTypeParam(types.JSON).build(), types.NIL).build());
+        typeSymbols.put(MAP_OF_JSON_ARRAY, types.builder().UNION_TYPE.withMemberTypes(
+                types.builder().ARRAY_TYPE.withType(
+                        types.builder().MAP_TYPE.withTypeParam(types.JSON).build()).build(), types.NIL).build());
+        typeSymbols.put(READONLY, types.READONLY);
     }
 }

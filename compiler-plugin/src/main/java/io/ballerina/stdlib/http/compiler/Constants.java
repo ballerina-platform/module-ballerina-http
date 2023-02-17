@@ -46,6 +46,10 @@ public class Constants {
     public static final String CALLER_OBJ_NAME = "Caller";
     public static final String REQUEST_OBJ_NAME = "Request";
     public static final String REQUEST_CONTEXT_OBJ_NAME = "RequestContext";
+    public static final String OBJECT = "object";
+    public static final String MAP_OF_JSON = "map<json>?";
+    public static final String MAP_OF_JSON_ARRAY = "map<json>[]?";
+    public static final String READONLY = "readonly";
     public static final String HEADER_OBJ_NAME = "Headers";
     public static final String PAYLOAD_ANNOTATION = "Payload";
     public static final String CACHE_ANNOTATION = "Cache";

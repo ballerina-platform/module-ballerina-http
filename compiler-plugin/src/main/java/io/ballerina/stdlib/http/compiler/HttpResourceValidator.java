@@ -19,11 +19,9 @@
 package io.ballerina.stdlib.http.compiler;
 
 import io.ballerina.compiler.api.symbols.AnnotationSymbol;
-import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
 import io.ballerina.compiler.api.symbols.FunctionSymbol;
 import io.ballerina.compiler.api.symbols.FunctionTypeSymbol;
 import io.ballerina.compiler.api.symbols.IntersectionTypeSymbol;
-import io.ballerina.compiler.api.symbols.MapTypeSymbol;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
@@ -65,6 +63,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static io.ballerina.stdlib.http.compiler.Constants.ANYDATA;
 import static io.ballerina.stdlib.http.compiler.Constants.BOOLEAN;
 import static io.ballerina.stdlib.http.compiler.Constants.BOOLEAN_ARRAY;
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_ANNOTATION_NAME;
@@ -84,9 +83,12 @@ import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
 import static io.ballerina.stdlib.http.compiler.Constants.INT;
 import static io.ballerina.stdlib.http.compiler.Constants.INT_ARRAY;
 import static io.ballerina.stdlib.http.compiler.Constants.LINKED_TO;
+import static io.ballerina.stdlib.http.compiler.Constants.MAP_OF_JSON;
+import static io.ballerina.stdlib.http.compiler.Constants.MAP_OF_JSON_ARRAY;
 import static io.ballerina.stdlib.http.compiler.Constants.METHOD;
 import static io.ballerina.stdlib.http.compiler.Constants.NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.NIL;
+import static io.ballerina.stdlib.http.compiler.Constants.OBJECT;
 import static io.ballerina.stdlib.http.compiler.Constants.OPTIONS;
 import static io.ballerina.stdlib.http.compiler.Constants.PARAM;
 import static io.ballerina.stdlib.http.compiler.Constants.PAYLOAD_ANNOTATION_TYPE;
@@ -99,8 +101,7 @@ import static io.ballerina.stdlib.http.compiler.Constants.STRING;
 import static io.ballerina.stdlib.http.compiler.Constants.STRING_ARRAY;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.getNodeString;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.retrieveEffectiveTypeDesc;
-import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.subtypeOfAnydata;
-import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.subtypeOfHttpModuleType;
+import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.subtypeOf;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.updateDiagnostic;
 
 /**
@@ -296,144 +297,37 @@ class HttpResourceValidator {
             if (annotations.isEmpty()) {
                 TypeSymbol typeSymbol = param.typeDescriptor();
                 String typeName = typeSymbol.signature();
-                if (typeSymbol.typeKind() == TypeDescKind.INTERSECTION) {
-                    typeSymbol = getEffectiveTypeFromReadonlyIntersection((IntersectionTypeSymbol) typeSymbol);
-                    if (typeSymbol == null) {
-                        reportInvalidIntersectionType(ctx, paramLocation, typeName);
-                        continue;
-                    }
-                }
                 TypeDescKind kind = typeSymbol.typeKind();
-                if (kind == TypeDescKind.TYPE_REFERENCE) {
-                    if (param.typeDescriptor().typeKind() == TypeDescKind.INTERSECTION) {
-                        reportInvalidIntersectionObjectType(ctx, paramLocation, paramName, typeName);
-                        continue;
-                    }
-                    TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor();
-                    TypeDescKind typeDescKind = typeDescriptor.typeKind();
-                    if (isEnumQueryParamType(typeDescriptor)) {
-                        continue;
-                    } else if (typeDescKind == TypeDescKind.OBJECT) {
-                        Optional<ModuleSymbol> moduleSymbolOptional = typeDescriptor.getModule();
-                        if (moduleSymbolOptional.isEmpty()) {
-                            reportInvalidParameterType(ctx, paramLocation, paramType);
-                            continue;
-                        }
-                        Optional<String> nameSymbolOptional = moduleSymbolOptional.get().getName();
-                        if (nameSymbolOptional.isEmpty()) {
-                            reportInvalidParameterType(ctx, paramLocation, paramType);
-                            continue;
-                        }
-                        if (!HTTP.equals(nameSymbolOptional.get())) {
-                            reportInvalidParameterType(ctx, paramLocation, paramType);
-                            continue;
-                        }
 
-                        Optional<String> typeNameOptional = typeDescriptor.getName();
-                        if (typeNameOptional.isEmpty()) {
-                            reportInvalidParameterType(ctx, paramLocation, paramType);
-                            continue;
-                        }
-                        switch (typeNameOptional.get()) {
-                            case CALLER_OBJ_NAME:
-                                callerPresent = isObjectPresent(ctx, paramLocation, callerPresent, paramName,
-                                                                HttpDiagnosticCodes.HTTP_115);
-                                break;
-                            case REQUEST_OBJ_NAME:
-                                requestPresent = isObjectPresent(ctx, paramLocation, requestPresent, paramName,
-                                                                 HttpDiagnosticCodes.HTTP_116);
-                                break;
-                            case REQUEST_CONTEXT_OBJ_NAME:
-                                requestCtxPresent = isObjectPresent(ctx, paramLocation, requestCtxPresent, paramName,
-                                                                    HttpDiagnosticCodes.HTTP_121);
-                                break;
-                            case HEADER_OBJ_NAME:
-                                headersPresent = isObjectPresent(ctx, paramLocation, headersPresent, paramName,
-                                                                 HttpDiagnosticCodes.HTTP_117);
-                                break;
-                            default:
-                                reportInvalidParameterType(ctx, paramLocation, paramType);
-                                break;
-                        }
-                    } else {
-                        if (!isAllowedQueryParamType(typeDescKind, typeDescriptor)) {
-                            reportInvalidParameterType(ctx, paramLocation, paramType);
-                        }
-                    }
-                } else if (isAllowedQueryParamType(kind, typeSymbol)) {
-                    // Allowed query param types
-                } else if (kind == TypeDescKind.MAP) {
-                    TypeSymbol constrainedTypeSymbol = ((MapTypeSymbol) typeSymbol).typeParam();
-                    TypeDescKind constrainedType = getReferencedTypeDescKind(constrainedTypeSymbol);
-                    if (constrainedType != TypeDescKind.JSON) {
-                        reportInvalidQueryParameterType(ctx, paramLocation, paramName);
-                        continue;
-                    }
-                } else if (kind == TypeDescKind.ARRAY) {
-                    // Allowed query param array types
-                    TypeSymbol arrTypeSymbol = ((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor();
-                    TypeDescKind elementKind = getReferencedTypeDescKind(arrTypeSymbol);
-                    if (arrTypeSymbol.typeKind() == TypeDescKind.TYPE_REFERENCE &&
-                            isEnumQueryParamType(((TypeReferenceTypeSymbol) arrTypeSymbol).typeDescriptor())) {
-                        continue;
-                    }
-                    if (elementKind == TypeDescKind.MAP) {
-                        TypeSymbol constrainedTypeSymbol = ((MapTypeSymbol) arrTypeSymbol).typeParam();
-                        TypeDescKind constrainedType = constrainedTypeSymbol.typeKind();
-                        if (constrainedType != TypeDescKind.JSON) {
-                            reportInvalidQueryParameterType(ctx, paramLocation, paramName);
-                        }
-                        continue;
-                    }
-                    if (!isAllowedQueryParamType(elementKind, arrTypeSymbol)) {
-                        reportInvalidQueryParameterType(ctx, paramLocation, paramName);
-                        continue;
-                    }
-                } else if (kind == TypeDescKind.UNION) {
-                    // Allowed query param union types
-                    List<TypeSymbol> symbolList = ((UnionTypeSymbol) typeSymbol).memberTypeDescriptors();
-                    int size = symbolList.size();
-                    if (size > 2) {
-                        reportInvalidUnionQueryType(ctx, paramLocation, paramName);
-                        continue;
-                    }
-                    if (symbolList.stream().noneMatch(type -> type.typeKind() == TypeDescKind.NIL)) {
-                        reportInvalidUnionQueryType(ctx, paramLocation, paramName);
-                        continue;
-                    }
-                    for (TypeSymbol type : symbolList) {
-                        TypeDescKind elementKind = getReferencedTypeDescKind(type);
-                        if (elementKind == TypeDescKind.ARRAY) {
-                            TypeSymbol arrTypeSymbol = ((ArrayTypeSymbol) type).memberTypeDescriptor();
-                            TypeDescKind arrElementKind = getReferencedTypeDescKind(arrTypeSymbol);
-                            if (arrElementKind == TypeDescKind.MAP) {
-                                TypeSymbol constrainedTypeSymbol = ((MapTypeSymbol) arrTypeSymbol).typeParam();
-                                TypeDescKind constrainedType = constrainedTypeSymbol.typeKind();
-                                if (constrainedType == TypeDescKind.JSON) {
-                                    continue;
-                                }
-                            }
-                            if (isAllowedQueryParamType(arrElementKind, arrTypeSymbol)) {
-                                continue;
-                            }
-                        } else if (elementKind == TypeDescKind.MAP) {
-                            TypeSymbol constrainedTypeSymbol = ((MapTypeSymbol) type).typeParam();
-                            TypeDescKind constrainedType = constrainedTypeSymbol.typeKind();
-                            if (constrainedType == TypeDescKind.JSON) {
-                                continue;
-                            }
-                        } else {
-                            if (elementKind == TypeDescKind.NIL || isAllowedQueryParamType(elementKind, type)) {
-                                continue;
-                            }
-                        }
-                        reportInvalidQueryParameterType(ctx, paramLocation, paramName);
-                    }
+                if (isValidQueryParamNew(typeSymbol, typeSymbols)) {
+                    continue;
                 } else if (kind == TypeDescKind.ERROR) {
                     errorPresent = isObjectPresent(ctx, paramLocation, errorPresent, paramName,
                             HttpDiagnosticCodes.HTTP_122);
-                } else {
+                } else if (kind == TypeDescKind.INTERSECTION) {
+                    if (subtypeOf(typeSymbols, typeSymbol, OBJECT)) {
+                        reportInvalidIntersectionObjectType(ctx, paramLocation, paramName, typeName);
+                    } else {
+                        reportInvalidIntersectionType(ctx, paramLocation, typeName);
+                    }
+                } else if (subtypeOf(typeSymbols, typeSymbol, CALLER_OBJ_NAME)) {
+                    callerPresent = isObjectPresent(ctx, paramLocation, callerPresent, paramName,
+                            HttpDiagnosticCodes.HTTP_115);
+                } else if (subtypeOf(typeSymbols, typeSymbol, REQUEST_OBJ_NAME)) {
+                    requestPresent = isObjectPresent(ctx, paramLocation, requestPresent, paramName,
+                            HttpDiagnosticCodes.HTTP_116);
+                } else if (subtypeOf(typeSymbols, typeSymbol, REQUEST_CONTEXT_OBJ_NAME)) {
+                    requestCtxPresent = isObjectPresent(ctx, paramLocation, requestCtxPresent, paramName,
+                            HttpDiagnosticCodes.HTTP_121);
+                } else if (subtypeOf(typeSymbols, typeSymbol, HEADER_OBJ_NAME)) {
+                    headersPresent = isObjectPresent(ctx, paramLocation, headersPresent, paramName,
+                            HttpDiagnosticCodes.HTTP_117);
+                } else if (kind == TypeDescKind.UNION) {
+                    reportInvalidUnionQueryType(ctx, paramLocation, paramName);
+                } else if (subtypeOf(typeSymbols, typeSymbol, OBJECT)) {
                     reportInvalidParameterType(ctx, paramLocation, paramType);
+                } else {
+                    reportInvalidQueryParameterType(ctx, paramLocation, paramName);
                 }
                 continue;
             }
@@ -494,7 +388,7 @@ class HttpResourceValidator {
                             continue;
                         }
                         annotated = true;
-                        if (subtypeOfHttpModuleType(typeSymbols, typeDescriptor, CALLER_OBJ_NAME)) {
+                        if (subtypeOf(typeSymbols, typeDescriptor, CALLER_OBJ_NAME)) {
                             if (callerPresent) {
                                 updateDiagnostic(ctx, paramLocation, HttpDiagnosticCodes.HTTP_115, paramName);
                             } else {
@@ -540,7 +434,7 @@ class HttpResourceValidator {
         if (resourceMethodOptional != null) {
             validatePayloadAnnotationUsage(ctx, paramLocation, resourceMethodOptional);
         }
-        if (subtypeOfAnydata(typeSymbols, typeDescriptor)) {
+        if (subtypeOf(typeSymbols, typeDescriptor, ANYDATA)) {
             return;
         }
         reportInvalidPayloadParameterType(ctx, paramLocation, param.typeDescriptor().signature());
@@ -549,7 +443,7 @@ class HttpResourceValidator {
     public static void validateHeaderParamType(SyntaxNodeAnalysisContext ctx, ParameterSymbol param,
                                                Location paramLocation, String paramName, TypeSymbol typeSymbol,
                                                Map<String, TypeSymbol> typeSymbols, boolean isRecordField) {
-        if (isValidBasicHeaderParamType(typeSymbol, typeSymbols)) {
+        if (isValidBasicParamType(typeSymbol, typeSymbols)) {
             return;
         }
         typeSymbol = getEffectiveTypeSymbol(ctx, paramLocation, paramName, typeSymbol, typeSymbols);
@@ -570,20 +464,25 @@ class HttpResourceValidator {
     }
 
     private static boolean isNilableType(TypeSymbol typeSymbol, Map<String, TypeSymbol> typeSymbols) {
-        return subtypeOfHttpModuleType(typeSymbols, typeSymbol, NIL);
+        return subtypeOf(typeSymbols, typeSymbol, NIL);
     }
 
-    private static boolean isValidBasicHeaderParamType(TypeSymbol typeSymbol, Map<String, TypeSymbol> typeSymbols) {
-        return subtypeOfHttpModuleType(typeSymbols, typeSymbol, STRING) ||
-                subtypeOfHttpModuleType(typeSymbols, typeSymbol, INT) ||
-                subtypeOfHttpModuleType(typeSymbols, typeSymbol, FLOAT) ||
-                subtypeOfHttpModuleType(typeSymbols, typeSymbol, DECIMAL) ||
-                subtypeOfHttpModuleType(typeSymbols, typeSymbol, BOOLEAN) ||
-                subtypeOfHttpModuleType(typeSymbols, typeSymbol, STRING_ARRAY) ||
-                subtypeOfHttpModuleType(typeSymbols, typeSymbol, INT_ARRAY) ||
-                subtypeOfHttpModuleType(typeSymbols, typeSymbol, FLOAT_ARRAY) ||
-                subtypeOfHttpModuleType(typeSymbols, typeSymbol, DECIMAL_ARRAY) ||
-                subtypeOfHttpModuleType(typeSymbols, typeSymbol, BOOLEAN_ARRAY);
+    private static boolean isValidQueryParamNew(TypeSymbol typeSymbol, Map<String, TypeSymbol> typeSymbols) {
+        return subtypeOf(typeSymbols, typeSymbol, MAP_OF_JSON) || subtypeOf(typeSymbols, typeSymbol, MAP_OF_JSON_ARRAY)
+                || isValidBasicParamType(typeSymbol, typeSymbols);
+    }
+
+    private static boolean isValidBasicParamType(TypeSymbol typeSymbol, Map<String, TypeSymbol> typeSymbols) {
+        return subtypeOf(typeSymbols, typeSymbol, STRING) ||
+                subtypeOf(typeSymbols, typeSymbol, INT) ||
+                subtypeOf(typeSymbols, typeSymbol, FLOAT) ||
+                subtypeOf(typeSymbols, typeSymbol, DECIMAL) ||
+                subtypeOf(typeSymbols, typeSymbol, BOOLEAN) ||
+                subtypeOf(typeSymbols, typeSymbol, STRING_ARRAY) ||
+                subtypeOf(typeSymbols, typeSymbol, INT_ARRAY) ||
+                subtypeOf(typeSymbols, typeSymbol, FLOAT_ARRAY) ||
+                subtypeOf(typeSymbols, typeSymbol, DECIMAL_ARRAY) ||
+                subtypeOf(typeSymbols, typeSymbol, BOOLEAN_ARRAY);
     }
 
     private static void validateRecordFieldsOfHeaderParam(SyntaxNodeAnalysisContext ctx, ParameterSymbol param,
@@ -693,24 +592,6 @@ class HttpResourceValidator {
         RespondExpressionVisitor respondNodeVisitor = new RespondExpressionVisitor(ctx, callerToken);
         member.accept(respondNodeVisitor);
         return respondNodeVisitor.getRespondStatementNodes();
-    }
-
-    private static boolean isAllowedQueryParamType(TypeDescKind kind, TypeSymbol typeSymbol) {
-        if (kind == TypeDescKind.TYPE_REFERENCE) {
-            TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor();
-            kind =  getReferencedTypeDescKind(typeDescriptor);
-        }
-        return kind == TypeDescKind.STRING || kind == TypeDescKind.INT || kind == TypeDescKind.FLOAT ||
-                kind == TypeDescKind.DECIMAL || kind == TypeDescKind.BOOLEAN;
-    }
-
-    private static boolean isEnumQueryParamType(TypeSymbol typeDescriptor) {
-        if (typeDescriptor.typeKind() == TypeDescKind.TYPE_REFERENCE) {
-            return isEnumQueryParamType(((TypeReferenceTypeSymbol) typeDescriptor).typeDescriptor());
-        }
-        return typeDescriptor.typeKind() == TypeDescKind.UNION && ((UnionTypeSymbol) typeDescriptor)
-                .memberTypeDescriptors().stream().allMatch(memberDescriptor ->
-                        memberDescriptor.typeKind() == TypeDescKind.SINGLETON);
     }
 
     private static void extractReturnTypeAndValidate(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
@@ -867,15 +748,6 @@ class HttpResourceValidator {
         } else {
             return TypeDescKind.ERROR.equals(typeKind) || TypeDescKind.NIL.equals(typeKind);
         }
-    }
-
-    private static TypeDescKind getReferencedTypeDescKind(TypeSymbol typeSymbol) {
-        TypeDescKind kind = typeSymbol.typeKind();
-        if (kind == TypeDescKind.TYPE_REFERENCE) {
-            TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor();
-            kind = getReferencedTypeDescKind(typeDescriptor);
-        }
-        return kind;
     }
 
     private static void reportInvalidResourceAnnotation(SyntaxNodeAnalysisContext ctx, Location location,
