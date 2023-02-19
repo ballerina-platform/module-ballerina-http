@@ -17,34 +17,40 @@
 import ballerina/jballerina.java;
 import ballerina/lang.value;
 
+# Request context member type.
+public type ReqCtxMember value:Cloneable|isolated object {};
+
+# Request context member type descriptor.
+public type ReqCtxMemberType typedesc<ReqCtxMember>;
+
 # Represents an HTTP Context that allows user to pass data between interceptors.
 public isolated class RequestContext {
-    private final map<value:Cloneable|isolated object {}> attributes = {};
+    private final map<ReqCtxMember> members = {};
 
-    # Sets an attribute to the request context object.
+    # Sets a member to the request context object.
     #
-    # + key - Represents the attribute key
-    # + value - Represents the attribute value
-    public isolated function set(string key, value:Cloneable|isolated object {} value) {
+    # + key - Represents the member key
+    # + value - Represents the member value
+    public isolated function set(string key, ReqCtxMember value) {
         if value is value:Cloneable {
             lock {
-                self.attributes[key] = value.clone();
+                self.members[key] = value.clone();
             }
         }
         else {
             lock {
-                self.attributes[key] = value;
+                self.members[key] = value;
             }   
         }
     }
 
-    # Gets an attribute value from the request context object.
+    # Gets a member value from the request context object. It panics if there is no such member.
     #
-    # + key - Represents the attribute key
-    # + return - Attribute value
-    public isolated function get(string key) returns value:Cloneable|isolated object {} {
+    # + key - Represents the member key
+    # + return - Member value
+    public isolated function get(string key) returns ReqCtxMember {
         lock {
-            value:Cloneable|isolated object {} value = self.attributes.get(key);
+            value:Cloneable|isolated object {} value = self.members.get(key);
 
             if value is value:Cloneable {
                 return value.clone();
@@ -54,12 +60,42 @@ public isolated class RequestContext {
         }
     }
 
-    # Removes an attribute from the request context object. It panics if there is no such member.
+    # Checks whether the request context object has a member corresponds to the key.
     #
-    # + key - Represents the attribute key
+    # + key - Represents the member key
+    # + return - true if the member exists, else false
+    public isolated function hasKey(string key) returns boolean {
+        lock {
+            return self.members.hasKey(key);
+        }
+    }
+
+    # Returns the member keys of the request context object.
+    #
+    # + return - Array of member keys
+    public isolated function keys() returns string[] {
+        lock {
+            return self.members.keys().clone();
+        }
+    }
+
+    # Gets a member value with type from the request context object.
+    #
+    # + key - Represents the member key
+    # + targetType - Represents the expected type of the member value
+    # + return - Attribute value or an error. The error is returned if the member does not exist or
+    #  if the member value is not of the expected type
+    public isolated function getWithType(string key, ReqCtxMemberType targetType = <>)
+        returns targetType|ListenerError = @java:Method {
+        'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternRequestContext"
+    } external;
+
+    # Removes a member from the request context object. It panics if there is no such member.
+    #
+    # + key - Represents the member key
     public isolated function remove(string key) {
         lock {
-            value:Cloneable|isolated object {} err = trap self.attributes.remove(key);
+            ReqCtxMember err = trap self.members.remove(key);
             if err is error {
                 panic err;
             }
@@ -68,15 +104,8 @@ public isolated class RequestContext {
 
     # Calls the next service in the interceptor pipeline.
     #
-    # + return - The next service object in the pipeline. An error is returned, if the call fails 
-    public isolated function next() returns NextService|error? {
-        lock {
-            return externRequestCtxNext(self);
-        }
-    }
+    # + return - The next service object in the pipeline. An error is returned, if the call fails
+    public isolated function next() returns NextService|error? = @java:Method {
+        'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternRequestContext"
+    } external;
 }
-
-isolated function externRequestCtxNext(RequestContext requestCtx) returns NextService|error? = @java:Method {
-    name: "next",
-    'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternRequestContext"
-} external;
