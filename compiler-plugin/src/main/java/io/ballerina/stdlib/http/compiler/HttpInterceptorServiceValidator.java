@@ -20,12 +20,10 @@ package io.ballerina.stdlib.http.compiler;
 
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.MethodSymbol;
-import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.Qualifier;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
-import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
@@ -47,10 +45,10 @@ import java.util.Map;
 import java.util.Optional;
 
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_OBJ_NAME;
-import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
 import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_CONTEXT_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.RESPONSE_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.getCtxTypes;
+import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.subtypeOf;
 
 /**
  * Validates a Ballerina Http Interceptor Service.
@@ -217,13 +215,13 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
     }
     private static void validateRemoteMethod(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
                                              String type, Map<String, TypeSymbol> typeSymbols) {
-        validateInputParamType(ctx, member, type);
+        validateInputParamType(ctx, member, type, typeSymbols);
         HttpCompilerPluginUtil.extractInterceptorReturnTypeAndValidate(ctx, typeSymbols, member,
                 HttpDiagnosticCodes.HTTP_141);
     }
 
     private static void validateInputParamType(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
-                                               String type) {
+                                               String type, Map<String, TypeSymbol> typeSymbols) {
         boolean callerPresent = false;
         boolean responsePresent = false;
         boolean requestCtxPresent = false;
@@ -249,50 +247,15 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
 
             TypeDescKind kind = param.typeDescriptor().typeKind();
             TypeSymbol typeSymbol = param.typeDescriptor();
-            if (kind == TypeDescKind.TYPE_REFERENCE) {
-                TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor();
-                TypeDescKind typeDescKind = typeDescriptor.typeKind();
-                if (typeDescKind == TypeDescKind.OBJECT) {
-                    Optional<ModuleSymbol> moduleSymbolOptional = typeDescriptor.getModule();
-                    if (moduleSymbolOptional.isEmpty()) {
-                        reportInvalidParameterType(ctx, paramLocation, paramType);
-                        continue;
-                    }
-                    Optional<String> nameSymbolOptional = moduleSymbolOptional.get().getName();
-                    if (nameSymbolOptional.isEmpty()) {
-                        reportInvalidParameterType(ctx, paramLocation, paramType);
-                        continue;
-                    }
-                    if (!HTTP.equals(nameSymbolOptional.get())) {
-                        reportInvalidParameterType(ctx, paramLocation, paramType);
-                        continue;
-                    }
-
-                    Optional<String> typeNameOptional = typeDescriptor.getName();
-                    if (typeNameOptional.isEmpty()) {
-                        reportInvalidParameterType(ctx, paramLocation, paramType);
-                        continue;
-                    }
-                    switch (typeNameOptional.get()) {
-                        case CALLER_OBJ_NAME:
-                            callerPresent = isObjectPresent(ctx, paramLocation, callerPresent, paramName,
-                                    HttpDiagnosticCodes.HTTP_115);
-                            break;
-                        case RESPONSE_OBJ_NAME:
-                            responsePresent = isObjectPresent(ctx, paramLocation, responsePresent, paramName,
-                                    HttpDiagnosticCodes.HTTP_139);
-                            break;
-                        case REQUEST_CONTEXT_OBJ_NAME:
-                            requestCtxPresent = isObjectPresent(ctx, paramLocation, requestCtxPresent, paramName,
-                                    HttpDiagnosticCodes.HTTP_121);
-                            break;
-                        default:
-                            reportInvalidParameterType(ctx, paramLocation, paramType);
-                            break;
-                    }
-                } else {
-                    reportInvalidParameterType(ctx, paramLocation, paramType);
-                }
+            if (subtypeOf(typeSymbols, typeSymbol, CALLER_OBJ_NAME)) {
+                callerPresent = isObjectPresent(ctx, paramLocation, callerPresent, paramName,
+                        HttpDiagnosticCodes.HTTP_115);
+            } else if (subtypeOf(typeSymbols, typeSymbol, RESPONSE_OBJ_NAME)) {
+                responsePresent = isObjectPresent(ctx, paramLocation, responsePresent, paramName,
+                        HttpDiagnosticCodes.HTTP_139);
+            } else if (subtypeOf(typeSymbols, typeSymbol, REQUEST_CONTEXT_OBJ_NAME)) {
+                requestCtxPresent = isObjectPresent(ctx, paramLocation, requestCtxPresent, paramName,
+                        HttpDiagnosticCodes.HTTP_121);
             } else if (isResponseErrorInterceptor(type) && kind == TypeDescKind.ERROR) {
                 errorPresent = isObjectPresent(ctx, paramLocation, errorPresent, paramName,
                             HttpDiagnosticCodes.HTTP_122);

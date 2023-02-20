@@ -68,6 +68,7 @@ import static io.ballerina.stdlib.http.compiler.Constants.READONLY;
 import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_CONTEXT_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.RESOURCE_RETURN_TYPE;
+import static io.ballerina.stdlib.http.compiler.Constants.RESPONSE_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.STRING;
 import static io.ballerina.stdlib.http.compiler.Constants.STRING_ARRAY;
 import static io.ballerina.stdlib.http.compiler.Constants.UNNECESSARY_CHARS_REGEX;
@@ -202,7 +203,7 @@ public class HttpCompilerPluginUtil {
 
     private static void populateHttpModuleTypes(SyntaxNodeAnalysisContext ctx, Map<String, TypeSymbol> typeSymbols) {
         String[] requiredTypeNames = {RESOURCE_RETURN_TYPE, INTERCEPTOR_RESOURCE_RETURN_TYPE,
-                CALLER_OBJ_NAME, REQUEST_OBJ_NAME, REQUEST_CONTEXT_OBJ_NAME, HEADER_OBJ_NAME};
+                CALLER_OBJ_NAME, REQUEST_OBJ_NAME, REQUEST_CONTEXT_OBJ_NAME, HEADER_OBJ_NAME, RESPONSE_OBJ_NAME};
         Optional<Map<String, Symbol>> optionalMap = ctx.semanticModel().types().typesInModule(BALLERINA, HTTP, EMPTY);
         if (optionalMap.isPresent()) {
             Map<String, Symbol> symbolMap = optionalMap.get();
