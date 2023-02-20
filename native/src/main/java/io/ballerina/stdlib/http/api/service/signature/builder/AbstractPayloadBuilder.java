@@ -25,6 +25,7 @@ import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BTypedesc;
+import io.ballerina.stdlib.mime.util.HeaderUtil;
 
 import java.util.List;
 import java.util.Locale;
@@ -61,15 +62,16 @@ public abstract class AbstractPayloadBuilder {
             return getBuilderFromType(payloadType);
         }
         contentType = contentType.toLowerCase(Locale.getDefault()).trim();
-        if (contentType.matches(XML_PATTERN)) {
+        String baseType = HeaderUtil.getHeaderValue(contentType);
+        if (baseType.matches(XML_PATTERN)) {
             return new XmlPayloadBuilder(payloadType);
-        } else if (contentType.matches(TEXT_PATTERN)) {
+        } else if (baseType.matches(TEXT_PATTERN)) {
             return new StringPayloadBuilder(payloadType);
-        } else if (contentType.matches(URL_ENCODED_PATTERN)) {
+        } else if (baseType.matches(URL_ENCODED_PATTERN)) {
             return new StringPayloadBuilder(payloadType);
-        } else if (contentType.matches(OCTET_STREAM_PATTERN)) {
+        } else if (baseType.matches(OCTET_STREAM_PATTERN)) {
             return new BinaryPayloadBuilder(payloadType);
-        } else if (contentType.matches(JSON_PATTERN)) {
+        } else if (baseType.matches(JSON_PATTERN)) {
             return new JsonPayloadBuilder(payloadType);
         } else {
             return getBuilderFromType(payloadType);
