@@ -163,6 +163,7 @@ task initializeVariables {
 
 task publishTestCommonPackageToLocal {
     dependsOn(":${packageName}-${packageOrg}:build")
+    dependsOn(updateTomlVersions)
     doLast {
         if (!skipTests) {
             exec {
