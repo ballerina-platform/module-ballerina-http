@@ -3,7 +3,7 @@
 _Owners_: @shafreenAnfar @TharmiganK @ayeshLK @chamil321  
 _Reviewers_: @shafreenAnfar @bhashinee @TharmiganK @ldclakmal  
 _Created_: 2021/12/23  
-_Updated_: 2022/12/05   
+_Updated_: 2023/02/01   
 _Edition_: Swan Lake
 
 
@@ -455,7 +455,7 @@ with any annotation or additional detail. This parameter is not compulsory and n
 are as follows
 
 ```ballerina
-type BasicType boolean|int|float|decimal|string|map<json>;
+type BasicType boolean|int|float|decimal|string|map<json>|enum;
 public type QueryParamType ()|BasicType|BasicType[];
 ```
 
@@ -813,12 +813,13 @@ Based on the return types respective header value is added as the `Content-type`
 | byte[]                                                                | application/octet-stream |
 | int, float, decimal, boolean                                          | application/json         |
 | map\<json\>, table<map\<json\>>, map\<json\>[], table<map\<json\>>)[] | application/json         |
-| http:StatusCodeResponse                                               | application/json         |
+| http:StatusCodeResponse                                               | derived from the body field  |
 
 ##### 2.3.5.1. Status Code Response
 
 The status code response records are defined in the HTTP module for every HTTP status code. It improves readability & 
-helps OpenAPI spec generation. 
+helps OpenAPI spec generation. By default, the content type of the response message is derived from the `body` field.
+This default content type can be overwritten by the `mediaType` field as shown below.
 
 ```ballerina
 type PersonCreated record {|
@@ -2062,34 +2063,54 @@ service class RequestInterceptor {
 ##### 8.1.1.1 Request context  
 Following is the rough definition of the interceptor context.
 ```ballerina
+# Request context attribute type.
+public type ReqCtxAttribute value:Cloneable|isolated object {};
+
+# Request context attribute type descriptor.
+public type ReqCtxAttributeType typedesc<ReqCtxAttribute>;
+
+# Represents an HTTP Context that allows user to pass data between interceptors.
 public isolated class RequestContext {
-    private final map<value:Cloneable|isolated object {}> attributes = {};
+    private final map<ReqCtxAttribute> attributes = {};
 
-    public isolated function add(string 'key, value:Cloneable|isolated object {} value) {
-        if value is value:Cloneable {
-            lock {
-                self.attributes['key] = value.clone();
-            }
-        }
-        else {
-            lock {
-                self.attributes['key] = value;
-            }   
-        }
-    }
+    # Sets an attribute to the request context object.
+    #
+    # + key - Represents the attribute key
+    # + value - Represents the attribute value
+    public isolated function set(string key, ReqCtxAttribute value) {}
 
-    public isolated function get(string 'key) returns value:Cloneable|isolated object {} {
-        lock {
-            return self.attributes.get('key);
-        }
-    }
+    # Gets an attribute value from the request context object.
+    #
+    # + key - Represents the attribute key
+    # + return - Attribute value
+    public isolated function get(string key) returns ReqCtxAttribute {}
 
-    public isolated function remove(string 'key) {
-        lock {
-            value:Cloneable|isolated object {} _ = self.attributes.remove('key);
-        }
-    }
+    # Checks whether the request context object has an attribute corresponds to the key.
+    #
+    # + key - Represents the attribute key
+    # + return - true if the attribute exists, else false
+    public isolated function hasKey(string key) returns boolean {}
 
+    # Returns the attribute keys of the request context object.
+    #
+    # + return - Array of attribute keys
+    public isolated function keys() returns string[] {}
+
+    # Gets an attribute value with type from the request context object.
+    #
+    # + key - Represents the attribute key
+    # + targetType - Represents the expected type of the attribute value
+    # + return - Attribute value or an error if the attribute value is not of the expected type
+    public isolated function getWithType(string key, ReqCtxAttributeType targetType = <>) returns targetType|ListenerError = external;
+
+    # Removes an attribute from the request context object. It panics if there is no such member.
+    #
+    # + key - Represents the attribute key
+    public isolated function remove(string key) {}
+
+    # Calls the next service in the interceptor pipeline.
+    #
+    # + return - The next service object in the pipeline. An error is returned, if the call fails
     public isolated function next() returns NextService|error? = external;
 }
 ```

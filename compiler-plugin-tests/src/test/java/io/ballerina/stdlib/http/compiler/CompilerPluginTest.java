@@ -665,4 +665,34 @@ public class CompilerPluginTest {
         assertTrue(diagnosticResult, 8, "invalid resource method return type: expected " +
                 "'anydata|http:Response|http:StatusCodeResponse|error', but found 'error[]'", HTTP_102);
     }
+
+    @Test
+    public void testEnumTypeAsQueryParameter() {
+        Package currentPackage = loadPackage("sample_package_30");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        long availableErrors = diagnosticResult.diagnostics().stream()
+                .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR)).count();
+        Assert.assertEquals(availableErrors, 0);
+    }
+
+    @Test
+    public void testRecursiveRecordDefinitionsWithUnionsAsPayload() {
+        Package currentPackage = loadPackage("sample_package_31");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        long availableErrors = diagnosticResult.diagnostics().stream()
+                .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR)).count();
+        Assert.assertEquals(availableErrors, 0);
+    }
+
+    @Test
+    public void testRecursiveRecordDefinitionsWithReadonlyIntersectionAsPayload() {
+        Package currentPackage = loadPackage("sample_package_32");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        long availableErrors = diagnosticResult.diagnostics().stream()
+                .filter(r -> r.diagnosticInfo().severity().equals(DiagnosticSeverity.ERROR)).count();
+        Assert.assertEquals(availableErrors, 0);
+    }
 }

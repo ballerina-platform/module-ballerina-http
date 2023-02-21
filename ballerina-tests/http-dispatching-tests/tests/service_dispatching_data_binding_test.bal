@@ -107,6 +107,10 @@ service /dataBinding on generalListener {
         check caller->respond(responseJson);
     }
 
+    resource function post body11(@http:Payload map<string> text) returns string {
+        return "body11";
+    }
+
     resource function get negative1(http:Caller caller) returns error? {
         lock {
             var err = generalListener.attach(multipleAnnot1, "multipleAnnot1");
@@ -580,4 +584,20 @@ function testDataBindingTable() {
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
+}
+
+@test:Config {}
+function testContentTypeWithCharsetParameter() returns error? {
+    http:Request request = new;
+    request.setPayload("text=abcd", "application/x-www-form-urlencoded; charset=UTF-8");
+    string response = check dataBindingClient->post("/dataBinding/body11", request);
+    test:assertEquals(response, "body11");
+}
+
+@test:Config {}
+function testContentTypeWithSemiColon() returns error? {
+    http:Request request = new;
+    request.setPayload("text=abcd", "application/x-www-form-urlencoded;");
+    string response = check dataBindingClient->post("/dataBinding/body11", request);
+    test:assertEquals(response, "body11");
 }
