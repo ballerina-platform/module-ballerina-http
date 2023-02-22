@@ -598,22 +598,25 @@ which retrieved by the `Content-type` header of the request. The data binding ha
 parameter type. The type of payload parameter can be one of the `anytype`. If the header is not present or not a 
 standard header, the binding type is inferred by the parameter type.
 
-The listener identifies the default payload parameter which is defined without the @http:Payload annotation when the 
-following conditions are met.
-- Parameters must include only one structured type of map/record or a list of map/record. But byte[] is an exception
+When the following conditions are met, the listener identifies the default payload parameter, which is defined 
+without the @http:Payload annotation:
+- The default payload parameter rules are only applicable to POST, PUT, PATCH, DELETE, and DEFAULT accessors.
+- Parameters must contain only one structured(map/record/table/tuple/array) type or xml. However, byte[] is an exception,
   and it is considered as a payload param.
-    - resource function post(Student[] p) {} -> Student[] is payload
-    - resource function post(int[] p) {} -> int[] is query
-    - resource function post(int p) {} -> int is query
-    - resource function post(Student p) {} -> Student is payload
-
-- If there is more than one structured type, the ambiguity must be resolved using @http:Payload annotation.
-    - resource function post(@http:Payload Student p, Student q) {} -> p is payload, q is query
-- If there are no structured types all are considered query params
+    - resource function post(Student[] p) {} -> Student[] is payload param type
+    - resource function post(int[] p) {} -> int[] is query param type
+    - resource function post(int p) {} -> int is query param type
+    - resource function post(Student p) {} -> Student is payload param type
+- If there's more than one structured type, the ambiguity must be resolved using the @http:Payload annotation.
+    - resource function post(@http:Payload Student p, map<json> q) {} -> p is payload, q is query
+- If there are no structured types, all parameters are considered query parameters.
     - resource function post(@http:Payload string p, string q) {}
-- If the query param is structured, then @http:Query annotation is required.
+- If the query parameter is structured, then the @http:Query annotation is required.
     - resource function post(@http:Query map<json> p) {}
-- The above rules are only applicable to POST, PUT, PATCH, DELETE and DEFAULT accessors
+- The only types allowed in the union for a parameter are structured types, xml, and nil.
+    - resource function post(Student|xml p) {} -> Student|xml is payload param type
+    - resource function post(map<json>|xml p) {} -> map<json>|xml is payload param type
+    - resource function post(Student? p) {} -> Student? is payload param type
 
 Following table explains the compatible `anydata` types with each common media type. In the absence of a standard media 
 type, the binding type is inferred by the payload parameter type itself. If the type is not compatible with the media 

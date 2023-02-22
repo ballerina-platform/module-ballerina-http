@@ -28,8 +28,6 @@ import io.ballerina.compiler.api.symbols.ParameterSymbol;
 public class ParamAvailability {
 
     private boolean annotatedPayloadParam = false;
-    private boolean defaultPayloadParam = false;
-    private boolean annotatedQueryParam = false;
     private boolean errorOccurred = false;
     private ParameterSymbol payloadParamSymbol;
 
@@ -41,21 +39,10 @@ public class ParamAvailability {
         this.annotatedPayloadParam = annotatedPayloadParam;
     }
 
-    public boolean isAnnotatedQueryParam() {
-        return annotatedQueryParam;
-    }
-
-    public void setAnnotatedQueryParam(boolean annotatedQueryParam) {
-        this.annotatedQueryParam = annotatedQueryParam;
-    }
-
     public boolean isDefaultPayloadParam() {
-        return defaultPayloadParam;
+        return payloadParamSymbol != null;
     }
 
-    public void setDefaultPayloadParam(boolean defaultPayloadParam) {
-        this.defaultPayloadParam = defaultPayloadParam;
-    }
 
     public boolean isErrorOccurred() {
         return errorOccurred;

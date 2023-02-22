@@ -25,6 +25,7 @@ import io.ballerina.projects.plugins.CodeModifierContext;
 import io.ballerina.stdlib.http.compiler.codemodifier.context.DocumentContext;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -41,8 +42,9 @@ public class HttpServiceModifier extends CodeModifier {
 
     @Override
     public void init(CodeModifierContext codeModifierContext) {
-        codeModifierContext.addSyntaxNodeAnalysisTask(new HttpPayloadParamIdentifier(this.payloadParamContextMap),
-                                                      SyntaxKind.SERVICE_DECLARATION);
+        codeModifierContext.addSyntaxNodeAnalysisTask(
+                new HttpPayloadParamIdentifier(this.payloadParamContextMap),
+                List.of(SyntaxKind.SERVICE_DECLARATION, SyntaxKind.CLASS_DEFINITION));
         codeModifierContext.addSourceModifierTask(new PayloadAnnotationModifierTask(this.payloadParamContextMap));
     }
 }

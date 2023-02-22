@@ -21,22 +21,24 @@ package io.ballerina.stdlib.http.compiler.codemodifier;
 import io.ballerina.compiler.api.symbols.AnnotationSymbol;
 import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
 import io.ballerina.compiler.api.symbols.IntersectionTypeSymbol;
-import io.ballerina.compiler.api.symbols.MapTypeSymbol;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.ResourceMethodSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
-import io.ballerina.compiler.api.symbols.TupleTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
+import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
+import io.ballerina.compiler.syntax.tree.Token;
+import io.ballerina.compiler.syntax.tree.TypeReferenceNode;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
+import io.ballerina.stdlib.http.compiler.Constants;
 import io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes;
 import io.ballerina.stdlib.http.compiler.HttpServiceValidator;
 import io.ballerina.stdlib.http.compiler.codemodifier.context.DocumentContext;
@@ -51,12 +53,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static io.ballerina.stdlib.http.compiler.Constants.DEFAULT;
 import static io.ballerina.stdlib.http.compiler.Constants.GET;
 import static io.ballerina.stdlib.http.compiler.Constants.HEAD;
 import static io.ballerina.stdlib.http.compiler.Constants.OPTIONS;
 import static io.ballerina.stdlib.http.compiler.Constants.PAYLOAD_ANNOTATION_TYPE;
-import static io.ballerina.stdlib.http.compiler.Constants.QUERY_ANNOTATION_TYPE;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.updateDiagnostic;
 
 
@@ -77,16 +77,59 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
         if (diagnosticContainsErrors(syntaxNodeAnalysisContext)) {
             return;
         }
+        SyntaxKind kind = syntaxNodeAnalysisContext.node().kind();
+        if (kind == SyntaxKind.SERVICE_DECLARATION) {
+            validateServiceDeclaration(syntaxNodeAnalysisContext);
+        } else if (kind == SyntaxKind.CLASS_DEFINITION) {
+            validateClassDefinition(syntaxNodeAnalysisContext);
+        }
+    }
+
+    private void validateServiceDeclaration(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext) {
         ServiceDeclarationNode serviceDeclarationNode = getServiceDeclarationNode(syntaxNodeAnalysisContext);
         if (serviceDeclarationNode == null) {
             return;
         }
-        int serviceId = serviceDeclarationNode.hashCode();
         NodeList<Node> members = serviceDeclarationNode.members();
-        ServiceContext serviceContext = new ServiceContext(serviceId);
+        ServiceContext serviceContext = new ServiceContext(serviceDeclarationNode.hashCode());
         for (Node member : members) {
             if (member.kind() == SyntaxKind.RESOURCE_ACCESSOR_DEFINITION) {
                 validateResource(syntaxNodeAnalysisContext, (FunctionDefinitionNode) member, serviceContext);
+            }
+        }
+    }
+
+    private void validateClassDefinition(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext) {
+        ClassDefinitionNode classDefinitionNode = (ClassDefinitionNode) syntaxNodeAnalysisContext.node();
+        NodeList<Token> tokens = classDefinitionNode.classTypeQualifiers();
+        if (tokens.isEmpty()) {
+            return;
+        }
+        if (!tokens.stream().allMatch(token -> token.text().equals(Constants.SERVICE_KEYWORD))) {
+            return;
+        }
+        NodeList<Node> members = classDefinitionNode.members();
+        ServiceContext serviceContext = new ServiceContext(classDefinitionNode.hashCode());
+        boolean proceed = false;
+        for (Node member : members) {
+            if (member.kind() == SyntaxKind.TYPE_REFERENCE) {
+                String typeReference = ((TypeReferenceNode) member).typeName().toString();
+                switch (typeReference) {
+                    case Constants.HTTP_SERVICE:
+                    case Constants.HTTP_REQUEST_INTERCEPTOR:
+                    case Constants.HTTP_REQUEST_ERROR_INTERCEPTOR:
+                        proceed = true;
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+        if (proceed) {
+            for (Node member : members) {
+                if (member.kind() == SyntaxKind.RESOURCE_ACCESSOR_DEFINITION) {
+                    validateResource(syntaxNodeAnalysisContext, (FunctionDefinitionNode) member, serviceContext);
+                }
             }
         }
     }
@@ -144,8 +187,8 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
 
         for (ParamData nonAnnotatedParam : nonAnnotatedParams) {
             ParameterSymbol parameterSymbol = nonAnnotatedParam.getParameterSymbol();
-            if (validateNonAnnotatedParams(ctx, parameterSymbol.typeDescriptor(), paramAvailability)) {
-                paramAvailability.setPayloadParamSymbol(parameterSymbol);
+
+            if (validateNonAnnotatedParams(ctx, parameterSymbol.typeDescriptor(), paramAvailability, parameterSymbol)) {
                 ResourceContext resourceContext =
                         new ResourceContext(parameterSymbol, nonAnnotatedParam.getIndex());
                 DocumentContext documentContext = documentContextMap.get(ctx.documentId());
@@ -176,23 +219,15 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
                 return;
             }
             String typeName = annotationTypeNameOptional.get();
-            switch (typeName) {
-                case PAYLOAD_ANNOTATION_TYPE: {
-                    paramAvailability.setAnnotatedPayloadParam(true);
-                    break;
-                }
-                case QUERY_ANNOTATION_TYPE: {
-                    paramAvailability.setAnnotatedQueryParam(true);
-                    break;
-                }
-                case DEFAULT: {
-                }
+            if (typeName.equals(PAYLOAD_ANNOTATION_TYPE)) {
+                paramAvailability.setAnnotatedPayloadParam(true);
             }
         }
     }
 
     private static boolean validateNonAnnotatedParams(SyntaxNodeAnalysisContext analysisContext,
-                                                      TypeSymbol typeSymbol, ParamAvailability paramAvailability) {
+                                                      TypeSymbol typeSymbol, ParamAvailability paramAvailability,
+                                                      ParameterSymbol parameterSymbol) {
         if (typeSymbol.typeKind() == TypeDescKind.INTERSECTION) {
             typeSymbol = getEffectiveTypeFromReadonlyIntersection((IntersectionTypeSymbol) typeSymbol);
             if (typeSymbol == null) {
@@ -205,72 +240,87 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
                 return false;
             }
             TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor();
-            return validateNonAnnotatedParams(analysisContext, typeDescriptor, paramAvailability);
-        } else if (kind == TypeDescKind.NIL || kind == TypeDescKind.ERROR || kind == TypeDescKind.OBJECT) {
-            return false;
-        } else if (kind == TypeDescKind.RECORD) {
-            if (paramAvailability.isDefaultPayloadParam()) {
-                reportAmbiguousPayloadParam(analysisContext, typeSymbol);
-                paramAvailability.setErrorOccurred(true);
-                return false;
-            }
-            paramAvailability.setDefaultPayloadParam(true);
-            return true;
-        } else if (kind == TypeDescKind.MAP) {
-            TypeSymbol constrainedTypeSymbol = ((MapTypeSymbol) typeSymbol).typeParam();
-            TypeDescKind constrainedType = getReferencedTypeDescKind(constrainedTypeSymbol);
-            if (constrainedType == TypeDescKind.TYPE_REFERENCE) {
-                TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor();
-                return validateNonAnnotatedParams(analysisContext, typeDescriptor, paramAvailability);
-            }
-            if (paramAvailability.isDefaultPayloadParam()) {
-                reportAmbiguousPayloadParam(analysisContext, typeSymbol);
-                paramAvailability.setErrorOccurred(true);
-                return false;
-            }
-            paramAvailability.setDefaultPayloadParam(true);
-            return true;
+            return validateNonAnnotatedParams(analysisContext, typeDescriptor, paramAvailability, parameterSymbol);
+        }
+
+        if (typeSymbol.subtypeOf(analysisContext.semanticModel().types().XML)) {
+            return checkErrorsAndReturn(analysisContext, paramAvailability, parameterSymbol);
+        }
+        if (kind == TypeDescKind.RECORD || kind == TypeDescKind.MAP ||
+                kind == TypeDescKind.TUPLE || kind == TypeDescKind.TABLE || kind == TypeDescKind.NIL) {
+            return checkErrorsAndReturn(analysisContext, paramAvailability, parameterSymbol);
         } else if (kind == TypeDescKind.ARRAY) {
-            TypeSymbol arrTypeSymbol = ((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor();
-            TypeDescKind elementKind = getReferencedTypeDescKind(arrTypeSymbol);
-            if (elementKind == TypeDescKind.BYTE) {
-                if (paramAvailability.isDefaultPayloadParam()) {
-                    reportAmbiguousPayloadParam(analysisContext, typeSymbol); // TODO Error to be specific with Byte[]
-                    paramAvailability.setErrorOccurred(true);
-                    return false;
-                }
-                paramAvailability.setDefaultPayloadParam(true);
-                return true;
-            } else if (isAllowedQueryParamBasicType(elementKind, arrTypeSymbol)) {
-                return false;
-            } else if (elementKind == TypeDescKind.MAP || elementKind == TypeDescKind.RECORD) {
-                if (paramAvailability.isDefaultPayloadParam()) {
-                    reportAmbiguousPayloadParam(analysisContext, typeSymbol);
-                    paramAvailability.setErrorOccurred(true);
-                    return false;
-                }
-                paramAvailability.setDefaultPayloadParam(true);
-                return true;
-            } else if (elementKind == TypeDescKind.TYPE_REFERENCE) {
-                TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor();
-                return validateNonAnnotatedParams(analysisContext, typeDescriptor, paramAvailability);
-            }
+            return validateArrayElementType(analysisContext, typeSymbol, paramAvailability, parameterSymbol);
         } else if (kind == TypeDescKind.UNION) {
             List<TypeSymbol> typeDescriptors = ((UnionTypeSymbol) typeSymbol).memberTypeDescriptors();
-            return typeDescriptors.stream().anyMatch(symbol -> validateNonAnnotatedParams(analysisContext, symbol,
-                                                                                          paramAvailability));
-        } else if (kind == TypeDescKind.TUPLE) {
-            List<TypeSymbol> tupleFieldSymbols = ((TupleTypeSymbol) typeSymbol).memberTypeDescriptors();
-            return tupleFieldSymbols.stream().anyMatch(field -> validateNonAnnotatedParams(analysisContext, field,
-                                                                                           paramAvailability));
-        } else if (isAllowedQueryParamBasicType(kind, typeSymbol)) {
-            return false;
+            for (TypeSymbol symbol : typeDescriptors) {
+                if (!validateNonAnnotatedParams(analysisContext, symbol, paramAvailability, parameterSymbol)) {
+                    if (paramAvailability.isDefaultPayloadParam()) {
+                        reportInvalidUnionPayloadParam(analysisContext, parameterSymbol, paramAvailability);
+                        paramAvailability.setErrorOccurred(true);
+                    }
+                    return false;
+                }
+            }
+            return true;
         }
         return false;
     }
 
-    private static void reportAmbiguousPayloadParam(SyntaxNodeAnalysisContext analysisContext, TypeSymbol typeSymbol) {
-        updateDiagnostic(analysisContext, typeSymbol.getLocation().get(), HttpDiagnosticCodes.HTTP_151,
-                         typeSymbol.getName());
+    private static boolean validateArrayElementType(SyntaxNodeAnalysisContext analysisContext, TypeSymbol typeSymbol,
+                                                    ParamAvailability availability, ParameterSymbol pSymbol) {
+        TypeSymbol arrTypeSymbol = ((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor();
+        TypeDescKind elementKind = getReferencedTypeDescKind(arrTypeSymbol);
+
+        if (elementKind == TypeDescKind.TYPE_REFERENCE) {
+            TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor();
+            return validateArrayElementType(analysisContext, typeDescriptor, availability, pSymbol);
+        }
+
+        if (elementKind == TypeDescKind.ARRAY) {
+            arrTypeSymbol = ((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor();
+            return validateArrayElementType(analysisContext, arrTypeSymbol, availability, pSymbol);
+        }
+
+        if (arrTypeSymbol.subtypeOf(analysisContext.semanticModel().types().XML)) {
+            return checkErrorsAndReturn(analysisContext, availability, pSymbol);
+        }
+
+        if (elementKind == TypeDescKind.BYTE || elementKind == TypeDescKind.MAP || elementKind == TypeDescKind.RECORD ||
+                elementKind == TypeDescKind.TUPLE || elementKind == TypeDescKind.TABLE) {
+            return checkErrorsAndReturn(analysisContext, availability, pSymbol);
+        }
+        return false;
+    }
+
+    private static boolean checkErrorsAndReturn(SyntaxNodeAnalysisContext analysisContext,
+                                                ParamAvailability availability, ParameterSymbol pSymbol) {
+        if (availability.isDefaultPayloadParam() && isDistinctVariable(availability, pSymbol)) {
+            reportAmbiguousPayloadParam(analysisContext, pSymbol, availability.getPayloadParamSymbol());
+            availability.setErrorOccurred(true);
+            return false;
+        }
+        availability.setPayloadParamSymbol(pSymbol);
+        return true;
+    }
+
+    private static boolean isDistinctVariable(ParamAvailability availability, ParameterSymbol pSymbol) {
+        return !pSymbol.getName().get().equals(availability.getPayloadParamSymbol().getName().get());
+    }
+
+    private static void reportAmbiguousPayloadParam(SyntaxNodeAnalysisContext analysisContext,
+                                                    ParameterSymbol parameterSymbol, ParameterSymbol payloadSymbol) {
+        updateDiagnostic(analysisContext, parameterSymbol.getLocation().get(), HttpDiagnosticCodes.HTTP_151,
+                         payloadSymbol.getName().get(), parameterSymbol.getName().get());
+    }
+
+    private static void reportInvalidUnionPayloadParam(SyntaxNodeAnalysisContext analysisContext,
+                                                       ParameterSymbol parameterSymbol,
+                                                       ParamAvailability paramAvailability) {
+        if (paramAvailability.isErrorOccurred()) {
+            return;
+        }
+        updateDiagnostic(analysisContext, parameterSymbol.getLocation().get(), HttpDiagnosticCodes.HTTP_152,
+                         parameterSymbol.getName().get());
     }
 }

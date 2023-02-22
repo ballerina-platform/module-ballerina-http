@@ -57,6 +57,8 @@ import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP
 import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_148;
 import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_149;
 import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_150;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_151;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_152;
 
 /**
  * This class includes tests for Ballerina Http compiler plugin.
@@ -240,7 +242,7 @@ public class CompilerPluginTest {
         assertTrue(diagnosticResult, 4, "invalid resource parameter type: 'http_test/sample_7", HTTP_106);
     }
 
-//    @Test
+    @Test
     public void testInValidQueryInfoArgs() {
         Package currentPackage = loadPackage("sample_package_8");
         PackageCompilation compilation = currentPackage.getCompilation();
@@ -709,5 +711,29 @@ public class CompilerPluginTest {
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.errorCount(), 12);
+    }
+
+    @Test
+    public void testCodeModifierErrorTest() {
+        Package currentPackage = loadPackage("sample_package_35");
+        DiagnosticResult modifierDiagnosticResult = currentPackage.runCodeGenAndModifyPlugins();
+        Assert.assertEquals(modifierDiagnosticResult.errorCount(), 5);
+        assertTrue(modifierDiagnosticResult, 0, "ambiguous types for parameter 'a' and 'b'. Use " +
+                "annotations to avoid ambiguity", HTTP_151);
+        assertTrue(modifierDiagnosticResult, 1, "ambiguous types for parameter 'c' and 'd'. Use " +
+                "annotations to avoid ambiguity", HTTP_151);
+        assertTrue(modifierDiagnosticResult, 2, "ambiguous types for parameter 'e' and 'f'. Use " +
+                "annotations to avoid ambiguity", HTTP_151);
+        assertTrue(modifierDiagnosticResult, 3, "invalid union type for default payload param: 'g'. " +
+                "Use basic structured types", HTTP_152);
+        assertTrue(modifierDiagnosticResult, 4, "ambiguous types for parameter 'q' and 'p'. Use " +
+                "annotations to avoid ambiguity", HTTP_151);
+    }
+
+    @Test
+    public void testCodeModifierWithServiceClassesPayloadAnnotation() {
+        Package currentPackage = loadPackage("sample_package_36");
+        DiagnosticResult modifierDiagnosticResult = currentPackage.runCodeGenAndModifyPlugins();
+        Assert.assertEquals(modifierDiagnosticResult.errorCount(), 0);
     }
 }

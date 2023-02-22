@@ -47,4 +47,48 @@ service http:Service on new http:Listener(9090) {
     resource function post singleBasicTypeArray(string[] q) returns string {
         return "done"; // q is query param
     }
+
+    resource function post xmlTest(xml p) returns string {
+        return "done"; // p is payload param
+    }
+
+    resource function post xmlElementTest(xml:Element p) returns string {
+        return "done"; // p is payload param
+    }
+
+    resource function post testUnion(Person|xml p) returns string {
+        return "done"; // p is payload param
+    }
+
+    resource function post testNilableUnion(map<json>? p) returns string {
+        return "done"; // p is payload param
+    }
+
+    resource function post testReadonly(readonly & Person p) returns string {
+        return "done";
+    }
+
+    resource function post testReadonlyUnion(readonly & (Person|xml) p) returns string {
+        return "done";
+    }
+
+    resource function post testTable(table<map<int>> abc) returns string {
+        return "done";
+    }
+
+    resource function post testByteArrArr(byte[][] abc) returns string {
+        return "done";
+    }
+
+    resource function post testTuple([int, string, Person] abc) returns string {
+        return "done";
+    }
+
+    resource function post testInlineRecord(@http:Payload record {|string abc;|} abc) returns string {
+        return "done";
+    }
+
+    resource function post okWithBody(string? xyz, Person abc) returns http:Ok {
+        return {body: abc};
+    }
 }

@@ -32,7 +32,7 @@ service /default on generalListener {
         return {body: abc};
     }
 
-    resource function post singleStructured(DDPerson p) returns DDPerson {
+    resource function post singleStructured(DDPerson? p) returns DDPerson? {
         return p; // p is payload param
     }
 
@@ -48,7 +48,7 @@ service /default on generalListener {
         return {person: p, query: q}; // p is payload param
     }
 
-    resource function post singleStructuredWithHeaderParam(@http:Header string h, DDPerson p) returns map<json> {
+        resource function post singleStructuredWithHeaderParam(@http:Header string h, DDPerson p) returns map<json> {
         return {person: p, header: h}; // p is payload param
     }
 

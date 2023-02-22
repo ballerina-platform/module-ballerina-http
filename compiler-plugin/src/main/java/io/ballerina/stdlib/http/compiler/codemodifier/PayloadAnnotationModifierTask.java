@@ -20,6 +20,7 @@ package io.ballerina.stdlib.http.compiler.codemodifier;
 
 import io.ballerina.compiler.syntax.tree.AbstractNodeFactory;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
+import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
@@ -105,18 +106,26 @@ public class PayloadAnnotationModifierTask implements ModifierTask<SourceModifie
 
         List<ModuleMemberDeclarationNode> updatedMembers = new ArrayList<>();
         for (ModuleMemberDeclarationNode memberNode : oldMembers) {
-            if (memberNode.kind() != SyntaxKind.SERVICE_DECLARATION) { //TODO check for service class
+            int serviceId;
+            NodeList<Node> members;
+            if (memberNode.kind() == SyntaxKind.SERVICE_DECLARATION) {
+                ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) memberNode;
+                serviceId = serviceNode.hashCode();
+                members = serviceNode.members();
+            } else if (memberNode.kind() == SyntaxKind.CLASS_DEFINITION) {
+                ClassDefinitionNode classDefinitionNode = (ClassDefinitionNode) memberNode;
+                serviceId = classDefinitionNode.hashCode();
+                members = classDefinitionNode.members();
+            } else {
                 updatedMembers.add(memberNode);
                 continue;
             }
-            ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) memberNode;
-            int serviceId = serviceNode.hashCode();
+
             if (!documentContext.containsService(serviceId)) {
                 updatedMembers.add(memberNode);
                 continue;
             }
             ServiceContext serviceContext = documentContext.getServiceContext(serviceId);
-            NodeList<Node> members = serviceNode.members();
             List<Node> resourceMembers = new ArrayList<>();
             for (Node member : members) {
                 if (member.kind() != SyntaxKind.RESOURCE_ACCESSOR_DEFINITION) {
@@ -168,10 +177,21 @@ public class PayloadAnnotationModifierTask implements ModifierTask<SourceModifie
                 resourceMembers.add(updatedResourceNode);
             }
             NodeList<Node> resourceNodeList = AbstractNodeFactory.createNodeList(resourceMembers);
-            ServiceDeclarationNode.ServiceDeclarationNodeModifier serviceDeclarationNodeModifier = serviceNode.modify();
-            ServiceDeclarationNode updatedServiceDeclarationNode =
-                    serviceDeclarationNodeModifier.withMembers(resourceNodeList).apply();
-            updatedMembers.add(updatedServiceDeclarationNode);
+            if (memberNode instanceof ServiceDeclarationNode) {
+                ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) memberNode;
+                ServiceDeclarationNode.ServiceDeclarationNodeModifier serviceDeclarationNodeModifier =
+                        serviceNode.modify();
+                ServiceDeclarationNode updatedServiceDeclarationNode =
+                        serviceDeclarationNodeModifier.withMembers(resourceNodeList).apply();
+                updatedMembers.add(updatedServiceDeclarationNode);
+            } else {
+                ClassDefinitionNode classDefinitionNode = (ClassDefinitionNode) memberNode;
+                ClassDefinitionNode.ClassDefinitionNodeModifier classDefinitionNodeModifier =
+                        classDefinitionNode.modify();
+                ClassDefinitionNode updatedClassDefinitionNode =
+                        classDefinitionNodeModifier.withMembers(resourceNodeList).apply();
+                updatedMembers.add(updatedClassDefinitionNode);
+            }
         }
         return AbstractNodeFactory.createNodeList(updatedMembers);
     }

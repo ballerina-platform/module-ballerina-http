@@ -51,6 +51,7 @@ public class Constants {
     public static final String REQUEST_ERROR_INTERCEPTOR = "RequestErrorInterceptor";
     public static final String RESPONSE_ERROR_INTERCEPTOR = "ResponseErrorInterceptor";
     public static final String SERVICE = "Service";
+    public static final String HTTP_SERVICE = "http:Service";
     public static final String HTTP_REQUEST_INTERCEPTOR = "http:RequestInterceptor";
     public static final String HTTP_REQUEST_ERROR_INTERCEPTOR = "http:RequestErrorInterceptor";
     public static final String HTTP_RESPONSE_INTERCEPTOR = "http:ResponseInterceptor";
