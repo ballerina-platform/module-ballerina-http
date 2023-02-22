@@ -5,6 +5,12 @@ This file contains all the notable changes done to the Ballerina HTTP package th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to 
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Fixed
+
+- [Fixed server push not working with nghttp2 HTTP/2 client](https://github.com/ballerina-platform/ballerina-standard-library/issues/3077)
+
 ## [2.6.0] - 2023-02-20
 
 ### Added
