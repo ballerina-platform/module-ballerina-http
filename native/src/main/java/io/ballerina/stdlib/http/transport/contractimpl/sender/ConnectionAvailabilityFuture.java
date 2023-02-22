@@ -28,6 +28,7 @@ import io.ballerina.stdlib.http.transport.contract.exceptions.SslException;
 import io.ballerina.stdlib.http.transport.contract.exceptions.UnresolvedHostException;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelPipelineException;
 import io.netty.handler.codec.http.HttpResponseStatus;
 
 import java.net.UnknownHostException;
@@ -140,6 +141,9 @@ public class ConnectionAvailabilityFuture {
         if (isRequestCancelled(channelFuture)) {
             connectorException = new RequestCancelledException("Request cancelled: " + socketAddress,
                                                                HttpResponseStatus.BAD_GATEWAY.code());
+        } else if (cause instanceof ChannelPipelineException) {
+            connectorException = new ClientConnectorException("Error occurred while creating the channel pipeline: "
+                    + cause.getMessage(), HttpResponseStatus.BAD_GATEWAY.code());
         } else if (isConnectionTimeout(channelFuture)) {
             connectorException = new ConnectionTimedOutException("Connection timeout: " + socketAddress,
                                                                  HttpResponseStatus.BAD_GATEWAY.code());
