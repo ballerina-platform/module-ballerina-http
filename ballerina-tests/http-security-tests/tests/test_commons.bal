@@ -19,7 +19,6 @@
 import ballerina/http;
 import ballerina/regex;
 import ballerina/test;
-import ballerina/io;
 import ballerina/url;
 import ballerina/http_test_common as common;
 
@@ -199,6 +198,8 @@ const string ACCESS_TOKEN_2 = "1zCsicMWpAA2YotnFZFEjr";
 const string ACCESS_TOKEN_3 = "invalid-token";
 const string ACCESS_TOKEN_4 = "NiIsInR5cCI6IkpXV";
 
+const COMPLEX_PASSWORD = "Ef2%I1^@Nd8>WTtcn+3=QL?M!{gG198h=lH4<ukg";
+
 http:ListenerConfiguration http2SslServiceConf = {
     secureSocket: {
         key: {
@@ -366,9 +367,8 @@ listener http:Listener sts = new (stsPort, {
 service /oauth2 on sts {
     resource function post token(http:Request req) returns AuthResponse|error {
         string payload = check req.getTextPayload();
-        io:println(payload);
         if payload.includes("grant_type=password") && payload.includes("username=complexpassuser") && 
-                    payload.includes(check url:encode("Ef2%I1^@Nd8>WTtcn+3=QL?M!{gG198h=lH4<ukg", "UTF-8")) {
+                    payload.includes(check url:encode(COMPLEX_PASSWORD, "UTF-8")) {
             return {
                 body: {
                     "access_token": ACCESS_TOKEN_4,

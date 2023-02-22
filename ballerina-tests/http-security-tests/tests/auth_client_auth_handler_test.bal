@@ -244,7 +244,7 @@ isolated function testClientOAuth2HandlerForPasswordGrantComplexPassword() retur
     http:OAuth2PasswordGrantConfig config = {
         tokenUrl: "https://localhost:" + stsPort.toString() + "/oauth2/token",
         username: "complexpassuser",
-        password: "Ef2%I1^@Nd8>WTtcn+3=QL?M!{gG198h=lH4<ukg",
+        password: COMPLEX_PASSWORD,
         clientId: "3MVG9YDQS5WtC11paU2WcQjBB3L5w4gz52uriT8ksZ3nUVjKvrfQMrU4uvZohTftxStwNEW4cfStBEGRxRL68",
         clientSecret: "9205371918321623741",
         scopes: ["token-scope1", "token-scope2"],
