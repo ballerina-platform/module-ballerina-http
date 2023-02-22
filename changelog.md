@@ -5,15 +5,24 @@ This file contains all the notable changes done to the Ballerina HTTP package th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to 
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.6.0] - 2023-02-20
+
+### Added
+
+- [Introduce `getWithType()` method on request context objects](https://github.com/ballerina-platform/ballerina-standard-library/issues/3090)
+- [Introduce `hasKey()` and `keys()` methods on request context objects](https://github.com/ballerina-platform/ballerina-standard-library/issues/4070)
 
 ### Fixed
 
 - [Fix unnecessary warnings in native-image build](https://github.com/ballerina-platform/ballerina-standard-library/issues/3861)
+- [Fix union types getting restricted by compiler plugin](https://github.com/ballerina-platform/ballerina-standard-library/issues/3929)
+- [Fix data binding doesn't work for `application/x-www-form-urlencoded`](https://github.com/ballerina-platform/ballerina-standard-library/issues/3979)
+- [Multipart boundary is disturbed by the Content-type param value with Double quotes](https://github.com/ballerina-platform/ballerina-standard-library/issues/4083)
 
 ### Added
 
 - [Add http/1.1 as the ALPN extension when communicating over HTTP/1.1](https://github.com/ballerina-platform/ballerina-standard-library/issues/3766)
+- [Added support for `enum` query params](https://github.com/ballerina-platform/ballerina-standard-library/issues/3924)
 
 ## [2.5.2] - 2022-12-22
 

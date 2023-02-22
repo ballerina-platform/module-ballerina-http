@@ -1,0 +1,3 @@
+[http_misc_tests]
+keystore = "../resources/certsandkeys/ballerinaKeystore.p12"
+truststore = "../resources/certsandkeys/ballerinaTruststore.p12"

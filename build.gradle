@@ -38,7 +38,6 @@ ext.stdlibCryptoVersion = project.stdlibCryptoVersion
 ext.stdlibFileVersion = project.stdlibFileVersion
 ext.stdlibOsVersion = project.stdlibOsVersion
 ext.stdlibTaskVersion = project.stdlibTaskVersion
-ext.stdlibUuidVersion = project.stdlibUuidVersion
 
 ext.slf4jVersion = project.slf4jVersion
 ext.ballerinaTomlParserVersion = project.ballerinaTomlParserVersion
@@ -119,7 +118,6 @@ subprojects {
         // Transitive dependencies
         ballerinaStdLibs "io.ballerina.stdlib:os-ballerina:${stdlibOsVersion}"
         ballerinaStdLibs "io.ballerina.stdlib:task-ballerina:${stdlibTaskVersion}"
-        ballerinaStdLibs "io.ballerina.stdlib:uuid-ballerina:${stdlibUuidVersion}"
     }
 }
 

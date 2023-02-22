@@ -3,7 +3,7 @@
 _Owners_: @shafreenAnfar @TharmiganK @ayeshLK @chamil321  
 _Reviewers_: @shafreenAnfar @bhashinee @TharmiganK @ldclakmal  
 _Created_: 2021/12/23  
-_Updated_: 2022/12/05   
+_Updated_: 2023/02/01   
 _Edition_: Swan Lake
 
 
@@ -178,7 +178,7 @@ listener http:Listener serviceListener = new(9090);
 
 // Service attaches to the Listener
 service /foo/bar on serviceListener {
-    resource function get sayHello(http:Caller caller) {}
+    resource function get greeting() returns string {}
 }
 ```
 
@@ -198,7 +198,7 @@ public function main() {
 }
 
 http:Service s = service object {
-    resource function get sayHello(http:Caller caller) {}
+    resource function get greeting() returns string {}
 };
 ```
 
@@ -455,7 +455,7 @@ with any annotation or additional detail. This parameter is not compulsory and n
 are as follows
 
 ```ballerina
-type BasicType boolean|int|float|decimal|string|map<json>;
+type BasicType boolean|int|float|decimal|string|map<json>|enum;
 public type QueryParamType ()|BasicType|BasicType[];
 ```
 
@@ -495,7 +495,7 @@ not present in the request. In order to avoid the missing detail, a service leve
 }
 service /queryparamservice on new http:Listener(9090) {
 
-    resource function get test1(string foo, int bar) returns json {
+    resource function get queryvalues(string foo, int bar) returns json {
         json responseJson = { value1: foo, value2: bar};
         return responseJson;
     }
@@ -650,7 +650,7 @@ the process will happen according to the type `xml`.
 If the given types of the union are not compatible with the media type, an error is returned.
 
 ```ballerina
-resource function post hello(@http:Payload json|xml payload) { 
+resource function post album(@http:Payload json|xml payload) { 
     
 }
 
@@ -690,12 +690,12 @@ the type is nilable.
 
 ```ballerina
 //Single header value extraction
-resource function post hello1(@http:Header string referer) {
+resource function post album(@http:Header string referer) {
     
 }
 
 //Multiple header value extraction
-resource function post hello2(@http:Header {name: "Accept"} string[] accept) {
+resource function post product(@http:Header {name: "Accept"} string[] accept) {
     
 }
 
@@ -706,7 +706,7 @@ public type RateLimitHeaders record {|
 |};
 
 //Populate selected headers to a record
-resource function get hello3(@http:Header RateLimitHeaders rateLimitHeaders) {
+resource function get price(@http:Header RateLimitHeaders rateLimitHeaders) {
 }
 ```
 
@@ -714,7 +714,7 @@ If the requirement is to access all the header of the inbound request, it can be
 typed param in the signature. It does not need the annotation and not ordered.
 
 ```ballerina
-resource function get hello3(http:Headers headers) {
+resource function get price(http:Headers headers) {
     string|http:HeaderNotFoundError referer = headers.getHeader("Referer");
     string[]|http:HeaderNotFoundError accept = headers.getHeaders("Accept");
     string[] keys = headers.getHeaderNames();
@@ -732,7 +732,7 @@ not present in the request. In order to avoid the missing detail, a service leve
 }
 service /headerparamservice on HeaderBindingIdealEP {
 
-    resource function get test1(@http:Header string? foo) returns json {
+    resource function get headers(@http:Header string? foo) returns json {
         
     }
 }
@@ -798,8 +798,8 @@ In addition to that the `@http:Payload` annotation can be specified along with a
 mentioning the content type of the outbound payload.
 
 ```ballerina
-resource function get test() returns @http:Payload {mediaType:"text/id+plain"} string {
-    return "world";
+resource function get greeting() returns @http:Payload {mediaType:"text/id+plain"} string {
+    return "hello world";
 }
 ```
 
@@ -813,18 +813,23 @@ Based on the return types respective header value is added as the `Content-type`
 | byte[]                                                                | application/octet-stream |
 | int, float, decimal, boolean                                          | application/json         |
 | map\<json\>, table<map\<json\>>, map\<json\>[], table<map\<json\>>)[] | application/json         |
-| http:StatusCodeResponse                                               | application/json         |
+| http:StatusCodeResponse                                               | derived from the body field  |
 
 ##### 2.3.5.1. Status Code Response
 
 The status code response records are defined in the HTTP module for every HTTP status code. It improves readability & 
-helps OpenAPI spec generation. 
+helps OpenAPI spec generation. By default, the content type of the response message is derived from the `body` field.
+This default content type can be overwritten by the `mediaType` field as shown below.
 
 ```ballerina
-type Person record {
-   string name;
-};
-resource function put person(string name) returns record {|*http:Created; Person body;|} {
+type PersonCreated record {|
+    *http:Created;
+    record {|
+        string name;
+    |} body;
+|};
+
+resource function post name(string name) returns PersonCreated {
    Person person = {name:name};
    return {
        mediaType: "application/person+json",
@@ -1052,7 +1057,7 @@ instantiated calling `new`, instead user have to enable the config in the `Clien
 Provides secure HTTP remote methods for interacting with HTTP endpoints. This will make use of the authentication
 schemes configured in the HTTP client endpoint to secure the HTTP requests.
 ```ballerina
-http:Client clientEP = check new("https://localhost:9090",
+http:Client clientEP = check new ("https://localhost:9090",
     auth = {
         username: username,
         password: password
@@ -1069,7 +1074,7 @@ http:Client clientEP = check new("https://localhost:9090",
 ##### 2.4.1.2 Caching
 An HTTP caching client uses the HTTP caching layer once `cache` config is enabled.
 ```ballerina
-http:Client clientEP = check new("http://localhost:9090",
+http:Client clientEP = check new ("http://localhost:9090",
     cache = {
         enabled: true, 
         isShared: true 
@@ -1081,7 +1086,7 @@ http:Client clientEP = check new("http://localhost:9090",
 Provide the redirection support for outbound requests internally considering the location header when `followRedirects`
 configs are defined.
 ```ballerina
-http:Client clientEP = check new("http://localhost:9090", 
+http:Client clientEP = check new ("http://localhost:9090", 
     followRedirects = { 
         enabled: true, 
         maxCount: 3 
@@ -1092,7 +1097,7 @@ http:Client clientEP = check new("http://localhost:9090",
 ##### 2.4.1.4 Retry
 Provides the retrying over HTTP requests when `retryConfig` is defined.
 ```ballerina
-http:Client clientEP = check new("http://localhost:9090",
+http:Client clientEP = check new ("http://localhost:9090",
     retryConfig = {
         interval: 3,
         count: 3,
@@ -1104,7 +1109,7 @@ http:Client clientEP = check new("http://localhost:9090",
 ##### 2.4.1.5 Circuit breaker
 A Circuit Breaker implementation which can be used to gracefully handle network failures.
 ```ballerina
-http:Client clientEP = check new("http://localhost:9090", 
+http:Client clientEP = check new ("http://localhost:9090", 
     circuitBreaker = {
         rollingWindow: {
             timeWindow: 60,
@@ -1122,7 +1127,7 @@ http:Client clientEP = check new("http://localhost:9090",
 Provides the cookie functionality across HTTP client actions. The support functions defined in the request can be 
 used to manipulate cookies.
 ```ballerina
-http:Client clientEP = check new("http://localhost:9090", 
+http:Client clientEP = check new ("http://localhost:9090", 
     cookieConfig = { 
         enabled: true, 
         persistentCookieHandler: myPersistentStore 
@@ -1143,7 +1148,7 @@ public type LoadBalanceClientConfiguration record {|
     boolean failover = true;
 |};
 
-http:LoadBalanceClient clientEP = check new(
+http:LoadBalanceClient clientEP = check new (
     targets = [
         { url: "http://localhost:8093/LBMock1" },
         { url: "http://localhost:8093/LBMock2" },
@@ -1164,7 +1169,7 @@ public type FailoverClientConfiguration record {|
     decimal interval = 0;
 |};
 
-http:FailoverClient foBackendEP00 = check new(
+http:FailoverClient foBackendEP00 = check new (
     timeout = 5,
     failoverCodes = [501, 502, 503],
     interval = 5,
@@ -1618,7 +1623,7 @@ public type HttpResourceConfig record {|
 @http:ResourceConfig {
     produces: ["application/json"]
 }
-resource function post test() {
+resource function post person() {
 
 }
 ```
@@ -1642,7 +1647,7 @@ define the potential request payload content type as the mediaType to perform so
 Consumes resource config field.
 
 ```ballerina
-resource function post hello(@http:Payload {mediaType:["application/json", "application/ld+json"]} json payload)  {
+resource function post person(@http:Payload {mediaType:["application/json", "application/ld+json"]} json payload)  {
     
 }
 ```
@@ -1660,7 +1665,7 @@ to perform some pre-runtime validations in addition to the compile-time validati
 config field.
 
 ```ballerina
-resource function post hello() returns @http:Payload{mediaType:"application/xml"} xml? {
+resource function post person() returns @http:Payload{mediaType:"application/xml"} xml? {
     
 }
 ```
@@ -1690,7 +1695,7 @@ It will ensure that the resource method responds with the right type and provide
 the response type that can be used to generate OpenAPI.
 
 ```ballerina
-resource function post foo(@http:CallerInfo { respondType: http:Accepted } http:Caller hc) returns error?{
+resource function get person(@http:CallerInfo { respondType: http:Accepted } http:Caller hc) returns error?{
     Person p = {};
     hc->respond(Person p);
 }
@@ -1700,7 +1705,7 @@ resource function post foo(@http:CallerInfo { respondType: http:Accepted } http:
 
 ```ballerina
 
-resource function post hello(@http:Header {name:"Referer"} string referer) {
+resource function get person(@http:Header {name:"Referer"} string referer) {
 
 }
 ```
@@ -1734,8 +1739,7 @@ values cache configuration will not be added through this annotation)
 ```ballerina
 // Sets the cache-control header as "public,must-revalidate,max-age=5". Also sets the etag header.
 // last-modified header will not be set
-resource function get cachingBackEnd(http:Request req) returns @http:Cache{maxAge : 5, 
-    setLastModified : false} string {
+resource function get greeting() returns @http:Cache{maxAge : 5, setLastModified : false} string {
     return "Hello, World!!"
 }
 ```
@@ -2059,34 +2063,54 @@ service class RequestInterceptor {
 ##### 8.1.1.1 Request context  
 Following is the rough definition of the interceptor context.
 ```ballerina
+# Request context attribute type.
+public type ReqCtxAttribute value:Cloneable|isolated object {};
+
+# Request context attribute type descriptor.
+public type ReqCtxAttributeType typedesc<ReqCtxAttribute>;
+
+# Represents an HTTP Context that allows user to pass data between interceptors.
 public isolated class RequestContext {
-    private final map<value:Cloneable|isolated object {}> attributes = {};
+    private final map<ReqCtxAttribute> attributes = {};
 
-    public isolated function add(string 'key, value:Cloneable|isolated object {} value) {
-        if value is value:Cloneable {
-            lock {
-                self.attributes['key] = value.clone();
-            }
-        }
-        else {
-            lock {
-                self.attributes['key] = value;
-            }   
-        }
-    }
+    # Sets an attribute to the request context object.
+    #
+    # + key - Represents the attribute key
+    # + value - Represents the attribute value
+    public isolated function set(string key, ReqCtxAttribute value) {}
 
-    public isolated function get(string 'key) returns value:Cloneable|isolated object {} {
-        lock {
-            return self.attributes.get('key);
-        }
-    }
+    # Gets an attribute value from the request context object.
+    #
+    # + key - Represents the attribute key
+    # + return - Attribute value
+    public isolated function get(string key) returns ReqCtxAttribute {}
 
-    public isolated function remove(string 'key) {
-        lock {
-            value:Cloneable|isolated object {} _ = self.attributes.remove('key);
-        }
-    }
+    # Checks whether the request context object has an attribute corresponds to the key.
+    #
+    # + key - Represents the attribute key
+    # + return - true if the attribute exists, else false
+    public isolated function hasKey(string key) returns boolean {}
 
+    # Returns the attribute keys of the request context object.
+    #
+    # + return - Array of attribute keys
+    public isolated function keys() returns string[] {}
+
+    # Gets an attribute value with type from the request context object.
+    #
+    # + key - Represents the attribute key
+    # + targetType - Represents the expected type of the attribute value
+    # + return - Attribute value or an error if the attribute value is not of the expected type
+    public isolated function getWithType(string key, ReqCtxAttributeType targetType = <>) returns targetType|ListenerError = external;
+
+    # Removes an attribute from the request context object. It panics if there is no such member.
+    #
+    # + key - Represents the attribute key
+    public isolated function remove(string key) {}
+
+    # Calls the next service in the interceptor pipeline.
+    #
+    # + return - The next service object in the pipeline. An error is returned, if the call fails
     public isolated function next() returns NextService|error? = external;
 }
 ```
@@ -2456,8 +2480,8 @@ authentication and/or authorization phases according to the configurations will 
         }
     ]
 }
-service /foo on new http:Listener(9090) {
-    resource function get bar() returns string {
+service / on new http:Listener(9090) {
+    resource function get greeting() returns string {
         return "Hello, World!";
     }
 }
@@ -2512,8 +2536,8 @@ password="eve@123"
         }
     ]
 }
-service /foo on new http:Listener(9090) {
-    resource function get bar() returns string {
+service / on new http:Listener(9090) {
+    resource function get greeting() returns string {
         return "Hello, World!";
     }
 }
@@ -2537,8 +2561,8 @@ service /foo on new http:Listener(9090) {
         }
     ]
 }
-service /foo on new http:Listener(9090) {
-    resource function get bar() returns string {
+service / on new http:Listener(9090) {
+    resource function get greeting() returns string {
         return "Hello, World!";
     }
 }
@@ -2565,8 +2589,8 @@ service /foo on new http:Listener(9090) {
         }
     ]
 }
-service /foo on new http:Listener(9090) {
-    resource function get bar() returns string {
+service / on new http:Listener(9090) {
+    resource function get greeting() returns string {
         return "Hello, World!";
     }
 }
@@ -2918,8 +2942,8 @@ listener http:Listener securedEP = new(9090,
     }
 );
 
-service /foo on securedEP {
-    resource function get bar() returns string {
+service / on securedEP {
+    resource function get greeting() returns string {
         return "Hello, World!";
     }
 }
@@ -2953,8 +2977,8 @@ listener http:Listener securedEP = new(9090,
 
     }
 );
-service /foo on securedEP {
-    resource function get bar() returns string {
+service / on securedEP {
+    resource function get greeting() returns string {
         return "Hello, World!";
     }
 }

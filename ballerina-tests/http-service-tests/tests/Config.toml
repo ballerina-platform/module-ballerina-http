@@ -1,0 +1,3 @@
+[http_service_tests]
+backendPort=7070
+basePath="/hello"
