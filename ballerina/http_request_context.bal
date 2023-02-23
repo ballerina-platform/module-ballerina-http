@@ -15,10 +15,13 @@
 // under the License.
 
 import ballerina/jballerina.java;
-import ballerina/lang.value;
+
+// This is same as the `value:Cloneable`, except that it does not include `error` type.
+# Represents a non-error type that can be cloned.
+public type Cloneable (any & readonly)|xml|Cloneable[]|map<Cloneable>|table<map<Cloneable>>;
 
 # Request context member type.
-public type ReqCtxMember value:Cloneable|isolated object {};
+public type ReqCtxMember Cloneable|isolated object {};
 
 # Request context member type descriptor.
 public type ReqCtxMemberType typedesc<ReqCtxMember>;
@@ -32,7 +35,7 @@ public isolated class RequestContext {
     # + key - Represents the member key
     # + value - Represents the member value
     public isolated function set(string key, ReqCtxMember value) {
-        if value is value:Cloneable {
+        if value is Cloneable {
             lock {
                 self.members[key] = value.clone();
             }
@@ -40,7 +43,7 @@ public isolated class RequestContext {
         else {
             lock {
                 self.members[key] = value;
-            }   
+            }
         }
     }
 
@@ -50,9 +53,9 @@ public isolated class RequestContext {
     # + return - Member value
     public isolated function get(string key) returns ReqCtxMember {
         lock {
-            value:Cloneable|isolated object {} value = self.members.get(key);
+            Cloneable|isolated object {} value = self.members.get(key);
 
-            if value is value:Cloneable {
+            if value is Cloneable {
                 return value.clone();
             } else {
                 return value;
@@ -86,7 +89,7 @@ public isolated class RequestContext {
     # + return - Attribute value or an error. The error is returned if the member does not exist or
     #  if the member value is not of the expected type
     public isolated function getWithType(string key, ReqCtxMemberType targetType = <>)
-        returns targetType|ListenerError = @java:Method {
+        returns targetType|error = @java:Method {
         'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternRequestContext"
     } external;
 
@@ -95,7 +98,7 @@ public isolated class RequestContext {
     # + key - Represents the member key
     public isolated function remove(string key) {
         lock {
-            ReqCtxMember err = trap self.members.remove(key);
+            ReqCtxMember|error err = trap self.members.remove(key);
             if err is error {
                 panic err;
             }
