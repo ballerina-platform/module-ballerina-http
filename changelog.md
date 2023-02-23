@@ -19,6 +19,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Introduce `getWithType()` method on request context objects](https://github.com/ballerina-platform/ballerina-standard-library/issues/3090)
 - [Introduce `hasKey()` and `keys()` methods on request context objects](https://github.com/ballerina-platform/ballerina-standard-library/issues/4070)
 
+### Added
+- [Make @http:Payload annotation optional for post, put and patch](https://github.com/ballerina-platform/ballerina-standard-library/issues/3276)
+
+## [2.6.0] 
+
 ### Fixed
 
 - [Fix unnecessary warnings in native-image build](https://github.com/ballerina-platform/ballerina-standard-library/issues/3861)

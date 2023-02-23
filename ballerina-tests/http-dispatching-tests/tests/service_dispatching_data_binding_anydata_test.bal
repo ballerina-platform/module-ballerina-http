@@ -70,14 +70,14 @@ service /anydataB on generalListener {
         return j;
     }
 
-    resource function post checkIntMap(@http:Payload map<int> person) returns json|error {
+    resource function post checkIntMap(map<int> person) returns json|error {
         int? a = person["name"];
         int? b = person["team"];
         json responseJson = {"1": a, "2": b};
         return responseJson;
     }
 
-    resource function post checkIntTable(@http:Payload table<map<int>> tbl)
+    resource function post checkIntTable(table<map<int>> tbl)
             returns http:InternalServerError|map<int> {
         object {
             public isolated function next() returns record {|map<int> value;|}?;
@@ -99,14 +99,14 @@ service /anydataB on generalListener {
         return j;
     }
 
-    resource function post checkStringMap(@http:Payload map<string> person) returns json|error {
+    resource function post checkStringMap(map<string> person) returns json|error {
         string? a = person["name"];
         string? b = person["team"];
         json responseJson = {"1": a, "2": b};
         return responseJson;
     }
 
-    resource function post checkStringTable(@http:Payload table<map<string>> tbl)
+    resource function post checkStringTable(table<map<string>> tbl)
             returns http:InternalServerError|map<string> {
         object {
             public isolated function next() returns record {|map<string> value;|}?;
@@ -120,24 +120,24 @@ service /anydataB on generalListener {
     }
 
     // record
-    resource function post checkRecord(@http:Payload Person person) returns json {
+    resource function post checkRecord(Person person) returns json {
         string name = person.name;
         int age = person.age;
         return {Key: name, Age: age};
     }
 
-    resource function post checkRecordArray(@http:Payload Person[] j) returns Person[] {
+    resource function post checkRecordArray(Person[] j) returns Person[] {
         return j;
     }
 
-    resource function post checkRecordMap(@http:Payload map<Person> person) returns json|error {
+    resource function post checkRecordMap(map<Person> person) returns json|error {
         Person? a = person["name"];
         Person? b = person["team"];
         json responseJson = {"1": a, "2": b};
         return responseJson;
     }
 
-    resource function post checkRecordTable(@http:Payload table<Person> tbl) returns http:InternalServerError|Person {
+    resource function post checkRecordTable(table<Person> tbl) returns http:InternalServerError|Person {
         object {
             public isolated function next() returns record {|Person value;|}?;
         } iterator = tbl.iterator();
@@ -149,12 +149,12 @@ service /anydataB on generalListener {
         }
     }
 
-    resource function post checkRecordWithTuple(@http:Payload RestaurantNew restaurant) returns RestaurantNew {
+    resource function post checkRecordWithTuple(RestaurantNew restaurant) returns RestaurantNew {
         return restaurant;
     }
 
     // byte[]
-    resource function post checkByteArr(@http:Payload byte[] j) returns http:InternalServerError|string {
+    resource function post checkByteArr(byte[] j) returns http:InternalServerError|string {
         var name = strings:fromBytes(j);
         if (name is string) {
             return name;
@@ -163,7 +163,7 @@ service /anydataB on generalListener {
         }
     }
 
-    resource function post checkByteArrArray(@http:Payload byte[][] j) returns http:InternalServerError|string {
+    resource function post checkByteArrArray(byte[][] j) returns http:InternalServerError|string {
         var name = strings:fromBytes(j[0]);
         if (name is string) {
             return name;
@@ -172,14 +172,14 @@ service /anydataB on generalListener {
         }
     }
 
-    resource function post checkByteArrMap(@http:Payload map<byte[]> person) returns json|error {
+    resource function post checkByteArrMap(map<byte[]> person) returns json|error {
         byte[] a = person["name"] ?: [87, 87, 87, 50];
         byte[] b = person["team"] ?: [50, 87, 87, 50];
         json responseJson = {"1": check strings:fromBytes(a), "2": check strings:fromBytes(b)};
         return responseJson;
     }
 
-    resource function post checkByteArrTable(@http:Payload table<map<byte[]>> tbl)
+    resource function post checkByteArrTable(table<map<byte[]>> tbl)
             returns http:InternalServerError|map<byte[]> {
         object {
             public isolated function next() returns record {|map<byte[]> value;|}?;
@@ -193,22 +193,22 @@ service /anydataB on generalListener {
     }
 
     // xml
-    resource function post checkXml(@http:Payload xml j) returns xml {
+    resource function post checkXml(xml j) returns xml {
         return j;
     }
 
-    resource function post checkXmlArray(@http:Payload xml[] j) returns xml[] {
+    resource function post checkXmlArray(xml[] j) returns xml[] {
         return j;
     }
 
-    resource function post checkXmlMap(@http:Payload map<xml> person) returns json|error {
+    resource function post checkXmlMap(map<xml> person) returns json|error {
         xml a = person["name"] ?: xml `<name>This is Name</name>`;
         xml b = person["team"] ?: xml `<name>This is Team</name>`;
         json responseJson = {"1": a.toJson(), "2": b.toJson()};
         return responseJson;
     }
 
-    resource function post checkXmlTable(@http:Payload table<map<xml>> tbl)
+    resource function post checkXmlTable(table<map<xml>> tbl)
             returns http:InternalServerError|map<xml> {
         object {
             public isolated function next() returns record {|map<xml> value;|}?;
@@ -222,7 +222,7 @@ service /anydataB on generalListener {
     }
 
     // table
-    resource function post checkArrayOfTable(@http:Payload table<map<int>>[] tbls)
+    resource function post checkArrayOfTable(table<map<int>>[] tbls)
             returns http:InternalServerError|map<int> {
         table<map<int>> tbl = tbls[0];
         object {
@@ -236,7 +236,7 @@ service /anydataB on generalListener {
         }
     }
 
-    resource function post checkMapOfTable(@http:Payload map<table<map<int>>> tbls)
+    resource function post checkMapOfTable(map<table<map<int>>> tbls)
             returns http:InternalServerError|map<int> {
         table<map<int>>? tbl = tbls["team"];
         if tbl is table<map<int>> {
@@ -255,7 +255,7 @@ service /anydataB on generalListener {
     }
 
     // readonly
-    resource function post checkReadonlyArr(@http:Payload readonly & Person[] abc) returns json {
+    resource function post checkReadonlyArr(readonly & Person[] abc) returns json {
         Person[] xyz = abc;
         if xyz is readonly & Person[] {
             return {status: "readonly", value: xyz[0]};
@@ -270,8 +270,8 @@ service /anydataB on generalListener {
     }
 
     // Union
-    resource function post checkUnionTypesWithXmlJson(@http:Payload json|xml payload) returns json|xml {
-        if payload is json {
+    resource function post checkUnionTypesWithXmlJson(map<json>|xml payload) returns json|xml {
+        if payload is map<json> {
             return {result: "It's json"};
         } else {
             return payload;
@@ -294,7 +294,7 @@ service /anydataB on generalListener {
         }
     }
 
-    resource function post checkUnionWithStringMapXml(@http:Payload xml|map<string> person) returns json|error {
+    resource function post checkUnionWithStringMapXml(xml|map<string> person) returns json|error {
         if person is map<string> {
             string? a = person["name"];
             string? b = person["team"];
@@ -328,7 +328,7 @@ service /anydataB on generalListener {
         }
     }
 
-    resource function post checkUnionWithRecords(@http:Payload Person|Stock person) returns json {
+    resource function post checkUnionWithRecords(Person|Stock person) returns json {
         if person is Person {
             string name = person.name;
             int age = person.age;
@@ -341,7 +341,7 @@ service /anydataB on generalListener {
     }
 
     // readonly union
-    resource function post checkUnionTypesWithStringNilWithReadonly(@http:Payload readonly & byte[]? payload)
+    resource function post checkUnionTypesWithStringNilWithReadonly(readonly & byte[]? payload)
         returns json {
         if payload is byte[] {
             return {result: "payload"};
@@ -350,7 +350,7 @@ service /anydataB on generalListener {
         }
     }
 
-    resource function post checkUnionTypesWithReadonlyByteArrWithNil(@http:Payload readonly & byte[]|() payload)
+    resource function post checkUnionTypesWithReadonlyByteArrWithNil(readonly & byte[]|() payload)
         returns json {
         if payload is byte[] {
             return {result: "payload"};
@@ -360,11 +360,11 @@ service /anydataB on generalListener {
     }
 
     // builtin subtypes
-    resource function post checkXmlElement(@http:Payload xml:Element payload) returns xml:Element {
+    resource function post checkXmlElement(xml:Element payload) returns xml:Element {
         return payload;
     }
 
-    resource function post checkCustomXmlElement(@http:Payload newXmlElement payload) returns newXmlElement {
+    resource function post checkCustomXmlElement(newXmlElement payload) returns newXmlElement {
         return payload;
     }
 
