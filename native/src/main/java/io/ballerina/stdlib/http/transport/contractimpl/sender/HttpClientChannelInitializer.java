@@ -30,7 +30,6 @@ import io.ballerina.stdlib.http.transport.contractimpl.common.ssl.SSLConfig;
 import io.ballerina.stdlib.http.transport.contractimpl.common.ssl.SSLHandlerFactory;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.HttpExceptionHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.HttpTraceLoggingHandler;
-import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.TargetChannel;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.ConnectionManager;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.ClientFrameListener;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ClientChannel;
@@ -58,10 +57,10 @@ import io.netty.handler.ssl.ReferenceCountedOpenSslContext;
 import io.netty.handler.ssl.ReferenceCountedOpenSslEngine;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslHandler;
-
-import javax.net.ssl.SSLEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.net.ssl.SSLEngine;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.MAX_ENTITY_BODY_VALIDATION_HANDLER;
 import static io.ballerina.stdlib.http.transport.contract.Constants.SECURITY;
