@@ -217,7 +217,8 @@ public class Http2StateUtil {
         HttpRequest httpRequest = pushPromise.getHttpRequest();
         httpRequest.headers().add(HttpConversionUtil.ExtensionHeaderNames.SCHEME.text(), HTTP_SCHEME);
         if (!httpRequest.headers().contains(HttpHeaderNames.HOST)) {
-            String host = ((InetSocketAddress) inboundRequestMsg.getProperties().get(LOCAL_ADDRESS)).getHostName();
+            String host = ((InetSocketAddress) inboundRequestMsg.getProperties().get(LOCAL_ADDRESS))
+                    .getAddress().getHostName();
             httpRequest.headers().add(HttpHeaderNames.HOST, host);
         }
         // A push promise is a server initiated request, hence it should contain request headers
