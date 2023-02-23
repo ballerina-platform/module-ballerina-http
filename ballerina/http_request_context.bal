@@ -89,7 +89,7 @@ public isolated class RequestContext {
     # + return - Attribute value or an error. The error is returned if the member does not exist or
     #  if the member value is not of the expected type
     public isolated function getWithType(string key, ReqCtxMemberType targetType = <>)
-        returns targetType|error = @java:Method {
+        returns targetType|ListenerError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternRequestContext"
     } external;
 
