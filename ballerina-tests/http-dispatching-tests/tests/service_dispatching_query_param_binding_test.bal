@@ -551,9 +551,9 @@ function testEncodedValuePath() returns error? {
     common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:TEXT_PLAIN);
     common:assertTextPayload(response.getTextPayload(), "CSM-459+862");
 
-    response = check queryBindingClient->get("/encodedValuePath/IPX20%25?valueQuery=IPX20%25");
+    response = check queryBindingClient->get("/queryparamservice/encodedValuePath/IPX20%25?valueQuery=IPX20%25");
 
     test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-    common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:APPLICATION_JSON);
+    common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:TEXT_PLAIN);
     common:assertTextPayload(response.getTextPayload(), "IPX20%");
 }
