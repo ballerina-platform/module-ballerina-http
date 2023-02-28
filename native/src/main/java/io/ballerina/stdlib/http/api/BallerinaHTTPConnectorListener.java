@@ -79,8 +79,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
                 (List<HTTPInterceptorServicesRegistry>) inboundMessage.getProperty(INTERCEPTOR_SERVICES_REGISTRIES);
 
         try {
-            if (executeInterceptorServices(
-                    interceptorServicesRegistries, inboundMessage)) {
+            if (executeInterceptorServices(interceptorServicesRegistries, inboundMessage)) {
                 return;
             }
         } catch (Exception ex) {
