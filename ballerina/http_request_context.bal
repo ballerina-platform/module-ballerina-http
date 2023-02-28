@@ -36,8 +36,7 @@ public isolated class RequestContext {
             lock {
                 self.members[key] = value.clone();
             }
-        }
-        else {
+        } else {
             lock {
                 self.members[key] = value;
             }   

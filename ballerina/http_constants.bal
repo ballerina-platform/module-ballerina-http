@@ -153,3 +153,8 @@ const string XML_PATTERN = "^(application|text)\\/(.*[.+-]|)xml$";
 const string TEXT_PATTERN = "^(text)\\/(.*[.+-]|)plain$";
 const string OCTET_STREAM_PATTERN = "^(application)\\/(.*[.+-]|)octet-stream$";
 const string URL_ENCODED_PATTERN = "^(application)\\/(.*[.+-]|)x-www-form-urlencoded$";
+
+# Constant to get the jwt header from the request context.
+const string JWT_HEADER = "JWT_HEADER";
+# Constant to get the jwt payload from the request context.
+const string JWT_PAYLOAD = "JWT_PAYLOAD";

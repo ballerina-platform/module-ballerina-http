@@ -79,7 +79,8 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
                 (List<HTTPInterceptorServicesRegistry>) inboundMessage.getProperty(INTERCEPTOR_SERVICES_REGISTRIES);
 
         try {
-            if (executeInterceptorServices(interceptorServicesRegistries, inboundMessage)) {
+            if (executeInterceptorServices(
+                    interceptorServicesRegistries, inboundMessage)) {
                 return;
             }
         } catch (Exception ex) {
@@ -163,7 +164,8 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
                                                               HttpResource httpResource) {
         boolean isTransactionInfectable = httpResource.isTransactionInfectable();
         Map<String, Object> properties = collectRequestProperties(inboundMessage, isTransactionInfectable);
-        Object[] signatureParams = HttpDispatcher.getSignatureParameters(httpResource, inboundMessage, endpointConfig);
+        Object[] signatureParams = HttpDispatcher.getSignatureParameters(httpResource, inboundMessage, endpointConfig,
+                httpServicesRegistry.getRuntime());
 
         if (ObserveUtils.isObservabilityEnabled()) {
             ObserverContext observerContext = new ObserverContext();
@@ -230,7 +232,8 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
                                                                          InterceptorResource resource,
                                                                          HTTPInterceptorServicesRegistry registry) {
         Map<String, Object> properties = collectRequestProperties(inboundMessage, true);
-        Object[] signatureParams = HttpDispatcher.getSignatureParameters(resource, inboundMessage, endpointConfig);
+        Object[] signatureParams = HttpDispatcher.getSignatureParameters(resource, inboundMessage, endpointConfig,
+                registry.getRuntime());
 
         Runtime runtime = registry.getRuntime();
         Callback callback = new HttpRequestInterceptorUnitCallback(
