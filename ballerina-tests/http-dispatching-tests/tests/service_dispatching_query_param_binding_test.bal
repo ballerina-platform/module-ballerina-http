@@ -118,6 +118,10 @@ service /queryparamservice on QueryBindingEP {
     resource function get nestedTypeRef(FullName name) returns string {
         return name;
     }
+
+    resource function get encodedValuePath/[string valuePath](string? valueQuery) returns string {
+        return valuePath;
+    }
 }
 
 service /default on QueryBindingEP {
@@ -537,4 +541,19 @@ function testTypeReferenceConstrainedMapQueryParamBinding() returns error? {
     string jsonEncoded = check url:encode(jsonObj.toJsonString(), "UTF-8");
     http:Response response = check queryBindingClient->get("/queryparamservice/petsMap?count=" + jsonEncoded);
     common:assertJsonPayloadtoJsonString(response.getJsonPayload(), jsonObj);
+}
+
+@test:Config {}
+function testEncodedValuePath() returns error? {
+    http:Response response = check queryBindingClient->get("/queryparamservice/encodedValuePath/CSM-459%2B862?valueQuery=CSM-459%2B862");
+
+    test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+    common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:TEXT_PLAIN);
+    common:assertTextPayload(response.getTextPayload(), "CSM-459+862");
+
+    response = check queryBindingClient->get("/encodedValuePath/IPX20%25?valueQuery=IPX20%25");
+
+    test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+    common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:APPLICATION_JSON);
+    common:assertTextPayload(response.getTextPayload(), "IPX20%");
 }

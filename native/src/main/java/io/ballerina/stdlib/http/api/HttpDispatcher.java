@@ -452,7 +452,10 @@ public class HttpDispatcher {
         for (String paramName : pathParamTokens) {
             String argumentValue = resourceArgumentValues.getMap().get(paramName).get(actualSignatureParamIndex);
             try {
-                argumentValue = URLDecoder.decode(argumentValue, "UTF-8");
+                if (argumentValue.endsWith("%")) {
+                    argumentValue = argumentValue.replaceAll("%", "%25");
+                }
+                argumentValue = URLDecoder.decode(argumentValue.replaceAll("\\+", "%2B"), "UTF-8");
             } catch (UnsupportedEncodingException e) {
                 // we can simply ignore and send the value to application and let the
                 // application deal with the value.
