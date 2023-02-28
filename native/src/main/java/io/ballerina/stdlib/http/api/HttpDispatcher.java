@@ -431,11 +431,8 @@ public class HttpDispatcher {
     static BObject createRequestContext(HttpCarbonMessage httpCarbonMessage, Runtime runtime) {
         BObject requestContext = ValueCreatorUtils.createRequestContextObject();
         String authHeader = httpCarbonMessage.getHeader(AUTHORIZATION_HEADER);
-        Object decodedJwt = invokeJwtDecode(runtime, authHeader);
-        if (Objects.nonNull(decodedJwt)) {
-            BMap requestCtxMembers = requestContext.getMapValue(REQUEST_CTX_MEMBERS);
-            requestCtxMembers.put(JWT_HEADER, ((BArray) decodedJwt).get(0));
-            requestCtxMembers.put(JWT_PAYLOAD, ((BArray) decodedJwt).get(1));
+        if (Objects.nonNull(authHeader) && authHeader.startsWith("Bearer ")) {
+            addJwtValuesToRequestContext(runtime, requestContext, authHeader);
         }
         BArray interceptors = httpCarbonMessage.getProperty(HttpConstants.INTERCEPTORS) instanceof BArray ?
                               (BArray) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTORS) : null;
@@ -447,13 +444,24 @@ public class HttpDispatcher {
         return requestContext;
     }
 
+    private static void addJwtValuesToRequestContext(Runtime runtime, BObject requestContext, String authHeader) {
+        Object decodedJwt = invokeJwtDecode(runtime, authHeader);
+        if (Objects.nonNull(decodedJwt)) {
+            BMap requestCtxMembers = requestContext.getMapValue(REQUEST_CTX_MEMBERS);
+            requestCtxMembers.put(JWT_HEADER, ((BArray) decodedJwt).get(0));
+            requestCtxMembers.put(JWT_PAYLOAD, ((BArray) decodedJwt).get(1));
+        }
+    }
+
     private static Object invokeJwtDecode(Runtime runtime, String authHeader) {
         final Object[] jwtValues = new Object[1];
         CountDownLatch countDownLatch = new CountDownLatch(1);
         Callback decodeCallback = new Callback() {
             @Override
-            public void notifySuccess(Object o) {
-                jwtValues[0] = o;
+            public void notifySuccess(Object result) {
+                if (!(result instanceof Exception)) {
+                    jwtValues[0] = result;
+                }
                 countDownLatch.countDown();
             }
 
@@ -463,23 +471,21 @@ public class HttpDispatcher {
             }
         };
 
-        if (Objects.nonNull(authHeader) && authHeader.startsWith("Bearer ")) {
-            String jwtValue = authHeader.split(" ")[1];
-            runtime.invokeMethodAsyncSequentially(
-                    ValueCreator.createObjectValue(ModuleUtils.getHttpPackage(), JWT_DECODER_CLASS_NAME),
-                    JWT_DECODE_METHOD_NAME,
-                    null,
-                    ModuleUtils.getNotifySuccessMetaData(),
-                    decodeCallback,
-                    null,
-                    PredefinedTypes.TYPE_ANY,
-                    StringUtils.fromString(jwtValue),
-                    true);
-            try {
-                countDownLatch.await();
-            } catch (InterruptedException exception) {
-                logger.warn("Interrupted before receiving the response");
-            }
+        String jwtValue = authHeader.split(" ")[1];
+        runtime.invokeMethodAsyncConcurrently(
+                ValueCreator.createObjectValue(ModuleUtils.getHttpPackage(), JWT_DECODER_CLASS_NAME),
+                JWT_DECODE_METHOD_NAME,
+                null,
+                ModuleUtils.getNotifySuccessMetaData(),
+                decodeCallback,
+                null,
+                PredefinedTypes.TYPE_ANY,
+                StringUtils.fromString(jwtValue),
+                true);
+        try {
+            countDownLatch.await();
+        } catch (InterruptedException exception) {
+            logger.warn("Interrupted before receiving the response");
         }
         return jwtValues[0];
     }
