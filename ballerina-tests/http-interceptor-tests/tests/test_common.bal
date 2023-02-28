@@ -373,6 +373,16 @@ service class RequestInterceptorUserAgentField {
     }
 }
 
+service class RequestInterceptorJwtInformation {
+    *http:RequestInterceptor;
+
+    resource function 'default [string... path](http:RequestContext ctx, http:Request req) returns http:NextService|error? {
+        reqCtxJwtValues[0] = check ctx.getWithType(http:JWT_HEADER);
+        reqCtxJwtValues[1] = check ctx.getWithType(http:JWT_PAYLOAD);
+        return ctx.next();
+    }
+}
+
 service class RequestInterceptorNegative1 {
     *http:RequestInterceptor;
 
