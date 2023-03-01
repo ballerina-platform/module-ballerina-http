@@ -55,7 +55,7 @@ service class DefaultErrorInterceptor {
 }
 
 # The class used by the runtime to invoke the `decodeJwt` method to add jwt values to the request context.
-public isolated class JwtDecoder {
+isolated class JwtDecoder {
 
     # Gets invoked during object initialization.
     #
