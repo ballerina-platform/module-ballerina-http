@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
 
+import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
 import io.ballerina.stdlib.http.transport.message.Http2DataFrame;
 import io.ballerina.stdlib.http.transport.message.Http2HeadersFrame;
@@ -32,6 +33,8 @@ import io.netty.handler.codec.http2.Http2Headers;
 import io.netty.handler.codec.http2.Http2Settings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Objects;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.ZERO_READABLE_BYTES;
 
@@ -113,8 +116,11 @@ public class ClientFrameListener extends Http2EventAdapter {
                 return;
             }
         }
-
+        CharSequence authority = headers.authority();
         Http2PushPromise pushPromise = new Http2PushPromise(Util.createHttpRequestFromHttp2Headers(headers, streamId));
+        if (Objects.nonNull(authority)) {
+            pushPromise.addHeader(Constants.AUTHORITY, authority.toString());
+        }
         pushPromise.setPromisedStreamId(promisedStreamId);
         pushPromise.setStreamId(streamId);
         ctx.fireChannelRead(pushPromise);

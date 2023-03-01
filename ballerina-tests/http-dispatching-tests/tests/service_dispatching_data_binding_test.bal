@@ -54,14 +54,14 @@ service /dataBinding on generalListener {
         check caller->respond({Key: name, Team: team});
     }
 
-    resource function post body4(@http:Payload xml person, http:Caller caller, http:Request req) returns error? {
+    resource function post body4(xml person, http:Caller caller, http:Request req) returns error? {
         xmllib:Element elem = <xmllib:Element>person;
         string name = <string>elem.getName();
         string team = <string>(person/*).toString();
         check caller->respond({Key: name, Team: team});
     }
 
-    resource function post body5(http:Caller caller, @http:Payload byte[] person) returns error? {
+    resource function post body5(http:Caller caller, byte[] person) returns error? {
         http:Response res = new;
         var name = strings:fromBytes(person);
         if (name is string) {
@@ -73,17 +73,17 @@ service /dataBinding on generalListener {
         check caller->respond(res);
     }
 
-    resource function post body6(http:Caller caller, http:Request req, @http:Payload Person person) returns error? {
+    resource function post body6(http:Caller caller, http:Request req, Person person) returns error? {
         string name = person.name;
         int age = person.age;
         check caller->respond({Key: name, Age: age});
     }
 
-    resource function post body7(http:Caller caller, http:Request req, @http:Payload Stock person) returns error? {
+    resource function post body7(http:Caller caller, http:Request req, Stock person) returns error? {
         check caller->respond();
     }
 
-    resource function post body8(http:Caller caller, @http:Payload Person[] persons) returns error? {
+    resource function post body8(http:Caller caller, Person[] persons) returns error? {
         var jsonPayload = persons.cloneWithType(json);
         if (jsonPayload is json) {
             check caller->respond(jsonPayload);
@@ -92,22 +92,21 @@ service /dataBinding on generalListener {
         }
     }
 
-    resource function 'default body9(http:Caller caller, @http:Payload map<string> person) returns error? {
+    resource function 'default body9(http:Caller caller, map<string> person) returns error? {
         string? a = person["name"];
         string? b = person["team"];
         json responseJson = {"1": a, "2": b};
         check caller->respond(responseJson);
     }
 
-    resource function 'default body10(http:Caller caller,
-            @http:Payload {mediaType: "application/x-www-form-urlencoded"} map<string> person) returns error? {
+    resource function 'default body10(http:Caller caller, map<string> person) returns error? {
         string? a = person["name"];
         string? b = person["team"];
         json responseJson = {"1": a, "2": b};
         check caller->respond(responseJson);
     }
 
-    resource function post body11(@http:Payload map<string> text) returns string {
+    resource function post body11(map<string> text) returns string {
         return "body11";
     }
 
@@ -179,13 +178,13 @@ service /readonlyRecord on generalListener {
 
     // Locates the album whose ID value matches the id
     // parameter sent by the client, then returns that album as a response.
-    resource function post albums(@http:Payload Album album) returns Album {
+    resource function post albums(Album album) returns Album {
         // Add the new album to the table.
         albums.add(album);
         return album;
     }
 
-    resource function post tableBinding(http:Caller caller, @http:Payload table<Album> key(id) albums) returns error? {
+    resource function post tableBinding(http:Caller caller, table<Album> key(id) albums) returns error? {
         Album? album = albums["1"];
         check caller->respond(album);
     }

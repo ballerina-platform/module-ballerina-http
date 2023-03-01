@@ -102,6 +102,7 @@ public class Http2ServerPushTestCase {
         // Get the 1st promise
         Http2PushPromise promise1 = msgSender.getNextPromise(handle);
         assertNotNull(promise1, "Promise 1 not available");
+        assertNotNull(promise1.getHeader(Constants.AUTHORITY), "Authority header not available");
         String path = promise1.getPath();
         boolean promise1Received = false;
         if (path.equals(promisedResource1)) {
@@ -115,6 +116,7 @@ public class Http2ServerPushTestCase {
         // Get the 2nd promise
         Http2PushPromise promise2 = msgSender.getNextPromise(handle);
         assertNotNull(promise2, "Promise 2 not available");
+        assertNotNull(promise2.getHeader(Constants.AUTHORITY), "Authority header not available");
         path = promise2.getPath();
         if (promise1Received) {
             assertEquals(path, promisedResource2, "Invalid Promise received");

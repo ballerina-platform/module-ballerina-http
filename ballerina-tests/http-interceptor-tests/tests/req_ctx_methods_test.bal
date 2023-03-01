@@ -83,11 +83,11 @@ function testReqCtxGetWithTypeSuccess() returns error? {
 function testReqCtxGetWithTypeFailure() {
     http:RequestContext reqCtx = new;
     string|error value1 = reqCtx.getWithType("key");
-    test:assertTrue(value1 is error, msg = "Unexpected value returned");
+    test:assertTrue(value1 is http:ListenerError, msg = "Unexpected value returned");
 
     reqCtx.set("key", "value");
     User|error value2 = reqCtx.getWithType("key");
-    test:assertTrue(value2 is error, msg = "Unexpected value returned");
+    test:assertTrue(value2 is http:ListenerError, msg = "Unexpected value returned");
 }
 
 @test:Config {}
