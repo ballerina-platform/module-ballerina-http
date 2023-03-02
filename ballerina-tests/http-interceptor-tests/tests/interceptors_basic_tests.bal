@@ -20,6 +20,7 @@ import ballerina/test;
 import ballerina/http_test_common as common;
 
 [jwt:Header, jwt:Payload] reqCtxJwtValues = [];
+error? reqCtxJwtDecodeError = ();
 
 final http:Client interceptorsBasicTestsClientEP1 = check new("http://localhost:" + interceptorBasicTestsPort1.toString(), httpVersion = http:HTTP_1_1);
 
@@ -464,7 +465,7 @@ service /requestInterceptorJwtInformation on new http:Listener(jwtInformationInR
 }
 
 @test:Config{}
-function testJwtInformationInRequestHeader() returns error? {
+function testJwtInformationInRequestContext() returns error? {
     http:Client jwtClient = check new("https://localhost:" + jwtInformationInReqCtxtTestPort.toString(),
     secureSocket = {
         cert: common:CERT_FILE
@@ -491,4 +492,38 @@ function testJwtInformationInRequestHeader() returns error? {
     test:assertEquals(reqCtxJwtValues[1].aud, ["ballerina","ballerina.org","ballerina.io"]);
     test:assertEquals(reqCtxJwtValues[1].jti, "JlbmMiOiJBMTI4Q0JDLUhTMjU2In");
     test:assertEquals(reqCtxJwtValues[1]["scp"], "admin");
+}
+
+@test:Config{}
+function testJwtInformationDecodeErrorInRequestContext() returns error? {
+    http:Client jwtClient = check new("https://localhost:" + jwtInformationInReqCtxtTestPort.toString(),
+        secureSocket = {
+            cert: common:CERT_FILE
+        });
+    string response = check jwtClient->get("/requestInterceptorJwtInformation", {"authorization": "Bearer abcd"});
+    test:assertEquals(response, "Hello client");
+    if reqCtxJwtDecodeError is http:ListenerAuthError {
+        test:assertEquals((<http:ListenerAuthError>reqCtxJwtDecodeError).message(), "An error occured while decoding jwt string.");
+        error? cause = (<http:ListenerAuthError>reqCtxJwtDecodeError).cause();
+        if cause is error {
+            test:assertEquals(cause.message(), "Invalid JWT.");
+        } else {
+            test:assertFail("Expected a ListenerAuthError");
+        }
+    } else {
+        test:assertFail("Expected a ListenerAuthError");
+    }
+}
+
+@test:Config{
+    dependsOn: [testJwtInformationDecodeErrorInRequestContext]
+}
+function testNilJwtInformationValueInRequestContext() returns error? {
+    http:Client jwtClient = check new("https://localhost:" + jwtInformationInReqCtxtTestPort.toString(),
+        secureSocket = {
+            cert: common:CERT_FILE
+        });
+    string response = check jwtClient->get("/requestInterceptorJwtInformation");
+    test:assertEquals(response, "Hello client");
+    test:assertTrue(reqCtxJwtDecodeError is ());
 }
