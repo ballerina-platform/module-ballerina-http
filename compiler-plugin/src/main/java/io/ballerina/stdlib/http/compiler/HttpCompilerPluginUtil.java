@@ -60,11 +60,9 @@ import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
 import static io.ballerina.stdlib.http.compiler.Constants.INT;
 import static io.ballerina.stdlib.http.compiler.Constants.INTERCEPTOR_RESOURCE_RETURN_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.INT_ARRAY;
-import static io.ballerina.stdlib.http.compiler.Constants.MAP_OF_JSON;
-import static io.ballerina.stdlib.http.compiler.Constants.MAP_OF_JSON_ARRAY;
+import static io.ballerina.stdlib.http.compiler.Constants.JSON;
 import static io.ballerina.stdlib.http.compiler.Constants.NIL;
 import static io.ballerina.stdlib.http.compiler.Constants.OBJECT;
-import static io.ballerina.stdlib.http.compiler.Constants.READONLY;
 import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_CONTEXT_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.RESOURCE_RETURN_TYPE;
@@ -221,29 +219,19 @@ public class HttpCompilerPluginUtil {
     private static void populateBasicTypes(SyntaxNodeAnalysisContext ctx, Map<String, TypeSymbol> typeSymbols) {
         Types types = ctx.semanticModel().types();
         typeSymbols.put(ANYDATA, types.ANYDATA);
+        typeSymbols.put(JSON, types.JSON);
         typeSymbols.put(ERROR, types.ERROR);
-        typeSymbols.put(STRING, types.builder().UNION_TYPE.withMemberTypes(types.STRING, types.NIL).build());
-        typeSymbols.put(BOOLEAN, types.builder().UNION_TYPE.withMemberTypes(types.BOOLEAN, types.NIL).build());
-        typeSymbols.put(INT, types.builder().UNION_TYPE.withMemberTypes(types.INT, types.NIL).build());
-        typeSymbols.put(FLOAT, types.builder().UNION_TYPE.withMemberTypes(types.FLOAT, types.NIL).build());
-        typeSymbols.put(DECIMAL, types.builder().UNION_TYPE.withMemberTypes(types.DECIMAL, types.NIL).build());
+        typeSymbols.put(STRING, types.STRING);
+        typeSymbols.put(BOOLEAN, types.BOOLEAN);
+        typeSymbols.put(INT, types.INT);
+        typeSymbols.put(FLOAT, types.FLOAT);
+        typeSymbols.put(DECIMAL, types.DECIMAL);
         typeSymbols.put(NIL, types.NIL);
-        typeSymbols.put(STRING_ARRAY, types.builder().UNION_TYPE.withMemberTypes(
-                types.builder().ARRAY_TYPE.withType(types.STRING).build(), types.NIL).build());
-        typeSymbols.put(BOOLEAN_ARRAY, types.builder().UNION_TYPE.withMemberTypes(
-                types.builder().ARRAY_TYPE.withType(types.BOOLEAN).build(), types.NIL).build());
-        typeSymbols.put(INT_ARRAY, types.builder().UNION_TYPE.withMemberTypes(
-                types.builder().ARRAY_TYPE.withType(types.INT).build(), types.NIL).build());
-        typeSymbols.put(FLOAT_ARRAY, types.builder().UNION_TYPE.withMemberTypes(
-                types.builder().ARRAY_TYPE.withType(types.FLOAT).build(), types.NIL).build());
-        typeSymbols.put(DECIMAL_ARRAY, types.builder().UNION_TYPE.withMemberTypes(
-                types.builder().ARRAY_TYPE.withType(types.DECIMAL).build(), types.NIL).build());
+        typeSymbols.put(STRING_ARRAY, types.builder().ARRAY_TYPE.withType(types.STRING).build());
+        typeSymbols.put(BOOLEAN_ARRAY, types.builder().ARRAY_TYPE.withType(types.BOOLEAN).build());
+        typeSymbols.put(INT_ARRAY, types.builder().ARRAY_TYPE.withType(types.INT).build());
+        typeSymbols.put(FLOAT_ARRAY, types.builder().ARRAY_TYPE.withType(types.FLOAT).build());
+        typeSymbols.put(DECIMAL_ARRAY, types.builder().ARRAY_TYPE.withType(types.DECIMAL).build());
         typeSymbols.put(OBJECT, types.builder().OBJECT_TYPE.build());
-        typeSymbols.put(MAP_OF_JSON, types.builder().UNION_TYPE.withMemberTypes(
-                types.builder().MAP_TYPE.withTypeParam(types.JSON).build(), types.NIL).build());
-        typeSymbols.put(MAP_OF_JSON_ARRAY, types.builder().UNION_TYPE.withMemberTypes(
-                types.builder().ARRAY_TYPE.withType(
-                        types.builder().MAP_TYPE.withTypeParam(types.JSON).build()).build(), types.NIL).build());
-        typeSymbols.put(READONLY, types.READONLY);
     }
 }

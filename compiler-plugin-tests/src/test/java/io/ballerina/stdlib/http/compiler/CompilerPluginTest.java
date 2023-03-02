@@ -255,9 +255,9 @@ public class CompilerPluginTest {
         assertError(diagnosticResult, 3, "invalid union type of query param 'c': 'string', 'int', " +
                 "'float', 'boolean', 'decimal', 'map<json>' type or the array types of them can only be union with " +
                 "'()'. Eg: string? or int[]?", HTTP_113);
-        assertError(diagnosticResult, 4, "invalid union type of query param 'd': 'string', 'int', " +
-                "'float', 'boolean', 'decimal', 'map<json>' type or the array types of them can only be union with " +
-                "'()'. Eg: string? or int[]?", HTTP_113);
+        assertError(diagnosticResult, 4, "invalid type of query param 'd': expected one of the " +
+                "'string', 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them",
+                HTTP_112);
         assertError(diagnosticResult, 5, "invalid type of query param 'a': expected one of the " +
                 "'string', 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them",
                 HTTP_112);
