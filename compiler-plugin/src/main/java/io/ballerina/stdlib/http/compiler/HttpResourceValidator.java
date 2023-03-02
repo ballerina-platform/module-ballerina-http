@@ -446,14 +446,10 @@ class HttpResourceValidator {
         if (isValidBasicParamType(typeSymbol, typeSymbols)) {
             return;
         }
+        typeSymbol = getEffectiveTypeFromTypeReference(typeSymbol);
         TypeDescKind typeDescKind = typeSymbol.typeKind();
         if (!isRecordField && typeDescKind == TypeDescKind.RECORD) {
             validateRecordFieldsOfHeaderParam(ctx, param, paramLocation, paramName, typeSymbol, typeSymbols);
-            return;
-        }
-        if (typeDescKind == TypeDescKind.TYPE_REFERENCE) {
-            TypeSymbol typeDescriptor = getEffectiveTypeFromTypeReference(typeSymbol);
-            validateHeaderParamType(ctx, param, paramLocation, paramName, typeDescriptor, typeSymbols, false);
             return;
         }
         reportInvalidHeaderParameterType(ctx, paramLocation, paramName, param);
@@ -544,6 +540,9 @@ class HttpResourceValidator {
 
     private static TypeSymbol getEffectiveTypeFromNilableSingletonType(TypeSymbol typeSymbol,
                                                                        Map<String, TypeSymbol> typeSymbols) {
+        if (typeSymbol.typeKind() == TypeDescKind.INTERSECTION) {
+            typeSymbol = getEffectiveTypeFromReadonlyIntersection((IntersectionTypeSymbol) typeSymbol);
+        }
         TypeDescKind typeDescKind = typeSymbol.typeKind();
         if (typeDescKind == TypeDescKind.UNION) {
             List<TypeSymbol> symbolList = ((UnionTypeSymbol) typeSymbol).userSpecifiedMemberTypes();

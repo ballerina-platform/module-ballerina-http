@@ -169,7 +169,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_5");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 12);
+        Assert.assertEquals(diagnosticResult.errorCount(), 13);
         assertError(diagnosticResult, 0, "invalid union type of header param 'xRate': one of the 'string','int'," +
                 "'float','decimal','boolean' types, an array of the above types or a record which consists of the" +
                 " above types can only be union with '()'. Eg: string|() or string[]|()", HTTP_110);
@@ -203,6 +203,9 @@ public class CompilerPluginTest {
         assertError(diagnosticResult, 11, "invalid union type of header param 'abc': one of the 'string','int'," +
                 "'float','decimal','boolean' types, an array of the above types or a record which consists of the " +
                 "above types can only be union with '()'. Eg: string|() or string[]|()", HTTP_110);
+        assertError(diagnosticResult, 12, "invalid type of header param 'xRate': One of the following types is " +
+                "expected: 'string','int','float','decimal','boolean', an array of the above types or a record " +
+                "which consists of the above types", HTTP_109);
     }
 
     @Test
