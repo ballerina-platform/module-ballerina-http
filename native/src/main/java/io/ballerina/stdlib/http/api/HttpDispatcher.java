@@ -370,7 +370,7 @@ public class HttpDispatcher {
 
     private static BObject getRequestCtx(HttpCarbonMessage httpCarbonMessage) {
         BObject requestCtx = (BObject) httpCarbonMessage.getProperty(HttpConstants.REQUEST_CONTEXT);
-            return requestCtx != null ? requestCtx : createRequestContext(httpCarbonMessage);
+        return requestCtx != null ? requestCtx : createRequestContext(httpCarbonMessage);
     }
 
     private static void populatePropertiesForRequestPath(Resource resource, HttpCarbonMessage httpCarbonMessage,
