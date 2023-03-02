@@ -105,6 +105,10 @@ public isolated class RequestContext {
         }
     }
 
+    # Provides the JWT information from the request.
+    #
+    # + return - `[jwt:Header, jwt:Payload]` if decoding the header is successful, `error` if any error occurs
+    #             while decoding, or `nil` if no jwt header found.
     public function getJWTInfo() returns [jwt:Header, jwt:Payload]|error? {
         string? authString = check self.getAuthString();
         if authString is string {
@@ -124,9 +128,6 @@ public isolated class RequestContext {
         'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternRequestContext"
     } external;
 
-    # Calls the next service in the interceptor pipeline.
-    #
-    # + return - The next service object in the pipeline. An error is returned, if the call fails
     isolated function getAuthString() returns string|error? = @java:Method {
         'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternRequestContext"
     } external;
