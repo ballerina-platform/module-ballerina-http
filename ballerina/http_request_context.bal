@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/jballerina.java;
+import ballerina/jwt;
 
 // This is same as the `value:Cloneable`, except that it does not include `error` type.
 # Represents a non-error type that can be cloned.
@@ -104,10 +105,29 @@ public isolated class RequestContext {
         }
     }
 
+    public function getJWTInfo() returns [jwt:Header, jwt:Payload]|error? {
+        string? authString = check self.getAuthString();
+        if authString is string {
+            [jwt:Header, jwt:Payload]|jwt:Error result = jwt:decode(<string> authString);
+            if result is jwt:Error {
+                return error ListenerAuthError("An error occured while decoding jwt string.", result);
+            }
+            return result;
+        }
+        return ();
+    }
+
     # Calls the next service in the interceptor pipeline.
     #
     # + return - The next service object in the pipeline. An error is returned, if the call fails
     public isolated function next() returns NextService|error? = @java:Method {
+        'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternRequestContext"
+    } external;
+
+    # Calls the next service in the interceptor pipeline.
+    #
+    # + return - The next service object in the pipeline. An error is returned, if the call fails
+    isolated function getAuthString() returns string|error? = @java:Method {
         'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternRequestContext"
     } external;
 }

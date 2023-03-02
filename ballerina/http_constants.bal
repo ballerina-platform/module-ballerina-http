@@ -142,11 +142,6 @@ public const LEADING = "leading";
 # Header is placed after the payload of the request/response.
 public const TRAILING = "trailing";
 
-# Constant to get the jwt header from the request context.
-public const string JWT_HEADER = "JWT_HEADER";
-# Constant to get the jwt payload from the request context.
-public const string JWT_PAYLOAD = "JWT_PAYLOAD";
-
 # Represents RFC_1123_DATE_TIME formatter
 const string RFC_1123_DATE_TIME = "RFC_1123_DATE_TIME";
 

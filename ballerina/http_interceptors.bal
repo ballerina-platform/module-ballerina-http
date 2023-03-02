@@ -14,8 +14,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/jwt;
-
 # The HTTP request interceptor service object type
 public type RequestInterceptor distinct service object {
 
@@ -51,21 +49,5 @@ service class DefaultErrorInterceptor {
         // status code and headers (for `ApplicationResponseError` types)
         // For any other custom responses the `err` object can be used with type check
         return alreadyBuiltErrorResponse;
-    }
-}
-
-# The class used by the runtime to invoke the `decodeJwt` method to add jwt values to the request context.
-isolated class JwtDecoder {
-
-    # Gets invoked during object initialization.
-    #
-    isolated function init() {}
-
-    # Decodes a jwt string to `[jwt:Header, jwt:Payload]`.
-    #
-    # + jwt - The jwt value as a string
-    # + return - `[jwt:Header, jwt:Payload]` if successful or else an `error`
-    isolated function decodeJwt(string jwt) returns [jwt:Header, jwt:Payload]|error {
-        return jwt:decode(jwt);
     }
 }

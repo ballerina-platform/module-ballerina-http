@@ -389,10 +389,7 @@ public class HttpConstants {
     public static final String INTERCEPT_RESPONSE = "interceptResponse";
     public static final String INTERCEPT_RESPONSE_ERROR = "interceptResponseError";
     public static final String AUTHORIZATION_HEADER = "authorization";
-    public static final BString JWT_HEADER = StringUtils.fromString("JWT_HEADER");
-    public static final BString JWT_PAYLOAD = StringUtils.fromString("JWT_PAYLOAD");
-    public static final String JWT_DECODER_CLASS_NAME = "JwtDecoder";
-    public static final String JWT_DECODE_METHOD_NAME = "decodeJwt";
+    public static final String AUTHORIZATION_STRING = "authString";
 
     //Service Endpoint
     public static final int SERVICE_ENDPOINT_NAME_INDEX = 0;
