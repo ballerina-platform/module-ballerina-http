@@ -108,11 +108,13 @@ dependencies = [
 	{org = "ballerina", name = "auth"},
 	{org = "ballerina", name = "http"},
 	{org = "ballerina", name = "http_test_common"},
+	{org = "ballerina", name = "io"},
 	{org = "ballerina", name = "jwt"},
 	{org = "ballerina", name = "lang.string"},
 	{org = "ballerina", name = "oauth2"},
 	{org = "ballerina", name = "regex"},
-	{org = "ballerina", name = "test"}
+	{org = "ballerina", name = "test"},
+	{org = "ballerina", name = "url"}
 ]
 modules = [
 	{org = "ballerina", packageName = "http_security_tests", moduleName = "http_security_tests"}
@@ -142,6 +144,9 @@ scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "lang.value"}
+]
+modules = [
+	{org = "ballerina", packageName = "io", moduleName = "io"}
 ]
 
 [[package]]
@@ -279,14 +284,15 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "oauth2"
-version = "2.6.0"
+version = "2.6.1"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "cache"},
 	{org = "ballerina", name = "crypto"},
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "log"},
-	{org = "ballerina", name = "time"}
+	{org = "ballerina", name = "time"},
+	{org = "ballerina", name = "url"}
 ]
 modules = [
 	{org = "ballerina", packageName = "oauth2", moduleName = "oauth2"}
@@ -362,5 +368,8 @@ version = "2.2.3"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
+]
+modules = [
+	{org = "ballerina", packageName = "url", moduleName = "url"}
 ]
 

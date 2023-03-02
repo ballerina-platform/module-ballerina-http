@@ -46,6 +46,7 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpContent;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -215,9 +216,13 @@ public class Http2StateUtil {
         // Construct http request
         HttpRequest httpRequest = pushPromise.getHttpRequest();
         httpRequest.headers().add(HttpConversionUtil.ExtensionHeaderNames.SCHEME.text(), HTTP_SCHEME);
+        if (!httpRequest.headers().contains(HttpHeaderNames.HOST)) {
+            String host = ((InetSocketAddress) inboundRequestMsg.getProperties().get(LOCAL_ADDRESS))
+                    .getAddress().getHostName();
+            httpRequest.headers().add(HttpHeaderNames.HOST, host);
+        }
         // A push promise is a server initiated request, hence it should contain request headers
-        Http2Headers http2Headers =
-                HttpConversionUtil.toHttp2Headers(httpRequest, true);
+        Http2Headers http2Headers = HttpConversionUtil.toHttp2Headers(httpRequest, true);
         // Write the push promise to the wire
         ChannelFuture channelFuture = encoder.writePushPromise(
                 ctx, originalStreamId, promisedStreamId, http2Headers, 0, ctx.newPromise());

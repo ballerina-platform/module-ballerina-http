@@ -93,6 +93,7 @@ import static io.ballerina.stdlib.http.compiler.Constants.OBJECT;
 import static io.ballerina.stdlib.http.compiler.Constants.OPTIONS;
 import static io.ballerina.stdlib.http.compiler.Constants.PARAM;
 import static io.ballerina.stdlib.http.compiler.Constants.PAYLOAD_ANNOTATION_TYPE;
+import static io.ballerina.stdlib.http.compiler.Constants.QUERY_ANNOTATION_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.RELATION;
 import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_CONTEXT_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_OBJ_NAME;
@@ -404,6 +405,18 @@ class HttpResourceValidator {
                         validateHeaderParamType(ctx, param, paramLocation, paramName, typeDescriptor,
                                 typeSymbols, false);
                         annotated = true;
+                        break;
+                    }
+                    case QUERY_ANNOTATION_TYPE: {
+                        if (annotated) {
+                            reportInvalidMultipleAnnotation(ctx, paramLocation, paramName);
+                            continue;
+                        }
+                        annotated = true;
+                        if (isValidQueryParamType(ctx, paramLocation, kind, typeDescriptor, paramName)) {
+                            continue;
+                        }
+                        reportInvalidQueryParameterType(ctx, paramLocation, paramName);
                         break;
                     }
                     default:

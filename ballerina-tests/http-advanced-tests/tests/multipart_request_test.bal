@@ -364,6 +364,30 @@ function testJsonBodyPartAsFileUpload() {
 }
 
 @test:Config {}
+function testJsonBodyPartWithBoundaryQuotes() {
+    mime:Entity bodyPart1 = new;
+    bodyPart1.setJson({"bodyPart": "jsonPart"});
+    mime:Entity[] bodyParts = [bodyPart1];
+
+    //Set the body parts to outbound response.
+    http:Request outRequest = new;
+    string contentType = mime:MULTIPART_MIXED + "; boundary=\"------=_Part_0_814051860.1675096572056\"";
+    outRequest.setBodyParts(bodyParts, contentType);
+    http:Response|error response = multipartReqClient->post("/test/jsonbodypart", outRequest);
+    if response is http:Response {
+        var body = response.getJsonPayload();
+        if (body is json) {
+            test:assertEquals(body.toJsonString(), "{\"" + "bodyPart" + "\":\"" + "jsonPart" + "\"}",
+                    msg = common:errorMessage);
+        } else {
+            test:assertFail(msg = common:errorMessage + body.message());
+        }
+    } else {
+        test:assertFail(msg = common:errorMessage + response.message());
+    }
+}
+
+@test:Config {}
 function testXmlBodyPart() {
     mime:Entity xmlPart = new;
     xmlPart.setXml(xml `<name>Ballerina xml file part</name>`);

@@ -240,6 +240,32 @@ isolated function testClientOAuth2HandlerForPasswordGrant() returns error? {
 }
 
 @test:Config {}
+isolated function testClientOAuth2HandlerForPasswordGrantComplexPassword() returns error? {
+    http:OAuth2PasswordGrantConfig config = {
+        tokenUrl: "https://localhost:" + stsPort.toString() + "/oauth2/token",
+        username: "complexpassuser",
+        password: COMPLEX_PASSWORD,
+        clientId: "3MVG9YDQS5WtC11paU2WcQjBB3L5w4gz52uriT8ksZ3nUVjKvrfQMrU4uvZohTftxStwNEW4cfStBEGRxRL68",
+        clientSecret: "9205371918321623741",
+        scopes: ["token-scope1", "token-scope2"],
+        clientConfig: {
+            secureSocket: {
+               cert: {
+                   path: TRUSTSTORE_PATH,
+                   password: "ballerina"
+               }
+            }
+        }
+    };
+
+    http:Request request = createDummyRequest();
+    http:ClientOAuth2Handler handler = new(config);
+    http:Request result1 = check handler->enrich(request);
+    string header = check result1.getHeader(http:AUTH_HEADER);
+    test:assertEquals(header, "Bearer " + ACCESS_TOKEN_4);
+}
+
+@test:Config {}
 isolated function testClientOAuth2HandlerForRefreshTokenGrant() returns error? {
     http:OAuth2RefreshTokenGrantConfig config = {
         refreshUrl: "https://localhost:" + stsPort.toString() + "/oauth2/token",

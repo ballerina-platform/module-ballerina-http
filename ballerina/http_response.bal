@@ -336,7 +336,7 @@ public class Response {
         } else {
             var bodyParts = result.getBodyParts();
             if bodyParts is mime:Error {
-                string message = "Error occurred while retrieving body parts from the response";
+                string message = "Error occurred while retrieving body parts from the response: " + bodyParts.message();
                 return error GenericClientError(message, bodyParts);
             } else {
                 return bodyParts;

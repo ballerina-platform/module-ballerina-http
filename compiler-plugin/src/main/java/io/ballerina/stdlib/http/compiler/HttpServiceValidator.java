@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.compiler;
 
+import io.ballerina.compiler.api.symbols.IntersectionTypeSymbol;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.ServiceDeclarationSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
@@ -42,6 +43,7 @@ import io.ballerina.tools.diagnostics.DiagnosticFactory;
 import io.ballerina.tools.diagnostics.DiagnosticInfo;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -71,20 +73,13 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
 
     @Override
     public void perform(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext) {
-        List<Diagnostic> diagnostics = syntaxNodeAnalysisContext.semanticModel().diagnostics();
-        boolean erroneousCompilation = diagnostics.stream()
-                .anyMatch(d -> DiagnosticSeverity.ERROR.equals(d.diagnosticInfo().severity()));
-        if (erroneousCompilation) {
+        if (diagnosticContainsErrors(syntaxNodeAnalysisContext)) {
             return;
         }
 
-        ServiceDeclarationNode serviceDeclarationNode = (ServiceDeclarationNode) syntaxNodeAnalysisContext.node();
-        Optional<Symbol> serviceSymOptional = syntaxNodeAnalysisContext.semanticModel().symbol(serviceDeclarationNode);
-        if (serviceSymOptional.isPresent()) {
-            List<TypeSymbol> listenerTypes = ((ServiceDeclarationSymbol) serviceSymOptional.get()).listenerTypes();
-            if (listenerTypes.stream().noneMatch(this::isListenerBelongsToHttpModule)) {
-                return;
-            }
+        ServiceDeclarationNode serviceDeclarationNode = getServiceDeclarationNode(syntaxNodeAnalysisContext);
+        if (serviceDeclarationNode == null) {
+            return;
         }
 
         extractServiceAnnotationAndValidate(syntaxNodeAnalysisContext, serviceDeclarationNode);
@@ -109,6 +104,74 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
         }
 
         validateResourceLinks(syntaxNodeAnalysisContext, linksMetaData);
+    }
+
+    public static boolean diagnosticContainsErrors(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext) {
+        List<Diagnostic> diagnostics = syntaxNodeAnalysisContext.semanticModel().diagnostics();
+        return diagnostics.stream()
+                .anyMatch(d -> DiagnosticSeverity.ERROR.equals(d.diagnosticInfo().severity()));
+    }
+
+    public static ServiceDeclarationNode getServiceDeclarationNode(SyntaxNodeAnalysisContext context) {
+        ServiceDeclarationNode serviceDeclarationNode = (ServiceDeclarationNode) context.node();
+        Optional<Symbol> serviceSymOptional = context.semanticModel().symbol(serviceDeclarationNode);
+        if (serviceSymOptional.isPresent()) {
+            List<TypeSymbol> listenerTypes = ((ServiceDeclarationSymbol) serviceSymOptional.get()).listenerTypes();
+            if (listenerTypes.stream().noneMatch(HttpServiceValidator::isListenerBelongsToHttpModule)) {
+                return null;
+            }
+        }
+        return serviceDeclarationNode;
+    }
+
+    private static boolean isListenerBelongsToHttpModule(TypeSymbol listenerType) {
+        if (listenerType.typeKind() == TypeDescKind.UNION) {
+            return ((UnionTypeSymbol) listenerType).memberTypeDescriptors().stream()
+                    .filter(typeDescriptor -> typeDescriptor instanceof TypeReferenceTypeSymbol)
+                    .map(typeReferenceTypeSymbol -> (TypeReferenceTypeSymbol) typeReferenceTypeSymbol)
+                    .anyMatch(typeReferenceTypeSymbol -> isHttpModule(typeReferenceTypeSymbol.getModule().get()));
+        }
+
+        if (listenerType.typeKind() == TypeDescKind.TYPE_REFERENCE) {
+            return isHttpModule(((TypeReferenceTypeSymbol) listenerType).typeDescriptor().getModule().get());
+        }
+        return false;
+    }
+
+    private static boolean isHttpModule(ModuleSymbol moduleSymbol) {
+        return HTTP.equals(moduleSymbol.getName().get()) && BALLERINA.equals(moduleSymbol.id().orgName());
+    }
+
+    public static TypeSymbol getEffectiveTypeFromReadonlyIntersection(IntersectionTypeSymbol intersectionTypeSymbol) {
+        List<TypeSymbol> effectiveTypes = new ArrayList<>();
+        for (TypeSymbol typeSymbol : intersectionTypeSymbol.memberTypeDescriptors()) {
+            if (typeSymbol.typeKind() == TypeDescKind.READONLY) {
+                continue;
+            }
+            effectiveTypes.add(typeSymbol);
+        }
+        if (effectiveTypes.size() == 1) {
+            return effectiveTypes.get(0);
+        }
+        return null;
+    }
+
+    public static TypeDescKind getReferencedTypeDescKind(TypeSymbol typeSymbol) {
+        TypeDescKind kind = typeSymbol.typeKind();
+        if (kind == TypeDescKind.TYPE_REFERENCE) {
+            TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor();
+            kind = getReferencedTypeDescKind(typeDescriptor);
+        }
+        return kind;
+    }
+
+    public static boolean isAllowedQueryParamBasicType(TypeDescKind kind, TypeSymbol typeSymbol) {
+        if (kind == TypeDescKind.TYPE_REFERENCE) {
+            TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor();
+            kind =  getReferencedTypeDescKind(typeDescriptor);
+        }
+        return kind == TypeDescKind.STRING || kind == TypeDescKind.INT || kind == TypeDescKind.FLOAT ||
+                kind == TypeDescKind.DECIMAL || kind == TypeDescKind.BOOLEAN;
     }
 
     private void validateResourceLinks(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext,
@@ -204,24 +267,6 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
                 }
             }
         }
-    }
-
-    private boolean isListenerBelongsToHttpModule(TypeSymbol listenerType) {
-        if (listenerType.typeKind() == TypeDescKind.UNION) {
-            return ((UnionTypeSymbol) listenerType).memberTypeDescriptors().stream()
-                    .filter(typeDescriptor -> typeDescriptor instanceof TypeReferenceTypeSymbol)
-                    .map(typeReferenceTypeSymbol -> (TypeReferenceTypeSymbol) typeReferenceTypeSymbol)
-                    .anyMatch(typeReferenceTypeSymbol -> isHttpModule(typeReferenceTypeSymbol.getModule().get()));
-        }
-
-        if (listenerType.typeKind() == TypeDescKind.TYPE_REFERENCE) {
-            return isHttpModule(((TypeReferenceTypeSymbol) listenerType).typeDescriptor().getModule().get());
-        }
-        return false;
-    }
-
-    private boolean isHttpModule(ModuleSymbol moduleSymbol) {
-        return HTTP.equals(moduleSymbol.getName().get()) && BALLERINA.equals(moduleSymbol.id().orgName());
     }
 
     private void reportInvalidFunctionType(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode node) {
