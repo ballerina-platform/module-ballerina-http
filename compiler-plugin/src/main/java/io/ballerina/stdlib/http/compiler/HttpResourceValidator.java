@@ -413,10 +413,7 @@ class HttpResourceValidator {
                             continue;
                         }
                         annotated = true;
-                        if (isValidQueryParamType(ctx, paramLocation, kind, typeDescriptor, paramName)) {
-                            continue;
-                        }
-                        reportInvalidQueryParameterType(ctx, paramLocation, paramName);
+                        validateQueryParamType(ctx, paramLocation, paramName, typeDescriptor, typeSymbols);
                         break;
                     }
                     default:
