@@ -31,16 +31,16 @@ public class Constants {
     public static final String ANYDATA = "anydata";
     public static final String JSON = "json";
     public static final String ERROR = "error";
-    public static final String STRING = "string?";
-    public static final String STRING_ARRAY = "string[]?";
-    public static final String INT = "int?";
-    public static final String INT_ARRAY = "int[]?";
-    public static final String FLOAT = "float?";
-    public static final String FLOAT_ARRAY = "float[]?";
-    public static final String DECIMAL = "decimal?";
-    public static final String DECIMAL_ARRAY = "decimal[]?";
-    public static final String BOOLEAN = "boolean?";
-    public static final String BOOLEAN_ARRAY = "boolean[]?";
+    public static final String STRING = "string";
+    public static final String STRING_ARRAY = "string[]";
+    public static final String INT = "int";
+    public static final String INT_ARRAY = "int[]";
+    public static final String FLOAT = "float";
+    public static final String FLOAT_ARRAY = "float[]";
+    public static final String DECIMAL = "decimal";
+    public static final String DECIMAL_ARRAY = "decimal[]";
+    public static final String BOOLEAN = "boolean";
+    public static final String BOOLEAN_ARRAY = "boolean[]";
     public static final String NIL = "nil";
     public static final String RESOURCE_RETURN_TYPE = "ResourceReturnType";
     public static final String INTERCEPTOR_RESOURCE_RETURN_TYPE = "InterceptorResourceReturnType";
@@ -66,7 +66,6 @@ public class Constants {
     public static final String RESPONSE_INTERCEPTOR = "ResponseInterceptor";
     public static final String REQUEST_ERROR_INTERCEPTOR = "RequestErrorInterceptor";
     public static final String RESPONSE_ERROR_INTERCEPTOR = "ResponseErrorInterceptor";
-    public static final String SERVICE = "Service";
     public static final String HTTP_SERVICE = "http:Service";
     public static final String HTTP_REQUEST_INTERCEPTOR = "http:RequestInterceptor";
     public static final String HTTP_REQUEST_ERROR_INTERCEPTOR = "http:RequestErrorInterceptor";
@@ -86,7 +85,6 @@ public class Constants {
     public static final String RELATION = "relation";
     public static final String PARAM = "$param$";
     public static final String SELF = "self";
-    public static final String MEDIA_TYPE_FIELD = "mediaType";
 
     public static final String EMPTY = "";
     public static final String COLON = ":";
