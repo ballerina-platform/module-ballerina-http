@@ -9,8 +9,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Fixed
 
-- [Fixed server push not working with nghttp2 HTTP/2 client](https://github.com/ballerina-platform/ballerina-standard-library/issues/3077)
+- [Fix server push not working with nghttp2 HTTP/2 client](https://github.com/ballerina-platform/ballerina-standard-library/issues/3077)
 - [Fix the issue - Errors occur at the SSL Connection creation are hidden](https://github.com/ballerina-platform/ballerina-standard-library/issues/3862)
+- [Fix integrate JWT information into `http:RequestContext`](https://github.com/ballerina-platform/ballerina-standard-library/issues/3408)
 
 ### Added
 - [Make @http:Payload annotation optional for post, put and patch](https://github.com/ballerina-platform/ballerina-standard-library/issues/3276)

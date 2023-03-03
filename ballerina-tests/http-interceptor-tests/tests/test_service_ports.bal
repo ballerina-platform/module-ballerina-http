@@ -23,6 +23,7 @@ const int interceptorPassthroughTestPort = 9632;
 const int interceptorBackendTestPort = 9633;
 const int interceptorUserAgentTestPort = 9634;
 const int getRequestInterceptorBasePathTestPort = 9588;
+const int jwtInformationInReqCtxtTestPort = 9527;
 
 const int requestInterceptorCallerRespondErrorTestPort = 9623;
 const int requestInterceptorCtxNextTestPort = 9612;
