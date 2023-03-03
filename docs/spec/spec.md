@@ -2153,8 +2153,6 @@ public isolated class RequestContext {
     #
     # + return - The next service object in the pipeline. An error is returned, if the call fails
     public isolated function next() returns NextService|error? = external;
-
-    isolated function getAuthString() returns string|error? = @java:Method {}
 }
 ```
 

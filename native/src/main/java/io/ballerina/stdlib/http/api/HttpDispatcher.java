@@ -51,10 +51,12 @@ import java.util.Objects;
 
 import static io.ballerina.runtime.api.TypeTags.ARRAY_TAG;
 import static io.ballerina.stdlib.http.api.HttpConstants.AUTHORIZATION_HEADER;
+import static io.ballerina.stdlib.http.api.HttpConstants.BEARER_AUTHORIZATION_HEADER;
 import static io.ballerina.stdlib.http.api.HttpConstants.DEFAULT_HOST;
 import static io.ballerina.stdlib.http.api.HttpConstants.EXTRA_PATH_INDEX;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_SCHEME;
 import static io.ballerina.stdlib.http.api.HttpConstants.SCHEME_SEPARATOR;
+import static io.ballerina.stdlib.http.api.HttpConstants.WHITESPACE;
 import static io.ballerina.stdlib.http.api.HttpUtil.getParameterTypes;
 import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castParam;
 import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castParamArray;
@@ -416,9 +418,9 @@ public class HttpDispatcher {
     static BObject createRequestContext(HttpCarbonMessage httpCarbonMessage) {
         BObject requestContext = ValueCreatorUtils.createRequestContextObject();
         String authHeader = httpCarbonMessage.getHeader(AUTHORIZATION_HEADER);
-        if (Objects.nonNull(authHeader) && authHeader.contains("Bearer ")) {
+        if (Objects.nonNull(authHeader) && authHeader.contains(BEARER_AUTHORIZATION_HEADER)) {
             requestContext.addNativeData(HttpConstants.AUTHORIZATION_STRING,
-                    StringUtils.fromString(authHeader.split(" ")[1]));
+                    StringUtils.fromString(authHeader.split(WHITESPACE)[1]));
         }
         BArray interceptors = httpCarbonMessage.getProperty(HttpConstants.INTERCEPTORS) instanceof BArray ?
                               (BArray) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTORS) : null;
