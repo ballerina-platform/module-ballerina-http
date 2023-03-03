@@ -503,7 +503,7 @@ function testJwtInformationDecodeErrorInRequestContext() returns error? {
     string response = check jwtClient->get("/requestInterceptorJwtInformation", {"authorization": "Bearer abcd"});
     test:assertEquals(response, "Hello client");
     if reqCtxJwtDecodeError is http:ListenerAuthError {
-        test:assertEquals((<http:ListenerAuthError>reqCtxJwtDecodeError).message(), "An error occured while decoding jwt string.");
+        test:assertEquals((<http:ListenerAuthError>reqCtxJwtDecodeError).message(), "an error occured while decoding jwt string.");
         error? cause = (<http:ListenerAuthError>reqCtxJwtDecodeError).cause();
         if cause is error {
             test:assertEquals(cause.message(), "Invalid JWT.");
