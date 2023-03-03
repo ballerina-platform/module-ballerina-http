@@ -109,8 +109,8 @@ public isolated class RequestContext {
     #
     # + return - `[jwt:Header, jwt:Payload]` if decoding the header is successful, `error` if any error occurs
     #             while decoding, or `nil` if no jwt header found.
-    public function getJWTInfo() returns [jwt:Header, jwt:Payload]|error? {
-        string? authString = check self.getAuthString();
+    public function getJWTInfo() returns [jwt:Header, jwt:Payload]|Error? {
+        string? authString = self.getAuthString();
         if authString is string {
             [jwt:Header, jwt:Payload]|jwt:Error result = jwt:decode(<string> authString);
             if result is jwt:Error {
@@ -128,7 +128,7 @@ public isolated class RequestContext {
         'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternRequestContext"
     } external;
 
-    isolated function getAuthString() returns string|error? = @java:Method {
+    isolated function getAuthString() returns string? = @java:Method {
         'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternRequestContext"
     } external;
 }
