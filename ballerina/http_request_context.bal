@@ -114,7 +114,7 @@ public isolated class RequestContext {
         if authString is string {
             [jwt:Header, jwt:Payload]|jwt:Error result = jwt:decode(<string> authString);
             if result is jwt:Error {
-                return error ListenerAuthError("An error occured while decoding jwt string.", result);
+                return error ListenerAuthError("an error occured while decoding jwt string.", result);
             }
             return result;
         }
