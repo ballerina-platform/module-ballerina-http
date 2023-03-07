@@ -1,5 +1,5 @@
 fixes:
-  - "ballerina/http/*/::../ballerina/"
+  - "ballerina/http/**/::../ballerina/"
 
 ignore:
   - "ballerina-tests"
