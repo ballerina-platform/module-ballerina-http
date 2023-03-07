@@ -41,6 +41,7 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -55,6 +56,10 @@ import static io.ballerina.stdlib.http.api.HttpConstants.BEARER_AUTHORIZATION_HE
 import static io.ballerina.stdlib.http.api.HttpConstants.DEFAULT_HOST;
 import static io.ballerina.stdlib.http.api.HttpConstants.EXTRA_PATH_INDEX;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_SCHEME;
+import static io.ballerina.stdlib.http.api.HttpConstants.PERCENTAGE;
+import static io.ballerina.stdlib.http.api.HttpConstants.PERCENTAGE_ENCODED;
+import static io.ballerina.stdlib.http.api.HttpConstants.PLUS_SIGN;
+import static io.ballerina.stdlib.http.api.HttpConstants.PLUS_SIGN_ENCODED;
 import static io.ballerina.stdlib.http.api.HttpConstants.SCHEME_SEPARATOR;
 import static io.ballerina.stdlib.http.api.HttpConstants.WHITESPACE;
 import static io.ballerina.stdlib.http.api.HttpUtil.getParameterTypes;
@@ -451,15 +456,11 @@ public class HttpDispatcher {
         int actualSignatureParamIndex = 0;
         for (String paramName : pathParamTokens) {
             String argumentValue = resourceArgumentValues.getMap().get(paramName).get(actualSignatureParamIndex);
-            try {
-                if (argumentValue.endsWith("%")) {
-                    argumentValue = argumentValue.replaceAll("%", "%25");
-                }
-                argumentValue = URLDecoder.decode(argumentValue.replaceAll("\\+", "%2B"), "UTF-8");
-            } catch (UnsupportedEncodingException e) {
-                // we can simply ignore and send the value to application and let the
-                // application deal with the value.
+            if (argumentValue.endsWith(PERCENTAGE)) {
+                argumentValue = argumentValue.replaceAll(PERCENTAGE, PERCENTAGE_ENCODED);
             }
+            argumentValue = URLDecoder.decode(argumentValue.replaceAll(PLUS_SIGN, PLUS_SIGN_ENCODED),
+                    StandardCharsets.UTF_8);
             int paramIndex = actualSignatureParamIndex * 2;
             Type pathParamType = parameterTypes[actualSignatureParamIndex++];
 
