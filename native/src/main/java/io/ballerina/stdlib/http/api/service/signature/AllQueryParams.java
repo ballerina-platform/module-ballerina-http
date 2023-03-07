@@ -54,7 +54,6 @@ import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castPara
 public class AllQueryParams implements Parameter {
 
     private final List<QueryParam> allQueryParams = new ArrayList<>();
-    private static final MapType MAP_TYPE = TypeCreator.createMapType(PredefinedTypes.TYPE_JSON);
 
     @Override
     public String getTypeName() {
@@ -120,7 +119,7 @@ public class AllQueryParams implements Parameter {
                     paramFeed[index++] = paramArray;
                 } else if (paramType.getTag() == MAP_TAG) {
                     Object json = JsonUtils.parse(queryValueArr.getBString(0).getValue());
-                    BMap<BString, ?> paramMap =  JsonUtils.convertJSONToMap(json, MAP_TYPE);
+                    BMap<BString, ?> paramMap =  JsonUtils.convertJSONToMap(json, (MapType) paramType);
                     if (queryParam.isReadonly()) {
                         paramMap.freezeDirect();
                     }
