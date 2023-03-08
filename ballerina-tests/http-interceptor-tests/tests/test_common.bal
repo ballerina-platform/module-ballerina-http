@@ -500,18 +500,6 @@ service class ResponseInterceptorReturnsError {
        ctx.set("last-interceptor", "response-interceptor-error");
        return error("Response interceptor returns an error");
     }
-}service class RequestInterceptorJwtInformation {
-    *http:RequestInterceptor;
-
-    resource function 'default [string... path](http:RequestContext ctx, http:Request req) returns http:NextService|error? {
-        [jwt:Header, jwt:Payload]|error? result = ctx.getJWTInfo();
-        if result is [jwt:Header, jwt:Payload] {
-            reqCtxJwtValues = result;
-        } else {
-            reqCtxJwtDecodeError = result;
-        }
-        return ctx.next();
-    }
 }
 
 service class ResponseInterceptorSkip {
