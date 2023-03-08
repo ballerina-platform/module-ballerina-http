@@ -1,0 +1,4 @@
+[package]
+org = "ldclakmal"
+name = "ballerina_sts"
+version = "1.0.0"
