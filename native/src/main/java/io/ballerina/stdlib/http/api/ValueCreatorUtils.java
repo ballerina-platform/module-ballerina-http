@@ -109,19 +109,19 @@ public class ValueCreatorUtils {
      * @param fieldValues values to be used for fields when creating the object value instance.
      * @return value of the object.
      */
-    private static BObject createObjectValue(Module module, String objectTypeName,
-                                             Object... fieldValues) {
+    private static BObject createObjectValue(Module module, String objectTypeName, Object... fieldValues) {
 
-        Object[] fields = new Object[fieldValues.length * 2];
+        if (fieldValues.length > 0) {
+            Object[] fields = new Object[fieldValues.length * 2];
 
-        // Adding boolean values for each arg
-        for (int i = 0, j = 0; i < fieldValues.length; i++) {
-            fields[j++] = fieldValues[i];
-            fields[j++] = true;
+            // Adding boolean values for each arg
+            for (int i = 0, j = 0; i < fieldValues.length; i++) {
+                fields[j++] = fieldValues[i];
+                fields[j++] = true;
+            }
+            return ValueCreator.createObjectValue(module, objectTypeName, fields);
         }
-
-        // passing scheduler, strand and properties as null for the moment, but better to expose them via this method
-        return ValueCreator.createObjectValue(module, objectTypeName, null, null, null, fields);
+        return ValueCreator.createObjectValue(module, objectTypeName);
     }
 
     private ValueCreatorUtils() {}
