@@ -45,6 +45,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static io.ballerina.stdlib.http.compiler.Constants.ANYDATA;
+import static io.ballerina.stdlib.http.compiler.Constants.ARRAY_OF_MAP_OF_JSON;
 import static io.ballerina.stdlib.http.compiler.Constants.BALLERINA;
 import static io.ballerina.stdlib.http.compiler.Constants.BOOLEAN;
 import static io.ballerina.stdlib.http.compiler.Constants.BOOLEAN_ARRAY;
@@ -61,6 +62,7 @@ import static io.ballerina.stdlib.http.compiler.Constants.INT;
 import static io.ballerina.stdlib.http.compiler.Constants.INTERCEPTOR_RESOURCE_RETURN_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.INT_ARRAY;
 import static io.ballerina.stdlib.http.compiler.Constants.JSON;
+import static io.ballerina.stdlib.http.compiler.Constants.MAP_OF_JSON;
 import static io.ballerina.stdlib.http.compiler.Constants.NIL;
 import static io.ballerina.stdlib.http.compiler.Constants.OBJECT;
 import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_CONTEXT_OBJ_NAME;
@@ -233,5 +235,8 @@ public class HttpCompilerPluginUtil {
         typeSymbols.put(FLOAT_ARRAY, types.builder().ARRAY_TYPE.withType(types.FLOAT).build());
         typeSymbols.put(DECIMAL_ARRAY, types.builder().ARRAY_TYPE.withType(types.DECIMAL).build());
         typeSymbols.put(OBJECT, types.builder().OBJECT_TYPE.build());
+        typeSymbols.put(MAP_OF_JSON, types.builder().MAP_TYPE.withTypeParam(types.JSON).build());
+        typeSymbols.put(ARRAY_OF_MAP_OF_JSON, types.builder().ARRAY_TYPE.withType(
+                types.builder().MAP_TYPE.withTypeParam(types.JSON).build()).build());
     }
 }

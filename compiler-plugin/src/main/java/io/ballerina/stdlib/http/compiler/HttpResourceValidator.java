@@ -19,11 +19,9 @@
 package io.ballerina.stdlib.http.compiler;
 
 import io.ballerina.compiler.api.symbols.AnnotationSymbol;
-import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
 import io.ballerina.compiler.api.symbols.FunctionSymbol;
 import io.ballerina.compiler.api.symbols.FunctionTypeSymbol;
 import io.ballerina.compiler.api.symbols.IntersectionTypeSymbol;
-import io.ballerina.compiler.api.symbols.MapTypeSymbol;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
@@ -66,6 +64,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static io.ballerina.stdlib.http.compiler.Constants.ANYDATA;
+import static io.ballerina.stdlib.http.compiler.Constants.ARRAY_OF_MAP_OF_JSON;
 import static io.ballerina.stdlib.http.compiler.Constants.BOOLEAN;
 import static io.ballerina.stdlib.http.compiler.Constants.BOOLEAN_ARRAY;
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_ANNOTATION_NAME;
@@ -84,8 +83,8 @@ import static io.ballerina.stdlib.http.compiler.Constants.HEADER_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
 import static io.ballerina.stdlib.http.compiler.Constants.INT;
 import static io.ballerina.stdlib.http.compiler.Constants.INT_ARRAY;
-import static io.ballerina.stdlib.http.compiler.Constants.JSON;
 import static io.ballerina.stdlib.http.compiler.Constants.LINKED_TO;
+import static io.ballerina.stdlib.http.compiler.Constants.MAP_OF_JSON;
 import static io.ballerina.stdlib.http.compiler.Constants.METHOD;
 import static io.ballerina.stdlib.http.compiler.Constants.NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.NIL;
@@ -470,25 +469,11 @@ class HttpResourceValidator {
     }
 
     private static boolean isMapOfJsonType(TypeSymbol typeSymbol, Map<String, TypeSymbol> typeSymbols) {
-        if (typeSymbol.typeKind() == TypeDescKind.MAP) {
-            TypeSymbol mapElementType = ((MapTypeSymbol) typeSymbol).typeParam();
-            return subtypeOf(typeSymbols, mapElementType, JSON);
-        } else if (typeSymbol.typeKind() == TypeDescKind.TYPE_REFERENCE) {
-            TypeSymbol effectiveType = getEffectiveTypeFromTypeReference(typeSymbol);
-            return isMapOfJsonType(effectiveType, typeSymbols);
-        }
-        return false;
+        return subtypeOf(typeSymbols, typeSymbol, MAP_OF_JSON);
     }
 
     private static boolean isArrayOfMapOfJsonType(TypeSymbol typeSymbol, Map<String, TypeSymbol> typeSymbols) {
-        if (typeSymbol.typeKind() == TypeDescKind.ARRAY) {
-            TypeSymbol arrayMemberType = ((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor();
-            return isMapOfJsonType(arrayMemberType, typeSymbols);
-        } else if (typeSymbol.typeKind() == TypeDescKind.TYPE_REFERENCE) {
-            TypeSymbol effectiveType = getEffectiveTypeFromTypeReference(typeSymbol);
-            return isArrayOfMapOfJsonType(effectiveType, typeSymbols);
-        }
-        return false;
+        return subtypeOf(typeSymbols, typeSymbol, ARRAY_OF_MAP_OF_JSON);
     }
 
     private static boolean isValidBasicQueryParameterType(TypeSymbol typeSymbol, Map<String, TypeSymbol> typeSymbols) {
