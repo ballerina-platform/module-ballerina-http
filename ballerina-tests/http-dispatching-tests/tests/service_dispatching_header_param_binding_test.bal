@@ -495,7 +495,7 @@ function testHeaderRecordParamWithCastingError() returns error? {
         "x-rate-limit-types": ["weweq", "fefw"]
     });
     test:assertEquals(response.statusCode, 400);
-    common:assertTextPayload(response.getTextPayload(), "header binding failed for parameter: 'x-rate-limit-remaining");
+    common:assertTextPayload(response.getTextPayload(), "header binding failed for parameter: 'x-rate-limit-remaining'");
 }
 
 @test:Config {}
