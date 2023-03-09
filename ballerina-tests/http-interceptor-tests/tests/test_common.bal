@@ -74,7 +74,7 @@ service class ByteArrayPayloadBindingRequestInterceptor {
     *http:RequestInterceptor;
 
     resource function 'default [string... path](http:RequestContext ctx, @http:Payload byte[] person) returns http:NextService|error? {
-       ctx.set("request-payload", check strings:fromBytes(person));
+       ctx.set("request-payload", strings:fromBytes(person));
        return ctx.next();
     }
 }

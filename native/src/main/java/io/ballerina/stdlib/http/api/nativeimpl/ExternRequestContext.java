@@ -39,13 +39,7 @@ public class ExternRequestContext {
         BMap members = requestCtx.getMapValue(HttpConstants.REQUEST_CTX_MEMBERS);
         try {
             Object value = members.getOrThrow(key);
-            Object convertedType = EnsureType.ensureType(value, targetType);
-            if (convertedType instanceof BError) {
-                return HttpUtil.createHttpError("type conversion failed for value of key: " + key.getValue(),
-                                                HttpErrorType.GENERIC_LISTENER_ERROR,
-                                                (BError) convertedType);
-            }
-            return convertedType;
+            return EnsureType.ensureType(value, targetType);
         } catch (Exception exp) {
             return HttpUtil.createHttpError("no member found for key: " + key.getValue(),
                                             HttpErrorType.GENERIC_LISTENER_ERROR,

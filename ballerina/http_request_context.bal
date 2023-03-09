@@ -15,14 +15,11 @@
 // under the License.
 
 import ballerina/jballerina.java;
+import ballerina/lang.value;
 import ballerina/jwt;
 
-// This is same as the `value:Cloneable`, except that it does not include `error` type.
-# Represents a non-error type that can be cloned.
-public type Cloneable (any & readonly)|xml|Cloneable[]|map<Cloneable>|table<map<Cloneable>>;
-
 # Request context member type.
-public type ReqCtxMember Cloneable|isolated object {};
+public type ReqCtxMember value:Cloneable|isolated object {};
 
 # Request context member type descriptor.
 public type ReqCtxMemberType typedesc<ReqCtxMember>;
@@ -36,14 +33,14 @@ public isolated class RequestContext {
     # + key - Represents the member key
     # + value - Represents the member value
     public isolated function set(string key, ReqCtxMember value) {
-        if value is Cloneable {
+        if value is value:Cloneable {
             lock {
                 self.members[key] = value.clone();
             }
         } else {
             lock {
                 self.members[key] = value;
-            }
+            }   
         }
     }
 
@@ -53,9 +50,9 @@ public isolated class RequestContext {
     # + return - Member value
     public isolated function get(string key) returns ReqCtxMember {
         lock {
-            Cloneable|isolated object {} value = self.members.get(key);
+            value:Cloneable|isolated object {} value = self.members.get(key);
 
-            if value is Cloneable {
+            if value is value:Cloneable {
                 return value.clone();
             } else {
                 return value;
@@ -98,7 +95,7 @@ public isolated class RequestContext {
     # + key - Represents the member key
     public isolated function remove(string key) {
         lock {
-            ReqCtxMember|error err = trap self.members.remove(key);
+            ReqCtxMember err = trap self.members.remove(key);
             if err is error {
                 panic err;
             }
