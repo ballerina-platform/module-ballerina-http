@@ -287,3 +287,12 @@ ballerinaTest.finalizedBy stopLdapServer
 ballerinaTest.dependsOn startLdapServer
 test.dependsOn ballerinaTest
 build.dependsOn test
+
+task cleanDependencies {
+    delete "${project.projectDir}/${testCommonPackage}/Dependencies.toml"
+
+    testPackages.each { testPackage ->
+        delete "${project.projectDir}/${testPackage}/Dependencies.toml"
+    }
+}
+
