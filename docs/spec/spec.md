@@ -2103,10 +2103,17 @@ public isolated class RequestContext {
     # + return - Attribute value or an error if the attribute value is not of the expected type
     public isolated function getWithType(string key, ReqCtxAttributeType targetType = <>) returns targetType|ListenerError = external;
 
-    # Removes an attribute from the request context object. It panics if there is no such member.
+
+    # Removes a member from the request context object. It panics if there is no such member.
     #
     # + key - Represents the attribute key
     public isolated function remove(string key) {}
+    
+    # Provides the JWT information from the request.
+    #
+    # + return - `[jwt:Header, jwt:Payload]` if decoding the header is successful, `error` if any error occurs
+    #             while decoding, or `nil` if no jwt header found.
+    public function getJWTInfo() returns [jwt:Header, jwt:Payload]|error? {}
 
     # Calls the next service in the interceptor pipeline.
     #
