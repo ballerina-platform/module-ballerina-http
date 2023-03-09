@@ -488,6 +488,17 @@ function testHeaderRecordParam() returns error? {
 }
 
 @test:Config {}
+function testHeaderRecordParamWithCastingError() returns error? {
+    http:Response response = check headerBindingClient->get("/headerRecord/rateLimitHeaders", {
+        "x-rate-limit-id": "dwqfec",
+        "x-rate-limit-remaining": "23xyz",
+        "x-rate-limit-types": ["weweq", "fefw"]
+    });
+    test:assertEquals(response.statusCode, 400);
+    common:assertTextPayload(response.getTextPayload(), "header binding failed for parameter: 'x-rate-limit-remaining");
+}
+
+@test:Config {}
 function testHeaderRecordParamWithPost() returns error? {
     http:Request req = new;
     req.setHeader("x-rate-limit-id", "dwqfec");
