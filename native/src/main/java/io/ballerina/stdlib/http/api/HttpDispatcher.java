@@ -454,9 +454,9 @@ public class HttpDispatcher {
 
             try {
                 if (pathParamType.getTag() == ARRAY_TAG) {
-                    int elementTypeTag = ((ArrayType) pathParamType).getElementType().getTag();
+                    Type elementType = ((ArrayType) pathParamType).getElementType();
                     String[] segments = argumentValue.substring(1).split(HttpConstants.SINGLE_SLASH);
-                    paramFeed[paramIndex++] = castParamArray(elementTypeTag, segments);
+                    paramFeed[paramIndex++] = castParamArray(elementType, segments);
                 } else {
                     paramFeed[paramIndex++] = castParam(pathParamType.getTag(), argumentValue);
                 }

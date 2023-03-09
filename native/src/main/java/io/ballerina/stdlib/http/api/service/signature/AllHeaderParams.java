@@ -112,8 +112,8 @@ public class AllHeaderParams implements Parameter {
             int typeTag = headerParam.getType().getTag();
             try {
                 if (typeTag == ARRAY_TAG) {
-                    int elementTypeTag = ((ArrayType) headerParam.getType()).getElementType().getTag();
-                    BArray bArray = castParamArray(elementTypeTag, headerValues.toArray(new String[0]));
+                    Type elementType = ((ArrayType) headerParam.getType()).getElementType();
+                    BArray bArray = castParamArray(elementType, headerValues.toArray(new String[0]));
                     if (headerParam.isReadonly()) {
                         bArray.freezeDirect();
                     }
@@ -167,8 +167,8 @@ public class AllHeaderParams implements Parameter {
                 }
             }
             if (fieldType.getTag() == ARRAY_TAG) {
-                int elementTypeTag = ((ArrayType) fieldType).getElementType().getTag();
-                BArray paramArray = castParamArray(elementTypeTag, headerValues.toArray(new String[0]));
+                Type elementType = ((ArrayType) fieldType).getElementType();
+                BArray paramArray = castParamArray(elementType, headerValues.toArray(new String[0]));
                 if (field.isReadonly()) {
                     paramArray.freezeDirect();
                 }

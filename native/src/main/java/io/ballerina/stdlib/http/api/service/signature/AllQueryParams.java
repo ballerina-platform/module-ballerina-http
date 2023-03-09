@@ -23,6 +23,7 @@ import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.FiniteType;
 import io.ballerina.runtime.api.types.MapType;
+import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.utils.JsonUtils;
@@ -41,6 +42,7 @@ import java.util.List;
 
 import static io.ballerina.runtime.api.TypeTags.ARRAY_TAG;
 import static io.ballerina.runtime.api.TypeTags.MAP_TAG;
+import static io.ballerina.runtime.api.TypeTags.RECORD_TYPE_TAG;
 import static io.ballerina.runtime.api.TypeTags.UNION_TAG;
 import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castParam;
 
@@ -100,7 +102,6 @@ public class AllQueryParams implements Parameter {
                 Type paramType = queryParam.getType();
                 if (paramType.getTag() == ARRAY_TAG) {
                     Type elementType = ((ArrayType) paramType).getElementType();
-                    int elementTypeTag = TypeUtils.getReferredType(elementType).getTag();
                     BArray paramArray;
                     if (isEnumQueryParamType(elementType)) {
                         paramArray = ValueCreator.createArrayValue((ArrayType) paramType);
@@ -109,7 +110,8 @@ public class AllQueryParams implements Parameter {
                                     token));
                         }
                     } else {
-                        paramArray = ParamUtils.castParamArray(elementTypeTag, queryValueArr.getStringArray());
+                        paramArray = ParamUtils.castParamArray(TypeUtils.getReferredType(elementType),
+                                queryValueArr.getStringArray());
                     }
                     if (queryParam.isReadonly()) {
                         paramArray.freezeDirect();
@@ -122,6 +124,10 @@ public class AllQueryParams implements Parameter {
                         paramMap.freezeDirect();
                     }
                     paramFeed[index++] = paramMap;
+                } else if (paramType.getTag() == RECORD_TYPE_TAG) {
+                    Object json = JsonUtils.parse(queryValueArr.getBString(0).getValue());
+                    BMap<BString, ?> paramRecord = JsonUtils.convertJSONToRecord(json, (RecordType) paramType);
+                    paramFeed[index++] = paramRecord;
                 } else if (isEnumQueryParamType(paramType)) {
                     Object param = castEnumQueryParam((UnionType) paramType, queryValueArr.getBString(0), token);
                     paramFeed[index++] = param;

@@ -23,6 +23,8 @@ import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.MapType;
+import io.ballerina.runtime.api.types.RecordType;
+import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
@@ -33,6 +35,7 @@ import static io.ballerina.runtime.api.TypeTags.DECIMAL_TAG;
 import static io.ballerina.runtime.api.TypeTags.FLOAT_TAG;
 import static io.ballerina.runtime.api.TypeTags.INT_TAG;
 import static io.ballerina.runtime.api.TypeTags.MAP_TAG;
+import static io.ballerina.runtime.api.TypeTags.RECORD_TYPE_TAG;
 
 /**
  * {@code HttpDispatcher} is responsible for dispatching incoming http requests to the correct resource.
@@ -66,26 +69,25 @@ public class ParamUtils {
         }
     }
 
-    public static BArray castParamArray(int targetElementTypeTag, String[] argValueArr) {
+    public static BArray castParamArray(Type elementType, String[] argValueArr) {
+        int targetElementTypeTag = elementType.getTag();
         switch (targetElementTypeTag) {
             case INT_TAG:
-                return getBArray(argValueArr, INT_ARR, targetElementTypeTag);
             case FLOAT_TAG:
-                return getBArray(argValueArr, FLOAT_ARR, targetElementTypeTag);
             case BOOLEAN_TAG:
-                return getBArray(argValueArr, BOOLEAN_ARR, targetElementTypeTag);
             case DECIMAL_TAG:
-                return getBArray(argValueArr, DECIMAL_ARR, targetElementTypeTag);
             case MAP_TAG:
-                return getBArray(argValueArr, MAP_ARR, targetElementTypeTag);
+            case RECORD_TYPE_TAG:
+                return getBArray(argValueArr, TypeCreator.createArrayType(elementType), elementType);
             default:
                 return StringUtils.fromStringArray(argValueArr);
         }
     }
 
-    private static BArray getBArray(String[] valueArray, ArrayType arrayType, int elementTypeTag) {
+    private static BArray getBArray(String[] valueArray, ArrayType arrayType, Type elementType) {
         BArray arrayValue = ValueCreator.createArrayValue(arrayType);
         int index = 0;
+        int elementTypeTag = elementType.getTag();
         for (String element : valueArray) {
             switch (elementTypeTag) {
                 case INT_TAG:
@@ -101,8 +103,12 @@ public class ParamUtils {
                     arrayValue.add(index++, ValueCreator.createDecimalValue(element));
                     break;
                 case MAP_TAG:
-                    Object json = JsonUtils.parse(element);
-                    arrayValue.add(index++, JsonUtils.convertJSONToMap(json, MAP_TYPE));
+                    Object map = JsonUtils.parse(element);
+                    arrayValue.add(index++, JsonUtils.convertJSONToMap(map, (MapType) elementType));
+                    break;
+                case RECORD_TYPE_TAG:
+                    Object record = JsonUtils.parse(element);
+                    arrayValue.add(index++, JsonUtils.convertJSONToRecord(record, (RecordType) elementType));
                     break;
                 default:
                     throw new BallerinaConnectorException("Illegal state error: unexpected param type");
