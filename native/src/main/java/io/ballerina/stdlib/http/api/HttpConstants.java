@@ -388,6 +388,9 @@ public class HttpConstants {
     public static final String TARGET_SERVICE = "TARGET_SERVICE";
     public static final String INTERCEPT_RESPONSE = "interceptResponse";
     public static final String INTERCEPT_RESPONSE_ERROR = "interceptResponseError";
+    public static final String AUTHORIZATION_HEADER = "authorization";
+    public static final String AUTHORIZATION_STRING = "authString";
+    public static final String BEARER_AUTHORIZATION_HEADER = "Bearer ";
 
     //Service Endpoint
     public static final int SERVICE_ENDPOINT_NAME_INDEX = 0;
@@ -562,6 +565,7 @@ public class HttpConstants {
     public static final String EMPTY = "";
     public static final String QUOTATION_MARK = "\"";
     public static final String DOUBLE_SLASH = "//";
+    public static final String WHITESPACE = " ";
     public static final String REGEX = "(?<!(http:|https:))//";
     public static final String SCHEME_SEPARATOR = "://";
     public static final String HTTP_SCHEME = "http";
