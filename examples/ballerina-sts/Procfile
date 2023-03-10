@@ -1,0 +1,1 @@
+web: java -jar target/bin/ballerina_sts.jar -CSERVER_PORT=$PORT

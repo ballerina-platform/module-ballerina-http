@@ -15,8 +15,12 @@
 // under the License.
 
 import ballerina/http;
+import ballerina/jwt;
 import ballerina/test;
 import ballerina/http_test_common as common;
+
+[jwt:Header, jwt:Payload] reqCtxJwtValues = [];
+error? reqCtxJwtDecodeError = ();
 
 final http:Client interceptorsBasicTestsClientEP1 = check new("http://localhost:" + interceptorBasicTestsPort1.toString(), httpVersion = http:HTTP_1_1);
 
@@ -444,4 +448,82 @@ function testGetRequestInterceptorBasePath() returns error? {
     common:assertHeaderValue(check res.getHeader("last-interceptor"), "default-request-interceptor");
     common:assertHeaderValue(check res.getHeader("default-request-interceptor"), "true");
     common:assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
+}
+
+@http:ServiceConfig {
+    interceptors : [new RequestInterceptorJwtInformation()]
+}
+service /requestInterceptorJwtInformation on new http:Listener(jwtInformationInReqCtxtTestPort, secureSocket = {
+        key: {
+            certFile: common:CERT_FILE,
+            keyFile: common:KEY_FILE
+        }
+    }) {
+    resource function 'default .(http:Caller caller, http:Request req) returns error? {
+        check caller->respond("Hello client");
+    }
+}
+
+@test:Config{}
+function testJwtInformationInRequestContext() returns error? {
+    http:Client jwtClient = check new("https://localhost:" + jwtInformationInReqCtxtTestPort.toString(),
+    secureSocket = {
+        cert: common:CERT_FILE
+    },
+    auth = {
+        username: "ballerina",
+        issuer: "wso2",
+        audience: ["ballerina", "ballerina.org", "ballerina.io"],
+        keyId: "5a0b754-895f-4279-8843-b745e11a57e9",
+        jwtId: "JlbmMiOiJBMTI4Q0JDLUhTMjU2In",
+        customClaims: { "scp": "admin" },
+        expTime: 3600,
+        signatureConfig: {
+            config: {
+                keyFile: common:KEY_FILE
+            }
+        }
+    });
+    string response = check jwtClient->get("/requestInterceptorJwtInformation");
+    test:assertEquals(response, "Hello client");
+    test:assertEquals(reqCtxJwtValues[0], {"alg":"RS256","typ":"JWT","kid":"5a0b754-895f-4279-8843-b745e11a57e9"});
+    test:assertEquals(reqCtxJwtValues[1].iss, "wso2");
+    test:assertEquals(reqCtxJwtValues[1].sub, "ballerina");
+    test:assertEquals(reqCtxJwtValues[1].aud, ["ballerina","ballerina.org","ballerina.io"]);
+    test:assertEquals(reqCtxJwtValues[1].jti, "JlbmMiOiJBMTI4Q0JDLUhTMjU2In");
+    test:assertEquals(reqCtxJwtValues[1]["scp"], "admin");
+}
+
+@test:Config{}
+function testJwtInformationDecodeErrorInRequestContext() returns error? {
+    http:Client jwtClient = check new("https://localhost:" + jwtInformationInReqCtxtTestPort.toString(),
+        secureSocket = {
+            cert: common:CERT_FILE
+        });
+    string response = check jwtClient->get("/requestInterceptorJwtInformation", {"authorization": "Bearer abcd"});
+    test:assertEquals(response, "Hello client");
+    if reqCtxJwtDecodeError is http:ListenerAuthError {
+        test:assertEquals((<http:ListenerAuthError>reqCtxJwtDecodeError).message(), "an error occured while decoding jwt string.");
+        error? cause = (<http:ListenerAuthError>reqCtxJwtDecodeError).cause();
+        if cause is error {
+            test:assertEquals(cause.message(), "Invalid JWT.");
+        } else {
+            test:assertFail("Expected a ListenerAuthError");
+        }
+    } else {
+        test:assertFail("Expected a ListenerAuthError");
+    }
+}
+
+@test:Config{
+    dependsOn: [testJwtInformationDecodeErrorInRequestContext]
+}
+function testNilJwtInformationValueInRequestContext() returns error? {
+    http:Client jwtClient = check new("https://localhost:" + jwtInformationInReqCtxtTestPort.toString(),
+        secureSocket = {
+            cert: common:CERT_FILE
+        });
+    string response = check jwtClient->get("/requestInterceptorJwtInformation");
+    test:assertEquals(response, "Hello client");
+    test:assertTrue(reqCtxJwtDecodeError is ());
 }

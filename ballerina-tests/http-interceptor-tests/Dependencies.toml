@@ -104,6 +104,7 @@ version = "2.7.0"
 dependencies = [
 	{org = "ballerina", name = "http"},
 	{org = "ballerina", name = "http_test_common"},
+	{org = "ballerina", name = "jwt"},
 	{org = "ballerina", name = "lang.runtime"},
 	{org = "ballerina", name = "lang.string"},
 	{org = "ballerina", name = "test"}
@@ -158,6 +159,9 @@ dependencies = [
 	{org = "ballerina", name = "log"},
 	{org = "ballerina", name = "regex"},
 	{org = "ballerina", name = "time"}
+]
+modules = [
+	{org = "ballerina", packageName = "jwt", moduleName = "jwt"}
 ]
 
 [[package]]
