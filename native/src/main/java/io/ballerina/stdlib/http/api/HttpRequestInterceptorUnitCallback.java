@@ -28,6 +28,8 @@ import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
+import static io.ballerina.stdlib.http.api.HttpErrorType.INTERCEPTOR_RETURN_ERROR;
+
 /**
  * {@code HttpRequestInterceptorUnitCallback} is the responsible for acting on notifications received from Ballerina
  * side when a request interceptor service is invoked.
@@ -156,9 +158,8 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
                 if (result.equals(interceptor)) {
                     sendRequestToNextService();
                 } else {
-                    BError err = HttpUtil.createHttpError("next interceptor service did not match with the " +
-                                                          "configuration", HttpErrorType.INTERCEPTOR_RETURN_ERROR);
-                    requestMessage.setHttpStatusCode(500);
+                    String message = "next interceptor service did not match with the configuration";
+                    BError err = HttpUtil.createHttpStatusCodeError(INTERCEPTOR_RETURN_ERROR, message);
                     invokeErrorInterceptors(err, true);
                 }
             } else {
@@ -166,9 +167,8 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
                 if (result.equals(targetService)) {
                     sendRequestToNextService();
                 } else {
-                    BError err = HttpUtil.createHttpError("target service did not match with the configuration",
-                                                          HttpErrorType.INTERCEPTOR_RETURN_ERROR);
-                    requestMessage.setHttpStatusCode(500);
+                    String message = "target service did not match with the configuration";
+                    BError err = HttpUtil.createHttpStatusCodeError(INTERCEPTOR_RETURN_ERROR, message);
                     invokeErrorInterceptors(err, true);
                 }
             }

@@ -43,8 +43,8 @@ public class StringToByteArrayConverter {
             byte[] values = dataSource.getValue().getBytes(StandardCharsets.UTF_8);
             return readonly ? createReadonlyArrayValue(values) : createArrayValue(values);
         }
-        throw HttpUtil.createHttpError("incompatible array element type found: '" + elementType.toString() + "'",
-                                       HttpErrorType.PAYLOAD_BINDING_LISTENER_ERROR);
+        String message = "incompatible array element type found: '" + elementType.toString() + "'";
+        throw HttpUtil.createHttpStatusCodeError(HttpErrorType.PAYLOAD_BINDING_LISTENER_ERROR, message);
     }
 
     private StringToByteArrayConverter() {

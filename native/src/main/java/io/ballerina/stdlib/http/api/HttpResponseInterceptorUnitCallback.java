@@ -139,9 +139,8 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
                 if (result.equals(interceptor)) {
                     sendResponseToNextService();
                 } else {
-                    BError err = HttpUtil.createHttpError("next interceptor service did not match with the " +
-                                                          "configuration", HttpErrorType.INTERCEPTOR_RETURN_ERROR);
-                    requestMessage.setHttpStatusCode(500);
+                    String message = "next interceptor service did not match with the configuration";
+                    BError err = HttpUtil.createHttpStatusCodeError(HttpErrorType.INTERCEPTOR_RETURN_ERROR, message);
                     invokeErrorInterceptors(err, true);
                 }
             }

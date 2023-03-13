@@ -156,12 +156,9 @@ public class HttpCallableUnitCallback implements Callback {
     @Override
     public void notifyFailure(BError error) { // handles panic and check_panic
         cleanupRequestMessage();
-        // This check is added to update the status code with respect to the auth errors.
-        if (error.getType().getName().equals(HttpErrorType.INTERNAL_LISTENER_AUTHN_ERROR.getErrorName())) {
-            requestMessage.setHttpStatusCode(401);
-        } else if (error.getType().getName().equals(HttpErrorType.INTERNAL_LISTENER_AUTHZ_ERROR.getErrorName())) {
-            requestMessage.setHttpStatusCode(403);
-        } else {
+        // Skipping the panics from internal authentication/authorization.
+        if (!error.getType().getName().equals(HttpErrorType.LISTENER_AUTHN_ERROR.getErrorName())
+                && !error.getType().getName().equals(HttpErrorType.LISTENER_AUTHZ_ERROR.getErrorName())) {
             requestMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_PANIC_ERROR, true);
         }
         if (alreadyResponded(error)) {
