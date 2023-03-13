@@ -27,6 +27,9 @@ import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
 
+import static io.ballerina.stdlib.http.api.HttpErrorType.RESOURCE_DISPATCHING_SERVER_ERROR;
+import static io.ballerina.stdlib.http.api.HttpErrorType.RESOURCE_NOT_FOUND_ERROR;
+
 /**
  * Resource level dispatchers handler for HTTP protocol.
  */
@@ -52,15 +55,14 @@ public class ResourceDispatcher {
                 if (method.equals(HttpConstants.HTTP_METHOD_OPTIONS)) {
                     handleOptionsRequest(inboundRequest, service);
                 } else {
-                    inboundRequest.setHttpStatusCode(404);
-                    throw HttpUtil.createHttpError("no matching resource found for path : " +
-                                                   inboundRequest.getProperty(HttpConstants.TO) + " , method : " +
-                                                   method, HttpErrorType.RESOURCE_DISPATCHING_ERROR);
+                    String message = "no matching resource found for path : " +
+                            inboundRequest.getProperty(HttpConstants.TO) + " , method : " + method;
+                    throw HttpUtil.createHttpStatusCodeError(RESOURCE_NOT_FOUND_ERROR, message);
                 }
                 return null;
             }
         } catch (URITemplateException e) {
-            throw HttpUtil.createHttpError(e.getMessage(), HttpErrorType.RESOURCE_DISPATCHING_ERROR);
+            throw HttpUtil.createHttpStatusCodeError(RESOURCE_DISPATCHING_SERVER_ERROR, e.getMessage());
         }
     }
 
@@ -84,9 +86,9 @@ public class ResourceDispatcher {
             response.setHeader(HttpHeaderNames.ALLOW.toString(),
                                DispatcherUtil.concatValues(service.getAllAllowedMethods(), false));
         } else {
-            cMsg.setHttpStatusCode(404);
-            throw HttpUtil.createHttpError("no matching resource found for path : " + cMsg.getProperty(HttpConstants.TO)
-                                           + " , method : " + "OPTIONS", HttpErrorType.RESOURCE_DISPATCHING_ERROR);
+            String message = "no matching resource found for path : " + cMsg.getProperty(HttpConstants.TO)
+                    + " , method : OPTIONS";
+            throw HttpUtil.createHttpStatusCodeError(RESOURCE_NOT_FOUND_ERROR, message);
         }
         CorsHeaderGenerator.process(cMsg, response, false);
         String introspectionResourcePathHeaderValue = service.getIntrospectionResourcePathHeaderValue();

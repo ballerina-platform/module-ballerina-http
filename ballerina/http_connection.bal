@@ -204,6 +204,9 @@ public isolated client class Caller {
             response.statusCode = statusCode is () ? STATUS_INTERNAL_SERVER_ERROR : statusCode;
             response.setTextPayload(errorResponse.message());
         }
+        if errorResponse is StatusCodeError {
+            response = createStatusCodeResponse(getResponseFromStatusCodeError(errorResponse), returnMediaType);
+        }
         return nativeRespondError(self, response, errorResponse);
     }
 }
