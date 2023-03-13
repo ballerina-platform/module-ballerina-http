@@ -70,10 +70,15 @@ public enum HttpErrorType {
     PATH_PARAM_BINDING_ERROR("PathParameterBindingError"),
     INTERCEPTOR_RETURN_ERROR("InterceptorReturnError"),
     REQ_DISPATCHING_ERROR("RequestDispatchingError"),
-    SERVICE_DISPATCHING_ERROR("ServiceDispatchingError"),
-    RESOURCE_DISPATCHING_ERROR("ResourceDispatchingError"),
-    INTERNAL_LISTENER_AUTHZ_ERROR("InternalListenerAuthzError"),
-    INTERNAL_LISTENER_AUTHN_ERROR("InternalListenerAuthnError");
+    RESOURCE_NOT_FOUND_ERROR("ResourceNotFoundError"),
+    RESOURCE_METHOD_NOT_ALLOWED_ERROR("ResourceMethodNotAllowedError"),
+    UNSUPPORTED_REQUEST_MEDIA_TYPE_ERROR("UnsupportedRequestMediaTypeError"),
+    REQUEST_NOT_ACCEPTABLE_ERROR("RequestNotAcceptableError"),
+    SERVICE_NOT_FOUND_ERROR("ServiceNotFoundError"),
+    BAD_MATRIX_PARAMS_ERROR("BadMatrixParamError"),
+    RESOURCE_DISPATCHING_SERVER_ERROR("ResourceDispatchingServerError"),
+    LISTENER_AUTHZ_ERROR("ListenerAuthzError"),
+    LISTENER_AUTHN_ERROR("ListenerAuthnError");
 
     private final String errorName;
 
