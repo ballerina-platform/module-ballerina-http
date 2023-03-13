@@ -161,15 +161,21 @@ public class AllHeaderParams implements Parameter {
                     throw HttpUtil.createHttpStatusCodeError(HEADER_BINDING_ERROR, message);
                 }
             }
-            if (fieldType.getTag() == ARRAY_TAG) {
-                int elementTypeTag = ((ArrayType) fieldType).getElementType().getTag();
-                BArray paramArray = castParamArray(elementTypeTag, headerValues.toArray(new String[0]));
-                if (field.isReadonly()) {
-                    paramArray.freezeDirect();
+            try {
+                if (fieldType.getTag() == ARRAY_TAG) {
+                    int elementTypeTag = ((ArrayType) fieldType).getElementType().getTag();
+                    BArray paramArray = castParamArray(elementTypeTag, headerValues.toArray(new String[0]));
+                    if (field.isReadonly()) {
+                        paramArray.freezeDirect();
+                    }
+                    recordValue.put(StringUtils.fromString(key), paramArray);
+                } else {
+                    recordValue.put(StringUtils.fromString(key), castParam(fieldType.getTag(), headerValues.get(0)));
                 }
-                recordValue.put(StringUtils.fromString(key), paramArray);
-            } else {
-                recordValue.put(StringUtils.fromString(key), castParam(fieldType.getTag(), headerValues.get(0)));
+            } catch (Exception ex) {
+                httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
+                throw HttpUtil.createHttpError("header binding failed for parameter: '" + key + "'",
+                        HttpErrorType.HEADER_BINDING_ERROR, HttpUtil.createError(ex));
             }
         }
         if (headerParam.isReadonly()) {

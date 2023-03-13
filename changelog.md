@@ -9,20 +9,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Fixed
 
-- [Fixed server push not working with nghttp2 HTTP/2 client](https://github.com/ballerina-platform/ballerina-standard-library/issues/3077)
+- [Fix server push not working with nghttp2 HTTP/2 client](https://github.com/ballerina-platform/ballerina-standard-library/issues/3077)
 - [Fix the issue - Errors occur at the SSL Connection creation are hidden](https://github.com/ballerina-platform/ballerina-standard-library/issues/3862)
-
-## [2.6.0] - 2023-02-20
-
-### Added
-
-- [Introduce `getWithType()` method on request context objects](https://github.com/ballerina-platform/ballerina-standard-library/issues/3090)
-- [Introduce `hasKey()` and `keys()` methods on request context objects](https://github.com/ballerina-platform/ballerina-standard-library/issues/4070)
+- [Fix integrate JWT information into `http:RequestContext`](https://github.com/ballerina-platform/ballerina-standard-library/issues/3408)
+- [Fix header binding failed with 500 for header record param](https://github.com/ballerina-platform/ballerina-standard-library/issues/4168)
 
 ### Added
 - [Make @http:Payload annotation optional for post, put and patch](https://github.com/ballerina-platform/ballerina-standard-library/issues/3276)
 
-## [2.6.0] 
+## [2.6.0] - 2023-02-20
 
 ### Fixed
 
@@ -35,6 +30,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - [Add http/1.1 as the ALPN extension when communicating over HTTP/1.1](https://github.com/ballerina-platform/ballerina-standard-library/issues/3766)
 - [Added support for `enum` query params](https://github.com/ballerina-platform/ballerina-standard-library/issues/3924)
+- [Introduce `getWithType()` method on request context objects](https://github.com/ballerina-platform/ballerina-standard-library/issues/3090)
+- [Introduce `hasKey()` and `keys()` methods on request context objects](https://github.com/ballerina-platform/ballerina-standard-library/issues/4070)
 
 ## [2.5.2] - 2022-12-22
 
