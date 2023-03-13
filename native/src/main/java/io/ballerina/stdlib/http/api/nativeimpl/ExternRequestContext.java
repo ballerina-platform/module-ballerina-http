@@ -28,9 +28,9 @@ import io.ballerina.stdlib.http.api.HttpErrorType;
 import io.ballerina.stdlib.http.api.HttpUtil;
 import org.ballerinalang.langlib.value.EnsureType;
 
-import static io.ballerina.stdlib.http.api.HttpErrorType.INTERCEPTOR_RETURN_ERROR;
-
 import java.util.Objects;
+
+import static io.ballerina.stdlib.http.api.HttpErrorType.INTERCEPTOR_RETURN_ERROR;
 
 /**
  * Utilities related to HTTP request context.
