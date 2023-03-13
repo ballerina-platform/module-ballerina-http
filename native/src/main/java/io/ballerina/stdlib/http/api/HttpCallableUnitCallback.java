@@ -110,13 +110,11 @@ public class HttpCallableUnitCallback implements Callback {
     }
 
     private void returnErrorResponse(BError error) {
-        Object[] paramFeed = new Object[6];
+        Object[] paramFeed = new Object[4];
         paramFeed[0] = error;
         paramFeed[1] = true;
         paramFeed[2] = returnMediaType != null ? StringUtils.fromString(returnMediaType) : null;
         paramFeed[3] = true;
-        paramFeed[4] = requestMessage.getHttpStatusCode();
-        paramFeed[5] = true;
 
         invokeBalMethod(paramFeed, "returnErrorResponse");
     }

@@ -191,7 +191,7 @@ public isolated client class Caller {
         return nativeRespond(self, response);
     }
 
-    private isolated function returnErrorResponse(error errorResponse, string? returnMediaType = (), int? statusCode = ()) returns ListenerError? {
+    private isolated function returnErrorResponse(error errorResponse, string? returnMediaType = ()) returns ListenerError? {
         Response response = new;
         if errorResponse is ApplicationResponseError {
             InternalServerError err = {
@@ -200,13 +200,12 @@ public isolated client class Caller {
             };
             response = createStatusCodeResponse(err, returnMediaType);
             response.statusCode = errorResponse.detail().statusCode;
-        } else {
-            response.statusCode = statusCode is () ? STATUS_INTERNAL_SERVER_ERROR : statusCode;
-            response.setTextPayload(errorResponse.message());
-        }
-        if errorResponse is StatusCodeError {
+        } else if errorResponse is StatusCodeError {
             response = createStatusCodeResponse(getResponseFromStatusCodeError(errorResponse), returnMediaType);
-        }
+        } else {
+            response.statusCode = STATUS_INTERNAL_SERVER_ERROR;
+            response.setTextPayload(errorResponse.message());
+        } 
         return nativeRespondError(self, response, errorResponse);
     }
 }
