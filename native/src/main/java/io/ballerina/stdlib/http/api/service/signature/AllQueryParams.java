@@ -22,20 +22,21 @@ import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.FiniteType;
-import io.ballerina.runtime.api.types.MapType;
-import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BArray;
+import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
+import io.ballerina.runtime.api.values.BRefValue;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.api.HttpErrorType;
 import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
+import org.ballerinalang.langlib.value.FromJsonWithType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -99,7 +100,7 @@ public class AllQueryParams implements Parameter {
 
             try {
                 BArray queryValueArr = (BArray) queryValue;
-                Type paramType = queryParam.getType();
+                Type paramType = TypeUtils.getReferredType(queryParam.getType());
                 if (paramType.getTag() == ARRAY_TAG) {
                     Type elementType = ((ArrayType) paramType).getElementType();
                     BArray paramArray;
@@ -117,17 +118,16 @@ public class AllQueryParams implements Parameter {
                         paramArray.freezeDirect();
                     }
                     paramFeed[index++] = paramArray;
-                } else if (paramType.getTag() == MAP_TAG) {
+                } else if (paramType.getTag() == MAP_TAG || paramType.getTag() == RECORD_TYPE_TAG) {
                     Object json = JsonUtils.parse(queryValueArr.getBString(0).getValue());
-                    BMap<BString, ?> paramMap =  JsonUtils.convertJSONToMap(json, (MapType) paramType);
-                    if (queryParam.isReadonly()) {
-                        paramMap.freezeDirect();
+                    Object param =  FromJsonWithType.convert(json, paramType);
+                    if (param instanceof BError) {
+                        throw (BError) param;
                     }
-                    paramFeed[index++] = paramMap;
-                } else if (paramType.getTag() == RECORD_TYPE_TAG) {
-                    Object json = JsonUtils.parse(queryValueArr.getBString(0).getValue());
-                    BMap<BString, ?> paramRecord = JsonUtils.convertJSONToRecord(json, (RecordType) paramType);
-                    paramFeed[index++] = paramRecord;
+                    if (queryParam.isReadonly() && param instanceof BRefValue) {
+                        ((BRefValue) param).freezeDirect();
+                    }
+                    paramFeed[index++] = param;
                 } else if (isEnumQueryParamType(paramType)) {
                     Object param = castEnumQueryParam((UnionType) paramType, queryValueArr.getBString(0), token);
                     paramFeed[index++] = param;
