@@ -23,12 +23,12 @@ import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.MapType;
-import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.stdlib.http.api.BallerinaConnectorException;
+import org.ballerinalang.langlib.value.FromJsonWithType;
 
 import static io.ballerina.runtime.api.TypeTags.BOOLEAN_TAG;
 import static io.ballerina.runtime.api.TypeTags.DECIMAL_TAG;
@@ -45,11 +45,6 @@ import static io.ballerina.runtime.api.TypeTags.RECORD_TYPE_TAG;
 public class ParamUtils {
 
     private static final MapType MAP_TYPE = TypeCreator.createMapType(PredefinedTypes.TYPE_JSON);
-    private static final ArrayType INT_ARR = TypeCreator.createArrayType(PredefinedTypes.TYPE_INT);
-    private static final ArrayType FLOAT_ARR = TypeCreator.createArrayType(PredefinedTypes.TYPE_FLOAT);
-    private static final ArrayType BOOLEAN_ARR = TypeCreator.createArrayType(PredefinedTypes.TYPE_BOOLEAN);
-    private static final ArrayType DECIMAL_ARR = TypeCreator.createArrayType(PredefinedTypes.TYPE_DECIMAL);
-    private static final ArrayType MAP_ARR = TypeCreator.createArrayType(MAP_TYPE);
 
     public static Object castParam(int targetParamTypeTag, String argValue) {
         switch (targetParamTypeTag) {
@@ -63,7 +58,7 @@ public class ParamUtils {
                 return ValueCreator.createDecimalValue(argValue);
             case MAP_TAG:
                 Object json = JsonUtils.parse(argValue);
-                return JsonUtils.convertJSONToMap(json, MAP_TYPE);
+                return FromJsonWithType.convert(json, MAP_TYPE);
             default:
                 return StringUtils.fromString(argValue);
         }
@@ -103,12 +98,9 @@ public class ParamUtils {
                     arrayValue.add(index++, ValueCreator.createDecimalValue(element));
                     break;
                 case MAP_TAG:
-                    Object map = JsonUtils.parse(element);
-                    arrayValue.add(index++, JsonUtils.convertJSONToMap(map, (MapType) elementType));
-                    break;
                 case RECORD_TYPE_TAG:
                     Object record = JsonUtils.parse(element);
-                    arrayValue.add(index++, JsonUtils.convertJSONToRecord(record, (RecordType) elementType));
+                    arrayValue.add(index++, FromJsonWithType.convert(record, elementType));
                     break;
                 default:
                     throw new BallerinaConnectorException("Illegal state error: unexpected param type");
