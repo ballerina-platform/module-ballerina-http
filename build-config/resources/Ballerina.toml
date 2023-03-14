@@ -167,3 +167,9 @@ groupId = "org.springframework"
 artifactId = "spring-web"
 version = "@urlencoder.version@"
 path = "./lib/spring-web-@urlencoder.version@.jar"
+
+[[platform.java11.dependency]]
+groupId = "org.springframework"
+artifactId = "spring-core"
+version = "@springcore.version@"
+path = "./lib/spring-core-@springcore.version@.jar"
