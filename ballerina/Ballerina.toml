@@ -165,11 +165,11 @@ path = "./lib/protobuf-java-3.20.3.jar"
 [[platform.java11.dependency]]
 groupId = "org.springframework"
 artifactId = "spring-web"
-version = "5.3.12"
-path = "./lib/spring-web-5.3.12.jar"
+version = "5.3.25"
+path = "./lib/spring-web-5.3.25.jar"
 
 [[platform.java11.dependency]]
 groupId = "org.springframework"
 artifactId = "spring-core"
-version = "5.3.12"
-path = "./lib/spring-core-5.3.12.jar"
+version = "5.3.25"
+path = "./lib/spring-core-5.3.25.jar"
