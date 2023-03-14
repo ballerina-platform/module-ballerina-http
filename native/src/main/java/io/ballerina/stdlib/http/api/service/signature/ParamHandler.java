@@ -164,7 +164,7 @@ public class ParamHandler {
                     }
                     break;
                 default:
-                    String paramName = resource.getParamNames()[index];
+                    String paramName = HttpUtil.unescapeAndEncodeValue(resource.getParamNames()[index]);
                     HeaderParam headerParam;
                     if (payloadParam != null && paramName.equals(payloadParam.getToken())) {
                         payloadParam.init(parameterType, customParameterTypes[index], index);
