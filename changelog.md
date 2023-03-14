@@ -5,7 +5,7 @@ This file contains all the notable changes done to the Ballerina HTTP package th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to 
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [Unreleased]
 
 ### Fixed
 
@@ -13,9 +13,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Fix the issue - Errors occur at the SSL Connection creation are hidden](https://github.com/ballerina-platform/ballerina-standard-library/issues/3862)
 - [Fix integrate JWT information into `http:RequestContext`](https://github.com/ballerina-platform/ballerina-standard-library/issues/3408)
 - [Fix header binding failed with 500 for header record param](https://github.com/ballerina-platform/ballerina-standard-library/issues/4168)
+- [TypeReference kind return types gives compile time error in resource functions](https://github.com/ballerina-platform/ballerina-standard-library/issues/4043)
+- [HTTP compiler plugin validation for return-types not working properly for record types](https://github.com/ballerina-platform/ballerina-standard-library/issues/3651)
+- [HTTP compiler does not report error for returning record with object](https://github.com/ballerina-platform/ballerina-standard-library/issues/4045)
 
 ### Added
 - [Make @http:Payload annotation optional for post, put and patch](https://github.com/ballerina-platform/ballerina-standard-library/issues/3276)
+- [Support for allowing tuple type in the resource return type](https://github.com/ballerina-platform/ballerina-standard-library/issues/3091)
+- [Rewrite compiler plugin to resolve inconsistencies](https://github.com/ballerina-platform/ballerina-standard-library/issues/4152)
 
 ## [2.6.0] - 2023-02-20
 
