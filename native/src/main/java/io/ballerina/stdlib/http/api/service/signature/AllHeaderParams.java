@@ -173,9 +173,9 @@ public class AllHeaderParams implements Parameter {
                     recordValue.put(StringUtils.fromString(key), castParam(fieldType.getTag(), headerValues.get(0)));
                 }
             } catch (Exception ex) {
-                httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
-                throw HttpUtil.createHttpError("header binding failed for parameter: '" + key + "'",
-                        HttpErrorType.HEADER_BINDING_ERROR, HttpUtil.createError(ex));
+                String message = "header binding failed for parameter: '" + key + "'";
+                throw HttpUtil.createHttpStatusCodeError(HEADER_BINDING_ERROR, message, null,
+                        HttpUtil.createError(ex));
             }
         }
         if (headerParam.isReadonly()) {
