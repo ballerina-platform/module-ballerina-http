@@ -171,5 +171,5 @@ path = "./lib/spring-web-5.3.12.jar"
 [[platform.java11.dependency]]
 groupId = "org.springframework"
 artifactId = "spring-core"
-version = "2.5.6"
-path = "./lib/spring-core-2.5.6.jar"
+version = "5.3.12"
+path = "./lib/spring-core-5.3.12.jar"
