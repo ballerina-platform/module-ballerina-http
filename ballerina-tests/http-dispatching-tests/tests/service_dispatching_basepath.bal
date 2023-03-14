@@ -41,7 +41,7 @@ service http:Service /myservice/'andversion/a\/b/id on basePathTestEP {
 
 @test:Config {}
 public function testBasePathSpecialChars() {
-    http:Response|error resp = basePathTestClient->get("/my/Tes%40tHello/go/foo");
+    http:Response|error resp = basePathTestClient->get("/my/Tes@tHello/go/foo");
     if resp is http:Response {
         common:assertTextPayload(resp.getTextPayload(), "special dispatched");
     } else {
@@ -51,7 +51,7 @@ public function testBasePathSpecialChars() {
 
 @test:Config {}
 public function testBasePathAsString() {
-    http:Response|error resp = basePathTestClient->get("/Tes%40tHello/go/foo");
+    http:Response|error resp = basePathTestClient->get("/Tes@tHello/go/foo");
     if resp is http:Response {
         common:assertTextPayload(resp.getTextPayload(), "string dispatched");
     } else {
@@ -61,7 +61,7 @@ public function testBasePathAsString() {
 
 @test:Config {}
 public function testMGWVersionBasePath() {
-    http:Response|error resp = basePathTestClient->get("/myservice/andversion/a%2Fb/id");
+    http:Response|error resp = basePathTestClient->get("/myservice/'andversion/a%5C/b/id");
     if resp is http:Response {
         common:assertTextPayload(resp.getTextPayload(), "service/version/1/1/id");
     } else {

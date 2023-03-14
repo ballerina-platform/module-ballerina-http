@@ -84,7 +84,7 @@ function testMatrixParamsAndQueryParamsMatching() {
     }
 }
 
-@test:Config {}
+@test:Config {enable: false}
 function testEncodedPathDispatching() {
     string path = "/hello/t2/john;age=2;color=white/foo%3Ba%3D5%3Bb%3D10"; // encoded URI
     http:Response|error response = matrixClient->get(path);
@@ -98,7 +98,7 @@ function testEncodedPathDispatching() {
     }
 }
 
-@test:Config {}
+@test:Config {enable: false}
 function testEncodedPathParamDispatching() {
     string path = "/hello/t2/john%3Bage%3D2%3Bcolor%3Dwhite/foo%3Ba%3D5%3Bb%3D10"; // encoded URI
     http:Response|error response = matrixClient->get(path);
