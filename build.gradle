@@ -47,6 +47,7 @@ ext.nettyVersion = project.nettyVersion
 ext.nettyTcnativeVersion = project.nettyTcnativeVersion
 ext.wso2CommonsPoolVersion = project.wso2CommonsPoolVersion
 ext.bouncycastleVersion = project.bouncycastleVersion
+ext.urlEncoderVersion = project.urlEncoderVersion
 ext.mimepullVersion = project.mimepullVersion
 ext.testngVersion = project.testngVersion
 

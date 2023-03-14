@@ -116,6 +116,9 @@ dependencies {
     externalJars(group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: "${bouncycastleVersion}") {
         transitive = false
     }
+    externalJars(group: 'org.springframework', name: 'spring-web', version: "${urlEncoderVersion}") {
+        transitive = false
+    }
     externalJars(group: 'io.netty', name: 'netty-tcnative-boringssl-static', version: "${nettyTcnativeVersion}") {
         transitive = false
     }
@@ -161,6 +164,7 @@ task updateTomlFiles {
         def stdlibDependentLz4Version = project.lz4Version
         def stdlibDependentMarshallingVersion = project.marshallingVersion
         def stdlibDependentProtobufVersion = project.protobufVersion
+        def stdlibDependentUrlEncoderVersion = project.urlEncoderVersion
 
         def newBallerinaToml = ballerinaTomlFilePlaceHolder.text.replace("@project.version@", project.version)
         newBallerinaToml = newBallerinaToml.replace("@toml.version@", tomlVersion)
@@ -177,6 +181,7 @@ task updateTomlFiles {
         newBallerinaToml = newBallerinaToml.replace("@lz4.version@", stdlibDependentLz4Version)
         newBallerinaToml = newBallerinaToml.replace("@marshalling.version@", stdlibDependentMarshallingVersion)
         newBallerinaToml = newBallerinaToml.replace("@protobuf.version@", stdlibDependentProtobufVersion)
+        newBallerinaToml = newBallerinaToml.replace("@urlencoder.version@", stdlibDependentUrlEncoderVersion)
         ballerinaTomlFile.text = newBallerinaToml
 
         def newCompilerPluginToml = compilerPluginTomlFilePlaceHolder.text.replace("@project.version@", project.version)

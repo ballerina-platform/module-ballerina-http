@@ -97,11 +97,10 @@ import io.netty.handler.codec.http.HttpVersion;
 import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.util.UriUtils;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -1851,11 +1850,13 @@ public class HttpUtil {
     }
 
     public static String encodeString(String value) {
-        try {
-            return URLEncoder.encode(value, StandardCharsets.UTF_8.name()).replaceAll("\\+", "%20");
-        } catch (UnsupportedEncodingException e) {
-            throw new BallerinaConnectorException("Error while encoding value: " + value, e);
-        }
+//        try {
+            return UriUtils.encodePath(value, StandardCharsets.UTF_8.name()).replaceAll("\\+", "%20");
+//            return URLEncoder.encode(value, StandardCharsets.UTF_8.name()).replaceAll("\\+", "%20");
+//        }
+//        catch (UnsupportedEncodingException e) {
+//            throw new BallerinaConnectorException("Error while encoding value: " + value, e);
+//        }
     }
 
     public static String getInterceptorServiceType(BObject interceptorService) {

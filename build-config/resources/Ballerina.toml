@@ -161,3 +161,9 @@ groupId = "com.google.protobufl"
 artifactId = "protobuf-java"
 version = "@protobuf.version@"
 path = "./lib/protobuf-java-@protobuf.version@.jar"
+
+[[platform.java11.dependency]]
+groupId = "org.springframework"
+artifactId = "spring-web"
+version = "@urlencoder.version@"
+path = "./lib/spring-web-@urlencoder.version@.jar"
