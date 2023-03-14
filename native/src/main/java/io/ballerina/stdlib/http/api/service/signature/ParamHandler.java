@@ -28,6 +28,7 @@ import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.types.ResourceMethodType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.UnionType;
+import io.ballerina.runtime.api.utils.IdentifierUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BArray;
@@ -163,7 +164,7 @@ public class ParamHandler {
                     }
                     break;
                 default:
-                    String paramName = resource.getParamNames()[index];
+                    String paramName = HttpUtil.unescapeAndEncodeValue(resource.getParamNames()[index]);
                     HeaderParam headerParam;
                     if (payloadParam != null && paramName.equals(payloadParam.getToken())) {
                         payloadParam.init(parameterType, customParameterTypes[index], index);
@@ -185,7 +186,9 @@ public class ParamHandler {
 
     private void populatePayloadAndHeaderParamTokens(ResourceMethodType balResource, boolean constraintValidation) {
         for (String paramName : balResource.getParamNames()) {
-            BMap annotations = (BMap) balResource.getAnnotation(StringUtils.fromString(PARAM_ANNOT_PREFIX + paramName));
+            paramName = HttpUtil.unescapeAndEncodeValue(paramName);
+            BMap annotations = (BMap) balResource.getAnnotation(
+                    StringUtils.fromString(PARAM_ANNOT_PREFIX + IdentifierUtils.escapeSpecialCharacters(paramName)));
             if (annotations == null) {
                 continue;
             }
