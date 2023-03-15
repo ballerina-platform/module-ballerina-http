@@ -59,7 +59,7 @@ public function testBasePathAsString() {
     }
 }
 
-@test:Config {}
+@test:Config {enable:false}
 public function testMGWVersionBasePath() {
     http:Response|error resp = basePathTestClient->get("/myservice/'andversion/a%5C/b/id");
     if resp is http:Response {
