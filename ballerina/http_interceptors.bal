@@ -44,33 +44,7 @@ public type Interceptor RequestInterceptor|ResponseInterceptor|RequestErrorInter
 service class DefaultErrorInterceptor {
     *ResponseErrorInterceptor;
 
-    remote function interceptResponseError(error err) returns StatusCodeResponse|Response {
-        if err is StatusCodeError {
-            return getResponseFromStatusCodeError(err);
-        } else if err is ApplicationResponseError {
-            InternalServerError errorResponse = {
-                headers: err.detail().headers,
-                body: err.detail().body
-            };
-            Response response = createStatusCodeResponse(errorResponse);
-            response.statusCode = err.detail().statusCode;
-            return response;
-        } else {
-            return <InternalServerError> {body: err.message()};
-        }
+    remote function interceptResponseError(error err) returns Response {
+        return getErrorResponse(err);
     }
-}
-
-isolated function getResponseFromStatusCodeError(StatusCodeError err) returns StatusCodeResponse {
-    StatusCodeResponse response = getErrorStatusCodeResponse(err);
-    if response !is NoContent {
-        // TODO: Change after this fix: https://github.com/ballerina-platform/ballerina-lang/issues/39669
-        // response.body = err.detail()?.body ?: err.message();
-        response.body = err.detail()?.body is () ? err.message() : err.detail()?.body;
-    }
-    map<string>? headers = err.detail().headers;
-    if headers !is () {
-        response.headers = headers;
-    }
-    return response;
 }

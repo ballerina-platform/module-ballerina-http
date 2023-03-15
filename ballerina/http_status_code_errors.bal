@@ -15,12 +15,20 @@
 // under the License.
 
 # Represents the details of an HTTP error.
-# 
+#
 # + headers - The error response headers
 # + body - The error response body
 public type ErrorDetail record {
-    map<string> headers?;
+    map<string|string[]> headers?;
     anydata body?;
+};
+
+# Represents the details of an HTTP error.
+# 
+# + statusCode - The inbound error response status code
+public type DefaultErrorDetail record {
+    *ErrorDetail;
+    int statusCode?;
 };
 
 # Represents the HTTP status code error.
@@ -28,183 +36,274 @@ public type StatusCodeError distinct error<ErrorDetail>;
 
 # Represents 4XX HTTP status code errors.
 public type '4XXStatusCodeError distinct StatusCodeError;
+
 # Represents 5XX HTTP status code errors.
 public type '5XXStatusCodeError distinct StatusCodeError;
+
 # Represents the default HTTP status code error.
-public type DefaultStatusCodeError distinct StatusCodeError;
+public type DefaultStatusCodeError distinct StatusCodeError & error<DefaultErrorDetail>;
 
 # Represents the HTTP 400 Bad Request error.
 public type BadRequestError distinct '4XXStatusCodeError;
+
 # Represents the HTTP 401 Unauthorized error.
 public type UnauthorizedError distinct '4XXStatusCodeError;
+
 # Represents the HTTP 402 Payment Required error.
 public type PaymentRequiredError distinct '4XXStatusCodeError;
+
 # Represents the HTTP 403 Forbidden error.
 public type ForbiddenError distinct '4XXStatusCodeError;
+
 # Represents the HTTP 404 Not Found error.
 public type NotFoundError distinct '4XXStatusCodeError;
+
 # Represents the HTTP 405 Method Not Allowed error.
 public type MethodNotAllowedError distinct '4XXStatusCodeError;
+
 # Represents the HTTP 406 Not Acceptable error.
 public type NotAcceptableError distinct '4XXStatusCodeError;
+
 # Represents the HTTP 407 Proxy Authentication Required error.
 public type ProxyAuthenticationRequiredError distinct '4XXStatusCodeError;
+
 # Represents the HTTP 408 Request Timeout error.
 public type RequestTimeoutError distinct '4XXStatusCodeError;
+
 # Represents the HTTP 409 Conflict error.
 public type ConflictError distinct '4XXStatusCodeError;
+
 # Represents the HTTP 410 Gone error.
 public type GoneError distinct '4XXStatusCodeError;
+
 # Represents the HTTP 411 Length Required error.
 public type LengthRequiredError distinct '4XXStatusCodeError;
+
 # Represents the HTTP 412 Precondition Failed error.
 public type PreconditionFailedError distinct '4XXStatusCodeError;
+
 # Represents the HTTP 413 Payload Too Large error.
 public type PayloadTooLargeError distinct '4XXStatusCodeError;
+
 # Represents the HTTP 414 URI Too Long error.
 public type URITooLongError distinct '4XXStatusCodeError;
+
 # Represents the HTTP 415 Unsupported Media Type error.
 public type UnsupportedMediaTypeError distinct '4XXStatusCodeError;
+
 # Represents the HTTP 416 Range Not Satisfiable error.
 public type RangeNotSatisfiableError distinct '4XXStatusCodeError;
+
 # Represents the HTTP 417 Expectation Failed error.
 public type ExpectationFailedError distinct '4XXStatusCodeError;
+
 # Represents the HTTP 421 Misdirected Request error.
 public type MisdirectedRequestError distinct '4XXStatusCodeError;
+
 # Represents the HTTP 422 Unprocessable Entity error.
 public type UnprocessableEntityError distinct '4XXStatusCodeError;
+
 # Represents the HTTP 423 Locked error.
 public type LockedError distinct '4XXStatusCodeError;
+
 # Represents the HTTP 424 Failed Dependency error.
 public type FailedDependencyError distinct '4XXStatusCodeError;
+
 # Represents the HTTP 426 Upgrade Required error.
 public type UpgradeRequiredError distinct '4XXStatusCodeError;
+
 # Represents the HTTP 428 Precondition Required error.
 public type PreconditionRequiredError distinct '4XXStatusCodeError;
+
 # Represents the HTTP 429 Too Many Requests error.
 public type TooManyRequestsError distinct '4XXStatusCodeError;
+
 # Represents the HTTP 431 Request Header Fields Too Large error.
 public type RequestHeaderFieldsTooLargeError distinct '4XXStatusCodeError;
+
 # Represents the HTTP 451 Unavailable For Legal Reasons error.
 public type UnavailableForLegalReasonsError distinct '4XXStatusCodeError;
 
 # Represents the HTTP 500 Internal Server Error error.
 public type ServerError distinct '5XXStatusCodeError;
+
 # Represents the HTTP 501 Not Implemented error.
 public type NotImplementedError distinct '5XXStatusCodeError;
+
 # Represents the HTTP 502 Bad Gateway error.
 public type BadGatewayError distinct '5XXStatusCodeError;
+
 # Represents the HTTP 503 Service Unavailable error.
 public type ServiceUnavailableError distinct '5XXStatusCodeError;
+
 # Represents the HTTP 504 Gateway Timeout error.
 public type GatewayTimeoutError distinct '5XXStatusCodeError;
+
 # Represents the HTTP 505 HTTP Version Not Supported error.
 public type HTTPVersionNotSupportedError distinct '5XXStatusCodeError;
+
 # Represents the HTTP 506 Variant Also Negotiates error.
 public type VariantAlsoNegotiatesError distinct '5XXStatusCodeError;
+
 # Represents the HTTP 507 Insufficient Storage error.
 public type InsufficientStorageError distinct '5XXStatusCodeError;
+
 # Represents the HTTP 508 Loop Detected error.
 public type LoopDetectedError distinct '5XXStatusCodeError;
+
 # Represents the HTTP 510 Not Extended error.
 public type NotExtendedError distinct '5XXStatusCodeError;
+
 # Represents the HTTP 511 Network Authentication Required error.
 public type NetworkAuthenticationRequiredError distinct '5XXStatusCodeError;
 
 
 # Represents Service Not Found error.
 public type ServiceNotFoundError NotFoundError & ServiceDispatchingError;
+
 # Represents Bad Matrix Parameter in the request error.
 public type BadMatrixParamError BadRequestError & ServiceDispatchingError;
 
 # Represents an error, which occurred when the resource is not found during dispatching.
 public type ResourceNotFoundError NotFoundError & ResourceDispatchingError;
+
 # Represents an error, which occurred when the resource method is not allowed during dispatching.
 public type ResourceMethodNotAllowedError MethodNotAllowedError & ResourceDispatchingError;
+
 # Represents an error, which occurred when the media type is not supported during dispatching.
 public type UnsupportedRequestMediaTypeError UnsupportedMediaTypeError & ResourceDispatchingError;
+
 # Represents an error, which occurred when the payload is not acceptable during dispatching.
 public type RequestNotAcceptableError NotAcceptableError & ResourceDispatchingError;
+
 # Represents other internal server errors during dispatching.
 public type ResourceDispatchingServerError ServerError & ResourceDispatchingError;
 
-isolated function getErrorStatusCodeResponse(StatusCodeError err) returns StatusCodeResponse {
-    if err is BadRequestError {
-        return <BadRequest>{};
-    } else if err is UnauthorizedError {
-        return <Unauthorized>{};
-    } else if err is PaymentRequiredError {
-        return <PaymentRequired>{};
-    } else if err is ForbiddenError {
-        return <Forbidden>{};
-    } else if err is NotFoundError {
-        return <NotFound>{};
-    } else if err is MethodNotAllowedError {
-        return <MethodNotAllowed>{};
-    } else if err is NotAcceptableError {
-        return <NotAcceptable>{};
-    } else if err is ProxyAuthenticationRequiredError {
-        return <ProxyAuthenticationRequired>{};
-    } else if err is RequestTimeoutError {
-        return <RequestTimeout>{};
-    } else if err is ConflictError {
-        return <Conflict>{};
-    } else if err is GoneError {
-        return <Gone>{};
-    } else if err is LengthRequiredError {
-        return <LengthRequired>{};
-    } else if err is PreconditionFailedError {
-        return <PreconditionFailed>{};
-    } else if err is PayloadTooLargeError {
-        return <PayloadTooLarge>{};
-    } else if err is URITooLongError {
-        return <UriTooLong>{};
-    } else if err is UnsupportedMediaTypeError {
-        return <UnsupportedMediaType>{};
-    } else if err is RangeNotSatisfiableError {
-        return <RangeNotSatisfiable>{};
-    } else if err is ExpectationFailedError {
-        return <ExpectationFailed>{};
-    } else if err is MisdirectedRequestError {
-        return <MisdirectedRequest>{};
-    } else if err is UnprocessableEntityError {
-        return <UnprocessableEntity>{};
-    } else if err is LockedError {
-        return <Locked>{};
-    } else if err is FailedDependencyError {
-        return <FailedDependency>{};
-    } else if err is UpgradeRequiredError {
-        return <UpgradeRequired>{};
-    } else if err is PreconditionRequiredError {
-        return <PreconditionRequired>{};
-    } else if err is TooManyRequestsError {
-        return <TooManyRequests>{};
-    } else if err is RequestHeaderFieldsTooLargeError {
-        return <RequestHeaderFieldsTooLarge>{};
-    } else if err is UnavailableForLegalReasonsError {
-        return <UnavailableForLegalReasons>{};
-    } else if err is ServerError {
-        return <InternalServerError>{};
-    } else if err is NotImplementedError {
-        return <NotImplemented>{};
-    } else if err is BadGatewayError {
-        return <BadGateway>{};
-    } else if err is ServiceUnavailableError {
-        return <ServiceUnavailable>{};
-    } else if err is GatewayTimeoutError {
-        return <GatewayTimeout>{};
-    } else if err is HTTPVersionNotSupportedError {
-        return <HttpVersionNotSupported>{};
-    } else if err is VariantAlsoNegotiatesError {
-        return <VariantAlsoNegotiates>{};
-    } else if err is InsufficientStorageError {
-        return <InsufficientStorage>{};
-    } else if err is LoopDetectedError {
-        return <LoopDetected>{};
-    } else if err is NotExtendedError {
-        return <NotExtended>{};
-    } else if err is NetworkAuthenticationRequiredError {
-        return <NetworkAuthenticationRequired>{};
+isolated function getErrorResponse(error err, string? returnMediaType = ()) returns Response {
+    Response response = new;
+    
+    // Handling the client errors
+    if err is ApplicationResponseError {
+        response.statusCode = err.detail().statusCode;
+        setPayload(err.detail().body, response, returnMediaType);
+        setHeaders(err.detail().headers, response);
+        return response;
     }
-    return <InternalServerError>{};
+
+    // Handling the server errors
+    setStatusCode(err, response);
+
+    if err !is StatusCodeError {
+        setPayload(err.message(), response, returnMediaType);
+        return response;
+    }
+
+    if err !is NoContentError {
+        // TODO: Change after this fix: https://github.com/ballerina-platform/ballerina-lang/issues/39669
+        // response.body = err.detail()?.body ?: err.message();
+        anydata body = err.detail()?.body is () ? err.message() : err.detail()?.body;
+        setPayload(body, response, returnMediaType);
+    }
+
+    map<string|string[]> headers = err.detail().headers ?: {};
+    setHeaders(headers, response);
+
+    return response;
+}
+
+isolated function setHeaders(map<string|string[]> headers, Response response) {
+    foreach var [key, values] in headers.entries() {
+        if values is string[] {
+            foreach var value in values {
+                response.addHeader(key, value);
+            }
+            continue;
+        }
+        response.setHeader(key, values);
+    }
+}
+
+isolated function setStatusCode(error err, Response response) {
+    if err is BadRequestError {
+        response.statusCode = 400;
+    } else if err is UnauthorizedError {
+        response.statusCode = 401;
+    } else if err is PaymentRequiredError {
+        response.statusCode = 402;
+    } else if err is ForbiddenError {
+        response.statusCode = 403;
+    } else if err is NotFoundError {
+        response.statusCode = 404;
+    } else if err is MethodNotAllowedError {
+        response.statusCode = 405;
+    } else if err is NotAcceptableError {
+        response.statusCode = 406;
+    } else if err is ProxyAuthenticationRequiredError {
+        response.statusCode = 407;
+    } else if err is RequestTimeoutError {
+        response.statusCode = 408;
+    } else if err is ConflictError {
+        response.statusCode = 409;
+    } else if err is GoneError {
+        response.statusCode = 410;
+    } else if err is LengthRequiredError {
+        response.statusCode = 411;
+    } else if err is PreconditionFailedError {
+        response.statusCode = 412;
+    } else if err is PayloadTooLargeError {
+        response.statusCode = 413;
+    } else if err is URITooLongError {
+        response.statusCode = 414;
+    } else if err is UnsupportedMediaTypeError {
+        response.statusCode = 415;
+    } else if err is RangeNotSatisfiableError {
+        response.statusCode = 416;
+    } else if err is ExpectationFailedError {
+        response.statusCode = 417;
+    } else if err is MisdirectedRequestError {
+        response.statusCode = 421;
+    } else if err is UnprocessableEntityError {
+        response.statusCode = 422;
+    } else if err is LockedError {
+        response.statusCode = 423;
+    } else if err is FailedDependencyError {
+        response.statusCode = 424;
+    } else if err is UpgradeRequiredError {
+        response.statusCode = 426;
+    } else if err is PreconditionRequiredError {
+        response.statusCode = 428;
+    } else if err is TooManyRequestsError {
+        response.statusCode = 429;
+    } else if err is RequestHeaderFieldsTooLargeError {
+        response.statusCode = 431;
+    } else if err is UnavailableForLegalReasonsError {
+        response.statusCode = 451;
+    } else if err is ServerError {
+        response.statusCode = 500;
+    } else if err is NotImplementedError {
+        response.statusCode = 501;
+    } else if err is BadGatewayError {
+        response.statusCode = 502;
+    } else if err is ServiceUnavailableError {
+        response.statusCode = 503;
+    } else if err is GatewayTimeoutError {
+        response.statusCode = 504;
+    } else if err is HTTPVersionNotSupportedError {
+        response.statusCode = 505;
+    } else if err is VariantAlsoNegotiatesError {
+        response.statusCode = 506;
+    } else if err is InsufficientStorageError {
+        response.statusCode = 507;
+    } else if err is LoopDetectedError {
+        response.statusCode = 508;
+    } else if err is NotExtendedError {
+        response.statusCode = 510;
+    } else if err is NetworkAuthenticationRequiredError {
+        response.statusCode = 511;
+    } else if err is DefaultStatusCodeError {
+        response.statusCode = err.detail().statusCode ?: 500;
+    } else {
+        // All other errors are default to InternalServerError
+        response.statusCode = 500;
+    }
 }
