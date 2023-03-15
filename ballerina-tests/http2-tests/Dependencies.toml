@@ -104,6 +104,7 @@ version = "2.6.1"
 dependencies = [
 	{org = "ballerina", name = "http"},
 	{org = "ballerina", name = "http_test_common"},
+	{org = "ballerina", name = "io"},
 	{org = "ballerina", name = "test"}
 ]
 modules = [
@@ -134,6 +135,9 @@ scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "lang.value"}
+]
+modules = [
+	{org = "ballerina", packageName = "io", moduleName = "io"}
 ]
 
 [[package]]
