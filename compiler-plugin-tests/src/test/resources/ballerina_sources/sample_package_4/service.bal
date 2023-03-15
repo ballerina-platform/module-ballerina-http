@@ -356,6 +356,8 @@ type RestaurantNew record {|
     [int, string, decimal, float, User] address;
 |};
 
+class Object {}
+
 service on new http:Listener(9091) {
 
     resource function post menuType(@http:Payload MenuType menuType)
@@ -377,8 +379,12 @@ service on new http:Listener(9091) {
         return restaurant;
     }
 
-    // error
     resource function post address(@http:Payload [int, string, User] address) returns http:Created {
+        return http:CREATED;
+    }
+
+    // error
+    resource function post obj(@http:Payload [int, string, Object] address) returns http:Created {
         return http:CREATED;
     }
 }

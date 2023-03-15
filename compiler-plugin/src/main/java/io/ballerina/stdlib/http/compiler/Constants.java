@@ -28,9 +28,28 @@ public class Constants {
     public static final String REMOTE_KEYWORD = "remote";
     public static final String RESOURCE_KEYWORD = "resource";
     public static final String RESPONSE_OBJ_NAME = "Response";
+    public static final String ANYDATA = "anydata";
+    public static final String JSON = "json";
+    public static final String ERROR = "error";
+    public static final String STRING = "string";
+    public static final String STRING_ARRAY = "string[]";
+    public static final String INT = "int";
+    public static final String INT_ARRAY = "int[]";
+    public static final String FLOAT = "float";
+    public static final String FLOAT_ARRAY = "float[]";
+    public static final String DECIMAL = "decimal";
+    public static final String DECIMAL_ARRAY = "decimal[]";
+    public static final String BOOLEAN = "boolean";
+    public static final String BOOLEAN_ARRAY = "boolean[]";
+    public static final String MAP_OF_JSON = "map<json>";
+    public static final String ARRAY_OF_MAP_OF_JSON = "map<json>[]";
+    public static final String NIL = "nil";
+    public static final String RESOURCE_RETURN_TYPE = "ResourceReturnType";
+    public static final String INTERCEPTOR_RESOURCE_RETURN_TYPE = "InterceptorResourceReturnType";
     public static final String CALLER_OBJ_NAME = "Caller";
     public static final String REQUEST_OBJ_NAME = "Request";
     public static final String REQUEST_CONTEXT_OBJ_NAME = "RequestContext";
+    public static final String OBJECT = "object";
     public static final String HEADER_OBJ_NAME = "Headers";
     public static final String PAYLOAD_ANNOTATION = "Payload";
     public static final String CACHE_ANNOTATION = "Cache";
@@ -44,13 +63,11 @@ public class Constants {
     public static final String CALLER_ANNOTATION_NAME = "CallerInfo";
     public static final String FIELD_RESPONSE_TYPE = "respondType";
     public static final String RESPOND_METHOD_NAME = "respond";
-    public static final String ERROR = "annotations:error";
     public static final String ALLOWED_RETURN_UNION = "anydata|http:Response|http:StatusCodeResponse|error";
     public static final String REQUEST_INTERCEPTOR = "RequestInterceptor";
     public static final String RESPONSE_INTERCEPTOR = "ResponseInterceptor";
     public static final String REQUEST_ERROR_INTERCEPTOR = "RequestErrorInterceptor";
     public static final String RESPONSE_ERROR_INTERCEPTOR = "ResponseErrorInterceptor";
-    public static final String SERVICE = "Service";
     public static final String HTTP_SERVICE = "http:Service";
     public static final String HTTP_REQUEST_INTERCEPTOR = "http:RequestInterceptor";
     public static final String HTTP_REQUEST_ERROR_INTERCEPTOR = "http:RequestErrorInterceptor";
@@ -58,7 +75,6 @@ public class Constants {
     public static final String HTTP_RESPONSE_ERROR_INTERCEPTOR = "http:ResponseErrorInterceptor";
     public static final String ALLOWED_INTERCEPTOR_RETURN_UNION = "anydata|http:Response|http:StatusCodeResponse|" +
                                                                   "http:NextService|error?";
-    public static final String STATUS_CODE_RESPONSE = "StatusCodeResponse";
     public static final String DEFAULT = "default";
     public static final String GET = "get";
     public static final String HEAD = "head";
@@ -71,7 +87,6 @@ public class Constants {
     public static final String RELATION = "relation";
     public static final String PARAM = "$param$";
     public static final String SELF = "self";
-    public static final String MEDIA_TYPE_FIELD = "mediaType";
 
     public static final String EMPTY = "";
     public static final String COLON = ":";

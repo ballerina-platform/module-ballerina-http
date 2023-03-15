@@ -30,6 +30,11 @@ type PersonTable table<Person> key(id);
 type newXml xml;
 type newXmlElement xml:Element;
 
+type ReturnValueStrNilArray string?[]?;
+type ReturnValuePrimitiveUnionArr (string|int)[];
+type ReturnValueNilPrimitiveUnionArr (string|int?)[]?;
+type ReturnValueNilPrimitiveUnionArrAlt (string?|int?)[]?;
+
 service http:Service on new http:Listener(9090) {
     resource function get greeting() returns int|error|string {
         return error http:Error("hello") ;
@@ -218,5 +223,25 @@ service http:Service on new http:Listener(9090) {
                           <order-status>PLACED</order-status>
                           <order-id>ORD-1234</order-id>
                     </placeOrder>`;
+    }
+
+    resource function get resource1(string id) returns ReturnValueStrNilArray {
+        string?[]? values = ["val1", ()];
+        return values;
+    }
+
+    resource function get resource2(string id) returns ReturnValuePrimitiveUnionArr {
+        (string|int)[] values = ["val", 1];
+        return values;
+    }
+
+    resource function get resource3(string id) returns ReturnValueNilPrimitiveUnionArr {
+        (string|int?)[]? values = ["val", 1, ()];
+        return values;
+    }
+
+    resource function get resource4(string id) returns ReturnValueNilPrimitiveUnionArrAlt {
+        (string|int?)[]? values = ["val", 1, ()];
+        return values;
     }
 }
