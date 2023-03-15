@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Added
 - [Make @http:Payload annotation optional for post, put and patch](https://github.com/ballerina-platform/ballerina-standard-library/issues/3276)
+- [Introduce new HTTP status code error structure](https://github.com/ballerina-platform/ballerina-standard-library/issues/4101)
 
 ## [2.6.0] - 2023-02-20
 
