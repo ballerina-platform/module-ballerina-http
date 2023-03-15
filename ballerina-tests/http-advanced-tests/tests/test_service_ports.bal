@@ -37,3 +37,5 @@ const int trailingHeaderTestPort2 = 9527;
 const int corsConfigTestPort = 9013;
 const int multipartRequestTestPort = 9018;
 const int serviceMediaTypeSubtypePrefixPort = 9579;
+
+const int statusCodeErrorUseCasePort = 9090;
