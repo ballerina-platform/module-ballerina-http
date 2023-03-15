@@ -60,6 +60,7 @@ import static io.ballerina.stdlib.http.compiler.Constants.REMOTE_KEYWORD;
 import static io.ballerina.stdlib.http.compiler.Constants.SERVICE_CONFIG_ANNOTATION;
 import static io.ballerina.stdlib.http.compiler.Constants.SUFFIX_SEPARATOR_REGEX;
 import static io.ballerina.stdlib.http.compiler.Constants.UNNECESSARY_CHARS_REGEX;
+import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.getCtxTypes;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.updateDiagnostic;
 import static io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes.HTTP_101;
 import static io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes.HTTP_119;
@@ -98,7 +99,7 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
                 }
             } else if (member.kind() == SyntaxKind.RESOURCE_ACCESSOR_DEFINITION) {
                 HttpResourceValidator.validateResource(syntaxNodeAnalysisContext, (FunctionDefinitionNode) member,
-                                                       linksMetaData);
+                                                       linksMetaData, getCtxTypes(syntaxNodeAnalysisContext));
             }
         }
 

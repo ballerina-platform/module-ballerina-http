@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.compiler;
 
+import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
@@ -26,6 +27,7 @@ import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
 
+import java.util.Map;
 import java.util.Optional;
 
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.updateDiagnostic;
@@ -34,13 +36,16 @@ import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.updateDia
  * Validates a ballerina http interceptor resource.
  */
 public class HttpInterceptorResourceValidator {
-    public static void validateResource(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member, String type) {
+    public static void validateResource(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member, String type,
+                                        Map<String, TypeSymbol> typeSymbols) {
         checkResourceAnnotation(ctx, member);
         if (isRequestErrorInterceptor(type)) {
             extractAndValidateMethodAndPath(ctx, member);
         }
-        HttpResourceValidator.extractInputParamTypeAndValidate(ctx, member, isRequestErrorInterceptor(type));
-        HttpCompilerPluginUtil.extractInterceptorReturnTypeAndValidate(ctx, member, HttpDiagnosticCodes.HTTP_126);
+        HttpResourceValidator.extractInputParamTypeAndValidate(ctx, member, isRequestErrorInterceptor(type),
+                typeSymbols);
+        HttpCompilerPluginUtil.extractInterceptorReturnTypeAndValidate(ctx, typeSymbols, member,
+                HttpDiagnosticCodes.HTTP_126);
     }
 
     private static boolean isRequestErrorInterceptor(String type) {

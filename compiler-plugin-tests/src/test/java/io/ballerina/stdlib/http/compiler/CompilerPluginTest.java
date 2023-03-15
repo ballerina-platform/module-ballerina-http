@@ -147,7 +147,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_4");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 9);
+        Assert.assertEquals(diagnosticResult.errorCount(), 8);
         assertError(diagnosticResult, 0, "invalid multiple resource parameter annotations for 'abc': expected one of " +
                 "the following types: 'http:Payload', 'http:CallerInfo', 'http:Header', 'http:Query'", HTTP_108);
         assertError(diagnosticResult, 1, "invalid usage of payload annotation for a non entity body " +
@@ -159,13 +159,11 @@ public class CompilerPluginTest {
         assertError(diagnosticResult, 4, "invalid annotation type on param 'a': expected one of the following types: " +
             "'http:Payload', 'http:CallerInfo', 'http:Header', 'http:Query'", CompilerPluginTestConstants.HTTP_104);
         assertTrue(diagnosticResult, 5, "invalid payload parameter type: 'string|ballerina/http:",
-                    CompilerPluginTestConstants.HTTP_107);
-        assertTrue(diagnosticResult, 6, "incompatible record field type: 'ballerina/mime:",
-                   CompilerPluginTestConstants.HTTP_145);
-        assertTrue(diagnosticResult, 7, "incompatible record field type: 'ballerina/http:",
-                   CompilerPluginTestConstants.HTTP_145);
-        assertError(diagnosticResult, 8, "invalid payload parameter type: '[int, string, " +
-                "http_test/sample_4:0.1.0:User]'", CompilerPluginTestConstants.HTTP_107);
+                CompilerPluginTestConstants.HTTP_107);
+        assertTrue(diagnosticResult, 6, "invalid payload parameter type:",
+                CompilerPluginTestConstants.HTTP_107);
+        assertTrue(diagnosticResult, 7, "invalid payload parameter type:",
+                CompilerPluginTestConstants.HTTP_107);
     }
 
     @Test
@@ -173,16 +171,16 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_5");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 12);
+        Assert.assertEquals(diagnosticResult.errorCount(), 13);
         assertError(diagnosticResult, 0, "invalid union type of header param 'xRate': one of the 'string','int'," +
                 "'float','decimal','boolean' types, an array of the above types or a record which consists of the" +
                 " above types can only be union with '()'. Eg: string|() or string[]|()", HTTP_110);
         assertError(diagnosticResult, 1, "invalid type of header param 'abc': One of the following types is " +
                 "expected: 'string','int','float','decimal','boolean', an array of the above types or a " +
                 "record which consists of the above types", HTTP_109);
-        assertError(diagnosticResult, 2, "invalid union type of header param 'abc': one of the 'string','int'," +
-                "'float','decimal','boolean' types, an array of the above types or a record which consists of " +
-                "the above types can only be union with '()'. Eg: string|() or string[]|()", HTTP_110);
+        assertError(diagnosticResult, 2, "invalid type of header param 'abc': One of the following types is " +
+                "expected: 'string','int','float','decimal','boolean', an array of the above types or a " +
+                "record which consists of the above types", HTTP_109);
         assertError(diagnosticResult, 3, "invalid union type of header param 'abc': one of the 'string','int'," +
                 "'float','decimal','boolean' types, an array of the above types or a record which consists of the " +
                 "above types can only be union with '()'. Eg: string|() or string[]|()", HTTP_110);
@@ -207,6 +205,9 @@ public class CompilerPluginTest {
         assertError(diagnosticResult, 11, "invalid union type of header param 'abc': one of the 'string','int'," +
                 "'float','decimal','boolean' types, an array of the above types or a record which consists of the " +
                 "above types can only be union with '()'. Eg: string|() or string[]|()", HTTP_110);
+        assertError(diagnosticResult, 12, "invalid type of header param 'xRate': One of the following types is " +
+                "expected: 'string','int','float','decimal','boolean', an array of the above types or a record " +
+                "which consists of the above types", HTTP_109);
     }
 
     @Test
@@ -233,13 +234,14 @@ public class CompilerPluginTest {
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.errorCount(), 5);
-        String expectedMsg = "invalid resource method return type: can not use 'http:Caller' " +
-                "and return 'string' from a resource : expected 'error' or nil";
-        assertTrue(diagnosticResult, 0, expectedMsg, HTTP_118);
+        assertTrue(diagnosticResult, 0, "invalid resource method return type: can not use " +
+                "'http:Caller' and return 'string' from a resource : expected 'error' or nil", HTTP_118);
         assertTrue(diagnosticResult, 1, "invalid resource parameter type: 'ballerina/http", HTTP_106);
         assertTrue(diagnosticResult, 2, "invalid resource parameter type: 'ballerina/mime", HTTP_106);
         assertTrue(diagnosticResult, 3, "invalid resource parameter type: 'ballerina/mime", HTTP_106);
-        assertTrue(diagnosticResult, 4, "invalid resource parameter type: 'http_test/sample_7", HTTP_106);
+        assertError(diagnosticResult, 4, "invalid type of query param 'abc': expected one of the " +
+                "'string', 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them",
+                HTTP_112);
     }
 
     @Test
@@ -247,7 +249,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_8");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 12);
+        Assert.assertEquals(diagnosticResult.errorCount(), 9);
         assertTrue(diagnosticResult, 0, "invalid resource parameter type: 'ballerina/mime", HTTP_106);
         assertError(diagnosticResult, 1, "invalid union type of query param 'a': 'string', 'int', " +
                 "'float', 'boolean', 'decimal', 'map<json>' type or the array types of them can only be union with " +
@@ -261,24 +263,18 @@ public class CompilerPluginTest {
         assertError(diagnosticResult, 4, "invalid type of query param 'd': expected one of the " +
                 "'string', 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them",
                 HTTP_112);
-        assertTrue(diagnosticResult, 5, "invalid resource parameter type: 'json'",
-                HTTP_106);
+        assertError(diagnosticResult, 5, "invalid type of query param 'a': expected one of the " +
+                "'string', 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them",
+                HTTP_112);
         assertError(diagnosticResult, 6, "invalid type of query param 'aa': expected one of the " +
                 "'string', 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them",
                 HTTP_112);
-        assertError(diagnosticResult, 7, "invalid type of query param 'a': expected one of the " +
+        assertError(diagnosticResult, 7, "invalid type of query param 'd': expected one of the " +
                 "'string', 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them",
                 HTTP_112);
-        assertError(diagnosticResult, 8, "invalid type of query param 'b': expected one of the " +
+        assertError(diagnosticResult, 8, "invalid type of query param 'e': expected one of the " +
                 "'string', 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them",
                 HTTP_112);
-        assertError(diagnosticResult, 9, "invalid type of query param 'c': expected one of the " +
-                "'string', 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them",
-                HTTP_112);
-        assertError(diagnosticResult, 10, "invalid type of query param 'd': expected one of the " +
-                "'string', 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them",
-                HTTP_112);
-        assertTrue(diagnosticResult, 11, "invalid resource parameter type: 'xml'", HTTP_106);
     }
 
     @Test
@@ -413,7 +409,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_15");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 15);
+        Assert.assertEquals(diagnosticResult.errorCount(), 14);
         // only testing the error locations
         assertErrorPosition(diagnosticResult, 0, "(30:44,30:60)");
         assertErrorPosition(diagnosticResult, 1, "(35:5,35:16)");
@@ -424,12 +420,11 @@ public class CompilerPluginTest {
         assertErrorPosition(diagnosticResult, 6, "(56:77,56:80)");
         assertErrorPosition(diagnosticResult, 7, "(60:76,60:79)");
         assertErrorPosition(diagnosticResult, 8, "(64:76,64:82)");
-        assertErrorPosition(diagnosticResult, 9, "(68:47,68:48)");
-        assertErrorPosition(diagnosticResult, 10, "(71:45,71:46)");
-        assertErrorPosition(diagnosticResult, 11, "(79:43,79:46)");
-        assertErrorPosition(diagnosticResult, 12, "(79:61,79:64)");
-        assertErrorPosition(diagnosticResult, 13, "(79:79,79:82)");
-        assertErrorPosition(diagnosticResult, 14, "(83:77,83:93)");
+        assertErrorPosition(diagnosticResult, 9, "(71:45,71:46)");
+        assertErrorPosition(diagnosticResult, 10, "(79:43,79:46)");
+        assertErrorPosition(diagnosticResult, 11, "(79:61,79:64)");
+        assertErrorPosition(diagnosticResult, 12, "(79:79,79:82)");
+        assertErrorPosition(diagnosticResult, 13, "(83:77,83:93)");
     }
 
     @Test
