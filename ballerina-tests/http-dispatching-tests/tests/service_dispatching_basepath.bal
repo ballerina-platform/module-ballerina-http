@@ -59,9 +59,9 @@ public function testBasePathAsString() {
     }
 }
 
-@test:Config {enable:false}
+@test:Config {}
 public function testMGWVersionBasePath() {
-    http:Response|error resp = basePathTestClient->get("/myservice/'andversion/a%5C/b/id");
+    http:Response|error resp = basePathTestClient->get("/myservice/andversion/a/b/id");
     if resp is http:Response {
         common:assertTextPayload(resp.getTextPayload(), "service/version/1/1/id");
     } else {
