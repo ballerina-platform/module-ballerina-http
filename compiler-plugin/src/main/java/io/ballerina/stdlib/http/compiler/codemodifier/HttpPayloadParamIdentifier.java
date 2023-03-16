@@ -20,12 +20,13 @@ package io.ballerina.stdlib.http.compiler.codemodifier;
 
 import io.ballerina.compiler.api.symbols.AnnotationSymbol;
 import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
-import io.ballerina.compiler.api.symbols.IntersectionTypeSymbol;
+import io.ballerina.compiler.api.symbols.MapTypeSymbol;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.ResourceMethodSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.TableTypeSymbol;
+import io.ballerina.compiler.api.symbols.TupleTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
-import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
@@ -40,6 +41,7 @@ import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
 import io.ballerina.stdlib.http.compiler.Constants;
 import io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes;
+import io.ballerina.stdlib.http.compiler.HttpResourceValidator;
 import io.ballerina.stdlib.http.compiler.HttpServiceValidator;
 import io.ballerina.stdlib.http.compiler.codemodifier.context.DocumentContext;
 import io.ballerina.stdlib.http.compiler.codemodifier.context.ParamAvailability;
@@ -58,6 +60,7 @@ import static io.ballerina.stdlib.http.compiler.Constants.HEAD;
 import static io.ballerina.stdlib.http.compiler.Constants.OPTIONS;
 import static io.ballerina.stdlib.http.compiler.Constants.PAYLOAD_ANNOTATION_TYPE;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.updateDiagnostic;
+import static io.ballerina.stdlib.http.compiler.HttpResourceValidator.getEffectiveType;
 
 
 /**
@@ -166,6 +169,8 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
         List<ParamData> nonAnnotatedParams = new ArrayList<>();
         List<ParamData> annotatedParams = new ArrayList<>();
         ParamAvailability paramAvailability = new ParamAvailability();
+        // Disable error diagnostic in the code modifier since this validation is also done in the code analyzer
+        paramAvailability.setErrorDiagnostic(false);
         int index = 0;
         for (ParameterSymbol param : parametersOptional.get()) {
             List<AnnotationSymbol> annotations = param.annotations().stream()
@@ -188,7 +193,8 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
         for (ParamData nonAnnotatedParam : nonAnnotatedParams) {
             ParameterSymbol parameterSymbol = nonAnnotatedParam.getParameterSymbol();
 
-            if (validateNonAnnotatedParams(ctx, parameterSymbol.typeDescriptor(), paramAvailability, parameterSymbol)) {
+            if (validateNonAnnotatedParams(ctx, parameterSymbol.typeDescriptor(),
+                    paramAvailability, parameterSymbol)) {
                 ResourceContext resourceContext =
                         new ResourceContext(parameterSymbol, nonAnnotatedParam.getIndex());
                 DocumentContext documentContext = documentContextMap.get(ctx.documentId());
@@ -197,15 +203,16 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
                     documentContextMap.put(ctx.documentId(), documentContext);
                 }
                 serviceContext.setResourceContext(resourceId, resourceContext);
-                documentContext.addServiceContext(serviceContext);
+                documentContext.setServiceContext(serviceContext);
             }
             if (paramAvailability.isErrorOccurred()) {
+                serviceContext.removeResourceContext(resourceId);
                 return;
             }
         }
     }
 
-    private static void validateAnnotatedParams(ParameterSymbol parameterSymbol, ParamAvailability paramAvailability) {
+    public static void validateAnnotatedParams(ParameterSymbol parameterSymbol, ParamAvailability paramAvailability) {
         List<AnnotationSymbol> annotations = parameterSymbol.annotations().stream()
                 .filter(annotationSymbol -> annotationSymbol.typeDescriptor().isPresent())
                 .collect(Collectors.toList());
@@ -225,78 +232,98 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
         }
     }
 
-    private static boolean validateNonAnnotatedParams(SyntaxNodeAnalysisContext analysisContext,
-                                                      TypeSymbol typeSymbol, ParamAvailability paramAvailability,
-                                                      ParameterSymbol parameterSymbol) {
-        if (typeSymbol.typeKind() == TypeDescKind.INTERSECTION) {
-            typeSymbol = getEffectiveTypeFromReadonlyIntersection((IntersectionTypeSymbol) typeSymbol);
-            if (typeSymbol == null) {
-                return false;
-            }
-        }
-        TypeDescKind kind = typeSymbol.typeKind();
-        if (kind == TypeDescKind.TYPE_REFERENCE) {
-            if (typeSymbol.typeKind() == TypeDescKind.INTERSECTION) {
-                return false;
-            }
-            TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor();
-            return validateNonAnnotatedParams(analysisContext, typeDescriptor, paramAvailability, parameterSymbol);
-        }
-
-        if (typeSymbol.subtypeOf(analysisContext.semanticModel().types().XML)) {
-            return checkErrorsAndReturn(analysisContext, paramAvailability, parameterSymbol);
-        }
-        if (kind == TypeDescKind.RECORD || kind == TypeDescKind.MAP ||
-                kind == TypeDescKind.TUPLE || kind == TypeDescKind.TABLE || kind == TypeDescKind.NIL) {
-            return checkErrorsAndReturn(analysisContext, paramAvailability, parameterSymbol);
-        } else if (kind == TypeDescKind.ARRAY) {
-            return validateArrayElementType(analysisContext, typeSymbol, paramAvailability, parameterSymbol);
-        } else if (kind == TypeDescKind.UNION) {
-            List<TypeSymbol> typeDescriptors = ((UnionTypeSymbol) typeSymbol).memberTypeDescriptors();
-            for (TypeSymbol symbol : typeDescriptors) {
-                if (!validateNonAnnotatedParams(analysisContext, symbol, paramAvailability, parameterSymbol)) {
-                    if (paramAvailability.isDefaultPayloadParam()) {
-                        reportInvalidUnionPayloadParam(analysisContext, parameterSymbol, paramAvailability);
-                        paramAvailability.setErrorOccurred(true);
-                    }
+    public static boolean validateNonAnnotatedParams(SyntaxNodeAnalysisContext analysisContext,
+                                                     TypeSymbol typeSymbol, ParamAvailability paramAvailability,
+                                                     ParameterSymbol parameterSymbol) {
+        typeSymbol = getEffectiveType(typeSymbol);
+        if (typeSymbol.typeKind() == TypeDescKind.UNION) {
+            if (isUnionStructuredType(analysisContext, (UnionTypeSymbol) typeSymbol, parameterSymbol,
+                    paramAvailability)) {
+                if (!typeSymbol.subtypeOf(analysisContext.semanticModel().types().ANYDATA)) {
+                    HttpResourceValidator.reportInvalidPayloadParameterType(analysisContext,
+                            parameterSymbol.getLocation().get(), parameterSymbol.typeDescriptor().signature());
+                    paramAvailability.setErrorOccurred(true);
                     return false;
                 }
+                return checkErrorsAndReturn(analysisContext, paramAvailability, parameterSymbol);
             }
-            return true;
+        }
+        if (isStructuredType(analysisContext, typeSymbol)) {
+            if (!typeSymbol.subtypeOf(analysisContext.semanticModel().types().ANYDATA)) {
+                HttpResourceValidator.reportInvalidPayloadParameterType(analysisContext,
+                        parameterSymbol.getLocation().get(), parameterSymbol.typeDescriptor().signature());
+                paramAvailability.setErrorOccurred(true);
+                return false;
+            }
+            return checkErrorsAndReturn(analysisContext, paramAvailability, parameterSymbol);
         }
         return false;
     }
 
-    private static boolean validateArrayElementType(SyntaxNodeAnalysisContext analysisContext, TypeSymbol typeSymbol,
-                                                    ParamAvailability availability, ParameterSymbol pSymbol) {
-        TypeSymbol arrTypeSymbol = ((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor();
-        TypeDescKind elementKind = getReferencedTypeDescKind(arrTypeSymbol);
-
-        if (elementKind == TypeDescKind.TYPE_REFERENCE) {
-            TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor();
-            return validateArrayElementType(analysisContext, typeDescriptor, availability, pSymbol);
+    private static boolean isUnionStructuredType(SyntaxNodeAnalysisContext analysisContext,
+                                                 UnionTypeSymbol unionTypeSymbol, ParameterSymbol parameterSymbol,
+                                                 ParamAvailability paramAvailability) {
+        List<TypeSymbol> typeDescriptors = unionTypeSymbol.memberTypeDescriptors();
+        boolean foundNonStructuredType = false;
+        boolean foundStructuredType = false;
+        for (TypeSymbol symbol : typeDescriptors) {
+            if (isNilableType(analysisContext, symbol)) {
+                continue;
+            }
+            if (isStructuredType(analysisContext, symbol)) {
+                foundStructuredType = true;
+                if (foundNonStructuredType) {
+                    reportInvalidUnionPayloadParam(analysisContext, parameterSymbol, paramAvailability);
+                    return false;
+                }
+            } else {
+                foundNonStructuredType = true;
+                if (foundStructuredType) {
+                    reportInvalidUnionPayloadParam(analysisContext, parameterSymbol, paramAvailability);
+                    return false;
+                }
+            }
         }
+        return foundStructuredType;
+    }
 
-        if (elementKind == TypeDescKind.ARRAY) {
-            arrTypeSymbol = ((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor();
-            return validateArrayElementType(analysisContext, arrTypeSymbol, availability, pSymbol);
-        }
+    private static boolean isNilableType(SyntaxNodeAnalysisContext analysisContext, TypeSymbol typeSymbol) {
+        return typeSymbol.subtypeOf(analysisContext.semanticModel().types().NIL);
+    }
 
-        if (arrTypeSymbol.subtypeOf(analysisContext.semanticModel().types().XML)) {
-            return checkErrorsAndReturn(analysisContext, availability, pSymbol);
-        }
-
-        if (elementKind == TypeDescKind.BYTE || elementKind == TypeDescKind.MAP || elementKind == TypeDescKind.RECORD ||
-                elementKind == TypeDescKind.TUPLE || elementKind == TypeDescKind.TABLE) {
-            return checkErrorsAndReturn(analysisContext, availability, pSymbol);
-        }
-        return false;
+    private static boolean isStructuredType(SyntaxNodeAnalysisContext analysisContext, TypeSymbol typeSymbol) {
+        TypeSymbol anydataType = analysisContext.semanticModel().types().ANYDATA;
+        // map<anydata> is allowed
+        MapTypeSymbol mapOfAnydata = analysisContext.semanticModel().types().builder().MAP_TYPE
+                .withTypeParam(anydataType).build();
+        // table<map<anydata>> is allowed
+        TableTypeSymbol tableOfAnydataMap = analysisContext.semanticModel().types().builder().TABLE_TYPE
+                .withRowType(mapOfAnydata).build();
+        // [anydata...] is allowed
+        TupleTypeSymbol tupleOfAnydata = analysisContext.semanticModel().types().builder().TUPLE_TYPE
+                .withRestType(anydataType).build();
+        // (map<anydata>|table<map<anydata>>|[anydata...])[] is allowed
+        ArrayTypeSymbol structuredArray = analysisContext.semanticModel().types().builder().ARRAY_TYPE
+                .withType(
+                        analysisContext.semanticModel().types().builder().UNION_TYPE
+                                .withMemberTypes(
+                                        mapOfAnydata,
+                                        tableOfAnydataMap,
+                                        tupleOfAnydata).build()).build();
+        // Byte[] is allowed
+        ArrayTypeSymbol byteArray = analysisContext.semanticModel().types().builder().ARRAY_TYPE.withType(
+                analysisContext.semanticModel().types().BYTE).build();
+        // xml is allowed
+        TypeSymbol xmlType = analysisContext.semanticModel().types().XML;
+        return typeSymbol.subtypeOf(mapOfAnydata) || typeSymbol.subtypeOf(tableOfAnydataMap) ||
+                typeSymbol.subtypeOf(tupleOfAnydata) || typeSymbol.subtypeOf(structuredArray) ||
+                typeSymbol.subtypeOf(byteArray) || typeSymbol.subtypeOf(xmlType);
     }
 
     private static boolean checkErrorsAndReturn(SyntaxNodeAnalysisContext analysisContext,
                                                 ParamAvailability availability, ParameterSymbol pSymbol) {
         if (availability.isDefaultPayloadParam() && isDistinctVariable(availability, pSymbol)) {
-            reportAmbiguousPayloadParam(analysisContext, pSymbol, availability.getPayloadParamSymbol());
+            reportAmbiguousPayloadParam(analysisContext, pSymbol, availability);
             availability.setErrorOccurred(true);
             return false;
         }
@@ -309,9 +336,12 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
     }
 
     private static void reportAmbiguousPayloadParam(SyntaxNodeAnalysisContext analysisContext,
-                                                    ParameterSymbol parameterSymbol, ParameterSymbol payloadSymbol) {
-        updateDiagnostic(analysisContext, parameterSymbol.getLocation().get(), HttpDiagnosticCodes.HTTP_151,
-                         payloadSymbol.getName().get(), parameterSymbol.getName().get());
+                                                    ParameterSymbol parameterSymbol,
+                                                    ParamAvailability paramAvailability) {
+        if (paramAvailability.isEnableErrorDiagnostic()) {
+            updateDiagnostic(analysisContext, parameterSymbol.getLocation().get(), HttpDiagnosticCodes.HTTP_151,
+                    paramAvailability.getPayloadParamSymbol().getName().get(), parameterSymbol.getName().get());
+        }
     }
 
     private static void reportInvalidUnionPayloadParam(SyntaxNodeAnalysisContext analysisContext,
@@ -320,7 +350,12 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
         if (paramAvailability.isErrorOccurred()) {
             return;
         }
-        updateDiagnostic(analysisContext, parameterSymbol.getLocation().get(), HttpDiagnosticCodes.HTTP_152,
-                         parameterSymbol.getName().get());
+        if (!paramAvailability.isDefaultPayloadParam()) {
+            if (paramAvailability.isEnableErrorDiagnostic()) {
+                updateDiagnostic(analysisContext, parameterSymbol.getLocation().get(), HttpDiagnosticCodes.HTTP_152,
+                        parameterSymbol.getName().get());
+            }
+            paramAvailability.setErrorOccurred(true);
+        }
     }
 }

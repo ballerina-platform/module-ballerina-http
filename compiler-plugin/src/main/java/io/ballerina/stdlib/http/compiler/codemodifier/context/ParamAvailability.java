@@ -30,6 +30,7 @@ public class ParamAvailability {
     private boolean annotatedPayloadParam = false;
     private boolean errorOccurred = false;
     private ParameterSymbol payloadParamSymbol;
+    private boolean enableErrorDiagnostic = true;
 
     public boolean isAnnotatedPayloadParam() {
         return annotatedPayloadParam;
@@ -49,6 +50,7 @@ public class ParamAvailability {
     }
 
     public void setErrorOccurred(boolean errorOccurred) {
+        this.payloadParamSymbol = null;
         this.errorOccurred = errorOccurred;
     }
 
@@ -58,5 +60,13 @@ public class ParamAvailability {
 
     public void setPayloadParamSymbol(ParameterSymbol payloadParamSymbol) {
         this.payloadParamSymbol = payloadParamSymbol;
+    }
+
+    public void setErrorDiagnostic(boolean enableErrorDiagnostic) {
+        this.enableErrorDiagnostic = enableErrorDiagnostic;
+    }
+
+    public boolean isEnableErrorDiagnostic() {
+        return enableErrorDiagnostic;
     }
 }
