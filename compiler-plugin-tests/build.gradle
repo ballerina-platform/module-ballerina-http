@@ -20,13 +20,20 @@ plugins {
     id 'java'
     id 'checkstyle'
     id 'com.github.spotbugs'
+    id 'jacoco'
 }
 
 description = 'Ballerina - HTTP Compiler Plugin Tests'
 
+configurations {
+    jacocoRuntime
+}
+
 dependencies {
     checkstyle project(':checkstyle')
     checkstyle "com.puppycrawl.tools:checkstyle:${puppycrawlCheckstyleVersion}"
+
+    jacocoRuntime "org.jacoco:org.jacoco.agent:0.8.6:runtime"
 
     implementation project(':http-compiler-plugin')
     
@@ -83,6 +90,15 @@ compileJava {
 test {
     systemProperty "ballerina.offline.flag", "true"
     useTestNG()
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.enabled true
+    }
+    sourceSets project(':http-compiler-plugin').sourceSets.main
 }
 
 test.dependsOn ":http-ballerina:build"
