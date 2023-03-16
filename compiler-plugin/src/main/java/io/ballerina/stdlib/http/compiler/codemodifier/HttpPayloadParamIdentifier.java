@@ -19,13 +19,9 @@
 package io.ballerina.stdlib.http.compiler.codemodifier;
 
 import io.ballerina.compiler.api.symbols.AnnotationSymbol;
-import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
-import io.ballerina.compiler.api.symbols.MapTypeSymbol;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.ResourceMethodSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
-import io.ballerina.compiler.api.symbols.TableTypeSymbol;
-import io.ballerina.compiler.api.symbols.TupleTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
@@ -55,12 +51,23 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static io.ballerina.stdlib.http.compiler.Constants.ANYDATA;
+import static io.ballerina.stdlib.http.compiler.Constants.BYTE_ARRAY;
 import static io.ballerina.stdlib.http.compiler.Constants.GET;
 import static io.ballerina.stdlib.http.compiler.Constants.HEAD;
+import static io.ballerina.stdlib.http.compiler.Constants.MAP_OF_ANYDATA;
+import static io.ballerina.stdlib.http.compiler.Constants.NIL;
 import static io.ballerina.stdlib.http.compiler.Constants.OPTIONS;
 import static io.ballerina.stdlib.http.compiler.Constants.PAYLOAD_ANNOTATION_TYPE;
+import static io.ballerina.stdlib.http.compiler.Constants.STRUCTURED_ARRAY;
+import static io.ballerina.stdlib.http.compiler.Constants.TABLE_OF_ANYDATA_MAP;
+import static io.ballerina.stdlib.http.compiler.Constants.TUPLE_OF_ANYDATA;
+import static io.ballerina.stdlib.http.compiler.Constants.XML;
+import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.getCtxTypes;
+import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.subtypeOf;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.updateDiagnostic;
 import static io.ballerina.stdlib.http.compiler.HttpResourceValidator.getEffectiveType;
+import static io.ballerina.stdlib.http.compiler.HttpResourceValidator.isValidBasicParamType;
 
 
 /**
@@ -80,15 +87,17 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
         if (diagnosticContainsErrors(syntaxNodeAnalysisContext)) {
             return;
         }
+        Map<String, TypeSymbol> typeSymbols = getCtxTypes(syntaxNodeAnalysisContext);
         SyntaxKind kind = syntaxNodeAnalysisContext.node().kind();
         if (kind == SyntaxKind.SERVICE_DECLARATION) {
-            validateServiceDeclaration(syntaxNodeAnalysisContext);
+            validateServiceDeclaration(syntaxNodeAnalysisContext, typeSymbols);
         } else if (kind == SyntaxKind.CLASS_DEFINITION) {
-            validateClassDefinition(syntaxNodeAnalysisContext);
+            validateClassDefinition(syntaxNodeAnalysisContext, typeSymbols);
         }
     }
 
-    private void validateServiceDeclaration(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext) {
+    private void validateServiceDeclaration(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext,
+                                            Map<String, TypeSymbol> typeSymbols) {
         ServiceDeclarationNode serviceDeclarationNode = getServiceDeclarationNode(syntaxNodeAnalysisContext);
         if (serviceDeclarationNode == null) {
             return;
@@ -97,12 +106,14 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
         ServiceContext serviceContext = new ServiceContext(serviceDeclarationNode.hashCode());
         for (Node member : members) {
             if (member.kind() == SyntaxKind.RESOURCE_ACCESSOR_DEFINITION) {
-                validateResource(syntaxNodeAnalysisContext, (FunctionDefinitionNode) member, serviceContext);
+                validateResource(syntaxNodeAnalysisContext, (FunctionDefinitionNode) member, serviceContext,
+                        typeSymbols);
             }
         }
     }
 
-    private void validateClassDefinition(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext) {
+    private void validateClassDefinition(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext,
+                                         Map<String, TypeSymbol> typeSymbols) {
         ClassDefinitionNode classDefinitionNode = (ClassDefinitionNode) syntaxNodeAnalysisContext.node();
         NodeList<Token> tokens = classDefinitionNode.classTypeQualifiers();
         if (tokens.isEmpty()) {
@@ -131,18 +142,20 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
         if (proceed) {
             for (Node member : members) {
                 if (member.kind() == SyntaxKind.RESOURCE_ACCESSOR_DEFINITION) {
-                    validateResource(syntaxNodeAnalysisContext, (FunctionDefinitionNode) member, serviceContext);
+                    validateResource(syntaxNodeAnalysisContext, (FunctionDefinitionNode) member, serviceContext,
+                            typeSymbols);
                 }
             }
         }
     }
 
-    void validateResource(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member, ServiceContext serviceContext) {
-        extractInputParamTypeAndValidate(ctx, member, serviceContext);
+    void validateResource(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member, ServiceContext serviceContext,
+                          Map<String, TypeSymbol> typeSymbols) {
+        extractInputParamTypeAndValidate(ctx, member, serviceContext, typeSymbols);
     }
 
     void extractInputParamTypeAndValidate(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
-                                          ServiceContext serviceContext) {
+                                          ServiceContext serviceContext, Map<String, TypeSymbol> typeSymbols) {
 
         Optional<Symbol> resourceMethodSymbolOptional = ctx.semanticModel().symbol(member);
         int resourceId = member.hashCode();
@@ -194,7 +207,7 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
             ParameterSymbol parameterSymbol = nonAnnotatedParam.getParameterSymbol();
 
             if (validateNonAnnotatedParams(ctx, parameterSymbol.typeDescriptor(),
-                    paramAvailability, parameterSymbol)) {
+                    paramAvailability, parameterSymbol, typeSymbols)) {
                 ResourceContext resourceContext =
                         new ResourceContext(parameterSymbol, nonAnnotatedParam.getIndex());
                 DocumentContext documentContext = documentContextMap.get(ctx.documentId());
@@ -234,12 +247,13 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
 
     public static boolean validateNonAnnotatedParams(SyntaxNodeAnalysisContext analysisContext,
                                                      TypeSymbol typeSymbol, ParamAvailability paramAvailability,
-                                                     ParameterSymbol parameterSymbol) {
+                                                     ParameterSymbol parameterSymbol,
+                                                     Map<String, TypeSymbol> typeSymbols) {
         typeSymbol = getEffectiveType(typeSymbol);
         if (typeSymbol.typeKind() == TypeDescKind.UNION) {
             if (isUnionStructuredType(analysisContext, (UnionTypeSymbol) typeSymbol, parameterSymbol,
-                    paramAvailability)) {
-                if (!typeSymbol.subtypeOf(analysisContext.semanticModel().types().ANYDATA)) {
+                    paramAvailability, typeSymbols)) {
+                if (!subtypeOf(typeSymbols, typeSymbol, ANYDATA)) {
                     HttpResourceValidator.reportInvalidPayloadParameterType(analysisContext,
                             parameterSymbol.getLocation().get(), parameterSymbol.typeDescriptor().signature());
                     paramAvailability.setErrorOccurred(true);
@@ -248,8 +262,8 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
                 return checkErrorsAndReturn(analysisContext, paramAvailability, parameterSymbol);
             }
         }
-        if (isStructuredType(analysisContext, typeSymbol)) {
-            if (!typeSymbol.subtypeOf(analysisContext.semanticModel().types().ANYDATA)) {
+        if (isStructuredType(typeSymbols, typeSymbol)) {
+            if (!subtypeOf(typeSymbols, typeSymbol, ANYDATA)) {
                 HttpResourceValidator.reportInvalidPayloadParameterType(analysisContext,
                         parameterSymbol.getLocation().get(), parameterSymbol.typeDescriptor().signature());
                 paramAvailability.setErrorOccurred(true);
@@ -260,26 +274,26 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
         return false;
     }
 
-    private static boolean isUnionStructuredType(SyntaxNodeAnalysisContext analysisContext,
-                                                 UnionTypeSymbol unionTypeSymbol, ParameterSymbol parameterSymbol,
-                                                 ParamAvailability paramAvailability) {
+    private static boolean isUnionStructuredType(SyntaxNodeAnalysisContext ctx, UnionTypeSymbol unionTypeSymbol,
+                                                 ParameterSymbol parameterSymbol, ParamAvailability paramAvailability,
+                                                 Map<String, TypeSymbol> typeSymbols) {
         List<TypeSymbol> typeDescriptors = unionTypeSymbol.memberTypeDescriptors();
         boolean foundNonStructuredType = false;
         boolean foundStructuredType = false;
         for (TypeSymbol symbol : typeDescriptors) {
-            if (isNilableType(analysisContext, symbol)) {
+            if (isNilableType(typeSymbols, symbol)) {
                 continue;
             }
-            if (isStructuredType(analysisContext, symbol)) {
+            if (isStructuredType(typeSymbols, symbol)) {
                 foundStructuredType = true;
                 if (foundNonStructuredType) {
-                    reportInvalidUnionPayloadParam(analysisContext, parameterSymbol, paramAvailability);
+                    reportInvalidUnionPayloadParam(ctx, parameterSymbol, paramAvailability);
                     return false;
                 }
             } else {
                 foundNonStructuredType = true;
                 if (foundStructuredType) {
-                    reportInvalidUnionPayloadParam(analysisContext, parameterSymbol, paramAvailability);
+                    reportInvalidUnionPayloadParam(ctx, parameterSymbol, paramAvailability);
                     return false;
                 }
             }
@@ -287,37 +301,26 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
         return foundStructuredType;
     }
 
-    private static boolean isNilableType(SyntaxNodeAnalysisContext analysisContext, TypeSymbol typeSymbol) {
-        return typeSymbol.subtypeOf(analysisContext.semanticModel().types().NIL);
+    private static boolean isNilableType(Map<String, TypeSymbol> typeSymbols, TypeSymbol typeSymbol) {
+        return subtypeOf(typeSymbols, typeSymbol, NIL);
     }
 
-    private static boolean isStructuredType(SyntaxNodeAnalysisContext analysisContext, TypeSymbol typeSymbol) {
-        TypeSymbol anydataType = analysisContext.semanticModel().types().ANYDATA;
-        // map<anydata> is allowed
-        MapTypeSymbol mapOfAnydata = analysisContext.semanticModel().types().builder().MAP_TYPE
-                .withTypeParam(anydataType).build();
-        // table<map<anydata>> is allowed
-        TableTypeSymbol tableOfAnydataMap = analysisContext.semanticModel().types().builder().TABLE_TYPE
-                .withRowType(mapOfAnydata).build();
-        // [anydata...] is allowed
-        TupleTypeSymbol tupleOfAnydata = analysisContext.semanticModel().types().builder().TUPLE_TYPE
-                .withRestType(anydataType).build();
-        // (map<anydata>|table<map<anydata>>|[anydata...])[] is allowed
-        ArrayTypeSymbol structuredArray = analysisContext.semanticModel().types().builder().ARRAY_TYPE
-                .withType(
-                        analysisContext.semanticModel().types().builder().UNION_TYPE
-                                .withMemberTypes(
-                                        mapOfAnydata,
-                                        tableOfAnydataMap,
-                                        tupleOfAnydata).build()).build();
-        // Byte[] is allowed
-        ArrayTypeSymbol byteArray = analysisContext.semanticModel().types().builder().ARRAY_TYPE.withType(
-                analysisContext.semanticModel().types().BYTE).build();
-        // xml is allowed
-        TypeSymbol xmlType = analysisContext.semanticModel().types().XML;
-        return typeSymbol.subtypeOf(mapOfAnydata) || typeSymbol.subtypeOf(tableOfAnydataMap) ||
-                typeSymbol.subtypeOf(tupleOfAnydata) || typeSymbol.subtypeOf(structuredArray) ||
-                typeSymbol.subtypeOf(byteArray) || typeSymbol.subtypeOf(xmlType);
+    private static boolean isStructuredType(Map<String, TypeSymbol> typeSymbols, TypeSymbol typeSymbol) {
+        // Special cased byte[]
+        if (subtypeOf(typeSymbols, typeSymbol, BYTE_ARRAY)) {
+            return true;
+        }
+
+        // If the type is a basic type or basic array type, then it is not considered as a structured type
+        if (isValidBasicParamType(typeSymbol, typeSymbols)) {
+            return false;
+        }
+
+        return subtypeOf(typeSymbols, typeSymbol, MAP_OF_ANYDATA) ||
+                subtypeOf(typeSymbols, typeSymbol, TABLE_OF_ANYDATA_MAP) ||
+                subtypeOf(typeSymbols, typeSymbol, TUPLE_OF_ANYDATA) ||
+                subtypeOf(typeSymbols, typeSymbol, STRUCTURED_ARRAY) ||
+                subtypeOf(typeSymbols, typeSymbol, XML);
     }
 
     private static boolean checkErrorsAndReturn(SyntaxNodeAnalysisContext analysisContext,

@@ -292,7 +292,7 @@ public class HttpResourceValidator {
         if (resourceMethodOptional.isPresent()) {
             String accessor = resourceMethodOptional.get();
             if (Stream.of(GET, HEAD, OPTIONS).noneMatch(accessor::equals)) {
-                analyzedParams = mockCodeModifier(ctx, parametersOptional);
+                analyzedParams = mockCodeModifier(ctx, typeSymbols, parametersOptional);
             }
         }
         int paramIndex = -1;
@@ -448,7 +448,7 @@ public class HttpResourceValidator {
         }
     }
 
-    public static List<Integer> mockCodeModifier(SyntaxNodeAnalysisContext ctx,
+    public static List<Integer> mockCodeModifier(SyntaxNodeAnalysisContext ctx, Map<String, TypeSymbol> typeSymbols,
                                                  Optional<List<ParameterSymbol>> parametersOptional) {
         List<ParamData> nonAnnotatedParams = new ArrayList<>();
         List<ParamData> annotatedParams = new ArrayList<>();
@@ -476,8 +476,8 @@ public class HttpResourceValidator {
         for (ParamData nonAnnotatedParam : nonAnnotatedParams) {
             ParameterSymbol parameterSymbol = nonAnnotatedParam.getParameterSymbol();
 
-            if (validateNonAnnotatedParams(ctx, parameterSymbol.typeDescriptor(),
-                    paramAvailability, parameterSymbol)) {
+            if (validateNonAnnotatedParams(ctx, parameterSymbol.typeDescriptor(), paramAvailability,
+                    parameterSymbol, typeSymbols)) {
                 analyzedParams.add(parameterSymbol.hashCode());
             }
             if (paramAvailability.isErrorOccurred()) {
@@ -572,7 +572,7 @@ public class HttpResourceValidator {
         return typeSymbol;
     }
 
-    private static boolean isValidBasicParamType(TypeSymbol typeSymbol, Map<String, TypeSymbol> typeSymbols) {
+    public static boolean isValidBasicParamType(TypeSymbol typeSymbol, Map<String, TypeSymbol> typeSymbols) {
         return subtypeOf(typeSymbols, typeSymbol, STRING) ||
                 subtypeOf(typeSymbols, typeSymbol, INT) ||
                 subtypeOf(typeSymbols, typeSymbol, FLOAT) ||
