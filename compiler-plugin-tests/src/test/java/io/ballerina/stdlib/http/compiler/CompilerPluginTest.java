@@ -711,7 +711,10 @@ public class CompilerPluginTest {
     @Test
     public void testCodeModifierErrorTest() {
         Package currentPackage = loadPackage("sample_package_35");
-        DiagnosticResult modifierDiagnosticResult = currentPackage.runCodeGenAndModifyPlugins();
+        // This is not working if we do not report diagnostics from the code modifier
+        // DiagnosticResult modifierDiagnosticResult = currentPackage.runCodeGenAndModifyPlugins();
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult modifierDiagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(modifierDiagnosticResult.errorCount(), 7);
         assertTrue(modifierDiagnosticResult, 0, "ambiguous types for parameter 'a' and 'b'. Use " +
                 "annotations to avoid ambiguity", HTTP_151);
