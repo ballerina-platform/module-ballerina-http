@@ -18,7 +18,6 @@
 // TESTS ARE SENSITIVE TO SINGLE LINE/CHARACTER CHANGES
 
 import ballerina/http;
-import ballerina/test;
 
 type Person record {|
     readonly int id;
@@ -33,7 +32,10 @@ service / on new http:Listener(9999) {
         return {name:httpClient};
     }
 
-    @test:Config {}
+    @display {
+        label: "TestLabel",
+        iconPath: "label.png"
+    }
     resource function get test103() returns int|error|string {
         return error http:Error("hello") ;
     }
