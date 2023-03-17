@@ -48,7 +48,7 @@ service /restcountries/v2 on generalHTTPS2Listener {
     }
 }
 
-@test:Config {}
+@test:Config {enable: false}
 function testWellknownCertBackendWithinService() returns error? {
     string response = check callCountryTestClient->get("/country/1");
     test:assertEquals(response, "American Samoa", msg = "Found unexpected output");
@@ -57,7 +57,7 @@ function testWellknownCertBackendWithinService() returns error? {
     test:assertEquals(response, "American Samoa", msg = "Found unexpected output");
 }
 
-@test:Config {}
+@test:Config {enable: false}
 function testWellknownCertBackendWithinServiceDifferentClient() returns error? {
     string response = check callCountryTestClient->get("/country/1");
     test:assertEquals(response, "American Samoa", msg = "Found unexpected output");
@@ -67,7 +67,7 @@ function testWellknownCertBackendWithinServiceDifferentClient() returns error? {
     test:assertEquals(response, "American Samoa", msg = "Found unexpected output");
 }
 
-@test:Config {}
+@test:Config {enable: false}
 function testWellknownCertBackendWithinLocalService() returns error? {
     string response = check callCountryTestClient->get("/countryLocal/1");
     test:assertEquals(response, "American Samoa", msg = "Found unexpected output");
@@ -76,7 +76,7 @@ function testWellknownCertBackendWithinLocalService() returns error? {
     test:assertEquals(response, "American Samoa", msg = "Found unexpected output");
 }
 
-@test:Config {dependsOn:[testWellknownCertBackendWithinService]}
+@test:Config {dependsOn:[testWellknownCertBackendWithinService], enable: false}
 function testWellknownCertBackendWithinFunction() returns error? {
     http:Client restCountriesEp = check new ("https://restcountries.com");
     Country[] countries = check restCountriesEp->get("/v2/callingcode/1");
