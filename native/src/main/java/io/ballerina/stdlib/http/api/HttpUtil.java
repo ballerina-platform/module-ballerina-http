@@ -20,12 +20,15 @@ package io.ballerina.stdlib.http.api;
 
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Module;
+import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.creators.ErrorCreator;
+import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.Field;
 import io.ballerina.runtime.api.types.FunctionType;
+import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.types.MethodType;
 import io.ballerina.runtime.api.types.ObjectType;
 import io.ballerina.runtime.api.types.RecordType;
@@ -151,6 +154,7 @@ import static io.ballerina.stdlib.http.api.HttpConstants.SOCKET_CONFIG_SO_BACKLO
 import static io.ballerina.stdlib.http.api.HttpConstants.SOCKET_CONFIG_TCP_NO_DELAY;
 import static io.ballerina.stdlib.http.api.HttpConstants.STATUS_CODE_RESPONSE_BODY_FIELD;
 import static io.ballerina.stdlib.http.api.HttpConstants.STATUS_CODE_RESPONSE_STATUS_FIELD;
+import static io.ballerina.stdlib.http.api.HttpErrorType.CLIENT_CONNECTOR_ERROR;
 import static io.ballerina.stdlib.http.transport.contract.Constants.ENCODING_GZIP;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_1_1_VERSION;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_TRANSFER_ENCODING_IDENTITY;
@@ -198,6 +202,9 @@ public class HttpUtil {
     private static final String IO_EXCEPTION_OCCURRED = "I/O exception occurred";
     private static final String CHUNKING_CONFIG = "chunking_config";
     private static final String ILLEGAL_FUNCTION_INVOKED = "illegal respond: response has already been sent";
+
+    private static final MapType MAP_TYPE = TypeCreator.createMapType(
+            TypeCreator.createArrayType(PredefinedTypes.TYPE_STRING));
 
     /**
      * Set new entity to in/out request/response struct.
@@ -576,9 +583,11 @@ public class HttpUtil {
                                      IOUtils.getIOPackage());
             return createHttpError("Something wrong with the connection", HttpErrorType.GENERIC_CLIENT_ERROR, cause);
         } else if (throwable instanceof ClientConnectorException) {
-            cause = createErrorCause(throwable.getMessage(), IOConstants.ErrorCode.GenericError.errorCode(),
-                                     IOUtils.getIOPackage());
-            return createHttpError("Something wrong with the connection", HttpErrorType.GENERIC_CLIENT_ERROR, cause);
+            BMap<BString, Object> detail = ValueCreator.createMapValue(MAP_TYPE);
+            detail.put(StringUtils.fromString("statusCode"), 502);
+            cause = createErrorCause(throwable.getMessage(), "502",
+                    IOUtils.getIOPackage(), detail);
+            return createHttpError(CLIENT_CONNECTOR_ERROR, "Something wrong with the connection", cause, detail);
         } else if (throwable instanceof NullPointerException) {
             return createHttpError("Exception occurred: null", HttpErrorType.GENERIC_CLIENT_ERROR,
                                    createHttpError(throwable.toString()));
@@ -660,6 +669,11 @@ public class HttpUtil {
 
     private static BError createErrorCause(String message, String errorTypeId, Module packageName) {
         return ErrorCreator.createDistinctError(errorTypeId, packageName, fromString(message));
+    }
+
+    private static BError createErrorCause(String message, String errorTypeId, Module packageName,
+                                           BMap<BString, Object> detail) {
+        return ErrorCreator.createDistinctError(errorTypeId, packageName, fromString(message), detail);
     }
 
     public static HttpCarbonMessage getCarbonMsg(BObject objectValue, HttpCarbonMessage defaultMsg) {

@@ -198,7 +198,7 @@ public isolated client class Caller {
         } else {
             response.statusCode = STATUS_INTERNAL_SERVER_ERROR;
             response.setTextPayload(errorResponse.message());
-        } 
+        }
         return nativeRespondError(self, response, errorResponse);
     }
 }
