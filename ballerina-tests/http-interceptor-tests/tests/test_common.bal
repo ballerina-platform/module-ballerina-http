@@ -15,7 +15,6 @@
 // under the License.
 
 import ballerina/http;
-import ballerina/jwt;
 import ballerina/lang.'string as strings;
 
 public type Person record {|
@@ -625,20 +624,6 @@ function getErrorType(error err) returns string {
         }
     } else {
         return "NormalError";
-    }
-}
-
-service class RequestInterceptorJwtInformation {
-    *http:RequestInterceptor;
-
-    resource function 'default [string... path](http:RequestContext ctx, http:Request req) returns http:NextService|error? {
-        [jwt:Header, jwt:Payload]|error? result = ctx.getJWTInfo();
-        if result is [jwt:Header, jwt:Payload] {
-            reqCtxJwtValues = result;
-        } else {
-            reqCtxJwtDecodeError = result;
-        }
-        return ctx.next();
     }
 }
 

@@ -16,7 +16,6 @@
 
 import ballerina/jballerina.java;
 import ballerina/lang.value;
-import ballerina/jwt;
 
 # Request context member type.
 public type ReqCtxMember value:Cloneable|isolated object {};
@@ -102,30 +101,10 @@ public isolated class RequestContext {
         }
     }
 
-    # Provides the JWT information from the request.
-    #
-    # + return - `[jwt:Header, jwt:Payload]` if decoding the header is successful, `error` if any error occurs
-    #             while decoding, or `nil` if no jwt header found.
-    public function getJWTInfo() returns [jwt:Header, jwt:Payload]|Error? {
-        string? authString = self.getAuthString();
-        if authString is string {
-            [jwt:Header, jwt:Payload]|jwt:Error result = jwt:decode(<string> authString);
-            if result is jwt:Error {
-                return error ListenerAuthError("an error occured while decoding jwt string.", result);
-            }
-            return result;
-        }
-        return ();
-    }
-
     # Calls the next service in the interceptor pipeline.
     #
     # + return - The next service object in the pipeline. An error is returned, if the call fails
     public isolated function next() returns NextService|error? = @java:Method {
-        'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternRequestContext"
-    } external;
-
-    isolated function getAuthString() returns string? = @java:Method {
         'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternRequestContext"
     } external;
 }
