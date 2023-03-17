@@ -15,7 +15,6 @@
 // under the License.
 
 import ballerina/http;
-import ballerina/test;
 
 service http:Service on new http:Listener(9090) {
     @http:ResourceConfig {
@@ -25,7 +24,10 @@ service http:Service on new http:Listener(9090) {
         return error http:Error("hello") ;
     }
 
-    @test:Config {}
+    @display {
+        label: "TestLabel",
+        iconPath: "label.png"
+    }
     resource function get greeting2() returns int|error|string {
         return error http:Error("hello") ;
     }

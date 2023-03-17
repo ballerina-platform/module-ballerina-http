@@ -139,7 +139,7 @@ public class CompilerPluginTest {
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.errorCount(), 1);
         assertError(diagnosticResult, 0, "invalid resource method annotation type: expected 'http:ResourceConfig', " +
-                "but found 'test:Config '", CompilerPluginTestConstants.HTTP_103);
+                "but found 'display '", CompilerPluginTestConstants.HTTP_103);
     }
 
     @Test
@@ -411,20 +411,20 @@ public class CompilerPluginTest {
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.errorCount(), 14);
         // only testing the error locations
-        assertErrorPosition(diagnosticResult, 0, "(30:44,30:60)");
-        assertErrorPosition(diagnosticResult, 1, "(35:5,35:16)");
-        assertErrorPosition(diagnosticResult, 2, "(40:86,40:87)");
-        assertErrorPosition(diagnosticResult, 3, "(44:57,44:60)");
-        assertErrorPosition(diagnosticResult, 4, "(48:63,48:66)");
-        assertErrorPosition(diagnosticResult, 5, "(52:66,52:69)");
-        assertErrorPosition(diagnosticResult, 6, "(56:77,56:80)");
-        assertErrorPosition(diagnosticResult, 7, "(60:76,60:79)");
-        assertErrorPosition(diagnosticResult, 8, "(64:76,64:82)");
-        assertErrorPosition(diagnosticResult, 9, "(71:45,71:46)");
-        assertErrorPosition(diagnosticResult, 10, "(79:43,79:46)");
-        assertErrorPosition(diagnosticResult, 11, "(79:61,79:64)");
-        assertErrorPosition(diagnosticResult, 12, "(79:79,79:82)");
-        assertErrorPosition(diagnosticResult, 13, "(83:77,83:93)");
+        assertErrorPosition(diagnosticResult, 0, "(29:44,29:60)");
+        assertErrorPosition(diagnosticResult, 1, "(34:5,34:12)");
+        assertErrorPosition(diagnosticResult, 2, "(42:86,42:87)");
+        assertErrorPosition(diagnosticResult, 3, "(46:57,46:60)");
+        assertErrorPosition(diagnosticResult, 4, "(50:63,50:66)");
+        assertErrorPosition(diagnosticResult, 5, "(54:66,54:69)");
+        assertErrorPosition(diagnosticResult, 6, "(58:77,58:80)");
+        assertErrorPosition(diagnosticResult, 7, "(62:76,62:79)");
+        assertErrorPosition(diagnosticResult, 8, "(66:76,66:82)");
+        assertErrorPosition(diagnosticResult, 9, "(73:45,73:46)");
+        assertErrorPosition(diagnosticResult, 10, "(81:43,81:46)");
+        assertErrorPosition(diagnosticResult, 11, "(81:61,81:64)");
+        assertErrorPosition(diagnosticResult, 12, "(81:79,81:82)");
+        assertErrorPosition(diagnosticResult, 13, "(85:77,85:93)");
     }
 
     @Test
