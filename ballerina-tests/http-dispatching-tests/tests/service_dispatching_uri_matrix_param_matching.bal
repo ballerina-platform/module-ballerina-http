@@ -53,7 +53,7 @@ service /hello on generalListener {
         check caller->respond(res);
     }
 
-    resource function get t2/[string person]/foo\;a\=5\;b\=10(http:Caller caller, http:Request req) returns error? {
+    resource function get t2/[string person]/foo\%3Ba\%3D5\%3Bb\%3D10(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         map<json> outJson = {};
         outJson["person"] = person;
@@ -84,9 +84,9 @@ function testMatrixParamsAndQueryParamsMatching() {
     }
 }
 
-@test:Config {enable: false}
+@test:Config {}
 function testEncodedPathDispatching() {
-    string path = "/hello/t2/john;age=2;color=white/foo%3Ba%3D5%3Bb%3D10"; // encoded URI
+    string path = "/hello/t2/john;age=2;color=white/foo%253Ba%253D5%253Bb%253D10"; // encoded URI
     http:Response|error response = matrixClient->get(path);
     if response is http:Response {
         // common:assertTextPayload(response.getTextPayload(), "fw");
@@ -100,7 +100,7 @@ function testEncodedPathDispatching() {
 
 @test:Config {enable: false}
 function testEncodedPathParamDispatching() {
-    string path = "/hello/t2/john%3Bage%3D2%3Bcolor%3Dwhite/foo%3Ba%3D5%3Bb%3D10"; // encoded URI
+    string path = "/hello/t2/john%3Bage%3D2%3Bcolor%3Dwhite/foo%253Ba%253D5%253Bb%253D10"; // encoded URI
     http:Response|error response = matrixClient->get(path);
     if response is http:Response {
         // common:assertTextPayload(response.getTextPayload(), "fw");

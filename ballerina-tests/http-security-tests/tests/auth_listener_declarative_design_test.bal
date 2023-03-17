@@ -831,21 +831,21 @@ function testResourceWithNoPathAuthnFailure() {
 
 @test:Config {}
 function testResourceWithSpecialPathAuthSuccess() {
-    assertSuccess(sendBearerTokenRequest("/resourcepath/foo\$bar\@", JWT1));
-    assertSuccess(sendBearerTokenRequest("/resourcepath/foo\$bar\@", JWT1_1));
-    assertSuccess(sendBearerTokenRequest("/resourcepath/foo\$bar\@", JWT1_2));
+    assertSuccess(sendBearerTokenRequest("/resourcepath/foo$bar@", JWT1));
+    assertSuccess(sendBearerTokenRequest("/resourcepath/foo$bar@", JWT1_1));
+    assertSuccess(sendBearerTokenRequest("/resourcepath/foo$bar@", JWT1_2));
     assertSuccess(sendJwtRequest("/resourcepath/foo%24bar%40"));
 }
 
 @test:Config {}
 function testResourceWithSpecialPathAuthzFailure() {
-    assertForbidden(sendBearerTokenRequest("/resourcepath/foo\$bar\@", JWT2));
-    assertForbidden(sendBearerTokenRequest("/resourcepath/foo\$bar\@", JWT2_1));
-    assertForbidden(sendBearerTokenRequest("/resourcepath/foo\$bar\@", JWT2_2));
+    assertForbidden(sendBearerTokenRequest("/resourcepath/foo$bar@", JWT2));
+    assertForbidden(sendBearerTokenRequest("/resourcepath/foo$bar@", JWT2_1));
+    assertForbidden(sendBearerTokenRequest("/resourcepath/foo$bar@", JWT2_2));
 }
 
 @test:Config {}
 function testResourceWithSpecialPathAuthnFailure() {
-    assertUnauthorized(sendBearerTokenRequest("/resourcepath/foo\$bar\@", JWT3));
-    assertUnauthorized(sendNoTokenRequest("/resourcepath/foo\$bar\@"));
+    assertUnauthorized(sendBearerTokenRequest("/resourcepath/foo$bar@", JWT3));
+    assertUnauthorized(sendNoTokenRequest("/resourcepath/foo$bar@"));
 }
