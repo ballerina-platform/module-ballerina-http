@@ -834,7 +834,7 @@ function testResourceWithSpecialPathAuthSuccess() {
     assertSuccess(sendBearerTokenRequest("/resourcepath/foo$bar@", JWT1));
     assertSuccess(sendBearerTokenRequest("/resourcepath/foo$bar@", JWT1_1));
     assertSuccess(sendBearerTokenRequest("/resourcepath/foo$bar@", JWT1_2));
-    assertSuccess(sendJwtRequest("/resourcepath/foo%24bar%40"));
+    assertSuccess(sendJwtRequest("/resourcepath/foo$bar@"));
 }
 
 @test:Config {}
