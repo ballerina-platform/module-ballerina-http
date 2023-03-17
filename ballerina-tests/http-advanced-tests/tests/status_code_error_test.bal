@@ -102,7 +102,7 @@ function getStatusCodeError(int statusCode) returns http:StatusCodeError {
             return error http:UnavailableForLegalReasonsError("Unavailable for legal reasons error");
         }
         500 => {
-            return error http:ServerError("Internal server error");
+            return error http:InternalServerErrorError("Internal server error error");
         }
         501 => {
             return error http:NotImplementedError("Not implemented error");

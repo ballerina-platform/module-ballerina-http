@@ -60,7 +60,7 @@ public type OutboundResponseError distinct ListenerError;
 public type GenericListenerError distinct ListenerError;
 
 # Represents an error, which occurred due to a failure in interceptor return.
-public type InterceptorReturnError distinct ListenerError & ServerError;
+public type InterceptorReturnError distinct ListenerError & InternalServerErrorError;
 
 # Represents an error, which occurred due to a header binding.
 public type HeaderBindingError distinct ListenerError & BadRequestError;

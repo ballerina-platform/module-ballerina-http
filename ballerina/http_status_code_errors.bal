@@ -125,7 +125,7 @@ public type RequestHeaderFieldsTooLargeError distinct '4XXStatusCodeError;
 public type UnavailableForLegalReasonsError distinct '4XXStatusCodeError;
 
 # Represents the HTTP 500 Internal Server Error error.
-public type ServerError distinct '5XXStatusCodeError;
+public type InternalServerErrorError distinct '5XXStatusCodeError;
 
 # Represents the HTTP 501 Not Implemented error.
 public type NotImplementedError distinct '5XXStatusCodeError;
@@ -177,7 +177,7 @@ public type UnsupportedRequestMediaTypeError UnsupportedMediaTypeError & Resourc
 public type RequestNotAcceptableError NotAcceptableError & ResourceDispatchingError;
 
 # Represents other internal server errors during dispatching.
-public type ResourceDispatchingServerError ServerError & ResourceDispatchingError;
+public type ResourceDispatchingServerError InternalServerErrorError & ResourceDispatchingError;
 
 isolated function getErrorResponse(error err, string? returnMediaType = ()) returns Response {
     Response response = new;
@@ -278,7 +278,7 @@ isolated function setStatusCode(error err, Response response) {
         response.statusCode = 431;
     } else if err is UnavailableForLegalReasonsError {
         response.statusCode = 451;
-    } else if err is ServerError {
+    } else if err is InternalServerErrorError {
         response.statusCode = 500;
     } else if err is NotImplementedError {
         response.statusCode = 501;
