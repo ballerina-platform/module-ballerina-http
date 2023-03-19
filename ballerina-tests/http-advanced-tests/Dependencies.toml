@@ -50,6 +50,9 @@ dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "time"}
 ]
+modules = [
+	{org = "ballerina", packageName = "crypto", moduleName = "crypto"}
+]
 
 [[package]]
 org = "ballerina"
@@ -102,9 +105,10 @@ modules = [
 
 [[package]]
 org = "ballerina"
-name = "http2_tests"
+name = "http_advanced_tests"
 version = "2.7.0"
 dependencies = [
+	{org = "ballerina", name = "crypto"},
 	{org = "ballerina", name = "file"},
 	{org = "ballerina", name = "http"},
 	{org = "ballerina", name = "http_test_common"},
@@ -113,10 +117,10 @@ dependencies = [
 	{org = "ballerina", name = "lang.string"},
 	{org = "ballerina", name = "mime"},
 	{org = "ballerina", name = "test"},
-	{org = "ballerina", name = "url"}
+	{org = "ballerina", name = "time"}
 ]
 modules = [
-	{org = "ballerina", packageName = "http2_tests", moduleName = "http2_tests"}
+	{org = "ballerina", packageName = "http_advanced_tests", moduleName = "http_advanced_tests"}
 ]
 
 [[package]]
@@ -358,6 +362,9 @@ scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
 ]
+modules = [
+	{org = "ballerina", packageName = "time", moduleName = "time"}
+]
 
 [[package]]
 org = "ballerina"
@@ -366,8 +373,5 @@ version = "2.2.3"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
-]
-modules = [
-	{org = "ballerina", packageName = "url", moduleName = "url"}
 ]
 

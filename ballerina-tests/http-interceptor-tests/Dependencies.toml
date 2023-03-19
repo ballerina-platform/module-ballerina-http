@@ -64,9 +64,6 @@ dependencies = [
 	{org = "ballerina", name = "regex"},
 	{org = "ballerina", name = "time"}
 ]
-modules = [
-	{org = "ballerina", packageName = "file", moduleName = "file"}
-]
 
 [[package]]
 org = "ballerina"
@@ -102,21 +99,18 @@ modules = [
 
 [[package]]
 org = "ballerina"
-name = "http2_tests"
+name = "http_interceptor_tests"
 version = "2.7.0"
 dependencies = [
-	{org = "ballerina", name = "file"},
 	{org = "ballerina", name = "http"},
 	{org = "ballerina", name = "http_test_common"},
-	{org = "ballerina", name = "io"},
+	{org = "ballerina", name = "jwt"},
 	{org = "ballerina", name = "lang.runtime"},
 	{org = "ballerina", name = "lang.string"},
-	{org = "ballerina", name = "mime"},
-	{org = "ballerina", name = "test"},
-	{org = "ballerina", name = "url"}
+	{org = "ballerina", name = "test"}
 ]
 modules = [
-	{org = "ballerina", packageName = "http2_tests", moduleName = "http2_tests"}
+	{org = "ballerina", packageName = "http_interceptor_tests", moduleName = "http_interceptor_tests"}
 ]
 
 [[package]]
@@ -144,9 +138,6 @@ dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "lang.value"}
 ]
-modules = [
-	{org = "ballerina", packageName = "io", moduleName = "io"}
-]
 
 [[package]]
 org = "ballerina"
@@ -168,6 +159,9 @@ dependencies = [
 	{org = "ballerina", name = "log"},
 	{org = "ballerina", name = "regex"},
 	{org = "ballerina", name = "time"}
+]
+modules = [
+	{org = "ballerina", packageName = "jwt", moduleName = "jwt"}
 ]
 
 [[package]]
@@ -281,9 +275,6 @@ dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "lang.int"}
 ]
-modules = [
-	{org = "ballerina", packageName = "mime", moduleName = "mime"}
-]
 
 [[package]]
 org = "ballerina"
@@ -366,8 +357,5 @@ version = "2.2.3"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
-]
-modules = [
-	{org = "ballerina", packageName = "url", moduleName = "url"}
 ]
 

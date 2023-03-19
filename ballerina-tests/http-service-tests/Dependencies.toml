@@ -102,7 +102,7 @@ modules = [
 
 [[package]]
 org = "ballerina"
-name = "http2_tests"
+name = "http_service_tests"
 version = "2.7.0"
 dependencies = [
 	{org = "ballerina", name = "file"},
@@ -112,11 +112,11 @@ dependencies = [
 	{org = "ballerina", name = "lang.runtime"},
 	{org = "ballerina", name = "lang.string"},
 	{org = "ballerina", name = "mime"},
-	{org = "ballerina", name = "test"},
-	{org = "ballerina", name = "url"}
+	{org = "ballerina", name = "test"}
 ]
 modules = [
-	{org = "ballerina", packageName = "http2_tests", moduleName = "http2_tests"}
+	{org = "ballerina", packageName = "http_service_tests", moduleName = "http_service_tests"},
+	{org = "ballerina", packageName = "http_service_tests", moduleName = "http_service_tests.records"}
 ]
 
 [[package]]
@@ -366,8 +366,5 @@ version = "2.2.3"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
-]
-modules = [
-	{org = "ballerina", packageName = "url", moduleName = "url"}
 ]
 
