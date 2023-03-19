@@ -348,7 +348,7 @@ function test451StatusCodeError() returns error? {
 function test500StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 500);
     test:assertEquals(response.statusCode, 500);
-    common:assertTextPayload(response.getTextPayload(), "Internal server error");
+    common:assertTextPayload(response.getTextPayload(), "Internal server error error");
 }
 
 @test:Config {}
