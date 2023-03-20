@@ -18,7 +18,11 @@
 
 package io.ballerina.stdlib.http.api;
 
+import io.ballerina.runtime.api.PredefinedTypes;
+import io.ballerina.runtime.api.Runtime;
+import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.creators.ErrorCreator;
+import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.StringUtils;
@@ -27,6 +31,7 @@ import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
+import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.api.service.signature.AllHeaderParams;
 import io.ballerina.stdlib.http.api.service.signature.AllQueryParams;
 import io.ballerina.stdlib.http.api.service.signature.NonRecurringParam;
@@ -37,6 +42,8 @@ import io.ballerina.stdlib.http.api.service.signature.RemoteMethodParamHandler;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.uri.URIUtil;
 import io.netty.handler.codec.http.HttpHeaderNames;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.net.URLDecoder;
@@ -48,6 +55,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CountDownLatch;
 
 import static io.ballerina.runtime.api.TypeTags.ARRAY_TAG;
 import static io.ballerina.stdlib.http.api.HttpConstants.AUTHORIZATION_HEADER;
@@ -55,10 +63,14 @@ import static io.ballerina.stdlib.http.api.HttpConstants.BEARER_AUTHORIZATION_HE
 import static io.ballerina.stdlib.http.api.HttpConstants.DEFAULT_HOST;
 import static io.ballerina.stdlib.http.api.HttpConstants.EXTRA_PATH_INDEX;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_SCHEME;
+import static io.ballerina.stdlib.http.api.HttpConstants.JWT_DECODER_CLASS_NAME;
+import static io.ballerina.stdlib.http.api.HttpConstants.JWT_DECODE_METHOD_NAME;
+import static io.ballerina.stdlib.http.api.HttpConstants.JWT_INFORMATION;
 import static io.ballerina.stdlib.http.api.HttpConstants.PERCENTAGE;
 import static io.ballerina.stdlib.http.api.HttpConstants.PERCENTAGE_ENCODED;
 import static io.ballerina.stdlib.http.api.HttpConstants.PLUS_SIGN;
 import static io.ballerina.stdlib.http.api.HttpConstants.PLUS_SIGN_ENCODED;
+import static io.ballerina.stdlib.http.api.HttpConstants.REQUEST_CTX_MEMBERS;
 import static io.ballerina.stdlib.http.api.HttpConstants.SCHEME_SEPARATOR;
 import static io.ballerina.stdlib.http.api.HttpConstants.WHITESPACE;
 import static io.ballerina.stdlib.http.api.HttpErrorType.SERVICE_NOT_FOUND_ERROR;
@@ -72,6 +84,8 @@ import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castPara
  * @since 0.94
  */
 public class HttpDispatcher {
+
+    private static final Logger logger = LoggerFactory.getLogger(HttpDispatcher.class);
 
     public static HttpService findService(HTTPServicesRegistry servicesRegistry, HttpCarbonMessage inboundReqMsg,
                                           boolean forInterceptors) {
@@ -244,8 +258,8 @@ public class HttpDispatcher {
     }
 
     public static Object[] getRemoteSignatureParameters(InterceptorService service, BObject response, BObject caller,
-                                                        HttpCarbonMessage httpCarbonMessage) {
-        BObject requestCtx = getRequestCtx(httpCarbonMessage);
+                                                        HttpCarbonMessage httpCarbonMessage, Runtime runtime) {
+        BObject requestCtx = getRequestCtx(httpCarbonMessage, runtime);
         populatePropertiesForResponsePath(httpCarbonMessage, requestCtx);
         BError error = (BError) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
         RemoteMethodParamHandler paramHandler = service.getRemoteMethodParamHandler();
@@ -295,10 +309,10 @@ public class HttpDispatcher {
     }
 
     public static Object[] getSignatureParameters(Resource resource, HttpCarbonMessage httpCarbonMessage,
-                                                  BMap<BString, Object> endpointConfig) {
+                                                  BMap<BString, Object> endpointConfig, Runtime runtime) {
         BObject inRequest = null;
         // Getting the same caller, request context and entity object to pass through interceptor services
-        BObject requestCtx = getRequestCtx(httpCarbonMessage);
+        BObject requestCtx = getRequestCtx(httpCarbonMessage, runtime);
         populatePropertiesForRequestPath(resource, httpCarbonMessage, requestCtx);
         BObject entityObj = (BObject) httpCarbonMessage.getProperty(HttpConstants.ENTITY_OBJ);
         BError error = (BError) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
@@ -377,9 +391,9 @@ public class HttpDispatcher {
         return paramFeed;
     }
 
-    private static BObject getRequestCtx(HttpCarbonMessage httpCarbonMessage) {
+    private static BObject getRequestCtx(HttpCarbonMessage httpCarbonMessage, Runtime runtime) {
         BObject requestCtx = (BObject) httpCarbonMessage.getProperty(HttpConstants.REQUEST_CONTEXT);
-        return requestCtx != null ? requestCtx : createRequestContext(httpCarbonMessage);
+        return requestCtx != null ? requestCtx : createRequestContext(httpCarbonMessage, runtime);
     }
 
     private static void populatePropertiesForRequestPath(Resource resource, HttpCarbonMessage httpCarbonMessage,
@@ -422,12 +436,11 @@ public class HttpDispatcher {
         return httpCaller;
     }
 
-    static BObject createRequestContext(HttpCarbonMessage httpCarbonMessage) {
+    static BObject createRequestContext(HttpCarbonMessage httpCarbonMessage, Runtime runtime) {
         BObject requestContext = ValueCreatorUtils.createRequestContextObject();
         String authHeader = httpCarbonMessage.getHeader(AUTHORIZATION_HEADER);
-        if (Objects.nonNull(authHeader) && authHeader.contains(BEARER_AUTHORIZATION_HEADER)) {
-            requestContext.addNativeData(HttpConstants.AUTHORIZATION_STRING,
-                    StringUtils.fromString(authHeader.split(WHITESPACE)[1]));
+        if (Objects.nonNull(authHeader) && authHeader.startsWith(BEARER_AUTHORIZATION_HEADER)) {
+            addJwtValuesToRequestContext(runtime, requestContext, authHeader);
         }
         BArray interceptors = httpCarbonMessage.getProperty(HttpConstants.INTERCEPTORS) instanceof BArray ?
                               (BArray) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTORS) : null;
@@ -437,6 +450,51 @@ public class HttpDispatcher {
         requestContext.addNativeData(HttpConstants.REQUEST_CONTEXT_NEXT, false);
         httpCarbonMessage.setProperty(HttpConstants.REQUEST_CONTEXT, requestContext);
         return requestContext;
+    }
+
+    private static void addJwtValuesToRequestContext(Runtime runtime, BObject requestContext, String authHeader) {
+        Object decodedJwt = invokeJwtDecode(runtime, authHeader);
+        if (Objects.nonNull(decodedJwt)) {
+            BMap requestCtxMembers = requestContext.getMapValue(REQUEST_CTX_MEMBERS);
+            requestCtxMembers.put(JWT_INFORMATION, decodedJwt);
+        }
+    }
+
+    private static Object invokeJwtDecode(Runtime runtime, String authHeader) {
+        final Object[] jwtInformation = new Object[1];
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+        Callback decodeCallback = new Callback() {
+            @Override
+            public void notifySuccess(Object result) {
+                if (!(result instanceof Exception)) {
+                    jwtInformation[0] = result;
+                }
+                countDownLatch.countDown();
+            }
+
+            @Override
+            public void notifyFailure(BError bError) {
+                countDownLatch.countDown();
+            }
+        };
+
+        String jwtValue = authHeader.split(WHITESPACE)[1];
+        runtime.invokeMethodAsyncSequentially(
+                ValueCreator.createObjectValue(ModuleUtils.getHttpPackage(), JWT_DECODER_CLASS_NAME),
+                JWT_DECODE_METHOD_NAME,
+                null,
+                ModuleUtils.getNotifySuccessMetaData(),
+                decodeCallback,
+                null,
+                PredefinedTypes.TYPE_ANY,
+                StringUtils.fromString(jwtValue),
+                true);
+        try {
+            countDownLatch.await();
+        } catch (InterruptedException exception) {
+            logger.warn("Interrupted before receiving the response");
+        }
+        return jwtInformation[0];
     }
 
     static BError createError() {

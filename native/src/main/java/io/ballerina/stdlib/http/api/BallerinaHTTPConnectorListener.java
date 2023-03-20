@@ -163,7 +163,9 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
                                                               HttpResource httpResource) {
         boolean isTransactionInfectable = httpResource.isTransactionInfectable();
         Map<String, Object> properties = collectRequestProperties(inboundMessage, isTransactionInfectable);
-        Object[] signatureParams = HttpDispatcher.getSignatureParameters(httpResource, inboundMessage, endpointConfig);
+
+        Object[] signatureParams = HttpDispatcher.getSignatureParameters(httpResource, inboundMessage, endpointConfig,
+                httpServicesRegistry.getRuntime());
 
         if (ObserveUtils.isObservabilityEnabled()) {
             ObserverContext observerContext = new ObserverContext();
@@ -230,9 +232,9 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
                                                                          InterceptorResource resource,
                                                                          HTTPInterceptorServicesRegistry registry) {
         Map<String, Object> properties = collectRequestProperties(inboundMessage, true);
-        Object[] signatureParams = HttpDispatcher.getSignatureParameters(resource, inboundMessage, endpointConfig);
-
         Runtime runtime = registry.getRuntime();
+        Object[] signatureParams = HttpDispatcher.getSignatureParameters(resource, inboundMessage, endpointConfig,
+                registry.getRuntime());
         Callback callback = new HttpRequestInterceptorUnitCallback(
                 inboundMessage, runtime, this);
         BObject service = resource.getParentService().getBalService();

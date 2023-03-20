@@ -238,7 +238,7 @@ public class Respond extends ConnectionAction {
         BObject serviceObj = service.getBalService();
         Runtime runtime = interceptorServicesRegistry.getRuntime();
         Object[] signatureParams = HttpDispatcher.getRemoteSignatureParameters(service, outboundResponseObj, callerObj,
-                                   inboundMessage);
+                                   inboundMessage, runtime);
         Callback callback = new HttpResponseInterceptorUnitCallback(inboundMessage, callerObj,
                 outboundResponseObj, env, dataContext, runtime);
 

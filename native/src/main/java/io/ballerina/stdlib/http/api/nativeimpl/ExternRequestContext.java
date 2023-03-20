@@ -28,8 +28,6 @@ import io.ballerina.stdlib.http.api.HttpErrorType;
 import io.ballerina.stdlib.http.api.HttpUtil;
 import org.ballerinalang.langlib.value.EnsureType;
 
-import java.util.Objects;
-
 import static io.ballerina.stdlib.http.api.HttpErrorType.INTERCEPTOR_RETURN_ERROR;
 
 /**
@@ -69,14 +67,6 @@ public class ExternRequestContext {
             String message = "request context object does not contain the configured interceptors";
             return HttpUtil.createHttpStatusCodeError(INTERCEPTOR_RETURN_ERROR, message);
         }
-    }
-
-    public static Object getAuthString(BObject requestCtx) {
-        Object authString = requestCtx.getNativeData(HttpConstants.AUTHORIZATION_STRING);
-        if (Objects.nonNull(authString) && authString instanceof BString) {
-            return authString;
-        }
-        return null;
     }
 
     private static Object getNextInterceptor(BObject requestCtx, BArray interceptors) {
