@@ -44,10 +44,7 @@ public type Interceptor RequestInterceptor|ResponseInterceptor|RequestErrorInter
 service class DefaultErrorInterceptor {
     *ResponseErrorInterceptor;
 
-    remote function interceptResponseError(error err, Response alreadyBuiltErrorResponse) returns Response {
-        // Returning the already built response for simplicity. This has been built with proper 
-        // status code and headers (for `ApplicationResponseError` types)
-        // For any other custom responses the `err` object can be used with type check
-        return alreadyBuiltErrorResponse;
+    remote function interceptResponseError(error err) returns Response {
+        return getErrorResponse(err);
     }
 }

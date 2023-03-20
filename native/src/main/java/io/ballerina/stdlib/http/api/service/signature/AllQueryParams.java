@@ -33,7 +33,6 @@ import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BRefValue;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.http.api.HttpConstants;
-import io.ballerina.stdlib.http.api.HttpErrorType;
 import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import org.ballerinalang.langlib.value.FromJsonWithType;
@@ -45,6 +44,7 @@ import static io.ballerina.runtime.api.TypeTags.ARRAY_TAG;
 import static io.ballerina.runtime.api.TypeTags.MAP_TAG;
 import static io.ballerina.runtime.api.TypeTags.RECORD_TYPE_TAG;
 import static io.ballerina.runtime.api.TypeTags.UNION_TAG;
+import static io.ballerina.stdlib.http.api.HttpErrorType.QUERY_PARAM_BINDING_ERROR;
 import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castParam;
 
 /**
@@ -92,9 +92,8 @@ public class AllQueryParams implements Parameter {
                     paramFeed[index] = true;
                     continue;
                 } else {
-                    httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
-                    throw HttpUtil.createHttpError("no query param value found for '" + token + "'",
-                                                   HttpErrorType.QUERY_PARAM_BINDING_ERROR);
+                    String message = "no query param value found for '" + token + "'";
+                    throw HttpUtil.createHttpStatusCodeError(QUERY_PARAM_BINDING_ERROR, message);
                 }
             }
 
@@ -137,9 +136,9 @@ public class AllQueryParams implements Parameter {
                 }
                 paramFeed[index] = true;
             } catch (Exception ex) {
-                httpCarbonMessage.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
-                throw HttpUtil.createHttpError("error in casting query param : '" + token + "'",
-                                               HttpErrorType.QUERY_PARAM_BINDING_ERROR, HttpUtil.createError(ex));
+                String message = "error in casting query param : '" + token + "'";
+                throw HttpUtil.createHttpStatusCodeError(QUERY_PARAM_BINDING_ERROR, message, null,
+                        HttpUtil.createError(ex));
             }
         }
     }

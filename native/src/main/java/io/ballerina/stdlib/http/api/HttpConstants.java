@@ -222,6 +222,8 @@ public class HttpConstants {
     public static final String RESPONSE_CACHE_CONTROL = "ResponseCacheControl";
     public static final String REQUEST_CACHE_CONTROL = "RequestCacheControl";
     public static final String STRUCT_GENERIC_ERROR = "error";
+    public static final String ERROR_DETAIL_RECORD = "ErrorDetail";
+    public static final BString ERROR_DETAIL_BODY = StringUtils.fromString("body");
     public static final String TYPE_STRING = "string";
     public static final String TRANSPORT_MESSAGE = "transport_message";
     public static final String QUERY_PARAM_MAP = "queryParamMap";
