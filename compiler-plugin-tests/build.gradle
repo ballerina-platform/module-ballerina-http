@@ -20,6 +20,12 @@ plugins {
     id 'java'
     id 'checkstyle'
     id 'com.github.spotbugs'
+    id 'jacoco'
+}
+
+jacoco {
+    toolVersion = "${jacocoVersion}"
+    reportsDirectory = file("$project.buildDir/reports/jacoco")
 }
 
 description = 'Ballerina - HTTP Compiler Plugin Tests'
@@ -83,6 +89,15 @@ compileJava {
 test {
     systemProperty "ballerina.offline.flag", "true"
     useTestNG()
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.enabled true
+    }
+    sourceSets project(':http-compiler-plugin').sourceSets.main
 }
 
 test.dependsOn ":http-ballerina:build"
