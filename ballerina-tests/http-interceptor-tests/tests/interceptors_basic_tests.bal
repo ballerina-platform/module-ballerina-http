@@ -502,16 +502,10 @@ function testJwtInformationDecodeErrorInRequestContext() returns error? {
         });
     string response = check jwtClient->get("/requestInterceptorJwtInformation", {"authorization": "Bearer abcd"});
     test:assertEquals(response, "Hello client");
-    if reqCtxJwtDecodeError is http:ListenerAuthError {
-        test:assertEquals((<http:ListenerAuthError>reqCtxJwtDecodeError).message(), "an error occured while decoding jwt string.");
-        error? cause = (<http:ListenerAuthError>reqCtxJwtDecodeError).cause();
-        if cause is error {
-            test:assertEquals(cause.message(), "Invalid JWT.");
-        } else {
-            test:assertFail("Expected a ListenerAuthError");
-        }
+    if reqCtxJwtDecodeError is http:ListenerError {
+        test:assertEquals((<http:ListenerError>reqCtxJwtDecodeError).message(), "no member found for key: JWT_INFORMATION");
     } else {
-        test:assertFail("Expected a ListenerAuthError");
+        test:assertFail("Expected a ListenerError");
     }
 }
 
@@ -519,11 +513,16 @@ function testJwtInformationDecodeErrorInRequestContext() returns error? {
     dependsOn: [testJwtInformationDecodeErrorInRequestContext]
 }
 function testNilJwtInformationValueInRequestContext() returns error? {
+    reqCtxJwtDecodeError = ();
     http:Client jwtClient = check new("https://localhost:" + jwtInformationInReqCtxtTestPort.toString(),
         secureSocket = {
             cert: common:CERT_FILE
         });
     string response = check jwtClient->get("/requestInterceptorJwtInformation");
     test:assertEquals(response, "Hello client");
-    test:assertTrue(reqCtxJwtDecodeError is ());
+    if reqCtxJwtDecodeError is http:ListenerError {
+        test:assertEquals((<http:ListenerError>reqCtxJwtDecodeError).message(), "no member found for key: JWT_INFORMATION");
+    } else {
+        test:assertFail("Expected a ListenerError");
+    }
 }

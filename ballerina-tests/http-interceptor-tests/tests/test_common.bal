@@ -378,7 +378,7 @@ service class RequestInterceptorJwtInformation {
     *http:RequestInterceptor;
 
     resource function 'default [string... path](http:RequestContext ctx, http:Request req) returns http:NextService|error? {
-        [jwt:Header, jwt:Payload]|error? result = ctx.getJWTInfo();
+        [jwt:Header, jwt:Payload]|error result = ctx.getWithType(http:JWT_INFORMATION);
         if result is [jwt:Header, jwt:Payload] {
             reqCtxJwtValues = result;
         } else {
