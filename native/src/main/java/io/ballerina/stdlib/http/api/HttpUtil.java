@@ -585,6 +585,7 @@ public class HttpUtil {
         } else if (throwable instanceof ClientConnectorException) {
             BMap<BString, Object> detail = ValueCreator.createMapValue(MAP_TYPE);
             detail.put(StringUtils.fromString("statusCode"), 502);
+            detail.put(StringUtils.fromString("body"), "\"Something wrong with the connection\"");
             cause = createErrorCause(throwable.getMessage(), "502",
                     IOUtils.getIOPackage(), detail);
             return createHttpError(CLIENT_CONNECTOR_ERROR, "Something wrong with the connection", cause, detail);
