@@ -90,6 +90,7 @@ The conforming implementation of the specification is released and included in t
             * 8.1.1.1. [Request context](#8111-request-context)
             * 8.1.1.2. [Next method](#8112-next-method)
             * 8.1.1.3. [Return to respond](#8113-return-to-respond)
+            * 8.1.1.4 [Get JWT information](#8114-get-jwt-information)
         * 8.1.2. [Response interceptor](#812-response-interceptor)
             * 8.1.2.1. [Return to respond](#8121-return-to-respond)
         * 8.1.3. [Request error interceptor and response error interceptor](#813-request-error-interceptor-and-response-error-interceptor)
