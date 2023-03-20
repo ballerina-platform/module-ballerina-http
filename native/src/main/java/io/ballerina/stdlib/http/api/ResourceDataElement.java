@@ -31,7 +31,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static io.ballerina.stdlib.http.api.HttpErrorType.GENERIC_LISTENER_ERROR;
-import static io.ballerina.stdlib.http.api.HttpErrorType.RESOURCE_DISPATCHING_ERROR;
+import static io.ballerina.stdlib.http.api.HttpErrorType.REQUEST_NOT_ACCEPTABLE_ERROR;
+import static io.ballerina.stdlib.http.api.HttpErrorType.RESOURCE_METHOD_NOT_ALLOWED_ERROR;
+import static io.ballerina.stdlib.http.api.HttpErrorType.UNSUPPORTED_REQUEST_MEDIA_TYPE_ERROR;
 
 /**
  * Http Node Item for URI template tree.
@@ -134,8 +136,8 @@ public class ResourceDataElement implements DataElement<Resource, HttpCarbonMess
             return httpResource;
         }
         if (!isOptionsRequest) {
-            carbonMessage.setHttpStatusCode(405);
-            throw HttpUtil.createHttpError("Method not allowed", RESOURCE_DISPATCHING_ERROR);
+            String message = "Method not allowed";
+            throw HttpUtil.createHttpStatusCodeError(RESOURCE_METHOD_NOT_ALLOWED_ERROR, message);
         }
         return null;
     }
@@ -186,9 +188,8 @@ public class ResourceDataElement implements DataElement<Resource, HttpCarbonMess
                 return;
             }
         }
-        cMsg.setHttpStatusCode(415);
-        throw HttpUtil.createHttpError("content-type : " + contentMediaType + " is not supported",
-                                       RESOURCE_DISPATCHING_ERROR);
+        String message = "content-type : " + contentMediaType + " is not supported";
+        throw HttpUtil.createHttpStatusCodeError(UNSUPPORTED_REQUEST_MEDIA_TYPE_ERROR, message);
     }
 
     private String extractContentMediaType(String header) {
@@ -230,8 +231,7 @@ public class ResourceDataElement implements DataElement<Resource, HttpCarbonMess
                 return;
             }
         }
-        cMsg.setHttpStatusCode(406);
-        throw HttpUtil.createHttpError("", RESOURCE_DISPATCHING_ERROR);
+        throw HttpUtil.createHttpStatusCodeError(REQUEST_NOT_ACCEPTABLE_ERROR, "");
     }
 
     private List<String> extractAcceptMediaTypes(String header) {

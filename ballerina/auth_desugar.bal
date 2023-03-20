@@ -42,12 +42,12 @@ public isolated function authenticateResource(Service serviceRef, string methodN
     if header is string {
         Unauthorized|Forbidden? result = tryAuthenticate(<ListenerAuthConfig[]>authConfig, header);
         if result is Unauthorized {
-            panic error InternalListenerAuthnError("");
+            panic error ListenerAuthnError("");
         } else if result is Forbidden {
-            panic error InternalListenerAuthzError("");
+            panic error ListenerAuthzError("");
         }
     } else {
-        panic error InternalListenerAuthnError("");
+        panic error ListenerAuthnError("");
     }
 }
 

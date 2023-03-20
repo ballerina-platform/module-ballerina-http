@@ -23,6 +23,7 @@ import io.ballerina.runtime.api.Module;
 import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.creators.ErrorCreator;
+import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.Field;
 import io.ballerina.runtime.api.types.FunctionType;
 import io.ballerina.runtime.api.types.MethodType;
@@ -598,6 +599,20 @@ public class HttpUtil {
                                          BMap<BString, Object> detail) {
         return ErrorCreator.createError(ModuleUtils.getHttpPackage(), errorType.getErrorName(), fromString(message),
                                         cause, detail);
+    }
+
+    public static BError createHttpStatusCodeError(HttpErrorType errorType, String message) {
+        return createHttpStatusCodeError(errorType, message, null, null);
+    }
+
+    public static BError createHttpStatusCodeError(HttpErrorType errorType, String message, String body,
+                                                   BError cause) {
+        BMap<BString, Object> detail = ValueCreator.createRecordValue(ModuleUtils.getHttpPackage(),
+                HttpConstants.ERROR_DETAIL_RECORD);
+        if (body != null) {
+            detail.put(HttpConstants.ERROR_DETAIL_BODY, fromString(body));
+        }
+        return createHttpError(errorType, message, cause, detail);
     }
 
     // TODO: Find a better way to get the error type than String matching.

@@ -73,6 +73,7 @@ import static io.ballerina.stdlib.http.api.HttpConstants.PLUS_SIGN_ENCODED;
 import static io.ballerina.stdlib.http.api.HttpConstants.REQUEST_CTX_MEMBERS;
 import static io.ballerina.stdlib.http.api.HttpConstants.SCHEME_SEPARATOR;
 import static io.ballerina.stdlib.http.api.HttpConstants.WHITESPACE;
+import static io.ballerina.stdlib.http.api.HttpErrorType.SERVICE_NOT_FOUND_ERROR;
 import static io.ballerina.stdlib.http.api.HttpUtil.getParameterTypes;
 import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castParam;
 import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castParamArray;
@@ -100,10 +101,9 @@ public class HttpDispatcher {
                 servicesOnInterface = servicesRegistry.getServicesByHost(DEFAULT_HOST);
                 sortedServiceURIs = servicesRegistry.getSortedServiceURIsByHost(DEFAULT_HOST);
             } else {
-                inboundReqMsg.setHttpStatusCode(404);
                 String localAddress = inboundReqMsg.getProperty(HttpConstants.LOCAL_ADDRESS).toString();
-                throw HttpUtil.createHttpError("no service has registered for listener : " + localAddress,
-                                               HttpErrorType.SERVICE_DISPATCHING_ERROR);
+                String message = "no service has registered for listener : " + localAddress;
+                throw HttpUtil.createHttpStatusCodeError(SERVICE_NOT_FOUND_ERROR, message);
             }
 
             String rawUri = (String) inboundReqMsg.getProperty(HttpConstants.TO);
@@ -116,9 +116,8 @@ public class HttpDispatcher {
                                                                            servicesOnInterface, sortedServiceURIs);
 
             if (basePath == null) {
-                inboundReqMsg.setHttpStatusCode(404);
-                throw HttpUtil.createHttpError("no matching service found for path : " + validatedUri.getRawPath(),
-                                               HttpErrorType.SERVICE_DISPATCHING_ERROR);
+                String message = "no matching service found for path : " + validatedUri.getRawPath();
+                throw HttpUtil.createHttpStatusCodeError(SERVICE_NOT_FOUND_ERROR, message);
             }
 
             HttpService service = servicesOnInterface.get(basePath);
@@ -130,7 +129,10 @@ public class HttpDispatcher {
             }
             return service;
         } catch (Exception e) {
-            throw HttpUtil.createHttpError(e.getMessage(), HttpErrorType.SERVICE_DISPATCHING_ERROR);
+            if (!(e instanceof BError)) {
+                throw HttpUtil.createHttpStatusCodeError(SERVICE_NOT_FOUND_ERROR, e.getMessage());
+            }
+            throw e;
         }
     }
 
@@ -150,10 +152,9 @@ public class HttpDispatcher {
                 servicesOnInterface = servicesRegistry.getServicesByHost(DEFAULT_HOST);
                 sortedServiceURIs = servicesRegistry.getSortedServiceURIsByHost(DEFAULT_HOST);
             } else {
-                inboundReqMsg.setHttpStatusCode(404);
                 String localAddress = inboundReqMsg.getProperty(HttpConstants.LOCAL_ADDRESS).toString();
-                throw HttpUtil.createHttpError("no service has registered for listener : " + localAddress,
-                                               HttpErrorType.SERVICE_DISPATCHING_ERROR);
+                String message = "no service has registered for listener : " + localAddress;
+                throw HttpUtil.createHttpStatusCodeError(SERVICE_NOT_FOUND_ERROR, message);
             }
 
             if (isResponsePath) {
@@ -176,16 +177,18 @@ public class HttpDispatcher {
                                                                            servicesOnInterface, sortedServiceURIs);
 
             if (basePath == null) {
-                inboundReqMsg.setHttpStatusCode(404);
-                throw HttpUtil.createHttpError("no matching service found for path : " + validatedUri.getRawPath(),
-                                               HttpErrorType.SERVICE_DISPATCHING_ERROR);
+                String message = "no matching service found for path : " + validatedUri.getRawPath();
+                throw HttpUtil.createHttpStatusCodeError(SERVICE_NOT_FOUND_ERROR, message);
             }
 
             InterceptorService service = servicesOnInterface.get(basePath);
             setInboundReqProperties(inboundReqMsg, validatedUri, basePath);
             return service;
         } catch (Exception e) {
-            throw HttpUtil.createHttpError(e.getMessage(), HttpErrorType.SERVICE_DISPATCHING_ERROR);
+            if (!(e instanceof BError)) {
+                throw HttpUtil.createHttpStatusCodeError(SERVICE_NOT_FOUND_ERROR, e.getMessage());
+            }
+            throw e;
         }
     }
 
@@ -326,8 +329,8 @@ public class HttpDispatcher {
             HttpResourceArguments resourceArgumentValues =
                     (HttpResourceArguments) httpCarbonMessage.getProperty(HttpConstants.RESOURCE_ARGS);
             updateWildcardToken(resource.getWildcardToken(), pathParamCount - 1, resourceArgumentValues.getMap());
-            populatePathParams(resource, paramFeed, resourceArgumentValues, pathParamCount, httpCarbonMessage,
-                               parameterTypes);
+            populatePathParams(resource, paramFeed, resourceArgumentValues, pathParamCount,
+                    parameterTypes);
         }
         // Following was written assuming that they are validated
         for (Parameter param : paramHandler.getOtherParamList()) {
@@ -506,7 +509,6 @@ public class HttpDispatcher {
 
     private static void populatePathParams(Resource resource, Object[] paramFeed,
                                            HttpResourceArguments resourceArgumentValues, int pathParamCount,
-                                           HttpCarbonMessage inboundRequest,
                                            Type[] parameterTypes) {
 
         String[] pathParamTokens = Arrays.copyOfRange(resource.getBalResource().getParamNames(), 0, pathParamCount);
@@ -531,9 +533,9 @@ public class HttpDispatcher {
                 }
                 paramFeed[paramIndex] = true;
             } catch (Exception ex) {
-                inboundRequest.setHttpStatusCode(Integer.parseInt(HttpConstants.HTTP_BAD_REQUEST));
-                throw HttpUtil.createHttpError("error in casting path parameter : '" + paramName + "'",
-                                               HttpErrorType.PATH_PARAM_BINDING_ERROR, HttpUtil.createError(ex));
+                String message = "error in casting path parameter : '" + paramName + "'";
+                throw HttpUtil.createHttpStatusCodeError(HttpErrorType.PATH_PARAM_BINDING_ERROR, message,
+                        null, HttpUtil.createError(ex));
             }
         }
     }

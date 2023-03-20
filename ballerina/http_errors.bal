@@ -60,30 +60,30 @@ public type OutboundResponseError distinct ListenerError;
 public type GenericListenerError distinct ListenerError;
 
 # Represents an error, which occurred due to a failure in interceptor return.
-public type InterceptorReturnError distinct ListenerError;
+public type InterceptorReturnError distinct ListenerError & InternalServerErrorError;
 
 # Represents an error, which occurred due to a header binding.
-public type HeaderBindingError distinct ListenerError;
+public type HeaderBindingError distinct ListenerError & BadRequestError;
 
 # Represents an error, which occurred due to the absence of the payload.
 public type NoContentError distinct ClientError;
 
 type PayloadBindingClientError ClientError & PayloadBindingError; 
 
-type PayloadBindingListenerError ListenerError & PayloadBindingError;
+type PayloadBindingListenerError distinct ListenerError & PayloadBindingError & BadRequestError;
 
 # Represents an error, which occurred due to payload constraint validation.
 public type PayloadValidationError distinct PayloadBindingError;
 
 type PayloadValidationClientError ClientError & PayloadValidationError;
 
-type PayloadValidationListenerError ListenerError & PayloadValidationError;
+type PayloadValidationListenerError distinct ListenerError & PayloadValidationError & BadRequestError;
 
 # Represents an error, which occurred due to a query parameter binding.
-public type QueryParameterBindingError distinct ListenerError;
+public type QueryParameterBindingError distinct ListenerError & BadRequestError;
 
 # Represents an error, which occurred due to a path parameter binding.
-public type PathParameterBindingError distinct ListenerError;
+public type PathParameterBindingError distinct ListenerError & BadRequestError;
 
 # Represents an error, which occurred during the request dispatching.
 public type RequestDispatchingError distinct ListenerError;
@@ -98,16 +98,10 @@ public type ResourceDispatchingError distinct RequestDispatchingError;
 public type ListenerAuthError distinct ListenerError;
 
 # Defines the authentication error types that returned from listener.
-public type ListenerAuthnError distinct ListenerAuthError;
+public type ListenerAuthnError distinct UnauthorizedError & ListenerAuthError;
 
 # Defines the authorization error types that returned from listener.
-public type ListenerAuthzError distinct ListenerAuthError;
-
-# Defined for internal use when panicing from the auth_desugar
-type InternalListenerAuthnError distinct ListenerAuthError;
-
-# Defined for internal use when panicing from the auth_desugar
-type InternalListenerAuthzError distinct ListenerAuthError;
+public type ListenerAuthzError distinct ForbiddenError & ListenerAuthError;
 
 # Defines the client error types that returned while sending outbound request.
 public type OutboundRequestError distinct ClientError;
