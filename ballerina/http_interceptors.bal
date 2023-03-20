@@ -57,10 +57,6 @@ service class DefaultErrorInterceptor {
 # The class used by the runtime to invoke the `decodeJwt` method to add jwt values to the request context.
 isolated class JwtDecoder {
 
-    # Gets invoked during object initialization.
-    #
-    isolated function init() {}
-
     # Decodes a jwt string to `[jwt:Header, jwt:Payload]`.
     #
     # + jwt - The jwt value as a string
