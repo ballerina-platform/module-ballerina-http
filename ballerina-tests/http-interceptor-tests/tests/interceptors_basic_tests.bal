@@ -20,7 +20,6 @@ import ballerina/test;
 import ballerina/http_test_common as common;
 
 [jwt:Header, jwt:Payload] reqCtxJwtValues = [];
-error? reqCtxJwtDecodeError = ();
 
 final http:Client interceptorsBasicTestsClientEP1 = check new("http://localhost:" + interceptorBasicTestsPort1.toString(), httpVersion = http:HTTP_1_1);
 
@@ -500,29 +499,22 @@ function testJwtInformationDecodeErrorInRequestContext() returns error? {
         secureSocket = {
             cert: common:CERT_FILE
         });
-    string response = check jwtClient->get("/requestInterceptorJwtInformation", {"authorization": "Bearer abcd"});
-    test:assertEquals(response, "Hello client");
-    if reqCtxJwtDecodeError is http:ListenerError {
-        test:assertEquals((<http:ListenerError>reqCtxJwtDecodeError).message(), "no member found for key: JWT_INFORMATION");
-    } else {
-        test:assertFail("Expected a ListenerError");
-    }
+    http:Response response = check jwtClient->get("/requestInterceptorJwtInformation", {"authorization": "Bearer abcd"});
+    test:assertEquals(response.statusCode, 500);
+    string payload = check response.getTextPayload();
+    test:assertEquals(payload, "no member found for key: JWT_INFORMATION");
 }
 
 @test:Config{
     dependsOn: [testJwtInformationDecodeErrorInRequestContext]
 }
 function testNilJwtInformationValueInRequestContext() returns error? {
-    reqCtxJwtDecodeError = ();
     http:Client jwtClient = check new("https://localhost:" + jwtInformationInReqCtxtTestPort.toString(),
         secureSocket = {
             cert: common:CERT_FILE
         });
-    string response = check jwtClient->get("/requestInterceptorJwtInformation");
-    test:assertEquals(response, "Hello client");
-    if reqCtxJwtDecodeError is http:ListenerError {
-        test:assertEquals((<http:ListenerError>reqCtxJwtDecodeError).message(), "no member found for key: JWT_INFORMATION");
-    } else {
-        test:assertFail("Expected a ListenerError");
-    }
+    http:Response response = check jwtClient->get("/requestInterceptorJwtInformation");
+    test:assertEquals(response.statusCode, 500);
+    string payload = check response.getTextPayload();
+    test:assertEquals(payload, "no member found for key: JWT_INFORMATION");
 }
