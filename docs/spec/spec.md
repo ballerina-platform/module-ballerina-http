@@ -2171,7 +2171,7 @@ used to handle errors, and they are not necessarily the last interceptor in the 
 chain. However, in the case of there is no error interceptors in the pipeline, pipeline returns the internal error 
 response to the client similar to any HTTP service resource.
 
-##### 8.1.1.4 Getting JWT information
+##### 8.1.1.4 Get JWT information
 If the JWT information of the request is required, it can be retrieved by using the `getWithType()` api.
 ```ballerina
 [jwt:Header, jwt:Payload] jwtInformation = check ctx.getWithType(http:JWT_INFORMATION);
