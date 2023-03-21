@@ -4,7 +4,7 @@ fixes:
 
 ignore:
   - "ballerina-tests"
-  - "native/src/main/java/io/ballerina/stdlib/http/api/testutils"
+  - "testutils"
 
 coverage:
   precision: 2
