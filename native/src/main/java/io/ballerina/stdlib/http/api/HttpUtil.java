@@ -667,11 +667,6 @@ public class HttpUtil {
         return ErrorCreator.createDistinctError(errorTypeId, packageName, fromString(message));
     }
 
-    private static BError createErrorCause(String message, String errorTypeId, Module packageName,
-                                           BMap<BString, Object> detail) {
-        return ErrorCreator.createDistinctError(errorTypeId, packageName, fromString(message), detail);
-    }
-
     public static HttpCarbonMessage getCarbonMsg(BObject objectValue, HttpCarbonMessage defaultMsg) {
         HttpCarbonMessage httpCarbonMessage = (HttpCarbonMessage) objectValue.getNativeData(
                 HttpConstants.TRANSPORT_MESSAGE);
