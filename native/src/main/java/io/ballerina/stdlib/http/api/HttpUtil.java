@@ -583,12 +583,7 @@ public class HttpUtil {
                                      IOUtils.getIOPackage());
             return createHttpError("Something wrong with the connection", HttpErrorType.GENERIC_CLIENT_ERROR, cause);
         } else if (throwable instanceof ClientConnectorException) {
-            BMap<BString, Object> detail = ValueCreator.createMapValue(MAP_TYPE);
-            detail.put(StringUtils.fromString("statusCode"), 502);
-            detail.put(StringUtils.fromString("body"), "\"Something wrong with the connection\"");
-            cause = createErrorCause(throwable.getMessage(), "502",
-                    IOUtils.getIOPackage(), detail);
-            return createHttpError(CLIENT_CONNECTOR_ERROR, "Something wrong with the connection", cause, detail);
+            return HttpUtil.createHttpStatusCodeError(CLIENT_CONNECTOR_ERROR, "Something wrong with the connection");
         } else if (throwable instanceof NullPointerException) {
             return createHttpError("Exception occurred: null", HttpErrorType.GENERIC_CLIENT_ERROR,
                                    createHttpError(throwable.toString()));

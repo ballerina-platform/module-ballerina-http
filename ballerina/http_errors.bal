@@ -139,7 +139,7 @@ public type MaximumWaitTimeExceededError distinct GenericClientError;
 public type CookieHandlingError distinct GenericClientError;
 
 # Represents a client connector error that occurred.
-public type ClientConnectorError distinct (ClientError & error<Detail>);
+public type ClientConnectorError distinct (ClientError & BadGatewayError);
 
 # Represents an error, which occurred due to bad syntax or incomplete info in the client request(4xx HTTP response).
 public type ClientRequestError distinct (ApplicationResponseError & error<Detail>);

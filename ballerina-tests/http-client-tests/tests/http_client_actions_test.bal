@@ -677,7 +677,7 @@ function testClientInitWithEmptyUrl() {
 function testServiceUnavailable() returns error? {
     http:Response|error response = httpClientActionClient->get("/testServiceUnavailable");
     if response is http:Response {
-        test:assertEquals(response.statusCode, 502, msg = "Connection refused: localhost/127.0.0.1:5983");
+        test:assertEquals(response.statusCode, 502);
         common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:TEXT_PLAIN);
         common:assertTextPayload(response.getTextPayload(), "Something wrong with the connection");
     } else {
