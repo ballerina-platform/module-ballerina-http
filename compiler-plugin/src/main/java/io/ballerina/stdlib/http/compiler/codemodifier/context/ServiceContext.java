@@ -39,6 +39,10 @@ public class ServiceContext {
         this.resourceContextMap.put(resourceId, payloadParamInfo);
     }
 
+    public void removeResourceContext(int resourceId) {
+        this.resourceContextMap.remove(resourceId);
+    }
+
     public int getServiceId() {
         return serviceId;
     }

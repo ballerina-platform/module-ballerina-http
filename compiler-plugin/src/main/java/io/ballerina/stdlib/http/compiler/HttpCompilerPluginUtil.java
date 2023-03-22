@@ -49,6 +49,7 @@ import static io.ballerina.stdlib.http.compiler.Constants.ARRAY_OF_MAP_OF_JSON;
 import static io.ballerina.stdlib.http.compiler.Constants.BALLERINA;
 import static io.ballerina.stdlib.http.compiler.Constants.BOOLEAN;
 import static io.ballerina.stdlib.http.compiler.Constants.BOOLEAN_ARRAY;
+import static io.ballerina.stdlib.http.compiler.Constants.BYTE_ARRAY;
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.DECIMAL;
 import static io.ballerina.stdlib.http.compiler.Constants.DECIMAL_ARRAY;
@@ -62,6 +63,7 @@ import static io.ballerina.stdlib.http.compiler.Constants.INT;
 import static io.ballerina.stdlib.http.compiler.Constants.INTERCEPTOR_RESOURCE_RETURN_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.INT_ARRAY;
 import static io.ballerina.stdlib.http.compiler.Constants.JSON;
+import static io.ballerina.stdlib.http.compiler.Constants.MAP_OF_ANYDATA;
 import static io.ballerina.stdlib.http.compiler.Constants.MAP_OF_JSON;
 import static io.ballerina.stdlib.http.compiler.Constants.NIL;
 import static io.ballerina.stdlib.http.compiler.Constants.OBJECT;
@@ -71,7 +73,11 @@ import static io.ballerina.stdlib.http.compiler.Constants.RESOURCE_RETURN_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.RESPONSE_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.STRING;
 import static io.ballerina.stdlib.http.compiler.Constants.STRING_ARRAY;
+import static io.ballerina.stdlib.http.compiler.Constants.STRUCTURED_ARRAY;
+import static io.ballerina.stdlib.http.compiler.Constants.TABLE_OF_ANYDATA_MAP;
+import static io.ballerina.stdlib.http.compiler.Constants.TUPLE_OF_ANYDATA;
 import static io.ballerina.stdlib.http.compiler.Constants.UNNECESSARY_CHARS_REGEX;
+import static io.ballerina.stdlib.http.compiler.Constants.XML;
 
 /**
  * Utility class providing http compiler plugin utility methods.
@@ -228,6 +234,7 @@ public class HttpCompilerPluginUtil {
         typeSymbols.put(INT, types.INT);
         typeSymbols.put(FLOAT, types.FLOAT);
         typeSymbols.put(DECIMAL, types.DECIMAL);
+        typeSymbols.put(XML, types.XML);
         typeSymbols.put(NIL, types.NIL);
         typeSymbols.put(STRING_ARRAY, types.builder().ARRAY_TYPE.withType(types.STRING).build());
         typeSymbols.put(BOOLEAN_ARRAY, types.builder().ARRAY_TYPE.withType(types.BOOLEAN).build());
@@ -238,5 +245,17 @@ public class HttpCompilerPluginUtil {
         typeSymbols.put(MAP_OF_JSON, types.builder().MAP_TYPE.withTypeParam(types.JSON).build());
         typeSymbols.put(ARRAY_OF_MAP_OF_JSON, types.builder().ARRAY_TYPE.withType(
                 types.builder().MAP_TYPE.withTypeParam(types.JSON).build()).build());
+        typeSymbols.put(MAP_OF_ANYDATA, types.builder().MAP_TYPE.withTypeParam(types.ANYDATA).build());
+        typeSymbols.put(TABLE_OF_ANYDATA_MAP, types.builder().TABLE_TYPE.withRowType(
+                typeSymbols.get(MAP_OF_ANYDATA)).build());
+        typeSymbols.put(TUPLE_OF_ANYDATA, types.builder().TUPLE_TYPE.withRestType(types.ANYDATA).build());
+        typeSymbols.put(STRUCTURED_ARRAY, types.builder().ARRAY_TYPE
+                .withType(
+                        types.builder().UNION_TYPE
+                                .withMemberTypes(
+                                        typeSymbols.get(MAP_OF_ANYDATA),
+                                        typeSymbols.get(TABLE_OF_ANYDATA_MAP),
+                                        typeSymbols.get(TUPLE_OF_ANYDATA)).build()).build());
+        typeSymbols.put(BYTE_ARRAY, types.builder().ARRAY_TYPE.withType(types.BYTE).build());
     }
 }
