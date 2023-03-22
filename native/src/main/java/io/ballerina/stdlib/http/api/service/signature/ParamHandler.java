@@ -107,7 +107,7 @@ public class ParamHandler {
             return;
         }
         this.pathParamTokens = Arrays.copyOfRange(resource.getParamNames(), 0, pathParamCount);
-        validatePathParam(resource, pathParamCount);
+        validatePathParam(pathParamCount);
     }
 
     private void validateSignatureParams() {
@@ -314,14 +314,14 @@ public class ParamHandler {
         this.queryParams.add(queryParam);
     }
 
-    private void validatePathParam(ResourceMethodType resource, int pathParamCount) {
+    private void validatePathParam(int pathParamCount) {
         Arrays.stream(this.paramTypes, 0, pathParamCount).forEach(type -> {
             int typeTag = type.getTag();
             if (isValidBasicType(typeTag) || (typeTag == TypeTags.ARRAY_TAG && isValidBasicType(
                     ((ArrayType) type).getElementType().getTag()))) {
                 return;
             }
-            throw HttpUtil.createHttpError("incompatible path parameter type: '" + type.getName() + "'",
+            throw HttpUtil.createHttpError("incompatible path parameter type: '" + type + "'",
                                            HttpErrorType.GENERIC_LISTENER_ERROR);
         });
     }
