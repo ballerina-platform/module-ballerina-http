@@ -139,4 +139,4 @@ public const int STATUS_LOOP_DETECTED = 508;
 # The HTTP response status code: 510 Not Extended
 public const int STATUS_NOT_EXTENDED = 510;
 # The HTTP response status code: 511 Network Authorization Required
-public const int STATUS_NETWORK_AUTHORIZATION_REQUIRED = 511;
+public const int STATUS_NETWORK_AUTHENTICATION_REQUIRED = 511;
