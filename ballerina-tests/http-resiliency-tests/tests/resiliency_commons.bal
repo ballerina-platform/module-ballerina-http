@@ -44,6 +44,7 @@ const string MOCK_3_INVOKED = "Mock3 Resource is Invoked.";
 
 const int SC_OK = 200;
 const int SC_INTERNAL_SERVER_ERROR = 500;
+const int SC_CONNECTION_ERROR = 502;
 const int SC_SERVICE_UNAVAILABLE = 503;
 
 function invokeApiAndVerifyResponse(http:Client testClient, string path, DataFeed dataFeed) returns error? {

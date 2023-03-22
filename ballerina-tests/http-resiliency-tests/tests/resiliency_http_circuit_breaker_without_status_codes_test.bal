@@ -87,7 +87,7 @@ function testCircuitBreakerWithoutStatusCodes2(DataFeed dataFeed) returns error?
 
 function responseDataProvider2() returns DataFeed[][] {
     return [
-        [{responseCode:SC_INTERNAL_SERVER_ERROR, message:"Something wrong with the connection"}],
+        [{responseCode:SC_CONNECTION_ERROR, message:"Something wrong with the connection"}],
         [{responseCode:SC_INTERNAL_SERVER_ERROR, message:UPSTREAM_UNAVAILABLE_MESSAGE}]
     ];
 }

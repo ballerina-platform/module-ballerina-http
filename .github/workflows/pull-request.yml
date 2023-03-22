@@ -55,6 +55,10 @@ jobs:
 
   ubuntu-build-without-native-tests:
       name: Build on Ubuntu without native tests
+      timeout-minutes: 60
+      concurrency:
+          group: ${{ github.head_ref }}-ubuntu-without-native
+          cancel-in-progress: true
       runs-on: ubuntu-latest
       steps:
           - name: Checkout Repository

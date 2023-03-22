@@ -151,6 +151,7 @@ import static io.ballerina.stdlib.http.api.HttpConstants.SOCKET_CONFIG_SO_BACKLO
 import static io.ballerina.stdlib.http.api.HttpConstants.SOCKET_CONFIG_TCP_NO_DELAY;
 import static io.ballerina.stdlib.http.api.HttpConstants.STATUS_CODE_RESPONSE_BODY_FIELD;
 import static io.ballerina.stdlib.http.api.HttpConstants.STATUS_CODE_RESPONSE_STATUS_FIELD;
+import static io.ballerina.stdlib.http.api.HttpErrorType.CLIENT_CONNECTOR_ERROR;
 import static io.ballerina.stdlib.http.transport.contract.Constants.ENCODING_GZIP;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_1_1_VERSION;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_TRANSFER_ENCODING_IDENTITY;
@@ -576,9 +577,7 @@ public class HttpUtil {
                                      IOUtils.getIOPackage());
             return createHttpError("Something wrong with the connection", HttpErrorType.GENERIC_CLIENT_ERROR, cause);
         } else if (throwable instanceof ClientConnectorException) {
-            cause = createErrorCause(throwable.getMessage(), IOConstants.ErrorCode.GenericError.errorCode(),
-                                     IOUtils.getIOPackage());
-            return createHttpError("Something wrong with the connection", HttpErrorType.GENERIC_CLIENT_ERROR, cause);
+            return HttpUtil.createHttpStatusCodeError(CLIENT_CONNECTOR_ERROR, "Something wrong with the connection");
         } else if (throwable instanceof NullPointerException) {
             return createHttpError("Exception occurred: null", HttpErrorType.GENERIC_CLIENT_ERROR,
                                    createHttpError(throwable.toString()));
