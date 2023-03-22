@@ -50,6 +50,7 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_SCHEME;
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_WHILE_WRITING_OUTBOUND_REQUEST_HEADERS;
 import static io.ballerina.stdlib.http.transport.contract.Constants.INBOUND_RESPONSE_ALREADY_RECEIVED;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_HEADERS;
+import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.setupContentLengthRequest;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil.initiateStream;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil.writeHttp2Headers;
 
@@ -71,7 +72,7 @@ public class SendingHeaders implements SenderState {
     private final Http2ConnectionEncoder encoder;
     private final Http2ClientChannel http2ClientChannel;
     private int streamId;
-    private boolean continueHeader;
+    private long contentLength = 0;
 
     public SendingHeaders(Http2TargetHandler http2TargetHandler, Http2RequestWriter http2RequestWriter) {
         this.http2TargetHandler = http2TargetHandler;
@@ -142,6 +143,12 @@ public class SendingHeaders implements SenderState {
         boolean endStream = false;
         this.streamId = initiateStream(ctx, connection, http2ClientChannel, outboundMsgHolder);
         http2RequestWriter.setStreamId(streamId);
+
+        contentLength += msg.content().readableBytes();
+        if (msg instanceof LastHttpContent) {
+            setupContentLengthRequest(httpOutboundRequest, contentLength);
+        }
+
         HttpRequest httpRequest = Util.createHttpRequest(httpOutboundRequest);
 
         if (msg instanceof LastHttpContent && msg.content().capacity() == 0) {
