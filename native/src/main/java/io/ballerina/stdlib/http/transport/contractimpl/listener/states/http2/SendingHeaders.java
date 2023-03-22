@@ -34,6 +34,7 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpMessage;
+import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http2.Http2Connection;
 import io.netty.handler.codec.http2.Http2ConnectionEncoder;
 import io.netty.handler.codec.http2.Http2Error;
@@ -50,6 +51,7 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_SCHEME;
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_WHILE_WRITING_OUTBOUND_RESPONSE_HEADERS;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_HEADERS;
+import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.setupContentLengthRequest;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil.validatePromisedStreamState;
 
 /**
@@ -70,6 +72,7 @@ public class SendingHeaders implements ListenerState {
     private final int originalStreamId;
     private final String serverName;
     private final Http2OutboundRespListener http2OutboundRespListener;
+    private long contentLength = 0;
 
     public SendingHeaders(Http2OutboundRespListener http2OutboundRespListener,
                           Http2MessageStateContext http2MessageStateContext) {
@@ -102,7 +105,7 @@ public class SendingHeaders implements ListenerState {
     public void writeOutboundResponseHeaders(Http2OutboundRespListener http2OutboundRespListener,
                                              HttpCarbonMessage outboundResponseMsg, HttpContent httpContent,
                                              int streamId) throws Http2Exception {
-        writeHeaders(outboundResponseMsg, streamId);
+        writeHeaders(outboundResponseMsg, streamId, httpContent);
         http2MessageStateContext.setListenerState(
                 new SendingEntityBody(http2OutboundRespListener, http2MessageStateContext));
         http2MessageStateContext.getListenerState()
@@ -147,10 +150,15 @@ public class SendingHeaders implements ListenerState {
         LOG.error(REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_HEADERS);
     }
 
-    private void writeHeaders(HttpCarbonMessage outboundResponseMsg, int streamId) throws Http2Exception {
+    private void writeHeaders(HttpCarbonMessage outboundResponseMsg, int streamId, HttpContent httpContent)
+            throws Http2Exception {
         outboundResponseMsg.getHeaders().
                 add(HttpConversionUtil.ExtensionHeaderNames.SCHEME.text(), HTTP_SCHEME);
         StateUtil.addTrailerHeaderIfPresent(outboundResponseMsg);
+        contentLength += httpContent.content().readableBytes();
+        if (httpContent instanceof LastHttpContent) {
+            setupContentLengthRequest(outboundResponseMsg, contentLength);
+        }
         HttpMessage httpMessage =
                 Util.createHttpResponse(outboundResponseMsg, HTTP2_VERSION, serverName, true);
         // Construct Http2 headers
