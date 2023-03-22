@@ -418,7 +418,7 @@ public readonly class StatusUpgradeRequired {
     public STATUS_UPGRADE_REQUIRED code = STATUS_UPGRADE_REQUIRED;
 }
 
-# Represents the status code of `STATUS_PRECONDITION_REQUIRED`.
+# Represents the status code of `STATUS_PREDICTION_REQUIRED`.
 #
 # + code - The response status code
 public readonly class StatusPreconditionRequired {
@@ -447,7 +447,7 @@ public readonly class StatusRequestHeaderFieldsTooLarge {
 # + code - The response status code
 public readonly class StatusUnavailableForLegalReasons {
     *Status;
-    public STATUS_UNAVAILABLE_DUE_TO_LEGAL_REASONS code = STATUS_UNAVAILABLE_DUE_TO_LEGAL_REASONS;
+    public STATUS_UNAVAILABLE_FOR_LEGAL_REASONS code = STATUS_UNAVAILABLE_FOR_LEGAL_REASONS;
 }
 
 # Represents the status code of `STATUS_INTERNAL_SERVER_ERROR`.
@@ -530,12 +530,12 @@ public readonly class StatusNotExtended {
     public STATUS_NOT_EXTENDED code = STATUS_NOT_EXTENDED;
 }
 
-# Represents the status code of `STATUS_NETWORK_AUTHORIZATION_REQUIRED`.
+# Represents the status code of `STATUS_NETWORK_AUTHENTICATION_REQUIRED`.
 #
 # + code - The response status code
 public readonly class StatusNetworkAuthenticationRequired {
     *Status;
-    public STATUS_NETWORK_AUTHORIZATION_REQUIRED code = STATUS_NETWORK_AUTHORIZATION_REQUIRED;
+    public STATUS_NETWORK_AUTHENTICATION_REQUIRED code = STATUS_NETWORK_AUTHENTICATION_REQUIRED;
 }
 
 // Status code object initialization
@@ -585,7 +585,7 @@ final StatusLocked STATUS_LOCKED_OBJ = new;
 final StatusFailedDependency STATUS_FAILED_DEPENDENCY_OBJ = new;
 final StatusTooEarly STATUS_TOO_EARLY_OBJ = new;
 final StatusPreconditionRequired STATUS_PRECONDITION_REQUIRED_OBJ = new;
-final StatusUnavailableForLegalReasons STATUS_UNAVAILABLE_DUE_TO_LEGAL_REASONS_OBJ = new;
+final StatusUnavailableForLegalReasons STATUS_UNAVAILABLE_FOR_LEGAL_REASONS_OBJ = new;
 final StatusUpgradeRequired STATUS_UPGRADE_REQUIRED_OBJ = new;
 final StatusTooManyRequests STATUS_TOO_MANY_REQUESTS_OBJ = new;
 final StatusRequestHeaderFieldsTooLarge STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE_OBJ = new;
@@ -599,7 +599,7 @@ final StatusVariantAlsoNegotiates STATUS_VARIANT_ALSO_NEGOTIATES_OBJ = new;
 final StatusInsufficientStorage STATUS_INSUFFICIENT_STORAGE_OBJ = new;
 final StatusLoopDetected STATUS_LOOP_DETECTED_OBJ = new;
 final StatusNotExtended STATUS_NOT_EXTENDED_OBJ = new;
-final StatusNetworkAuthenticationRequired STATUS_NETWORK_AUTHORIZATION_REQUIRED_OBJ = new;
+final StatusNetworkAuthenticationRequired STATUS_NETWORK_AUTHENTICATION_REQUIRED_OBJ = new;
 
 // Status code record types
 # The status code response record of `Continue`.
@@ -974,9 +974,20 @@ public type PreconditionRequired record {|
 # The status code response record of `UnavailableForLegalReasons`.
 #
 # + status - The response status code obj
+# # Deprecated
+# This record is deprecated. Please use `UnavailableForLegalReasons` instead.
+@deprecated
+public type UnavailableDueToLegalReasons record {|
+    *CommonResponse;
+    readonly StatusUnavailableForLegalReasons status = STATUS_UNAVAILABLE_FOR_LEGAL_REASONS_OBJ;
+|};
+
+# The status code response record of `UnavailableForLegalReasons`.
+#
+# + status - The response status code obj
 public type UnavailableForLegalReasons record {|
     *CommonResponse;
-    readonly StatusUnavailableForLegalReasons status = STATUS_UNAVAILABLE_DUE_TO_LEGAL_REASONS_OBJ;
+    readonly StatusUnavailableForLegalReasons status = STATUS_UNAVAILABLE_FOR_LEGAL_REASONS_OBJ;
 |};
 
 # The status code response record of `UpgradeRequired`.
@@ -1083,12 +1094,23 @@ public type NotExtended record {|
     readonly StatusNotExtended status = STATUS_NOT_EXTENDED_OBJ;
 |};
 
+# The status code response record of `NetworkAuthorizationRequired`.
+#
+# + status - The response status code obj
+# # Deprecated
+# This record is deprecated. Please use `NetworkAuthenticationRequired` instead.
+@deprecated
+public type NetworkAuthorizationRequired record {|
+    *CommonResponse;
+    readonly StatusNetworkAuthenticationRequired status = STATUS_NETWORK_AUTHENTICATION_REQUIRED_OBJ;
+|};
+
 # The status code response record of `NetworkAuthenticationRequired`.
 #
 # + status - The response status code obj
 public type NetworkAuthenticationRequired record {|
     *CommonResponse;
-    readonly StatusNetworkAuthenticationRequired status = STATUS_NETWORK_AUTHORIZATION_REQUIRED_OBJ;
+    readonly StatusNetworkAuthenticationRequired status = STATUS_NETWORK_AUTHENTICATION_REQUIRED_OBJ;
 |};
 
 # The common status code response constant of `Continue`.
@@ -1230,7 +1252,7 @@ public final readonly & TooEarly TOO_EARLY = {};
 public final readonly & PreconditionRequired PREDICTION_REQUIRED = {};
 
 # The common status code response constant of `UnavailableForLegalReasons`.
-public final readonly & UnavailableForLegalReasons UNAVAILABLE_DUE_TO_LEGAL_REASONS = {};
+public final readonly & UnavailableForLegalReasons UNAVAILABLE_FOR_LEGAL_REASONS = {};
 
 # The common status code response constant of `UpgradeRequired`.
 public final readonly & UpgradeRequired UPGRADE_REQUIRED = {};
@@ -1272,4 +1294,4 @@ public final readonly & LoopDetected LOOP_DETECTED = {};
 public final readonly & NotExtended NOT_EXTENDED = {};
 
 # The common status code response constant of `NetworkAuthenticationRequired`.
-public final readonly & NetworkAuthenticationRequired NETWORK_AUTHORIZATION_REQUIRED = {};
+public final readonly & NetworkAuthenticationRequired NETWORK_AUTHENTICATION_REQUIRED = {};
