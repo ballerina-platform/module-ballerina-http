@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [TypeReference kind return types gives compile time error in resource functions](https://github.com/ballerina-platform/ballerina-standard-library/issues/4043)
 - [HTTP compiler plugin validation for return-types not working properly for record types](https://github.com/ballerina-platform/ballerina-standard-library/issues/3651)
 - [HTTP compiler does not report error for returning record with object](https://github.com/ballerina-platform/ballerina-standard-library/issues/4045)
+- [Fix HTTP DELETE with payload giving an error (for HTTP2)](https://github.com/ballerina-platform/ballerina-standard-library/issues/4220)
 
 ### Added
 - [Make @http:Payload annotation optional for post, put and patch](https://github.com/ballerina-platform/ballerina-standard-library/issues/3276)
