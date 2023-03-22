@@ -78,7 +78,8 @@ public enum HttpErrorType {
     BAD_MATRIX_PARAMS_ERROR("BadMatrixParamError"),
     RESOURCE_DISPATCHING_SERVER_ERROR("ResourceDispatchingServerError"),
     LISTENER_AUTHZ_ERROR("ListenerAuthzError"),
-    LISTENER_AUTHN_ERROR("ListenerAuthnError");
+    LISTENER_AUTHN_ERROR("ListenerAuthnError"),
+    CLIENT_CONNECTOR_ERROR("ClientConnectorError");
 
     private final String errorName;
 

@@ -420,6 +420,11 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
         http:Response response = check clientEP2->get("/httpClientActionBE/dispatched to white_spaced expression ");
         check caller->respond(response);
     }
+
+    resource function get testServiceUnavailable() returns error? {
+        http:Client ep = checkpanic new("http://localhost:8080");
+        return ep->get("/bar");
+    }
 }
 
 @test:Config {}
@@ -665,5 +670,17 @@ function testClientInitWithEmptyUrl() {
         test:assertEquals(httpEndpoint.message(), "malformed URL: ", msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type");
+    }
+}
+
+@test:Config {}
+function testServiceUnavailable() returns error? {
+    http:Response|error response = httpClientActionClient->get("/testServiceUnavailable");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 502);
+        common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:TEXT_PLAIN);
+        common:assertTextPayload(response.getTextPayload(), "Something wrong with the connection");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
