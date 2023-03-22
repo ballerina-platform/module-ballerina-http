@@ -181,6 +181,7 @@ public type ResourceDispatchingServerError InternalServerErrorError & ResourceDi
 
 isolated function getErrorResponse(error err, string? returnMediaType = ()) returns Response {
     Response response = new;
+    
     // Handling the client errors
     if err is ApplicationResponseError {
         response.statusCode = err.detail().statusCode;
