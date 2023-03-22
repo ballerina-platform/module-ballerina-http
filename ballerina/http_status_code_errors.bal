@@ -24,7 +24,7 @@ public type ErrorDetail record {
 };
 
 # Represents the details of an HTTP error.
-# 
+#
 # + statusCode - The inbound error response status code
 public type DefaultErrorDetail record {
     *ErrorDetail;
@@ -122,7 +122,7 @@ public type TooManyRequestsError distinct '4XXStatusCodeError;
 public type RequestHeaderFieldsTooLargeError distinct '4XXStatusCodeError;
 
 # Represents the HTTP 451 Unavailable For Legal Reasons error.
-public type UnavailableForLegalReasonsError distinct '4XXStatusCodeError;
+public type UnavailableDueToLegalReasonsError distinct '4XXStatusCodeError;
 
 # Represents the HTTP 500 Internal Server Error error.
 public type InternalServerErrorError distinct '5XXStatusCodeError;
@@ -157,7 +157,6 @@ public type NotExtendedError distinct '5XXStatusCodeError;
 # Represents the HTTP 511 Network Authentication Required error.
 public type NetworkAuthenticationRequiredError distinct '5XXStatusCodeError;
 
-
 # Represents Service Not Found error.
 public type ServiceNotFoundError NotFoundError & ServiceDispatchingError;
 
@@ -181,7 +180,7 @@ public type ResourceDispatchingServerError InternalServerErrorError & ResourceDi
 
 isolated function getErrorResponse(error err, string? returnMediaType = ()) returns Response {
     Response response = new;
-    
+
     // Handling the client errors
     if err is ApplicationResponseError {
         response.statusCode = err.detail().statusCode;
@@ -276,7 +275,7 @@ isolated function setStatusCode(error err, Response response) {
         response.statusCode = 429;
     } else if err is RequestHeaderFieldsTooLargeError {
         response.statusCode = 431;
-    } else if err is UnavailableForLegalReasonsError {
+    } else if err is UnavailableDueToLegalReasonsError {
         response.statusCode = 451;
     } else if err is InternalServerErrorError {
         response.statusCode = 500;

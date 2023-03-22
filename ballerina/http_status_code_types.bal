@@ -22,7 +22,7 @@ public type StatusCodeResponse Continue|SwitchingProtocols|Processing|EarlyHints
     BadRequest|Unauthorized|PaymentRequired|Forbidden|NotFound|MethodNotAllowed|NotAcceptable|
     ProxyAuthenticationRequired|RequestTimeout|Conflict|Gone|LengthRequired|PreconditionFailed|PayloadTooLarge|
     UriTooLong|UnsupportedMediaType|RangeNotSatisfiable|ExpectationFailed|MisdirectedRequest|UnprocessableEntity|
-    Locked|FailedDependency|TooEarly|PreconditionRequired|UnavailableForLegalReasons|UpgradeRequired|TooManyRequests|
+    Locked|FailedDependency|TooEarly|PreconditionRequired|UnavailableDueToLegalReasons|UpgradeRequired|TooManyRequests|
     RequestHeaderFieldsTooLarge|InternalServerError|NotImplemented|BadGateway|ServiceUnavailable|GatewayTimeout|
     HttpVersionNotSupported|VariantAlsoNegotiates|InsufficientStorage|LoopDetected|NotExtended|
     NetworkAuthenticationRequired;
@@ -445,9 +445,9 @@ public readonly class StatusRequestHeaderFieldsTooLarge {
 # Represents the status code of `STATUS_UNAVAILABLE_DUE_TO_LEGAL_REASONS`.
 #
 # + code - The response status code
-public readonly class StatusUnavailableForLegalReasons {
+public readonly class StatusUnavailableDueToLegalReasons {
     *Status;
-    public STATUS_UNAVAILABLE_FOR_LEGAL_REASONS code = STATUS_UNAVAILABLE_FOR_LEGAL_REASONS;
+    public STATUS_UNAVAILABLE_DUE_TO_LEGAL_REASONS code = STATUS_UNAVAILABLE_DUE_TO_LEGAL_REASONS;
 }
 
 # Represents the status code of `STATUS_INTERNAL_SERVER_ERROR`.
@@ -585,7 +585,7 @@ final StatusLocked STATUS_LOCKED_OBJ = new;
 final StatusFailedDependency STATUS_FAILED_DEPENDENCY_OBJ = new;
 final StatusTooEarly STATUS_TOO_EARLY_OBJ = new;
 final StatusPreconditionRequired STATUS_PRECONDITION_REQUIRED_OBJ = new;
-final StatusUnavailableForLegalReasons STATUS_UNAVAILABLE_FOR_LEGAL_REASONS_OBJ = new;
+final StatusUnavailableDueToLegalReasons STATUS_UNAVAILABLE_DUE_TO_LEGAL_REASONS_OBJ = new;
 final StatusUpgradeRequired STATUS_UPGRADE_REQUIRED_OBJ = new;
 final StatusTooManyRequests STATUS_TOO_MANY_REQUESTS_OBJ = new;
 final StatusRequestHeaderFieldsTooLarge STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE_OBJ = new;
@@ -971,23 +971,12 @@ public type PreconditionRequired record {|
     readonly StatusPreconditionRequired status = STATUS_PRECONDITION_REQUIRED_OBJ;
 |};
 
-# The status code response record of `UnavailableForLegalReasons`.
+# The status code response record of `UnavailableDueToLegalReasons`.
 #
 # + status - The response status code obj
-# # Deprecated
-# This record is deprecated. Please use `UnavailableForLegalReasons` instead.
-@deprecated
 public type UnavailableDueToLegalReasons record {|
     *CommonResponse;
-    readonly StatusUnavailableForLegalReasons status = STATUS_UNAVAILABLE_FOR_LEGAL_REASONS_OBJ;
-|};
-
-# The status code response record of `UnavailableForLegalReasons`.
-#
-# + status - The response status code obj
-public type UnavailableForLegalReasons record {|
-    *CommonResponse;
-    readonly StatusUnavailableForLegalReasons status = STATUS_UNAVAILABLE_FOR_LEGAL_REASONS_OBJ;
+    readonly StatusUnavailableDueToLegalReasons status = STATUS_UNAVAILABLE_DUE_TO_LEGAL_REASONS_OBJ;
 |};
 
 # The status code response record of `UpgradeRequired`.
@@ -1251,8 +1240,8 @@ public final readonly & TooEarly TOO_EARLY = {};
 # The common status code response constant of `PreconditionRequired`.
 public final readonly & PreconditionRequired PREDICTION_REQUIRED = {};
 
-# The common status code response constant of `UnavailableForLegalReasons`.
-public final readonly & UnavailableForLegalReasons UNAVAILABLE_FOR_LEGAL_REASONS = {};
+# The common status code response constant of `UnavailableDueToLegalReasons`.
+public final readonly & UnavailableDueToLegalReasons UNAVAILABLE_DUE_TO_LEGAL_REASONS = {};
 
 # The common status code response constant of `UpgradeRequired`.
 public final readonly & UpgradeRequired UPGRADE_REQUIRED = {};

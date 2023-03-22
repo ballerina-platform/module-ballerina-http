@@ -156,11 +156,11 @@ service /differentStatusCodes on httpStatusCodeListenerEP {
         return {body: "It's PreconditionRequired"};
     }
 
-    resource function get statusUnavailableForLegalReasons/[boolean constReq]() returns http:UnavailableForLegalReasons {
+    resource function get statusUnavailableDueToLegalReasons/[boolean constReq]() returns http:UnavailableDueToLegalReasons {
         if constReq {
             return http:UNAVAILABLE_DUE_TO_LEGAL_REASONS;
         }
-        return {body: "It's UnavailableForLegalReasons"};
+        return {body: "It's UnavailableDueToLegalReasons"};
     }
 
     resource function get statusVariantAlsoNegotiates/[boolean constReq]() returns http:VariantAlsoNegotiates {
@@ -193,7 +193,7 @@ service /differentStatusCodes on httpStatusCodeListenerEP {
 
     resource function get NetworkAuthenticationRequired/[boolean constReq]() returns http:NetworkAuthenticationRequired {
         if constReq {
-            return http:NETWORK_AUTHORIZATION_REQUIRED;
+            return http:NETWORK_AUTHENTICATION_REQUIRED;
         }
         return {body: "Authorization Required"};
     }
@@ -664,17 +664,17 @@ function testStatusPreconditionRequired() {
 }
 
 @test:Config {}
-function testStatusUnavailableForLegalReasons() {
-    http:Response|error response = httpStatusCodeClient->get("/differentStatusCodes/statusUnavailableForLegalReasons/false");
+function testStatusUnavailableDueToLegalReasons() {
+    http:Response|error response = httpStatusCodeClient->get("/differentStatusCodes/statusUnavailableDueToLegalReasons/false");
     if response is http:Response {
         test:assertEquals(response.statusCode, 451, msg = "Found unexpected output");
         test:assertEquals(response.reasonPhrase, "Client Error (451)", msg = "Found unexpected output");
-        common:assertTextPayload(response.getTextPayload(), "It's UnavailableForLegalReasons");
+        common:assertTextPayload(response.getTextPayload(), "It's UnavailableDueToLegalReasons");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
-    response = httpStatusCodeClient->get("/differentStatusCodes/statusUnavailableForLegalReasons/true");
+    response = httpStatusCodeClient->get("/differentStatusCodes/statusUnavailableDueToLegalReasons/true");
     if response is http:Response {
         test:assertEquals(response.statusCode, 451, msg = "Found unexpected output");
         test:assertEquals(response.reasonPhrase, "Client Error (451)", msg = "Found unexpected output");
