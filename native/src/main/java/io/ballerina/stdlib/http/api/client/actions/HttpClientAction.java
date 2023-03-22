@@ -38,6 +38,7 @@ import io.ballerina.stdlib.http.transport.message.Http2PushPromise;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -257,7 +258,14 @@ public class HttpClientAction extends AbstractHTTPAction {
     }
 
     private static BString constructRequestPath(BArray pathArray, BMap params) {
-        String joinedPath = SINGLE_SLASH + String.join(SINGLE_SLASH, pathArray.getStringArray());
+        String joinedPath = EMPTY;
+        Object[] pathSegments = Arrays.stream(pathArray.getValues()).filter(Objects::nonNull).toArray();
+        for (Object pathSegment : pathSegments) {
+            joinedPath += SINGLE_SLASH + pathSegment.toString();
+        }
+        if (joinedPath.equals(EMPTY)) {
+            joinedPath = SINGLE_SLASH;
+        }
         String queryParams = constructQueryString(params);
         if (queryParams.isEmpty()) {
             return StringUtils.fromString(joinedPath);
