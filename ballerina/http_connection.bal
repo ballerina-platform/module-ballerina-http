@@ -192,7 +192,6 @@ public isolated client class Caller {
     }
 
     private isolated function returnErrorResponse(error errorResponse, string? returnMediaType = ()) returns ListenerError? {
-
         return nativeRespondError(self, getErrorResponse(errorResponse, returnMediaType), errorResponse);
     }
 }
