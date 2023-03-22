@@ -418,7 +418,7 @@ public readonly class StatusUpgradeRequired {
     public STATUS_UPGRADE_REQUIRED code = STATUS_UPGRADE_REQUIRED;
 }
 
-# Represents the status code of `STATUS_PREDICTION_REQUIRED`.
+# Represents the status code of `STATUS_PRECONDITION_REQUIRED`.
 #
 # + code - The response status code
 public readonly class StatusPreconditionRequired {

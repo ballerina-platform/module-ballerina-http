@@ -24,7 +24,7 @@ public type ErrorDetail record {
 };
 
 # Represents the details of an HTTP error.
-#
+# 
 # + statusCode - The inbound error response status code
 public type DefaultErrorDetail record {
     *ErrorDetail;
@@ -157,6 +157,7 @@ public type NotExtendedError distinct '5XXStatusCodeError;
 # Represents the HTTP 511 Network Authentication Required error.
 public type NetworkAuthenticationRequiredError distinct '5XXStatusCodeError;
 
+
 # Represents Service Not Found error.
 public type ServiceNotFoundError NotFoundError & ServiceDispatchingError;
 
@@ -180,7 +181,6 @@ public type ResourceDispatchingServerError InternalServerErrorError & ResourceDi
 
 isolated function getErrorResponse(error err, string? returnMediaType = ()) returns Response {
     Response response = new;
-
     // Handling the client errors
     if err is ApplicationResponseError {
         response.statusCode = err.detail().statusCode;
