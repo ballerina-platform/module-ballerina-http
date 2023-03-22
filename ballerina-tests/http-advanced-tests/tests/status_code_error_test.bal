@@ -99,7 +99,7 @@ function getStatusCodeError(int statusCode) returns http:StatusCodeError {
             return error http:RequestHeaderFieldsTooLargeError("Request header fields too large error");
         }
         451 => {
-            return error http:UnavailableForLegalReasonsError("Unavailable for legal reasons error");
+            return error http:UnavailableDueToLegalReasonsError("Unavailable for legal reasons error");
         }
         500 => {
             return error http:InternalServerErrorError("Internal server error error");

@@ -55,6 +55,8 @@ import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
+import io.ballerina.stdlib.http.compiler.codemodifier.context.ParamAvailability;
+import io.ballerina.stdlib.http.compiler.codemodifier.context.ParamData;
 import io.ballerina.tools.diagnostics.Location;
 import org.wso2.ballerinalang.compiler.diagnostic.properties.BSymbolicProperty;
 
@@ -66,6 +68,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static io.ballerina.stdlib.http.compiler.Constants.ANYDATA;
 import static io.ballerina.stdlib.http.compiler.Constants.ARRAY_OF_MAP_OF_JSON;
@@ -108,11 +111,13 @@ import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.getNodeSt
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.retrieveEffectiveTypeDesc;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.subtypeOf;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.updateDiagnostic;
+import static io.ballerina.stdlib.http.compiler.codemodifier.HttpPayloadParamIdentifier.validateAnnotatedParams;
+import static io.ballerina.stdlib.http.compiler.codemodifier.HttpPayloadParamIdentifier.validateNonAnnotatedParams;
 
 /**
  * Validates a ballerina http resource.
  */
-class HttpResourceValidator {
+public class HttpResourceValidator {
 
     static void validateResource(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
                                  LinksMetaData linksMetaData, Map<String, TypeSymbol> typeSymbols) {
@@ -286,6 +291,15 @@ class HttpResourceValidator {
         if (parametersOptional.isEmpty()) {
             return;
         }
+        // Mocking code modifier here since LS does not run code modifiers
+        // Related issue: https://github.com/ballerina-platform/ballerina-lang/issues/39792
+        List<Integer> analyzedParams = new ArrayList<>();
+        if (resourceMethodOptional.isPresent()) {
+            String accessor = resourceMethodOptional.get();
+            if (Stream.of(GET, HEAD, OPTIONS).noneMatch(accessor::equals)) {
+                analyzedParams = mockCodeModifier(ctx, typeSymbols, parametersOptional);
+            }
+        }
         int paramIndex = -1;
         for (ParameterSymbol param : parametersOptional.get()) {
             paramIndex++;
@@ -327,7 +341,9 @@ class HttpResourceValidator {
                         reportInvalidParameterType(ctx, paramLocation, paramType);
                     }
                 } else {
-                    validateQueryParamType(ctx, paramLocation, paramName, typeSymbol, typeSymbols);
+                    if (!analyzedParams.contains(param.hashCode())) {
+                        validateQueryParamType(ctx, paramLocation, paramName, typeSymbol, typeSymbols);
+                    }
                 }
                 continue;
             }
@@ -458,6 +474,47 @@ class HttpResourceValidator {
         }
     }
 
+    public static List<Integer> mockCodeModifier(SyntaxNodeAnalysisContext ctx, Map<String, TypeSymbol> typeSymbols,
+                                                 Optional<List<ParameterSymbol>> parametersOptional) {
+        List<ParamData> nonAnnotatedParams = new ArrayList<>();
+        List<ParamData> annotatedParams = new ArrayList<>();
+        List<Integer> analyzedParams = new ArrayList<>();
+        ParamAvailability paramAvailability = new ParamAvailability();
+        int index = 0;
+        for (ParameterSymbol param : parametersOptional.get()) {
+            List<AnnotationSymbol> annotations = param.annotations().stream()
+                    .filter(annotationSymbol -> annotationSymbol.typeDescriptor().isPresent())
+                    .collect(Collectors.toList());
+            if (annotations.isEmpty()) {
+                nonAnnotatedParams.add(new ParamData(param, index++));
+            } else {
+                annotatedParams.add(new ParamData(param, index++));
+            }
+        }
+
+        for (ParamData annotatedParam : annotatedParams) {
+            validateAnnotatedParams(annotatedParam.getParameterSymbol(), paramAvailability);
+            if (paramAvailability.isAnnotatedPayloadParam()) {
+                return analyzedParams;
+            }
+        }
+
+        for (ParamData nonAnnotatedParam : nonAnnotatedParams) {
+            ParameterSymbol parameterSymbol = nonAnnotatedParam.getParameterSymbol();
+
+            if (validateNonAnnotatedParams(ctx, parameterSymbol.typeDescriptor(), paramAvailability,
+                    parameterSymbol, typeSymbols)) {
+                analyzedParams.add(parameterSymbol.hashCode());
+            }
+            if (paramAvailability.isErrorOccurred()) {
+                analyzedParams.add(parameterSymbol.hashCode());
+                break;
+            }
+        }
+
+        return analyzedParams;
+    }
+
     private static void validatePayloadParamType(SyntaxNodeAnalysisContext ctx, Map<String, TypeSymbol> typeSymbols,
                                                  Location paramLocation, String resourceMethodOptional,
                                                  ParameterSymbol param, TypeSymbol typeDescriptor) {
@@ -525,14 +582,23 @@ class HttpResourceValidator {
         reportInvalidQueryParameterType(ctx, paramLocation, paramName);
     }
 
-    private static TypeSymbol getEffectiveTypeFromTypeReference(TypeSymbol typeSymbol) {
+    public static TypeSymbol getEffectiveType(TypeSymbol typeSymbol) {
+        if (typeSymbol.typeKind() == TypeDescKind.TYPE_REFERENCE) {
+            return getEffectiveType(getEffectiveTypeFromTypeReference(typeSymbol));
+        } else if (typeSymbol.typeKind() == TypeDescKind.INTERSECTION) {
+            return getEffectiveType(getEffectiveTypeFromReadonlyIntersection((IntersectionTypeSymbol) typeSymbol));
+        }
+        return typeSymbol;
+    }
+
+    public static TypeSymbol getEffectiveTypeFromTypeReference(TypeSymbol typeSymbol) {
         if (typeSymbol.typeKind() == TypeDescKind.TYPE_REFERENCE) {
             return getEffectiveTypeFromTypeReference(((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor());
         }
         return typeSymbol;
     }
 
-    private static boolean isValidBasicParamType(TypeSymbol typeSymbol, Map<String, TypeSymbol> typeSymbols) {
+    public static boolean isValidBasicParamType(TypeSymbol typeSymbol, Map<String, TypeSymbol> typeSymbols) {
         return subtypeOf(typeSymbols, typeSymbol, STRING) ||
                 subtypeOf(typeSymbols, typeSymbol, INT) ||
                 subtypeOf(typeSymbols, typeSymbol, FLOAT) ||
@@ -830,7 +896,7 @@ class HttpResourceValidator {
         updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_106, typeName);
     }
 
-    private static void reportInvalidPayloadParameterType(SyntaxNodeAnalysisContext ctx, Location location,
+    public static void reportInvalidPayloadParameterType(SyntaxNodeAnalysisContext ctx, Location location,
                                                           String typeName) {
         updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_107, typeName);
     }

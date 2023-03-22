@@ -41,7 +41,7 @@ public class DocumentContext {
         return context;
     }
 
-    public void addServiceContext(ServiceContext serviceContext) {
+    public void setServiceContext(ServiceContext serviceContext) {
         serviceContextMap.put(serviceContext.getServiceId(), serviceContext);
     }
 
