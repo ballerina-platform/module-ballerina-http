@@ -106,6 +106,20 @@ service /foo on clientResourceMethodsServerEP {
     }
 }
 
+service on clientResourceMethodsServerEP {
+
+    resource function 'default [string... path]() returns string {
+        return "Greetings! from path /" + strings:'join("/", ...path);
+    }
+
+    resource function get bar/[string str]/[int i]/[float f]/[decimal d]/[boolean b]() returns json {
+        return {
+            msg: "Greetings! from mixed path params",
+            path: "/bar/" + strings:'join("/", str, i.toString(), f.toString(), d.toString(), b.toString())
+        };
+    }
+}
+
 @test:Config {}
 function testClientGetResource() returns error? {
     string response = check clientResourceMethodsClientEP->/foo/bar();
@@ -214,3 +228,55 @@ function testResourceMethodsWithOtherPublicClients(http:ClientObject clientEP) r
     common:assertTextPayload(resp.getTextPayload(), "Hey from HEAD barBaz to George");
 }
 
+@test:Config {}
+function testClientResourceWithBasicType() returns error? {
+    string response = check clientResourceMethodsClientEP->/baz/[45.78]/foo;
+    test:assertEquals(response, "Greetings! from path /baz/45.78/foo");
+
+    response = check clientResourceMethodsClientEP->/baz/'45\.78/foo.post("Hello!");
+    test:assertEquals(response, "Greetings! from path /baz/45.78/foo");
+
+    map<json> res = check clientResourceMethodsClientEP->/bar/'false/[45]/[34.5]/[45.6d]/[false];
+    test:assertEquals(res["msg"], "Greetings! from mixed path params");
+    test:assertEquals(res["path"], "/bar/false/45/34.5/45.6/false");
+
+    string|int id = "2453D";
+    response = check clientResourceMethodsClientEP->/baz/[id];
+    test:assertEquals(response, "Greetings! from path /baz/2453D");
+
+    id = 2453;
+    response = check clientResourceMethodsClientEP->/baz/[id];
+    test:assertEquals(response, "Greetings! from path /baz/2453");
+}
+
+@test:Config {}
+function testClientResourceWithBasicRestType() returns error? {
+    string[] path0 = [];
+    string response = check clientResourceMethodsClientEP->/[...path0];
+    test:assertEquals(response, "Greetings! from path /");
+
+    string[] paths1 = ["baz", "45", "true", "34.5", "45.6d"];
+    response = check clientResourceMethodsClientEP->/[...paths1];
+    test:assertEquals(response, "Greetings! from path /baz/45/true/34.5/45.6d");
+
+    int[] paths2 = [1, 2, 3, 4, 5];
+    response = check clientResourceMethodsClientEP->/[...paths2].post("Hello!");
+    test:assertEquals(response, "Greetings! from path /1/2/3/4/5");
+
+    float[] paths3 = [1.1, 2.2, 3.3, 4.4, 5.5];
+    response = check clientResourceMethodsClientEP->/[...paths3];
+    test:assertEquals(response, "Greetings! from path /1.1/2.2/3.3/4.4/5.5");
+
+    boolean[] paths4 = [true, false, true, false, true];
+    response = check clientResourceMethodsClientEP->/[...paths4].delete();
+    test:assertEquals(response, "Greetings! from path /true/false/true/false/true");
+
+    decimal[] paths5 = [1.1d, 2.2d, 3.3d, 4.4d, 5.5d];
+    response = check clientResourceMethodsClientEP->/[...paths5];
+    test:assertEquals(response, "Greetings! from path /1.1/2.2/3.3/4.4/5.5");
+
+    (string|int|float|decimal|boolean)[] paths6 = ["bar", "foo", 45, 34.5, 45.6d, true];
+    map<json> res = check clientResourceMethodsClientEP->/[...paths6];
+    test:assertEquals(res["msg"], "Greetings! from mixed path params");
+    test:assertEquals(res["path"], "/bar/foo/45/34.5/45.6/true");
+}
