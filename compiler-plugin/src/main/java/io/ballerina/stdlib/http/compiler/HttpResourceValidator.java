@@ -24,6 +24,7 @@ import io.ballerina.compiler.api.symbols.FunctionTypeSymbol;
 import io.ballerina.compiler.api.symbols.IntersectionTypeSymbol;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
+import io.ballerina.compiler.api.symbols.PathParameterSymbol;
 import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
 import io.ballerina.compiler.api.symbols.RecordTypeSymbol;
 import io.ballerina.compiler.api.symbols.ResourceMethodSymbol;
@@ -32,6 +33,9 @@ import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
+import io.ballerina.compiler.api.symbols.resourcepath.PathRestParam;
+import io.ballerina.compiler.api.symbols.resourcepath.PathSegmentList;
+import io.ballerina.compiler.api.symbols.resourcepath.ResourcePath;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
@@ -280,9 +284,10 @@ public class HttpResourceValidator {
         if (resourceMethodSymbolOptional.isEmpty()) {
             return;
         }
-        Optional<String> resourceMethodOptional = resourceMethodSymbolOptional.get().getName();
-        Optional<List<ParameterSymbol>> parametersOptional =
-                ((ResourceMethodSymbol) resourceMethodSymbolOptional.get()).typeDescriptor().params();
+        ResourceMethodSymbol resourceMethodSymbol = (ResourceMethodSymbol) resourceMethodSymbolOptional.get();
+        Optional<String> resourceMethodOptional = resourceMethodSymbol.getName();
+        Optional<List<ParameterSymbol>> parametersOptional = resourceMethodSymbol.typeDescriptor().params();
+        validatePathParamType(ctx, typeSymbols, resourceMethodSymbol.resourcePath());
         if (parametersOptional.isEmpty()) {
             return;
         }
@@ -445,6 +450,27 @@ public class HttpResourceValidator {
         }
         if (!headerAnnotationPresent) {
             enableAddHeaderParamCodeAction(ctx, member.functionSignature().location());
+        }
+    }
+
+    private static void validatePathParamType(SyntaxNodeAnalysisContext ctx, Map<String, TypeSymbol> typeSymbols,
+                                              ResourcePath path) {
+        if (path instanceof PathRestParam) {
+            validatePathParam(ctx, typeSymbols, ((PathRestParam) path).parameter());
+        } else if (path instanceof PathSegmentList) {
+            ((PathSegmentList) path).pathParameters().forEach(param -> validatePathParam(ctx, typeSymbols, param));
+
+            Optional<PathParameterSymbol> pathRestParam = ((PathSegmentList) path).pathRestParameter();
+            if (pathRestParam.isPresent()) {
+                validatePathParam(ctx, typeSymbols, pathRestParam.get());
+            }
+        }
+    }
+
+    private static void validatePathParam(SyntaxNodeAnalysisContext ctx, Map<String, TypeSymbol> typeSymbols,
+                                          PathParameterSymbol pathParam) {
+        if (!isValidBasicParamType(pathParam.typeDescriptor(), typeSymbols)) {
+            reportInvalidPathParameterType(ctx, pathParam.location(), pathParam.getName().get());
         }
     }
 
@@ -899,6 +925,11 @@ public class HttpResourceValidator {
     private static void reportInvalidQueryParameterType(SyntaxNodeAnalysisContext ctx, Location location,
                                                         String paramName) {
         updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_112, paramName);
+    }
+
+    private static void reportInvalidPathParameterType(SyntaxNodeAnalysisContext ctx, Location location,
+                                                       String paramName) {
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_145, paramName);
     }
 
     private static void reportInvalidUnionQueryType(SyntaxNodeAnalysisContext ctx, Location location,

@@ -21,6 +21,7 @@ package io.ballerina.stdlib.http.api.client.actions;
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Future;
 import io.ballerina.runtime.api.PredefinedTypes;
+import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
@@ -38,6 +39,7 @@ import io.ballerina.stdlib.http.transport.message.Http2PushPromise;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -257,12 +259,34 @@ public class HttpClientAction extends AbstractHTTPAction {
     }
 
     private static BString constructRequestPath(BArray pathArray, BMap params) {
-        String joinedPath = SINGLE_SLASH + String.join(SINGLE_SLASH, pathArray.getStringArray());
+        String joinedPath = SINGLE_SLASH + String.join(SINGLE_SLASH, getPathStringArray(pathArray));
         String queryParams = constructQueryString(params);
         if (queryParams.isEmpty()) {
             return StringUtils.fromString(joinedPath);
         } else {
             return StringUtils.fromString(joinedPath + QUESTION_MARK + queryParams);
+        }
+    }
+
+    private static String[] getPathStringArray(BArray pathArray) {
+        int tag = pathArray.getElementType().getTag();
+        switch (tag) {
+            case TypeTags.STRING_TAG:
+                return Arrays.stream(pathArray.getStringArray()).map(String::valueOf).toArray(String[]::new);
+            case TypeTags.INT_TAG:
+                return Arrays.stream(pathArray.getIntArray()).mapToObj(String::valueOf).toArray(String[]::new);
+            case TypeTags.FLOAT_TAG:
+                return Arrays.stream(pathArray.getFloatArray()).mapToObj(String::valueOf).toArray(String[]::new);
+            case TypeTags.BOOLEAN_TAG:
+                boolean[] booleanArray = pathArray.getBooleanArray();
+                String[] booleanStringArray = new String[booleanArray.length];
+                for (int i = 0; i < booleanArray.length; i++) {
+                    booleanStringArray[i] = String.valueOf(booleanArray[i]);
+                }
+                return booleanStringArray;
+            default:
+                return Arrays.stream(pathArray.getValues()).filter(Objects::nonNull).map(String::valueOf)
+                        .toArray(String[]::new);
         }
     }
 

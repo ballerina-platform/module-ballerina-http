@@ -27,7 +27,7 @@ public type ClientObject client object {
     # + params - The query parameters
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    isolated resource function post [string ...path](RequestMessage message, map<string|string[]>? headers = (), string?
+    isolated resource function post [PathParamType ...path](RequestMessage message, map<string|string[]>? headers = (), string?
             mediaType = (), TargetType targetType = <>, *QueryParams params) returns targetType|ClientError;
 
     # The client resource function to send HTTP PUT requests to HTTP endpoints.
@@ -40,7 +40,7 @@ public type ClientObject client object {
     # + params - The query parameters
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    isolated resource function put [string ...path](RequestMessage message, map<string|string[]>? headers = (), string?
+    isolated resource function put [PathParamType ...path](RequestMessage message, map<string|string[]>? headers = (), string?
             mediaType = (), TargetType targetType = <>, *QueryParams params) returns targetType|ClientError;
 
     # The client resource function to send HTTP PATCH requests to HTTP endpoints.
@@ -53,7 +53,7 @@ public type ClientObject client object {
     # + params - The query parameters
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    isolated resource function patch [string ...path](RequestMessage message, map<string|string[]>? headers = (),
+    isolated resource function patch [PathParamType ...path](RequestMessage message, map<string|string[]>? headers = (),
             string? mediaType = (), TargetType targetType = <>, *QueryParams params) returns targetType|ClientError;
 
     # The client resource function to send HTTP DELETE requests to HTTP endpoints.
@@ -66,7 +66,7 @@ public type ClientObject client object {
     # + params - The query parameters
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    isolated resource function delete [string ...path](RequestMessage message = (), map<string|string[]>? headers = (),
+    isolated resource function delete [PathParamType ...path](RequestMessage message = (), map<string|string[]>? headers = (),
             string? mediaType = (), TargetType targetType = <>, *QueryParams params) returns targetType|ClientError;
 
     # The client resource function to send HTTP HEAD requests to HTTP endpoints.
@@ -75,7 +75,7 @@ public type ClientObject client object {
     # + headers - The entity headers
     # + params - The query parameters
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
-    isolated resource function head [string ...path](map<string|string[]>? headers = (), *QueryParams params)
+    isolated resource function head [PathParamType ...path](map<string|string[]>? headers = (), *QueryParams params)
             returns Response|ClientError;
 
     # The client resource function to send HTTP GET requests to HTTP endpoints.
@@ -86,7 +86,7 @@ public type ClientObject client object {
     # + params - The query parameters
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    isolated resource function get [string ...path](map<string|string[]>? headers = (), TargetType targetType = <>,
+    isolated resource function get [PathParamType ...path](map<string|string[]>? headers = (), TargetType targetType = <>,
             *QueryParams params) returns targetType|ClientError;
 
     # The client resource function to send HTTP OPTIONS requests to HTTP endpoints.
@@ -97,7 +97,7 @@ public type ClientObject client object {
     # + params - The query parameters
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    isolated resource function options [string ...path](map<string|string[]>? headers = (), TargetType targetType = <>,
+    isolated resource function options [PathParamType ...path](map<string|string[]>? headers = (), TargetType targetType = <>,
             *QueryParams params) returns targetType|ClientError;
 
     # The `Client.post()` function can be used to send HTTP POST requests to HTTP endpoints.

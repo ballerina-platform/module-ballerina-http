@@ -536,6 +536,9 @@ isolated function getFormDataMap(string formData) returns map<string>|ClientErro
     return parameters;
 }
 
+# Defines the path parameter types.
+public type PathParamType boolean|int|float|decimal|string;
+
 # Defines the possible simple query parameter types.
 public type SimpleQueryParamType boolean|int|float|decimal|string;
 
