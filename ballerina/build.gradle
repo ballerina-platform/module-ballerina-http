@@ -22,8 +22,8 @@ buildscript {
         maven {
             url = 'https://maven.pkg.github.com/ballerina-platform/plugin-gradle'
             credentials {
-                username = 'bhashinee'
-                password = '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'
+                username System.getenv("packageUser")
+                password System.getenv("packagePAT")
             }
         }
     }
