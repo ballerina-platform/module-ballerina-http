@@ -57,13 +57,12 @@ import org.bouncycastle.cert.ocsp.OCSPRespBuilder;
 import org.bouncycastle.cert.ocsp.Req;
 import org.bouncycastle.cert.ocsp.RespID;
 import org.bouncycastle.cert.ocsp.SingleResp;
-import org.bouncycastle.crypto.util.PrivateKeyFactory;
 import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder;
 import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
 import org.bouncycastle.operator.OperatorCreationException;
-import org.bouncycastle.operator.bc.BcRSAContentSignerBuilder;
+//import org.bouncycastle.operator.bc.BcRSAContentSignerBuilder;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,6 +84,7 @@ import java.security.Security;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -116,11 +116,17 @@ class Utils {
         Date validityEndDate = new Date(System.currentTimeMillis() + TestConstants.VALIDITY_PERIOD);
         X509v1CertificateBuilder builder = new X509v1CertificateBuilder(subjectDN, serialNumber, validityStartDate,
                 validityEndDate, subjectDN, subPubKeyInfo);
+        KeyPairGenerator kpGenerator = KeyPairGenerator.getInstance("RSA");
+        kpGenerator.initialize(2048);
+        KeyPair keyPair = kpGenerator.generateKeyPair();
 
         AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find("SHA1WithRSAEncryption");
         AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);
-        ContentSigner contentSigner = new BcRSAContentSignerBuilder(sigAlgId, digAlgId)
-                .build(PrivateKeyFactory.createKey(pair.getPrivate().getEncoded()));
+//        ContentSigner contentSigner = new BcRSAContentSignerBuilder(sigAlgId, digAlgId)
+//                .build(PrivateKeyFactory.createKey(pair.getPrivate().getEncoded()));
+
+        ContentSigner contentSigner = new JcaContentSignerBuilder("SHA256WithRSA")
+                .setProvider(new BouncyCastleFipsProvider()).build(keyPair.getPrivate());
 
         X509CertificateHolder holder = builder.build(contentSigner);
 
@@ -130,13 +136,13 @@ class Utils {
     KeyPair generateRSAKeyPair() throws Exception {
 
         KeyPairGenerator kpGen = KeyPairGenerator.getInstance("RSA", Constants.BOUNCY_CASTLE_PROVIDER);
-        kpGen.initialize(1024, new SecureRandom());
+        kpGen.initialize(2048, new SecureRandom());
         return kpGen.generateKeyPair();
     }
 
     X509Certificate getFakeCertificateForCRLTest(X509Certificate caCert, KeyPair keyPair, BigInteger serialNumber,
             X509Certificate realPeerCertificate)
-            throws IOException, OperatorCreationException, CertificateException {
+            throws IOException, OperatorCreationException, CertificateException, NoSuchAlgorithmException {
 
         X500Name subjectDN = new X500Name("CN=Test End Certificate");
         Date validityStartDate = new Date(System.currentTimeMillis());
@@ -146,8 +152,10 @@ class Utils {
                 validityEndDate, subjectDN, subPubKeyInfo);
         AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find("SHA1WithRSAEncryption");
         AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);
-        ContentSigner contentSigner = new BcRSAContentSignerBuilder(sigAlgId, digAlgId)
-                .build(PrivateKeyFactory.createKey(keyPair.getPrivate().getEncoded()));
+        ContentSigner contentSigner = new JcaContentSignerBuilder("SHA256WithRSA")
+                .setProvider(new BouncyCastleFipsProvider()).build(keyPair.getPrivate());
+//        ContentSigner contentSigner = new BcRSAContentSignerBuilder(sigAlgId, digAlgId)
+//                .build(PrivateKeyFactory.createKey(keyPair.getPrivate().getEncoded()));
         builder.copyAndAddExtension(new ASN1ObjectIdentifier(TestConstants.CRL_DISTRIBUTION_POINT_EXTENSION), true,
                 new JcaX509CertificateHolder(realPeerCertificate));
 
@@ -158,7 +166,7 @@ class Utils {
 
     X509Certificate generateFakeCertificate(X509Certificate caCert, PublicKey peerPublicKey, BigInteger serialNumber,
             KeyPair caKeyPair)
-            throws IOException, OperatorCreationException, CertificateException {
+            throws IOException, OperatorCreationException, CertificateException, NoSuchAlgorithmException {
 
         X500Name subjectDN = new X500Name("CN=Test End Certificate");
         Date validityStartDate = new Date(System.currentTimeMillis());
@@ -168,9 +176,13 @@ class Utils {
                 validityEndDate, subjectDN, subPubKeyInfo);
         AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find("SHA1WithRSAEncryption");
         AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);
-        ContentSigner contentSigner = new BcRSAContentSignerBuilder(sigAlgId, digAlgId)
-                .build(PrivateKeyFactory.createKey(caKeyPair.getPrivate().getEncoded()));
-
+//        ContentSigner contentSigner = new BcRSAContentSignerBuilder(sigAlgId, digAlgId)
+//                .build(PrivateKeyFactory.createKey(caKeyPair.getPrivate().getEncoded()));
+        KeyPairGenerator kpGenerator = KeyPairGenerator.getInstance("RSA");
+        kpGenerator.initialize(2048);
+        KeyPair keyPair = kpGenerator.generateKeyPair();
+        ContentSigner contentSigner = new JcaContentSignerBuilder("SHA256WithRSA")
+                .setProvider(new BouncyCastleFipsProvider()).build(keyPair.getPrivate());
         X509CertificateHolder holder = builder.build(contentSigner);
 
         return new JcaX509CertificateConverter().getCertificate(holder);
