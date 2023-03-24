@@ -24,6 +24,7 @@ import io.ballerina.stdlib.http.transport.contractimpl.common.certificatevalidat
 import io.ballerina.stdlib.http.transport.contractimpl.common.certificatevalidation.ocsp.OCSPCache;
 import io.ballerina.stdlib.http.transport.contractimpl.common.certificatevalidation.ocsp.OCSPVerifier;
 import io.ballerina.stdlib.http.transport.contractimpl.common.certificatevalidation.pathvalidation.CertificatePathValidator;
+import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.testng.annotations.Test;
 
@@ -50,7 +51,7 @@ public class RevocationVerificationTest {
     @Test
     public void testCRLPathValidation() throws Exception {
         //Add BouncyCastle as Security Provider.
-        Security.addProvider(new BouncyCastleProvider());
+        Security.addProvider(new BouncyCastleFipsProvider());
         Utils utils = new Utils();
         X509Certificate[] certificates = utils.getRealCertificateChain();
         Throwable throwable = null;
@@ -72,7 +73,7 @@ public class RevocationVerificationTest {
     @Test
     public void testCRLPathValidationWithFakeCerts() throws Exception {
         //Add BouncyCastle as Security Provider.
-        Security.addProvider(new BouncyCastleProvider());
+        Security.addProvider(new BouncyCastleFipsProvider());
         Utils utils = new Utils();
         X509Certificate[] fakeCertificates = utils.getFakeCertificateChain();
         Throwable throwable = null;
@@ -94,7 +95,7 @@ public class RevocationVerificationTest {
     @Test
     public void testOCSPPathValidation() throws Exception {
         //Add BouncyCastle as Security Provider.
-        Security.addProvider(new BouncyCastleProvider());
+        Security.addProvider(new BouncyCastleFipsProvider());
         Utils utils = new Utils();
         X509Certificate[] certificates = utils.getRealCertificateChain();
         ocspPathValidation(certificates);
@@ -109,7 +110,7 @@ public class RevocationVerificationTest {
     @Test
     public void testOCSPPathValidationWithFakeCerts() throws Exception {
 
-        Security.addProvider(new BouncyCastleProvider());
+        Security.addProvider(new BouncyCastleFipsProvider());
         Utils utils = new Utils();
         X509Certificate[] fackeCertificates = utils.getFakeCertificateChain();
         Throwable throwable = null;

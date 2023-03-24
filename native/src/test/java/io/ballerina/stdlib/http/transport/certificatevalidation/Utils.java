@@ -58,6 +58,7 @@ import org.bouncycastle.cert.ocsp.Req;
 import org.bouncycastle.cert.ocsp.RespID;
 import org.bouncycastle.cert.ocsp.SingleResp;
 import org.bouncycastle.crypto.util.PrivateKeyFactory;
+import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder;
@@ -228,7 +229,7 @@ class Utils {
     }
 
     private static void createMockOCSPResponse() throws Exception {
-        Security.addProvider(new BouncyCastleProvider());
+        Security.addProvider(new BouncyCastleFipsProvider());
         Utils utils = new Utils();
         KeyPair caKeyPair = utils.generateRSAKeyPair();
 
