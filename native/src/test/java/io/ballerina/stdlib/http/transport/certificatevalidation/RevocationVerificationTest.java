@@ -25,7 +25,6 @@ import io.ballerina.stdlib.http.transport.contractimpl.common.certificatevalidat
 import io.ballerina.stdlib.http.transport.contractimpl.common.certificatevalidation.ocsp.OCSPVerifier;
 import io.ballerina.stdlib.http.transport.contractimpl.common.certificatevalidation.pathvalidation.CertificatePathValidator;
 import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.testng.annotations.Test;
 
 import java.security.Security;
