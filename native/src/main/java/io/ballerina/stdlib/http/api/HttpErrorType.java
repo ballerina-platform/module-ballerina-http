@@ -77,8 +77,8 @@ public enum HttpErrorType {
     SERVICE_NOT_FOUND_ERROR("ServiceNotFoundError"),
     BAD_MATRIX_PARAMS_ERROR("BadMatrixParamError"),
     RESOURCE_DISPATCHING_SERVER_ERROR("ResourceDispatchingServerError"),
-    LISTENER_AUTHZ_ERROR("ListenerAuthzError"),
-    LISTENER_AUTHN_ERROR("ListenerAuthnError"),
+    INTERNAL_LISTENER_AUTHZ_ERROR("InternalListenerAuthzError"),
+    INTERNAL_LISTENER_AUTHN_ERROR("InternalListenerAuthnError"),
     CLIENT_CONNECTOR_ERROR("ClientConnectorError");
 
     private final String errorName;

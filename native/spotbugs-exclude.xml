@@ -50,11 +50,15 @@
         <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD" />
     </Match>
     <Match>
-        <Class name="io.ballerina.stdlib.http.api.HttpCallableUnitCallback$1" />
+        <Class name="io.ballerina.stdlib.http.api.HttpCallableUnitCallback" />
         <Bug pattern="DM_EXIT" />
     </Match>
     <Match>
-        <Class name="io.ballerina.stdlib.http.api.HttpResponseInterceptorUnitCallback$1" />
+        <Class name="io.ballerina.stdlib.http.api.HttpResponseInterceptorUnitCallback" />
+        <Bug pattern="DM_EXIT" />
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.api.HttpRequestInterceptorUnitCallback" />
         <Bug pattern="DM_EXIT" />
     </Match>
     <Match>

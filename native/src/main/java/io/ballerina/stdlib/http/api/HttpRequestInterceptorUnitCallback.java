@@ -36,7 +36,7 @@ import static io.ballerina.stdlib.http.api.HttpErrorType.INTERCEPTOR_RETURN_ERRO
  *
  * @since SL Beta 4
  */
-public class HttpRequestInterceptorUnitCallback implements Callback {
+public class HttpRequestInterceptorUnitCallback extends HttpCallableUnitCallback {
     private static final String ILLEGAL_FUNCTION_INVOKED = "illegal return: response has already been sent";
     private final BObject caller;
     private final Runtime runtime;
@@ -46,6 +46,7 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
 
     HttpRequestInterceptorUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime,
                                        BallerinaHTTPConnectorListener ballerinaHTTPConnectorListener) {
+        super(requestMessage, runtime);
         this.runtime = runtime;
         this.requestMessage = requestMessage;
         this.requestCtx = (BObject) requestMessage.getProperty(HttpConstants.REQUEST_CONTEXT);
@@ -67,10 +68,9 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
 
     @Override
     public void notifyFailure(BError error) { // handles panic and check_panic
-        if (alreadyResponded()) {
-            return;
-        }
-        invokeErrorInterceptors(error, false);
+        cleanupRequestMessage();
+        sendFailureResponse(error);
+        System.exit(1);
     }
 
     public void invokeErrorInterceptors(BError error, boolean printError) {
@@ -91,10 +91,6 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
         paramFeed[3] = true;
 
         invokeBalMethod(paramFeed, "returnErrorResponse");
-    }
-
-    private void cleanupRequestMessage() {
-        requestMessage.waitAndReleaseAllEntities();
     }
 
     private boolean alreadyResponded() {
@@ -187,7 +183,7 @@ public class HttpRequestInterceptorUnitCallback implements Callback {
         invokeBalMethod(paramFeed, "returnResponse");
     }
 
-    private void invokeBalMethod(Object[] paramFeed, String methodName) {
+    public void invokeBalMethod(Object[] paramFeed, String methodName) {
         Callback returnCallback = new Callback() {
             @Override
             public void notifySuccess(Object result) {
