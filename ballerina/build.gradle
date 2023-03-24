@@ -22,8 +22,8 @@ buildscript {
         maven {
             url = 'https://maven.pkg.github.com/ballerina-platform/plugin-gradle'
             credentials {
-                username System.getenv("packageUser")
-                password System.getenv("packagePAT")
+                username = 'bhashinee'
+                password = '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'
             }
         }
     }
@@ -110,12 +110,18 @@ dependencies {
     externalJars(group: 'commons-pool.wso2', name: 'commons-pool', version: "${wso2CommonsPoolVersion}") {
         transitive = false
     }
-    externalJars(group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: "${bouncycastleVersion}") {
+    externalJars(group: 'org.bouncycastle', name: 'bcpkix-fips', version: "${bouncycastlePkixVersion}") {
         transitive = false
     }
-    externalJars(group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: "${bouncycastleVersion}") {
+    externalJars(group: 'org.bouncycastle', name: 'bc-fips', version: "${bouncycastleFipsVersion}") {
         transitive = false
     }
+//    externalJars(group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: "${bouncycastleVersion}") {
+//        transitive = false
+//    }
+//    externalJars(group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: "${bouncycastleVersion}") {
+//        transitive = false
+//    }
     externalJars(group: 'io.netty', name: 'netty-tcnative-boringssl-static', version: "${nettyTcnativeVersion}") {
         transitive = false
     }
@@ -154,7 +160,9 @@ task updateTomlFiles {
         def stdlibDependentConstraintVersion = stripBallerinaExtensionVersion("${stdlibDependentConstraintNativeVersion}")
         def stdlibDependentNettyVersion = project.nettyVersion
         def stdlibDependentWso2CommonsPoolVersion = project.wso2CommonsPoolVersion
-        def stdlibDependentBouncycastleVersion = project.bouncycastleVersion
+//        def stdlibDependentBouncycastleVersion = project.bouncycastleVersion
+        def stdlibDependentBouncycastlePkixVersion = project.bouncycastlePkixVersion
+        def stdlibDependentBouncycastleFipsVersion = project.bouncycastleFipsVersion
         def stdlibDependentNettyTcnativeVersion = project.nettyTcnativeVersion
         def stdlibDependentMimepullVersion = project.mimepullVersion
         def stdlibDependentTestngVersion = project.testngVersion
@@ -168,7 +176,9 @@ task updateTomlFiles {
         newBallerinaToml = newBallerinaToml.replace("@stdlib.constraintnative.version@", stdlibDependentConstraintNativeVersion)
         newBallerinaToml = newBallerinaToml.replace("@netty.version@", stdlibDependentNettyVersion)
         newBallerinaToml = newBallerinaToml.replace("@commmon.pool.version@", stdlibDependentWso2CommonsPoolVersion)
-        newBallerinaToml = newBallerinaToml.replace("@bouncycastle.version@", stdlibDependentBouncycastleVersion)
+//        newBallerinaToml = newBallerinaToml.replace("@bouncycastle.version@", stdlibDependentBouncycastleVersion)
+        newBallerinaToml = newBallerinaToml.replace("@bouncycastlefips.version@", stdlibDependentBouncycastleFipsVersion)
+        newBallerinaToml = newBallerinaToml.replace("@bouncycastlepkix.version@", stdlibDependentBouncycastlePkixVersion)
         newBallerinaToml = newBallerinaToml.replace("@tcnative.version@", stdlibDependentNettyTcnativeVersion)
         newBallerinaToml = newBallerinaToml.replace("@mimepull.version@", stdlibDependentMimepullVersion)
         newBallerinaToml = newBallerinaToml.replace("@testng.version@", stdlibDependentTestngVersion)

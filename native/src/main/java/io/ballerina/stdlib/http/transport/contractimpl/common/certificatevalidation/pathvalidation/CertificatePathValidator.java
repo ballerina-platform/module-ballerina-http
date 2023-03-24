@@ -21,7 +21,7 @@ package io.ballerina.stdlib.http.transport.contractimpl.common.certificatevalida
 import io.ballerina.stdlib.http.transport.contractimpl.common.certificatevalidation.CertificateVerificationException;
 import io.ballerina.stdlib.http.transport.contractimpl.common.certificatevalidation.Constants;
 import io.ballerina.stdlib.http.transport.contractimpl.common.certificatevalidation.RevocationVerifier;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,7 +80,7 @@ public class CertificatePathValidator {
      */
     public void validatePath() throws CertificateVerificationException {
 
-        Security.addProvider(new BouncyCastleProvider());
+        Security.addProvider(new BouncyCastleFipsProvider());
         CollectionCertStoreParameters params = new CollectionCertStoreParameters(fullCertChain);
         try {
             CertStore store = CertStore.getInstance("Collection", params, Constants.BOUNCY_CASTLE_PROVIDER);

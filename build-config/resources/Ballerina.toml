@@ -95,15 +95,15 @@ path = "./lib/netty-transport-native-unix-common-@netty.version@.jar"
 
 [[platform.java11.dependency]]
 groupId = "org.bouncycastle"
-artifactId = "bcprov-jdk15on"
-version = "@bouncycastle.version@"
-path = "./lib/bcprov-jdk15on-@bouncycastle.version@.jar"
+artifactId = "bc-fips"
+version = "@bouncycastlefips.version@"
+path = "./lib/bc-fips-@bouncycastlefips.version@.jar"
 
 [[platform.java11.dependency]]
 groupId = "org.bouncycastle"
-artifactId = "bcpkix-jdk15on"
-version = "@bouncycastle.version@"
-path = "./lib/bcpkix-jdk15on-@bouncycastle.version@.jar"
+artifactId = "bcpkix-fips"
+version = "@bouncycastlepkix.version@"
+path = "./lib/bcpkix-fips-@bouncycastlepkix.version@.jar"
 
 [[platform.java11.dependency]]
 groupId = "io.netty"

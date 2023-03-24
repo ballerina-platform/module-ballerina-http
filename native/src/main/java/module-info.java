@@ -24,8 +24,10 @@ module io.ballerina.stdlib.http {
     requires io.ballerina.stdlib.mime;
     requires io.ballerina.stdlib.io;
     requires io.ballerina.stdlib.constraint;
-    requires org.bouncycastle.provider;
-    requires org.bouncycastle.pkix;
+//    requires org.bouncycastle.provider;
+//    requires org.bouncycastle.pkix;
+    requires org.bouncycastle.fips.core;
+    requires org.bouncycastle.fips.pkix;
     requires java.xml.bind;
     requires java.management;
     requires org.slf4j;
