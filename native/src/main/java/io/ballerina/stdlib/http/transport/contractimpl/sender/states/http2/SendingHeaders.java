@@ -49,7 +49,6 @@ import java.io.IOException;
 import java.util.Objects;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTPS_SCHEME;
-import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_SCHEME;
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_WHILE_WRITING_OUTBOUND_REQUEST_HEADERS;
 import static io.ballerina.stdlib.http.transport.contract.Constants.INBOUND_RESPONSE_ALREADY_RECEIVED;
 import static io.ballerina.stdlib.http.transport.contract.Constants.PROTOCOL;
