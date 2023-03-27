@@ -46,6 +46,9 @@ import static io.ballerina.stdlib.http.transport.util.Http2Util.getSenderConfigs
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
+/**
+ * Test cases to test the http/https scheme pseudo header.
+ */
 public class Http2PseudoHeadersTest {
 
     private HttpServer http2HttpServer;
@@ -71,7 +74,8 @@ public class Http2PseudoHeadersTest {
         httpClientConnector = connectorFactory.createHttpClientConnector(
                 HttpConnectorUtil.getTransportProperties(transportsConfiguration), httpSenderConfiguration);
         httpsClientConnector = connectorFactory.createHttpClientConnector(
-                HttpConnectorUtil.getTransportProperties(transportsConfiguration), getSenderConfigs(Constants.HTTP_2_0));
+                HttpConnectorUtil.getTransportProperties(transportsConfiguration),
+                getSenderConfigs(Constants.HTTP_2_0));
     }
 
     @Test

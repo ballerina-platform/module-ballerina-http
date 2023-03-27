@@ -50,8 +50,7 @@ import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static io.netty.handler.logging.LogLevel.INFO;
 
 /**
- * For requests with entity bodies this will send a echo response and for non entity body requests this
- * will simply send a "Hello" as the response.
+ * This will return the response with the pseudo header, scheme.
  */
 public class Http2PseudoHeaderServerInitializer extends Http2ServerInitializer {
 
@@ -142,7 +141,7 @@ public class Http2PseudoHeaderServerInitializer extends Http2ServerInitializer {
     }
 
     class HttpsPseudoHeaderHandler extends Http2ConnectionHandler implements Http2FrameListener {
-        private final Logger LOG = LoggerFactory.getLogger(HttpsPseudoHeaderHandler.class);
+        private final Logger logger = LoggerFactory.getLogger(HttpsPseudoHeaderHandler.class);
         private String schemeHeader = "";
 
         public HttpsPseudoHeaderHandler(Http2ConnectionDecoder decoder, Http2ConnectionEncoder encoder,
@@ -162,7 +161,7 @@ public class Http2PseudoHeaderServerInitializer extends Http2ServerInitializer {
 
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-            LOG.error("Exception occurred in H2ChannelIdHandler : {}", cause.getMessage());
+            logger.error("Exception occurred in H2ChannelIdHandler : {}", cause.getMessage());
             super.exceptionCaught(ctx, cause);
             ctx.close();
         }
@@ -201,54 +200,54 @@ public class Http2PseudoHeaderServerInitializer extends Http2ServerInitializer {
         @Override
         public void onPriorityRead(ChannelHandlerContext ctx, int streamId, int streamDependency,
                                    short weight, boolean exclusive) {
-            LOG.debug("onPriorityRead {}", streamId);
+            logger.debug("onPriorityRead {}", streamId);
         }
 
         @Override
         public void onRstStreamRead(ChannelHandlerContext ctx, int streamId, long errorCode) {
-            LOG.debug("onRstStreamRead {}", streamId);
+            logger.debug("onRstStreamRead {}", streamId);
         }
 
         @Override
         public void onSettingsAckRead(ChannelHandlerContext ctx) {
-            LOG.debug("onSettingsAckRead");
+            logger.debug("onSettingsAckRead");
         }
 
         @Override
         public void onSettingsRead(ChannelHandlerContext ctx, Http2Settings settings) {
-            LOG.debug("onSettingsRead");
+            logger.debug("onSettingsRead");
         }
 
         @Override
         public void onPingRead(ChannelHandlerContext ctx, long data) {
-            LOG.debug("onPingRead");
+            logger.debug("onPingRead");
         }
 
         @Override
         public void onPingAckRead(ChannelHandlerContext ctx, long data) {
-            LOG.debug("onPingAckRead");
+            logger.debug("onPingAckRead");
         }
 
         @Override
         public void onPushPromiseRead(ChannelHandlerContext ctx, int streamId, int promisedStreamId,
                                       Http2Headers headers, int padding) {
-            LOG.debug("onPushPromiseRead {}", streamId);
+            logger.debug("onPushPromiseRead {}", streamId);
         }
 
         @Override
         public void onGoAwayRead(ChannelHandlerContext ctx, int lastStreamId, long errorCode, ByteBuf debugData) {
-            LOG.debug("onGoAwayRead {}", lastStreamId);
+            logger.debug("onGoAwayRead {}", lastStreamId);
         }
 
         @Override
         public void onWindowUpdateRead(ChannelHandlerContext ctx, int streamId, int windowSizeIncrement) {
-            LOG.debug("onWindowUpdateRead {}", streamId);
+            logger.debug("onWindowUpdateRead {}", streamId);
         }
 
         @Override
         public void onUnknownFrame(ChannelHandlerContext ctx, byte frameType, int streamId,
                                    Http2Flags flags, ByteBuf payload) {
-            LOG.debug("onUnknownFrame {}", streamId);
+            logger.debug("onUnknownFrame {}", streamId);
         }
     }
 }
