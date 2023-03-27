@@ -35,6 +35,7 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpScheme;
 import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http2.Http2Connection;
 import io.netty.handler.codec.http2.Http2ConnectionEncoder;
@@ -171,9 +172,9 @@ public class SendingHeaders implements SenderState {
             throws Http2Exception {
         Object scheme = http2RequestWriter.getHttpOutboundRequest().getProperties().get(PROTOCOL);
         if (Objects.nonNull(scheme) && scheme.equals(HTTPS_SCHEME)) {
-            httpMsg.headers().add(HttpConversionUtil.ExtensionHeaderNames.SCHEME.text(), HTTPS_SCHEME);
+            httpMsg.headers().add(HttpConversionUtil.ExtensionHeaderNames.SCHEME.text(), HttpScheme.HTTP.name());
         } else {
-            httpMsg.headers().add(HttpConversionUtil.ExtensionHeaderNames.SCHEME.text(), HTTP_SCHEME);
+            httpMsg.headers().add(HttpConversionUtil.ExtensionHeaderNames.SCHEME.text(), HttpScheme.HTTPS.name());
         }
         // Convert and write the headers.
         Http2Headers http2Headers = HttpConversionUtil.toHttp2Headers(httpMsg, true);
