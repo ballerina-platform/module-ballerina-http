@@ -231,60 +231,60 @@ publishing {
     }
 }
 
-//task startLdapServer() {
-//    doLast {
-//        // This check is added to prevent starting the server in Windows OS, since the Docker image does not support
-//        // for Windows OS.
-//        if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
-//            def stdOut = new ByteArrayOutputStream()
-//            exec {
-//                commandLine 'sh', '-c', "docker ps --filter name=openldap-server"
-//                standardOutput = stdOut
-//            }
-//            if (!stdOut.toString().contains("openldap-server")) {
-//                println "Starting LDAP server."
-//                exec {
-//                    commandLine 'sh', '-c', "docker-compose -f $project.projectDir/resources/openldap/docker-compose.yml up -d"
-//                    standardOutput = stdOut
-//                }
-//                println stdOut.toString()
-//                println "Waiting 15s until the LDAP server get initiated."
-//                sleep(15 * 1000)
-//            } else {
-//                println "LDAP server is already started."
-//            }
-//        }
-//    }
-//}
-//
-//task stopLdapServer() {
-//    doLast {
-//        // This check is added to prevent trying to stop the server in Windows OS, since the Docker image not started
-//        // in Windows OS.
-//        if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
-//            def stdOut = new ByteArrayOutputStream()
-//            exec {
-//                commandLine 'sh', '-c', "docker ps --filter name=openldap-server"
-//                standardOutput = stdOut
-//            }
-//            if (stdOut.toString().contains("openldap-server")) {
-//                println "Stopping LDAP server."
-//                exec {
-//                    commandLine 'sh', '-c', "docker stop openldap-server"
-//                    standardOutput = stdOut
-//                }
-//                println stdOut.toString()
-//                println "Waiting 5s until the LDAP server get stopped."
-//                sleep(5 * 1000)
-//            } else {
-//                println "LDAP server is not started."
-//            }
-//        }
-//    }
-//}
-//
-//ballerinaTest.finalizedBy stopLdapServer
-//ballerinaTest.dependsOn startLdapServer
+task startLdapServer() {
+    doLast {
+        // This check is added to prevent starting the server in Windows OS, since the Docker image does not support
+        // for Windows OS.
+        if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
+            def stdOut = new ByteArrayOutputStream()
+            exec {
+                commandLine 'sh', '-c', "docker ps --filter name=openldap-server"
+                standardOutput = stdOut
+            }
+            if (!stdOut.toString().contains("openldap-server")) {
+                println "Starting LDAP server."
+                exec {
+                    commandLine 'sh', '-c', "docker-compose -f $project.projectDir/resources/openldap/docker-compose.yml up -d"
+                    standardOutput = stdOut
+                }
+                println stdOut.toString()
+                println "Waiting 15s until the LDAP server get initiated."
+                sleep(15 * 1000)
+            } else {
+                println "LDAP server is already started."
+            }
+        }
+    }
+}
+
+task stopLdapServer() {
+    doLast {
+        // This check is added to prevent trying to stop the server in Windows OS, since the Docker image not started
+        // in Windows OS.
+        if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
+            def stdOut = new ByteArrayOutputStream()
+            exec {
+                commandLine 'sh', '-c', "docker ps --filter name=openldap-server"
+                standardOutput = stdOut
+            }
+            if (stdOut.toString().contains("openldap-server")) {
+                println "Stopping LDAP server."
+                exec {
+                    commandLine 'sh', '-c', "docker stop openldap-server"
+                    standardOutput = stdOut
+                }
+                println stdOut.toString()
+                println "Waiting 5s until the LDAP server get stopped."
+                sleep(5 * 1000)
+            } else {
+                println "LDAP server is not started."
+            }
+        }
+    }
+}
+
+ballerinaTest.finalizedBy stopLdapServer
+ballerinaTest.dependsOn startLdapServer
 test.dependsOn ballerinaTest
 build.dependsOn test
 
