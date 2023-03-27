@@ -42,10 +42,10 @@ public enum HttpDiagnosticCodes {
     HTTP_107("HTTP_107", "invalid payload parameter type: '%s'", ERROR),
     HTTP_108("HTTP_108", "invalid multiple resource parameter annotations for '%s': expected one of the following" +
             " types: 'http:Payload', 'http:CallerInfo', 'http:Header', 'http:Query'", ERROR),
-    HTTP_109("HTTP_109", "invalid type of header param '%s': One of the following types is expected: " +
+    HTTP_109("HTTP_109", "invalid type of header param '%s': expected one of the following types is expected: " +
             "'string','int','float','decimal','boolean', an array of the above types or a record which consists of " +
             "the above types", ERROR),
-    HTTP_110("HTTP_110", "invalid union type of header param '%s': one of the 'string','int','float'," +
+    HTTP_110("HTTP_110", "invalid union type of header param '%s': expected one of the 'string','int','float'," +
             "'decimal','boolean' types, an array of the above types or a record which consists of the above types can" +
             " only be union with '()'. Eg: string|() or string[]|()", ERROR),
     HTTP_111("HTTP_111", "invalid type of caller param '%s': expected 'http:Caller'", ERROR),
@@ -98,6 +98,8 @@ public enum HttpDiagnosticCodes {
     HTTP_143("HTTP_143", "%s function should have the mandatory parameter 'error'", ERROR),
     HTTP_144("HTTP_144", "rest fields are not allowed for header binding records. Use 'http:Headers' type to access " +
             "all headers", ERROR),
+    HTTP_145("HTTP_145", "invalid resource path parameter '%s': expected one of the 'string','int','float'," +
+            "'decimal','boolean' types or a rest parameter with one of the above types", ERROR),
     HTTP_146("HTTP_146", "resource link name: '%s' conflicts with the path. Resource names can be reused only when " +
             "the resources have the same path", ERROR),
     HTTP_147("HTTP_147", "duplicate link relation: '%s'. Resource only supports unique relations" , ERROR),

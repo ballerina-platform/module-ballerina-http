@@ -380,7 +380,6 @@ public class HttpConstants {
     public static final String REQUEST_INTERCEPTOR_INDEX = "REQUEST_INTERCEPTOR_INDEX";
     public static final String RESPONSE_INTERCEPTOR_INDEX = "RESPONSE_INTERCEPTOR_INDEX";
     public static final String INTERCEPTOR_SERVICE_ERROR = "INTERCEPTOR_SERVICE_ERROR";
-    public static final String INTERCEPTOR_SERVICE_PANIC_ERROR = "INTERCEPTOR_SERVICE_PANIC_ERROR";
     public static final String WAIT_FOR_FULL_REQUEST = "WAIT_FOR_FULL_REQUEST";
     public static final String HTTP_NORMAL = "Normal";
     public static final String REQUEST_INTERCEPTOR = "RequestInterceptor";

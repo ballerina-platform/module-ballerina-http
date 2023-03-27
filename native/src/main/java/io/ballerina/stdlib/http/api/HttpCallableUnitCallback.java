@@ -125,10 +125,6 @@ public class HttpCallableUnitCallback implements Callback {
             public void notifySuccess(Object result) {
                 stopObserverContext();
                 printStacktraceIfError(result);
-                Object isPanic = requestMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_PANIC_ERROR);
-                if (Objects.nonNull(isPanic) && (boolean) isPanic) {
-                    System.exit(1);
-                }
             }
 
             @Override
@@ -154,15 +150,14 @@ public class HttpCallableUnitCallback implements Callback {
     @Override
     public void notifyFailure(BError error) { // handles panic and check_panic
         cleanupRequestMessage();
-        // Skipping the panics from internal authentication/authorization.
-        if (!error.getType().getName().equals(HttpErrorType.LISTENER_AUTHN_ERROR.getErrorName())
-                && !error.getType().getName().equals(HttpErrorType.LISTENER_AUTHZ_ERROR.getErrorName())) {
-            requestMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_PANIC_ERROR, true);
-        }
-        if (alreadyResponded(error)) {
+        // Allow the panics from internal authentication/authorization to be handled by the interceptors.
+        if (error.getType().getName().equals(HttpErrorType.INTERNAL_LISTENER_AUTHN_ERROR.getErrorName())
+                || error.getType().getName().equals(HttpErrorType.INTERNAL_LISTENER_AUTHZ_ERROR.getErrorName())) {
+            invokeErrorInterceptors(error, true);
             return;
         }
-        invokeErrorInterceptors(error, true);
+        sendFailureResponse(error);
+        System.exit(1);
     }
 
     public void invokeErrorInterceptors(BError error, boolean printError) {
@@ -178,7 +173,7 @@ public class HttpCallableUnitCallback implements Callback {
         HttpUtil.handleFailure(requestMessage, error, true);
     }
 
-    private void cleanupRequestMessage() {
+    public void cleanupRequestMessage() {
         requestMessage.waitAndReleaseAllEntities();
     }
 
