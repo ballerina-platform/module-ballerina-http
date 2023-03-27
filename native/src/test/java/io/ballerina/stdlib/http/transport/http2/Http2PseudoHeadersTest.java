@@ -42,6 +42,7 @@ import org.testng.annotations.Test;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP2_VERSION;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTPS_SCHEME;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_SCHEME;
+import static io.ballerina.stdlib.http.transport.contract.Constants.PROTOCOL;
 import static io.ballerina.stdlib.http.transport.util.Http2Util.getSenderConfigs;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
@@ -92,6 +93,7 @@ public class Http2PseudoHeadersTest {
     public void testHttpsSchemeHeader() {
         HttpCarbonMessage httpCarbonMessage = MessageGenerator.generateRequest(HttpMethod.GET, null,
                 TestUtil.HTTPS_SERVER_PORT, "https://");
+        httpCarbonMessage.setProperty(PROTOCOL, HTTPS_SCHEME);
         HttpCarbonMessage response = new MessageSender(httpsClientConnector).sendMessage(httpCarbonMessage);
         assertNotNull(response, "Expected response not received");
         String result = TestUtil.getStringFromInputStream(new HttpMessageDataStreamer(response).getInputStream());
