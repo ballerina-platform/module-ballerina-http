@@ -29,7 +29,6 @@ import org.bouncycastle.cert.X509v2CRLBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CRLConverter;
 import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
 import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
-import org.bouncycastle.jce.PrincipalUtil;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.testng.annotations.Test;
 
