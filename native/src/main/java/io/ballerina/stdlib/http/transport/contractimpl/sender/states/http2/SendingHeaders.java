@@ -49,6 +49,7 @@ import java.io.IOException;
 import java.util.Objects;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTPS_SCHEME;
+import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_SCHEME;
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_WHILE_WRITING_OUTBOUND_REQUEST_HEADERS;
 import static io.ballerina.stdlib.http.transport.contract.Constants.INBOUND_RESPONSE_ALREADY_RECEIVED;
 import static io.ballerina.stdlib.http.transport.contract.Constants.PROTOCOL;
@@ -171,9 +172,9 @@ public class SendingHeaders implements SenderState {
             throws Http2Exception {
         Object scheme = http2RequestWriter.getHttpOutboundRequest().getProperties().get(PROTOCOL);
         if (Objects.nonNull(scheme) && scheme.equals(HTTPS_SCHEME)) {
-            httpMsg.headers().add(HttpConversionUtil.ExtensionHeaderNames.SCHEME.text(), HttpScheme.HTTPS.name());
+            httpMsg.headers().add(HttpConversionUtil.ExtensionHeaderNames.SCHEME.text(), HTTPS_SCHEME);
         } else {
-            httpMsg.headers().add(HttpConversionUtil.ExtensionHeaderNames.SCHEME.text(), HttpScheme.HTTP.name());
+            httpMsg.headers().add(HttpConversionUtil.ExtensionHeaderNames.SCHEME.text(), HTTP_SCHEME);
         }
         // Convert and write the headers.
         Http2Headers http2Headers = HttpConversionUtil.toHttp2Headers(httpMsg, true);
