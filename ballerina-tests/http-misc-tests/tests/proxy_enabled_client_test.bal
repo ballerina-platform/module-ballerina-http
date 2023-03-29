@@ -15,7 +15,6 @@
 // under the License.
 
 import ballerina/http;
-import ballerina/io;
 import ballerina/test;
 
 service /proxy on new http:Listener(proxyTestPort1) {
