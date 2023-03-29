@@ -45,11 +45,9 @@ function sendRequest(string url, http:Request req, http:Caller caller) returns e
 }
 
 http:ClientConfiguration clientEPConfig  = {
-    http1Settings: {
-        proxy: {
-            host:"localhost",
-            port:proxyTestPort2
-        }
+    proxy: {
+        host:"localhost",
+        port:proxyTestPort2
     }
 };
 
