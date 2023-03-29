@@ -29,10 +29,10 @@ service /proxy on new http:Listener(proxyTestPort1, httpVersion = http:HTTP_1_1)
 
 service on new http:Listener(proxyTestPort2, httpVersion = http:HTTP_1_1) {
 
-    resource function 'default .(http:Caller caller, http:Request req) {
+    resource function 'default .(http:Caller caller, http:Request req) returns error? {
         string url = req.rawPath;
         io:println(url);
-        error? cc = sendRequest(url, req, caller);
+        check sendRequest(url, req, caller);
     }
 }
 
