@@ -465,7 +465,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_19");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 31);
+        Assert.assertEquals(diagnosticResult.errorCount(), 30);
         assertError(diagnosticResult, 0, "invalid multiple interceptor type reference: " +
                 "'http:RequestErrorInterceptor'", CompilerPluginTestConstants.HTTP_123);
         assertError(diagnosticResult, 1, "invalid interceptor resource path: expected default resource" +
@@ -509,22 +509,20 @@ public class CompilerPluginTest {
                 HTTP_135);
         assertError(diagnosticResult, 22, "invalid multiple 'http:Response' parameter: 'res2'",
                 CompilerPluginTestConstants.HTTP_139);
-        assertTrue(diagnosticResult, 23, "invalid parameter type: 'ballerina/http:", HTTP_140);
-        assertTrue(diagnosticResult, 23, ":Request' in 'interceptResponse' remote method", HTTP_140);
-        assertError(diagnosticResult, 24, "invalid parameter type: 'string' in 'interceptResponse' remote method",
+        assertError(diagnosticResult, 23, "invalid parameter type: 'string' in 'interceptResponse' remote method",
                 HTTP_140);
-        assertError(diagnosticResult, 25, "invalid interceptor remote method return type: expected " +
+        assertError(diagnosticResult, 24, "invalid interceptor remote method return type: expected " +
                 "'anydata|http:Response|http:StatusCodeResponse|http:NextService|error?', but found 'http:Client'",
                 CompilerPluginTestConstants.HTTP_141);
+        assertError(diagnosticResult, 25, "return type annotation is not supported in interceptor service",
+                CompilerPluginTestConstants.HTTP_142);
         assertError(diagnosticResult, 26, "return type annotation is not supported in interceptor service",
                 CompilerPluginTestConstants.HTTP_142);
-        assertError(diagnosticResult, 27, "return type annotation is not supported in interceptor service",
-                CompilerPluginTestConstants.HTTP_142);
-        assertError(diagnosticResult, 28, "invalid remote function : 'interceptError'. ResponseErrorInterceptor " +
+        assertError(diagnosticResult, 27, "invalid remote function : 'interceptError'. ResponseErrorInterceptor " +
                 "can have only 'interceptResponseError' remote function", CompilerPluginTestConstants.HTTP_138);
-        assertError(diagnosticResult, 29, "ResponseErrorInterceptor must have the remote method : " +
+        assertError(diagnosticResult, 28, "ResponseErrorInterceptor must have the remote method : " +
                 "'interceptResponseError'", HTTP_135);
-        assertError(diagnosticResult, 30, "remote function should have the mandatory parameter 'error'",
+        assertError(diagnosticResult, 29, "remote function should have the mandatory parameter 'error'",
                 CompilerPluginTestConstants.HTTP_143);
     }
 

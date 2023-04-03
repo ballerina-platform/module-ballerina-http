@@ -265,7 +265,7 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
                 errorPresent = isObjectPresent(ctx, paramLocation, errorPresent, paramName,
                             HttpDiagnosticCodes.HTTP_122);
             } else {
-                reportInvalidParameterType(ctx, paramLocation, paramType);
+                reportInvalidParameterType(ctx, paramLocation, paramType, isResponseErrorInterceptor(type));
             }
         }
         if (isResponseErrorInterceptor(type) && !errorPresent) {
@@ -282,8 +282,10 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
     }
 
     private static void reportInvalidParameterType(SyntaxNodeAnalysisContext ctx, Location location,
-                                                   String typeName) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_140, typeName);
+                                                   String typeName, boolean isResponseErrorInterceptor) {
+        String functionName = isResponseErrorInterceptor ? Constants.INTERCEPT_RESPONSE_ERROR :
+                Constants.INTERCEPT_RESPONSE;
+        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_140, typeName, functionName);
     }
 
     private static void reportMultipleReferencesFound(SyntaxNodeAnalysisContext ctx, TypeReferenceNode node) {

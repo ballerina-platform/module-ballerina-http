@@ -91,7 +91,7 @@ public enum HttpDiagnosticCodes {
     HTTP_138("HTTP_138", "invalid remote function : '%s'. %s can have only '%s' remote " +
             "function", ERROR),
     HTTP_139("HTTP_139", "invalid multiple 'http:Response' parameter: '%s'", ERROR),
-    HTTP_140("HTTP_140", "invalid parameter type: '%s' in 'interceptErrorResponse' remote method", ERROR),
+    HTTP_140("HTTP_140", "invalid parameter type: '%s' in '%s' remote method", ERROR),
     HTTP_141("HTTP_141", "invalid interceptor remote method return type: expected '" +
             ALLOWED_INTERCEPTOR_RETURN_UNION + "', but found '%s'", ERROR),
     HTTP_142("HTTP_142", "return type annotation is not supported in interceptor service", ERROR),
