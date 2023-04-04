@@ -769,3 +769,48 @@ function testUserAgentHeaderWithInterceptors() returns error? {
     common:assertHeaderValue(check res.getHeader("req-interceptor-user-agent"), "httpTest/1.0");
     common:assertHeaderValue(check res.getHeader("req-user-agent"), "httpTest/1.0");
 }
+
+final http:Client interceptorReqInRespPathClientEP = check new("http://localhost:" + interceptorReqInRespPathTestPort.toString(), httpVersion = http:HTTP_1_1);
+
+@http:ServiceConfig {
+    interceptors: [
+        new ResponseErrorInterceptorWithReq(), new ResponseInterceptorWithReq(), 
+        new DefaultRequestInterceptor(), new LastRequestInterceptor()
+    ]
+}
+service on new http:Listener(interceptorReqInRespPathTestPort) {
+
+    resource function 'default [string... path](boolean err = false) returns string|error {
+        return err ? error("Error!") : "Hello, World!";
+    }
+}
+
+@test:Config{}
+function testReqInResponseInterceptor() returns error? {
+    http:Response res = check interceptorReqInRespPathClientEP->/test.post("Hi!");
+    common:assertHeaderValue(check res.getHeader("default-request-interceptor"), "true");
+    common:assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
+    common:assertHeaderValue(check res.getHeader("response-interceptor-with-req"), "true");
+    common:assertHeaderValue(check res.getHeader("request-payload"), "Hi!");
+
+    res = check interceptorReqInRespPathClientEP->/test;
+    common:assertHeaderValue(check res.getHeader("default-request-interceptor"), "true");
+    common:assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
+    common:assertHeaderValue(check res.getHeader("response-interceptor-with-req"), "true");
+    common:assertHeaderValue(check res.getHeader("request-payload"), "No content");
+}
+
+@test:Config{}
+function testReqInResponseErrorInterceptor() returns error? {
+    http:Response res = check interceptorReqInRespPathClientEP->/test.post("Hi!", err = true);
+    common:assertHeaderValue(check res.getHeader("default-request-interceptor"), "true");
+    common:assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
+    common:assertHeaderValue(check res.getHeader("response-error-interceptor-with-req"), "true");
+    common:assertHeaderValue(check res.getHeader("request-payload"), "Hi!");
+
+    res = check interceptorReqInRespPathClientEP->/test(err = true);
+    common:assertHeaderValue(check res.getHeader("default-request-interceptor"), "true");
+    common:assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
+    common:assertHeaderValue(check res.getHeader("response-error-interceptor-with-req"), "true");
+    common:assertHeaderValue(check res.getHeader("request-payload"), "No content");
+}

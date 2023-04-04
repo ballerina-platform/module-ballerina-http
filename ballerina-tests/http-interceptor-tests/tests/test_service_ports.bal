@@ -47,6 +47,7 @@ const int requestInterceptorByteArrayPayloadBindingTestPort = 9600;
 const int requestInterceptorWithQueryParamTestPort = 9601;
 const int requestInterceptorServiceConfigTestPort1 = 9602;
 const int requestInterceptorServiceConfigTestPort2 = 9603;
+const int interceptorReqInRespPathTestPort = 9604;
 
 const int responseInterceptorNegativeTestPort1 = 9621;
 const int responseInterceptorCallerRespondErrorTestPort = 9622;
