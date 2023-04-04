@@ -69,19 +69,28 @@ public class Respond extends ConnectionAction {
                                             BError error) {
         HttpCarbonMessage inboundRequest = HttpUtil.getCarbonMsg(connectionObj, null);
         inboundRequest.setProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR, error);
-        return nativeRespondWithDataCtx(env, connectionObj, outboundResponseObj, new DataContext(env, inboundRequest));
+        return nativeRespondWithDataCtx(env, connectionObj, outboundResponseObj,
+                new DataContext(env, inboundRequest), false);
     }
 
     public static Object nativeRespond(Environment env, BObject connectionObj, BObject outboundResponseObj) {
         return nativeRespondWithDataCtx(env, connectionObj, outboundResponseObj,
-                                        new DataContext(env, HttpUtil.getCarbonMsg(connectionObj, null)));
+                new DataContext(env, HttpUtil.getCarbonMsg(connectionObj, null)), false);
+    }
+
+    public static Object callerNativeRespond(Environment env, BObject connectionObj, BObject outboundResponseObj) {
+        return nativeRespondWithDataCtx(env, connectionObj, outboundResponseObj,
+                new DataContext(env, HttpUtil.getCarbonMsg(connectionObj, null)), true);
     }
 
     public static Object nativeRespondWithDataCtx(Environment env, BObject connectionObj, BObject outboundResponseObj,
-                                                  DataContext dataContext) {
+                                                  DataContext dataContext, boolean fromCaller) {
         HttpCarbonMessage inboundRequestMsg = HttpUtil.getCarbonMsg(connectionObj, null);
         if (invokeResponseInterceptor(env, inboundRequestMsg, outboundResponseObj, connectionObj, dataContext)) {
             return null;
+        }
+        if (!fromCaller) {
+            inboundRequestMsg.waitAndReleaseAllEntities();
         }
         if (isDirtyResponse(outboundResponseObj)) {
             String errorMessage = "Couldn't complete the respond operation as the response has been already used.";
@@ -150,7 +159,8 @@ public class Respond extends ConnectionAction {
             }
         } catch (BError e) {
             log.debug(e.getPrintableStackTrace(), e);
-            dataContext.getFuture().complete(e);
+            dataContext.getFuture().complete(
+                    HttpUtil.createHttpError(e.getMessage(), HttpErrorType.GENERIC_LISTENER_ERROR));
         } catch (Throwable e) {
             //Exception is already notified by http transport.
             String errorMessage = "Couldn't complete outbound response: " + e != null ? e.getMessage() : "";
@@ -210,7 +220,7 @@ public class Respond extends ConnectionAction {
                         interceptorServicesRegistry, dataContext);
                 return true;
             } catch (Exception e) {
-                throw new BallerinaConnectorException(e.getMessage());
+                throw HttpUtil.createHttpError(e.getMessage(), HttpErrorType.GENERIC_LISTENER_ERROR);
             }
         }
         if (inboundMessage.isInterceptorError()) {

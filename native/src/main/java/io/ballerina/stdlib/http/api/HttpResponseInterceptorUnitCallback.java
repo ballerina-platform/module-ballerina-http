@@ -88,7 +88,7 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
     }
 
     private void sendResponseToNextService() {
-        Respond.nativeRespondWithDataCtx(environment, caller, response, dataContext);
+        Respond.nativeRespondWithDataCtx(environment, caller, response, dataContext, false);
     }
 
     private boolean alreadyResponded() {

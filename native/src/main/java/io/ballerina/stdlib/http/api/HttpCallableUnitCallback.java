@@ -83,7 +83,6 @@ public class HttpCallableUnitCallback implements Callback {
 
     @Override
     public void notifySuccess(Object result) {
-        cleanupRequestMessage();
         if (alreadyResponded(result)) {
             stopObserverContext();
             return;
@@ -149,13 +148,13 @@ public class HttpCallableUnitCallback implements Callback {
 
     @Override
     public void notifyFailure(BError error) { // handles panic and check_panic
-        cleanupRequestMessage();
         // Allow the panics from internal authentication/authorization to be handled by the interceptors.
         if (error.getType().getName().equals(HttpErrorType.INTERNAL_LISTENER_AUTHN_ERROR.getErrorName())
                 || error.getType().getName().equals(HttpErrorType.INTERNAL_LISTENER_AUTHZ_ERROR.getErrorName())) {
             invokeErrorInterceptors(error, true);
             return;
         }
+        cleanupRequestMessage();
         sendFailureResponse(error);
         System.exit(1);
     }
