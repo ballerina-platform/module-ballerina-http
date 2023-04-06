@@ -1,7 +1,7 @@
 [package]
 org = "ballerina"
 name = "http"
-version = "2.7.0"
+version = "2.7.1"
 authors = ["Ballerina"]
 keywords = ["http", "network", "service", "listener", "client"]
 repository = "https://github.com/ballerina-platform/module-ballerina-http"
@@ -12,14 +12,14 @@ distribution = "2201.5.0"
 [[platform.java11.dependency]]
 groupId = "io.ballerina.stdlib"
 artifactId = "http-native"
-version = "2.7.0"
-path = "../native/build/libs/http-native-2.7.0-SNAPSHOT.jar"
+version = "2.7.1"
+path = "../native/build/libs/http-native-2.7.1-SNAPSHOT.jar"
 
 [[platform.java11.dependency]]
 groupId = "io.ballerina.stdlib"
 artifactId = "mime-native"
 version = "2.7.0"
-path = "./lib/mime-native-2.7.0-20230403-120400-3dbbe01.jar"
+path = "./lib/mime-native-2.7.0-20230404-141500-dadad37.jar"
 
 [[platform.java11.dependency]]
 groupId = "io.ballerina.stdlib"
