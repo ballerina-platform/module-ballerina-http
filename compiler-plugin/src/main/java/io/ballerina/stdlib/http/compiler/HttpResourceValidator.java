@@ -342,7 +342,11 @@ public class HttpResourceValidator {
                     }
                 } else {
                     if (!analyzedParams.contains(param.hashCode())) {
-                        validateQueryParamType(ctx, paramLocation, paramName, typeSymbol, typeSymbols);
+                        if (!subtypeOf(typeSymbols, typeSymbol, ANYDATA)) {
+                            reportInvalidParameterType(ctx, paramLocation, paramType);
+                        } else {
+                            validateQueryParamType(ctx, paramLocation, paramName, typeSymbol, typeSymbols);
+                        }
                     }
                 }
                 continue;
