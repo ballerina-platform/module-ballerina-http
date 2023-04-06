@@ -108,7 +108,8 @@ public enum HttpDiagnosticCodes {
     HTTP_150("HTTP_150", "cannot find '%s' resource with resource link name: '%s'" , ERROR),
 
     HTTP_151("HTTP_151", "ambiguous types for parameter '%s' and '%s'. Use annotations to avoid ambiguity", ERROR),
-    HTTP_152("HTTP_152", "invalid union type for default payload param: '%s'. Use basic structured anydata types", ERROR),
+    HTTP_152("HTTP_152", "invalid union type for default payload param: '%s'. Use basic structured anydata types",
+            ERROR),
 
     HTTP_HINT_101("HTTP_HINT_101", "Payload annotation can be added", INTERNAL),
     HTTP_HINT_102("HTTP_HINT_102", "Header annotation can be added", INTERNAL),
