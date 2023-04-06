@@ -5,12 +5,12 @@
 
 [ballerina]
 dependencies-toml-version = "2"
-distribution-version = "2201.5.0-20230401-003700-e9cbdd41"
+distribution-version = "2201.5.0-20230404-105200-b8aec90e"
 
 [[package]]
 org = "ballerina"
 name = "http_test_common"
-version = "2.7.0"
+version = "2.7.1"
 dependencies = [
 	{org = "ballerina", name = "lang.string"},
 	{org = "ballerina", name = "mime"},
