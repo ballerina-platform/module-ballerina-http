@@ -283,15 +283,18 @@ task stopLdapServer() {
     }
 }
 
-ballerinaTest.finalizedBy stopLdapServer
-ballerinaTest.dependsOn startLdapServer
-test.dependsOn ballerinaTest
-build.dependsOn test
+task deleteDependencyTomlFile {
+    if (project.hasProperty("deleteDependencies")) {
+        delete "${project.projectDir}/${testCommonPackage}/Dependencies.toml"
 
-tasks.register('cleanDependencies') {
-    delete "${project.projectDir}/${testCommonPackage}/Dependencies.toml"
-
-    testPackages.each { testPackage ->
-        delete "${project.projectDir}/${testPackage}/Dependencies.toml"
+        testPackages.each { testPackage ->
+            delete "${project.projectDir}/${testPackage}/Dependencies.toml"
+        }
     }
 }
+
+ballerinaTest.finalizedBy stopLdapServer
+ballerinaTest.dependsOn startLdapServer
+ballerinaTest.dependsOn deleteDependencyTomlFile
+test.dependsOn ballerinaTest
+build.dependsOn test
