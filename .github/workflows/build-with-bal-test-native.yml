@@ -15,6 +15,11 @@ on:
                 description: Default native-image options
                 required: false
                 default: ''
+            build_properties:
+                description: Additional build properties
+                required: false
+                default: ''
+
     schedule:
         -   cron: '30 18 * * *'
 
@@ -27,8 +32,6 @@ jobs:
             lang_tag: ${{ inputs.lang_tag }}
             lang_version: ${{ inputs.lang_version }}
             native_image_options: '-J-Xmx7G ${{ inputs.native_image_options }}'
-            additional_ubuntu_build_flags: '-x :http-native:test -x :http-compiler-plugin-tests:test'
-            # additional_windows_build_flags: '-x :http-native:test -x :http-compiler-plugin-tests:test'
-            # TODO : Enable after fixing this issue : https://github.com/ballerina-platform/ballerina-lang/issues/38882
-            additional_windows_build_flags: '-x test'
+            additional_ubuntu_build_flags: '-x :http-native:test -x :http-compiler-plugin-tests:test ${{ inputs.build_properties }}'
+            additional_windows_build_flags: '-x :http-native:test -x :http-compiler-plugin-tests:test ${{ inputs.build_properties }}'
             java_tool_options: '-Dfile.encoding=UTF8'
