@@ -26,9 +26,9 @@ import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.utils.ValueUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.stdlib.http.api.BallerinaConnectorException;
-import org.ballerinalang.langlib.value.FromJsonWithType;
 
 import static io.ballerina.runtime.api.TypeTags.BOOLEAN_TAG;
 import static io.ballerina.runtime.api.TypeTags.DECIMAL_TAG;
@@ -58,7 +58,7 @@ public class ParamUtils {
                 return ValueCreator.createDecimalValue(argValue);
             case MAP_TAG:
                 Object json = JsonUtils.parse(argValue);
-                return FromJsonWithType.convert(json, MAP_TYPE);
+                return ValueUtils.convert(json, MAP_TYPE);
             default:
                 return StringUtils.fromString(argValue);
         }
@@ -100,7 +100,7 @@ public class ParamUtils {
                 case MAP_TAG:
                 case RECORD_TYPE_TAG:
                     Object record = JsonUtils.parse(element);
-                    arrayValue.add(index++, FromJsonWithType.convert(record, elementType));
+                    arrayValue.add(index++, ValueUtils.convert(record, elementType));
                     break;
                 default:
                     throw new BallerinaConnectorException("Illegal state error: unexpected param type");
