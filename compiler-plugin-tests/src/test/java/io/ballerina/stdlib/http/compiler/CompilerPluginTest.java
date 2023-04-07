@@ -725,7 +725,7 @@ public class CompilerPluginTest {
         assertTrue(modifierDiagnosticResult, 2, "ambiguous types for parameter 'e' and 'f'. Use " +
                 "annotations to avoid ambiguity", HTTP_151);
         assertTrue(modifierDiagnosticResult, 3, "invalid union type for default payload param: 'g'. " +
-                "Use basic structured types", HTTP_152);
+                "Use basic structured anydata types", HTTP_152);
         assertError(modifierDiagnosticResult, 4, "invalid multiple resource parameter annotations for" +
                 " 'g': expected one of the following types: 'http:Payload', 'http:CallerInfo', 'http:Header'," +
                 " 'http:Query'", HTTP_108);
