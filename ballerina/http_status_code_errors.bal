@@ -191,7 +191,7 @@ isolated function getErrorResponse(error err, string? returnMediaType = ()) retu
     }
 
     // Handling the server errors
-    setStatusCode(err, response);
+    response.statusCode = getStatusCode(err);
 
     if err !is StatusCodeError {
         setPayload(err.message(), response, returnMediaType);
@@ -223,87 +223,93 @@ isolated function setHeaders(map<string|string[]> headers, Response response) {
     }
 }
 
-isolated function setStatusCode(error err, Response response) {
+isolated function getStatusCode(error err) returns int{
     if err is BadRequestError {
-        response.statusCode = 400;
+        return 400;
     } else if err is UnauthorizedError {
-        response.statusCode = 401;
+        return 401;
     } else if err is PaymentRequiredError {
-        response.statusCode = 402;
+        return 402;
     } else if err is ForbiddenError {
-        response.statusCode = 403;
+        return 403;
     } else if err is NotFoundError {
-        response.statusCode = 404;
+        return 404;
     } else if err is MethodNotAllowedError {
-        response.statusCode = 405;
+        return 405;
     } else if err is NotAcceptableError {
-        response.statusCode = 406;
+        return 406;
     } else if err is ProxyAuthenticationRequiredError {
-        response.statusCode = 407;
+        return 407;
     } else if err is RequestTimeoutError {
-        response.statusCode = 408;
+        return 408;
     } else if err is ConflictError {
-        response.statusCode = 409;
+        return 409;
     } else if err is GoneError {
-        response.statusCode = 410;
+        return 410;
     } else if err is LengthRequiredError {
-        response.statusCode = 411;
+        return 411;
     } else if err is PreconditionFailedError {
-        response.statusCode = 412;
+        return 412;
     } else if err is PayloadTooLargeError {
-        response.statusCode = 413;
+        return 413;
     } else if err is URITooLongError {
-        response.statusCode = 414;
+        return 414;
     } else if err is UnsupportedMediaTypeError {
-        response.statusCode = 415;
+        return 415;
     } else if err is RangeNotSatisfiableError {
-        response.statusCode = 416;
+        return 416;
     } else if err is ExpectationFailedError {
-        response.statusCode = 417;
+        return 417;
     } else if err is MisdirectedRequestError {
-        response.statusCode = 421;
+        return 421;
     } else if err is UnprocessableEntityError {
-        response.statusCode = 422;
+        return 422;
     } else if err is LockedError {
-        response.statusCode = 423;
+        return 423;
     } else if err is FailedDependencyError {
-        response.statusCode = 424;
+        return 424;
     } else if err is UpgradeRequiredError {
-        response.statusCode = 426;
+        return 426;
     } else if err is PreconditionRequiredError {
-        response.statusCode = 428;
+        return 428;
     } else if err is TooManyRequestsError {
-        response.statusCode = 429;
+        return 429;
     } else if err is RequestHeaderFieldsTooLargeError {
-        response.statusCode = 431;
+        return 431;
     } else if err is UnavailableDueToLegalReasonsError {
-        response.statusCode = 451;
+        return 451;
     } else if err is InternalServerErrorError {
-        response.statusCode = 500;
+        return 500;
     } else if err is NotImplementedError {
-        response.statusCode = 501;
+        return 501;
     } else if err is BadGatewayError {
-        response.statusCode = 502;
+        return 502;
     } else if err is ServiceUnavailableError {
-        response.statusCode = 503;
+        return 503;
     } else if err is GatewayTimeoutError {
-        response.statusCode = 504;
+        return 504;
     } else if err is HTTPVersionNotSupportedError {
-        response.statusCode = 505;
+        return 505;
     } else if err is VariantAlsoNegotiatesError {
-        response.statusCode = 506;
+        return 506;
     } else if err is InsufficientStorageError {
-        response.statusCode = 507;
+        return 507;
     } else if err is LoopDetectedError {
-        response.statusCode = 508;
+        return 508;
     } else if err is NotExtendedError {
-        response.statusCode = 510;
+        return 510;
     } else if err is NetworkAuthenticationRequiredError {
-        response.statusCode = 511;
+        return 511;
     } else if err is DefaultStatusCodeError {
-        response.statusCode = err.detail().statusCode ?: 500;
-    } else {
-        // All other errors are default to InternalServerError
-        response.statusCode = 500;
+        int? statusCode = err.detail().statusCode;
+        if statusCode is int {
+            return statusCode;
+        }
+        error? cause = err.cause();
+        if cause is error {
+            return getStatusCode(cause);
+        }
     }
+    // All other errors are default to InternalServerError
+    return 500;
 }
