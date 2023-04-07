@@ -181,6 +181,13 @@ function test401StatusCodeError() returns error? {
 }
 
 @test:Config {}
+function test402StatusCodeError() returns error? {
+    http:Response response = check clientEndpoint->/statusCodeError(statusCode = 402);
+    test:assertEquals(response.statusCode, 402);
+    common:assertTextPayload(response.getTextPayload(), "Payment required error");
+}
+
+@test:Config {}
 function test403StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 403);
     test:assertEquals(response.statusCode, 403);
