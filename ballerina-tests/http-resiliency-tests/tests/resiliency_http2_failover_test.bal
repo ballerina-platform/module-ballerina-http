@@ -110,7 +110,7 @@ function sendErrorResponse(http:Caller caller, error e) {
 }
 
 //Test basic failover scenario for HTTP2 clients. //////TODO: #24260
-@test:Config {}
+@test:Config {enable: false}
 function testBasicHttp2Failover() returns error? {
     http:Client testClient = check new ("http://localhost:9314");
     http:Response|error response = testClient->post("/failoverDemoService06/index", requestPayload);

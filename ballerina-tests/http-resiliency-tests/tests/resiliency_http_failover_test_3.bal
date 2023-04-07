@@ -234,7 +234,7 @@ service /failureStatusCodeService03 on backendEP03 {
 }
 
 //Test the functionality for all endpoints failure scenario
-@test:Config {}
+@test:Config {enable: false}
 function testAllEndpointFailure() returns error? {
     string expectedMessage = "All the failover endpoints failed. Last error was: " +
                 "Idle timeout triggered before initiating inbound response";

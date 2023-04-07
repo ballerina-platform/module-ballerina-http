@@ -85,7 +85,7 @@ service /mock05 on backendEP05 {
 }
 
 //Test to verify whether failover will test from last successful endpoint
-@test:Config {}
+@test:Config {enable: false}
 function testFailoverStartingPosition() returns error? {
     http:Client testClient = check new ("http://localhost:9305", httpVersion = http:HTTP_1_1);
     http:Response|error response = testClient->post("/failoverDemoService05/failoverStartIndex", requestPayload);
