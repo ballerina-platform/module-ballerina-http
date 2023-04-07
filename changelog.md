@@ -20,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Returning 500 when the upstream server is unavailable](https://github.com/ballerina-platform/ballerina-standard-library/issues/2929)
 - [Encoded url path with special characters is not working as expected](https://github.com/ballerina-platform/ballerina-standard-library/issues/4033)
 - [Make panic behavior consistent with interceptor and non-interceptor services](https://github.com/ballerina-platform/ballerina-standard-library/issues/4250)
+- [Fix H2 client connection brake when ALPN resolved to H2](https://github.com/ballerina-platform/ballerina-standard-library/issues/3561)
 
 ### Added
 - [Make @http:Payload annotation optional for post, put and patch](https://github.com/ballerina-platform/ballerina-standard-library/issues/3276)
