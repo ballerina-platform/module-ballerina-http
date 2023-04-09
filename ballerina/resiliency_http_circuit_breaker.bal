@@ -406,7 +406,7 @@ client isolated class CircuitBreakerClient {
     # + return - State of the circuit
     isolated function updateCircuitState() returns CircuitState {
         lock {
-            return updateAndGetCircuitState();
+            return self.updateAndGetCircuitState();
         }
     }
     
