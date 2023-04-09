@@ -406,50 +406,40 @@ client isolated class CircuitBreakerClient {
     # + return - State of the circuit
     isolated function updateCircuitState() returns CircuitState {
         lock {
-            return self.updateAndGetCircuitState();
-        }
-    }
-    
-    isolated function updateAndGetCircuitState() returns CircuitState {
-        CircuitState currentState = self.currentCircuitState;
-        self.prepareRollingWindow(self.circuitHealth, self.circuitBreakerInferredConfig);
-        int currentBucketId = self.getCurrentBucketId(self.circuitHealth);
-        self.updateLastUsedBucketId(self.circuitHealth, currentBucketId);
-        self.circuitHealth.lastRequestTime = time:utcNow();
-        int totalRequestsCount = self.getTotalRequestsCount(self.circuitHealth);
-        self.circuitHealth.totalRequestCount = totalRequestsCount;
-        if totalRequestsCount >= self.circuitBreakerInferredConfig.rollingWindow.requestVolumeThreshold {
-            if currentState == CB_OPEN_STATE {
-                currentState = self.switchCircuitStateOpenToHalfOpenOnResetTime(self.circuitBreakerInferredConfig,
-                                                                                        self.circuitHealth, currentState);
-            } else if currentState == CB_HALF_OPEN_STATE {
-                if !self.circuitHealth.lastRequestSuccess {
-                    // If the trial run has failed, trip the circuit again
-                    currentState = CB_OPEN_STATE;
-                    log:printInfo("CircuitBreaker trial run has failed. Circuit switched from HALF_OPEN to OPEN state.")
-                            ;
+            CircuitState currentState = self.currentCircuitState;
+            self.prepareRollingWindow(self.circuitHealth, self.circuitBreakerInferredConfig);
+            int currentBucketId = self.getCurrentBucketId(self.circuitHealth);
+            self.updateLastUsedBucketId(self.circuitHealth, currentBucketId);
+            self.circuitHealth.lastRequestTime = time:utcNow();
+            int totalRequestsCount = self.getTotalRequestsCount(self.circuitHealth);
+            self.circuitHealth.totalRequestCount = totalRequestsCount;
+            if totalRequestsCount >= self.circuitBreakerInferredConfig.rollingWindow.requestVolumeThreshold {
+                if currentState == CB_OPEN_STATE {
+                    currentState = self.switchCircuitStateOpenToHalfOpenOnResetTime(self.circuitBreakerInferredConfig,
+                                                                                            self.circuitHealth, currentState);
+                } else if currentState == CB_HALF_OPEN_STATE {
+                    if !self.circuitHealth.lastRequestSuccess {
+                        // If the trial run has failed, trip the circuit again
+                        currentState = CB_OPEN_STATE;
+                    } else {
+                        // If the trial run was successful reset the circuit
+                        currentState = CB_CLOSED_STATE;
+                    }
                 } else {
-                    // If the trial run was successful reset the circuit
-                    currentState = CB_CLOSED_STATE;
-                    log:printInfo(
-                                "CircuitBreaker trial run  was successful. Circuit switched from HALF_OPEN to CLOSE state.");
+                    float currentFailureRate = self.getCurrentFailureRatio(self.circuitHealth);
+
+                    if currentFailureRate > self.circuitBreakerInferredConfig.failureThreshold {
+                        currentState = CB_OPEN_STATE;
+                    }
                 }
             } else {
-                float currentFailureRate = self.getCurrentFailureRatio(self.circuitHealth);
-
-                if currentFailureRate > self.circuitBreakerInferredConfig.failureThreshold {
-                    currentState = CB_OPEN_STATE;
-                    log:printInfo("CircuitBreaker failure threshold exceeded. Circuit tripped from CLOSE to OPEN state."
-                            );
-                }
+                currentState = self.switchCircuitStateOpenToHalfOpenOnResetTime(self.circuitBreakerInferredConfig,
+                                                                                        self.circuitHealth, currentState);
             }
-        } else {
-            currentState = self.switchCircuitStateOpenToHalfOpenOnResetTime(self.circuitBreakerInferredConfig,
-                                                                                    self.circuitHealth, currentState);
-        }
-        Bucket bucket = <Bucket>self.circuitHealth.totalBuckets[currentBucketId];
-        bucket.totalCount += 1;
-        return currentState;
+            Bucket bucket = <Bucket>self.circuitHealth.totalBuckets[currentBucketId];
+            bucket.totalCount += 1;
+            return currentState;
+          }
     }
 
     // Handles open circuit state.
