@@ -114,6 +114,7 @@ function sendErrorResponse(http:Caller caller, error e) {
 function testBasicHttp2Failover() returns error? {
 log:printInfo("*********0**********");
     http:Client testClient = check new ("http://localhost:9314");
+    log:printInfo("*********011**********");
     http:Response|error response = testClient->post("/failoverDemoService06/index", requestPayload);
     log:printInfo("**********1*********");
     if response is http:Response {
