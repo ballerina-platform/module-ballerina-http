@@ -449,6 +449,7 @@ client isolated class CircuitBreakerClient {
 
     // Handles open circuit state.
     isolated function handleOpenCircuit() returns ClientError {
+    lock {
         log:printInfo("1");
             time:Utc effectiveErrorTime = self.getEffectiveErrorTime();
              log:printInfo("2");
@@ -462,6 +463,7 @@ client isolated class CircuitBreakerClient {
                 + timeRemaining.toString() + " seconds.";
                  log:printInfo("6");
             return error UpstreamServiceUnavailableError(errorMessage);
+            }
     }
 
     isolated function updateCircuitHealthAndRespond(Response|ClientError serviceResponse) returns Response|ClientError {
