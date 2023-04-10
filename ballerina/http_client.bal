@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/jballerina.java;
+import ballerina/log;
 
 # Lies inside every type of client in the chain holding the native client connector. More complex and specific
 # endpoint types are created by wrapping this generic HTTP actions implementation internally.
@@ -37,6 +38,7 @@ client isolated class HttpClient {
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function post(string path, RequestMessage message) returns Response|ClientError {
+        log:printInfo("post");
         return externExecuteClientAction(self, path, <Request>message, HTTP_POST);
     }
 
