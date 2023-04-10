@@ -157,10 +157,13 @@ client isolated class CircuitBreakerClient {
     remote isolated function post(string path, RequestMessage message) returns Response|ClientError {
         self.setCurrentState(self.updateCircuitState(), 1);
         if self.getCurrentState() == CB_OPEN_STATE {
+              log:printInfo("1");
             // TODO: Allow the user to handle this scenario. Maybe through a user provided function
             return self.handleOpenCircuit();
         } else {
+             log:printInfo("2");
             var serviceResponse = self.httpClient->post(path, <Request>message);
+              log:printInfo("3");
             return self.updateCircuitHealthAndRespond(serviceResponse);
         }
     }
@@ -682,7 +685,6 @@ client isolated class CircuitBreakerClient {
 
     isolated function setCurrentState(CircuitState currentCircuitState, int x) {
         lock {
-            log:printInfo("current state set " + x.toString());
             self.currentCircuitState = currentCircuitState;
         }
     }
