@@ -155,7 +155,7 @@ client isolated class CircuitBreakerClient {
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function post(string path, RequestMessage message) returns Response|ClientError {
-        self.setCurrentState(self.updateCircuitState());
+        self.setCurrentState(self.updateCircuitState(), 1);
         if self.getCurrentState() == CB_OPEN_STATE {
             // TODO: Allow the user to handle this scenario. Maybe through a user provided function
             return self.handleOpenCircuit();
@@ -172,7 +172,7 @@ client isolated class CircuitBreakerClient {
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function head(string path, RequestMessage message = ()) returns Response|ClientError {
-        self.setCurrentState(self.updateCircuitState());
+        self.setCurrentState(self.updateCircuitState(), 2);
         if self.getCurrentState() == CB_OPEN_STATE {
             // TODO: Allow the user to handle this scenario. Maybe through a user provided function
             return self.handleOpenCircuit();
@@ -189,7 +189,7 @@ client isolated class CircuitBreakerClient {
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function put(string path, RequestMessage message) returns Response|ClientError {
-        self.setCurrentState(self.updateCircuitState());
+        self.setCurrentState(self.updateCircuitState(), 3);
         if self.getCurrentState() == CB_OPEN_STATE {
             // TODO: Allow the user to handle this scenario. Maybe through a user provided function
             return self.handleOpenCircuit();
@@ -207,7 +207,7 @@ client isolated class CircuitBreakerClient {
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function execute(string httpVerb, string path, RequestMessage message) returns Response|ClientError {
-        self.setCurrentState(self.updateCircuitState());
+        self.setCurrentState(self.updateCircuitState(), 4);
         if self.getCurrentState() == CB_OPEN_STATE {
             // TODO: Allow the user to handle this scenario. Maybe through a user provided function
             return self.handleOpenCircuit();
@@ -224,7 +224,7 @@ client isolated class CircuitBreakerClient {
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function patch(string path, RequestMessage message) returns Response|ClientError {
-        self.setCurrentState(self.updateCircuitState());
+        self.setCurrentState(self.updateCircuitState(), 5);
         if self.getCurrentState() == CB_OPEN_STATE {
             // TODO: Allow the user to handle this scenario. Maybe through a user provided function
             return self.handleOpenCircuit();
@@ -241,7 +241,7 @@ client isolated class CircuitBreakerClient {
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function delete(string path, RequestMessage message = ()) returns Response|ClientError {
-        self.setCurrentState(self.updateCircuitState());
+        self.setCurrentState(self.updateCircuitState(), 6);
         if self.getCurrentState() == CB_OPEN_STATE {
             // TODO: Allow the user to handle this scenario. Maybe through a user provided function
             return self.handleOpenCircuit();
@@ -258,7 +258,7 @@ client isolated class CircuitBreakerClient {
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function get(string path, RequestMessage message = ()) returns Response|ClientError {
-        self.setCurrentState(self.updateCircuitState());
+        self.setCurrentState(self.updateCircuitState(), 7);
         if self.getCurrentState() == CB_OPEN_STATE {
             // TODO: Allow the user to handle this scenario. Maybe through a user provided function
             return self.handleOpenCircuit();
@@ -275,7 +275,7 @@ client isolated class CircuitBreakerClient {
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function options(string path, RequestMessage message = ()) returns Response|ClientError {
-        self.setCurrentState(self.updateCircuitState());
+        self.setCurrentState(self.updateCircuitState(), 8);
         if self.getCurrentState() == CB_OPEN_STATE {
             // TODO: Allow the user to handle this scenario. Maybe through a user provided function
             return self.handleOpenCircuit();
@@ -292,7 +292,7 @@ client isolated class CircuitBreakerClient {
     # + request - A Request struct
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function forward(string path, Request request) returns Response|ClientError {
-        self.setCurrentState(self.updateCircuitState());
+        self.setCurrentState(self.updateCircuitState(), 9);
         if self.getCurrentState() == CB_OPEN_STATE {
             // TODO: Allow the user to handle this scenario. Maybe through a user provided function
             return self.handleOpenCircuit();
@@ -312,7 +312,7 @@ client isolated class CircuitBreakerClient {
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation or else an `http:ClientError` if the submission
     #            fails
     remote isolated function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
-        self.setCurrentState(self.updateCircuitState());
+        self.setCurrentState(self.updateCircuitState(), 10);
         if self.getCurrentState() == CB_OPEN_STATE {
             // TODO: Allow the user to handle this scenario. Maybe through a user provided function
             return self.handleOpenCircuit();
@@ -377,7 +377,7 @@ client isolated class CircuitBreakerClient {
     # until the failure threshold exceeds.
     isolated function forceClose() {
         log:printInfo("Circuit forcefully switched to CLOSE state.");
-        self.setCurrentState(CB_CLOSED_STATE);
+        self.setCurrentState(CB_CLOSED_STATE, 11);
         lock {
             self.reInitializeBuckets(self.circuitHealth);
         }
@@ -434,8 +434,7 @@ client isolated class CircuitBreakerClient {
 
                     if currentFailureRate > self.circuitBreakerInferredConfig.failureThreshold {
                         currentState = CB_OPEN_STATE;
-                        log:printInfo("CircuitBreaker failure threshold exceeded. Circuit tripped from CLOSE to OPEN state."
-                        );
+                        log:printInfo("CircuitBreaker failure threshold exceeded. Circuit tripped from CLOSE to OPEN state.");
                     }
                 }
             } else {
@@ -681,8 +680,9 @@ client isolated class CircuitBreakerClient {
         return currentCircuitState;
     }
 
-    isolated function setCurrentState(CircuitState currentCircuitState) {
+    isolated function setCurrentState(CircuitState currentCircuitState, int x) {
         lock {
+            log:printInfo("current state set " + x.toString());
             self.currentCircuitState = currentCircuitState;
         }
     }
