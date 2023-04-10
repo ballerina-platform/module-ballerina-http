@@ -569,7 +569,7 @@ function testDataBindingWithTableofMapOfStringByTypeNegative() returns error? {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         common:assertTrueTextPayload(response.getTextPayload(),
-        "data binding failed: {ballerina/lang.value}ConversionError");
+        "data binding failed: {ballerina}ConversionError");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
