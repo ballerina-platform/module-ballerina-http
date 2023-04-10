@@ -717,7 +717,7 @@ public class CompilerPluginTest {
         // DiagnosticResult modifierDiagnosticResult = currentPackage.runCodeGenAndModifyPlugins();
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult modifierDiagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(modifierDiagnosticResult.errorCount(), 10);
+        Assert.assertEquals(modifierDiagnosticResult.errorCount(), 7);
         assertTrue(modifierDiagnosticResult, 0, "ambiguous types for parameter 'a' and 'b'. Use " +
                 "annotations to avoid ambiguity", HTTP_151);
         assertTrue(modifierDiagnosticResult, 1, "ambiguous types for parameter 'c' and 'd'. Use " +
@@ -729,13 +729,11 @@ public class CompilerPluginTest {
         assertError(modifierDiagnosticResult, 4, "invalid multiple resource parameter annotations for" +
                 " 'g': expected one of the following types: 'http:Payload', 'http:CallerInfo', 'http:Header'," +
                 " 'http:Query'", HTTP_108);
-        assertTrue(modifierDiagnosticResult, 5, "invalid resource parameter type", HTTP_106);
+        assertError(modifierDiagnosticResult, 5, "invalid union type of query param 'p': 'string', 'int', " +
+                "'float', 'boolean', 'decimal', 'map<json>' type or the array types of them can only be union with " +
+                "'()'. Eg: string? or int[]?", HTTP_113);
         assertTrue(modifierDiagnosticResult, 6, "ambiguous types for parameter 'q' and 'p'. Use " +
                 "annotations to avoid ambiguity", HTTP_151);
-        assertTrue(modifierDiagnosticResult, 7, "invalid resource parameter type", HTTP_106);
-        assertTrue(modifierDiagnosticResult, 8, "invalid resource parameter type", HTTP_106);
-        assertTrue(modifierDiagnosticResult, 9, "invalid union type for default payload param: 'a'. " +
-                "Use basic structured anydata types", HTTP_152);
     }
 
     @Test

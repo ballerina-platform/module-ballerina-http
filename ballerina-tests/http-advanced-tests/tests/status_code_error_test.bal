@@ -148,12 +148,8 @@ type CustomHeaders record {|
 service on new http:Listener(statusCodeErrorPort) {
 
     resource function get statusCodeError(int statusCode) returns http:StatusCodeError {
-        return getStatusCodeError(statusCode);
-    }
 
-    resource function get statusCodeErrorWithCause(int statusCode) returns http:DefaultStatusCodeError {
-        error err = statusCode == 0 ? error("New error") : getStatusCodeError(statusCode);
-        return error http:DefaultStatusCodeError("Default error", err);
+        return getStatusCodeError(statusCode);
     }
 
     resource function post statusCodeError(@http:Payload anydata payload, int statusCode,
@@ -178,13 +174,6 @@ function test401StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 401);
     test:assertEquals(response.statusCode, 401);
     common:assertTextPayload(response.getTextPayload(), "Unauthorized error");
-}
-
-@test:Config {}
-function test402StatusCodeError() returns error? {
-    http:Response response = check clientEndpoint->/statusCodeError(statusCode = 402);
-    test:assertEquals(response.statusCode, 402);
-    common:assertTextPayload(response.getTextPayload(), "Payment required error");
 }
 
 @test:Config {}
@@ -435,27 +424,6 @@ function test511StatusCodeError() returns error? {
 @test:Config {}
 function testDefaultStatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 600);
-    test:assertEquals(response.statusCode, 600);
-    common:assertTextPayload(response.getTextPayload(), "Default error");
-}
-
-@test:Config {}
-function testDefaultStatusCodeErrorWith400ErrorCause() returns error? {
-    http:Response response = check clientEndpoint->/statusCodeErrorWithCause(statusCode = 400);
-    test:assertEquals(response.statusCode, 400);
-    common:assertTextPayload(response.getTextPayload(), "Default error");
-}
-
-@test:Config {}
-function testDefaultStatusCodeErrorWithCause() returns error? {
-    http:Response response = check clientEndpoint->/statusCodeErrorWithCause(statusCode = 0);
-    test:assertEquals(response.statusCode, 500);
-    common:assertTextPayload(response.getTextPayload(), "Default error");
-}
-
-@test:Config {}
-function testDefaultStatusCodeErrorWithDefaultErrorCause() returns error? {
-    http:Response response = check clientEndpoint->/statusCodeErrorWithCause(statusCode = 600);
     test:assertEquals(response.statusCode, 600);
     common:assertTextPayload(response.getTextPayload(), "Default error");
 }
