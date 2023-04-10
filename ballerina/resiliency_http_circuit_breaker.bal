@@ -157,13 +157,10 @@ client isolated class CircuitBreakerClient {
     remote isolated function post(string path, RequestMessage message) returns Response|ClientError {
         self.setCurrentState(self.updateCircuitState(), 1);
         if self.getCurrentState() == CB_OPEN_STATE {
-              log:printInfo("1");
             // TODO: Allow the user to handle this scenario. Maybe through a user provided function
             return self.handleOpenCircuit();
         } else {
-             log:printInfo("2");
             var serviceResponse = self.httpClient->post(path, <Request>message);
-              log:printInfo("3");
             return self.updateCircuitHealthAndRespond(serviceResponse);
         }
     }
@@ -452,13 +449,15 @@ client isolated class CircuitBreakerClient {
 
     // Handles open circuit state.
     isolated function handleOpenCircuit() returns ClientError {
-        time:Utc effectiveErrorTime = self.getEffectiveErrorTime();
-        time:Seconds timeDif = time:utcDiffSeconds(time:utcNow(), effectiveErrorTime);
-        int timeRemaining = <int> (self.circuitBreakerInferredConfig.resetTime - <decimal> timeDif);
-        self.updateRejectedRequestCount();
-        string errorMessage = "Upstream service unavailable. Requests to upstream service will be suspended for "
-            + timeRemaining.toString() + " seconds.";
-        return error UpstreamServiceUnavailableError(errorMessage);
+        lock {
+            time:Utc effectiveErrorTime = self.getEffectiveErrorTime();
+            time:Seconds timeDif = time:utcDiffSeconds(time:utcNow(), effectiveErrorTime);
+            int timeRemaining = <int> (self.circuitBreakerInferredConfig.resetTime - <decimal> timeDif);
+            self.updateRejectedRequestCount();
+            string errorMessage = "Upstream service unavailable. Requests to upstream service will be suspended for "
+                + timeRemaining.toString() + " seconds.";
+            return error UpstreamServiceUnavailableError(errorMessage);
+        }
     }
 
     isolated function updateCircuitHealthAndRespond(Response|ClientError serviceResponse) returns Response|ClientError {
