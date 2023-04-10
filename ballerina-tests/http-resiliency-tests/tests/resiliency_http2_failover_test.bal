@@ -120,12 +120,14 @@ log:printInfo("*********0**********");
         log:printInfo("*******************");
         test:assertEquals(response.statusCode, 201, msg = "Found unexpected output");
         common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:TEXT_PLAIN);
+        log:printInfo("********6***********");
         common:assertTrueTextPayload(response.getTextPayload(), "Failover start index is : 0");
+        log:printInfo("********7***********");
     } else {
         log:printInfo("********2***********");
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
-
+log:printInfo("********5***********");
     response = testClient->post("/failoverDemoService06/index", requestPayload);
     log:printInfo("************3*******");
     if response is http:Response {
