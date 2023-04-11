@@ -16,7 +16,7 @@
 //
 
 import ballerina/lang.runtime as runtime;
-import ballerina/log;
+// import ballerina/log;
 import ballerina/test;
 import ballerina/http;
 import ballerina/http_test_common as common;
@@ -112,32 +112,21 @@ function sendErrorResponse(http:Caller caller, error e) {
 //Test basic failover scenario for HTTP2 clients. //////TODO: #24260
 @test:Config {}
 function testBasicHttp2Failover() returns error? {
-log:printInfo("*********0**********");
     http:Client testClient = check new ("http://localhost:9314");
-    log:printInfo("*********011**********");
     http:Response|error response = testClient->post("/failoverDemoService06/index", requestPayload);
-    log:printInfo("**********1*********");
     if response is http:Response {
-        log:printInfo("*******************");
         test:assertEquals(response.statusCode, 201, msg = "Found unexpected output");
         common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:TEXT_PLAIN);
-        log:printInfo("********6***********");
         common:assertTrueTextPayload(response.getTextPayload(), "Failover start index is : 0");
-        log:printInfo("********7***********");
     } else {
-        log:printInfo("********2***********");
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
-log:printInfo("********5***********");
     response = testClient->post("/failoverDemoService06/index", requestPayload);
-    log:printInfo("************3*******");
     if response is http:Response {
-        log:printInfo("**********4*********");
         test:assertEquals(response.statusCode, 201, msg = "Found unexpected output");
         common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:TEXT_PLAIN);
         common:assertTrueTextPayload(response.getTextPayload(), "Failover start index is : 2");
     } else {
-        log:printInfo("********5***********");
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
