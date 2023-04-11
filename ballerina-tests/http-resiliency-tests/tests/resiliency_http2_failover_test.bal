@@ -121,6 +121,7 @@ function testBasicHttp2Failover() returns error? {
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
+
     response = testClient->post("/failoverDemoService06/index", requestPayload);
     if response is http:Response {
         test:assertEquals(response.statusCode, 201, msg = "Found unexpected output");
