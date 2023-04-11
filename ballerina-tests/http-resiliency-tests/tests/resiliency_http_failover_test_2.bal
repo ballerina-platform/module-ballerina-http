@@ -231,7 +231,7 @@ service /failureStatusCodeService02 on backendEP02 {
 }
 
 //Test failover functionality when request has nested body parts
-@test:Config
+@test:Config {}
 function testFailoverWithNestedMultiPart() {
     test:assertTrue(externTestNestedMultiPart(9302, "failoverDemoService02/invokeAllFailureEndpoint02"));
 }
