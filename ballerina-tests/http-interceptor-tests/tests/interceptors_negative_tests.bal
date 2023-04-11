@@ -57,7 +57,7 @@ final http:Client requestInterceptorNegativeClientEP3 = check new("http://localh
 
 listener http:Listener requestInterceptorNegativeServerEP3 = new(requestInterceptorNegativeTestPort3, 
     httpVersion = http:HTTP_1_1,
-    interceptors = [new DefaultRequestInterceptor()]
+    interceptors = new DefaultRequestInterceptor()
 );
 
 service / on requestInterceptorNegativeServerEP3 {

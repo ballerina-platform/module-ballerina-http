@@ -450,7 +450,7 @@ function testGetRequestInterceptorBasePath() returns error? {
 }
 
 @http:ServiceConfig {
-    interceptors : [new RequestInterceptorJwtInformation()]
+    interceptors : new RequestInterceptorJwtInformation()
 }
 service /requestInterceptorJwtInformation on new http:Listener(jwtInformationInReqCtxtTestPort, secureSocket = {
         key: {
