@@ -50,7 +50,7 @@ service / on new http:Listener(foClientWithoutStatusCodeTestPort2) {
     }
 }
 
-@test:Config
+@test:Config {}
 function testFailoverWithoutStatusCodes() returns error? {
     http:Response|error response = foClientEP->get("/fo");
     if response is http:Response {
