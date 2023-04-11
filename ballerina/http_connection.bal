@@ -47,9 +47,9 @@ public isolated client class Caller {
     remote isolated function respond(ResponseMessage|StatusCodeResponse|error message = ()) returns ListenerError? {
         if message is ResponseMessage {
             Response response = check buildResponse(message, self.getResourceAccessor());
-            return callerNativeRespond(self, response);
+            return nativeRespond(self, response);
         } else if message is StatusCodeResponse {
-            return callerNativeRespond(self, createStatusCodeResponse(message));
+            return nativeRespond(self, createStatusCodeResponse(message));
         } else if message is error {
             return self.returnErrorResponse(message);
         } else {
@@ -384,11 +384,6 @@ isolated function nativeRespondError(Caller caller, Response response, error err
 isolated function nativeRespond(Caller caller, Response response) returns ListenerError? = @java:Method {
     'class: "io.ballerina.stdlib.http.api.nativeimpl.connection.Respond",
     name: "nativeRespond"
-} external;
-
-isolated function callerNativeRespond(Caller caller, Response response) returns ListenerError? = @java:Method {
-    'class: "io.ballerina.stdlib.http.api.nativeimpl.connection.Respond",
-    name: "callerNativeRespond"
 } external;
 
 isolated function nativeGetRemoteHostName(Caller caller) returns string? = @java:Method {

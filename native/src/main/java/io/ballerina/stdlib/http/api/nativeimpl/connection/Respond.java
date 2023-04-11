@@ -70,27 +70,19 @@ public class Respond extends ConnectionAction {
         HttpCarbonMessage inboundRequest = HttpUtil.getCarbonMsg(connectionObj, null);
         inboundRequest.setProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR, error);
         return nativeRespondWithDataCtx(env, connectionObj, outboundResponseObj,
-                new DataContext(env, inboundRequest), false);
+                new DataContext(env, inboundRequest));
     }
 
     public static Object nativeRespond(Environment env, BObject connectionObj, BObject outboundResponseObj) {
         return nativeRespondWithDataCtx(env, connectionObj, outboundResponseObj,
-                new DataContext(env, HttpUtil.getCarbonMsg(connectionObj, null)), false);
-    }
-
-    public static Object callerNativeRespond(Environment env, BObject connectionObj, BObject outboundResponseObj) {
-        return nativeRespondWithDataCtx(env, connectionObj, outboundResponseObj,
-                new DataContext(env, HttpUtil.getCarbonMsg(connectionObj, null)), true);
+                new DataContext(env, HttpUtil.getCarbonMsg(connectionObj, null)));
     }
 
     public static Object nativeRespondWithDataCtx(Environment env, BObject connectionObj, BObject outboundResponseObj,
-                                                  DataContext dataContext, boolean fromCaller) {
+                                                  DataContext dataContext) {
         HttpCarbonMessage inboundRequestMsg = HttpUtil.getCarbonMsg(connectionObj, null);
         if (invokeResponseInterceptor(env, inboundRequestMsg, outboundResponseObj, connectionObj, dataContext)) {
             return null;
-        }
-        if (!fromCaller) {
-            inboundRequestMsg.waitAndReleaseAllEntities();
         }
         if (isDirtyResponse(outboundResponseObj)) {
             String errorMessage = "Couldn't complete the respond operation as the response has been already used.";
@@ -163,7 +155,7 @@ public class Respond extends ConnectionAction {
                     HttpUtil.createHttpError(e.getMessage(), HttpErrorType.GENERIC_LISTENER_ERROR));
         } catch (Throwable e) {
             //Exception is already notified by http transport.
-            String errorMessage = "Couldn't complete outbound response: " + e != null ? e.getMessage() : "";
+            String errorMessage = "Couldn't complete outbound response: " + e.getMessage();
             log.debug(errorMessage, e);
             dataContext.getFuture().complete(
                     HttpUtil.createHttpError(errorMessage, HttpErrorType.GENERIC_LISTENER_ERROR));
@@ -225,7 +217,7 @@ public class Respond extends ConnectionAction {
         }
         if (inboundMessage.isInterceptorError()) {
             HttpResponseInterceptorUnitCallback callback = new HttpResponseInterceptorUnitCallback(inboundMessage,
-                    callerObj, outboundResponseObj, env, dataContext, null);
+                    callerObj, outboundResponseObj, env, dataContext, null, false);
             callback.sendFailureResponse((BError) inboundMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR));
         }
         return false;
@@ -249,8 +241,8 @@ public class Respond extends ConnectionAction {
         Runtime runtime = interceptorServicesRegistry.getRuntime();
         Object[] signatureParams = HttpDispatcher.getRemoteSignatureParameters(service, outboundResponseObj, callerObj,
                                    inboundMessage, runtime);
-        Callback callback = new HttpResponseInterceptorUnitCallback(inboundMessage, callerObj,
-                outboundResponseObj, env, dataContext, runtime);
+        Callback callback = new HttpResponseInterceptorUnitCallback(inboundMessage, callerObj, outboundResponseObj,
+                env, dataContext, runtime, interceptorServicesRegistry.isPossibleLastInterceptor());
 
         inboundMessage.removeProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
         String methodName = service.getServiceType().equals(HttpConstants.RESPONSE_ERROR_INTERCEPTOR)

@@ -23,6 +23,7 @@ import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.stdlib.http.api.BallerinaHTTPConnectorListener;
+import io.ballerina.stdlib.http.api.HTTPInterceptorServicesRegistry;
 import io.ballerina.stdlib.http.api.HTTPServicesRegistry;
 import io.ballerina.stdlib.http.api.HttpConnectorPortBindingListener;
 import io.ballerina.stdlib.http.api.HttpConstants;
@@ -30,6 +31,8 @@ import io.ballerina.stdlib.http.api.HttpErrorType;
 import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.transport.contract.ServerConnector;
 import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
+
+import java.util.List;
 
 import static io.ballerina.stdlib.http.api.HttpConstants.SERVER_CONNECTOR_FUTURE;
 import static io.ballerina.stdlib.http.api.HttpConstants.SERVICE_ENDPOINT_CONFIG;
@@ -56,6 +59,7 @@ public class Start extends AbstractHttpNativeFunction {
         try {
             HttpUtil.populateInterceptorServicesFromListener(serviceEndpoint, runtime);
             HttpUtil.populateInterceptorServicesFromService(serviceEndpoint, httpServicesRegistry);
+            markPossibleLastInterceptors(serviceEndpoint);
         } catch (Exception ex) {
             return HttpUtil.createHttpError("interceptor service registration failed: " + ex.getMessage(),
                                              HttpErrorType.GENERIC_LISTENER_ERROR);
@@ -92,6 +96,18 @@ public class Start extends AbstractHttpNativeFunction {
             Runtime runtime = env.getRuntime();
             httpServicesRegistry.setRuntime(runtime);
             return runtime;
+        }
+    }
+
+    private static void markPossibleLastInterceptors(BObject serviceEndpoint) {
+        List<HTTPInterceptorServicesRegistry> interceptors = getHttpInterceptorServicesRegistries(serviceEndpoint);
+        for (HTTPInterceptorServicesRegistry interceptor : interceptors) {
+            if (interceptor.getServicesType().equals(HttpConstants.RESPONSE_ERROR_INTERCEPTOR)) {
+                interceptor.setPossibleLastInterceptor(true);
+            } else if (interceptor.getServicesType().equals(HttpConstants.RESPONSE_INTERCEPTOR)) {
+                interceptor.setPossibleLastInterceptor(true);
+                break;
+            }
         }
     }
 
