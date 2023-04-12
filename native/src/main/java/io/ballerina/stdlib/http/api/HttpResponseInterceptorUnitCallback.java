@@ -43,7 +43,7 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
     private final Environment environment;
     private final BObject requestCtx;
     private final DataContext dataContext;
-    private boolean possibleLastInterceptor = false;
+    private final boolean possibleLastInterceptor;
 
 
     public HttpResponseInterceptorUnitCallback(HttpCarbonMessage requestMessage, BObject caller, BObject response,

@@ -1624,6 +1624,25 @@ public class HttpUtil {
         }
     }
 
+    public static void markPossibleLastInterceptors(HTTPServicesRegistry servicesRegistry) {
+        Map<String, HTTPServicesRegistry.ServicesMapHolder> servicesMapByHost = servicesRegistry.getServicesMapByHost();
+        for (HTTPServicesRegistry.ServicesMapHolder servicesMapHolder : servicesMapByHost.values()) {
+            Map<String, HttpService> servicesByBasePath = servicesMapHolder.getServicesByBasePath();
+            for (HttpService service : servicesByBasePath.values()) {
+                List<HTTPInterceptorServicesRegistry> interceptors = service.getInterceptorServicesRegistries();
+                for (HTTPInterceptorServicesRegistry interceptor : interceptors) {
+                    if (interceptor.getServicesType().equals(HttpConstants.RESPONSE_ERROR_INTERCEPTOR)) {
+                        interceptor.setPossibleLastInterceptor(true);
+                    } else if (interceptor.getServicesType().equals(HttpConstants.RESPONSE_INTERCEPTOR)) {
+                        interceptor.setPossibleLastInterceptor(true);
+                        servicesRegistry.setPossibleLastService(false);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
     public static void setInboundMgsSizeValidationConfig(long maxInitialLineLength, long maxHeaderSize,
                                                          long maxEntityBodySize,
                                                          InboundMsgSizeValidationConfig sizeValidationConfig) {
