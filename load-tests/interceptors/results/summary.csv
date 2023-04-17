@@ -1,2 +1,3 @@
 Label,# Samples,Average,Median,90% Line,95% Line,99% Line,Min,Max,Error %,Throughput,Received KB/sec,Std. Dev.,Date,Payload,Users
 Post User Request,9040274,4,1,5,9,43,0,18306,99.80%,2598.4,873.0,102.14
+Check User by Id Request,4425864,11,1,6,13,82,0,30123,99.17%,1271.6,426.6,358.85
