@@ -19,7 +19,7 @@ import ballerina/mime;
 import ballerina/time;
 import ballerina/constraint;
 
-const string CLIENT_URL = "http://bal.perf.test:9090";
+const string CLIENT_URL = "http://bal.perf.test:80";
 
 type ResponsePayload record {|
     json message;
