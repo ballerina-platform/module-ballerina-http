@@ -16,32 +16,6 @@
 
 import ballerina/http;
 import ballerina/mime;
-import ballerina/constraint;
-import ballerina/time;
-
-type ResponsePayload record {|
-    json message;
-    string timestamp;
-|};
-
-isolated function getCurrentTimeStamp() returns string {
-    return time:utcToString(time:utcNow());
-}
-
-isolated function processJsonPayload(http:Response res) returns http:Response|error {
-    string contentType = res.getContentType();
-    if contentType == mime:APPLICATION_JSON {
-        json payload = check res.getJsonPayload();
-        if payload is map<json> {
-            ResponsePayload responsePayload = {
-                message: payload,
-                timestamp: getCurrentTimeStamp()
-            };
-            res.setJsonPayload(responsePayload);
-        }
-    }
-    return res;
-}
 
 service class DefaultResponseInterceptor {
     *http:ResponseInterceptor;
@@ -104,18 +78,6 @@ service class ServiceRequestInterceptor {
     }
 }
 
-type User record {|
-    readonly int id;
-    *UserDetails;
-|};
-
-type UserDetails record {|
-    @constraint:String {minLength: 3}
-    string name;
-    @constraint:String {pattern: re `([a-zA-Z0-9._%\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,6})*`}
-    string email;
-|};
-
 isolated table<User> key(id) users = table [
     {id: 1, name: "John Doe", email: "john.doe@gmail.com"},
     {id: 2, name: "Jane Doe", email: "jane.doe@gmail.com"}
@@ -151,6 +113,22 @@ service /users on serverEP {
                 users.add({id: users.length() + 1, ...user});
             }
             return http:CREATED;
+        }
+    }
+
+    isolated resource function get test() returns error? {
+        worker A returns error? {check testGetUsers();}
+        worker B returns error? {check testGetUser();}
+        worker C returns error? {check testPostUser();}
+        worker D returns error? {check testNotImplemented();}
+        worker E returns error? {check testUnsupportedMediaType();}
+        worker F returns error? {check testNotFound();}
+        worker G returns error? {check testBadRequest();}
+        var results = wait {A, B, C, D, E, F, G};
+        foreach var result in results {
+            if result is error {
+                return result;
+            }
         }
     }
 }
