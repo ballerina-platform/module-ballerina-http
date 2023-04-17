@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/http;
+import ballerina/log;
 import ballerina/mime;
 
 service class DefaultResponseInterceptor {
@@ -127,6 +128,7 @@ service /users on serverEP {
         var results = wait {A, B, C, D, E, F, G};
         foreach var result in results {
             if result is error {
+                log:printError("Error occurred", result);
                 return result;
             }
         }
