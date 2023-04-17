@@ -15,6 +15,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: interceptors
+                name: interceptors-sv
                 port:
                   number: 9090
