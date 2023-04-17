@@ -146,7 +146,10 @@ service /users on serverEP {
 
     isolated resource function post .(readonly & UserDetails user) returns http:Created {
         lock {
-            users.add({id: users.length() + 1, ...user});
+            // Limit the users for testing purposes
+            if users.length() < 5 {
+                users.add({id: users.length() + 1, ...user});
+            }
             return http:CREATED;
         }
     }
