@@ -593,10 +593,8 @@ public client isolated class FailoverClient {
             failoverRequest = check createFailoverRequest(failoverRequest, requestEntity);
             runtime:sleep(failoverInterval);
 
-            Client? tmpClnt;
-            lock {
-                tmpClnt = self.failoverClientsArray[currentIndex];
-            }
+            Client? tmpClnt = self.getTempClient();
+            
             if tmpClnt is Client {
                 foClient = tmpClnt;
             } else {
@@ -609,7 +607,15 @@ public client isolated class FailoverClient {
         }
         return inResponse;
     }
-
+    
+    isolated function getLastSuceededClientEP() returns Client? {
+        Client? tmpClnt = ();
+        lock {
+                tmpClnt = self.failoverClientsArray[currentIndex];
+         }
+         return tmpClnt;
+     }
+            
     isolated function getLastSuceededClientEP() returns Client {
         Client? lastSuccessClient;
         lock {
