@@ -1,0 +1,3 @@
+resources:
+  - interceptors.yaml
+  - ingress.yaml
