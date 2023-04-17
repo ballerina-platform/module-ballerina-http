@@ -19,4 +19,4 @@
 set -e
 source base-scenario.sh
 
-jmeter -n -t "$scriptsDir/"http-requests.jmx -l "$resultsDir/"original.jtl -Jusers="$concurrent_users" -Jduration=60 -Jhost=bal.perf.test -Jport=80 -Jprotocol=http
+jmeter -n -t "$scriptsDir/"http-requests.jmx -l "$resultsDir/"original.jtl -Jusers="$concurrent_users" -Jduration=3600 -Jhost=bal.perf.test -Jport=80 -Jprotocol=http
