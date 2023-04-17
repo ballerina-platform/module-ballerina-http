@@ -1,5 +1,5 @@
 # A Guideline on Writing REST APIs
-![Star on Github](https://img.shields.io/badge/-Star%20on%20Github-blue?style=social&logo=github)
+[![Star on Github](https://img.shields.io/badge/-Star%20on%20Github-blue?style=social&logo=github)](https://github.com/ballerina-platform/module-ballerina-http)
 
 _Authors_: @shafreenAnfar @TharmiganK  
 _Reviewers_: @shafreenAnfar  
