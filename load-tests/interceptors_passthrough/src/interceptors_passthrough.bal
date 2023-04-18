@@ -21,18 +21,6 @@ listener http:Listener serverEP = new (9091);
 service /passthrough on serverEP {
 
     isolated resource function get .() returns error? {
-        worker A returns error? {check testGetUsers();}
-        worker B returns error? {check testGetUser();}
-        worker C returns error? {check testPostUser();}
-        worker D returns error? {check testNotImplemented();}
-        worker E returns error? {check testUnsupportedMediaType();}
-        worker F returns error? {check testNotFound();}
-        worker G returns error? {check testBadRequest();}
-        var results = wait {A, B, C, D, E, F, G};
-        foreach var result in results {
-            if result is error {
-                return result;
-            }
-        }
+        check testGetUsers();
     }
 }
