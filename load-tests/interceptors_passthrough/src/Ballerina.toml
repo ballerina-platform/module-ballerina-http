@@ -1,6 +1,6 @@
 [package]
 org = "wso2"
-name = "interceptors"
+name = "interceptors_passthrough"
 version = "0.0.1"
 
 [build-options]

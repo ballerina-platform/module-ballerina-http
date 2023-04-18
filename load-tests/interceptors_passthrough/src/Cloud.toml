@@ -1,6 +1,6 @@
 [container.image]
 repository = "ballerina"
-name = "interceptors"
+name = "interceptors_passthrough"
 
 [cloud.deployment]
 min_memory = "256Mi"

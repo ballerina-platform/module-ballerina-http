@@ -15,47 +15,8 @@
 // under the License.
 
 import ballerina/http;
-import ballerina/mime;
-import ballerina/time;
-import ballerina/constraint;
 
-const string CLIENT_URL = "http://bal.perf.test:80";
-
-type ResponsePayload record {|
-    json message;
-    string timestamp;
-|};
-
-type User record {|
-    readonly int id;
-    *UserDetails;
-|};
-
-type UserDetails record {|
-    @constraint:String {minLength: 3}
-    string name;
-    @constraint:String {pattern: re `([a-zA-Z0-9._%\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,6})*`}
-    string email;
-|};
-
-isolated function getCurrentTimeStamp() returns string {
-    return time:utcToString(time:utcNow());
-}
-
-isolated function processJsonPayload(http:Response res) returns http:Response|error {
-    string contentType = res.getContentType();
-    if contentType == mime:APPLICATION_JSON {
-        json payload = check res.getJsonPayload();
-        if payload is map<json> {
-            ResponsePayload responsePayload = {
-                message: payload,
-                timestamp: getCurrentTimeStamp()
-            };
-            res.setJsonPayload(responsePayload);
-        }
-    }
-    return res;
-}
+const string CLIENT_URL = "http://interceptors:9090";
 
 isolated function testGetUsers() returns error? {
     http:Client testClient = check new (CLIENT_URL);
