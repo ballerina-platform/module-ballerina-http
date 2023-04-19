@@ -1,3 +1,4 @@
 Label,# Samples,Average,Median,90% Line,95% Line,99% Line,Min,Max,Error %,Throughput,Received KB/sec,Std. Dev.,Date,Payload,Users
 Test Request,4739596,43,25,102,150,283,0,6539,1.78%,1362.0,144.9,56.65,1681886731,50,60
 Test Request,4635464,44,25,105,155,292,0,1296,2.06%,1332.0,142.6,58.42,1681895248,50,60
+Test Request,4757204,43,25,102,149,277,0,1422,2.05%,1367.0,146.3,55.48,1681920630,50,60
