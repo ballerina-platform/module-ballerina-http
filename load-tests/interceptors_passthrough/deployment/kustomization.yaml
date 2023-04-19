@@ -1,0 +1,4 @@
+resources:
+  - interceptors_passthrough.yaml
+  - ingress.yaml
+  - interceptors-backend.yaml
