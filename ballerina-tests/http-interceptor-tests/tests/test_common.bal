@@ -594,6 +594,22 @@ service class ResponseInterceptorReturnsStatusCodeResponse {
     }
 }
 
+service class ResponseInterceptorWithReq {
+    *http:ResponseInterceptor;
+
+    remote function interceptResponse(http:Request req, http:Response res, http:RequestContext ctx)
+             returns http:NextService|error? {
+        res.setHeader("response-interceptor-with-req", "true");
+        res.setHeader("last-interceptor", "response-interceptor-with-req");
+        res.setHeader("default-request-interceptor", check req.getHeader("default-request-interceptor"));
+        res.setHeader("last-request-interceptor", check req.getHeader("last-request-interceptor"));
+        string|error payloadVal = req.getTextPayload();
+        string payload = payloadVal is string ? payloadVal : payloadVal.message();
+        res.setHeader("request-payload", payload);
+        return ctx.next();
+    }
+}
+
 service class DefaultResponseErrorInterceptor {
     *http:ResponseErrorInterceptor;
 
@@ -602,6 +618,22 @@ service class DefaultResponseErrorInterceptor {
         res.setTextPayload(err.message());
         ctx.set("last-interceptor", "default-response-error-interceptor");
         ctx.set("error-type", getErrorType(err));
+        return ctx.next();
+    }
+}
+
+service class ResponseErrorInterceptorWithReq {
+    *http:ResponseErrorInterceptor;
+
+    remote function interceptResponseError(error err, http:Request req, http:Response res, http:RequestContext ctx)
+             returns http:NextService|error? {
+        res.setHeader("response-error-interceptor-with-req", "true");
+        res.setHeader("last-interceptor", "response-error-interceptor-with-req");
+        res.setHeader("default-request-interceptor", check req.getHeader("default-request-interceptor"));
+        res.setHeader("last-request-interceptor", check req.getHeader("last-request-interceptor"));
+        string|error payloadVal = req.getTextPayload();
+        string payload = payloadVal is string ? payloadVal : payloadVal.message();
+        res.setHeader("request-payload", payload);
         return ctx.next();
     }
 }

@@ -7,6 +7,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [2.7.0] - 2023-04-10
 
+### Added
+
+- [Expose `http:Request` in the response interceptor path](https://github.com/ballerina-platform/ballerina-standard-library/issues/3964)
+- [Allow configuring an interceptor pipeline with a single interceptor](https://github.com/ballerina-platform/ballerina-standard-library/issues/3969)
+
+## [2.7.0] - 2023-04-10
+
 ### Fixed
 
 - [Fix server push not working with nghttp2 HTTP/2 client](https://github.com/ballerina-platform/ballerina-standard-library/issues/3077)

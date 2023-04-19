@@ -48,6 +48,7 @@ public class HTTPInterceptorServicesRegistry {
     protected List<String> sortedServiceURIs;
     private Runtime runtime;
     private String servicesType = HttpConstants.HTTP_NORMAL;
+    private boolean possibleLastInterceptor = false;
 
     /**
      * Get ServicesMapHolder for given host name.
@@ -164,5 +165,13 @@ public class HTTPInterceptorServicesRegistry {
             this.servicesByBasePath = servicesByBasePath;
             this.sortedServiceURIs = sortedServiceURIs;
         }
+    }
+
+    public boolean isPossibleLastInterceptor() {
+        return possibleLastInterceptor;
+    }
+
+    public void setPossibleLastInterceptor(boolean possibleLastInterceptor) {
+        this.possibleLastInterceptor = possibleLastInterceptor;
     }
 }

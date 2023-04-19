@@ -46,6 +46,7 @@ import java.util.Optional;
 
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_CONTEXT_OBJ_NAME;
+import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.RESPONSE_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.getCtxTypes;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.subtypeOf;
@@ -223,6 +224,7 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
     private static void validateInputParamType(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
                                                String type, Map<String, TypeSymbol> typeSymbols) {
         boolean callerPresent = false;
+        boolean requestPresent = false;
         boolean responsePresent = false;
         boolean requestCtxPresent = false;
         boolean errorPresent = false;
@@ -250,6 +252,9 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
             if (subtypeOf(typeSymbols, typeSymbol, CALLER_OBJ_NAME)) {
                 callerPresent = isObjectPresent(ctx, paramLocation, callerPresent, paramName,
                         HttpDiagnosticCodes.HTTP_115);
+            } else if (subtypeOf(typeSymbols, typeSymbol, REQUEST_OBJ_NAME)) {
+                requestPresent = isObjectPresent(ctx, paramLocation, requestPresent, paramName,
+                        HttpDiagnosticCodes.HTTP_116);
             } else if (subtypeOf(typeSymbols, typeSymbol, RESPONSE_OBJ_NAME)) {
                 responsePresent = isObjectPresent(ctx, paramLocation, responsePresent, paramName,
                         HttpDiagnosticCodes.HTTP_139);
@@ -260,7 +265,7 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
                 errorPresent = isObjectPresent(ctx, paramLocation, errorPresent, paramName,
                             HttpDiagnosticCodes.HTTP_122);
             } else {
-                reportInvalidParameterType(ctx, paramLocation, paramType);
+                reportInvalidParameterType(ctx, paramLocation, paramType, isResponseErrorInterceptor(type));
             }
         }
         if (isResponseErrorInterceptor(type) && !errorPresent) {
@@ -277,8 +282,10 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
     }
 
     private static void reportInvalidParameterType(SyntaxNodeAnalysisContext ctx, Location location,
-                                                   String typeName) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_140, typeName);
+                                                   String typeName, boolean isResponseErrorInterceptor) {
+        String functionName = isResponseErrorInterceptor ? Constants.INTERCEPT_RESPONSE_ERROR :
+                Constants.INTERCEPT_RESPONSE;
+        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_140, typeName, functionName);
     }
 
     private static void reportMultipleReferencesFound(SyntaxNodeAnalysisContext ctx, TypeReferenceNode node) {

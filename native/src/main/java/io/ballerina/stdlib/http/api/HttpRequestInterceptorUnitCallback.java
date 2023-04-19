@@ -82,8 +82,6 @@ public class HttpRequestInterceptorUnitCallback extends HttpCallableUnitCallback
     }
 
     public void returnErrorResponse(Object error) {
-        cleanupRequestMessage();
-
         Object[] paramFeed = new Object[4];
         paramFeed[0] = error;
         paramFeed[1] = true;

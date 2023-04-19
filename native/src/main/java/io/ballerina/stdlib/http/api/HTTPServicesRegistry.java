@@ -48,6 +48,7 @@ public class HTTPServicesRegistry {
     protected Map<String, HttpService> servicesByBasePath;
     protected List<String> sortedServiceURIs;
     private Runtime runtime;
+    private boolean possibleLastService = true;
 
     /**
      * Get ServiceInfo instance for given interface and base path.
@@ -154,6 +155,14 @@ public class HTTPServicesRegistry {
 
     public Map<String, ServicesMapHolder> getServicesMapByHost() {
         return this.servicesMapByHost;
+    }
+
+    public boolean isPossibleLastService() {
+        return possibleLastService;
+    }
+
+    public void setPossibleLastService(boolean possibleLastService) {
+        this.possibleLastService = possibleLastService;
     }
 
     /**
