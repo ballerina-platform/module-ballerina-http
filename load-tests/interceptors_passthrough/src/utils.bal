@@ -17,9 +17,9 @@
 import ballerina/http;
 
 const string CLIENT_URL = "http://interceptors:9090";
+final http:Client testClient = check new (CLIENT_URL);
 
 isolated function testGetUsers() returns error? {
-    http:Client testClient = check new (CLIENT_URL);
     http:Response res = check testClient->/users;
     if res.statusCode != http:STATUS_OK {
         return error("Test Get Users Failed");
@@ -27,7 +27,6 @@ isolated function testGetUsers() returns error? {
 }
 
 isolated function testGetUser() returns error? {
-    http:Client testClient = check new (CLIENT_URL);
     http:Response res = check testClient->/users/'1;
     if res.statusCode != http:STATUS_OK {
         return error("Test Get User Failed");
@@ -35,7 +34,6 @@ isolated function testGetUser() returns error? {
 }
 
 isolated function testPostUser() returns error? {
-    http:Client testClient = check new (CLIENT_URL);
     http:Response res = check testClient->/users.post({name: "Robert", email: "robert@gmail.com"});
     if res.statusCode != http:STATUS_CREATED {
         return error("Test Post User Failed");
@@ -43,7 +41,6 @@ isolated function testPostUser() returns error? {
 }
 
 isolated function testNotImplemented() returns error? {
-    http:Client testClient = check new (CLIENT_URL);
     http:Response res = check testClient->/users({"API-Version": "v0.8.0"});
     if res.statusCode != http:STATUS_NOT_IMPLEMENTED {
         return error("Test Not Implemented Failed");
@@ -51,7 +48,6 @@ isolated function testNotImplemented() returns error? {
 }
 
 isolated function testNotFound() returns error? {
-    http:Client testClient = check new (CLIENT_URL);
     http:Response res = check testClient->/users/'100;
     if res.statusCode != http:STATUS_NOT_FOUND {
         return error("Test Not Found Failed");
@@ -59,17 +55,15 @@ isolated function testNotFound() returns error? {
 }
 
 isolated function testUnsupportedMediaType() returns error? {
-    http:Client testClient = check new (CLIENT_URL);
     http:Response res = check testClient->/users.post({name: "Robert", email: "robert@gmail.com"}, {"Content-Type": "text/plain"});
     if res.statusCode != http:STATUS_UNSUPPORTED_MEDIA_TYPE {
-        return error("Test 5 failed");
+        return error("Test Unsupported Media Type Failed");
     }
 }
 
 isolated function testBadRequest() returns error? {
-    http:Client testClient = check new (CLIENT_URL);
     http:Response res = check testClient->/users.post({name: "R", email: "robert"});
     if res.statusCode != http:STATUS_BAD_REQUEST {
-        return error("Test 6 failed");
+        return error("Test Bad Request Failed");
     }
 }

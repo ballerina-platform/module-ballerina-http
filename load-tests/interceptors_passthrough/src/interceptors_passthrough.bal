@@ -15,23 +15,35 @@
 // under the License.
 
 import ballerina/http;
+import ballerina/random;
 
 listener http:Listener serverEP = new (9091);
 
 service /passthrough on serverEP {
 
     isolated resource function get .() returns error? {
-        worker A returns error? {check testGetUsers();}
-        worker B returns error? {check testGetUser();}
-        worker C returns error? {check testPostUser();}
-        worker D returns error? {check testNotImplemented();}
-        worker E returns error? {check testUnsupportedMediaType();}
-        worker F returns error? {check testNotFound();}
-        worker G returns error? {check testBadRequest();}
-        var results = wait {A, B, C, D, E, F, G};
-        foreach var result in results {
-            if result is error {
-                return result;
+        int testNum = check random:createIntInRange(0, 7);
+        match testNum {
+            0 => {
+                return testGetUsers();
+            }
+            1 => {
+                return testGetUser();
+            }
+            2 => {
+                return testPostUser();
+            }
+            3 => {
+                return testNotImplemented();
+            }
+            4 => {
+                return testUnsupportedMediaType();
+            }
+            5 => {
+                return testNotFound();
+            }
+            _ => {
+                return testBadRequest();
             }
         }
     }
