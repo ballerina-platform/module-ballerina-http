@@ -122,10 +122,10 @@ public class ParamUtils {
                         .stream().allMatch(type -> type.getTag() == TypeTags.FINITE_TYPE_TAG);
     }
 
-    public static Object castEnumParam(UnionType paramType, BString queryValue, String token, String paramKind) {
+    public static Object castEnumParam(UnionType paramType, BString paramValue, String token, String paramKind) {
         if (paramType.getMemberTypes().stream().anyMatch(memberType ->
-                ((FiniteType) memberType).getValueSpace().contains(queryValue))) {
-            return queryValue;
+                ((FiniteType) memberType).getValueSpace().contains(paramValue))) {
+            return paramValue;
         }
         throw new FiniteTypeConversionError(paramKind + " param value '" + token + "' does not match the enum type");
     }

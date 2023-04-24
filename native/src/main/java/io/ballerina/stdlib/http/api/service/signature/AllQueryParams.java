@@ -105,42 +105,9 @@ public class AllQueryParams implements Parameter {
                 Type originalParamType = queryParam.getOriginalType();
                 Object parsedValue;
                 if (paramType.getTag() == ARRAY_TAG) {
-                    Type elementType = ((ArrayType) paramType).getElementType();
-                    BArray paramArray;
-                    if (isEnumParamType(elementType)) {
-                        paramArray = ValueCreator.createArrayValue((ArrayType) paramType);
-                        for (int i = 0; i < queryValueArr.size(); i++) {
-                            paramArray.append(castEnumParam((UnionType) elementType, queryValueArr.getBString(i),
-                                    token, QUERY_PARAM));
-                        }
-                    } else if (isFiniteParamType(elementType)) {
-                        paramArray = ValueCreator.createArrayValue((ArrayType) paramType);
-                        for (int i = 0; i < queryValueArr.size(); i++) {
-                            paramArray.append(castFiniteParam((FiniteType) elementType,
-                                    queryValueArr.getBString(i).getValue(), token, QUERY_PARAM));
-                        }
-                    } else {
-                        paramArray = ParamUtils.parseParamArray(TypeUtils.getReferredType(elementType),
-                                queryValueArr.getStringArray());
-                    }
-                    if (queryParam.isReadonly()) {
-                        paramArray.freezeDirect();
-                    }
-                    parsedValue = paramArray;
-                } else if (paramType.getTag() == MAP_TAG || paramType.getTag() == RECORD_TYPE_TAG) {
-                    Object json = JsonUtils.parse(queryValueArr.getBString(0).getValue());
-                    Object param = ValueUtils.convert(json, paramType);
-                    if (queryParam.isReadonly() && param instanceof BRefValue) {
-                        ((BRefValue) param).freezeDirect();
-                    }
-                    parsedValue = param;
-                } else if (isEnumParamType(paramType)) {
-                    parsedValue = castEnumParam((UnionType) paramType, queryValueArr.getBString(0), token, QUERY_PARAM);
-                } else if (isFiniteParamType(paramType)) {
-                    parsedValue = castFiniteParam((FiniteType) paramType,
-                            queryValueArr.getBString(0).getValue(), token, QUERY_PARAM);
+                    parsedValue = parseQueryParamArray(queryParam, token, queryValueArr, (ArrayType) paramType);
                 } else {
-                    parsedValue = parseParam(paramType.getTag(), queryValueArr.getBString(0).getValue());
+                    parsedValue = parseQueryParam(queryParam, token, queryValueArr, paramType);
                 }
                 paramFeed[index++] = ValueUtils.convert(parsedValue, originalParamType);
                 paramFeed[index] = true;
@@ -150,5 +117,51 @@ public class AllQueryParams implements Parameter {
                         HttpUtil.createError(ex));
             }
         }
+    }
+
+    private static Object parseQueryParam(QueryParam queryParam, String token, BArray queryValueArr, Type paramType) {
+        Object parsedValue;
+        if (paramType.getTag() == MAP_TAG || paramType.getTag() == RECORD_TYPE_TAG) {
+            Object json = JsonUtils.parse(queryValueArr.getBString(0).getValue());
+            Object param = ValueUtils.convert(json, paramType);
+            if (queryParam.isReadonly() && param instanceof BRefValue) {
+                ((BRefValue) param).freezeDirect();
+            }
+            parsedValue = param;
+        } else if (isEnumParamType(paramType)) {
+            parsedValue = castEnumParam((UnionType) paramType, queryValueArr.getBString(0), token, QUERY_PARAM);
+        } else if (isFiniteParamType(paramType)) {
+            parsedValue = castFiniteParam((FiniteType) paramType,
+                    queryValueArr.getBString(0).getValue(), token, QUERY_PARAM);
+        } else {
+            parsedValue = parseParam(paramType.getTag(), queryValueArr.getBString(0).getValue());
+        }
+        return parsedValue;
+    }
+
+    private static Object parseQueryParamArray(QueryParam queryParam, String token, BArray queryValueArr,
+                                               ArrayType paramType) {
+        Object parsedValue;
+        Type elementType = paramType.getElementType();
+        BArray paramArray = ValueCreator.createArrayValue(paramType);
+        if (isEnumParamType(elementType)) {
+            for (int i = 0; i < queryValueArr.size(); i++) {
+                paramArray.append(castEnumParam((UnionType) elementType, queryValueArr.getBString(i),
+                        token, QUERY_PARAM));
+            }
+        } else if (isFiniteParamType(elementType)) {
+            for (int i = 0; i < queryValueArr.size(); i++) {
+                paramArray.append(castFiniteParam((FiniteType) elementType,
+                        queryValueArr.getBString(i).getValue(), token, QUERY_PARAM));
+            }
+        } else {
+            paramArray = ParamUtils.parseParamArray(TypeUtils.getReferredType(elementType),
+                    queryValueArr.getStringArray());
+        }
+        if (queryParam.isReadonly()) {
+            paramArray.freezeDirect();
+        }
+        parsedValue = paramArray;
+        return parsedValue;
     }
 }

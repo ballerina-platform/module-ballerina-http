@@ -168,7 +168,7 @@ public class ParamHandler {
                         payloadParam.init(parameterType, originalParameterTypes[index], index);
                         getOtherParamList().add(payloadParam);
                     } else if ((headerParam = headerParams.get(paramName)) != null) {
-                        headerParam.init(parameterType, index);
+                        headerParam.init(originalParameterTypes[index], parameterType, index);
                     } else {
                         validateQueryParam(index, resource, originalParameterTypes[index], parameterType, false);
                     }

@@ -41,7 +41,8 @@ public class HeaderParam {
     private final String token;
     private boolean nilable;
     private int index;
-    private Type type;
+    private Type referredType;
+    private Type originalType;
     private String headerName;
     private boolean readonly;
     private HeaderRecordParam recordParam;
@@ -50,10 +51,11 @@ public class HeaderParam {
         this.token = token;
     }
 
-    public void init(Type type, int index) {
-        this.type = type;
+    public void init(Type originalType, Type referredType, int index) {
+        this.originalType = originalType;
+        this.referredType = referredType;
         this.index = index;
-        validateHeaderParamType(this.type);
+        validateHeaderParamType(this.referredType);
     }
 
     private void validateHeaderParamType(Type paramType) {
@@ -74,7 +76,7 @@ public class HeaderParam {
                     validateHeaderParamType(type);
                     return;
                 }
-                setType(type);
+                setReferredType(type);
                 break;
             }
         } else if (paramType instanceof IntersectionType) {
@@ -97,11 +99,11 @@ public class HeaderParam {
                     validateHeaderParamType(type);
                     return;
                 }
-                setType(type);
+                setReferredType(type);
                 break;
             }
         } else if (paramType instanceof RecordType) {
-            this.type = paramType;
+            this.referredType = paramType;
             Map<String, Field> recordFields = ((RecordType) paramType).getFields();
             List<String> keys = new ArrayList<>();
             HeaderRecordParam.FieldParam[] fields = new HeaderRecordParam.FieldParam[recordFields.size()];
@@ -110,18 +112,22 @@ public class HeaderParam {
                 keys.add(field.getKey());
                 fields[i++] = new HeaderRecordParam.FieldParam(field.getValue().getFieldType());
             }
-            this.recordParam = new HeaderRecordParam(this.token, this.type, keys, fields);
+            this.recordParam = new HeaderRecordParam(this.token, this.referredType, keys, fields);
         } else {
-            setType(paramType);
+            setReferredType(paramType);
         }
     }
 
-    public Type getType() {
-        return this.type;
+    public Type getReferredType() {
+        return this.referredType;
     }
 
-    private void setType(Type type) {
-        this.type = type;
+    public Type getOriginalType() {
+        return this.originalType;
+    }
+
+    private void setReferredType(Type referredType) {
+        this.referredType = referredType;
     }
 
     public String getToken() {

@@ -44,7 +44,7 @@ public class HeaderRecordParam extends HeaderParam {
         this.fields = fields.clone();
     }
 
-    public RecordType getType() {
+    public RecordType getReferredType() {
         return (RecordType) this.type;
     }
 
