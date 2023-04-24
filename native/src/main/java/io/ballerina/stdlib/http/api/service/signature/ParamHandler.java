@@ -22,7 +22,6 @@ import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
-import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.IntersectionType;
 import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.types.ResourceMethodType;
@@ -107,7 +106,6 @@ public class ParamHandler {
             return;
         }
         this.pathParamTokens = Arrays.copyOfRange(resource.getParamNames(), 0, pathParamCount);
-        validatePathParam(pathParamCount);
     }
 
     private void validateSignatureParams() {
@@ -313,23 +311,6 @@ public class ParamHandler {
         QueryParam queryParam = new QueryParam(originalType, referredType,
                 HttpUtil.unescapeAndEncodeValue(parameter.name), index, nilable, readonly, parameter.isDefault);
         this.queryParams.add(queryParam);
-    }
-
-    private void validatePathParam(int pathParamCount) {
-        Arrays.stream(this.paramTypes, 0, pathParamCount).forEach(type -> {
-            int typeTag = type.getTag();
-            if (isValidBasicType(typeTag) || (typeTag == TypeTags.ARRAY_TAG && isValidBasicType(
-                    ((ArrayType) type).getElementType().getTag()))) {
-                return;
-            }
-            throw HttpUtil.createHttpError("incompatible path parameter type: '" + type + "'",
-                                           HttpErrorType.GENERIC_LISTENER_ERROR);
-        });
-    }
-
-    private boolean isValidBasicType(int typeTag) {
-        return typeTag == TypeTags.STRING_TAG || typeTag == TypeTags.INT_TAG || typeTag == TypeTags.FLOAT_TAG ||
-                typeTag == TypeTags.BOOLEAN_TAG || typeTag == TypeTags.DECIMAL_TAG;
     }
 
     public boolean isPayloadBindingRequired() {
