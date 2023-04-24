@@ -24,7 +24,9 @@ import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
+import io.ballerina.runtime.api.types.FiniteType;
 import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.utils.ValueUtils;
 import io.ballerina.runtime.api.values.BArray;
@@ -37,6 +39,7 @@ import io.ballerina.stdlib.http.api.service.signature.AllHeaderParams;
 import io.ballerina.stdlib.http.api.service.signature.AllQueryParams;
 import io.ballerina.stdlib.http.api.service.signature.NonRecurringParam;
 import io.ballerina.stdlib.http.api.service.signature.ParamHandler;
+import io.ballerina.stdlib.http.api.service.signature.ParamUtils;
 import io.ballerina.stdlib.http.api.service.signature.Parameter;
 import io.ballerina.stdlib.http.api.service.signature.PayloadParam;
 import io.ballerina.stdlib.http.api.service.signature.RemoteMethodParamHandler;
@@ -67,6 +70,7 @@ import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_SCHEME;
 import static io.ballerina.stdlib.http.api.HttpConstants.JWT_DECODER_CLASS_NAME;
 import static io.ballerina.stdlib.http.api.HttpConstants.JWT_DECODE_METHOD_NAME;
 import static io.ballerina.stdlib.http.api.HttpConstants.JWT_INFORMATION;
+import static io.ballerina.stdlib.http.api.HttpConstants.PATH_PARAM;
 import static io.ballerina.stdlib.http.api.HttpConstants.PERCENTAGE;
 import static io.ballerina.stdlib.http.api.HttpConstants.PERCENTAGE_ENCODED;
 import static io.ballerina.stdlib.http.api.HttpConstants.PLUS_SIGN;
@@ -77,6 +81,10 @@ import static io.ballerina.stdlib.http.api.HttpConstants.WHITESPACE;
 import static io.ballerina.stdlib.http.api.HttpErrorType.SERVICE_NOT_FOUND_ERROR;
 import static io.ballerina.stdlib.http.api.HttpUtil.getOriginalParameterTypes;
 import static io.ballerina.stdlib.http.api.HttpUtil.getParameterTypes;
+import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castEnumParam;
+import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castFiniteParam;
+import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.isEnumParamType;
+import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.isFiniteParamType;
 import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.parseParam;
 import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.parseParamArray;
 
@@ -540,30 +548,57 @@ public class HttpDispatcher {
 
             try {
                 if (pathParamType.getTag() == ARRAY_TAG) {
-                    Type elementType = ((ArrayType) pathParamType).getElementType();
-                    String[] segments = argumentValue.substring(1).split(HttpConstants.SINGLE_SLASH);
-                    parsedValue = parseParamArray(elementType, segments);
+                    parsedValue = parsePathParamArray(paramName, argumentValue, (ArrayType) pathParamType);
                 } else {
-                    parsedValue = parseParam(pathParamType.getTag(), argumentValue);
+                    parsedValue = parsePathParam(paramName, argumentValue, pathParamType);
                 }
+                paramFeed[paramIndex++] = ValueUtils.convert(parsedValue, originalParamType);
                 paramFeed[paramIndex] = true;
+            } catch (ParamUtils.FiniteTypeConversionError ex) {
+                String message = "no matching resource found for path : " + path + " , method : " + method;
+                throw HttpUtil.createHttpStatusCodeError(HttpErrorType.RESOURCE_NOT_FOUND_ERROR, message,
+                        null, HttpUtil.createError(ex));
             } catch (Exception ex) {
                 String message = "error in casting path parameter : '" + paramName + "'";
                 throw HttpUtil.createHttpStatusCodeError(HttpErrorType.PATH_PARAM_BINDING_ERROR, message,
                         null, HttpUtil.createError(ex));
             }
-            // This type conversion is done to convert the value to the type referenced type.
-            // This may fail if the type is an enum and the value is not part of it.
-            // In that case resource not found error will be thrown.
-            try {
-                paramFeed[paramIndex++] = ValueUtils.convert(parsedValue, originalParamType);
-                paramFeed[paramIndex] = true;
-            } catch (BError e) {
-                String message = "no matching resource found for path : " + path + " , method : " + method;
-                throw HttpUtil.createHttpStatusCodeError(HttpErrorType.RESOURCE_NOT_FOUND_ERROR, message,
-                        null, e);
-            }
         }
+    }
+
+    private static Object parsePathParam(String paramName, String argumentValue, Type pathParamType) {
+        Object parsedValue;
+        if (isEnumParamType(pathParamType)) {
+            parsedValue = castEnumParam((UnionType) pathParamType, StringUtils.fromString(argumentValue),
+                    paramName, PATH_PARAM);
+        } else if (isFiniteParamType(pathParamType)) {
+            parsedValue = castFiniteParam((FiniteType) pathParamType, argumentValue, paramName, PATH_PARAM);
+        } else {
+            parsedValue = parseParam(pathParamType.getTag(), argumentValue);
+        }
+        return parsedValue;
+    }
+
+    private static Object parsePathParamArray(String paramName, String argumentValue, ArrayType pathParamType) {
+        Object parsedValue;
+        Type elementType = pathParamType.getElementType();
+        String[] segments = argumentValue.substring(1).split(HttpConstants.SINGLE_SLASH);
+        BArray paramArray = ValueCreator.createArrayValue(pathParamType);
+        if (isEnumParamType(elementType)) {
+            for (String segment : segments) {
+                paramArray.append(castEnumParam((UnionType) elementType, StringUtils.fromString(segment),
+                        paramName, PATH_PARAM));
+            }
+            parsedValue = paramArray;
+        } else if (isFiniteParamType(elementType)) {
+            for (String segment : segments) {
+                paramArray.append(castFiniteParam((FiniteType) elementType, segment, paramName, PATH_PARAM));
+            }
+            parsedValue = paramArray;
+        } else {
+            parsedValue = parseParamArray(elementType, segments);
+        }
+        return parsedValue;
     }
 
     private static void updateWildcardToken(String wildcardToken, int wildCardIndex,

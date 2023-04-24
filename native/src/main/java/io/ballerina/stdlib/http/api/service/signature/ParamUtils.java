@@ -19,23 +19,30 @@
 package io.ballerina.stdlib.http.api.service.signature;
 
 import io.ballerina.runtime.api.PredefinedTypes;
+import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
+import io.ballerina.runtime.api.types.FiniteType;
 import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.utils.ValueUtils;
 import io.ballerina.runtime.api.values.BArray;
+import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.http.api.BallerinaConnectorException;
 
 import static io.ballerina.runtime.api.TypeTags.BOOLEAN_TAG;
 import static io.ballerina.runtime.api.TypeTags.DECIMAL_TAG;
+import static io.ballerina.runtime.api.TypeTags.FINITE_TYPE_TAG;
 import static io.ballerina.runtime.api.TypeTags.FLOAT_TAG;
 import static io.ballerina.runtime.api.TypeTags.INT_TAG;
 import static io.ballerina.runtime.api.TypeTags.MAP_TAG;
 import static io.ballerina.runtime.api.TypeTags.RECORD_TYPE_TAG;
+import static io.ballerina.runtime.api.TypeTags.UNION_TAG;
 
 /**
  * {@code HttpDispatcher} is responsible for dispatching incoming http requests to the correct resource.
@@ -109,6 +116,46 @@ public class ParamUtils {
         return arrayValue;
     }
 
+    public static boolean isEnumParamType(Type paramType) {
+        return TypeUtils.getReferredType(paramType).getTag() == UNION_TAG &&
+                ((UnionType) paramType).getMemberTypes()
+                        .stream().allMatch(type -> type.getTag() == TypeTags.FINITE_TYPE_TAG);
+    }
+
+    public static Object castEnumParam(UnionType paramType, BString queryValue, String token, String paramKind) {
+        if (paramType.getMemberTypes().stream().anyMatch(memberType ->
+                ((FiniteType) memberType).getValueSpace().contains(queryValue))) {
+            return queryValue;
+        }
+        throw new FiniteTypeConversionError(paramKind + " param value '" + token + "' does not match the enum type");
+    }
+
+    public static boolean isFiniteParamType(Type paramType) {
+        return TypeUtils.getReferredType(paramType).getTag() == FINITE_TYPE_TAG;
+    }
+
+    public static Object castFiniteParam(FiniteType paramType, String paramValue, String token, String paramKind) {
+        return paramType.getValueSpace().stream().filter(
+                value -> value.equals(parseParam(TypeUtils.getType(value).getTag(), paramValue))).findFirst()
+                .orElseThrow(() -> new FiniteTypeConversionError(
+                        paramKind + " param value '" + token + "' does not the match finite type"));
+    }
+
     private ParamUtils() {
+    }
+
+    /**
+     * This class represents the error occurred during the conversion to a finite type param.
+     */
+    public static class FiniteTypeConversionError extends RuntimeException {
+
+        public FiniteTypeConversionError(String message) {
+            super(message);
+        }
+
+        @Override
+        public String toString() {
+            return getMessage();
+        }
     }
 }

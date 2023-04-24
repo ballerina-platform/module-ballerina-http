@@ -18,7 +18,6 @@
 
 package io.ballerina.stdlib.http.api.service.signature;
 
-import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.FiniteType;
@@ -42,8 +41,12 @@ import java.util.List;
 import static io.ballerina.runtime.api.TypeTags.ARRAY_TAG;
 import static io.ballerina.runtime.api.TypeTags.MAP_TAG;
 import static io.ballerina.runtime.api.TypeTags.RECORD_TYPE_TAG;
-import static io.ballerina.runtime.api.TypeTags.UNION_TAG;
+import static io.ballerina.stdlib.http.api.HttpConstants.QUERY_PARAM;
 import static io.ballerina.stdlib.http.api.HttpErrorType.QUERY_PARAM_BINDING_ERROR;
+import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castEnumParam;
+import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castFiniteParam;
+import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.isEnumParamType;
+import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.isFiniteParamType;
 import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.parseParam;
 
 /**
@@ -57,7 +60,7 @@ public class AllQueryParams implements Parameter {
 
     @Override
     public String getTypeName() {
-        return HttpConstants.QUERY_PARAM;
+        return QUERY_PARAM;
     }
 
     public void add(QueryParam queryParam) {
@@ -104,11 +107,17 @@ public class AllQueryParams implements Parameter {
                 if (paramType.getTag() == ARRAY_TAG) {
                     Type elementType = ((ArrayType) paramType).getElementType();
                     BArray paramArray;
-                    if (isEnumQueryParamType(elementType)) {
+                    if (isEnumParamType(elementType)) {
                         paramArray = ValueCreator.createArrayValue((ArrayType) paramType);
                         for (int i = 0; i < queryValueArr.size(); i++) {
-                            paramArray.append(castEnumQueryParam((UnionType) elementType, queryValueArr.getBString(i),
-                                    token));
+                            paramArray.append(castEnumParam((UnionType) elementType, queryValueArr.getBString(i),
+                                    token, QUERY_PARAM));
+                        }
+                    } else if (isFiniteParamType(elementType)) {
+                        paramArray = ValueCreator.createArrayValue((ArrayType) paramType);
+                        for (int i = 0; i < queryValueArr.size(); i++) {
+                            paramArray.append(castFiniteParam((FiniteType) elementType,
+                                    queryValueArr.getBString(i).getValue(), token, QUERY_PARAM));
                         }
                     } else {
                         paramArray = ParamUtils.parseParamArray(TypeUtils.getReferredType(elementType),
@@ -120,13 +129,16 @@ public class AllQueryParams implements Parameter {
                     parsedValue = paramArray;
                 } else if (paramType.getTag() == MAP_TAG || paramType.getTag() == RECORD_TYPE_TAG) {
                     Object json = JsonUtils.parse(queryValueArr.getBString(0).getValue());
-                    Object param =  ValueUtils.convert(json, paramType);
+                    Object param = ValueUtils.convert(json, paramType);
                     if (queryParam.isReadonly() && param instanceof BRefValue) {
                         ((BRefValue) param).freezeDirect();
                     }
                     parsedValue = param;
-                } else if (isEnumQueryParamType(paramType)) {
-                    parsedValue = castEnumQueryParam((UnionType) paramType, queryValueArr.getBString(0), token);
+                } else if (isEnumParamType(paramType)) {
+                    parsedValue = castEnumParam((UnionType) paramType, queryValueArr.getBString(0), token, QUERY_PARAM);
+                } else if (isFiniteParamType(paramType)) {
+                    parsedValue = castFiniteParam((FiniteType) paramType,
+                            queryValueArr.getBString(0).getValue(), token, QUERY_PARAM);
                 } else {
                     parsedValue = parseParam(paramType.getTag(), queryValueArr.getBString(0).getValue());
                 }
@@ -138,19 +150,5 @@ public class AllQueryParams implements Parameter {
                         HttpUtil.createError(ex));
             }
         }
-    }
-
-    private boolean isEnumQueryParamType(Type paramType) {
-        return TypeUtils.getReferredType(paramType).getTag() == UNION_TAG &&
-                ((UnionType) paramType).getMemberTypes()
-                        .stream().allMatch(type -> type.getTag() == TypeTags.FINITE_TYPE_TAG);
-    }
-
-    private Object castEnumQueryParam(UnionType paramType, BString queryValue, String token) {
-        if (paramType.getMemberTypes().stream().anyMatch(memberType ->
-                ((FiniteType) memberType).getValueSpace().contains(queryValue))) {
-            return queryValue;
-        }
-        throw new IllegalArgumentException("query param value '" + token + "' does not match enum type");
     }
 }
