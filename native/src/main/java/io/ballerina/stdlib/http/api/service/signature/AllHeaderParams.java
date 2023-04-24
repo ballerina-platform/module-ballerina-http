@@ -36,8 +36,8 @@ import java.util.List;
 
 import static io.ballerina.runtime.api.TypeTags.ARRAY_TAG;
 import static io.ballerina.stdlib.http.api.HttpErrorType.HEADER_BINDING_ERROR;
-import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castParam;
-import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castParamArray;
+import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.parseParam;
+import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.parseParamArray;
 
 /**
  * {@code {@link AllHeaderParams }} holds all the header parameters in the resource signature.
@@ -111,13 +111,13 @@ public class AllHeaderParams implements Parameter {
             try {
                 if (typeTag == ARRAY_TAG) {
                     Type elementType = ((ArrayType) headerParam.getType()).getElementType();
-                    BArray bArray = castParamArray(elementType, headerValues.toArray(new String[0]));
+                    BArray bArray = parseParamArray(elementType, headerValues.toArray(new String[0]));
                     if (headerParam.isReadonly()) {
                         bArray.freezeDirect();
                     }
                     paramFeed[index++] = bArray;
                 } else {
-                    paramFeed[index++] = castParam(typeTag, headerValues.get(0));
+                    paramFeed[index++] = parseParam(typeTag, headerValues.get(0));
                 }
             } catch (Exception ex) {
                 String message = "header binding failed for parameter: '" + token + "'";
@@ -164,13 +164,13 @@ public class AllHeaderParams implements Parameter {
             try {
                 if (fieldType.getTag() == ARRAY_TAG) {
                     Type elementType = ((ArrayType) fieldType).getElementType();
-                    BArray paramArray = castParamArray(elementType, headerValues.toArray(new String[0]));
+                    BArray paramArray = parseParamArray(elementType, headerValues.toArray(new String[0]));
                     if (field.isReadonly()) {
                         paramArray.freezeDirect();
                     }
                     recordValue.put(StringUtils.fromString(key), paramArray);
                 } else {
-                    recordValue.put(StringUtils.fromString(key), castParam(fieldType.getTag(), headerValues.get(0)));
+                    recordValue.put(StringUtils.fromString(key), parseParam(fieldType.getTag(), headerValues.get(0)));
                 }
             } catch (Exception ex) {
                 String message = "header binding failed for parameter: '" + key + "'";

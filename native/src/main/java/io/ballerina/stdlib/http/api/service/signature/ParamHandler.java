@@ -114,7 +114,7 @@ public class ParamHandler {
         if (paramTypes.length == pathParamCount) {
             return;
         }
-        Type[] customParameterTypes = HttpUtil.getCustomParameterTypes(resource);
+        Type[] customParameterTypes = HttpUtil.getOriginalParameterTypes(resource);
         for (int index = pathParamCount; index < paramTypes.length; index++) {
             Type parameterType = this.paramTypes[index];
 

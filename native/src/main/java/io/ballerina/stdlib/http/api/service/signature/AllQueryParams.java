@@ -44,7 +44,7 @@ import static io.ballerina.runtime.api.TypeTags.MAP_TAG;
 import static io.ballerina.runtime.api.TypeTags.RECORD_TYPE_TAG;
 import static io.ballerina.runtime.api.TypeTags.UNION_TAG;
 import static io.ballerina.stdlib.http.api.HttpErrorType.QUERY_PARAM_BINDING_ERROR;
-import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castParam;
+import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.parseParam;
 
 /**
  * {@code {@link AllQueryParams }} holds all the query parameters in the resource signature.
@@ -109,7 +109,7 @@ public class AllQueryParams implements Parameter {
                                     token));
                         }
                     } else {
-                        paramArray = ParamUtils.castParamArray(TypeUtils.getReferredType(elementType),
+                        paramArray = ParamUtils.parseParamArray(TypeUtils.getReferredType(elementType),
                                 queryValueArr.getStringArray());
                     }
                     if (queryParam.isReadonly()) {
@@ -127,7 +127,7 @@ public class AllQueryParams implements Parameter {
                     Object param = castEnumQueryParam((UnionType) paramType, queryValueArr.getBString(0), token);
                     paramFeed[index++] = param;
                 } else {
-                    Object param = castParam(paramType.getTag(), queryValueArr.getBString(0).getValue());
+                    Object param = parseParam(paramType.getTag(), queryValueArr.getBString(0).getValue());
                     paramFeed[index++] = param;
                 }
                 paramFeed[index] = true;

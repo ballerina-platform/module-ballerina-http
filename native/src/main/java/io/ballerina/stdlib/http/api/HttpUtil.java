@@ -1934,7 +1934,7 @@ public class HttpUtil {
         return paramTypes;
     }
 
-    public static Type[] getCustomParameterTypes(FunctionType function) {
+    public static Type[] getOriginalParameterTypes(FunctionType function) {
         io.ballerina.runtime.api.types.Parameter[] params = function.getParameters();
         Type[] paramTypes = new Type[params.length];
         for (int i = 0; i < params.length; i++) {

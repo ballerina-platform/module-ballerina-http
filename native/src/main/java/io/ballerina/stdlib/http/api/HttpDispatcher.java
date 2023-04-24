@@ -26,6 +26,7 @@ import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.utils.ValueUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
@@ -74,9 +75,10 @@ import static io.ballerina.stdlib.http.api.HttpConstants.REQUEST_CTX_MEMBERS;
 import static io.ballerina.stdlib.http.api.HttpConstants.SCHEME_SEPARATOR;
 import static io.ballerina.stdlib.http.api.HttpConstants.WHITESPACE;
 import static io.ballerina.stdlib.http.api.HttpErrorType.SERVICE_NOT_FOUND_ERROR;
+import static io.ballerina.stdlib.http.api.HttpUtil.getOriginalParameterTypes;
 import static io.ballerina.stdlib.http.api.HttpUtil.getParameterTypes;
-import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castParam;
-import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castParamArray;
+import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.parseParam;
+import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.parseParamArray;
 
 /**
  * {@code HttpDispatcher} is responsible for dispatching incoming http requests to the correct resource.
@@ -340,7 +342,7 @@ public class HttpDispatcher {
                     (HttpResourceArguments) httpCarbonMessage.getProperty(HttpConstants.RESOURCE_ARGS);
             updateWildcardToken(resource.getWildcardToken(), pathParamCount - 1, resourceArgumentValues.getMap());
             populatePathParams(resource, paramFeed, resourceArgumentValues, pathParamCount,
-                    parameterTypes);
+                    parameterTypes, httpCarbonMessage.getProperty(HttpConstants.TO), httpCarbonMessage.getHttpMethod());
         }
         // Following was written assuming that they are validated
         for (Parameter param : paramHandler.getOtherParamList()) {
@@ -519,10 +521,11 @@ public class HttpDispatcher {
 
     private static void populatePathParams(Resource resource, Object[] paramFeed,
                                            HttpResourceArguments resourceArgumentValues, int pathParamCount,
-                                           Type[] parameterTypes) {
+                                           Type[] parameterTypes, Object path, String method) {
 
         String[] pathParamTokens = Arrays.copyOfRange(resource.getBalResource().getParamNames(), 0, pathParamCount);
         int actualSignatureParamIndex = 0;
+        Type[] originalParameterTypes = getOriginalParameterTypes(resource.getBalResource());
         for (String paramName : pathParamTokens) {
             String argumentValue = resourceArgumentValues.getMap().get(paramName).get(actualSignatureParamIndex);
             if (argumentValue.endsWith(PERCENTAGE)) {
@@ -531,21 +534,34 @@ public class HttpDispatcher {
             argumentValue = URLDecoder.decode(argumentValue.replaceAll(PLUS_SIGN, PLUS_SIGN_ENCODED),
                     StandardCharsets.UTF_8);
             int paramIndex = actualSignatureParamIndex * 2;
-            Type pathParamType = parameterTypes[actualSignatureParamIndex++];
+            Type pathParamType = parameterTypes[actualSignatureParamIndex];
+            Type originalParamType = originalParameterTypes[actualSignatureParamIndex++];
+            Object parsedValue;
 
             try {
                 if (pathParamType.getTag() == ARRAY_TAG) {
                     Type elementType = ((ArrayType) pathParamType).getElementType();
                     String[] segments = argumentValue.substring(1).split(HttpConstants.SINGLE_SLASH);
-                    paramFeed[paramIndex++] = castParamArray(elementType, segments);
+                    parsedValue = parseParamArray(elementType, segments);
                 } else {
-                    paramFeed[paramIndex++] = castParam(pathParamType.getTag(), argumentValue);
+                    parsedValue = parseParam(pathParamType.getTag(), argumentValue);
                 }
                 paramFeed[paramIndex] = true;
             } catch (Exception ex) {
                 String message = "error in casting path parameter : '" + paramName + "'";
                 throw HttpUtil.createHttpStatusCodeError(HttpErrorType.PATH_PARAM_BINDING_ERROR, message,
                         null, HttpUtil.createError(ex));
+            }
+            // This type conversion is done to convert the value to the type referenced type.
+            // This may fail if the type is an enum and the value is not part of it.
+            // In that case resource not found error will be thrown.
+            try {
+                paramFeed[paramIndex++] = ValueUtils.convert(parsedValue, originalParamType);
+                paramFeed[paramIndex] = true;
+            } catch (BError e) {
+                String message = "no matching resource found for path : " + path + " , method : " + method;
+                throw HttpUtil.createHttpStatusCodeError(HttpErrorType.RESOURCE_NOT_FOUND_ERROR, message,
+                        null, e);
             }
         }
     }

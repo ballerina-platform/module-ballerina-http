@@ -46,7 +46,7 @@ public class ParamUtils {
 
     private static final MapType MAP_TYPE = TypeCreator.createMapType(PredefinedTypes.TYPE_JSON);
 
-    public static Object castParam(int targetParamTypeTag, String argValue) {
+    public static Object parseParam(int targetParamTypeTag, String argValue) {
         switch (targetParamTypeTag) {
             case INT_TAG:
                 return Long.parseLong(argValue);
@@ -64,7 +64,7 @@ public class ParamUtils {
         }
     }
 
-    public static BArray castParamArray(Type elementType, String[] argValueArr) {
+    public static BArray parseParamArray(Type elementType, String[] argValueArr) {
         int targetElementTypeTag = elementType.getTag();
         switch (targetElementTypeTag) {
             case INT_TAG:
