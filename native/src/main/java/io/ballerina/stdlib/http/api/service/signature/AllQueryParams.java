@@ -83,7 +83,7 @@ public class AllQueryParams implements Parameter {
             Object queryValue = urlQueryParams.get(StringUtils.fromString(token));
             if (queryValue == null) {
                 if (queryParam.isDefaultable()) {
-                    paramFeed[index++] = queryParam.getType().getZeroValue();
+                    paramFeed[index++] = queryParam.getOriginalType().getZeroValue();
                     paramFeed[index] = false;
                     continue;
                 } else if (queryParam.isNilable() && (treatNilableAsOptional || queryExist)) {
@@ -98,7 +98,9 @@ public class AllQueryParams implements Parameter {
 
             try {
                 BArray queryValueArr = (BArray) queryValue;
-                Type paramType = TypeUtils.getReferredType(queryParam.getType());
+                Type paramType = TypeUtils.getReferredType(queryParam.getReferredType());
+                Type originalParamType = queryParam.getOriginalType();
+                Object parsedValue;
                 if (paramType.getTag() == ARRAY_TAG) {
                     Type elementType = ((ArrayType) paramType).getElementType();
                     BArray paramArray;
@@ -115,21 +117,20 @@ public class AllQueryParams implements Parameter {
                     if (queryParam.isReadonly()) {
                         paramArray.freezeDirect();
                     }
-                    paramFeed[index++] = paramArray;
+                    parsedValue = paramArray;
                 } else if (paramType.getTag() == MAP_TAG || paramType.getTag() == RECORD_TYPE_TAG) {
                     Object json = JsonUtils.parse(queryValueArr.getBString(0).getValue());
                     Object param =  ValueUtils.convert(json, paramType);
                     if (queryParam.isReadonly() && param instanceof BRefValue) {
                         ((BRefValue) param).freezeDirect();
                     }
-                    paramFeed[index++] = param;
+                    parsedValue = param;
                 } else if (isEnumQueryParamType(paramType)) {
-                    Object param = castEnumQueryParam((UnionType) paramType, queryValueArr.getBString(0), token);
-                    paramFeed[index++] = param;
+                    parsedValue = castEnumQueryParam((UnionType) paramType, queryValueArr.getBString(0), token);
                 } else {
-                    Object param = parseParam(paramType.getTag(), queryValueArr.getBString(0).getValue());
-                    paramFeed[index++] = param;
+                    parsedValue = parseParam(paramType.getTag(), queryValueArr.getBString(0).getValue());
                 }
+                paramFeed[index++] = ValueUtils.convert(parsedValue, originalParamType);
                 paramFeed[index] = true;
             } catch (Exception ex) {
                 String message = "error in casting query param : '" + token + "'";

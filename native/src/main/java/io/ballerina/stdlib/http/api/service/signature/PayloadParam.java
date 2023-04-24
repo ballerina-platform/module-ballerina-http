@@ -53,12 +53,12 @@ import static io.ballerina.stdlib.mime.util.MimeConstants.REQUEST_ENTITY_FIELD;
 public class PayloadParam implements Parameter {
 
     private int index;
-    private Type type;
+    private Type referredType;
     private final String token;
     private boolean readonly;
     private boolean nilable;
     private final List<String> mediaTypes = new ArrayList<>();
-    private Type customParameterType;
+    private Type originalType;
     private final boolean requireConstraintValidation;
 
     PayloadParam(String token, boolean constraintValidation) {
@@ -67,8 +67,8 @@ public class PayloadParam implements Parameter {
     }
 
     public void init(Type type, Type customParameterType, int index) {
-        this.type = type;
-        this.customParameterType = customParameterType;
+        this.referredType = type;
+        this.originalType = customParameterType;
         this.index = index;
         validatePayloadParam(type);
     }
@@ -82,8 +82,8 @@ public class PayloadParam implements Parameter {
         return this.index * 2;
     }
 
-    public Type getType() {
-        return this.type;
+    public Type getReferredType() {
+        return this.referredType;
     }
 
     public String getToken() {
@@ -124,14 +124,14 @@ public class PayloadParam implements Parameter {
                 }
             }
         }
-        this.type = parameterType;
+        this.referredType = parameterType;
     }
 
     public void populateFeed(BObject inRequest, HttpCarbonMessage httpCarbonMessage, Object[] paramFeed) {
         BObject inRequestEntity = (BObject) inRequest.get(REQUEST_ENTITY_FIELD);
         HttpUtil.populateEntityBody(inRequest, inRequestEntity, true, true);
         int index = this.getIndex();
-        Type payloadType = this.getType();
+        Type payloadType = this.getReferredType();
         Object dataSource = EntityBodyHandler.getMessageDataSource(inRequestEntity);
         // Check if datasource is already available from interceptor service read
         // TODO : Validate the dataSource type with payload type and populate
@@ -199,7 +199,7 @@ public class PayloadParam implements Parameter {
     private Object constraintValidation(Object payloadBuilderValue) {
         if (requireConstraintValidation) {
             Object result = Constraints.validate(payloadBuilderValue,
-                                                 ValueCreator.createTypedescValue(this.customParameterType));
+                                                 ValueCreator.createTypedescValue(this.originalType));
             if (result instanceof BError) {
                 String message = "payload validation failed: " + HttpUtil.getPrintableErrorMsg((BError) result);
                 throw HttpUtil.createHttpStatusCodeError(PAYLOAD_VALIDATION_LISTENER_ERROR, message);

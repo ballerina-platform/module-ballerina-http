@@ -32,10 +32,13 @@ public class QueryParam {
     private final boolean readonly;
     private final boolean defaultable;
     private final int index;
-    private final Type type;
+    private final Type referredType;
+    private final Type originalType;
 
-    QueryParam(Type type, String token, int index, boolean nilable, boolean readonly, boolean defaultable) {
-        this.type = type;
+    QueryParam(Type originalType, Type referredType, String token, int index, boolean nilable,
+               boolean readonly, boolean defaultable) {
+        this.originalType = originalType;
+        this.referredType = referredType;
         this.token = token;
         this.index = index;
         this.nilable = nilable;
@@ -55,8 +58,12 @@ public class QueryParam {
         return this.index * 2;
     }
 
-    public Type getType() {
-        return this.type;
+    public Type getOriginalType() {
+        return originalType;
+    }
+
+    public Type getReferredType() {
+        return this.referredType;
     }
 
     public boolean isReadonly() {

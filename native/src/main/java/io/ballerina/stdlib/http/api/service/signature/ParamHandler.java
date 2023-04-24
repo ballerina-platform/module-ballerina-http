@@ -114,7 +114,7 @@ public class ParamHandler {
         if (paramTypes.length == pathParamCount) {
             return;
         }
-        Type[] customParameterTypes = HttpUtil.getOriginalParameterTypes(resource);
+        Type[] originalParameterTypes = HttpUtil.getOriginalParameterTypes(resource);
         for (int index = pathParamCount; index < paramTypes.length; index++) {
             Type parameterType = this.paramTypes[index];
 
@@ -167,12 +167,12 @@ public class ParamHandler {
                     String paramName = HttpUtil.unescapeAndEncodeValue(resource.getParamNames()[index]);
                     HeaderParam headerParam;
                     if (payloadParam != null && paramName.equals(payloadParam.getToken())) {
-                        payloadParam.init(parameterType, customParameterTypes[index], index);
+                        payloadParam.init(parameterType, originalParameterTypes[index], index);
                         getOtherParamList().add(payloadParam);
                     } else if ((headerParam = headerParams.get(paramName)) != null) {
                         headerParam.init(parameterType, index);
                     } else {
-                        validateQueryParam(index, resource, parameterType, false);
+                        validateQueryParam(index, resource, originalParameterTypes[index], parameterType, false);
                     }
             }
         }
@@ -262,32 +262,33 @@ public class ParamHandler {
         this.headerParams.add(headerParam);
     }
 
-    private void validateQueryParam(int index, ResourceMethodType balResource, Type parameterType, boolean readonly) {
-        if (parameterType instanceof UnionType) {
-            List<Type> memberTypes = ((UnionType) parameterType).getMemberTypes();
+    private void validateQueryParam(int index, ResourceMethodType balResource, Type originalType, Type referredType,
+                                    boolean readonly) {
+        if (referredType instanceof UnionType) {
+            List<Type> memberTypes = ((UnionType) referredType).getMemberTypes();
             int size = memberTypes.size();
             if (memberTypes.stream().allMatch(type -> type.getTag() == TypeTags.FINITE_TYPE_TAG)) {
-                createQueryParam(index, balResource, parameterType, false, readonly);
+                createQueryParam(index, balResource, originalType, referredType, false, readonly);
                 return;
-            } else if (size > 2 || !parameterType.isNilable()) {
+            } else if (size > 2 || !referredType.isNilable()) {
                 throw HttpUtil.createHttpError(
-                        "invalid query param type '" + parameterType.getName() + "': a basic type or an array " +
+                        "invalid query param type '" + referredType.getName() + "': a basic type or an array " +
                                 "of a basic type can only be union with '()' Eg: string|() or string[]|()");
             }
             for (Type type : memberTypes) {
                 if (type.getTag() == TypeTags.NULL_TAG) {
                     continue;
                 }
-                createQueryParam(index, balResource, type, true, readonly);
+                createQueryParam(index, balResource, originalType, type, true, readonly);
                 break;
             }
-        } else if (parameterType instanceof IntersectionType) {
+        } else if (referredType instanceof IntersectionType) {
             // Assumes that the only intersection type is readonly
-            List<Type> memberTypes = ((IntersectionType) parameterType).getConstituentTypes();
+            List<Type> memberTypes = ((IntersectionType) referredType).getConstituentTypes();
             int size = memberTypes.size();
             if (size > 2) {
                 throw HttpUtil.createHttpError(
-                        "invalid query param type '" + parameterType.getName() +
+                        "invalid query param type '" + referredType.getName() +
                                 "': only readonly intersection is allowed");
             }
             for (Type type : memberTypes) {
@@ -295,22 +296,22 @@ public class ParamHandler {
                     continue;
                 }
                 if (type.getTag() == TypeTags.UNION_TAG) {
-                    validateQueryParam(index, balResource, type, true);
+                    validateQueryParam(index, balResource, originalType, type, true);
                     return;
                 }
-                createQueryParam(index, balResource, type, false, true);
+                createQueryParam(index, balResource, originalType, type, false, true);
                 break;
             }
         } else {
-            createQueryParam(index, balResource, parameterType, false, false);
+            createQueryParam(index, balResource, originalType, referredType, false, false);
         }
     }
 
-    private void createQueryParam(int index, ResourceMethodType balResource, Type type, boolean nilable,
-                                  boolean readonly) {
+    private void createQueryParam(int index, ResourceMethodType balResource, Type originalType, Type referredType,
+                                  boolean nilable, boolean readonly) {
         io.ballerina.runtime.api.types.Parameter parameter = balResource.getParameters()[index];
-        QueryParam queryParam = new QueryParam(type, HttpUtil.unescapeAndEncodeValue(parameter.name), index, nilable,
-                                               readonly, parameter.isDefault);
+        QueryParam queryParam = new QueryParam(originalType, referredType,
+                HttpUtil.unescapeAndEncodeValue(parameter.name), index, nilable, readonly, parameter.isDefault);
         this.queryParams.add(queryParam);
     }
 
