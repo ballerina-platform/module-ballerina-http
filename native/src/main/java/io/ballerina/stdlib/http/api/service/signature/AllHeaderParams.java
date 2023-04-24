@@ -27,6 +27,7 @@ import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.utils.ValueUtils;
 import io.ballerina.runtime.api.values.BArray;
+import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.http.api.HttpUtil;
@@ -88,7 +89,12 @@ public class AllHeaderParams implements Parameter {
             if (headerParam.isRecord()) {
                 BMap<BString, Object> recordValue = processHeaderRecord(headerParam, httpHeaders,
                         treatNilableAsOptional);
-                paramFeed[index++] = ValueUtils.convert(recordValue, headerParam.getOriginalType());
+                try {
+                    paramFeed[index++] = ValueUtils.convert(recordValue, headerParam.getOriginalType());
+                } catch (BError err) {
+                    String message = "header record binding failed for parameter: '" + headerParam.getToken() + "'";
+                    throw HttpUtil.createHttpStatusCodeError(HEADER_BINDING_ERROR, message, null, err);
+                }
                 paramFeed[index] = true;
                 continue;
             }
