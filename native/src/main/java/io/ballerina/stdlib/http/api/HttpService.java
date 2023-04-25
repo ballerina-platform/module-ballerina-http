@@ -133,7 +133,7 @@ public class HttpService implements Service {
     }
 
     public String getPackage() {
-        return balService.getType().getPackage().getName();
+        return TypeUtils.getType(balService).getPackage().getName();
     }
 
     public BObject getBalService() {
@@ -256,7 +256,8 @@ public class HttpService implements Service {
 
     private static void processResources(HttpService httpService) {
         List<HttpResource> httpResources = new ArrayList<>();
-        for (MethodType resource : ((ServiceType) httpService.getBalService().getType()).getResourceMethods()) {
+        for (MethodType resource : ((ServiceType) TypeUtils.getType(
+                httpService.getBalService())).getResourceMethods()) {
             if (!SymbolFlags.isFlagOn(resource.getFlags(), SymbolFlags.RESOURCE)) {
                 continue;
             }
@@ -395,7 +396,7 @@ public class HttpService implements Service {
     protected static BMap getServiceConfigAnnotation(BObject service, String packagePath,
                                                      String annotationName) {
         String key = packagePath.replaceAll(HttpConstants.REGEX, HttpConstants.SINGLE_SLASH);
-        return (BMap) ((ObjectType) TypeUtils.getReferredType(service.getType())).getAnnotation(
+        return (BMap) ((ObjectType) TypeUtils.getReferredType(TypeUtils.getType(service))).getAnnotation(
                 fromString(key + ":" + annotationName));
     }
 

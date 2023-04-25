@@ -21,6 +21,7 @@ package io.ballerina.stdlib.http.api;
 import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -109,7 +110,8 @@ public class HTTPInterceptorServicesRegistry {
         }
         servicesByBasePath.put(basePath, httpInterceptorService);
         if (logger.isDebugEnabled()) {
-            logger.debug(String.format("Service deployed : %s with context %s", service.getType().getName(), basePath));
+            logger.debug(String.format("Service deployed : %s with context %s", TypeUtils.getType(service).getName(),
+                    basePath));
         }
 
         //basePath will get cached after registering service

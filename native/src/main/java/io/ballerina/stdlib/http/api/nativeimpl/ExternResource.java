@@ -22,6 +22,7 @@ import io.ballerina.runtime.api.types.ResourceMethodType;
 import io.ballerina.runtime.api.types.ServiceType;
 import io.ballerina.runtime.api.utils.IdentifierUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
 
@@ -40,7 +41,7 @@ public class ExternResource {
      * @return annotation value object
      */
     public static Object getResourceAnnotation(BObject service, BString resourceName) {
-        ServiceType serviceType = (ServiceType) service.getType();
+        ServiceType serviceType = (ServiceType) TypeUtils.getType(service);
         ResourceMethodType[] functions = serviceType.getResourceMethods();
         for (ResourceMethodType function : functions) {
             if (IdentifierUtils.decodeIdentifier(function.getName()).equals(
