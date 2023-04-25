@@ -556,11 +556,11 @@ public class HttpDispatcher {
                 paramFeed[paramIndex] = true;
             } catch (ParamUtils.FiniteTypeConversionError ex) {
                 String message = "no matching resource found for path : " + path + " , method : " + method;
-                throw HttpUtil.createHttpStatusCodeError(HttpErrorType.RESOURCE_NOT_FOUND_ERROR, message,
+                throw HttpUtil.createHttpStatusCodeError(HttpErrorType.PATH_PARAM_VALUE_MISMATCH_ERROR, message,
                         null, HttpUtil.createError(ex));
             } catch (Exception ex) {
                 String message = "error in casting path parameter : '" + paramName + "'";
-                throw HttpUtil.createHttpStatusCodeError(HttpErrorType.PATH_PARAM_BINDING_ERROR, message,
+                throw HttpUtil.createHttpStatusCodeError(HttpErrorType.PATH_PARAM_PARSING_ERROR, message,
                         null, HttpUtil.createError(ex));
             }
         }

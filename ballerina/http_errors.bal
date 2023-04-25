@@ -83,7 +83,13 @@ type PayloadValidationListenerError distinct ListenerError & PayloadValidationEr
 public type QueryParameterBindingError distinct ListenerError & BadRequestError;
 
 # Represents an error, which occurred due to a path parameter binding.
-public type PathParameterBindingError distinct ListenerError & BadRequestError;
+public type PathParameterBindingError distinct ListenerError;
+
+# Represents an error, which occurred during the path parameter parsing.
+public type PathParameterParsingError distinct PathParameterBindingError & BadRequestError;
+
+# Represents an error, which occurred during the path parameter validation against finite or enum types.
+public type PathParameterValueMismatchError distinct PathParameterBindingError & NotFoundError;
 
 # Represents an error, which occurred during the request dispatching.
 public type RequestDispatchingError distinct ListenerError;
