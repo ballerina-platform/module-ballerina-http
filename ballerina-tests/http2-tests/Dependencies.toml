@@ -5,7 +5,7 @@
 
 [ballerina]
 dependencies-toml-version = "2"
-distribution-version = "2201.5.0"
+distribution-version = "2201.5.0-SNAPSHOT"
 
 [[package]]
 org = "ballerina"
@@ -72,7 +72,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "http"
-version = "2.7.0"
+version = "2.7.1"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "auth"},
@@ -104,7 +104,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "http2_tests"
-version = "2.7.0"
+version = "2.7.1"
 dependencies = [
 	{org = "ballerina", name = "file"},
 	{org = "ballerina", name = "http"},
@@ -123,7 +123,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "http_test_common"
-version = "2.7.0"
+version = "2.7.1"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "lang.string"},
@@ -322,7 +322,7 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "regex"
-version = "1.4.0"
+version = "1.4.2"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
@@ -332,7 +332,7 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "task"
-version = "2.3.1"
+version = "2.3.2"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"},

@@ -5,12 +5,12 @@
 
 [ballerina]
 dependencies-toml-version = "2"
-distribution-version = "2201.5.0"
+distribution-version = "2201.5.0-SNAPSHOT"
 
 [[package]]
 org = "ballerina"
 name = "http_test_common"
-version = "2.7.0"
+version = "2.7.1"
 dependencies = [
 	{org = "ballerina", name = "lang.string"},
 	{org = "ballerina", name = "mime"},
@@ -104,7 +104,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "regex"
-version = "1.4.0"
+version = "1.4.2"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "lang.string"}
