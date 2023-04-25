@@ -213,6 +213,17 @@ task ballerinaTest {
                                 " ${groupParams} ${disableGroups} ${debugParams}"
                     }
                 }
+                if (project.hasProperty('balNativeTest')) {
+                    exec {
+                        workingDir "${project.projectDir}/${testPackage}"
+                        environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
+                        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                            commandLine 'cmd', '/c', "${distributionBinPath}/bal.bat clean"
+                        } else {
+                            commandLine 'sh', '-c', "${distributionBinPath}/bal clean"
+                        }
+                    }
+                }
             }
         }
     }
