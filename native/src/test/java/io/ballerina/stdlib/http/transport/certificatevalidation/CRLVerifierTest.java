@@ -128,7 +128,6 @@ public class CRLVerifierTest {
         JcaX509ExtensionUtils extUtils = new JcaX509ExtensionUtils();
         Date now = new Date();
         X500Name issuer = X500Name.getInstance(caCert.getIssuerX500Principal().getEncoded());
-        //X500Name issuer = X500Name.getInstance(PrincipalUtil.getIssuerX509Principal(caCert).getEncoded());
         X509v2CRLBuilder builder = new X509v2CRLBuilder(issuer, new Date());
         builder.addCRLEntry(revokedSerialNumber, new Date(), 9);
         builder.setNextUpdate(new Date(now.getTime() + TestConstants.NEXT_UPDATE_PERIOD));

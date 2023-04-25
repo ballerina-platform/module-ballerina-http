@@ -116,12 +116,6 @@ dependencies {
     externalJars(group: 'org.bouncycastle', name: 'bc-fips', version: "${bouncycastleFipsVersion}") {
         transitive = false
     }
-//    externalJars(group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: "${bouncycastleVersion}") {
-//        transitive = false
-//    }
-//    externalJars(group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: "${bouncycastleVersion}") {
-//        transitive = false
-//    }
     externalJars(group: 'io.netty', name: 'netty-tcnative-boringssl-static', version: "${nettyTcnativeVersion}") {
         transitive = false
     }
@@ -160,7 +154,6 @@ task updateTomlFiles {
         def stdlibDependentConstraintVersion = stripBallerinaExtensionVersion("${stdlibDependentConstraintNativeVersion}")
         def stdlibDependentNettyVersion = project.nettyVersion
         def stdlibDependentWso2CommonsPoolVersion = project.wso2CommonsPoolVersion
-//        def stdlibDependentBouncycastleVersion = project.bouncycastleVersion
         def stdlibDependentBouncycastlePkixVersion = project.bouncycastlePkixVersion
         def stdlibDependentBouncycastleFipsVersion = project.bouncycastleFipsVersion
         def stdlibDependentNettyTcnativeVersion = project.nettyTcnativeVersion
@@ -176,7 +169,6 @@ task updateTomlFiles {
         newBallerinaToml = newBallerinaToml.replace("@stdlib.constraintnative.version@", stdlibDependentConstraintNativeVersion)
         newBallerinaToml = newBallerinaToml.replace("@netty.version@", stdlibDependentNettyVersion)
         newBallerinaToml = newBallerinaToml.replace("@commmon.pool.version@", stdlibDependentWso2CommonsPoolVersion)
-//        newBallerinaToml = newBallerinaToml.replace("@bouncycastle.version@", stdlibDependentBouncycastleVersion)
         newBallerinaToml = newBallerinaToml.replace("@bouncycastlefips.version@", stdlibDependentBouncycastleFipsVersion)
         newBallerinaToml = newBallerinaToml.replace("@bouncycastlepkix.version@", stdlibDependentBouncycastlePkixVersion)
         newBallerinaToml = newBallerinaToml.replace("@tcnative.version@", stdlibDependentNettyTcnativeVersion)

@@ -120,10 +120,6 @@ class Utils {
         KeyPair keyPair = kpGenerator.generateKeyPair();
 
         AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find("SHA1WithRSAEncryption");
-        AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);
-//        ContentSigner contentSigner = new BcRSAContentSignerBuilder(sigAlgId, digAlgId)
-//                .build(PrivateKeyFactory.createKey(pair.getPrivate().getEncoded()));
-
         ContentSigner contentSigner = new JcaContentSignerBuilder("SHA256WithRSA")
                 .setProvider(new BouncyCastleFipsProvider()).build(keyPair.getPrivate());
 
@@ -149,12 +145,8 @@ class Utils {
         SubjectPublicKeyInfo subPubKeyInfo = SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded());
         X509v3CertificateBuilder builder = new X509v3CertificateBuilder(subjectDN, serialNumber, validityStartDate,
                 validityEndDate, subjectDN, subPubKeyInfo);
-        AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find("SHA1WithRSAEncryption");
-        AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);
         ContentSigner contentSigner = new JcaContentSignerBuilder("SHA256WithRSA")
                 .setProvider(new BouncyCastleFipsProvider()).build(keyPair.getPrivate());
-//        ContentSigner contentSigner = new BcRSAContentSignerBuilder(sigAlgId, digAlgId)
-//                .build(PrivateKeyFactory.createKey(keyPair.getPrivate().getEncoded()));
         builder.copyAndAddExtension(new ASN1ObjectIdentifier(TestConstants.CRL_DISTRIBUTION_POINT_EXTENSION), true,
                 new JcaX509CertificateHolder(realPeerCertificate));
 
@@ -173,10 +165,6 @@ class Utils {
         SubjectPublicKeyInfo subPubKeyInfo = SubjectPublicKeyInfo.getInstance(peerPublicKey.getEncoded());
         X509v3CertificateBuilder builder = new X509v3CertificateBuilder(subjectDN, serialNumber, validityStartDate,
                 validityEndDate, subjectDN, subPubKeyInfo);
-        AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find("SHA1WithRSAEncryption");
-        AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);
-//        ContentSigner contentSigner = new BcRSAContentSignerBuilder(sigAlgId, digAlgId)
-//                .build(PrivateKeyFactory.createKey(caKeyPair.getPrivate().getEncoded()));
         KeyPairGenerator kpGenerator = KeyPairGenerator.getInstance("RSA");
         kpGenerator.initialize(2048);
         KeyPair keyPair = kpGenerator.generateKeyPair();
