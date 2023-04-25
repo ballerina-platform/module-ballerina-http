@@ -59,7 +59,6 @@ import org.bouncycastle.cert.ocsp.RespID;
 import org.bouncycastle.cert.ocsp.SingleResp;
 import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
 import org.bouncycastle.operator.ContentSigner;
-import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder;
 import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
