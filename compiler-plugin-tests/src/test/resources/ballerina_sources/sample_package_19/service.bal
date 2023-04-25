@@ -161,6 +161,14 @@ service class ResponseErrorInterceptorService1 {
     }
 }
 
+service class ResponseInterceptor11 {
+    *http:ResponseInterceptor;
+
+    remote function interceptResponse(http:RequestContext ctx, http:Request req) returns http:NextService|error? {
+        return ctx.next();
+    }
+}
+
 // Negative Cases
 
 service class InterceptorService7 {
@@ -302,14 +310,6 @@ service class ResponseInterceptor10 {
 
     remote function interceptResponse(http:RequestContext ctx, http:Response res1, http:Response res2) returns http:NextService|error? {
         res1.setHeader("response-interceptor", "hello-world");
-        return ctx.next();
-    }
-}
-
-service class ResponseInterceptor11 {
-    *http:ResponseInterceptor;
-
-    remote function interceptResponse(http:RequestContext ctx, http:Request req) returns http:NextService|error? {
         return ctx.next();
     }
 }

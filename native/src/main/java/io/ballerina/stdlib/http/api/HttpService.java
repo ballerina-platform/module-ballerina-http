@@ -438,11 +438,18 @@ public class HttpService implements Service {
             return;
         }
 
-        BArray interceptorsArrayFromService = serviceConfig.getArrayValue(HttpConstants.ANN_INTERCEPTORS);
-        if (Objects.isNull(interceptorsArrayFromService)) {
+        Object interceptorPipeline = serviceConfig.get(HttpConstants.ANN_INTERCEPTORS);
+        BArray interceptorsArrayFromService;
+        if (Objects.isNull(interceptorPipeline)) {
             service.setInterceptorServicesRegistries(interceptorServicesRegistries);
             service.setBalInterceptorServicesArray(interceptorsArrayFromListener);
             return;
+        } else if (interceptorPipeline instanceof BArray) {
+            interceptorsArrayFromService = serviceConfig.getArrayValue(HttpConstants.ANN_INTERCEPTORS);
+        } else {
+            BObject interceptor = serviceConfig.getObjectValue(HttpConstants.ANN_INTERCEPTORS);
+            interceptorsArrayFromService = ValueCreator.createArrayValue(new Object[] { interceptor },
+                    TypeCreator.createArrayType(interceptor.getOriginalType()));
         }
 
         Object[] interceptors = interceptorsArrayFromService.getValues();

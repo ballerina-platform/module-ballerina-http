@@ -43,10 +43,12 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
     private final Environment environment;
     private final BObject requestCtx;
     private final DataContext dataContext;
+    private final boolean possibleLastInterceptor;
 
 
     public HttpResponseInterceptorUnitCallback(HttpCarbonMessage requestMessage, BObject caller, BObject response,
-                                               Environment env, DataContext dataContext, Runtime runtime) {
+                                               Environment env, DataContext dataContext, Runtime runtime,
+                                               boolean possibleLastInterceptor) {
         super(requestMessage, runtime);
         this.requestMessage = requestMessage;
         this.requestCtx = (BObject) requestMessage.getProperty(HttpConstants.REQUEST_CONTEXT);
@@ -54,6 +56,7 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
         this.response = response;
         this.environment = env;
         this.dataContext = dataContext;
+        this.possibleLastInterceptor = possibleLastInterceptor;
     }
 
     @Override
@@ -62,6 +65,9 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
             requestMessage.setHttpStatusCode(500);
             invokeErrorInterceptors((BError) result, true);
             return;
+        }
+        if (possibleLastInterceptor) {
+            cleanupRequestMessage();
         }
         validateResponseAndProceed(result);
     }

@@ -22,6 +22,14 @@ type Person record {|
 
 type Pp Person;
 
+class WorkPlace {};
+
+type Employee record {
+    int id;
+    string name;
+    WorkPlace workplace;
+};
+
 service http:Service on new http:Listener(9090) {
 
     resource function post ambiguous1(Person a, Person b) returns string {
@@ -49,6 +57,18 @@ service http:Service on new http:Listener(9090) {
     }
 
     resource function post testMultipleWithUnion(Person q, map<json>? p) returns string {
+        return "done";
+    }
+
+    resource function post nonAnydataStructuredType1(Employee e) returns string {
+        return "done";
+    }
+
+    resource function post nonAnydataStructuredType2(Employee e, Person p) returns string {
+        return "done";
+    }
+
+    resource function post unionWithNonAnydataStructuredType(Employee|Person a) returns string {
         return "done";
     }
 }

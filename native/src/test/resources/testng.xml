@@ -126,6 +126,7 @@
             <class name="io.ballerina.stdlib.http.transport.http2.Http2ClientConnectorBasicTestCase"/>
             <class name="io.ballerina.stdlib.http.transport.http2.Http2ServerConnectorBasicTestCase"/>
             <class name="io.ballerina.stdlib.http.transport.http2.Http2ServerPushTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.Http2PseudoHeadersTest"/>
             <class name="io.ballerina.stdlib.http.transport.http2.clienttimeout.TimeoutAfterRequestWrite"/>
             <class name="io.ballerina.stdlib.http.transport.http2.clienttimeout.TimeoutDuringRequestWrite"/>
             <class name="io.ballerina.stdlib.http.transport.http2.clienttimeout.TimeoutDuringResponseReceive"/>

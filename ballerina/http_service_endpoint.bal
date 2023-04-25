@@ -41,11 +41,13 @@ public isolated class Listener {
             requestLimits: config.requestLimits
         };
         self.interceptors = [new DefaultErrorInterceptor()];
-        Interceptor[]? interceptors = config.interceptors;
+        Interceptor|Interceptor[]? interceptors = config.interceptors;
         if interceptors is Interceptor[] {
             foreach Interceptor interceptor in interceptors {
                 self.interceptors.push(interceptor);
             }
+        } else if interceptors is Interceptor {
+            self.interceptors.push(interceptors);
         }
         self.inferredConfig = inferredListenerConfig.cloneReadOnly();
         self.port = port;
@@ -160,7 +162,7 @@ public type ListenerConfiguration record {|
     decimal timeout = DEFAULT_LISTENER_TIMEOUT;
     string? server = ();
     RequestLimitConfigs requestLimits = {};
-    Interceptor[] interceptors?;
+    Interceptor|Interceptor[] interceptors?;
     decimal gracefulStopTimeout = DEFAULT_GRACEFULSTOP_TIMEOUT;
     ServerSocketConfig socketConfig = {};
 |};

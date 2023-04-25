@@ -1,4 +1,10 @@
 # A Guideline on Writing REST APIs
+[![Star on Github](https://img.shields.io/badge/-Star%20on%20Github-blue?style=social&logo=github)](https://github.com/ballerina-platform/module-ballerina-http)
+
+_Authors_: @shafreenAnfar @TharmiganK  
+_Reviewers_: @shafreenAnfar  
+_Created_: 2021/11/24  
+_Updated_: 2022/10/20
 
 “REST” APIs are so pervasive these days. Almost all the APIs out there in the internet are described as REST APIs. These include different HTTP verbs and resources unlike traditional RPC like APIs or SOAP based web services. But what if someone says, those are not REST APIs; would you agree or disagree? 
 

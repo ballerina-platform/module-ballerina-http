@@ -69,12 +69,13 @@ public class Respond extends ConnectionAction {
                                             BError error) {
         HttpCarbonMessage inboundRequest = HttpUtil.getCarbonMsg(connectionObj, null);
         inboundRequest.setProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR, error);
-        return nativeRespondWithDataCtx(env, connectionObj, outboundResponseObj, new DataContext(env, inboundRequest));
+        return nativeRespondWithDataCtx(env, connectionObj, outboundResponseObj,
+                new DataContext(env, inboundRequest));
     }
 
     public static Object nativeRespond(Environment env, BObject connectionObj, BObject outboundResponseObj) {
         return nativeRespondWithDataCtx(env, connectionObj, outboundResponseObj,
-                                        new DataContext(env, HttpUtil.getCarbonMsg(connectionObj, null)));
+                new DataContext(env, HttpUtil.getCarbonMsg(connectionObj, null)));
     }
 
     public static Object nativeRespondWithDataCtx(Environment env, BObject connectionObj, BObject outboundResponseObj,
@@ -150,10 +151,11 @@ public class Respond extends ConnectionAction {
             }
         } catch (BError e) {
             log.debug(e.getPrintableStackTrace(), e);
-            dataContext.getFuture().complete(e);
+            dataContext.getFuture().complete(
+                    HttpUtil.createHttpError(e.getMessage(), HttpErrorType.GENERIC_LISTENER_ERROR));
         } catch (Throwable e) {
             //Exception is already notified by http transport.
-            String errorMessage = "Couldn't complete outbound response: " + e != null ? e.getMessage() : "";
+            String errorMessage = "Couldn't complete outbound response: " + e.getMessage();
             log.debug(errorMessage, e);
             dataContext.getFuture().complete(
                     HttpUtil.createHttpError(errorMessage, HttpErrorType.GENERIC_LISTENER_ERROR));
@@ -210,12 +212,12 @@ public class Respond extends ConnectionAction {
                         interceptorServicesRegistry, dataContext);
                 return true;
             } catch (Exception e) {
-                throw new BallerinaConnectorException(e.getMessage());
+                throw HttpUtil.createHttpError(e.getMessage(), HttpErrorType.GENERIC_LISTENER_ERROR);
             }
         }
         if (inboundMessage.isInterceptorError()) {
             HttpResponseInterceptorUnitCallback callback = new HttpResponseInterceptorUnitCallback(inboundMessage,
-                    callerObj, outboundResponseObj, env, dataContext, null);
+                    callerObj, outboundResponseObj, env, dataContext, null, false);
             callback.sendFailureResponse((BError) inboundMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR));
         }
         return false;
@@ -239,8 +241,8 @@ public class Respond extends ConnectionAction {
         Runtime runtime = interceptorServicesRegistry.getRuntime();
         Object[] signatureParams = HttpDispatcher.getRemoteSignatureParameters(service, outboundResponseObj, callerObj,
                                    inboundMessage, runtime);
-        Callback callback = new HttpResponseInterceptorUnitCallback(inboundMessage, callerObj,
-                outboundResponseObj, env, dataContext, runtime);
+        Callback callback = new HttpResponseInterceptorUnitCallback(inboundMessage, callerObj, outboundResponseObj,
+                env, dataContext, runtime, interceptorServicesRegistry.isPossibleLastInterceptor());
 
         inboundMessage.removeProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
         String methodName = service.getServiceType().equals(HttpConstants.RESPONSE_ERROR_INTERCEPTOR)

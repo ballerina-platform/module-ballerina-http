@@ -5,11 +5,12 @@
 
 [ballerina]
 dependencies-toml-version = "2"
+distribution-version = "2201.5.0"
 
 [[package]]
 org = "ballerina"
 name = "auth"
-version = "2.6.0"
+version = "2.7.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "crypto"},
@@ -57,7 +58,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "file"
-version = "1.6.0"
+version = "1.7.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "io"},
@@ -161,7 +162,7 @@ scope = "testOnly"
 [[package]]
 org = "ballerina"
 name = "jwt"
-version = "2.6.0"
+version = "2.7.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "cache"},
@@ -266,7 +267,7 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "log"
-version = "2.6.0"
+version = "2.7.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "io"},
@@ -278,7 +279,7 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "mime"
-version = "2.6.0"
+version = "2.7.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "io"},
@@ -292,7 +293,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "oauth2"
-version = "2.6.1"
+version = "2.7.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "cache"},
@@ -325,7 +326,7 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "regex"
-version = "1.3.2"
+version = "1.4.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
@@ -335,7 +336,7 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "task"
-version = "2.3.0"
+version = "2.3.1"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"},

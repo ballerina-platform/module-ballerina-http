@@ -34,7 +34,7 @@ public type HttpServiceConfig record {|
     ListenerAuthConfig[] auth?;
     string mediaTypeSubtypePrefix?;
     boolean treatNilableAsOptional = true;
-    Interceptor[] interceptors?;
+    Interceptor|Interceptor[] interceptors?;
     byte[] openApiDefinition = [];
     boolean validation = true;
 |};

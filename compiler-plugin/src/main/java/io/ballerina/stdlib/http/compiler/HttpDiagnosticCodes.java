@@ -91,7 +91,7 @@ public enum HttpDiagnosticCodes {
     HTTP_138("HTTP_138", "invalid remote function : '%s'. %s can have only '%s' remote " +
             "function", ERROR),
     HTTP_139("HTTP_139", "invalid multiple 'http:Response' parameter: '%s'", ERROR),
-    HTTP_140("HTTP_140", "invalid parameter type: '%s' in 'interceptResponse' remote method", ERROR),
+    HTTP_140("HTTP_140", "invalid parameter type: '%s' in '%s' remote method", ERROR),
     HTTP_141("HTTP_141", "invalid interceptor remote method return type: expected '" +
             ALLOWED_INTERCEPTOR_RETURN_UNION + "', but found '%s'", ERROR),
     HTTP_142("HTTP_142", "return type annotation is not supported in interceptor service", ERROR),
@@ -108,7 +108,8 @@ public enum HttpDiagnosticCodes {
     HTTP_150("HTTP_150", "cannot find '%s' resource with resource link name: '%s'" , ERROR),
 
     HTTP_151("HTTP_151", "ambiguous types for parameter '%s' and '%s'. Use annotations to avoid ambiguity", ERROR),
-    HTTP_152("HTTP_152", "invalid union type for default payload param: '%s'. Use basic structured types", ERROR),
+    HTTP_152("HTTP_152", "invalid union type for default payload param: '%s'. Use basic structured anydata types",
+            ERROR),
 
     HTTP_HINT_101("HTTP_HINT_101", "Payload annotation can be added", INTERNAL),
     HTTP_HINT_102("HTTP_HINT_102", "Header annotation can be added", INTERNAL),
