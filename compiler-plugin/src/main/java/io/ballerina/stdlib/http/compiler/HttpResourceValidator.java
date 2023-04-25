@@ -95,6 +95,18 @@ import static io.ballerina.stdlib.http.compiler.Constants.MAP_OF_JSON;
 import static io.ballerina.stdlib.http.compiler.Constants.METHOD;
 import static io.ballerina.stdlib.http.compiler.Constants.NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.NIL;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_BOOLEAN;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_BOOLEAN_ARRAY;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_DECIMAL;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_DECIMAL_ARRAY;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_FLOAT;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_FLOAT_ARRAY;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_INT;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_INT_ARRAY;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_MAP_OF_JSON;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_MAP_OF_JSON_ARRAY;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_STRING;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_STRING_ARRAY;
 import static io.ballerina.stdlib.http.compiler.Constants.OBJECT;
 import static io.ballerina.stdlib.http.compiler.Constants.OPTIONS;
 import static io.ballerina.stdlib.http.compiler.Constants.PARAM;
@@ -534,12 +546,12 @@ public class HttpResourceValidator {
     public static void validateHeaderParamType(SyntaxNodeAnalysisContext ctx, ParameterSymbol param,
                                                Location paramLocation, String paramName, TypeSymbol typeSymbol,
                                                Map<String, TypeSymbol> typeSymbols, boolean isRecordField) {
+        if (isValidBasicParamType(typeSymbol, typeSymbols) || isValidNilableBasicParamType(typeSymbol, typeSymbols)) {
+            return;
+        }
         typeSymbol = getEffectiveTypeFromNilableSingletonType(typeSymbol, typeSymbols);
         if (typeSymbol == null) {
             reportInvalidUnionHeaderType(ctx, paramLocation, paramName);
-            return;
-        }
-        if (isValidBasicParamType(typeSymbol, typeSymbols)) {
             return;
         }
         typeSymbol = getEffectiveTypeFromTypeReference(typeSymbol);
@@ -556,26 +568,29 @@ public class HttpResourceValidator {
     }
 
     private static boolean isMapOfJsonType(TypeSymbol typeSymbol, Map<String, TypeSymbol> typeSymbols) {
-        return subtypeOf(typeSymbols, typeSymbol, MAP_OF_JSON);
+        return subtypeOf(typeSymbols, typeSymbol, MAP_OF_JSON) ||
+                subtypeOf(typeSymbols, typeSymbol, NILABLE_MAP_OF_JSON);
     }
 
     private static boolean isArrayOfMapOfJsonType(TypeSymbol typeSymbol, Map<String, TypeSymbol> typeSymbols) {
-        return subtypeOf(typeSymbols, typeSymbol, ARRAY_OF_MAP_OF_JSON);
+        return subtypeOf(typeSymbols, typeSymbol, ARRAY_OF_MAP_OF_JSON) ||
+                subtypeOf(typeSymbols, typeSymbol, NILABLE_MAP_OF_JSON_ARRAY);
     }
 
     private static boolean isValidBasicQueryParameterType(TypeSymbol typeSymbol, Map<String, TypeSymbol> typeSymbols) {
-        return isValidBasicParamType(typeSymbol, typeSymbols) || isMapOfJsonType(typeSymbol, typeSymbols) ||
-                isArrayOfMapOfJsonType(typeSymbol, typeSymbols);
+        return isValidBasicParamType(typeSymbol, typeSymbols) || isValidNilableBasicParamType(typeSymbol, typeSymbols)
+                || isMapOfJsonType(typeSymbol, typeSymbols) || isArrayOfMapOfJsonType(typeSymbol, typeSymbols);
+
     }
 
     public static void validateQueryParamType(SyntaxNodeAnalysisContext ctx, Location paramLocation, String paramName,
                                               TypeSymbol typeSymbol, Map<String, TypeSymbol> typeSymbols) {
+        if (isValidBasicQueryParameterType(typeSymbol, typeSymbols)) {
+            return;
+        }
         typeSymbol = getEffectiveTypeFromNilableSingletonType(typeSymbol, typeSymbols);
         if (typeSymbol == null) {
             reportInvalidUnionQueryType(ctx, paramLocation, paramName);
-            return;
-        }
-        if (isValidBasicQueryParameterType(typeSymbol, typeSymbols)) {
             return;
         }
         TypeDescKind typeDescKind = typeSymbol.typeKind();
@@ -613,6 +628,19 @@ public class HttpResourceValidator {
                 subtypeOf(typeSymbols, typeSymbol, FLOAT_ARRAY) ||
                 subtypeOf(typeSymbols, typeSymbol, DECIMAL_ARRAY) ||
                 subtypeOf(typeSymbols, typeSymbol, BOOLEAN_ARRAY);
+    }
+
+    public static boolean isValidNilableBasicParamType(TypeSymbol typeSymbol, Map<String, TypeSymbol> typeSymbols) {
+        return subtypeOf(typeSymbols, typeSymbol, NILABLE_STRING) ||
+                subtypeOf(typeSymbols, typeSymbol, NILABLE_INT) ||
+                subtypeOf(typeSymbols, typeSymbol, NILABLE_FLOAT) ||
+                subtypeOf(typeSymbols, typeSymbol, NILABLE_DECIMAL) ||
+                subtypeOf(typeSymbols, typeSymbol, NILABLE_BOOLEAN) ||
+                subtypeOf(typeSymbols, typeSymbol, NILABLE_STRING_ARRAY) ||
+                subtypeOf(typeSymbols, typeSymbol, NILABLE_INT_ARRAY) ||
+                subtypeOf(typeSymbols, typeSymbol, NILABLE_FLOAT_ARRAY) ||
+                subtypeOf(typeSymbols, typeSymbol, NILABLE_DECIMAL_ARRAY) ||
+                subtypeOf(typeSymbols, typeSymbol, NILABLE_BOOLEAN_ARRAY);
     }
 
     private static void validateRecordFieldsOfHeaderParam(SyntaxNodeAnalysisContext ctx, ParameterSymbol param,
