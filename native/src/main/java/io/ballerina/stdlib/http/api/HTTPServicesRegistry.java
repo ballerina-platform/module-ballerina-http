@@ -22,6 +22,7 @@ package io.ballerina.stdlib.http.api;
 import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -117,7 +118,8 @@ public class HTTPServicesRegistry {
         }
         servicesByBasePath.put(basePath, httpService);
         if (logger.isDebugEnabled()) {
-            logger.debug(String.format("Service deployed : %s with context %s", service.getType().getName(), basePath));
+            logger.debug(String.format("Service deployed : %s with context %s", TypeUtils.getType(service).getName(),
+                    basePath));
         }
 
         //basePath will get cached after registering service
@@ -210,7 +212,8 @@ public class HTTPServicesRegistry {
         servicesByBasePath.remove(basePath);
         sortedServiceURIs.remove(basePath);
         if (logger.isDebugEnabled()) {
-            logger.debug(String.format("Service detached : %s with context %s", service.getType().getName(), basePath));
+            logger.debug(String.format("Service detached : %s with context %s", TypeUtils.getType(service).getName(),
+                    basePath));
         }
         sortedServiceURIs.sort((basePath1, basePath2) -> basePath2.length() - basePath1.length());
     }

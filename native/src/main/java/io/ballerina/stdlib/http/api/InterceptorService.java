@@ -20,6 +20,7 @@ package io.ballerina.stdlib.http.api;
 import io.ballerina.runtime.api.types.MethodType;
 import io.ballerina.runtime.api.types.RemoteMethodType;
 import io.ballerina.runtime.api.types.ServiceType;
+import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
@@ -142,7 +143,7 @@ public class InterceptorService implements Service {
     }
 
     private static void processInterceptorResource(InterceptorService interceptorService, boolean fromListener) {
-        MethodType[] resourceMethods = ((ServiceType) interceptorService.getBalService().getType())
+        MethodType[] resourceMethods = ((ServiceType) TypeUtils.getType(interceptorService.getBalService()))
                 .getResourceMethods();
         if (resourceMethods.length == 1) {
             MethodType resource = resourceMethods[0];
@@ -152,7 +153,7 @@ public class InterceptorService implements Service {
     }
 
     private static void processInterceptorRemoteMethod(InterceptorService interceptorService) {
-        RemoteMethodType[] remoteMethods = ((ServiceType) interceptorService.getBalService().getType())
+        RemoteMethodType[] remoteMethods = ((ServiceType) TypeUtils.getType(interceptorService.getBalService()))
                 .getRemoteMethods();
         if (remoteMethods.length == 1) {
             RemoteMethodType remoteMethod = remoteMethods[0];
