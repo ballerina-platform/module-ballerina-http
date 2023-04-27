@@ -14,6 +14,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/lang.regexp;
+
 # Defines the supported HTTP protocols.
 public enum HttpVersion {
     # Represents HTTP/1.0 protocol
@@ -148,11 +150,11 @@ const string RFC_1123_DATE_TIME = "RFC_1123_DATE_TIME";
 # Represents UTF-8 charset
 const string CHARSET_UTF_8 = "UTF-8";
 
-const string JSON_PATTERN = "^(application|text)\\/(.*[.+-]|)json$";
-const string XML_PATTERN = "^(application|text)\\/(.*[.+-]|)xml$";
-const string TEXT_PATTERN = "^(text)\\/(.*[.+-]|)plain$";
-const string OCTET_STREAM_PATTERN = "^(application)\\/(.*[.+-]|)octet-stream$";
-const string URL_ENCODED_PATTERN = "^(application)\\/(.*[.+-]|)x-www-form-urlencoded$";
+final regexp:RegExp JSON_PATTERN = re`^(application|text)/(.*[.+-]|)json$`;
+final regexp:RegExp XML_PATTERN = re`^(application|text)/(.*[.+-]|)xml$`;
+final regexp:RegExp TEXT_PATTERN = re`^(text)/(.*[.+-]|)plain$`;
+final regexp:RegExp OCTET_STREAM_PATTERN = re`^(application)/(.*[.+-]|)octet-stream$`;
+final regexp:RegExp URL_ENCODED_PATTERN = re`^(application)/(.*[.+-]|)x-www-form-urlencoded$`;
 
 # Constant to get the jwt information from the request context.
 public const string JWT_INFORMATION = "JWT_INFORMATION";

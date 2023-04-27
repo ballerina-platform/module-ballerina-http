@@ -27,15 +27,14 @@ import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.utils.TypeUtils;
+import io.ballerina.runtime.api.utils.ValueUtils;
 import io.ballerina.runtime.api.values.BArray;
-import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BRefValue;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
-import org.ballerinalang.langlib.value.FromJsonWithType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -119,10 +118,7 @@ public class AllQueryParams implements Parameter {
                     paramFeed[index++] = paramArray;
                 } else if (paramType.getTag() == MAP_TAG || paramType.getTag() == RECORD_TYPE_TAG) {
                     Object json = JsonUtils.parse(queryValueArr.getBString(0).getValue());
-                    Object param =  FromJsonWithType.convert(json, paramType);
-                    if (param instanceof BError) {
-                        throw (BError) param;
-                    }
+                    Object param =  ValueUtils.convert(json, paramType);
                     if (queryParam.isReadonly() && param instanceof BRefValue) {
                         ((BRefValue) param).freezeDirect();
                     }

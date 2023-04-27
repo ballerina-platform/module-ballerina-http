@@ -42,6 +42,7 @@ import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BRefValue;
 import io.ballerina.runtime.api.values.BStreamingJson;
 import io.ballerina.runtime.api.values.BString;
+import io.ballerina.runtime.api.values.BValue;
 import io.ballerina.runtime.api.values.BXmlItem;
 import io.ballerina.runtime.api.values.BXmlSequence;
 import io.ballerina.runtime.observability.ObserveUtils;
@@ -924,11 +925,11 @@ public class HttpUtil {
     }
 
     private static boolean isRequest(BObject value) {
-        return value.getType().getName().equals(HttpConstants.REQUEST);
+        return TypeUtils.getType(value).getName().equals(HttpConstants.REQUEST);
     }
 
     private static boolean isResponse(BObject value) {
-        return value.getType().getName().equals(HttpConstants.RESPONSE);
+        return TypeUtils.getType(value).getName().equals(HttpConstants.RESPONSE);
     }
 
     private static void addRemovedPropertiesBackToHeadersMap(BObject messageObj, HttpHeaders transportHeaders) {
@@ -1862,7 +1863,7 @@ public class HttpUtil {
     }
 
     public static String getServiceName(BObject balService) {
-        String serviceTypeName = balService.getType().getName();
+        String serviceTypeName = ((BValue) balService).getType().getName();
         int serviceIndex = serviceTypeName.lastIndexOf("$$service$");
         return serviceTypeName.substring(0, serviceIndex);
     }
@@ -1893,7 +1894,7 @@ public class HttpUtil {
 
     public static String getInterceptorServiceType(BObject interceptorService) {
         String interceptorServiceType = null;
-        ObjectType objectType = (ObjectType) TypeUtils.getReferredType(interceptorService.getType());
+        ObjectType objectType = (ObjectType) TypeUtils.getReferredType(TypeUtils.getType(interceptorService));
         List<TypeId> typeIdList = objectType.getTypeIdSet().getIds();
         for (TypeId typeId : typeIdList) {
             switch (typeId.getName()) {

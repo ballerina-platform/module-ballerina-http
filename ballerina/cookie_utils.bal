@@ -16,19 +16,18 @@
 
 import ballerina/lang.'int as ints;
 import ballerina/log;
-import ballerina/regex;
 import ballerina/time;
 
 // Returns the cookie object from the string value of the "Set-Cookie" header.
 isolated function parseSetCookieHeader(string cookieStringValue) returns Cookie {
     string cookieValue = cookieStringValue;
-    string[] result = regex:split(cookieValue, SEMICOLON + SPACE);
-    string[] nameValuePair = regex:split(result[0], EQUALS);
+    string[] result = re`;\s`.split(cookieValue);
+    string[] nameValuePair = re`=`.split(result[0]);
     string cookieName = nameValuePair[0];
     string cookieVal = nameValuePair[1];
     CookieOptions options = {};
     foreach var item in result {
-        nameValuePair = regex:split(item, EQUALS);
+        nameValuePair = re`=`.split(item);
         match nameValuePair[0] {
             DOMAIN_ATTRIBUTE => {
                 options.domain = nameValuePair[1];
@@ -61,10 +60,10 @@ isolated function parseSetCookieHeader(string cookieStringValue) returns Cookie 
 isolated function parseCookieHeader(string cookieStringValue) returns Cookie[] {
     Cookie[] cookiesInRequest = [];
     string cookieValue = cookieStringValue;
-    string[] nameValuePairs = regex:split(cookieValue, SEMICOLON + SPACE);
+    string[] nameValuePairs = re`;\s`.split(cookieValue);
     foreach var item in nameValuePairs {
-        if regex:matches(item, "^([^=]+)=.*$") {
-            string[] nameValue = regex:split(item, EQUALS);
+        if re`^([^=]+)=.*$`.isFullMatch(item) {
+            string[] nameValue = re`=`.split(item);
             Cookie cookie;
             if nameValue.length() > 1 {
                 cookie = new (nameValue[0], nameValue[1]);

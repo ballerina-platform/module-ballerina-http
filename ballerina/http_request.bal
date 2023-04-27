@@ -19,7 +19,6 @@ import ballerina/lang.array;
 import ballerina/lang.'string as strings;
 import ballerina/log;
 import ballerina/mime;
-import ballerina/regex;
 import ballerina/jballerina.java;
 import ballerina/url;
 
@@ -554,7 +553,7 @@ public class Request {
 
         RequestCacheControl reqCC = new;
         string cacheControl = checkpanic self.getHeader(CACHE_CONTROL);
-        string[] directives = regex:split(cacheControl, ",");
+        string[] directives = re`,`.split(cacheControl);
 
         foreach var dir in directives {
             var directive = dir.trim();
