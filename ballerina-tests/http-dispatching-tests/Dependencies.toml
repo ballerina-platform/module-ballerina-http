@@ -55,12 +55,14 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "file"
-version = "1.7.1"
+version = "1.7.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "io"},
 	{org = "ballerina", name = "jballerina.java"},
+	{org = "ballerina", name = "log"},
 	{org = "ballerina", name = "os"},
+	{org = "ballerina", name = "regex"},
 	{org = "ballerina", name = "time"}
 ]
 
@@ -295,7 +297,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "log"
-version = "2.7.1"
+version = "2.7.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "io"},
@@ -307,7 +309,7 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "mime"
-version = "2.7.1"
+version = "2.7.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "io"},
@@ -321,7 +323,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "oauth2"
-version = "2.7.1"
+version = "2.7.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "cache"},
