@@ -10,15 +10,14 @@ distribution-version = "2201.5.0"
 [[package]]
 org = "ballerina"
 name = "auth"
-version = "2.7.0"
+version = "2.7.1"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "crypto"},
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "lang.array"},
 	{org = "ballerina", name = "lang.string"},
-	{org = "ballerina", name = "log"},
-	{org = "ballerina", name = "regex"}
+	{org = "ballerina", name = "log"}
 ]
 
 [[package]]
@@ -55,14 +54,12 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "file"
-version = "1.7.0"
+version = "1.7.1"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "io"},
 	{org = "ballerina", name = "jballerina.java"},
-	{org = "ballerina", name = "log"},
 	{org = "ballerina", name = "os"},
-	{org = "ballerina", name = "regex"},
 	{org = "ballerina", name = "time"}
 ]
 
@@ -156,7 +153,7 @@ scope = "testOnly"
 [[package]]
 org = "ballerina"
 name = "jwt"
-version = "2.7.0"
+version = "2.7.1"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "cache"},
@@ -165,7 +162,6 @@ dependencies = [
 	{org = "ballerina", name = "lang.int"},
 	{org = "ballerina", name = "lang.string"},
 	{org = "ballerina", name = "log"},
-	{org = "ballerina", name = "regex"},
 	{org = "ballerina", name = "time"}
 ]
 
@@ -297,7 +293,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "log"
-version = "2.7.0"
+version = "2.7.1"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "io"},
@@ -309,7 +305,7 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "mime"
-version = "2.7.0"
+version = "2.7.1"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "io"},
@@ -323,7 +319,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "oauth2"
-version = "2.7.0"
+version = "2.7.1"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "cache"},
@@ -351,16 +347,6 @@ scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "io"},
 	{org = "ballerina", name = "jballerina.java"}
-]
-
-[[package]]
-org = "ballerina"
-name = "regex"
-version = "1.4.2"
-scope = "testOnly"
-dependencies = [
-	{org = "ballerina", name = "jballerina.java"},
-	{org = "ballerina", name = "lang.string"}
 ]
 
 [[package]]
