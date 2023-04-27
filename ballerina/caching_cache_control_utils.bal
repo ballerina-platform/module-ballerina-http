@@ -15,7 +15,6 @@
 // under the License.
 
 import ballerina/lang.'decimal;
-import ballerina/regex;
 
 isolated function appendFields (string[] fields) returns string {
     if fields.length() > 0 {
@@ -37,7 +36,7 @@ isolated function buildCommaSeparatedString (string[] values) returns string {
 }
 
 isolated function getDirectiveValue (string directive) returns decimal {
-    string[] directiveParts = regex:split(directive, "=");
+    string[] directiveParts = re`=`.split(directive);
 
     // Disregarding the directive if a value isn't provided
     if directiveParts.length() != 2 {

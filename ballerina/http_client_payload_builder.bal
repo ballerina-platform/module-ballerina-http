@@ -15,7 +15,6 @@
 // under the License.
 
 import ballerina/log;
-import ballerina/regex;
 import ballerina/jballerina.java;
 import ballerina/constraint;
 
@@ -30,15 +29,15 @@ isolated function performDataBinding(Response response, TargetType targetType) r
     if contentType == "" {
         return getBuilderFromType(response, targetType);
     }
-    if regex:matches(contentType, XML_PATTERN) {
+    if XML_PATTERN.isFullMatch(contentType) {
         return xmlPayloadBuilder(response, targetType);
-    } else if regex:matches(contentType, TEXT_PATTERN) {
+    } else if TEXT_PATTERN.isFullMatch(contentType) {
         return textPayloadBuilder(response, targetType);
-    } else if regex:matches(contentType, URL_ENCODED_PATTERN) {
+    } else if URL_ENCODED_PATTERN.isFullMatch(contentType) {
         return formPayloadBuilder(response, targetType);
-    } else if regex:matches(contentType, OCTET_STREAM_PATTERN) {
+    } else if OCTET_STREAM_PATTERN.isFullMatch(contentType) {
         return blobPayloadBuilder(response, targetType);
-    } else if regex:matches(contentType, JSON_PATTERN) {
+    } else if JSON_PATTERN.isFullMatch(contentType) {
         return jsonPayloadBuilder(response, targetType);
     } else {
         return getBuilderFromType(response, targetType);
