@@ -22,20 +22,38 @@ import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
-import io.ballerina.runtime.api.types.MapType;
+import io.ballerina.runtime.api.types.FiniteType;
+import io.ballerina.runtime.api.types.IntersectionType;
+import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.utils.ValueUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.stdlib.http.api.BallerinaConnectorException;
+import io.ballerina.stdlib.http.api.HttpUtil;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import static io.ballerina.runtime.api.TypeTags.ARRAY_TAG;
 import static io.ballerina.runtime.api.TypeTags.BOOLEAN_TAG;
 import static io.ballerina.runtime.api.TypeTags.DECIMAL_TAG;
+import static io.ballerina.runtime.api.TypeTags.FINITE_TYPE_TAG;
 import static io.ballerina.runtime.api.TypeTags.FLOAT_TAG;
+import static io.ballerina.runtime.api.TypeTags.INTERSECTION_TAG;
 import static io.ballerina.runtime.api.TypeTags.INT_TAG;
 import static io.ballerina.runtime.api.TypeTags.MAP_TAG;
+import static io.ballerina.runtime.api.TypeTags.NULL_TAG;
+import static io.ballerina.runtime.api.TypeTags.READONLY_TAG;
 import static io.ballerina.runtime.api.TypeTags.RECORD_TYPE_TAG;
+import static io.ballerina.runtime.api.TypeTags.STRING_TAG;
+import static io.ballerina.runtime.api.TypeTags.UNION_TAG;
+import static io.ballerina.stdlib.http.api.HttpConstants.PATH_PARAM;
+import static io.ballerina.stdlib.http.api.HttpConstants.QUERY_PARAM;
 
 /**
  * {@code HttpDispatcher} is responsible for dispatching incoming http requests to the correct resource.
@@ -43,8 +61,6 @@ import static io.ballerina.runtime.api.TypeTags.RECORD_TYPE_TAG;
  * @since 0.94
  */
 public class ParamUtils {
-
-    private static final MapType MAP_TYPE = TypeCreator.createMapType(PredefinedTypes.TYPE_JSON);
 
     public static Object castParam(int targetParamTypeTag, String argValue) {
         switch (targetParamTypeTag) {
@@ -57,8 +73,8 @@ public class ParamUtils {
             case DECIMAL_TAG:
                 return ValueCreator.createDecimalValue(argValue);
             case MAP_TAG:
-                Object json = JsonUtils.parse(argValue);
-                return ValueUtils.convert(json, MAP_TYPE);
+            case RECORD_TYPE_TAG:
+                return JsonUtils.parse(argValue);
             default:
                 return StringUtils.fromString(argValue);
         }
@@ -77,6 +93,15 @@ public class ParamUtils {
             default:
                 return StringUtils.fromStringArray(argValueArr);
         }
+    }
+
+    public static BArray castParamArray(int elementTypeTag, String[] argValueArr) {
+        List<Object> parsedValues = new ArrayList<>();
+        for (String argValue : argValueArr) {
+            parsedValues.add(castParam(elementTypeTag, argValue));
+        }
+        return ValueCreator.createArrayValue(parsedValues.toArray(),
+                TypeCreator.createArrayType(PredefinedTypes.TYPE_JSON));
     }
 
     private static BArray getBArray(String[] valueArray, ArrayType arrayType, Type elementType) {
@@ -107,6 +132,173 @@ public class ParamUtils {
             }
         }
         return arrayValue;
+    }
+
+    public static boolean isArrayType(Type type) {
+        Type referredType = TypeUtils.getReferredType(type);
+        int referredTypeTag = referredType.getTag();
+        if (referredTypeTag == ARRAY_TAG) {
+            return true;
+        } else if (referredTypeTag == UNION_TAG) {
+            List<Type> memberTypes = ((UnionType) referredType).getMemberTypes();
+            return memberTypes.stream().allMatch(
+                    memberType -> isArrayType(memberType) || memberType.getTag() == NULL_TAG);
+        } else if (referredTypeTag == INTERSECTION_TAG) {
+            // Only consider the intersection type with readonly and array type.
+            List<Type> constituentTypes = ((IntersectionType) referredType).getConstituentTypes();
+            if (constituentTypes.size() == 2) {
+                if (constituentTypes.get(0).getTag() == READONLY_TAG) {
+                    return isArrayType(constituentTypes.get(1));
+                } else if (constituentTypes.get(1).getTag() == READONLY_TAG) {
+                    return isArrayType(constituentTypes.get(0));
+                }
+            }
+        }
+        return false;
+    }
+
+    public static RecordType getRecordType(Type type) {
+        Type referredType = TypeUtils.getReferredType(type);
+        int referredTypeTag = referredType.getTag();
+        if (referredTypeTag == RECORD_TYPE_TAG) {
+            return (RecordType) referredType;
+        } else if (referredTypeTag == UNION_TAG) {
+            // Only consider the union type with nil and record type.
+            List<Type> memberTypes = ((UnionType) referredType).getMemberTypes();
+            if (memberTypes.size() == 2) {
+                if (memberTypes.get(0).getTag() == NULL_TAG) {
+                    return getRecordType(memberTypes.get(1));
+                } else if (memberTypes.get(1).getTag() == NULL_TAG) {
+                    return getRecordType(memberTypes.get(0));
+                }
+            }
+        } else if (referredTypeTag == INTERSECTION_TAG) {
+            // Only consider the intersection type with readonly and record type.
+            List<Type> constituentTypes = ((IntersectionType) referredType).getConstituentTypes();
+            if (constituentTypes.size() == 2) {
+                if (constituentTypes.get(0).getTag() == READONLY_TAG) {
+                    return getRecordType(constituentTypes.get(1));
+                } else if (constituentTypes.get(1).getTag() == READONLY_TAG) {
+                    return getRecordType(constituentTypes.get(0));
+                }
+            }
+        }
+        return null;
+    }
+
+    public static boolean isFiniteType(Type type) {
+        Type referredType = TypeUtils.getReferredType(type);
+        int referredTypeTag = referredType.getTag();
+        if (referredTypeTag == FINITE_TYPE_TAG) {
+            return true;
+        } else if (referredTypeTag == UNION_TAG) {
+            List<Type> memberTypes = ((UnionType) referredType).getMemberTypes();
+            return memberTypes.stream().allMatch(
+                    memberType -> isFiniteType(memberType) || memberType.getTag() == NULL_TAG);
+        } else if (referredTypeTag == INTERSECTION_TAG) {
+            // Only consider the intersection type with readonly and finite type.
+            List<Type> constituentTypes = ((IntersectionType) referredType).getConstituentTypes();
+            if (constituentTypes.size() == 2) {
+                if (constituentTypes.get(0).getTag() == READONLY_TAG) {
+                    return isFiniteType(constituentTypes.get(1));
+                } else if (constituentTypes.get(1).getTag() == READONLY_TAG) {
+                    return isFiniteType(constituentTypes.get(0));
+                }
+            }
+        } else if (referredTypeTag == ARRAY_TAG) {
+            return isFiniteType(((ArrayType) referredType).getElementType());
+        }
+        return false;
+    }
+
+    public static int getEffectiveTypeTag(Type type, Type originalType, String paramType) {
+        Type referredType = TypeUtils.getReferredType(type);
+        int referredTypeTag = referredType.getTag();
+        switch (referredTypeTag) {
+            case STRING_TAG:
+            case INT_TAG:
+            case FLOAT_TAG:
+            case BOOLEAN_TAG:
+            case DECIMAL_TAG:
+                return referredTypeTag;
+            case MAP_TAG:
+            case RECORD_TYPE_TAG:
+                if (paramType.equals(QUERY_PARAM)) {
+                    return MAP_TAG;
+                }
+                break;
+            case ARRAY_TAG:
+                return getEffectiveTypeTagFromArrayType((ArrayType) referredType, originalType, paramType);
+            case UNION_TAG:
+                return getEffectiveTypeTagFromUnionType((UnionType) referredType, originalType, paramType);
+            case FINITE_TYPE_TAG:
+                return getEffectiveTypeTagFromFiniteType((FiniteType) referredType, originalType, paramType);
+            case INTERSECTION_TAG:
+                return getEffectiveTypeTagFromIntersectionType((IntersectionType) referredType, originalType,
+                        paramType);
+        }
+        throw HttpUtil.createHttpError("invalid " + paramType + " parameter type '" + originalType + "'");
+    }
+
+    private static int getEffectiveTypeTagFromArrayType(ArrayType type, Type originalType, String paramType) {
+        Type elementType = TypeUtils.getReferredType(type.getElementType());
+        int elementTypeTag = elementType.getTag();
+        if (elementTypeTag == ARRAY_TAG) {
+            throw HttpUtil.createHttpError("invalid " + paramType + " parameter array type '" + originalType + "'");
+        } else {
+            return getEffectiveTypeTag(elementType, originalType, paramType);
+        }
+    }
+
+    private static int getEffectiveTypeTagFromUnionType(UnionType type, Type originalType, String paramType) {
+        List<Type> memberTypes = type.getMemberTypes();
+        List<Integer> memberTypeTags = new ArrayList<>();
+        for (Type memberType : memberTypes) {
+            Type referredType = TypeUtils.getReferredType(memberType);
+            if (referredType.getTag() == NULL_TAG && !paramType.equals(PATH_PARAM)) {
+                continue;
+            }
+            memberTypeTags.add(getEffectiveTypeTag(referredType, originalType, paramType));
+        }
+        if (memberTypeTags.stream().allMatch(
+                memberTypeTag -> memberTypeTag.equals(memberTypeTags.get(0)))) {
+            return memberTypeTags.get(0);
+        } else {
+            throw HttpUtil.createHttpError("invalid " + paramType + " parameter union type '" + originalType + "'");
+        }
+    }
+
+    private static int getEffectiveTypeTagFromFiniteType(FiniteType type, Type originalType, String paramType) {
+        Set<Object> valueSpace = type.getValueSpace();
+        List<Integer> valueSpaceMemberTypeTags = new ArrayList<>();
+        for (Object value : valueSpace) {
+            Type referredType = TypeUtils.getReferredType(TypeUtils.getType(value));
+            if (referredType.getTag() == NULL_TAG && !paramType.equals(PATH_PARAM)) {
+                continue;
+            }
+            valueSpaceMemberTypeTags.add(getEffectiveTypeTag(TypeUtils.getType(value), originalType, paramType));
+        }
+        if (valueSpaceMemberTypeTags.stream().allMatch(
+                memberTypeTag -> memberTypeTag.equals(valueSpaceMemberTypeTags.get(0)))) {
+            return valueSpaceMemberTypeTags.get(0);
+        } else {
+            throw HttpUtil.createHttpError("invalid " + paramType + " parameter finite type '" + originalType + "'");
+        }
+    }
+
+    private static int getEffectiveTypeTagFromIntersectionType(IntersectionType type, Type originalType,
+                                                               String paramType) {
+        List<Type> constituentTypes = type.getConstituentTypes();
+        // Only consider the intersection type with readonly.
+        if (constituentTypes.size() == 2) {
+            if (constituentTypes.get(0).getTag() == READONLY_TAG) {
+                return getEffectiveTypeTag(constituentTypes.get(1), originalType, paramType);
+            } else if (constituentTypes.get(1).getTag() == READONLY_TAG) {
+                return getEffectiveTypeTag(constituentTypes.get(0), originalType, paramType);
+            }
+        }
+        throw HttpUtil.createHttpError("invalid " + paramType + " parameter intersection type '"
+                + originalType + "'");
     }
 
     private ParamUtils() {

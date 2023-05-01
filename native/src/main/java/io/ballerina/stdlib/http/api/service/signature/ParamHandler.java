@@ -19,15 +19,11 @@
 package io.ballerina.stdlib.http.api.service.signature;
 
 import io.ballerina.runtime.api.PredefinedTypes;
-import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
-import io.ballerina.runtime.api.types.ArrayType;
-import io.ballerina.runtime.api.types.IntersectionType;
 import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.types.ResourceMethodType;
 import io.ballerina.runtime.api.types.Type;
-import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.utils.IdentifierUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.utils.TypeUtils;
@@ -65,17 +61,17 @@ public class ParamHandler {
     private final Type[] paramTypes;
     private final int pathParamCount;
     private Type callerInfoType = null;
-    private ResourceMethodType resource;
-    private String[] pathParamTokens = new String[0];
-    private List<Parameter> otherParamList = new ArrayList<>();
+    private final ResourceMethodType resource;
+    private final List<Parameter> paramList = new ArrayList<>();
     private PayloadParam payloadParam = null;
     private NonRecurringParam callerParam = null;
     private NonRecurringParam requestParam = null;
     private NonRecurringParam headerObjectParam = null;
     private NonRecurringParam requestContextParam = null;
     private NonRecurringParam interceptorErrorParam = null;
-    private AllQueryParams queryParams = new AllQueryParams();
-    private AllHeaderParams headerParams = new AllHeaderParams();
+    private final AllPathParams pathParams = new AllPathParams();
+    private final AllQueryParams queryParams = new AllQueryParams();
+    private final AllHeaderParams headerParams = new AllHeaderParams();
 
     private static final String PARAM_ANNOT_PREFIX = "$param$.";
     private static final MapType MAP_TYPE = TypeCreator.createMapType(
@@ -106,8 +102,12 @@ public class ParamHandler {
         if (pathParamCount == 0) {
             return;
         }
-        this.pathParamTokens = Arrays.copyOfRange(resource.getParamNames(), 0, pathParamCount);
-        validatePathParam(pathParamCount);
+        for (int index = 0; index < pathParamCount; index++) {
+            createPathParam(index, resource);
+        }
+        if (pathParams.isNotEmpty()) {
+            getParamList().add(pathParams);
+        }
     }
 
     private void validateSignatureParams() {
@@ -115,6 +115,7 @@ public class ParamHandler {
             return;
         }
         Type[] customParameterTypes = HttpUtil.getCustomParameterTypes(resource);
+        Type[] originalParameterTypes = HttpUtil.getParameterTypes(resource);
         for (int index = pathParamCount; index < paramTypes.length; index++) {
             Type parameterType = this.paramTypes[index];
 
@@ -123,7 +124,7 @@ public class ParamHandler {
                 case REQUEST_CONTEXT_TYPE:
                     if (this.requestContextParam == null) {
                         this.requestContextParam = new NonRecurringParam(index, HttpConstants.REQUEST_CONTEXT);
-                        getOtherParamList().add(this.requestContextParam);
+                        getParamList().add(this.requestContextParam);
                     } else {
                         throw HttpUtil.createHttpError("invalid multiple '" + REQUEST_CONTEXT_TYPE
                                                                + "' parameter");
@@ -133,7 +134,7 @@ public class ParamHandler {
                     if (this.interceptorErrorParam == null) {
                         this.interceptorErrorParam = new NonRecurringParam(index,
                                                                            HttpConstants.STRUCT_GENERIC_ERROR);
-                        getOtherParamList().add(this.interceptorErrorParam);
+                        getParamList().add(this.interceptorErrorParam);
                     } else {
                         throw HttpUtil.createHttpError("invalid multiple '" +
                                                                HttpConstants.STRUCT_GENERIC_ERROR + "' parameter");
@@ -142,7 +143,7 @@ public class ParamHandler {
                 case CALLER_TYPE:
                     if (this.callerParam == null) {
                         this.callerParam = new NonRecurringParam(index, HttpConstants.CALLER);
-                        getOtherParamList().add(this.callerParam);
+                        getParamList().add(this.callerParam);
                     } else {
                         throw HttpUtil.createHttpError("invalid multiple '" + CALLER_TYPE + "' parameter");
                     }
@@ -150,7 +151,7 @@ public class ParamHandler {
                 case REQ_TYPE:
                     if (this.requestParam == null) {
                         this.requestParam = new NonRecurringParam(index, HttpConstants.REQUEST);
-                        getOtherParamList().add(this.requestParam);
+                        getParamList().add(this.requestParam);
                     } else {
                         throw HttpUtil.createHttpError("invalid multiple '" + REQ_TYPE + "' parameter");
                     }
@@ -158,7 +159,7 @@ public class ParamHandler {
                 case HEADERS_TYPE:
                     if (this.headerObjectParam == null) {
                         this.headerObjectParam = new NonRecurringParam(index, HttpConstants.HEADERS);
-                        getOtherParamList().add(this.headerObjectParam);
+                        getParamList().add(this.headerObjectParam);
                     } else {
                         throw HttpUtil.createHttpError("invalid multiple '" + HEADERS_TYPE + "' parameter");
                     }
@@ -168,19 +169,19 @@ public class ParamHandler {
                     HeaderParam headerParam;
                     if (payloadParam != null && paramName.equals(payloadParam.getToken())) {
                         payloadParam.init(parameterType, customParameterTypes[index], index);
-                        getOtherParamList().add(payloadParam);
+                        getParamList().add(payloadParam);
                     } else if ((headerParam = headerParams.get(paramName)) != null) {
                         headerParam.init(parameterType, index);
                     } else {
-                        validateQueryParam(index, resource, parameterType, false);
+                        createQueryParam(index, resource, originalParameterTypes[index]);
                     }
             }
         }
         if (queryParams.isNotEmpty()) {
-            getOtherParamList().add(this.queryParams);
+            getParamList().add(this.queryParams);
         }
         if (headerParams.isNotEmpty()) {
-            getOtherParamList().add(this.headerParams);
+            getParamList().add(this.headerParams);
         }
     }
 
@@ -248,6 +249,12 @@ public class ParamHandler {
         }
     }
 
+    private void createPathParam(int index, ResourceMethodType balResource) {
+        io.ballerina.runtime.api.types.Parameter parameter = balResource.getParameters()[index];
+        PathParam pathParam = new PathParam(parameter.type, parameter.name, index);
+        this.pathParams.add(pathParam);
+    }
+
     private void createHeaderParam(String paramName, BMap annotations) {
         HeaderParam headerParam = new HeaderParam(paramName);
         BMap mapValue = annotations.getMapValue(StringUtils.fromString(HEADER_ANNOTATION));
@@ -262,85 +269,19 @@ public class ParamHandler {
         this.headerParams.add(headerParam);
     }
 
-    private void validateQueryParam(int index, ResourceMethodType balResource, Type parameterType, boolean readonly) {
-        if (parameterType instanceof UnionType) {
-            List<Type> memberTypes = ((UnionType) parameterType).getMemberTypes();
-            int size = memberTypes.size();
-            if (memberTypes.stream().allMatch(type -> type.getTag() == TypeTags.FINITE_TYPE_TAG)) {
-                createQueryParam(index, balResource, parameterType, false, readonly);
-                return;
-            } else if (size > 2 || !parameterType.isNilable()) {
-                throw HttpUtil.createHttpError(
-                        "invalid query param type '" + parameterType.getName() + "': a basic type or an array " +
-                                "of a basic type can only be union with '()' Eg: string|() or string[]|()");
-            }
-            for (Type type : memberTypes) {
-                if (type.getTag() == TypeTags.NULL_TAG) {
-                    continue;
-                }
-                createQueryParam(index, balResource, type, true, readonly);
-                break;
-            }
-        } else if (parameterType instanceof IntersectionType) {
-            // Assumes that the only intersection type is readonly
-            List<Type> memberTypes = ((IntersectionType) parameterType).getConstituentTypes();
-            int size = memberTypes.size();
-            if (size > 2) {
-                throw HttpUtil.createHttpError(
-                        "invalid query param type '" + parameterType.getName() +
-                                "': only readonly intersection is allowed");
-            }
-            for (Type type : memberTypes) {
-                if (type.getTag() == TypeTags.READONLY_TAG) {
-                    continue;
-                }
-                if (type.getTag() == TypeTags.UNION_TAG) {
-                    validateQueryParam(index, balResource, type, true);
-                    return;
-                }
-                createQueryParam(index, balResource, type, false, true);
-                break;
-            }
-        } else {
-            createQueryParam(index, balResource, parameterType, false, false);
-        }
-    }
-
-    private void createQueryParam(int index, ResourceMethodType balResource, Type type, boolean nilable,
-                                  boolean readonly) {
+    private void createQueryParam(int index, ResourceMethodType balResource, Type originalType) {
         io.ballerina.runtime.api.types.Parameter parameter = balResource.getParameters()[index];
-        QueryParam queryParam = new QueryParam(type, HttpUtil.unescapeAndEncodeValue(parameter.name), index, nilable,
-                                               readonly, parameter.isDefault);
+        QueryParam queryParam = new QueryParam(originalType, HttpUtil.unescapeAndEncodeValue(parameter.name), index,
+                parameter.isDefault);
         this.queryParams.add(queryParam);
-    }
-
-    private void validatePathParam(int pathParamCount) {
-        Arrays.stream(this.paramTypes, 0, pathParamCount).forEach(type -> {
-            int typeTag = type.getTag();
-            if (isValidBasicType(typeTag) || (typeTag == TypeTags.ARRAY_TAG && isValidBasicType(
-                    ((ArrayType) type).getElementType().getTag()))) {
-                return;
-            }
-            throw HttpUtil.createHttpError("incompatible path parameter type: '" + type + "'",
-                                           HttpErrorType.GENERIC_LISTENER_ERROR);
-        });
-    }
-
-    private boolean isValidBasicType(int typeTag) {
-        return typeTag == TypeTags.STRING_TAG || typeTag == TypeTags.INT_TAG || typeTag == TypeTags.FLOAT_TAG ||
-                typeTag == TypeTags.BOOLEAN_TAG || typeTag == TypeTags.DECIMAL_TAG;
     }
 
     public boolean isPayloadBindingRequired() {
         return payloadParam != null;
     }
 
-    public List<Parameter> getOtherParamList() {
-        return this.otherParamList;
-    }
-
-    public int getPathParamTokenLength() {
-        return pathParamTokens.length;
+    public List<Parameter> getParamList() {
+        return this.paramList;
     }
 
     /**
