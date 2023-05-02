@@ -116,8 +116,7 @@ public class ParamHandler {
         if (paramTypes.length == pathParamCount) {
             return;
         }
-        Type[] customParameterTypes = HttpUtil.getCustomParameterTypes(resource);
-        Type[] originalParameterTypes = HttpUtil.getParameterTypes(resource);
+        Type[] originalParameterTypes = HttpUtil.getOriginalParameterTypes(resource);
         for (int index = pathParamCount; index < paramTypes.length; index++) {
             Type parameterType = this.paramTypes[index];
 
@@ -170,10 +169,10 @@ public class ParamHandler {
                     String paramName = HttpUtil.unescapeAndEncodeValue(resource.getParamNames()[index]);
                     HeaderParam headerParam;
                     if (payloadParam != null && paramName.equals(payloadParam.getToken())) {
-                        payloadParam.init(parameterType, customParameterTypes[index], index);
+                        payloadParam.init(parameterType, originalParameterTypes[index], index);
                         getParamList().add(payloadParam);
                     } else if ((headerParam = headerParams.get(paramName)) != null) {
-                        headerParam.init(parameterType, index, constraintValidation);
+                        headerParam.init(originalParameterTypes[index], index, constraintValidation);
                     } else {
                         createQueryParam(index, resource, originalParameterTypes[index]);
                     }
