@@ -74,14 +74,16 @@ public class AllHeaderParams implements Parameter {
             int index = headerParam.getIndex();
             if (headerParam.isRecord()) {
                 Object parsedHeader = processHeaderRecord(headerParam, httpHeaders, treatNilableAsOptional);
+                Object castedHeader;
                 try {
-                    paramFeed[index++] = ValueUtils.convert(parsedHeader, headerParam.getOriginalType());
-                    paramFeed[index] = true;
+                    castedHeader = ValueUtils.convert(parsedHeader, headerParam.getOriginalType());
                 } catch (Exception ex) {
                     String message = "header binding failed for parameter: '" + headerParam.getHeaderName() + "'";
                     throw HttpUtil.createHttpStatusCodeError(HEADER_BINDING_ERROR, message, null,
                             HttpUtil.createError(ex));
                 }
+                paramFeed[index++] = headerParam.constraintValidation(castedHeader);
+                paramFeed[index] = true;
                 continue;
             }
             String token = headerParam.getHeaderName();
@@ -108,19 +110,22 @@ public class AllHeaderParams implements Parameter {
             }
             int typeTag = headerParam.getEffectiveTypeTag();
             Object parsedHeaderValue;
+            Object castedHeaderValue;
             try {
                 if (headerParam.isArray()) {
                     parsedHeaderValue = castParamArray(typeTag, headerValues.toArray(new String[0]));
                 } else {
                     parsedHeaderValue = castParam(typeTag, headerValues.get(0));
                 }
-                paramFeed[index++] = ValueUtils.convert(parsedHeaderValue, headerParam.getOriginalType());
-                paramFeed[index] = true;
+                castedHeaderValue = ValueUtils.convert(parsedHeaderValue, headerParam.getOriginalType());
             } catch (Exception ex) {
                 String message = "header binding failed for parameter: '" + token + "'";
                 throw HttpUtil.createHttpStatusCodeError(HEADER_BINDING_ERROR, message, null,
                         HttpUtil.createError(ex));
             }
+
+            paramFeed[index++] = headerParam.constraintValidation(castedHeaderValue);
+            paramFeed[index] = true;
         }
     }
 

@@ -67,7 +67,7 @@ public class AllQueryParams implements Parameter {
             Object queryValue = urlQueryParams.get(StringUtils.fromString(token));
             if (queryValue == null) {
                 if (queryParam.isDefaultable()) {
-                    paramFeed[index++] = queryParam.getOriginalType().getZeroValue();
+                    paramFeed[index++] = queryParam.constraintValidation(queryParam.getOriginalType().getZeroValue());
                     paramFeed[index] = false;
                     continue;
                 } else if (queryParam.isNilable() && (treatNilableAsOptional || queryExist)) {
@@ -79,7 +79,7 @@ public class AllQueryParams implements Parameter {
                     throw HttpUtil.createHttpStatusCodeError(QUERY_PARAM_BINDING_ERROR, message);
                 }
             }
-
+            Object castedQueryValue;
             try {
                 BArray queryValueArr = (BArray) queryValue;
                 Object parsedQueryValue;
@@ -90,13 +90,15 @@ public class AllQueryParams implements Parameter {
                     parsedQueryValue = castParam(queryParam.getEffectiveTypeTag(),
                             queryValueArr.getBString(0).getValue());
                 }
-                paramFeed[index++] = ValueUtils.convert(parsedQueryValue, queryParam.getOriginalType());
-                paramFeed[index] = true;
+                castedQueryValue = ValueUtils.convert(parsedQueryValue, queryParam.getOriginalType());
             } catch (Exception ex) {
                 String message = "error in casting query param : '" + token + "'";
                 throw HttpUtil.createHttpStatusCodeError(QUERY_PARAM_BINDING_ERROR, message, null,
                         HttpUtil.createError(ex));
             }
+
+            paramFeed[index++] = queryParam.constraintValidation(castedQueryValue);
+            paramFeed[index] = true;
         }
     }
 }

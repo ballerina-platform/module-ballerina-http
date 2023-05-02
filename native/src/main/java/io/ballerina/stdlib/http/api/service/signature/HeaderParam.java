@@ -21,6 +21,9 @@ package io.ballerina.stdlib.http.api.service.signature;
 import io.ballerina.runtime.api.types.Field;
 import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.values.BError;
+import io.ballerina.stdlib.constraint.Constraints;
+import io.ballerina.stdlib.http.api.HttpUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +31,7 @@ import java.util.Map;
 
 import static io.ballerina.runtime.api.TypeTags.RECORD_TYPE_TAG;
 import static io.ballerina.stdlib.http.api.HttpConstants.HEADER_PARAM;
+import static io.ballerina.stdlib.http.api.HttpErrorType.HEADER_VALIDATION_ERROR;
 
 /**
  * {@code {@link HeaderParam }} represents a inbound request header parameter details.
@@ -44,15 +48,17 @@ public class HeaderParam {
     private int effectiveTypeTag;
     private boolean nilable;
     private boolean isArray;
+    private boolean requireConstraintValidation;
 
     HeaderParam(String token) {
         this.token = token;
     }
 
-    public void init(Type originalType, int index) {
+    public void init(Type originalType, int index, boolean requireConstraintValidation) {
         this.originalType = originalType;
         this.index = index;
         this.nilable = originalType.isNilable();
+        this.requireConstraintValidation = requireConstraintValidation;
         populateHeaderParamTypeTag(originalType);
     }
 
@@ -113,5 +119,16 @@ public class HeaderParam {
 
     public int getEffectiveTypeTag() {
         return this.effectiveTypeTag;
+    }
+
+    public Object constraintValidation(Object headerValue) {
+        if (requireConstraintValidation) {
+            Object result = Constraints.validateAfterTypeConversion(headerValue, originalType);
+            if (result instanceof BError) {
+                String message = "header validation failed: " + HttpUtil.getPrintableErrorMsg((BError) result);
+                throw HttpUtil.createHttpStatusCodeError(HEADER_VALIDATION_ERROR, message);
+            }
+        }
+        return headerValue;
     }
 }

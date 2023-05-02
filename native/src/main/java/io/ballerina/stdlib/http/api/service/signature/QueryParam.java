@@ -19,8 +19,12 @@
 package io.ballerina.stdlib.http.api.service.signature;
 
 import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.values.BError;
+import io.ballerina.stdlib.constraint.Constraints;
+import io.ballerina.stdlib.http.api.HttpUtil;
 
 import static io.ballerina.stdlib.http.api.HttpConstants.QUERY_PARAM;
+import static io.ballerina.stdlib.http.api.HttpErrorType.QUERY_PARAM_VALIDATION_ERROR;
 
 /**
  * {@code {@link QueryParam }} represents a query parameter details.
@@ -36,8 +40,9 @@ public class QueryParam {
     private final Type originalType;
     private final int effectiveTypeTag;
     private final boolean isArray;
+    private final boolean requireConstraintValidation;
 
-    QueryParam(Type originalType, String token, int index, boolean defaultable) {
+    QueryParam(Type originalType, String token, int index, boolean defaultable, boolean requireConstraintValidation) {
         this.originalType = originalType;
         this.token = token;
         this.index = index;
@@ -45,6 +50,7 @@ public class QueryParam {
         this.defaultable = defaultable;
         this.effectiveTypeTag = ParamUtils.getEffectiveTypeTag(originalType, originalType, QUERY_PARAM);
         this.isArray = ParamUtils.isArrayType(originalType);
+        this.requireConstraintValidation = requireConstraintValidation;
     }
 
     public String getToken() {
@@ -73,5 +79,16 @@ public class QueryParam {
 
     public boolean isArray() {
         return isArray;
+    }
+
+    public Object constraintValidation(Object queryValue) {
+        if (requireConstraintValidation) {
+            Object result = Constraints.validateAfterTypeConversion(queryValue, originalType);
+            if (result instanceof BError) {
+                String message = "query validation failed: " + HttpUtil.getPrintableErrorMsg((BError) result);
+                throw HttpUtil.createHttpStatusCodeError(QUERY_PARAM_VALIDATION_ERROR, message);
+            }
+        }
+        return queryValue;
     }
 }
