@@ -774,4 +774,12 @@ public class CompilerPluginTest {
                 " 'string','int','float','decimal','boolean' types or a rest parameter with one of the above types",
                 HTTP_145);
     }
+
+    @Test
+    public void testResourceSignatureParamValidations() {
+        Package currentPackage = loadPackage("sample_package_38");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.errorCount(), 36);
+    }
 }
