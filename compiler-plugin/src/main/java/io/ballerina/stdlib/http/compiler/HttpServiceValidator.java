@@ -33,6 +33,8 @@ import io.ballerina.compiler.syntax.tree.MappingFieldNode;
 import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
+import io.ballerina.compiler.syntax.tree.NodeLocation;
+import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.Token;
@@ -53,6 +55,8 @@ import static io.ballerina.stdlib.http.compiler.Constants.BALLERINA;
 import static io.ballerina.stdlib.http.compiler.Constants.COLON;
 import static io.ballerina.stdlib.http.compiler.Constants.DEFAULT;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
+import static io.ballerina.stdlib.http.compiler.Constants.INTERCEPTABLE_SERVICE;
+import static io.ballerina.stdlib.http.compiler.Constants.INTERCEPTORS_ANNOTATION_FIELD;
 import static io.ballerina.stdlib.http.compiler.Constants.MEDIA_TYPE_SUBTYPE_PREFIX;
 import static io.ballerina.stdlib.http.compiler.Constants.MEDIA_TYPE_SUBTYPE_REGEX;
 import static io.ballerina.stdlib.http.compiler.Constants.PLUS;
@@ -65,6 +69,8 @@ import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.updateDia
 import static io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes.HTTP_101;
 import static io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes.HTTP_119;
 import static io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes.HTTP_120;
+import static io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes.HTTP_153;
+import static io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes.HTTP_201;
 
 /**
  * Validates a Ballerina Http Service.
@@ -241,14 +247,25 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
             String[] annotStrings = annotName.split(COLON);
             if (SERVICE_CONFIG_ANNOTATION.equals(annotStrings[annotStrings.length - 1].trim())
                     && (annotValue.isPresent())) {
-                validateServiceConfigAnnotation(ctx, annotValue);
+                Optional<NodeLocation> interceptableServiceLocation = Optional.empty();
+                for (Node child:serviceDeclarationNode.children()) {
+                    if (child.kind() == SyntaxKind.QUALIFIED_NAME_REFERENCE &&
+                            ((QualifiedNameReferenceNode) child).modulePrefix().text().equals(HTTP) &&
+                            ((QualifiedNameReferenceNode) child).identifier().text().equals(INTERCEPTABLE_SERVICE)) {
+                        interceptableServiceLocation = Optional.of(child.location());
+                        break;
+                    }
+                }
+                Optional<NodeLocation> interceptorsFieldLocation = validateServiceConfigAnnotation(ctx, annotValue);
+                validateServiceInterceptorDefinitions(ctx, interceptableServiceLocation, interceptorsFieldLocation);
             }
         }
     }
 
-    private static void validateServiceConfigAnnotation(SyntaxNodeAnalysisContext ctx,
+    private static Optional<NodeLocation> validateServiceConfigAnnotation(SyntaxNodeAnalysisContext ctx,
                                                         Optional<MappingConstructorExpressionNode> maps) {
         MappingConstructorExpressionNode mapping = maps.get();
+        Optional<NodeLocation> interceptorsFieldLocation = Optional.empty();
         for (MappingFieldNode field : mapping.fields()) {
             String fieldName = field.toString();
             fieldName = fieldName.trim().replaceAll(UNNECESSARY_CHARS_REGEX, "");
@@ -265,7 +282,29 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
                         break;
                     }
                 }
+                if (INTERCEPTORS_ANNOTATION_FIELD.equals(strings[0].trim())) {
+                    interceptorsFieldLocation = Optional.of(field.location());
+                }
             }
+        }
+        return interceptorsFieldLocation;
+    }
+
+    private static void validateServiceInterceptorDefinitions(SyntaxNodeAnalysisContext ctx,
+                                                              Optional<NodeLocation> interceptableSvcLocation,
+                                                              Optional<NodeLocation> interceptorsFieldLocation) {
+        if (interceptorsFieldLocation.isPresent()) {
+            if (interceptableSvcLocation.isPresent()) {
+                DiagnosticInfo diagnosticInfo = new DiagnosticInfo(HTTP_153.getCode(),
+                        HTTP_153.getMessage(), HTTP_153.getSeverity());
+                ctx.reportDiagnostic(DiagnosticFactory
+                        .createDiagnostic(diagnosticInfo, interceptableSvcLocation.get()));
+                ctx.reportDiagnostic(DiagnosticFactory
+                        .createDiagnostic(diagnosticInfo, interceptorsFieldLocation.get()));
+            }
+            DiagnosticInfo diagnosticInfo = new DiagnosticInfo(HTTP_201.getCode(),
+                    HTTP_201.getMessage(), HTTP_201.getSeverity());
+            ctx.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, interceptorsFieldLocation.get()));
         }
     }
 
