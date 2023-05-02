@@ -19,6 +19,7 @@ package io.ballerina.stdlib.http.api;
 
 import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.Runtime;
+import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.flags.SymbolFlags;
@@ -29,6 +30,7 @@ import io.ballerina.runtime.api.types.ServiceType;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BArray;
+import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
@@ -47,11 +49,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static io.ballerina.runtime.api.utils.StringUtils.fromString;
+import static io.ballerina.stdlib.http.api.HttpConstants.CREATE_INTERCEPTORS_FUNCTION_NAME;
 import static io.ballerina.stdlib.http.api.HttpConstants.DEFAULT_BASE_PATH;
+import static io.ballerina.stdlib.http.api.HttpConstants.INTERCEPTABLE_SERVICE;
 import static io.ballerina.stdlib.http.api.HttpErrorType.GENERIC_LISTENER_ERROR;
 import static io.ballerina.stdlib.http.api.HttpUtil.checkConfigAnnotationAvailability;
 import static io.ballerina.stdlib.http.api.HttpUtil.getMediaTypeWithPrefix;
@@ -432,25 +437,58 @@ public class HttpService implements Service {
             interceptorServicesRegistries.add(servicesRegistry);
         }
 
-        BMap serviceConfig = getHttpServiceConfigAnnotation(service.getBalService());
-        if (Objects.isNull(serviceConfig)) {
-            service.setInterceptorServicesRegistries(interceptorServicesRegistries);
-            service.setBalInterceptorServicesArray(interceptorsArrayFromListener);
-            return;
-        }
-
-        Object interceptorPipeline = serviceConfig.get(HttpConstants.ANN_INTERCEPTORS);
+        ServiceType balServiceType = (ServiceType) service.getBalService().getOriginalType();
+        boolean includesInterceptableService = balServiceType.getTypeIdSet().getIds().stream()
+                .anyMatch(typeId -> typeId.getName().equals(INTERCEPTABLE_SERVICE));
         BArray interceptorsArrayFromService;
-        if (Objects.isNull(interceptorPipeline)) {
+        BMap serviceConfig = getHttpServiceConfigAnnotation(service.getBalService());
+        if (includesInterceptableService) {
+            final Object[] result = new Object[1];
+            CountDownLatch latch = new CountDownLatch(1);
+            runtime.invokeMethodAsyncConcurrently(service.getBalService(), CREATE_INTERCEPTORS_FUNCTION_NAME, null,
+                    null, new Callback() {
+                @Override
+                public void notifySuccess(Object o) {
+                    result[0] = o;
+                    latch.countDown();
+                }
+
+                @Override
+                public void notifyFailure(BError bError) {
+                    bError.printStackTrace();
+                    System.exit(1);
+                }
+            }, null, PredefinedTypes.TYPE_ANY);
+            try {
+                latch.await();
+            } catch (InterruptedException exception) {
+                log.warn("Interrupted before getting the return type");
+            }
+
+            if (Objects.isNull(result[0])) {
+                service.setInterceptorServicesRegistries(interceptorServicesRegistries);
+                service.setBalInterceptorServicesArray(interceptorsArrayFromListener);
+                return;
+            } else if (result[0] instanceof BArray) {
+                interceptorsArrayFromService = (BArray) result[0];
+            } else {
+                BObject bObject = (BObject) result[0];
+                interceptorsArrayFromService = ValueCreator.createArrayValue(new Object[] { bObject },
+                        TypeCreator.createArrayType(bObject.getOriginalType()));
+            }
+        } else if (serviceConfig != null && serviceConfig.get(HttpConstants.ANN_INTERCEPTORS) != null) {
+            Object interceptorPipeline = serviceConfig.get(HttpConstants.ANN_INTERCEPTORS);
+            if (interceptorPipeline instanceof BArray) {
+                interceptorsArrayFromService = serviceConfig.getArrayValue(HttpConstants.ANN_INTERCEPTORS);
+            } else {
+                BObject interceptor = serviceConfig.getObjectValue(HttpConstants.ANN_INTERCEPTORS);
+                interceptorsArrayFromService = ValueCreator.createArrayValue(new Object[] { interceptor },
+                        TypeCreator.createArrayType(interceptor.getOriginalType()));
+            }
+        } else {
             service.setInterceptorServicesRegistries(interceptorServicesRegistries);
             service.setBalInterceptorServicesArray(interceptorsArrayFromListener);
             return;
-        } else if (interceptorPipeline instanceof BArray) {
-            interceptorsArrayFromService = serviceConfig.getArrayValue(HttpConstants.ANN_INTERCEPTORS);
-        } else {
-            BObject interceptor = serviceConfig.getObjectValue(HttpConstants.ANN_INTERCEPTORS);
-            interceptorsArrayFromService = ValueCreator.createArrayValue(new Object[] { interceptor },
-                    TypeCreator.createArrayType(interceptor.getOriginalType()));
         }
 
         Object[] interceptors = interceptorsArrayFromService.getValues();

@@ -36,6 +36,13 @@ public type ResponseErrorInterceptor distinct service object {
 
 };
 
+# The
+public type InterceptableService distinct service object {
+    *Service;
+
+    public function createInterceptors() returns Interceptor[];
+};
+
 # The return type of an interceptor service function
 public type NextService RequestInterceptor|ResponseInterceptor|Service;
 

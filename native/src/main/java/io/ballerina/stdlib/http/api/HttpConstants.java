@@ -395,6 +395,8 @@ public class HttpConstants {
     public static final String JWT_DECODER_CLASS_NAME = "JwtDecoder";
     public static final String JWT_DECODE_METHOD_NAME = "decodeJwt";
     public static final String LAST_INTERCEPTOR_TYPE = "LAST_INTERCEPTOR_TYPE";
+    public static final String INTERCEPTABLE_SERVICE = "InterceptableService";
+    public static final String CREATE_INTERCEPTORS_FUNCTION_NAME = "createInterceptors";
 
     //Service Endpoint
     public static final int SERVICE_ENDPOINT_NAME_INDEX = 0;
