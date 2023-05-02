@@ -65,10 +65,13 @@ public type InterceptorReturnError distinct ListenerError & InternalServerErrorE
 # Represents an error, which occurred due to a header binding.
 public type HeaderBindingError distinct ListenerError & BadRequestError;
 
+# Represents an error, which occurred due to a header constraint validation.
+public type HeaderValidationError distinct HeaderBindingError & BadRequestError;
+
 # Represents an error, which occurred due to the absence of the payload.
 public type NoContentError distinct ClientError;
 
-type PayloadBindingClientError ClientError & PayloadBindingError; 
+type PayloadBindingClientError ClientError & PayloadBindingError;
 
 type PayloadBindingListenerError distinct ListenerError & PayloadBindingError & BadRequestError;
 
@@ -81,6 +84,9 @@ type PayloadValidationListenerError distinct ListenerError & PayloadValidationEr
 
 # Represents an error, which occurred due to a query parameter binding.
 public type QueryParameterBindingError distinct ListenerError & BadRequestError;
+
+# Represents an error, which occurred due to a query parameter constraint validation.
+public type QueryParameterValidationError distinct QueryParameterBindingError & BadRequestError;
 
 # Represents an error, which occurred due to a path parameter binding.
 public type PathParameterBindingError distinct ListenerError & BadRequestError;

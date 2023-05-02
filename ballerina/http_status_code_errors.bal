@@ -167,6 +167,9 @@ public type BadMatrixParamError BadRequestError & ServiceDispatchingError;
 # Represents an error, which occurred when the resource is not found during dispatching.
 public type ResourceNotFoundError NotFoundError & ResourceDispatchingError;
 
+# Represents an error, which occurred due to a path parameter constraint validation.
+public type ResourcePathValidationError BadRequestError & ResourceDispatchingError;
+
 # Represents an error, which occurred when the resource method is not allowed during dispatching.
 public type ResourceMethodNotAllowedError MethodNotAllowedError & ResourceDispatchingError;
 

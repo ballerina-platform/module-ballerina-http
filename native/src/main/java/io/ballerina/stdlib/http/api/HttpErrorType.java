@@ -79,7 +79,10 @@ public enum HttpErrorType {
     RESOURCE_DISPATCHING_SERVER_ERROR("ResourceDispatchingServerError"),
     INTERNAL_LISTENER_AUTHZ_ERROR("InternalListenerAuthzError"),
     INTERNAL_LISTENER_AUTHN_ERROR("InternalListenerAuthnError"),
-    CLIENT_CONNECTOR_ERROR("ClientConnectorError");
+    CLIENT_CONNECTOR_ERROR("ClientConnectorError"),
+    RESOURCE_PATH_VALIDATION_ERROR("ResourcePathValidationError"),
+    HEADER_VALIDATION_ERROR("HeaderValidationError"),
+    QUERY_PARAM_VALIDATION_ERROR("QueryParameterValidationError");
 
     private final String errorName;
 
