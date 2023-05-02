@@ -40,6 +40,22 @@ service /defaultRequestInterceptor on interceptorsBasicTestsServerEP1 {
     }
 }
 
+service http:InterceptableService /interceptableServiceReqInterceptor on interceptorsBasicTestsServerEP1 {
+
+    public function createInterceptors() returns [DefaultRequestInterceptor, LastRequestInterceptor, DefaultRequestErrorInterceptor] {
+        return [new DefaultRequestInterceptor(), new LastRequestInterceptor(), new DefaultRequestErrorInterceptor()];
+    }
+
+    resource function 'default .(http:Caller caller, http:Request req) returns error? {
+        http:Response res = new();
+        res.setHeader("default-request-interceptor", check req.getHeader("default-request-interceptor"));
+        res.setHeader("last-request-interceptor", check req.getHeader("last-request-interceptor"));
+        string lastInterceptor = req.hasHeader("default-request-error-interceptor") ? "default-request-error-interceptor" : check req.getHeader("last-interceptor");
+        res.setHeader("last-interceptor", lastInterceptor);
+        check caller->respond(res);
+    }
+}
+
 @test:Config{}
 function testDefaultRequestInterceptor() returns error? {
     http:Response res = check interceptorsBasicTestsClientEP1->get("/defaultRequestInterceptor");
