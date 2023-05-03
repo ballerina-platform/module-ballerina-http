@@ -65,6 +65,8 @@ public type InterceptorReturnError distinct ListenerError & InternalServerErrorE
 # Represents an error, which occurred due to a header binding.
 public type HeaderBindingError distinct ListenerError & BadRequestError;
 
+// TODO: Change the error type as HeaderBindingError once this issue is fixed:
+// https://github.com/ballerina-platform/ballerina-lang/issues/40273
 # Represents an error, which occurred due to a header constraint validation.
 public type HeaderValidationError distinct HeaderBindingError & BadRequestError;
 
@@ -85,6 +87,8 @@ type PayloadValidationListenerError distinct ListenerError & PayloadValidationEr
 # Represents an error, which occurred due to a query parameter binding.
 public type QueryParameterBindingError distinct ListenerError & BadRequestError;
 
+// TODO: Change the error type as QueryParameterBindingError once this issue is fixed:
+// https://github.com/ballerina-platform/ballerina-lang/issues/40273
 # Represents an error, which occurred due to a query parameter constraint validation.
 public type QueryParameterValidationError distinct QueryParameterBindingError & BadRequestError;
 
