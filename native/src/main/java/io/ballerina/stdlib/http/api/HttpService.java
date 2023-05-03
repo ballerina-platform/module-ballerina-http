@@ -443,16 +443,16 @@ public class HttpService implements Service {
         BArray interceptorsArrayFromService;
         BMap serviceConfig = getHttpServiceConfigAnnotation(service.getBalService());
         if (includesInterceptableService) {
-            final BObject[] result = new BObject[1];
+            final Object[] createdInterceptors = new Object[1];
             CountDownLatch latch = new CountDownLatch(1);
             runtime.invokeMethodAsyncConcurrently(service.getBalService(), CREATE_INTERCEPTORS_FUNCTION_NAME, null,
                     null, new Callback() {
                 @Override
                 public void notifySuccess(Object response) {
-                    if (response instanceof BObject) {
-                        result[0] = (BObject) response;
-                    } else {
+                    if (response instanceof BError) {
                         log.error("Error occurred while creating interceptors", response);
+                    } else {
+                        createdInterceptors[0] = response;
                     }
                     latch.countDown();
                 }
@@ -469,15 +469,16 @@ public class HttpService implements Service {
                 log.warn("Interrupted before getting the return type");
             }
 
-            if (Objects.isNull(result[0]) || (result[0] instanceof BArray && result[0].size() == 0)) {
+            if (Objects.isNull(createdInterceptors[0]) || (createdInterceptors[0] instanceof BArray &&
+                    ((BArray) createdInterceptors[0]).size() == 0)) {
                 service.setInterceptorServicesRegistries(interceptorServicesRegistries);
                 service.setBalInterceptorServicesArray(interceptorsArrayFromListener);
                 return;
-            } else if (result[0] instanceof BArray) {
-                interceptorsArrayFromService = (BArray) result[0];
+            } else if (createdInterceptors[0] instanceof BArray) {
+                interceptorsArrayFromService = (BArray) createdInterceptors[0];
             } else {
-                interceptorsArrayFromService = ValueCreator.createArrayValue(result,
-                        TypeCreator.createArrayType(result[0].getOriginalType()));
+                interceptorsArrayFromService = ValueCreator.createArrayValue(createdInterceptors,
+                        TypeCreator.createArrayType(((BObject) createdInterceptors[0]).getOriginalType()));
             }
         } else if (serviceConfig != null && serviceConfig.get(HttpConstants.ANN_INTERCEPTORS) != null) {
             Object interceptorPipeline = serviceConfig.get(HttpConstants.ANN_INTERCEPTORS);

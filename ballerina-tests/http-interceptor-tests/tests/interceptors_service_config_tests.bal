@@ -135,12 +135,12 @@ service http:InterceptableService /foo on requestInterceptorServiceConfigServerE
                                 ResponseInterceptorWithVariable,
                                 RequestInterceptorWithVariable,
                                 LastRequestInterceptor,
-                                DefaultResponseErrorInterceptor
+                                DefaultResponseInterceptor
                                 ] {
         return [
             new DefaultRequestInterceptor(), new RequestInterceptorSetPayload(), new LastResponseInterceptor(),
-            new ResponseInterceptorWithVariable("response-interceptor-service-bar"), new RequestInterceptorWithVariable("request-interceptor-service-foo"),
-            new LastRequestInterceptor(), new DefaultResponseErrorInterceptor()
+            new ResponseInterceptorWithVariable("response-interceptor-service-foo"), new RequestInterceptorWithVariable("request-interceptor-service-foo"),
+            new LastRequestInterceptor(), new DefaultResponseInterceptor()
         ];
     }
 
