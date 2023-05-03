@@ -2260,9 +2260,19 @@ interceptors.
 Interceptors could get engaged at service level. One reason for this is that users may want to engage two different 
 interceptor chains for each service even though it is attached to the same Listener. At the service level resource 
 function paths are relative to the service base path.
+
+Here, interceptors can be added by using the `http:InterceptableService` service and defining the related interceptors 
+in the `createInterceptors` function.
 ```ballerina
-@http:ServiceConfig{
-   interceptors: [requestInterceptor, responseInterceptor]
+service http:InterceptableService / on new http:Listener(9099) {
+
+    public function createInterceptors() returns [RequestInterceptor, ResponseInterceptor] {
+        return [new RequestInterceptor(), new ResponseInterceptor()];
+    }
+
+    resource function get hello(http:Caller caller) returns error? {
+        // some logic
+    }
 }
 ```
 
