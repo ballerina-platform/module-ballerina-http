@@ -40,7 +40,7 @@ public type ResponseErrorInterceptor distinct service object {
 public type InterceptableService distinct service object {
     *Service;
 
-    # Function to create and return the interceptors
+    # Function to define interceptor pipeline
     #
     # + return - The `http:Interceptor[]`
     public function createInterceptors() returns Interceptor[];
