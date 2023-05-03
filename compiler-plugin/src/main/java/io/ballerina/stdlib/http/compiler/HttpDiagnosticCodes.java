@@ -119,8 +119,9 @@ public enum HttpDiagnosticCodes {
     HTTP_HINT_103("HTTP_HINT_103", "Response content-type can be added", INTERNAL),
     HTTP_HINT_104("HTTP_HINT_104", "Response cache configuration can be added", INTERNAL),
 
-    HTTP_201("HTTP_201", "usage of http:Interceptor|http:Interceptor[] in " +
-            "http:ServiceConfig is deprecated", WARNING);
+    HTTP_201("HTTP_201", "defining interceptor pipeline using http:ServiceConfigannotation " +
+            "is deprecated. Use http:InterceptableService instead. See https://ballerina.io/learn/by-example/" +
+            "http-request-interceptor", WARNING);
 
     private final String code;
     private final String message;
