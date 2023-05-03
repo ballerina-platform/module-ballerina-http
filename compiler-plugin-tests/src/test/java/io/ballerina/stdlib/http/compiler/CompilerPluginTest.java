@@ -904,10 +904,8 @@ public class CompilerPluginTest {
         Assert.assertEquals(diagnosticResult.warningCount(), 1);
         assertWarning(diagnosticResult, 0, HttpDiagnosticCodes.HTTP_201.getMessage(),
                 HttpDiagnosticCodes.HTTP_201.getCode());
-        Assert.assertEquals(diagnosticResult.errorCount(), 2);
+        Assert.assertEquals(diagnosticResult.errorCount(), 1);
         assertTrue(diagnosticResult, 0, HttpDiagnosticCodes.HTTP_153.getMessage(),
-                HttpDiagnosticCodes.HTTP_153.getCode());
-        assertTrue(diagnosticResult, 1, HttpDiagnosticCodes.HTTP_153.getMessage(),
                 HttpDiagnosticCodes.HTTP_153.getCode());
     }
 
