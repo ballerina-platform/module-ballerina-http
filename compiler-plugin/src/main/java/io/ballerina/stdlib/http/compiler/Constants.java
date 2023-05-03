@@ -50,6 +50,18 @@ public class Constants {
     public static final String TABLE_OF_ANYDATA_MAP = "table<anydata>";
     public static final String TUPLE_OF_ANYDATA = "[anydata...]";
     public static final String STRUCTURED_ARRAY = "(map<anydata>|table<map<anydata>>|[anydata...])[]";
+    public static final String NILABLE_STRING = "string?";
+    public static final String NILABLE_INT = "int?";
+    public static final String NILABLE_FLOAT = "float?";
+    public static final String NILABLE_DECIMAL = "decimal?";
+    public static final String NILABLE_BOOLEAN = "boolean?";
+    public static final String NILABLE_MAP_OF_JSON = "map<json>?";
+    public static final String NILABLE_STRING_ARRAY = "string[]?";
+    public static final String NILABLE_INT_ARRAY = "int[]?";
+    public static final String NILABLE_FLOAT_ARRAY = "float[]?";
+    public static final String NILABLE_DECIMAL_ARRAY = "decimal[]?";
+    public static final String NILABLE_BOOLEAN_ARRAY = "boolean[]?";
+    public static final String NILABLE_MAP_OF_JSON_ARRAY = "map<json>[]?";
 
     public static final String RESOURCE_RETURN_TYPE = "ResourceReturnType";
     public static final String INTERCEPTOR_RESOURCE_RETURN_TYPE = "InterceptorResourceReturnType";

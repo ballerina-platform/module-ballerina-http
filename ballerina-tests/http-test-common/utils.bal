@@ -17,7 +17,6 @@
 import ballerina/lang.'string as strings;
 import ballerina/url;
 import ballerina/mime;
-import ballerina/regex;
 import ballerina/test;
 
 public isolated function getHttp2Port(int port) returns int {
@@ -83,7 +82,7 @@ public isolated function assertTextPayload(string|error payload, string expectVa
 public isolated function assertUrlEncodedPayload(string payload, map<string> expectedValue) returns error? {
     map<string> retrievedPayload = {};
     string decodedPayload = check url:decode(payload, "UTF-8");
-    string[] entries = regex:split(decodedPayload, "&");
+    string[] entries = re`&`.split(decodedPayload);
     foreach string entry in entries {
         int? delimeterIdx = entry.indexOf("=");
         if delimeterIdx is int {

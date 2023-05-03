@@ -202,6 +202,7 @@ public class HttpConstants {
     public static final String QUERY_PARAM = "query";
     public static final String PAYLOAD_PARAM = "payload";
     public static final String HEADER_PARAM = "header";
+    public static final String PATH_PARAM = "path";
 
     /* Annotations */
     public static final String ANNOTATION_NAME_SOURCE = "Source";
