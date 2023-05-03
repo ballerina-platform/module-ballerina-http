@@ -33,7 +33,6 @@ import io.ballerina.compiler.syntax.tree.MappingFieldNode;
 import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
-import io.ballerina.compiler.syntax.tree.NodeLocation;
 import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
@@ -247,25 +246,24 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
             String[] annotStrings = annotName.split(COLON);
             if (SERVICE_CONFIG_ANNOTATION.equals(annotStrings[annotStrings.length - 1].trim())
                     && (annotValue.isPresent())) {
-                Optional<NodeLocation> interceptableServiceLocation = Optional.empty();
+                boolean isInterceptableService = false;
                 for (Node child:serviceDeclarationNode.children()) {
                     if (child.kind() == SyntaxKind.QUALIFIED_NAME_REFERENCE &&
                             ((QualifiedNameReferenceNode) child).modulePrefix().text().equals(HTTP) &&
                             ((QualifiedNameReferenceNode) child).identifier().text().equals(INTERCEPTABLE_SERVICE)) {
-                        interceptableServiceLocation = Optional.of(child.location());
+                        isInterceptableService = true;
                         break;
                     }
                 }
-                Optional<NodeLocation> interceptorsFieldLocation = validateServiceConfigAnnotation(ctx, annotValue);
-                validateServiceInterceptorDefinitions(ctx, interceptableServiceLocation, interceptorsFieldLocation);
+                validateServiceConfigAnnotation(ctx, annotValue, isInterceptableService);
             }
         }
     }
 
-    private static Optional<NodeLocation> validateServiceConfigAnnotation(SyntaxNodeAnalysisContext ctx,
-                                                        Optional<MappingConstructorExpressionNode> maps) {
+    private static void validateServiceConfigAnnotation(SyntaxNodeAnalysisContext ctx,
+                                                        Optional<MappingConstructorExpressionNode> maps,
+                                                                          boolean isInterceptableService) {
         MappingConstructorExpressionNode mapping = maps.get();
-        Optional<NodeLocation> interceptorsFieldLocation = Optional.empty();
         for (MappingFieldNode field : mapping.fields()) {
             String fieldName = field.toString();
             fieldName = fieldName.trim().replaceAll(UNNECESSARY_CHARS_REGEX, "");
@@ -283,28 +281,12 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
                     }
                 }
                 if (INTERCEPTORS_ANNOTATION_FIELD.equals(strings[0].trim())) {
-                    interceptorsFieldLocation = Optional.of(field.location());
+                    if (isInterceptableService) {
+                        updateDiagnostic(ctx, field.location(), HTTP_153);
+                    }
+                    updateDiagnostic(ctx, field.location(), HTTP_201);
                 }
             }
-        }
-        return interceptorsFieldLocation;
-    }
-
-    private static void validateServiceInterceptorDefinitions(SyntaxNodeAnalysisContext ctx,
-                                                              Optional<NodeLocation> interceptableSvcLocation,
-                                                              Optional<NodeLocation> interceptorsFieldLocation) {
-        if (interceptorsFieldLocation.isPresent()) {
-            if (interceptableSvcLocation.isPresent()) {
-                DiagnosticInfo diagnosticInfo = new DiagnosticInfo(HTTP_153.getCode(),
-                        HTTP_153.getMessage(), HTTP_153.getSeverity());
-                ctx.reportDiagnostic(DiagnosticFactory
-                        .createDiagnostic(diagnosticInfo, interceptableSvcLocation.get()));
-                ctx.reportDiagnostic(DiagnosticFactory
-                        .createDiagnostic(diagnosticInfo, interceptorsFieldLocation.get()));
-            }
-            DiagnosticInfo diagnosticInfo = new DiagnosticInfo(HTTP_201.getCode(),
-                    HTTP_201.getMessage(), HTTP_201.getSeverity());
-            ctx.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, interceptorsFieldLocation.get()));
         }
     }
 
