@@ -28,3 +28,14 @@ service http:InterceptableService / on new http:Listener(9099) {
         check caller->respond("Hello, World!");
     }
 }
+
+service http:InterceptableService / on new http:Listener(9100) {
+
+    public function createInterceptors() returns MyRequestInterceptor {
+        return new MyRequestInterceptor();
+    }
+
+    resource function get hello(http:Caller caller) returns error? {
+        check caller->respond("Hello, World!");
+    }
+}
