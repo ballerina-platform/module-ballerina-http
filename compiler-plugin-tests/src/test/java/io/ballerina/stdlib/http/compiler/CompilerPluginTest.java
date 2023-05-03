@@ -781,5 +781,101 @@ public class CompilerPluginTest {
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.errorCount(), 36);
+        assertError(diagnosticResult, 0, "invalid union type of header param 'header': expected one of the" +
+                " 'string','int','float','decimal','boolean' types, an array of the above types or a record which " +
+                "consists of the above types can only be union with '()'. Eg: string|() or string[]|()", HTTP_110);
+        assertError(diagnosticResult, 1, "invalid type of header param 'header': expected one of the following" +
+                " types is expected: 'string','int','float','decimal','boolean', an array of the above types or a " +
+                "record which consists of the above types", HTTP_109);
+        assertError(diagnosticResult, 2, "invalid union type of header param 'header': expected one of the" +
+                " 'string','int','float','decimal','boolean' types, an array of the above types or a record which " +
+                "consists of the above types can only be union with '()'. Eg: string|() or string[]|()", HTTP_110);
+        assertError(diagnosticResult, 3, "invalid type of header param 'header': expected one of the following" +
+                " types is expected: 'string','int','float','decimal','boolean', an array of the above types or a " +
+                "record which consists of the above types", HTTP_109);
+        assertError(diagnosticResult, 4, "invalid type of header param 'header': expected one of the following" +
+                " types is expected: 'string','int','float','decimal','boolean', an array of the above types or a " +
+                "record which consists of the above types", HTTP_109);
+        assertError(diagnosticResult, 5, "invalid union type of header param 'header': expected one of the" +
+                " 'string','int','float','decimal','boolean' types, an array of the above types or a record which " +
+                "consists of the above types can only be union with '()'. Eg: string|() or string[]|()", HTTP_110);
+        assertError(diagnosticResult, 6, "invalid type of header param 'header': expected one of the following" +
+                " types is expected: 'string','int','float','decimal','boolean', an array of the above types or a " +
+                "record which consists of the above types", HTTP_109);
+        assertError(diagnosticResult, 7, "invalid type of header param 'header': expected one of the following" +
+                " types is expected: 'string','int','float','decimal','boolean', an array of the above types or a " +
+                "record which consists of the above types", HTTP_109);
+        assertError(diagnosticResult, 8, "invalid type of header param 'header': expected one of the following" +
+                " types is expected: 'string','int','float','decimal','boolean', an array of the above types or a " +
+                "record which consists of the above types", HTTP_109);
+        assertError(diagnosticResult, 9, "invalid type of header param 'header': expected one of the following" +
+                " types is expected: 'string','int','float','decimal','boolean', an array of the above types or a " +
+                "record which consists of the above types", HTTP_109);
+        assertError(diagnosticResult, 10, "invalid union type of header param 'header': expected one of the" +
+                " 'string','int','float','decimal','boolean' types, an array of the above types or a record which " +
+                "consists of the above types can only be union with '()'. Eg: string|() or string[]|()", HTTP_110);
+        assertError(diagnosticResult, 11, "invalid union type of header param 'header1': expected one of the" +
+                " 'string','int','float','decimal','boolean' types, an array of the above types or a record which " +
+                "consists of the above types can only be union with '()'. Eg: string|() or string[]|()", HTTP_110);
+        assertError(diagnosticResult, 12, "invalid type of header param 'header2': expected one of the following" +
+                " types is expected: 'string','int','float','decimal','boolean', an array of the above types or a " +
+                "record which consists of the above types", HTTP_109);
+        assertError(diagnosticResult, 13, "invalid union type of header param 'header3': expected one of the" +
+                " 'string','int','float','decimal','boolean' types, an array of the above types or a record which " +
+                "consists of the above types can only be union with '()'. Eg: string|() or string[]|()", HTTP_110);
+        assertError(diagnosticResult, 14, "invalid type of header param 'header4': expected one of the following" +
+                " types is expected: 'string','int','float','decimal','boolean', an array of the above types or a " +
+                "record which consists of the above types", HTTP_109);
+        assertError(diagnosticResult, 15, "invalid type of header param 'header5': expected one of the following" +
+                " types is expected: 'string','int','float','decimal','boolean', an array of the above types or a " +
+                "record which consists of the above types", HTTP_109);
+        assertError(diagnosticResult, 16, "invalid union type of header param 'header6': expected one of the" +
+                " 'string','int','float','decimal','boolean' types, an array of the above types or a record which " +
+                "consists of the above types can only be union with '()'. Eg: string|() or string[]|()", HTTP_110);
+        assertError(diagnosticResult, 17, "invalid type of header param 'header7': expected one of the following" +
+                " types is expected: 'string','int','float','decimal','boolean', an array of the above types or a " +
+                "record which consists of the above types", HTTP_109);
+        assertError(diagnosticResult, 18, "invalid type of header param 'header9': expected one of the following" +
+                " types is expected: 'string','int','float','decimal','boolean', an array of the above types or a " +
+                "record which consists of the above types", HTTP_109);
+        assertError(diagnosticResult, 19, "invalid type of header param 'header10': expected one of the following" +
+                " types is expected: 'string','int','float','decimal','boolean', an array of the above types or a " +
+                "record which consists of the above types", HTTP_109);
+        assertError(diagnosticResult, 20, "invalid type of header param 'header12': expected one of the following" +
+                " types is expected: 'string','int','float','decimal','boolean', an array of the above types or a " +
+                "record which consists of the above types", HTTP_109);
+        assertError(diagnosticResult, 21, "invalid resource path parameter 'path': expected one of the 'string'," +
+                "'int','float','decimal','boolean' types or a rest parameter with one of the above types", HTTP_145);
+        assertError(diagnosticResult, 22, "invalid resource path parameter 'path': expected one of the 'string'," +
+                "'int','float','decimal','boolean' types or a rest parameter with one of the above types", HTTP_145);
+        assertError(diagnosticResult, 23, "invalid resource path parameter 'path': expected one of the 'string'," +
+                "'int','float','decimal','boolean' types or a rest parameter with one of the above types", HTTP_145);
+        assertError(diagnosticResult, 24, "invalid union type of query param 'query': 'string', 'int', 'float', " +
+                "'boolean', 'decimal', 'map<json>' type or the array types of them can only be union with '()'." +
+                " Eg: string? or int[]?", HTTP_113);
+        assertError(diagnosticResult, 25, "invalid type of query param 'query': expected one of the 'string'," +
+                " 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them", HTTP_112);
+        assertError(diagnosticResult, 26, "invalid union type of query param 'query': 'string', 'int', 'float'," +
+                " 'boolean', 'decimal', 'map<json>' type or the array types of them can only be union with '()'." +
+                " Eg: string? or int[]?", HTTP_113);
+        assertError(diagnosticResult, 27, "invalid type of query param 'query': expected one of the 'string'," +
+                " 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them", HTTP_112);
+        assertError(diagnosticResult, 28, "invalid type of query param 'query': expected one of the 'string'," +
+                " 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them", HTTP_112);
+        assertError(diagnosticResult, 29, "invalid union type of query param 'query': 'string', 'int', 'float'," +
+                " 'boolean', 'decimal', 'map<json>' type or the array types of them can only be union with '()'." +
+                " Eg: string? or int[]?", HTTP_113);
+        assertError(diagnosticResult, 30, "invalid type of query param 'query': expected one of the 'string'," +
+                " 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them", HTTP_112);
+        assertError(diagnosticResult, 31, "invalid type of query param 'query': expected one of the 'string'," +
+                " 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them", HTTP_112);
+        assertError(diagnosticResult, 32, "invalid type of query param 'query': expected one of the 'string'," +
+                " 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them", HTTP_112);
+        assertError(diagnosticResult, 33, "invalid type of query param 'query': expected one of the 'string'," +
+                " 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them", HTTP_112);
+        assertError(diagnosticResult, 34, "invalid type of query param 'query': expected one of the 'string'," +
+                " 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them", HTTP_112);
+        assertError(diagnosticResult, 35, "invalid type of query param 'query': expected one of the 'string'," +
+                " 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them", HTTP_112);
     }
 }
