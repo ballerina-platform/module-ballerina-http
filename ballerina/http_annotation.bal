@@ -35,7 +35,7 @@ public type HttpServiceConfig record {|
     boolean treatNilableAsOptional = true;
     # interceptors - An array of interceptor services
     # # Deprecated
-    # Usage of interceptors in `http:ServiceConfig` is deprecated. use `http:InterceptableService` instead
+    # Defining interceptor pipeline in `http:ServiceConfig` is deprecated. Define the interceptor pipeline via `http:InterceptableService` service type
     @deprecated
     Interceptor|Interceptor[] interceptors?;
     byte[] openApiDefinition = [];
