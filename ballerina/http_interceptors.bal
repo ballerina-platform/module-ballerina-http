@@ -42,8 +42,8 @@ public type InterceptableService distinct service object {
 
     # Function to define interceptor pipeline
     #
-    # + return - The `http:Interceptor[]`
-    public function createInterceptors() returns Interceptor[];
+    # + return - The `http:Interceptor|http:Interceptor[]`
+    public function createInterceptors() returns Interceptor|Interceptor[];
 };
 
 # The return type of an interceptor service function

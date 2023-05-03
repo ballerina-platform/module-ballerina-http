@@ -443,14 +443,14 @@ public class HttpService implements Service {
         BArray interceptorsArrayFromService;
         BMap serviceConfig = getHttpServiceConfigAnnotation(service.getBalService());
         if (includesInterceptableService) {
-            final BArray[] result = new BArray[1];
+            final BObject[] result = new BObject[1];
             CountDownLatch latch = new CountDownLatch(1);
             runtime.invokeMethodAsyncConcurrently(service.getBalService(), CREATE_INTERCEPTORS_FUNCTION_NAME, null,
                     null, new Callback() {
                 @Override
                 public void notifySuccess(Object response) {
-                    if (response instanceof BArray) {
-                        result[0] = (BArray) response;
+                    if (response instanceof BObject) {
+                        result[0] = (BObject) response;
                     } else {
                         log.error("Error occurred while creating interceptors", response);
                     }
@@ -469,12 +469,15 @@ public class HttpService implements Service {
                 log.warn("Interrupted before getting the return type");
             }
 
-            if (Objects.isNull(result[0]) || result[0].size() == 0) {
+            if (Objects.isNull(result[0]) || (result[0] instanceof BArray && result[0].size() == 0)) {
                 service.setInterceptorServicesRegistries(interceptorServicesRegistries);
                 service.setBalInterceptorServicesArray(interceptorsArrayFromListener);
                 return;
+            } else if (result[0] instanceof BArray) {
+                interceptorsArrayFromService = (BArray) result[0];
             } else {
-                interceptorsArrayFromService = result[0];
+                interceptorsArrayFromService = ValueCreator.createArrayValue(result,
+                        TypeCreator.createArrayType(result[0].getOriginalType()));
             }
         } else if (serviceConfig != null && serviceConfig.get(HttpConstants.ANN_INTERCEPTORS) != null) {
             Object interceptorPipeline = serviceConfig.get(HttpConstants.ANN_INTERCEPTORS);
