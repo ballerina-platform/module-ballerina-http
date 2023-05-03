@@ -540,20 +540,22 @@ final http:Client interceptorReturnsStatusClientEP = check new("http://localhost
 
 listener http:Listener interceptorReturnsStatusServerEP = check new(interceptorReturnsStatusTestPort, httpVersion = http:HTTP_1_1);
 
-@http:ServiceConfig {
-    interceptors: [new RequestInterceptorReturnsStatusCodeResponse()]
-}
-service /request on interceptorReturnsStatusServerEP {
+service http:InterceptableService /request on interceptorReturnsStatusServerEP {
+
+    public function createInterceptors() returns [RequestInterceptorReturnsStatusCodeResponse] {
+        return [new RequestInterceptorReturnsStatusCodeResponse()];
+    }
 
     resource function get .() returns string {
         return "Response from main resource";
     }
 }
 
-@http:ServiceConfig {
-    interceptors: [new ResponseInterceptorReturnsStatusCodeResponse()]
-}
-service /response on interceptorReturnsStatusServerEP {
+service http:InterceptableService /response on interceptorReturnsStatusServerEP {
+
+    public function createInterceptors() returns [ResponseInterceptorReturnsStatusCodeResponse] {
+        return [new ResponseInterceptorReturnsStatusCodeResponse()];
+    }
 
     resource function get .(string? header) returns http:Response {
         http:Response res = new;
@@ -610,13 +612,13 @@ service / on interceptorExecutionOrderServerEP {
     }
 }
 
-@http:ServiceConfig {
-    interceptors: [
-        new ResponseInterceptorWithVariable("service-response"), new RequestInterceptorCheckHeader("service-header"),
-        new RequestInterceptorWithVariable("service-request"), new LastRequestInterceptor(), new DefaultResponseInterceptor()
-    ]
-}
-service /test on interceptorExecutionOrderServerEP {
+service http:InterceptableService /test on interceptorExecutionOrderServerEP {
+
+    public function createInterceptors() returns [ResponseInterceptorWithVariable, RequestInterceptorCheckHeader,
+                                    RequestInterceptorWithVariable, LastRequestInterceptor, DefaultResponseInterceptor] {
+        return [new ResponseInterceptorWithVariable("service-response"), new RequestInterceptorCheckHeader("service-header"),
+                        new RequestInterceptorWithVariable("service-request"), new LastRequestInterceptor(), new DefaultResponseInterceptor()];
+    }
 
     resource function get .(http:Request req) returns http:Response|error {
         http:Response res = new;
@@ -683,10 +685,11 @@ final http:Client interceptorPassthroughClientEP = check new ("http://localhost:
 listener http:Listener interceptorPassthroughServer = check new (interceptorPassthroughTestPort);
 listener http:Listener interceptorBackendServer = check new (interceptorBackendTestPort);
 
-@http:ServiceConfig {
-    interceptors: [new RequestInterceptorConsumePayload()]
-}
-service /foo on interceptorPassthroughServer {
+service http:InterceptableService /foo on interceptorPassthroughServer {
+
+    public function createInterceptors() returns [RequestInterceptorConsumePayload] {
+        return [new RequestInterceptorConsumePayload()];
+    }
 
     resource function post bar(http:Request req, boolean consumePayload) returns json|error {
         if consumePayload {
@@ -744,10 +747,11 @@ function testInterceptorPassthroughExecute(string consumePayload, string consume
 
 final http:Client interceptorUserAgentClientEP = check new("http://localhost:" + interceptorUserAgentTestPort.toString(), httpVersion = http:HTTP_1_1);
 
-@http:ServiceConfig {
-    interceptors: [new DefaultRequestInterceptor(), new RequestInterceptorUserAgentField(), new LastRequestInterceptor()]
-}
-service on new http:Listener(interceptorUserAgentTestPort) {
+service http:InterceptableService on new http:Listener(interceptorUserAgentTestPort) {
+
+    public function createInterceptors() returns [DefaultRequestInterceptor, RequestInterceptorUserAgentField, LastRequestInterceptor] {
+        return [new DefaultRequestInterceptor(), new RequestInterceptorUserAgentField(), new LastRequestInterceptor()];
+    }
 
     resource function get test(http:Request req, http:Caller caller) returns error? {
         http:Response res = new();
@@ -772,13 +776,13 @@ function testUserAgentHeaderWithInterceptors() returns error? {
 
 final http:Client interceptorReqInRespPathClientEP = check new("http://localhost:" + interceptorReqInRespPathTestPort.toString(), httpVersion = http:HTTP_1_1);
 
-@http:ServiceConfig {
-    interceptors: [
-        new ResponseErrorInterceptorWithReq(), new ResponseInterceptorWithReq(), 
-        new DefaultRequestInterceptor(), new LastRequestInterceptor()
-    ]
-}
-service on new http:Listener(interceptorReqInRespPathTestPort) {
+service http:InterceptableService on new http:Listener(interceptorReqInRespPathTestPort) {
+
+    public function createInterceptors() returns [ResponseErrorInterceptorWithReq, ResponseInterceptorWithReq,
+                                                                    DefaultRequestInterceptor, LastRequestInterceptor] {
+        return [new ResponseErrorInterceptorWithReq(), new ResponseInterceptorWithReq(),
+                        new DefaultRequestInterceptor(), new LastRequestInterceptor()];
+    }
 
     resource function 'default [string... path](boolean err = false) returns string|error {
         return err ? error("Error!") : "Hello, World!";
