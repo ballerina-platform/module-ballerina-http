@@ -18,6 +18,9 @@ service class MyResponseInterceptor {
     }
 }
 
+@http:ServiceConfig {
+    interceptors: [new MyRequestInterceptor(), new MyResponseInterceptor()]
+}
 service http:InterceptableService / on new http:Listener(9099) {
 
     public function createInterceptors() returns [MyRequestInterceptor, MyResponseInterceptor] {
