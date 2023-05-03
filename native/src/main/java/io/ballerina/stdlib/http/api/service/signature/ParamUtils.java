@@ -242,8 +242,7 @@ public class ParamUtils {
 
     private static int getEffectiveTypeTagFromArrayType(ArrayType type, Type originalType, String paramType) {
         Type elementType = TypeUtils.getReferredType(type.getElementType());
-        int elementTypeTag = elementType.getTag();
-        if (elementTypeTag == ARRAY_TAG) {
+        if (elementType.getTag() == ARRAY_TAG) {
             throw HttpUtil.createHttpError("invalid " + paramType + " parameter array type '" + originalType + "'");
         } else {
             return getEffectiveTypeTag(elementType, originalType, paramType);
