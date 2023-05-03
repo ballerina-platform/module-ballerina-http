@@ -69,10 +69,39 @@ function testDefaultRequestInterceptor() returns error? {
     common:assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
 }
 
+@test:Config{}
+function testinterceptableServiceReqInterceptor() returns error? {
+    http:Response res = check interceptorsBasicTestsClientEP1->get("/interceptableServiceReqInterceptor");
+    common:assertHeaderValue(check res.getHeader("last-interceptor"), "default-request-interceptor");
+    common:assertHeaderValue(check res.getHeader("default-request-interceptor"), "true");
+    common:assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
+
+    res = check interceptorsBasicTestsClientEP1->post("/interceptableServiceReqInterceptor", "testMessage");
+    common:assertHeaderValue(check res.getHeader("last-interceptor"), "default-request-interceptor");
+    common:assertHeaderValue(check res.getHeader("default-request-interceptor"), "true");
+    common:assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
+}
+
 @http:ServiceConfig {
     interceptors : [new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultResponseInterceptor()]
 }
 service /defaultResponseInterceptor on interceptorsBasicTestsServerEP1 {
+
+    resource function 'default .(http:Request req) returns string {
+        string|error payload = req.getTextPayload();
+        if payload is error {
+            return "Greetings!";
+        } else {
+            return payload;
+        }
+    }
+}
+
+service http:InterceptableService /interceptableServiceResInterceptor on interceptorsBasicTestsServerEP1 {
+
+    public function createInterceptors() returns [LastResponseInterceptor, DefaultResponseErrorInterceptor, DefaultResponseInterceptor] {
+        return [new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultResponseInterceptor()];
+    }
 
     resource function 'default .(http:Request req) returns string {
         string|error payload = req.getTextPayload();
@@ -97,6 +126,46 @@ function testDefaultResponseInterceptor() returns error? {
     common:assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-interceptor");
     common:assertHeaderValue(check res.getHeader("default-response-interceptor"), "true");
     common:assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+}
+
+@test:Config{}
+function testinterceptableServiceResInterceptor() returns error? {
+    http:Response res = check interceptorsBasicTestsClientEP1->get("/interceptableServiceResInterceptor");
+    common:assertTextPayload(res.getTextPayload(), "Greetings!");
+    common:assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-interceptor");
+    common:assertHeaderValue(check res.getHeader("default-response-interceptor"), "true");
+    common:assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+
+    res = check interceptorsBasicTestsClientEP1->post("/interceptableServiceResInterceptor", "testMessage");
+    common:assertTextPayload(res.getTextPayload(), "testMessage");
+    common:assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-interceptor");
+    common:assertHeaderValue(check res.getHeader("default-response-interceptor"), "true");
+    common:assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+}
+
+service http:InterceptableService /interceptableServiceEmptyInterceptor on interceptorsBasicTestsServerEP1 {
+
+    public function createInterceptors() returns http:Interceptor[] {
+        return [];
+    }
+
+    resource function 'default .(http:Request req) returns string {
+        string|error payload = req.getTextPayload();
+        if payload is error {
+            return "Greetings!";
+        } else {
+            return payload;
+        }
+    }
+}
+
+@test:Config{}
+function testinterceptableServiceEmptyInterceptor() returns error? {
+    http:Response res = check interceptorsBasicTestsClientEP1->get("/interceptableServiceEmptyInterceptor");
+    common:assertTextPayload(res.getTextPayload(), "Greetings!");
+
+    res = check interceptorsBasicTestsClientEP1->post("/interceptableServiceEmptyInterceptor", "testMessage");
+    common:assertTextPayload(res.getTextPayload(), "testMessage");
 }
 
 @http:ServiceConfig {
