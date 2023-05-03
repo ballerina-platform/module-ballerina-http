@@ -66,6 +66,18 @@ import static io.ballerina.stdlib.http.compiler.Constants.JSON;
 import static io.ballerina.stdlib.http.compiler.Constants.MAP_OF_ANYDATA;
 import static io.ballerina.stdlib.http.compiler.Constants.MAP_OF_JSON;
 import static io.ballerina.stdlib.http.compiler.Constants.NIL;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_BOOLEAN;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_BOOLEAN_ARRAY;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_DECIMAL;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_DECIMAL_ARRAY;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_FLOAT;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_FLOAT_ARRAY;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_INT;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_INT_ARRAY;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_MAP_OF_JSON;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_MAP_OF_JSON_ARRAY;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_STRING;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_STRING_ARRAY;
 import static io.ballerina.stdlib.http.compiler.Constants.OBJECT;
 import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_CONTEXT_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.REQUEST_OBJ_NAME;
@@ -202,7 +214,7 @@ public class HttpCompilerPluginUtil {
 
     public static Map<String, TypeSymbol> getCtxTypes(SyntaxNodeAnalysisContext ctx) {
         Map<String, TypeSymbol> typeSymbols = new HashMap<>();
-        populateBasicTypes(ctx, typeSymbols);
+        populateRequiredLangTypes(ctx, typeSymbols);
         populateHttpModuleTypes(ctx, typeSymbols);
         return typeSymbols;
     }
@@ -224,8 +236,33 @@ public class HttpCompilerPluginUtil {
         }
     }
 
-    private static void populateBasicTypes(SyntaxNodeAnalysisContext ctx, Map<String, TypeSymbol> typeSymbols) {
+    private static void populateRequiredLangTypes(SyntaxNodeAnalysisContext ctx, Map<String, TypeSymbol> typeSymbols) {
         Types types = ctx.semanticModel().types();
+        populateBasicTypes(typeSymbols, types);
+        populateNilableBasicTypes(typeSymbols, types);
+        populateBasicArrayTypes(typeSymbols, types);
+        populateNilableBasicArrayTypes(typeSymbols, types);
+    }
+
+    private static void populateBasicArrayTypes(Map<String, TypeSymbol> typeSymbols, Types types) {
+        typeSymbols.put(STRING_ARRAY, types.builder().ARRAY_TYPE.withType(types.STRING).build());
+        typeSymbols.put(BOOLEAN_ARRAY, types.builder().ARRAY_TYPE.withType(types.BOOLEAN).build());
+        typeSymbols.put(INT_ARRAY, types.builder().ARRAY_TYPE.withType(types.INT).build());
+        typeSymbols.put(FLOAT_ARRAY, types.builder().ARRAY_TYPE.withType(types.FLOAT).build());
+        typeSymbols.put(DECIMAL_ARRAY, types.builder().ARRAY_TYPE.withType(types.DECIMAL).build());
+        typeSymbols.put(ARRAY_OF_MAP_OF_JSON, types.builder().ARRAY_TYPE.withType(
+                types.builder().MAP_TYPE.withTypeParam(types.JSON).build()).build());
+        typeSymbols.put(STRUCTURED_ARRAY, types.builder().ARRAY_TYPE
+                .withType(
+                        types.builder().UNION_TYPE
+                                .withMemberTypes(
+                                        typeSymbols.get(MAP_OF_ANYDATA),
+                                        typeSymbols.get(TABLE_OF_ANYDATA_MAP),
+                                        typeSymbols.get(TUPLE_OF_ANYDATA)).build()).build());
+        typeSymbols.put(BYTE_ARRAY, types.builder().ARRAY_TYPE.withType(types.BYTE).build());
+    }
+
+    private static void populateBasicTypes(Map<String, TypeSymbol> typeSymbols, Types types) {
         typeSymbols.put(ANYDATA, types.ANYDATA);
         typeSymbols.put(JSON, types.JSON);
         typeSymbols.put(ERROR, types.ERROR);
@@ -236,26 +273,36 @@ public class HttpCompilerPluginUtil {
         typeSymbols.put(DECIMAL, types.DECIMAL);
         typeSymbols.put(XML, types.XML);
         typeSymbols.put(NIL, types.NIL);
-        typeSymbols.put(STRING_ARRAY, types.builder().ARRAY_TYPE.withType(types.STRING).build());
-        typeSymbols.put(BOOLEAN_ARRAY, types.builder().ARRAY_TYPE.withType(types.BOOLEAN).build());
-        typeSymbols.put(INT_ARRAY, types.builder().ARRAY_TYPE.withType(types.INT).build());
-        typeSymbols.put(FLOAT_ARRAY, types.builder().ARRAY_TYPE.withType(types.FLOAT).build());
-        typeSymbols.put(DECIMAL_ARRAY, types.builder().ARRAY_TYPE.withType(types.DECIMAL).build());
         typeSymbols.put(OBJECT, types.builder().OBJECT_TYPE.build());
         typeSymbols.put(MAP_OF_JSON, types.builder().MAP_TYPE.withTypeParam(types.JSON).build());
-        typeSymbols.put(ARRAY_OF_MAP_OF_JSON, types.builder().ARRAY_TYPE.withType(
-                types.builder().MAP_TYPE.withTypeParam(types.JSON).build()).build());
         typeSymbols.put(MAP_OF_ANYDATA, types.builder().MAP_TYPE.withTypeParam(types.ANYDATA).build());
         typeSymbols.put(TABLE_OF_ANYDATA_MAP, types.builder().TABLE_TYPE.withRowType(
                 typeSymbols.get(MAP_OF_ANYDATA)).build());
         typeSymbols.put(TUPLE_OF_ANYDATA, types.builder().TUPLE_TYPE.withRestType(types.ANYDATA).build());
-        typeSymbols.put(STRUCTURED_ARRAY, types.builder().ARRAY_TYPE
-                .withType(
-                        types.builder().UNION_TYPE
-                                .withMemberTypes(
-                                        typeSymbols.get(MAP_OF_ANYDATA),
-                                        typeSymbols.get(TABLE_OF_ANYDATA_MAP),
-                                        typeSymbols.get(TUPLE_OF_ANYDATA)).build()).build());
-        typeSymbols.put(BYTE_ARRAY, types.builder().ARRAY_TYPE.withType(types.BYTE).build());
+    }
+
+    private static void populateNilableBasicTypes(Map<String, TypeSymbol> typeSymbols, Types types) {
+        typeSymbols.put(NILABLE_STRING, types.builder().UNION_TYPE.withMemberTypes(types.STRING, types.NIL).build());
+        typeSymbols.put(NILABLE_BOOLEAN, types.builder().UNION_TYPE.withMemberTypes(types.BOOLEAN, types.NIL).build());
+        typeSymbols.put(NILABLE_INT, types.builder().UNION_TYPE.withMemberTypes(types.INT, types.NIL).build());
+        typeSymbols.put(NILABLE_FLOAT, types.builder().UNION_TYPE.withMemberTypes(types.FLOAT, types.NIL).build());
+        typeSymbols.put(NILABLE_DECIMAL, types.builder().UNION_TYPE.withMemberTypes(types.DECIMAL, types.NIL).build());
+        typeSymbols.put(NILABLE_MAP_OF_JSON, types.builder().UNION_TYPE.withMemberTypes(
+                typeSymbols.get(MAP_OF_JSON), types.NIL).build());
+    }
+
+    private static void populateNilableBasicArrayTypes(Map<String, TypeSymbol> typeSymbols, Types types) {
+        typeSymbols.put(NILABLE_STRING_ARRAY, types.builder().UNION_TYPE.withMemberTypes(
+                typeSymbols.get(STRING_ARRAY), types.NIL).build());
+        typeSymbols.put(NILABLE_BOOLEAN_ARRAY, types.builder().UNION_TYPE.withMemberTypes(
+                typeSymbols.get(BOOLEAN_ARRAY), types.NIL).build());
+        typeSymbols.put(NILABLE_INT_ARRAY, types.builder().UNION_TYPE.withMemberTypes(
+                typeSymbols.get(INT_ARRAY), types.NIL).build());
+        typeSymbols.put(NILABLE_FLOAT_ARRAY, types.builder().UNION_TYPE.withMemberTypes(
+                typeSymbols.get(FLOAT_ARRAY), types.NIL).build());
+        typeSymbols.put(NILABLE_DECIMAL_ARRAY, types.builder().UNION_TYPE.withMemberTypes(
+                typeSymbols.get(DECIMAL_ARRAY), types.NIL).build());
+        typeSymbols.put(NILABLE_MAP_OF_JSON_ARRAY, types.builder().UNION_TYPE.withMemberTypes(
+                typeSymbols.get(ARRAY_OF_MAP_OF_JSON), types.NIL).build());
     }
 }

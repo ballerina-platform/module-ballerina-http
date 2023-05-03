@@ -18,18 +18,16 @@
 
 package io.ballerina.stdlib.http.api.service.signature;
 
-import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.types.Field;
-import io.ballerina.runtime.api.types.IntersectionType;
 import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.Type;
-import io.ballerina.runtime.api.types.UnionType;
-import io.ballerina.runtime.api.utils.TypeUtils;
-import io.ballerina.stdlib.http.api.HttpUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static io.ballerina.runtime.api.TypeTags.RECORD_TYPE_TAG;
+import static io.ballerina.stdlib.http.api.HttpConstants.HEADER_PARAM;
 
 /**
  * {@code {@link HeaderParam }} represents a inbound request header parameter details.
@@ -39,70 +37,30 @@ import java.util.Map;
 public class HeaderParam {
 
     private final String token;
-    private boolean nilable;
     private int index;
-    private Type type;
+    private Type originalType;
     private String headerName;
-    private boolean readonly;
     private HeaderRecordParam recordParam;
+    private int effectiveTypeTag;
+    private boolean nilable;
+    private boolean isArray;
 
     HeaderParam(String token) {
         this.token = token;
     }
 
-    public void init(Type type, int index) {
-        this.type = type;
+    public void init(Type originalType, int index) {
+        this.originalType = originalType;
         this.index = index;
-        validateHeaderParamType(this.type);
+        this.nilable = originalType.isNilable();
+        populateHeaderParamTypeTag(originalType);
     }
 
-    private void validateHeaderParamType(Type paramType) {
-
-        if (paramType.getTag() == TypeTags.TYPE_REFERENCED_TYPE_TAG) {
-            paramType = TypeUtils.getReferredType(paramType);
-        }
-
-        if (paramType instanceof UnionType) {
-            List<Type> memberTypes = ((UnionType) paramType).getMemberTypes();
-            this.nilable = true;
-            for (Type type : memberTypes) {
-                Type referredType =  TypeUtils.getReferredType(type);
-                if (referredType.getTag() == TypeTags.NULL_TAG) {
-                    continue;
-                }
-                if (referredType.getTag() == TypeTags.RECORD_TYPE_TAG) {
-                    validateHeaderParamType(type);
-                    return;
-                }
-                setType(type);
-                break;
-            }
-        } else if (paramType instanceof IntersectionType) {
-            // Assumes that the only intersection type is readonly
-            List<Type> memberTypes = ((IntersectionType) paramType).getConstituentTypes();
-            int size = memberTypes.size();
-            if (size > 2) {
-                throw HttpUtil.createHttpError(
-                        "invalid header param type '" + paramType.getName() +
-                                "': only readonly intersection is allowed");
-            }
-            this.readonly = true;
-            for (Type type : memberTypes) {
-                Type referredType =  TypeUtils.getReferredType(type);
-
-                if (referredType.getTag() == TypeTags.READONLY_TAG) {
-                    continue;
-                }
-                if (referredType.getTag() == TypeTags.UNION_TAG || referredType.getTag() == TypeTags.RECORD_TYPE_TAG) {
-                    validateHeaderParamType(type);
-                    return;
-                }
-                setType(type);
-                break;
-            }
-        } else if (paramType instanceof RecordType) {
-            this.type = paramType;
-            Map<String, Field> recordFields = ((RecordType) paramType).getFields();
+    private void populateHeaderParamTypeTag(Type type) {
+        RecordType headerRecordType = ParamUtils.getRecordType(type);
+        if (headerRecordType != null) {
+            this.effectiveTypeTag = RECORD_TYPE_TAG;
+            Map<String, Field> recordFields = headerRecordType.getFields();
             List<String> keys = new ArrayList<>();
             HeaderRecordParam.FieldParam[] fields = new HeaderRecordParam.FieldParam[recordFields.size()];
             int i = 0;
@@ -110,18 +68,15 @@ public class HeaderParam {
                 keys.add(field.getKey());
                 fields[i++] = new HeaderRecordParam.FieldParam(field.getValue().getFieldType());
             }
-            this.recordParam = new HeaderRecordParam(this.token, this.type, keys, fields);
+            this.recordParam = new HeaderRecordParam(this.token, headerRecordType, keys, fields);
         } else {
-            setType(paramType);
+            this.effectiveTypeTag = ParamUtils.getEffectiveTypeTag(this.originalType, this.originalType, HEADER_PARAM);
+            this.isArray = ParamUtils.isArrayType(originalType);
         }
     }
 
-    public Type getType() {
-        return this.type;
-    }
-
-    private void setType(Type type) {
-        this.type = type;
+    public Type getOriginalType() {
+        return this.originalType;
     }
 
     public String getToken() {
@@ -144,15 +99,19 @@ public class HeaderParam {
         this.headerName = headerName;
     }
 
-    public boolean isReadonly() {
-        return this.readonly;
-    }
-
     public HeaderRecordParam getRecordParam() {
         return this.recordParam;
     }
 
     public boolean isRecord() {
         return getRecordParam() != null;
+    }
+
+    public boolean isArray() {
+        return this.isArray;
+    }
+
+    public int getEffectiveTypeTag() {
+        return this.effectiveTypeTag;
     }
 }

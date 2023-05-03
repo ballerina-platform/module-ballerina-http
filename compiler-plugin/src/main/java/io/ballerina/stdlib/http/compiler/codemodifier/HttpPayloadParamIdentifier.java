@@ -68,6 +68,7 @@ import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.subtypeOf
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.updateDiagnostic;
 import static io.ballerina.stdlib.http.compiler.HttpResourceValidator.getEffectiveType;
 import static io.ballerina.stdlib.http.compiler.HttpResourceValidator.isValidBasicParamType;
+import static io.ballerina.stdlib.http.compiler.HttpResourceValidator.isValidNilableBasicParamType;
 
 
 /**
@@ -312,7 +313,7 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
         }
 
         // If the type is a basic type or basic array type, then it is not considered as a structured type
-        if (isValidBasicParamType(typeSymbol, typeSymbols)) {
+        if (isValidBasicParamType(typeSymbol, typeSymbols) || isValidNilableBasicParamType(typeSymbol, typeSymbols)) {
             return false;
         }
 

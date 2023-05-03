@@ -1,0 +1,230 @@
+// Copyright (c) 2023, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+//
+// WSO2 LLC. licenses this file to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file except
+// in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
+import ballerina/http;
+
+type Value "value1"|"value2";
+
+type ValueNilable ("value1"|"value2"|"value3")?;
+
+enum EnumValue {
+    VALUE1,
+    VALUE2,
+    VALUE3
+}
+
+type EnumCombined EnumValue|"VALUE4"|"VALUE5";
+
+type HeaderRecord record {|
+    "value1"|"value2" header1;
+    EnumValue header2;
+    (1|2|3)[] header3;
+    (EnumValue|Value)[] header4;
+|};
+
+type UnionFiniteType EnumValue|Value;
+
+type QueryRecord record {|
+    EnumValue enumValue;
+    "value1"|"value2" value;
+|};
+
+type QueryRecordCombined QueryRecord|map<json>;
+
+listener http:Listener resourceParamBindingListener = new(resourceParamBindingTestPort);
+
+service /path on resourceParamBindingListener {
+    
+    resource function get case1/["value1"|"value2" path]() returns string {
+        return path;
+    }
+
+    resource function get case2/[Value path]() returns string {
+        return path;
+    }
+
+    resource function get case3/[EnumValue path]() returns string {
+        return path;
+    }
+
+    resource function get case4/[1|2... paths]() returns int[] {
+        return paths;
+    }
+
+    resource function get case5/[Value... paths]() returns string[] {
+        return paths;
+    }
+
+    resource function get case6/[EnumValue... paths]() returns string[] {
+        return paths;
+    }
+
+    resource function get case7/[EnumValue|string path]() returns string {
+        if path is EnumValue {
+            return "EnumValue: " + path;
+        }
+        return path;
+    }
+
+    resource function get case8/[EnumValue|"value3" path]() returns string {
+        if path is EnumValue {
+            return "EnumValue: " + path;
+        }
+        return path;
+    }
+
+     resource function get case9/[UnionFiniteType path]() returns string {
+        if path is EnumValue {
+            return "EnumValue: " + path;
+        }
+        return "Value: " + path;
+    }
+
+    resource function get case10/[(Value|EnumValue)... paths]() returns string[] {
+        string[] result = [];
+        foreach Value|EnumValue path in paths {
+            if path is EnumValue {
+                result.push("EnumValue: " + path);
+            } else {
+                result.push("Value: " + path);
+            }
+        }
+        return result;
+    }
+}
+
+service /query on resourceParamBindingListener {
+
+    resource function get case1("value1"|"value2" query) returns string {
+        return query;
+    }
+
+    resource function get case2((1.2|2.4|3.6)? query) returns float {
+        return query ?: 0.0;
+    }
+
+    resource function get case3(ValueNilable query = "value2") returns string {
+        return query ?: "default";
+    }
+
+    resource function get case4(EnumValue query) returns string {
+        return query;
+    }
+
+    resource function get case5(EnumCombined query) returns string {
+        if query is EnumValue {
+            return "EnumValue: " + query;
+        } else {
+            return query;
+        }
+    }
+
+    resource function get case6(Value[]? query) returns string[] {
+        return query ?: ["default"];
+    }
+
+    resource function get case7(EnumValue[] query) returns string[] {
+        return query;
+    }
+
+    resource function get case8(UnionFiniteType[] query) returns string[] {
+        string[] result = [];
+        foreach var value in query {
+            if value is EnumValue {
+                result.push("EnumValue: " + value);
+            } else {
+                result.push("Value: " + value);
+            }
+        }
+        return result;
+    }
+
+    resource function get case9(QueryRecordCombined? query) returns map<json>|error {
+        if query is () {
+            return {"type": "default"};
+        }
+        map<json> result = check query.cloneWithType();
+        if query is QueryRecord {
+            result["type"] = "QueryRecord";
+        } else {
+            result["type"] = "map<json>";
+        }
+        return result;
+    }
+
+    resource function get case10((QueryRecord|map<json>)[] query) returns map<json>[]|error {
+        map<json>[] result = check query.cloneWithType();
+        foreach int i in 0...(query.length() - 1) {
+            if query[i] is QueryRecord {
+                result[i]["type"] = "QueryRecord";
+            } else {
+                result[i]["type"] = "map<json>";
+            }
+        }
+        return result;
+    }
+}
+
+service /header on resourceParamBindingListener {
+
+    resource function get case1(@http:Header "value1"|"value2" header) returns string {
+        return header;
+    }
+
+    resource function get case2(@http:Header (1.234d|12.34d|123.4d)? header) returns decimal {
+        return header ?: 0.0d;
+    }
+
+    resource function get case3(@http:Header ValueNilable header) returns string {
+        return header ?: "default";
+    }
+
+    resource function get case4(@http:Header EnumValue header) returns string {
+        return header;
+    }
+
+    resource function get case5(@http:Header EnumCombined header) returns string {
+        if header is EnumValue {
+            return "EnumValue: " + header;
+        }
+        return header;
+    }
+
+    resource function get case6(@http:Header (1|2|3)[] header) returns int[] {
+        return header;
+    }
+
+    resource function get case7(@http:Header Value[]? header) returns string[] {
+        return header ?: ["default"];
+    }
+
+    resource function get case8(@http:Header UnionFiniteType[] header) returns string[] {
+        string[] result = [];
+        foreach var item in header {
+            if item is EnumValue {
+                result.push("EnumValue: " + item);
+            } else {
+                result.push("Value: " + item);
+            }
+        }
+        return result;
+    }
+
+    resource function get case9(@http:Header HeaderRecord? header) returns map<json>|string {
+        return header ?: "default";
+    }
+}
+

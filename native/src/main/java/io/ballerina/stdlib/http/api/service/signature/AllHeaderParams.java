@@ -19,10 +19,9 @@
 package io.ballerina.stdlib.http.api.service.signature;
 
 import io.ballerina.runtime.api.creators.ValueCreator;
-import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.RecordType;
-import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.utils.ValueUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
@@ -34,7 +33,6 @@ import io.netty.handler.codec.http.HttpHeaders;
 import java.util.ArrayList;
 import java.util.List;
 
-import static io.ballerina.runtime.api.TypeTags.ARRAY_TAG;
 import static io.ballerina.stdlib.http.api.HttpErrorType.HEADER_BINDING_ERROR;
 import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castParam;
 import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castParamArray;
@@ -61,10 +59,6 @@ public class AllHeaderParams implements Parameter {
         return !allHeaderParams.isEmpty();
     }
 
-    public List<HeaderParam> getAllHeaderParams() {
-        return this.allHeaderParams;
-    }
-
     public HeaderParam get(String token) {
         for (HeaderParam headerParam : allHeaderParams) {
             if (token.equals(headerParam.getToken())) {
@@ -76,13 +70,18 @@ public class AllHeaderParams implements Parameter {
 
     public void populateFeed(HttpCarbonMessage httpCarbonMessage, Object[] paramFeed, boolean treatNilableAsOptional) {
         HttpHeaders httpHeaders = httpCarbonMessage.getHeaders();
-        for (HeaderParam headerParam : this.getAllHeaderParams()) {
+        for (HeaderParam headerParam : allHeaderParams) {
             int index = headerParam.getIndex();
             if (headerParam.isRecord()) {
-                BMap<BString, Object> recordValue = processHeaderRecord(headerParam, httpHeaders,
-                                                                        treatNilableAsOptional);
-                paramFeed[index++] = recordValue;
-                paramFeed[index] = true;
+                Object parsedHeader = processHeaderRecord(headerParam, httpHeaders, treatNilableAsOptional);
+                try {
+                    paramFeed[index++] = ValueUtils.convert(parsedHeader, headerParam.getOriginalType());
+                    paramFeed[index] = true;
+                } catch (Exception ex) {
+                    String message = "header binding failed for parameter: '" + headerParam.getHeaderName() + "'";
+                    throw HttpUtil.createHttpStatusCodeError(HEADER_BINDING_ERROR, message, null,
+                            HttpUtil.createError(ex));
+                }
                 continue;
             }
             String token = headerParam.getHeaderName();
@@ -107,38 +106,34 @@ public class AllHeaderParams implements Parameter {
                     throw HttpUtil.createHttpStatusCodeError(HEADER_BINDING_ERROR, message);
                 }
             }
-            int typeTag = headerParam.getType().getTag();
+            int typeTag = headerParam.getEffectiveTypeTag();
+            Object parsedHeaderValue;
             try {
-                if (typeTag == ARRAY_TAG) {
-                    Type elementType = ((ArrayType) headerParam.getType()).getElementType();
-                    BArray bArray = castParamArray(elementType, headerValues.toArray(new String[0]));
-                    if (headerParam.isReadonly()) {
-                        bArray.freezeDirect();
-                    }
-                    paramFeed[index++] = bArray;
+                if (headerParam.isArray()) {
+                    parsedHeaderValue = castParamArray(typeTag, headerValues.toArray(new String[0]));
                 } else {
-                    paramFeed[index++] = castParam(typeTag, headerValues.get(0));
+                    parsedHeaderValue = castParam(typeTag, headerValues.get(0));
                 }
+                paramFeed[index++] = ValueUtils.convert(parsedHeaderValue, headerParam.getOriginalType());
+                paramFeed[index] = true;
             } catch (Exception ex) {
                 String message = "header binding failed for parameter: '" + token + "'";
                 throw HttpUtil.createHttpStatusCodeError(HEADER_BINDING_ERROR, message, null,
                         HttpUtil.createError(ex));
             }
-            paramFeed[index] = true;
         }
     }
 
     private BMap<BString, Object> processHeaderRecord(HeaderParam headerParam, HttpHeaders httpHeaders,
                                                       boolean treatNilableAsOptional) {
         HeaderRecordParam headerRecordParam = headerParam.getRecordParam();
-        RecordType recordType = headerRecordParam.getType();
+        RecordType recordType = headerRecordParam.getOriginalType();
         BMap<BString, Object> recordValue = ValueCreator.createRecordValue(recordType);
         List<String> keys = headerRecordParam.getKeys();
         int i = 0;
         for (String key : keys) {
             HeaderRecordParam.FieldParam field = headerRecordParam.getField(i++);
             List<String> headerValues = httpHeaders.getAll(key);
-            Type fieldType = field.getType();
             if (headerValues.isEmpty()) {
                 if (field.isNilable() && treatNilableAsOptional) {
                     recordValue.put(StringUtils.fromString(key), null);
@@ -162,24 +157,18 @@ public class AllHeaderParams implements Parameter {
                 }
             }
             try {
-                if (fieldType.getTag() == ARRAY_TAG) {
-                    Type elementType = ((ArrayType) fieldType).getElementType();
-                    BArray paramArray = castParamArray(elementType, headerValues.toArray(new String[0]));
-                    if (field.isReadonly()) {
-                        paramArray.freezeDirect();
-                    }
+                int fieldTypeTag = field.getEffectiveTypeTag();
+                if (field.isArray()) {
+                    BArray paramArray = castParamArray(fieldTypeTag, headerValues.toArray(new String[0]));
                     recordValue.put(StringUtils.fromString(key), paramArray);
                 } else {
-                    recordValue.put(StringUtils.fromString(key), castParam(fieldType.getTag(), headerValues.get(0)));
+                    recordValue.put(StringUtils.fromString(key), castParam(fieldTypeTag, headerValues.get(0)));
                 }
             } catch (Exception ex) {
                 String message = "header binding failed for parameter: '" + key + "'";
                 throw HttpUtil.createHttpStatusCodeError(HEADER_BINDING_ERROR, message, null,
                         HttpUtil.createError(ex));
             }
-        }
-        if (headerParam.isReadonly()) {
-            recordValue.freezeDirect();
         }
         return recordValue;
     }
