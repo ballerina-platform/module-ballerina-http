@@ -36,10 +36,13 @@ public type ResponseErrorInterceptor distinct service object {
 
 };
 
-# The
+# The service type to be used when engaging interceptors at the service level
 public type InterceptableService distinct service object {
     *Service;
 
+    # Function to create and return the interceptors
+    #
+    # + return - The `http:Interceptor[]`
     public function createInterceptors() returns Interceptor[];
 };
 
