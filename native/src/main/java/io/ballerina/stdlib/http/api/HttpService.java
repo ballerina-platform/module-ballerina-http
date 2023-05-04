@@ -480,6 +480,7 @@ public class HttpService implements Service {
                 interceptorsArrayFromService = ValueCreator.createArrayValue(createdInterceptors,
                         TypeCreator.createArrayType(((BObject) createdInterceptors[0]).getOriginalType()));
             }
+        // TODO need to remove following after removing `interceptors` from `http:ServiceConfig`
         } else if (serviceConfig != null && serviceConfig.get(HttpConstants.ANN_INTERCEPTORS) != null) {
             Object interceptorPipeline = serviceConfig.get(HttpConstants.ANN_INTERCEPTORS);
             if (interceptorPipeline instanceof BArray) {
