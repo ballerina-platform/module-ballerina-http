@@ -92,6 +92,12 @@ public class CompilerPluginTest {
         }
     }
 
+    private void assertWarning(DiagnosticResult diagnosticResult, int index, String message, String code) {
+        Diagnostic diagnostic = (Diagnostic) diagnosticResult.warnings().toArray()[index];
+        Assert.assertTrue(diagnostic.diagnosticInfo().messageFormat().contains(message));
+        Assert.assertEquals(diagnostic.diagnosticInfo().code(), code);
+    }
+
     private void assertTrue(DiagnosticResult diagnosticResult, int index, String message, String code) {
         Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[index];
         Assert.assertTrue(diagnostic.diagnosticInfo().messageFormat().contains(message));
@@ -877,5 +883,38 @@ public class CompilerPluginTest {
                 " 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them", HTTP_112);
         assertError(diagnosticResult, 35, "invalid type of query param 'query': expected one of the 'string'," +
                 " 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them", HTTP_112);
+    }
+
+    @Test
+    public void testServiceConfigInterceptorDeprecationWarning() {
+        Package currentPackage = loadPackage("sample_package_39");
+        PackageCompilation packageCompilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = packageCompilation.diagnosticResult();
+        Assert.assertFalse(diagnosticResult.hasErrors());
+        Assert.assertEquals(diagnosticResult.warnings().size(), 1);
+        assertWarning(diagnosticResult, 0, HttpDiagnosticCodes.HTTP_201.getMessage(),
+                HttpDiagnosticCodes.HTTP_201.getCode());
+    }
+
+    @Test
+    public void testServiceConfigInterceptorAndInterceptableServiceError() {
+        Package currentPackage = loadPackage("sample_package_40");
+        PackageCompilation packageCompilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = packageCompilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.warningCount(), 1);
+        assertWarning(diagnosticResult, 0, HttpDiagnosticCodes.HTTP_201.getMessage(),
+                HttpDiagnosticCodes.HTTP_201.getCode());
+        Assert.assertEquals(diagnosticResult.errorCount(), 1);
+        assertTrue(diagnosticResult, 0, HttpDiagnosticCodes.HTTP_153.getMessage(),
+                HttpDiagnosticCodes.HTTP_153.getCode());
+    }
+
+    @Test
+    public void testInterceptableServiceInterceptors() {
+        Package currentPackage = loadPackage("sample_package_41");
+        PackageCompilation packageCompilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = packageCompilation.diagnosticResult();
+        Assert.assertFalse(diagnosticResult.hasWarnings());
+        Assert.assertFalse(diagnosticResult.hasErrors());
     }
 }

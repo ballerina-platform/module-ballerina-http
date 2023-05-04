@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Allow configuring an interceptor pipeline with a single interceptor](https://github.com/ballerina-platform/ballerina-standard-library/issues/3969)
 - [Add runtime support for type referenced type in path parameters](https://github.com/ballerina-platform/ballerina-standard-library/issues/4372)
 - [Add finite type support for query, header and path parameters](https://github.com/ballerina-platform/ballerina-standard-library/issues/4374)
+- [Support for service level interceptors using `http:InterceptableService`](https://github.com/ballerina-platform/ballerina-standard-library/issues/4401)
 
 ### Changed
 

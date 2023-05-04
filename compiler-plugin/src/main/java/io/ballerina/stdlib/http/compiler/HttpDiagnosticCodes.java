@@ -25,6 +25,7 @@ import static io.ballerina.stdlib.http.compiler.Constants.ALLOWED_RETURN_UNION;
 import static io.ballerina.stdlib.http.compiler.Constants.RESOURCE_CONFIG_ANNOTATION;
 import static io.ballerina.tools.diagnostics.DiagnosticSeverity.ERROR;
 import static io.ballerina.tools.diagnostics.DiagnosticSeverity.INTERNAL;
+import static io.ballerina.tools.diagnostics.DiagnosticSeverity.WARNING;
 
 /**
  * {@code DiagnosticCodes} is used to hold diagnostic codes.
@@ -110,11 +111,17 @@ public enum HttpDiagnosticCodes {
     HTTP_151("HTTP_151", "ambiguous types for parameter '%s' and '%s'. Use annotations to avoid ambiguity", ERROR),
     HTTP_152("HTTP_152", "invalid union type for default payload param: '%s'. Use basic structured anydata types",
             ERROR),
+    HTTP_153("HTTP_153", "cannot initiate interceptors in services via both " +
+            "http:ServiceConfig and http:InterceptableService", ERROR),
 
     HTTP_HINT_101("HTTP_HINT_101", "Payload annotation can be added", INTERNAL),
     HTTP_HINT_102("HTTP_HINT_102", "Header annotation can be added", INTERNAL),
     HTTP_HINT_103("HTTP_HINT_103", "Response content-type can be added", INTERNAL),
-    HTTP_HINT_104("HTTP_HINT_104", "Response cache configuration can be added", INTERNAL);
+    HTTP_HINT_104("HTTP_HINT_104", "Response cache configuration can be added", INTERNAL),
+
+    HTTP_201("HTTP_201", "defining interceptor pipeline using http:ServiceConfig annotation " +
+            "is deprecated. Use http:InterceptableService instead. See https://ballerina.io/learn/by-example/" +
+            "http-request-interceptor", WARNING);
 
     private final String code;
     private final String message;
