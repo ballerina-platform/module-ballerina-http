@@ -569,7 +569,7 @@ function testDataBindingWithTableofMapOfStringByTypeNegative() returns error? {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
         common:assertTrueTextPayload(response.getTextPayload(),
-        "data binding failed: {ballerina/lang.value}ConversionError");
+        "data binding failed: {ballerina}ConversionError");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -771,8 +771,7 @@ function testDataBindingXmlNegative() {
     }
 }
 
-// TODO: enable after fixing https://github.com/ballerina-platform/ballerina-lang/issues/38715
-@test:Config {enable: false}
+@test:Config {}
 function testDataBindingXmlArray() {
     xml[] j = [xml `<name>WSO2</name>`, xml `<name>Ballerina</name>`];
     http:Response|error response = anydataBindingClient->post("/anydataB/checkXmlArray", j.toJson());
@@ -785,8 +784,7 @@ function testDataBindingXmlArray() {
     }
 }
 
-// TODO: enable after fixing https://github.com/ballerina-platform/ballerina-lang/issues/38715
-@test:Config {enable: false}
+@test:Config {}
 function testDataBindingXmlArrayByType() {
     xml[] j = [xml `<name>WSO2</name>`, xml `<name>Ballerina</name>`];
     http:Response|error response = anydataBindingClient->post("/anydataB/checkXmlArray", j.toJson(),
@@ -799,8 +797,7 @@ function testDataBindingXmlArrayByType() {
     }
 }
 
-// TODO: enable after fixing https://github.com/ballerina-platform/ballerina-lang/issues/38715
-@test:Config {enable: false}
+@test:Config {}
 function testDataBindingWithMapOfXml() {
     xml wso2 = xml `<name>WSO2</name>`;
     xml bal = xml `<name>Ballerina</name>`;
@@ -815,8 +812,7 @@ function testDataBindingWithMapOfXml() {
     }
 }
 
-// TODO: enable after fixing https://github.com/ballerina-platform/ballerina-lang/issues/38715
-@test:Config {enable: false}
+@test:Config {}
 function testDataBindingWithMapOfXmlByType() returns error? {
     xml wso2 = xml `<name>WSO2</name>`;
     xml bal = xml `<name>Ballerina</name>`;
@@ -832,8 +828,7 @@ function testDataBindingWithMapOfXmlByType() returns error? {
     }
 }
 
-// TODO: enable after fixing https://github.com/ballerina-platform/ballerina-lang/issues/38715
-@test:Config {enable: false}
+@test:Config {}
 function testDataBindingWithTableofMapOfXml() {
     xml wso2 = xml `<name>WSO2</name>`;
     xml bal = xml `<name>Ballerina</name>`;

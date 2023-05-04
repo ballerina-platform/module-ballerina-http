@@ -19,12 +19,12 @@
 package io.ballerina.stdlib.http.api.service.signature.converter;
 
 import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.utils.ValueUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BRefValue;
 import io.ballerina.stdlib.http.api.BallerinaConnectorException;
 import io.ballerina.stdlib.mime.util.EntityBodyHandler;
-import org.ballerinalang.langlib.value.CloneWithType;
 
 /**
  * The converter binds the JSON payload to a record.
@@ -55,12 +55,12 @@ public class JsonToRecordConverter {
      * Convert a json to the relevant record type.
      *
      * @param entityBodyType Represents entity body type
-     * @param bjson          Represents the json value that needs to be converted
+     * @param bJson          Represents the json value that needs to be converted
      * @return the relevant ballerina record or object
      */
-    private static Object getRecord(Type entityBodyType, Object bjson) {
+    private static Object getRecord(Type entityBodyType, Object bJson) {
         try {
-            return CloneWithType.convert(entityBodyType, bjson);
+            return ValueUtils.convert(bJson, entityBodyType);
         } catch (NullPointerException ex) {
             throw new BallerinaConnectorException("cannot convert payload to record type: " +
                                                           entityBodyType.getName());

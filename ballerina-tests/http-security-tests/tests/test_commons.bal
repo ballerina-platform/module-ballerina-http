@@ -17,7 +17,6 @@
 // NOTE: All the tokens/credentials used in this test are dummy tokens/credentials and used only for testing purposes.
 
 import ballerina/http;
-import ballerina/regex;
 import ballerina/test;
 import ballerina/url;
 import ballerina/http_test_common as common;
@@ -391,10 +390,10 @@ service /oauth2 on sts {
     resource function post introspect(http:Request request) returns AuthResponse {
         string|http:ClientError payload = request.getTextPayload();
         if payload is string {
-            string[] parts = regex:split(payload, "&");
+            string[] parts = re`&`.split(payload);
             foreach string part in parts {
                 if part.indexOf("token=") is int {
-                    string token = regex:split(part, "=")[1];
+                    string token = re`=`.split(part)[1];
                     if token == ACCESS_TOKEN_1 {
                         return {
                             body: {"active": true, "exp": 3600, "scp": "write update"}

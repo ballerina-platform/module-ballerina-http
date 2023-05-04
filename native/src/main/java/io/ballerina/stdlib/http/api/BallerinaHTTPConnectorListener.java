@@ -185,7 +185,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
                 httpServicesRegistry.isPossibleLastService());
         BObject service = httpResource.getParentService().getBalService();
         String resourceName = httpResource.getName();
-        ObjectType serviceType = (ObjectType) TypeUtils.getReferredType(service.getType());
+        ObjectType serviceType = (ObjectType) TypeUtils.getReferredType(TypeUtils.getType(service));
         if (serviceType.isIsolated() && serviceType.isIsolated(resourceName)) {
             runtime.invokeMethodAsyncConcurrently(service, resourceName, null,
                                                   ModuleUtils.getOnMessageMetaData(), callback, properties,
@@ -243,7 +243,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
 
         inboundMessage.removeProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
 
-        ObjectType serviceType = (ObjectType) TypeUtils.getReferredType(service.getType());
+        ObjectType serviceType = (ObjectType) TypeUtils.getReferredType(TypeUtils.getType(service));
         if (serviceType.isIsolated() && serviceType.isIsolated(resourceName)) {
             runtime.invokeMethodAsyncConcurrently(service, resourceName, null,
                                                   ModuleUtils.getOnMessageMetaData(), callback, properties,

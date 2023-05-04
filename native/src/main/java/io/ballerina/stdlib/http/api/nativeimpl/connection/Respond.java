@@ -248,7 +248,7 @@ public class Respond extends ConnectionAction {
         String methodName = service.getServiceType().equals(HttpConstants.RESPONSE_ERROR_INTERCEPTOR)
                             ? HttpConstants.INTERCEPT_RESPONSE_ERROR : HttpConstants.INTERCEPT_RESPONSE;
 
-        ObjectType serviceType = (ObjectType) TypeUtils.getReferredType(serviceObj.getType());
+        ObjectType serviceType = (ObjectType) TypeUtils.getReferredType(TypeUtils.getType(serviceObj));
         if (serviceType.isIsolated() && serviceType.isIsolated(methodName)) {
             runtime.invokeMethodAsyncConcurrently(serviceObj, methodName, null, null,
                     callback, null, service.getRemoteMethod().getReturnType(), signatureParams);
