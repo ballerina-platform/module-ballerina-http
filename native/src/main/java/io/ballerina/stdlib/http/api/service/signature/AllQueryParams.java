@@ -67,7 +67,7 @@ public class AllQueryParams implements Parameter {
             Object queryValue = urlQueryParams.get(StringUtils.fromString(token));
             if (queryValue == null) {
                 if (queryParam.isDefaultable()) {
-                    paramFeed[index++] = queryParam.constraintValidation(queryParam.getOriginalType().getZeroValue());
+                    paramFeed[index++] = queryParam.validateConstraints(queryParam.getOriginalType().getZeroValue());
                     paramFeed[index] = false;
                     continue;
                 } else if (queryParam.isNilable() && (treatNilableAsOptional || queryExist)) {
@@ -97,7 +97,7 @@ public class AllQueryParams implements Parameter {
                         HttpUtil.createError(ex));
             }
 
-            paramFeed[index++] = queryParam.constraintValidation(castedQueryValue);
+            paramFeed[index++] = queryParam.validateConstraints(castedQueryValue);
             paramFeed[index] = true;
         }
     }

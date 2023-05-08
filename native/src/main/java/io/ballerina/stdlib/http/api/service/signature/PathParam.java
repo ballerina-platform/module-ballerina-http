@@ -29,47 +29,15 @@ import static io.ballerina.stdlib.http.api.HttpErrorType.QUERY_PARAM_VALIDATION_
 /**
  * {@code {@link PathParam }} represents a path parameter details.
  */
-public class PathParam {
-
-    private final String token;
-    private final int index;
-    private final Type originalType;
-    private final int effectiveTypeTag;
-    private final boolean isArray;
-    private final boolean requireConstraintValidation;
+public class PathParam extends SignatureParam {
 
     PathParam(Type originalType, String token, int index, boolean requireConstraintValidation) {
-        this.originalType = originalType;
-        this.token = token;
-        this.index = index;
-        this.effectiveTypeTag = ParamUtils.getEffectiveTypeTag(originalType, originalType, PATH_PARAM);
-        this.isArray = ParamUtils.isArrayType(originalType);
-        this.requireConstraintValidation = requireConstraintValidation;
+        super(originalType, token, index, requireConstraintValidation, PATH_PARAM);
     }
 
-    public String getToken() {
-        return token;
-    }
-
-    public int getIndex() {
-        return index * 2;
-    }
-
-    public Type getOriginalType() {
-        return originalType;
-    }
-
-    public int getEffectiveTypeTag() {
-        return effectiveTypeTag;
-    }
-
-    public boolean isArray() {
-        return isArray;
-    }
-
-    public Object constraintValidation(Object pathValue) {
-        if (requireConstraintValidation) {
-            Object result = Constraints.validateAfterTypeConversion(pathValue, originalType);
+    public Object validateConstraints(Object pathValue) {
+        if (requireConstraintValidation()) {
+            Object result = Constraints.validateAfterTypeConversion(pathValue, getOriginalType());
             if (result instanceof BError) {
                 String message = "path validation failed: " + HttpUtil.getPrintableErrorMsg((BError) result);
                 throw HttpUtil.createHttpStatusCodeError(QUERY_PARAM_VALIDATION_ERROR, message);

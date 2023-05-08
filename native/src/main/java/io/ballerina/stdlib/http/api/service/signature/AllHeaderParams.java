@@ -82,7 +82,7 @@ public class AllHeaderParams implements Parameter {
                     throw HttpUtil.createHttpStatusCodeError(HEADER_BINDING_ERROR, message, null,
                             HttpUtil.createError(ex));
                 }
-                paramFeed[index++] = headerParam.constraintValidation(castedHeader);
+                paramFeed[index++] = headerParam.validateConstraints(castedHeader);
                 paramFeed[index] = true;
                 continue;
             }
@@ -124,7 +124,7 @@ public class AllHeaderParams implements Parameter {
                         HttpUtil.createError(ex));
             }
 
-            paramFeed[index++] = headerParam.constraintValidation(castedHeaderValue);
+            paramFeed[index++] = headerParam.validateConstraints(castedHeaderValue);
             paramFeed[index] = true;
         }
     }

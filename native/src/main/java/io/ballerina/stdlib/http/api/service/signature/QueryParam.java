@@ -31,59 +31,27 @@ import static io.ballerina.stdlib.http.api.HttpErrorType.QUERY_PARAM_VALIDATION_
  *
  * @since slp8
  */
-public class QueryParam {
-
-    private final String token;
+public class QueryParam extends SignatureParam {
     private final boolean nilable;
     private final boolean defaultable;
-    private final int index;
-    private final Type originalType;
-    private final int effectiveTypeTag;
-    private final boolean isArray;
-    private final boolean requireConstraintValidation;
 
     QueryParam(Type originalType, String token, int index, boolean defaultable, boolean requireConstraintValidation) {
-        this.originalType = originalType;
-        this.token = token;
-        this.index = index;
+        super(originalType, token, index, requireConstraintValidation, QUERY_PARAM);
         this.nilable = originalType.isNilable();
         this.defaultable = defaultable;
-        this.effectiveTypeTag = ParamUtils.getEffectiveTypeTag(originalType, originalType, QUERY_PARAM);
-        this.isArray = ParamUtils.isArrayType(originalType);
-        this.requireConstraintValidation = requireConstraintValidation;
-    }
-
-    public String getToken() {
-        return this.token;
     }
 
     public boolean isNilable() {
         return this.nilable;
     }
 
-    public int getIndex() {
-        return this.index * 2;
-    }
-
-    public Type getOriginalType() {
-        return this.originalType;
-    }
-
     public boolean isDefaultable() {
         return defaultable;
     }
 
-    public int getEffectiveTypeTag() {
-        return effectiveTypeTag;
-    }
-
-    public boolean isArray() {
-        return isArray;
-    }
-
-    public Object constraintValidation(Object queryValue) {
-        if (requireConstraintValidation) {
-            Object result = Constraints.validateAfterTypeConversion(queryValue, originalType);
+    public Object validateConstraints(Object queryValue) {
+        if (requireConstraintValidation()) {
+            Object result = Constraints.validateAfterTypeConversion(queryValue, getOriginalType());
             if (result instanceof BError) {
                 String message = "query validation failed: " + HttpUtil.getPrintableErrorMsg((BError) result);
                 throw HttpUtil.createHttpStatusCodeError(QUERY_PARAM_VALIDATION_ERROR, message);
