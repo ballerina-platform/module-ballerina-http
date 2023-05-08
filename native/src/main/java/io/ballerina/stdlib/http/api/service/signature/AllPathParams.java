@@ -82,6 +82,7 @@ public class AllPathParams implements Parameter {
             argumentValue = URLDecoder.decode(argumentValue.replaceAll(PLUS_SIGN, PLUS_SIGN_ENCODED),
                     StandardCharsets.UTF_8);
 
+            Object castedPathValue;
             try {
                 Object parsedValue;
                 if (pathParam.isArray()) {
@@ -90,8 +91,7 @@ public class AllPathParams implements Parameter {
                 } else {
                     parsedValue = castParam(paramTypeTag, argumentValue);
                 }
-                paramFeed[index++] = ValueUtils.convert(parsedValue, paramType);
-                paramFeed[index] = true;
+                castedPathValue = ValueUtils.convert(parsedValue, paramType);
             } catch (Exception ex) {
                 String message = "error in casting path parameter : '" + paramToken + "'";
                 if (ParamUtils.isFiniteType(paramType)) {
@@ -104,6 +104,9 @@ public class AllPathParams implements Parameter {
                             null, HttpUtil.createError(ex));
                 }
             }
+
+            paramFeed[index++] = pathParam.validateConstraints(castedPathValue);
+            paramFeed[index] = true;
         }
     }
 

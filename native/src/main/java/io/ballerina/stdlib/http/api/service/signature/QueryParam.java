@@ -19,59 +19,44 @@
 package io.ballerina.stdlib.http.api.service.signature;
 
 import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.values.BError;
+import io.ballerina.stdlib.constraint.Constraints;
+import io.ballerina.stdlib.http.api.HttpUtil;
 
 import static io.ballerina.stdlib.http.api.HttpConstants.QUERY_PARAM;
+import static io.ballerina.stdlib.http.api.HttpErrorType.QUERY_PARAM_VALIDATION_ERROR;
 
 /**
  * {@code {@link QueryParam }} represents a query parameter details.
  *
  * @since slp8
  */
-public class QueryParam {
-
-    private final String token;
+public class QueryParam extends SignatureParam {
     private final boolean nilable;
     private final boolean defaultable;
-    private final int index;
-    private final Type originalType;
-    private final int effectiveTypeTag;
-    private final boolean isArray;
 
-    QueryParam(Type originalType, String token, int index, boolean defaultable) {
-        this.originalType = originalType;
-        this.token = token;
-        this.index = index;
+    QueryParam(Type originalType, String token, int index, boolean defaultable, boolean requireConstraintValidation) {
+        super(originalType, token, index, requireConstraintValidation, QUERY_PARAM);
         this.nilable = originalType.isNilable();
         this.defaultable = defaultable;
-        this.effectiveTypeTag = ParamUtils.getEffectiveTypeTag(originalType, originalType, QUERY_PARAM);
-        this.isArray = ParamUtils.isArrayType(originalType);
-    }
-
-    public String getToken() {
-        return this.token;
     }
 
     public boolean isNilable() {
         return this.nilable;
     }
 
-    public int getIndex() {
-        return this.index * 2;
-    }
-
-    public Type getOriginalType() {
-        return this.originalType;
-    }
-
     public boolean isDefaultable() {
         return defaultable;
     }
 
-    public int getEffectiveTypeTag() {
-        return effectiveTypeTag;
-    }
-
-    public boolean isArray() {
-        return isArray;
+    public Object validateConstraints(Object queryValue) {
+        if (requireConstraintValidation()) {
+            Object result = Constraints.validateAfterTypeConversion(queryValue, getOriginalType());
+            if (result instanceof BError) {
+                String message = "query validation failed: " + HttpUtil.getPrintableErrorMsg((BError) result);
+                throw HttpUtil.createHttpStatusCodeError(QUERY_PARAM_VALIDATION_ERROR, message);
+            }
+        }
+        return queryValue;
     }
 }

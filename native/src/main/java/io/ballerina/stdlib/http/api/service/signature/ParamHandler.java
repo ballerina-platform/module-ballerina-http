@@ -72,6 +72,7 @@ public class ParamHandler {
     private final AllPathParams pathParams = new AllPathParams();
     private final AllQueryParams queryParams = new AllQueryParams();
     private final AllHeaderParams headerParams = new AllHeaderParams();
+    private final boolean constraintValidation;
 
     private static final String PARAM_ANNOT_PREFIX = "$param$.";
     private static final MapType MAP_TYPE = TypeCreator.createMapType(
@@ -93,8 +94,9 @@ public class ParamHandler {
         this.resource = resource;
         this.pathParamCount = pathParamCount;
         this.paramTypes = getParameterTypes(resource);
+        this.constraintValidation = constraintValidation;
         populatePathParamTokens(resource, pathParamCount);
-        populatePayloadAndHeaderParamTokens(resource, constraintValidation);
+        populatePayloadAndHeaderParamTokens(resource);
         validateSignatureParams();
     }
 
@@ -103,7 +105,7 @@ public class ParamHandler {
             return;
         }
         for (int index = 0; index < pathParamCount; index++) {
-            createPathParam(index, resource);
+            createPathParam(index, resource, constraintValidation);
         }
         if (pathParams.isNotEmpty()) {
             getParamList().add(pathParams);
@@ -126,17 +128,17 @@ public class ParamHandler {
                         getParamList().add(this.requestContextParam);
                     } else {
                         throw HttpUtil.createHttpError("invalid multiple '" + REQUEST_CONTEXT_TYPE
-                                                               + "' parameter");
+                                + "' parameter");
                     }
                     break;
                 case HttpConstants.STRUCT_GENERIC_ERROR:
                     if (this.interceptorErrorParam == null) {
                         this.interceptorErrorParam = new NonRecurringParam(index,
-                                                                           HttpConstants.STRUCT_GENERIC_ERROR);
+                                HttpConstants.STRUCT_GENERIC_ERROR);
                         getParamList().add(this.interceptorErrorParam);
                     } else {
                         throw HttpUtil.createHttpError("invalid multiple '" +
-                                                               HttpConstants.STRUCT_GENERIC_ERROR + "' parameter");
+                                HttpConstants.STRUCT_GENERIC_ERROR + "' parameter");
                     }
                     break;
                 case CALLER_TYPE:
@@ -170,7 +172,7 @@ public class ParamHandler {
                         payloadParam.init(parameterType, originalParameterTypes[index], index);
                         getParamList().add(payloadParam);
                     } else if ((headerParam = headerParams.get(paramName)) != null) {
-                        headerParam.init(originalParameterTypes[index], index);
+                        headerParam.initHeaderParam(originalParameterTypes[index], index, constraintValidation);
                     } else {
                         createQueryParam(index, resource, originalParameterTypes[index]);
                     }
@@ -184,7 +186,7 @@ public class ParamHandler {
         }
     }
 
-    private void populatePayloadAndHeaderParamTokens(ResourceMethodType balResource, boolean constraintValidation) {
+    private void populatePayloadAndHeaderParamTokens(ResourceMethodType balResource) {
         for (String paramName : balResource.getParamNames()) {
             paramName = HttpUtil.unescapeAndEncodeValue(paramName);
             BMap annotations = (BMap) balResource.getAnnotation(
@@ -248,9 +250,9 @@ public class ParamHandler {
         }
     }
 
-    private void createPathParam(int index, ResourceMethodType balResource) {
+    private void createPathParam(int index, ResourceMethodType balResource, boolean constraintValidation) {
         io.ballerina.runtime.api.types.Parameter parameter = balResource.getParameters()[index];
-        PathParam pathParam = new PathParam(parameter.type, parameter.name, index);
+        PathParam pathParam = new PathParam(parameter.type, parameter.name, index, constraintValidation);
         this.pathParams.add(pathParam);
     }
 
@@ -271,7 +273,7 @@ public class ParamHandler {
     private void createQueryParam(int index, ResourceMethodType balResource, Type originalType) {
         io.ballerina.runtime.api.types.Parameter parameter = balResource.getParameters()[index];
         QueryParam queryParam = new QueryParam(originalType, HttpUtil.unescapeAndEncodeValue(parameter.name), index,
-                parameter.isDefault);
+                parameter.isDefault, constraintValidation);
         this.queryParams.add(queryParam);
     }
 
@@ -296,7 +298,7 @@ public class ParamHandler {
                 URIUtil.populateQueryParamMap((String) rawQueryString, queryParams);
             } catch (UnsupportedEncodingException e) {
                 throw HttpUtil.createHttpError("error while retrieving query param from message: " + e.getMessage(),
-                                               HttpErrorType.GENERIC_LISTENER_ERROR);
+                        HttpErrorType.GENERIC_LISTENER_ERROR);
             }
         }
         return queryParams;

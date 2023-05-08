@@ -19,45 +19,30 @@
 package io.ballerina.stdlib.http.api.service.signature;
 
 import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.values.BError;
+import io.ballerina.stdlib.constraint.Constraints;
+import io.ballerina.stdlib.http.api.HttpUtil;
 
 import static io.ballerina.stdlib.http.api.HttpConstants.PATH_PARAM;
+import static io.ballerina.stdlib.http.api.HttpErrorType.QUERY_PARAM_VALIDATION_ERROR;
 
 /**
  * {@code {@link PathParam }} represents a path parameter details.
  */
-public class PathParam {
+public class PathParam extends SignatureParam {
 
-    private final String token;
-    private final int index;
-    private final Type originalType;
-    private final int effectiveTypeTag;
-    private final boolean isArray;
-
-    PathParam(Type originalType, String token, int index) {
-        this.originalType = originalType;
-        this.token = token;
-        this.index = index;
-        this.effectiveTypeTag = ParamUtils.getEffectiveTypeTag(originalType, originalType, PATH_PARAM);
-        this.isArray = ParamUtils.isArrayType(originalType);
+    PathParam(Type originalType, String token, int index, boolean requireConstraintValidation) {
+        super(originalType, token, index, requireConstraintValidation, PATH_PARAM);
     }
 
-    public String getToken() {
-        return token;
-    }
-
-    public int getIndex() {
-        return index * 2;
-    }
-
-    public Type getOriginalType() {
-        return originalType;
-    }
-
-    public int getEffectiveTypeTag() {
-        return effectiveTypeTag;
-    }
-
-    public boolean isArray() {
-        return isArray;
+    public Object validateConstraints(Object pathValue) {
+        if (requireConstraintValidation()) {
+            Object result = Constraints.validateAfterTypeConversion(pathValue, getOriginalType());
+            if (result instanceof BError) {
+                String message = "path validation failed: " + HttpUtil.getPrintableErrorMsg((BError) result);
+                throw HttpUtil.createHttpStatusCodeError(QUERY_PARAM_VALIDATION_ERROR, message);
+            }
+        }
+        return pathValue;
     }
 }

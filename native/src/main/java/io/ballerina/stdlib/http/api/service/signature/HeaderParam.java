@@ -21,6 +21,9 @@ package io.ballerina.stdlib.http.api.service.signature;
 import io.ballerina.runtime.api.types.Field;
 import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.values.BError;
+import io.ballerina.stdlib.constraint.Constraints;
+import io.ballerina.stdlib.http.api.HttpUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,30 +31,25 @@ import java.util.Map;
 
 import static io.ballerina.runtime.api.TypeTags.RECORD_TYPE_TAG;
 import static io.ballerina.stdlib.http.api.HttpConstants.HEADER_PARAM;
+import static io.ballerina.stdlib.http.api.HttpErrorType.HEADER_VALIDATION_ERROR;
 
 /**
  * {@code {@link HeaderParam }} represents a inbound request header parameter details.
  *
  * @since sl-alpha3
  */
-public class HeaderParam {
+public class HeaderParam extends SignatureParam {
 
-    private final String token;
-    private int index;
-    private Type originalType;
     private String headerName;
     private HeaderRecordParam recordParam;
-    private int effectiveTypeTag;
     private boolean nilable;
-    private boolean isArray;
 
     HeaderParam(String token) {
-        this.token = token;
+        super(token);
     }
 
-    public void init(Type originalType, int index) {
-        this.originalType = originalType;
-        this.index = index;
+    public void initHeaderParam(Type originalType, int index, boolean requireConstraintValidation) {
+        init(originalType, index, requireConstraintValidation);
         this.nilable = originalType.isNilable();
         populateHeaderParamTypeTag(originalType);
     }
@@ -59,7 +57,7 @@ public class HeaderParam {
     private void populateHeaderParamTypeTag(Type type) {
         RecordType headerRecordType = ParamUtils.getRecordType(type);
         if (headerRecordType != null) {
-            this.effectiveTypeTag = RECORD_TYPE_TAG;
+            setEffectiveTypeTag(RECORD_TYPE_TAG);
             Map<String, Field> recordFields = headerRecordType.getFields();
             List<String> keys = new ArrayList<>();
             HeaderRecordParam.FieldParam[] fields = new HeaderRecordParam.FieldParam[recordFields.size()];
@@ -68,27 +66,15 @@ public class HeaderParam {
                 keys.add(field.getKey());
                 fields[i++] = new HeaderRecordParam.FieldParam(field.getValue().getFieldType());
             }
-            this.recordParam = new HeaderRecordParam(this.token, headerRecordType, keys, fields);
+            this.recordParam = new HeaderRecordParam(getToken(), headerRecordType, keys, fields);
         } else {
-            this.effectiveTypeTag = ParamUtils.getEffectiveTypeTag(this.originalType, this.originalType, HEADER_PARAM);
-            this.isArray = ParamUtils.isArrayType(originalType);
+            setEffectiveTypeTag(ParamUtils.getEffectiveTypeTag(getOriginalType(), getOriginalType(), HEADER_PARAM));
+            setArray(ParamUtils.isArrayType(getOriginalType()));
         }
-    }
-
-    public Type getOriginalType() {
-        return this.originalType;
-    }
-
-    public String getToken() {
-        return this.token;
     }
 
     public boolean isNilable() {
         return this.nilable;
-    }
-
-    public int getIndex() {
-        return this.index * 2;
     }
 
     public String getHeaderName() {
@@ -107,11 +93,14 @@ public class HeaderParam {
         return getRecordParam() != null;
     }
 
-    public boolean isArray() {
-        return this.isArray;
-    }
-
-    public int getEffectiveTypeTag() {
-        return this.effectiveTypeTag;
+    public Object validateConstraints(Object headerValue) {
+        if (requireConstraintValidation()) {
+            Object result = Constraints.validateAfterTypeConversion(headerValue, getOriginalType());
+            if (result instanceof BError) {
+                String message = "header validation failed: " + HttpUtil.getPrintableErrorMsg((BError) result);
+                throw HttpUtil.createHttpStatusCodeError(HEADER_VALIDATION_ERROR, message);
+            }
+        }
+        return headerValue;
     }
 }
