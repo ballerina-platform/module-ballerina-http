@@ -20,6 +20,7 @@ jobs:
     ubuntu-build-with-bal-test-native:
         name: Build with Ballerina Lang on Ubuntu
         runs-on: ubuntu-latest
+        timeout-minutes: 90
 
         steps:  
             - name: Checkout Ballerina Lang Repository
@@ -66,6 +67,7 @@ jobs:
     windows-build-with-bal-test-native:
         name: Build with Ballerina Lang on Windows
         runs-on: windows-2019
+        timeout-minutes: 90
 
         steps:  
             - name: Checkout Ballerina Lang Repository
