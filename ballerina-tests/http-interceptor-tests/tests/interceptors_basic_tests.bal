@@ -26,7 +26,9 @@ final http:Client interceptorsBasicTestsClientEP1 = check new("http://localhost:
 listener http:Listener interceptorsBasicTestsServerEP1 = new(interceptorBasicTestsPort1, httpVersion = http:HTTP_1_1);
 
 @http:ServiceConfig {
-    interceptors: [new DefaultRequestInterceptor(), new LastRequestInterceptor(), new DefaultRequestErrorInterceptor()]
+    interceptors: function () returns [DefaultRequestInterceptor, LastRequestInterceptor, DefaultRequestErrorInterceptor] {
+            return [new DefaultRequestInterceptor(), new LastRequestInterceptor(), new DefaultRequestErrorInterceptor()];
+        };
 }
 service /defaultRequestInterceptor on interceptorsBasicTestsServerEP1 {
 
@@ -83,7 +85,9 @@ function testinterceptableServiceReqInterceptor() returns error? {
 }
 
 @http:ServiceConfig {
-    interceptors: [new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultResponseInterceptor()]
+    interceptors: function () returns [LastResponseInterceptor, DefaultResponseErrorInterceptor, DefaultResponseInterceptor] {
+            return [new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultResponseInterceptor()];
+        };
 }
 service /defaultResponseInterceptor on interceptorsBasicTestsServerEP1 {
 
@@ -193,7 +197,7 @@ final http:Client responseInterceptorReturnsErrorTestClientEP = check new("http:
 listener http:Listener responseInterceptorReturnsErrorTestServerEP = new(responseInterceptorReturnsErrorTestPort, 
     httpVersion = http:HTTP_1_1, interceptors = function () returns [LastResponseInterceptor, ResponseInterceptorReturnsError, DefaultResponseInterceptor] {
             return [new LastResponseInterceptor(), new ResponseInterceptorReturnsError(), new DefaultResponseInterceptor()];
-        });
+        };);
 
 service / on responseInterceptorReturnsErrorTestServerEP {
 

@@ -30,7 +30,7 @@ listener http:Listener requestInterceptorWithCallerRespondServerEP = new(request
                 new DefaultRequestInterceptor(), new LastResponseInterceptor(), new DefaultResponseInterceptor(),
                 new RequestInterceptorCallerRespond(), new LastRequestInterceptor()
             ];
-        }
+        };
 );
 
 service / on requestInterceptorWithCallerRespondServerEP {
@@ -56,7 +56,7 @@ listener http:Listener responseInterceptorWithCallerRespondServerEP = new(respon
     httpVersion = http:HTTP_1_1,
     interceptors = function () returns [LastResponseInterceptor, ResponseInterceptorCallerRespond, DefaultResponseInterceptor] {
             return [new LastResponseInterceptor(), new ResponseInterceptorCallerRespond(), new DefaultResponseInterceptor()];
-        }
+        };
 );
 
 service / on responseInterceptorWithCallerRespondServerEP {
@@ -86,7 +86,7 @@ listener http:Listener requestInterceptorCallerRespondErrorTestServerEP = new(re
                 new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultResponseInterceptor(),
                 new RequestInterceptorReturnsError(), new DefaultRequestInterceptor(), new LastRequestInterceptor()
             ];
-        }
+        };
 );
 
 service / on requestInterceptorCallerRespondErrorTestServerEP {
@@ -118,7 +118,7 @@ listener http:Listener responseInterceptorCallerRespondErrorTestServerEP = new(r
                 new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultResponseInterceptor(),
                 new ResponseInterceptorCallerRespondError()
             ];
-        }
+        };
 );
 
 service / on responseInterceptorCallerRespondErrorTestServerEP {
@@ -147,7 +147,7 @@ listener http:Listener requestInterceptorDataBindingServerEP1 = new(requestInter
                                                     RequestErrorInterceptorReturnsErrorMsg, LastRequestInterceptor] {
             return [new DefaultRequestInterceptor(), new DataBindingRequestInterceptor(),
                             new RequestErrorInterceptorReturnsErrorMsg(), new LastRequestInterceptor()];
-        }
+        };
 );
 
 service / on requestInterceptorDataBindingServerEP1 {
@@ -168,7 +168,7 @@ listener http:Listener requestInterceptorDataBindingServerEP2 = new(requestInter
     httpVersion = http:HTTP_1_1,
     interceptors = function () returns [DataBindingRequestInterceptor, LastRequestInterceptor] {
             return [new DataBindingRequestInterceptor(), new LastRequestInterceptor()];
-        }
+        };
 );
 
 service / on requestInterceptorDataBindingServerEP2 {
@@ -236,7 +236,7 @@ listener http:Listener requestInterceptorWithoutCtxNextServerEP = new(requestInt
     httpVersion = http:HTTP_1_1,
     interceptors = function () returns [DefaultRequestInterceptor, RequestInterceptorWithoutCtxNext, LastRequestInterceptor] {
             return [new DefaultRequestInterceptor(), new RequestInterceptorWithoutCtxNext(), new LastRequestInterceptor()];
-        }
+        };
 );
 
 service / on requestInterceptorWithoutCtxNextServerEP {
@@ -258,7 +258,7 @@ listener http:Listener responseInterceptorWithoutCtxNextServerEP = new(responseI
     httpVersion = http:HTTP_1_1,
     interceptors = function () returns [LastResponseInterceptor, ResponseInterceptorWithoutCtxNext, DefaultResponseInterceptor] {
             return [new LastResponseInterceptor(), new ResponseInterceptorWithoutCtxNext(), new DefaultResponseInterceptor()];
-        }
+        };
 );
 
 service / on responseInterceptorWithoutCtxNextServerEP {
@@ -283,7 +283,7 @@ listener http:Listener requestInterceptorSkipServerEP = new(requestInterceptorSk
     httpVersion = http:HTTP_1_1,
     interceptors = function () returns [DefaultRequestInterceptor, RequestInterceptorSkip, RequestInterceptorWithoutCtxNext, LastRequestInterceptor] {
             return [new DefaultRequestInterceptor(), new RequestInterceptorSkip(), new RequestInterceptorWithoutCtxNext(), new LastRequestInterceptor()];
-        }
+        };
 );
 
 service / on requestInterceptorSkipServerEP {
@@ -314,7 +314,7 @@ listener http:Listener responseInterceptorSkipServerEP = new(responseInterceptor
                 new LastResponseInterceptor(), new ResponseInterceptorWithoutCtxNext(), new ResponseInterceptorSkip(),
                 new DefaultResponseInterceptor()
             ];
-        }
+        };
 );
 
 service / on responseInterceptorSkipServerEP {
@@ -339,7 +339,7 @@ listener http:Listener requestInterceptorCallerRespondContinueServerEP = new(req
     httpVersion = http:HTTP_1_1,
     interceptors = function () returns [DefaultRequestInterceptor, RequestInterceptorCallerRespondContinue, LastRequestInterceptor] {
             return [new DefaultRequestInterceptor(), new RequestInterceptorCallerRespondContinue(), new LastRequestInterceptor()];
-        }
+        };
 );
 
 isolated string message1 = "Greetings from client1";
@@ -371,7 +371,7 @@ listener http:Listener responseInterceptorCallerRespondContinueServerEP = new(re
     httpVersion = http:HTTP_1_1,
     interceptors = function () returns [LastResponseInterceptor, ResponseInterceptorCallerRespondContinue, DefaultResponseInterceptor] {
             return [new LastResponseInterceptor(), new ResponseInterceptorCallerRespondContinue(), new DefaultResponseInterceptor()];
-        }
+        };
 );
 
 service / on responseInterceptorCallerRespondContinueServerEP {
@@ -397,7 +397,7 @@ listener http:Listener requestInterceptorCtxNextServerEP = new(requestIntercepto
     httpVersion = http:HTTP_1_1,
     interceptors = function () returns [DefaultRequestInterceptor, RequestInterceptorCtxNext, LastRequestInterceptor] {
             return [new DefaultRequestInterceptor(), new RequestInterceptorCtxNext(), new LastRequestInterceptor()];
-        }
+        };
 );
 
 isolated string message2 = "Greetings from client2";
@@ -428,7 +428,7 @@ listener http:Listener requestInterceptorStringPayloadBindingServerEP = new(requ
     httpVersion = http:HTTP_1_1,
     interceptors = function () returns [DefaultRequestInterceptor, StringPayloadBindingRequestInterceptor, LastRequestInterceptor] {
             return [new DefaultRequestInterceptor(), new StringPayloadBindingRequestInterceptor(), new LastRequestInterceptor()];
-        }
+        };
 );
 
 service / on requestInterceptorStringPayloadBindingServerEP {
@@ -457,7 +457,7 @@ listener http:Listener requestInterceptorRecordPayloadBindingServerEP = new(requ
     httpVersion = http:HTTP_1_1,
     interceptors = function () returns [DefaultRequestInterceptor, RecordPayloadBindingRequestInterceptor, LastRequestInterceptor] {
             return [new DefaultRequestInterceptor(), new RecordPayloadBindingRequestInterceptor(), new LastRequestInterceptor()];
-        }
+        };
 );
 
 service / on requestInterceptorRecordPayloadBindingServerEP {
@@ -487,7 +487,7 @@ listener http:Listener requestInterceptorRecordArrayPayloadBindingServerEP = new
     httpVersion = http:HTTP_1_1,
     interceptors = function () returns [DefaultRequestInterceptor, RecordArrayPayloadBindingRequestInterceptor, LastRequestInterceptor] {
             return [new DefaultRequestInterceptor(), new RecordArrayPayloadBindingRequestInterceptor(), new LastRequestInterceptor()];
-        }
+        };
 );
 
 service / on requestInterceptorRecordArrayPayloadBindingServerEP {
@@ -517,7 +517,7 @@ listener http:Listener requestInterceptorByteArrayPayloadBindingServerEP = new(r
     httpVersion = http:HTTP_1_1,
     interceptors = function () returns [DefaultRequestInterceptor, ByteArrayPayloadBindingRequestInterceptor, LastRequestInterceptor] {
             return [new DefaultRequestInterceptor(), new ByteArrayPayloadBindingRequestInterceptor(), new LastRequestInterceptor()];
-        }
+        };
 );
 
 service / on requestInterceptorByteArrayPayloadBindingServerEP {
@@ -549,7 +549,7 @@ listener http:Listener requestInterceptorWithQueryParamServerEP = new(requestInt
     httpVersion = http:HTTP_1_1,
     interceptors = function () returns [DefaultRequestInterceptor, RequestInterceptorWithQueryParam, LastRequestInterceptor] {
             return [new DefaultRequestInterceptor(), new RequestInterceptorWithQueryParam(), new LastRequestInterceptor()];
-        }
+        };
 );
 
 service / on requestInterceptorWithQueryParamServerEP {
@@ -641,7 +641,7 @@ listener http:Listener interceptorExecutionOrderServerEP = check new(interceptor
                 new DefaultRequestInterceptor(), new LastResponseInterceptor(), new RequestInterceptorCheckHeader("listener-header"),
                 new ResponseInterceptorWithVariable("listener-response"), new RequestInterceptorWithVariable("listener-request")
             ];
-        }
+        };
 );
 
 service / on interceptorExecutionOrderServerEP {
