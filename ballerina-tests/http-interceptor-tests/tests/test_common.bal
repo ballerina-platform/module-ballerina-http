@@ -195,7 +195,7 @@ service class RequestInterceptorCheckHeader {
     *http:RequestInterceptor;
     final string headerName;
 
-    function init(string headerName) {
+    isolated function init(string headerName) {
         self.headerName = headerName;
     }
 
@@ -348,7 +348,7 @@ service class RequestInterceptorWithVariable {
     *http:RequestInterceptor;
     final string name;
 
-    function init(string name) {
+    isolated function init(string name) {
         self.name = name;
     }
 
@@ -528,7 +528,7 @@ service class ResponseInterceptorWithVariable {
     *http:ResponseInterceptor;
     final string name;
 
-    function init(string name) {
+    isolated function init(string name) {
         self.name = name;
     }
 

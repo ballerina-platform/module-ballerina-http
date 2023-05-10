@@ -191,7 +191,7 @@ function testRequestInterceptorReturnsError() returns error? {
 final http:Client responseInterceptorReturnsErrorTestClientEP = check new("http://localhost:" + responseInterceptorReturnsErrorTestPort.toString(), httpVersion = http:HTTP_1_1);
 
 listener http:Listener responseInterceptorReturnsErrorTestServerEP = new(responseInterceptorReturnsErrorTestPort, 
-    httpVersion = http:HTTP_1_1, interceptors = function () returns [LastResponseInterceptor, ResponseInterceptorReturnsError, DefaultResponseInterceptor] {
+    httpVersion = http:HTTP_1_1, interceptors = isolated function () returns [LastResponseInterceptor, ResponseInterceptorReturnsError, DefaultResponseInterceptor] {
             return [new LastResponseInterceptor(), new ResponseInterceptorReturnsError(), new DefaultResponseInterceptor()];
         });
 
