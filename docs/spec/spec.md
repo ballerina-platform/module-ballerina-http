@@ -2285,8 +2285,14 @@ service http:InterceptableService / on new http:Listener(9099) {
 Interceptors could get engaged at Listener level as well. Interceptors engaged at listener level should have resource 
 function only with default path i.e. these interceptors will get executed for all the services registered on this 
 listener.
+
+In order to engage interceptors, a `http:CreateInterceptorsFunction` can be provided to the `httpListenerConfiguration`.
 ```ballerina
-listener http:Listener echoListener = new http:Listener(9090, config = {interceptors: [requestInterceptor, responseInterceptor]});
+http:CreateInterceptorsFunction interceptorsFunction = function () returns [RequestInterceptor, ResponseInterceptor] {
+    return [new RequestInterceptor(), new ResponseInterceptor()];
+};
+
+listener http:Listener echoListener = new http:Listener(9090, config = {interceptors: interceptorsFunction});
 ```
 
 ##### 8.1.4.3 Execution order of interceptors
