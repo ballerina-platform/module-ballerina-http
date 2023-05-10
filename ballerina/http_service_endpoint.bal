@@ -16,6 +16,7 @@
 
 import ballerina/crypto;
 import ballerina/jballerina.java;
+import ballerina/log;
 
 # This is used for creating HTTP server endpoints. An HTTP server endpoint is capable of responding to
 # remote callers. The `Listener` is responsible for initializing the endpoint using the provided configurations.
@@ -41,7 +42,15 @@ public isolated class Listener {
             requestLimits: config.requestLimits
         };
         self.interceptors = [new DefaultErrorInterceptor()];
-        Interceptor|Interceptor[]? interceptors = config.interceptors;
+        Interceptor|Interceptor[]|CreateInterceptorsFunction? interceptors = config.interceptors;
+        if interceptors !is CreateInterceptorsFunction && interceptors !is () {
+            log:printWarn("Defining interceptor pipeling using http:Interceptor|http:Interceptor[] " +
+                "is deprecated. Use http:CreateInterceptorsFunction instead. See https://ballerina.io/learn/" +
+                "by-example/http-response-interceptor/");
+        } else if interceptors is CreateInterceptorsFunction {
+            Interceptor|Interceptor[]? interceptorValues = interceptors();
+            interceptors = interceptorValues;
+        }
         if interceptors is Interceptor[] {
             foreach Interceptor interceptor in interceptors {
                 self.interceptors.push(interceptor);
@@ -151,7 +160,8 @@ public type Local record {|
 #                   disable timeout
 # + server - The server name which should appear as a response header
 # + requestLimits - Configurations associated with inbound request size limits
-# + interceptors - An array of interceptor services
+# + interceptors - `http:Interceptor` or `http:Interceptor[]` or`http:CreateInterceptorsFunction`. Here, defining
+#                   the interceptor pipeline using `http:Interceptor|http:Interceptor[]` is deprecated.
 # + gracefulStopTimeout - Grace period of time in seconds for listener gracefulStop
 # + socketConfig - Provides settings related to server socket configuration
 public type ListenerConfiguration record {|
@@ -162,7 +172,7 @@ public type ListenerConfiguration record {|
     decimal timeout = DEFAULT_LISTENER_TIMEOUT;
     string? server = ();
     RequestLimitConfigs requestLimits = {};
-    Interceptor|Interceptor[] interceptors?;
+    Interceptor|Interceptor[]|CreateInterceptorsFunction interceptors?;
     decimal gracefulStopTimeout = DEFAULT_GRACEFULSTOP_TIMEOUT;
     ServerSocketConfig socketConfig = {};
 |};

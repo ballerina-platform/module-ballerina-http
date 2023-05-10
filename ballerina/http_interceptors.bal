@@ -46,6 +46,9 @@ public type InterceptableService distinct service object {
     public function createInterceptors() returns Interceptor|Interceptor[];
 };
 
+# The function type to be used when engaging interceptors at the listener level
+public type CreateInterceptorsFunction isolated function () returns Interceptor|Interceptor[];
+
 # The return type of an interceptor service function
 public type NextService RequestInterceptor|ResponseInterceptor|Service;
 
