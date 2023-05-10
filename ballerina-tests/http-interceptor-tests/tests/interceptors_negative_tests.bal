@@ -24,7 +24,7 @@ listener http:Listener requestInterceptorNegativeServerEP1 = new(requestIntercep
     httpVersion = http:HTTP_1_1,
     interceptors = function () returns [DefaultRequestInterceptor, RequestInterceptorNegative1, LastRequestInterceptor] {
             return [new DefaultRequestInterceptor(), new RequestInterceptorNegative1(), new LastRequestInterceptor()];
-        };
+        }
 );
 
 @test:Config{}
@@ -40,7 +40,7 @@ listener http:Listener requestInterceptorNegativeServerEP2 = new(requestIntercep
     httpVersion = http:HTTP_1_1,
     interceptors = function () returns [DefaultRequestInterceptor, RequestInterceptorNegative2, LastRequestInterceptor] {
             return [new DefaultRequestInterceptor(), new RequestInterceptorNegative2(), new LastRequestInterceptor()];
-        };
+        }
 );
 
 service / on requestInterceptorNegativeServerEP2 {
@@ -63,7 +63,7 @@ listener http:Listener requestInterceptorNegativeServerEP3 = new(requestIntercep
     httpVersion = http:HTTP_1_1,
     interceptors = function () returns DefaultRequestInterceptor {
             return new DefaultRequestInterceptor();
-        };
+        }
 );
 
 service / on requestInterceptorNegativeServerEP3 {
@@ -96,7 +96,7 @@ listener http:Listener requestInterceptorNegativeServerEP4 = new(requestIntercep
     httpVersion = http:HTTP_1_1,
     interceptors = function () returns [DefaultRequestInterceptor, RequestInterceptorSkip] {
             return [new DefaultRequestInterceptor(), new RequestInterceptorSkip()];
-        };
+        }
 );
 
 service / on requestInterceptorNegativeServerEP4 {
@@ -119,7 +119,7 @@ listener http:Listener requestInterceptorNegativeServerEP5 = new(requestIntercep
     httpVersion = http:HTTP_1_1,
     interceptors = function () returns [DefaultRequestInterceptor, LastRequestInterceptor, RequestErrorInterceptorReturnsErrorMsg] {
             return [new DefaultRequestInterceptor(), new LastRequestInterceptor(), new RequestErrorInterceptorReturnsErrorMsg()];
-        };
+        }
 );
 
 service /hello on requestInterceptorNegativeServerEP5 {
@@ -141,7 +141,7 @@ listener http:Listener requestInterceptorNegativeServerEP6 = new(requestIntercep
     httpVersion = http:HTTP_1_1,
     interceptors = function () returns [DefaultRequestInterceptor, RequestInterceptorNegative3] {
             return [new DefaultRequestInterceptor(), new RequestInterceptorNegative3()];
-        };
+        }
 );
 
 service / on requestInterceptorNegativeServerEP6 {
@@ -167,7 +167,7 @@ listener http:Listener responseInterceptorNegativeServerEP1 = new(responseInterc
                 new DefaultRequestInterceptor(), new ResponseInterceptorNegative1(), new LastRequestInterceptor(),
                 new DefaultResponseInterceptor()
             ];
-        };
+        }
 );
 
 service / on responseInterceptorNegativeServerEP1 {

@@ -193,7 +193,7 @@ final http:Client responseInterceptorReturnsErrorTestClientEP = check new("http:
 listener http:Listener responseInterceptorReturnsErrorTestServerEP = new(responseInterceptorReturnsErrorTestPort, 
     httpVersion = http:HTTP_1_1, interceptors = function () returns [LastResponseInterceptor, ResponseInterceptorReturnsError, DefaultResponseInterceptor] {
             return [new LastResponseInterceptor(), new ResponseInterceptorReturnsError(), new DefaultResponseInterceptor()];
-        };);
+        });
 
 service / on responseInterceptorReturnsErrorTestServerEP {
 
