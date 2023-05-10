@@ -110,8 +110,12 @@ int http2ResponseInterceptorReturnsErrorTestPort = common:getHttp2Port(responseI
 final http:Client http2ResponseInterceptorReturnsErrorTestClientEP = check new ("http://localhost:" + http2ResponseInterceptorReturnsErrorTestPort.toString(),
     http2Settings = {http2PriorKnowledge: true});
 
+http:CreateInterceptorsFunction interceptorsFunction = function () returns [LastResponseInterceptor, ResponseInterceptorReturnsError, DefaultResponseInterceptor] {
+    return [new LastResponseInterceptor(), new ResponseInterceptorReturnsError(), new DefaultResponseInterceptor()];
+};
+
 listener http:Listener http2ResponseInterceptorReturnsErrorTestServerEP = new (http2ResponseInterceptorReturnsErrorTestPort, config = {
-    interceptors: [new LastResponseInterceptor(), new ResponseInterceptorReturnsError(), new DefaultResponseInterceptor()]
+    interceptors: interceptorsFunction
 });
 
 service / on http2ResponseInterceptorReturnsErrorTestServerEP {

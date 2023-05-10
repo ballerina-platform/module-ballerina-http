@@ -62,7 +62,9 @@ function testHTTPS2DataBinding() returns error? {
 }
 
 @http:ServiceConfig {
-    interceptors : [new DefaultRequestInterceptor(), new DataBindingRequestInterceptor(), new LastRequestInterceptor()]
+    interceptors: function () returns [DefaultRequestInterceptor, DataBindingRequestInterceptor, LastRequestInterceptor] {
+           return [new DefaultRequestInterceptor(), new DataBindingRequestInterceptor(), new LastRequestInterceptor()];
+       };
 }
 service /interceptor1 on generalHTTP2Listener {
 
@@ -72,7 +74,9 @@ service /interceptor1 on generalHTTP2Listener {
 }
 
 @http:ServiceConfig {
-    interceptors : [new DefaultRequestInterceptor(), new LastRequestInterceptor()]
+    interceptors: function () returns [DefaultRequestInterceptor, LastRequestInterceptor] {
+            return [new DefaultRequestInterceptor(), new LastRequestInterceptor()];
+        };
 }
 service /interceptor2 on generalHTTP2Listener {
 
@@ -82,7 +86,9 @@ service /interceptor2 on generalHTTP2Listener {
 }
 
 @http:ServiceConfig {
-    interceptors : [new DefaultRequestInterceptor(), new DataBindingRequestInterceptor(), new LastRequestInterceptor()]
+    interceptors: function () returns [DefaultRequestInterceptor, DataBindingRequestInterceptor, LastRequestInterceptor] {
+            return [new DefaultRequestInterceptor(), new DataBindingRequestInterceptor(), new LastRequestInterceptor()];
+        };
 }
 service /interceptor1 on generalHTTPS2Listener {
    
@@ -92,7 +98,9 @@ service /interceptor1 on generalHTTPS2Listener {
 }
 
 @http:ServiceConfig {
-    interceptors : [new DefaultRequestInterceptor(), new LastRequestInterceptor()]
+    interceptors: function () returns [DefaultRequestInterceptor, LastRequestInterceptor] {
+            return [new DefaultRequestInterceptor(), new LastRequestInterceptor()];
+        };
 }
 service /interceptor2 on generalHTTPS2Listener {
 
