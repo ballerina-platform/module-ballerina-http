@@ -22,9 +22,9 @@ final http:Client requestInterceptorNegativeClientEP1 = check new("http://localh
 
 listener http:Listener requestInterceptorNegativeServerEP1 = new(requestInterceptorNegativeTestPort1, 
     httpVersion = http:HTTP_1_1,
-    interceptors = function () returns [DefaultRequestInterceptor, RequestInterceptorNegative1, LastRequestInterceptor] {
+    interceptors = isolated function () returns [DefaultRequestInterceptor, RequestInterceptorNegative1, LastRequestInterceptor] {
             return [new DefaultRequestInterceptor(), new RequestInterceptorNegative1(), new LastRequestInterceptor()];
-        };
+        }
 );
 
 @test:Config{}
@@ -38,9 +38,9 @@ final http:Client requestInterceptorNegativeClientEP2 = check new("http://localh
 
 listener http:Listener requestInterceptorNegativeServerEP2 = new(requestInterceptorNegativeTestPort2, 
     httpVersion = http:HTTP_1_1,
-    interceptors = function () returns [DefaultRequestInterceptor, RequestInterceptorNegative2, LastRequestInterceptor] {
+    interceptors = isolated function () returns [DefaultRequestInterceptor, RequestInterceptorNegative2, LastRequestInterceptor] {
             return [new DefaultRequestInterceptor(), new RequestInterceptorNegative2(), new LastRequestInterceptor()];
-        };
+        }
 );
 
 service / on requestInterceptorNegativeServerEP2 {
@@ -61,9 +61,9 @@ final http:Client requestInterceptorNegativeClientEP3 = check new("http://localh
 
 listener http:Listener requestInterceptorNegativeServerEP3 = new(requestInterceptorNegativeTestPort3, 
     httpVersion = http:HTTP_1_1,
-    interceptors = function () returns DefaultRequestInterceptor {
+    interceptors = isolated function () returns DefaultRequestInterceptor {
             return new DefaultRequestInterceptor();
-        };
+        }
 );
 
 service / on requestInterceptorNegativeServerEP3 {
@@ -94,9 +94,9 @@ final http:Client requestInterceptorNegativeClientEP4 = check new("http://localh
 
 listener http:Listener requestInterceptorNegativeServerEP4 = new(requestInterceptorNegativeTestPort4, 
     httpVersion = http:HTTP_1_1,
-    interceptors = function () returns [DefaultRequestInterceptor, RequestInterceptorSkip] {
+    interceptors = isolated function () returns [DefaultRequestInterceptor, RequestInterceptorSkip] {
             return [new DefaultRequestInterceptor(), new RequestInterceptorSkip()];
-        };
+        }
 );
 
 service / on requestInterceptorNegativeServerEP4 {
@@ -117,9 +117,9 @@ final http:Client requestInterceptorNegativeClientEP5 = check new("http://localh
 
 listener http:Listener requestInterceptorNegativeServerEP5 = new(requestInterceptorNegativeTestPort5, 
     httpVersion = http:HTTP_1_1,
-    interceptors = function () returns [DefaultRequestInterceptor, LastRequestInterceptor, RequestErrorInterceptorReturnsErrorMsg] {
+    interceptors = isolated function () returns [DefaultRequestInterceptor, LastRequestInterceptor, RequestErrorInterceptorReturnsErrorMsg] {
             return [new DefaultRequestInterceptor(), new LastRequestInterceptor(), new RequestErrorInterceptorReturnsErrorMsg()];
-        };
+        }
 );
 
 service /hello on requestInterceptorNegativeServerEP5 {
@@ -139,9 +139,9 @@ final http:Client requestInterceptorNegativeClientEP6 = check new("http://localh
 
 listener http:Listener requestInterceptorNegativeServerEP6 = new(requestInterceptorNegativeTestPort6, 
     httpVersion = http:HTTP_1_1,
-    interceptors = function () returns [DefaultRequestInterceptor, RequestInterceptorNegative3] {
+    interceptors = isolated function () returns [DefaultRequestInterceptor, RequestInterceptorNegative3] {
             return [new DefaultRequestInterceptor(), new RequestInterceptorNegative3()];
-        };
+        }
 );
 
 service / on requestInterceptorNegativeServerEP6 {
@@ -162,12 +162,12 @@ final http:Client responseInterceptorNegativeClientEP1 = check new("http://local
 
 listener http:Listener responseInterceptorNegativeServerEP1 = new(responseInterceptorNegativeTestPort1, 
     httpVersion = http:HTTP_1_1,
-    interceptors = function () returns [DefaultRequestInterceptor, ResponseInterceptorNegative1, LastRequestInterceptor, DefaultResponseInterceptor] {
+    interceptors = isolated function () returns [DefaultRequestInterceptor, ResponseInterceptorNegative1, LastRequestInterceptor, DefaultResponseInterceptor] {
             return [
                 new DefaultRequestInterceptor(), new ResponseInterceptorNegative1(), new LastRequestInterceptor(),
                 new DefaultResponseInterceptor()
             ];
-        };
+        }
 );
 
 service / on responseInterceptorNegativeServerEP1 {
