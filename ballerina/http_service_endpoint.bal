@@ -160,7 +160,7 @@ public type Local record {|
 #                   disable timeout
 # + server - The server name which should appear as a response header
 # + requestLimits - Configurations associated with inbound request size limits
-# + interceptors - `http:Interceptor` or `http:Interceptor[]` or`http:CreateInterceptorsFunction`. Here, defining
+# + interceptors - `http:Interceptor` or `http:Interceptor[]` or `http:CreateInterceptorsFunction`. Here, defining
 #                   the interceptor pipeline using `http:Interceptor|http:Interceptor[]` is deprecated.
 # + gracefulStopTimeout - Grace period of time in seconds for listener gracefulStop
 # + socketConfig - Provides settings related to server socket configuration
