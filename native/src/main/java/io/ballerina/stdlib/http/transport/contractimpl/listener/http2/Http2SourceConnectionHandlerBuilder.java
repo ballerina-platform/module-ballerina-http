@@ -52,13 +52,15 @@ public final class Http2SourceConnectionHandlerBuilder
                                                String serverName,
                                                HttpServerChannelInitializer serverChannelInitializer,
                                                ChannelGroup allChannels,
-                                               ChannelGroup listenerChannels) {
+                                               ChannelGroup listenerChannels,
+                                               long maxHeaderListSize) {
         this.interfaceId = interfaceId;
         this.serverConnectorFuture = serverConnectorFuture;
         this.serverName = serverName;
         this.serverChannelInitializer = serverChannelInitializer;
         this.allChannels = allChannels;
         this.listenerChannels = listenerChannels;
+        this.initialSettings().maxHeaderListSize(maxHeaderListSize);
     }
 
     @Override

@@ -47,18 +47,21 @@ public class Http2WithPriorKnowledgeHandler extends ChannelInboundHandlerAdapter
     private HttpServerChannelInitializer serverChannelInitializer;
     private ChannelGroup allChannels;
     private ChannelGroup listenerChannels;
+    private long maxHeaderListSize;
 
     public Http2WithPriorKnowledgeHandler(String interfaceId, String serverName,
                                           ServerConnectorFuture serverConnectorFuture,
                                           HttpServerChannelInitializer serverChannelInitializer,
                                           ChannelGroup allChannels,
-                                          ChannelGroup listenerChannels) {
+                                          ChannelGroup listenerChannels,
+                                          long maxHeaderListSize) {
         this.interfaceId = interfaceId;
         this.serverName = serverName;
         this.serverConnectorFuture = serverConnectorFuture;
         this.serverChannelInitializer = serverChannelInitializer;
         this.allChannels = allChannels;
         this.listenerChannels = listenerChannels;
+        this.maxHeaderListSize = maxHeaderListSize;
     }
 
     @Override
@@ -77,7 +80,7 @@ public class Http2WithPriorKnowledgeHandler extends ChannelInboundHandlerAdapter
                         Constants.HTTP2_SOURCE_CONNECTION_HANDLER,
                         new Http2SourceConnectionHandlerBuilder(
                                 interfaceId, serverConnectorFuture, serverName, serverChannelInitializer,
-                                allChannels, listenerChannels).build());
+                                allChannels, listenerChannels, maxHeaderListSize).build());
 
                 safelyRemoveHandlers(pipeline, Constants.HTTP2_UPGRADE_HANDLER,
                         Constants.HTTP_COMPRESSOR, Constants.HTTP_TRACE_LOG_HANDLER);

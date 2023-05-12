@@ -42,19 +42,19 @@ http:ListenerConfiguration http2LowUrlLimitConfig = {
 
 http:ListenerConfiguration http2lowHeaderConfig = {
     requestLimits: {
-        maxHeaderSize: 30
+        maxHeaderSize: 850
     }
 };
 
 http:ListenerConfiguration http2LowHeaderConfig = {
     requestLimits: {
-        maxHeaderSize: 30
+        maxHeaderSize: 850
     }
 };
 
 http:ListenerConfiguration http2MidSizeHeaderConfig = {
     requestLimits: {
-        maxHeaderSize: 100
+        maxHeaderSize: 400
     }
 };
 
