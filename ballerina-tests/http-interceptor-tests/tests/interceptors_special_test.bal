@@ -24,7 +24,7 @@ final http:Client requestInterceptorWithCallerRespondClientEP = check new("http:
 
 listener http:Listener requestInterceptorWithCallerRespondServerEP = new(requestInterceptorWithCallerRespondTestPort, 
     httpVersion = http:HTTP_1_1,
-    interceptors = isolated function () returns [DefaultRequestInterceptor, LastResponseInterceptor, DefaultResponseInterceptor,
+    interceptors = function () returns [DefaultRequestInterceptor, LastResponseInterceptor, DefaultResponseInterceptor,
                                             RequestInterceptorCallerRespond, LastRequestInterceptor] {
             return [
                 new DefaultRequestInterceptor(), new LastResponseInterceptor(), new DefaultResponseInterceptor(),
@@ -54,7 +54,7 @@ final http:Client responseInterceptorWithCallerRespondClientEP = check new("http
 
 listener http:Listener responseInterceptorWithCallerRespondServerEP = new(responseInterceptorWithCallerRespondTestPort, 
     httpVersion = http:HTTP_1_1,
-    interceptors = isolated function () returns [LastResponseInterceptor, ResponseInterceptorCallerRespond, DefaultResponseInterceptor] {
+    interceptors = function () returns [LastResponseInterceptor, ResponseInterceptorCallerRespond, DefaultResponseInterceptor] {
             return [new LastResponseInterceptor(), new ResponseInterceptorCallerRespond(), new DefaultResponseInterceptor()];
         }
 );
@@ -80,7 +80,7 @@ final http:Client requestInterceptorCallerRespondErrorTestClientEP = check new("
 
 listener http:Listener requestInterceptorCallerRespondErrorTestServerEP = new(requestInterceptorCallerRespondErrorTestPort, 
     httpVersion = http:HTTP_1_1,
-    interceptors = isolated function () returns [LastResponseInterceptor, DefaultResponseErrorInterceptor, DefaultResponseInterceptor,
+    interceptors = function () returns [LastResponseInterceptor, DefaultResponseErrorInterceptor, DefaultResponseInterceptor,
                                 RequestInterceptorReturnsError, DefaultRequestInterceptor, LastRequestInterceptor] {
             return [
                 new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultResponseInterceptor(),
@@ -112,7 +112,7 @@ final http:Client responseInterceptorCallerRespondErrorTestClientEP = check new(
 
 listener http:Listener responseInterceptorCallerRespondErrorTestServerEP = new(responseInterceptorCallerRespondErrorTestPort, 
     httpVersion = http:HTTP_1_1,
-    interceptors = isolated function () returns [LastResponseInterceptor, DefaultResponseErrorInterceptor, DefaultResponseInterceptor,
+    interceptors = function () returns [LastResponseInterceptor, DefaultResponseErrorInterceptor, DefaultResponseInterceptor,
                                     ResponseInterceptorCallerRespondError] {
             return [
                 new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultResponseInterceptor(),
@@ -143,7 +143,7 @@ final http:Client requestInterceptorDataBindingClientEP1 = check new("http://loc
 
 listener http:Listener requestInterceptorDataBindingServerEP1 = new(requestInterceptorDataBindingTestPort1, 
     httpVersion = http:HTTP_1_1,
-    interceptors = isolated function () returns [DefaultRequestInterceptor, DataBindingRequestInterceptor,
+    interceptors = function () returns [DefaultRequestInterceptor, DataBindingRequestInterceptor,
                                                     RequestErrorInterceptorReturnsErrorMsg, LastRequestInterceptor] {
             return [new DefaultRequestInterceptor(), new DataBindingRequestInterceptor(),
                             new RequestErrorInterceptorReturnsErrorMsg(), new LastRequestInterceptor()];
@@ -166,7 +166,7 @@ final http:Client requestInterceptorDataBindingClientEP2 = check new("http://loc
 
 listener http:Listener requestInterceptorDataBindingServerEP2 = new(requestInterceptorDataBindingTestPort2, 
     httpVersion = http:HTTP_1_1,
-    interceptors = isolated function () returns [DataBindingRequestInterceptor, LastRequestInterceptor] {
+    interceptors = function () returns [DataBindingRequestInterceptor, LastRequestInterceptor] {
             return [new DataBindingRequestInterceptor(), new LastRequestInterceptor()];
         }
 );
@@ -234,7 +234,7 @@ final http:Client requestInterceptorWithoutCtxNextClientEP = check new("http://l
 
 listener http:Listener requestInterceptorWithoutCtxNextServerEP = new(requestInterceptorWithoutCtxNextTestPort, 
     httpVersion = http:HTTP_1_1,
-    interceptors = isolated function () returns [DefaultRequestInterceptor, RequestInterceptorWithoutCtxNext, LastRequestInterceptor] {
+    interceptors = function () returns [DefaultRequestInterceptor, RequestInterceptorWithoutCtxNext, LastRequestInterceptor] {
             return [new DefaultRequestInterceptor(), new RequestInterceptorWithoutCtxNext(), new LastRequestInterceptor()];
         }
 );
@@ -256,7 +256,7 @@ final http:Client responseInterceptorWithoutCtxNextClientEP = check new("http://
 
 listener http:Listener responseInterceptorWithoutCtxNextServerEP = new(responseInterceptorWithoutCtxNextTestPort, 
     httpVersion = http:HTTP_1_1,
-    interceptors = isolated function () returns [LastResponseInterceptor, ResponseInterceptorWithoutCtxNext, DefaultResponseInterceptor] {
+    interceptors = function () returns [LastResponseInterceptor, ResponseInterceptorWithoutCtxNext, DefaultResponseInterceptor] {
             return [new LastResponseInterceptor(), new ResponseInterceptorWithoutCtxNext(), new DefaultResponseInterceptor()];
         }
 );
@@ -281,7 +281,7 @@ final http:Client requestInterceptorSkipClientEP = check new("http://localhost:"
 
 listener http:Listener requestInterceptorSkipServerEP = new(requestInterceptorSkipTestPort, 
     httpVersion = http:HTTP_1_1,
-    interceptors = isolated function () returns [DefaultRequestInterceptor, RequestInterceptorSkip, RequestInterceptorWithoutCtxNext, LastRequestInterceptor] {
+    interceptors = function () returns [DefaultRequestInterceptor, RequestInterceptorSkip, RequestInterceptorWithoutCtxNext, LastRequestInterceptor] {
             return [new DefaultRequestInterceptor(), new RequestInterceptorSkip(), new RequestInterceptorWithoutCtxNext(), new LastRequestInterceptor()];
         }
 );
@@ -309,7 +309,7 @@ final http:Client responseInterceptorSkipClientEP = check new("http://localhost:
 
 listener http:Listener responseInterceptorSkipServerEP = new(responseInterceptorSkipTestPort, 
     httpVersion = http:HTTP_1_1,
-    interceptors = isolated function () returns [LastResponseInterceptor, ResponseInterceptorWithoutCtxNext, ResponseInterceptorSkip, DefaultResponseInterceptor] {
+    interceptors = function () returns [LastResponseInterceptor, ResponseInterceptorWithoutCtxNext, ResponseInterceptorSkip, DefaultResponseInterceptor] {
             return [
                 new LastResponseInterceptor(), new ResponseInterceptorWithoutCtxNext(), new ResponseInterceptorSkip(),
                 new DefaultResponseInterceptor()
@@ -337,7 +337,7 @@ final http:Client requestInterceptorCallerRespondContinueClientEP = check new("h
 
 listener http:Listener requestInterceptorCallerRespondContinueServerEP = new(requestInterceptorCallerRespondContinueTestPort, 
     httpVersion = http:HTTP_1_1,
-    interceptors = isolated function () returns [DefaultRequestInterceptor, RequestInterceptorCallerRespondContinue, LastRequestInterceptor] {
+    interceptors = function () returns [DefaultRequestInterceptor, RequestInterceptorCallerRespondContinue, LastRequestInterceptor] {
             return [new DefaultRequestInterceptor(), new RequestInterceptorCallerRespondContinue(), new LastRequestInterceptor()];
         }
 );
@@ -369,7 +369,7 @@ final http:Client responseInterceptorCallerRespondContinueClientEP = check new("
 
 listener http:Listener responseInterceptorCallerRespondContinueServerEP = new(responseInterceptorCallerRespondContinueTestPort, 
     httpVersion = http:HTTP_1_1,
-    interceptors = isolated function () returns [LastResponseInterceptor, ResponseInterceptorCallerRespondContinue, DefaultResponseInterceptor] {
+    interceptors = function () returns [LastResponseInterceptor, ResponseInterceptorCallerRespondContinue, DefaultResponseInterceptor] {
             return [new LastResponseInterceptor(), new ResponseInterceptorCallerRespondContinue(), new DefaultResponseInterceptor()];
         }
 );
@@ -395,7 +395,7 @@ final http:Client requestInterceptorCtxNextClientEP = check new("http://localhos
 
 listener http:Listener requestInterceptorCtxNextServerEP = new(requestInterceptorCtxNextTestPort, 
     httpVersion = http:HTTP_1_1,
-    interceptors = isolated function () returns [DefaultRequestInterceptor, RequestInterceptorCtxNext, LastRequestInterceptor] {
+    interceptors = function () returns [DefaultRequestInterceptor, RequestInterceptorCtxNext, LastRequestInterceptor] {
             return [new DefaultRequestInterceptor(), new RequestInterceptorCtxNext(), new LastRequestInterceptor()];
         }
 );
@@ -426,7 +426,7 @@ final http:Client requestInterceptorStringPayloadBindingClientEP = check new("ht
 
 listener http:Listener requestInterceptorStringPayloadBindingServerEP = new(requestInterceptorStringPayloadBindingTestPort, 
     httpVersion = http:HTTP_1_1,
-    interceptors = isolated function () returns [DefaultRequestInterceptor, StringPayloadBindingRequestInterceptor, LastRequestInterceptor] {
+    interceptors = function () returns [DefaultRequestInterceptor, StringPayloadBindingRequestInterceptor, LastRequestInterceptor] {
             return [new DefaultRequestInterceptor(), new StringPayloadBindingRequestInterceptor(), new LastRequestInterceptor()];
         }
 );
@@ -455,7 +455,7 @@ final http:Client requestInterceptorRecordPayloadBindingClientEP = check new("ht
 
 listener http:Listener requestInterceptorRecordPayloadBindingServerEP = new(requestInterceptorRecordPayloadBindingTestPort, 
     httpVersion = http:HTTP_1_1,
-    interceptors = isolated function () returns [DefaultRequestInterceptor, RecordPayloadBindingRequestInterceptor, LastRequestInterceptor] {
+    interceptors = function () returns [DefaultRequestInterceptor, RecordPayloadBindingRequestInterceptor, LastRequestInterceptor] {
             return [new DefaultRequestInterceptor(), new RecordPayloadBindingRequestInterceptor(), new LastRequestInterceptor()];
         }
 );
@@ -485,7 +485,7 @@ final http:Client requestInterceptorRecordArrayPayloadBindingClientEP = check ne
 
 listener http:Listener requestInterceptorRecordArrayPayloadBindingServerEP = new(requestInterceptorRecordArrayPayloadBindingTestPort, 
     httpVersion = http:HTTP_1_1,
-    interceptors = isolated function () returns [DefaultRequestInterceptor, RecordArrayPayloadBindingRequestInterceptor, LastRequestInterceptor] {
+    interceptors = function () returns [DefaultRequestInterceptor, RecordArrayPayloadBindingRequestInterceptor, LastRequestInterceptor] {
             return [new DefaultRequestInterceptor(), new RecordArrayPayloadBindingRequestInterceptor(), new LastRequestInterceptor()];
         }
 );
@@ -515,7 +515,7 @@ final http:Client requestInterceptorByteArrayPayloadBindingClientEP = check new(
 
 listener http:Listener requestInterceptorByteArrayPayloadBindingServerEP = new(requestInterceptorByteArrayPayloadBindingTestPort, 
     httpVersion = http:HTTP_1_1,
-    interceptors = isolated function () returns [DefaultRequestInterceptor, ByteArrayPayloadBindingRequestInterceptor, LastRequestInterceptor] {
+    interceptors = function () returns [DefaultRequestInterceptor, ByteArrayPayloadBindingRequestInterceptor, LastRequestInterceptor] {
             return [new DefaultRequestInterceptor(), new ByteArrayPayloadBindingRequestInterceptor(), new LastRequestInterceptor()];
         }
 );
@@ -547,7 +547,7 @@ final http:Client requestInterceptorWithQueryParamClientEP = check new("http://l
 
 listener http:Listener requestInterceptorWithQueryParamServerEP = new(requestInterceptorWithQueryParamTestPort, 
     httpVersion = http:HTTP_1_1,
-    interceptors = isolated function () returns [DefaultRequestInterceptor, RequestInterceptorWithQueryParam, LastRequestInterceptor] {
+    interceptors = function () returns [DefaultRequestInterceptor, RequestInterceptorWithQueryParam, LastRequestInterceptor] {
             return [new DefaultRequestInterceptor(), new RequestInterceptorWithQueryParam(), new LastRequestInterceptor()];
         }
 );
@@ -635,7 +635,7 @@ final http:Client interceptorExecutionOrderClientEP = check new("http://localhos
 
 listener http:Listener interceptorExecutionOrderServerEP = check new(interceptorExecutionOrderTestPort, 
     httpVersion = http:HTTP_1_1,
-    interceptors = isolated function () returns [DefaultRequestInterceptor, LastResponseInterceptor, RequestInterceptorCheckHeader,
+    interceptors = function () returns [DefaultRequestInterceptor, LastResponseInterceptor, RequestInterceptorCheckHeader,
                             ResponseInterceptorWithVariable, RequestInterceptorWithVariable] {
             return [
                 new DefaultRequestInterceptor(), new LastResponseInterceptor(), new RequestInterceptorCheckHeader("listener-header"),
