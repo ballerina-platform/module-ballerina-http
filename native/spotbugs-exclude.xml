@@ -76,4 +76,8 @@
         <Class name="io.ballerina.stdlib.http.api.HttpService$1" />
         <Bug pattern="DM_EXIT" />
     </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.api.HttpUtil$1" />
+        <Bug pattern="DM_EXIT" />
+    </Match>
 </FindBugsFilter>

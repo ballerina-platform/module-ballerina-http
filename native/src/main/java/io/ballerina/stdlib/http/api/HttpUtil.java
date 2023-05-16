@@ -20,8 +20,10 @@ package io.ballerina.stdlib.http.api;
 
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Module;
+import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.TypeTags;
+import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.Field;
@@ -115,6 +117,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
 import static io.ballerina.runtime.api.constants.RuntimeConstants.BALLERINA_VERSION;
@@ -130,6 +133,8 @@ import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_
 import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_PEER_ADDRESS;
 import static io.ballerina.stdlib.http.api.HttpConstants.ANN_CONFIG_ATTR_COMPRESSION_CONTENT_TYPES;
 import static io.ballerina.stdlib.http.api.HttpConstants.ANN_CONFIG_ATTR_SSL_ENABLED_PROTOCOLS;
+import static io.ballerina.stdlib.http.api.HttpConstants.CREATE_INTERCEPTORS_FUNCTION_NAME;
+import static io.ballerina.stdlib.http.api.HttpConstants.ENDPOINT_CONFIG_INTERCEPTORS;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_HEADERS;
 import static io.ballerina.stdlib.http.api.HttpConstants.RESOLVED_REQUESTED_URI;
 import static io.ballerina.stdlib.http.api.HttpConstants.RESPONSE_CACHE_CONTROL;
@@ -142,6 +147,7 @@ import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_PRO
 import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_SESSION_TIMEOUT;
 import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_TRUSTSTORE_FILE_PATH;
 import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_TRUSTSTORE_PASSWORD;
+import static io.ballerina.stdlib.http.api.HttpConstants.SERVICE_ENDPOINT_CONFIG;
 import static io.ballerina.stdlib.http.api.HttpConstants.SINGLE_SLASH;
 import static io.ballerina.stdlib.http.api.HttpConstants.SOCKET_CONFIG_CONNECT_TIMEOUT;
 import static io.ballerina.stdlib.http.api.HttpConstants.SOCKET_CONFIG_KEEP_ALIVE;
@@ -1595,14 +1601,45 @@ public class HttpUtil {
     }
 
     public static void populateInterceptorServicesFromListener(BObject serviceEndpoint, Runtime runtime) {
-        Object[] interceptors = {};
         List<BObject> interceptorServices = new ArrayList<>();
-        BArray interceptorsArray = serviceEndpoint.getArrayValue(HttpConstants.ENDPOINT_CONFIG_INTERCEPTORS);
+        BMap listenerConfig = ((BMap) serviceEndpoint.getNativeData(SERVICE_ENDPOINT_CONFIG));
+        final CountDownLatch latch = new CountDownLatch(1);
+        final BArray[] interceptorResponse = new BArray[1];
+        Callback interceptorCallback = new Callback() {
+            @Override
+            public void notifySuccess(Object result) {
+                if (result instanceof BArray) {
+                    interceptorResponse[0] = (BArray) result;
+                } else {
+                    ((BError) result).printStackTrace();
+                }
+                latch.countDown();
+            }
 
-        if (interceptorsArray != null) {
-            interceptors = interceptorsArray.getValues();
+            @Override
+            public void notifyFailure(BError bError) {
+                bError.printStackTrace();
+                System.exit(1);
+            }
+        };
+        if (listenerConfig != null && listenerConfig.get(ENDPOINT_CONFIG_INTERCEPTORS) != null) {
+            Object interceptorConfig = listenerConfig.get(ENDPOINT_CONFIG_INTERCEPTORS);
+            runtime.invokeMethodAsyncSequentially(serviceEndpoint, CREATE_INTERCEPTORS_FUNCTION_NAME, null, null,
+                    interceptorCallback, null, PredefinedTypes.TYPE_ANY, interceptorConfig, true);
+        } else {
+            runtime.invokeMethodAsyncSequentially(serviceEndpoint, CREATE_INTERCEPTORS_FUNCTION_NAME, null, null,
+                    interceptorCallback, null, PredefinedTypes.TYPE_ANY, null, true);
+        }
+        try {
+            latch.await();
+        } catch (InterruptedException exception) {
+            log.warn("Interrupted before receiving the interceptor response");
         }
 
+        if (interceptorResponse[0] == null) {
+            return;
+        }
+        Object[] interceptors = interceptorResponse[0].getValues();
         for (Object interceptor: interceptors) {
             if (interceptor == null) {
                 break;
@@ -1610,7 +1647,7 @@ public class HttpUtil {
             interceptorServices.add((BObject) interceptor);
         }
 
-        serviceEndpoint.addNativeData(HttpConstants.INTERCEPTORS, interceptorsArray);
+        serviceEndpoint.addNativeData(HttpConstants.INTERCEPTORS, interceptorResponse[0]);
         Register.resetInterceptorRegistry(serviceEndpoint, interceptorServices.size());
         List<HTTPInterceptorServicesRegistry> httpInterceptorServicesRegistries
                                                     = Register.getHttpInterceptorServicesRegistries(serviceEndpoint);

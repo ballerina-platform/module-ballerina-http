@@ -24,7 +24,6 @@ public isolated class Listener {
 
     private int port;
     private InferredListenerConfiguration inferredConfig;
-    private Interceptor[] interceptors;
 
     # Gets invoked during module initialization to initialize the listener.
     #
@@ -41,23 +40,6 @@ public isolated class Listener {
             server: config.server,
             requestLimits: config.requestLimits
         };
-        self.interceptors = [new DefaultErrorInterceptor()];
-        Interceptor|Interceptor[]|CreateInterceptorsFunction? interceptors = config.interceptors;
-        if interceptors !is CreateInterceptorsFunction && interceptors !is () {
-            log:printWarn("Defining interceptor pipeling using http:Interceptor|http:Interceptor[] " +
-                "is deprecated. Use http:CreateInterceptorsFunction instead. See https://ballerina.io/learn/" +
-                "by-example/http-response-interceptor/");
-        } else if interceptors is CreateInterceptorsFunction {
-            Interceptor|Interceptor[]? interceptorValues = interceptors();
-            interceptors = interceptorValues;
-        }
-        if interceptors is Interceptor[] {
-            foreach Interceptor interceptor in interceptors {
-                self.interceptors.push(interceptor);
-            }
-        } else if interceptors is Interceptor {
-            self.interceptors.push(interceptors);
-        }
         self.inferredConfig = inferredListenerConfig.cloneReadOnly();
         self.port = port;
         return externInitEndpoint(self, config);
@@ -118,6 +100,26 @@ public isolated class Listener {
         lock {
             return <readonly & InferredListenerConfiguration> self.inferredConfig.cloneReadOnly();
         }
+    }
+
+    function createInterceptors(Interceptor|Interceptor[]|CreateInterceptorsFunction? interceptorConfigValues) returns Interceptor[] {
+        Interceptor|Interceptor[]|CreateInterceptorsFunction? configValues = interceptorConfigValues;
+        Interceptor[] interceptors = [new DefaultErrorInterceptor()];
+        if configValues is CreateInterceptorsFunction {
+            configValues = configValues();
+        } else if configValues !is () {
+            log:printWarn("Defining interceptor pipeline using http:Interceptor|http:Interceptor[] " +
+                  "is deprecated. Use http:CreateInterceptorsFunction instead. See https://ballerina.io/learn/" +
+                  "by-example/http-response-interceptor/");
+        }
+        if configValues is Interceptor[] {
+            foreach Interceptor interceptor in configValues {
+                interceptors.push(interceptor);
+            }
+        } else if configValues is Interceptor {
+            interceptors.push(configValues);
+        }
+        return interceptors;
     }
 }
 
