@@ -104,6 +104,18 @@ public isolated function assertTrueTextPayload(string|error payload, string expe
     }
 }
 
+public isolated function assertTrueTextPayloadWithMutipleOptions(string|error payload, string... expectedValues) {
+    if payload is string {
+        foreach var value in expectedValues {
+            if (strings:includes(payload, value)) {
+                return;
+            }
+        }
+        test:assertFail(msg = "Found unexpected output");
+    }
+    test:assertFail(msg = "Found unexpected output type: " + payload.message());
+}
+
 public isolated function assertHeaderValue(string headerKey, string expectValue) {
     test:assertEquals(headerKey, expectValue, msg = "Found unexpected headerValue");
 }
