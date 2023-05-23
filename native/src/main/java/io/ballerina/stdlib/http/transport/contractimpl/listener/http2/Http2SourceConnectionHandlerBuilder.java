@@ -53,6 +53,7 @@ public final class Http2SourceConnectionHandlerBuilder
                                                HttpServerChannelInitializer serverChannelInitializer,
                                                ChannelGroup allChannels,
                                                ChannelGroup listenerChannels,
+                                               long maxHeaderListSize,
                                                int initialWindowSize) {
         this.interfaceId = interfaceId;
         this.serverConnectorFuture = serverConnectorFuture;
@@ -60,6 +61,7 @@ public final class Http2SourceConnectionHandlerBuilder
         this.serverChannelInitializer = serverChannelInitializer;
         this.allChannels = allChannels;
         this.listenerChannels = listenerChannels;
+        this.initialSettings().maxHeaderListSize(maxHeaderListSize);
         this.initialSettings().initialWindowSize(initialWindowSize);
     }
 

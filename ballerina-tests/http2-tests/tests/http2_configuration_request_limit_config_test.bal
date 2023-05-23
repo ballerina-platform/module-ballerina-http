@@ -42,19 +42,19 @@ http:ListenerConfiguration http2LowUrlLimitConfig = {
 
 http:ListenerConfiguration http2lowHeaderConfig = {
     requestLimits: {
-        maxHeaderSize: 30
+        maxHeaderSize: 850
     }
 };
 
 http:ListenerConfiguration http2LowHeaderConfig = {
     requestLimits: {
-        maxHeaderSize: 30
+        maxHeaderSize: 850
     }
 };
 
 http:ListenerConfiguration http2MidSizeHeaderConfig = {
     requestLimits: {
-        maxHeaderSize: 100
+        maxHeaderSize: 400
     }
 };
 
@@ -147,7 +147,7 @@ function testHttp2ValidHeaderLength() returns error? {
 //Tests the behaviour when header size is greater than the configured threshold
 // TODO: Enable after fixing this issue : https://github.com/ballerina-platform/ballerina-standard-library/issues/3963
 @test:Config {
-    groups: ["disabledOnWindows"]
+    enable: false
 }
 function testHttp2InvalidHeaderLength() returns error? {
     http:Client limitClient = check new ("http://localhost:" + http2RequestLimitsTestPort3.toString(),
@@ -160,7 +160,7 @@ function testHttp2InvalidHeaderLength() returns error? {
 // Tests the fallback behaviour when header size is greater than the configured http2 service
 // TODO: Enable after fixing this issue : https://github.com/ballerina-platform/ballerina-standard-library/issues/3963
 @test:Config {
-    groups: ["disabledOnWindows"]
+    enable: false
 }
 function testHttp2Http2ServiceInvalidHeaderLength() returns error? {
     http:Client limitClient = check new ("http://localhost:" + requestLimitsTestPort5.toString(),

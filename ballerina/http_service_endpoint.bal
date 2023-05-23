@@ -205,7 +205,8 @@ public type ListenerHttp1Settings record {|
 # Provides inbound request URI, total header and entity body size threshold configurations.
 #
 # + maxUriLength - Maximum allowed length for a URI. Exceeding this limit will result in a `414 - URI Too Long`
-#                  response
+#                  response. For HTTP/2, this limit will not be applicable as it already has a `:path`
+#                  pseudo-header which will be validated by `maxHeaderSize`
 # + maxHeaderSize - Maximum allowed size for headers. Exceeding this limit will result in a
 #                   `431 - Request Header Fields Too Large` response
 # + maxEntityBodySize - Maximum allowed size for the entity body. By default it is set to -1 which means there

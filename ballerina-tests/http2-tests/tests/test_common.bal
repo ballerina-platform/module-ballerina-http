@@ -40,7 +40,7 @@ type ByteOpt byte[]?;
 function getLargeHeader() returns string {
     string header = "x";
     int i = 0;
-    while(i < 9000) {
+    while(i < 900) {
         header = header + "x";
         i = i + 1;
     }

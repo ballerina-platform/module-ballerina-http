@@ -47,6 +47,7 @@ public class Http2WithPriorKnowledgeHandler extends ChannelInboundHandlerAdapter
     private HttpServerChannelInitializer serverChannelInitializer;
     private ChannelGroup allChannels;
     private ChannelGroup listenerChannels;
+    private long maxHeaderListSize;
     private int initialWindowSize;
 
     public Http2WithPriorKnowledgeHandler(String interfaceId, String serverName,
@@ -54,6 +55,7 @@ public class Http2WithPriorKnowledgeHandler extends ChannelInboundHandlerAdapter
                                           HttpServerChannelInitializer serverChannelInitializer,
                                           ChannelGroup allChannels,
                                           ChannelGroup listenerChannels,
+                                          long maxHeaderListSize,
                                           int initialWindowSize) {
         this.interfaceId = interfaceId;
         this.serverName = serverName;
@@ -61,6 +63,7 @@ public class Http2WithPriorKnowledgeHandler extends ChannelInboundHandlerAdapter
         this.serverChannelInitializer = serverChannelInitializer;
         this.allChannels = allChannels;
         this.listenerChannels = listenerChannels;
+        this.maxHeaderListSize = maxHeaderListSize;
         this.initialWindowSize = initialWindowSize;
     }
 
@@ -80,8 +83,7 @@ public class Http2WithPriorKnowledgeHandler extends ChannelInboundHandlerAdapter
                         Constants.HTTP2_SOURCE_CONNECTION_HANDLER,
                         new Http2SourceConnectionHandlerBuilder(
                                 interfaceId, serverConnectorFuture, serverName, serverChannelInitializer,
-                                allChannels, listenerChannels, initialWindowSize).build());
-
+                                allChannels, listenerChannels, maxHeaderListSize, initialWindowSize).build());
                 safelyRemoveHandlers(pipeline, Constants.HTTP2_UPGRADE_HANDLER,
                         Constants.HTTP_COMPRESSOR, Constants.HTTP_TRACE_LOG_HANDLER);
             }
