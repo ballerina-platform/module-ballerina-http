@@ -845,14 +845,8 @@ function testHttp24XXHandleError() returns error? {
     if response is http:Response {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
         common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:APPLICATION_JSON);
-        json payload = check response.getJsonPayload();
-        common:assertJsonValue(payload, "status", 404);
-        common:assertJsonValue(payload, "message", "no matching resource found for path");
-        common:assertJsonValue(payload, "path", "/backend/handle");
-        common:assertJsonValue(payload, "method", "POST");
-        common:assertJsonValue(payload, "reason", "Not Found");
         check common:assertJsonErrorPayload(check response.getJsonPayload(), "no matching resource found for path", "Not Found", 404,
-                        "/backend/getIncorrectPath404", "POST");
+                        "/backend/handle", "POST");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -865,26 +859,20 @@ function testHttp2405HandleError() returns error? {
     if response is http:Response {
         test:assertEquals(response.statusCode, 405, msg = "Found unexpected output");
         common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:APPLICATION_JSON);
-        json payload = check response.getJsonPayload();
-        common:assertJsonValue(payload, "status", 405);
-        common:assertJsonValue(payload, "message", "Method not allowed");
-        common:assertJsonValue(payload, "path", "/backend/get4XX");
-        common:assertJsonValue(payload, "method", "POST");
-        common:assertJsonValue(payload, "reason", "Method Not Allowed");
-        check common:assertJsonErrorPayload(check response.getJsonPayload(), "no matching resource found for path", "Not Found", 404,
-                        "/backend/getIncorrectPath404", "POST");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "Method not allowed", "Method Not Allowed", 405,
+                        "/backend/get4XX", "POST");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
 @test:Config {}
-function testHttp2405AsApplicationResponseError() {
+function testHttp2405AsApplicationResponseError() returns error? {
     json|error response = http2ClientDBTestClient->post("/passthrough/allMethods", "hi");
     if (response is http:ApplicationResponseError) {
         test:assertEquals(response.detail().statusCode, 405, msg = "Found unexpected output");
         common:assertErrorHeaderValue(response.detail().headers[common:CONTENT_TYPE], common:APPLICATION_JSON);
-        check common:assertJsonErrorPayload(<json>response.detail().body, "Method Not Allowed", "Method Not Allowed", 405,
+        check common:assertJsonErrorPayload(<json>response.detail().body, "Method not allowed", "Method Not Allowed", 405,
                         "/passthrough/allMethods", "POST");
     } else {
         test:assertFail(msg = "Found unexpected output type: json");

@@ -127,12 +127,8 @@ function testHttp2ServiceDetach() returns error? {
     response = http2ServiceDetachClient->get("/mock2/mock2Resource");
     if response is http:Response {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
-        json payload = check response.getJsonPayload();
-        common:assertJsonValue(payload, "status", 404);
-        common:assertJsonValue(payload, "message", "no matching service found for path");
-        common:assertJsonValue(payload, "path", "/mock2/mock2Resource");
-        common:assertJsonValue(payload, "method", "GET");
-        common:assertJsonValue(payload, "reason", "Not Found");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "no matching service found for path",
+                "Not Found", 404, "/mock2/mock2Resource", "GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -141,12 +137,8 @@ function testHttp2ServiceDetach() returns error? {
     response = http2ServiceDetachClient->get("/mock3/mock3Resource");
     if response is http:Response {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        json payload = check response.getJsonPayload();
-        common:assertJsonValue(payload, "status", 500);
-        common:assertJsonValue(payload, "message", "Service registration failed: two services have the same basePath : '/mock4'");
-        common:assertJsonValue(payload, "path", "/mock3/mock3Resource");
-        common:assertJsonValue(payload, "method", "GET");
-        common:assertJsonValue(payload, "reason", "Internal Server Error");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "Service registration failed: two services have the same basePath : '/mock4'",
+                "Internal Server Error", 500, "/mock3/mock3Resource", "GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
