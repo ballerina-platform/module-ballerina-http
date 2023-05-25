@@ -747,7 +747,8 @@ public class Util {
                 .format(new java.util.Date()), status.code(), status.reasonPhrase(), msg, path, method);
         HttpResponse outboundResponse = new DefaultFullHttpResponse(httpVersion, status,
                 Unpooled.copiedBuffer(entityBody.getBytes(StandardCharsets.UTF_8)));
-        outboundResponse.headers().set(HttpHeaderNames.CONTENT_LENGTH, entityBody.getBytes(StandardCharsets.UTF_8).length);
+        outboundResponse.headers().set(HttpHeaderNames.CONTENT_LENGTH,
+                entityBody.getBytes(StandardCharsets.UTF_8).length);
         outboundResponse.headers().set(HttpHeaderNames.CONNECTION.toString(), Constants.CONNECTION_CLOSE);
         outboundResponse.headers().set(HttpHeaderNames.SERVER.toString(), serverName);
         outboundResponse.headers().set(HttpHeaderNames.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON);

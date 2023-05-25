@@ -96,7 +96,7 @@ isolated http:Service http2Mock5 = service object {
 
 //Test the detach method with multiple services attachments
 @test:Config {}
-function testHttp2ServiceDetach() {
+function testHttp2ServiceDetach() returns error? {
     http:Response|error response = http2ServiceDetachClient->get("/mock1");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
@@ -127,7 +127,12 @@ function testHttp2ServiceDetach() {
     response = http2ServiceDetachClient->get("/mock2/mock2Resource");
     if response is http:Response {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
-        common:assertTextPayload(response.getTextPayload(), "no matching service found for path : /mock2/mock2Resource");
+        json payload = check response.getJsonPayload();
+        common:assertJsonValue(payload, "status", 404);
+        common:assertJsonValue(payload, "message", "no matching service found for path");
+        common:assertJsonValue(payload, "path", "/mock2/mock2Resource");
+        common:assertJsonValue(payload, "method", "GET");
+        common:assertJsonValue(payload, "reason", "Not Found");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -136,8 +141,12 @@ function testHttp2ServiceDetach() {
     response = http2ServiceDetachClient->get("/mock3/mock3Resource");
     if response is http:Response {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        common:assertTextPayload(response.getTextPayload(),
-            "Service registration failed: two services have the same basePath : '/mock4'");
+        json payload = check response.getJsonPayload();
+        common:assertJsonValue(payload, "status", 500);
+        common:assertJsonValue(payload, "message", "Service registration failed: two services have the same basePath : '/mock4'");
+        common:assertJsonValue(payload, "path", "/mock3/mock3Resource");
+        common:assertJsonValue(payload, "method", "GET");
+        common:assertJsonValue(payload, "reason", "Internal Server Error");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
