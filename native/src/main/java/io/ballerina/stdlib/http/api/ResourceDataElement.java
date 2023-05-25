@@ -231,7 +231,7 @@ public class ResourceDataElement implements DataElement<Resource, HttpCarbonMess
                 return;
             }
         }
-        throw HttpUtil.createHttpStatusCodeError(REQUEST_NOT_ACCEPTABLE_ERROR, "");
+        throw HttpUtil.createHttpStatusCodeError(REQUEST_NOT_ACCEPTABLE_ERROR, "Request is not acceptable");
     }
 
     private List<String> extractAcceptMediaTypes(String header) {

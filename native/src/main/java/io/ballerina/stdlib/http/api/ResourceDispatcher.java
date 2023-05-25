@@ -55,8 +55,7 @@ public class ResourceDispatcher {
                 if (method.equals(HttpConstants.HTTP_METHOD_OPTIONS)) {
                     handleOptionsRequest(inboundRequest, service);
                 } else {
-                    String message = "no matching resource found for path : " +
-                            inboundRequest.getProperty(HttpConstants.TO) + " , method : " + method;
+                    String message = "no matching resource found for path";
                     throw HttpUtil.createHttpStatusCodeError(RESOURCE_NOT_FOUND_ERROR, message);
                 }
                 return null;
@@ -86,8 +85,7 @@ public class ResourceDispatcher {
             response.setHeader(HttpHeaderNames.ALLOW.toString(),
                                DispatcherUtil.concatValues(service.getAllAllowedMethods(), false));
         } else {
-            String message = "no matching resource found for path : " + cMsg.getProperty(HttpConstants.TO)
-                    + " , method : OPTIONS";
+            String message = "no matching resource found for path";
             throw HttpUtil.createHttpStatusCodeError(RESOURCE_NOT_FOUND_ERROR, message);
         }
         CorsHeaderGenerator.process(cMsg, response, false);

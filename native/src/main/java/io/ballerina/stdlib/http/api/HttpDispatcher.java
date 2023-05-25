@@ -104,7 +104,7 @@ public class HttpDispatcher {
                                                                            servicesOnInterface, sortedServiceURIs);
 
             if (basePath == null) {
-                String message = "no matching service found for path : " + validatedUri.getRawPath();
+                String message = "no matching service found for path";
                 throw HttpUtil.createHttpStatusCodeError(SERVICE_NOT_FOUND_ERROR, message);
             }
 
@@ -165,7 +165,7 @@ public class HttpDispatcher {
                                                                            servicesOnInterface, sortedServiceURIs);
 
             if (basePath == null) {
-                String message = "no matching service found for path : " + validatedUri.getRawPath();
+                String message = "no matching service found for path";
                 throw HttpUtil.createHttpStatusCodeError(SERVICE_NOT_FOUND_ERROR, message);
             }
 
