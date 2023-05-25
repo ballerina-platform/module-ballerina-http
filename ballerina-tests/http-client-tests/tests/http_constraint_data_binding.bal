@@ -196,42 +196,42 @@ function testResourceConstraintRecordStringFieldWithUnion() returns error? {
 }
 
 @test:Config {}
-function testResourceConstraintRecordStringFieldMinLengthError() {
+function testResourceConstraintRecordStringFieldMinLengthError() returns error? {
     ValidationPerson p = {name: "a", age: 7};
     string|error response = clientValidationTestClient->post("/validation/getRecord", p);
     if response is http:ClientRequestError {
         test:assertEquals(response.detail().statusCode, 400, msg = "Found unexpected output");
-        common:assertErrorHeaderValue(response.detail().headers[common:CONTENT_TYPE], common:TEXT_PLAIN);
-        test:assertEquals(response.detail().body,
-        "payload validation failed: Validation failed for '$.name:minLength' constraint(s).");
+        common:assertErrorHeaderValue(response.detail().headers[common:CONTENT_TYPE], common:APPLICATION_JSON);
+        check common:assertJsonErrorPayload(<json>response.detail().body, "payload validation failed: " +
+        "Validation failed for '$.name:minLength' constraint(s).", "Bad Request", 400, "/validation/getRecord", "POST");
     } else {
         test:assertFail(msg = "Found unexpected output type");
     }
 }
 
 @test:Config {}
-function testResourceConstraintRecordStringFieldMaxLengthError() {
+function testResourceConstraintRecordStringFieldMaxLengthError() returns error? {
     ValidationPerson p = {name: "ballerina", age: 15};
     string|error response = clientValidationTestClient->post("/validation/getRecord", p);
     if response is http:ClientRequestError {
         test:assertEquals(response.detail().statusCode, 400, msg = "Found unexpected output");
-        common:assertErrorHeaderValue(response.detail().headers[common:CONTENT_TYPE], common:TEXT_PLAIN);
-        test:assertEquals(response.detail().body,
-        "payload validation failed: Validation failed for '$.name:maxLength' constraint(s).");
+        common:assertErrorHeaderValue(response.detail().headers[common:CONTENT_TYPE], common:APPLICATION_JSON);
+        check common:assertJsonErrorPayload(<json>response.detail().body, "payload validation failed: Validation " +
+        "failed for '$.name:maxLength' constraint(s).", "Bad Request", 400, "/validation/getRecord", "POST");
     } else {
         test:assertFail(msg = "Found unexpected output type");
     }
 }
 
 @test:Config {}
-function testResourceConstraintRecordIntFieldMaxLengthError() {
+function testResourceConstraintRecordIntFieldMaxLengthError() returns error? {
     ValidationPerson p = {name: "ballerina", age: 5};
     string|error response = clientValidationTestClient->post("/validation/getRecord", p);
     if response is http:ClientRequestError {
         test:assertEquals(response.detail().statusCode, 400, msg = "Found unexpected output");
-        common:assertErrorHeaderValue(response.detail().headers[common:CONTENT_TYPE], common:TEXT_PLAIN);
-        test:assertEquals(response.detail().body,
-        "payload validation failed: Validation failed for '$.age:minValueExclusive','$.name:maxLength' constraint(s).");
+        common:assertErrorHeaderValue(response.detail().headers[common:CONTENT_TYPE], common:APPLICATION_JSON);
+        check common:assertJsonErrorPayload(<json>response.detail().body, "payload validation failed: Validation failed " +
+        "for '$.age:minValueExclusive','$.name:maxLength' constraint(s).", "Bad Request", 400, "/validation/getRecord", "POST");
     } else {
         test:assertFail(msg = "Found unexpected output type");
     }
@@ -244,13 +244,13 @@ function testResourceConstraintTypeFloatField() returns error? {
 }
 
 @test:Config {}
-function testResourceConstraintTypeFloatFieldMinValueError() {
+function testResourceConstraintTypeFloatFieldMinValueError() returns error? {
     float|error response = clientValidationTestClient->post("/validation/getPrice", 4.1f);
     if response is http:ClientRequestError {
         test:assertEquals(response.detail().statusCode, 400, msg = "Found unexpected output");
-        common:assertErrorHeaderValue(response.detail().headers[common:CONTENT_TYPE], common:TEXT_PLAIN);
-        test:assertEquals(response.detail().body,
-        "payload validation failed: Validation failed for '$:minValue' constraint(s).", msg = "Found unexpected output");
+        common:assertErrorHeaderValue(response.detail().headers[common:CONTENT_TYPE], common:APPLICATION_JSON);
+        check common:assertJsonErrorPayload(<json>response.detail().body, "payload validation failed: Validation failed for '$:minValue' constraint(s).",
+                    "Bad Request", 400, "/validation/getPrice", "POST");
     } else {
         test:assertFail(msg = "Found unexpected output type");
     }
@@ -264,14 +264,14 @@ function testResourceConstraintTypeArrayField() returns error? {
 }
 
 @test:Config {}
-function testResourceConstraintTypeArrayFieldError() {
+function testResourceConstraintTypeArrayFieldError() returns error? {
     ValidationItem item = {weight: [2.3d, 5.4d, 6.7d]};
     ValidationItem|error response = clientValidationTestClient->post("/validation/getWeight", item);
     if response is http:ClientRequestError {
         test:assertEquals(response.detail().statusCode, 400, msg = "Found unexpected output");
-        common:assertErrorHeaderValue(response.detail().headers[common:CONTENT_TYPE], common:TEXT_PLAIN);
-        test:assertEquals(response.detail().body,
-        "payload validation failed: Validation failed for '$.weight:length' constraint(s).");
+        common:assertErrorHeaderValue(response.detail().headers[common:CONTENT_TYPE], common:APPLICATION_JSON);
+        check common:assertJsonErrorPayload(<json>response.detail().body, "payload validation failed: Validation failed for '$.weight:length' constraint(s).",
+                    "Bad Request", 400, "/validation/getWeight", "POST");
     } else {
         test:assertFail(msg = "Found unexpected output type");
     }

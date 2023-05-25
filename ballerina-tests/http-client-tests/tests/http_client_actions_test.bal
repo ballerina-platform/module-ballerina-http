@@ -678,8 +678,9 @@ function testServiceUnavailable() returns error? {
     http:Response|error response = httpClientActionClient->get("/testServiceUnavailable");
     if response is http:Response {
         test:assertEquals(response.statusCode, 502);
-        common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:TEXT_PLAIN);
-        common:assertTextPayload(response.getTextPayload(), "Something wrong with the connection");
+        common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:APPLICATION_JSON);
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "Something wrong with the connection",
+                    "Bad Gateway", 502, "/httpClientActionTestService/testServiceUnavailable", "GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
