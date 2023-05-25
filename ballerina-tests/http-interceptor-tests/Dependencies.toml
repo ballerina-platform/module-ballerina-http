@@ -120,6 +120,7 @@ dependencies = [
 	{org = "ballerina", name = "lang.string"},
 	{org = "ballerina", name = "mime"},
 	{org = "ballerina", name = "test"},
+	{org = "ballerina", name = "time"},
 	{org = "ballerina", name = "url"}
 ]
 modules = [
@@ -129,7 +130,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "io"
-version = "1.4.0"
+version = "1.4.1"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
