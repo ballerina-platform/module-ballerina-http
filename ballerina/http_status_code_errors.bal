@@ -262,7 +262,11 @@ isolated function getErrorResponseForInterceptor(error err, Request request) ret
     }
 
     if err !is NoContentError {
-        setErrorPayload(err, request, response);
+        if err.detail()?.body is () {
+            setErrorPayload(err, request, response);
+        } else {
+            setPayload(err.detail()?.body, response);
+        }
     }
 
     map<string|string[]> headers = err.detail().headers ?: {};
