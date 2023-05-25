@@ -235,19 +235,29 @@ isolated function getErrorResponse(error err, string? returnMediaType = ()) retu
 isolated function getErrorResponseForInterceptor(error err, Request request) returns Response {
     Response response = new;
 
-    // Handling the client errors
     if err is ApplicationResponseError {
         response.statusCode = err.detail().statusCode;
-        setErrorPayload(err, request, response);
+        if err.detail().body is () {
+            setErrorPayload(err, request, response);
+        } else {
+            setPayload(err.detail().body, response);
+        }
         setHeaders(err.detail().headers, response);
         return response;
     }
 
-    // Handling the server errors
     response.statusCode = getStatusCode(err);
 
     if err !is StatusCodeError {
         setErrorPayload(err, request, response);
+        return response;
+    }
+
+    if err.detail()?.body is () {
+        setErrorPayload(err, request, response);
+        if err.detail()?.headers !is () {
+            setHeaders(<map<string|string[]>>err.detail()?.headers, response);
+        }
         return response;
     }
 
