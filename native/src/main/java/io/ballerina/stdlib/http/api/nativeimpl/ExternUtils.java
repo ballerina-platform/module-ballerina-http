@@ -32,7 +32,19 @@ public class ExternUtils {
      * @return Returns the reason phrase of the status code
      */
     public static BString getReasonFromStatusCode(Long statusCode) {
-        return StringUtils.fromString(HttpResponseStatus.valueOf(statusCode.intValue()).reasonPhrase());
+        String reasonPhrase;
+        // 451 and 508 are not available in `HttpResponseStatus`.
+        if (statusCode.intValue() == 451) {
+            reasonPhrase = "Unavailable For Legal Reasons";
+        } else if (statusCode.intValue() == 508) {
+            reasonPhrase = "Loop Detected";
+        } else {
+            reasonPhrase = HttpResponseStatus.valueOf(statusCode.intValue()).reasonPhrase();
+            if (reasonPhrase.contains("Unknown Status")) {
+                reasonPhrase = HttpResponseStatus.valueOf(500).reasonPhrase();
+            }
+        }
+        return StringUtils.fromString(reasonPhrase);
     }
 
 }
