@@ -93,7 +93,7 @@ service /foo on serviceErrorHandlingServerEP {
 function testNoMatchingServiceRegistered() returns error? {
     http:Response res = check serviceErrorHandlingClientEP->get("/");
     test:assertEquals(res.statusCode, 404);
-    common:assertTrueTextPayload(res.getTextPayload(), "no matching service found for path : /");
+    common:assertTrueTextPayload(res.getTextPayload(), "no matching service found for path");
     common:assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
     common:assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
     common:assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
@@ -104,7 +104,7 @@ function testNoMatchingServiceRegistered() returns error? {
 function testNoMatchingResourceFound() returns error? {
     http:Response res = check serviceErrorHandlingClientEP->get("/foo/new");
     test:assertEquals(res.statusCode, 404);
-    common:assertTextPayload(res.getTextPayload(), "no matching resource found for path : /foo/new , method : GET");
+    common:assertTextPayload(res.getTextPayload(), "no matching resource found for path");
     common:assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
     common:assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
     common:assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");

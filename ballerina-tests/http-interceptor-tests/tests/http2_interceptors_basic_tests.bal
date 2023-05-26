@@ -102,7 +102,8 @@ service http:InterceptableService /requestInterceptorReturnsError on http2Interc
 function tesHttp2RequestInterceptorReturnsError() returns error? {
     http:Response res = check http2InterceptorsBasicTestsClientEP1->get("/requestInterceptorReturnsError");
     test:assertEquals(res.statusCode, 500);
-    common:assertTextPayload(check res.getTextPayload(), "Request interceptor returns an error");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "Request interceptor returns an error",
+        "Internal Server Error", 500, "/requestInterceptorReturnsError", "GET");
 }
 
 int http2ResponseInterceptorReturnsErrorTestPort = common:getHttp2Port(responseInterceptorReturnsErrorTestPort);
@@ -125,7 +126,8 @@ service / on http2ResponseInterceptorReturnsErrorTestServerEP {
 function tesHttp2ResponseInterceptorReturnsError() returns error? {
     http:Response res = check http2ResponseInterceptorReturnsErrorTestClientEP->get("/");
     test:assertEquals(res.statusCode, 500);
-    common:assertTextPayload(check res.getTextPayload(), "Response interceptor returns an error");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "Response interceptor returns an error",
+        "Internal Server Error", 500, "/", "GET");
 }
 
 int http2InterceptorBasicTestsPort2 = common:getHttp2Port(interceptorBasicTestsPort2);
@@ -412,7 +414,7 @@ function tesHttp2RequestInterceptorPathAndVerb() returns error? {
 
     res = check http2InterceptorsBasicTestsClientEP3->get("/interceptorPathAndVerb/bar");
     test:assertEquals(res.statusCode, 404);
-    common:assertTextPayload(res.getTextPayload(), "no matching resource found for path : /interceptorPathAndVerb/bar , method : GET");
+    common:assertTextPayload(res.getTextPayload(), "no matching resource found for path");
     common:assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
     common:assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
     common:assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
