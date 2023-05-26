@@ -16,6 +16,7 @@
 
 import ballerina/http;
 import ballerina/test;
+import ballerina/http_test_common as common;
 
 http:ClientConfiguration conf1 = {
     httpVersion: http:HTTP_1_1,
@@ -65,7 +66,7 @@ service / on new http:Listener(cBClientWithoutStatusCodesTestPort1, httpVersion 
     dataProvider: responseDataProvider1
 }
 function testCircuitBreakerWithoutStatusCodes1(DataFeed dataFeed) returns error? {
-    check invokeApiAndVerifyResponseWithHttpGet(cbrClient, "/test1", dataFeed);
+    check invokeApiAndVerifyResponseWithHttpGet(cbrClient, "/test1", dataFeed, common:TEXT_PLAIN);
 }
 
 function responseDataProvider1() returns DataFeed[][] {
@@ -82,7 +83,7 @@ function responseDataProvider1() returns DataFeed[][] {
     dataProvider: responseDataProvider2
 }
 function testCircuitBreakerWithoutStatusCodes2(DataFeed dataFeed) returns error? {
-    check invokeApiAndVerifyResponseWithHttpGet(cbrClient, "/test2", dataFeed);
+    check invokeApiAndVerifyResponseWithHttpGet(cbrClient, "/test2", dataFeed, common:APPLICATION_JSON);
 }
 
 function responseDataProvider2() returns DataFeed[][] {

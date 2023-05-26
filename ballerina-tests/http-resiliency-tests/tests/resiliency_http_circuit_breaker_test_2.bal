@@ -18,6 +18,7 @@
 // import ballerina/log;
 import ballerina/test;
 import ballerina/http;
+import ballerina/http_test_common as common;
 
 isolated int forceOpen = 0;
 
@@ -221,7 +222,7 @@ function testForceOpen(DataFeed dataFeed) returns error? {
     dataProvider:forceOpenResponseDataProvider 
 }
 function testForceOpenWithHttpGet(DataFeed dataFeed) returns error? {
-    check invokeApiAndVerifyResponseWithHttpGet(testForceOpenClient, "/cb/forceopen", dataFeed);
+    check invokeApiAndVerifyResponseWithHttpGet(testForceOpenClient, "/cb/forceopen", dataFeed, common:TEXT_PLAIN);
 }
 
 @test:Config{ 
