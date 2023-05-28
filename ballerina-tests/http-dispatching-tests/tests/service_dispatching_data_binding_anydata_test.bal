@@ -435,8 +435,8 @@ function testDataBindingWithMapOfIntUrlEncoded() returns error? {
         mediaType = "application/x-www-form-urlencoded");
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        common:assertTextPayload(response.getTextPayload(),
-        "data binding failed: incompatible type found: 'map<int>'");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "data binding failed: incompatible type found: 'map<int>'",
+            "Bad Request", 400, "/anydataB/checkIntMap", "POST");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -494,13 +494,13 @@ function testDataBindingStringArray() returns error? {
 }
 
 @test:Config {}
-function testDataBindingStringArrayNegative() {
+function testDataBindingStringArrayNegative() returns error? {
     json j = ["Hi", "Hello"];
     http:Response|error response = anydataBindingClient->post("/anydataB/checkStringArray", j, mediaType = "text/plain");
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        common:assertTextPayload(response.getTextPayload(),
-        "data binding failed: incompatible array element type found: 'string'");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "data binding failed: incompatible array element type found: 'string'",
+                "Bad Request", 400, "/anydataB/checkStringArray", "POST");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -676,12 +676,12 @@ function testDataBindingByteArrayWithTextPlain() returns error? {
 }
 
 @test:Config {}
-function testDataBindingOctetStreamNegative() {
+function testDataBindingOctetStreamNegative() returns error? {
     http:Response|error response = anydataBindingClient->post("/anydataB/checkRecord", "WSO2".toBytes());
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        common:assertTextPayload(response.getTextPayload(),
-            "data binding failed: incompatible type found: 'http_dispatching_tests:Person'");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "data binding failed: incompatible type found: 'http_dispatching_tests:Person'",
+                "Bad Request", 400, "/anydataB/checkRecord", "POST");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -759,13 +759,13 @@ function testDataBindingXmlByType() returns error? {
 }
 
 @test:Config {}
-function testDataBindingXmlNegative() {
+function testDataBindingXmlNegative() returns error? {
     xml j = xml `<name>WSO2</name>`;
     http:Response|error response = anydataBindingClient->post("/anydataB/checkIntMap", j);
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        common:assertTextPayload(response.getTextPayload(),
-            "data binding failed: incompatible type found: 'map<int>'");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "data binding failed: incompatible type found: 'map<int>'",
+            "Bad Request", 400, "/anydataB/checkIntMap", "POST");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -974,12 +974,12 @@ function testDataBindingUnionWithJsonAndStringWithTextPlain() returns error? {
 }
 
 @test:Config {}
-function testDataBindingUnionStringArrayJsonWithTextPlain() {
+function testDataBindingUnionStringArrayJsonWithTextPlain() returns error? {
     http:Response|error response = anydataBindingClient->post("/anydataB/checkUnionWithStringArrJson", "WSO2");
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        common:assertTextPayload(response.getTextPayload(),
-            "data binding failed: incompatible type found: '(json|string[])'");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "data binding failed: incompatible type found: '(json|string[])'",
+            "Bad Request", 400, "/anydataB/checkUnionWithStringArrJson", "POST");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

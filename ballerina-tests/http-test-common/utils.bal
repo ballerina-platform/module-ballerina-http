@@ -65,6 +65,10 @@ public isolated function assertJsonErrorPayload(json payload, string message, st
     test:assertTrue(((check payload.timestamp).toString()).startsWith(time:utcToString(time:utcNow()).substring(0, 17)));
 }
 
+public isolated function assertJsonErrorPayloadPartialMessage(json payload, string message) returns error? {
+    test:assertTrue((check payload.message).toString().includes(message, 0));
+}
+
 public isolated function assertXmlPayload(xml|error payload, xml expectValue) {
     if payload is xml {
         test:assertEquals(payload, expectValue, msg = "Found unexpected output");

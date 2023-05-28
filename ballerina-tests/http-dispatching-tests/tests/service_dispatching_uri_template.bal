@@ -426,11 +426,12 @@ function testOPTIONSAtRootPath() returns error? {
 
 //Test dispatching with OPTIONS request wrong Root
 @test:Config {}
-function testOPTIONSAtWrongRootPath() {
+function testOPTIONSAtWrongRootPath() returns error? {
     http:Response|error response = utClient1->options("/optionss");
     if response is http:Response {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
-        common:assertTextPayload(response.getTextPayload(), "no matching service found for path : /optionss");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "no matching service found for path",
+            "Not Found", 404, "/optionss", "OPTIONS");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -438,11 +439,12 @@ function testOPTIONSAtWrongRootPath() {
 
 //Test dispatching with OPTIONS request when no resources available
 @test:Config {}
-function testOPTIONSWhenNoResourcesAvailable() {
+function testOPTIONSWhenNoResourcesAvailable() returns error? {
     http:Response|error response = utClient1->options("/noResource");
     if response is http:Response {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
-        common:assertTextPayload(response.getTextPayload(), "no matching resource found for path : /noResource , method : OPTIONS");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "no matching resource found for path",
+            "Not Found", 404, "/noResource", "OPTIONS");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -450,11 +452,12 @@ function testOPTIONSWhenNoResourcesAvailable() {
 
 //Test dispatching with OPTIONS request with wildcard
 @test:Config {}
-function testOPTIONSWithWildCards() {
+function testOPTIONSWithWildCards() returns error? {
     http:Response|error response = utClient1->options("/options/un");
     if response is http:Response {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
-        common:assertTextPayload(response.getTextPayload(), "no matching resource found for path : /options/un , method : OPTIONS");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "no matching resource found for path",
+            "Not Found", 404, "/options/un", "OPTIONS");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

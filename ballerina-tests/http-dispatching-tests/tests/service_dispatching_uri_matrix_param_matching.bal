@@ -113,25 +113,26 @@ function testEncodedPathParamDispatching() {
 }
 
 @test:Config {}
-function testNonEncodedUrlDispatching() {
+function testNonEncodedUrlDispatching() returns error? {
     string path = "/hello/t2/john;age=2;color=white/foo;a=5;b=10"; // encoded URI
     http:Response|error response = matrixClient->get(path);
     if response is http:Response {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
-        common:assertTextPayload(response.getTextPayload(), "no matching resource found for path : /hello/t2/john/foo , method : GET");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "no matching resource found for path",
+            "Not Found", 404, "/hello/t2/john;age=2;color=white/foo;a=5;b=10", "GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
 @test:Config {}
-function testErrorReportInURI() {
+function testErrorReportInURI() returns error? {
     string path = "/hello/t2/john;age;color=white/foo;a=5;b=10"; // encoded URI
     http:Response|error response = matrixClient->get(path);
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        common:assertTextPayload(response.getTextPayload(),
-            "found non-matrix parameter 'age' in path 'hello/t2/john;age;color=white/foo;a=5;b=10'");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "found non-matrix parameter 'age' in path 'hello/t2/john;age;color=white/foo;a=5;b=10'",
+            "Bad Request", 400, path, "GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
