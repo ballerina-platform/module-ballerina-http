@@ -142,7 +142,8 @@ function testResourcePath404Negative() returns error? {
     http:Response|error response = urlClient->get("test");
     if response is http:Response {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
-        common:assertTextPayload(response.getTextPayload(), "no matching service found for path : /urltest");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "no matching service found for path",
+            "Not Found", 404, "/urltest", "GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
