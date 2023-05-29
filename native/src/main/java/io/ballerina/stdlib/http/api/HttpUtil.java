@@ -578,7 +578,10 @@ public class HttpUtil {
                                      IOUtils.getIOPackage());
             return createHttpError("Something wrong with the connection", HttpErrorType.GENERIC_CLIENT_ERROR, cause);
         } else if (throwable instanceof ClientConnectorException) {
-            return HttpUtil.createHttpStatusCodeError(CLIENT_CONNECTOR_ERROR, "Something wrong with the connection");
+            cause = createErrorCause(throwable.getMessage(), IOConstants.ErrorCode.GenericError.errorCode(),
+                    IOUtils.getIOPackage());
+            return HttpUtil.createHttpStatusCodeError(CLIENT_CONNECTOR_ERROR,
+                    "Something wrong with the connection", null, cause);
         } else if (throwable instanceof NullPointerException) {
             return createHttpError("Exception occurred: null", HttpErrorType.GENERIC_CLIENT_ERROR,
                                    createHttpError(throwable.toString()));
