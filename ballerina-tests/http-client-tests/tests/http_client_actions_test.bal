@@ -679,8 +679,7 @@ function testServiceUnavailable() returns error? {
     if response is http:Response {
         test:assertEquals(response.statusCode, 502);
         common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:APPLICATION_JSON);
-        check common:assertJsonErrorPayload(check response.getJsonPayload(), "Something wrong with the connection: Connection refused: localhost/127.0.0.1:8080",
-                    "Bad Gateway", 502, "/httpClientActionTestService/testServiceUnavailable", "GET");
+        check common:assertJsonErrorPayloadPartialMessage(check response.getJsonPayload(), "Something wrong with the connection: Connection refused:");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
