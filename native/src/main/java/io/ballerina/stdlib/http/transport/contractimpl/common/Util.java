@@ -726,32 +726,20 @@ public class Util {
     }
 
     /**
-     * Send back entity body response and close the connection. This function is mostly used
+     * Send back no entity body response and close the connection. This function is mostly used
      * when we send back error messages.
      *
      * @param ctx connection
      * @param status response status
      * @param httpVersion of the response
      * @param serverName server name
-     * @param msg message content
-     * @param path request uri path
-     * @param method request method
      */
-    public static void sendAndCloseEntityBodyResp(ChannelHandlerContext ctx, HttpResponseStatus status,
-                                                  HttpVersion httpVersion, String serverName, String msg, String path,
-                                                  String method) {
-        // This error format matches with the `http:ErrorPayload` record type
-        String responseString = "{\"timestamp\": \"%s\",\"status\": %d,\"reason\": \"%s\",\"message\": " +
-                "\"%s\",\"path\": \"%s\",\"method\": \"%s\"}";
-        String entityBody = String.format(responseString, new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
-                .format(new java.util.Date()), status.code(), status.reasonPhrase(), msg, path, method);
-        HttpResponse outboundResponse = new DefaultFullHttpResponse(httpVersion, status,
-                Unpooled.copiedBuffer(entityBody.getBytes(StandardCharsets.UTF_8)));
-        outboundResponse.headers().set(HttpHeaderNames.CONTENT_LENGTH,
-                entityBody.getBytes(StandardCharsets.UTF_8).length);
+    public static void sendAndCloseNoEntityBodyResp(ChannelHandlerContext ctx, HttpResponseStatus status,
+                                                    HttpVersion httpVersion, String serverName) {
+        HttpResponse outboundResponse = new DefaultHttpResponse(httpVersion, status);
+        outboundResponse.headers().set(HttpHeaderNames.CONTENT_LENGTH, 0);
         outboundResponse.headers().set(HttpHeaderNames.CONNECTION.toString(), Constants.CONNECTION_CLOSE);
         outboundResponse.headers().set(HttpHeaderNames.SERVER.toString(), serverName);
-        outboundResponse.headers().set(HttpHeaderNames.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON);
         ChannelFuture outboundRespFuture = ctx.channel().writeAndFlush(outboundResponse);
         outboundRespFuture.addListener(
                 (ChannelFutureListener) channelFuture -> LOG.warn("Failed to send {}", status.reasonPhrase()));

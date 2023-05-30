@@ -82,15 +82,13 @@ public class MaxEntityBodyValidator extends ChannelInboundHandlerAdapter {
     }
 
     private void sendEntityTooLargeResponse(ChannelHandlerContext ctx) {
-        String errorMsg = "Inbound request payload size exceeds the max entity body allowed for a request";
-        Util.sendAndCloseEntityBodyResp(ctx, HttpResponseStatus.REQUEST_ENTITY_TOO_LARGE,
-                inboundRequest.protocolVersion(), this.serverName, errorMsg, inboundRequest.uri(),
-                inboundRequest.method().name());
+        Util.sendAndCloseNoEntityBodyResp(ctx, HttpResponseStatus.REQUEST_ENTITY_TOO_LARGE,
+                inboundRequest.protocolVersion(), this.serverName);
 
         this.fullContent.forEach(ReferenceCounted::release);
         this.fullContent.forEach(httpContent -> this.fullContent.remove(httpContent));
 
-        LOG.warn(errorMsg);
+        LOG.warn("Inbound request payload size exceeds the max entity body allowed for a request");
     }
 
     private boolean isContentLengthInvalid(HttpMessage start, long maxContentLength) {
