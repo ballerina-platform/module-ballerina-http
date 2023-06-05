@@ -24,6 +24,7 @@ public isolated class Listener {
     private int port;
     private InferredListenerConfiguration inferredConfig;
     private DefaultErrorInterceptor interceptor = new DefaultErrorInterceptor();
+    private Interceptor[] interceptors = [new DefaultErrorInterceptor()];
 
     # Gets invoked during module initialization to initialize the listener.
     #

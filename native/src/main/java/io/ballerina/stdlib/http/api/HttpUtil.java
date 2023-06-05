@@ -1595,17 +1595,16 @@ public class HttpUtil {
     }
 
     public static void populateInterceptorServicesFromListener(BObject serviceEndpoint, Runtime runtime) {
-        BObject defaultErrorInterceptor = serviceEndpoint.getObjectValue(HttpConstants.ENDPOINT_CONFIG_INTERCEPTORS);
-
-        serviceEndpoint.addNativeData(HttpConstants.INTERCEPTORS, defaultErrorInterceptor);
+        BArray interceptorArray = serviceEndpoint.getArrayValue(HttpConstants.ENDPOINT_CONFIG_INTERCEPTORS);
+        serviceEndpoint.addNativeData(HttpConstants.INTERCEPTORS, interceptorArray);
         Register.resetInterceptorRegistry(serviceEndpoint);
         List<HTTPInterceptorServicesRegistry> httpInterceptorServicesRegistries
                                                     = Register.getHttpInterceptorServicesRegistries(serviceEndpoint);
 
-        // Registering all the interceptor services in separate service registries
+        // Registering the default error interceptor in service registry
         HTTPInterceptorServicesRegistry servicesRegistry = httpInterceptorServicesRegistries.get(0);
-        servicesRegistry.setServicesType(HttpUtil.getInterceptorServiceType(defaultErrorInterceptor));
-        servicesRegistry.registerInterceptorService(defaultErrorInterceptor, HttpConstants.DEFAULT_BASE_PATH);
+        servicesRegistry.setServicesType(HttpUtil.getInterceptorServiceType((BObject) interceptorArray.get(0)));
+        servicesRegistry.registerInterceptorService((BObject) interceptorArray.get(0), HttpConstants.DEFAULT_BASE_PATH);
         servicesRegistry.setRuntime(runtime);
     }
 

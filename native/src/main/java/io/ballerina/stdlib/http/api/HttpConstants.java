@@ -408,7 +408,7 @@ public class HttpConstants {
     //Service Endpoint Config
     public static final BString ENDPOINT_CONFIG_HOST = StringUtils.fromString("host");
     public static final BString ENDPOINT_CONFIG_PORT = StringUtils.fromString("port");
-    public static final BString ENDPOINT_CONFIG_INTERCEPTORS = StringUtils.fromString("interceptor");
+    public static final BString ENDPOINT_CONFIG_INTERCEPTORS = StringUtils.fromString("interceptors");
     public static final BString ENDPOINT_CONFIG_KEEP_ALIVE = StringUtils.fromString("keepAlive");
     public static final BString ENDPOINT_CONFIG_TIMEOUT = StringUtils.fromString("timeout");
     public static final String ENDPOINT_CONFIG_CHUNKING = "chunking";
