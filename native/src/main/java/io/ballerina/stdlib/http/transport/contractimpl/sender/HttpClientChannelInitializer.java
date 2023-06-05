@@ -117,6 +117,7 @@ public class HttpClientChannelInitializer extends ChannelInitializer<SocketChann
         if (httpTraceLogEnabled) {
             connectionHandlerBuilder.frameLogger(new FrameLogger(TRACE, Constants.TRACE_LOG_UPSTREAM));
         }
+        connectionHandlerBuilder.initialSettings().initialWindowSize(senderConfiguration.getHttp2InitialWindowSize());
         http2ConnectionHandler = connectionHandlerBuilder.connection(connection).frameListener(frameListener).build();
         http2TargetHandler = new Http2TargetHandler(connection, http2ConnectionHandler.encoder());
         if (sslConfig != null) {
