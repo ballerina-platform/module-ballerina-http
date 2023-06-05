@@ -126,14 +126,13 @@ public class InterceptorService implements Service {
         return uriTemplate;
     }
 
-    public static InterceptorService buildHttpService(BObject service, String basePath, String serviceType,
-                                                      boolean fromListener) {
+    public static InterceptorService buildHttpService(BObject service, String basePath, String serviceType) {
         InterceptorService interceptorService = new InterceptorService(service, basePath);
         interceptorService.setServiceType(serviceType);
         interceptorService.setHostName(HttpConstants.DEFAULT_HOST);
         if (serviceType.equals(HttpConstants.REQUEST_INTERCEPTOR) ||
                 serviceType.equals(HttpConstants.REQUEST_ERROR_INTERCEPTOR)) {
-            processInterceptorResource(interceptorService, fromListener);
+            processInterceptorResource(interceptorService);
             interceptorService.setAllAllowedMethods(DispatcherUtil.getInterceptorResourceMethods(
                     interceptorService));
         } else {
@@ -142,13 +141,13 @@ public class InterceptorService implements Service {
         return interceptorService;
     }
 
-    private static void processInterceptorResource(InterceptorService interceptorService, boolean fromListener) {
+    private static void processInterceptorResource(InterceptorService interceptorService) {
         MethodType[] resourceMethods = ((ServiceType) TypeUtils.getType(interceptorService.getBalService()))
                 .getResourceMethods();
         if (resourceMethods.length == 1) {
             MethodType resource = resourceMethods[0];
             updateInterceptorResourceTree(interceptorService,
-                    InterceptorResource.buildInterceptorResource(resource, interceptorService, fromListener));
+                    InterceptorResource.buildInterceptorResource(resource, interceptorService));
         }
     }
 

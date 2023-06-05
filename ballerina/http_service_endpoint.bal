@@ -23,7 +23,7 @@ public isolated class Listener {
 
     private int port;
     private InferredListenerConfiguration inferredConfig;
-    private Interceptor[] interceptors;
+    private DefaultErrorInterceptor interceptor = new DefaultErrorInterceptor();
 
     # Gets invoked during module initialization to initialize the listener.
     #
@@ -40,15 +40,6 @@ public isolated class Listener {
             server: config.server,
             requestLimits: config.requestLimits
         };
-        self.interceptors = [new DefaultErrorInterceptor()];
-        Interceptor|Interceptor[]? interceptors = config.interceptors;
-        if interceptors is Interceptor[] {
-            foreach Interceptor interceptor in interceptors {
-                self.interceptors.push(interceptor);
-            }
-        } else if interceptors is Interceptor {
-            self.interceptors.push(interceptors);
-        }
         self.inferredConfig = inferredListenerConfig.cloneReadOnly();
         self.port = port;
         return externInitEndpoint(self, config);
@@ -107,7 +98,7 @@ public isolated class Listener {
     # + return - The readonly HTTP listener inferred configuration
     public isolated function getConfig() returns readonly & InferredListenerConfiguration {
         lock {
-            return <readonly & InferredListenerConfiguration> self.inferredConfig.cloneReadOnly();
+            return <readonly & InferredListenerConfiguration>self.inferredConfig.cloneReadOnly();
         }
     }
 }
@@ -145,13 +136,12 @@ public type Local record {|
 # + host - The host name/IP of the endpoint
 # + http1Settings - Configurations related to HTTP/1.x protocol
 # + secureSocket - The SSL configurations for the service endpoint. This needs to be configured in order to
-#                  communicate through HTTPS.
+# communicate through HTTPS.
 # + httpVersion - Highest HTTP version supported by the endpoint
 # + timeout - Period of time in seconds that a connection waits for a read/write operation. Use value 0 to
-#                   disable timeout
+# disable timeout
 # + server - The server name which should appear as a response header
 # + requestLimits - Configurations associated with inbound request size limits
-# + interceptors - An array of interceptor services
 # + gracefulStopTimeout - Grace period of time in seconds for listener gracefulStop
 # + socketConfig - Provides settings related to server socket configuration
 public type ListenerConfiguration record {|
@@ -162,7 +152,6 @@ public type ListenerConfiguration record {|
     decimal timeout = DEFAULT_LISTENER_TIMEOUT;
     string? server = ();
     RequestLimitConfigs requestLimits = {};
-    Interceptor|Interceptor[] interceptors?;
     decimal gracefulStopTimeout = DEFAULT_GRACEFULSTOP_TIMEOUT;
     ServerSocketConfig socketConfig = {};
 |};
@@ -172,10 +161,10 @@ public type ListenerConfiguration record {|
 # + host - The host name/IP of the endpoint
 # + http1Settings - Configurations related to HTTP/1.x protocol
 # + secureSocket - The SSL configurations for the service endpoint. This needs to be configured in order to
-#                  communicate through HTTPS.
+# communicate through HTTPS.
 # + httpVersion - Highest HTTP version supported by the endpoint
 # + timeout - Period of time in seconds that a connection waits for a read/write operation. Use value 0 to
-#                   disable timeout
+# disable timeout
 # + server - The server name which should appear as a response header
 # + requestLimits - Configurations associated with inbound request size limits
 public type InferredListenerConfiguration record {|
@@ -191,10 +180,10 @@ public type InferredListenerConfiguration record {|
 # Provides settings related to HTTP/1.x protocol.
 #
 # + keepAlive - Can be set to either `KEEPALIVE_AUTO`, which respects the `connection` header, or `KEEPALIVE_ALWAYS`,
-#               which always keeps the connection alive, or `KEEPALIVE_NEVER`, which always closes the connection
+# which always keeps the connection alive, or `KEEPALIVE_NEVER`, which always closes the connection
 # + maxPipelinedRequests - Defines the maximum number of requests that can be processed at a given time on a single
-#                          connection. By default 10 requests can be pipelined on a single connection and user can
-#                          change this limit appropriately.
+# connection. By default 10 requests can be pipelined on a single connection and user can
+# change this limit appropriately.
 public type ListenerHttp1Settings record {|
     KeepAlive keepAlive = KEEPALIVE_AUTO;
     int maxPipelinedRequests = MAX_PIPELINED_REQUESTS;
@@ -203,13 +192,13 @@ public type ListenerHttp1Settings record {|
 # Provides inbound request URI, total header and entity body size threshold configurations.
 #
 # + maxUriLength - Maximum allowed length for a URI. Exceeding this limit will result in a `414 - URI Too Long`
-#                  response. For HTTP/2, this limit will not be applicable as it already has a `:path`
-#                  pseudo-header which will be validated by `maxHeaderSize`
+# response. For HTTP/2, this limit will not be applicable as it already has a `:path`
+# pseudo-header which will be validated by `maxHeaderSize`
 # + maxHeaderSize - Maximum allowed size for headers. Exceeding this limit will result in a
-#                   `431 - Request Header Fields Too Large` response
+# `431 - Request Header Fields Too Large` response
 # + maxEntityBodySize - Maximum allowed size for the entity body. By default it is set to -1 which means there
-#                       is no restriction `maxEntityBodySize`, On the Exceeding this limit will result in a
-#                       `413 - Payload Too Large` response
+# is no restriction `maxEntityBodySize`, On the Exceeding this limit will result in a
+# `413 - Payload Too Large` response
 public type RequestLimitConfigs record {|
     int maxUriLength = 4096;
     int maxHeaderSize = 8192;
@@ -223,7 +212,7 @@ public type RequestLimitConfigs record {|
 # + protocol - SSL/TLS protocol related options
 # + certValidation - Certificate validation against OCSP_CRL, OCSP_STAPLING related options
 # + ciphers - List of ciphers to be used
-#             eg: TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
+# eg: TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
 # + shareSession - Enable/Disable new SSL session creation
 # + handshakeTimeout - SSL handshake time out
 # + sessionTimeout - SSL session time out
@@ -242,11 +231,17 @@ public type ListenerSecureSocket record {|
         int cacheSize;
         int cacheValidityPeriod;
     |} certValidation?;
-    string[] ciphers = ["TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256", "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256",
-                        "TLS_DHE_RSA_WITH_AES_128_CBC_SHA256", "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA",
-                        "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA", "TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
-                        "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
-                        "TLS_DHE_RSA_WITH_AES_128_GCM_SHA256"];
+    string[] ciphers = [
+        "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256",
+        "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256",
+        "TLS_DHE_RSA_WITH_AES_128_CBC_SHA256",
+        "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA",
+        "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA",
+        "TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
+        "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
+        "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
+        "TLS_DHE_RSA_WITH_AES_128_GCM_SHA256"
+    ];
     boolean shareSession = true;
     decimal handshakeTimeout?;
     decimal sessionTimeout?;
@@ -266,28 +261,28 @@ public type ServerSocketConfig record {|
 # + keyFile - A file containing the private key in PKCS8 format
 # + keyPassword - Password of the private key if it is encrypted
 public type CertKey record {|
-   string certFile;
-   string keyFile;
-   string keyPassword?;
+    string certFile;
+    string keyFile;
+    string keyPassword?;
 |};
 
 # Represents client verify options.
 public enum VerifyClient {
-   REQUIRE,
-   OPTIONAL
+    REQUIRE,
+    OPTIONAL
 }
 
 # Represents protocol options.
 public enum Protocol {
-   SSL,
-   TLS,
-   DTLS
+    SSL,
+    TLS,
+    DTLS
 }
 
 # Represents certification validation type options.
 public enum CertValidationType {
-   OCSP_CRL,
-   OCSP_STAPLING
+    OCSP_CRL,
+    OCSP_STAPLING
 }
 
 # Defines the possible values for the keep-alive configuration in service and client endpoints.

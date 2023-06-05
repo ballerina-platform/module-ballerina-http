@@ -16,7 +16,7 @@ import java.util.List;
  */
 public abstract class AbstractHttpNativeFunction {
 
-    protected static HTTPServicesRegistry getHttpServicesRegistry(BObject serviceEndpoint) {
+    public static HTTPServicesRegistry getHttpServicesRegistry(BObject serviceEndpoint) {
         return (HTTPServicesRegistry) serviceEndpoint.getNativeData(HttpConstants.HTTP_SERVICE_REGISTRY);
     }
 
@@ -39,11 +39,9 @@ public abstract class AbstractHttpNativeFunction {
         serviceEndpoint.addNativeData(HttpConstants.HTTP_SERVICE_REGISTRY, httpServicesRegistry);
     }
 
-    public static void resetInterceptorRegistry(BObject serviceEndpoint, int interceptorsSize) {
+    public static void resetInterceptorRegistry(BObject serviceEndpoint) {
         List<HTTPInterceptorServicesRegistry> httpInterceptorServicesRegistries = new ArrayList<>();
-        for (int i = 0; i < interceptorsSize; i++) {
-            httpInterceptorServicesRegistries.add(new HTTPInterceptorServicesRegistry());
-        }
+        httpInterceptorServicesRegistries.add(new HTTPInterceptorServicesRegistry());
         serviceEndpoint.addNativeData(HttpConstants.INTERCEPTOR_SERVICES_REGISTRIES,
                 httpInterceptorServicesRegistries);
     }

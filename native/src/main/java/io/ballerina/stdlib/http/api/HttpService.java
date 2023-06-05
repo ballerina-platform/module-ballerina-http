@@ -507,7 +507,7 @@ public class HttpService implements Service {
             BObject interceptorService = (BObject) interceptorServices.get(i);
             HTTPInterceptorServicesRegistry servicesRegistry = new HTTPInterceptorServicesRegistry();
             servicesRegistry.setServicesType(HttpUtil.getInterceptorServiceType(interceptorService));
-            servicesRegistry.registerInterceptorService(interceptorService, service.getBasePath(), false);
+            servicesRegistry.registerInterceptorService(interceptorService, service.getBasePath());
             servicesRegistry.setRuntime(runtime);
             interceptorServicesRegistries.add(servicesRegistry);
         }

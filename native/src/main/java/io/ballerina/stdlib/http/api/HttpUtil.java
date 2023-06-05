@@ -1595,34 +1595,18 @@ public class HttpUtil {
     }
 
     public static void populateInterceptorServicesFromListener(BObject serviceEndpoint, Runtime runtime) {
-        Object[] interceptors = {};
-        List<BObject> interceptorServices = new ArrayList<>();
-        BArray interceptorsArray = serviceEndpoint.getArrayValue(HttpConstants.ENDPOINT_CONFIG_INTERCEPTORS);
+        BObject defaultErrorInterceptor = serviceEndpoint.getObjectValue(HttpConstants.ENDPOINT_CONFIG_INTERCEPTORS);
 
-        if (interceptorsArray != null) {
-            interceptors = interceptorsArray.getValues();
-        }
-
-        for (Object interceptor: interceptors) {
-            if (interceptor == null) {
-                break;
-            }
-            interceptorServices.add((BObject) interceptor);
-        }
-
-        serviceEndpoint.addNativeData(HttpConstants.INTERCEPTORS, interceptorsArray);
-        Register.resetInterceptorRegistry(serviceEndpoint, interceptorServices.size());
+        serviceEndpoint.addNativeData(HttpConstants.INTERCEPTORS, defaultErrorInterceptor);
+        Register.resetInterceptorRegistry(serviceEndpoint);
         List<HTTPInterceptorServicesRegistry> httpInterceptorServicesRegistries
                                                     = Register.getHttpInterceptorServicesRegistries(serviceEndpoint);
 
         // Registering all the interceptor services in separate service registries
-        for (int i = 0; i < interceptorServices.size(); i++) {
-            BObject interceptorService = interceptorServices.get(i);
-            HTTPInterceptorServicesRegistry servicesRegistry = httpInterceptorServicesRegistries.get(i);
-            servicesRegistry.setServicesType(HttpUtil.getInterceptorServiceType(interceptorService));
-            servicesRegistry.registerInterceptorService(interceptorService, HttpConstants.DEFAULT_BASE_PATH, true);
-            servicesRegistry.setRuntime(runtime);
-        }
+        HTTPInterceptorServicesRegistry servicesRegistry = httpInterceptorServicesRegistries.get(0);
+        servicesRegistry.setServicesType(HttpUtil.getInterceptorServiceType(defaultErrorInterceptor));
+        servicesRegistry.registerInterceptorService(defaultErrorInterceptor, HttpConstants.DEFAULT_BASE_PATH);
+        servicesRegistry.setRuntime(runtime);
     }
 
     public static void markPossibleLastInterceptors(HTTPServicesRegistry servicesRegistry) {
