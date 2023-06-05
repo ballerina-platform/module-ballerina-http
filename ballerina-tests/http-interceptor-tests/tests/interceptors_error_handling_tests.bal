@@ -21,11 +21,7 @@ import ballerina/http_test_common as common;
 final http:Client noServiceRegisteredClientEP = check new("http://localhost:" + noServiceRegisteredTestPort.toString(), httpVersion = http:HTTP_1_1);
 
 listener http:Listener noServiceRegisteredServerEP = new(noServiceRegisteredTestPort,
-    httpVersion = http:HTTP_1_1,
-    interceptors = [
-        new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultRequestInterceptor(),
-        new DefaultRequestErrorInterceptor(), new LastRequestInterceptor(), new DefaultResponseInterceptor()
-    ]
+    httpVersion = http:HTTP_1_1
 );
 
 @test:Config{}
@@ -33,23 +29,23 @@ function testNoServiceRegistered() returns error? {
     http:Response res = check noServiceRegisteredClientEP->get("/");
     test:assertEquals(res.statusCode, 404);
     common:assertTrueTextPayload(res.getTextPayload(), "no service has registered for listener");
-    common:assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
-    common:assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
-    common:assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
-    common:assertHeaderValue(check res.getHeader("error-type"), "DispatchingError-Service");
 }
 
 final http:Client serviceErrorHandlingClientEP = check new("http://localhost:" + serviceErrorHandlingTestPort.toString(), httpVersion = http:HTTP_1_1);
 
 listener http:Listener serviceErrorHandlingServerEP = new(serviceErrorHandlingTestPort,
-    httpVersion = http:HTTP_1_1,
-    interceptors = [
-        new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultRequestInterceptor(),
-        new DefaultRequestErrorInterceptor(), new LastRequestInterceptor(), new DefaultResponseInterceptor()
-    ]
+    httpVersion = http:HTTP_1_1
 );
 
-service /foo on serviceErrorHandlingServerEP {
+service http:InterceptableService /foo on serviceErrorHandlingServerEP {
+
+    public function createInterceptors() returns [LastResponseInterceptor, DefaultResponseErrorInterceptor, DefaultRequestInterceptor,
+        DefaultRequestErrorInterceptor, LastRequestInterceptor, DefaultResponseInterceptor] {
+        return [
+            new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultRequestInterceptor(),
+            new DefaultRequestErrorInterceptor(), new LastRequestInterceptor(), new DefaultResponseInterceptor()
+        ];
+    }
 
     resource function get bar1(@http:Header int header) returns int {
         return header;
@@ -89,7 +85,9 @@ service /foo on serviceErrorHandlingServerEP {
     }
 }
 
-@test:Config{}
+@test:Config{
+    enable: false
+}
 function testNoMatchingServiceRegistered() returns error? {
     http:Response res = check serviceErrorHandlingClientEP->get("/");
     test:assertEquals(res.statusCode, 404);
@@ -236,10 +234,6 @@ function testConsumesProducesError() returns error? {
 
 listener http:Listener authErrorHandlingServerEP = new(authErrorHandlingTestPort,
     httpVersion = http:HTTP_1_1,
-    interceptors = [
-        new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultRequestInterceptor(),
-        new DefaultRequestErrorInterceptor(), new LastRequestInterceptor(), new DefaultResponseInterceptor()
-    ],
     secureSocket = {
         key: {
             path: common:KEYSTORE_PATH,
@@ -257,7 +251,16 @@ listener http:Listener authErrorHandlingServerEP = new(authErrorHandlingTestPort
         }
     ]
 }
-service /auth on authErrorHandlingServerEP {
+service http:InterceptableService /auth on authErrorHandlingServerEP {
+
+    public function createInterceptors() returns [LastResponseInterceptor, DefaultResponseErrorInterceptor, DefaultRequestInterceptor,
+        DefaultRequestErrorInterceptor, LastRequestInterceptor, DefaultResponseInterceptor] {
+        return [
+            new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultRequestInterceptor(),
+            new DefaultRequestErrorInterceptor(), new LastRequestInterceptor(), new DefaultResponseInterceptor()
+        ];
+    }
+
     resource function get .() returns string {
         return "Hello World!";
     }

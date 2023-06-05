@@ -22,15 +22,15 @@ import ballerina/http_test_common as common;
 
 final http:Client requestInterceptorWithCallerRespondClientEP = check new("http://localhost:" + requestInterceptorWithCallerRespondTestPort.toString(), httpVersion = http:HTTP_1_1);
 
-listener http:Listener requestInterceptorWithCallerRespondServerEP = new(requestInterceptorWithCallerRespondTestPort, 
-    httpVersion = http:HTTP_1_1,
-    interceptors = [
-        new DefaultRequestInterceptor(), new LastResponseInterceptor(), new DefaultResponseInterceptor(),
-        new RequestInterceptorCallerRespond(), new LastRequestInterceptor()
-    ]
-);
+listener http:Listener requestInterceptorWithCallerRespondServerEP = new(requestInterceptorWithCallerRespondTestPort, httpVersion = http:HTTP_1_1);
 
-service / on requestInterceptorWithCallerRespondServerEP {
+service http:InterceptableService / on requestInterceptorWithCallerRespondServerEP {
+
+    public function createInterceptors() returns [DefaultRequestInterceptor, LastResponseInterceptor, DefaultResponseInterceptor,
+                RequestInterceptorCallerRespond, LastRequestInterceptor] {
+        return [new DefaultRequestInterceptor(), new LastResponseInterceptor(), new DefaultResponseInterceptor(),
+                        new RequestInterceptorCallerRespond(), new LastRequestInterceptor()];
+    }
 
     resource function 'default test() returns string {
         return "Response from resource - test";
@@ -49,12 +49,13 @@ function testRequestInterceptorWithCallerRespond() returns error? {
 
 final http:Client responseInterceptorWithCallerRespondClientEP = check new("http://localhost:" + responseInterceptorWithCallerRespondTestPort.toString(), httpVersion = http:HTTP_1_1);
 
-listener http:Listener responseInterceptorWithCallerRespondServerEP = new(responseInterceptorWithCallerRespondTestPort, 
-    httpVersion = http:HTTP_1_1,
-    interceptors = [new LastResponseInterceptor(), new ResponseInterceptorCallerRespond(), new DefaultResponseInterceptor()]
-);
+listener http:Listener responseInterceptorWithCallerRespondServerEP = new(responseInterceptorWithCallerRespondTestPort, httpVersion = http:HTTP_1_1);
 
-service / on responseInterceptorWithCallerRespondServerEP {
+service http:InterceptableService / on responseInterceptorWithCallerRespondServerEP {
+
+    public function createInterceptors() returns [LastResponseInterceptor, ResponseInterceptorCallerRespond, DefaultResponseInterceptor] {
+        return [new LastResponseInterceptor(), new ResponseInterceptorCallerRespond(), new DefaultResponseInterceptor()];
+    }
 
     resource function 'default test() returns string {
         return "Response from resource - test";
@@ -73,15 +74,15 @@ function testResponseInterceptorWithCallerRespond() returns error? {
 
 final http:Client requestInterceptorCallerRespondErrorTestClientEP = check new("http://localhost:" + requestInterceptorCallerRespondErrorTestPort.toString(), httpVersion = http:HTTP_1_1);
 
-listener http:Listener requestInterceptorCallerRespondErrorTestServerEP = new(requestInterceptorCallerRespondErrorTestPort, 
-    httpVersion = http:HTTP_1_1,
-    interceptors = [
-        new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultResponseInterceptor(),
-        new RequestInterceptorReturnsError(), new DefaultRequestInterceptor(), new LastRequestInterceptor()
-    ]
-);
+listener http:Listener requestInterceptorCallerRespondErrorTestServerEP = new(requestInterceptorCallerRespondErrorTestPort, httpVersion = http:HTTP_1_1);
 
-service / on requestInterceptorCallerRespondErrorTestServerEP {
+service http:InterceptableService / on requestInterceptorCallerRespondErrorTestServerEP {
+
+    public function createInterceptors() returns [LastResponseInterceptor, DefaultResponseErrorInterceptor, DefaultResponseInterceptor,
+                RequestInterceptorReturnsError, DefaultRequestInterceptor, LastRequestInterceptor] {
+        return [new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultResponseInterceptor(),
+                        new RequestInterceptorReturnsError(), new DefaultRequestInterceptor(), new LastRequestInterceptor()];
+    }
 
     resource function 'default .() returns string {
         return "Response from resource - test";
@@ -102,15 +103,15 @@ function testRequestInterceptorCallerRespondsError() returns error? {
 
 final http:Client responseInterceptorCallerRespondErrorTestClientEP = check new("http://localhost:" + responseInterceptorCallerRespondErrorTestPort.toString(), httpVersion = http:HTTP_1_1);
 
-listener http:Listener responseInterceptorCallerRespondErrorTestServerEP = new(responseInterceptorCallerRespondErrorTestPort, 
-    httpVersion = http:HTTP_1_1,
-    interceptors = [
-        new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultResponseInterceptor(),
-        new ResponseInterceptorCallerRespondError()
-    ]
-);
+listener http:Listener responseInterceptorCallerRespondErrorTestServerEP = new(responseInterceptorCallerRespondErrorTestPort, httpVersion = http:HTTP_1_1);
 
-service / on responseInterceptorCallerRespondErrorTestServerEP {
+service http:InterceptableService / on responseInterceptorCallerRespondErrorTestServerEP {
+
+    public function createInterceptors() returns [LastResponseInterceptor, DefaultResponseErrorInterceptor, DefaultResponseInterceptor,
+            ResponseInterceptorCallerRespondError] {
+        return [new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultResponseInterceptor(),
+                        new ResponseInterceptorCallerRespondError()];
+    }
 
     resource function 'default .() returns string {
         return "Response from resource - test";
@@ -130,12 +131,15 @@ function testResponseInterceptorCallerRespondsError() returns error? {
 
 final http:Client requestInterceptorDataBindingClientEP1 = check new("http://localhost:" + requestInterceptorDataBindingTestPort1.toString(), httpVersion = http:HTTP_1_1);
 
-listener http:Listener requestInterceptorDataBindingServerEP1 = new(requestInterceptorDataBindingTestPort1, 
-    httpVersion = http:HTTP_1_1,
-    interceptors = [new DefaultRequestInterceptor(), new DataBindingRequestInterceptor(), new RequestErrorInterceptorReturnsErrorMsg(), new LastRequestInterceptor()]
-);
+listener http:Listener requestInterceptorDataBindingServerEP1 = new(requestInterceptorDataBindingTestPort1, httpVersion = http:HTTP_1_1);
 
-service / on requestInterceptorDataBindingServerEP1 {
+service http:InterceptableService / on requestInterceptorDataBindingServerEP1 {
+
+    public function createInterceptors() returns [DefaultRequestInterceptor, DataBindingRequestInterceptor,
+            RequestErrorInterceptorReturnsErrorMsg, LastRequestInterceptor] {
+        return [new DefaultRequestInterceptor(), new DataBindingRequestInterceptor(), new RequestErrorInterceptorReturnsErrorMsg(),
+                new LastRequestInterceptor()];
+    }
 
     resource function 'default .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new();
@@ -149,12 +153,13 @@ service / on requestInterceptorDataBindingServerEP1 {
 
 final http:Client requestInterceptorDataBindingClientEP2 = check new("http://localhost:" + requestInterceptorDataBindingTestPort2.toString(), httpVersion = http:HTTP_1_1);
 
-listener http:Listener requestInterceptorDataBindingServerEP2 = new(requestInterceptorDataBindingTestPort2, 
-    httpVersion = http:HTTP_1_1,
-    interceptors = [new DataBindingRequestInterceptor(), new LastRequestInterceptor()]
-);
+listener http:Listener requestInterceptorDataBindingServerEP2 = new(requestInterceptorDataBindingTestPort2, httpVersion = http:HTTP_1_1);
 
-service / on requestInterceptorDataBindingServerEP2 {
+service http:InterceptableService / on requestInterceptorDataBindingServerEP2 {
+
+    public function createInterceptors() returns [DataBindingRequestInterceptor, LastRequestInterceptor] {
+        return [new DataBindingRequestInterceptor(), new LastRequestInterceptor()];
+    }
 
     resource function 'default .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new();
@@ -215,12 +220,14 @@ function testRequestInterceptorDataBindingWithLargePayload() returns error? {
 
 final http:Client requestInterceptorWithoutCtxNextClientEP = check new("http://localhost:" + requestInterceptorWithoutCtxNextTestPort.toString(), httpVersion = http:HTTP_1_1);
 
-listener http:Listener requestInterceptorWithoutCtxNextServerEP = new(requestInterceptorWithoutCtxNextTestPort, 
-    httpVersion = http:HTTP_1_1,
-    interceptors = [new DefaultRequestInterceptor(), new RequestInterceptorWithoutCtxNext(), new LastRequestInterceptor()]
-);
+listener http:Listener requestInterceptorWithoutCtxNextServerEP = new(requestInterceptorWithoutCtxNextTestPort, httpVersion = http:HTTP_1_1);
 
-service / on requestInterceptorWithoutCtxNextServerEP {
+service http:InterceptableService / on requestInterceptorWithoutCtxNextServerEP {
+
+    public function createInterceptors() returns [DefaultRequestInterceptor, RequestInterceptorWithoutCtxNext,
+            LastRequestInterceptor] {
+        return [new DefaultRequestInterceptor(), new RequestInterceptorWithoutCtxNext(), new LastRequestInterceptor()];
+    }
 
     resource function 'default .() returns string {
         return "Response from resource - test";
@@ -235,12 +242,14 @@ function testRequestInterceptorWithoutCtxNext() returns error? {
 
 final http:Client responseInterceptorWithoutCtxNextClientEP = check new("http://localhost:" + responseInterceptorWithoutCtxNextTestPort.toString(), httpVersion = http:HTTP_1_1);
 
-listener http:Listener responseInterceptorWithoutCtxNextServerEP = new(responseInterceptorWithoutCtxNextTestPort, 
-    httpVersion = http:HTTP_1_1,
-    interceptors = [new LastResponseInterceptor(), new ResponseInterceptorWithoutCtxNext(), new DefaultResponseInterceptor()]
-);
+listener http:Listener responseInterceptorWithoutCtxNextServerEP = new(responseInterceptorWithoutCtxNextTestPort, httpVersion = http:HTTP_1_1);
 
-service / on responseInterceptorWithoutCtxNextServerEP {
+service http:InterceptableService / on responseInterceptorWithoutCtxNextServerEP {
+
+    public function createInterceptors() returns [LastResponseInterceptor, ResponseInterceptorWithoutCtxNext,
+                DefaultResponseInterceptor] {
+        return [new LastResponseInterceptor(), new ResponseInterceptorWithoutCtxNext(), new DefaultResponseInterceptor()];
+    }
 
     resource function 'default .() returns string {
         return "Response from resource - test";
@@ -258,12 +267,15 @@ function testResponseInterceptorWithoutCtxNext() returns error? {
 
 final http:Client requestInterceptorSkipClientEP = check new("http://localhost:" + requestInterceptorSkipTestPort.toString(), httpVersion = http:HTTP_1_1);
 
-listener http:Listener requestInterceptorSkipServerEP = new(requestInterceptorSkipTestPort, 
-    httpVersion = http:HTTP_1_1,
-    interceptors = [new DefaultRequestInterceptor(), new RequestInterceptorSkip(), new RequestInterceptorWithoutCtxNext(), new LastRequestInterceptor()]
-);
+listener http:Listener requestInterceptorSkipServerEP = new(requestInterceptorSkipTestPort, httpVersion = http:HTTP_1_1);
 
-service / on requestInterceptorSkipServerEP {
+service http:InterceptableService / on requestInterceptorSkipServerEP {
+
+    public function createInterceptors() returns [DefaultRequestInterceptor, RequestInterceptorSkip, RequestInterceptorWithoutCtxNext,
+                LastRequestInterceptor] {
+        return [new DefaultRequestInterceptor(), new RequestInterceptorSkip(), new RequestInterceptorWithoutCtxNext(),
+                    new LastRequestInterceptor()];
+    }
 
     resource function 'default .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new();
@@ -284,15 +296,15 @@ function testRequestInterceptorSkip() returns error? {
 
 final http:Client responseInterceptorSkipClientEP = check new("http://localhost:" + responseInterceptorSkipTestPort.toString(), httpVersion = http:HTTP_1_1);
 
-listener http:Listener responseInterceptorSkipServerEP = new(responseInterceptorSkipTestPort, 
-    httpVersion = http:HTTP_1_1,
-    interceptors = [
-        new LastResponseInterceptor(), new ResponseInterceptorWithoutCtxNext(), new ResponseInterceptorSkip(), 
-        new DefaultResponseInterceptor()
-    ]
-);
+listener http:Listener responseInterceptorSkipServerEP = new(responseInterceptorSkipTestPort, httpVersion = http:HTTP_1_1);
 
-service / on responseInterceptorSkipServerEP {
+service http:InterceptableService / on responseInterceptorSkipServerEP {
+
+    public function createInterceptors() returns [LastResponseInterceptor, ResponseInterceptorWithoutCtxNext, ResponseInterceptorSkip,
+              DefaultResponseInterceptor] {
+        return [new LastResponseInterceptor(), new ResponseInterceptorWithoutCtxNext(), new ResponseInterceptorSkip(),
+                new DefaultResponseInterceptor()];
+    }
 
     resource function 'default .() returns string {
         return "Response from resource - test";
@@ -310,14 +322,16 @@ function testResponseInterceptorSkip() returns error? {
 
 final http:Client requestInterceptorCallerRespondContinueClientEP = check new("http://localhost:" + requestInterceptorCallerRespondContinueTestPort.toString(), httpVersion = http:HTTP_1_1);
 
-listener http:Listener requestInterceptorCallerRespondContinueServerEP = new(requestInterceptorCallerRespondContinueTestPort, 
-    httpVersion = http:HTTP_1_1,
-    interceptors = [new DefaultRequestInterceptor(), new RequestInterceptorCallerRespondContinue(), new LastRequestInterceptor()]
-);
+listener http:Listener requestInterceptorCallerRespondContinueServerEP = new(requestInterceptorCallerRespondContinueTestPort, httpVersion = http:HTTP_1_1);
 
 isolated string message1 = "Greetings from client1";
 
-service / on requestInterceptorCallerRespondContinueServerEP {
+service http:InterceptableService / on requestInterceptorCallerRespondContinueServerEP {
+
+    public function createInterceptors() returns [DefaultRequestInterceptor, RequestInterceptorCallerRespondContinue,
+            LastRequestInterceptor] {
+        return [new DefaultRequestInterceptor(), new RequestInterceptorCallerRespondContinue(), new LastRequestInterceptor()];
+    }
 
     resource function 'default .() returns string {
         lock {
@@ -340,12 +354,14 @@ function testRequestInterceptorCallerRespondContinue() returns error? {
 
 final http:Client responseInterceptorCallerRespondContinueClientEP = check new("http://localhost:" + responseInterceptorCallerRespondContinueTestPort.toString(), httpVersion = http:HTTP_1_1);
 
-listener http:Listener responseInterceptorCallerRespondContinueServerEP = new(responseInterceptorCallerRespondContinueTestPort, 
-    httpVersion = http:HTTP_1_1,
-    interceptors = [new LastResponseInterceptor(), new ResponseInterceptorCallerRespondContinue(), new DefaultResponseInterceptor()]
-);
+listener http:Listener responseInterceptorCallerRespondContinueServerEP = new(responseInterceptorCallerRespondContinueTestPort, httpVersion = http:HTTP_1_1);
 
-service / on responseInterceptorCallerRespondContinueServerEP {
+service http:InterceptableService / on responseInterceptorCallerRespondContinueServerEP {
+
+    public function createInterceptors() returns [LastResponseInterceptor,  ResponseInterceptorCallerRespondContinue,
+            DefaultResponseInterceptor] {
+        return [new LastResponseInterceptor(), new ResponseInterceptorCallerRespondContinue(), new DefaultResponseInterceptor()];
+    }
 
     resource function 'default test() returns string {
         return "Response from resource - test";
@@ -364,14 +380,15 @@ function testResponseInterceptorCallerRespondContinue() returns error? {
 
 final http:Client requestInterceptorCtxNextClientEP = check new("http://localhost:" + requestInterceptorCtxNextTestPort.toString(), httpVersion = http:HTTP_1_1);
 
-listener http:Listener requestInterceptorCtxNextServerEP = new(requestInterceptorCtxNextTestPort, 
-    httpVersion = http:HTTP_1_1,
-    interceptors = [new DefaultRequestInterceptor(), new RequestInterceptorCtxNext(), new LastRequestInterceptor()]
-);
+listener http:Listener requestInterceptorCtxNextServerEP = new(requestInterceptorCtxNextTestPort, httpVersion = http:HTTP_1_1);
 
 isolated string message2 = "Greetings from client2";
 
-service / on requestInterceptorCtxNextServerEP {
+service http:InterceptableService / on requestInterceptorCtxNextServerEP {
+
+    public function createInterceptors() returns [DefaultRequestInterceptor, RequestInterceptorCtxNext, LastRequestInterceptor] {
+        return [new DefaultRequestInterceptor(), new RequestInterceptorCtxNext(), new LastRequestInterceptor()];
+    }
 
     resource function 'default .() returns string {
         lock{
@@ -393,12 +410,14 @@ function testRequestInterceptorCtxNext() returns error? {
 
 final http:Client requestInterceptorStringPayloadBindingClientEP = check new("http://localhost:" + requestInterceptorStringPayloadBindingTestPort.toString(), httpVersion = http:HTTP_1_1);
 
-listener http:Listener requestInterceptorStringPayloadBindingServerEP = new(requestInterceptorStringPayloadBindingTestPort, 
-    httpVersion = http:HTTP_1_1,
-    interceptors = [new DefaultRequestInterceptor(), new StringPayloadBindingRequestInterceptor(), new LastRequestInterceptor()]
-);
+listener http:Listener requestInterceptorStringPayloadBindingServerEP = new(requestInterceptorStringPayloadBindingTestPort, httpVersion = http:HTTP_1_1);
 
-service / on requestInterceptorStringPayloadBindingServerEP {
+service http:InterceptableService / on requestInterceptorStringPayloadBindingServerEP {
+
+    public function createInterceptors() returns [DefaultRequestInterceptor, StringPayloadBindingRequestInterceptor,
+            LastRequestInterceptor] {
+        return [new DefaultRequestInterceptor(), new StringPayloadBindingRequestInterceptor(), new LastRequestInterceptor()];
+    }
 
     resource function 'default .(http:RequestContext ctx, @http:Payload string payload, http:Caller caller) returns error? {
         http:Response res = new();
@@ -420,12 +439,14 @@ function testRequestInterceptorStringPayloadBinding() returns error? {
 
 final http:Client requestInterceptorRecordPayloadBindingClientEP = check new("http://localhost:" + requestInterceptorRecordPayloadBindingTestPort.toString(), httpVersion = http:HTTP_1_1);
 
-listener http:Listener requestInterceptorRecordPayloadBindingServerEP = new(requestInterceptorRecordPayloadBindingTestPort, 
-    httpVersion = http:HTTP_1_1,
-    interceptors = [new DefaultRequestInterceptor(), new RecordPayloadBindingRequestInterceptor(), new LastRequestInterceptor()]
-);
+listener http:Listener requestInterceptorRecordPayloadBindingServerEP = new(requestInterceptorRecordPayloadBindingTestPort, httpVersion = http:HTTP_1_1);
 
-service / on requestInterceptorRecordPayloadBindingServerEP {
+service http:InterceptableService / on requestInterceptorRecordPayloadBindingServerEP {
+
+    public function createInterceptors() returns [DefaultRequestInterceptor, RecordPayloadBindingRequestInterceptor,
+            LastRequestInterceptor] {
+        return [new DefaultRequestInterceptor(), new RecordPayloadBindingRequestInterceptor(), new LastRequestInterceptor()];
+    }
 
     resource function 'default .(http:RequestContext ctx, @http:Payload Person person, http:Caller caller) returns error? {
         http:Response res = new();
@@ -448,12 +469,14 @@ function testRequestInterceptorRecordPayloadBinding() returns error? {
 
 final http:Client requestInterceptorRecordArrayPayloadBindingClientEP = check new("http://localhost:" + requestInterceptorRecordArrayPayloadBindingTestPort.toString(), httpVersion = http:HTTP_1_1);
 
-listener http:Listener requestInterceptorRecordArrayPayloadBindingServerEP = new(requestInterceptorRecordArrayPayloadBindingTestPort, 
-    httpVersion = http:HTTP_1_1,
-    interceptors = [new DefaultRequestInterceptor(), new RecordArrayPayloadBindingRequestInterceptor(), new LastRequestInterceptor()]
-);
+listener http:Listener requestInterceptorRecordArrayPayloadBindingServerEP = new(requestInterceptorRecordArrayPayloadBindingTestPort, httpVersion = http:HTTP_1_1);
 
-service / on requestInterceptorRecordArrayPayloadBindingServerEP {
+service http:InterceptableService / on requestInterceptorRecordArrayPayloadBindingServerEP {
+
+    public function createInterceptors() returns [DefaultRequestInterceptor, RecordArrayPayloadBindingRequestInterceptor,
+            LastRequestInterceptor] {
+        return [new DefaultRequestInterceptor(), new RecordArrayPayloadBindingRequestInterceptor(), new LastRequestInterceptor()];
+    }
 
     resource function 'default .(http:RequestContext ctx, @http:Payload Person[] persons, http:Caller caller) returns error? {
         http:Response res = new();
@@ -476,12 +499,14 @@ function testRequestInterceptorRecordArrayPayloadBinding() returns error? {
 
 final http:Client requestInterceptorByteArrayPayloadBindingClientEP = check new("http://localhost:" + requestInterceptorByteArrayPayloadBindingTestPort.toString(), httpVersion = http:HTTP_1_1);
 
-listener http:Listener requestInterceptorByteArrayPayloadBindingServerEP = new(requestInterceptorByteArrayPayloadBindingTestPort, 
-    httpVersion = http:HTTP_1_1,
-    interceptors = [new DefaultRequestInterceptor(), new ByteArrayPayloadBindingRequestInterceptor(), new LastRequestInterceptor()]
-);
+listener http:Listener requestInterceptorByteArrayPayloadBindingServerEP = new(requestInterceptorByteArrayPayloadBindingTestPort, httpVersion = http:HTTP_1_1);
 
-service / on requestInterceptorByteArrayPayloadBindingServerEP {
+service http:InterceptableService / on requestInterceptorByteArrayPayloadBindingServerEP {
+
+    public function createInterceptors() returns [DefaultRequestInterceptor, ByteArrayPayloadBindingRequestInterceptor,
+            LastRequestInterceptor] {
+        return [new DefaultRequestInterceptor(), new ByteArrayPayloadBindingRequestInterceptor(), new LastRequestInterceptor()];
+    }
 
     resource function 'default .(http:RequestContext ctx, @http:Payload byte[] person, http:Caller caller) returns error? {
         http:Response res = new();
@@ -506,12 +531,14 @@ function testRequestInterceptorByteArrayPayloadBinding() returns error? {
 
 final http:Client requestInterceptorWithQueryParamClientEP = check new("http://localhost:" + requestInterceptorWithQueryParamTestPort.toString(), httpVersion = http:HTTP_1_1);
 
-listener http:Listener requestInterceptorWithQueryParamServerEP = new(requestInterceptorWithQueryParamTestPort, 
-    httpVersion = http:HTTP_1_1,
-    interceptors = [new DefaultRequestInterceptor(), new RequestInterceptorWithQueryParam(), new LastRequestInterceptor()]
-);
+listener http:Listener requestInterceptorWithQueryParamServerEP = new(requestInterceptorWithQueryParamTestPort, httpVersion = http:HTTP_1_1);
 
-service / on requestInterceptorWithQueryParamServerEP {
+service http:InterceptableService / on requestInterceptorWithQueryParamServerEP {
+
+    public function createInterceptors() returns [DefaultRequestInterceptor, RequestInterceptorWithQueryParam,
+            LastRequestInterceptor] {
+        return [new DefaultRequestInterceptor(), new RequestInterceptorWithQueryParam(), new LastRequestInterceptor()];
+    }
 
     resource function 'default get(string q1, int q2, http:Caller caller, http:Request req) returns error? {
         http:Response res = new();
@@ -592,15 +619,15 @@ function testResponseInterceptorReturnsStatus() returns error? {
 
 final http:Client interceptorExecutionOrderClientEP = check new("http://localhost:" + interceptorExecutionOrderTestPort.toString(), httpVersion = http:HTTP_1_1);
 
-listener http:Listener interceptorExecutionOrderServerEP = check new(interceptorExecutionOrderTestPort, 
-    httpVersion = http:HTTP_1_1,
-    interceptors = [
-        new DefaultRequestInterceptor(), new LastResponseInterceptor(), new RequestInterceptorCheckHeader("listener-header"), 
-        new ResponseInterceptorWithVariable("listener-response"), new RequestInterceptorWithVariable("listener-request")
-    ]
-);
+listener http:Listener interceptorExecutionOrderServerEP = check new(interceptorExecutionOrderTestPort, httpVersion = http:HTTP_1_1);
 
-service / on interceptorExecutionOrderServerEP {
+service http:InterceptableService / on interceptorExecutionOrderServerEP {
+
+    public function createInterceptors() returns [DefaultRequestInterceptor, LastResponseInterceptor, RequestInterceptorCheckHeader,
+            ResponseInterceptorWithVariable, RequestInterceptorWithVariable] {
+        return [new DefaultRequestInterceptor(), new LastResponseInterceptor(), new RequestInterceptorCheckHeader("listener-header"),
+                    new ResponseInterceptorWithVariable("listener-response"), new RequestInterceptorWithVariable("listener-request")];
+    }
 
     resource function get .(http:Request req) returns http:Response|error {
         http:Response res = new;
@@ -614,10 +641,13 @@ service / on interceptorExecutionOrderServerEP {
 
 service http:InterceptableService /test on interceptorExecutionOrderServerEP {
 
-    public function createInterceptors() returns [ResponseInterceptorWithVariable, RequestInterceptorCheckHeader,
-                                    RequestInterceptorWithVariable, LastRequestInterceptor, DefaultResponseInterceptor] {
-        return [new ResponseInterceptorWithVariable("service-response"), new RequestInterceptorCheckHeader("service-header"),
-                        new RequestInterceptorWithVariable("service-request"), new LastRequestInterceptor(), new DefaultResponseInterceptor()];
+    public function createInterceptors() returns [DefaultRequestInterceptor, LastResponseInterceptor, RequestInterceptorCheckHeader,
+                ResponseInterceptorWithVariable, RequestInterceptorWithVariable, ResponseInterceptorWithVariable,
+                RequestInterceptorCheckHeader, RequestInterceptorWithVariable, LastRequestInterceptor, DefaultResponseInterceptor] {
+        return [new DefaultRequestInterceptor(), new LastResponseInterceptor(), new RequestInterceptorCheckHeader("listener-header"),
+                new ResponseInterceptorWithVariable("listener-response"), new RequestInterceptorWithVariable("listener-request"),
+                new ResponseInterceptorWithVariable("service-response"), new RequestInterceptorCheckHeader("service-header"),
+                new RequestInterceptorWithVariable("service-request"), new LastRequestInterceptor(), new DefaultResponseInterceptor()];
     }
 
     resource function get .(http:Request req) returns http:Response|error {
