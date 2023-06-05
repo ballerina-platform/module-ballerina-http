@@ -85,9 +85,7 @@ service http:InterceptableService /foo on serviceErrorHandlingServerEP {
     }
 }
 
-@test:Config{
-    enable: false
-}
+@test:Config{}
 function testNoMatchingServiceRegistered() returns error? {
     http:Response res = check serviceErrorHandlingClientEP->get("/");
     test:assertEquals(res.statusCode, 404);

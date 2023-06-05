@@ -123,9 +123,7 @@ service http:InterceptableService /hello on requestInterceptorNegativeServerEP5 
     }
 }
 
-@test:Config{
-    enable: false
-}
+@test:Config{}
 function testRequestInterceptorNegative5() returns error? {
     http:Response res = check requestInterceptorNegativeClientEP5->get("/");
     common:assertTextPayload(check res.getTextPayload(), "no matching service found for path : /");
