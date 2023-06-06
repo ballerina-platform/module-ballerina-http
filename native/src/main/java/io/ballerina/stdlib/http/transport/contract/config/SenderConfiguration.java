@@ -55,6 +55,7 @@ public class SenderConfiguration extends SslConfiguration {
     private boolean tcpNoDelay = true;
     private boolean socketReuse = false;
     private boolean socketKeepAlive = true;
+    private int http2InitialWindowSize = 65535;
 
     public SenderConfiguration() {
         this.poolConfiguration = new PoolConfiguration();
@@ -204,5 +205,13 @@ public class SenderConfiguration extends SslConfiguration {
 
     public void setSocketKeepAlive(boolean socketKeepAlive) {
         this.socketKeepAlive = socketKeepAlive;
+    }
+
+    public int getHttp2InitialWindowSize() {
+        return http2InitialWindowSize;
+    }
+
+    public void setHttp2InitialWindowSize(int http2InitialWindowSize) {
+        this.http2InitialWindowSize = http2InitialWindowSize;
     }
 }

@@ -13,19 +13,19 @@ distribution = "2201.5.0"
 groupId = "io.ballerina.stdlib"
 artifactId = "http-native"
 version = "2.8.0"
-path = "../native/build/libs/http-native-2.8.0-SNAPSHOT.jar"
+path = "../native/build/libs/http-native-2.8.0.jar"
 
 [[platform.java11.dependency]]
 groupId = "io.ballerina.stdlib"
 artifactId = "mime-native"
 version = "2.7.1"
-path = "./lib/mime-native-2.7.1-20230523-092600-8dee40d.jar"
+path = "./lib/mime-native-2.7.1.jar"
 
 [[platform.java11.dependency]]
 groupId = "io.ballerina.stdlib"
 artifactId = "constraint-native"
 version = "1.2.0"
-path = "./lib/constraint-native-1.2.0-20230518-182800-2681a7b.jar"
+path = "./lib/constraint-native-1.2.0.jar"
 
 [[platform.java11.dependency]]
 groupId = "io.netty"

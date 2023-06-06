@@ -144,6 +144,7 @@ public type Local record {|
 # + requestLimits - Configurations associated with inbound request size limits
 # + gracefulStopTimeout - Grace period of time in seconds for listener gracefulStop
 # + socketConfig - Provides settings related to server socket configuration
+# + http2InitialWindowSize - Configuration to change the initial window size in HTTP/2
 public type ListenerConfiguration record {|
     string host = "0.0.0.0";
     ListenerHttp1Settings http1Settings = {};
@@ -154,6 +155,7 @@ public type ListenerConfiguration record {|
     RequestLimitConfigs requestLimits = {};
     decimal gracefulStopTimeout = DEFAULT_GRACEFULSTOP_TIMEOUT;
     ServerSocketConfig socketConfig = {};
+    int http2InitialWindowSize = 65535;
 |};
 
 # Provides a set of cloneable configurations for HTTP listener.

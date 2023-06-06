@@ -35,6 +35,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
 
+import static io.ballerina.stdlib.http.api.HttpConstants.CLIENT_EP_HTTP2_INITIAL_WINDOW_SIZE;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP2_PRIOR_KNOWLEDGE;
 import static io.ballerina.stdlib.http.api.HttpConstants.SOCKET_CONFIG_CONNECT_TIMEOUT;
 import static io.ballerina.stdlib.http.api.HttpConstants.SOCKET_CONFIG_KEEP_ALIVE;
@@ -100,6 +101,8 @@ public class CreateSimpleHttpClient {
                         get(HttpConstants.HTTP2_SETTINGS);
                 boolean http2PriorKnowledge = (boolean) http2Settings.get(HTTP2_PRIOR_KNOWLEDGE);
                 senderConfiguration.setForceHttp2(http2PriorKnowledge);
+                senderConfiguration.setHttp2InitialWindowSize(http2Settings
+                        .getIntValue(CLIENT_EP_HTTP2_INITIAL_WINDOW_SIZE).intValue());
             } else {
                 BMap<BString, Object> http1Settings = (BMap<BString, Object>) clientEndpointConfig.get(
                         HttpConstants.HTTP1_SETTINGS);
