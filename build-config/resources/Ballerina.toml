@@ -8,6 +8,7 @@ repository = "https://github.com/ballerina-platform/module-ballerina-http"
 icon = "icon.png"
 license = ["Apache-2.0"]
 distribution = "2201.5.0"
+export = ["http", "http.http_status"]
 
 [[platform.java11.dependency]]
 groupId = "io.ballerina.stdlib"
