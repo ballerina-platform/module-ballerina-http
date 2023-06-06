@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/http;
+import ballerina/http.http_status;
 import ballerina/time;
 import ballerina/test;
 
@@ -27,15 +28,15 @@ type ErrorInfo record {|
 |};
 
 type ErrorDetails record {|
-    *http:ErrorDetail;
+    *http_status:ErrorDetail;
     ErrorInfo body;
 |};
 
-type UserNotFoundError Error & http:NotFoundError & error<ErrorDetails>;
+type UserNotFoundError Error & http_status:NotFoundError & error<ErrorDetails>;
 
-type UserNameAlreadyExistError Error & http:ConflictError & error<ErrorDetails>;
+type UserNameAlreadyExistError Error & http_status:ConflictError & error<ErrorDetails>;
 
-type BadUserError Error & http:BadRequestError & error<ErrorDetails>;
+type BadUserError Error & http_status:BadRequestError & error<ErrorDetails>;
 
 type User record {|
     readonly int id;
@@ -116,9 +117,9 @@ service on new http:Listener(statusCodeErrorUseCasePort) {
         return addUser(user);
     }
 
-    resource function 'default [string... path]() returns http:NotFoundError {
+    resource function 'default [string... path]() returns http_status:NotFoundError {
 
-        return error http:NotFoundError("Resource not found", body = {
+        return error http_status:NotFoundError("Resource not found", body = {
             timeStamp: getCurrentTimeStamp(),
             message: string `Resource not found for path: /${string:'join("/", ...path)}`
         });
