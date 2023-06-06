@@ -63,6 +63,7 @@ public class ListenerConfiguration extends SslConfiguration {
     private boolean tcpNoDelay;
     private boolean socketReuse;
     private boolean socketKeepAlive;
+    private int http2InitialWindowSize = 65535;
 
     public ListenerConfiguration() {
     }
@@ -272,5 +273,13 @@ public class ListenerConfiguration extends SslConfiguration {
 
     public void setSocketKeepAlive(boolean keepAlive) {
         this.socketKeepAlive = keepAlive;
+    }
+
+    public int getHttp2InitialWindowSize() {
+        return http2InitialWindowSize;
+    }
+
+    public void setHttp2InitialWindowSize(int http2InitialWindowSize) {
+        this.http2InitialWindowSize = http2InitialWindowSize;
     }
 }
