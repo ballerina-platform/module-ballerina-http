@@ -420,5 +420,5 @@ function testInvalidPathWithRootService() returns error? {
     common:assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
     common:assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
     common:assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
-    common:assertHeaderValue(check res.getHeader("error-type"), "DispatchingError-Service");
+    common:assertHeaderValue(check res.getHeader("error-type"), "DispatchingError-Resource");
 }
