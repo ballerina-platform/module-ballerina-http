@@ -335,7 +335,7 @@ service http:InterceptableService /path1 on singleServiceRegisteredServerEP {
     }
 
     resource function get .() returns string {
-        return "Hello World!";
+        return "Hello Path1!";
     }
 }
 
@@ -360,7 +360,7 @@ service http:InterceptableService /path1 on multipleServiceRegisteredServerEP {
     }
 
     resource function get .() returns string {
-        return "Hello World!";
+        return "Hello Path1!";
     }
 }
 
@@ -371,7 +371,7 @@ service http:InterceptableService /path2 on multipleServiceRegisteredServerEP {
     }
 
     resource function get .() returns string {
-        return "Hello World!";
+        return "Hello Path2!";
     }
 }
 
@@ -385,4 +385,40 @@ function testInvalidPathWithMultipleService() returns error? {
     test:assertFalse(res.hasHeader("default-response-error-interceptor"));
     test:assertFalse(res.hasHeader("last-response-interceptor"));
     test:assertFalse(res.hasHeader("error-type"));
+}
+
+listener http:Listener rootServiceRegisteredServerEP = new(rootServiceRegisteredTestPort, httpVersion = http:HTTP_1_1);
+
+service http:InterceptableService /path1 on rootServiceRegisteredServerEP {
+
+    public function createInterceptors() returns DefaultResponseErrorInterceptor {
+        return new DefaultResponseErrorInterceptor();
+    }
+
+    resource function get .() returns string {
+        return "Hello Path1!";
+    }
+}
+
+service http:InterceptableService / on rootServiceRegisteredServerEP {
+
+    public function createInterceptors() returns [LastResponseInterceptor, DefaultResponseErrorInterceptor] {
+        return [new LastResponseInterceptor(), new DefaultResponseErrorInterceptor()];
+    }
+
+    resource function get .() returns string {
+        return "Hello Root!";
+    }
+}
+
+@test:Config{}
+function testInvalidPathWithRootService() returns error? {
+    http:Client rootServiceRegisteredClientEP = check new("http://localhost:" + rootServiceRegisteredTestPort.toString(), httpVersion = http:HTTP_1_1);
+    http:Response res = check rootServiceRegisteredClientEP->get("/path2");
+    test:assertEquals(res.statusCode, 404);
+    test:assertEquals(res.getTextPayload(), "no matching resource found for path : /path2 , method : GET");
+    common:assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
+    common:assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
+    common:assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    common:assertHeaderValue(check res.getHeader("error-type"), "DispatchingError-Service");
 }
