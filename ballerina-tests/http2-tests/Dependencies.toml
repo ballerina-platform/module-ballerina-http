@@ -96,7 +96,7 @@ dependencies = [
 ]
 modules = [
 	{org = "ballerina", packageName = "http", moduleName = "http"},
-	{org = "ballerina", packageName = "http", moduleName = "http.status_errors"}
+	{org = "ballerina", packageName = "http", moduleName = "http.http_status"}
 ]
 
 [[package]]
