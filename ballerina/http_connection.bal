@@ -194,20 +194,18 @@ public isolated client class Caller {
     private isolated function returnErrorResponse(error errorResponse, string? returnMediaType = ()) returns ListenerError? {
         error err = errorResponse;
         if errorResponse is ClientConnectorError {
-            string causeMessage = self.getClientConnectorErrorCause(errorResponse);
-            BadGatewayError clientConError = error(causeMessage);
-            err = clientConError;
+            err = error BadGatewayError(getClientConnectorErrorCause(errorResponse));
         }
         return nativeRespondError(self, getErrorResponse(errorResponse, returnMediaType), err);
     }
+}
 
-    private isolated function getClientConnectorErrorCause(error err) returns string {
-        if err.cause() !is () {
-            error cause = <error>err.cause();
-            return string`${err.message()}: ${self.getClientConnectorErrorCause(cause)}`;
-        }
-        return err.message();
+isolated function getClientConnectorErrorCause(error err) returns string {
+    if err.cause() !is () {
+        error cause = <error>err.cause();
+        return string`${err.message()}: ${getClientConnectorErrorCause(cause)}`;
     }
+    return err.message();
 }
 
 isolated function createStatusCodeResponse(StatusCodeResponse message, string? returnMediaType = (), boolean setETag = false, map<Link>? links = ())
