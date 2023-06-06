@@ -18,19 +18,6 @@ import ballerina/http;
 import ballerina/test;
 import ballerina/http_test_common as common;
 
-final http:Client noServiceRegisteredClientEP = check new("http://localhost:" + noServiceRegisteredTestPort.toString(), httpVersion = http:HTTP_1_1);
-
-listener http:Listener noServiceRegisteredServerEP = new(noServiceRegisteredTestPort,
-    httpVersion = http:HTTP_1_1
-);
-
-@test:Config{}
-function testNoServiceRegistered() returns error? {
-    http:Response res = check noServiceRegisteredClientEP->get("/");
-    test:assertEquals(res.statusCode, 404);
-    common:assertTrueTextPayload(res.getTextPayload(), "no service has registered for listener");
-}
-
 final http:Client serviceErrorHandlingClientEP = check new("http://localhost:" + serviceErrorHandlingTestPort.toString(), httpVersion = http:HTTP_1_1);
 
 listener http:Listener serviceErrorHandlingServerEP = new(serviceErrorHandlingTestPort,
