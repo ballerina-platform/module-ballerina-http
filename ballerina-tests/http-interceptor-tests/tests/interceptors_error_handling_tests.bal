@@ -325,3 +325,64 @@ function testAuthzError() returns error? {
     common:assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
     common:assertHeaderValue(check res.getHeader("error-type"), "ListenerAuthorizationError");
 }
+
+listener http:Listener singleServiceRegisteredServerEP = new(singleServiceRegisteredTestPort, httpVersion = http:HTTP_1_1);
+
+service http:InterceptableService /path1 on singleServiceRegisteredServerEP {
+
+    public function createInterceptors() returns [LastResponseInterceptor, DefaultResponseErrorInterceptor] {
+        return [new LastResponseInterceptor(), new DefaultResponseErrorInterceptor()];
+    }
+
+    resource function get .() returns string {
+        return "Hello World!";
+    }
+}
+
+@test:Config{}
+function testInvalidPathWithSingleService() returns error? {
+    http:Client singleServiceRegisteredClientEP = check new("http://localhost:" + singleServiceRegisteredTestPort.toString(), httpVersion = http:HTTP_1_1);
+    http:Response res = check singleServiceRegisteredClientEP->get("/path2");
+    test:assertEquals(res.statusCode, 404);
+    test:assertEquals(res.getTextPayload(), "no matching service found for path : /path2");
+    common:assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
+    common:assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
+    common:assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    common:assertHeaderValue(check res.getHeader("error-type"), "DispatchingError-Service");
+}
+
+listener http:Listener multipleServiceRegisteredServerEP = new(multipleServiceRegisteredTestPort, httpVersion = http:HTTP_1_1);
+
+service http:InterceptableService /path1 on multipleServiceRegisteredServerEP {
+
+    public function createInterceptors() returns [LastResponseInterceptor, DefaultResponseErrorInterceptor] {
+        return [new LastResponseInterceptor(), new DefaultResponseErrorInterceptor()];
+    }
+
+    resource function get .() returns string {
+        return "Hello World!";
+    }
+}
+
+service http:InterceptableService /path2 on multipleServiceRegisteredServerEP {
+
+    public function createInterceptors() returns [LastResponseInterceptor, DefaultResponseErrorInterceptor] {
+        return [new LastResponseInterceptor(), new DefaultResponseErrorInterceptor()];
+    }
+
+    resource function get .() returns string {
+        return "Hello World!";
+    }
+}
+
+@test:Config{}
+function testInvalidPathWithMultipleService() returns error? {
+    http:Client multipleServiceRegisteredClientEP = check new("http://localhost:" + multipleServiceRegisteredTestPort.toString(), httpVersion = http:HTTP_1_1);
+    http:Response res = check multipleServiceRegisteredClientEP->get("/path3");
+    test:assertEquals(res.statusCode, 404);
+    test:assertEquals(res.getTextPayload(), "no matching service found for path : /path3");
+    test:assertFalse(res.hasHeader("last-interceptor"));
+    test:assertFalse(res.hasHeader("default-response-error-interceptor"));
+    test:assertFalse(res.hasHeader("last-response-interceptor"));
+    test:assertFalse(res.hasHeader("error-type"));
+}
