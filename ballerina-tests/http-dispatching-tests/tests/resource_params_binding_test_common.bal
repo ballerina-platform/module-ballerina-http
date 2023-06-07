@@ -286,7 +286,7 @@ service /header on resourceParamBindingListener {
         return header;
     }
 
-    resource function get case14(@http:Header StringCharacter header1, SmallInt header2) returns [StringCharacter, SmallInt] {
+    resource function get case14(@http:Header StringCharacter header1, @http:Header SmallInt header2) returns [StringCharacter, SmallInt] {
         return [header1, header2];
     }
 }
