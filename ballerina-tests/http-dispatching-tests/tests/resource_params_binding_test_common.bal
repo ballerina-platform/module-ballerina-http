@@ -44,6 +44,9 @@ type QueryRecord record {|
 
 type QueryRecordCombined QueryRecord|map<json>;
 
+type StringCharacter string:Char;
+type SmallInt int:Signed8;
+
 listener http:Listener resourceParamBindingListener = new(resourceParamBindingTestPort);
 
 service /path on resourceParamBindingListener {
@@ -103,6 +106,26 @@ service /path on resourceParamBindingListener {
             }
         }
         return result;
+    }
+
+    resource function get case11/[int:Signed32 path]() returns int:Signed32 {
+        return path;
+    }
+
+    resource function get case12/[int:Unsigned32 path]() returns int:Unsigned32 {
+        return path;
+    }
+
+    resource function get case13/[int:Signed8... path]() returns int:Signed8[] {
+        return path;
+    }
+
+    resource function get case14/[string:Char path]() returns string:Char {
+        return path;
+    }
+
+    resource function get case15/[StringCharacter path1]/[SmallInt path2]() returns [StringCharacter, SmallInt] {
+        return [path1, path2];
     }
 }
 
