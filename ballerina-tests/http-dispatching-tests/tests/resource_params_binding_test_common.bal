@@ -199,6 +199,26 @@ service /query on resourceParamBindingListener {
         }
         return result;
     }
+
+    resource function get case11(int:Signed32 query) returns int:Signed32 {
+        return query;
+    }
+
+    resource function get case12(int:Unsigned32 query) returns int:Unsigned32 {
+        return query;
+    }
+
+    resource function get case13(int:Signed8[] query) returns int:Signed8[] {
+        return query;
+    }
+
+    resource function get case14(string:Char query) returns string:Char {
+        return query;
+    }
+
+    resource function get case15(StringCharacter query1, SmallInt query2) returns [StringCharacter, SmallInt] {
+        return [query1, query2];
+    }
 }
 
 service /header on resourceParamBindingListener {
@@ -248,6 +268,26 @@ service /header on resourceParamBindingListener {
 
     resource function get case9(@http:Header HeaderRecord? header) returns map<json>|string {
         return header ?: "default";
+    }
+
+    resource function get case10(@http:Header int:Signed32 header) returns int:Signed32 {
+        return header;
+    }
+
+    resource function get case11(@http:Header int:Unsigned32 header) returns int:Unsigned32 {
+        return header;
+    }
+
+    resource function get case12(@http:Header int:Signed8[] header) returns int:Signed8[] {
+        return header;
+    }
+
+    resource function get case13(@http:Header string:Char header) returns string:Char {
+        return header;
+    }
+
+    resource function get case14(@http:Header StringCharacter header1, SmallInt header2) returns [StringCharacter, SmallInt] {
+        return [header1, header2];
     }
 }
 
