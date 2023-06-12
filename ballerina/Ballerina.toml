@@ -161,3 +161,9 @@ groupId = "com.google.protobufl"
 artifactId = "protobuf-java"
 version = "3.20.3"
 path = "./lib/protobuf-java-3.20.3.jar"
+
+[[platform.java11.dependency]]
+groupId = "com.squareup.okhttp3"
+artifactId = "okhttp"
+version = "4.5.0"
+path = "./lib/okhttp-4.5.0.jar"
