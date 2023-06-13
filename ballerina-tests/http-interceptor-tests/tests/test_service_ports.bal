@@ -63,3 +63,4 @@ const int noServiceRegisteredTestPort = 9614;
 const int singleServiceRegisteredTestPort = 9624;
 const int multipleServiceRegisteredTestPort = 9625;
 const int rootServiceRegisteredTestPort = 9627;
+const int singleServiceWithListenerInterceptorsTestPort = 9628;

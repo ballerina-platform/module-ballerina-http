@@ -409,3 +409,30 @@ function testInvalidPathWithRootService() returns error? {
     common:assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
     common:assertHeaderValue(check res.getHeader("error-type"), "DispatchingError-Resource");
 }
+
+listener http:Listener singleServiceWithListenerInterceptorsEP = new(singleServiceWithListenerInterceptorsTestPort,
+    httpVersion = http:HTTP_1_1, interceptors = [new LastResponseInterceptor(), new DefaultResponseErrorInterceptor()]);
+
+service http:InterceptableService /path1 on singleServiceWithListenerInterceptorsEP {
+
+    public function createInterceptors() returns [ResponseInterceptorReturnsResponse, ResponseErrorInterceptorWithReq] {
+        return [new ResponseInterceptorReturnsResponse(), new ResponseErrorInterceptorWithReq()];
+    }
+
+    resource function get .() returns string {
+        return "Hello Path1!";
+    }
+}
+
+@test:Config{enable:false}
+function testInvalidPathWithSingleServiceContainingListenerInterceptors() returns error? {
+    http:Client singleServiceWithListenerInterceptorsClientEp = check new("http://localhost:" + singleServiceWithListenerInterceptorsTestPort.toString(),
+            httpVersion = http:HTTP_1_1);
+    http:Response res = check singleServiceWithListenerInterceptorsClientEp->get("/path2");
+    test:assertEquals(res.statusCode, 404);
+    test:assertEquals(res.getTextPayload(), "no matching service found for path : /path2");
+    common:assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
+    common:assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
+    common:assertHeaderValue(check res.getHeader("error-type"), "DispatchingError-Service");
+    common:assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+}
