@@ -93,23 +93,21 @@ public class HttpDispatcher {
 
             String rawUri = (String) inboundReqMsg.getProperty(HttpConstants.TO);
             Map<String, Map<String, String>> matrixParams = new HashMap<>();
-            String uriWithoutMatrixParams = URIUtil.extractMatrixParams(rawUri, matrixParams, inboundReqMsg);
+            String uriWithoutMatrixParams = URIUtil.extractMatrixParams(rawUri, matrixParams);
 
-            String[] splittedUri = uriWithoutMatrixParams.split("\\?");
-            String queryString = splittedUri.length > 1 ? splittedUri[1] : "";
-            String rawPath = splittedUri[0];
+            String[] rawPathAndQuery = extractRawPathAndQuery(uriWithoutMatrixParams);
 
-            String basePath = servicesRegistry.findTheMostSpecificBasePath(rawPath,
+            String basePath = servicesRegistry.findTheMostSpecificBasePath(rawPathAndQuery[0],
                                                                            servicesOnInterface, sortedServiceURIs);
 
             if (basePath == null) {
-                String message = "no matching service found for path : " + rawPath;
+                String message = "no matching service found for path : " + rawPathAndQuery[0];
                 throw HttpUtil.createHttpStatusCodeError(SERVICE_NOT_FOUND_ERROR, message);
             }
 
             HttpService service = servicesOnInterface.get(basePath);
             if (!forInterceptors) {
-                setInboundReqProperties(inboundReqMsg, rawPath, basePath, queryString);
+                setInboundReqProperties(inboundReqMsg, rawPathAndQuery[0], basePath, rawPathAndQuery[1]);
                 inboundReqMsg.setProperty(HttpConstants.RAW_URI, rawUri);
                 inboundReqMsg.setProperty(HttpConstants.TO, uriWithoutMatrixParams);
                 inboundReqMsg.setProperty(HttpConstants.MATRIX_PARAMS, matrixParams);
@@ -153,25 +151,23 @@ public class HttpDispatcher {
             String rawUri = (String) inboundReqMsg.getProperty(HttpConstants.TO);
             inboundReqMsg.setProperty(HttpConstants.RAW_URI, rawUri);
             Map<String, Map<String, String>> matrixParams = new HashMap<>();
-            String uriWithoutMatrixParams = URIUtil.extractMatrixParams(rawUri, matrixParams, inboundReqMsg);
+            String uriWithoutMatrixParams = URIUtil.extractMatrixParams(rawUri, matrixParams);
 
             inboundReqMsg.setProperty(HttpConstants.TO, uriWithoutMatrixParams);
             inboundReqMsg.setProperty(HttpConstants.MATRIX_PARAMS, matrixParams);
 
-            String[] splittedUri = uriWithoutMatrixParams.split("\\?");
-            String queryString = splittedUri.length > 1 ? splittedUri[1] : "";
-            String rawPath = splittedUri[0];
+            String[] rawPathAndQuery = extractRawPathAndQuery(uriWithoutMatrixParams);
 
-            String basePath = servicesRegistry.findTheMostSpecificBasePath(rawPath,
+            String basePath = servicesRegistry.findTheMostSpecificBasePath(rawPathAndQuery[0],
                                                                            servicesOnInterface, sortedServiceURIs);
 
             if (basePath == null) {
-                String message = "no matching service found for path : " + rawPath;
+                String message = "no matching service found for path : " + rawPathAndQuery[0];
                 throw HttpUtil.createHttpStatusCodeError(SERVICE_NOT_FOUND_ERROR, message);
             }
 
             InterceptorService service = servicesOnInterface.get(basePath);
-            setInboundReqProperties(inboundReqMsg, rawPath, basePath, queryString);
+            setInboundReqProperties(inboundReqMsg, rawPathAndQuery[0], basePath, rawPathAndQuery[1]);
             return service;
         } catch (Exception e) {
             if (!(e instanceof BError)) {
@@ -179,6 +175,14 @@ public class HttpDispatcher {
             }
             throw e;
         }
+    }
+
+    private static String[] extractRawPathAndQuery(String uriWithoutMatrixParams) {
+        String[] rawPathAndQuery = new String[2];
+        String[] splittedUri = uriWithoutMatrixParams.split("\\?");
+        rawPathAndQuery[0] = splittedUri[0];
+        rawPathAndQuery[1] = splittedUri.length > 1 ? splittedUri[1] : "";
+        return rawPathAndQuery;
     }
 
     private static void setInboundReqProperties(HttpCarbonMessage inboundReqMsg, String rawPath,
