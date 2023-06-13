@@ -121,3 +121,66 @@ function testHeaderParamBindingCase9() returns error? {
     http:Response res = check resourceHeaderParamBindingClient->/header/case9(headers);
     test:assertEquals(res.statusCode, 400);
 }
+
+@test:Config {}
+function testHeaderParamBindingCase10() returns error? {
+    int:Signed32 resPayload = check resourceHeaderParamBindingClient->/header/case10({header: "32"});
+    test:assertEquals(resPayload, 32);
+
+    resPayload = check resourceHeaderParamBindingClient->/header/case10({header: "-32"});
+    test:assertEquals(resPayload, -32);
+
+    http:Response res = check resourceHeaderParamBindingClient->/header/case10({header: "5000000000"});
+    test:assertEquals(res.statusCode, 400);
+}
+
+@test:Config {}
+function testHeaderParamBindingCase11() returns error? {
+    int:Unsigned32 resPayload = check resourceHeaderParamBindingClient->/header/case11({header: "32"});
+    test:assertEquals(resPayload, 32);
+
+    http:Response res = check resourceHeaderParamBindingClient->/header/case11({header: "-32"});
+    test:assertEquals(res.statusCode, 400);
+
+    res = check resourceHeaderParamBindingClient->/header/case11({header: "5000000000"});
+    test:assertEquals(res.statusCode, 400);
+}
+
+@test:Config {}
+function testHeaderParamBindingCase12() returns error? {
+    int:Signed8[] resPayload = check resourceHeaderParamBindingClient->/header/case12({header: ["32", "-38", "1", "-43"]});
+    test:assertEquals(resPayload, [32, -38, 1, -43]);
+
+    http:Response res = check resourceHeaderParamBindingClient->/header/case12({header: ["32", "-38", "1", "-43", "-50000000"]});
+    test:assertEquals(res.statusCode, 400);
+}
+
+@test:Config {}
+function testHeaderParamBindingCase13() returns error? {
+    string:Char resPayload = check resourceHeaderParamBindingClient->/header/case13({header: "a"});
+    test:assertEquals(resPayload, "a");
+
+    resPayload = check resourceHeaderParamBindingClient->/header/case13({header: "*"});
+    test:assertEquals(resPayload, "*");
+
+    http:Response res = check resourceHeaderParamBindingClient->/header/case13({header: "ab"});
+    test:assertEquals(res.statusCode, 400);
+}
+
+@test:Config {}
+function testHeaderParamBindingCase14() returns error? {
+    [StringCharacter, SmallInt] resPayload = check resourceHeaderParamBindingClient->/header/case14({header1: "a", header2: "32"});
+    test:assertEquals(resPayload, ["a", 32]);
+
+    resPayload = check resourceHeaderParamBindingClient->/header/case14({header1: "*", header2: "-32"});
+    test:assertEquals(resPayload, ["*", -32]);
+
+    http:Response res = check resourceHeaderParamBindingClient->/header/case14({header1: "ab", header2: "32"});
+    test:assertEquals(res.statusCode, 400);
+
+    res = check resourceHeaderParamBindingClient->/header/case14({header1: "a", header2: "5000000000"});
+    test:assertEquals(res.statusCode, 400);
+
+    res = check resourceHeaderParamBindingClient->/header/case14({header1: "ab", header2: "5000000000"});
+    test:assertEquals(res.statusCode, 400);
+}
