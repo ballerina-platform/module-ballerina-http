@@ -41,7 +41,7 @@ public isolated class Listener {
             requestLimits: config.requestLimits
         };
         self.interceptors = [new DefaultErrorInterceptor()];
-        Interceptor|Interceptor[]? interceptors = config.interceptors;
+        Interceptor|Interceptor[]? interceptors = config["interceptors"];
         if interceptors is Interceptor[] {
             foreach Interceptor interceptor in interceptors {
                 self.interceptors.push(interceptor);
