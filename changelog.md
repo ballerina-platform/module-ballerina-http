@@ -9,12 +9,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Added
 
+- [Add query,header and path parameter runtime support for Ballerina builtin types](https://github.com/ballerina-platform/ballerina-standard-library/issues/4526)
+
+## [2.8.0] - 2023-06-01
+
+### Added
+
 - [Add constraint validation for path, query and header parameters](https://github.com/ballerina-platform/ballerina-standard-library/issues/4371)
 - [Expose `http:Request` in the response interceptor path](https://github.com/ballerina-platform/ballerina-standard-library/issues/3964)
 - [Allow configuring an interceptor pipeline with a single interceptor](https://github.com/ballerina-platform/ballerina-standard-library/issues/3969)
 - [Add runtime support for type referenced type in path parameters](https://github.com/ballerina-platform/ballerina-standard-library/issues/4372)
 - [Add finite type support for query, header and path parameters](https://github.com/ballerina-platform/ballerina-standard-library/issues/4374)
 - [Support for service level interceptors using `http:InterceptableService`](https://github.com/ballerina-platform/ballerina-standard-library/issues/4401)
+- [Allow changing initial window size value for client and the server](https://github.com/ballerina-platform/ballerina-standard-library/issues/490)
 
 ### Changed
 

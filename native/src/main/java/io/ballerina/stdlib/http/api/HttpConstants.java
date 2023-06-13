@@ -415,6 +415,8 @@ public class HttpConstants {
     public static final BString ENDPOINT_CONFIG_VERSION = StringUtils.fromString("httpVersion");
     public static final String ENDPOINT_REQUEST_LIMITS = "requestLimits";
     public static final BString ENDPOINT_CONFIG_GRACEFUL_STOP_TIMEOUT = StringUtils.fromString("gracefulStopTimeout");
+    public static final BString ENDPOINT_CONFIG_HTTP2_INITIAL_WINDOW_SIZE = StringUtils
+            .fromString("http2InitialWindowSize");
 
     public static final BString MAX_URI_LENGTH = StringUtils.fromString("maxUriLength");
     public static final BString MAX_STATUS_LINE_LENGTH = StringUtils.fromString("maxStatusLineLength");
@@ -486,6 +488,8 @@ public class HttpConstants {
     public static final BString HTTP2_SETTINGS = StringUtils.fromString("http2Settings");
     public static final BString REQUEST_LIMITS = StringUtils.fromString("requestLimits");
     public static final BString RESPONSE_LIMITS = StringUtils.fromString("responseLimits");
+    public static final BString CLIENT_EP_HTTP2_INITIAL_WINDOW_SIZE = StringUtils
+            .fromString("http2InitialWindowSize");
 
     //Connection Throttling field names
     public static final String CONNECTION_THROTTLING_STRUCT_REFERENCE = "connectionThrottling";
