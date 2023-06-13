@@ -86,10 +86,11 @@ public class HTTPInterceptorServicesRegistry {
      *
      * @param service      requested serviceInfo to be registered
      * @param basePath     absolute resource path of the service
+     * @param fromListener boolean value indicates whether the service is from listener configuration or not
      */
-    public void registerInterceptorService(BObject service, String basePath) {
+    public void registerInterceptorService(BObject service, String basePath, boolean fromListener) {
         InterceptorService httpInterceptorService = InterceptorService.buildHttpService(service, basePath,
-                this.getServicesType());
+                this.getServicesType(), fromListener);
         service.addNativeData(HttpConstants.ABSOLUTE_RESOURCE_PATH, basePath);
         String hostName = httpInterceptorService.getHostName();
         if (servicesMapByHost.get(hostName) == null) {

@@ -39,9 +39,12 @@ public abstract class AbstractHttpNativeFunction {
         serviceEndpoint.addNativeData(HttpConstants.HTTP_SERVICE_REGISTRY, httpServicesRegistry);
     }
 
-    public static void resetInterceptorRegistry(BObject serviceEndpoint) {
+    public static void resetInterceptorRegistry(BObject serviceEndpoint, int interceptorsSize) {
         List<HTTPInterceptorServicesRegistry> httpInterceptorServicesRegistries = new ArrayList<>();
-        httpInterceptorServicesRegistries.add(new HTTPInterceptorServicesRegistry());
-        serviceEndpoint.addNativeData(HttpConstants.INTERCEPTOR_SERVICES_REGISTRIES, httpInterceptorServicesRegistries);
+        for (int i = 0; i < interceptorsSize; i++) {
+            httpInterceptorServicesRegistries.add(new HTTPInterceptorServicesRegistry());
+        }
+        serviceEndpoint.addNativeData(HttpConstants.INTERCEPTOR_SERVICES_REGISTRIES,
+                httpInterceptorServicesRegistries);
     }
 }

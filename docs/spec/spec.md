@@ -2212,7 +2212,7 @@ service class ResponseInterceptor {
    remote function interceptResponse(http:RequestContext ctx, http:Response res) returns http:NextService|error? {
        res.setHeader("X-responseHeader", "ResponseInterceptor");
        ctx.next();
-   }ListenerCon
+   }
 }
 ```
 

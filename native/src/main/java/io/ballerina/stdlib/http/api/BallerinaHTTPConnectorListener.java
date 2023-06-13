@@ -22,6 +22,7 @@ import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.constants.RuntimeConstants;
 import io.ballerina.runtime.api.types.ObjectType;
 import io.ballerina.runtime.api.utils.TypeUtils;
+import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
@@ -316,7 +317,8 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
                                            targetService.getInterceptorServicesRegistries());
             }
         } catch (Exception e) {
-            if (e instanceof BError && ((BError) e).getType().getName()
+            if (((BArray) listenerLevelInterceptors).size() == 1 &&
+                    e instanceof BError && ((BError) e).getType().getName()
                     .equals(HttpErrorType.SERVICE_NOT_FOUND_ERROR.getErrorName())) {
                 HttpService singleService = HttpDispatcher.findSingleService(httpServicesRegistry);
                 if (singleService != null && singleService.hasInterceptors()) {
