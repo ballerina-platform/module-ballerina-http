@@ -17,6 +17,7 @@
 import ballerina/test;
 import ballerina/http;
 import ballerina/http_test_common as common;
+import ballerina/url;
 
 final http:Client resourcePathParamBindingClient = check new("http://localhost:" + resourceParamBindingTestPort.toString());
 
@@ -144,4 +145,70 @@ function testPathParamBindingCase10() returns error? {
 
     http:Response res = check resourcePathParamBindingClient->/path/case10/value1/value9/value3;
     test:assertEquals(res.statusCode, 404, "Status code mismatched");
+}
+
+@test:Config {}
+function testPathParamBindingCase11() returns error? {
+    int:Signed32 resPayload = check resourcePathParamBindingClient->/path/case11/'32;
+    test:assertEquals(resPayload, 32, "Payload mismatched");
+
+    resPayload = check resourcePathParamBindingClient->/path/case11/\-32;
+    test:assertEquals(resPayload, -32, "Payload mismatched");
+
+    http:Response res = check resourcePathParamBindingClient->/path/case11/'5000000000;
+    test:assertEquals(res.statusCode, 400, "Status code mismatched");
+}
+
+@test:Config {}
+function testPathParamBindingCase12() returns error? {
+    int:Unsigned32 resPayload = check resourcePathParamBindingClient->/path/case12/'32;
+    test:assertEquals(resPayload, 32, "Payload mismatched");
+
+    http:Response res = check resourcePathParamBindingClient->/path/case12/\-32;
+    test:assertEquals(res.statusCode, 400, "Status code mismatched");
+
+    res = check resourcePathParamBindingClient->/path/case12/'5000000000;
+    test:assertEquals(res.statusCode, 400, "Status code mismatched");
+}
+
+@test:Config {}
+function testPathParamBindingCase13() returns error? {
+    int:Signed8[] resPayload = check resourcePathParamBindingClient->/path/case13/'32/\-38/'1/\-43;
+    test:assertEquals(resPayload, [32, -38, 1, -43], "Payload mismatched");
+
+    http:Response res = check resourcePathParamBindingClient->/path/case13/'32/\-38/'1/\-43/'5000000000;
+    test:assertEquals(res.statusCode, 400, "Status code mismatched");
+}
+
+@test:Config {}
+function testPathParamBindingCase14() returns error? {
+    string:Char resPayload = check resourcePathParamBindingClient->/path/case14/a;
+    test:assertEquals(resPayload, "a", "Payload mismatched");
+
+    resPayload = check resourcePathParamBindingClient->/path/case14/[check url:encode("*", "UTF-8")];
+    test:assertEquals(resPayload, "*", "Payload mismatched");
+
+    resPayload = check resourcePathParamBindingClient->/path/case14/[check url:encode(" ", "UTF-8")];
+    test:assertEquals(resPayload, " ", "Payload mismatched");
+
+    http:Response res = check resourcePathParamBindingClient->/path/case14/abc;
+    test:assertEquals(res.statusCode, 400, "Status code mismatched");
+}
+
+@test:Config {}
+function testPathParamBindingCase15() returns error? {
+    [StringCharacter, SmallInt] resPayload = check resourcePathParamBindingClient->/path/case15/[check url:encode("*", "UTF-8")]/'34;
+    test:assertEquals(resPayload, ["*", 34], "Payload mismatched");
+
+    resPayload = check resourcePathParamBindingClient->/path/case15/[check url:encode(" ", "UTF-8")]/\-34;
+    test:assertEquals(resPayload, [" ", -34], "Payload mismatched");
+
+    http:Response res = check resourcePathParamBindingClient->/path/case15/a/'5000000;
+    test:assertEquals(res.statusCode, 400, "Status code mismatched");
+
+    res = check resourcePathParamBindingClient->/path/case15/ab/'32;
+    test:assertEquals(res.statusCode, 400, "Status code mismatched");
+
+    res = check resourcePathParamBindingClient->/path/case15/abc/'5000000;
+    test:assertEquals(res.statusCode, 400, "Status code mismatched");
 }

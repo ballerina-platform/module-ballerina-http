@@ -19,6 +19,7 @@
 package io.ballerina.stdlib.http.api.service.signature;
 
 import io.ballerina.runtime.api.PredefinedTypes;
+import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
@@ -214,9 +215,12 @@ public class ParamUtils {
     public static int getEffectiveTypeTag(Type type, Type originalType, String paramType) {
         Type referredType = TypeUtils.getReferredType(type);
         int referredTypeTag = referredType.getTag();
+        if (TypeTags.isIntegerTypeTag(referredTypeTag)) {
+            return INT_TAG;
+        } else if (TypeTags.isStringTypeTag(referredTypeTag)) {
+            return STRING_TAG;
+        }
         switch (referredTypeTag) {
-            case STRING_TAG:
-            case INT_TAG:
             case FLOAT_TAG:
             case BOOLEAN_TAG:
             case DECIMAL_TAG:
