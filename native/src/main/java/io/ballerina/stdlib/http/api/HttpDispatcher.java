@@ -124,6 +124,19 @@ public class HttpDispatcher {
         }
     }
 
+    public static HttpService findSingleService(HTTPServicesRegistry servicesRegistry) {
+        HttpService service = null;
+        for (Object holder: servicesRegistry.getServicesMapByHost().values().toArray()) {
+            HTTPServicesRegistry.ServicesMapHolder mapHolder = (HTTPServicesRegistry.ServicesMapHolder) holder;
+            if (mapHolder.getServicesByBasePath().values().size() == 1 && service == null) {
+                service = (HttpService) mapHolder.getServicesByBasePath().values().toArray()[0];
+            } else {
+                return null;
+            }
+        }
+        return service;
+    }
+
     // TODO : Refactor finding interceptor service logic and the usage of HTTPInterceptorServicesRegistry
     public static InterceptorService findInterceptorService(HTTPInterceptorServicesRegistry servicesRegistry,
                                                             HttpCarbonMessage inboundReqMsg,

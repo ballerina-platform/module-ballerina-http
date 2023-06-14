@@ -41,7 +41,7 @@ public isolated class Listener {
             requestLimits: config.requestLimits
         };
         self.interceptors = [new DefaultErrorInterceptor()];
-        Interceptor|Interceptor[]? interceptors = config.interceptors;
+        Interceptor|Interceptor[]? interceptors = config["interceptors"];
         if interceptors is Interceptor[] {
             foreach Interceptor interceptor in interceptors {
                 self.interceptors.push(interceptor);
@@ -151,7 +151,6 @@ public type Local record {|
 #                   disable timeout
 # + server - The server name which should appear as a response header
 # + requestLimits - Configurations associated with inbound request size limits
-# + interceptors - An array of interceptor services
 # + gracefulStopTimeout - Grace period of time in seconds for listener gracefulStop
 # + socketConfig - Provides settings related to server socket configuration
 # + http2InitialWindowSize - Configuration to change the initial window size in HTTP/2
@@ -163,6 +162,11 @@ public type ListenerConfiguration record {|
     decimal timeout = DEFAULT_LISTENER_TIMEOUT;
     string? server = ();
     RequestLimitConfigs requestLimits = {};
+    # interceptors - An array of interceptor services
+    # # Deprecated
+    # Defining interceptor pipeline in `http:ListenerConfiguration` is deprecated.
+    # Define the interceptor pipeline via `http:InterceptableService` service type
+    @deprecated
     Interceptor|Interceptor[] interceptors?;
     decimal gracefulStopTimeout = DEFAULT_GRACEFULSTOP_TIMEOUT;
     ServerSocketConfig socketConfig = {};

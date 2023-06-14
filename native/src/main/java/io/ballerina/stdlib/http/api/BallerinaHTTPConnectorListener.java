@@ -22,6 +22,8 @@ import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.constants.RuntimeConstants;
 import io.ballerina.runtime.api.types.ObjectType;
 import io.ballerina.runtime.api.utils.TypeUtils;
+import io.ballerina.runtime.api.values.BArray;
+import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.observability.ObservabilityConstants;
@@ -292,9 +294,10 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         try {
             return HttpDispatcher.findInterceptorResource(interceptorServicesRegistry, inboundMessage);
         } catch (Exception e) {
-            // Return null to continue interception when there is no matching resource or resource method found
+            // Return null to continue interception when there is no matching service, resource or resource method found
             if (e.getMessage().startsWith("no matching resource found for path")
-                    || e.getMessage().startsWith("Method not allowed")) {
+                    || e.getMessage().startsWith("Method not allowed") ||
+                    e.getMessage().startsWith("no matching service found for path")) {
                 return null;
             } else {
                 throw e;
@@ -314,6 +317,16 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
                                            targetService.getInterceptorServicesRegistries());
             }
         } catch (Exception e) {
+            if (((BArray) listenerLevelInterceptors).size() == 1 &&
+                    e instanceof BError && ((BError) e).getType().getName()
+                    .equals(HttpErrorType.SERVICE_NOT_FOUND_ERROR.getErrorName())) {
+                HttpService singleService = HttpDispatcher.findSingleService(httpServicesRegistry);
+                if (singleService != null && singleService.hasInterceptors()) {
+                    inboundMessage.setProperty(INTERCEPTORS, singleService.getBalInterceptorServicesArray());
+                    inboundMessage.setProperty(INTERCEPTOR_SERVICES_REGISTRIES,
+                            singleService.getInterceptorServicesRegistries());
+                }
+            }
             inboundMessage.setProperty(HttpConstants.TARGET_SERVICE, HttpUtil.createError(e));
         }
     }
