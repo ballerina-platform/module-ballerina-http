@@ -155,7 +155,8 @@ public class HttpCompilerPluginUtil {
         }
     }
 
-    public static void validateListenerExpressionNode(SyntaxNodeAnalysisContext context, NewExpressionNode expressionNode) {
+    public static void validateListenerExpressionNode(SyntaxNodeAnalysisContext context,
+                                                      NewExpressionNode expressionNode) {
         expressionNode.childEntries().stream().forEach(childNodeEntry -> {
             if (childNodeEntry.name().equals("parenthesizedArgList")) {
                 if (childNodeEntry.node().isPresent() && childNodeEntry.node().get() instanceof ParenthesizedArgList) {
