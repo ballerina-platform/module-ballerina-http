@@ -217,3 +217,16 @@ function testQueryParamBindingCase15() returns error? {
     res = check resourceQueryParamBindingClient->/query/case15(query1 = "abc", query2 = 500000);
     test:assertEquals(res.statusCode, 400, "Status code mismatched");
 }
+
+@test:Config {}
+function testQueryParamBindingCase9WithCurlyBracesUnencoded() returns error? {
+    map<json> resPayload = check resourceQueryParamBindingClient->/query/case9(query = string`{"name":"John"%2C "age":37}`);
+    test:assertEquals(resPayload, {"name": "John", "age": 37, "type": "map<json>"});
+}
+
+@test:Config {}
+function testQueryParamBindingCase16() returns error? {
+    string[] strVals = ["Hi", "Hello", "Bye"];
+    [map<json>, string[]] resPayload = check resourceQueryParamBindingClient->/query/case16(query1 = string`{"name":"John"%2C "age":37}`, query2 = strVals);
+    test:assertEquals(resPayload, [{"name":"John", "age":37}, strVals]);
+}
