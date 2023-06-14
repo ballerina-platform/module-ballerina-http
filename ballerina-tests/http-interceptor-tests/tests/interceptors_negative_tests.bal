@@ -26,7 +26,7 @@ listener http:Listener requestInterceptorNegativeServerEP1 = new(requestIntercep
 function testRequestInterceptorNegative1() returns error? {
     http:Response res = check requestInterceptorNegativeClientEP1->get("/");
     test:assertEquals(res.statusCode, 404);
-    check common:assertJsonErrorPayload(check res.getJsonPayload(), "no service has registered for listener", "Not Found", 404, "/", "GET");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "no service has registered for listener : /127.0.0.1:9590", "Not Found", 404, "/", "GET");
 }
 
 final http:Client requestInterceptorNegativeClientEP2 = check new("http://localhost:" + requestInterceptorNegativeTestPort2.toString(), httpVersion = http:HTTP_1_1);
@@ -128,7 +128,7 @@ service http:InterceptableService /hello on requestInterceptorNegativeServerEP5 
 @test:Config{}
 function testRequestInterceptorNegative5() returns error? {
     http:Response res = check requestInterceptorNegativeClientEP5->get("/");
-    common:assertTextPayload(check res.getTextPayload(), "no matching service found for path");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "no matching service found for path", "Not Found", 404, "/", "GET");
 }
 
 final http:Client requestInterceptorNegativeClientEP6 = check new("http://localhost:" + requestInterceptorNegativeTestPort6.toString(), httpVersion = http:HTTP_1_1);
