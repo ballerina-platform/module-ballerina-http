@@ -48,6 +48,7 @@ public class HttpConstants {
     public static final String RAW_URI = "RAW_URI";
     public static final String RESOURCE_ARGS = "RESOURCE_ARGS";
     public static final String MATRIX_PARAMS = "MATRIX_PARAMS";
+    public static final String QUERY_STR = "QUERY_STR";
     public static final String RAW_QUERY_STR = "RAW_QUERY_STR";
 
     public static final String DEFAULT_INTERFACE = "0.0.0.0:8080";
