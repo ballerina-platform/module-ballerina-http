@@ -11,6 +11,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - [Add query,header and path parameter runtime support for Ballerina builtin types](https://github.com/ballerina-platform/ballerina-standard-library/issues/4526)
 
+### Fixed
+
+- [Fix parsing query parameters fail when curly braces are provided](https://github.com/ballerina-platform/ballerina-standard-library/issues/4565)
+
 ## [2.8.0] - 2023-06-01
 
 ### Added
