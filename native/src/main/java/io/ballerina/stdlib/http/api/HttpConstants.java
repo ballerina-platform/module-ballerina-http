@@ -48,12 +48,12 @@ public class HttpConstants {
     public static final String RAW_URI = "RAW_URI";
     public static final String RESOURCE_ARGS = "RESOURCE_ARGS";
     public static final String MATRIX_PARAMS = "MATRIX_PARAMS";
-    public static final String QUERY_STR = "QUERY_STR";
     public static final String RAW_QUERY_STR = "RAW_QUERY_STR";
 
     public static final String DEFAULT_INTERFACE = "0.0.0.0:8080";
     public static final String DEFAULT_BASE_PATH = "/";
     public static final String DEFAULT_SUB_PATH = "/*";
+    public static final String QUERY_STRING_SEPARATOR = "\\?";
 
     public static final String PROTOCOL_HTTP = "http";
     public static final String HTTP_MOCK_SERVER_ENDPOINT_NAME = "Tballerina/http:MockListener;";
