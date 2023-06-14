@@ -17,6 +17,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [2.8.0] - 2023-06-01
 
+### Changed
+
+- [Removed listener level interceptors](https://github.com/ballerina-platform/ballerina-standard-library/issues/4420)
+
+## [2.8.0] - 2023-06-01
+
 ### Added
 
 - [Add constraint validation for path, query and header parameters](https://github.com/ballerina-platform/ballerina-standard-library/issues/4371)

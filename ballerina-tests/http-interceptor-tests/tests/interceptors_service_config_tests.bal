@@ -20,20 +20,17 @@ import ballerina/http_test_common as common;
 
 final http:Client requestInterceptorServiceConfigClientEP1 = check new("http://localhost:" + requestInterceptorServiceConfigTestPort1.toString(), httpVersion = http:HTTP_1_1);
 
-listener http:Listener requestInterceptorServiceConfigServerEP1 = new(requestInterceptorServiceConfigTestPort1, 
-    httpVersion = http:HTTP_1_1,
-    interceptors = [
-        new DefaultRequestInterceptor(), new LastResponseInterceptor(), new RequestInterceptorWithVariable("request-interceptor-listener"), 
-        new ResponseInterceptorWithVariable("response-interceptor-listener"), new DefaultResponseInterceptor()
-    ]
-);
+listener http:Listener requestInterceptorServiceConfigServerEP1 = new(requestInterceptorServiceConfigTestPort1, httpVersion = http:HTTP_1_1);
 
 service http:InterceptableService /foo on requestInterceptorServiceConfigServerEP1 {
 
-    public function createInterceptors() returns [RequestInterceptorWithVariable, LastRequestInterceptor, ResponseInterceptorWithVariable] {
-        return [
-            new RequestInterceptorWithVariable("request-interceptor-service-foo"), new LastRequestInterceptor(),
-            new ResponseInterceptorWithVariable("response-interceptor-service-foo")
+    public function createInterceptors() returns [DefaultRequestInterceptor, LastResponseInterceptor, RequestInterceptorWithVariable,
+                ResponseInterceptorWithVariable, DefaultResponseInterceptor, RequestInterceptorWithVariable, LastRequestInterceptor,
+                ResponseInterceptorWithVariable] {
+        return [new DefaultRequestInterceptor(), new LastResponseInterceptor(), new RequestInterceptorWithVariable("request-interceptor-listener"),
+                    new ResponseInterceptorWithVariable("response-interceptor-listener"), new DefaultResponseInterceptor(),
+                    new RequestInterceptorWithVariable("request-interceptor-service-foo"), new LastRequestInterceptor(),
+                    new ResponseInterceptorWithVariable("response-interceptor-service-foo")
         ];
     }
 
@@ -50,15 +47,11 @@ service http:InterceptableService /foo on requestInterceptorServiceConfigServerE
 
 service http:InterceptableService /bar on requestInterceptorServiceConfigServerEP1 {
 
-    public function createInterceptors() returns [
-                        RequestInterceptorReturnsError,
-                        DefaultRequestErrorInterceptor,
-                        RequestInterceptorWithVariable,
-                        LastRequestInterceptor,
-                        ResponseInterceptorWithVariable,
-                        DefaultResponseErrorInterceptor
-                        ] {
-        return [
+    public function createInterceptors() returns [DefaultRequestInterceptor, LastResponseInterceptor, RequestInterceptorWithVariable,
+            ResponseInterceptorWithVariable, DefaultResponseInterceptor, RequestInterceptorReturnsError, DefaultRequestErrorInterceptor,
+            RequestInterceptorWithVariable, LastRequestInterceptor, ResponseInterceptorWithVariable, DefaultResponseErrorInterceptor] {
+        return [new DefaultRequestInterceptor(), new LastResponseInterceptor(), new RequestInterceptorWithVariable("request-interceptor-listener"),
+            new ResponseInterceptorWithVariable("response-interceptor-listener"), new DefaultResponseInterceptor(),
             new RequestInterceptorReturnsError(), new DefaultRequestErrorInterceptor(), new RequestInterceptorWithVariable("request-interceptor-service-bar"),
             new LastRequestInterceptor(), new ResponseInterceptorWithVariable("response-interceptor-service-bar"), new DefaultResponseErrorInterceptor()
         ];
@@ -77,7 +70,13 @@ service http:InterceptableService /bar on requestInterceptorServiceConfigServerE
     }
 }
 
-service /hello on requestInterceptorServiceConfigServerEP1 {
+service http:InterceptableService /hello on requestInterceptorServiceConfigServerEP1 {
+
+    public function createInterceptors() returns [DefaultRequestInterceptor, LastResponseInterceptor, RequestInterceptorWithVariable,
+                ResponseInterceptorWithVariable, DefaultResponseInterceptor] {
+        return [new DefaultRequestInterceptor(), new LastResponseInterceptor(), new RequestInterceptorWithVariable("request-interceptor-listener"),
+            new ResponseInterceptorWithVariable("response-interceptor-listener"), new DefaultResponseInterceptor()];
+    }
 
     resource function 'default .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new();

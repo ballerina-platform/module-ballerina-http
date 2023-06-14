@@ -1619,7 +1619,7 @@ public class HttpUtil {
         serviceEndpoint.addNativeData(HttpConstants.INTERCEPTORS, interceptorsArray);
         Register.resetInterceptorRegistry(serviceEndpoint, interceptorServices.size());
         List<HTTPInterceptorServicesRegistry> httpInterceptorServicesRegistries
-                                                    = Register.getHttpInterceptorServicesRegistries(serviceEndpoint);
+                = Register.getHttpInterceptorServicesRegistries(serviceEndpoint);
 
         // Registering all the interceptor services in separate service registries
         for (int i = 0; i < interceptorServices.size(); i++) {

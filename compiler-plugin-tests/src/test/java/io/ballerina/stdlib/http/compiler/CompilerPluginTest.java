@@ -917,4 +917,34 @@ public class CompilerPluginTest {
         Assert.assertFalse(diagnosticResult.hasWarnings());
         Assert.assertFalse(diagnosticResult.hasErrors());
     }
+
+    @Test
+    public void testInterceptorsDefinedInListener() {
+        Package currentPackage = loadPackage("sample_package_42");
+        PackageCompilation packageCompilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = packageCompilation.diagnosticResult();
+        Assert.assertFalse(diagnosticResult.hasErrors());
+        Assert.assertEquals(diagnosticResult.warningCount(), 2);
+        assertWarning(diagnosticResult, 0, HttpDiagnosticCodes.HTTP_202.getMessage(),
+                HttpDiagnosticCodes.HTTP_202.getCode());
+        assertWarning(diagnosticResult, 1, HttpDiagnosticCodes.HTTP_202.getMessage(),
+                HttpDiagnosticCodes.HTTP_202.getCode());
+    }
+
+    @Test
+    public void testInterceptorsDefinedInListenerAndServiceConfig() {
+        Package currentPackage = loadPackage("sample_package_43");
+        PackageCompilation packageCompilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = packageCompilation.diagnosticResult();
+        Assert.assertFalse(diagnosticResult.hasErrors());
+        Assert.assertEquals(diagnosticResult.warningCount(), 4);
+        assertWarning(diagnosticResult, 0, HttpDiagnosticCodes.HTTP_201.getMessage(),
+                HttpDiagnosticCodes.HTTP_201.getCode());
+        assertWarning(diagnosticResult, 1, HttpDiagnosticCodes.HTTP_202.getMessage(),
+                HttpDiagnosticCodes.HTTP_202.getCode());
+        assertWarning(diagnosticResult, 2, HttpDiagnosticCodes.HTTP_202.getMessage(),
+                HttpDiagnosticCodes.HTTP_202.getCode());
+        assertWarning(diagnosticResult, 3, HttpDiagnosticCodes.HTTP_201.getMessage(),
+                HttpDiagnosticCodes.HTTP_201.getCode());
+    }
 }
