@@ -13,7 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Changed
 
-- [Move status code errors to `http_status` module](https://github.com/ballerina-platform/ballerina-standard-library/issues/4535)
+- [Move status code errors to `httpscerr` module](https://github.com/ballerina-platform/ballerina-standard-library/issues/4535)
 
 ## [2.8.0] - 2023-06-01
 

@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import http.http_status;
+import http.httpscerr;
 
 isolated function getErrorResponse(error err, string? returnMediaType = ()) returns Response {
     Response response = new;
@@ -30,7 +30,7 @@ isolated function getErrorResponse(error err, string? returnMediaType = ()) retu
     // Handling the server errors
     response.statusCode = getStatusCode(err);
 
-    if err !is http_status:StatusCodeError {
+    if err !is httpscerr:StatusCodeError {
         setPayload(err.message(), response, returnMediaType);
         return response;
     }
@@ -61,83 +61,83 @@ isolated function setHeaders(map<string|string[]> headers, Response response) {
 }
 
 isolated function getStatusCode(error err) returns int{
-    if err is http_status:BadRequestError {
+    if err is httpscerr:BadRequestError {
         return 400;
-    } else if err is http_status:UnauthorizedError {
+    } else if err is httpscerr:UnauthorizedError {
         return 401;
-    } else if err is http_status:PaymentRequiredError {
+    } else if err is httpscerr:PaymentRequiredError {
         return 402;
-    } else if err is http_status:ForbiddenError {
+    } else if err is httpscerr:ForbiddenError {
         return 403;
-    } else if err is http_status:NotFoundError {
+    } else if err is httpscerr:NotFoundError {
         return 404;
-    } else if err is http_status:MethodNotAllowedError {
+    } else if err is httpscerr:MethodNotAllowedError {
         return 405;
-    } else if err is http_status:NotAcceptableError {
+    } else if err is httpscerr:NotAcceptableError {
         return 406;
-    } else if err is http_status:ProxyAuthenticationRequiredError {
+    } else if err is httpscerr:ProxyAuthenticationRequiredError {
         return 407;
-    } else if err is http_status:RequestTimeoutError {
+    } else if err is httpscerr:RequestTimeoutError {
         return 408;
-    } else if err is http_status:ConflictError {
+    } else if err is httpscerr:ConflictError {
         return 409;
-    } else if err is http_status:GoneError {
+    } else if err is httpscerr:GoneError {
         return 410;
-    } else if err is http_status:LengthRequiredError {
+    } else if err is httpscerr:LengthRequiredError {
         return 411;
-    } else if err is http_status:PreconditionFailedError {
+    } else if err is httpscerr:PreconditionFailedError {
         return 412;
-    } else if err is http_status:PayloadTooLargeError {
+    } else if err is httpscerr:PayloadTooLargeError {
         return 413;
-    } else if err is http_status:URITooLongError {
+    } else if err is httpscerr:URITooLongError {
         return 414;
-    } else if err is http_status:UnsupportedMediaTypeError {
+    } else if err is httpscerr:UnsupportedMediaTypeError {
         return 415;
-    } else if err is http_status:RangeNotSatisfiableError {
+    } else if err is httpscerr:RangeNotSatisfiableError {
         return 416;
-    } else if err is http_status:ExpectationFailedError {
+    } else if err is httpscerr:ExpectationFailedError {
         return 417;
-    } else if err is http_status:MisdirectedRequestError {
+    } else if err is httpscerr:MisdirectedRequestError {
         return 421;
-    } else if err is http_status:UnprocessableEntityError {
+    } else if err is httpscerr:UnprocessableEntityError {
         return 422;
-    } else if err is http_status:LockedError {
+    } else if err is httpscerr:LockedError {
         return 423;
-    } else if err is http_status:FailedDependencyError {
+    } else if err is httpscerr:FailedDependencyError {
         return 424;
-    } else if err is http_status:UpgradeRequiredError {
+    } else if err is httpscerr:UpgradeRequiredError {
         return 426;
-    } else if err is http_status:PreconditionRequiredError {
+    } else if err is httpscerr:PreconditionRequiredError {
         return 428;
-    } else if err is http_status:TooManyRequestsError {
+    } else if err is httpscerr:TooManyRequestsError {
         return 429;
-    } else if err is http_status:RequestHeaderFieldsTooLargeError {
+    } else if err is httpscerr:RequestHeaderFieldsTooLargeError {
         return 431;
-    } else if err is http_status:UnavailableDueToLegalReasonsError {
+    } else if err is httpscerr:UnavailableDueToLegalReasonsError {
         return 451;
-    } else if err is http_status:InternalServerErrorError {
+    } else if err is httpscerr:InternalServerErrorError {
         return 500;
-    } else if err is http_status:NotImplementedError {
+    } else if err is httpscerr:NotImplementedError {
         return 501;
-    } else if err is http_status:BadGatewayError {
+    } else if err is httpscerr:BadGatewayError {
         return 502;
-    } else if err is http_status:ServiceUnavailableError {
+    } else if err is httpscerr:ServiceUnavailableError {
         return 503;
-    } else if err is http_status:GatewayTimeoutError {
+    } else if err is httpscerr:GatewayTimeoutError {
         return 504;
-    } else if err is http_status:HTTPVersionNotSupportedError {
+    } else if err is httpscerr:HTTPVersionNotSupportedError {
         return 505;
-    } else if err is http_status:VariantAlsoNegotiatesError {
+    } else if err is httpscerr:VariantAlsoNegotiatesError {
         return 506;
-    } else if err is http_status:InsufficientStorageError {
+    } else if err is httpscerr:InsufficientStorageError {
         return 507;
-    } else if err is http_status:LoopDetectedError {
+    } else if err is httpscerr:LoopDetectedError {
         return 508;
-    } else if err is http_status:NotExtendedError {
+    } else if err is httpscerr:NotExtendedError {
         return 510;
-    } else if err is http_status:NetworkAuthenticationRequiredError {
+    } else if err is httpscerr:NetworkAuthenticationRequiredError {
         return 511;
-    } else if err is http_status:DefaultStatusCodeError {
+    } else if err is httpscerr:DefaultStatusCodeError {
         int? statusCode = err.detail().statusCode;
         if statusCode is int {
             return statusCode;

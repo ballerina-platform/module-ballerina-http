@@ -66,7 +66,7 @@ public class ModuleUtils {
     }
 
     /**
-     * Returns ballerina http status package.
+     * Returns ballerina http status error package.
      *
      * @return http status package.
      */
