@@ -56,12 +56,12 @@ import java.util.concurrent.CountDownLatch;
 import static io.ballerina.stdlib.http.api.HttpConstants.AUTHORIZATION_HEADER;
 import static io.ballerina.stdlib.http.api.HttpConstants.BEARER_AUTHORIZATION_HEADER;
 import static io.ballerina.stdlib.http.api.HttpConstants.DEFAULT_HOST;
-import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_SCHEME;
+import static io.ballerina.stdlib.http.api.HttpConstants.EMPTY;
 import static io.ballerina.stdlib.http.api.HttpConstants.JWT_DECODER_CLASS_NAME;
 import static io.ballerina.stdlib.http.api.HttpConstants.JWT_DECODE_METHOD_NAME;
 import static io.ballerina.stdlib.http.api.HttpConstants.JWT_INFORMATION;
+import static io.ballerina.stdlib.http.api.HttpConstants.QUERY_STRING_SEPARATOR;
 import static io.ballerina.stdlib.http.api.HttpConstants.REQUEST_CTX_MEMBERS;
-import static io.ballerina.stdlib.http.api.HttpConstants.SCHEME_SEPARATOR;
 import static io.ballerina.stdlib.http.api.HttpConstants.WHITESPACE;
 import static io.ballerina.stdlib.http.api.HttpErrorType.SERVICE_NOT_FOUND_ERROR;
 import static io.ballerina.stdlib.http.api.HttpUtil.getParameterTypes;
@@ -98,19 +98,19 @@ public class HttpDispatcher {
             Map<String, Map<String, String>> matrixParams = new HashMap<>();
             String uriWithoutMatrixParams = URIUtil.extractMatrixParams(rawUri, matrixParams, inboundReqMsg);
 
-            URI validatedUri = getValidatedURI(HTTP_SCHEME + SCHEME_SEPARATOR + uriWithoutMatrixParams);
+            String[] rawPathAndQuery = extractRawPathAndQuery(uriWithoutMatrixParams);
 
-            String basePath = servicesRegistry.findTheMostSpecificBasePath(validatedUri.getRawPath(),
+            String basePath = servicesRegistry.findTheMostSpecificBasePath(rawPathAndQuery[0],
                                                                            servicesOnInterface, sortedServiceURIs);
 
             if (basePath == null) {
-                String message = "no matching service found for path : " + validatedUri.getRawPath();
+                String message = "no matching service found for path : " + rawPathAndQuery[0];
                 throw HttpUtil.createHttpStatusCodeError(SERVICE_NOT_FOUND_ERROR, message);
             }
 
             HttpService service = servicesOnInterface.get(basePath);
             if (!forInterceptors) {
-                setInboundReqProperties(inboundReqMsg, validatedUri, basePath);
+                setInboundReqProperties(inboundReqMsg, rawPathAndQuery[0], basePath, rawPathAndQuery[1]);
                 inboundReqMsg.setProperty(HttpConstants.RAW_URI, rawUri);
                 inboundReqMsg.setProperty(HttpConstants.TO, uriWithoutMatrixParams);
                 inboundReqMsg.setProperty(HttpConstants.MATRIX_PARAMS, matrixParams);
@@ -159,18 +159,18 @@ public class HttpDispatcher {
             inboundReqMsg.setProperty(HttpConstants.TO, uriWithoutMatrixParams);
             inboundReqMsg.setProperty(HttpConstants.MATRIX_PARAMS, matrixParams);
 
-            URI validatedUri = getValidatedURI(HTTP_SCHEME + SCHEME_SEPARATOR + uriWithoutMatrixParams);
+            String[] rawPathAndQuery = extractRawPathAndQuery(uriWithoutMatrixParams);
 
-            String basePath = servicesRegistry.findTheMostSpecificBasePath(validatedUri.getRawPath(),
+            String basePath = servicesRegistry.findTheMostSpecificBasePath(rawPathAndQuery[0],
                                                                            servicesOnInterface, sortedServiceURIs);
 
             if (basePath == null) {
-                String message = "no matching service found for path : " + validatedUri.getRawPath();
+                String message = "no matching service found for path : " + rawPathAndQuery[0];
                 throw HttpUtil.createHttpStatusCodeError(SERVICE_NOT_FOUND_ERROR, message);
             }
 
             InterceptorService service = servicesOnInterface.get(basePath);
-            setInboundReqProperties(inboundReqMsg, validatedUri, basePath);
+            setInboundReqProperties(inboundReqMsg, rawPathAndQuery[0], basePath, rawPathAndQuery[1]);
             return service;
         } catch (Exception e) {
             if (!(e instanceof BError)) {
@@ -180,13 +180,22 @@ public class HttpDispatcher {
         }
     }
 
-    private static void setInboundReqProperties(HttpCarbonMessage inboundReqMsg, URI requestUri, String basePath) {
-        String subPath = URIUtil.getSubPath(requestUri.getRawPath(), basePath);
+    private static String[] extractRawPathAndQuery(String uriWithoutMatrixParams) {
+        String[] rawPathAndQuery = new String[2];
+        String[] splittedUri = uriWithoutMatrixParams.split(QUERY_STRING_SEPARATOR);
+        rawPathAndQuery[0] = splittedUri[0];
+        rawPathAndQuery[1] = splittedUri.length > 1 ? splittedUri[1] : EMPTY;
+        return rawPathAndQuery;
+    }
+
+    private static void setInboundReqProperties(HttpCarbonMessage inboundReqMsg, String rawPath,
+                                                String basePath, String rawQuery) {
+        String subPath = URIUtil.getSubPath(rawPath, basePath);
         inboundReqMsg.setProperty(HttpConstants.BASE_PATH, basePath);
         inboundReqMsg.setProperty(HttpConstants.SUB_PATH, subPath);
-        inboundReqMsg.setProperty(HttpConstants.QUERY_STR, requestUri.getQuery());
+        inboundReqMsg.setProperty(HttpConstants.QUERY_STR, rawQuery);
         //store query params comes with request as it is
-        inboundReqMsg.setProperty(HttpConstants.RAW_QUERY_STR, requestUri.getRawQuery());
+        inboundReqMsg.setProperty(HttpConstants.RAW_QUERY_STR, rawQuery);
     }
 
     public static URI getValidatedURI(String uriStr) {
