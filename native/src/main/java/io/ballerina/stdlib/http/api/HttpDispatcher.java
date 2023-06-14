@@ -45,6 +45,7 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -195,6 +196,16 @@ public class HttpDispatcher {
         inboundReqMsg.setProperty(HttpConstants.QUERY_STR, rawQuery);
         //store query params comes with request as it is
         inboundReqMsg.setProperty(HttpConstants.RAW_QUERY_STR, rawQuery);
+    }
+
+    public static URI getValidatedURI(String uriStr) {
+        URI requestUri;
+        try {
+            requestUri = URI.create(uriStr);
+        } catch (IllegalArgumentException e) {
+            throw new BallerinaConnectorException(e.getMessage());
+        }
+        return requestUri;
     }
 
     /**
