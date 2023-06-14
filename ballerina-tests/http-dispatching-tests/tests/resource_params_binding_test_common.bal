@@ -219,6 +219,10 @@ service /query on resourceParamBindingListener {
     resource function get case15(StringCharacter query1, SmallInt query2) returns [StringCharacter, SmallInt] {
         return [query1, query2];
     }
+
+    resource function get case16(map<json> query1, string[] query2) returns [map<json>, string[]] {
+        return [query1, query2];
+    }
 }
 
 service /header on resourceParamBindingListener {
