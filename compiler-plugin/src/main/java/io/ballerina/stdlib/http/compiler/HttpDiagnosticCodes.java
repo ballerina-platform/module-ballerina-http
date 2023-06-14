@@ -121,6 +121,9 @@ public enum HttpDiagnosticCodes {
 
     HTTP_201("HTTP_201", "defining interceptor pipeline using http:ServiceConfig annotation " +
             "is deprecated. Use http:InterceptableService instead. See https://ballerina.io/learn/by-example/" +
+            "http-request-interceptor", WARNING),
+    HTTP_202("HTTP_202", "defining interceptor pipeline in the http:ListenerConfiguration " +
+            "is deprecated. Use http:InterceptableService instead. See https://ballerina.io/learn/by-example/" +
             "http-request-interceptor", WARNING);
 
     private final String code;

@@ -29,8 +29,11 @@ import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.syntax.tree.NamedArgumentNode;
+import io.ballerina.compiler.syntax.tree.NewExpressionNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
+import io.ballerina.compiler.syntax.tree.ParenthesizedArgList;
 import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
 import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
 import io.ballerina.tools.diagnostics.DiagnosticFactory;
@@ -90,6 +93,7 @@ import static io.ballerina.stdlib.http.compiler.Constants.TABLE_OF_ANYDATA_MAP;
 import static io.ballerina.stdlib.http.compiler.Constants.TUPLE_OF_ANYDATA;
 import static io.ballerina.stdlib.http.compiler.Constants.UNNECESSARY_CHARS_REGEX;
 import static io.ballerina.stdlib.http.compiler.Constants.XML;
+import static io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes.HTTP_202;
 
 /**
  * Utility class providing http compiler plugin utility methods.
@@ -151,6 +155,22 @@ public class HttpCompilerPluginUtil {
         }
     }
 
+    public static void validateListenerExpressionNode(SyntaxNodeAnalysisContext context, NewExpressionNode expressionNode) {
+        expressionNode.childEntries().stream().forEach(childNodeEntry -> {
+            if (childNodeEntry.name().equals("parenthesizedArgList")) {
+                if (childNodeEntry.node().isPresent() && childNodeEntry.node().get() instanceof ParenthesizedArgList) {
+                    ParenthesizedArgList argList = (ParenthesizedArgList) childNodeEntry.node().get();
+                    argList.children().forEach(child -> {
+                        if (child instanceof NamedArgumentNode && ((NamedArgumentNode) child).argumentName()
+                                .name().text().contains("interceptor")) {
+                            updateDiagnostic(context, child.location(), HTTP_202);
+                        }
+                    });
+                }
+            }
+        });
+    }
+
     public static void validateResourceReturnType(SyntaxNodeAnalysisContext ctx, Node node,
                                                   Map<String, TypeSymbol> typeSymbols, String returnTypeStringValue,
                                                   TypeSymbol returnTypeSymbol, HttpDiagnosticCodes diagnosticCode,
@@ -184,6 +204,10 @@ public class HttpCompilerPluginUtil {
             return false;
         }
         return expectedType.equals(typeName.get());
+    }
+
+    public static boolean isHttpModule(ModuleSymbol moduleSymbol) {
+        return HTTP.equals(moduleSymbol.getName().get()) && BALLERINA.equals(moduleSymbol.id().orgName());
     }
 
     public static TypeDescKind retrieveEffectiveTypeDesc(TypeSymbol descriptor) {

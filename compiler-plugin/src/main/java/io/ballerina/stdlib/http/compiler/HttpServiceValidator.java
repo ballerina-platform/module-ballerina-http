@@ -27,10 +27,12 @@ import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
+import io.ballerina.compiler.syntax.tree.ChildNodeEntry;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingFieldNode;
 import io.ballerina.compiler.syntax.tree.MetadataNode;
+import io.ballerina.compiler.syntax.tree.NewExpressionNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
@@ -64,7 +66,9 @@ import static io.ballerina.stdlib.http.compiler.Constants.SERVICE_CONFIG_ANNOTAT
 import static io.ballerina.stdlib.http.compiler.Constants.SUFFIX_SEPARATOR_REGEX;
 import static io.ballerina.stdlib.http.compiler.Constants.UNNECESSARY_CHARS_REGEX;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.getCtxTypes;
+import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.isHttpModule;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.updateDiagnostic;
+import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.validateListenerExpressionNode;
 import static io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes.HTTP_101;
 import static io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes.HTTP_119;
 import static io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes.HTTP_120;
@@ -88,6 +92,7 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
         }
 
         extractServiceAnnotationAndValidate(syntaxNodeAnalysisContext, serviceDeclarationNode);
+        validateListenerDeclarationInService(syntaxNodeAnalysisContext, serviceDeclarationNode);
 
         LinksMetaData linksMetaData = new LinksMetaData();
         NodeList<Node> members = serviceDeclarationNode.members();
@@ -143,8 +148,15 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
         return false;
     }
 
-    private static boolean isHttpModule(ModuleSymbol moduleSymbol) {
-        return HTTP.equals(moduleSymbol.getName().get()) && BALLERINA.equals(moduleSymbol.id().orgName());
+    private void validateListenerDeclarationInService(SyntaxNodeAnalysisContext context,
+                                                      ServiceDeclarationNode serviceDeclarationNode) {
+        for (ChildNodeEntry nodeEntry: serviceDeclarationNode.childEntries()) {
+            if (nodeEntry.name().equals("expressions")) {
+                if (nodeEntry.node().isPresent() && nodeEntry.node().get() instanceof NewExpressionNode) {
+                    validateListenerExpressionNode(context, (NewExpressionNode) nodeEntry.node().get());
+                }
+            }
+        }
     }
 
     public static TypeSymbol getEffectiveTypeFromReadonlyIntersection(IntersectionTypeSymbol intersectionTypeSymbol) {
