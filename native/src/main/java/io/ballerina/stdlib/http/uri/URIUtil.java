@@ -111,7 +111,8 @@ public class URIUtil {
     }
 
 
-    public static String extractMatrixParams(String path, Map<String, Map<String, String>> matrixParams) {
+    public static String extractMatrixParams(String path, Map<String, Map<String, String>> matrixParams,
+                                             HttpCarbonMessage inboundReqMsg) {
         if (path.startsWith("/")) {
             path = path.substring(1);
         }

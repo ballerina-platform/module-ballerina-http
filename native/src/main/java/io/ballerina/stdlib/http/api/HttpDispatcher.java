@@ -96,7 +96,7 @@ public class HttpDispatcher {
 
             String rawUri = (String) inboundReqMsg.getProperty(HttpConstants.TO);
             Map<String, Map<String, String>> matrixParams = new HashMap<>();
-            String uriWithoutMatrixParams = URIUtil.extractMatrixParams(rawUri, matrixParams);
+            String uriWithoutMatrixParams = URIUtil.extractMatrixParams(rawUri, matrixParams, inboundReqMsg);
 
             String[] rawPathAndQuery = extractRawPathAndQuery(uriWithoutMatrixParams);
 
@@ -154,7 +154,7 @@ public class HttpDispatcher {
             String rawUri = (String) inboundReqMsg.getProperty(HttpConstants.TO);
             inboundReqMsg.setProperty(HttpConstants.RAW_URI, rawUri);
             Map<String, Map<String, String>> matrixParams = new HashMap<>();
-            String uriWithoutMatrixParams = URIUtil.extractMatrixParams(rawUri, matrixParams);
+            String uriWithoutMatrixParams = URIUtil.extractMatrixParams(rawUri, matrixParams, inboundReqMsg);
 
             inboundReqMsg.setProperty(HttpConstants.TO, uriWithoutMatrixParams);
             inboundReqMsg.setProperty(HttpConstants.MATRIX_PARAMS, matrixParams);
