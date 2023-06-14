@@ -45,6 +45,7 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -95,7 +96,7 @@ public class HttpDispatcher {
 
             String rawUri = (String) inboundReqMsg.getProperty(HttpConstants.TO);
             Map<String, Map<String, String>> matrixParams = new HashMap<>();
-            String uriWithoutMatrixParams = URIUtil.extractMatrixParams(rawUri, matrixParams);
+            String uriWithoutMatrixParams = URIUtil.extractMatrixParams(rawUri, matrixParams, inboundReqMsg);
 
             String[] rawPathAndQuery = extractRawPathAndQuery(uriWithoutMatrixParams);
 
@@ -153,7 +154,7 @@ public class HttpDispatcher {
             String rawUri = (String) inboundReqMsg.getProperty(HttpConstants.TO);
             inboundReqMsg.setProperty(HttpConstants.RAW_URI, rawUri);
             Map<String, Map<String, String>> matrixParams = new HashMap<>();
-            String uriWithoutMatrixParams = URIUtil.extractMatrixParams(rawUri, matrixParams);
+            String uriWithoutMatrixParams = URIUtil.extractMatrixParams(rawUri, matrixParams, inboundReqMsg);
 
             inboundReqMsg.setProperty(HttpConstants.TO, uriWithoutMatrixParams);
             inboundReqMsg.setProperty(HttpConstants.MATRIX_PARAMS, matrixParams);
@@ -192,8 +193,19 @@ public class HttpDispatcher {
         String subPath = URIUtil.getSubPath(rawPath, basePath);
         inboundReqMsg.setProperty(HttpConstants.BASE_PATH, basePath);
         inboundReqMsg.setProperty(HttpConstants.SUB_PATH, subPath);
+        inboundReqMsg.setProperty(HttpConstants.QUERY_STR, rawQuery);
         //store query params comes with request as it is
         inboundReqMsg.setProperty(HttpConstants.RAW_QUERY_STR, rawQuery);
+    }
+
+    public static URI getValidatedURI(String uriStr) {
+        URI requestUri;
+        try {
+            requestUri = URI.create(uriStr);
+        } catch (IllegalArgumentException e) {
+            throw new BallerinaConnectorException(e.getMessage());
+        }
+        return requestUri;
     }
 
     /**
