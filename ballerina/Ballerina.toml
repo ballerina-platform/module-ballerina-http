@@ -7,8 +7,11 @@ keywords = ["http", "network", "service", "listener", "client"]
 repository = "https://github.com/ballerina-platform/module-ballerina-http"
 icon = "icon.png"
 license = ["Apache-2.0"]
-distribution = "2201.5.0"
+distribution = "2201.7.0"
 export = ["http", "http.httpscerr"]
+
+[platform.java11]
+graalvmCompatible = true
 
 [[platform.java11.dependency]]
 groupId = "io.ballerina.stdlib"
@@ -19,14 +22,14 @@ path = "../native/build/libs/http-native-2.9.0-SNAPSHOT.jar"
 [[platform.java11.dependency]]
 groupId = "io.ballerina.stdlib"
 artifactId = "mime-native"
-version = "2.7.1"
-path = "./lib/mime-native-2.7.1.jar"
+version = "2.8.0"
+path = "./lib/mime-native-2.8.0-20230614-201600-ffa7634.jar"
 
 [[platform.java11.dependency]]
 groupId = "io.ballerina.stdlib"
 artifactId = "constraint-native"
-version = "1.2.0"
-path = "./lib/constraint-native-1.2.0.jar"
+version = "1.3.0"
+path = "./lib/constraint-native-1.3.0-20230614-161700-f1a0fb3.jar"
 
 [[platform.java11.dependency]]
 groupId = "io.netty"
