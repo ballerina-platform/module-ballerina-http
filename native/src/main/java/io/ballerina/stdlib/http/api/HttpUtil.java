@@ -610,7 +610,7 @@ public class HttpUtil {
 
     public static BError createHttpStatusCodeError(HttpErrorType errorType, String message, String body,
                                                    BError cause) {
-        BMap<BString, Object> detail = ValueCreator.createRecordValue(ModuleUtils.getHttpPackage(),
+        BMap<BString, Object> detail = ValueCreator.createRecordValue(ModuleUtils.getHttpStatusPackage(),
                 HttpConstants.ERROR_DETAIL_RECORD);
         if (body != null) {
             detail.put(HttpConstants.ERROR_DETAIL_BODY, fromString(body));

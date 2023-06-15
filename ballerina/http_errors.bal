@@ -14,6 +14,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import http.httpscerr;
+
 # Represents the details of an HTTP error.
 # 
 # + statusCode - The inbound error response status code
@@ -60,40 +62,40 @@ public type OutboundResponseError distinct ListenerError;
 public type GenericListenerError distinct ListenerError;
 
 # Represents an error, which occurred due to a failure in interceptor return.
-public type InterceptorReturnError distinct ListenerError & InternalServerErrorError;
+public type InterceptorReturnError distinct ListenerError & httpscerr:InternalServerErrorError;
 
 # Represents an error, which occurred due to a header binding.
-public type HeaderBindingError distinct ListenerError & BadRequestError;
+public type HeaderBindingError distinct ListenerError & httpscerr:BadRequestError;
 
 // TODO: Change the error type as HeaderBindingError once this issue is fixed:
 // https://github.com/ballerina-platform/ballerina-lang/issues/40273
 # Represents an error, which occurred due to a header constraint validation.
-public type HeaderValidationError distinct HeaderBindingError & BadRequestError;
+public type HeaderValidationError distinct HeaderBindingError & httpscerr:BadRequestError;
 
 # Represents an error, which occurred due to the absence of the payload.
 public type NoContentError distinct ClientError;
 
 type PayloadBindingClientError ClientError & PayloadBindingError;
 
-type PayloadBindingListenerError distinct ListenerError & PayloadBindingError & BadRequestError;
+type PayloadBindingListenerError distinct ListenerError & PayloadBindingError & httpscerr:BadRequestError;
 
 # Represents an error, which occurred due to payload constraint validation.
 public type PayloadValidationError distinct PayloadBindingError;
 
 type PayloadValidationClientError ClientError & PayloadValidationError;
 
-type PayloadValidationListenerError distinct ListenerError & PayloadValidationError & BadRequestError;
+type PayloadValidationListenerError distinct ListenerError & PayloadValidationError & httpscerr:BadRequestError;
 
 # Represents an error, which occurred due to a query parameter binding.
-public type QueryParameterBindingError distinct ListenerError & BadRequestError;
+public type QueryParameterBindingError distinct ListenerError & httpscerr:BadRequestError;
 
 // TODO: Change the error type as QueryParameterBindingError once this issue is fixed:
 // https://github.com/ballerina-platform/ballerina-lang/issues/40273
 # Represents an error, which occurred due to a query parameter constraint validation.
-public type QueryParameterValidationError distinct QueryParameterBindingError & BadRequestError;
+public type QueryParameterValidationError distinct QueryParameterBindingError & httpscerr:BadRequestError;
 
 # Represents an error, which occurred due to a path parameter binding.
-public type PathParameterBindingError distinct ListenerError & BadRequestError;
+public type PathParameterBindingError distinct ListenerError & httpscerr:BadRequestError;
 
 # Represents an error, which occurred during the request dispatching.
 public type RequestDispatchingError distinct ListenerError;
@@ -108,16 +110,16 @@ public type ResourceDispatchingError distinct RequestDispatchingError;
 public type ListenerAuthError distinct ListenerError;
 
 # Defines the authentication error types that returned from listener.
-public type ListenerAuthnError distinct UnauthorizedError & ListenerAuthError;
+public type ListenerAuthnError distinct httpscerr:UnauthorizedError & ListenerAuthError;
 
 # Defines the authorization error types that returned from listener.
-public type ListenerAuthzError distinct ForbiddenError & ListenerAuthError;
+public type ListenerAuthzError distinct httpscerr:ForbiddenError & ListenerAuthError;
 
 # Defined for internal use when panicing from the auth_desugar
-type InternalListenerAuthnError distinct UnauthorizedError & ListenerAuthError;
+type InternalListenerAuthnError distinct httpscerr:UnauthorizedError & ListenerAuthError;
 
 # Defined for internal use when panicing from the auth_desugar
-type InternalListenerAuthzError distinct ForbiddenError & ListenerAuthError;
+type InternalListenerAuthzError distinct httpscerr:ForbiddenError & ListenerAuthError;
 
 # Defines the client error types that returned while sending outbound request.
 public type OutboundRequestError distinct ClientError;
@@ -236,3 +238,27 @@ public type Writing100ContinueResponseError distinct OutboundResponseError;
 
 # Represents a cookie error that occurred when sending cookies in the response.
 public type InvalidCookieError distinct OutboundResponseError;
+
+# Represents Service Not Found error.
+public type ServiceNotFoundError httpscerr:NotFoundError & ServiceDispatchingError;
+
+# Represents Bad Matrix Parameter in the request error.
+public type BadMatrixParamError httpscerr:BadRequestError & ServiceDispatchingError;
+
+# Represents an error, which occurred when the resource is not found during dispatching.
+public type ResourceNotFoundError httpscerr:NotFoundError & ResourceDispatchingError;
+
+# Represents an error, which occurred due to a path parameter constraint validation.
+public type ResourcePathValidationError httpscerr:BadRequestError & ResourceDispatchingError;
+
+# Represents an error, which occurred when the resource method is not allowed during dispatching.
+public type ResourceMethodNotAllowedError httpscerr:MethodNotAllowedError & ResourceDispatchingError;
+
+# Represents an error, which occurred when the media type is not supported during dispatching.
+public type UnsupportedRequestMediaTypeError httpscerr:UnsupportedMediaTypeError & ResourceDispatchingError;
+
+# Represents an error, which occurred when the payload is not acceptable during dispatching.
+public type RequestNotAcceptableError httpscerr:NotAcceptableError & ResourceDispatchingError;
+
+# Represents other internal server errors during dispatching.
+public type ResourceDispatchingServerError httpscerr:InternalServerErrorError & ResourceDispatchingError;

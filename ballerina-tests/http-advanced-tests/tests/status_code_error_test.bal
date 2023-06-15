@@ -15,127 +15,128 @@
 // under the License.
 
 import ballerina/http;
+import ballerina/http.httpscerr;
 import ballerina/test;
 import ballerina/http_test_common as common;
 
-function getStatusCodeError(int statusCode) returns http:StatusCodeError {
+function getStatusCodeError(int statusCode) returns httpscerr:StatusCodeError {
     match statusCode {
         400 => {
-            return error http:BadRequestError("Bad request error");
+            return error httpscerr:BadRequestError("Bad request error");
         }
         401 => {
-            return error http:UnauthorizedError("Unauthorized error");
+            return error httpscerr:UnauthorizedError("Unauthorized error");
         }
         402 => {
-            return error http:PaymentRequiredError("Payment required error");
+            return error httpscerr:PaymentRequiredError("Payment required error");
         }
         403 => {
-            return error http:ForbiddenError("Forbidden error");
+            return error httpscerr:ForbiddenError("Forbidden error");
         }
         404 => {
-            return error http:NotFoundError("Not found error");
+            return error httpscerr:NotFoundError("Not found error");
         }
         405 => {
-            return error http:MethodNotAllowedError("Method not allowed error");
+            return error httpscerr:MethodNotAllowedError("Method not allowed error");
         }
         406 => {
-            return error http:NotAcceptableError("Not acceptable error");
+            return error httpscerr:NotAcceptableError("Not acceptable error");
         }
         407 => {
-            return error http:ProxyAuthenticationRequiredError("Proxy authentication required error");
+            return error httpscerr:ProxyAuthenticationRequiredError("Proxy authentication required error");
         }
         408 => {
-            return error http:RequestTimeoutError("Request timeout error");
+            return error httpscerr:RequestTimeoutError("Request timeout error");
         }
         409 => {
-            return error http:ConflictError("Conflict error");
+            return error httpscerr:ConflictError("Conflict error");
         }
         410 => {
-            return error http:GoneError("Gone error");
+            return error httpscerr:GoneError("Gone error");
         }
         411 => {
-            return error http:LengthRequiredError("Length required error");
+            return error httpscerr:LengthRequiredError("Length required error");
         }
         412 => {
-            return error http:PreconditionFailedError("Precondition failed error");
+            return error httpscerr:PreconditionFailedError("Precondition failed error");
         }
         413 => {
-            return error http:PayloadTooLargeError("Payload too large error");
+            return error httpscerr:PayloadTooLargeError("Payload too large error");
         }
         414 => {
-            return error http:URITooLongError("URI too long error");
+            return error httpscerr:URITooLongError("URI too long error");
         }
         415 => {
-            return error http:UnsupportedMediaTypeError("Unsupported media type error");
+            return error httpscerr:UnsupportedMediaTypeError("Unsupported media type error");
         }
         416 => {
-            return error http:RangeNotSatisfiableError("Range not satisfiable error");
+            return error httpscerr:RangeNotSatisfiableError("Range not satisfiable error");
         }
         417 => {
-            return error http:ExpectationFailedError("Expectation failed error");
+            return error httpscerr:ExpectationFailedError("Expectation failed error");
         }
         421 => {
-            return error http:MisdirectedRequestError("Misdirected request error");
+            return error httpscerr:MisdirectedRequestError("Misdirected request error");
         }
         422 => {
-            return error http:UnprocessableEntityError("Unprocessable entity error");
+            return error httpscerr:UnprocessableEntityError("Unprocessable entity error");
         }
         423 => {
-            return error http:LockedError("Locked error");
+            return error httpscerr:LockedError("Locked error");
         }
         424 => {
-            return error http:FailedDependencyError("Failed dependency error");
+            return error httpscerr:FailedDependencyError("Failed dependency error");
         }
         426 => {
-            return error http:UpgradeRequiredError("Upgrade required error");
+            return error httpscerr:UpgradeRequiredError("Upgrade required error");
         }
         428 => {
-            return error http:PreconditionRequiredError("Precondition required error");
+            return error httpscerr:PreconditionRequiredError("Precondition required error");
         }
         429 => {
-            return error http:TooManyRequestsError("Too many requests error");
+            return error httpscerr:TooManyRequestsError("Too many requests error");
         }
         431 => {
-            return error http:RequestHeaderFieldsTooLargeError("Request header fields too large error");
+            return error httpscerr:RequestHeaderFieldsTooLargeError("Request header fields too large error");
         }
         451 => {
-            return error http:UnavailableDueToLegalReasonsError("Unavailable for legal reasons error");
+            return error httpscerr:UnavailableDueToLegalReasonsError("Unavailable for legal reasons error");
         }
         500 => {
-            return error http:InternalServerErrorError("Internal server error error");
+            return error httpscerr:InternalServerErrorError("Internal server error error");
         }
         501 => {
-            return error http:NotImplementedError("Not implemented error");
+            return error httpscerr:NotImplementedError("Not implemented error");
         }
         502 => {
-            return error http:BadGatewayError("Bad gateway error");
+            return error httpscerr:BadGatewayError("Bad gateway error");
         }
         503 => {
-            return error http:ServiceUnavailableError("Service unavailable error");
+            return error httpscerr:ServiceUnavailableError("Service unavailable error");
         }
         504 => {
-            return error http:GatewayTimeoutError("Gateway timeout error");
+            return error httpscerr:GatewayTimeoutError("Gateway timeout error");
         }
         505 => {
-            return error http:HTTPVersionNotSupportedError("HTTP version not supported error");
+            return error httpscerr:HTTPVersionNotSupportedError("HTTP version not supported error");
         }
         506 => {
-            return error http:VariantAlsoNegotiatesError("Variant also negotiates error");
+            return error httpscerr:VariantAlsoNegotiatesError("Variant also negotiates error");
         }
         507 => {
-            return error http:InsufficientStorageError("Insufficient storage error");
+            return error httpscerr:InsufficientStorageError("Insufficient storage error");
         }
         508 => {
-            return error http:LoopDetectedError("Loop detected error");
+            return error httpscerr:LoopDetectedError("Loop detected error");
         }
         510 => {
-            return error http:NotExtendedError("Not extended error");
+            return error httpscerr:NotExtendedError("Not extended error");
         }
         511 => {
-            return error http:NetworkAuthenticationRequiredError("Network authentication required error");
+            return error httpscerr:NetworkAuthenticationRequiredError("Network authentication required error");
         }
         _ => {
-            return error http:DefaultStatusCodeError("Default error", statusCode = statusCode);
+            return error httpscerr:DefaultStatusCodeError("Default error", statusCode = statusCode);
         }
     }
 }
@@ -147,19 +148,19 @@ type CustomHeaders record {|
 
 service on new http:Listener(statusCodeErrorPort) {
 
-    resource function get statusCodeError(int statusCode) returns http:StatusCodeError {
+    resource function get statusCodeError(int statusCode) returns httpscerr:StatusCodeError {
         return getStatusCodeError(statusCode);
     }
 
-    resource function get statusCodeErrorWithCause(int statusCode) returns http:DefaultStatusCodeError {
+    resource function get statusCodeErrorWithCause(int statusCode) returns httpscerr:DefaultStatusCodeError {
         error err = statusCode == 0 ? error("New error") : getStatusCodeError(statusCode);
-        return error http:DefaultStatusCodeError("Default error", err);
+        return error httpscerr:DefaultStatusCodeError("Default error", err);
     }
 
     resource function post statusCodeError(@http:Payload anydata payload, int statusCode,
-            @http:Header CustomHeaders headers) returns http:StatusCodeError {
+            @http:Header CustomHeaders headers) returns httpscerr:StatusCodeError {
 
-        return error http:DefaultStatusCodeError("Default error", statusCode = statusCode,
+        return error httpscerr:DefaultStatusCodeError("Default error", statusCode = statusCode,
             body = payload, headers = headers);
     }
 }
