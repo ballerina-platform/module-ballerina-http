@@ -14,10 +14,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/jballerina.java;
-import ballerina/mime;
-import ballerina/time;
-
 # Represents the details of an HTTP error.
 #
 # + headers - The error response headers
@@ -33,23 +29,6 @@ public type ErrorDetail record {
 public type DefaultErrorDetail record {
     *ErrorDetail;
     int statusCode?;
-};
-
-# Represents the structure of the HTTP error payload.
-#
-# + timestamp - Timestamp of the error
-# + status - Relevant HTTP status code
-# + reason - Reason phrase
-# + message - Error message
-# + path - Request path
-# + method - Method type of the request
-public type ErrorPayload record {
-    string timestamp;
-    int status;
-    string reason;
-    string message;
-    string path;
-    string method;
 };
 
 # Represents the HTTP status code error.

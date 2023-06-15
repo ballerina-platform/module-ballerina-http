@@ -15,10 +15,30 @@
 // under the License.
 
 import http.httpscerr;
+import ballerina/jballerina.java;
+import ballerina/mime;
+import ballerina/time;
+
+# Represents the structure of the HTTP error payload.
+#
+# + timestamp - Timestamp of the error
+# + status - Relevant HTTP status code
+# + reason - Reason phrase
+# + message - Error message
+# + path - Request path
+# + method - Method type of the request
+public type ErrorPayload record {
+    string timestamp;
+    int status;
+    string reason;
+    string message;
+    string path;
+    string method;
+};
 
 isolated function getErrorResponse(error err, string? returnMediaType = ()) returns Response {
     Response response = new;
-    
+
     // Handling the client errors
     if err is ApplicationResponseError {
         response.statusCode = err.detail().statusCode;
@@ -36,9 +56,7 @@ isolated function getErrorResponse(error err, string? returnMediaType = ()) retu
     }
 
     if err !is NoContentError {
-        // TODO: Change after this fix: https://github.com/ballerina-platform/ballerina-lang/issues/39669
-        // response.body = err.detail()?.body ?: err.message();
-        anydata body = err.detail()?.body is () ? err.message() : err.detail()?.body;
+        anydata body = err.detail()?.body ?: err.message();
         setPayload(body, response, returnMediaType);
     }
 
@@ -46,6 +64,61 @@ isolated function getErrorResponse(error err, string? returnMediaType = ()) retu
     setHeaders(headers, response);
 
     return response;
+}
+
+isolated function getErrorResponseForInterceptor(error err, Request request) returns Response {
+    Response response = new;
+
+    if err is ApplicationResponseError {
+        response.statusCode = err.detail().statusCode;
+        if err.detail().body is () {
+            setErrorPayload(err, request, response);
+        } else {
+            setPayload(err.detail().body, response);
+        }
+        setHeaders(err.detail().headers, response);
+        return response;
+    }
+
+    response.statusCode = getStatusCode(err);
+
+    if err !is httpscerr:StatusCodeError {
+        setErrorPayload(err, request, response);
+        return response;
+    }
+
+    if err.detail()?.body is () {
+        setErrorPayload(err, request, response);
+        if err.detail()?.headers !is () {
+            setHeaders(<map<string|string[]>>err.detail()?.headers, response);
+        }
+        return response;
+    }
+
+    if err !is NoContentError {
+        if err.detail()?.body is () {
+            setErrorPayload(err, request, response);
+        } else {
+            setPayload(err.detail()?.body, response);
+        }
+    }
+
+    map<string|string[]> headers = err.detail().headers ?: {};
+    setHeaders(headers, response);
+
+    return response;
+}
+
+isolated function setErrorPayload(error err, Request request, Response response) {
+    ErrorPayload errorPayload = {
+        timestamp: time:utcToString(time:utcNow()),
+        status: response.statusCode,
+        reason: externGetReasonFromStatusCode(response.statusCode),
+        message: err.message(),
+        path: request.rawPath,
+        method: request.method
+    };
+    response.setPayload(errorPayload.toJson(), mime:APPLICATION_JSON);
 }
 
 isolated function setHeaders(map<string|string[]> headers, Response response) {
@@ -60,7 +133,7 @@ isolated function setHeaders(map<string|string[]> headers, Response response) {
     }
 }
 
-isolated function getStatusCode(error err) returns int{
+isolated function getStatusCode(error err) returns int {
     if err is httpscerr:BadRequestError {
         return 400;
     } else if err is httpscerr:UnauthorizedError {
@@ -150,3 +223,9 @@ isolated function getStatusCode(error err) returns int{
     // All other errors are default to InternalServerError
     return 500;
 }
+
+isolated function externGetReasonFromStatusCode(int statusCode) returns string =
+@java:Method {
+    'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternUtils",
+    name: "getReasonFromStatusCode"
+} external;
