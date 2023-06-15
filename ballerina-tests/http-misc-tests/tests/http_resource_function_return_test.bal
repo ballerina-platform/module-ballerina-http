@@ -60,8 +60,9 @@ function testErrorTypeReturnedFromAResourceFunction() returns error? {
     http:Response|error response = resourceFunctionTestClient->get("/manualErrorReturn");
     if response is http:Response {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:TEXT_PLAIN);
-        common:assertTextPayload(response.getTextPayload(), "Some random error");
+        common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:APPLICATION_JSON);
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "Some random error",
+            "Internal Server Error", 500, "/manualErrorReturn", "GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -73,8 +74,9 @@ function testErrorReturnedFromACheckExprInResourceFunction() returns error? {
     http:Response|error response = resourceFunctionTestClient->get("/checkErrorReturn");
     if response is http:Response {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:TEXT_PLAIN);
-        common:assertTextPayload(response.getTextPayload(), "Simulated error");
+        common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:APPLICATION_JSON);
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "Simulated error",
+            "Internal Server Error", 500, "/checkErrorReturn", "GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -86,8 +88,9 @@ function testErrorTypeRespondedFromCaller() returns error? {
     http:Response|error response = resourceFunctionTestClient->get("/callerRespondError");
     if response is http:Response {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:TEXT_PLAIN);
-        common:assertTextPayload(response.getTextPayload(), "Simulated error");
+        common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:APPLICATION_JSON);
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "Simulated error",
+            "Internal Server Error", 500, "/callerRespondError", "GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

@@ -60,3 +60,7 @@ const int responseInterceptorSkipTestPort = 9611;
 const int serviceErrorHandlingTestPort = 9613;
 const int authErrorHandlingTestPort = 9626;
 const int noServiceRegisteredTestPort = 9614;
+const int singleServiceRegisteredTestPort = 9624;
+const int multipleServiceRegisteredTestPort = 9625;
+const int rootServiceRegisteredTestPort = 9627;
+const int singleServiceWithListenerInterceptorsTestPort = 9628;

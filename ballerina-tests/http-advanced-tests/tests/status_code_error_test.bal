@@ -171,294 +171,336 @@ final http:Client clientEndpoint = check new ("http://localhost:" + statusCodeEr
 function test400StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 400);
     test:assertEquals(response.statusCode, 400);
-    common:assertTextPayload(response.getTextPayload(), "Bad request error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Bad request error", "Bad Request", 400,
+                "/statusCodeError?statusCode=400", "GET");
 }
 
 @test:Config {}
 function test401StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 401);
     test:assertEquals(response.statusCode, 401);
-    common:assertTextPayload(response.getTextPayload(), "Unauthorized error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Unauthorized error", "Unauthorized", 401,
+                "/statusCodeError?statusCode=401", "GET");
 }
 
 @test:Config {}
 function test402StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 402);
     test:assertEquals(response.statusCode, 402);
-    common:assertTextPayload(response.getTextPayload(), "Payment required error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Payment required error", "Payment Required", 402,
+                "/statusCodeError?statusCode=402", "GET");
 }
 
 @test:Config {}
 function test403StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 403);
     test:assertEquals(response.statusCode, 403);
-    common:assertTextPayload(response.getTextPayload(), "Forbidden error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Forbidden error", "Forbidden", 403,
+                "/statusCodeError?statusCode=403", "GET");
 }
 
 @test:Config {}
 function test404StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 404);
     test:assertEquals(response.statusCode, 404);
-    common:assertTextPayload(response.getTextPayload(), "Not found error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Not found error", "Not Found", 404,
+                "/statusCodeError?statusCode=404", "GET");
 }
 
 @test:Config {}
 function test405StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 405);
     test:assertEquals(response.statusCode, 405);
-    common:assertTextPayload(response.getTextPayload(), "Method not allowed error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Method not allowed error", "Method Not Allowed", 405,
+                "/statusCodeError?statusCode=405", "GET");
 }
 
 @test:Config {}
 function test406StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 406);
     test:assertEquals(response.statusCode, 406);
-    common:assertTextPayload(response.getTextPayload(), "Not acceptable error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Not acceptable error", "Not Acceptable", 406,
+                "/statusCodeError?statusCode=406", "GET");
 }
 
 @test:Config {}
 function test407StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 407);
     test:assertEquals(response.statusCode, 407);
-    common:assertTextPayload(response.getTextPayload(), "Proxy authentication required error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Proxy authentication required error", "Proxy Authentication Required", 407,
+                "/statusCodeError?statusCode=407", "GET");
 }
 
 @test:Config {}
 function test408StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 408);
     test:assertEquals(response.statusCode, 408);
-    common:assertTextPayload(response.getTextPayload(), "Request timeout error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Request timeout error", "Request Timeout", 408,
+                "/statusCodeError?statusCode=408", "GET");
 }
 
 @test:Config {}
 function test409StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 409);
     test:assertEquals(response.statusCode, 409);
-    common:assertTextPayload(response.getTextPayload(), "Conflict error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Conflict error", "Conflict", 409,
+                "/statusCodeError?statusCode=409", "GET");
 }
 
 @test:Config {}
 function test410StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 410);
     test:assertEquals(response.statusCode, 410);
-    common:assertTextPayload(response.getTextPayload(), "Gone error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Gone error", "Gone", 410,
+                "/statusCodeError?statusCode=410", "GET");
 }
 
 @test:Config {}
 function test411StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 411);
     test:assertEquals(response.statusCode, 411);
-    common:assertTextPayload(response.getTextPayload(), "Length required error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Length required error", "Length Required", 411,
+                "/statusCodeError?statusCode=411", "GET");
 }
 
 @test:Config {}
 function test412StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 412);
     test:assertEquals(response.statusCode, 412);
-    common:assertTextPayload(response.getTextPayload(), "Precondition failed error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Precondition failed error", "Precondition Failed", 412,
+                "/statusCodeError?statusCode=412", "GET");
 }
 
 @test:Config {}
 function test413StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 413);
     test:assertEquals(response.statusCode, 413);
-    common:assertTextPayload(response.getTextPayload(), "Payload too large error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Payload too large error", "Request Entity Too Large", 413,
+                "/statusCodeError?statusCode=413", "GET");
 }
 
 @test:Config {}
 function test414StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 414);
     test:assertEquals(response.statusCode, 414);
-    common:assertTextPayload(response.getTextPayload(), "URI too long error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "URI too long error", "Request-URI Too Long", 414,
+                "/statusCodeError?statusCode=414", "GET");
 }
 
 @test:Config {}
 function test415StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 415);
     test:assertEquals(response.statusCode, 415);
-    common:assertTextPayload(response.getTextPayload(), "Unsupported media type error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Unsupported media type error", "Unsupported Media Type", 415,
+                "/statusCodeError?statusCode=415", "GET");
 }
 
 @test:Config {}
 function test416StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 416);
     test:assertEquals(response.statusCode, 416);
-    common:assertTextPayload(response.getTextPayload(), "Range not satisfiable error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Range not satisfiable error", "Requested Range Not Satisfiable", 416,
+                "/statusCodeError?statusCode=416", "GET");
 }
 
 @test:Config {}
 function test417StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 417);
     test:assertEquals(response.statusCode, 417);
-    common:assertTextPayload(response.getTextPayload(), "Expectation failed error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Expectation failed error", "Expectation Failed", 417,
+                "/statusCodeError?statusCode=417", "GET");
 }
 
 @test:Config {}
 function test421StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 421);
     test:assertEquals(response.statusCode, 421);
-    common:assertTextPayload(response.getTextPayload(), "Misdirected request error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Misdirected request error", "Misdirected Request", 421,
+                "/statusCodeError?statusCode=421", "GET");
 }
 
 @test:Config {}
 function test422StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 422);
     test:assertEquals(response.statusCode, 422);
-    common:assertTextPayload(response.getTextPayload(), "Unprocessable entity error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Unprocessable entity error", "Unprocessable Entity", 422,
+                "/statusCodeError?statusCode=422", "GET");
 }
 
 @test:Config {}
 function test423StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 423);
     test:assertEquals(response.statusCode, 423);
-    common:assertTextPayload(response.getTextPayload(), "Locked error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Locked error", "Locked", 423,
+                "/statusCodeError?statusCode=423", "GET");
 }
 
 @test:Config {}
 function test424StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 424);
     test:assertEquals(response.statusCode, 424);
-    common:assertTextPayload(response.getTextPayload(), "Failed dependency error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Failed dependency error", "Failed Dependency", 424,
+                "/statusCodeError?statusCode=424", "GET");
 }
 
 @test:Config {}
 function test426StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 426);
     test:assertEquals(response.statusCode, 426);
-    common:assertTextPayload(response.getTextPayload(), "Upgrade required error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Upgrade required error", "Upgrade Required", 426,
+                "/statusCodeError?statusCode=426", "GET");
 }
 
 @test:Config {}
 function test428StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 428);
     test:assertEquals(response.statusCode, 428);
-    common:assertTextPayload(response.getTextPayload(), "Precondition required error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Precondition required error", "Precondition Required", 428,
+                "/statusCodeError?statusCode=428", "GET");
 }
 
 @test:Config {}
 function test429StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 429);
     test:assertEquals(response.statusCode, 429);
-    common:assertTextPayload(response.getTextPayload(), "Too many requests error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Too many requests error", "Too Many Requests", 429,
+                "/statusCodeError?statusCode=429", "GET");
 }
 
 @test:Config {}
 function test431StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 431);
     test:assertEquals(response.statusCode, 431);
-    common:assertTextPayload(response.getTextPayload(), "Request header fields too large error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Request header fields too large error", "Request Header Fields Too Large", 431,
+                "/statusCodeError?statusCode=431", "GET");
 }
 
 @test:Config {}
 function test451StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 451);
     test:assertEquals(response.statusCode, 451);
-    common:assertTextPayload(response.getTextPayload(), "Unavailable for legal reasons error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Unavailable for legal reasons error", "Unavailable For Legal Reasons", 451,
+                "/statusCodeError?statusCode=451", "GET");
 }
 
 @test:Config {}
 function test500StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 500);
     test:assertEquals(response.statusCode, 500);
-    common:assertTextPayload(response.getTextPayload(), "Internal server error error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Internal server error error", "Internal Server Error", 500,
+                "/statusCodeError?statusCode=500", "GET");
 }
 
 @test:Config {}
 function test501StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 501);
     test:assertEquals(response.statusCode, 501);
-    common:assertTextPayload(response.getTextPayload(), "Not implemented error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Not implemented error", "Not Implemented", 501,
+                "/statusCodeError?statusCode=501", "GET");
 }
 
 @test:Config {}
 function test502StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 502);
     test:assertEquals(response.statusCode, 502);
-    common:assertTextPayload(response.getTextPayload(), "Bad gateway error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Bad gateway error", "Bad Gateway", 502,
+                "/statusCodeError?statusCode=502", "GET");
 }
 
 @test:Config {}
 function test503StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 503);
     test:assertEquals(response.statusCode, 503);
-    common:assertTextPayload(response.getTextPayload(), "Service unavailable error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Service unavailable error", "Service Unavailable", 503,
+                "/statusCodeError?statusCode=503", "GET");
 }
 
 @test:Config {}
 function test504StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 504);
     test:assertEquals(response.statusCode, 504);
-    common:assertTextPayload(response.getTextPayload(), "Gateway timeout error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Gateway timeout error", "Gateway Timeout", 504,
+                "/statusCodeError?statusCode=504", "GET");
 }
 
 @test:Config {}
 function test505StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 505);
     test:assertEquals(response.statusCode, 505);
-    common:assertTextPayload(response.getTextPayload(), "HTTP version not supported error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "HTTP version not supported error", "HTTP Version Not Supported", 505,
+                "/statusCodeError?statusCode=505", "GET");
 }
 
 @test:Config {}
 function test506StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 506);
     test:assertEquals(response.statusCode, 506);
-    common:assertTextPayload(response.getTextPayload(), "Variant also negotiates error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Variant also negotiates error", "Variant Also Negotiates", 506,
+                "/statusCodeError?statusCode=506", "GET");
 }
 
 @test:Config {}
 function test507StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 507);
     test:assertEquals(response.statusCode, 507);
-    common:assertTextPayload(response.getTextPayload(), "Insufficient storage error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Insufficient storage error", "Insufficient Storage", 507,
+                "/statusCodeError?statusCode=507", "GET");
 }
 
 @test:Config {}
 function test508StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 508);
     test:assertEquals(response.statusCode, 508);
-    common:assertTextPayload(response.getTextPayload(), "Loop detected error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Loop detected error", "Loop Detected", 508,
+                "/statusCodeError?statusCode=508", "GET");
 }
 
 @test:Config {}
 function test510StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 510);
     test:assertEquals(response.statusCode, 510);
-    common:assertTextPayload(response.getTextPayload(), "Not extended error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Not extended error", "Not Extended", 510,
+                "/statusCodeError?statusCode=510", "GET");
 }
 
 @test:Config {}
 function test511StatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 511);
     test:assertEquals(response.statusCode, 511);
-    common:assertTextPayload(response.getTextPayload(), "Network authentication required error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Network authentication required error", "Network Authentication Required", 511,
+                "/statusCodeError?statusCode=511", "GET");
 }
 
 @test:Config {}
 function testDefaultStatusCodeError() returns error? {
     http:Response response = check clientEndpoint->/statusCodeError(statusCode = 600);
     test:assertEquals(response.statusCode, 600);
-    common:assertTextPayload(response.getTextPayload(), "Default error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Default error", "Internal Server Error", 600,
+                "/statusCodeError?statusCode=600", "GET");
 }
 
 @test:Config {}
 function testDefaultStatusCodeErrorWith400ErrorCause() returns error? {
     http:Response response = check clientEndpoint->/statusCodeErrorWithCause(statusCode = 400);
     test:assertEquals(response.statusCode, 400);
-    common:assertTextPayload(response.getTextPayload(), "Default error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Default error", "Bad Request", 400,
+                "/statusCodeErrorWithCause?statusCode=400", "GET");
 }
 
 @test:Config {}
 function testDefaultStatusCodeErrorWithCause() returns error? {
     http:Response response = check clientEndpoint->/statusCodeErrorWithCause(statusCode = 0);
     test:assertEquals(response.statusCode, 500);
-    common:assertTextPayload(response.getTextPayload(), "Default error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Default error", "Internal Server Error", 500,
+                "/statusCodeErrorWithCause?statusCode=0", "GET");
 }
 
 @test:Config {}
 function testDefaultStatusCodeErrorWithDefaultErrorCause() returns error? {
     http:Response response = check clientEndpoint->/statusCodeErrorWithCause(statusCode = 600);
     test:assertEquals(response.statusCode, 600);
-    common:assertTextPayload(response.getTextPayload(), "Default error");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "Default error", "Internal Server Error", 600,
+                "/statusCodeErrorWithCause?statusCode=600", "GET");
 }
 
 @test:Config {}

@@ -95,9 +95,7 @@ public class AllPathParams implements Parameter {
             } catch (Exception ex) {
                 String message = "error in casting path parameter : '" + paramToken + "'";
                 if (ParamUtils.isFiniteType(paramType)) {
-                    message = "no matching resource found for path : " +
-                            httpCarbonMessage.getProperty(HttpConstants.TO) +
-                            " , method : " + httpCarbonMessage.getHttpMethod();
+                    message = "no matching resource found for path";
                     throw HttpUtil.createHttpStatusCodeError(RESOURCE_NOT_FOUND_ERROR, message);
                 } else {
                     throw HttpUtil.createHttpStatusCodeError(HttpErrorType.PATH_PARAM_BINDING_ERROR, message,

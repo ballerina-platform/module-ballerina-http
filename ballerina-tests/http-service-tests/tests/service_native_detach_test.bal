@@ -93,7 +93,7 @@ isolated http:Service mock5 = service object {
 
 //Test the detach method with multiple services attachments
 @test:Config {}
-function testServiceDetach() {
+function testServiceDetach() returns error? {
     http:Response|error response = serviceDetachClient->get("/mock1");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
@@ -124,7 +124,8 @@ function testServiceDetach() {
     response = serviceDetachClient->get("/mock2/mock2Resource");
     if response is http:Response {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
-        common:assertTextPayload(response.getTextPayload(), "no matching service found for path : /mock2/mock2Resource");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "no matching service found for path",
+                "Not Found", 404, "/mock2/mock2Resource", "GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -133,8 +134,8 @@ function testServiceDetach() {
     response = serviceDetachClient->get("/mock3/mock3Resource");
     if response is http:Response {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        common:assertTextPayload(response.getTextPayload(),
-            "Service registration failed: two services have the same basePath : '/mock4'");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "Service registration failed: two services have the same basePath : '/mock4'",
+                "Internal Server Error", 500, "/mock3/mock3Resource", "GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

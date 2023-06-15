@@ -56,8 +56,8 @@ public type Interceptor RequestInterceptor|ResponseInterceptor|RequestErrorInter
 service class DefaultErrorInterceptor {
     *ResponseErrorInterceptor;
 
-    remote function interceptResponseError(error err) returns Response {
-        return getErrorResponse(err);
+    remote function interceptResponseError(error err, Request request) returns Response {
+        return getErrorResponseForInterceptor(err, request);
     }
 }
 

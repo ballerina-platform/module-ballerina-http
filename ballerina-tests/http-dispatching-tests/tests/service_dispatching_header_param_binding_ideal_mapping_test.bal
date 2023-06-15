@@ -55,11 +55,12 @@ function testIdealHeaderParamBindingWithHeaderValue() {
 }
 
 @test:Config {}
-function testIdealHeaderParamBindingWithoutHeader() {
+function testIdealHeaderParamBindingWithoutHeader() returns error? {
     http:Response|error response = headerBindingIdealClient->get("/headerparamservice/test1?foo=WSO2&bar=56");
     if response is http:Response {
         test:assertEquals(response.statusCode, 400);
-        common:assertTextPayload(response.getTextPayload(), "no header value found for 'foo'");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "no header value found for 'foo'",
+            "Bad Request", 400, "/headerparamservice/test1?foo=WSO2&bar=56", "GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -67,18 +68,20 @@ function testIdealHeaderParamBindingWithoutHeader() {
     response = headerBindingIdealClient->get("/headerparamservice/test2?foo=WSO2&bar=56");
     if response is http:Response {
         test:assertEquals(response.statusCode, 400);
-        common:assertTextPayload(response.getTextPayload(), "no header value found for 'foo'");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "no header value found for 'foo'",
+            "Bad Request", 400, "/headerparamservice/test2?foo=WSO2&bar=56", "GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
 @test:Config {}
-function testIdealHeaderParamBindingWithNoHeaderValue() {
+function testIdealHeaderParamBindingWithNoHeaderValue() returns error? {
     http:Response|error response = headerBindingIdealClient->get("/headerparamservice/test1?foo=WSO2&bar=56", {"foo": ""});
     if response is http:Response {
         test:assertEquals(response.statusCode, 400);
-        common:assertTextPayload(response.getTextPayload(), "no header value found for 'foo'");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "no header value found for 'foo'",
+            "Bad Request", 400, "/headerparamservice/test1?foo=WSO2&bar=56", "GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

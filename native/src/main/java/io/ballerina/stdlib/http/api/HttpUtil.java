@@ -581,8 +581,7 @@ public class HttpUtil {
         } else if (throwable instanceof ClientConnectorException) {
             cause = createErrorCause(throwable.getMessage(), IOConstants.ErrorCode.GenericError.errorCode(),
                     IOUtils.getIOPackage());
-            return HttpUtil.createHttpStatusCodeError(CLIENT_CONNECTOR_ERROR, "Something wrong with the connection",
-                    null, cause);
+            return createHttpError("Something wrong with the connection", CLIENT_CONNECTOR_ERROR, cause);
         } else if (throwable instanceof NullPointerException) {
             return createHttpError("Exception occurred: null", HttpErrorType.GENERIC_CLIENT_ERROR,
                                    createHttpError(throwable.toString()));
@@ -1619,7 +1618,7 @@ public class HttpUtil {
         serviceEndpoint.addNativeData(HttpConstants.INTERCEPTORS, interceptorsArray);
         Register.resetInterceptorRegistry(serviceEndpoint, interceptorServices.size());
         List<HTTPInterceptorServicesRegistry> httpInterceptorServicesRegistries
-                                                    = Register.getHttpInterceptorServicesRegistries(serviceEndpoint);
+                = Register.getHttpInterceptorServicesRegistries(serviceEndpoint);
 
         // Registering all the interceptor services in separate service registries
         for (int i = 0; i < interceptorServices.size(); i++) {

@@ -1,4 +1,4 @@
-// Copyright (c) 2023 WSO2 LLC. (http://www.wso2.com) All Rights Reserved.
+// Copyright (c) 2023 WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
 //
 // WSO2 LLC. licenses this file to you under the Apache License,
 // Version 2.0 (the "License"); you may not use this file except
@@ -14,6 +14,10 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/jballerina.java;
+import ballerina/mime;
+import ballerina/time;
+
 # Represents the details of an HTTP error.
 #
 # + headers - The error response headers
@@ -24,11 +28,28 @@ public type ErrorDetail record {
 };
 
 # Represents the details of an HTTP error.
-# 
+#
 # + statusCode - The inbound error response status code
 public type DefaultErrorDetail record {
     *ErrorDetail;
     int statusCode?;
+};
+
+# Represents the structure of the HTTP error payload.
+#
+# + timestamp - Timestamp of the error
+# + status - Relevant HTTP status code
+# + reason - Reason phrase
+# + message - Error message
+# + path - Request path
+# + method - Method type of the request
+public type ErrorPayload record {
+    string timestamp;
+    int status;
+    string reason;
+    string message;
+    string path;
+    string method;
 };
 
 # Represents the HTTP status code error.

@@ -104,7 +104,7 @@ public class HttpDispatcher {
                                                                            servicesOnInterface, sortedServiceURIs);
 
             if (basePath == null) {
-                String message = "no matching service found for path : " + rawPathAndQuery[0];
+                String message = "no matching service found for path";
                 throw HttpUtil.createHttpStatusCodeError(SERVICE_NOT_FOUND_ERROR, message);
             }
 
@@ -122,6 +122,19 @@ public class HttpDispatcher {
             }
             throw e;
         }
+    }
+
+    public static HttpService findSingleService(HTTPServicesRegistry servicesRegistry) {
+        HttpService service = null;
+        for (Object holder: servicesRegistry.getServicesMapByHost().values().toArray()) {
+            HTTPServicesRegistry.ServicesMapHolder mapHolder = (HTTPServicesRegistry.ServicesMapHolder) holder;
+            if (mapHolder.getServicesByBasePath().values().size() == 1 && service == null) {
+                service = (HttpService) mapHolder.getServicesByBasePath().values().toArray()[0];
+            } else {
+                return null;
+            }
+        }
+        return service;
     }
 
     // TODO : Refactor finding interceptor service logic and the usage of HTTPInterceptorServicesRegistry
@@ -165,7 +178,7 @@ public class HttpDispatcher {
                                                                            servicesOnInterface, sortedServiceURIs);
 
             if (basePath == null) {
-                String message = "no matching service found for path : " + rawPathAndQuery[0];
+                String message = "no matching service found for path";
                 throw HttpUtil.createHttpStatusCodeError(SERVICE_NOT_FOUND_ERROR, message);
             }
 

@@ -58,12 +58,19 @@ function invokeApiAndVerifyResponse(http:Client testClient, string path, DataFee
     }
 }
 
-function invokeApiAndVerifyResponseWithHttpGet(http:Client testClient, string path, DataFeed dataFeed) returns error? {
+function invokeApiAndVerifyResponseWithHttpGet(http:Client testClient, string path, DataFeed dataFeed, string mediaType) returns error? {
     http:Response|error response = testClient->get(path);
     if response is http:Response {
         test:assertEquals(response.statusCode, dataFeed.responseCode, msg = "Found unexpected output");
-        common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:TEXT_PLAIN);
-        common:assertTrueTextPayload(response.getTextPayload(), dataFeed.message);
+        common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), mediaType);
+        if (mediaType == common:APPLICATION_JSON) {
+            json payload = check response.getJsonPayload();
+            common:assertTrueTextPayload(<string>(check payload.message), dataFeed.message);
+        } else if (mediaType == common:TEXT_PLAIN) {
+            common:assertTrueTextPayload(response.getTextPayload(), dataFeed.message);
+        } else {
+            test:assertFail(msg = "Invalid media type provided");
+        }
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
