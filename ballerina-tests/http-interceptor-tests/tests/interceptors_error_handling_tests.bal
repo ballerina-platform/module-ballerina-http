@@ -76,7 +76,7 @@ service http:InterceptableService /foo on serviceErrorHandlingServerEP {
 function testNoMatchingServiceRegistered() returns error? {
     http:Response res = check serviceErrorHandlingClientEP->get("/");
     test:assertEquals(res.statusCode, 404);
-    common:assertTrueTextPayload(res.getTextPayload(), "no matching service found for path : /");
+    common:assertTrueTextPayload(res.getTextPayload(), "no matching service found for path");
     common:assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
     common:assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
     common:assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
@@ -87,7 +87,7 @@ function testNoMatchingServiceRegistered() returns error? {
 function testNoMatchingResourceFound() returns error? {
     http:Response res = check serviceErrorHandlingClientEP->get("/foo/new");
     test:assertEquals(res.statusCode, 404);
-    common:assertTextPayload(res.getTextPayload(), "no matching resource found for path : /foo/new , method : GET");
+    common:assertTextPayload(res.getTextPayload(), "no matching resource found for path");
     common:assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
     common:assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
     common:assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
@@ -331,7 +331,7 @@ function testInvalidPathWithSingleService() returns error? {
     http:Client singleServiceRegisteredClientEP = check new("http://localhost:" + singleServiceRegisteredTestPort.toString(), httpVersion = http:HTTP_1_1);
     http:Response res = check singleServiceRegisteredClientEP->get("/path2");
     test:assertEquals(res.statusCode, 404);
-    test:assertEquals(res.getTextPayload(), "no matching service found for path : /path2");
+    test:assertEquals(res.getTextPayload(), "no matching service found for path");
     common:assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
     common:assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
     common:assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
@@ -367,7 +367,7 @@ function testInvalidPathWithMultipleService() returns error? {
     http:Client multipleServiceRegisteredClientEP = check new("http://localhost:" + multipleServiceRegisteredTestPort.toString(), httpVersion = http:HTTP_1_1);
     http:Response res = check multipleServiceRegisteredClientEP->get("/path3");
     test:assertEquals(res.statusCode, 404);
-    test:assertEquals(res.getTextPayload(), "no matching service found for path : /path3");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "no matching service found for path", "Not Found", 404, "/path3", "GET");
     test:assertFalse(res.hasHeader("last-interceptor"));
     test:assertFalse(res.hasHeader("default-response-error-interceptor"));
     test:assertFalse(res.hasHeader("last-response-interceptor"));
@@ -403,7 +403,7 @@ function testInvalidPathWithRootService() returns error? {
     http:Client rootServiceRegisteredClientEP = check new("http://localhost:" + rootServiceRegisteredTestPort.toString(), httpVersion = http:HTTP_1_1);
     http:Response res = check rootServiceRegisteredClientEP->get("/path2");
     test:assertEquals(res.statusCode, 404);
-    test:assertEquals(res.getTextPayload(), "no matching resource found for path : /path2 , method : GET");
+    test:assertEquals(res.getTextPayload(), "no matching resource found for path");
     common:assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
     common:assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
     common:assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");

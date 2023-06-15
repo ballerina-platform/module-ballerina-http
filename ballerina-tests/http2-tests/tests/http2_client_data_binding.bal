@@ -302,7 +302,7 @@ service /passthrough on http2ClientDBProxyListener {
         if res is http:ClientRequestError {
             http:Response resp = new;
             resp.statusCode = res.detail().statusCode;
-            resp.setPayload(<string>res.detail().body);
+            resp.setPayload(<json>res.detail().body);
             check caller->respond(resp);
         } else {
             json p = check res;
@@ -830,9 +830,9 @@ function testHttp24XXErrorPanic() returns error? {
     http:Response|error response = http2ClientDBTestClient->get("/passthrough/404");
     if response is http:Response {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
-        common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:TEXT_PLAIN);
-        common:assertTextPayload(response.getTextPayload(),
-            "no matching resource found for path : /backend/getIncorrectPath404 , method : POST");
+        common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:APPLICATION_JSON);
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "no matching resource found for path", "Not Found", 404,
+                        "/backend/getIncorrectPath404", "POST");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -844,8 +844,9 @@ function testHttp24XXHandleError() returns error? {
     http:Response|error response = http2ClientDBTestClient->get("/passthrough/404/handle");
     if response is http:Response {
         test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
-        common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:TEXT_PLAIN);
-        common:assertTextPayload(response.getTextPayload(), "no matching resource found for path : /backend/handle , method : POST");
+        common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:APPLICATION_JSON);
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "no matching resource found for path", "Not Found", 404,
+                        "/backend/handle", "POST");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -857,20 +858,22 @@ function testHttp2405HandleError() returns error? {
     http:Response|error response = http2ClientDBTestClient->get("/passthrough/404/get4XX");
     if response is http:Response {
         test:assertEquals(response.statusCode, 405, msg = "Found unexpected output");
-        common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:TEXT_PLAIN);
-        common:assertTextPayload(response.getTextPayload(), "Method not allowed");
+        common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:APPLICATION_JSON);
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "Method not allowed", "Method Not Allowed", 405,
+                        "/backend/get4XX", "POST");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
 @test:Config {}
-function testHttp2405AsApplicationResponseError() {
+function testHttp2405AsApplicationResponseError() returns error? {
     json|error response = http2ClientDBTestClient->post("/passthrough/allMethods", "hi");
     if (response is http:ApplicationResponseError) {
         test:assertEquals(response.detail().statusCode, 405, msg = "Found unexpected output");
-        common:assertErrorHeaderValue(response.detail().headers[common:CONTENT_TYPE], common:TEXT_PLAIN);
-        common:assertTextPayload(<string>response.detail().body, "Method not allowed");
+        common:assertErrorHeaderValue(response.detail().headers[common:CONTENT_TYPE], common:APPLICATION_JSON);
+        check common:assertJsonErrorPayload(<json>response.detail().body, "Method not allowed", "Method Not Allowed", 405,
+                        "/passthrough/allMethods", "POST");
     } else {
         test:assertFail(msg = "Found unexpected output type: json");
     }
@@ -1016,11 +1019,12 @@ function testHttp2MapOfStringDataBindingWithEmptyKey() returns error? {
 }
 
 @test:Config {}
-function testHttp2MapOfStringDataBindingWithEmptyPayload() {
+function testHttp2MapOfStringDataBindingWithEmptyPayload() returns error? {
     http:Response|error response = http2ClientDBTestClient->get("/passthrough/mapOfString5");
     if response is http:Response {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        common:assertTextPayload(response.getTextPayload(), "No content");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "No content", "Internal Server Error", 500,
+                        "/passthrough/mapOfString5", "GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

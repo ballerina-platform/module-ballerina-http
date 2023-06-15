@@ -16,6 +16,7 @@
 
 import ballerina/http;
 import ballerina/test;
+import ballerina/http_test_common as common;
 
 final http:Client clientTest1 = check new ("http://localhost:" + clientForwardTestPort1.toString(), httpVersion = http:HTTP_1_1);
 final http:Client clientTest2 = check new ("http://localhost:" + clientForwardTestPort2.toString(), httpVersion = http:HTTP_1_1);
@@ -37,12 +38,12 @@ service / on new http:Listener(clientForwardTestPort1, httpVersion = http:HTTP_1
 }
 
 @test:Config {}
-function testClientForwardRuntimeError() {
+function testClientForwardRuntimeError() returns error? {
     http:Response|error response = clientTest1->get("/test");
     if response is http:Response {
         test:assertEquals(response.statusCode, 500);
-        test:assertEquals(response.getTextPayload(),
-            "client method invocation failed: invalid inbound request parameter");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "client method invocation failed: invalid inbound request parameter",
+                    "Internal Server Error", 500, "/test", "GET");
     } else {
         test:assertFail("Unexpected output");
     }

@@ -18,6 +18,7 @@ import ballerina/lang.'string as strings;
 import ballerina/url;
 import ballerina/mime;
 import ballerina/test;
+import ballerina/time;
 
 public isolated function getHttp2Port(int port) returns int {
     return HTTP2_PORT_RANGE + port;
@@ -53,6 +54,19 @@ public isolated function assertJsonPayloadtoJsonString(json|error payload, json 
     } else {
         test:assertFail(msg = "Found unexpected output type: " + payload.message());
     }
+}
+
+public isolated function assertJsonErrorPayload(json payload, string message, string reason, int statusCode, string path, string method) returns error? {
+    test:assertEquals(payload.message, message);
+    test:assertEquals(payload.reason, reason);
+    test:assertEquals(payload.status, statusCode);
+    test:assertEquals(payload.path, path);
+    test:assertEquals(payload.method, method);
+    test:assertTrue(((check payload.timestamp).toString()).startsWith(time:utcToString(time:utcNow()).substring(0, 17)));
+}
+
+public isolated function assertJsonErrorPayloadPartialMessage(json payload, string message) returns error? {
+    test:assertTrue((check payload.message).toString().includes(message, 0));
 }
 
 public isolated function assertXmlPayload(xml|error payload, xml expectValue) {

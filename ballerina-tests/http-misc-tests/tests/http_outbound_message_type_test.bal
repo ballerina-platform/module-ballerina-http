@@ -476,9 +476,9 @@ public function testGettingClosedRecordArray() returns error? {
 public function testResponseAnydataNegative() returns error? {
     http:Response resp = check outRequestClient->get("/mytest/anydataNegative");
     test:assertEquals(resp.statusCode, 500, msg = "Found unexpected output");
-    common:assertHeaderValue(check resp.getHeader(common:CONTENT_TYPE), common:TEXT_PLAIN);
-    test:assertEquals(check resp.getTextPayload(), "json conversion error: {ballerina/lang.value}CyclicValueReferenceError");
-    return;
+    common:assertHeaderValue(check resp.getHeader(common:CONTENT_TYPE), common:APPLICATION_JSON);
+    check common:assertJsonErrorPayload(check resp.getJsonPayload(), "json conversion error: {ballerina/lang.value}CyclicValueReferenceError",
+        "Internal Server Error", 500, "/mytest/anydataNegative", "GET");
 }
 
 @test:Config {}

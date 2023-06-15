@@ -185,7 +185,8 @@ service http:InterceptableService /requestInterceptorReturnsError on interceptor
 function testRequestInterceptorReturnsError() returns error? {
     http:Response res = check interceptorsBasicTestsClientEP1->get("/requestInterceptorReturnsError");
     test:assertEquals(res.statusCode, 500);
-    common:assertTextPayload(check res.getTextPayload(), "Request interceptor returns an error");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "Request interceptor returns an error",
+        "Internal Server Error", 500, "/requestInterceptorReturnsError", "GET");
 }
 
 final http:Client responseInterceptorReturnsErrorTestClientEP = check new("http://localhost:" + responseInterceptorReturnsErrorTestPort.toString(), httpVersion = http:HTTP_1_1);
@@ -208,7 +209,8 @@ service http:InterceptableService / on responseInterceptorReturnsErrorTestServer
 function testResponseInterceptorReturnsError() returns error? {
     http:Response res = check responseInterceptorReturnsErrorTestClientEP->get("/");
     test:assertEquals(res.statusCode, 500);
-    common:assertTextPayload(check res.getTextPayload(), "Response interceptor returns an error");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "Response interceptor returns an error",
+        "Internal Server Error", 500, "/", "GET");
 }
 
 final http:Client interceptorsBasicTestsClientEP2 = check new("http://localhost:" + interceptorBasicTestsPort2.toString(), httpVersion = http:HTTP_1_1);
@@ -606,8 +608,8 @@ function testJwtInformationDecodeErrorInRequestContext() returns error? {
         });
     http:Response response = check jwtClient->get("/requestInterceptorJwtInformation", {"authorization": "Bearer abcd"});
     test:assertEquals(response.statusCode, 500);
-    string payload = check response.getTextPayload();
-    test:assertEquals(payload, "no member found for key: JWT_INFORMATION");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "no member found for key: JWT_INFORMATION",
+        "Internal Server Error", 500, "/requestInterceptorJwtInformation", "GET");
 }
 
 @test:Config{
@@ -621,5 +623,6 @@ function testNilJwtInformationValueInRequestContext() returns error? {
     http:Response response = check jwtClient->get("/requestInterceptorJwtInformation");
     test:assertEquals(response.statusCode, 500);
     string payload = check response.getTextPayload();
-    test:assertEquals(payload, "no member found for key: JWT_INFORMATION");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "no member found for key: JWT_INFORMATION",
+        "Internal Server Error", 500, "/requestInterceptorJwtInformation", "GET");
 }

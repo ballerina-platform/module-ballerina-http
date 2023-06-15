@@ -150,14 +150,16 @@ final http:Client constraintResourceParamValidationClient = check new("http://lo
 function testPathConstraintType() returns error? {
     http:Response res = check constraintResourceParamValidationClient->/users/'0;
     test:assertEquals(res.statusCode, 400, "Status code mismatched");
-    common:assertTextPayload(res.getTextPayload(), "path validation failed: Validation failed for '$:minValue' constraint(s).");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "path validation failed: Validation failed for '$:minValue' constraint(s).",
+            "Bad Request", 400, "/users/0", "GET");
 
     res = check constraintResourceParamValidationClient->/users/'10;
     test:assertEquals(res.statusCode, 200, "Status code mismatched");
 
     res = check constraintResourceParamValidationClient->/users/'110;
     test:assertEquals(res.statusCode, 400, "Status code mismatched");
-    common:assertTextPayload(res.getTextPayload(), "path validation failed: Validation failed for '$:maxValue' constraint(s).");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "path validation failed: Validation failed for '$:maxValue' constraint(s).",
+            "Bad Request", 400, "/users/110", "GET");
 }
 
 @test:Config {}
@@ -167,21 +169,24 @@ function testPathConstraintRestType() returns error? {
 
     res = check constraintResourceParamValidationClient->/path/'123/hello/t1m3;
     test:assertEquals(res.statusCode, 400, "Status code mismatched");
-    common:assertTextPayload(res.getTextPayload(), "path validation failed: Validation failed for '$[1]:pattern','$[3]:pattern' constraint(s).");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "path validation failed: Validation failed for '$[1]:pattern','$[3]:pattern' constraint(s).",
+            "Bad Request", 400, "/path/123/hello/t1m3", "GET");
 }
 
 @test:Config {}
 function testQueryConstraintType() returns error? {
     http:Response res = check constraintResourceParamValidationClient->/users1(name = "");
     test:assertEquals(res.statusCode, 400, "Status code mismatched");
-    common:assertTextPayload(res.getTextPayload(), "query validation failed: Validation failed for '$:minLength' constraint(s).");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "query validation failed: Validation failed for '$:minLength' constraint(s).",
+            "Bad Request", 400, "/users1?name=", "GET");
 
     res = check constraintResourceParamValidationClient->/users1(name = "Joe");
     test:assertEquals(res.statusCode, 200, "Status code mismatched");
 
     res = check constraintResourceParamValidationClient->/users1(name = "This is a invalid username");
     test:assertEquals(res.statusCode, 400, "Status code mismatched");
-    common:assertTextPayload(res.getTextPayload(), "query validation failed: Validation failed for '$:maxLength' constraint(s).");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "query validation failed: Validation failed for '$:maxLength' constraint(s).",
+            "Bad Request", 400, "/users1?name=This%20is%20a%20invalid%20username", "GET");
 }
 
 @test:Config {}
@@ -191,32 +196,37 @@ function testQueryConstraintNilableType() returns error? {
 
     res = check constraintResourceParamValidationClient->/users2(name = "J");
     test:assertEquals(res.statusCode, 400, "Status code mismatched");
-    common:assertTextPayload(res.getTextPayload(), "query validation failed: Validation failed for '$:minLength' constraint(s).");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "query validation failed: Validation failed for '$:minLength' constraint(s).",
+            "Bad Request", 400, "/users2?name=J", "GET");
 
     res = check constraintResourceParamValidationClient->/users2(name = "Joe");
     test:assertEquals(res.statusCode, 200, "Status code mismatched");
 
     res = check constraintResourceParamValidationClient->/users2(name = "This is a invalid username");
     test:assertEquals(res.statusCode, 400, "Status code mismatched");
-    common:assertTextPayload(res.getTextPayload(), "query validation failed: Validation failed for '$:maxLength' constraint(s).");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "query validation failed: Validation failed for '$:maxLength' constraint(s).",
+            "Bad Request", 400, "/users2?name=This%20is%20a%20invalid%20username", "GET");
 }
 
 @test:Config {}
 function testQueryConstraintDefaultableType() returns error? {
     http:Response res = check constraintResourceParamValidationClient->/users3;
     test:assertEquals(res.statusCode, 400, "Status code mismatched");
-    common:assertTextPayload(res.getTextPayload(), "query validation failed: Validation failed for '$:minLength' constraint(s).");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "query validation failed: Validation failed for '$:minLength' constraint(s).",
+            "Bad Request", 400, "/users3", "GET");
 
     res = check constraintResourceParamValidationClient->/users3(name = "J");
     test:assertEquals(res.statusCode, 400, "Status code mismatched");
-    common:assertTextPayload(res.getTextPayload(), "query validation failed: Validation failed for '$:minLength' constraint(s).");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "query validation failed: Validation failed for '$:minLength' constraint(s).",
+            "Bad Request", 400, "/users3?name=J", "GET");
 
     res = check constraintResourceParamValidationClient->/users3(name = "Joe");
     test:assertEquals(res.statusCode, 200, "Status code mismatched");
 
     res = check constraintResourceParamValidationClient->/users3(name = "This is a invalid username");
     test:assertEquals(res.statusCode, 400, "Status code mismatched");
-    common:assertTextPayload(res.getTextPayload(), "query validation failed: Validation failed for '$:maxLength' constraint(s).");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "query validation failed: Validation failed for '$:maxLength' constraint(s).",
+            "Bad Request", 400, "/users3?name=This%20is%20a%20invalid%20username", "GET");
 }
 
 @test:Config {}
@@ -226,25 +236,29 @@ function testQueryArrayConstraintType() returns error? {
 
     res = check constraintResourceParamValidationClient->/users4/v1(names = ["Joe", "J", "This is a invalid username"]);
     test:assertEquals(res.statusCode, 400, "Status code mismatched");
-    common:assertTextPayload(res.getTextPayload(), "query validation failed: Validation failed for '$[1]:minLength','$[2]:maxLength' constraint(s).");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "query validation failed: Validation failed for '$[1]:minLength','$[2]:maxLength' constraint(s).",
+            "Bad Request", 400, "/users4/v1?names=Joe,J,This%20is%20a%20invalid%20username", "GET");
 }
 
 @test:Config {}
 function testQueryConstraintArrayType() returns error? {
     http:Response res = check constraintResourceParamValidationClient->/users4/v2(names = ["Joe"]);
     test:assertEquals(res.statusCode, 400, "Status code mismatched");
-    common:assertTextPayload(res.getTextPayload(), "query validation failed: Validation failed for '$:minLength' constraint(s).");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "query validation failed: Validation failed for '$:minLength' constraint(s).",
+            "Bad Request", 400, "/users4/v2?names=Joe", "GET");
 
     res = check constraintResourceParamValidationClient->/users4/v2(names = ["Joe", "Jane"]);
     test:assertEquals(res.statusCode, 200, "Status code mismatched");
 
     res = check constraintResourceParamValidationClient->/users4/v2(names = ["Joe", "J", "This is a invalid username"]);
     test:assertEquals(res.statusCode, 400, "Status code mismatched");
-    common:assertTextPayload(res.getTextPayload(), "query validation failed: Validation failed for '$[1]:minLength','$[2]:maxLength' constraint(s).");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "query validation failed: Validation failed for '$[1]:minLength','$[2]:maxLength' constraint(s).",
+            "Bad Request", 400, "/users4/v2?names=Joe,J,This%20is%20a%20invalid%20username", "GET");
 
     res = check constraintResourceParamValidationClient->/users4/v2(names = ["Joe", "Jane", "John", "David", "James", "Robert"]);
     test:assertEquals(res.statusCode, 400, "Status code mismatched");
-    common:assertTextPayload(res.getTextPayload(), "query validation failed: Validation failed for '$:maxLength' constraint(s).");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "query validation failed: Validation failed for '$:maxLength' constraint(s).",
+            "Bad Request", 400, "/users4/v2?names=Joe,Jane,John,David,James,Robert", "GET");
 }
 
 @test:Config {}
@@ -259,7 +273,8 @@ function testQueryConstraintMapType() returns error? {
     encodedQuery = check url:encode(details.toJsonString(), "UTF-8");
     res = check constraintResourceParamValidationClient->/users5(details = encodedQuery);
     test:assertEquals(res.statusCode, 400, "Status code mismatched");
-    common:assertTextPayload(res.getTextPayload(), "query validation failed: Validation failed for '$.age:minValue','$.name:maxLength' constraint(s).");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "query validation failed: Validation failed for '$.age:minValue','$.name:maxLength' constraint(s).",
+            "Bad Request", 400, "/users5?details=" + encodedQuery, "GET");
 }
 
 @test:Config {}
@@ -269,11 +284,13 @@ function testHeaderConstraintType() returns error? {
 
     res = check constraintResourceParamValidationClient->/users6({x\-name: "J"});
     test:assertEquals(res.statusCode, 400, "Status code mismatched");
-    common:assertTextPayload(res.getTextPayload(), "header validation failed: Validation failed for '$:minLength' constraint(s).");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "header validation failed: Validation failed for '$:minLength' constraint(s).",
+        "Bad Request", 400, "/users6", "GET");
 
     res = check constraintResourceParamValidationClient->/users6({x\-name: "This is a invalid username"});
     test:assertEquals(res.statusCode, 400, "Status code mismatched");
-    common:assertTextPayload(res.getTextPayload(), "header validation failed: Validation failed for '$:maxLength' constraint(s).");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "header validation failed: Validation failed for '$:maxLength' constraint(s).",
+        "Bad Request", 400, "/users6", "GET");
 }
 
 @test:Config {}
@@ -283,14 +300,16 @@ function testHeaderConstraintNilableType() returns error? {
 
     res = check constraintResourceParamValidationClient->/users7({x\-name: "J"});
     test:assertEquals(res.statusCode, 400, "Status code mismatched");
-    common:assertTextPayload(res.getTextPayload(), "header validation failed: Validation failed for '$:minLength' constraint(s).");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "header validation failed: Validation failed for '$:minLength' constraint(s).",
+        "Bad Request", 400, "/users7", "GET");
 
     res = check constraintResourceParamValidationClient->/users7({x\-name: "Joe"});
     test:assertEquals(res.statusCode, 200, "Status code mismatched");
 
     res = check constraintResourceParamValidationClient->/users7({x\-name: "This is a invalid username"});
     test:assertEquals(res.statusCode, 400, "Status code mismatched");
-    common:assertTextPayload(res.getTextPayload(), "header validation failed: Validation failed for '$:maxLength' constraint(s).");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "header validation failed: Validation failed for '$:maxLength' constraint(s).",
+        "Bad Request", 400, "/users7", "GET");
 }
 
 // TODO: Enable this after supporting defaultable types for header parameters
@@ -316,18 +335,21 @@ function testHeaderConstraintDefaultableType() returns error? {
 function testHeaderConstraintArrayType() returns error? {
     http:Response res = check constraintResourceParamValidationClient->/users9({x\-names: ["Joe"]});
     test:assertEquals(res.statusCode, 400, "Status code mismatched");
-    common:assertTextPayload(res.getTextPayload(), "header validation failed: Validation failed for '$:minLength' constraint(s).");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "header validation failed: Validation failed for '$:minLength' constraint(s).",
+        "Bad Request", 400, "/users9", "GET");
 
     res = check constraintResourceParamValidationClient->/users9({x\-names: ["Joe", "Jane"]});
     test:assertEquals(res.statusCode, 200, "Status code mismatched");
 
     res = check constraintResourceParamValidationClient->/users9({x\-names: ["Joe", "J", "This is a invalid username"]});
     test:assertEquals(res.statusCode, 400, "Status code mismatched");
-    common:assertTextPayload(res.getTextPayload(), "header validation failed: Validation failed for '$[1]:minLength','$[2]:maxLength' constraint(s).");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "header validation failed: Validation failed for '$[1]:minLength','$[2]:maxLength' constraint(s).",
+        "Bad Request", 400, "/users9", "GET");
 
     res = check constraintResourceParamValidationClient->/users9({x\-names: ["Joe", "Jane", "John", "David", "James", "Robert"]});
     test:assertEquals(res.statusCode, 400, "Status code mismatched");
-    common:assertTextPayload(res.getTextPayload(), "header validation failed: Validation failed for '$:maxLength' constraint(s).");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "header validation failed: Validation failed for '$:maxLength' constraint(s).",
+        "Bad Request", 400, "/users9", "GET");
 }
 
 @test:Config {}
@@ -337,19 +359,23 @@ function testHeaderConstraintRecordType() returns error? {
 
     res = check constraintResourceParamValidationClient->/users10({"xname": "Joe", "xages": ["25", "20", "50"]});
     test:assertEquals(res.statusCode, 400, "Status code mismatched");
-    common:assertTextPayload(res.getTextPayload(), "header validation failed: Validation failed for '$.xages:maxLength' constraint(s).");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "header validation failed: Validation failed for '$.xages:maxLength' constraint(s).",
+            "Bad Request", 400, "/users10", "GET");
 
     res = check constraintResourceParamValidationClient->/users10({"xname": "J", "xages": ["25", "20", "50"]});
     test:assertEquals(res.statusCode, 400, "Status code mismatched");
-    common:assertTextPayload(res.getTextPayload(), "header validation failed: Validation failed for '$.xages:maxLength','$.xname:minLength' constraint(s).");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "header validation failed: Validation failed for '$.xages:maxLength','$.xname:minLength' constraint(s).",
+            "Bad Request", 400, "/users10", "GET");
 
     res = check constraintResourceParamValidationClient->/users10({"xname": "J", "xages": ["25", "17", "50"]});
     test:assertEquals(res.statusCode, 400, "Status code mismatched");
-    common:assertTextPayload(res.getTextPayload(), "header validation failed: Validation failed for '$.xages:maxLength','$.xages[1]:minValue','$.xname:minLength' constraint(s).");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "header validation failed: Validation failed for '$.xages:maxLength','$.xages[1]:minValue','$.xname:minLength' constraint(s).",
+            "Bad Request", 400, "/users10", "GET");
 
     res = check constraintResourceParamValidationClient->/users10({"xname": "Joe", "xages": ["25", "17"]});
     test:assertEquals(res.statusCode, 400, "Status code mismatched");
-    common:assertTextPayload(res.getTextPayload(), "header validation failed: Validation failed for '$.xages[1]:minValue' constraint(s).");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "header validation failed: Validation failed for '$.xages[1]:minValue' constraint(s).",
+            "Bad Request", 400, "/users10", "GET");
 }
 
 @test:Config {}
@@ -359,14 +385,16 @@ function testConstraintUnionType1() returns error? {
 
     res = check constraintResourceParamValidationClient->/users/v1(query = 0);
     test:assertEquals(res.statusCode, 400, "Status code mismatched");
-    common:assertTextPayload(res.getTextPayload(), "query validation failed: Validation failed for '$:minValue' constraint(s).");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "query validation failed: Validation failed for '$:minValue' constraint(s).",
+            "Bad Request", 400, "/users/v1?query=0", "GET");
 
     res = check constraintResourceParamValidationClient->/users/v1(query = 55);
     test:assertEquals(res.statusCode, 200, "Status code mismatched");
 
     res = check constraintResourceParamValidationClient->/users/v1(query = 110);
     test:assertEquals(res.statusCode, 400, "Status code mismatched");
-    common:assertTextPayload(res.getTextPayload(), "query validation failed: Validation failed for '$:maxValue' constraint(s).");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "query validation failed: Validation failed for '$:maxValue' constraint(s).",
+            "Bad Request", 400, "/users/v1?query=110", "GET");
 }
 
 @test:Config {}
@@ -376,13 +404,16 @@ function testConstraintUnionType2() returns error? {
 
     res = check constraintResourceParamValidationClient->/users/v2(query = 10);
     test:assertEquals(res.statusCode, 400, "Status code mismatched");
-    common:assertTextPayload(res.getTextPayload(), "query validation failed: Validation failed for '$:minValue' constraint(s).");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "query validation failed: Validation failed for '$:minValue' constraint(s).",
+            "Bad Request", 400, "/users/v2?query=10", "GET");
 
     res = check constraintResourceParamValidationClient->/users/v2(query = 55);
     test:assertEquals(res.statusCode, 400, "Status code mismatched");
-    common:assertTextPayload(res.getTextPayload(), "query validation failed: Validation failed for '$:maxValue' constraint(s).");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "query validation failed: Validation failed for '$:maxValue' constraint(s).",
+            "Bad Request", 400, "/users/v2?query=55", "GET");
 
     res = check constraintResourceParamValidationClient->/users/v2(query = 110);
     test:assertEquals(res.statusCode, 400, "Status code mismatched");
-    common:assertTextPayload(res.getTextPayload(), "query validation failed: Validation failed for '$:maxValue' constraint(s).");
+    check common:assertJsonErrorPayload(check res.getJsonPayload(), "query validation failed: Validation failed for '$:maxValue' constraint(s).",
+            "Bad Request", 400, "/users/v2?query=110", "GET");
 }
