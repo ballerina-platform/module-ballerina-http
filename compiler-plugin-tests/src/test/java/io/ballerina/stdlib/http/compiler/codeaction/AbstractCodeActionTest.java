@@ -26,23 +26,20 @@ import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.Project;
-import io.ballerina.projects.ProjectEnvironmentBuilder;
 import io.ballerina.projects.directory.ProjectLoader;
-import io.ballerina.projects.environment.Environment;
-import io.ballerina.projects.environment.EnvironmentBuilder;
 import io.ballerina.projects.plugins.codeaction.CodeActionArgument;
 import io.ballerina.projects.plugins.codeaction.CodeActionContextImpl;
 import io.ballerina.projects.plugins.codeaction.CodeActionExecutionContext;
 import io.ballerina.projects.plugins.codeaction.CodeActionExecutionContextImpl;
 import io.ballerina.projects.plugins.codeaction.CodeActionInfo;
 import io.ballerina.projects.plugins.codeaction.DocumentEdit;
+import io.ballerina.stdlib.http.compiler.AbstractLSCompilerPluginTest;
 import io.ballerina.tools.text.LinePosition;
 import org.testng.Assert;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -50,18 +47,10 @@ import java.util.stream.Collectors;
 /**
  * Abstract implementation of codeaction tests.
  */
-public abstract class AbstractCodeActionTest {
-
-    protected static final Path RESOURCE_PATH = Paths.get("src", "test", "resources");
-    protected static final Path DISTRIBUTION_PATH = Paths.get("../", "target", "ballerina-runtime");
+public abstract class AbstractCodeActionTest extends AbstractLSCompilerPluginTest {
 
     private static final Gson GSON = new Gson();
-
-    private static ProjectEnvironmentBuilder getEnvironmentBuilder() {
-        Environment environment = EnvironmentBuilder.getBuilder().setBallerinaHome(DISTRIBUTION_PATH).build();
-        return ProjectEnvironmentBuilder.getBuilder(environment);
-    }
-
+    
     /**
      * Performs the actual test. This will verify both the code action title/args and the edits made once executed.
      *
