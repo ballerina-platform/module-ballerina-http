@@ -152,3 +152,68 @@ function testQueryParamBindingCase10() returns error? {
     test:assertEquals(res.statusCode, 400, "Status code mismatched");
 }
 
+@test:Config {}
+function testQueryParamBindingCase11() returns error? {
+    int:Signed32 resPayload = check resourceQueryParamBindingClient->/query/case11(query = 32);
+    test:assertEquals(resPayload, 32, "Payload mismatched");
+
+    resPayload = check resourceQueryParamBindingClient->/query/case11(query = -32);
+    test:assertEquals(resPayload, -32, "Payload mismatched");
+
+    http:Response res = check resourceQueryParamBindingClient->/query/case11(query = 5000000000);
+    test:assertEquals(res.statusCode, 400, "Status code mismatched");
+}
+
+@test:Config {}
+function testQueryParamBindingCase12() returns error? {
+    int:Unsigned32 resPayload = check resourceQueryParamBindingClient->/query/case12(query = 32);
+    test:assertEquals(resPayload, 32, "Payload mismatched");
+
+    http:Response res = check resourceQueryParamBindingClient->/query/case12(query = -32);
+    test:assertEquals(res.statusCode, 400, "Status code mismatched");
+
+    res = check resourceQueryParamBindingClient->/query/case12(query = 5000000000);
+    test:assertEquals(res.statusCode, 400, "Status code mismatched");
+}
+
+@test:Config {}
+function testQueryParamBindingCase13() returns error? {
+    int:Signed8[] resPayload = check resourceQueryParamBindingClient->/query/case13(query = [32, -38, 1, -43]);
+    test:assertEquals(resPayload, [32, -38, 1, -43], "Payload mismatched");
+
+    http:Response res = check resourceQueryParamBindingClient->/query/case13(query = [32, -38, 1, -43, 50000000]);
+    test:assertEquals(res.statusCode, 400, "Status code mismatched");
+}
+
+@test:Config {}
+function testQueryParamBindingCase14() returns error? {
+    string:Char resPayload = check resourceQueryParamBindingClient->/query/case14(query = "a");
+    test:assertEquals(resPayload, "a", "Payload mismatched");
+
+    resPayload = check resourceQueryParamBindingClient->/query/case14(query = "*");
+    test:assertEquals(resPayload, "*", "Payload mismatched");
+
+    resPayload = check resourceQueryParamBindingClient->/query/case14(query = ".");
+    test:assertEquals(resPayload, ".", "Payload mismatched");
+
+    http:Response res = check resourceQueryParamBindingClient->/query/case14(query = "ab");
+    test:assertEquals(res.statusCode, 400, "Status code mismatched");
+}
+
+@test:Config {}
+function testQueryParamBindingCase15() returns error? {
+    [StringCharacter, SmallInt] resPayload = check resourceQueryParamBindingClient->/query/case15(query1 = "*", query2 = 34);
+    test:assertEquals(resPayload, ["*", 34], "Payload mismatched");
+
+    resPayload = check resourceQueryParamBindingClient->/query/case15(query1 = " ", query2 = -34);
+    test:assertEquals(resPayload, [" ", -34], "Payload mismatched");
+
+    http:Response res = check resourceQueryParamBindingClient->/query/case15(query1 = "ab", query2 = 34);
+    test:assertEquals(res.statusCode, 400, "Status code mismatched");
+
+    res = check resourceQueryParamBindingClient->/query/case15(query1 = "*", query2 = 500000);
+    test:assertEquals(res.statusCode, 400, "Status code mismatched");
+
+    res = check resourceQueryParamBindingClient->/query/case15(query1 = "abc", query2 = 500000);
+    test:assertEquals(res.statusCode, 400, "Status code mismatched");
+}
