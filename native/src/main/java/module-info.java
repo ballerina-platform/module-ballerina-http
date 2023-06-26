@@ -26,7 +26,7 @@ module io.ballerina.stdlib.http {
     requires io.ballerina.stdlib.constraint;
     requires org.bouncycastle.provider;
     requires org.bouncycastle.pkix;
-    requires java.xml.bind;
+    requires jakarta.xml.bind;
     requires java.management;
     requires org.slf4j;
     requires java.logging;
