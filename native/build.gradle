@@ -68,7 +68,7 @@ dependencies {
     testImplementation group: 'org.mock-server', name: 'mockserver-netty', version:"${mockserverNettyVersion}"
     testImplementation group: 'com.mashape.unirest', name: 'unirest-java', version:"${unirestVersion}"
 
-    testImplementation group: 'org.mockito', name:'mockito-inline', version: "${mockitoVersion}"
+    testImplementation group: 'org.mockito', name:'mockito-core', version: "${mockitoVersion}"
     testImplementation group: 'org.mockito', name: 'mockito-junit-jupiter', version: "${mockitoVersion}"
     testImplementation group: 'org.testng', name: 'testng', version: "${testngVersion}"
 }
@@ -95,12 +95,12 @@ test {
 jacocoTestReport {
     dependsOn test
     reports {
-        xml.enabled true
+        xml.required = true
     }
 }
 
 checkstyle {
-    toolVersion '7.8.2'
+    toolVersion '10.12.0'
     configFile rootProject.file("build-config/checkstyle/build/checkstyle.xml")
     configProperties = ["suppressionFile" : file("${rootDir}/build-config/checkstyle/build/suppressions.xml")]
 }

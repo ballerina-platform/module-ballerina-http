@@ -95,7 +95,7 @@ test {
 jacocoTestReport {
     dependsOn test
     reports {
-        xml.enabled true
+        xml.required = true
     }
     sourceSets project(':http-compiler-plugin').sourceSets.main
 }
