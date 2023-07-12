@@ -499,6 +499,9 @@ public class HttpService implements Service {
         Object[] interceptors = interceptorsArrayFromService.getValues();
         List<Object> interceptorServices = new ArrayList<>();
         for (Object interceptor: interceptors) {
+            if (Objects.isNull(interceptor)) {
+                break;
+            }
             interceptorServices.add(interceptor);
         }
 
@@ -529,6 +532,9 @@ public class HttpService implements Service {
                 interceptorsArray.append(interceptor);
             }
             for (Object interceptor : fromService.getValues()) {
+                if (Objects.isNull(interceptor)) {
+                    break;
+                }
                 interceptorsArray.append(interceptor);
             }
             service.setBalInterceptorServicesArray(interceptorsArray);
