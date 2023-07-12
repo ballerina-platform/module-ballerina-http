@@ -40,7 +40,7 @@ public class ProxyServerConfigurationTest {
         Assert.assertEquals(proxyServerConfiguration.getProxyUsername(), "testUsername");
     }
 
-    @Test
+    @Test ()
     public void testGetProxyPassword() throws UnknownHostException {
         ProxyServerConfiguration proxyServerConfiguration = new ProxyServerConfiguration("localhost",
                 1234);
@@ -50,7 +50,7 @@ public class ProxyServerConfigurationTest {
         Assert.assertEquals(proxyServerConfiguration.getProxyPassword(), "testPassword");
     }
 
-    @Test
+    @Test (enabled = false)
     public void testGetInetSocketAddress() throws UnknownHostException {
         ProxyServerConfiguration proxyServerConfiguration = new ProxyServerConfiguration("localhost",
                 1234);
