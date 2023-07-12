@@ -23,7 +23,6 @@ public isolated class Listener {
 
     private int port;
     private InferredListenerConfiguration inferredConfig;
-    private Interceptor[] interceptors;
 
     # Gets invoked during module initialization to initialize the listener.
     #
@@ -40,18 +39,22 @@ public isolated class Listener {
             server: config.server,
             requestLimits: config.requestLimits
         };
-        self.interceptors = [new DefaultErrorInterceptor()];
-        Interceptor|Interceptor[]? interceptors = config["interceptors"];
-        if interceptors is Interceptor[] {
-            foreach Interceptor interceptor in interceptors {
-                self.interceptors.push(interceptor);
-            }
-        } else if interceptors is Interceptor {
-            self.interceptors.push(interceptors);
-        }
         self.inferredConfig = inferredListenerConfig.cloneReadOnly();
         self.port = port;
         return externInitEndpoint(self, config);
+    }
+
+    isolated function createInterceptors(Interceptor|Interceptor[]? interceptorConfigValues) returns Interceptor[] {
+        Interceptor|Interceptor[]? configValues = interceptorConfigValues;
+        Interceptor[] interceptors = [new DefaultErrorInterceptor()];
+        if configValues is Interceptor[] {
+            foreach Interceptor interceptor in configValues {
+                interceptors.push(interceptor);
+            }
+        } else if configValues is Interceptor {
+            interceptors.push(configValues);
+        }
+        return interceptors;
     }
 
     # Starts the registered service programmatically.
