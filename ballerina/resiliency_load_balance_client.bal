@@ -40,12 +40,13 @@ public client isolated class LoadBalanceClient {
         self.failover = loadBalanceClientConfig.failover;
         self.loadBalanceClientsArray = [];
         Client clientEp;
-        Client?[] lbClients = self.loadBalanceClientsArray;
         int i = 0;
         foreach var target in loadBalanceClientConfig.targets {
             ClientConfiguration epConfig = createClientEPConfigFromLoalBalanceEPConfig(loadBalanceClientConfig, target);
-            clientEp =  check new(target.url , epConfig);
-            lbClients[i] = clientEp;
+            clientEp = check new(target.url , epConfig);
+            lock {
+                self.loadBalanceClientsArray[i] = clientEp;
+            }
             i += 1;
         }
         var lbRule = loadBalanceClientConfig.lbRule;
