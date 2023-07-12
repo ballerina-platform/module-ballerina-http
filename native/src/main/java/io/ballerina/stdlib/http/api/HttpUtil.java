@@ -1639,7 +1639,6 @@ public class HttpUtil {
             latch.await();
         } catch (InterruptedException exception) {
             log.warn("Interrupted before receiving the interceptor response");
-
         }
         if (interceptorResponse[0] == null) {
             return;
