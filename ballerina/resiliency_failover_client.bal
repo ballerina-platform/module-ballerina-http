@@ -49,12 +49,13 @@ public client isolated class FailoverClient {
         self.succeededEndpointIndex = 0;
         self.failoverClientsArray = [];
         Client clientEp;
-        Client?[] httpClients = self.failoverClientsArray;
         int i = 0;
         foreach var target in failoverClientConfig.targets {
             ClientConfiguration epConfig = createClientEPConfigFromFailoverEPConfig(failoverClientConfig, target);
             clientEp = check new(target.url, epConfig);
-            httpClients[i] = clientEp;
+            lock {
+                self.failoverClientsArray[i] = clientEp;
+            }
             i += 1;
         }
         FailoverInferredConfig failoverInferredConfig = {
