@@ -230,3 +230,54 @@ function testQueryParamBindingCase16() returns error? {
     [map<json>, string[]] resPayload = check resourceQueryParamBindingClient->/query/case16(query1 = string`{"name":"John"%2C "age":37}`, query2 = strVals);
     test:assertEquals(resPayload, [{"name":"John", "age":37}, strVals]);
 }
+
+@test:Config {}
+function testQueryParamBindingCase17() returns error? {
+    map<anydata> resPayload = check resourceQueryParamBindingClient->/query/case17;
+    test:assertEquals(resPayload, {"type": "default"});
+
+    QueryRecord query = {enumValue: "VALUE3", value: "value1"};
+    string encodedQuery = check url:encode(query.toJsonString(), "UTF-8");
+    resPayload = check resourceQueryParamBindingClient->/query/case17(query = encodedQuery);
+    test:assertEquals(resPayload, {'type: "QueryRecord", ...query});
+
+    QueryRecordOpen queryOpen = {enumValue: "VALUE3", value: "value1", "extra": "extra"};
+    string encodedQueryOpen = check url:encode(queryOpen.toJsonString(), "UTF-8");
+    resPayload = check resourceQueryParamBindingClient->/query/case17(query = encodedQueryOpen);
+    test:assertEquals(resPayload, {'type: "QueryRecordOpen", ...queryOpen});
+
+    queryOpen = {enumValue: "VALUE3", value: "value1", "xml": xml `<book><name>Harry Potter</name></book>`};
+    encodedQueryOpen = check url:encode(queryOpen.toJsonString(), "UTF-8");
+    resPayload = check resourceQueryParamBindingClient->/query/case17(query = encodedQueryOpen);
+    test:assertEquals(resPayload["type"], "QueryRecordOpenWithXML");
+    test:assertEquals(resPayload["xml"], "<book><name>Harry Potter</name></book>");
+}
+
+@test:Config {}
+function testQueryParamBindingCase18() returns error? {
+    QueryRecord query1 = {enumValue: "VALUE3", value: "value1"};
+    string encodedQuery1 = check url:encode(query1.toJsonString(), "UTF-8");
+    QueryRecordOpen query2 = {enumValue: "VALUE2", value: "value2", "extra": "extra"};
+    string encodedQuery2 = check url:encode(query2.toJsonString(), "UTF-8");
+    record{never 'type?;} query3 = {"name": "John", "age": 37};
+    string encodedQuery3 = check url:encode(query3.toJsonString(), "UTF-8");
+
+    string[] queries = [encodedQuery1, encodedQuery2, encodedQuery3];
+    map<anydata>[] resPayload = check resourceQueryParamBindingClient->/query/case18(query = queries);
+    test:assertEquals(resPayload, [{'type: "QueryRecord", ...query1},
+        {'type: "QueryRecordOpen", ...query2}, {'type: "map<anydata>", ...query3}]);
+
+    query2["xml"] = xml `<book><name>Harry Potter</name></book>`;
+    encodedQuery2 = check url:encode(query2.toJsonString(), "UTF-8");
+    query3["xml"] = xml `<song><name>Shape of You</name></song>`;
+    encodedQuery3 = check url:encode(query3.toJsonString(), "UTF-8");
+
+    queries = [encodedQuery1, encodedQuery2, encodedQuery3];
+    resPayload = check resourceQueryParamBindingClient->/query/case18(query = queries);
+    test:assertEquals(resPayload[0], {'type: "QueryRecord", ...query1});
+    test:assertEquals(resPayload[1]["type"], "QueryRecordOpenWithXML");
+    test:assertEquals(resPayload[1]["extra"], "extra");
+    test:assertEquals(resPayload[1]["xml"], "<book><name>Harry Potter</name></book>");
+    test:assertEquals(resPayload[2]["type"], "map<anydata>");
+    test:assertEquals(resPayload[2]["xml"], "<song><name>Shape of You</name></song>");
+}
