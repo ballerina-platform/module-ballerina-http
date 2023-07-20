@@ -48,7 +48,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static io.ballerina.stdlib.http.compiler.Constants.ANYDATA;
-import static io.ballerina.stdlib.http.compiler.Constants.ARRAY_OF_MAP_OF_JSON;
+import static io.ballerina.stdlib.http.compiler.Constants.ARRAY_OF_MAP_OF_ANYDATA;
 import static io.ballerina.stdlib.http.compiler.Constants.BALLERINA;
 import static io.ballerina.stdlib.http.compiler.Constants.BOOLEAN;
 import static io.ballerina.stdlib.http.compiler.Constants.BOOLEAN_ARRAY;
@@ -67,7 +67,6 @@ import static io.ballerina.stdlib.http.compiler.Constants.INTERCEPTOR_RESOURCE_R
 import static io.ballerina.stdlib.http.compiler.Constants.INT_ARRAY;
 import static io.ballerina.stdlib.http.compiler.Constants.JSON;
 import static io.ballerina.stdlib.http.compiler.Constants.MAP_OF_ANYDATA;
-import static io.ballerina.stdlib.http.compiler.Constants.MAP_OF_JSON;
 import static io.ballerina.stdlib.http.compiler.Constants.NIL;
 import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_BOOLEAN;
 import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_BOOLEAN_ARRAY;
@@ -77,8 +76,8 @@ import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_FLOAT;
 import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_FLOAT_ARRAY;
 import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_INT;
 import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_INT_ARRAY;
-import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_MAP_OF_JSON;
-import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_MAP_OF_JSON_ARRAY;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_MAP_OF_ANYDATA;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_MAP_OF_ANYDATA_ARRAY;
 import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_STRING;
 import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_STRING_ARRAY;
 import static io.ballerina.stdlib.http.compiler.Constants.OBJECT;
@@ -275,8 +274,8 @@ public class HttpCompilerPluginUtil {
         typeSymbols.put(INT_ARRAY, types.builder().ARRAY_TYPE.withType(types.INT).build());
         typeSymbols.put(FLOAT_ARRAY, types.builder().ARRAY_TYPE.withType(types.FLOAT).build());
         typeSymbols.put(DECIMAL_ARRAY, types.builder().ARRAY_TYPE.withType(types.DECIMAL).build());
-        typeSymbols.put(ARRAY_OF_MAP_OF_JSON, types.builder().ARRAY_TYPE.withType(
-                types.builder().MAP_TYPE.withTypeParam(types.JSON).build()).build());
+        typeSymbols.put(ARRAY_OF_MAP_OF_ANYDATA, types.builder().ARRAY_TYPE.withType(
+                types.builder().MAP_TYPE.withTypeParam(types.ANYDATA).build()).build());
         typeSymbols.put(STRUCTURED_ARRAY, types.builder().ARRAY_TYPE
                 .withType(
                         types.builder().UNION_TYPE
@@ -299,7 +298,6 @@ public class HttpCompilerPluginUtil {
         typeSymbols.put(XML, types.XML);
         typeSymbols.put(NIL, types.NIL);
         typeSymbols.put(OBJECT, types.builder().OBJECT_TYPE.build());
-        typeSymbols.put(MAP_OF_JSON, types.builder().MAP_TYPE.withTypeParam(types.JSON).build());
         typeSymbols.put(MAP_OF_ANYDATA, types.builder().MAP_TYPE.withTypeParam(types.ANYDATA).build());
         typeSymbols.put(TABLE_OF_ANYDATA_MAP, types.builder().TABLE_TYPE.withRowType(
                 typeSymbols.get(MAP_OF_ANYDATA)).build());
@@ -312,8 +310,8 @@ public class HttpCompilerPluginUtil {
         typeSymbols.put(NILABLE_INT, types.builder().UNION_TYPE.withMemberTypes(types.INT, types.NIL).build());
         typeSymbols.put(NILABLE_FLOAT, types.builder().UNION_TYPE.withMemberTypes(types.FLOAT, types.NIL).build());
         typeSymbols.put(NILABLE_DECIMAL, types.builder().UNION_TYPE.withMemberTypes(types.DECIMAL, types.NIL).build());
-        typeSymbols.put(NILABLE_MAP_OF_JSON, types.builder().UNION_TYPE.withMemberTypes(
-                typeSymbols.get(MAP_OF_JSON), types.NIL).build());
+        typeSymbols.put(NILABLE_MAP_OF_ANYDATA, types.builder().UNION_TYPE.withMemberTypes(
+                typeSymbols.get(MAP_OF_ANYDATA), types.NIL).build());
     }
 
     private static void populateNilableBasicArrayTypes(Map<String, TypeSymbol> typeSymbols, Types types) {
@@ -327,7 +325,7 @@ public class HttpCompilerPluginUtil {
                 typeSymbols.get(FLOAT_ARRAY), types.NIL).build());
         typeSymbols.put(NILABLE_DECIMAL_ARRAY, types.builder().UNION_TYPE.withMemberTypes(
                 typeSymbols.get(DECIMAL_ARRAY), types.NIL).build());
-        typeSymbols.put(NILABLE_MAP_OF_JSON_ARRAY, types.builder().UNION_TYPE.withMemberTypes(
-                typeSymbols.get(ARRAY_OF_MAP_OF_JSON), types.NIL).build());
+        typeSymbols.put(NILABLE_MAP_OF_ANYDATA_ARRAY, types.builder().UNION_TYPE.withMemberTypes(
+                typeSymbols.get(ARRAY_OF_MAP_OF_ANYDATA), types.NIL).build());
     }
 }
