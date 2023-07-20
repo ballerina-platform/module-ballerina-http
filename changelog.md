@@ -11,6 +11,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - [Fix exception when return type of `createInterceptors` function is an array type](https://github.com/ballerina-platform/ballerina-standard-library/issues/4649)
 
+### Added
+
+- [Add open record support for query parameters](https://github.com/ballerina-platform/ballerina-standard-library/issues/4541)
+
 ## [2.9.0] - 2023-06-30
 
 ### Added
