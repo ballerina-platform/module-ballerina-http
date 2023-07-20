@@ -60,7 +60,7 @@ public class Constants {
     public static final String NILABLE_FLOAT_ARRAY = "float[]?";
     public static final String NILABLE_DECIMAL_ARRAY = "decimal[]?";
     public static final String NILABLE_BOOLEAN_ARRAY = "boolean[]?";
-    public static final String NILABLE_MAP_OF_ANYDATA_ARRAY = "map<json>[]?";
+    public static final String NILABLE_MAP_OF_ANYDATA_ARRAY = "map<anydata>[]?";
 
     public static final String RESOURCE_RETURN_TYPE = "ResourceReturnType";
     public static final String INTERCEPTOR_RESOURCE_RETURN_TYPE = "InterceptorResourceReturnType";
