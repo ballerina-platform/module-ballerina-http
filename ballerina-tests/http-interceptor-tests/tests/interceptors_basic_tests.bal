@@ -196,7 +196,7 @@ listener http:Listener responseInterceptorReturnsErrorTestServerEP = new(respons
 
 service http:InterceptableService / on responseInterceptorReturnsErrorTestServerEP {
 
-    public function createInterceptors() returns [LastResponseInterceptor, ResponseInterceptorReturnsError, DefaultResponseInterceptor] {
+    public function createInterceptors() returns http:Interceptor[] {
         return [new LastResponseInterceptor(), new ResponseInterceptorReturnsError(), new DefaultResponseInterceptor()];
     }
 
@@ -561,7 +561,7 @@ service http:InterceptableService /requestInterceptorJwtInformation on new http:
         }
     }) {
 
-    public function createInterceptors() returns RequestInterceptorJwtInformation {
+    public function createInterceptors() returns http:Interceptor {
         return new RequestInterceptorJwtInformation();
     }
 

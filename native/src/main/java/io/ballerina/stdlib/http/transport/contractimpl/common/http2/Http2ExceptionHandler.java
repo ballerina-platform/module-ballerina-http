@@ -52,7 +52,7 @@ public class Http2ExceptionHandler extends ChannelInboundHandlerAdapter {
             ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
         }
         if (!cause.toString().contains(SSL) && !cause.toString().contains(SECURITY)) {
-            LOG.error("Exception occurred in HTTP/2 inbound channel", cause);
+            LOG.error("Exception occurred in HTTP/2 inbound channel", cause.getMessage());
         }
     }
 }

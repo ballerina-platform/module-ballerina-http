@@ -80,6 +80,10 @@
         <Bug pattern="DM_EXIT" />
     </Match>
     <Match>
+        <Class name="io.ballerina.stdlib.http.api.HttpUtil$1" />
+        <Bug pattern="DM_EXIT" />
+    </Match>
+    <Match>
         <Class name="io.ballerina.stdlib.http.api.client.endpoint.CreateSimpleHttpClient" />
         <Bug pattern="REC_CATCH_EXCEPTION" />
     </Match>
