@@ -441,7 +441,6 @@ public class HttpService implements Service {
         boolean includesInterceptableService = balServiceType.getTypeIdSet().getIds().stream()
                 .anyMatch(typeId -> typeId.getName().equals(INTERCEPTABLE_SERVICE));
         BArray interceptorsArrayFromService;
-        BMap serviceConfig = getHttpServiceConfigAnnotation(service.getBalService());
         if (includesInterceptableService) {
             final Object[] createdInterceptors = new Object[1];
             CountDownLatch latch = new CountDownLatch(1);
@@ -479,16 +478,6 @@ public class HttpService implements Service {
             } else {
                 interceptorsArrayFromService = ValueCreator.createArrayValue(createdInterceptors,
                         TypeCreator.createArrayType(((BObject) createdInterceptors[0]).getOriginalType()));
-            }
-        // TODO need to remove following after removing `interceptors` from `http:ServiceConfig`
-        } else if (serviceConfig != null && serviceConfig.get(HttpConstants.ANN_INTERCEPTORS) != null) {
-            Object interceptorPipeline = serviceConfig.get(HttpConstants.ANN_INTERCEPTORS);
-            if (interceptorPipeline instanceof BArray) {
-                interceptorsArrayFromService = serviceConfig.getArrayValue(HttpConstants.ANN_INTERCEPTORS);
-            } else {
-                BObject interceptor = serviceConfig.getObjectValue(HttpConstants.ANN_INTERCEPTORS);
-                interceptorsArrayFromService = ValueCreator.createArrayValue(new Object[] { interceptor },
-                        TypeCreator.createArrayType(interceptor.getOriginalType()));
             }
         } else {
             service.setInterceptorServicesRegistries(interceptorServicesRegistries);

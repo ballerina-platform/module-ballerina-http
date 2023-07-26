@@ -44,17 +44,8 @@ public isolated class Listener {
         return externInitEndpoint(self, config);
     }
 
-    isolated function createInterceptors(Interceptor|Interceptor[]? interceptorConfigValues) returns Interceptor[] {
-        Interceptor|Interceptor[]? configValues = interceptorConfigValues;
-        Interceptor[] interceptors = [new DefaultErrorInterceptor()];
-        if configValues is Interceptor[] {
-            foreach Interceptor interceptor in configValues {
-                interceptors.push(interceptor);
-            }
-        } else if configValues is Interceptor {
-            interceptors.push(configValues);
-        }
-        return interceptors;
+    isolated function createInterceptors() returns Interceptor[] {
+        return [new DefaultErrorInterceptor()];
     }
 
     # Starts the registered service programmatically.
@@ -165,12 +156,6 @@ public type ListenerConfiguration record {|
     decimal timeout = DEFAULT_LISTENER_TIMEOUT;
     string? server = ();
     RequestLimitConfigs requestLimits = {};
-    # interceptors - An array of interceptor services
-    # # Deprecated
-    # Defining interceptor pipeline in `http:ListenerConfiguration` is deprecated.
-    # Define the interceptor pipeline via `http:InterceptableService` service type
-    @deprecated
-    Interceptor|Interceptor[] interceptors?;
     decimal gracefulStopTimeout = DEFAULT_GRACEFULSTOP_TIMEOUT;
     ServerSocketConfig socketConfig = {};
     int http2InitialWindowSize = 65535;
