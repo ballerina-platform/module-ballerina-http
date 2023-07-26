@@ -51,10 +51,10 @@ public enum HttpDiagnosticCodes {
             " only be union with '()'. Eg: string|() or string[]|()", ERROR),
     HTTP_111("HTTP_111", "invalid type of caller param '%s': expected 'http:Caller'", ERROR),
     HTTP_112("HTTP_112", "invalid type of query param '%s': expected one of the 'string', 'int', 'float', " +
-            "'boolean', 'decimal', 'map<json>' types or the array types of them", ERROR),
+            "'boolean', 'decimal', 'map<anydata>' types or the array types of them", ERROR),
     HTTP_113("HTTP_113", "invalid union type of query param '%s': 'string', 'int', 'float', 'boolean', " +
-            "'decimal', 'map<json>' type or the array types of them can only be union with '()'. Eg: string? or int[]?",
-            ERROR),
+            "'decimal', 'map<anydata>' type or the array types of them can only be union with '()'. Eg: string?" +
+            " or int[]?", ERROR),
     HTTP_114("HTTP_114", "incompatible respond method argument type : expected '%s' according " +
             "to the 'http:CallerInfo' annotation", ERROR),
     HTTP_115("HTTP_115", "invalid multiple 'http:Caller' parameter: '%s'", ERROR),

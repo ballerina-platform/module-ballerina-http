@@ -1,0 +1,34 @@
+{
+  "items": [
+    {
+      "label": "resource function get path()",
+      "insertText": "resource function get ${1:path}(${2}) ${3}{\n\t${4}\n}",
+      "priority": "HIGH"
+    },
+    {
+      "label": "resource function post path()",
+      "insertText": "resource function post ${1:path}(${2}) ${3}{\n\t${4}\n}",
+      "priority": "HIGH"
+    },
+    {
+      "label": "resource function put path()",
+      "insertText": "resource function put ${1:path}(${2}) ${3}{\n\t${4}\n}",
+      "priority": "HIGH"
+    },
+    {
+      "label": "resource function delete path()",
+      "insertText": "resource function delete ${1:path}(${2}) ${3}{\n\t${4}\n}",
+      "priority": "HIGH"
+    },
+    {
+      "label": "resource function head path()",
+      "insertText": "resource function head ${1:path}(${2}) ${3}{\n\t${4}\n}",
+      "priority": "HIGH"
+    },
+    {
+      "label": "resource function options path()",
+      "insertText": "resource function options ${1:path}(${2}) ${3}{\n\t${4}\n}",
+      "priority": "HIGH"
+    }
+  ]
+}
