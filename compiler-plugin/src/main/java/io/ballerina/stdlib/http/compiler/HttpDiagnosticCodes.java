@@ -25,7 +25,6 @@ import static io.ballerina.stdlib.http.compiler.Constants.ALLOWED_RETURN_UNION;
 import static io.ballerina.stdlib.http.compiler.Constants.RESOURCE_CONFIG_ANNOTATION;
 import static io.ballerina.tools.diagnostics.DiagnosticSeverity.ERROR;
 import static io.ballerina.tools.diagnostics.DiagnosticSeverity.INTERNAL;
-import static io.ballerina.tools.diagnostics.DiagnosticSeverity.WARNING;
 
 /**
  * {@code DiagnosticCodes} is used to hold diagnostic codes.
