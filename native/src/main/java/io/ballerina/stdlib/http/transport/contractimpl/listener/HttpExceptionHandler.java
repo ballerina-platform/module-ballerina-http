@@ -47,7 +47,7 @@ public class HttpExceptionHandler extends ChannelInboundHandlerAdapter {
                     .addListener(ChannelFutureListener.CLOSE);
         }
         if (!cause.toString().contains(SSL) && !cause.toString().contains(SECURITY)) {
-            LOG.error("Exception occurred in HTTP inbound channel pipeline : {}", cause);
+            LOG.error("Exception occurred in HTTP inbound channel pipeline : {}", cause.getMessage());
         }
     }
 }
