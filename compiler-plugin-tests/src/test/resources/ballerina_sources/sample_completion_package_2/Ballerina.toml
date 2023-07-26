@@ -1,0 +1,4 @@
+[package]
+org = "http_test"
+name = "sample_completion_package_2"
+version = "0.1.0"
