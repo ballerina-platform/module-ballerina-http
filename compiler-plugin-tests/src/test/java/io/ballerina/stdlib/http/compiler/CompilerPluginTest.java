@@ -92,12 +92,6 @@ public class CompilerPluginTest {
         }
     }
 
-    private void assertWarning(DiagnosticResult diagnosticResult, int index, String message, String code) {
-        Diagnostic diagnostic = (Diagnostic) diagnosticResult.warnings().toArray()[index];
-        Assert.assertTrue(diagnostic.diagnosticInfo().messageFormat().contains(message));
-        Assert.assertEquals(diagnostic.diagnosticInfo().code(), code);
-    }
-
     private void assertTrue(DiagnosticResult diagnosticResult, int index, String message, String code) {
         Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[index];
         Assert.assertTrue(diagnostic.diagnosticInfo().messageFormat().contains(message));
