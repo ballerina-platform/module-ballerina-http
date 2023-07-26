@@ -69,7 +69,7 @@ service /query/positive on listenerEP {
 
 }
 
-type QueryRecordCombinedInvalid QueryRecord|map<anydata>;
+type QueryRecordCombinedInvalid QueryRecord|map<object {}>;
 
 service /query/negative on listenerEP {
 
@@ -95,5 +95,5 @@ service /query/negative on listenerEP {
 
     resource function get case15(QueryRecordCombinedInvalid? query) {}
 
-    resource function get case16((QueryRecord|map<anydata>)[]? query) {}
+    resource function get case16((QueryRecord|map<any>)[]? query) {}
 }

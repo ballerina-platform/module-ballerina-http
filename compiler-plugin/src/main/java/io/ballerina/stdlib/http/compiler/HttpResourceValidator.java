@@ -71,7 +71,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static io.ballerina.stdlib.http.compiler.Constants.ANYDATA;
-import static io.ballerina.stdlib.http.compiler.Constants.ARRAY_OF_MAP_OF_JSON;
+import static io.ballerina.stdlib.http.compiler.Constants.ARRAY_OF_MAP_OF_ANYDATA;
 import static io.ballerina.stdlib.http.compiler.Constants.BOOLEAN;
 import static io.ballerina.stdlib.http.compiler.Constants.BOOLEAN_ARRAY;
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_ANNOTATION_NAME;
@@ -91,7 +91,7 @@ import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
 import static io.ballerina.stdlib.http.compiler.Constants.INT;
 import static io.ballerina.stdlib.http.compiler.Constants.INT_ARRAY;
 import static io.ballerina.stdlib.http.compiler.Constants.LINKED_TO;
-import static io.ballerina.stdlib.http.compiler.Constants.MAP_OF_JSON;
+import static io.ballerina.stdlib.http.compiler.Constants.MAP_OF_ANYDATA;
 import static io.ballerina.stdlib.http.compiler.Constants.METHOD;
 import static io.ballerina.stdlib.http.compiler.Constants.NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_BOOLEAN;
@@ -102,8 +102,8 @@ import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_FLOAT;
 import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_FLOAT_ARRAY;
 import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_INT;
 import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_INT_ARRAY;
-import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_MAP_OF_JSON;
-import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_MAP_OF_JSON_ARRAY;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_MAP_OF_ANYDATA;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_MAP_OF_ANYDATA_ARRAY;
 import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_STRING;
 import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_STRING_ARRAY;
 import static io.ballerina.stdlib.http.compiler.Constants.OBJECT;
@@ -558,19 +558,19 @@ public class HttpResourceValidator {
         reportInvalidHeaderParameterType(ctx, paramLocation, paramName, param);
     }
 
-    private static boolean isMapOfJsonType(TypeSymbol typeSymbol, Map<String, TypeSymbol> typeSymbols) {
-        return subtypeOf(typeSymbols, typeSymbol, MAP_OF_JSON) ||
-                subtypeOf(typeSymbols, typeSymbol, NILABLE_MAP_OF_JSON);
+    private static boolean isMapOfAnydataType(TypeSymbol typeSymbol, Map<String, TypeSymbol> typeSymbols) {
+        return subtypeOf(typeSymbols, typeSymbol, MAP_OF_ANYDATA) ||
+                subtypeOf(typeSymbols, typeSymbol, NILABLE_MAP_OF_ANYDATA);
     }
 
-    private static boolean isArrayOfMapOfJsonType(TypeSymbol typeSymbol, Map<String, TypeSymbol> typeSymbols) {
-        return subtypeOf(typeSymbols, typeSymbol, ARRAY_OF_MAP_OF_JSON) ||
-                subtypeOf(typeSymbols, typeSymbol, NILABLE_MAP_OF_JSON_ARRAY);
+    private static boolean isArrayOfMapOfAnydataType(TypeSymbol typeSymbol, Map<String, TypeSymbol> typeSymbols) {
+        return subtypeOf(typeSymbols, typeSymbol, ARRAY_OF_MAP_OF_ANYDATA) ||
+                subtypeOf(typeSymbols, typeSymbol, NILABLE_MAP_OF_ANYDATA_ARRAY);
     }
 
     private static boolean isValidBasicQueryParameterType(TypeSymbol typeSymbol, Map<String, TypeSymbol> typeSymbols) {
         return isValidBasicParamType(typeSymbol, typeSymbols) || isValidNilableBasicParamType(typeSymbol, typeSymbols)
-                || isMapOfJsonType(typeSymbol, typeSymbols) || isArrayOfMapOfJsonType(typeSymbol, typeSymbols);
+                || isMapOfAnydataType(typeSymbol, typeSymbols) || isArrayOfMapOfAnydataType(typeSymbol, typeSymbols);
 
     }
 

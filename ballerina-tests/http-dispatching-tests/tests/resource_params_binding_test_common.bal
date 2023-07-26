@@ -42,9 +42,19 @@ type QueryRecord record {|
     "value1"|"value2" value;
 |};
 
+type QueryRecordOpen record {
+    EnumValue enumValue;
+    "value1"|"value2" value;
+    xml 'xml?;
+    never 'type?;
+};
+
 type QueryRecordCombined QueryRecord|map<json>;
 
+type QueryRecordCombinedAnydata QueryRecordOpen|map<anydata>;
+
 type StringCharacter string:Char;
+
 type SmallInt int:Signed8;
 
 listener http:Listener resourceParamBindingListener = new(resourceParamBindingTestPort);
@@ -89,7 +99,7 @@ service /path on resourceParamBindingListener {
         return path;
     }
 
-     resource function get case9/[UnionFiniteType path]() returns string {
+    resource function get case9/[UnionFiniteType path]() returns string {
         if path is EnumValue {
             return "EnumValue: " + path;
         }
@@ -223,6 +233,44 @@ service /query on resourceParamBindingListener {
     resource function get case16(map<json> query1, string[] query2) returns [map<json>, string[]] {
         return [query1, query2];
     }
+
+    resource function get case17(QueryRecordOpen? query) returns map<anydata>|error {
+        if query is () {
+            return {"type": "default"};
+        }
+        map<anydata> result = check query.cloneWithType();
+        do {
+            _ = check query.cloneWithType(QueryRecord);
+            result["type"] = "QueryRecord";
+        } on fail {
+            result["type"] = "QueryRecordOpen";
+            if (result.hasKey("xml") && result["xml"] is xml) {
+                result["type"] = "QueryRecordOpenWithXML";
+            }
+        }
+        return result;
+    }
+
+    resource function get case18(QueryRecordCombinedAnydata[] query) returns map<anydata>[]|error {
+        map<anydata>[] result = check query.cloneWithType();
+        foreach int i in 0 ... (query.length() - 1) {
+            do {
+                _ = check query[i].cloneWithType(QueryRecord);
+                result[i]["type"] = "QueryRecord";
+            } on fail {
+                do {
+                    QueryRecordOpen q = check query[i].cloneWithType();
+                    result[i]["type"] = "QueryRecordOpen";
+                    if (q.hasKey("xml") && q["xml"] is xml) {
+                        result[i]["type"] = "QueryRecordOpenWithXML";
+                    }
+                } on fail {
+                    result[i]["type"] = "map<anydata>";
+                }
+            }
+        }
+        return result;
+    }
 }
 
 service /header on resourceParamBindingListener {
@@ -294,4 +342,3 @@ service /header on resourceParamBindingListener {
         return [header1, header2];
     }
 }
-

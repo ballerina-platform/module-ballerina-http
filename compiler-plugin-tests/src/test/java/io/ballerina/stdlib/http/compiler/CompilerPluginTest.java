@@ -247,9 +247,8 @@ public class CompilerPluginTest {
         assertTrue(diagnosticResult, 1, "invalid resource parameter type: 'ballerina/http", HTTP_106);
         assertTrue(diagnosticResult, 2, "invalid resource parameter type: 'ballerina/mime", HTTP_106);
         assertTrue(diagnosticResult, 3, "invalid resource parameter type: 'ballerina/mime", HTTP_106);
-        assertError(diagnosticResult, 4, "invalid type of query param 'abc': expected one of the " +
-                "'string', 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them",
-                HTTP_112);
+        assertError(diagnosticResult, 4, "invalid resource parameter type: 'http_test/sample_7:0.1.0:Caller'",
+                HTTP_106);
     }
 
     @Test
@@ -260,28 +259,28 @@ public class CompilerPluginTest {
         Assert.assertEquals(diagnosticResult.errorCount(), 9);
         assertTrue(diagnosticResult, 0, "invalid resource parameter type: 'ballerina/mime", HTTP_106);
         assertError(diagnosticResult, 1, "invalid union type of query param 'a': 'string', 'int', " +
-                "'float', 'boolean', 'decimal', 'map<json>' type or the array types of them can only be union with " +
-                "'()'. Eg: string? or int[]?", HTTP_113);
+                "'float', 'boolean', 'decimal', 'map<anydata>' type or the array types of them can only be union" +
+                " with '()'. Eg: string? or int[]?", HTTP_113);
         assertError(diagnosticResult, 2, "invalid union type of query param 'b': 'string', 'int', " +
-                "'float', 'boolean', 'decimal', 'map<json>' type or the array types of them can only be union with " +
-                "'()'. Eg: string? or int[]?", HTTP_113);
+                "'float', 'boolean', 'decimal', 'map<anydata>' type or the array types of them can only be union" +
+                " with '()'. Eg: string? or int[]?", HTTP_113);
         assertError(diagnosticResult, 3, "invalid union type of query param 'c': 'string', 'int', " +
-                "'float', 'boolean', 'decimal', 'map<json>' type or the array types of them can only be union with " +
-                "'()'. Eg: string? or int[]?", HTTP_113);
+                "'float', 'boolean', 'decimal', 'map<anydata>' type or the array types of them can only be union" +
+                " with '()'. Eg: string? or int[]?", HTTP_113);
         assertError(diagnosticResult, 4, "invalid type of query param 'd': expected one of the " +
-                "'string', 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them",
+                "'string', 'int', 'float', 'boolean', 'decimal', 'map<anydata>' types or the array types of them",
                 HTTP_112);
         assertError(diagnosticResult, 5, "invalid type of query param 'a': expected one of the " +
-                "'string', 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them",
+                "'string', 'int', 'float', 'boolean', 'decimal', 'map<anydata>' types or the array types of them",
                 HTTP_112);
         assertError(diagnosticResult, 6, "invalid type of query param 'aa': expected one of the " +
-                "'string', 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them",
+                "'string', 'int', 'float', 'boolean', 'decimal', 'map<anydata>' types or the array types of them",
                 HTTP_112);
         assertError(diagnosticResult, 7, "invalid type of query param 'd': expected one of the " +
-                "'string', 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them",
+                "'string', 'int', 'float', 'boolean', 'decimal', 'map<anydata>' types or the array types of them",
                 HTTP_112);
         assertError(diagnosticResult, 8, "invalid type of query param 'e': expected one of the " +
-                "'string', 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them",
+                "'string', 'int', 'float', 'boolean', 'decimal', 'map<anydata>' types or the array types of them",
                 HTTP_112);
     }
 
@@ -857,32 +856,32 @@ public class CompilerPluginTest {
         assertError(diagnosticResult, 23, "invalid resource path parameter 'path': expected one of the 'string'," +
                 "'int','float','decimal','boolean' types or a rest parameter with one of the above types", HTTP_145);
         assertError(diagnosticResult, 24, "invalid union type of query param 'query': 'string', 'int', 'float', " +
-                "'boolean', 'decimal', 'map<json>' type or the array types of them can only be union with '()'." +
+                "'boolean', 'decimal', 'map<anydata>' type or the array types of them can only be union with '()'." +
                 " Eg: string? or int[]?", HTTP_113);
         assertError(diagnosticResult, 25, "invalid type of query param 'query': expected one of the 'string'," +
-                " 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them", HTTP_112);
+                " 'int', 'float', 'boolean', 'decimal', 'map<anydata>' types or the array types of them", HTTP_112);
         assertError(diagnosticResult, 26, "invalid union type of query param 'query': 'string', 'int', 'float'," +
-                " 'boolean', 'decimal', 'map<json>' type or the array types of them can only be union with '()'." +
+                " 'boolean', 'decimal', 'map<anydata>' type or the array types of them can only be union with '()'." +
                 " Eg: string? or int[]?", HTTP_113);
         assertError(diagnosticResult, 27, "invalid type of query param 'query': expected one of the 'string'," +
-                " 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them", HTTP_112);
+                " 'int', 'float', 'boolean', 'decimal', 'map<anydata>' types or the array types of them", HTTP_112);
         assertError(diagnosticResult, 28, "invalid type of query param 'query': expected one of the 'string'," +
-                " 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them", HTTP_112);
+                " 'int', 'float', 'boolean', 'decimal', 'map<anydata>' types or the array types of them", HTTP_112);
         assertError(diagnosticResult, 29, "invalid union type of query param 'query': 'string', 'int', 'float'," +
-                " 'boolean', 'decimal', 'map<json>' type or the array types of them can only be union with '()'." +
+                " 'boolean', 'decimal', 'map<anydata>' type or the array types of them can only be union with '()'." +
                 " Eg: string? or int[]?", HTTP_113);
         assertError(diagnosticResult, 30, "invalid type of query param 'query': expected one of the 'string'," +
-                " 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them", HTTP_112);
+                " 'int', 'float', 'boolean', 'decimal', 'map<anydata>' types or the array types of them", HTTP_112);
         assertError(diagnosticResult, 31, "invalid type of query param 'query': expected one of the 'string'," +
-                " 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them", HTTP_112);
+                " 'int', 'float', 'boolean', 'decimal', 'map<anydata>' types or the array types of them", HTTP_112);
         assertError(diagnosticResult, 32, "invalid type of query param 'query': expected one of the 'string'," +
-                " 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them", HTTP_112);
+                " 'int', 'float', 'boolean', 'decimal', 'map<anydata>' types or the array types of them", HTTP_112);
         assertError(diagnosticResult, 33, "invalid type of query param 'query': expected one of the 'string'," +
-                " 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them", HTTP_112);
-        assertError(diagnosticResult, 34, "invalid type of query param 'query': expected one of the 'string'," +
-                " 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them", HTTP_112);
-        assertError(diagnosticResult, 35, "invalid type of query param 'query': expected one of the 'string'," +
-                " 'int', 'float', 'boolean', 'decimal', 'map<json>' types or the array types of them", HTTP_112);
+                " 'int', 'float', 'boolean', 'decimal', 'map<anydata>' types or the array types of them", HTTP_112);
+        assertError(diagnosticResult, 34, "invalid resource parameter type: " +
+                "'http_test/sample_38:0.1.0:QueryRecordCombinedInvalid?'", HTTP_106);
+        assertError(diagnosticResult, 35, "invalid resource parameter type: " +
+                "'(http_test/sample_38:0.1.0:QueryRecord|map<any>)[]?'", HTTP_106);
     }
 
     @Test
