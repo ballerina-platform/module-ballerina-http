@@ -61,40 +61,44 @@ function testHTTPS2DataBinding() returns error? {
     test:assertEquals(payload, {'key:"wso2",age:12});
 }
 
-@http:ServiceConfig {
-    interceptors : [new DefaultRequestInterceptor(), new DataBindingRequestInterceptor(), new LastRequestInterceptor()]
-}
-service /interceptor1 on generalHTTP2Listener {
+service http:InterceptableService /interceptor1 on generalHTTP2Listener {
+
+    public function createInterceptors() returns [DefaultRequestInterceptor, DataBindingRequestInterceptor, LastRequestInterceptor] {
+        return [new DefaultRequestInterceptor(), new DataBindingRequestInterceptor(), new LastRequestInterceptor()];
+    }
 
     resource function post databinding(@http:Payload string payload) returns string {
         return "Response : " + payload;
     }
 }
 
-@http:ServiceConfig {
-    interceptors : [new DefaultRequestInterceptor(), new LastRequestInterceptor()]
-}
-service /interceptor2 on generalHTTP2Listener {
+service http:InterceptableService /interceptor2 on generalHTTP2Listener {
+
+    public function createInterceptors() returns [DefaultRequestInterceptor, LastRequestInterceptor] {
+        return [new DefaultRequestInterceptor(), new LastRequestInterceptor()];
+    }
 
     resource function post databinding(@http:Payload string payload) returns string {
         return "Response : " + payload;
     }
 }
 
-@http:ServiceConfig {
-    interceptors : [new DefaultRequestInterceptor(), new DataBindingRequestInterceptor(), new LastRequestInterceptor()]
-}
-service /interceptor1 on generalHTTPS2Listener {
-   
+service http:InterceptableService /interceptor1 on generalHTTPS2Listener {
+
+    public function createInterceptors() returns [DefaultRequestInterceptor, DataBindingRequestInterceptor, LastRequestInterceptor] {
+        return [new DefaultRequestInterceptor(), new DataBindingRequestInterceptor(), new LastRequestInterceptor()];
+    }
+
     resource function post databinding(@http:Payload string payload) returns string {
         return "Response : " + payload;
     } 
 }
 
-@http:ServiceConfig {
-    interceptors : [new DefaultRequestInterceptor(), new LastRequestInterceptor()]
-}
-service /interceptor2 on generalHTTPS2Listener {
+service http:InterceptableService /interceptor2 on generalHTTPS2Listener {
+
+    public function createInterceptors() returns [DefaultRequestInterceptor, LastRequestInterceptor] {
+        return [new DefaultRequestInterceptor(), new LastRequestInterceptor()];
+    }
 
     resource function post databinding(@http:Payload string payload) returns string {
         return "Response : " + payload;
