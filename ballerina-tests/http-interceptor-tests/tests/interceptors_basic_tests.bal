@@ -25,10 +25,11 @@ final http:Client interceptorsBasicTestsClientEP1 = check new("http://localhost:
 
 listener http:Listener interceptorsBasicTestsServerEP1 = new(interceptorBasicTestsPort1, httpVersion = http:HTTP_1_1);
 
-@http:ServiceConfig {
-    interceptors : [new DefaultRequestInterceptor(), new LastRequestInterceptor(), new DefaultRequestErrorInterceptor()]
-}
-service /defaultRequestInterceptor on interceptorsBasicTestsServerEP1 {
+service http:InterceptableService /defaultRequestInterceptor on interceptorsBasicTestsServerEP1 {
+
+    public function createInterceptors() returns [DefaultRequestInterceptor, LastRequestInterceptor, DefaultRequestErrorInterceptor] {
+        return [new DefaultRequestInterceptor(), new LastRequestInterceptor(), new DefaultRequestErrorInterceptor()];
+    }
 
     resource function 'default .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new();
@@ -82,10 +83,11 @@ function testinterceptableServiceReqInterceptor() returns error? {
     common:assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
 }
 
-@http:ServiceConfig {
-    interceptors : [new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultResponseInterceptor()]
-}
-service /defaultResponseInterceptor on interceptorsBasicTestsServerEP1 {
+service http:InterceptableService /defaultResponseInterceptor on interceptorsBasicTestsServerEP1 {
+
+    public function createInterceptors() returns [LastResponseInterceptor, DefaultResponseErrorInterceptor, DefaultResponseInterceptor] {
+        return [new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new DefaultResponseInterceptor()];
+    }
 
     resource function 'default .(http:Request req) returns string {
         string|error payload = req.getTextPayload();
