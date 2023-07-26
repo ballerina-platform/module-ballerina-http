@@ -111,20 +111,11 @@ public enum HttpDiagnosticCodes {
     HTTP_151("HTTP_151", "ambiguous types for parameter '%s' and '%s'. Use annotations to avoid ambiguity", ERROR),
     HTTP_152("HTTP_152", "invalid union type for default payload param: '%s'. Use basic structured anydata types",
             ERROR),
-    HTTP_153("HTTP_153", "cannot initiate interceptors in services via both " +
-            "http:ServiceConfig and http:InterceptableService", ERROR),
 
     HTTP_HINT_101("HTTP_HINT_101", "Payload annotation can be added", INTERNAL),
     HTTP_HINT_102("HTTP_HINT_102", "Header annotation can be added", INTERNAL),
     HTTP_HINT_103("HTTP_HINT_103", "Response content-type can be added", INTERNAL),
-    HTTP_HINT_104("HTTP_HINT_104", "Response cache configuration can be added", INTERNAL),
-
-    HTTP_201("HTTP_201", "defining interceptor pipeline using http:ServiceConfig annotation " +
-            "is deprecated. Use http:InterceptableService instead. See https://ballerina.io/learn/by-example/" +
-            "http-request-interceptor", WARNING),
-    HTTP_202("HTTP_202", "defining interceptor pipeline in the http:ListenerConfiguration " +
-            "is deprecated. Use http:InterceptableService instead. See https://ballerina.io/learn/by-example/" +
-            "http-request-interceptor", WARNING);
+    HTTP_HINT_104("HTTP_HINT_104", "Response cache configuration can be added", INTERNAL);
 
     private final String code;
     private final String message;
