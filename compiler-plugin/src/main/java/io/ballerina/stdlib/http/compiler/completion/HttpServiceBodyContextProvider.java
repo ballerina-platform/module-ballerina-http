@@ -47,11 +47,11 @@ public class HttpServiceBodyContextProvider implements CompletionProvider<Servic
 
         //Add resource function snippets for get,post,delete,put,head,and options http methods.
         return Constants.METHODS.stream().map(method -> {
-            String insertText = "resource function " + method + " "
-                    + CompletionUtil.getPlaceHolderText(1, "path")
-                    + "(" + CompletionUtil.getPlaceHolderText(2) + ") " + CompletionUtil.getPlaceHolderText(3)
-                    + "{" + CompletionUtil.LINE_BREAK + CompletionUtil.PADDING + CompletionUtil.getPlaceHolderText(4)
-                    + CompletionUtil.LINE_BREAK + "}";
+            String insertText = String.format("resource function %s %s(%s) %s{%s}", method
+                    , CompletionUtil.getPlaceHolderText(1, "path")
+                    , CompletionUtil.getPlaceHolderText(2), CompletionUtil.getPlaceHolderText(3)
+                    , CompletionUtil.LINE_BREAK + CompletionUtil.PADDING + CompletionUtil.getPlaceHolderText(4)
+                            + CompletionUtil.LINE_BREAK);
             String label = "resource function " + method + " path()";
             return new CompletionItem(label, insertText, CompletionItem.Priority.HIGH);
         }).collect(Collectors.toList());

@@ -47,8 +47,7 @@ public class ServiceDeclarationNodeContextTest extends AbstractCompletionTest {
         return new Object[][]{
                 {"sample_completion_package_1/main.bal", 22, 5, "expected_completions1.json"},
                 {"sample_completion_package_2/main.bal", 22, 5, "expected_completions1.json"},
-                {"sample_completion_package_2/main.bal", 35, 5, "expected_completions1.json"},
-                
+                {"sample_completion_package_2/main.bal", 35, 5, "expected_completions1.json"}
         };
     }
 
