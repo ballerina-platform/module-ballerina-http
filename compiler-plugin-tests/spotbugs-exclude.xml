@@ -36,4 +36,14 @@
         <Class name="io.ballerina.stdlib.http.compiler.codeaction.AddInterceptorMethodTest" />
         <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD" />
     </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.compiler.completion.AbstractCompletionTest$TestConfig" />
+        <Method name="getItems" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.compiler.completion.AbstractCompletionTest$TestConfig" />
+        <Method name="setItems" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
 </FindBugsFilter>
