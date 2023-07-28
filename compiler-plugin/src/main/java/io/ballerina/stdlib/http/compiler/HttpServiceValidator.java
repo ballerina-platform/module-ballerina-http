@@ -18,7 +18,6 @@
 
 package io.ballerina.stdlib.http.compiler;
 
-import io.ballerina.compiler.api.symbols.IntersectionTypeSymbol;
 import io.ballerina.compiler.api.symbols.ServiceDeclarationSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
@@ -26,12 +25,10 @@ import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
-import io.ballerina.compiler.syntax.tree.ChildNodeEntry;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingFieldNode;
 import io.ballerina.compiler.syntax.tree.MetadataNode;
-import io.ballerina.compiler.syntax.tree.NewExpressionNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
@@ -45,7 +42,6 @@ import io.ballerina.tools.diagnostics.DiagnosticFactory;
 import io.ballerina.tools.diagnostics.DiagnosticInfo;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -55,7 +51,6 @@ import static io.ballerina.stdlib.http.compiler.Constants.COLON;
 import static io.ballerina.stdlib.http.compiler.Constants.DEFAULT;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
 import static io.ballerina.stdlib.http.compiler.Constants.INTERCEPTABLE_SERVICE;
-import static io.ballerina.stdlib.http.compiler.Constants.INTERCEPTORS_ANNOTATION_FIELD;
 import static io.ballerina.stdlib.http.compiler.Constants.MEDIA_TYPE_SUBTYPE_PREFIX;
 import static io.ballerina.stdlib.http.compiler.Constants.MEDIA_TYPE_SUBTYPE_REGEX;
 import static io.ballerina.stdlib.http.compiler.Constants.PLUS;
@@ -66,12 +61,9 @@ import static io.ballerina.stdlib.http.compiler.Constants.UNNECESSARY_CHARS_REGE
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.getCtxTypes;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.isHttpModule;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.updateDiagnostic;
-import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.validateListenerExpressionNode;
 import static io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes.HTTP_101;
 import static io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes.HTTP_119;
 import static io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes.HTTP_120;
-import static io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes.HTTP_153;
-import static io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes.HTTP_201;
 
 /**
  * Validates a Ballerina Http Service.
@@ -90,7 +82,6 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
         }
 
         extractServiceAnnotationAndValidate(syntaxNodeAnalysisContext, serviceDeclarationNode);
-        validateListenerDeclarationInService(syntaxNodeAnalysisContext, serviceDeclarationNode);
 
         LinksMetaData linksMetaData = new LinksMetaData();
         NodeList<Node> members = serviceDeclarationNode.members();
@@ -146,31 +137,6 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
         return false;
     }
 
-    private void validateListenerDeclarationInService(SyntaxNodeAnalysisContext context,
-                                                      ServiceDeclarationNode serviceDeclarationNode) {
-        for (ChildNodeEntry nodeEntry: serviceDeclarationNode.childEntries()) {
-            if (nodeEntry.name().equals("expressions")) {
-                if (nodeEntry.node().isPresent() && nodeEntry.node().get() instanceof NewExpressionNode) {
-                    validateListenerExpressionNode(context, (NewExpressionNode) nodeEntry.node().get());
-                }
-            }
-        }
-    }
-
-    public static TypeSymbol getEffectiveTypeFromReadonlyIntersection(IntersectionTypeSymbol intersectionTypeSymbol) {
-        List<TypeSymbol> effectiveTypes = new ArrayList<>();
-        for (TypeSymbol typeSymbol : intersectionTypeSymbol.memberTypeDescriptors()) {
-            if (typeSymbol.typeKind() == TypeDescKind.READONLY) {
-                continue;
-            }
-            effectiveTypes.add(typeSymbol);
-        }
-        if (effectiveTypes.size() == 1) {
-            return effectiveTypes.get(0);
-        }
-        return null;
-    }
-
     public static TypeDescKind getReferencedTypeDescKind(TypeSymbol typeSymbol) {
         TypeDescKind kind = typeSymbol.typeKind();
         if (kind == TypeDescKind.TYPE_REFERENCE) {
@@ -178,15 +144,6 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
             kind = getReferencedTypeDescKind(typeDescriptor);
         }
         return kind;
-    }
-
-    public static boolean isAllowedQueryParamBasicType(TypeDescKind kind, TypeSymbol typeSymbol) {
-        if (kind == TypeDescKind.TYPE_REFERENCE) {
-            TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor();
-            kind =  getReferencedTypeDescKind(typeDescriptor);
-        }
-        return kind == TypeDescKind.STRING || kind == TypeDescKind.INT || kind == TypeDescKind.FLOAT ||
-                kind == TypeDescKind.DECIMAL || kind == TypeDescKind.BOOLEAN;
     }
 
     private void validateResourceLinks(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext,
@@ -289,12 +246,6 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
                         reportErrorMediaTypeSuffix(ctx, suffix.trim(), field);
                         break;
                     }
-                }
-                if (INTERCEPTORS_ANNOTATION_FIELD.equals(strings[0].trim())) {
-                    if (isInterceptableService) {
-                        updateDiagnostic(ctx, field.location(), HTTP_153);
-                    }
-                    updateDiagnostic(ctx, field.location(), HTTP_201);
                 }
             }
         }

@@ -135,7 +135,6 @@ import static io.ballerina.stdlib.http.api.HttpConstants.ANN_CONFIG_ATTR_COMPRES
 import static io.ballerina.stdlib.http.api.HttpConstants.ANN_CONFIG_ATTR_SSL_ENABLED_PROTOCOLS;
 import static io.ballerina.stdlib.http.api.HttpConstants.CREATE_INTERCEPTORS_FUNCTION_NAME;
 import static io.ballerina.stdlib.http.api.HttpConstants.ENDPOINT_CONFIG_HTTP2_INITIAL_WINDOW_SIZE;
-import static io.ballerina.stdlib.http.api.HttpConstants.ENDPOINT_CONFIG_INTERCEPTORS;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_HEADERS;
 import static io.ballerina.stdlib.http.api.HttpConstants.RESOLVED_REQUESTED_URI;
 import static io.ballerina.stdlib.http.api.HttpConstants.RESPONSE_CACHE_CONTROL;
@@ -148,7 +147,6 @@ import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_PRO
 import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_SESSION_TIMEOUT;
 import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_TRUSTSTORE_FILE_PATH;
 import static io.ballerina.stdlib.http.api.HttpConstants.SECURESOCKET_CONFIG_TRUSTSTORE_PASSWORD;
-import static io.ballerina.stdlib.http.api.HttpConstants.SERVICE_ENDPOINT_CONFIG;
 import static io.ballerina.stdlib.http.api.HttpConstants.SINGLE_SLASH;
 import static io.ballerina.stdlib.http.api.HttpConstants.SOCKET_CONFIG_CONNECT_TIMEOUT;
 import static io.ballerina.stdlib.http.api.HttpConstants.SOCKET_CONFIG_KEEP_ALIVE;
@@ -1606,9 +1604,6 @@ public class HttpUtil {
     }
 
     public static void populateInterceptorServicesFromListener(BObject serviceEndpoint, Runtime runtime) {
-        List<BObject> interceptorServices = new ArrayList<>();
-
-        BMap listenerConfig = ((BMap) serviceEndpoint.getNativeData(SERVICE_ENDPOINT_CONFIG));
         final CountDownLatch latch = new CountDownLatch(1);
         final BArray[] interceptorResponse = new BArray[1];
         Callback interceptorCallback = new Callback() {
@@ -1627,14 +1622,8 @@ public class HttpUtil {
                 System.exit(1);
             }
         };
-        if (listenerConfig != null && listenerConfig.get(ENDPOINT_CONFIG_INTERCEPTORS) != null) {
-            Object interceptorConfig = listenerConfig.get(ENDPOINT_CONFIG_INTERCEPTORS);
-            runtime.invokeMethodAsyncSequentially(serviceEndpoint, CREATE_INTERCEPTORS_FUNCTION_NAME, null, null,
-                    interceptorCallback, null, PredefinedTypes.TYPE_ANY, interceptorConfig, true);
-        } else {
-            runtime.invokeMethodAsyncSequentially(serviceEndpoint, CREATE_INTERCEPTORS_FUNCTION_NAME, null, null,
-                    interceptorCallback, null, PredefinedTypes.TYPE_ANY, null, true);
-        }
+        runtime.invokeMethodAsyncSequentially(serviceEndpoint, CREATE_INTERCEPTORS_FUNCTION_NAME, null, null,
+                interceptorCallback, null, PredefinedTypes.TYPE_ANY, null, true);
         try {
             latch.await();
         } catch (InterruptedException exception) {
@@ -1643,27 +1632,17 @@ public class HttpUtil {
         if (interceptorResponse[0] == null) {
             return;
         }
-        Object[] interceptors = interceptorResponse[0].getValues();
-        for (Object interceptor: interceptors) {
-            if (interceptor == null) {
-                break;
-            }
-            interceptorServices.add((BObject) interceptor);
-        }
+        BObject interceptorService = (BObject) interceptorResponse[0].getValues()[0];
 
         serviceEndpoint.addNativeData(HttpConstants.INTERCEPTORS, interceptorResponse[0]);
-        Register.resetInterceptorRegistry(serviceEndpoint, interceptorServices.size());
+        Register.resetInterceptorRegistry(serviceEndpoint, 1);
         List<HTTPInterceptorServicesRegistry> httpInterceptorServicesRegistries
                 = Register.getHttpInterceptorServicesRegistries(serviceEndpoint);
 
-        // Registering all the interceptor services in separate service registries
-        for (int i = 0; i < interceptorServices.size(); i++) {
-            BObject interceptorService = interceptorServices.get(i);
-            HTTPInterceptorServicesRegistry servicesRegistry = httpInterceptorServicesRegistries.get(i);
-            servicesRegistry.setServicesType(HttpUtil.getInterceptorServiceType(interceptorService));
-            servicesRegistry.registerInterceptorService(interceptorService, HttpConstants.DEFAULT_BASE_PATH, true);
-            servicesRegistry.setRuntime(runtime);
-        }
+        HTTPInterceptorServicesRegistry servicesRegistry = httpInterceptorServicesRegistries.get(0);
+        servicesRegistry.setServicesType(HttpUtil.getInterceptorServiceType(interceptorService));
+        servicesRegistry.registerInterceptorService(interceptorService, HttpConstants.DEFAULT_BASE_PATH, true);
+        servicesRegistry.setRuntime(runtime);
     }
 
     public static void markPossibleLastInterceptors(HTTPServicesRegistry servicesRegistry) {

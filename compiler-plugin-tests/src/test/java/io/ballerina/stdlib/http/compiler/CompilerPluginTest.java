@@ -92,12 +92,6 @@ public class CompilerPluginTest {
         }
     }
 
-    private void assertWarning(DiagnosticResult diagnosticResult, int index, String message, String code) {
-        Diagnostic diagnostic = (Diagnostic) diagnosticResult.warnings().toArray()[index];
-        Assert.assertTrue(diagnostic.diagnosticInfo().messageFormat().contains(message));
-        Assert.assertEquals(diagnostic.diagnosticInfo().code(), code);
-    }
-
     private void assertTrue(DiagnosticResult diagnosticResult, int index, String message, String code) {
         Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[index];
         Assert.assertTrue(diagnostic.diagnosticInfo().messageFormat().contains(message));
@@ -885,65 +879,11 @@ public class CompilerPluginTest {
     }
 
     @Test
-    public void testServiceConfigInterceptorDeprecationWarning() {
-        Package currentPackage = loadPackage("sample_package_39");
-        PackageCompilation packageCompilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = packageCompilation.diagnosticResult();
-        Assert.assertFalse(diagnosticResult.hasErrors());
-        Assert.assertEquals(diagnosticResult.warnings().size(), 1);
-        assertWarning(diagnosticResult, 0, HttpDiagnosticCodes.HTTP_201.getMessage(),
-                HttpDiagnosticCodes.HTTP_201.getCode());
-    }
-
-    @Test
-    public void testServiceConfigInterceptorAndInterceptableServiceError() {
-        Package currentPackage = loadPackage("sample_package_40");
-        PackageCompilation packageCompilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = packageCompilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.warningCount(), 1);
-        assertWarning(diagnosticResult, 0, HttpDiagnosticCodes.HTTP_201.getMessage(),
-                HttpDiagnosticCodes.HTTP_201.getCode());
-        Assert.assertEquals(diagnosticResult.errorCount(), 1);
-        assertTrue(diagnosticResult, 0, HttpDiagnosticCodes.HTTP_153.getMessage(),
-                HttpDiagnosticCodes.HTTP_153.getCode());
-    }
-
-    @Test
     public void testInterceptableServiceInterceptors() {
-        Package currentPackage = loadPackage("sample_package_41");
+        Package currentPackage = loadPackage("sample_package_39");
         PackageCompilation packageCompilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = packageCompilation.diagnosticResult();
         Assert.assertFalse(diagnosticResult.hasWarnings());
         Assert.assertFalse(diagnosticResult.hasErrors());
-    }
-
-    @Test
-    public void testInterceptorsDefinedInListener() {
-        Package currentPackage = loadPackage("sample_package_42");
-        PackageCompilation packageCompilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = packageCompilation.diagnosticResult();
-        Assert.assertFalse(diagnosticResult.hasErrors());
-        Assert.assertEquals(diagnosticResult.warningCount(), 2);
-        assertWarning(diagnosticResult, 0, HttpDiagnosticCodes.HTTP_202.getMessage(),
-                HttpDiagnosticCodes.HTTP_202.getCode());
-        assertWarning(diagnosticResult, 1, HttpDiagnosticCodes.HTTP_202.getMessage(),
-                HttpDiagnosticCodes.HTTP_202.getCode());
-    }
-
-    @Test
-    public void testInterceptorsDefinedInListenerAndServiceConfig() {
-        Package currentPackage = loadPackage("sample_package_43");
-        PackageCompilation packageCompilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = packageCompilation.diagnosticResult();
-        Assert.assertFalse(diagnosticResult.hasErrors());
-        Assert.assertEquals(diagnosticResult.warningCount(), 4);
-        assertWarning(diagnosticResult, 0, HttpDiagnosticCodes.HTTP_201.getMessage(),
-                HttpDiagnosticCodes.HTTP_201.getCode());
-        assertWarning(diagnosticResult, 1, HttpDiagnosticCodes.HTTP_202.getMessage(),
-                HttpDiagnosticCodes.HTTP_202.getCode());
-        assertWarning(diagnosticResult, 2, HttpDiagnosticCodes.HTTP_202.getMessage(),
-                HttpDiagnosticCodes.HTTP_202.getCode());
-        assertWarning(diagnosticResult, 3, HttpDiagnosticCodes.HTTP_201.getMessage(),
-                HttpDiagnosticCodes.HTTP_201.getCode());
     }
 }

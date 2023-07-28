@@ -410,13 +410,12 @@ function testInvalidPathWithRootService() returns error? {
     common:assertHeaderValue(check res.getHeader("error-type"), "DispatchingError-Resource");
 }
 
-listener http:Listener singleServiceWithListenerInterceptorsEP = new(singleServiceWithListenerInterceptorsTestPort,
-    httpVersion = http:HTTP_1_1, interceptors = [new LastResponseInterceptor(), new DefaultResponseErrorInterceptor()]);
+listener http:Listener singleServiceWithListenerInterceptorsEP = new(singleServiceWithListenerInterceptorsTestPort, httpVersion = http:HTTP_1_1);
 
 service http:InterceptableService /path1 on singleServiceWithListenerInterceptorsEP {
 
-    public function createInterceptors() returns [ResponseInterceptorReturnsResponse, ResponseErrorInterceptorWithReq] {
-        return [new ResponseInterceptorReturnsResponse(), new ResponseErrorInterceptorWithReq()];
+    public function createInterceptors() returns [LastResponseInterceptor, DefaultResponseErrorInterceptor, ResponseInterceptorReturnsResponse, ResponseErrorInterceptorWithReq] {
+        return [new LastResponseInterceptor(), new DefaultResponseErrorInterceptor(), new ResponseInterceptorReturnsResponse(), new ResponseErrorInterceptorWithReq()];
     }
 
     resource function get .() returns string {

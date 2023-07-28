@@ -29,7 +29,6 @@ public class HttpServiceAnalyzer extends CodeAnalyzer {
     @Override
     public void init(CodeAnalysisContext codeAnalysisContext) {
         codeAnalysisContext.addSyntaxNodeAnalysisTask(new HttpServiceValidator(), SyntaxKind.SERVICE_DECLARATION);
-        codeAnalysisContext.addSyntaxNodeAnalysisTask(new HttpListenerValidator(), SyntaxKind.LISTENER_DECLARATION);
         codeAnalysisContext.addSyntaxNodeAnalysisTask(new HttpInterceptorServiceValidator(),
                                                       SyntaxKind.CLASS_DEFINITION);
     }

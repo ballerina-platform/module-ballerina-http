@@ -33,11 +33,6 @@ public type HttpServiceConfig record {|
     ListenerAuthConfig[] auth?;
     string mediaTypeSubtypePrefix?;
     boolean treatNilableAsOptional = true;
-    # interceptors - An array of interceptor services
-    # # Deprecated
-    # Defining interceptor pipeline in `http:ServiceConfig` is deprecated. Define the interceptor pipeline via `http:InterceptableService` service type
-    @deprecated
-    Interceptor|Interceptor[] interceptors?;
     byte[] openApiDefinition = [];
     boolean validation = true;
 |};

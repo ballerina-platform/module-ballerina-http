@@ -15,6 +15,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - [Add open record support for query parameters](https://github.com/ballerina-platform/ballerina-standard-library/issues/4541)
 
+### Changed
+
+- [Remove interceptor configuration from `http:ListenerConfiguration` and `http:ServiceConfig`](https://github.com/ballerina-platform/ballerina-standard-library/issues/4680)
+
 ## [2.9.0] - 2023-06-30
 
 ### Added
@@ -28,7 +32,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Changed
 
-- [Removed listener level interceptors](https://github.com/ballerina-platform/ballerina-standard-library/issues/4420)
+- [Deprecate listener level interceptors](https://github.com/ballerina-platform/ballerina-standard-library/issues/4420)
 - [Improved default error format and message](https://github.com/ballerina-platform/ballerina-standard-library/issues/3961)
 - [Move status code errors to `httpscerr` module](https://github.com/ballerina-platform/ballerina-standard-library/issues/4535)
 
