@@ -22,6 +22,7 @@ import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.types.ServiceType;
+import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
@@ -82,8 +83,6 @@ public class HttpRequestInterceptorUnitCallback extends HttpCallableUnitCallback
     }
 
     public void returnErrorResponse(Object error) {
-        cleanupRequestMessage();
-
         Object[] paramFeed = new Object[4];
         paramFeed[0] = error;
         paramFeed[1] = true;
@@ -142,7 +141,7 @@ public class HttpRequestInterceptorUnitCallback extends HttpCallableUnitCallback
     }
 
     private boolean isServiceType(Object result) {
-        return result instanceof BObject && ((BObject) result).getType() instanceof ServiceType;
+        return result instanceof BObject && TypeUtils.getType(result) instanceof ServiceType;
     }
 
     private void validateServiceReturnType(Object result, int interceptorId, BArray interceptors) {

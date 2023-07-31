@@ -19,51 +19,44 @@
 package io.ballerina.stdlib.http.api.service.signature;
 
 import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.values.BError;
+import io.ballerina.stdlib.constraint.Constraints;
+import io.ballerina.stdlib.http.api.HttpUtil;
+
+import static io.ballerina.stdlib.http.api.HttpConstants.QUERY_PARAM;
+import static io.ballerina.stdlib.http.api.HttpErrorType.QUERY_PARAM_VALIDATION_ERROR;
 
 /**
  * {@code {@link QueryParam }} represents a query parameter details.
  *
  * @since slp8
  */
-public class QueryParam {
-
-    private final String token;
+public class QueryParam extends SignatureParam {
     private final boolean nilable;
-    private final boolean readonly;
     private final boolean defaultable;
-    private final int index;
-    private final Type type;
 
-    QueryParam(Type type, String token, int index, boolean nilable, boolean readonly, boolean defaultable) {
-        this.type = type;
-        this.token = token;
-        this.index = index;
-        this.nilable = nilable;
-        this.readonly = readonly;
+    QueryParam(Type originalType, String token, int index, boolean defaultable, boolean requireConstraintValidation) {
+        super(originalType, token, index, requireConstraintValidation, QUERY_PARAM);
+        this.nilable = originalType.isNilable();
         this.defaultable = defaultable;
-    }
-
-    public String getToken() {
-        return this.token;
     }
 
     public boolean isNilable() {
         return this.nilable;
     }
 
-    public int getIndex() {
-        return this.index * 2;
-    }
-
-    public Type getType() {
-        return this.type;
-    }
-
-    public boolean isReadonly() {
-        return this.readonly;
-    }
-
     public boolean isDefaultable() {
         return defaultable;
+    }
+
+    public Object validateConstraints(Object queryValue) {
+        if (requireConstraintValidation()) {
+            Object result = Constraints.validateAfterTypeConversion(queryValue, getOriginalType());
+            if (result instanceof BError) {
+                String message = "query validation failed: " + HttpUtil.getPrintableErrorMsg((BError) result);
+                throw HttpUtil.createHttpStatusCodeError(QUERY_PARAM_VALIDATION_ERROR, message);
+            }
+        }
+        return queryValue;
     }
 }

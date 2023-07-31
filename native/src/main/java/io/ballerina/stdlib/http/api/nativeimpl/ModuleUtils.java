@@ -35,6 +35,7 @@ import static io.ballerina.stdlib.http.api.HttpConstants.PROTOCOL_HTTP;
 public class ModuleUtils {
 
     private static Module httpModule;
+    private static Module httpStatusModule;
     private static StrandMetadata onMessageMetaData;
     private static StrandMetadata notifySuccessMetaData;
     private static String packageIdentifier;
@@ -51,6 +52,10 @@ public class ModuleUtils {
                 HttpConstants.COLON + httpModule.getVersion();
     }
 
+    public static void setHttpStatusModule(Environment env) {
+        httpStatusModule = env.getCurrentModule();
+    }
+
     /**
      * Gets ballerina http package.
      *
@@ -58,6 +63,15 @@ public class ModuleUtils {
      */
     public static Module getHttpPackage() {
         return httpModule;
+    }
+
+    /**
+     * Returns ballerina http status error package.
+     *
+     * @return http status package.
+     */
+    public static Module getHttpStatusPackage() {
+        return httpStatusModule;
     }
 
     /**

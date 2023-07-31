@@ -62,8 +62,10 @@ public type ResponseLimitConfigs record {|
 # Provides settings related to HTTP/2 protocol.
 #
 # + http2PriorKnowledge - Configuration to enable HTTP/2 prior knowledge
+# + http2InitialWindowSize - Configuration to change the initial window size
 public type ClientHttp2Settings record {|
     boolean http2PriorKnowledge = false;
+    int http2InitialWindowSize = 65535;
 |};
 
 # Provides configurations for controlling the retrying behavior in failure scenarios.

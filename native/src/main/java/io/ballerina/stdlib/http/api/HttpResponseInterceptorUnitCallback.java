@@ -23,6 +23,7 @@ import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.types.ServiceType;
+import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
@@ -43,10 +44,12 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
     private final Environment environment;
     private final BObject requestCtx;
     private final DataContext dataContext;
+    private final boolean possibleLastInterceptor;
 
 
     public HttpResponseInterceptorUnitCallback(HttpCarbonMessage requestMessage, BObject caller, BObject response,
-                                               Environment env, DataContext dataContext, Runtime runtime) {
+                                               Environment env, DataContext dataContext, Runtime runtime,
+                                               boolean possibleLastInterceptor) {
         super(requestMessage, runtime);
         this.requestMessage = requestMessage;
         this.requestCtx = (BObject) requestMessage.getProperty(HttpConstants.REQUEST_CONTEXT);
@@ -54,6 +57,7 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
         this.response = response;
         this.environment = env;
         this.dataContext = dataContext;
+        this.possibleLastInterceptor = possibleLastInterceptor;
     }
 
     @Override
@@ -62,6 +66,9 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
             requestMessage.setHttpStatusCode(500);
             invokeErrorInterceptors((BError) result, true);
             return;
+        }
+        if (possibleLastInterceptor) {
+            cleanupRequestMessage();
         }
         validateResponseAndProceed(result);
     }
@@ -125,7 +132,7 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
     }
 
     private boolean isServiceType(Object result) {
-        return result instanceof BObject && ((BObject) result).getType() instanceof ServiceType;
+        return result instanceof BObject && TypeUtils.getType(result) instanceof ServiceType;
     }
 
     private void validateServiceReturnType(Object result, int interceptorId, BArray interceptors) {

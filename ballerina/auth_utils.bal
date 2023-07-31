@@ -15,7 +15,6 @@
 // under the License.
 
 import ballerina/log;
-import ballerina/regex;
 
 // Logs and prepares the `error` as an `http:ClientAuthError`.
 isolated function prepareClientAuthError(string message, error? err = ()) returns ClientAuthError {
@@ -49,14 +48,14 @@ isolated function buildCompleteErrorMessage(error err) returns string {
 // Extract the credential from `http:Request`, `http:Headers` or `string` header.
 isolated function extractCredential(Request|Headers|string data) returns string|ListenerAuthError {
     if data is string {
-        return regex:split(data, " ")[1];
+        return re`\s`.split(data)[1];
     } else {
         object {
             public isolated function getHeader(string headerName) returns string|HeaderNotFoundError;
         } headers = data;
         var header = headers.getHeader(AUTH_HEADER);
         if header is string {
-            return regex:split(header, " ")[1];
+            return re`\s`.split(header)[1];
         } else {
             return prepareListenerAuthError("Authorization header not available.", header);
         }
@@ -65,7 +64,7 @@ isolated function extractCredential(Request|Headers|string data) returns string|
 
 // Extract the scheme from `string` header.
 isolated function extractScheme(string header) returns string {
-    return regex:split(header, " ")[0];
+    return re`\s`.split(header)[0];
 }
 
 // Match the expectedScopes with actualScopes and return if there is a match.
@@ -107,5 +106,5 @@ isolated function convertToArray(string spaceSeperatedString) returns string[] {
     if spaceSeperatedString.length() == 0 {
         return [];
     }
-    return regex:split(spaceSeperatedString, " ");
+    return re`\s`.split(spaceSeperatedString);
 }

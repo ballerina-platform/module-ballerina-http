@@ -18,14 +18,12 @@
 
 package io.ballerina.stdlib.http.api.service.signature;
 
-import io.ballerina.runtime.api.TypeTags;
-import io.ballerina.runtime.api.types.IntersectionType;
 import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.Type;
-import io.ballerina.runtime.api.types.UnionType;
-import io.ballerina.stdlib.http.api.HttpUtil;
 
 import java.util.List;
+
+import static io.ballerina.stdlib.http.api.HttpConstants.HEADER_PARAM;
 
 /**
  * {@code {@link HeaderRecordParam }} represents a inbound request header record parameter details.
@@ -44,7 +42,7 @@ public class HeaderRecordParam extends HeaderParam {
         this.fields = fields.clone();
     }
 
-    public RecordType getType() {
+    public RecordType getOriginalType() {
         return (RecordType) this.type;
     }
 
@@ -57,57 +55,26 @@ public class HeaderRecordParam extends HeaderParam {
     }
 
     static class FieldParam {
-        private final Type type;
-        private final boolean readonly;
         private final boolean nilable;
+        private final int effectiveTypeTag;
+        private final boolean isArray;
 
         public FieldParam(Type fieldType) {
-            this.type = getEffectiveType(fieldType);
-            this.readonly = fieldType.isReadOnly();
             this.nilable = fieldType.isNilable();
-        }
-
-        Type getEffectiveType(Type paramType) {
-            if (paramType instanceof UnionType) {
-                List<Type> memberTypes = ((UnionType) paramType).getMemberTypes();
-                for (Type type : memberTypes) {
-                    if (type.getTag() == TypeTags.NULL_TAG) {
-                        continue;
-                    }
-                    return type;
-                }
-            } else if (paramType instanceof IntersectionType) {
-                // Assumes that the only intersection type is readonly
-                List<Type> memberTypes = ((IntersectionType) paramType).getConstituentTypes();
-                int size = memberTypes.size();
-                if (size > 2) {
-                    throw HttpUtil.createHttpError(
-                            "invalid header param type '" + paramType.getName() +
-                                    "': only readonly intersection is allowed");
-                }
-                for (Type type : memberTypes) {
-                    if (type.getTag() == TypeTags.READONLY_TAG) {
-                        continue;
-                    }
-                    if (type.getTag() == TypeTags.UNION_TAG) {
-                        return getEffectiveType(type);
-                    }
-                    return type;
-                }
-            }
-            return paramType;
-        }
-
-        public Type getType() {
-            return type;
-        }
-
-        public boolean isReadonly() {
-            return readonly;
+            this.effectiveTypeTag = ParamUtils.getEffectiveTypeTag(fieldType, fieldType, HEADER_PARAM);
+            this.isArray = ParamUtils.isArrayType(fieldType);
         }
 
         public boolean isNilable() {
             return nilable;
+        }
+
+        public int getEffectiveTypeTag() {
+            return effectiveTypeTag;
+        }
+
+        public boolean isArray() {
+            return isArray;
         }
     }
 }

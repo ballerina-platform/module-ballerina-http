@@ -71,7 +71,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static io.ballerina.stdlib.http.compiler.Constants.ANYDATA;
-import static io.ballerina.stdlib.http.compiler.Constants.ARRAY_OF_MAP_OF_JSON;
+import static io.ballerina.stdlib.http.compiler.Constants.ARRAY_OF_MAP_OF_ANYDATA;
 import static io.ballerina.stdlib.http.compiler.Constants.BOOLEAN;
 import static io.ballerina.stdlib.http.compiler.Constants.BOOLEAN_ARRAY;
 import static io.ballerina.stdlib.http.compiler.Constants.CALLER_ANNOTATION_NAME;
@@ -91,10 +91,21 @@ import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
 import static io.ballerina.stdlib.http.compiler.Constants.INT;
 import static io.ballerina.stdlib.http.compiler.Constants.INT_ARRAY;
 import static io.ballerina.stdlib.http.compiler.Constants.LINKED_TO;
-import static io.ballerina.stdlib.http.compiler.Constants.MAP_OF_JSON;
+import static io.ballerina.stdlib.http.compiler.Constants.MAP_OF_ANYDATA;
 import static io.ballerina.stdlib.http.compiler.Constants.METHOD;
 import static io.ballerina.stdlib.http.compiler.Constants.NAME;
-import static io.ballerina.stdlib.http.compiler.Constants.NIL;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_BOOLEAN;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_BOOLEAN_ARRAY;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_DECIMAL;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_DECIMAL_ARRAY;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_FLOAT;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_FLOAT_ARRAY;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_INT;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_INT_ARRAY;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_MAP_OF_ANYDATA;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_MAP_OF_ANYDATA_ARRAY;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_STRING;
+import static io.ballerina.stdlib.http.compiler.Constants.NILABLE_STRING_ARRAY;
 import static io.ballerina.stdlib.http.compiler.Constants.OBJECT;
 import static io.ballerina.stdlib.http.compiler.Constants.OPTIONS;
 import static io.ballerina.stdlib.http.compiler.Constants.PARAM;
@@ -342,7 +353,11 @@ public class HttpResourceValidator {
                     }
                 } else {
                     if (!analyzedParams.contains(param.hashCode())) {
-                        validateQueryParamType(ctx, paramLocation, paramName, typeSymbol, typeSymbols);
+                        if (!subtypeOf(typeSymbols, typeSymbol, ANYDATA)) {
+                            reportInvalidParameterType(ctx, paramLocation, paramType);
+                        } else {
+                            validateQueryParamType(ctx, paramLocation, paramName, typeSymbol, typeSymbols);
+                        }
                     }
                 }
                 continue;
@@ -461,9 +476,7 @@ public class HttpResourceValidator {
             ((PathSegmentList) path).pathParameters().forEach(param -> validatePathParam(ctx, typeSymbols, param));
 
             Optional<PathParameterSymbol> pathRestParam = ((PathSegmentList) path).pathRestParameter();
-            if (pathRestParam.isPresent()) {
-                validatePathParam(ctx, typeSymbols, pathRestParam.get());
-            }
+            pathRestParam.ifPresent(pathParameterSymbol -> validatePathParam(ctx, typeSymbols, pathParameterSymbol));
         }
     }
 
@@ -530,56 +543,98 @@ public class HttpResourceValidator {
     public static void validateHeaderParamType(SyntaxNodeAnalysisContext ctx, ParameterSymbol param,
                                                Location paramLocation, String paramName, TypeSymbol typeSymbol,
                                                Map<String, TypeSymbol> typeSymbols, boolean isRecordField) {
-        typeSymbol = getEffectiveTypeFromNilableSingletonType(typeSymbol, typeSymbols);
-        if (typeSymbol == null) {
+        if (isValidBasicParamType(typeSymbol, typeSymbols) || isValidNilableBasicParamType(typeSymbol, typeSymbols)) {
+            return;
+        }
+        RecordTypeSymbol recordTypeSymbol = getRecordTypeSymbol(typeSymbol);
+        if (!isRecordField && recordTypeSymbol != null) {
+            validateRecordFieldsOfHeaderParam(ctx, param, paramLocation, paramName, recordTypeSymbol, typeSymbols);
+            return;
+        }
+        if (isUnionType(typeSymbol)) {
             reportInvalidUnionHeaderType(ctx, paramLocation, paramName);
-            return;
-        }
-        if (isValidBasicParamType(typeSymbol, typeSymbols)) {
-            return;
-        }
-        typeSymbol = getEffectiveTypeFromTypeReference(typeSymbol);
-        TypeDescKind typeDescKind = typeSymbol.typeKind();
-        if (!isRecordField && typeDescKind == TypeDescKind.RECORD) {
-            validateRecordFieldsOfHeaderParam(ctx, param, paramLocation, paramName, typeSymbol, typeSymbols);
             return;
         }
         reportInvalidHeaderParameterType(ctx, paramLocation, paramName, param);
     }
 
-    private static boolean isNilableType(TypeSymbol typeSymbol, Map<String, TypeSymbol> typeSymbols) {
-        return subtypeOf(typeSymbols, typeSymbol, NIL);
+    private static boolean isMapOfAnydataType(TypeSymbol typeSymbol, Map<String, TypeSymbol> typeSymbols) {
+        return subtypeOf(typeSymbols, typeSymbol, MAP_OF_ANYDATA) ||
+                subtypeOf(typeSymbols, typeSymbol, NILABLE_MAP_OF_ANYDATA);
     }
 
-    private static boolean isMapOfJsonType(TypeSymbol typeSymbol, Map<String, TypeSymbol> typeSymbols) {
-        return subtypeOf(typeSymbols, typeSymbol, MAP_OF_JSON);
-    }
-
-    private static boolean isArrayOfMapOfJsonType(TypeSymbol typeSymbol, Map<String, TypeSymbol> typeSymbols) {
-        return subtypeOf(typeSymbols, typeSymbol, ARRAY_OF_MAP_OF_JSON);
+    private static boolean isArrayOfMapOfAnydataType(TypeSymbol typeSymbol, Map<String, TypeSymbol> typeSymbols) {
+        return subtypeOf(typeSymbols, typeSymbol, ARRAY_OF_MAP_OF_ANYDATA) ||
+                subtypeOf(typeSymbols, typeSymbol, NILABLE_MAP_OF_ANYDATA_ARRAY);
     }
 
     private static boolean isValidBasicQueryParameterType(TypeSymbol typeSymbol, Map<String, TypeSymbol> typeSymbols) {
-        return isValidBasicParamType(typeSymbol, typeSymbols) || isMapOfJsonType(typeSymbol, typeSymbols) ||
-                isArrayOfMapOfJsonType(typeSymbol, typeSymbols);
+        return isValidBasicParamType(typeSymbol, typeSymbols) || isValidNilableBasicParamType(typeSymbol, typeSymbols)
+                || isMapOfAnydataType(typeSymbol, typeSymbols) || isArrayOfMapOfAnydataType(typeSymbol, typeSymbols);
+
     }
 
     public static void validateQueryParamType(SyntaxNodeAnalysisContext ctx, Location paramLocation, String paramName,
                                               TypeSymbol typeSymbol, Map<String, TypeSymbol> typeSymbols) {
-        typeSymbol = getEffectiveTypeFromNilableSingletonType(typeSymbol, typeSymbols);
-        if (typeSymbol == null) {
-            reportInvalidUnionQueryType(ctx, paramLocation, paramName);
-            return;
-        }
         if (isValidBasicQueryParameterType(typeSymbol, typeSymbols)) {
             return;
         }
-        TypeDescKind typeDescKind = typeSymbol.typeKind();
-        if (typeDescKind == TypeDescKind.INTERSECTION) {
+        if (isUnionType(typeSymbol)) {
+            reportInvalidUnionQueryType(ctx, paramLocation, paramName);
+        } else if (isIntersectionType(typeSymbol)) {
             reportInvalidIntersectionType(ctx, paramLocation, paramName);
-            return;
+        } else {
+            reportInvalidQueryParameterType(ctx, paramLocation, paramName);
         }
-        reportInvalidQueryParameterType(ctx, paramLocation, paramName);
+    }
+
+    public static boolean isUnionType(TypeSymbol typeSymbol) {
+        if (typeSymbol.typeKind() == TypeDescKind.UNION) {
+            List<TypeSymbol> memberTypeSymbols = ((UnionTypeSymbol) typeSymbol).memberTypeDescriptors();
+            // Consider the union type as a valid type if all the member types are not nilable
+            return memberTypeSymbols.stream().allMatch(type -> type.typeKind() != TypeDescKind.NIL);
+        } else if (typeSymbol.typeKind() == TypeDescKind.TYPE_REFERENCE) {
+            return isUnionType(((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor());
+        }
+        return false;
+    }
+
+    public static boolean isIntersectionType(TypeSymbol typeSymbol) {
+        if (typeSymbol.typeKind() == TypeDescKind.INTERSECTION) {
+            return true;
+        } else if (typeSymbol.typeKind() == TypeDescKind.TYPE_REFERENCE) {
+            return isIntersectionType(((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor());
+        }
+        return false;
+    }
+
+    public static RecordTypeSymbol getRecordTypeSymbol(TypeSymbol typeSymbol) {
+        if (typeSymbol.typeKind() == TypeDescKind.RECORD) {
+            return (RecordTypeSymbol) typeSymbol;
+        } else if (typeSymbol.typeKind() == TypeDescKind.TYPE_REFERENCE) {
+            return getRecordTypeSymbol(((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor());
+        } else if (typeSymbol.typeKind() == TypeDescKind.INTERSECTION) {
+            // Only readonly record intersection types are supported
+            List<TypeSymbol> memberTypeSymbols = ((IntersectionTypeSymbol) typeSymbol).memberTypeDescriptors();
+            if (memberTypeSymbols.size() == 2) {
+                if (memberTypeSymbols.get(0).typeKind() == TypeDescKind.READONLY) {
+                    return getRecordTypeSymbol(memberTypeSymbols.get(1));
+                } else if (memberTypeSymbols.get(1).typeKind() == TypeDescKind.READONLY) {
+                    return getRecordTypeSymbol(memberTypeSymbols.get(0));
+                }
+            }
+        } else if (typeSymbol.typeKind() == TypeDescKind.UNION) {
+            // Only nilable record union types are supported
+            List<TypeSymbol> memberTypeSymbols = ((UnionTypeSymbol) typeSymbol).memberTypeDescriptors();
+            if (memberTypeSymbols.size() == 2) {
+                if (memberTypeSymbols.get(0).typeKind() == TypeDescKind.NIL) {
+                    return getRecordTypeSymbol(memberTypeSymbols.get(1));
+                } else if (memberTypeSymbols.get(1).typeKind() == TypeDescKind.NIL) {
+                    return getRecordTypeSymbol(memberTypeSymbols.get(0));
+                }
+            }
+        }
+        return null;
     }
 
     public static TypeSymbol getEffectiveType(TypeSymbol typeSymbol) {
@@ -611,6 +666,19 @@ public class HttpResourceValidator {
                 subtypeOf(typeSymbols, typeSymbol, BOOLEAN_ARRAY);
     }
 
+    public static boolean isValidNilableBasicParamType(TypeSymbol typeSymbol, Map<String, TypeSymbol> typeSymbols) {
+        return subtypeOf(typeSymbols, typeSymbol, NILABLE_STRING) ||
+                subtypeOf(typeSymbols, typeSymbol, NILABLE_INT) ||
+                subtypeOf(typeSymbols, typeSymbol, NILABLE_FLOAT) ||
+                subtypeOf(typeSymbols, typeSymbol, NILABLE_DECIMAL) ||
+                subtypeOf(typeSymbols, typeSymbol, NILABLE_BOOLEAN) ||
+                subtypeOf(typeSymbols, typeSymbol, NILABLE_STRING_ARRAY) ||
+                subtypeOf(typeSymbols, typeSymbol, NILABLE_INT_ARRAY) ||
+                subtypeOf(typeSymbols, typeSymbol, NILABLE_FLOAT_ARRAY) ||
+                subtypeOf(typeSymbols, typeSymbol, NILABLE_DECIMAL_ARRAY) ||
+                subtypeOf(typeSymbols, typeSymbol, NILABLE_BOOLEAN_ARRAY);
+    }
+
     private static void validateRecordFieldsOfHeaderParam(SyntaxNodeAnalysisContext ctx, ParameterSymbol param,
                                                           Location paramLocation, String paramName,
                                                           TypeSymbol typeSymbol, Map<String, TypeSymbol> typeSymbols) {
@@ -623,29 +691,6 @@ public class HttpResourceValidator {
             validateHeaderParamType(ctx, param, paramLocation, recordField.getName().orElse(paramName),
                     recordField.typeDescriptor(), typeSymbols, true);
         }
-    }
-
-    private static TypeSymbol getEffectiveTypeFromNilableSingletonType(TypeSymbol typeSymbol,
-                                                                       Map<String, TypeSymbol> typeSymbols) {
-        if (typeSymbol.typeKind() == TypeDescKind.INTERSECTION) {
-            typeSymbol = getEffectiveTypeFromReadonlyIntersection((IntersectionTypeSymbol) typeSymbol);
-        }
-        TypeDescKind typeDescKind = typeSymbol.typeKind();
-        if (typeDescKind == TypeDescKind.UNION) {
-            List<TypeSymbol> symbolList = ((UnionTypeSymbol) typeSymbol).userSpecifiedMemberTypes();
-            int size = symbolList.size();
-            if (size > 2) {
-                return null;
-            }
-            if (isNilableType(symbolList.get(0), typeSymbols)) {
-                typeSymbol = symbolList.get(1);
-            } else if (isNilableType(symbolList.get(1), typeSymbols)) {
-                typeSymbol = symbolList.get(0);
-            } else {
-                return null;
-            }
-        }
-        return typeSymbol;
     }
 
     private static void enableAddPayloadParamCodeAction(SyntaxNodeAnalysisContext ctx, Location location,

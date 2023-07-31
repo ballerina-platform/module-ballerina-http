@@ -48,8 +48,10 @@ public class HttpCallableUnitCallback implements Callback {
     private final BMap cacheConfig;
     private final HttpCarbonMessage requestMessage;
     private final BMap links;
+    private final boolean isLastService;
 
-    HttpCallableUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime, HttpResource resource) {
+    HttpCallableUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime, HttpResource resource,
+                             boolean isLastService) {
         this.requestMessage = requestMessage;
         this.runtime = runtime;
         this.returnMediaType = resource.getReturnMediaType();
@@ -57,6 +59,7 @@ public class HttpCallableUnitCallback implements Callback {
         this.links = resource.getLinks();
         String resourceAccessor = resource.getBalResource().getAccessor().toUpperCase(Locale.getDefault());
         this.caller = getCaller(requestMessage, resourceAccessor);
+        this.isLastService = isLastService;
     }
 
     HttpCallableUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime) {
@@ -66,6 +69,7 @@ public class HttpCallableUnitCallback implements Callback {
         this.cacheConfig = null;
         this.links = null;
         this.caller = getCaller(requestMessage, null);
+        this.isLastService = false;
     }
 
     public Runtime getRuntime() {
@@ -83,7 +87,6 @@ public class HttpCallableUnitCallback implements Callback {
 
     @Override
     public void notifySuccess(Object result) {
-        cleanupRequestMessage();
         if (alreadyResponded(result)) {
             stopObserverContext();
             return;
@@ -91,6 +94,9 @@ public class HttpCallableUnitCallback implements Callback {
         if (result instanceof BError) {
             invokeErrorInterceptors((BError) result, true);
             return;
+        }
+        if (isLastService) {
+            cleanupRequestMessage();
         }
         returnResponse(result);
     }
@@ -149,13 +155,13 @@ public class HttpCallableUnitCallback implements Callback {
 
     @Override
     public void notifyFailure(BError error) { // handles panic and check_panic
-        cleanupRequestMessage();
         // Allow the panics from internal authentication/authorization to be handled by the interceptors.
         if (error.getType().getName().equals(HttpErrorType.INTERNAL_LISTENER_AUTHN_ERROR.getErrorName())
                 || error.getType().getName().equals(HttpErrorType.INTERNAL_LISTENER_AUTHZ_ERROR.getErrorName())) {
             invokeErrorInterceptors(error, true);
             return;
         }
+        cleanupRequestMessage();
         sendFailureResponse(error);
         System.exit(1);
     }

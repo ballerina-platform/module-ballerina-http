@@ -17,8 +17,8 @@
 import ballerina/lang.'string as strings;
 import ballerina/url;
 import ballerina/mime;
-import ballerina/regex;
 import ballerina/test;
+import ballerina/time;
 
 public isolated function getHttp2Port(int port) returns int {
     return HTTP2_PORT_RANGE + port;
@@ -56,6 +56,19 @@ public isolated function assertJsonPayloadtoJsonString(json|error payload, json 
     }
 }
 
+public isolated function assertJsonErrorPayload(json payload, string message, string reason, int statusCode, string path, string method) returns error? {
+    test:assertEquals(payload.message, message);
+    test:assertEquals(payload.reason, reason);
+    test:assertEquals(payload.status, statusCode);
+    test:assertEquals(payload.path, path);
+    test:assertEquals(payload.method, method);
+    test:assertTrue(((check payload.timestamp).toString()).startsWith(time:utcToString(time:utcNow()).substring(0, 17)));
+}
+
+public isolated function assertJsonErrorPayloadPartialMessage(json payload, string message) returns error? {
+    test:assertTrue((check payload.message).toString().includes(message, 0));
+}
+
 public isolated function assertXmlPayload(xml|error payload, xml expectValue) {
     if payload is xml {
         test:assertEquals(payload, expectValue, msg = "Found unexpected output");
@@ -83,7 +96,7 @@ public isolated function assertTextPayload(string|error payload, string expectVa
 public isolated function assertUrlEncodedPayload(string payload, map<string> expectedValue) returns error? {
     map<string> retrievedPayload = {};
     string decodedPayload = check url:decode(payload, "UTF-8");
-    string[] entries = regex:split(decodedPayload, "&");
+    string[] entries = re`&`.split(decodedPayload);
     foreach string entry in entries {
         int? delimeterIdx = entry.indexOf("=");
         if delimeterIdx is int {
@@ -103,6 +116,18 @@ public isolated function assertTrueTextPayload(string|error payload, string expe
     } else {
         test:assertFail(msg = "Found unexpected output type: " + payload.message());
     }
+}
+
+public isolated function assertTrueTextPayloadWithMutipleOptions(string|error payload, string... expectedValues) {
+    if payload is string {
+        foreach var value in expectedValues {
+            if (strings:includes(payload, value)) {
+                return;
+            }
+        }
+        test:assertFail(msg = "Found unexpected output");
+    }
+    test:assertFail(msg = "Found unexpected output type: " + payload.message());
 }
 
 public isolated function assertHeaderValue(string headerKey, string expectValue) {

@@ -1036,11 +1036,12 @@ function testMultipleIntTypedRestParams() {
 }
 
 @test:Config {}
-function testMultipleNegativeRestParams() {
+function testMultipleNegativeRestParams() returns error? {
     http:Response|error response = utmClient->get("/restParam/int/12.3/4.56");
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        common:assertTextPayload(response.getTextPayload(), "error in casting path parameter : 'aaa'");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "error in casting path parameter : 'aaa'",
+            "Bad Request", 400, "/restParam/int/12.3/4.56", "GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

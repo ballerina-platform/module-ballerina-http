@@ -60,11 +60,12 @@ function testIdealQueryParamBindingWithQueryParamValue() {
 }
 
 @test:Config {}
-function testIdealQueryParamBindingWithoutQueryParam() {
+function testIdealQueryParamBindingWithoutQueryParam() returns error? {
     http:Response|error response = queryBindingIdealClient->get("/queryparamservice/test1?bar=56");
     if response is http:Response {
         test:assertEquals(response.statusCode, 400);
-        common:assertTextPayload(response.getTextPayload(), "no query param value found for 'foo'");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "no query param value found for 'foo'",
+            "Bad Request", 400, "/queryparamservice/test1?bar=56", "GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -72,18 +73,20 @@ function testIdealQueryParamBindingWithoutQueryParam() {
     response = queryBindingIdealClient->get("/queryparamservice/test2?bar=56");
     if response is http:Response {
         test:assertEquals(response.statusCode, 400);
-        common:assertTextPayload(response.getTextPayload(), "no query param value found for 'foo'");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "no query param value found for 'foo'",
+            "Bad Request", 400, "/queryparamservice/test2?bar=56", "GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
 @test:Config {}
-function testIdealQueryParamBindingWithNoQueryParamValue() {
+function testIdealQueryParamBindingWithNoQueryParamValue() returns error? {
     http:Response|error response = queryBindingIdealClient->get("/queryparamservice/test1?foo&bar=56");
     if response is http:Response {
         test:assertEquals(response.statusCode, 400);
-        common:assertTextPayload(response.getTextPayload(), "no query param value found for 'foo'");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "no query param value found for 'foo'",
+            "Bad Request", 400, "/queryparamservice/test1?foo&bar=56", "GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

@@ -197,6 +197,10 @@ public class ServerConnectorBootstrap {
         httpServerChannelInitializer.setWebSocketCompressionEnabled(webSocketCompressionEnabled);
     }
 
+    public void setHttp2InitialWindowSize(int http2InitialWindowSize) {
+        httpServerChannelInitializer.setHttp2InitialWindowSize(http2InitialWindowSize);
+    }
+
     public ChannelGroup getListenerChannels() {
         return listenerChannels;
     }

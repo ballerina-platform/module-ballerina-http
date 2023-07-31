@@ -221,24 +221,24 @@ service / on inResponseCachedPayloadBEListener {
 }
 
 @test:Config {}
-function testInRespGetJsonWhenAlreadyBuildBlobNegative() {
+function testInRespGetJsonWhenAlreadyBuildBlobNegative() returns error? {
     http:Response|error response = inRespCacheTestClient->get("/checkJson");
     if response is http:Response {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        common:assertTextPayload(response.getTextPayload(), "Error occurred while retrieving the json payload from " +
-            "the response");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "Error occurred while retrieving the json payload from the response",
+                "Internal Server Error", 500, "/checkJson", "GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
 @test:Config {}
-function testInRespGetXmlWhenAlreadyBuildBlobNegative() {
+function testInRespGetXmlWhenAlreadyBuildBlobNegative() returns error? {
     http:Response|error response = inRespCacheTestClient->get("/checkXml");
     if response is http:Response {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        common:assertTextPayload(response.getTextPayload(), "Error occurred while retrieving the xml payload from " +
-            "the response");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "Error occurred while retrieving the xml payload from the response",
+                "Internal Server Error", 500, "/checkXml", "GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

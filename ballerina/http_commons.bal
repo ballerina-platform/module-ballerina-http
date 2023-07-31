@@ -23,7 +23,6 @@ import ballerina/time;
 import ballerina/log;
 import ballerina/lang.'string as strings;
 import ballerina/url;
-import ballerina/regex;
 
 final boolean observabilityEnabled = observe:isObservabilityEnabled();
 
@@ -522,7 +521,7 @@ isolated function getFormDataMap(string formData) returns map<string>|ClientErro
     if strings:indexOf(decodedValue, "=") is () {
         return error ClientError("Datasource does not contain form data");
     }
-    string[] entries = regex:split(decodedValue, "&");
+    string[] entries = re`&`.split(decodedValue);
     foreach string entry in entries {
         int? index = entry.indexOf("=");
         if index is int && index != -1 {

@@ -20,8 +20,10 @@ package io.ballerina.stdlib.http.api;
 
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Module;
+import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.TypeTags;
+import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.Field;
@@ -42,6 +44,7 @@ import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BRefValue;
 import io.ballerina.runtime.api.values.BStreamingJson;
 import io.ballerina.runtime.api.values.BString;
+import io.ballerina.runtime.api.values.BValue;
 import io.ballerina.runtime.api.values.BXmlItem;
 import io.ballerina.runtime.api.values.BXmlSequence;
 import io.ballerina.runtime.observability.ObserveUtils;
@@ -114,6 +117,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
 import static io.ballerina.runtime.api.constants.RuntimeConstants.BALLERINA_VERSION;
@@ -129,6 +133,8 @@ import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_
 import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_PEER_ADDRESS;
 import static io.ballerina.stdlib.http.api.HttpConstants.ANN_CONFIG_ATTR_COMPRESSION_CONTENT_TYPES;
 import static io.ballerina.stdlib.http.api.HttpConstants.ANN_CONFIG_ATTR_SSL_ENABLED_PROTOCOLS;
+import static io.ballerina.stdlib.http.api.HttpConstants.CREATE_INTERCEPTORS_FUNCTION_NAME;
+import static io.ballerina.stdlib.http.api.HttpConstants.ENDPOINT_CONFIG_HTTP2_INITIAL_WINDOW_SIZE;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_HEADERS;
 import static io.ballerina.stdlib.http.api.HttpConstants.RESOLVED_REQUESTED_URI;
 import static io.ballerina.stdlib.http.api.HttpConstants.RESPONSE_CACHE_CONTROL;
@@ -577,7 +583,9 @@ public class HttpUtil {
                                      IOUtils.getIOPackage());
             return createHttpError("Something wrong with the connection", HttpErrorType.GENERIC_CLIENT_ERROR, cause);
         } else if (throwable instanceof ClientConnectorException) {
-            return HttpUtil.createHttpStatusCodeError(CLIENT_CONNECTOR_ERROR, "Something wrong with the connection");
+            cause = createErrorCause(throwable.getMessage(), IOConstants.ErrorCode.GenericError.errorCode(),
+                    IOUtils.getIOPackage());
+            return createHttpError("Something wrong with the connection", CLIENT_CONNECTOR_ERROR, cause);
         } else if (throwable instanceof NullPointerException) {
             return createHttpError("Exception occurred: null", HttpErrorType.GENERIC_CLIENT_ERROR,
                                    createHttpError(throwable.toString()));
@@ -606,7 +614,7 @@ public class HttpUtil {
 
     public static BError createHttpStatusCodeError(HttpErrorType errorType, String message, String body,
                                                    BError cause) {
-        BMap<BString, Object> detail = ValueCreator.createRecordValue(ModuleUtils.getHttpPackage(),
+        BMap<BString, Object> detail = ValueCreator.createRecordValue(ModuleUtils.getHttpStatusPackage(),
                 HttpConstants.ERROR_DETAIL_RECORD);
         if (body != null) {
             detail.put(HttpConstants.ERROR_DETAIL_BODY, fromString(body));
@@ -924,11 +932,11 @@ public class HttpUtil {
     }
 
     private static boolean isRequest(BObject value) {
-        return value.getType().getName().equals(HttpConstants.REQUEST);
+        return TypeUtils.getType(value).getName().equals(HttpConstants.REQUEST);
     }
 
     private static boolean isResponse(BObject value) {
-        return value.getType().getName().equals(HttpConstants.RESPONSE);
+        return TypeUtils.getType(value).getName().equals(HttpConstants.RESPONSE);
     }
 
     private static void addRemovedPropertiesBackToHeadersMap(BObject messageObj, HttpHeaders transportHeaders) {
@@ -1553,6 +1561,8 @@ public class HttpUtil {
         }
 
         listenerConfiguration.setPipeliningEnabled(true); //Pipelining is enabled all the time
+        listenerConfiguration.setHttp2InitialWindowSize(endpointConfig
+                .getIntValue(ENDPOINT_CONFIG_HTTP2_INITIAL_WINDOW_SIZE).intValue());
         return listenerConfiguration;
     }
 
@@ -1594,33 +1604,63 @@ public class HttpUtil {
     }
 
     public static void populateInterceptorServicesFromListener(BObject serviceEndpoint, Runtime runtime) {
-        Object[] interceptors = {};
-        List<BObject> interceptorServices = new ArrayList<>();
-        BArray interceptorsArray = serviceEndpoint.getArrayValue(HttpConstants.ENDPOINT_CONFIG_INTERCEPTORS);
-
-        if (interceptorsArray != null) {
-            interceptors = interceptorsArray.getValues();
-        }
-
-        for (Object interceptor: interceptors) {
-            if (interceptor == null) {
-                break;
+        final CountDownLatch latch = new CountDownLatch(1);
+        final BArray[] interceptorResponse = new BArray[1];
+        Callback interceptorCallback = new Callback() {
+            @Override
+            public void notifySuccess(Object result) {
+                if (result instanceof BArray) {
+                    interceptorResponse[0] = (BArray) result;
+                } else {
+                    ((BError) result).printStackTrace();
+                }
+                latch.countDown();
             }
-            interceptorServices.add((BObject) interceptor);
+            @Override
+            public void notifyFailure(BError bError) {
+                bError.printStackTrace();
+                System.exit(1);
+            }
+        };
+        runtime.invokeMethodAsyncSequentially(serviceEndpoint, CREATE_INTERCEPTORS_FUNCTION_NAME, null, null,
+                interceptorCallback, null, PredefinedTypes.TYPE_ANY, null, true);
+        try {
+            latch.await();
+        } catch (InterruptedException exception) {
+            log.warn("Interrupted before receiving the interceptor response");
         }
+        if (interceptorResponse[0] == null) {
+            return;
+        }
+        BObject interceptorService = (BObject) interceptorResponse[0].getValues()[0];
 
-        serviceEndpoint.addNativeData(HttpConstants.INTERCEPTORS, interceptorsArray);
-        Register.resetInterceptorRegistry(serviceEndpoint, interceptorServices.size());
+        serviceEndpoint.addNativeData(HttpConstants.INTERCEPTORS, interceptorResponse[0]);
+        Register.resetInterceptorRegistry(serviceEndpoint, 1);
         List<HTTPInterceptorServicesRegistry> httpInterceptorServicesRegistries
-                                                    = Register.getHttpInterceptorServicesRegistries(serviceEndpoint);
+                = Register.getHttpInterceptorServicesRegistries(serviceEndpoint);
 
-        // Registering all the interceptor services in separate service registries
-        for (int i = 0; i < interceptorServices.size(); i++) {
-            BObject interceptorService = interceptorServices.get(i);
-            HTTPInterceptorServicesRegistry servicesRegistry = httpInterceptorServicesRegistries.get(i);
-            servicesRegistry.setServicesType(HttpUtil.getInterceptorServiceType(interceptorService));
-            servicesRegistry.registerInterceptorService(interceptorService, HttpConstants.DEFAULT_BASE_PATH, true);
-            servicesRegistry.setRuntime(runtime);
+        HTTPInterceptorServicesRegistry servicesRegistry = httpInterceptorServicesRegistries.get(0);
+        servicesRegistry.setServicesType(HttpUtil.getInterceptorServiceType(interceptorService));
+        servicesRegistry.registerInterceptorService(interceptorService, HttpConstants.DEFAULT_BASE_PATH, true);
+        servicesRegistry.setRuntime(runtime);
+    }
+
+    public static void markPossibleLastInterceptors(HTTPServicesRegistry servicesRegistry) {
+        Map<String, HTTPServicesRegistry.ServicesMapHolder> servicesMapByHost = servicesRegistry.getServicesMapByHost();
+        for (HTTPServicesRegistry.ServicesMapHolder servicesMapHolder : servicesMapByHost.values()) {
+            Map<String, HttpService> servicesByBasePath = servicesMapHolder.getServicesByBasePath();
+            for (HttpService service : servicesByBasePath.values()) {
+                List<HTTPInterceptorServicesRegistry> interceptors = service.getInterceptorServicesRegistries();
+                for (HTTPInterceptorServicesRegistry interceptor : interceptors) {
+                    if (interceptor.getServicesType().equals(HttpConstants.RESPONSE_ERROR_INTERCEPTOR)) {
+                        interceptor.setPossibleLastInterceptor(true);
+                    } else if (interceptor.getServicesType().equals(HttpConstants.RESPONSE_INTERCEPTOR)) {
+                        interceptor.setPossibleLastInterceptor(true);
+                        servicesRegistry.setPossibleLastService(false);
+                        break;
+                    }
+                }
+            }
         }
     }
 
@@ -1843,7 +1883,7 @@ public class HttpUtil {
     }
 
     public static String getServiceName(BObject balService) {
-        String serviceTypeName = balService.getType().getName();
+        String serviceTypeName = ((BValue) balService).getType().getName();
         int serviceIndex = serviceTypeName.lastIndexOf("$$service$");
         return serviceTypeName.substring(0, serviceIndex);
     }
@@ -1874,7 +1914,7 @@ public class HttpUtil {
 
     public static String getInterceptorServiceType(BObject interceptorService) {
         String interceptorServiceType = null;
-        ObjectType objectType = (ObjectType) TypeUtils.getReferredType(interceptorService.getType());
+        ObjectType objectType = (ObjectType) TypeUtils.getReferredType(TypeUtils.getType(interceptorService));
         List<TypeId> typeIdList = objectType.getTypeIdSet().getIds();
         for (TypeId typeId : typeIdList) {
             switch (typeId.getName()) {
@@ -1915,7 +1955,7 @@ public class HttpUtil {
         return paramTypes;
     }
 
-    public static Type[] getCustomParameterTypes(FunctionType function) {
+    public static Type[] getOriginalParameterTypes(FunctionType function) {
         io.ballerina.runtime.api.types.Parameter[] params = function.getParameters();
         Type[] paramTypes = new Type[params.length];
         for (int i = 0; i < params.length; i++) {

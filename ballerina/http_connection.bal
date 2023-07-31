@@ -19,6 +19,7 @@ import ballerina/lang.value as val;
 import ballerina/lang.'string as strings;
 import ballerina/url;
 import ballerina/mime;
+import http.httpscerr;
 
 # The caller actions for responding to client requests.
 #
@@ -192,8 +193,20 @@ public isolated client class Caller {
     }
 
     private isolated function returnErrorResponse(error errorResponse, string? returnMediaType = ()) returns ListenerError? {
-        return nativeRespondError(self, getErrorResponse(errorResponse, returnMediaType), errorResponse);
+        error err = errorResponse;
+        if errorResponse is ClientConnectorError {
+            err = error httpscerr:BadGatewayError(getClientConnectorErrorCause(errorResponse));
+        }
+        return nativeRespondError(self, getErrorResponse(errorResponse, returnMediaType), err);
     }
+}
+
+isolated function getClientConnectorErrorCause(error err) returns string {
+    if err.cause() !is () {
+        error cause = <error>err.cause();
+        return string`${err.message()}: ${getClientConnectorErrorCause(cause)}`;
+    }
+    return err.message();
 }
 
 isolated function createStatusCodeResponse(StatusCodeResponse message, string? returnMediaType = (), boolean setETag = false, map<Link>? links = ())

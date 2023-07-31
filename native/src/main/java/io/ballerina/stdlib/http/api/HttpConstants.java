@@ -54,6 +54,7 @@ public class HttpConstants {
     public static final String DEFAULT_INTERFACE = "0.0.0.0:8080";
     public static final String DEFAULT_BASE_PATH = "/";
     public static final String DEFAULT_SUB_PATH = "/*";
+    public static final String QUERY_STRING_SEPARATOR = "\\?";
 
     public static final String PROTOCOL_HTTP = "http";
     public static final String HTTP_MOCK_SERVER_ENDPOINT_NAME = "Tballerina/http:MockListener;";
@@ -202,6 +203,7 @@ public class HttpConstants {
     public static final String QUERY_PARAM = "query";
     public static final String PAYLOAD_PARAM = "payload";
     public static final String HEADER_PARAM = "header";
+    public static final String PATH_PARAM = "path";
 
     /* Annotations */
     public static final String ANNOTATION_NAME_SOURCE = "Source";
@@ -394,6 +396,9 @@ public class HttpConstants {
     public static final BString JWT_INFORMATION = StringUtils.fromString("JWT_INFORMATION");
     public static final String JWT_DECODER_CLASS_NAME = "JwtDecoder";
     public static final String JWT_DECODE_METHOD_NAME = "decodeJwt";
+    public static final String LAST_INTERCEPTOR_TYPE = "LAST_INTERCEPTOR_TYPE";
+    public static final String INTERCEPTABLE_SERVICE = "InterceptableService";
+    public static final String CREATE_INTERCEPTORS_FUNCTION_NAME = "createInterceptors";
 
     //Service Endpoint
     public static final int SERVICE_ENDPOINT_NAME_INDEX = 0;
@@ -411,6 +416,8 @@ public class HttpConstants {
     public static final BString ENDPOINT_CONFIG_VERSION = StringUtils.fromString("httpVersion");
     public static final String ENDPOINT_REQUEST_LIMITS = "requestLimits";
     public static final BString ENDPOINT_CONFIG_GRACEFUL_STOP_TIMEOUT = StringUtils.fromString("gracefulStopTimeout");
+    public static final BString ENDPOINT_CONFIG_HTTP2_INITIAL_WINDOW_SIZE = StringUtils
+            .fromString("http2InitialWindowSize");
 
     public static final BString MAX_URI_LENGTH = StringUtils.fromString("maxUriLength");
     public static final BString MAX_STATUS_LINE_LENGTH = StringUtils.fromString("maxStatusLineLength");
@@ -482,6 +489,8 @@ public class HttpConstants {
     public static final BString HTTP2_SETTINGS = StringUtils.fromString("http2Settings");
     public static final BString REQUEST_LIMITS = StringUtils.fromString("requestLimits");
     public static final BString RESPONSE_LIMITS = StringUtils.fromString("responseLimits");
+    public static final BString CLIENT_EP_HTTP2_INITIAL_WINDOW_SIZE = StringUtils
+            .fromString("http2InitialWindowSize");
 
     //Connection Throttling field names
     public static final String CONNECTION_THROTTLING_STRUCT_REFERENCE = "connectionThrottling";

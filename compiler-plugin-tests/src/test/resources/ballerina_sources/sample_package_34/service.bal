@@ -17,6 +17,8 @@
 import ballerina/http;
 import ballerina/mime;
 
+class Query {}
+
 type Caller record {|
     int id;
 |};
@@ -103,15 +105,15 @@ service http:Service on new http:Listener(9090) {
         return "done";
     }
 
-    resource function get callerErr7(@http:Query string? b, @http:Query map<xml> a) returns string {
+    resource function get callerErr7(@http:Query string? b, @http:Query map<Query> a) returns string {
         return "done";
     }
 
-    resource function get callerErr8(@http:Query map<xml>[] b, @http:Query int[] c) returns string {
+    resource function get callerErr8(@http:Query map<Query>[] b, @http:Query int[] c) returns string {
         return "done";
     }
 
-    resource function get callerErr9(@http:Query map<xml>? c, @http:Query map<json> d) returns string {
+    resource function get callerErr9(@http:Query map<Query>? c, @http:Query map<json> d) returns string {
         return "done";
     }
 

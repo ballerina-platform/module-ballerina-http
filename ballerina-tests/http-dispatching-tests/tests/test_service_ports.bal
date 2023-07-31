@@ -31,3 +31,6 @@ const int headerParamBindingIdealTestPort = 9581;
 
 const int pathParamCheckTestPort = 9565;
 
+const int resourceParamBindingTestPort = 9566;
+const int resourceParamConstraintValidationTestPort = 9999;
+

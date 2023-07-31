@@ -18,91 +18,47 @@
 
 package io.ballerina.stdlib.http.api.service.signature;
 
-import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.types.Field;
-import io.ballerina.runtime.api.types.IntersectionType;
 import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.Type;
-import io.ballerina.runtime.api.types.UnionType;
-import io.ballerina.runtime.api.utils.TypeUtils;
+import io.ballerina.runtime.api.values.BError;
+import io.ballerina.stdlib.constraint.Constraints;
 import io.ballerina.stdlib.http.api.HttpUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static io.ballerina.runtime.api.TypeTags.RECORD_TYPE_TAG;
+import static io.ballerina.stdlib.http.api.HttpConstants.HEADER_PARAM;
+import static io.ballerina.stdlib.http.api.HttpErrorType.HEADER_VALIDATION_ERROR;
+
 /**
  * {@code {@link HeaderParam }} represents a inbound request header parameter details.
  *
  * @since sl-alpha3
  */
-public class HeaderParam {
+public class HeaderParam extends SignatureParam {
 
-    private final String token;
-    private boolean nilable;
-    private int index;
-    private Type type;
     private String headerName;
-    private boolean readonly;
     private HeaderRecordParam recordParam;
+    private boolean nilable;
 
     HeaderParam(String token) {
-        this.token = token;
+        super(token);
     }
 
-    public void init(Type type, int index) {
-        this.type = type;
-        this.index = index;
-        validateHeaderParamType(this.type);
+    public void initHeaderParam(Type originalType, int index, boolean requireConstraintValidation) {
+        init(originalType, index, requireConstraintValidation);
+        this.nilable = originalType.isNilable();
+        populateHeaderParamTypeTag(originalType);
     }
 
-    private void validateHeaderParamType(Type paramType) {
-
-        if (paramType.getTag() == TypeTags.TYPE_REFERENCED_TYPE_TAG) {
-            paramType = TypeUtils.getReferredType(paramType);
-        }
-
-        if (paramType instanceof UnionType) {
-            List<Type> memberTypes = ((UnionType) paramType).getMemberTypes();
-            this.nilable = true;
-            for (Type type : memberTypes) {
-                Type referredType =  TypeUtils.getReferredType(type);
-                if (referredType.getTag() == TypeTags.NULL_TAG) {
-                    continue;
-                }
-                if (referredType.getTag() == TypeTags.RECORD_TYPE_TAG) {
-                    validateHeaderParamType(type);
-                    return;
-                }
-                setType(type);
-                break;
-            }
-        } else if (paramType instanceof IntersectionType) {
-            // Assumes that the only intersection type is readonly
-            List<Type> memberTypes = ((IntersectionType) paramType).getConstituentTypes();
-            int size = memberTypes.size();
-            if (size > 2) {
-                throw HttpUtil.createHttpError(
-                        "invalid header param type '" + paramType.getName() +
-                                "': only readonly intersection is allowed");
-            }
-            this.readonly = true;
-            for (Type type : memberTypes) {
-                Type referredType =  TypeUtils.getReferredType(type);
-
-                if (referredType.getTag() == TypeTags.READONLY_TAG) {
-                    continue;
-                }
-                if (referredType.getTag() == TypeTags.UNION_TAG || referredType.getTag() == TypeTags.RECORD_TYPE_TAG) {
-                    validateHeaderParamType(type);
-                    return;
-                }
-                setType(type);
-                break;
-            }
-        } else if (paramType instanceof RecordType) {
-            this.type = paramType;
-            Map<String, Field> recordFields = ((RecordType) paramType).getFields();
+    private void populateHeaderParamTypeTag(Type type) {
+        RecordType headerRecordType = ParamUtils.getRecordType(type);
+        if (headerRecordType != null) {
+            setEffectiveTypeTag(RECORD_TYPE_TAG);
+            Map<String, Field> recordFields = headerRecordType.getFields();
             List<String> keys = new ArrayList<>();
             HeaderRecordParam.FieldParam[] fields = new HeaderRecordParam.FieldParam[recordFields.size()];
             int i = 0;
@@ -110,30 +66,15 @@ public class HeaderParam {
                 keys.add(field.getKey());
                 fields[i++] = new HeaderRecordParam.FieldParam(field.getValue().getFieldType());
             }
-            this.recordParam = new HeaderRecordParam(this.token, this.type, keys, fields);
+            this.recordParam = new HeaderRecordParam(getToken(), headerRecordType, keys, fields);
         } else {
-            setType(paramType);
+            setEffectiveTypeTag(ParamUtils.getEffectiveTypeTag(getOriginalType(), getOriginalType(), HEADER_PARAM));
+            setArray(ParamUtils.isArrayType(getOriginalType()));
         }
-    }
-
-    public Type getType() {
-        return this.type;
-    }
-
-    private void setType(Type type) {
-        this.type = type;
-    }
-
-    public String getToken() {
-        return this.token;
     }
 
     public boolean isNilable() {
         return this.nilable;
-    }
-
-    public int getIndex() {
-        return this.index * 2;
     }
 
     public String getHeaderName() {
@@ -144,15 +85,22 @@ public class HeaderParam {
         this.headerName = headerName;
     }
 
-    public boolean isReadonly() {
-        return this.readonly;
-    }
-
     public HeaderRecordParam getRecordParam() {
         return this.recordParam;
     }
 
     public boolean isRecord() {
         return getRecordParam() != null;
+    }
+
+    public Object validateConstraints(Object headerValue) {
+        if (requireConstraintValidation()) {
+            Object result = Constraints.validateAfterTypeConversion(headerValue, getOriginalType());
+            if (result instanceof BError) {
+                String message = "header validation failed: " + HttpUtil.getPrintableErrorMsg((BError) result);
+                throw HttpUtil.createHttpStatusCodeError(HEADER_VALIDATION_ERROR, message);
+            }
+        }
+        return headerValue;
     }
 }

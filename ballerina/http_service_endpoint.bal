@@ -23,7 +23,6 @@ public isolated class Listener {
 
     private int port;
     private InferredListenerConfiguration inferredConfig;
-    private Interceptor[] interceptors;
 
     # Gets invoked during module initialization to initialize the listener.
     #
@@ -40,16 +39,13 @@ public isolated class Listener {
             server: config.server,
             requestLimits: config.requestLimits
         };
-        self.interceptors = [new DefaultErrorInterceptor()];
-        Interceptor[]? interceptors = config.interceptors;
-        if interceptors is Interceptor[] {
-            foreach Interceptor interceptor in interceptors {
-                self.interceptors.push(interceptor);
-            }
-        }
         self.inferredConfig = inferredListenerConfig.cloneReadOnly();
         self.port = port;
         return externInitEndpoint(self, config);
+    }
+
+    isolated function createInterceptors() returns Interceptor[] {
+        return [new DefaultErrorInterceptor()];
     }
 
     # Starts the registered service programmatically.
@@ -149,9 +145,9 @@ public type Local record {|
 #                   disable timeout
 # + server - The server name which should appear as a response header
 # + requestLimits - Configurations associated with inbound request size limits
-# + interceptors - An array of interceptor services
 # + gracefulStopTimeout - Grace period of time in seconds for listener gracefulStop
 # + socketConfig - Provides settings related to server socket configuration
+# + http2InitialWindowSize - Configuration to change the initial window size in HTTP/2
 public type ListenerConfiguration record {|
     string host = "0.0.0.0";
     ListenerHttp1Settings http1Settings = {};
@@ -160,9 +156,9 @@ public type ListenerConfiguration record {|
     decimal timeout = DEFAULT_LISTENER_TIMEOUT;
     string? server = ();
     RequestLimitConfigs requestLimits = {};
-    Interceptor[] interceptors?;
     decimal gracefulStopTimeout = DEFAULT_GRACEFULSTOP_TIMEOUT;
     ServerSocketConfig socketConfig = {};
+    int http2InitialWindowSize = 65535;
 |};
 
 # Provides a set of cloneable configurations for HTTP listener.
@@ -201,7 +197,8 @@ public type ListenerHttp1Settings record {|
 # Provides inbound request URI, total header and entity body size threshold configurations.
 #
 # + maxUriLength - Maximum allowed length for a URI. Exceeding this limit will result in a `414 - URI Too Long`
-#                  response
+#                  response. For HTTP/2, this limit will not be applicable as it already has a `:path`
+#                  pseudo-header which will be validated by `maxHeaderSize`
 # + maxHeaderSize - Maximum allowed size for headers. Exceeding this limit will result in a
 #                   `431 - Request Header Fields Too Large` response
 # + maxEntityBodySize - Maximum allowed size for the entity body. By default it is set to -1 which means there

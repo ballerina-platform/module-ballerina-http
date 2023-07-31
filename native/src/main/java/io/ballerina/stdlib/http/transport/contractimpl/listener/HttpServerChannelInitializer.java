@@ -108,6 +108,7 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
     private long pipeliningLimit;
     private EventExecutorGroup pipeliningGroup;
     private boolean webSocketCompressionEnabled;
+    private int http2InitialWindowSize;
 
     @Override
     public void initChannel(SocketChannel ch) throws Exception {
@@ -253,7 +254,8 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
     private void configureH2cPipeline(ChannelPipeline pipeline) {
         // Add handler to handle http2 requests without an upgrade
         pipeline.addLast(new Http2WithPriorKnowledgeHandler(
-                interfaceId, serverName, serverConnectorFuture, this, allChannels, listenerChannels));
+                interfaceId, serverName, serverConnectorFuture, this, allChannels, listenerChannels,
+                reqSizeValidationConfig.getMaxHeaderSize(), http2InitialWindowSize));
         // Add http2 upgrade decoder and upgrade handler
         final HttpServerCodec sourceCodec = new HttpServerCodec(reqSizeValidationConfig.getMaxInitialLineLength(),
                                                                 reqSizeValidationConfig.getMaxHeaderSize(),
@@ -275,7 +277,8 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
                         Constants.HTTP2_SOURCE_CONNECTION_HANDLER,
                         new Http2SourceConnectionHandlerBuilder(
                                 interfaceId, serverConnectorFuture, serverName, this,
-                                this.allChannels, this.listenerChannels).build());
+                                this.allChannels, this.listenerChannels, reqSizeValidationConfig.getMaxHeaderSize(),
+                                this.http2InitialWindowSize).build());
             } else {
                 return null;
             }
@@ -343,6 +346,10 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
 
     void setReqSizeValidationConfig(InboundMsgSizeValidationConfig reqSizeValidationConfig) {
         this.reqSizeValidationConfig = reqSizeValidationConfig;
+    }
+
+    void setHttp2InitialWindowSize(int http2InitialWindowSize) {
+        this.http2InitialWindowSize = http2InitialWindowSize;
     }
 
     public void setChunkingConfig(ChunkConfig chunkConfig) {
@@ -424,7 +431,8 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
                         Constants.HTTP2_SOURCE_CONNECTION_HANDLER,
                         new Http2SourceConnectionHandlerBuilder(
                                 interfaceId, serverConnectorFuture, serverName, channelInitializer,
-                                allChannels, listenerChannels).build());
+                                allChannels, listenerChannels, reqSizeValidationConfig.getMaxHeaderSize(),
+                                http2InitialWindowSize).build());
             } else if (ApplicationProtocolNames.HTTP_1_1.equals(protocol)) {
                 // handles pipeline for HTTP/1.x requests after SSL handshake
                 configureHttpPipeline(ctx.pipeline(), Constants.HTTP_SCHEME);

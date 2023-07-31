@@ -29,6 +29,7 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -70,7 +71,7 @@ public class URIUtil {
             List<String> values = new ArrayList<>();
             Set<String> uniqueValues = new HashSet<>();
             for (String val : queryParamValue.split(",")) {
-                String decodedValue = URLDecoder.decode(val, "UTF-8");
+                String decodedValue = URLDecoder.decode(val, StandardCharsets.UTF_8);
                 if (uniqueValues.add(decodedValue)) {
                     values.add(decodedValue);
                 }

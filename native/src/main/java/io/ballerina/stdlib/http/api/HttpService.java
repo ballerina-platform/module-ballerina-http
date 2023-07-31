@@ -19,6 +19,7 @@ package io.ballerina.stdlib.http.api;
 
 import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.Runtime;
+import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.flags.SymbolFlags;
@@ -29,6 +30,7 @@ import io.ballerina.runtime.api.types.ServiceType;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BArray;
+import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
@@ -47,11 +49,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static io.ballerina.runtime.api.utils.StringUtils.fromString;
+import static io.ballerina.stdlib.http.api.HttpConstants.CREATE_INTERCEPTORS_FUNCTION_NAME;
 import static io.ballerina.stdlib.http.api.HttpConstants.DEFAULT_BASE_PATH;
+import static io.ballerina.stdlib.http.api.HttpConstants.INTERCEPTABLE_SERVICE;
 import static io.ballerina.stdlib.http.api.HttpErrorType.GENERIC_LISTENER_ERROR;
 import static io.ballerina.stdlib.http.api.HttpUtil.checkConfigAnnotationAvailability;
 import static io.ballerina.stdlib.http.api.HttpUtil.getMediaTypeWithPrefix;
@@ -133,7 +138,7 @@ public class HttpService implements Service {
     }
 
     public String getPackage() {
-        return balService.getType().getPackage().getName();
+        return TypeUtils.getType(balService).getPackage().getName();
     }
 
     public BObject getBalService() {
@@ -256,7 +261,8 @@ public class HttpService implements Service {
 
     private static void processResources(HttpService httpService) {
         List<HttpResource> httpResources = new ArrayList<>();
-        for (MethodType resource : ((ServiceType) httpService.getBalService().getType()).getResourceMethods()) {
+        for (MethodType resource : ((ServiceType) TypeUtils.getType(
+                httpService.getBalService())).getResourceMethods()) {
             if (!SymbolFlags.isFlagOn(resource.getFlags(), SymbolFlags.RESOURCE)) {
                 continue;
             }
@@ -395,7 +401,7 @@ public class HttpService implements Service {
     protected static BMap getServiceConfigAnnotation(BObject service, String packagePath,
                                                      String annotationName) {
         String key = packagePath.replaceAll(HttpConstants.REGEX, HttpConstants.SINGLE_SLASH);
-        return (BMap) ((ObjectType) TypeUtils.getReferredType(service.getType())).getAnnotation(
+        return (BMap) ((ObjectType) TypeUtils.getReferredType(TypeUtils.getType(service))).getAnnotation(
                 fromString(key + ":" + annotationName));
     }
 
@@ -431,15 +437,49 @@ public class HttpService implements Service {
             interceptorServicesRegistries.add(servicesRegistry);
         }
 
-        BMap serviceConfig = getHttpServiceConfigAnnotation(service.getBalService());
-        if (Objects.isNull(serviceConfig)) {
-            service.setInterceptorServicesRegistries(interceptorServicesRegistries);
-            service.setBalInterceptorServicesArray(interceptorsArrayFromListener);
-            return;
-        }
+        ServiceType balServiceType = (ServiceType) service.getBalService().getOriginalType();
+        boolean includesInterceptableService = balServiceType.getTypeIdSet().getIds().stream()
+                .anyMatch(typeId -> typeId.getName().equals(INTERCEPTABLE_SERVICE));
+        BArray interceptorsArrayFromService;
+        if (includesInterceptableService) {
+            final Object[] createdInterceptors = new Object[1];
+            CountDownLatch latch = new CountDownLatch(1);
+            runtime.invokeMethodAsyncConcurrently(service.getBalService(), CREATE_INTERCEPTORS_FUNCTION_NAME, null,
+                    null, new Callback() {
+                @Override
+                public void notifySuccess(Object response) {
+                    if (response instanceof BError) {
+                        log.error("Error occurred while creating interceptors", response);
+                    } else {
+                        createdInterceptors[0] = response;
+                    }
+                    latch.countDown();
+                }
 
-        BArray interceptorsArrayFromService = serviceConfig.getArrayValue(HttpConstants.ANN_INTERCEPTORS);
-        if (Objects.isNull(interceptorsArrayFromService)) {
+                @Override
+                public void notifyFailure(BError bError) {
+                    bError.printStackTrace();
+                    System.exit(1);
+                }
+            }, null, PredefinedTypes.TYPE_ANY);
+            try {
+                latch.await();
+            } catch (InterruptedException exception) {
+                log.warn("Interrupted before getting the return type");
+            }
+
+            if (Objects.isNull(createdInterceptors[0]) || (createdInterceptors[0] instanceof BArray &&
+                    ((BArray) createdInterceptors[0]).size() == 0)) {
+                service.setInterceptorServicesRegistries(interceptorServicesRegistries);
+                service.setBalInterceptorServicesArray(interceptorsArrayFromListener);
+                return;
+            } else if (createdInterceptors[0] instanceof BArray) {
+                interceptorsArrayFromService = (BArray) createdInterceptors[0];
+            } else {
+                interceptorsArrayFromService = ValueCreator.createArrayValue(createdInterceptors,
+                        TypeCreator.createArrayType(((BObject) createdInterceptors[0]).getOriginalType()));
+            }
+        } else {
             service.setInterceptorServicesRegistries(interceptorServicesRegistries);
             service.setBalInterceptorServicesArray(interceptorsArrayFromListener);
             return;
@@ -448,6 +488,9 @@ public class HttpService implements Service {
         Object[] interceptors = interceptorsArrayFromService.getValues();
         List<Object> interceptorServices = new ArrayList<>();
         for (Object interceptor: interceptors) {
+            if (Objects.isNull(interceptor)) {
+                break;
+            }
             interceptorServices.add(interceptor);
         }
 
@@ -478,6 +521,9 @@ public class HttpService implements Service {
                 interceptorsArray.append(interceptor);
             }
             for (Object interceptor : fromService.getValues()) {
+                if (Objects.isNull(interceptor)) {
+                    break;
+                }
                 interceptorsArray.append(interceptor);
             }
             service.setBalInterceptorServicesArray(interceptorsArray);

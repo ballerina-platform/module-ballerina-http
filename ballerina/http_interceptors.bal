@@ -36,6 +36,16 @@ public type ResponseErrorInterceptor distinct service object {
 
 };
 
+# The service type to be used when engaging interceptors at the service level
+public type InterceptableService distinct service object {
+    *Service;
+
+    # Function to define interceptor pipeline
+    #
+    # + return - The `http:Interceptor|http:Interceptor[]`
+    public function createInterceptors() returns Interceptor|Interceptor[];
+};
+
 # The return type of an interceptor service function
 public type NextService RequestInterceptor|ResponseInterceptor|Service;
 
@@ -46,8 +56,8 @@ public type Interceptor RequestInterceptor|ResponseInterceptor|RequestErrorInter
 service class DefaultErrorInterceptor {
     *ResponseErrorInterceptor;
 
-    remote function interceptResponseError(error err) returns Response {
-        return getErrorResponse(err);
+    remote function interceptResponseError(error err, Request request) returns Response {
+        return getErrorResponseForInterceptor(err, request);
     }
 }
 

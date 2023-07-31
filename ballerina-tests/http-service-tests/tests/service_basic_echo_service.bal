@@ -179,22 +179,22 @@ function testServiceDispatching() {
 }
 
 @test:Config {}
-function testMostSpecificBasePathIdentificationWithDuplicatedPath() {
+function testMostSpecificBasePathIdentificationWithDuplicatedPath() returns error? {
     http:Response|error response = stClient->get("/echo/message/echo/message");
     if response is http:Response {
-        common:assertTextPayload(response.getTextPayload(),
-                "no matching resource found for path : /echo/message/echo/message , method : GET");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "no matching resource found for path",
+                "Not Found", 404, "/echo/message/echo/message", "GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
 @test:Config {}
-function testMostSpecificBasePathIdentificationWithUnmatchedBasePath() {
+function testMostSpecificBasePathIdentificationWithUnmatchedBasePath() returns error? {
     http:Response|error response = stClient->get("/abcd/message/echo/message");
     if response is http:Response {
-        common:assertTextPayload(response.getTextPayload(),
-                "no matching service found for path : /abcd/message/echo/message");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "no matching service found for path",
+                "Not Found", 404, "/abcd/message/echo/message", "GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -211,22 +211,22 @@ function testServiceDispatchingWithWorker() {
 }
 
 @test:Config {}
-function testServiceAvailabilityCheck() {
+function testServiceAvailabilityCheck() returns error? {
     http:Response|error response = stClient->get("/foo/message");
     if response is http:Response {
-        common:assertTextPayload(response.getTextPayload(),
-                "no matching service found for path : /foo/message");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "no matching service found for path",
+                "Not Found", 404, "/foo/message", "GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
 @test:Config {}
-function testResourceAvailabilityCheck() {
+function testResourceAvailabilityCheck() returns error? {
     http:Response|error response = stClient->get("/echo/bar");
     if response is http:Response {
-        common:assertTextPayload(response.getTextPayload(),
-                "no matching resource found for path : /echo/bar , method : GET");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "no matching resource found for path",
+                "Not Found", 404, "/echo/bar", "GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -386,14 +386,14 @@ function testNonRemoteFunctionInvocation() {
 }
 
 @test:Config {}
-function testErrorReturn() {
+function testErrorReturn() returns error? {
     http:Request req = new;
     req.setTextPayload("name:WSO2eam:ballerina");
     http:Response|error response = stClient->post("/echo/parseJSON", req);
     if response is http:Response {
         test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
-        common:assertTextPayload(response.getTextPayload(),
-            "Error occurred while retrieving the json payload from the request");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "Error occurred while retrieving the json payload from the request",
+                "Internal Server Error", 500, "/echo/parseJSON", "POST");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

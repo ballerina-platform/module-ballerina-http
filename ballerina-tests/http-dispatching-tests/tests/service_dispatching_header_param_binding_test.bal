@@ -331,24 +331,26 @@ function testHeaderBindingCaseInSensitivity() {
 }
 
 @test:Config {}
-function testHeaderUnavailability() {
+function testHeaderUnavailability() returns error? {
     http:Response|error response = headerBindingClient->get("/headerparamservice/?foo=WSO2&bar=56");
     if response is http:Response {
         test:assertEquals(response.statusCode, 400);
-        common:assertTextPayload(response.getTextPayload(), "no header value found for 'foo'");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "no header value found for 'foo'",
+            "Bad Request", 400, "/headerparamservice/?foo=WSO2&bar=56", "GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
 @test:Config {}
-function testHeaderArrayUnavailability() {
+function testHeaderArrayUnavailability() returns error? {
     http:Request req = new;
     req.setTextPayload("All in one");
     http:Response|error response = headerBindingClient->post("/headerparamservice/q1/hello?b=hi", req);
     if response is http:Response {
         test:assertEquals(response.statusCode, 400);
-        common:assertTextPayload(response.getTextPayload(), "no header value found for 'foo'");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "no header value found for 'foo'",
+            "Bad Request", 400, "/headerparamservice/q1/hello?b=hi", "POST");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -495,7 +497,8 @@ function testHeaderRecordParamWithCastingError() returns error? {
         "x-rate-limit-types": ["weweq", "fefw"]
     });
     test:assertEquals(response.statusCode, 400);
-    common:assertTextPayload(response.getTextPayload(), "header binding failed for parameter: 'x-rate-limit-remaining'");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "header binding failed for parameter: 'x-rate-limit-remaining'",
+        "Bad Request", 400, "/headerRecord/rateLimitHeaders", "GET");
 }
 
 @test:Config {}
@@ -548,8 +551,9 @@ function testHeaderRecordParamOfPureTypeHeadersNegative() returns error? {
     });
     if response is http:ClientRequestError {
         test:assertEquals(response.detail().statusCode, 400, msg = "Found unexpected output");
-        common:assertErrorHeaderValue(response.detail().headers[common:CONTENT_TYPE], common:TEXT_PLAIN);
-        test:assertEquals(response.detail().body, "no header value found for 'did'", msg = "Found unexpected output");
+        common:assertErrorHeaderValue(response.detail().headers[common:CONTENT_TYPE], common:APPLICATION_JSON);
+        check common:assertJsonErrorPayload(<json>response.detail().body, "no header value found for 'did'",
+            "Bad Request", 400, "/headerRecord/ofPureTypeHeaders", "GET");
     } else {
         test:assertFail(msg = "Found unexpected output type");
     }
@@ -669,7 +673,7 @@ function testHeaderRecordOfPureTypeHeaders() returns error? {
 }
 
 @test:Config {}
-function testHeaderRecordOfPureTypeHeadersNegative() {
+function testHeaderRecordOfPureTypeHeadersNegative() returns error? {
     json|error response = headerBindingClient->get("/headerRecord/ofOtherPureHeaders",
         {
         "sid": "dwqfec",
@@ -680,8 +684,9 @@ function testHeaderRecordOfPureTypeHeadersNegative() {
     });
     if response is http:ClientRequestError {
         test:assertEquals(response.detail().statusCode, 400, msg = "Found unexpected output");
-        common:assertErrorHeaderValue(response.detail().headers[common:CONTENT_TYPE], common:TEXT_PLAIN);
-        test:assertEquals(response.detail().body, "no header value found for 'did'", msg = "Found unexpected output");
+        common:assertErrorHeaderValue(response.detail().headers[common:CONTENT_TYPE], common:APPLICATION_JSON);
+        check common:assertJsonErrorPayload(<json>response.detail().body, "no header value found for 'did'",
+            "Bad Request", 400, "/headerRecord/ofOtherPureHeaders", "GET");
     } else {
         test:assertFail(msg = "Found unexpected output type");
     }
@@ -728,32 +733,38 @@ function testHeaderParamsCastingError() returns error? {
     http:Response response = check headerBindingClient->get("/headerRecord/ofOtherNilableHeaders",
         {"iid": "hello"});
     test:assertEquals(response.statusCode, 400);
-    common:assertTextPayload(response.getTextPayload(), "header binding failed for parameter: 'iid'");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "header binding failed for parameter: 'iid'",
+        "Bad Request", 400, "/headerRecord/ofOtherNilableHeaders", "GET");
 
     response = check headerBindingClient->get("/headerRecord/ofOtherNilableHeaders",
         {"fid": "hello"});
     test:assertEquals(response.statusCode, 400);
-    common:assertTextPayload(response.getTextPayload(), "header binding failed for parameter: 'fid'");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "header binding failed for parameter: 'fid'",
+        "Bad Request", 400, "/headerRecord/ofOtherNilableHeaders", "GET");
 
     response = check headerBindingClient->get("/headerRecord/ofOtherNilableHeaders",
         {"did": "hello"});
     test:assertEquals(response.statusCode, 400);
-    common:assertTextPayload(response.getTextPayload(), "header binding failed for parameter: 'did'");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "header binding failed for parameter: 'did'",
+        "Bad Request", 400, "/headerRecord/ofOtherNilableHeaders", "GET");
 
     response = check headerBindingClient->get("/headerRecord/ofOtherNilableHeaders",
         {"iaid": ["3", "5", "8", "hello"]});
     test:assertEquals(response.statusCode, 400);
-    common:assertTextPayload(response.getTextPayload(), "header binding failed for parameter: 'iaid'");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "header binding failed for parameter: 'iaid'",
+        "Bad Request", 400, "/headerRecord/ofOtherNilableHeaders", "GET");
 
     response = check headerBindingClient->get("/headerRecord/ofOtherNilableHeaders",
         {"faid": ["3.445", "hello", "5.667", "8.206"]});
     test:assertEquals(response.statusCode, 400);
-    common:assertTextPayload(response.getTextPayload(), "header binding failed for parameter: 'faid'");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "header binding failed for parameter: 'faid'",
+        "Bad Request", 400, "/headerRecord/ofOtherNilableHeaders", "GET");
 
     response = check headerBindingClient->get("/headerRecord/ofOtherNilableHeaders",
         {"daid": ["3.4", "5.6", "hello", "8"]});
     test:assertEquals(response.statusCode, 400);
-    common:assertTextPayload(response.getTextPayload(), "header binding failed for parameter: 'daid'");
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "header binding failed for parameter: 'daid'",
+        "Bad Request", 400, "/headerRecord/ofOtherNilableHeaders", "GET");
 }
 
 @test:Config {}

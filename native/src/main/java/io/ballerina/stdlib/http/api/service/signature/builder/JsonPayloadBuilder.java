@@ -19,14 +19,12 @@
 package io.ballerina.stdlib.http.api.service.signature.builder;
 
 import io.ballerina.runtime.api.TypeTags;
-import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.Type;
-import io.ballerina.runtime.api.values.BError;
+import io.ballerina.runtime.api.utils.ValueUtils;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BRefValue;
 import io.ballerina.stdlib.http.api.service.signature.converter.JsonToRecordConverter;
 import io.ballerina.stdlib.mime.util.EntityBodyHandler;
-import org.ballerinalang.langlib.value.FromJsonWithType;
 
 /**
  * The json type payload builder.
@@ -47,12 +45,9 @@ public class JsonPayloadBuilder extends AbstractPayloadBuilder {
         if (isSubtypeOfAllowedType(payloadType, TypeTags.RECORD_TYPE_TAG)) {
             return JsonToRecordConverter.convert(payloadType, entity, readonly);
         }
-        Object bjson = EntityBodyHandler.constructJsonDataSource(entity);
-        EntityBodyHandler.addJsonMessageDataSource(entity, bjson);
-        var result = FromJsonWithType.fromJsonWithType(bjson, ValueCreator.createTypedescValue(payloadType));
-        if (result instanceof BError) {
-            throw (BError) result;
-        }
+        Object bJson = EntityBodyHandler.constructJsonDataSource(entity);
+        EntityBodyHandler.addJsonMessageDataSource(entity, bJson);
+        Object result = ValueUtils.convert(bJson, payloadType);
         if (readonly && result instanceof BRefValue) {
             ((BRefValue) result).freezeDirect();
         }

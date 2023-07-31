@@ -5,7 +5,54 @@ This file contains all the notable changes done to the Ballerina HTTP package th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to 
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## Unreleased
+
+### Fixed
+
+- [Fix exception when return type of `createInterceptors` function is an array type](https://github.com/ballerina-platform/ballerina-standard-library/issues/4649)
+
+### Added
+
+- [Add open record support for query parameters](https://github.com/ballerina-platform/ballerina-standard-library/issues/4541)
+
+### Changed
+
+- [Remove interceptor configuration from `http:ListenerConfiguration` and `http:ServiceConfig`](https://github.com/ballerina-platform/ballerina-standard-library/issues/4680)
+
+## [2.9.0] - 2023-06-30
+
+### Added
+
+- [Add query,header and path parameter runtime support for Ballerina builtin types](https://github.com/ballerina-platform/ballerina-standard-library/issues/4526)
+
+### Fixed
+
+- [Fix parsing query parameters fail when curly braces are provided](https://github.com/ballerina-platform/ballerina-standard-library/issues/4565)
+- [Address CVE-2023-34462 netty Vulnerability](https://github.com/ballerina-platform/ballerina-standard-library/issues/4599)
+
+### Changed
+
+- [Deprecate listener level interceptors](https://github.com/ballerina-platform/ballerina-standard-library/issues/4420)
+- [Improved default error format and message](https://github.com/ballerina-platform/ballerina-standard-library/issues/3961)
+- [Move status code errors to `httpscerr` module](https://github.com/ballerina-platform/ballerina-standard-library/issues/4535)
+
+## [2.8.0] - 2023-06-01
+
+### Added
+
+- [Add constraint validation for path, query and header parameters](https://github.com/ballerina-platform/ballerina-standard-library/issues/4371)
+- [Expose `http:Request` in the response interceptor path](https://github.com/ballerina-platform/ballerina-standard-library/issues/3964)
+- [Allow configuring an interceptor pipeline with a single interceptor](https://github.com/ballerina-platform/ballerina-standard-library/issues/3969)
+- [Add runtime support for type referenced type in path parameters](https://github.com/ballerina-platform/ballerina-standard-library/issues/4372)
+- [Add finite type support for query, header and path parameters](https://github.com/ballerina-platform/ballerina-standard-library/issues/4374)
+- [Support for service level interceptors using `http:InterceptableService`](https://github.com/ballerina-platform/ballerina-standard-library/issues/4401)
+- [Allow changing initial window size value for client and the server](https://github.com/ballerina-platform/ballerina-standard-library/issues/490)
+
+### Changed
+
+- [Replace the `regex` module usages with the `lang.regexp` library](https://github.com/ballerina-platform/ballerina-standard-library/issues/4275)
+
+## [2.7.0] - 2023-04-10
 
 ### Fixed
 
@@ -20,6 +67,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Returning 500 when the upstream server is unavailable](https://github.com/ballerina-platform/ballerina-standard-library/issues/2929)
 - [Encoded url path with special characters is not working as expected](https://github.com/ballerina-platform/ballerina-standard-library/issues/4033)
 - [Make panic behavior consistent with interceptor and non-interceptor services](https://github.com/ballerina-platform/ballerina-standard-library/issues/4250)
+- [Fix H2 client connection brake when ALPN resolved to H2](https://github.com/ballerina-platform/ballerina-standard-library/issues/3561)
 
 ### Added
 - [Make @http:Payload annotation optional for post, put and patch](https://github.com/ballerina-platform/ballerina-standard-library/issues/3276)

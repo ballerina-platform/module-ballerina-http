@@ -56,6 +56,7 @@ public class Start extends AbstractHttpNativeFunction {
         try {
             HttpUtil.populateInterceptorServicesFromListener(serviceEndpoint, runtime);
             HttpUtil.populateInterceptorServicesFromService(serviceEndpoint, httpServicesRegistry);
+            HttpUtil.markPossibleLastInterceptors(httpServicesRegistry);
         } catch (Exception ex) {
             return HttpUtil.createHttpError("interceptor service registration failed: " + ex.getMessage(),
                                              HttpErrorType.GENERIC_LISTENER_ERROR);

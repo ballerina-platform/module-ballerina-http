@@ -348,22 +348,24 @@ function testStringQueryBinding() {
 
 //Query params are case sensitive, https://tools.ietf.org/html/rfc7230#page-19
 @test:Config {}
-function testNegativeStringQueryBindingCaseSensitivity() {
+function testNegativeStringQueryBindingCaseSensitivity() returns error? {
     http:Response|error response = queryBindingClient->get("/queryparamservice/?FOO=WSO2&bar=go");
     if response is http:Response {
         test:assertEquals(response.statusCode, 400);
-        common:assertTextPayload(response.getTextPayload(), "no query param value found for 'foo'");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "no query param value found for 'foo'",
+            "Bad Request", 400, "/queryparamservice/?FOO=WSO2&bar=go", "GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
 @test:Config {}
-function testNegativeIntQueryBindingCastingError() {
+function testNegativeIntQueryBindingCastingError() returns error? {
     http:Response|error response = queryBindingClient->get("/queryparamservice/?foo=WSO2&bar=go");
     if response is http:Response {
         test:assertEquals(response.statusCode, 400);
-        common:assertTextPayload(response.getTextPayload(), "error in casting query param : 'bar'");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "error in casting query param : 'bar'",
+            "Bad Request", 400, "/queryparamservice/?foo=WSO2&bar=go", "GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -371,7 +373,8 @@ function testNegativeIntQueryBindingCastingError() {
     response = queryBindingClient->get("/queryparamservice/?foo=WSO2&bar=");
     if response is http:Response {
         test:assertEquals(response.statusCode, 400);
-        common:assertTextPayload(response.getTextPayload(), "error in casting query param : 'bar'");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "error in casting query param : 'bar'",
+            "Bad Request", 400, "/queryparamservice/?foo=WSO2&bar=", "GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -541,11 +544,12 @@ function testQueryParamTokenWithEscapeChar() {
 }
 
 @test:Config {}
-function testEmptyQueryParamBinding() {
+function testEmptyQueryParamBinding() returns error? {
     http:Response|error response = queryBindingClient->get("/queryparamservice/q9?x-Type");
     if response is http:Response {
         test:assertEquals(response.statusCode, 400);
-        common:assertTextPayload(response.getTextPayload(), "no query param value found for 'x-Type'");
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "no query param value found for 'x-Type'",
+            "Bad Request", 400, "/queryparamservice/q9?x-Type", "GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

@@ -544,8 +544,9 @@ public function testReturnError() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test11");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 500, msg = "Found unexpected output");
-        test:assertEquals(check resp.getHeader(common:CONTENT_TYPE), common:TEXT_PLAIN);
-        common:assertTextPayload(resp.getTextPayload(), "Don't panic. This is to test the error!");
+        test:assertEquals(check resp.getHeader(common:CONTENT_TYPE), common:APPLICATION_JSON);
+        check common:assertJsonErrorPayload(check resp.getJsonPayload(), "Don't panic. This is to test the error!",
+            "Internal Server Error", 500, "/mytest/test11", "GET");
     } else {
         test:assertFail(msg = "Found unexpected output: " + resp.message());
     }

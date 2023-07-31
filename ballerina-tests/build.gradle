@@ -121,7 +121,7 @@ def windowsDisableGroups = "--disable-groups disabledOnWindows"
 def debugParams = ""
 def balJavaDebugParam = ""
 def testParams = ""
-def nativeFlag = ""
+def graalvmFlag = ""
 def skipTests = false
 
 task initializeVariables {
@@ -137,8 +137,8 @@ task initializeVariables {
     if (project.hasProperty("balJavaDebug")) {
         balJavaDebugParam = "BAL_JAVA_DEBUG=${project.findProperty("balJavaDebug")}"
     }
-    if (project.hasProperty('balNativeTest')) {
-        nativeFlag = '--native'
+    if (project.hasProperty('balGraalVMTest')) {
+        graalvmFlag = '--graalvm'
     }
     if (project.hasProperty('balTests')) {
         testPackages = project.findProperty('balTests').toString().split(",")
@@ -152,7 +152,7 @@ task initializeVariables {
 
     gradle.taskGraph.whenReady { graph ->
         if (graph.hasTask(":${packageName}-ballerina-tests:test")) {
-            if (!project.hasProperty('balNativeTest')) {
+            if (!project.hasProperty('balGraalVMTest')) {
                 testParams = "${testCoverageParam}"
             }
         } else {
@@ -205,12 +205,23 @@ task ballerinaTest {
                     workingDir "${project.projectDir}/${testPackage}"
                     environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
                     if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                        commandLine 'cmd', '/c', "${balJavaDebugParam} ${distributionBinPath}/bal.bat test ${nativeFlag}" +
+                        commandLine 'cmd', '/c', "${balJavaDebugParam} ${distributionBinPath}/bal.bat test ${graalvmFlag}" +
                                 " ${testParams} ${groupParams} ${disableGroups} ${windowsDisableGroups} ${debugParams}" +
                                 " && exit %%ERRORLEVEL%%"
                     } else {
-                        commandLine 'sh', '-c', "${distributionBinPath}/bal test ${nativeFlag} ${testParams}" +
+                        commandLine 'sh', '-c', "${distributionBinPath}/bal test ${graalvmFlag} ${testParams}" +
                                 " ${groupParams} ${disableGroups} ${debugParams}"
+                    }
+                }
+                if (project.hasProperty('balGraalVMTest')) {
+                    exec {
+                        workingDir "${project.projectDir}/${testPackage}"
+                        environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
+                        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                            commandLine 'cmd', '/c', "${distributionBinPath}/bal.bat clean"
+                        } else {
+                            commandLine 'sh', '-c', "${distributionBinPath}/bal clean"
+                        }
                     }
                 }
             }
@@ -283,15 +294,18 @@ task stopLdapServer() {
     }
 }
 
-ballerinaTest.finalizedBy stopLdapServer
-ballerinaTest.dependsOn startLdapServer
-test.dependsOn ballerinaTest
-build.dependsOn test
+task deleteDependencyTomlFile {
+    if (project.hasProperty("deleteDependencies")) {
+        delete "${project.projectDir}/${testCommonPackage}/Dependencies.toml"
 
-tasks.register('cleanDependencies') {
-    delete "${project.projectDir}/${testCommonPackage}/Dependencies.toml"
-
-    testPackages.each { testPackage ->
-        delete "${project.projectDir}/${testPackage}/Dependencies.toml"
+        testPackages.each { testPackage ->
+            delete "${project.projectDir}/${testPackage}/Dependencies.toml"
+        }
     }
 }
+
+ballerinaTest.finalizedBy stopLdapServer
+ballerinaTest.dependsOn startLdapServer
+ballerinaTest.dependsOn deleteDependencyTomlFile
+test.dependsOn ballerinaTest
+build.dependsOn test
