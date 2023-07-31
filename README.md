@@ -117,9 +117,9 @@ This repository only contains the source code for the package.
 
 ### Set Up the prerequisites
 
-1. Download and install Java SE Development Kit (JDK) version 11 (from one of the following locations).
+1. Download and install Java SE Development Kit (JDK) version 17 (from one of the following locations).
 
-   * [Oracle](https://www.oracle.com/java/technologies/javase-jdk11-downloads.html)
+   * [Oracle](https://www.oracle.com/java/technologies/downloads/)
    
    * [OpenJDK](https://adoptium.net/)
    

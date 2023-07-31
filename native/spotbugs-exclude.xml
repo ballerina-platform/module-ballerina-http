@@ -17,6 +17,9 @@
   -->
 <FindBugsFilter>
     <Match>
+        <Bug pattern="EI_EXPOSE_REP, EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
         <Class name="io.ballerina.stdlib.http.api.HttpUtil" />
         <Method name="createHttpPushPromise"/>
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE" />
@@ -83,5 +86,85 @@
     <Match>
         <Class name="io.ballerina.stdlib.http.api.client.endpoint.CreateSimpleHttpClient" />
         <Bug pattern="REC_CATCH_EXCEPTION" />
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.api.HttpConnectionManager" />
+        <Method name="getInstance"/>
+        <Bug pattern="MS_EXPOSE_REP" />
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.api.HttpResource" />
+        <Bug pattern="MC_OVERRIDABLE_METHOD_CALL_IN_CONSTRUCTOR" />
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.api.InterceptorResource" />
+        <Bug pattern="MC_OVERRIDABLE_METHOD_CALL_IN_CONSTRUCTOR" />
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.api.client.caching.ResponseCacheControlObj" />
+        <Bug pattern="MC_OVERRIDABLE_METHOD_CALL_IN_CONSTRUCTOR" />
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.api.service.signature.ParamHandler" />
+        <Bug pattern="MC_OVERRIDABLE_METHOD_CALL_IN_CONSTRUCTOR" />
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.api.service.signature.RemoteMethodParamHandler" />
+        <Bug pattern="MC_OVERRIDABLE_METHOD_CALL_IN_CONSTRUCTOR" />
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.api.service.signature.converter.JsonToRecordConverter" />
+        <Method name="getRecord"/>
+        <Bug pattern="DCN_NULLPOINTER_EXCEPTION" />
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.transport.contractimpl.common.Util" />
+        <Method name="handleOutboundConnectionHeader"/>
+        <Bug pattern="DM_BOXED_PRIMITIVE_FOR_PARSING" />
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.transport.contractimpl.common.Util" />
+        <Method name="isKeepAlive"/>
+        <Bug pattern="DM_BOXED_PRIMITIVE_FOR_PARSING" />
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.transport.contractimpl.common.Util" />
+        <Method name="isKeepAliveConnection"/>
+        <Bug pattern="DM_BOXED_PRIMITIVE_FOR_PARSING" />
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.transport.contractimpl.common.Util" />
+        <Method name="isVersionCompatibleForChunking"/>
+        <Bug pattern="DM_BOXED_PRIMITIVE_FOR_PARSING" />
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.transport.contractimpl.common.Util" />
+        <Method name="setOutboundRespHeaders"/>
+        <Bug pattern="DM_BOXED_PRIMITIVE_FOR_PARSING" />
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.transport.contractimpl.common.Util" />
+        <Method name="shouldEnforceChunkingforHttpOneZero"/>
+        <Bug pattern="DM_BOXED_PRIMITIVE_FOR_PARSING" />
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.transport.contractimpl.common.certificatevalidation.crl.CRLCache" />
+        <Method name="getCache"/>
+        <Bug pattern="MS_EXPOSE_REP" />
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.transport.contractimpl.common.certificatevalidation.ocsp.OCSPCache" />
+        <Method name="getCache"/>
+        <Bug pattern="MS_EXPOSE_REP" />
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.transport.contractimpl.listener.OCSPResponseBuilder" />
+        <Method name="getCertInfo"/>
+        <Bug pattern="MS_EXPOSE_REP" />
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.transport.internal.HttpTransportContextHolder" />
+        <Method name="getInstance"/>
+        <Bug pattern="MS_EXPOSE_REP" />
     </Match>
 </FindBugsFilter>

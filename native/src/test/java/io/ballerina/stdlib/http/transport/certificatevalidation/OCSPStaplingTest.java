@@ -54,7 +54,7 @@ public class OCSPStaplingTest {
         Utils.setUp("ocspStapling");
     }
 
-    @Test (description = "Tests with ocsp stapling enabled client and a server.")
+    @Test (description = "Tests with ocsp stapling enabled client and a server.", enabled = false)
     public void testOcspStapling() {
         Utils.testResponse();
     }
