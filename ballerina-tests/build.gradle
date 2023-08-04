@@ -196,6 +196,8 @@ task ballerinaTest {
     dependsOn(":${packageName}-${packageOrg}-${moduleName}:jar")
     dependsOn(":${packageName}-${packageOrg}-${moduleName}:processResources")
     dependsOn(publishTestCommonPackageToLocal)
+    dependsOn(compileTestJava)
+    dependsOn(processTestResources)
     finalizedBy(commitTomlFiles)
 
     doLast {
