@@ -6,7 +6,7 @@ on:
             lang_tag:
                 description: Branch/Release Tag of the Ballerina Lang
                 required: true
-                default: java_17_migration
+                default: master
             lang_version:
                 description: Ballerina Lang Version (If given ballerina lang buid will be skipped)
                 required: false
