@@ -261,7 +261,6 @@ function testQueryParamBindingCase18() returns error? {
     string encodedQuery2 = check url:encode(query2.toJsonString(), "UTF-8");
     record{never 'type?;} query3 = {"name": "John", "age": 37};
     string encodedQuery3 = check url:encode(query3.toJsonString(), "UTF-8");
-
     string[] queries = [encodedQuery1, encodedQuery2, encodedQuery3];
     map<anydata>[] resPayload = check resourceQueryParamBindingClient->/query/case18(query = queries);
     test:assertEquals(resPayload, [{'type: "QueryRecord", ...query1},
