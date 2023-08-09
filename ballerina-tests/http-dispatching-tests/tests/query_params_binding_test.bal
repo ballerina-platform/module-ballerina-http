@@ -271,7 +271,6 @@ function testQueryParamBindingCase18() returns error? {
     encodedQuery2 = check url:encode(query2.toJsonString(), "UTF-8");
     query3["xml"] = xml `<song><name>Shape of You</name></song>`;
     encodedQuery3 = check url:encode(query3.toJsonString(), "UTF-8");
-2201.7.2-20230808-144500-f1d5235c
     queries = [encodedQuery1, encodedQuery2, encodedQuery3];
     resPayload = check resourceQueryParamBindingClient->/query/case18(query = queries);
     test:assertEquals(resPayload[0], {'type: "QueryRecord", ...query1});
