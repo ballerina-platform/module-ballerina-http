@@ -261,19 +261,17 @@ function testQueryParamBindingCase18() returns error? {
     string encodedQuery2 = check url:encode(query2.toJsonString(), "UTF-8");
     record{never 'type?;} query3 = {"name": "John", "age": 37};
     string encodedQuery3 = check url:encode(query3.toJsonString(), "UTF-8");
-    string[] queries = [encodedQuery1, encodedQuery2, encodedQuery3];
 
+    string[] queries = [encodedQuery1, encodedQuery2, encodedQuery3];
     map<anydata>[] resPayload = check resourceQueryParamBindingClient->/query/case18(query = queries);
     test:assertEquals(resPayload, [{'type: "QueryRecord", ...query1},
         {'type: "QueryRecordOpen", ...query2}, {'type: "map<anydata>", ...query3}]);
-
-    query2["xml"] = xml `<book><name>Harry Potter</name></book>`;
     encodedQuery2 = check url:encode(query2.toJsonString(), "UTF-8");
     query3["xml"] = xml `<song><name>Shape of You</name></song>`;
     encodedQuery3 = check url:encode(query3.toJsonString(), "UTF-8");
+
     queries = [encodedQuery1, encodedQuery2, encodedQuery3];
     resPayload = check resourceQueryParamBindingClient->/query/case18(query = queries);
-
     test:assertEquals(resPayload[0], {'type: "QueryRecord", ...query1});
     test:assertEquals(resPayload[1]["type"], "QueryRecordOpenWithXML");
     test:assertEquals(resPayload[1]["extra"], "extra");
