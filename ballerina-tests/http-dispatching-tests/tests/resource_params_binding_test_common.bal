@@ -271,6 +271,10 @@ service /query on resourceParamBindingListener {
         }
         return result;
     }
+
+    resource function get case19(http:Request req) returns map<string[]> {
+        return req.getQueryParams();
+    }
 }
 
 service /header on resourceParamBindingListener {
