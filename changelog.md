@@ -5,6 +5,12 @@ This file contains all the notable changes done to the Ballerina HTTP package th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to 
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Fixed
+
+- [Fix returning an empty query param even without any query params in the request](https://github.com/ballerina-platform/ballerina-standard-library/issues/4705)
+
 ## [2.9.1] - 2023-08-08
 
 ### Fixed
