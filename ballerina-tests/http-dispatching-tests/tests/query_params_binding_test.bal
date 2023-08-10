@@ -230,3 +230,9 @@ function testQueryParamBindingCase16() returns error? {
     [map<json>, string[]] resPayload = check resourceQueryParamBindingClient->/query/case16(query1 = string`{"name":"John"%2C "age":37}`, query2 = strVals);
     test:assertEquals(resPayload, [{"name":"John", "age":37}, strVals]);
 }
+
+@test:Config {}
+function testNoQueryParamBindingCase19() returns error? {
+    map<string[]> resPayload = check resourceQueryParamBindingClient->/query/case19;
+    test:assertEquals(resPayload, {});
+}

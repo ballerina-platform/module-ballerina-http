@@ -223,6 +223,10 @@ service /query on resourceParamBindingListener {
     resource function get case16(map<json> query1, string[] query2) returns [map<json>, string[]] {
         return [query1, query2];
     }
+
+    resource function get case19(http:Request req) returns map<string[]> {
+        return req.getQueryParams();
+    }
 }
 
 service /header on resourceParamBindingListener {
