@@ -281,3 +281,9 @@ function testQueryParamBindingCase18() returns error? {
     test:assertEquals(resPayload[2]["type"], "map<anydata>");
     test:assertEquals(resPayload[2]["xml"], "<song><name>Shape of You</name></song>");
 }
+
+@test:Config {}
+function testNoQueryParamBindingCase19() returns error? {
+    map<string[]> resPayload = check resourceQueryParamBindingClient->/query/case19;
+    test:assertEquals(resPayload, {});
+}

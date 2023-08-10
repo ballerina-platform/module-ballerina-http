@@ -56,7 +56,6 @@ import java.util.concurrent.CountDownLatch;
 import static io.ballerina.stdlib.http.api.HttpConstants.AUTHORIZATION_HEADER;
 import static io.ballerina.stdlib.http.api.HttpConstants.BEARER_AUTHORIZATION_HEADER;
 import static io.ballerina.stdlib.http.api.HttpConstants.DEFAULT_HOST;
-import static io.ballerina.stdlib.http.api.HttpConstants.EMPTY;
 import static io.ballerina.stdlib.http.api.HttpConstants.JWT_DECODER_CLASS_NAME;
 import static io.ballerina.stdlib.http.api.HttpConstants.JWT_DECODE_METHOD_NAME;
 import static io.ballerina.stdlib.http.api.HttpConstants.JWT_INFORMATION;
@@ -197,7 +196,7 @@ public class HttpDispatcher {
         String[] rawPathAndQuery = new String[2];
         String[] splittedUri = uriWithoutMatrixParams.split(QUERY_STRING_SEPARATOR);
         rawPathAndQuery[0] = splittedUri[0];
-        rawPathAndQuery[1] = splittedUri.length > 1 ? splittedUri[1] : EMPTY;
+        rawPathAndQuery[1] = splittedUri.length > 1 ? splittedUri[1] : null;
         return rawPathAndQuery;
     }
 
