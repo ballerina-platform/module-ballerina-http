@@ -197,7 +197,7 @@ public class HttpDispatcher {
         String[] rawPathAndQuery = new String[2];
         String[] splittedUri = uriWithoutMatrixParams.split(QUERY_STRING_SEPARATOR);
         rawPathAndQuery[0] = splittedUri[0];
-        rawPathAndQuery[1] = splittedUri.length > 1 ? splittedUri[1] : EMPTY;
+        rawPathAndQuery[1] = splittedUri.length > 1 ? splittedUri[1] : null;
         return rawPathAndQuery;
     }
 
