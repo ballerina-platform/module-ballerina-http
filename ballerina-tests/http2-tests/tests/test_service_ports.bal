@@ -62,3 +62,4 @@ const int dirtyResponseTestPort = 9546;
 const int reuseRequestTestPort = 9528;
 const int connectionNativeTestPort = 9014;
 const int http2ClientContinueTestPort = 9630;
+const int headerParamBindingTestPort = 9631;
