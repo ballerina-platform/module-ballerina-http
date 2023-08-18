@@ -287,15 +287,13 @@ public class Util {
             throws Http2Exception {
         String method = Constants.HTTP_GET_METHOD;
         if (http2Headers.method() != null) {
-            method = http2Headers.getAndRemove(Constants.HTTP2_METHOD).toString();
+            method = http2Headers.get(Constants.HTTP2_METHOD).toString();
         }
         String path = Constants.DEFAULT_BASE_PATH;
         if (http2Headers.path() != null) {
-            path = http2Headers.getAndRemove(Constants.HTTP2_PATH).toString();
+            path = http2Headers.get(Constants.HTTP2_PATH).toString();
         }
-        // Remove PseudoHeaderNames from headers
-        http2Headers.getAndRemove(Constants.HTTP2_AUTHORITY);
-        http2Headers.getAndRemove(Constants.HTTP2_SCHEME);
+
         HttpVersion version = new HttpVersion(Constants.HTTP_VERSION_2_0, true);
 
         // Construct new HTTP Carbon Request
