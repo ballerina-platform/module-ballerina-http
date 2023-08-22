@@ -56,7 +56,7 @@ public class CertificateValidationHandler extends ChannelInboundHandlerAdapter {
             SslHandshakeCompletionEvent event = (SslHandshakeCompletionEvent) evt;
 
             if (event.isSuccess() && revocationVerifier
-                    .verifyRevocationStatus(sslEngine.getSession().getPeerCertificateChain())) {
+                    .verifyRevocationStatus(sslEngine.getSession().getPeerCertificates())) {
                 ctx.fireChannelRead(evt);
             } else {
                 ctx.close();

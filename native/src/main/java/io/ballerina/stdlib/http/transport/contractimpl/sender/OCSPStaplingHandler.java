@@ -33,7 +33,8 @@ import org.slf4j.LoggerFactory;
 import java.math.BigInteger;
 
 import javax.net.ssl.SSLSession;
-import javax.security.cert.X509Certificate;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
 
 import static io.ballerina.stdlib.http.transport.contractimpl.common.certificatevalidation.Constants.CACHE_DEFAULT_ALLOCATED_SIZE;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.certificatevalidation.Constants.CACHE_DEFAULT_DELAY_MINS;
@@ -60,7 +61,7 @@ public class OCSPStaplingHandler extends OcspClientHandler {
             // do the CRL validation.
             RevocationVerificationManager revocationVerifier = new RevocationVerificationManager(
                     CACHE_DEFAULT_ALLOCATED_SIZE, CACHE_DEFAULT_DELAY_MINS);
-            return revocationVerifier.verifyRevocationStatus(engine.getSession().getPeerCertificateChain());
+            return revocationVerifier.verifyRevocationStatus(engine.getSession().getPeerCertificates());
         }
 
         OCSPResp response = new OCSPResp(staple);
@@ -69,8 +70,8 @@ public class OCSPStaplingHandler extends OcspClientHandler {
         }
 
         SSLSession session = engine.getSession();
-        X509Certificate[] chain = session.getPeerCertificateChain();
-        BigInteger certSerial = chain[0].getSerialNumber();
+        Certificate[] chain = session.getPeerCertificates();
+        BigInteger certSerial = ((X509Certificate) chain[0]).getSerialNumber();
 
         BasicOCSPResp basicResponse = (BasicOCSPResp) response.getResponseObject();
         SingleResp singleResp = basicResponse.getResponses()[0];
@@ -78,11 +79,11 @@ public class OCSPStaplingHandler extends OcspClientHandler {
         CertificateStatus status = singleResp.getCertStatus();
         BigInteger ocspSerial = singleResp.getCertID().getSerialNumber();
         if (LOG.isDebugEnabled()) {
-            String message = new StringBuilder().append("OCSP status of ").append(ctx.channel().remoteAddress())
-                    .append("\n  Status: ").append(status == CertificateStatus.GOOD ? "Good" : status)
-                    .append("\n  This Update: ").append(singleResp.getThisUpdate()).append("\n  Next Update: ")
-                    .append(singleResp.getNextUpdate()).append("\n  Cert Serial: ").append(certSerial)
-                    .append("\n  OCSP Serial: ").append(ocspSerial).toString();
+            String message = "OCSP status of " + ctx.channel().remoteAddress() +
+                    "\n  Status: " + (status == CertificateStatus.GOOD ? "Good" : status) +
+                    "\n  This Update: " + singleResp.getThisUpdate() + "\n  Next Update: " +
+                    singleResp.getNextUpdate() + "\n  Cert Serial: " + certSerial +
+                    "\n  OCSP Serial: " + ocspSerial;
             LOG.debug(message);
         }
         //For an OCSP response to be valid, certificate serial number should be equal to the ocsp serial number.
