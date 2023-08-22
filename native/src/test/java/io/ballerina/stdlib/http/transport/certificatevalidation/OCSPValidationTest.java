@@ -33,7 +33,7 @@ public class OCSPValidationTest {
         Utils.setUp("OCSPandCRL");
     }
 
-    @Test (description = "Integration test for OCSP validation", enabled = false)
+    @Test (description = "Integration test for OCSP validation")
     public void testOcspStapling() {
         Utils.testResponse();
     }
