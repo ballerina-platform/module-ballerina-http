@@ -31,10 +31,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
-
-import javax.net.ssl.SSLSession;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
+
+import javax.net.ssl.SSLSession;
 
 import static io.ballerina.stdlib.http.transport.contractimpl.common.certificatevalidation.Constants.CACHE_DEFAULT_ALLOCATED_SIZE;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.certificatevalidation.Constants.CACHE_DEFAULT_DELAY_MINS;
