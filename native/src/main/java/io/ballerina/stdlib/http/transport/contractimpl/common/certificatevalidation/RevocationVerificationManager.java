@@ -31,8 +31,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
-import javax.security.cert.CertificateEncodingException;
-
 /**
  * Manager class responsible for verifying certificates. This class will use the available verifiers according to
  * a predefined policy (First check with OCSP access end point and then move to CRL distribution point to validate).
@@ -63,7 +61,7 @@ public class RevocationVerificationManager {
      * @throws CertificateVerificationException Occurs when certificate fails to be validated from both OCSP and CRL.
      * @return true If the process of certificate revocation becomes successful.
      */
-    public boolean verifyRevocationStatus(javax.security.cert.X509Certificate[] peerCertificates)
+    public boolean verifyRevocationStatus(java.security.cert.Certificate[] peerCertificates)
             throws CertificateVerificationException {
 
         X509Certificate[] convertedCertificates = convert(peerCertificates);
@@ -102,7 +100,7 @@ public class RevocationVerificationManager {
      * @throws CertificateVerificationException If an error occurs while converting certificates
      * from java to javax
      */
-    private X509Certificate[] convert(javax.security.cert.X509Certificate[] certs)
+    private X509Certificate[] convert(java.security.cert.Certificate[] certs)
             throws CertificateVerificationException {
         X509Certificate[] certChain = new X509Certificate[certs.length];
         Throwable exceptionThrown;
@@ -113,7 +111,7 @@ public class RevocationVerificationManager {
                 CertificateFactory certificateFactory = CertificateFactory.getInstance(Constants.X_509);
                 certChain[i] = ((X509Certificate) certificateFactory.generateCertificate(byteArrayInputStream));
                 continue;
-            } catch (CertificateEncodingException | CertificateException e) {
+            } catch (CertificateException e) {
                 exceptionThrown = e;
             }
             throw new CertificateVerificationException("Cant Convert certificates from javax to java", exceptionThrown);
