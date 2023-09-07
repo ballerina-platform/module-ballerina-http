@@ -26,6 +26,7 @@ on:
     pull_request:
         branches: 
             - master
+            - 2201.7.x
         types: [opened, synchronize, reopened, labeled, unlabeled]
 
 concurrency:
