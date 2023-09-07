@@ -6,9 +6,9 @@ on:
             lang_tag:
                 description: Branch/Release Tag of the Ballerina Lang
                 required: true
-                default: master
+                default: 2201.7.x
             lang_version:
-                description: Ballerina Lang Version (If given ballerina lang buid will be skipped)
+                description: Ballerina Lang Version (If given ballerina lang build will be skipped)
                 required: false
                 default: ''
             native_image_options:
@@ -26,6 +26,7 @@ on:
     pull_request:
         branches: 
             - master
+            - 2201.7.x
         types: [opened, synchronize, reopened, labeled, unlabeled]
 
 concurrency:
@@ -36,9 +37,9 @@ jobs:
     call_stdlib_workflow:
         name: Run StdLib Workflow
         if: ${{ github.event_name != 'schedule' || (github.event_name == 'schedule' && github.repository_owner == 'ballerina-platform') }}
-        uses: ballerina-platform/ballerina-standard-library/.github/workflows/build-with-bal-test-graalvm-template.yml@main
+        uses: ballerina-platform/ballerina-standard-library/.github/workflows/build-with-bal-test-graalvm-template.yml@2201.7.x
         with:
-            lang_tag: ${{ inputs.lang_tag }}
+            lang_tag: ${{ inputs.lang_tag || 2201.7.x }}
             lang_version: ${{ inputs.lang_version }}
             native_image_options: '-J-Xmx7G ${{ inputs.native_image_options }}'
             additional_ubuntu_build_flags: '-x :http-native:test -x :http-compiler-plugin-tests:test ${{ inputs.build_properties }}'
