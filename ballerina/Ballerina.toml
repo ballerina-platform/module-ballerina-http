@@ -101,13 +101,13 @@ path = "./lib/netty-transport-native-unix-common-4.1.94.Final.jar"
 groupId = "org.bouncycastle"
 artifactId = "bcprov-jdk18on"
 version = "1.74"
-path = "./lib/bcprov-jdk15on-1.74.jar"
+path = "./lib/bcprov-jdk18on-1.74.jar"
 
 [[platform.java11.dependency]]
 groupId = "org.bouncycastle"
 artifactId = "bcpkix-jdk18on"
 version = "1.74"
-path = "./lib/bcpkix-jdk15on-1.74.jar"
+path = "./lib/bcpkix-jdk18on-1.74.jar"
 
 [[platform.java11.dependency]]
 groupId = "io.netty"
