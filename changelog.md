@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - [Fix exception when return type of `createInterceptors` function is an array type](https://github.com/ballerina-platform/ballerina-standard-library/issues/4649)
 - [Expose HTTP/2 pseudo headers as request headers](https://github.com/ballerina-platform/ballerina-standard-library/issues/4732)
+- [Address CVE-2023-33201 bouncy castle Vulnerability](https://github.com/ballerina-platform/ballerina-standard-library/issues/4776)
 
 ### Added
 
