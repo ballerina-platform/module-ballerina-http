@@ -99,13 +99,13 @@ path = "./lib/netty-transport-native-unix-common-@netty.version@.jar"
 
 [[platform.java11.dependency]]
 groupId = "org.bouncycastle"
-artifactId = "bcprov-jdk15on"
+artifactId = "bcprov-jdk18on"
 version = "@bouncycastle.version@"
 path = "./lib/bcprov-jdk15on-@bouncycastle.version@.jar"
 
 [[platform.java11.dependency]]
 groupId = "org.bouncycastle"
-artifactId = "bcpkix-jdk15on"
+artifactId = "bcpkix-jdk18on"
 version = "@bouncycastle.version@"
 path = "./lib/bcpkix-jdk15on-@bouncycastle.version@.jar"
 
