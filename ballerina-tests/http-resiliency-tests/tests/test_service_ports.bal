@@ -25,5 +25,5 @@ const int foClientWithoutStatusCodeTestPort2 = 9572;
 
 const int http2RetryFunctionTestPort = 9706;
 
-int passthroughTestPort1 = 9543;
-int passthroughTestPort2 = 9544;
+const int passthroughTestPort1 = 9543;
+const int passthroughTestPort2 = 9544;
