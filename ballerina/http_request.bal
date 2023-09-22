@@ -587,6 +587,13 @@ public class Request {
         return externCheckReqEntityBodyAvailability(self);
     }
 
+    # Check whether the message data source is already built.
+    #
+    # + return - A boolean indicating the availability of the message data source
+    isolated function hasMsgDataSource() returns boolean {
+        return externHasMsgDataSource(self);
+    }
+
     # Adds cookies to the request.
     #
     # + cookiesToAdd - Represents the cookies to be added
@@ -690,6 +697,12 @@ isolated function externCheckReqEntityBodyAvailability(Request request) returns 
 @java:Method {
     'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternRequest",
     name: "checkEntityBodyAvailability"
+} external;
+
+isolated function externHasMsgDataSource(Request request) returns boolean =
+@java:Method {
+    'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternRequest",
+    name: "hasMsgDataSource"
 } external;
 
 # A record for providing mutual SSL handshake results.
