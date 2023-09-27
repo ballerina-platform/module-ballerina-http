@@ -316,9 +316,11 @@ client isolated class RedirectClient {
         if !(httpOperation is safeHttpOperation) {
             // When performing redirect operation for non-safe method, message needs to be built before sending out the
             // to keep the request message to subsequent redirect.
-            byte[]|error binaryPayload = check inRequest.getBinaryPayload();
-            if binaryPayload is error {
-                log:printDebug("Error building datasource for request redirect: " + binaryPayload.message());
+            if !inRequest.hasMsgDataSource() {
+                byte[]|error binaryPayload = inRequest.getBinaryPayload();
+                if binaryPayload is error {
+                    log:printDebug("Error building datasource for request redirect: " + binaryPayload.message());
+                }
             }
             // Build message for for multipart requests
             inRequest = check populateMultipartRequest(inRequest);
