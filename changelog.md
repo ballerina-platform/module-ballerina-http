@@ -5,10 +5,11 @@ This file contains all the notable changes done to the Ballerina HTTP package th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to 
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [Unreleased] 
 
 ### Fixed
 
+- [Expose HTTP/2 pseudo headers as request headers](https://github.com/ballerina-platform/ballerina-standard-library/issues/4732)
 - [Fix resilient client failure in passthrough scenarios](https://github.com/ballerina-platform/ballerina-standard-library/issues/4824)
 
 ## [2.9.3] - 2023-09-07
