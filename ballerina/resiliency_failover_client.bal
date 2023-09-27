@@ -522,9 +522,11 @@ public client isolated class FailoverClient {
         } else {
             // When performing passthrough scenarios using Failover connector, message needs to be built before trying
             // out the failover endpoints to keep the request message to failover the messages.
-            byte[]|error binaryPayload = failoverRequest.getBinaryPayload();
-            if binaryPayload is error {
-                log:printDebug("Error building payload for request failover: " + binaryPayload.message());
+            if !failoverRequest.hasMsgDataSource() {
+                byte[]|error binaryPayload = failoverRequest.getBinaryPayload();
+                if binaryPayload is error {
+                    log:printDebug("Error building payload for request failover: " + binaryPayload.message());
+                }
             }
             requestEntity = check failoverRequest.getEntity();
         }

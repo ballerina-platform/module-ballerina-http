@@ -10,6 +10,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 
 - [Expose HTTP/2 pseudo headers as request headers](https://github.com/ballerina-platform/ballerina-standard-library/issues/4732)
+- [Fix resilient client failure in passthrough scenarios](https://github.com/ballerina-platform/ballerina-standard-library/issues/4824)
+
+## [2.9.3] - 2023-09-07
+
+### Fixed
+
+- [Address CVE-2023-33201 bouncy castle Vulnerability](https://github.com/ballerina-platform/ballerina-standard-library/issues/4776)
 
 ## [2.9.2] - 2023-08-10
 
