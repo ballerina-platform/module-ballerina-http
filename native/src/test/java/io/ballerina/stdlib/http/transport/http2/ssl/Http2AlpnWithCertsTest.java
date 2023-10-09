@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
+ * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
@@ -38,13 +38,14 @@ import java.util.HashMap;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTPS_SCHEME;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_2_0;
+import static io.ballerina.stdlib.http.transport.contract.Constants.REQUIRE;
 
 /**
- * Test ALPN protocol negotiation for HTTP2 with Certificates and keys.
+ * Test mTLS with certs and keys in HTTP2.
  */
-public class Http2ALPNwithCertsTest {
+public class Http2AlpnWithCertsTest {
 
-    private static final Logger LOG = LoggerFactory.getLogger(Http2ALPNwithCertsTest.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Http2AlpnWithCertsTest.class);
     private ServerConnector serverConnector;
     private HttpClientConnector httpClientConnector;
     private HttpWsConnectorFactory connectorFactory;
@@ -64,7 +65,7 @@ public class Http2ALPNwithCertsTest {
     }
 
     @Test
-    public void testHttp2ALPNwithCerts() {
+    public void testHttp2AlpnWithcerts() {
         TestUtil.testHttpsPost(httpClientConnector, TestUtil.SERVER_PORT1);
     }
 
@@ -77,12 +78,16 @@ public class Http2ALPNwithCertsTest {
         listenerConfiguration.setSslHandshakeTimeOut(TestUtil.SSL_HANDSHAKE_TIMEOUT);
         listenerConfiguration.setServerKeyFile(TestUtil.getAbsolutePath(TestUtil.KEY_FILE));
         listenerConfiguration.setServerCertificates(TestUtil.getAbsolutePath(TestUtil.CERT_FILE));
+        listenerConfiguration.setVerifyClient(REQUIRE);
+        listenerConfiguration.setServerTrustCertificates(TestUtil.getAbsolutePath(TestUtil.CERT_FILE));
         return listenerConfiguration;
     }
 
     private SenderConfiguration getSenderConfigs() {
         SenderConfiguration senderConfiguration = new SenderConfiguration();
         senderConfiguration.setClientTrustCertificates(TestUtil.getAbsolutePath(TestUtil.CERT_FILE));
+        senderConfiguration.setClientKeyFile(TestUtil.getAbsolutePath(TestUtil.KEY_FILE));
+        senderConfiguration.setClientCertificates(TestUtil.getAbsolutePath(TestUtil.CERT_FILE));
         senderConfiguration.setHttpVersion(HTTP_2_0);
         senderConfiguration.setScheme(HTTPS_SCHEME);
         senderConfiguration.setSslSessionTimeOut(TestUtil.SSL_SESSION_TIMEOUT);
