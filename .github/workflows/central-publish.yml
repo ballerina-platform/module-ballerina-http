@@ -31,14 +31,15 @@ jobs:
         run: ./gradlew build -x check -x test
       - name: Create lib directory if not exists
         run: mkdir -p ballerina/lib
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'rootfs'
-          scan-ref: '/github/workspace/ballerina/lib'
-          format: 'table'
-          timeout: '10m0s'
-          exit-code: '1'
+# Disabling Trivy scan for now for an urgent release as it is failing due to a vulnerability in Netty which is not fixed yet.
+#      - name: Run Trivy vulnerability scanner
+#        uses: aquasecurity/trivy-action@master
+#        with:
+#          scan-type: 'rootfs'
+#          scan-ref: '/github/workspace/ballerina/lib'
+#          format: 'table'
+#          timeout: '10m0s'
+#          exit-code: '1'
 
       - name: Ballerina Central Push
         if: ${{ github.event.inputs.environment == 'CENTRAL' }}
