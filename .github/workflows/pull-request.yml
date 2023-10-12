@@ -1,4 +1,4 @@
-name: Ballerina HTTP module build
+name: PR Build
 
 on: [pull_request]
 
