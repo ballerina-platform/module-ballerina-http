@@ -398,8 +398,7 @@ service http:InterceptableService / on requestInterceptorCtxNextServerEP {
     }
 }
 
-// Enable after fixing this issue: https://github.com/ballerina-platform/ballerina-standard-library/issues/4915
-@test:Config {enable: false}
+@test:Config{}
 function testRequestInterceptorCtxNext() returns error? {
     http:Response res = check requestInterceptorCtxNextClientEP->get("/");
     test:assertEquals(res.statusCode, 202);
