@@ -33,7 +33,9 @@ import java.util.Map;
 /**
  * Contains utility functions used for the retry test.
  */
-public class ExternRetryMultipartTestutil {
+public final class ExternRetryMultipartTestutil {
+
+    private ExternRetryMultipartTestutil() {}
 
     private static final Logger log = LoggerFactory.getLogger(ExternRetryMultipartTestutil.class);
     private static final String RETRY_HEADER = "x-retry";

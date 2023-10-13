@@ -23,7 +23,9 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 /**
  * Contains external utility functions.
  */
-public class ExternUtils {
+public final class ExternUtils {
+
+    private ExternUtils() {}
 
     /**
      * Provides the relevant reason phrase for a given status code.

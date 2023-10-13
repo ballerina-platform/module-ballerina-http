@@ -22,7 +22,9 @@ package io.ballerina.stdlib.http.transport.util.client.websocket;
 /**
  * WebSocket constants for testing purposes.
  */
-public class WebSocketTestConstants {
+public final class WebSocketTestConstants {
+    private WebSocketTestConstants() {}
+
     public static final String PAYLOAD_NEW_CLIENT_CONNECTED = "NEW_CLIENT_CONNECTED";
     public static final String PAYLOAD_CLIENT_LEFT = "CLIENT_LEFT";
 }

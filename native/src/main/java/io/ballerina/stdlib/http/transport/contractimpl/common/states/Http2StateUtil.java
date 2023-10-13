@@ -85,7 +85,9 @@ import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Stat
  *
  * @since 6.0.241
  */
-public class Http2StateUtil {
+public final class Http2StateUtil {
+
+    private Http2StateUtil() {}
 
     private static final Logger LOG = LoggerFactory.getLogger(Http2StateUtil.class);
 

@@ -21,7 +21,9 @@ package io.ballerina.stdlib.http.testutils;
 /**
  * Contains assert functions used by mime test cases.
  */
-public class Assert {
+public final class Assert {
+
+    private Assert() {}
 
     public static void assertEquals(Object actual, Object expected) {
         if (!areEqual(actual, expected)) {

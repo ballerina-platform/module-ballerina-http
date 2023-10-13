@@ -69,7 +69,9 @@ import static org.testng.AssertJUnit.fail;
 /**
  * A util class to be used for tests.
  */
-public class TestUtil {
+public final class TestUtil {
+
+    private TestUtil() {}
 
     private static final Logger LOG = LoggerFactory.getLogger(TestUtil.class);
 

@@ -36,7 +36,9 @@ import java.security.cert.CertificateException;
 /**
  * A utility class for keep payloads.
  */
-public class Utils {
+public final class Utils {
+
+    private Utils() {}
 
     public static String getEntityBodyFrom(FullHttpResponse httpResponse) {
         ByteBuffer content = httpResponse.content().nioBuffer();

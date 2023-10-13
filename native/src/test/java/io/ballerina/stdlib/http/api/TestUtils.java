@@ -35,7 +35,9 @@ import org.mockito.Mockito;
 /**
  * A test utils for http unit test classes.
  */
-public class TestUtils {
+public final class TestUtils {
+
+    private TestUtils() {}
 
     public static final int SOCKET_SERVER_PORT = 8001;
 

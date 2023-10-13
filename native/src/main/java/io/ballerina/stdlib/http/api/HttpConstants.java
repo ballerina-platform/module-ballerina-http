@@ -30,7 +30,7 @@ import static io.ballerina.runtime.api.constants.RuntimeConstants.ORG_NAME_SEPAR
  *
  * @since 0.8.0
  */
-public class HttpConstants {
+public final class HttpConstants {
 
     public static final String HTTPS_ENDPOINT_STARTED = "[ballerina/http] started HTTPS/WSS listener ";
     public static final String HTTP_ENDPOINT_STARTED = "[ballerina/http] started HTTP/WS listener ";
