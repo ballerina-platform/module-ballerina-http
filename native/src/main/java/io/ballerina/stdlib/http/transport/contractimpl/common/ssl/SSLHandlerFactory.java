@@ -353,6 +353,9 @@ public class SSLHandlerFactory {
         } else {
             sslContextBuilder = clientContextBuilderWithCerts(provider);
         }
+        if (sslConfig.getClientKeyFile() != null) {
+            sslContextBuilder = clientContextBuilderWithCerts(provider);
+        }
         setCiphers(sslContextBuilder, ciphers);
         setSslProtocol(sslContextBuilder);
         setAlpnConfigs(sslContextBuilder);

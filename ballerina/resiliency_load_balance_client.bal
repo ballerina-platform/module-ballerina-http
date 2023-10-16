@@ -424,9 +424,11 @@ public client isolated class LoadBalanceClient {
                 // When performing passthrough scenarios using Load Balance connector,
                 // message needs to be built before trying out the load balance endpoints to keep the request message
                 // to load balance the messages in case of failure.
-                byte[]|error binaryPayload = loadBalancerInRequest.getBinaryPayload();
-                if binaryPayload is error {
-                    log:printDebug("Error building payload for request load balance: " + binaryPayload.message());
+                if !loadBalancerInRequest.hasMsgDataSource() {
+                    byte[]|error binaryPayload = loadBalancerInRequest.getBinaryPayload();
+                    if binaryPayload is error {
+                        log:printDebug("Error building payload for request load balance: " + binaryPayload.message());
+                    }
                 }
                 requestEntity = check loadBalancerInRequest.getEntity();
             }
