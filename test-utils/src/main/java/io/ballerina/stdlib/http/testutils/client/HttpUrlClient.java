@@ -43,7 +43,9 @@ import java.util.Map;
 /**
  * A simple URL connection HTTP client to be used in test cases.
  */
-public class HttpUrlClient {
+public final class HttpUrlClient {
+
+    private HttpUrlClient() {}
 
     private static final Logger log = LoggerFactory.getLogger(HttpUrlClient.class);
     private static final int DEFAULT_READ_TIMEOUT = 30000;

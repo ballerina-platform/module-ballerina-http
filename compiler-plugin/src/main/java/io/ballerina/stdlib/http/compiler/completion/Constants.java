@@ -23,7 +23,9 @@ import java.util.List;
 /**
  * Constants related to compiler plugin completion implementation.
  */
-public class Constants {
+public final class Constants {
+    private Constants() {}
+
     public static final String GET = "get";
     public static final String POST = "post";
 

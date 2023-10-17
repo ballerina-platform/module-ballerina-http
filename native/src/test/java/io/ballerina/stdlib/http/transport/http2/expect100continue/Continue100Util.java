@@ -24,7 +24,9 @@ import io.ballerina.stdlib.http.transport.util.TestUtil;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_2_0;
 
-class Continue100Util {
+public final class Continue100Util {
+    private Continue100Util() {}
+
     static ListenerConfiguration getListenerConfigs() {
         ListenerConfiguration listenerConfiguration = new ListenerConfiguration();
         listenerConfiguration.setPort(TestUtil.SERVER_CONNECTOR_PORT);

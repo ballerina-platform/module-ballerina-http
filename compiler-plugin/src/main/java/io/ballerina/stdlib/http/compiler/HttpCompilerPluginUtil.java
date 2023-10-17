@@ -93,7 +93,9 @@ import static io.ballerina.stdlib.http.compiler.Constants.XML;
 /**
  * Utility class providing http compiler plugin utility methods.
  */
-public class HttpCompilerPluginUtil {
+public final class HttpCompilerPluginUtil {
+
+    private HttpCompilerPluginUtil() {}
 
     public static void updateDiagnostic(SyntaxNodeAnalysisContext ctx, Location location,
                                         HttpDiagnosticCodes httpDiagnosticCodes) {

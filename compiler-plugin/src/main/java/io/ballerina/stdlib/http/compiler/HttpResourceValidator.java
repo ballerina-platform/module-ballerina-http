@@ -128,7 +128,9 @@ import static io.ballerina.stdlib.http.compiler.codemodifier.HttpPayloadParamIde
 /**
  * Validates a ballerina http resource.
  */
-public class HttpResourceValidator {
+public final class HttpResourceValidator {
+
+    private HttpResourceValidator() {}
 
     static void validateResource(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
                                  LinksMetaData linksMetaData, Map<String, TypeSymbol> typeSymbols) {
