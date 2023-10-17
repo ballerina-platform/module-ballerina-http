@@ -32,6 +32,8 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.uri.URIUtil;
 import io.ballerina.stdlib.mime.util.EntityBodyHandler;
 
+import java.util.Objects;
+
 import static io.ballerina.stdlib.http.api.HttpConstants.QUERY_PARAM_MAP;
 import static io.ballerina.stdlib.http.api.HttpConstants.TRANSPORT_MESSAGE;
 import static io.ballerina.stdlib.http.api.HttpUtil.checkRequestBodySizeHeadersAvailability;
@@ -101,6 +103,11 @@ public class ExternRequest {
     public static boolean checkEntityBodyAvailability(BObject requestObj) {
         BObject entityObj = (BObject) requestObj.get(REQUEST_ENTITY_FIELD);
         return lengthHeaderCheck(requestObj) || EntityBodyHandler.checkEntityBodyAvailability(entityObj);
+    }
+
+    public static boolean hasMsgDataSource(BObject requestObj) {
+        BObject entityObj = (BObject) requestObj.get(REQUEST_ENTITY_FIELD);
+        return Objects.nonNull(EntityBodyHandler.getMessageDataSource(entityObj));
     }
 
     private static boolean lengthHeaderCheck(BObject requestObj) {

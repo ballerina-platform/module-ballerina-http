@@ -174,7 +174,7 @@
             <class name="io.ballerina.stdlib.http.transport.https.CipherSuiteswithCertsTest"/>
             <class name="io.ballerina.stdlib.http.transport.https.OptionalMutualSSLTest"/>
             <class name="io.ballerina.stdlib.http.transport.https.SSLProtocolsWithCertsTest"/>
-            <class name="io.ballerina.stdlib.http.transport.http2.ssl.Http2ALPNwithCertsTest"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.ssl.Http2AlpnWithCertsTest"/>
             <class name="io.ballerina.stdlib.http.transport.http2.ssl.TestHttp2WithALPN"/>
             <class name="io.ballerina.stdlib.http.transport.http2.ssl.Http2MutualSslTest"/>
             <class name="io.ballerina.stdlib.http.transport.http2.ssl.DisableSslTest"/>
