@@ -10,6 +10,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Changed
 - [Make some of the Java classes proper utility classes](https://github.com/ballerina-platform/ballerina-standard-library/issues/4923)
 
+## [2.10.3] - 2023-10-13
+
+### Fixed
+- [Address CVE-2023-4586 netty Vulnerability](https://github.com/ballerina-platform/ballerina-standard-library/issues/4908)
+
 ## [2.10.2] - 2023-10-09
 
 ### Fixed
