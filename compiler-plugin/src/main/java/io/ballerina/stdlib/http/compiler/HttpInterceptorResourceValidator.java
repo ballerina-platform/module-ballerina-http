@@ -35,7 +35,9 @@ import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.updateDia
 /**
  * Validates a ballerina http interceptor resource.
  */
-public class HttpInterceptorResourceValidator {
+public final class HttpInterceptorResourceValidator {
+    private HttpInterceptorResourceValidator() {}
+
     public static void validateResource(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member, String type,
                                         Map<String, TypeSymbol> typeSymbols) {
         checkResourceAnnotation(ctx, member);

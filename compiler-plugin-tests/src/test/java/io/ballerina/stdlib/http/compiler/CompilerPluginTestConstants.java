@@ -21,7 +21,9 @@ package io.ballerina.stdlib.http.compiler;
 /**
  * Constants related to compiler plugin tests.
  */
-public class CompilerPluginTestConstants {
+public final class CompilerPluginTestConstants {
+    private CompilerPluginTestConstants() {}
+
     public static final String HTTP_101 = "HTTP_101";
     public static final String HTTP_102 = "HTTP_102";
     public static final String HTTP_103 = "HTTP_103";

@@ -33,7 +33,9 @@ import static io.ballerina.stdlib.http.api.HttpErrorType.INTERCEPTOR_RETURN_ERRO
 /**
  * Utilities related to HTTP request context.
  */
-public class ExternRequestContext {
+public final class ExternRequestContext {
+
+    private ExternRequestContext() {}
 
     public static Object getWithType(BObject requestCtx, BString key, BTypedesc targetType) {
         BMap members = requestCtx.getMapValue(HttpConstants.REQUEST_CTX_MEMBERS);

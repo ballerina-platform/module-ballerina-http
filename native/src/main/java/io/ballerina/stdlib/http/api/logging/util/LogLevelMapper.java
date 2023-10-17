@@ -25,7 +25,9 @@ import java.util.logging.Level;
  *
  * @since 0.89
  */
-public class LogLevelMapper {
+public final class LogLevelMapper {
+
+    private LogLevelMapper() {}
 
     public static String getBallerinaLogLevel(Level level) {
         switch (level.getName()) {

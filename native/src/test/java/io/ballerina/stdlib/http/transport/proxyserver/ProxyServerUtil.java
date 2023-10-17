@@ -53,7 +53,9 @@ import static org.testng.AssertJUnit.assertNotNull;
 /**
  * A util class to use in both http and https proxy scenarios.
  */
-public class ProxyServerUtil {
+public final class ProxyServerUtil {
+    private ProxyServerUtil() {}
+
     private static HttpClientConnector httpClientConnector;
     private static ServerConnector serverConnector;
     private static HttpWsConnectorFactory httpWsConnectorFactory;

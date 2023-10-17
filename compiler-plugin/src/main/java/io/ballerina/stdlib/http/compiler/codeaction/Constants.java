@@ -21,7 +21,9 @@ package io.ballerina.stdlib.http.compiler.codeaction;
 /**
  * Constants related to compiler plugin code-action implementation.
  */
-public class Constants {
+public final class Constants {
+    private Constants () {}
+
     public static final String NODE_LOCATION_KEY = "node.location";
     public static final String IS_ERROR_INTERCEPTOR_TYPE = "node.errorInterceptor";
 

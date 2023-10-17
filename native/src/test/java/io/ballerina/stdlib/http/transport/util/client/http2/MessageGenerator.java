@@ -46,7 +46,9 @@ import static io.ballerina.stdlib.http.transport.util.TestUtil.HTTP_SCHEME;
 /**
  * A utility class which generates HTTP/2.0 requests.
  */
-public class MessageGenerator {
+public final class MessageGenerator {
+    private MessageGenerator() {}
+
     public static HttpCarbonMessage generateRequest(HttpMethod httpMethod, String payload) {
         HttpCarbonMessage httpCarbonMessage = new HttpCarbonRequest(new DefaultHttpRequest(
                 new HttpVersion(Constants.DEFAULT_VERSION_HTTP_1_1, true), httpMethod,
