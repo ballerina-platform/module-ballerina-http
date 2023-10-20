@@ -254,10 +254,10 @@ isolated function createStatusCodeResponse(StatusCodeResponse message, string? r
 isolated function retrieveMediaType(StatusCodeResponse resp, string? retrievedMediaType) returns string? {
     string? mediaType = resp?.mediaType;
     if mediaType is string {
-        return mediaType;
+        return strings:trim(mediaType);
     }
     if retrievedMediaType is string {
-        return retrievedMediaType;
+        return strings:trim(retrievedMediaType);
     }
     return;
 }

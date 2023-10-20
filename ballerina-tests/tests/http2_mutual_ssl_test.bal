@@ -158,7 +158,8 @@ public function testHttp2MutualSsl4() returns error? {
     // Without keys - negative test
     http:Client httpClient = check new("https://localhost:9204", http2MutualSslClientConf4);
     http:Response|error resp = httpClient->get("/http2Service/");
-    string expectedErrMsg = "SSL connection failed:javax.net.ssl.SSLHandshakeException: error:10000410:SSL routines:OPENSSL_internal:SSLV3_ALERT_HANDSHAKE_FAILURE localhost/127.0.0.1:9204";
+    string expectedErrMsg = "SSL connection failed:io.netty.handler.ssl.ReferenceCountedOpenSslEngine$OpenSslHandshakeException"
+                                + ": error:10000410:SSL routines:OPENSSL_internal:SSLV3_ALERT_HANDSHAKE_FAILURE localhost/127.0.0.1:9204";
     if resp is error {
         test:assertEquals(resp.message(), expectedErrMsg);
     } else {
