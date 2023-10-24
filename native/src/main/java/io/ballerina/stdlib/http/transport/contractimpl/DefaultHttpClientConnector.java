@@ -208,7 +208,7 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
                 public void onSuccess(String protocol, ChannelFuture channelFuture) {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("Created the connection to address: {}",
-                                  route.toString() + " " + "Original Channel ID is : " + channelFuture.channel().id());
+                                  route + " Original Channel ID is : " + channelFuture.channel().id());
                     }
 
                     if (isH1c(protocol)) {
