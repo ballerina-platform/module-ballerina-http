@@ -68,23 +68,25 @@ public class UrlEncodedStringToMapConverter {
                 return formParamsMap;
             }
             Map<String, String> tempParamMap = new HashMap<>();
-            String decodedValue = URLDecoder.decode(formData, StandardCharsets.UTF_8);
 
-            if (!decodedValue.contains("=")) {
+            if (!formData.contains("=")) {
                 throw new BallerinaConnectorException("Datasource does not contain form data");
             }
-            String[] formParamValues = decodedValue.split("&");
+            String[] formParamValues = formData.split("&");
             for (String formParam : formParamValues) {
                 int index = formParam.indexOf('=');
                 if (index == -1) {
-                    if (!tempParamMap.containsKey(formParam)) {
-                        tempParamMap.put(formParam, null);
+                    String decodedFormParam = URLDecoder.decode(formParam, StandardCharsets.UTF_8);
+                    if (!tempParamMap.containsKey(decodedFormParam)) {
+                        tempParamMap.put(decodedFormParam, null);
                     }
                     continue;
                 }
-                String formParamName = formParam.substring(0, index).trim();
-                String formParamValue = formParam.substring(index + 1).trim();
-                tempParamMap.put(formParamName, formParamValue);
+                String decodedFormParamName = URLDecoder.decode(formParam.substring(0, index).trim(),
+                        StandardCharsets.UTF_8);
+                String decodedFormParamValue = URLDecoder.decode(formParam.substring(index + 1).trim(),
+                        StandardCharsets.UTF_8);
+                tempParamMap.put(decodedFormParamName, decodedFormParamValue);
             }
 
             for (Map.Entry<String, String> entry : tempParamMap.entrySet()) {

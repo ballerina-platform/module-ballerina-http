@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Fixed
+- [Fix URL encoded form data binding with encoded `&` and `=` characters](https://github.com/ballerina-platform/ballerina-standard-library/issues/5068)
+
 ### Changed
 - [Make some of the Java classes proper utility classes](https://github.com/ballerina-platform/ballerina-standard-library/issues/4923)
 
