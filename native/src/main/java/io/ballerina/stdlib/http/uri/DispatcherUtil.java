@@ -33,7 +33,9 @@ import java.util.stream.Collectors;
 /**
  * Utilities related to dispatcher processing.
  */
-public class DispatcherUtil {
+public final class DispatcherUtil {
+
+    private DispatcherUtil() {}
 
     private static String[] allMethods = new String[]{HttpConstants.HTTP_METHOD_GET, HttpConstants.HTTP_METHOD_HEAD
             , HttpConstants.HTTP_METHOD_POST, HttpConstants.HTTP_METHOD_DELETE, HttpConstants.HTTP_METHOD_PATCH

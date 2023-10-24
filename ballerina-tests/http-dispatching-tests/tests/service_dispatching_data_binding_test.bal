@@ -110,6 +110,10 @@ service /dataBinding on generalListener {
         return "body11";
     }
 
+    resource function post body12(map<string> form) returns map<string> {
+        return form;
+    }
+
     resource function get negative1(http:Caller caller) returns error? {
         lock {
             var err = generalListener.attach(multipleAnnot1, "multipleAnnot1");
@@ -461,6 +465,18 @@ function testDataBindingWithMapOfString() {
     http:Response|error response = dataBindingClient->post("/dataBinding/body9", req);
     if response is http:Response {
         common:assertJsonPayload(response.getJsonPayload(), {"1": "hello go", "2": "ba #ller @na"});
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testDataBindingWithEncodedKeyValuePair() {
+    http:Request req = new;
+    req.setTextPayload("key0%261%3D2=value1&key2=value2%26value3%3Dvalue4", contentType = "application/x-www-form-urlencoded");
+    http:Response|error response = dataBindingClient->post("/dataBinding/body12", req);
+    if response is http:Response {
+        common:assertJsonPayload(response.getJsonPayload(), {"key0&1=2": "value1", "key2": "value2&value3=value4"});
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

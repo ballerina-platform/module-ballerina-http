@@ -48,7 +48,9 @@ import static org.testng.Assert.assertEquals;
  *
  * @since 6.0.273
  */
-public class Http2Util {
+public final class Http2Util {
+
+    private Http2Util() {}
 
     public static final String HTTP2_RESPONSE_PAYLOAD = "Final Response";
 

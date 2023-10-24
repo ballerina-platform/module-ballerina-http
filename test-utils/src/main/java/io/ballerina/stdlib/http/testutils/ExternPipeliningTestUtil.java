@@ -40,7 +40,9 @@ import static io.ballerina.stdlib.http.testutils.Assert.assertTrue;
  *
  * @since 0.982.0
  */
-public class ExternPipeliningTestUtil {
+public final class ExternPipeliningTestUtil {
+
+    private ExternPipeliningTestUtil() {}
 
     private static final Logger log = LoggerFactory.getLogger(ExternPipeliningTestUtil.class);
 
