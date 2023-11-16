@@ -235,7 +235,8 @@ public class CommonUtilTestCase {
     @Test
     public void testIsKeepAlive() throws ConfigurationException {
         HttpCarbonMessage outboundRequestMsg = mock(HttpCarbonMessage.class);
-        Assert.assertFalse(Util.isKeepAlive(KeepAliveConfig.NEVER, outboundRequestMsg));
+        HttpCarbonMessage inboundRequestMsg = mock(HttpCarbonMessage.class);
+        Assert.assertFalse(Util.isKeepAlive(KeepAliveConfig.NEVER, outboundRequestMsg, inboundRequestMsg));
     }
 
 }
