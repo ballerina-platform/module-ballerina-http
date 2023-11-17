@@ -101,6 +101,12 @@ public class CreateSimpleHttpClient {
                         get(HttpConstants.HTTP2_SETTINGS);
                 boolean http2PriorKnowledge = (boolean) http2Settings.get(HTTP2_PRIOR_KNOWLEDGE);
                 senderConfiguration.setForceHttp2(http2PriorKnowledge);
+                if (!http2PriorKnowledge) {
+                    BMap<BString, Object> http1Settings = (BMap<BString, Object>) clientEndpointConfig.get(
+                            HttpConstants.HTTP1_SETTINGS);
+                    senderConfiguration.setKeepAliveConfig(HttpUtil.getKeepAliveConfig(http1Settings
+                            .getStringValue(HttpConstants.CLIENT_EP_IS_KEEP_ALIVE).getValue()));
+                }
                 senderConfiguration.setHttp2InitialWindowSize(http2Settings
                         .getIntValue(CLIENT_EP_HTTP2_INITIAL_WINDOW_SIZE).intValue());
             } else {
