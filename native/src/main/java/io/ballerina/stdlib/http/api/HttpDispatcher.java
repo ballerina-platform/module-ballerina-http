@@ -490,6 +490,10 @@ public class HttpDispatcher {
             }
         };
 
+        String[] splitValues = authHeader.split(WHITESPACE);
+        if (splitValues.length != 2) {
+            return null;
+        }
         String jwtValue = authHeader.split(WHITESPACE)[1];
         runtime.invokeMethodAsyncSequentially(
                 ValueCreator.createObjectValue(ModuleUtils.getHttpPackage(), JWT_DECODER_CLASS_NAME),
