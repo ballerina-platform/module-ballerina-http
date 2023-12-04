@@ -574,6 +574,7 @@ service http:InterceptableService /requestInterceptorJwtInformation on new http:
 
 @test:Config{}
 function testJwtInformationInRequestContext() returns error? {
+    reqCtxJwtValues = [];
     http:Client jwtClient = check new("https://localhost:" + jwtInformationInReqCtxtTestPort.toString(),
     secureSocket = {
         cert: common:CERT_FILE
@@ -600,6 +601,19 @@ function testJwtInformationInRequestContext() returns error? {
     test:assertEquals(reqCtxJwtValues[1].aud, ["ballerina","ballerina.org","ballerina.io"]);
     test:assertEquals(reqCtxJwtValues[1].jti, "JlbmMiOiJBMTI4Q0JDLUhTMjU2In");
     test:assertEquals(reqCtxJwtValues[1]["scp"], "admin");
+}
+
+@test:Config{}
+function testEmptyJwtInformationInRequestContext() returns error? {
+    reqCtxJwtValues = [];
+    http:Client jwtClient = check new("https://localhost:" + jwtInformationInReqCtxtTestPort.toString(),
+    secureSocket = {
+        cert: common:CERT_FILE
+    });
+    http:Response response = check jwtClient->get("/requestInterceptorJwtInformation", {"authorization": "Basic "});
+    test:assertEquals(response.statusCode, 500);
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "no member found for key: JWT_INFORMATION",
+        "Internal Server Error", 500, "/requestInterceptorJwtInformation", "GET");
 }
 
 @test:Config{}
