@@ -494,7 +494,6 @@ public class HttpDispatcher {
         if (splitValues.length != 2) {
             return null;
         }
-        String jwtValue = authHeader.split(WHITESPACE)[1];
         runtime.invokeMethodAsyncSequentially(
                 ValueCreator.createObjectValue(ModuleUtils.getHttpPackage(), JWT_DECODER_CLASS_NAME),
                 JWT_DECODE_METHOD_NAME,
@@ -503,7 +502,7 @@ public class HttpDispatcher {
                 decodeCallback,
                 null,
                 PredefinedTypes.TYPE_ANY,
-                StringUtils.fromString(jwtValue),
+                StringUtils.fromString(splitValues[1]),
                 true);
         try {
             countDownLatch.await();
