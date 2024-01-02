@@ -21,6 +21,7 @@ package io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.handler.codec.http2.Http2Connection;
@@ -292,6 +293,23 @@ public class Http2ClientChannel {
             if (isExhausted.getAndSet(false)) {
                 http2ConnectionManager.returnClientChannel(httpRoute, http2ClientChannel);
             }
+        }
+
+        @Override
+        public void onGoAwayReceived(int lastStreamId, long errorCode, ByteBuf debugData) {
+            http2ClientChannel.inFlightMessages.forEach((streamId, outboundMsgHolder) -> {
+                if (streamId > lastStreamId) {
+                    http2ClientChannel.removeInFlightMessage(streamId);
+                    activeStreams.decrementAndGet();
+                    http2ClientChannel.getDataEventListeners().forEach(
+                            dataEventListener -> dataEventListener.onStreamClose(streamId));
+                    Http2MessageStateContext messageStateContext =
+                            outboundMsgHolder.getRequest().getHttp2MessageStateContext();
+                    if (messageStateContext != null) {
+                        messageStateContext.getSenderState().handleConnectionClose(outboundMsgHolder);
+                    }
+                }
+            });
         }
     }
 
