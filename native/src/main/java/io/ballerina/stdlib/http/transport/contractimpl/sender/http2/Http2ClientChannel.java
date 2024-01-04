@@ -297,6 +297,7 @@ public class Http2ClientChannel {
 
         @Override
         public void onGoAwayReceived(int lastStreamId, long errorCode, ByteBuf debugData) {
+            http2ConnectionManager.removeClientChannel(httpRoute, http2ClientChannel);
             http2ClientChannel.inFlightMessages.forEach((streamId, outboundMsgHolder) -> {
                 if (streamId > lastStreamId) {
                     http2ClientChannel.removeInFlightMessage(streamId);
