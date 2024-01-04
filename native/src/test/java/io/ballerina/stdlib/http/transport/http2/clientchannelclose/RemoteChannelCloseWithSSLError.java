@@ -70,7 +70,7 @@ public class RemoteChannelCloseWithSSLError {
         h2PriorOnClient = getTestHttp2Client(connectorFactory, true);
     }
 
-    //TODO:Change the assertion state once the issue https://githubcom/ballerina-platform/ballerina-lang/issues/17539
+    //TODO:Change the assertion state once the issue https://github.com/ballerina-platform/ballerina-lang/issues/17539
     // is fixed.
     @Test
     public void testRemoteChannelClose() {
