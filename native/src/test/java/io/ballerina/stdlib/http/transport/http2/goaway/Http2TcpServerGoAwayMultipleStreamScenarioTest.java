@@ -1,14 +1,26 @@
+/*
+ * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com) All Rights Reserved.
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package io.ballerina.stdlib.http.transport.http2.goaway;
 
-import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
-import io.ballerina.stdlib.http.transport.contract.HttpWsConnectorFactory;
-import io.ballerina.stdlib.http.transport.contract.config.SenderConfiguration;
-import io.ballerina.stdlib.http.transport.contract.config.TransportsConfiguration;
-import io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpWsConnectorFactory;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
-import io.ballerina.stdlib.http.transport.message.HttpConnectorUtil;
 import io.ballerina.stdlib.http.transport.util.DefaultHttpConnectorListener;
 import io.ballerina.stdlib.http.transport.util.TestUtil;
 import io.ballerina.stdlib.http.transport.util.client.http2.MessageGenerator;
@@ -28,10 +40,11 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE;
-import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertEqualsNoOrder;
-import static org.testng.Assert.fail;
 
+/**
+ * This contains a test case where the tcp server sends a GoAway for a stream in a multiple stream scenario.
+ */
 public class Http2TcpServerGoAwayMultipleStreamScenarioTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Http2TcpServerGoAwayMultipleStreamScenarioTest.class);
