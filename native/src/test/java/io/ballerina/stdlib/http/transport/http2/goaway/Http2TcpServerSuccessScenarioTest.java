@@ -39,6 +39,11 @@ import java.net.Socket;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static io.ballerina.stdlib.http.transport.http2.goaway.GoAwayTestUtils.DATA_FRAME_STREAM_03;
+import static io.ballerina.stdlib.http.transport.http2.goaway.GoAwayTestUtils.HEADER_FRAME_STREAM_03;
+import static io.ballerina.stdlib.http.transport.http2.goaway.GoAwayTestUtils.SETTINGS_FRAME;
+import static io.ballerina.stdlib.http.transport.http2.goaway.GoAwayTestUtils.SETTINGS_FRAME_WITH_ACK;
+import static io.ballerina.stdlib.http.transport.http2.goaway.GoAwayTestUtils.SLEEP_TIME;
 import static org.testng.Assert.assertEquals;
 
 /**
@@ -66,7 +71,7 @@ public class Http2TcpServerSuccessScenarioTest {
             latch.await(TestUtil.HTTP2_RESPONSE_TIME_OUT, TimeUnit.SECONDS);
             responseFuture.sync();
             HttpContent content = msgListener.getHttpResponseMessage().getHttpContent();
-            assertEquals(content.content().toString(CharsetUtil.UTF_8), "hello world");
+            assertEquals(content.content().toString(CharsetUtil.UTF_8), "hello world3");
         } catch (InterruptedException e) {
             LOGGER.error("Interrupted exception occurred");
         }
@@ -96,17 +101,13 @@ public class Http2TcpServerSuccessScenarioTest {
 
     private static void sendSuccessfulResponse(OutputStream outputStream) throws IOException, InterruptedException {
         // Sending settings frame with HEADER_TABLE_SIZE=25700
-        LOGGER.info("Wrote settings frame");
-        outputStream.write(new byte[]{0x00, 0x00, 0x06, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x64, 0x64});
-        Thread.sleep(100);
-        LOGGER.info("Writing settings frame with ack");
-        outputStream.write(new byte[]{0x00, 0x00, 0x00, 0x04, 0x01, 0x00, 0x00, 0x00, 0x00});
-        Thread.sleep(100);
-        LOGGER.info("Writing headers frame with status 200");
-        outputStream.write(new byte[]{0x00, 0x00, 0x0a, 0x01, 0x04, 0x00, 0x00, 0x00, 0x03, (byte) 0x88, 0x5f, (byte) 0x87, 0x49, 0x7c, (byte) 0xa5, (byte) 0x8a, (byte) 0xe8, 0x19, (byte) 0xaa});
-        Thread.sleep(100);
-        LOGGER.info("Writing data frame with hello world");
-        outputStream.write(new byte[]{0x00, 0x00, 0x0b, 0x00, 0x01, 0x00, 0x00, 0x00, 0x03, 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64});
-        Thread.sleep(100);
+        outputStream.write(SETTINGS_FRAME);
+        Thread.sleep(SLEEP_TIME);
+        outputStream.write(SETTINGS_FRAME_WITH_ACK);
+        Thread.sleep(SLEEP_TIME);
+        outputStream.write(HEADER_FRAME_STREAM_03);
+        Thread.sleep(SLEEP_TIME);
+        outputStream.write(DATA_FRAME_STREAM_03);
+        Thread.sleep(SLEEP_TIME);
     }
 }

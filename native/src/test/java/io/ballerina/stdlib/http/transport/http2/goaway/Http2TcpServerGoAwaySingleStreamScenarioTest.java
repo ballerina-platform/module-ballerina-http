@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.transport.http2.goaway;
 
+import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
@@ -37,7 +38,10 @@ import java.net.Socket;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE;
+import static io.ballerina.stdlib.http.transport.http2.goaway.GoAwayTestUtils.GO_AWAY_FRAME_STREAM_03;
+import static io.ballerina.stdlib.http.transport.http2.goaway.GoAwayTestUtils.SETTINGS_FRAME;
+import static io.ballerina.stdlib.http.transport.http2.goaway.GoAwayTestUtils.SETTINGS_FRAME_WITH_ACK;
+import static io.ballerina.stdlib.http.transport.http2.goaway.GoAwayTestUtils.SLEEP_TIME;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
 
@@ -67,7 +71,8 @@ public class Http2TcpServerGoAwaySingleStreamScenarioTest {
             responseFuture.sync();
             Throwable responseError = responseFuture.getStatus().getCause();
             if (responseError != null) {
-                assertEquals(responseError.getMessage(), REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE);
+                assertEquals(responseError.getMessage(),
+                        Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE);
             } else {
                 fail("Expected error not received");
             }
@@ -90,25 +95,22 @@ public class Http2TcpServerGoAwaySingleStreamScenarioTest {
                         sendGoAwayForASingleStream(outputStream);
                         break;
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        LOGGER.error(e.getMessage());
                     }
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                LOGGER.error(e.getMessage());
             }
         }).start();
     }
 
     private static void sendGoAwayForASingleStream(OutputStream outputStream) throws IOException, InterruptedException {
         // Sending settings frame with HEADER_TABLE_SIZE=25700
-        LOGGER.info("Wrote settings frame");
-        outputStream.write(new byte[]{0x00, 0x00, 0x06, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x64, 0x64});
-        Thread.sleep(100);
-        LOGGER.info("Writing settings frame with ack");
-        outputStream.write(new byte[]{0x00, 0x00, 0x00, 0x04, 0x01, 0x00, 0x00, 0x00, 0x00});
-        Thread.sleep(100);
-        LOGGER.info("Writing a go away frame to stream 3");
-        outputStream.write(new byte[]{0x00, 0x00, 0x08, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x0b});
-        Thread.sleep(100);
+        outputStream.write(SETTINGS_FRAME);
+        Thread.sleep(SLEEP_TIME);
+        outputStream.write(SETTINGS_FRAME_WITH_ACK);
+        Thread.sleep(SLEEP_TIME);
+        outputStream.write(GO_AWAY_FRAME_STREAM_03);
+        Thread.sleep(SLEEP_TIME);
     }
 }
