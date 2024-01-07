@@ -53,7 +53,8 @@ import static org.testng.Assert.fail;
  */
 public class Http2TcpServerRSTStreamFrameWhenReadingBodyForSingleStreamTest {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Http2TcpServerRSTStreamFrameWhenReadingBodyForSingleStreamTest.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(Http2TcpServerRSTStreamFrameWhenReadingBodyForSingleStreamTest.class);
     private HttpClientConnector h2ClientWithPriorKnowledge;
 
     @BeforeClass

@@ -57,7 +57,8 @@ import static org.testng.Assert.fail;
  */
 public class Http2TcpServerRSTStreamFrameForMultipleStreamsTest {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Http2TcpServerRSTStreamFrameForMultipleStreamsTest.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(Http2TcpServerRSTStreamFrameForMultipleStreamsTest.class);
     private HttpClientConnector h2ClientWithPriorKnowledge;
 
     @BeforeClass
