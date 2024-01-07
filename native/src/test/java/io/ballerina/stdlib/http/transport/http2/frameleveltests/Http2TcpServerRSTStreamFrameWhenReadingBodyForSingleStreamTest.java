@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package io.ballerina.stdlib.http.transport.http2.goaway;
+package io.ballerina.stdlib.http.transport.http2.frameleveltests;
 
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
@@ -39,31 +39,31 @@ import java.net.Socket;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static io.ballerina.stdlib.http.transport.http2.goaway.GoAwayTestUtils.GO_AWAY_FRAME_STREAM_03;
-import static io.ballerina.stdlib.http.transport.http2.goaway.GoAwayTestUtils.HEADER_FRAME_STREAM_03;
-import static io.ballerina.stdlib.http.transport.http2.goaway.GoAwayTestUtils.SETTINGS_FRAME;
-import static io.ballerina.stdlib.http.transport.http2.goaway.GoAwayTestUtils.SETTINGS_FRAME_WITH_ACK;
-import static io.ballerina.stdlib.http.transport.http2.goaway.GoAwayTestUtils.SLEEP_TIME;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.END_SLEEP_TIME;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.HEADER_FRAME_STREAM_03;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.RST_STREAM_FRAME_STREAM_03;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.SETTINGS_FRAME;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.SETTINGS_FRAME_WITH_ACK;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.SLEEP_TIME;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
 
 /**
- * This contains a test case where the tcp server sends a GoAway while client receives the body.
+ * This contains a test case where the tcp server sends a successful response.
  */
-public class Http2TcpServerGoAwayWhileReceivingBodyScenarioTest {
+public class Http2TcpServerRSTStreamFrameWhenReadingBodyForSingleStreamTest {
 
-    private static final Logger LOGGER =
-            LoggerFactory.getLogger(Http2TcpServerGoAwayWhileReceivingBodyScenarioTest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Http2TcpServerRSTStreamFrameWhenReadingBodyForSingleStreamTest.class);
     private HttpClientConnector h2ClientWithPriorKnowledge;
 
     @BeforeClass
     public void setup() throws InterruptedException {
-        startTcpServer(TestUtil.HTTP_SERVER_PORT);
-        h2ClientWithPriorKnowledge = GoAwayTestUtils.setupHttp2PriorKnowledgeClient();
+        runTcpServer(TestUtil.HTTP_SERVER_PORT);
+        h2ClientWithPriorKnowledge = TestUtils.setupHttp2PriorKnowledgeClient();
     }
 
     @Test
-    private void testGoAwayWhenReceivingBodyForASingleStream() {
+    private void testRSTStreamFrameWhenReadingBodyForSingleStream() {
         HttpCarbonMessage httpCarbonMessage = MessageGenerator.generateRequest(HttpMethod.POST, "Test Http2 Message");
         try {
             CountDownLatch latch = new CountDownLatch(1);
@@ -84,21 +84,20 @@ public class Http2TcpServerGoAwayWhileReceivingBodyScenarioTest {
         }
     }
 
-    private void startTcpServer(int port) {
+    private void runTcpServer(int port) {
         new Thread(() -> {
             ServerSocket serverSocket;
             try {
                 serverSocket = new ServerSocket(port);
                 LOGGER.info("HTTP/2 TCP Server listening on port " + port);
-                while (true) {
-                    Socket clientSocket = serverSocket.accept();
-                    LOGGER.info("Accepted connection from: " + clientSocket.getInetAddress());
-                    try (OutputStream outputStream = clientSocket.getOutputStream()) {
-                        sendGoAwayAfterSendingHeadersForASingleStream(outputStream);
-                        break;
-                    } catch (Exception e) {
-                        LOGGER.error(e.getMessage());
-                    }
+                Socket clientSocket = serverSocket.accept();
+                LOGGER.info("Accepted connection from: " + clientSocket.getInetAddress());
+                try (OutputStream outputStream = clientSocket.getOutputStream()) {
+                    sendRSTStream(outputStream);
+                } catch (Exception e) {
+                    LOGGER.error(e.getMessage());
+                } finally {
+                    serverSocket.close();
                 }
             } catch (IOException e) {
                 LOGGER.error(e.getMessage());
@@ -106,8 +105,7 @@ public class Http2TcpServerGoAwayWhileReceivingBodyScenarioTest {
         }).start();
     }
 
-    private static void sendGoAwayAfterSendingHeadersForASingleStream(OutputStream outputStream)
-            throws IOException, InterruptedException {
+    private static void sendRSTStream(OutputStream outputStream) throws IOException, InterruptedException {
         // Sending settings frame with HEADER_TABLE_SIZE=25700
         outputStream.write(SETTINGS_FRAME);
         Thread.sleep(SLEEP_TIME);
@@ -115,7 +113,7 @@ public class Http2TcpServerGoAwayWhileReceivingBodyScenarioTest {
         Thread.sleep(SLEEP_TIME);
         outputStream.write(HEADER_FRAME_STREAM_03);
         Thread.sleep(SLEEP_TIME);
-        outputStream.write(GO_AWAY_FRAME_STREAM_03);
-        Thread.sleep(SLEEP_TIME);
+        outputStream.write(RST_STREAM_FRAME_STREAM_03);
+        Thread.sleep(END_SLEEP_TIME);
     }
 }

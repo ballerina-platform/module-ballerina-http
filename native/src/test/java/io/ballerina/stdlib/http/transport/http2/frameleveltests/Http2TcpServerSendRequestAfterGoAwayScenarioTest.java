@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package io.ballerina.stdlib.http.transport.http2.goaway;
+package io.ballerina.stdlib.http.transport.http2.frameleveltests;
 
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
@@ -40,12 +40,13 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static io.ballerina.stdlib.http.transport.http2.goaway.GoAwayTestUtils.DATA_FRAME_STREAM_03;
-import static io.ballerina.stdlib.http.transport.http2.goaway.GoAwayTestUtils.GO_AWAY_FRAME_STREAM_03;
-import static io.ballerina.stdlib.http.transport.http2.goaway.GoAwayTestUtils.HEADER_FRAME_STREAM_03;
-import static io.ballerina.stdlib.http.transport.http2.goaway.GoAwayTestUtils.SETTINGS_FRAME;
-import static io.ballerina.stdlib.http.transport.http2.goaway.GoAwayTestUtils.SETTINGS_FRAME_WITH_ACK;
-import static io.ballerina.stdlib.http.transport.http2.goaway.GoAwayTestUtils.SLEEP_TIME;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.DATA_FRAME_STREAM_03;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.END_SLEEP_TIME;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.GO_AWAY_FRAME_STREAM_03;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.HEADER_FRAME_STREAM_03;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.SETTINGS_FRAME;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.SETTINGS_FRAME_WITH_ACK;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.SLEEP_TIME;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
 
@@ -63,8 +64,8 @@ public class Http2TcpServerSendRequestAfterGoAwayScenarioTest {
 
     @BeforeClass
     public void setup() throws InterruptedException {
-        startTcpServer(TestUtil.HTTP_SERVER_PORT);
-        h2ClientWithPriorKnowledge = GoAwayTestUtils.setupHttp2PriorKnowledgeClient();
+        runTcpServer(TestUtil.HTTP_SERVER_PORT);
+        h2ClientWithPriorKnowledge = TestUtils.setupHttp2PriorKnowledgeClient();
     }
 
     @Test
@@ -98,7 +99,7 @@ public class Http2TcpServerSendRequestAfterGoAwayScenarioTest {
         }
     }
 
-    private void startTcpServer(int port) {
+    private void runTcpServer(int port) {
         new Thread(() -> {
             ServerSocket serverSocket;
             try {
@@ -121,6 +122,7 @@ public class Http2TcpServerSendRequestAfterGoAwayScenarioTest {
                         LOGGER.error(e.getMessage());
                     }
                 }
+                serverSocket.close();
             } catch (IOException e) {
                 LOGGER.error(e.getMessage());
             }
@@ -134,7 +136,7 @@ public class Http2TcpServerSendRequestAfterGoAwayScenarioTest {
         outputStream.write(SETTINGS_FRAME);
         Thread.sleep(SLEEP_TIME);
         outputStream.write(GO_AWAY_FRAME_STREAM_03);
-        Thread.sleep(SLEEP_TIME);
+        Thread.sleep(END_SLEEP_TIME);
     }
 
     private static void sendSuccessfulResponse(OutputStream outputStream) throws IOException, InterruptedException {
@@ -146,6 +148,6 @@ public class Http2TcpServerSendRequestAfterGoAwayScenarioTest {
         outputStream.write(HEADER_FRAME_STREAM_03);
         Thread.sleep(SLEEP_TIME);
         outputStream.write(DATA_FRAME_STREAM_03);
-        Thread.sleep(SLEEP_TIME);
+        Thread.sleep(END_SLEEP_TIME);
     }
 }
