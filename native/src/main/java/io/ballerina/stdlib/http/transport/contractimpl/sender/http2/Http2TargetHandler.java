@@ -265,8 +265,11 @@ public class Http2TargetHandler extends ChannelDuplexHandler {
         int streamId = http2Reset.getStreamId();
         OutboundMsgHolder outboundMsgHolder = http2ClientChannel.getInFlightMessage(streamId);
         if (outboundMsgHolder != null) {
-            outboundMsgHolder.getResponseFuture()
-                    .notifyHttpListener(new Exception("HTTP/2 stream " + streamId + " reset by the remote peer"));
+            Http2MessageStateContext messageStateContext =
+                    outboundMsgHolder.getRequest().getHttp2MessageStateContext();
+            if (messageStateContext != null) {
+                messageStateContext.getSenderState().handleConnectionClose(outboundMsgHolder);
+            }
         }
     }
 
