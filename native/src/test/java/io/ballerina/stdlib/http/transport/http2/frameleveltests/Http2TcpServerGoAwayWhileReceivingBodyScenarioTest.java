@@ -29,6 +29,7 @@ import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -56,6 +57,7 @@ public class Http2TcpServerGoAwayWhileReceivingBodyScenarioTest {
     private static final Logger LOGGER =
             LoggerFactory.getLogger(Http2TcpServerGoAwayWhileReceivingBodyScenarioTest.class);
     private HttpClientConnector h2ClientWithPriorKnowledge;
+    private ServerSocket serverSocket;
 
     @BeforeClass
     public void setup() throws InterruptedException {
@@ -87,7 +89,6 @@ public class Http2TcpServerGoAwayWhileReceivingBodyScenarioTest {
 
     private void runTcpServer(int port) {
         new Thread(() -> {
-            ServerSocket serverSocket;
             try {
                 serverSocket = new ServerSocket(port);
                 LOGGER.info("HTTP/2 TCP Server listening on port " + port);
@@ -97,8 +98,6 @@ public class Http2TcpServerGoAwayWhileReceivingBodyScenarioTest {
                     sendGoAwayAfterSendingHeadersForASingleStream(outputStream);
                 } catch (Exception e) {
                     LOGGER.error(e.getMessage());
-                } finally {
-                    serverSocket.close();
                 }
             } catch (IOException e) {
                 LOGGER.error(e.getMessage());
@@ -117,5 +116,11 @@ public class Http2TcpServerGoAwayWhileReceivingBodyScenarioTest {
         Thread.sleep(SLEEP_TIME);
         outputStream.write(GO_AWAY_FRAME_STREAM_01);
         Thread.sleep(END_SLEEP_TIME);
+    }
+
+    @AfterMethod
+    public void cleanUp() throws IOException {
+        h2ClientWithPriorKnowledge.close();
+        serverSocket.close();
     }
 }

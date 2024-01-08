@@ -30,6 +30,7 @@ import io.netty.handler.codec.http.HttpMethod;
 import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -58,19 +59,16 @@ public class Http2TcpServerGoAwaySingleStreamScenarioTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Http2TcpServerGoAwaySingleStreamScenarioTest.class);
     private HttpClientConnector h2ClientWithPriorKnowledge;
+    private ServerSocket serverSocket;
 
     @BeforeMethod
     public void setup(Method method) throws InterruptedException {
-        if (method.getName().equals("testGoAwayWhenReceivingHeadersForASingleStream")) {
-            runTcpServer(TestUtil.HTTP_SERVER_PORT, 1);
-        } else {
-            runTcpServer(TestUtil.HTTP_SERVER_PORT, 2);
-        }
         h2ClientWithPriorKnowledge = TestUtils.setupHttp2PriorKnowledgeClient();
     }
 
     @Test (description = "In this, server sends headers and data for the accepted stream")
     private void testGoAwayWhenReceivingHeadersForASingleStream() {
+        runTcpServer(TestUtil.HTTP_SERVER_PORT, 1);
         HttpCarbonMessage httpCarbonMessage = MessageGenerator.generateRequest(HttpMethod.POST, "Test Http2 Message");
         try {
             CountDownLatch latch = new CountDownLatch(1);
@@ -88,6 +86,7 @@ public class Http2TcpServerGoAwaySingleStreamScenarioTest {
 
     @Test (description = "In this, server exits without sending the headers and data for the accepted stream as well")
     private void testGoAwayAndServerExitWhenReceivingHeadersForASingleStream() {
+        runTcpServer(TestUtil.HTTP_SERVER_PORT, 2);
         HttpCarbonMessage httpCarbonMessage = MessageGenerator.generateRequest(HttpMethod.POST, "Test Http2 Message");
         try {
             CountDownLatch latch = new CountDownLatch(1);
@@ -110,7 +109,6 @@ public class Http2TcpServerGoAwaySingleStreamScenarioTest {
 
     private void runTcpServer(int port, int option) {
         new Thread(() -> {
-            ServerSocket serverSocket;
             try {
                 serverSocket = new ServerSocket(port);
                 LOGGER.info("HTTP/2 TCP Server listening on port " + port);
@@ -124,8 +122,6 @@ public class Http2TcpServerGoAwaySingleStreamScenarioTest {
                     }
                 } catch (Exception e) {
                     LOGGER.error(e.getMessage());
-                } finally {
-                    serverSocket.close();
                 }
             } catch (IOException e) {
                 LOGGER.error(e.getMessage());
@@ -157,5 +153,11 @@ public class Http2TcpServerGoAwaySingleStreamScenarioTest {
         Thread.sleep(SLEEP_TIME);
         outputStream.write(DATA_FRAME_STREAM_03);
         Thread.sleep(END_SLEEP_TIME);
+    }
+
+    @AfterMethod
+    public void cleanUp() throws IOException {
+        h2ClientWithPriorKnowledge.close();
+        serverSocket.close();
     }
 }

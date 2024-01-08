@@ -29,6 +29,7 @@ import io.netty.handler.codec.http.HttpMethod;
 import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -61,6 +62,7 @@ public class Http2TcpServerSendRequestAfterGoAwayScenarioTest {
 
     private HttpClientConnector h2ClientWithPriorKnowledge;
     private AtomicInteger numberOfConnections = new AtomicInteger(0);
+    private ServerSocket serverSocket;
 
     @BeforeClass
     public void setup() throws InterruptedException {
@@ -101,7 +103,6 @@ public class Http2TcpServerSendRequestAfterGoAwayScenarioTest {
 
     private void runTcpServer(int port) {
         new Thread(() -> {
-            ServerSocket serverSocket;
             try {
                 serverSocket = new ServerSocket(port);
                 LOGGER.info("HTTP/2 TCP Server listening on port " + port);
@@ -122,7 +123,6 @@ public class Http2TcpServerSendRequestAfterGoAwayScenarioTest {
                         LOGGER.error(e.getMessage());
                     }
                 }
-                serverSocket.close();
             } catch (IOException e) {
                 LOGGER.error(e.getMessage());
             }
@@ -149,5 +149,11 @@ public class Http2TcpServerSendRequestAfterGoAwayScenarioTest {
         Thread.sleep(SLEEP_TIME);
         outputStream.write(DATA_FRAME_STREAM_03);
         Thread.sleep(END_SLEEP_TIME);
+    }
+
+    @AfterMethod
+    public void cleanUp() throws IOException {
+        h2ClientWithPriorKnowledge.close();
+        serverSocket.close();
     }
 }

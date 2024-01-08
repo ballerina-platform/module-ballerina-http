@@ -30,6 +30,7 @@ import io.netty.handler.codec.http.HttpMethod;
 import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -38,7 +39,7 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Semaphore;
 
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.DATA_FRAME_STREAM_05;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.END_SLEEP_TIME;
@@ -60,6 +61,9 @@ public class Http2TcpServerRSTStreamFrameForMultipleStreamsTest {
     private static final Logger LOGGER =
             LoggerFactory.getLogger(Http2TcpServerRSTStreamFrameForMultipleStreamsTest.class);
     private HttpClientConnector h2ClientWithPriorKnowledge;
+    Semaphore readSemaphore = new Semaphore(0);
+    Semaphore writeSemaphore = new Semaphore(0);
+    private ServerSocket serverSocket;
 
     @BeforeClass
     public void setup() throws InterruptedException {
@@ -68,22 +72,26 @@ public class Http2TcpServerRSTStreamFrameForMultipleStreamsTest {
     }
 
     @Test
-    private void testRSTStreamFrameForSingleStream() {
+    private void testRSTStreamFrameForMultipleStreams() {
         HttpCarbonMessage httpCarbonMessage1 = MessageGenerator.generateRequest(HttpMethod.POST, "Test Http2 Message");
         HttpCarbonMessage httpCarbonMessage2 = MessageGenerator.generateRequest(HttpMethod.POST, "Test Http2 Message");
         HttpCarbonMessage httpCarbonMessage3 = MessageGenerator.generateRequest(HttpMethod.POST, "Test Http2 Message");
         try {
-            CountDownLatch latch = new CountDownLatch(3);
-            DefaultHttpConnectorListener msgListener1 = new DefaultHttpConnectorListener(latch);
+            DefaultHttpConnectorListener msgListener1 = new DefaultHttpConnectorListener(new CountDownLatch(1));
             HttpResponseFuture responseFuture1 = h2ClientWithPriorKnowledge.send(httpCarbonMessage1);
             responseFuture1.setHttpConnectorListener(msgListener1);
-            DefaultHttpConnectorListener msgListener2 = new DefaultHttpConnectorListener(latch);
+            writeSemaphore.release();
+            readSemaphore.acquire();
+            DefaultHttpConnectorListener msgListener2 = new DefaultHttpConnectorListener(new CountDownLatch(1));
             HttpResponseFuture responseFuture2 = h2ClientWithPriorKnowledge.send(httpCarbonMessage2);
             responseFuture2.setHttpConnectorListener(msgListener2);
-            DefaultHttpConnectorListener msgListener3 = new DefaultHttpConnectorListener(latch);
+            writeSemaphore.release();
+            readSemaphore.acquire();
+            DefaultHttpConnectorListener msgListener3 = new DefaultHttpConnectorListener(new CountDownLatch(1));
             HttpResponseFuture responseFuture3 = h2ClientWithPriorKnowledge.send(httpCarbonMessage3);
             responseFuture3.setHttpConnectorListener(msgListener3);
-            latch.await(TestUtil.HTTP2_RESPONSE_TIME_OUT, TimeUnit.SECONDS);
+            writeSemaphore.release();
+            readSemaphore.acquire();
             responseFuture1.sync();
             responseFuture2.sync();
             responseFuture3.sync();
@@ -92,7 +100,13 @@ public class Http2TcpServerRSTStreamFrameForMultipleStreamsTest {
                 assertEquals(throwable.getMessage(),
                         Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE);
             } else {
-                fail("Expected an error");
+//                HttpContent content1 = msgListener1.getHttpResponseMessage().getHttpContent();
+//                if (content1 != null) {
+//                    assertEquals(content1.decoderResult().cause().getMessage(),
+//                            Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_BODY);
+//                } else {
+                    fail("Expected an error");
+//                }
             }
             HttpContent content2 = msgListener2.getHttpResponseMessage().getHttpContent();
             assertEquals(content2.content().toString(CharsetUtil.UTF_8), "hello world5");
@@ -110,7 +124,6 @@ public class Http2TcpServerRSTStreamFrameForMultipleStreamsTest {
 
     private void runTcpServer(int port) {
         new Thread(() -> {
-            ServerSocket serverSocket;
             try {
                 serverSocket = new ServerSocket(port);
                 LOGGER.info("HTTP/2 TCP Server listening on port " + port);
@@ -120,29 +133,43 @@ public class Http2TcpServerRSTStreamFrameForMultipleStreamsTest {
                     sendRSTStream(outputStream);
                 } catch (Exception e) {
                     LOGGER.error(e.getMessage());
-                } finally {
-                    serverSocket.close();
                 }
             } catch (IOException e) {
                 LOGGER.error(e.getMessage());
+            } finally {
+                readSemaphore.release();
+                writeSemaphore.release();
             }
         }).start();
     }
 
     // This will send an RST_STREAM frame for stream 3 before sending headers and a successful response for
     // stream 5 and an RST_STREAM frame for stream 7 after sending headers
-    private static void sendRSTStream(OutputStream outputStream) throws IOException, InterruptedException {
+    private void sendRSTStream(OutputStream outputStream) throws IOException, InterruptedException {
+        Thread.sleep(SLEEP_TIME);
         outputStream.write(SETTINGS_FRAME);
         Thread.sleep(SLEEP_TIME);
         outputStream.write(SETTINGS_FRAME_WITH_ACK);
         Thread.sleep(SLEEP_TIME);
+        writeSemaphore.acquire();
         outputStream.write(RST_STREAM_FRAME_STREAM_03);
+        readSemaphore.release();
         Thread.sleep(SLEEP_TIME);
+        writeSemaphore.acquire();
         outputStream.write(HEADER_FRAME_STREAM_05);
-        outputStream.write(HEADER_FRAME_STREAM_07);
-        Thread.sleep(100);
         outputStream.write(DATA_FRAME_STREAM_05);
+        Thread.sleep(SLEEP_TIME);
+        readSemaphore.release();
+        writeSemaphore.acquire();
+        outputStream.write(HEADER_FRAME_STREAM_07);
         outputStream.write(RST_STREAM_FRAME_STREAM_07);
+        readSemaphore.release();
         Thread.sleep(END_SLEEP_TIME);
+    }
+
+    @AfterMethod
+    public void cleanUp() throws IOException {
+        h2ClientWithPriorKnowledge.close();
+        serverSocket.close();
     }
 }

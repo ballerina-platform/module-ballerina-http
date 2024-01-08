@@ -161,6 +161,7 @@
             <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.Http2TcpServerGoAwayWhileReceivingBodyScenarioTest"/>
             <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.Http2TcpServerRSTStreamFrameForSingleStreamTest"/>
             <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.Http2TcpServerRSTStreamFrameForMultipleStreamsTest"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.Http2TcpServerRSTStreamFrameWhenReadingBodyForSingleStreamTest"/>
         </classes>
     </test>
     <test name="Transport Security Tests" parallel="false">
