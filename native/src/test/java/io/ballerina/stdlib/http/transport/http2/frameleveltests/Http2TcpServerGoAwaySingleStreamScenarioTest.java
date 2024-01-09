@@ -44,7 +44,7 @@ import java.util.concurrent.TimeUnit;
 
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.DATA_FRAME_STREAM_03;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.END_SLEEP_TIME;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.GO_AWAY_FRAME_STREAM_03;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.GO_AWAY_FRAME_MAX_STREAM_03;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.HEADER_FRAME_STREAM_03;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.SETTINGS_FRAME;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.SETTINGS_FRAME_WITH_ACK;
@@ -129,25 +129,25 @@ public class Http2TcpServerGoAwaySingleStreamScenarioTest {
         }).start();
     }
 
-    private static void sendGoAwayAndExitForASingleStream(OutputStream outputStream)
+    private void sendGoAwayAndExitForASingleStream(OutputStream outputStream)
             throws IOException, InterruptedException {
         // Sending settings frame with HEADER_TABLE_SIZE=25700
         outputStream.write(SETTINGS_FRAME);
         Thread.sleep(SLEEP_TIME);
         outputStream.write(SETTINGS_FRAME_WITH_ACK);
         Thread.sleep(SLEEP_TIME);
-        outputStream.write(GO_AWAY_FRAME_STREAM_03);
+        outputStream.write(GO_AWAY_FRAME_MAX_STREAM_03);
         // Once the sleep time elapses, channel inactive of client gets fired.
         Thread.sleep(SLEEP_TIME);
     }
 
-    private static void sendGoAwayForASingleStream(OutputStream outputStream) throws IOException, InterruptedException {
+    private void sendGoAwayForASingleStream(OutputStream outputStream) throws IOException, InterruptedException {
         // Sending settings frame with HEADER_TABLE_SIZE=25700
         outputStream.write(SETTINGS_FRAME);
         Thread.sleep(SLEEP_TIME);
         outputStream.write(SETTINGS_FRAME_WITH_ACK);
         Thread.sleep(SLEEP_TIME);
-        outputStream.write(GO_AWAY_FRAME_STREAM_03);
+        outputStream.write(GO_AWAY_FRAME_MAX_STREAM_03);
         Thread.sleep(SLEEP_TIME);
         outputStream.write(HEADER_FRAME_STREAM_03);
         Thread.sleep(SLEEP_TIME);

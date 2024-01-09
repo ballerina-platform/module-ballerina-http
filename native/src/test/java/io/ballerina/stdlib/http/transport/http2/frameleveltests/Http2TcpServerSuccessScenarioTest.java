@@ -98,7 +98,7 @@ public class Http2TcpServerSuccessScenarioTest {
         }).start();
     }
 
-    private static void sendSuccessfulResponse(OutputStream outputStream) throws IOException, InterruptedException {
+    private void sendSuccessfulResponse(OutputStream outputStream) throws IOException, InterruptedException {
         // Sending settings frame with HEADER_TABLE_SIZE=25700
         outputStream.write(SETTINGS_FRAME);
         Thread.sleep(SLEEP_TIME);

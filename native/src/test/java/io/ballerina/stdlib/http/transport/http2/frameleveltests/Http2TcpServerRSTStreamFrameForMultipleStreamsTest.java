@@ -100,13 +100,7 @@ public class Http2TcpServerRSTStreamFrameForMultipleStreamsTest {
                 assertEquals(throwable.getMessage(),
                         Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE);
             } else {
-//                HttpContent content1 = msgListener1.getHttpResponseMessage().getHttpContent();
-//                if (content1 != null) {
-//                    assertEquals(content1.decoderResult().cause().getMessage(),
-//                            Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_BODY);
-//                } else {
-                    fail("Expected an error");
-//                }
+                fail("Expected an error");
             }
             HttpContent content2 = msgListener2.getHttpResponseMessage().getHttpContent();
             assertEquals(content2.content().toString(CharsetUtil.UTF_8), "hello world5");

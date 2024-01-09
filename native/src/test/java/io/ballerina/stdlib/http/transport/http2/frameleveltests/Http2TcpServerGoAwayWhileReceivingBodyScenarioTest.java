@@ -41,7 +41,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.END_SLEEP_TIME;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.GO_AWAY_FRAME_STREAM_01;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.GO_AWAY_FRAME_MAX_STREAM_01;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.HEADER_FRAME_STREAM_03;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.SETTINGS_FRAME;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.SETTINGS_FRAME_WITH_ACK;
@@ -105,7 +105,7 @@ public class Http2TcpServerGoAwayWhileReceivingBodyScenarioTest {
         }).start();
     }
 
-    private static void sendGoAwayAfterSendingHeadersForASingleStream(OutputStream outputStream)
+    private void sendGoAwayAfterSendingHeadersForASingleStream(OutputStream outputStream)
             throws IOException, InterruptedException {
         // Sending settings frame with HEADER_TABLE_SIZE=25700
         outputStream.write(SETTINGS_FRAME);
@@ -114,7 +114,7 @@ public class Http2TcpServerGoAwayWhileReceivingBodyScenarioTest {
         Thread.sleep(SLEEP_TIME);
         outputStream.write(HEADER_FRAME_STREAM_03);
         Thread.sleep(SLEEP_TIME);
-        outputStream.write(GO_AWAY_FRAME_STREAM_01);
+        outputStream.write(GO_AWAY_FRAME_MAX_STREAM_01);
         Thread.sleep(END_SLEEP_TIME);
     }
 

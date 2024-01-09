@@ -134,7 +134,7 @@ public class Http2TcpServerGoAwayMultipleStreamScenarioTest {
         }).start();
     }
 
-    private static void sendGoAwayForASingleStreamInAMultipleStreamScenario(OutputStream outputStream)
+    private void sendGoAwayForASingleStreamInAMultipleStreamScenario(OutputStream outputStream)
             throws IOException, InterruptedException {
         // Sending settings frame with HEADER_TABLE_SIZE=25700
         outputStream.write(SETTINGS_FRAME);
@@ -161,6 +161,6 @@ public class Http2TcpServerGoAwayMultipleStreamScenarioTest {
     @AfterClass
     public void cleanUp() throws IOException {
         h2ClientWithPriorKnowledge.close();
-            serverSocket.close();
+        serverSocket.close();
     }
 }

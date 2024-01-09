@@ -102,7 +102,7 @@ public class Http2TcpServerRSTStreamFrameForSingleStreamTest {
         }).start();
     }
 
-    private static void sendRSTStream(OutputStream outputStream) throws IOException, InterruptedException {
+    private void sendRSTStream(OutputStream outputStream) throws IOException, InterruptedException {
         // Sending settings frame with HEADER_TABLE_SIZE=25700
         outputStream.write(SETTINGS_FRAME);
         Thread.sleep(SLEEP_TIME);
