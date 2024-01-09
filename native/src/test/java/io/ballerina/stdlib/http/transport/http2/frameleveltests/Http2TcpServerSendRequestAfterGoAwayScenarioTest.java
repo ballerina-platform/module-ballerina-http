@@ -18,7 +18,6 @@
 
 package io.ballerina.stdlib.http.transport.http2.frameleveltests;
 
-import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
@@ -50,7 +49,6 @@ import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.SETTINGS_FRAME_WITH_ACK;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.SLEEP_TIME;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.fail;
 
 /**
  * This contains a test case where the client sends a request after receiving a GoAway.
