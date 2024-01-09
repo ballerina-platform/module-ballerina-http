@@ -42,6 +42,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.DATA_FRAME_STREAM_03;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.DATA_FRAME_STREAM_03_DIFFERENT_DATA;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.END_SLEEP_TIME;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.GO_AWAY_FRAME_MAX_STREAM_03;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.HEADER_FRAME_STREAM_03;
@@ -87,15 +88,10 @@ public class Http2TcpServerSendRequestAfterGoAwayScenarioTest {
             responseFuture2.setHttpConnectorListener(msgListener2);
             latch2.await(TestUtil.HTTP2_RESPONSE_TIME_OUT, TimeUnit.SECONDS);
             responseFuture2.sync();
-            Throwable responseError = responseFuture1.getStatus().getCause();
-            if (responseError != null) {
-                assertEquals(responseError.getMessage(),
-                        Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE);
-            } else {
-                fail("Expected error not received");
-            }
+            HttpCarbonMessage response1 = msgListener1.getHttpResponseMessage();
+            assertEquals(response1.getHttpContent().content().toString(CharsetUtil.UTF_8), "hello world3");
             HttpCarbonMessage response2 = msgListener2.getHttpResponseMessage();
-            assertEquals(response2.getHttpContent().content().toString(CharsetUtil.UTF_8), "hello world3");
+            assertEquals(response2.getHttpContent().content().toString(CharsetUtil.UTF_8), "hello world5");
         } catch (InterruptedException e) {
             LOGGER.error("Interrupted exception occurred");
         }
@@ -133,9 +129,12 @@ public class Http2TcpServerSendRequestAfterGoAwayScenarioTest {
         // Sending settings frame with HEADER_TABLE_SIZE=25700
         outputStream.write(SETTINGS_FRAME);
         Thread.sleep(SLEEP_TIME);
-        outputStream.write(SETTINGS_FRAME);
+        outputStream.write(SETTINGS_FRAME_WITH_ACK);
         Thread.sleep(SLEEP_TIME);
         outputStream.write(GO_AWAY_FRAME_MAX_STREAM_03);
+        outputStream.write(HEADER_FRAME_STREAM_03);
+        Thread.sleep(SLEEP_TIME);
+        outputStream.write(DATA_FRAME_STREAM_03);
         Thread.sleep(END_SLEEP_TIME);
     }
 
@@ -147,7 +146,7 @@ public class Http2TcpServerSendRequestAfterGoAwayScenarioTest {
         Thread.sleep(SLEEP_TIME);
         outputStream.write(HEADER_FRAME_STREAM_03);
         Thread.sleep(SLEEP_TIME);
-        outputStream.write(DATA_FRAME_STREAM_03);
+        outputStream.write(DATA_FRAME_STREAM_03_DIFFERENT_DATA);
         Thread.sleep(END_SLEEP_TIME);
     }
 
