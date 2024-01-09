@@ -290,7 +290,7 @@ public class Http2ClientChannel {
             activeStreams.decrementAndGet();
             http2ClientChannel.getDataEventListeners().
                     forEach(dataEventListener -> dataEventListener.onStreamClose(stream.id()));
-            if (isExhausted.getAndSet(false)) {
+            if (!isExhausted.get() && isExhausted.getAndSet(false)) {
                 http2ConnectionManager.returnClientChannel(httpRoute, http2ClientChannel);
             }
         }
