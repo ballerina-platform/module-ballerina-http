@@ -32,7 +32,7 @@ import io.ballerina.stdlib.http.transport.message.HttpConnectorUtil;
 public class TestUtils {
 
     public static final int SLEEP_TIME = 100;
-    public static final int END_SLEEP_TIME = 5000;
+    public static final int END_SLEEP_TIME = 1000;
 
     public static final byte[] SETTINGS_FRAME = new byte[]{0x00, 0x00, 0x06, 0x04, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x64, 0x64};
