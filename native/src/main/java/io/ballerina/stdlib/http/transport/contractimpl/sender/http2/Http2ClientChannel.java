@@ -254,7 +254,7 @@ public class Http2ClientChannel {
         this.connection.removeListener(streamCloseListener);
         inFlightMessages.clear();
         promisedMessages.clear();
-        http2ConnectionManager.removeClientChannel(httpRoute, this);
+        removeFromConnectionPool();
     }
 
     /**
@@ -297,8 +297,10 @@ public class Http2ClientChannel {
 
         @Override
         public void onGoAwayReceived(int lastStreamId, long errorCode, ByteBuf debugData) {
-            isExhausted.set(true);
+            markAsExhausted();
+            http2ConnectionManager.getLock().lock();
             removeFromConnectionPool();
+            http2ConnectionManager.getLock().unlock();
             http2ClientChannel.inFlightMessages.forEach((streamId, outboundMsgHolder) -> {
                 if (streamId > lastStreamId) {
                     http2ClientChannel.removeInFlightMessage(streamId);

@@ -21,6 +21,9 @@ package io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
 import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.PoolConfiguration;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 /**
  * {@code Http2ConnectionManager} Manages HTTP/2 connections.
  */
@@ -28,6 +31,7 @@ public class Http2ConnectionManager {
 
     private final Http2ChannelPool http2ChannelPool = new Http2ChannelPool();
     private final PoolConfiguration poolConfiguration;
+    private Lock lock = new ReentrantLock();
 
     public Http2ConnectionManager(PoolConfiguration poolConfiguration) {
         this.poolConfiguration = poolConfiguration;
@@ -112,12 +116,14 @@ public class Http2ConnectionManager {
      */
     public Http2ClientChannel borrowChannel(HttpRoute httpRoute) {
         Http2ChannelPool.PerRouteConnectionPool perRouteConnectionPool;
+        lock.lock();
         perRouteConnectionPool = getOrCreatePerRoutePool(this.http2ChannelPool, generateKey(httpRoute));
 
         Http2ClientChannel http2ClientChannel = null;
         if (perRouteConnectionPool != null) {
             http2ClientChannel = perRouteConnectionPool.fetchTargetChannel();
         }
+        lock.unlock();
         return http2ClientChannel;
     }
 
@@ -155,5 +161,9 @@ public class Http2ConnectionManager {
     private String generateKey(HttpRoute httpRoute) {
         return httpRoute.getScheme() + ":" + httpRoute.getHost() + ":" + httpRoute.getPort() + ":" +
                 httpRoute.getConfigHash();
+    }
+
+    public Lock getLock() {
+        return lock;
     }
 }
