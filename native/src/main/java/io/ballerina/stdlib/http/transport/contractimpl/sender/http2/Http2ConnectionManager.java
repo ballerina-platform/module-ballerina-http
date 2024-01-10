@@ -116,15 +116,18 @@ public class Http2ConnectionManager {
      */
     public Http2ClientChannel borrowChannel(HttpRoute httpRoute) {
         Http2ChannelPool.PerRouteConnectionPool perRouteConnectionPool;
-        lock.lock();
-        perRouteConnectionPool = getOrCreatePerRoutePool(this.http2ChannelPool, generateKey(httpRoute));
+        try {
+            getLock().lock();
+            perRouteConnectionPool = getOrCreatePerRoutePool(this.http2ChannelPool, generateKey(httpRoute));
 
-        Http2ClientChannel http2ClientChannel = null;
-        if (perRouteConnectionPool != null) {
-            http2ClientChannel = perRouteConnectionPool.fetchTargetChannel();
+            Http2ClientChannel http2ClientChannel = null;
+            if (perRouteConnectionPool != null) {
+                http2ClientChannel = perRouteConnectionPool.fetchTargetChannel();
+            }
+            return http2ClientChannel;
+        } finally {
+            getLock().unlock();
         }
-        lock.unlock();
-        return http2ClientChannel;
     }
 
     /**
