@@ -157,7 +157,7 @@
             <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.Http2TcpServerSuccessScenarioTest"/>
             <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.Http2TcpServerGoAwaySingleStreamScenarioTest"/>
             <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.Http2TcpServerGoAwayMultipleStreamScenarioTest"/>
-            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.Http2TcpServerSendRequestAfterGoAwayScenarioTest"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.Http2TcpServerSendGoAwayForAllStreamsScenarioTest"/>
             <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.Http2TcpServerGoAwayWhileReceivingBodyScenarioTest"/>
             <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.Http2TcpServerRSTStreamFrameForSingleStreamTest"/>
             <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.Http2TcpServerRSTStreamFrameForMultipleStreamsTest"/>

@@ -52,10 +52,10 @@ import static org.testng.Assert.assertEquals;
  * This contains a test case where the client sends a request after receiving a GoAway.
  * This tests whether there is a new connection opened from the client.
  */
-public class Http2TcpServerSendRequestAfterGoAwayScenarioTest {
+public class Http2TcpServerSendGoAwayForAllStreamsScenarioTest {
 
     private static final Logger LOGGER =
-            LoggerFactory.getLogger(Http2TcpServerSendRequestAfterGoAwayScenarioTest.class);
+            LoggerFactory.getLogger(Http2TcpServerSendGoAwayForAllStreamsScenarioTest.class);
 
     private HttpClientConnector h2ClientWithPriorKnowledge;
     private ServerSocket serverSocket;
