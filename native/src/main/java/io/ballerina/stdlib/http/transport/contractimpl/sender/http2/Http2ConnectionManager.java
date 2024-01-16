@@ -20,7 +20,12 @@ package io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
 
 import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.PoolConfiguration;
+import io.netty.channel.DefaultChannelPromise;
 
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -30,11 +35,13 @@ import java.util.concurrent.locks.ReentrantLock;
 public class Http2ConnectionManager {
 
     private final Http2ChannelPool http2ChannelPool = new Http2ChannelPool();
+    private final BlockingQueue<Http2ClientChannel> http2StaleClientChannels = new LinkedBlockingQueue<>();
     private final PoolConfiguration poolConfiguration;
     private Lock lock = new ReentrantLock();
 
     public Http2ConnectionManager(PoolConfiguration poolConfiguration) {
         this.poolConfiguration = poolConfiguration;
+        initiateConnectionTimeoutTask();
     }
 
     /**
@@ -114,7 +121,7 @@ public class Http2ConnectionManager {
      * @param httpRoute the http route
      * @return Http2ClientChannel
      */
-    public Http2ClientChannel borrowChannel(HttpRoute httpRoute) {
+    public Http2ClientChannel fetchChannel(HttpRoute httpRoute) {
         Http2ChannelPool.PerRouteConnectionPool perRouteConnectionPool;
         try {
             getLock().lock();
@@ -154,6 +161,37 @@ public class Http2ConnectionManager {
         if (perRouteConnectionPool != null) {
             perRouteConnectionPool.removeChannel(http2ClientChannel);
         }
+    }
+
+    void markClientChannelAsStale(HttpRoute httpRoute, Http2ClientChannel http2ClientChannel) {
+        Http2ChannelPool.PerRouteConnectionPool perRouteConnectionPool = fetchPerRoutePool(httpRoute);
+        if (perRouteConnectionPool != null) {
+            perRouteConnectionPool.removeChannel(http2ClientChannel);
+        }
+        http2ClientChannel.setTimeSinceMarkedAsStale(System.currentTimeMillis());
+        http2StaleClientChannels.add(http2ClientChannel);
+    }
+
+    private void initiateConnectionTimeoutTask() {
+        Timer timer = new Timer(true);
+        TimerTask timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                System.out.println("\nRunning timer task");
+                http2StaleClientChannels.forEach(http2ClientChannel -> {
+                    System.out.println("Found stale channel" + http2ClientChannel.hashCode());
+                    if ((System.currentTimeMillis() - http2ClientChannel.getTimeSinceMarkedAsStale()) >
+                            poolConfiguration.getHttp2ConnectionIdleTimeout()
+                            && !http2ClientChannel.hasInFlightMessages()) {
+                        System.out.println("Closing stale channel" + http2ClientChannel.hashCode());
+                        http2StaleClientChannels.remove(http2ClientChannel);
+                        http2ClientChannel.getConnection()
+                                .close(new DefaultChannelPromise(http2ClientChannel.getChannel()));
+                    }
+                });
+            }
+        };
+        timer.schedule(timerTask, 10000, 30000);
     }
 
     private Http2ChannelPool.PerRouteConnectionPool fetchPerRoutePool(HttpRoute httpRoute) {

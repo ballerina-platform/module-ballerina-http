@@ -27,12 +27,15 @@ configurable int maxActiveStreamsPerConnection = 100;
 # + maxIdleConnections - Maximum number of idle connections allowed per pool.
 # + waitTime - Maximum amount of time (in seconds), the client should wait for an idle connection before it sends an error when the pool is exhausted
 # + maxActiveStreamsPerConnection - Maximum active streams per connection. This only applies to HTTP/2. Default value is 100
+# + http2ConnectionIdleTimeout - HTTP2 connection idle timeout in seconds. This only applies to HTTP/2. Default value is 30 seconds
 public type PoolConfiguration record {|
     int maxActiveConnections = maxActiveConnections;
     int maxIdleConnections = maxIdleConnections;
     decimal waitTime = waitTime;
     int maxActiveStreamsPerConnection = maxActiveStreamsPerConnection;
+    int http2ConnectionIdleTimeout = 30;
 |};
+
 //This is a hack to get the global map initialized, without involving locking.
 class ConnectionManager {
     public PoolConfiguration & readonly poolConfig = {};

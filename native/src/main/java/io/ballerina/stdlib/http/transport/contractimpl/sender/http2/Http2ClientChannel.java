@@ -61,6 +61,7 @@ public class Http2ClientChannel {
     private int socketIdleTimeout = Constants.ENDPOINT_TIMEOUT;
     private Map<String, Http2DataEventListener> dataEventListeners;
     private StreamCloseListener streamCloseListener;
+    private long timeSinceMarkedAsStale = 0;
 
     public Http2ClientChannel(Http2ConnectionManager http2ConnectionManager, Http2Connection connection,
                               HttpRoute httpRoute, Channel channel) {
@@ -299,7 +300,7 @@ public class Http2ClientChannel {
         public void onGoAwayReceived(int lastStreamId, long errorCode, ByteBuf debugData) {
             markAsExhausted();
             http2ConnectionManager.getLock().lock();
-            removeFromConnectionPool();
+            markAsStale();
             http2ConnectionManager.getLock().unlock();
             http2ClientChannel.inFlightMessages.forEach((streamId, outboundMsgHolder) -> {
                 if (streamId > lastStreamId) {
@@ -319,5 +320,21 @@ public class Http2ClientChannel {
 
     void removeFromConnectionPool() {
         http2ConnectionManager.removeClientChannel(httpRoute, this);
+    }
+
+    void markAsStale() {
+        http2ConnectionManager.markClientChannelAsStale(httpRoute, this);
+    }
+
+    boolean hasInFlightMessages() {
+        return !inFlightMessages.isEmpty();
+    }
+
+    public void setTimeSinceMarkedAsStale(long timeSinceMarkedAsStale) {
+        this.timeSinceMarkedAsStale = timeSinceMarkedAsStale;
+    }
+
+    public long getTimeSinceMarkedAsStale() {
+        return timeSinceMarkedAsStale;
     }
 }
