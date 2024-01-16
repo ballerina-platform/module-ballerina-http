@@ -177,13 +177,10 @@ public class Http2ConnectionManager {
         TimerTask timerTask = new TimerTask() {
             @Override
             public void run() {
-                System.out.println("\nRunning timer task");
                 http2StaleClientChannels.forEach(http2ClientChannel -> {
-                    System.out.println("Found stale channel" + http2ClientChannel.hashCode());
                     if ((System.currentTimeMillis() - http2ClientChannel.getTimeSinceMarkedAsStale()) >
                             poolConfiguration.getHttp2ConnectionIdleTimeout()
                             && !http2ClientChannel.hasInFlightMessages()) {
-                        System.out.println("Closing stale channel" + http2ClientChannel.hashCode());
                         http2StaleClientChannels.remove(http2ClientChannel);
                         http2ClientChannel.getConnection()
                                 .close(new DefaultChannelPromise(http2ClientChannel.getChannel()));
