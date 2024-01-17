@@ -78,7 +78,8 @@ public class Http2ConnectionTimeoutAfterTcpServerGoAwayScenarioTest {
     public HttpClientConnector setupHttp2PriorKnowledgeClient() {
         HttpWsConnectorFactory connectorFactory = new DefaultHttpWsConnectorFactory();
         PoolConfiguration poolConfiguration = new PoolConfiguration();
-        poolConfiguration.setHttp2ConnectionIdleTimeout(5000);
+        poolConfiguration.setMinEvictableIdleTime(5000);
+        poolConfiguration.setTimeBetweenEvictionRuns(1000);
         TransportsConfiguration transportsConfiguration = new TransportsConfiguration();
         SenderConfiguration senderConfiguration = new SenderConfiguration();
         senderConfiguration.setPoolConfiguration(poolConfiguration);

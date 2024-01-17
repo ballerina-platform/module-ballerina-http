@@ -52,7 +52,7 @@ public class ConnectionManager {
         globalConnPool = new ConcurrentHashMap<>();
         globalFactoryObjects = new ConcurrentHashMap<>();
         http2ConnectionManager = new Http2ConnectionManager(poolConfiguration);
-        connectionManagerId = "-" + UUID.randomUUID().toString();
+        connectionManagerId = "-" + UUID.randomUUID();
     }
 
     /**

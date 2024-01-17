@@ -179,7 +179,7 @@ public class Http2ConnectionManager {
             public void run() {
                 http2StaleClientChannels.forEach(http2ClientChannel -> {
                     if ((System.currentTimeMillis() - http2ClientChannel.getTimeSinceMarkedAsStale()) >
-                            poolConfiguration.getHttp2ConnectionIdleTimeout()
+                            poolConfiguration.getMinEvictableIdleTime()
                             && !http2ClientChannel.hasInFlightMessages()) {
                         http2StaleClientChannels.remove(http2ClientChannel);
                         http2ClientChannel.getConnection()
@@ -188,7 +188,8 @@ public class Http2ConnectionManager {
                 });
             }
         };
-        timer.schedule(timerTask, 10000, 30000);
+        timer.schedule(timerTask, poolConfiguration.getTimeBetweenEvictionRuns(),
+                poolConfiguration.getTimeBetweenEvictionRuns());
     }
 
     private Http2ChannelPool.PerRouteConnectionPool fetchPerRoutePool(HttpRoute httpRoute) {

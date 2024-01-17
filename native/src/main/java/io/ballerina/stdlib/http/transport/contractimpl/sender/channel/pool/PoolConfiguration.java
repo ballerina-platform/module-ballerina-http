@@ -35,7 +35,6 @@ public class PoolConfiguration {
     private int eventGroupExecutorThreads = 15;
     private long maxWaitTime = 60000L;
     private int http2MaxActiveStreamsPerConnection = Integer.MAX_VALUE;
-    private long http2ConnectionIdleTimeout = 30000;
 
     public PoolConfiguration() {
     }
@@ -142,13 +141,5 @@ public class PoolConfiguration {
 
     public void setHttp2MaxActiveStreamsPerConnection(int http2MaxActiveStreamsPerConnection) {
         this.http2MaxActiveStreamsPerConnection = http2MaxActiveStreamsPerConnection;
-    }
-
-    public long getHttp2ConnectionIdleTimeout() {
-        return http2ConnectionIdleTimeout;
-    }
-
-    public void setHttp2ConnectionIdleTimeout(long http2ConnectionIdleTimeout) {
-        this.http2ConnectionIdleTimeout = http2ConnectionIdleTimeout;
     }
 }
