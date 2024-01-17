@@ -219,7 +219,8 @@ public class HttpClientChannelInitializer extends ChannelInitializer<SocketChann
                                 sslConfig.getCacheSize()));
             }
         }
-        clientPipeline.addLast(new Http2PipelineConfiguratorAfterALPNNegotationForClient(targetHandler, connectionAvailabilityFuture));
+        clientPipeline.addLast(
+                new Http2PipelineConfiguratorAfterALPNNegotationForClient(targetHandler, connectionAvailabilityFuture));
         clientPipeline
                 .addLast(Constants.HTTP2_EXCEPTION_HANDLER, new Http2ExceptionHandler(http2ConnectionHandler));
     }
