@@ -33,7 +33,7 @@ public type PoolConfiguration record {|
     int maxIdleConnections = maxIdleConnections;
     decimal waitTime = waitTime;
     int maxActiveStreamsPerConnection = maxActiveStreamsPerConnection;
-    decimal minEvictableIdleTime = 5 * 60;
+    decimal minEvictableIdleTime = 300;
 |};
 //This is a hack to get the global map initialized, without involving locking.
 class ConnectionManager {
