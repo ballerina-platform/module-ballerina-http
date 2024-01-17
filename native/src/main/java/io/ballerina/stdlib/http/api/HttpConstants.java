@@ -508,6 +508,8 @@ public final class HttpConstants {
             "maxActiveStreamsPerConnection");
     public static final BString CONNECTION_POOLING_EVICTABLE_IDLE_TIME = StringUtils.fromString(
             "minEvictableIdleTime");
+    public static final BString CONNECTION_POOLING_TIME_BETWEEN_EVICTION_RUNS = StringUtils.fromString(
+            "timeBetweenEvictionRuns");
     public static final String HTTP_CLIENT_CONNECTION_POOL = "PoolConfiguration";
     public static final String CONNECTION_MANAGER = "ConnectionManager";
     public static final int POOL_CONFIG_INDEX = 1;

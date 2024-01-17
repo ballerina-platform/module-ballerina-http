@@ -1353,9 +1353,14 @@ public class HttpUtil {
                         maxActiveStreamsPerConnection,
                         HttpConstants.CONNECTION_POOLING_MAX_ACTIVE_STREAMS_PER_CONNECTION.getValue()));
 
-        float minEvictableIdleTime =
-                poolRecord.getFloatValue(HttpConstants.CONNECTION_POOLING_EVICTABLE_IDLE_TIME).floatValue();
+        double minEvictableIdleTime =
+                ((BDecimal) poolRecord.get(HttpConstants.CONNECTION_POOLING_EVICTABLE_IDLE_TIME)).floatValue();
         poolConfiguration.setMinEvictableIdleTime(minEvictableIdleTime < 0 ? 0 : (long) minEvictableIdleTime * 1000);
+
+        double timeBetweenEvictionRuns =
+                ((BDecimal) poolRecord.get(HttpConstants.CONNECTION_POOLING_TIME_BETWEEN_EVICTION_RUNS)).floatValue();
+        poolConfiguration.setTimeBetweenEvictionRuns(
+                timeBetweenEvictionRuns < 0 ? 0 : (long) timeBetweenEvictionRuns * 1000);
     }
 
     private static int validateConfig(long value, String configName) {
