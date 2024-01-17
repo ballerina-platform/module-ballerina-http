@@ -152,6 +152,10 @@ public class PoolableTargetChannelFactory implements PoolableObjectFactory {
     @Override
     public boolean validateObject(Object o) {
         TargetChannel targetChannel = (TargetChannel) o;
+        if (targetChannel.getHttp2ClientChannel() != null &&
+                targetChannel.getHttp2ClientChannel().getConnection().goAwayReceived()) {
+            return false;
+        }
         if (targetChannel.getChannel() != null) {
             boolean answer = targetChannel.getChannel().isActive();
             LOG.debug("Validating channel: {} -> {}", targetChannel.getChannel().id(), answer);
