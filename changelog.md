@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## Unreleased
 
 ### Added
-- [Expose `evictableIdleTime` for a HTTP connection](https://github.com/ballerina-platform/ballerina-library/issues/5951)
+- [Expose `minEvictableIdleTime` for a HTTP connection](https://github.com/ballerina-platform/ballerina-library/issues/5951)
 
 ## [2.10.5] - 2023-12-06
 
