@@ -162,7 +162,7 @@
             <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.Http2TcpServerRSTStreamFrameForSingleStreamTest"/>
             <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.Http2TcpServerRSTStreamFrameForMultipleStreamsTest"/>
             <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.Http2TcpServerRSTStreamFrameWhenReadingBodyForSingleStreamTest"/>
-            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.Http2ConnectionTimeoutAfterTcpServerGoAwayScenarioTest"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.Http2ConnectionEvictionAfterTcpServerGoAwayScenarioTest"/>
         </classes>
     </test>
     <test name="Transport Security Tests" parallel="false">

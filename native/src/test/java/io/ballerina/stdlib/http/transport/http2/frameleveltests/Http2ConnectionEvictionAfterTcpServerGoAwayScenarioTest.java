@@ -61,10 +61,10 @@ import static org.testng.Assert.fail;
 /**
  * This contains a test case where the tcp server sends a GoAway and the connection gets timed out from client side.
  */
-public class Http2ConnectionTimeoutAfterTcpServerGoAwayScenarioTest {
+public class Http2ConnectionEvictionAfterTcpServerGoAwayScenarioTest {
 
     private static final Logger LOGGER =
-            LoggerFactory.getLogger(Http2ConnectionTimeoutAfterTcpServerGoAwayScenarioTest.class);
+            LoggerFactory.getLogger(Http2ConnectionEvictionAfterTcpServerGoAwayScenarioTest.class);
     private HttpClientConnector h2ClientWithPriorKnowledge;
     private ServerSocket serverSocket;
     private int numOfConnections = 0;
@@ -91,7 +91,7 @@ public class Http2ConnectionTimeoutAfterTcpServerGoAwayScenarioTest {
     }
 
     @Test
-    private void testConnectionTimeoutAfterServerGoAwayScenario() {
+    private void testConnectionEvictionAfterServerGoAwayScenario() {
         try {
             CountDownLatch latch1 = new CountDownLatch(2);
             DefaultHttpConnectorListener msgListener1 = TestUtil.sendRequestAsync(latch1, h2ClientWithPriorKnowledge);
