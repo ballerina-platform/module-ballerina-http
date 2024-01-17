@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Added
 - [Expose HTTP connection eviction configurations in the client level](https://github.com/ballerina-platform/ballerina-library/issues/5951)
+- [Added a way to handle GoAway frames in HTTP/2 clients](https://github.com/ballerina-platform/ballerina-library/issues/4806)
 
 ## [2.10.5] - 2023-12-06
 
