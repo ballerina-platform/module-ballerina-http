@@ -1353,9 +1353,9 @@ public class HttpUtil {
                         maxActiveStreamsPerConnection,
                         HttpConstants.CONNECTION_POOLING_MAX_ACTIVE_STREAMS_PER_CONNECTION.getValue()));
 
-        long minEvictableIdleTime =
-                poolRecord.getIntValue(HttpConstants.CONNECTION_POOLING_EVICTABLE_IDLE_TIME);
-        poolConfiguration.setMinEvictableIdleTime(minEvictableIdleTime);
+        float minEvictableIdleTime =
+                poolRecord.getFloatValue(HttpConstants.CONNECTION_POOLING_EVICTABLE_IDLE_TIME).floatValue();
+        poolConfiguration.setMinEvictableIdleTime(minEvictableIdleTime < 0 ? 0 : (long) minEvictableIdleTime * 1000);
     }
 
     private static int validateConfig(long value, String configName) {
