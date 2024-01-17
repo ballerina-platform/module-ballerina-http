@@ -133,7 +133,6 @@ import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_
 import static io.ballerina.runtime.observability.ObservabilityConstants.TAG_KEY_PEER_ADDRESS;
 import static io.ballerina.stdlib.http.api.HttpConstants.ANN_CONFIG_ATTR_COMPRESSION_CONTENT_TYPES;
 import static io.ballerina.stdlib.http.api.HttpConstants.ANN_CONFIG_ATTR_SSL_ENABLED_PROTOCOLS;
-import static io.ballerina.stdlib.http.api.HttpConstants.CONNECTION_POOLING_HTTP2_CONNECTION_IDLE_TIMEOUT;
 import static io.ballerina.stdlib.http.api.HttpConstants.CREATE_INTERCEPTORS_FUNCTION_NAME;
 import static io.ballerina.stdlib.http.api.HttpConstants.ENDPOINT_CONFIG_HTTP2_INITIAL_WINDOW_SIZE;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_HEADERS;
@@ -1353,8 +1352,15 @@ public class HttpUtil {
                 maxActiveStreamsPerConnection == -1 ? Integer.MAX_VALUE : validateConfig(
                         maxActiveStreamsPerConnection,
                         HttpConstants.CONNECTION_POOLING_MAX_ACTIVE_STREAMS_PER_CONNECTION.getValue()));
-        long http2ConnectionIdleTimeout = poolRecord.getIntValue(CONNECTION_POOLING_HTTP2_CONNECTION_IDLE_TIMEOUT);
-        poolConfiguration.setHttp2ConnectionIdleTimeout(http2ConnectionIdleTimeout * 1000);
+
+        double minEvictableIdleTime =
+                ((BDecimal) poolRecord.get(HttpConstants.CONNECTION_POOLING_EVICTABLE_IDLE_TIME)).floatValue();
+        poolConfiguration.setMinEvictableIdleTime(minEvictableIdleTime < 0 ? 0 : (long) minEvictableIdleTime * 1000);
+
+        double timeBetweenEvictionRuns =
+                ((BDecimal) poolRecord.get(HttpConstants.CONNECTION_POOLING_TIME_BETWEEN_EVICTION_RUNS)).floatValue();
+        poolConfiguration.setTimeBetweenEvictionRuns(
+                timeBetweenEvictionRuns < 0 ? 0 : (long) timeBetweenEvictionRuns * 1000);
     }
 
     private static int validateConfig(long value, String configName) {
