@@ -20,14 +20,8 @@ package io.ballerina.stdlib.http.transport.http2.frameleveltests;
 
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
-import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
-import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.util.DefaultHttpConnectorListener;
 import io.ballerina.stdlib.http.transport.util.TestUtil;
-import io.ballerina.stdlib.http.transport.util.client.http2.MessageGenerator;
-import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.HttpMethod;
-import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterMethod;
@@ -38,18 +32,20 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.DATA_FRAME_STREAM_05;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.END_SLEEP_TIME;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.HEADER_FRAME_STREAM_05;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.HEADER_FRAME_STREAM_07;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.RST_STREAM_FRAME_STREAM_03;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.RST_STREAM_FRAME_STREAM_07;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.SETTINGS_FRAME;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.SETTINGS_FRAME_WITH_ACK;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.SLEEP_TIME;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_FRAME_STREAM_05;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.END_SLEEP_TIME;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.HEADER_FRAME_STREAM_05;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.HEADER_FRAME_STREAM_07;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.RST_STREAM_FRAME_STREAM_03;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.RST_STREAM_FRAME_STREAM_07;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SETTINGS_FRAME;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SETTINGS_FRAME_WITH_ACK;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SLEEP_TIME;
+import static io.ballerina.stdlib.http.transport.util.TestUtil.getDecoderErrorMessage;
+import static io.ballerina.stdlib.http.transport.util.TestUtil.getErrorResponseMessage;
+import static io.ballerina.stdlib.http.transport.util.TestUtil.getResponseMessage;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
 
@@ -68,51 +64,29 @@ public class Http2TcpServerRSTStreamFrameForMultipleStreamsTest {
     @BeforeClass
     public void setup() throws InterruptedException {
         runTcpServer(TestUtil.HTTP_SERVER_PORT);
-        h2ClientWithPriorKnowledge = TestUtils.setupHttp2PriorKnowledgeClient();
+        h2ClientWithPriorKnowledge = FrameLevelTestUtils.setupHttp2PriorKnowledgeClient();
     }
 
     @Test
     private void testRSTStreamFrameForMultipleStreams() {
-        HttpCarbonMessage httpCarbonMessage1 = MessageGenerator.generateRequest(HttpMethod.POST, "Test Http2 Message");
-        HttpCarbonMessage httpCarbonMessage2 = MessageGenerator.generateRequest(HttpMethod.POST, "Test Http2 Message");
-        HttpCarbonMessage httpCarbonMessage3 = MessageGenerator.generateRequest(HttpMethod.POST, "Test Http2 Message");
         try {
-            DefaultHttpConnectorListener msgListener1 = new DefaultHttpConnectorListener(new CountDownLatch(1));
-            HttpResponseFuture responseFuture1 = h2ClientWithPriorKnowledge.send(httpCarbonMessage1);
-            responseFuture1.setHttpConnectorListener(msgListener1);
+            DefaultHttpConnectorListener msgListener1 = TestUtil.sendRequestAsync(null, h2ClientWithPriorKnowledge);
             writeSemaphore.release();
             readSemaphore.acquire();
-            DefaultHttpConnectorListener msgListener2 = new DefaultHttpConnectorListener(new CountDownLatch(1));
-            HttpResponseFuture responseFuture2 = h2ClientWithPriorKnowledge.send(httpCarbonMessage2);
-            responseFuture2.setHttpConnectorListener(msgListener2);
+            DefaultHttpConnectorListener msgListener2 = TestUtil.sendRequestAsync(null, h2ClientWithPriorKnowledge);
             writeSemaphore.release();
             readSemaphore.acquire();
-            DefaultHttpConnectorListener msgListener3 = new DefaultHttpConnectorListener(new CountDownLatch(1));
-            HttpResponseFuture responseFuture3 = h2ClientWithPriorKnowledge.send(httpCarbonMessage3);
-            responseFuture3.setHttpConnectorListener(msgListener3);
+            DefaultHttpConnectorListener msgListener3 = TestUtil.sendRequestAsync(null, h2ClientWithPriorKnowledge);
             writeSemaphore.release();
             readSemaphore.acquire();
-            responseFuture1.sync();
-            responseFuture2.sync();
-            responseFuture3.sync();
-            Throwable throwable = responseFuture1.getStatus().getCause();
-            if (throwable != null) {
-                assertEquals(throwable.getMessage(),
-                        Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE);
-            } else {
-                fail("Expected an error");
-            }
-            HttpContent content2 = msgListener2.getHttpResponseMessage().getHttpContent();
-            assertEquals(content2.content().toString(CharsetUtil.UTF_8), "hello world5");
-            HttpContent content3 = msgListener3.getHttpResponseMessage().getHttpContent();
-            if (content3 != null) {
-                assertEquals(content3.decoderResult().cause().getMessage(),
-                        Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_BODY);
-            } else {
-                fail("Expected http content");
-            }
+            assertEquals(getErrorResponseMessage(msgListener1),
+                    Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE);
+            assertEquals(getResponseMessage(msgListener2), "hello world5");
+            assertEquals(getDecoderErrorMessage(msgListener3),
+                    Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_BODY);
         } catch (InterruptedException e) {
             LOGGER.error("Interrupted exception occurred");
+            fail();
         }
     }
 

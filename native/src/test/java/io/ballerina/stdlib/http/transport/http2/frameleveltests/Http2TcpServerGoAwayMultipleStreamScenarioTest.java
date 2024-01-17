@@ -20,13 +20,8 @@ package io.ballerina.stdlib.http.transport.http2.frameleveltests;
 
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
-import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
-import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.util.DefaultHttpConnectorListener;
 import io.ballerina.stdlib.http.transport.util.TestUtil;
-import io.ballerina.stdlib.http.transport.util.client.http2.MessageGenerator;
-import io.netty.handler.codec.http.HttpMethod;
-import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterClass;
@@ -41,20 +36,23 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.DATA_FRAME_STREAM_03;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.DATA_FRAME_STREAM_05;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.DATA_FRAME_STREAM_07;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.DATA_FRAME_STREAM_09;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.END_SLEEP_TIME;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.GO_AWAY_FRAME_MAX_STREAM_07;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.HEADER_FRAME_STREAM_03;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.HEADER_FRAME_STREAM_05;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.HEADER_FRAME_STREAM_07;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.HEADER_FRAME_STREAM_09;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.SETTINGS_FRAME;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.SETTINGS_FRAME_WITH_ACK;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.SLEEP_TIME;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_FRAME_STREAM_03;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_FRAME_STREAM_05;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_FRAME_STREAM_07;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_FRAME_STREAM_09;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.END_SLEEP_TIME;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.GO_AWAY_FRAME_MAX_STREAM_07;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.HEADER_FRAME_STREAM_03;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.HEADER_FRAME_STREAM_05;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.HEADER_FRAME_STREAM_07;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.HEADER_FRAME_STREAM_09;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SETTINGS_FRAME;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SETTINGS_FRAME_WITH_ACK;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SLEEP_TIME;
+import static io.ballerina.stdlib.http.transport.util.TestUtil.getErrorResponseMessage;
+import static io.ballerina.stdlib.http.transport.util.TestUtil.getResponseMessage;
 import static org.testng.Assert.assertEqualsNoOrder;
+import static org.testng.Assert.fail;
 
 /**
  * This contains a test case where the tcp server sends a GoAway for a stream in a multiple stream scenario.
@@ -68,52 +66,33 @@ public class Http2TcpServerGoAwayMultipleStreamScenarioTest {
     @BeforeClass
     public void setup() throws InterruptedException {
         runTcpServer(TestUtil.HTTP_SERVER_PORT);
-        h2ClientWithPriorKnowledge = TestUtils.setupHttp2PriorKnowledgeClient();
+        h2ClientWithPriorKnowledge = FrameLevelTestUtils.setupHttp2PriorKnowledgeClient();
     }
 
     @Test
     private void testGoAwayWhenReceivingHeadersInAMultipleStreamScenario() {
-        HttpCarbonMessage httpCarbonMessage1 = MessageGenerator.generateRequest(HttpMethod.POST, "Test Http2 Message");
-        HttpCarbonMessage httpCarbonMessage2 = MessageGenerator.generateRequest(HttpMethod.POST, "Test Http2 Message");
-        HttpCarbonMessage httpCarbonMessage3 = MessageGenerator.generateRequest(HttpMethod.POST, "Test Http2 Message");
-        HttpCarbonMessage httpCarbonMessage4 = MessageGenerator.generateRequest(HttpMethod.POST, "Test Http2 Message");
+        CountDownLatch latch = new CountDownLatch(4);
+        DefaultHttpConnectorListener msgListener1 = TestUtil.sendRequestAsync(latch, h2ClientWithPriorKnowledge);
+        DefaultHttpConnectorListener msgListener2 = TestUtil.sendRequestAsync(latch, h2ClientWithPriorKnowledge);
+        DefaultHttpConnectorListener msgListener3 = TestUtil.sendRequestAsync(latch, h2ClientWithPriorKnowledge);
+        DefaultHttpConnectorListener msgListener4 = TestUtil.sendRequestAsync(latch, h2ClientWithPriorKnowledge);
         try {
-            CountDownLatch latch = new CountDownLatch(4);
-            DefaultHttpConnectorListener msgListener1 = new DefaultHttpConnectorListener(latch);
-            HttpResponseFuture responseFuture1 = h2ClientWithPriorKnowledge.send(httpCarbonMessage1);
-            responseFuture1.setHttpConnectorListener(msgListener1);
-            DefaultHttpConnectorListener msgListener2 = new DefaultHttpConnectorListener(latch);
-            HttpResponseFuture responseFuture2 = h2ClientWithPriorKnowledge.send(httpCarbonMessage2);
-            responseFuture2.setHttpConnectorListener(msgListener2);
-            DefaultHttpConnectorListener msgListener3 = new DefaultHttpConnectorListener(latch);
-            HttpResponseFuture responseFuture3 = h2ClientWithPriorKnowledge.send(httpCarbonMessage3);
-            responseFuture3.setHttpConnectorListener(msgListener3);
-            DefaultHttpConnectorListener msgListener4 = new DefaultHttpConnectorListener(latch);
-            HttpResponseFuture responseFuture4 = h2ClientWithPriorKnowledge.send(httpCarbonMessage4);
-            responseFuture4.setHttpConnectorListener(msgListener4);
             latch.await(TestUtil.HTTP2_RESPONSE_TIME_OUT, TimeUnit.SECONDS);
-            responseFuture1.sync();
-            responseFuture2.sync();
-            responseFuture3.sync();
-            responseFuture4.sync();
-            HttpCarbonMessage response1 = msgListener1.getHttpResponseMessage();
-            HttpCarbonMessage response2 = msgListener2.getHttpResponseMessage();
-            HttpCarbonMessage response3 = msgListener3.getHttpResponseMessage();
-            HttpCarbonMessage response4 = msgListener4.getHttpResponseMessage();
-            Object responseValOrError1 = response1 == null ? responseFuture1.getStatus().getCause().getMessage() :
-                    response1.getHttpContent().content().toString(CharsetUtil.UTF_8);
-            Object responseValOrError2 = response2 == null ? responseFuture2.getStatus().getCause().getMessage() :
-                    response2.getHttpContent().content().toString(CharsetUtil.UTF_8);
-            Object responseValOrError3 = response3 == null ? responseFuture3.getStatus().getCause().getMessage() :
-                    response3.getHttpContent().content().toString(CharsetUtil.UTF_8);
-            Object responseValOrError4 = response4 == null ? responseFuture4.getStatus().getCause().getMessage() :
-                    response4.getHttpContent().content().toString(CharsetUtil.UTF_8);
-            assertEqualsNoOrder(List.of(responseValOrError1, responseValOrError2, responseValOrError3,
-                    responseValOrError4), List.of("hello world3", "hello world5", "hello world7",
-                    Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE));
         } catch (InterruptedException e) {
             LOGGER.error("Interrupted exception occurred");
         }
+
+        Object responseValOrError1 = msgListener1.getHttpResponseMessage() == null ?
+                getErrorResponseMessage(msgListener1) : getResponseMessage(msgListener1);
+        Object responseValOrError2 = msgListener2.getHttpResponseMessage() == null ?
+                getErrorResponseMessage(msgListener2) : getResponseMessage(msgListener2);
+        Object responseValOrError3 = msgListener3.getHttpResponseMessage() == null ?
+                getErrorResponseMessage(msgListener3) : getResponseMessage(msgListener3);
+        Object responseValOrError4 = msgListener4.getHttpResponseMessage() == null ?
+                getErrorResponseMessage(msgListener4) : getResponseMessage(msgListener4);
+        assertEqualsNoOrder(List.of(responseValOrError1, responseValOrError2, responseValOrError3,
+                responseValOrError4), List.of("hello world3", "hello world5", "hello world7",
+                Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE));
     }
 
     private void runTcpServer(int port) {

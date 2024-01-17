@@ -19,13 +19,8 @@
 package io.ballerina.stdlib.http.transport.http2.frameleveltests;
 
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
-import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
-import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.util.DefaultHttpConnectorListener;
 import io.ballerina.stdlib.http.transport.util.TestUtil;
-import io.ballerina.stdlib.http.transport.util.client.http2.MessageGenerator;
-import io.netty.handler.codec.http.HttpMethod;
-import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterMethod;
@@ -38,15 +33,18 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.Semaphore;
 
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.DATA_FRAME_STREAM_03;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.DATA_FRAME_STREAM_03_DIFFERENT_DATA;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.END_SLEEP_TIME;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.GO_AWAY_FRAME_MAX_STREAM_03;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.HEADER_FRAME_STREAM_03;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.SETTINGS_FRAME;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.SETTINGS_FRAME_WITH_ACK;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.SLEEP_TIME;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_FRAME_STREAM_03;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils
+        .DATA_FRAME_STREAM_03_DIFFERENT_DATA;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.END_SLEEP_TIME;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.GO_AWAY_FRAME_MAX_STREAM_03;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.HEADER_FRAME_STREAM_03;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SETTINGS_FRAME;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SETTINGS_FRAME_WITH_ACK;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SLEEP_TIME;
+import static io.ballerina.stdlib.http.transport.util.TestUtil.getResponseMessage;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.fail;
 
 /**
  * This contains a test case where the client sends a request after receiving a GoAway.
@@ -64,62 +62,33 @@ public class Http2TcpServerSendGoAwayForAllStreamsScenarioTest {
     @BeforeClass
     public void setup() throws InterruptedException {
         runTcpServer(TestUtil.HTTP_SERVER_PORT);
-        h2ClientWithPriorKnowledge = TestUtils.setupHttp2PriorKnowledgeClient();
+        h2ClientWithPriorKnowledge = FrameLevelTestUtils.setupHttp2PriorKnowledgeClient();
     }
 
     @Test
     private void testGoAwayForAllStreamsScenario() {
-        HttpCarbonMessage httpCarbonMessage1 = MessageGenerator.generateRequest(HttpMethod.POST, "Test Http2 Message");
-        HttpCarbonMessage httpCarbonMessage2 = MessageGenerator.generateRequest(HttpMethod.POST, "Test Http2 Message");
-        HttpCarbonMessage httpCarbonMessage3 = MessageGenerator.generateRequest(HttpMethod.POST, "Test Http2 Message");
-        HttpCarbonMessage httpCarbonMessage4 = MessageGenerator.generateRequest(HttpMethod.POST, "Test Http2 Message");
-        HttpCarbonMessage httpCarbonMessage5 = MessageGenerator.generateRequest(HttpMethod.POST, "Test Http2 Message");
-        HttpCarbonMessage httpCarbonMessage6 = MessageGenerator.generateRequest(HttpMethod.POST, "Test Http2 Message");
         try {
-            DefaultHttpConnectorListener msgListener1 = new DefaultHttpConnectorListener();
-            HttpResponseFuture responseFuture1 = h2ClientWithPriorKnowledge.send(httpCarbonMessage1);
-            responseFuture1.setHttpConnectorListener(msgListener1);
+            DefaultHttpConnectorListener msgListener1 = TestUtil.sendRequestAsync(null, h2ClientWithPriorKnowledge);
             semaphore.acquire();
-            responseFuture1.sync();
-            DefaultHttpConnectorListener msgListener2 = new DefaultHttpConnectorListener();
-            HttpResponseFuture responseFuture2 = h2ClientWithPriorKnowledge.send(httpCarbonMessage2);
-            responseFuture2.setHttpConnectorListener(msgListener2);
+            DefaultHttpConnectorListener msgListener2 = TestUtil.sendRequestAsync(null, h2ClientWithPriorKnowledge);
             semaphore.acquire();
-            responseFuture2.sync();
-            DefaultHttpConnectorListener msgListener3 = new DefaultHttpConnectorListener();
-            HttpResponseFuture responseFuture3 = h2ClientWithPriorKnowledge.send(httpCarbonMessage3);
-            responseFuture3.setHttpConnectorListener(msgListener3);
+            DefaultHttpConnectorListener msgListener3 = TestUtil.sendRequestAsync(null, h2ClientWithPriorKnowledge);
             semaphore.acquire();
-            responseFuture3.sync();
-            DefaultHttpConnectorListener msgListener4 = new DefaultHttpConnectorListener();
-            HttpResponseFuture responseFuture4 = h2ClientWithPriorKnowledge.send(httpCarbonMessage4);
-            responseFuture4.setHttpConnectorListener(msgListener4);
+            DefaultHttpConnectorListener msgListener4 = TestUtil.sendRequestAsync(null, h2ClientWithPriorKnowledge);
             semaphore.acquire();
-            responseFuture4.sync();
-            DefaultHttpConnectorListener msgListener5 = new DefaultHttpConnectorListener();
-            HttpResponseFuture responseFuture5 = h2ClientWithPriorKnowledge.send(httpCarbonMessage5);
-            responseFuture5.setHttpConnectorListener(msgListener5);
+            DefaultHttpConnectorListener msgListener5 = TestUtil.sendRequestAsync(null, h2ClientWithPriorKnowledge);
             semaphore.acquire();
-            responseFuture5.sync();
-            DefaultHttpConnectorListener msgListener6 = new DefaultHttpConnectorListener();
-            HttpResponseFuture responseFuture6 = h2ClientWithPriorKnowledge.send(httpCarbonMessage6);
-            responseFuture6.setHttpConnectorListener(msgListener6);
+            DefaultHttpConnectorListener msgListener6 = TestUtil.sendRequestAsync(null, h2ClientWithPriorKnowledge);
             semaphore.acquire();
-            responseFuture6.sync();
-            HttpCarbonMessage response1 = msgListener1.getHttpResponseMessage();
-            assertEquals(response1.getHttpContent().content().toString(CharsetUtil.UTF_8), "hello world3");
-            HttpCarbonMessage response2 = msgListener2.getHttpResponseMessage();
-            assertEquals(response2.getHttpContent().content().toString(CharsetUtil.UTF_8), "hello world5");
-            HttpCarbonMessage response3 = msgListener3.getHttpResponseMessage();
-            assertEquals(response3.getHttpContent().content().toString(CharsetUtil.UTF_8), "hello world3");
-            HttpCarbonMessage response4 = msgListener4.getHttpResponseMessage();
-            assertEquals(response4.getHttpContent().content().toString(CharsetUtil.UTF_8), "hello world5");
-            HttpCarbonMessage response5 = msgListener5.getHttpResponseMessage();
-            assertEquals(response5.getHttpContent().content().toString(CharsetUtil.UTF_8), "hello world3");
-            HttpCarbonMessage response6 = msgListener6.getHttpResponseMessage();
-            assertEquals(response6.getHttpContent().content().toString(CharsetUtil.UTF_8), "hello world5");
+            assertEquals(getResponseMessage(msgListener1), "hello world3");
+            assertEquals(getResponseMessage(msgListener2), "hello world4");
+            assertEquals(getResponseMessage(msgListener3), "hello world3");
+            assertEquals(getResponseMessage(msgListener4), "hello world4");
+            assertEquals(getResponseMessage(msgListener5), "hello world3");
+            assertEquals(getResponseMessage(msgListener6), "hello world4");
         } catch (InterruptedException e) {
             LOGGER.error("Interrupted exception occurred");
+            fail();
         }
     }
 

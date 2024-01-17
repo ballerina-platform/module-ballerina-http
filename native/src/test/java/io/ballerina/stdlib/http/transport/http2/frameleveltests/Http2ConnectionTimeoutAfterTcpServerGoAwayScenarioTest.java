@@ -20,7 +20,6 @@ package io.ballerina.stdlib.http.transport.http2.frameleveltests;
 
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
-import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contract.HttpWsConnectorFactory;
 import io.ballerina.stdlib.http.transport.contract.config.SenderConfiguration;
 import io.ballerina.stdlib.http.transport.contract.config.TransportsConfiguration;
@@ -30,8 +29,6 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.HttpConnectorUtil;
 import io.ballerina.stdlib.http.transport.util.DefaultHttpConnectorListener;
 import io.ballerina.stdlib.http.transport.util.TestUtil;
-import io.ballerina.stdlib.http.transport.util.client.http2.MessageGenerator;
-import io.netty.handler.codec.http.HttpMethod;
 import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,24 +44,27 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.DATA_FRAME_STREAM_03;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.DATA_FRAME_STREAM_03_DIFFERENT_DATA;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.DATA_FRAME_STREAM_05;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.END_SLEEP_TIME;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.GO_AWAY_FRAME_MAX_STREAM_05;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.HEADER_FRAME_STREAM_03;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.HEADER_FRAME_STREAM_05;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.SETTINGS_FRAME;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.SETTINGS_FRAME_WITH_ACK;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.TestUtils.SLEEP_TIME;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_FRAME_STREAM_03;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests
+        .FrameLevelTestUtils.DATA_FRAME_STREAM_03_DIFFERENT_DATA;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_FRAME_STREAM_05;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.END_SLEEP_TIME;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.GO_AWAY_FRAME_MAX_STREAM_05;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.HEADER_FRAME_STREAM_03;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.HEADER_FRAME_STREAM_05;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SETTINGS_FRAME;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SETTINGS_FRAME_WITH_ACK;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SLEEP_TIME;
 import static org.testng.Assert.assertEqualsNoOrder;
+import static org.testng.Assert.fail;
 
 /**
  * This contains a test case where the tcp server sends a GoAway and the connection gets timed out from client side.
  */
 public class Http2ConnectionTimeoutAfterTcpServerGoAwayScenarioTest {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Http2ConnectionTimeoutAfterTcpServerGoAwayScenarioTest.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(Http2ConnectionTimeoutAfterTcpServerGoAwayScenarioTest.class);
     private HttpClientConnector h2ClientWithPriorKnowledge;
     private ServerSocket serverSocket;
     private int numOfConnections = 0;
@@ -91,30 +91,15 @@ public class Http2ConnectionTimeoutAfterTcpServerGoAwayScenarioTest {
 
     @Test
     private void testConnectionTimeoutAfterServerGoAwayScenario() {
-        HttpCarbonMessage httpCarbonMessage1 = MessageGenerator.generateRequest(HttpMethod.POST, "Test Http2 Message");
-        HttpCarbonMessage httpCarbonMessage2 = MessageGenerator.generateRequest(HttpMethod.POST, "Test Http2 Message");
-        HttpCarbonMessage httpCarbonMessage3 = MessageGenerator.generateRequest(HttpMethod.POST, "Test Http2 Message");
         try {
             CountDownLatch latch1 = new CountDownLatch(2);
-            DefaultHttpConnectorListener msgListener1 = new DefaultHttpConnectorListener(latch1);
-            HttpResponseFuture responseFuture1 = h2ClientWithPriorKnowledge.send(httpCarbonMessage1);
-            responseFuture1.setHttpConnectorListener(msgListener1);
-
-            DefaultHttpConnectorListener msgListener2 = new DefaultHttpConnectorListener(latch1);
-            HttpResponseFuture responseFuture2 = h2ClientWithPriorKnowledge.send(httpCarbonMessage2);
-            responseFuture2.setHttpConnectorListener(msgListener2);
-
+            DefaultHttpConnectorListener msgListener1 = TestUtil.sendRequestAsync(latch1, h2ClientWithPriorKnowledge);
+            DefaultHttpConnectorListener msgListener2 = TestUtil.sendRequestAsync(latch1, h2ClientWithPriorKnowledge);
             latch1.await(TestUtil.HTTP2_RESPONSE_TIME_OUT, TimeUnit.SECONDS);
-            responseFuture1.sync();
-            responseFuture2.sync();
 
             CountDownLatch latch2 = new CountDownLatch(1);
-            DefaultHttpConnectorListener msgListener3 = new DefaultHttpConnectorListener(latch2);
-            HttpResponseFuture responseFuture3 = h2ClientWithPriorKnowledge.send(httpCarbonMessage3);
-            responseFuture3.setHttpConnectorListener(msgListener3);
-
+            DefaultHttpConnectorListener msgListener3 = TestUtil.sendRequestAsync(latch1, h2ClientWithPriorKnowledge);
             latch2.await(TestUtil.HTTP2_RESPONSE_TIME_OUT, TimeUnit.SECONDS);
-            responseFuture3.sync();
 
             HttpCarbonMessage response1 = msgListener1.getHttpResponseMessage();
             HttpCarbonMessage response2 = msgListener2.getHttpResponseMessage();
@@ -123,10 +108,12 @@ public class Http2ConnectionTimeoutAfterTcpServerGoAwayScenarioTest {
             Object responseVal1 = response1.getHttpContent().content().toString(CharsetUtil.UTF_8);
             Object responseVal2 = response2.getHttpContent().content().toString(CharsetUtil.UTF_8);
             Object responseVal3 = response3.getHttpContent().content().toString(CharsetUtil.UTF_8);
+
             assertEqualsNoOrder(List.of(responseVal1, responseVal2, responseVal3),
-                    List.of("hello world3", "hello world5", "hello world5"));
+                    List.of("hello world3", "hello world4", "hello world5"));
         } catch (InterruptedException e) {
             LOGGER.error("Interrupted exception occurred");
+            fail();
         }
     }
 
