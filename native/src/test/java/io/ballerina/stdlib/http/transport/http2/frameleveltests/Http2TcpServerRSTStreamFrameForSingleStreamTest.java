@@ -40,9 +40,8 @@ import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLeve
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SETTINGS_FRAME;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SETTINGS_FRAME_WITH_ACK;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SLEEP_TIME;
-import static io.ballerina.stdlib.http.transport.util.TestUtil.getResponseMessage;
+import static io.ballerina.stdlib.http.transport.util.TestUtil.getErrorResponseMessage;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.fail;
 
 /**
  * This contains a test case where the tcp server sends a successful response.
@@ -68,7 +67,7 @@ public class Http2TcpServerRSTStreamFrameForSingleStreamTest {
         } catch (InterruptedException e) {
             LOGGER.error("Interrupted exception occurred");
         }
-        assertEquals(getResponseMessage(msgListener),
+        assertEquals(getErrorResponseMessage(msgListener),
                 Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE);
     }
 

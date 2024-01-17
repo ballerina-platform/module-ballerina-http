@@ -62,6 +62,7 @@ public class Http2ClientChannel {
     private Map<String, Http2DataEventListener> dataEventListeners;
     private StreamCloseListener streamCloseListener;
     private long timeSinceMarkedAsStale = 0;
+    private AtomicBoolean isStale = new AtomicBoolean(false);
 
     public Http2ClientChannel(Http2ConnectionManager http2ConnectionManager, Http2Connection connection,
                               HttpRoute httpRoute, Channel channel) {
@@ -291,17 +292,16 @@ public class Http2ClientChannel {
             activeStreams.decrementAndGet();
             http2ClientChannel.getDataEventListeners().
                     forEach(dataEventListener -> dataEventListener.onStreamClose(stream.id()));
-            if (!isExhausted.get() && isExhausted.getAndSet(false)) {
+            if (!isStale.get() && isExhausted.getAndSet(false)) {
                 http2ConnectionManager.returnClientChannel(httpRoute, http2ClientChannel);
             }
         }
 
         @Override
         public void onGoAwayReceived(int lastStreamId, long errorCode, ByteBuf debugData) {
-            markAsExhausted();
-            http2ConnectionManager.getLock().lock();
-            markAsStale();
-            http2ConnectionManager.getLock().unlock();
+            synchronized (http2ConnectionManager) {
+                markAsStale();
+            }
             http2ClientChannel.inFlightMessages.forEach((streamId, outboundMsgHolder) -> {
                 if (streamId > lastStreamId) {
                     http2ClientChannel.removeInFlightMessage(streamId);
@@ -323,6 +323,7 @@ public class Http2ClientChannel {
     }
 
     void markAsStale() {
+        isStale.set(true);
         http2ConnectionManager.markClientChannelAsStale(httpRoute, this);
     }
 
@@ -330,11 +331,11 @@ public class Http2ClientChannel {
         return !inFlightMessages.isEmpty();
     }
 
-    public void setTimeSinceMarkedAsStale(long timeSinceMarkedAsStale) {
+    void setTimeSinceMarkedAsStale(long timeSinceMarkedAsStale) {
         this.timeSinceMarkedAsStale = timeSinceMarkedAsStale;
     }
 
-    public long getTimeSinceMarkedAsStale() {
+    long getTimeSinceMarkedAsStale() {
         return timeSinceMarkedAsStale;
     }
 }

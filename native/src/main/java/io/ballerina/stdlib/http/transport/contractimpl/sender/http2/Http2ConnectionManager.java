@@ -20,14 +20,13 @@ package io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
 
 import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.PoolConfiguration;
-import io.netty.channel.DefaultChannelPromise;
+import io.netty.channel.DefaultEventLoop;
+import io.netty.util.concurrent.DefaultPromise;
 
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * {@code Http2ConnectionManager} Manages HTTP/2 connections.
@@ -37,11 +36,10 @@ public class Http2ConnectionManager {
     private final Http2ChannelPool http2ChannelPool = new Http2ChannelPool();
     private final BlockingQueue<Http2ClientChannel> http2StaleClientChannels = new LinkedBlockingQueue<>();
     private final PoolConfiguration poolConfiguration;
-    private Lock lock = new ReentrantLock();
 
     public Http2ConnectionManager(PoolConfiguration poolConfiguration) {
         this.poolConfiguration = poolConfiguration;
-        initiateConnectionTimeoutTask();
+        initiateConnectionEvictionTask();
     }
 
     /**
@@ -123,8 +121,7 @@ public class Http2ConnectionManager {
      */
     public Http2ClientChannel fetchChannel(HttpRoute httpRoute) {
         Http2ChannelPool.PerRouteConnectionPool perRouteConnectionPool;
-        try {
-            getLock().lock();
+            synchronized (this) {
             perRouteConnectionPool = getOrCreatePerRoutePool(this.http2ChannelPool, generateKey(httpRoute));
 
             Http2ClientChannel http2ClientChannel = null;
@@ -132,8 +129,6 @@ public class Http2ConnectionManager {
                 http2ClientChannel = perRouteConnectionPool.fetchTargetChannel();
             }
             return http2ClientChannel;
-        } finally {
-            getLock().unlock();
         }
     }
 
@@ -172,7 +167,7 @@ public class Http2ConnectionManager {
         http2StaleClientChannels.add(http2ClientChannel);
     }
 
-    private void initiateConnectionTimeoutTask() {
+    private void initiateConnectionEvictionTask() {
         Timer timer = new Timer(true);
         TimerTask timerTask = new TimerTask() {
             @Override
@@ -183,7 +178,7 @@ public class Http2ConnectionManager {
                             && !http2ClientChannel.hasInFlightMessages()) {
                         http2StaleClientChannels.remove(http2ClientChannel);
                         http2ClientChannel.getConnection()
-                                .close(new DefaultChannelPromise(http2ClientChannel.getChannel()));
+                                .close(new DefaultPromise(new DefaultEventLoop()));
                     }
                 });
             }
@@ -200,9 +195,5 @@ public class Http2ConnectionManager {
     private String generateKey(HttpRoute httpRoute) {
         return httpRoute.getScheme() + ":" + httpRoute.getHost() + ":" + httpRoute.getPort() + ":" +
                 httpRoute.getConfigHash();
-    }
-
-    public Lock getLock() {
-        return lock;
     }
 }

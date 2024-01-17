@@ -46,7 +46,6 @@ import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLeve
 import static io.ballerina.stdlib.http.transport.util.TestUtil.getErrorResponseMessage;
 import static io.ballerina.stdlib.http.transport.util.TestUtil.getResponseMessage;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.fail;
 
 /**
  * This contains a test case where the tcp server sends a GoAway for a single request.
