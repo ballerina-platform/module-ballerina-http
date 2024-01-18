@@ -110,8 +110,10 @@ public class TestExhaustedStreamIdForClient {
         HttpCarbonMessage secondMessage = MessageGenerator.generateRequest(HttpMethod.POST, testValue);
         Throwable firstError = new MessageSender(httpClientConnector).sendMessageAndExpectError(secondMessage);
         assertNotNull(firstError, "Expected error not received");
-        assertEquals(firstError.getMessage(), "No more streams can be created on this connection",
+        assertEquals(firstError.getMessage(), "Error occurred while creating stream",
                      "Expected error response not received");
+        assertEquals(firstError.getCause().getMessage(), "No more streams can be created on this connection",
+                "Expected error response not received");
 
         //Send another request using the same client and it should not fail
         HttpCarbonMessage thirdMessage = MessageGenerator.generateRequest(HttpMethod.POST, testValue);

@@ -374,7 +374,7 @@ public final class Http2StateUtil {
         try {
             conn.local().createStream(streamId, false);
         } catch (Http2Exception exception) {
-            throw new Http2Exception(exception.error(), "Error occured while creating stream", exception);
+            throw new Http2Exception(exception.error(), "Error occurred while creating stream", exception);
         }
         if (LOG.isDebugEnabled()) {
             LOG.debug("Stream created streamId: {}", streamId);

@@ -130,7 +130,9 @@ public class Http2TcpServerRSTStreamFrameForMultipleStreamsTest {
         readSemaphore.release();
         writeSemaphore.acquire();
         outputStream.write(HEADER_FRAME_STREAM_07);
+        Thread.sleep(SLEEP_TIME);
         outputStream.write(RST_STREAM_FRAME_STREAM_07);
+        Thread.sleep(SLEEP_TIME);
         readSemaphore.release();
         Thread.sleep(END_SLEEP_TIME);
     }

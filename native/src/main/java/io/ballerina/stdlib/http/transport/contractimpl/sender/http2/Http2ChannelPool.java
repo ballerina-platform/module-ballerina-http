@@ -79,7 +79,7 @@ class Http2ChannelPool {
                 }
                 Channel channel = http2ClientChannel.getChannel();
                 if (channel == null) {  // if channel is not active, forget it and fetch next one
-                    http2ClientChannels.remove(http2ClientChannel);
+                    removeChannel(http2ClientChannel);
                     return fetchTargetChannel();
                 }
                 // increment and get active stream count
@@ -89,7 +89,7 @@ class Http2ChannelPool {
                     return http2ClientChannel;
                 } else if (activeStreamCount == maxActiveStreams) {  // no more streams except this one can be opened
                     http2ClientChannel.markAsExhausted();
-                    http2ClientChannels.remove(http2ClientChannel);
+                    removeChannel(http2ClientChannel);
                     // When the stream count reaches maxActiveStreams, a new channel will be added only if the
                     // channel queue is empty. This process is synchronized as transport thread can return channels
                     // after being reset. If such channel is returned before the new CountDownLatch, the subsequent
@@ -104,7 +104,7 @@ class Http2ChannelPool {
                     }
                     return http2ClientChannel;
                 } else {
-                    http2ClientChannels.remove(http2ClientChannel);
+                    removeChannel(http2ClientChannel);
                     return fetchTargetChannel();    // fetch the next one from the queue
                 }
             }

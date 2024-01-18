@@ -299,9 +299,7 @@ public class Http2ClientChannel {
 
         @Override
         public void onGoAwayReceived(int lastStreamId, long errorCode, ByteBuf debugData) {
-            synchronized (http2ConnectionManager) {
-                markAsStale();
-            }
+            markAsStale();
             http2ClientChannel.inFlightMessages.forEach((streamId, outboundMsgHolder) -> {
                 if (streamId > lastStreamId) {
                     http2ClientChannel.removeInFlightMessage(streamId);
@@ -323,8 +321,10 @@ public class Http2ClientChannel {
     }
 
     void markAsStale() {
-        isStale.set(true);
-        http2ConnectionManager.markClientChannelAsStale(httpRoute, this);
+        synchronized (http2ConnectionManager) {
+            isStale.set(true);
+            http2ConnectionManager.markClientChannelAsStale(httpRoute, this);
+        }
     }
 
     boolean hasInFlightMessages() {

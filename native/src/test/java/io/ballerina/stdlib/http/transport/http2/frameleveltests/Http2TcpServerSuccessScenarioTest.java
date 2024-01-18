@@ -61,7 +61,7 @@ public class Http2TcpServerSuccessScenarioTest {
     @Test
     private void testSuccessfulConnection() {
         CountDownLatch latch = new CountDownLatch(1);
-        DefaultHttpConnectorListener msgListener = TestUtil.sendRequestAsync(null, h2ClientWithPriorKnowledge);
+        DefaultHttpConnectorListener msgListener = TestUtil.sendRequestAsync(latch, h2ClientWithPriorKnowledge);
         try {
             latch.await(TestUtil.HTTP2_RESPONSE_TIME_OUT, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
