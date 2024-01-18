@@ -70,7 +70,7 @@ public class Http2TcpServerGoAwayWhileReceivingBodyScenarioTest {
             LOGGER.error("Interrupted exception occurred");
         }
         assertEquals(getDecoderErrorMessage(msgListener),
-                Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_BODY);
+                Constants.REMOTE_SERVER_SENT_GOAWAY_WHILE_READING_INBOUND_RESPONSE_BODY);
     }
 
     private void runTcpServer(int port) {

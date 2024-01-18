@@ -91,7 +91,7 @@ public class Http2TcpServerGoAwayMultipleStreamScenarioTest {
                 getErrorResponseMessage(msgListener4) : getResponseMessage(msgListener4);
         assertEqualsNoOrder(List.of(responseValOrError1, responseValOrError2, responseValOrError3,
                 responseValOrError4), List.of("hello world3", "hello world5", "hello world7",
-                Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE));
+                Constants.REMOTE_SERVER_SENT_GOAWAY_BEFORE_INITIATING_INBOUND_RESPONSE));
     }
 
     private void runTcpServer(int port) {

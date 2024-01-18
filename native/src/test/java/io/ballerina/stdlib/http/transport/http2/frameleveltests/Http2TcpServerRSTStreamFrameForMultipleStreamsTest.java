@@ -80,10 +80,10 @@ public class Http2TcpServerRSTStreamFrameForMultipleStreamsTest {
             writeSemaphore.release();
             readSemaphore.acquire();
             assertEquals(getErrorResponseMessage(msgListener1),
-                    Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE);
+                    Constants.REMOTE_SERVER_SENT_RSTSTREAM_BEFORE_INITIATING_INBOUND_RESPONSE);
             assertEquals(getResponseMessage(msgListener2), "hello world5");
             assertEquals(getDecoderErrorMessage(msgListener3),
-                    Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_BODY);
+                    Constants.REMOTE_SERVER_SENT_RSTSTREAM_WHILE_READING_INBOUND_RESPONSE_BODY);
         } catch (InterruptedException e) {
             LOGGER.error("Interrupted exception occurred");
             fail();

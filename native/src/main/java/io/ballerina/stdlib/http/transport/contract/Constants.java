@@ -345,6 +345,8 @@ public final class Constants {
             = "Idle timeout triggered before initiating outbound request";
     public static final String IDLE_TIMEOUT_TRIGGERED_WHILE_WRITING_OUTBOUND_REQUEST_HEADERS
             = "Idle timeout triggered while writing outbound request headers";
+    public static final String IDLE_TIMEOUT_TRIGGERED_WHILE_SENDING_RST_STREAM
+            = "Idle timeout triggered while sending RSTStream frame";
     public static final String IDLE_TIMEOUT_TRIGGERED_WHILE_WRITING_OUTBOUND_REQUEST_BODY
             = "Idle timeout triggered while writing outbound request entity body";
     public static final String IDLE_TIMEOUT_TRIGGERED_BEFORE_INITIATING_INBOUND_RESPONSE
@@ -386,6 +388,8 @@ public final class Constants {
             = "Remote host closed the connection before initiating outbound request";
     public static final String REMOTE_SERVER_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_HEADERS
             = "Remote host closed the connection while writing outbound request headers";
+    public static final String REMOTE_SERVER_CLOSED_WHILE_SENDING_RST_STREAM
+            = "Remote host closed the connection while sending RSTStream frame";
     public static final String REMOTE_SERVER_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_BODY
             = "Remote host closed the connection while writing outbound request entity body";
     public static final String REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE
@@ -396,6 +400,32 @@ public final class Constants {
             = "Remote host closed the connection while reading inbound response body";
     public static final String REMOTE_SERVER_CLOSED_BEFORE_READING_100_CONTINUE_RESPONSE
             = "Remote host closed the connection before reading 100 continue response";
+    // Server GoAway error scenarios
+    public static final String REMOTE_SERVER_SENT_GOAWAY_WHILE_WRITING_OUTBOUND_REQUEST_HEADERS
+            = "Remote host sent GoAway while writing outbound request headers";
+    public static final String REMOTE_SERVER_SENT_GOAWAY_WHILE_SENDING_RST_STREAM
+            = "Remote host sent GoAway while sending RSTStream frame";
+    public static final String REMOTE_SERVER_SENT_GOAWAY_WHILE_WRITING_OUTBOUND_REQUEST_BODY
+            = "Remote host sent GoAway while writing outbound request entity body";
+    public static final String REMOTE_SERVER_SENT_GOAWAY_BEFORE_INITIATING_INBOUND_RESPONSE
+            = "Remote host sent GoAway before initiating inbound response";
+    public static final String REMOTE_SERVER_SENT_GOAWAY_WHILE_READING_INBOUND_RESPONSE_HEADERS
+            = "Remote host sent GoAway while reading inbound response headers";
+    public static final String REMOTE_SERVER_SENT_GOAWAY_WHILE_READING_INBOUND_RESPONSE_BODY
+            = "Remote host sent GoAway while reading inbound response body";
+    // Server send RSTStream error scenarios
+    public static final String REMOTE_SERVER_SENT_RSTSTREAM_WHILE_WRITING_OUTBOUND_REQUEST_HEADERS
+            = "Remote host sent RSTStream while writing outbound request headers";
+    public static final String REMOTE_SERVER_SENT_RSTSTREAM_WHILE_SENDING_RST_STREAM
+            = "Remote host sent RSTStream while sending RSTStream frame";
+    public static final String REMOTE_SERVER_SENT_RSTSTREAM_WHILE_WRITING_OUTBOUND_REQUEST_BODY
+            = "Remote host sent RSTStream while writing outbound request entity body";
+    public static final String REMOTE_SERVER_SENT_RSTSTREAM_BEFORE_INITIATING_INBOUND_RESPONSE
+            = "Remote host sent RSTStream before initiating inbound response";
+    public static final String REMOTE_SERVER_SENT_RSTSTREAM_WHILE_READING_INBOUND_RESPONSE_HEADERS
+            = "Remote host sent RSTStream while reading inbound response headers";
+    public static final String REMOTE_SERVER_SENT_RSTSTREAM_WHILE_READING_INBOUND_RESPONSE_BODY
+            = "Remote host sent RSTStream while reading inbound response body";
 
     public static final String REMOTE_CLIENT_TO_HOST_CONNECTION_CLOSED
             = "Connection between remote client and host is closed";

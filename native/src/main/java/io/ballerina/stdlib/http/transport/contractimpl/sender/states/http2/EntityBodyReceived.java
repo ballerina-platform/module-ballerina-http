@@ -118,4 +118,14 @@ public class EntityBodyReceived implements SenderState {
             LOG.debug("Channel is closed");
         }
     }
+
+    @Override
+    public void handleServerGoAway(OutboundMsgHolder outboundMsgHolder) {
+        LOG.warn("handleServerGoAway is not a dependant action of this state");
+    }
+
+    @Override
+    public void handleRstStream(OutboundMsgHolder outboundMsgHolder) {
+        LOG.warn("handleRstStream is not a dependant action of this state");
+    }
 }

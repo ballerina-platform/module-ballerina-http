@@ -309,7 +309,7 @@ public class Http2ClientChannel {
                     Http2MessageStateContext messageStateContext =
                             outboundMsgHolder.getRequest().getHttp2MessageStateContext();
                     if (messageStateContext != null) {
-                        messageStateContext.getSenderState().handleConnectionClose(outboundMsgHolder);
+                        messageStateContext.getSenderState().handleServerGoAway(outboundMsgHolder);
                     }
                 }
             });
