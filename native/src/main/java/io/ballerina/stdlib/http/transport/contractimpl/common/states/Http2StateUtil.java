@@ -36,7 +36,6 @@ import io.ballerina.stdlib.http.transport.contractimpl.sender.states.http2.Reque
 import io.ballerina.stdlib.http.transport.message.Http2DataFrame;
 import io.ballerina.stdlib.http.transport.message.Http2InboundContentListener;
 import io.ballerina.stdlib.http.transport.message.Http2PushPromise;
-import io.ballerina.stdlib.http.transport.message.Http2Reset;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonRequest;
 import io.ballerina.stdlib.http.transport.message.PooledDataStreamerFactory;
