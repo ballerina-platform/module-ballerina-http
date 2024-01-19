@@ -220,7 +220,7 @@ public class HttpClientChannelInitializer extends ChannelInitializer<SocketChann
             }
         }
         clientPipeline.addLast(
-                new Http2PipelineConfiguratorAfterALPNNegotationForClient(targetHandler, connectionAvailabilityFuture));
+                new ALPNClientHandler(targetHandler, connectionAvailabilityFuture));
         clientPipeline
                 .addLast(Constants.HTTP2_EXCEPTION_HANDLER, new Http2ExceptionHandler(http2ConnectionHandler));
     }
@@ -330,13 +330,13 @@ public class HttpClientChannelInitializer extends ChannelInitializer<SocketChann
     /**
      * A handler to create the pipeline based on the ALPN negotiated protocol.
      */
-    class Http2PipelineConfiguratorAfterALPNNegotationForClient extends ApplicationProtocolNegotiationHandler {
+    class ALPNClientHandler extends ApplicationProtocolNegotiationHandler {
 
         private TargetHandler targetHandler;
         private ConnectionAvailabilityFuture connectionAvailabilityFuture;
 
-        public Http2PipelineConfiguratorAfterALPNNegotationForClient(TargetHandler targetHandler,
-                ConnectionAvailabilityFuture connectionAvailabilityFuture) {
+        public ALPNClientHandler(TargetHandler targetHandler,
+                                 ConnectionAvailabilityFuture connectionAvailabilityFuture) {
             super(ApplicationProtocolNames.HTTP_1_1);
             this.targetHandler = targetHandler;
             this.connectionAvailabilityFuture = connectionAvailabilityFuture;
