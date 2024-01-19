@@ -281,7 +281,7 @@ public final class Http2StateUtil {
     }
 
     /**
-     * Sends {@link Http2Reset} frame with `NO_ERROR` error code.
+     * Sends `RST_STREAM` frame with `NO_ERROR` error code.
      *
      * @param ctx      the channel handler context
      * @param encoder  the HTTP2 connection encoder
