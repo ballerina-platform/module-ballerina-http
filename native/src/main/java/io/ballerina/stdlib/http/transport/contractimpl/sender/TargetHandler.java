@@ -120,6 +120,7 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
         if (!idleTimeoutTriggered) {
             targetChannel.senderReqRespStateManager.handleAbruptChannelClosure(this, httpResponseFuture);
         }
+        releasePerRoutePoolLatchOnFailure();
         connectionManager.invalidateTargetChannel(targetChannel);
 
         if (handlerExecutor != null) {
