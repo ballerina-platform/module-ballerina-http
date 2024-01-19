@@ -24,12 +24,9 @@ import io.ballerina.stdlib.http.transport.contract.HttpWsConnectorFactory;
 import io.ballerina.stdlib.http.transport.contract.config.SenderConfiguration;
 import io.ballerina.stdlib.http.transport.contract.config.TransportsConfiguration;
 import io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpWsConnectorFactory;
-import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.PoolConfiguration;
-import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.HttpConnectorUtil;
 import io.ballerina.stdlib.http.transport.util.DefaultHttpConnectorListener;
 import io.ballerina.stdlib.http.transport.util.TestUtil;
-import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterClass;
@@ -41,22 +38,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_FRAME_STREAM_03;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_FRAME_STREAM_03_DIFFERENT_DATA;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_FRAME_STREAM_05;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.END_SLEEP_TIME;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.GO_AWAY_FRAME_MAX_STREAM_05;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.HEADER_FRAME_STREAM_03;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.HEADER_FRAME_STREAM_05;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SETTINGS_FRAME;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SETTINGS_FRAME_WITH_ACK;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SLEEP_TIME;
-import static org.testng.Assert.assertEqualsNoOrder;
+import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE;
+import static io.ballerina.stdlib.http.transport.util.TestUtil.getErrorResponseMessage;
 import static org.testng.Assert.fail;
+import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * This contains a test case where the tcp server sends a GoAway and the connection gets timed out from client side.
@@ -65,24 +53,20 @@ public class Http2ServerAbruptClosureInUpgradeScenarioTest {
 
     private static final Logger LOGGER =
             LoggerFactory.getLogger(Http2ServerAbruptClosureInUpgradeScenarioTest.class);
-    private HttpClientConnector h2ClientWithPriorKnowledge;
+    private HttpClientConnector h2ClientWithUpgrade;
     private ServerSocket serverSocket;
     private int numOfConnections = 0;
 
     @BeforeClass
     public void setup() throws InterruptedException {
         runTcpServer(TestUtil.HTTP_SERVER_PORT);
-        h2ClientWithPriorKnowledge = setupHttp2PriorKnowledgeClient();
+        h2ClientWithUpgrade = setupHttp2UpgradeClient();
     }
 
-    public HttpClientConnector setupHttp2PriorKnowledgeClient() {
+    public HttpClientConnector setupHttp2UpgradeClient() {
         HttpWsConnectorFactory connectorFactory = new DefaultHttpWsConnectorFactory();
-        PoolConfiguration poolConfiguration = new PoolConfiguration();
-        poolConfiguration.setMinEvictableIdleTime(5000);
-        poolConfiguration.setTimeBetweenEvictionRuns(1000);
         TransportsConfiguration transportsConfiguration = new TransportsConfiguration();
         SenderConfiguration senderConfiguration = new SenderConfiguration();
-        senderConfiguration.setPoolConfiguration(poolConfiguration);
         senderConfiguration.setScheme(Constants.HTTP_SCHEME);
         senderConfiguration.setHttpVersion(Constants.HTTP_2_0);
         senderConfiguration.setForceHttp2(false);
@@ -94,21 +78,17 @@ public class Http2ServerAbruptClosureInUpgradeScenarioTest {
     private void testServerAbruptClosureInUpgradeScenario() {
         try {
             CountDownLatch latch1 = new CountDownLatch(1);
-            DefaultHttpConnectorListener msgListener1 = TestUtil.sendRequestAsync(latch1, h2ClientWithPriorKnowledge);
+            DefaultHttpConnectorListener msgListener1 = TestUtil.sendRequestAsync(latch1, h2ClientWithUpgrade);
             latch1.await(TestUtil.HTTP2_RESPONSE_TIME_OUT, TimeUnit.SECONDS);
 
             CountDownLatch latch2 = new CountDownLatch(1);
-            DefaultHttpConnectorListener msgListener2 = TestUtil.sendRequestAsync(latch2, h2ClientWithPriorKnowledge);
+            DefaultHttpConnectorListener msgListener2 = TestUtil.sendRequestAsync(latch2, h2ClientWithUpgrade);
             latch2.await(TestUtil.HTTP2_RESPONSE_TIME_OUT, TimeUnit.SECONDS);
 
-            HttpCarbonMessage response1 = msgListener1.getHttpResponseMessage();
-            HttpCarbonMessage response2 = msgListener2.getHttpResponseMessage();
-
-            Object responseVal1 = response1.getHttpContent().content().toString(CharsetUtil.UTF_8);
-            Object responseVal2 = response2.getHttpContent().content().toString(CharsetUtil.UTF_8);
-
-            assertEqualsNoOrder(List.of(responseVal1, responseVal2),
-                    List.of("hello world3", "hello world4"));
+            assertEquals(getErrorResponseMessage(msgListener1),
+                    REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE);
+            assertEquals(getErrorResponseMessage(msgListener2),
+                    REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE);
         } catch (InterruptedException e) {
             LOGGER.error("Interrupted exception occurred");
             fail();
@@ -126,6 +106,7 @@ public class Http2ServerAbruptClosureInUpgradeScenarioTest {
                     try (OutputStream outputStream = clientSocket.getOutputStream();
                          InputStream inputStream = clientSocket.getInputStream()) {
                         readSocketAndExit(inputStream);
+                        numOfConnections += 1;
                     } catch (Exception e) {
                         LOGGER.error(e.getMessage());
                     }
@@ -137,21 +118,22 @@ public class Http2ServerAbruptClosureInUpgradeScenarioTest {
     }
 
     private void readSocketAndExit(InputStream inputStream) throws IOException {
+        // This will just read the socket input content and exit the socket without sending any response
+        // which will trigger the channel inactive in the client side
         byte[] buffer = new byte[4096];
         int bytesRead = 0;
         try {
-            Thread.sleep(1000);
             bytesRead = inputStream.read(buffer);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception exception) {
+            LOGGER.error(exception.getMessage());
         }
         String data = new String(buffer, 0, bytesRead);
-        System.out.println("Received data: " + data);
+        LOGGER.info("Received upgrade requesst: " + data);
     }
 
     @AfterClass
     public void cleanUp() throws IOException {
-        h2ClientWithPriorKnowledge.close();
+        h2ClientWithUpgrade.close();
         serverSocket.close();
     }
 }
