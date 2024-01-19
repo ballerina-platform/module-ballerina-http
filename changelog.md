@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Fixed
 - [Fix `IndexOutOfBoundsException` when decoding jwt header](https://github.com/ballerina-platform/ballerina-library/issues/5856)
+- [Fix HTTP/2 upgrade client hanging when server closes the connection abruptly](https://github.com/ballerina-platform/ballerina-library/issues/5955)
 
 ## [2.10.4] - 2023-11-17
 
