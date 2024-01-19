@@ -68,7 +68,7 @@ public class Http2TcpServerRSTStreamFrameForSingleStreamTest {
             LOGGER.error("Interrupted exception occurred");
         }
         assertEquals(getErrorResponseMessage(msgListener),
-                Constants.REMOTE_SERVER_SENT_RSTSTREAM_BEFORE_INITIATING_INBOUND_RESPONSE);
+                Constants.REMOTE_SERVER_SENT_RST_STREAM_BEFORE_INITIATING_INBOUND_RESPONSE);
     }
 
     private void runTcpServer(int port) {

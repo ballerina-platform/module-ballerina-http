@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_WHILE_SENDING_RST_STREAM;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_SENDING_RST_STREAM;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_SENT_GOAWAY_WHILE_SENDING_RST_STREAM;
-import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_SENT_RSTSTREAM_WHILE_SENDING_RST_STREAM;
+import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_SENT_RST_STREAM_WHILE_SENDING_RST_STREAM;
 
 /**
  * A state to reset the stream in the middle of communication.
@@ -125,7 +125,7 @@ public class SendingRstFrame implements SenderState {
     @Override
     public void handleRstStream(OutboundMsgHolder outboundMsgHolder) {
         outboundMsgHolder.getResponseFuture().notifyHttpListener(new RequestCancelledException(
-                REMOTE_SERVER_SENT_RSTSTREAM_WHILE_SENDING_RST_STREAM,
+                REMOTE_SERVER_SENT_RST_STREAM_WHILE_SENDING_RST_STREAM,
                 HttpResponseStatus.BAD_GATEWAY.code()));
     }
 

@@ -104,7 +104,6 @@ public interface SenderState {
      */
     void handleConnectionClose(OutboundMsgHolder outboundMsgHolder);
 
-
     /**
      * Handles the Stream close event due to receiving GoAway frame.
      */

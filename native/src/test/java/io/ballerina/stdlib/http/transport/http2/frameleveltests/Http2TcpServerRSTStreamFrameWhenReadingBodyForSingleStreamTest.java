@@ -70,7 +70,7 @@ public class Http2TcpServerRSTStreamFrameWhenReadingBodyForSingleStreamTest {
             LOGGER.error("Interrupted exception occurred");
         }
         assertEquals(getDecoderErrorMessage(msgListener),
-                Constants.REMOTE_SERVER_SENT_RSTSTREAM_WHILE_READING_INBOUND_RESPONSE_BODY);
+                Constants.REMOTE_SERVER_SENT_RST_STREAM_WHILE_READING_INBOUND_RESPONSE_BODY);
 
     }
 
