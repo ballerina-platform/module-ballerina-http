@@ -36,7 +36,6 @@ import io.ballerina.stdlib.http.transport.contractimpl.sender.states.http2.Reque
 import io.ballerina.stdlib.http.transport.message.Http2DataFrame;
 import io.ballerina.stdlib.http.transport.message.Http2InboundContentListener;
 import io.ballerina.stdlib.http.transport.message.Http2PushPromise;
-import io.ballerina.stdlib.http.transport.message.Http2Reset;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonRequest;
 import io.ballerina.stdlib.http.transport.message.PooledDataStreamerFactory;
@@ -282,7 +281,7 @@ public final class Http2StateUtil {
     }
 
     /**
-     * Sends {@link Http2Reset} frame with `NO_ERROR` error code.
+     * Sends `RST_STREAM` frame with `NO_ERROR` error code.
      *
      * @param ctx      the channel handler context
      * @param encoder  the HTTP2 connection encoder
