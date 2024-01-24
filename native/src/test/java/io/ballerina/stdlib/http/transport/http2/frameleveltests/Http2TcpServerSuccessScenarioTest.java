@@ -35,6 +35,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_FRAME_STREAM_03;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_03;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.END_SLEEP_TIME;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.HEADER_FRAME_STREAM_03;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SETTINGS_FRAME;
@@ -67,7 +68,7 @@ public class Http2TcpServerSuccessScenarioTest {
         } catch (InterruptedException e) {
             LOGGER.error("Interrupted exception occurred");
         }
-        assertEquals(getResponseMessage(msgListener), "hello world3");
+        assertEquals(getResponseMessage(msgListener), DATA_VALUE_HELLO_WORLD_03);
     }
 
     private void runTcpServer(int port) {

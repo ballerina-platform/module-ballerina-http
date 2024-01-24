@@ -35,6 +35,7 @@ import java.net.Socket;
 import java.util.concurrent.Semaphore;
 
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_FRAME_STREAM_05;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_05;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.END_SLEEP_TIME;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.HEADER_FRAME_STREAM_05;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.HEADER_FRAME_STREAM_07;
@@ -81,7 +82,7 @@ public class Http2TcpServerRSTStreamFrameForMultipleStreamsTest {
             readSemaphore.acquire();
             assertEquals(getErrorResponseMessage(msgListener1),
                     Constants.REMOTE_SERVER_SENT_RST_STREAM_BEFORE_INITIATING_INBOUND_RESPONSE);
-            assertEquals(getResponseMessage(msgListener2), "hello world5");
+            assertEquals(getResponseMessage(msgListener2), DATA_VALUE_HELLO_WORLD_05);
             assertEquals(getDecoderErrorMessage(msgListener3),
                     Constants.REMOTE_SERVER_SENT_RST_STREAM_WHILE_READING_INBOUND_RESPONSE_BODY);
         } catch (InterruptedException e) {

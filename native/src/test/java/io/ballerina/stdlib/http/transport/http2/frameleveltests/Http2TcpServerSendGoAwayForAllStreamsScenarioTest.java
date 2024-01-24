@@ -36,6 +36,8 @@ import java.util.concurrent.Semaphore;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_FRAME_STREAM_03;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils
         .DATA_FRAME_STREAM_03_DIFFERENT_DATA;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_03;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_04;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.END_SLEEP_TIME;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.GO_AWAY_FRAME_MAX_STREAM_03;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.HEADER_FRAME_STREAM_03;
@@ -80,12 +82,12 @@ public class Http2TcpServerSendGoAwayForAllStreamsScenarioTest {
             semaphore.acquire();
             DefaultHttpConnectorListener msgListener6 = TestUtil.sendRequestAsync(null, h2ClientWithPriorKnowledge);
             semaphore.acquire();
-            assertEquals(getResponseMessage(msgListener1), "hello world3");
-            assertEquals(getResponseMessage(msgListener2), "hello world4");
-            assertEquals(getResponseMessage(msgListener3), "hello world3");
-            assertEquals(getResponseMessage(msgListener4), "hello world4");
-            assertEquals(getResponseMessage(msgListener5), "hello world3");
-            assertEquals(getResponseMessage(msgListener6), "hello world4");
+            assertEquals(getResponseMessage(msgListener1), DATA_VALUE_HELLO_WORLD_03);
+            assertEquals(getResponseMessage(msgListener2), DATA_VALUE_HELLO_WORLD_04);
+            assertEquals(getResponseMessage(msgListener3), DATA_VALUE_HELLO_WORLD_03);
+            assertEquals(getResponseMessage(msgListener4), DATA_VALUE_HELLO_WORLD_04);
+            assertEquals(getResponseMessage(msgListener5), DATA_VALUE_HELLO_WORLD_03);
+            assertEquals(getResponseMessage(msgListener6), DATA_VALUE_HELLO_WORLD_04);
         } catch (InterruptedException e) {
             LOGGER.error("Interrupted exception occurred");
             fail();

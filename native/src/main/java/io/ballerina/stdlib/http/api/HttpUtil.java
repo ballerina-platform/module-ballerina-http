@@ -1359,8 +1359,21 @@ public class HttpUtil {
 
         double timeBetweenEvictionRuns =
                 ((BDecimal) poolRecord.get(HttpConstants.CONNECTION_POOLING_TIME_BETWEEN_EVICTION_RUNS)).floatValue();
-        poolConfiguration.setTimeBetweenEvictionRuns(
-                timeBetweenEvictionRuns < 0 ? 0 : (long) timeBetweenEvictionRuns * 1000);
+        if (timeBetweenEvictionRuns > 0) {
+            poolConfiguration.setTimeBetweenEvictionRuns((long) timeBetweenEvictionRuns * 1000);
+        }
+
+        double minIdleTimeInStaleState =
+                ((BDecimal) poolRecord.get(HttpConstants.CONNECTION_POOLING_IDLE_TIME_STALE_STATE)).floatValue();
+        poolConfiguration.setMinIdleTimeInStaleState(minIdleTimeInStaleState < -1 ? -1 :
+                (long) minEvictableIdleTime * 1000);
+
+        double timeBetweenStaleCheck =
+                ((BDecimal) poolRecord.get(HttpConstants.CONNECTION_POOLING_TIME_BETWEEN_STALE_CHECK_RUNS))
+                        .floatValue();
+        if (timeBetweenStaleCheck > 0) {
+            poolConfiguration.setTimeBetweenStaleCheck((long) timeBetweenStaleCheck * 1000);
+        }
     }
 
     private static int validateConfig(long value, String configName) {

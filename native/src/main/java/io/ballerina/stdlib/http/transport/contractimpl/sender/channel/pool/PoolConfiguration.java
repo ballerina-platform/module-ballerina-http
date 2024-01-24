@@ -35,6 +35,8 @@ public class PoolConfiguration {
     private int eventGroupExecutorThreads = 15;
     private long maxWaitTime = 60000L;
     private int http2MaxActiveStreamsPerConnection = Integer.MAX_VALUE;
+    private long minIdleTimeInStaleState = 300000;
+    private long timeBetweenStaleCheck = 30000;
 
     public PoolConfiguration() {
     }
@@ -141,5 +143,21 @@ public class PoolConfiguration {
 
     public void setHttp2MaxActiveStreamsPerConnection(int http2MaxActiveStreamsPerConnection) {
         this.http2MaxActiveStreamsPerConnection = http2MaxActiveStreamsPerConnection;
+    }
+
+    public long getMinIdleTimeInStaleState() {
+        return minIdleTimeInStaleState;
+    }
+
+    public void setMinIdleTimeInStaleState(long minIdleTimeInStaleState) {
+        this.minIdleTimeInStaleState = minIdleTimeInStaleState;
+    }
+
+    public long getTimeBetweenStaleCheck() {
+        return timeBetweenStaleCheck;
+    }
+
+    public void setTimeBetweenStaleCheck(long timeBetweenStaleCheck) {
+        this.timeBetweenStaleCheck = timeBetweenStaleCheck;
     }
 }

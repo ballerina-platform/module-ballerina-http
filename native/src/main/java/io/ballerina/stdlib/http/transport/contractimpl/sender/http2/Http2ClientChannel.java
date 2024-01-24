@@ -274,6 +274,10 @@ public class Http2ClientChannel {
         }
     }
 
+    ConcurrentHashMap<Integer, OutboundMsgHolder> getInFlightMessages() {
+        return inFlightMessages;
+    }
+
     /**
      * Listener which listen to the stream closure event.
      */

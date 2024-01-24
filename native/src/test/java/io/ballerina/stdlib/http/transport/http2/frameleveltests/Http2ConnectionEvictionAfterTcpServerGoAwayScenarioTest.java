@@ -33,7 +33,6 @@ import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -44,10 +43,15 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE;
+import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_BODY;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_FRAME_STREAM_03;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests
         .FrameLevelTestUtils.DATA_FRAME_STREAM_03_DIFFERENT_DATA;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_FRAME_STREAM_05;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_03;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_04;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_05;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.END_SLEEP_TIME;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.GO_AWAY_FRAME_MAX_STREAM_05;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.HEADER_FRAME_STREAM_03;
@@ -55,6 +59,10 @@ import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLeve
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SETTINGS_FRAME;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SETTINGS_FRAME_WITH_ACK;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SLEEP_TIME;
+import static io.ballerina.stdlib.http.transport.util.TestUtil.getDecoderErrorMessage;
+import static io.ballerina.stdlib.http.transport.util.TestUtil.getErrorResponseMessage;
+import static io.ballerina.stdlib.http.transport.util.TestUtil.getResponseMessage;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertEqualsNoOrder;
 import static org.testng.Assert.fail;
 
@@ -69,17 +77,12 @@ public class Http2ConnectionEvictionAfterTcpServerGoAwayScenarioTest {
     private ServerSocket serverSocket;
     private int numOfConnections = 0;
 
-    @BeforeClass
-    public void setup() throws InterruptedException {
-        runTcpServer(TestUtil.HTTP_SERVER_PORT);
-        h2ClientWithPriorKnowledge = setupHttp2PriorKnowledgeClient();
-    }
-
-    public HttpClientConnector setupHttp2PriorKnowledgeClient() {
+    public HttpClientConnector setupHttp2PriorKnowledgeClient(long minIdleTimeInStaleState,
+                                                              long timeBetweenStaleCheck) {
         HttpWsConnectorFactory connectorFactory = new DefaultHttpWsConnectorFactory();
         PoolConfiguration poolConfiguration = new PoolConfiguration();
-        poolConfiguration.setMinEvictableIdleTime(5000);
-        poolConfiguration.setTimeBetweenEvictionRuns(1000);
+        poolConfiguration.setMinIdleTimeInStaleState(minIdleTimeInStaleState);
+        poolConfiguration.setTimeBetweenStaleCheck(timeBetweenStaleCheck);
         TransportsConfiguration transportsConfiguration = new TransportsConfiguration();
         SenderConfiguration senderConfiguration = new SenderConfiguration();
         senderConfiguration.setPoolConfiguration(poolConfiguration);
@@ -91,15 +94,18 @@ public class Http2ConnectionEvictionAfterTcpServerGoAwayScenarioTest {
     }
 
     @Test
-    private void testConnectionEvictionAfterServerGoAwayScenario() {
+    private void testConnectionEvictionAfterAllStreamsAreClosedScenario() {
         try {
+            runTcpServer(TestUtil.HTTP_SERVER_PORT);
+            // Setting to -1 will make the runner to wait until all pending streams are completed
+            h2ClientWithPriorKnowledge = setupHttp2PriorKnowledgeClient(-1, 1000);
             CountDownLatch latch1 = new CountDownLatch(2);
             DefaultHttpConnectorListener msgListener1 = TestUtil.sendRequestAsync(latch1, h2ClientWithPriorKnowledge);
             DefaultHttpConnectorListener msgListener2 = TestUtil.sendRequestAsync(latch1, h2ClientWithPriorKnowledge);
             latch1.await(TestUtil.HTTP2_RESPONSE_TIME_OUT, TimeUnit.SECONDS);
 
             CountDownLatch latch2 = new CountDownLatch(1);
-            DefaultHttpConnectorListener msgListener3 = TestUtil.sendRequestAsync(latch1, h2ClientWithPriorKnowledge);
+            DefaultHttpConnectorListener msgListener3 = TestUtil.sendRequestAsync(latch2, h2ClientWithPriorKnowledge);
             latch2.await(TestUtil.HTTP2_RESPONSE_TIME_OUT, TimeUnit.SECONDS);
 
             HttpCarbonMessage response1 = msgListener1.getHttpResponseMessage();
@@ -110,15 +116,50 @@ public class Http2ConnectionEvictionAfterTcpServerGoAwayScenarioTest {
             Object responseVal2 = response2.getHttpContent().content().toString(CharsetUtil.UTF_8);
             Object responseVal3 = response3.getHttpContent().content().toString(CharsetUtil.UTF_8);
 
-            assertEqualsNoOrder(List.of(responseVal1, responseVal2, responseVal3),
-                    List.of("hello world3", "hello world4", "hello world5"));
-        } catch (InterruptedException e) {
-            LOGGER.error("Interrupted exception occurred");
+            assertEqualsNoOrder(List.of(responseVal1, responseVal2), List.of(DATA_VALUE_HELLO_WORLD_03,
+                    DATA_VALUE_HELLO_WORLD_05));
+            assertEquals(responseVal3, DATA_VALUE_HELLO_WORLD_04);
+        } catch (InterruptedException | IOException e) {
+            LOGGER.error("Exception occurred");
             fail();
         }
     }
 
-    private void runTcpServer(int port) {
+    @Test
+    private void testConnectionEvictionBeforeAllStreamsAreClosedScenario() {
+        try {
+            runTcpServer(TestUtil.HTTP_SERVER_PORT);
+            // Setting to -1 will make the runner to wait until all pending streams are completed
+            h2ClientWithPriorKnowledge = setupHttp2PriorKnowledgeClient(5000, 1000);
+            CountDownLatch latch1 = new CountDownLatch(2);
+            DefaultHttpConnectorListener msgListener1 = TestUtil.sendRequestAsync(latch1, h2ClientWithPriorKnowledge);
+            DefaultHttpConnectorListener msgListener2 = TestUtil.sendRequestAsync(latch1, h2ClientWithPriorKnowledge);
+            latch1.await(TestUtil.HTTP2_RESPONSE_TIME_OUT, TimeUnit.SECONDS);
+
+            CountDownLatch latch2 = new CountDownLatch(1);
+            DefaultHttpConnectorListener msgListener3 = TestUtil.sendRequestAsync(latch2, h2ClientWithPriorKnowledge);
+            latch2.await(TestUtil.HTTP2_RESPONSE_TIME_OUT, TimeUnit.SECONDS);
+
+            String errorMsg1 = msgListener1.getHttpErrorMessage() != null ? getErrorResponseMessage(msgListener1) :
+                    getDecoderErrorMessage(msgListener1);
+            String errorMsg2 = msgListener2.getHttpErrorMessage() != null ? getErrorResponseMessage(msgListener2) :
+                    getDecoderErrorMessage(msgListener2);
+
+            assertEqualsNoOrder(List.of(errorMsg1, errorMsg2),
+                    List.of(REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE,
+                            REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_BODY));
+            assertEquals(getResponseMessage(msgListener3), DATA_VALUE_HELLO_WORLD_04);
+        } catch (InterruptedException | IOException e) {
+            LOGGER.error("Exception occurred");
+            fail();
+        }
+    }
+
+    private void runTcpServer(int port) throws IOException {
+        if (serverSocket != null) {
+            serverSocket.close();
+        }
+        numOfConnections = 0;
         new Thread(() -> {
             try {
                 serverSocket = new ServerSocket(port);
@@ -129,12 +170,12 @@ public class Http2ConnectionEvictionAfterTcpServerGoAwayScenarioTest {
                     try (OutputStream outputStream = clientSocket.getOutputStream()) {
                         if (numOfConnections == 0) {
                             sendGoAwayForASingleStream(outputStream);
-                            numOfConnections += 1;
                         } else {
                             // If the connection successfully closed, a new socket connection
                             // will be opened and it will come here
                             sendSuccessfulRequest(outputStream);
                         }
+                        numOfConnections += 1;
                     } catch (Exception e) {
                         LOGGER.error(e.getMessage());
                     }

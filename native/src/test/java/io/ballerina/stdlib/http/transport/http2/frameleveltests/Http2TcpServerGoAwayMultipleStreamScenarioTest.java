@@ -40,6 +40,9 @@ import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLeve
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_FRAME_STREAM_05;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_FRAME_STREAM_07;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_FRAME_STREAM_09;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_03;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_05;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_07;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.END_SLEEP_TIME;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.GO_AWAY_FRAME_MAX_STREAM_07;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.HEADER_FRAME_STREAM_03;
@@ -90,8 +93,8 @@ public class Http2TcpServerGoAwayMultipleStreamScenarioTest {
         Object responseValOrError4 = msgListener4.getHttpResponseMessage() == null ?
                 getErrorResponseMessage(msgListener4) : getResponseMessage(msgListener4);
         assertEqualsNoOrder(List.of(responseValOrError1, responseValOrError2, responseValOrError3,
-                responseValOrError4), List.of("hello world3", "hello world5", "hello world7",
-                Constants.REMOTE_SERVER_SENT_GOAWAY_BEFORE_INITIATING_INBOUND_RESPONSE));
+                responseValOrError4), List.of(DATA_VALUE_HELLO_WORLD_03, DATA_VALUE_HELLO_WORLD_05,
+                DATA_VALUE_HELLO_WORLD_07, Constants.REMOTE_SERVER_SENT_GOAWAY_BEFORE_INITIATING_INBOUND_RESPONSE));
     }
 
     private void runTcpServer(int port) {

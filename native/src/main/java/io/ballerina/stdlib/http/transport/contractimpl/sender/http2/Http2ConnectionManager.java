@@ -19,6 +19,7 @@
 package io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
 
 import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
+import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.PoolConfiguration;
 import io.netty.channel.DefaultEventLoop;
 import io.netty.util.concurrent.DefaultPromise;
@@ -171,21 +172,35 @@ public class Http2ConnectionManager {
             @Override
             public void run() {
                 http2StaleClientChannels.forEach(http2ClientChannel -> {
-                    if ((System.currentTimeMillis() - http2ClientChannel.getTimeSinceMarkedAsStale()) >
-                            poolConfiguration.getMinEvictableIdleTime()
-                            && !http2ClientChannel.hasInFlightMessages()) {
-                        boolean result = http2StaleClientChannels.remove(http2ClientChannel);
-                        if (!result) {
-                            logger.warn("Specified channel does not exist in the stale list.");
+                    if (poolConfiguration.getMinIdleTimeInStaleState() == -1) {
+                        if (!http2ClientChannel.hasInFlightMessages()) {
+                            closeChannelAndEvict(http2ClientChannel);
                         }
-                        http2ClientChannel.getConnection()
-                                .close(new DefaultPromise(new DefaultEventLoop()));
+                    } else if ((System.currentTimeMillis() - http2ClientChannel.getTimeSinceMarkedAsStale()) >
+                            poolConfiguration.getMinIdleTimeInStaleState()) {
+                        http2ClientChannel.getInFlightMessages().forEach((streamId, outboundMsgHolder) -> {
+                            Http2MessageStateContext messageStateContext =
+                                    outboundMsgHolder.getRequest().getHttp2MessageStateContext();
+                            if (messageStateContext != null) {
+                                messageStateContext.getSenderState().handleConnectionClose(outboundMsgHolder);
+                            }
+                        });
+                        closeChannelAndEvict(http2ClientChannel);
                     }
                 });
             }
+
+            public void closeChannelAndEvict(Http2ClientChannel http2ClientChannel) {
+                boolean result = http2StaleClientChannels.remove(http2ClientChannel);
+                if (!result) {
+                    logger.warn("Specified channel does not exist in the stale list.");
+                }
+                http2ClientChannel.getConnection()
+                        .close(new DefaultPromise(new DefaultEventLoop()));
+            }
         };
-        timer.schedule(timerTask, poolConfiguration.getTimeBetweenEvictionRuns(),
-                poolConfiguration.getTimeBetweenEvictionRuns());
+        timer.schedule(timerTask, poolConfiguration.getTimeBetweenStaleCheck(),
+                poolConfiguration.getTimeBetweenStaleCheck());
     }
 
     private Http2ChannelPool.PerRouteConnectionPool fetchPerRoutePool(HttpRoute httpRoute) {
