@@ -20,6 +20,8 @@ configurable int maxActiveConnections = -1;
 configurable int maxIdleConnections = 100;
 configurable decimal waitTime = 30;
 configurable int maxActiveStreamsPerConnection = 100;
+configurable decimal minEvictableIdleTime = 300;
+configurable decimal timeBetweenEvictionRuns = 30;
 
 # Configurations for managing HTTP client connection pool.
 #
@@ -31,8 +33,8 @@ configurable int maxActiveStreamsPerConnection = 100;
 # + timeBetweenEvictionRuns - Time between eviction runs in seconds. Default value is 30 seconds
 # + minIdleTimeInStaleState - Minimum time in seconds for a connection to be kept open which has received a GOAWAY.
 #                             This only applies for HTTP/2. Default value is 5 minutes. If the value is set to -1,
-#                             the connection will not be closed until all existing streams are completed
-# + timeBetweenStaleCheck - Time between the connection stale check run in seconds. This only applies for HTTP/2.
+#                             the connection will be closed after all in-flight streams are completed
+# + timeBetweenStaleCheck - Time between the connection stale eviction runs in seconds. This only applies for HTTP/2.
 #                           Default value is 30 seconds
 public type PoolConfiguration record {|
     int maxActiveConnections = maxActiveConnections;
