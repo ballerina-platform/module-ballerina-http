@@ -36,7 +36,7 @@ public class PoolConfiguration {
     private long maxWaitTime = 60000L;
     private int http2MaxActiveStreamsPerConnection = Integer.MAX_VALUE;
     private long minIdleTimeInStaleState = 300000;
-    private long timeBetweenStaleCheck = 30000;
+    private long timeBetweenStaleEviction = 30000;
 
     public PoolConfiguration() {
     }
@@ -153,11 +153,11 @@ public class PoolConfiguration {
         this.minIdleTimeInStaleState = minIdleTimeInStaleState;
     }
 
-    public long getTimeBetweenStaleCheck() {
-        return timeBetweenStaleCheck;
+    public long getTimeBetweenStaleEviction() {
+        return timeBetweenStaleEviction;
     }
 
-    public void setTimeBetweenStaleCheck(long timeBetweenStaleCheck) {
-        this.timeBetweenStaleCheck = timeBetweenStaleCheck;
+    public void setTimeBetweenStaleEviction(long timeBetweenStaleEviction) {
+        this.timeBetweenStaleEviction = timeBetweenStaleEviction;
     }
 }

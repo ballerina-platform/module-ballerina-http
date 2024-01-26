@@ -513,7 +513,7 @@ public final class HttpConstants {
     public static final BString CONNECTION_POOLING_IDLE_TIME_STALE_STATE = StringUtils.fromString(
             "minIdleTimeInStaleState");
     public static final BString CONNECTION_POOLING_TIME_BETWEEN_STALE_CHECK_RUNS = StringUtils.fromString(
-            "timeBetweenStaleCheck");
+            "timeBetweenStaleEviction");
     public static final String HTTP_CLIENT_CONNECTION_POOL = "PoolConfiguration";
     public static final String CONNECTION_MANAGER = "ConnectionManager";
     public static final int POOL_CONFIG_INDEX = 1;

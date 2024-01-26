@@ -199,8 +199,8 @@ public class Http2ConnectionManager {
                         .close(new DefaultPromise(new DefaultEventLoop()));
             }
         };
-        timer.schedule(timerTask, poolConfiguration.getTimeBetweenStaleCheck(),
-                poolConfiguration.getTimeBetweenStaleCheck());
+        timer.schedule(timerTask, poolConfiguration.getTimeBetweenStaleEviction(),
+                poolConfiguration.getTimeBetweenStaleEviction());
     }
 
     private Http2ChannelPool.PerRouteConnectionPool fetchPerRoutePool(HttpRoute httpRoute) {

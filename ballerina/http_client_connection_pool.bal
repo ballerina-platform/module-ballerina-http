@@ -22,6 +22,8 @@ configurable decimal waitTime = 30;
 configurable int maxActiveStreamsPerConnection = 100;
 configurable decimal minEvictableIdleTime = 300;
 configurable decimal timeBetweenEvictionRuns = 30;
+configurable decimal minIdleTimeInStaleState = 300;
+configurable decimal timeBetweenStaleEviction = 30;
 
 # Configurations for managing HTTP client connection pool.
 #
@@ -34,7 +36,7 @@ configurable decimal timeBetweenEvictionRuns = 30;
 # + minIdleTimeInStaleState - Minimum time in seconds for a connection to be kept open which has received a GOAWAY.
 #                             This only applies for HTTP/2. Default value is 5 minutes. If the value is set to -1,
 #                             the connection will be closed after all in-flight streams are completed
-# + timeBetweenStaleCheck - Time between the connection stale eviction runs in seconds. This only applies for HTTP/2.
+# + timeBetweenStaleEviction - Time between the connection stale eviction runs in seconds. This only applies for HTTP/2.
 #                           Default value is 30 seconds
 public type PoolConfiguration record {|
     int maxActiveConnections = maxActiveConnections;
@@ -44,7 +46,7 @@ public type PoolConfiguration record {|
     decimal minEvictableIdleTime = 300;
     decimal timeBetweenEvictionRuns = 30;
     decimal minIdleTimeInStaleState = 300;
-    decimal timeBetweenStaleCheck = 30;
+    decimal timeBetweenStaleEviction = 30;
 |};
 
 //This is a hack to get the global map initialized, without involving locking.

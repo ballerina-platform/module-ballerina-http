@@ -78,11 +78,11 @@ public class Http2ConnectionEvictionAfterTcpServerGoAwayScenarioTest {
     private int numOfConnections = 0;
 
     public HttpClientConnector setupHttp2PriorKnowledgeClient(long minIdleTimeInStaleState,
-                                                              long timeBetweenStaleCheck) {
+                                                              long timeBetweenStaleEviction) {
         HttpWsConnectorFactory connectorFactory = new DefaultHttpWsConnectorFactory();
         PoolConfiguration poolConfiguration = new PoolConfiguration();
         poolConfiguration.setMinIdleTimeInStaleState(minIdleTimeInStaleState);
-        poolConfiguration.setTimeBetweenStaleCheck(timeBetweenStaleCheck);
+        poolConfiguration.setTimeBetweenStaleEviction(timeBetweenStaleEviction);
         TransportsConfiguration transportsConfiguration = new TransportsConfiguration();
         SenderConfiguration senderConfiguration = new SenderConfiguration();
         senderConfiguration.setPoolConfiguration(poolConfiguration);

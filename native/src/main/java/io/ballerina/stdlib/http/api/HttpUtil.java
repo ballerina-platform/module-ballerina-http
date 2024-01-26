@@ -1368,11 +1368,11 @@ public class HttpUtil {
         poolConfiguration.setMinIdleTimeInStaleState(minIdleTimeInStaleState < -1 ? -1 :
                 (long) minEvictableIdleTime * 1000);
 
-        double timeBetweenStaleCheck =
+        double timeBetweenStaleEviction =
                 ((BDecimal) poolRecord.get(HttpConstants.CONNECTION_POOLING_TIME_BETWEEN_STALE_CHECK_RUNS))
                         .floatValue();
-        if (timeBetweenStaleCheck > 0) {
-            poolConfiguration.setTimeBetweenStaleCheck((long) timeBetweenStaleCheck * 1000);
+        if (timeBetweenStaleEviction > 0) {
+            poolConfiguration.setTimeBetweenStaleEviction((long) timeBetweenStaleEviction * 1000);
         }
     }
 
