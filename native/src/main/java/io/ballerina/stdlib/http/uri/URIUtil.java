@@ -128,7 +128,7 @@ public class URIUtil {
                 if (splitMatrixParam.length != 2) {
                     String message = String.format("found non-matrix parameter '%s' in path '%s'",
                             splitPathSegment[i], path);
-                    throw HttpUtil.createHttpStatusCodeError(HttpErrorType.BAD_MATRIX_PARAMS_ERROR, message);
+                    throw HttpUtil.createHttpStatusCodeError(HttpErrorType.INTERNAL_BAD_MATRIX_PARAMS_ERROR, message);
                 }
                 segmentMatrixParams.put(splitMatrixParam[0], splitMatrixParam[1]);
             }

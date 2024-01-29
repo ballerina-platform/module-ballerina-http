@@ -31,9 +31,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static io.ballerina.stdlib.http.api.HttpErrorType.GENERIC_LISTENER_ERROR;
-import static io.ballerina.stdlib.http.api.HttpErrorType.REQUEST_NOT_ACCEPTABLE_ERROR;
-import static io.ballerina.stdlib.http.api.HttpErrorType.RESOURCE_METHOD_NOT_ALLOWED_ERROR;
-import static io.ballerina.stdlib.http.api.HttpErrorType.UNSUPPORTED_REQUEST_MEDIA_TYPE_ERROR;
+import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_REQUEST_NOT_ACCEPTABLE_ERROR;
+import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_RESOURCE_METHOD_NOT_ALLOWED_ERROR;
+import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_UNSUPPORTED_REQUEST_MEDIA_TYPE_ERROR;
 
 /**
  * Http Node Item for URI template tree.
@@ -137,7 +137,7 @@ public class ResourceDataElement implements DataElement<Resource, HttpCarbonMess
         }
         if (!isOptionsRequest) {
             String message = "Method not allowed";
-            throw HttpUtil.createHttpStatusCodeError(RESOURCE_METHOD_NOT_ALLOWED_ERROR, message);
+            throw HttpUtil.createHttpStatusCodeError(INTERNAL_RESOURCE_METHOD_NOT_ALLOWED_ERROR, message);
         }
         return null;
     }
@@ -189,7 +189,7 @@ public class ResourceDataElement implements DataElement<Resource, HttpCarbonMess
             }
         }
         String message = "content-type : " + contentMediaType + " is not supported";
-        throw HttpUtil.createHttpStatusCodeError(UNSUPPORTED_REQUEST_MEDIA_TYPE_ERROR, message);
+        throw HttpUtil.createHttpStatusCodeError(INTERNAL_UNSUPPORTED_REQUEST_MEDIA_TYPE_ERROR, message);
     }
 
     private String extractContentMediaType(String header) {
@@ -231,7 +231,7 @@ public class ResourceDataElement implements DataElement<Resource, HttpCarbonMess
                 return;
             }
         }
-        throw HttpUtil.createHttpStatusCodeError(REQUEST_NOT_ACCEPTABLE_ERROR, "Request is not acceptable");
+        throw HttpUtil.createHttpStatusCodeError(INTERNAL_REQUEST_NOT_ACCEPTABLE_ERROR, "Request is not acceptable");
     }
 
     private List<String> extractAcceptMediaTypes(String header) {

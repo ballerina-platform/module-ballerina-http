@@ -27,8 +27,8 @@ import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
 
-import static io.ballerina.stdlib.http.api.HttpErrorType.RESOURCE_DISPATCHING_SERVER_ERROR;
-import static io.ballerina.stdlib.http.api.HttpErrorType.RESOURCE_NOT_FOUND_ERROR;
+import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_RESOURCE_DISPATCHING_SERVER_ERROR;
+import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_RESOURCE_NOT_FOUND_ERROR;
 
 /**
  * Resource level dispatchers handler for HTTP protocol.
@@ -56,12 +56,12 @@ public class ResourceDispatcher {
                     handleOptionsRequest(inboundRequest, service);
                 } else {
                     String message = "no matching resource found for path";
-                    throw HttpUtil.createHttpStatusCodeError(RESOURCE_NOT_FOUND_ERROR, message);
+                    throw HttpUtil.createHttpStatusCodeError(INTERNAL_RESOURCE_NOT_FOUND_ERROR, message);
                 }
                 return null;
             }
         } catch (URITemplateException e) {
-            throw HttpUtil.createHttpStatusCodeError(RESOURCE_DISPATCHING_SERVER_ERROR, e.getMessage());
+            throw HttpUtil.createHttpStatusCodeError(INTERNAL_RESOURCE_DISPATCHING_SERVER_ERROR, e.getMessage());
         }
     }
 
@@ -86,7 +86,7 @@ public class ResourceDispatcher {
                                DispatcherUtil.concatValues(service.getAllAllowedMethods(), false));
         } else {
             String message = "no matching resource found for path";
-            throw HttpUtil.createHttpStatusCodeError(RESOURCE_NOT_FOUND_ERROR, message);
+            throw HttpUtil.createHttpStatusCodeError(INTERNAL_RESOURCE_NOT_FOUND_ERROR, message);
         }
         CorsHeaderGenerator.process(cMsg, response, false);
         String introspectionResourcePathHeaderValue = service.getIntrospectionResourcePathHeaderValue();

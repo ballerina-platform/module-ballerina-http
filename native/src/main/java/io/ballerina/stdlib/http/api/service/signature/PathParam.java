@@ -24,7 +24,7 @@ import io.ballerina.stdlib.constraint.Constraints;
 import io.ballerina.stdlib.http.api.HttpUtil;
 
 import static io.ballerina.stdlib.http.api.HttpConstants.PATH_PARAM;
-import static io.ballerina.stdlib.http.api.HttpErrorType.QUERY_PARAM_VALIDATION_ERROR;
+import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_QUERY_PARAM_VALIDATION_ERROR;
 
 /**
  * {@code {@link PathParam }} represents a path parameter details.
@@ -40,7 +40,7 @@ public class PathParam extends SignatureParam {
             Object result = Constraints.validateAfterTypeConversion(pathValue, getOriginalType());
             if (result instanceof BError) {
                 String message = "path validation failed: " + HttpUtil.getPrintableErrorMsg((BError) result);
-                throw HttpUtil.createHttpStatusCodeError(QUERY_PARAM_VALIDATION_ERROR, message);
+                throw HttpUtil.createHttpStatusCodeError(INTERNAL_QUERY_PARAM_VALIDATION_ERROR, message);
             }
         }
         return pathValue;

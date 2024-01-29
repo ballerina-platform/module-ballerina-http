@@ -62,7 +62,7 @@ public class BinaryPayloadBuilder extends AbstractPayloadBuilder {
             }
         }
         String message = "incompatible type found: '" + payloadType.toString() + "'";
-        throw HttpUtil.createHttpStatusCodeError(HttpErrorType.PAYLOAD_BINDING_LISTENER_ERROR, message);
+        throw HttpUtil.createHttpStatusCodeError(HttpErrorType.INTERNAL_PAYLOAD_BINDING_LISTENER_ERROR, message);
     }
 
     private Object createValue(BObject entity, boolean readonly) {
