@@ -183,7 +183,7 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
                                                    this.configHashCode);
             if (http2) {
                 // See whether an already upgraded HTTP/2 connection is available
-                Http2ClientChannel activeHttp2ClientChannel = http2ConnectionManager.borrowChannel(route);
+                Http2ClientChannel activeHttp2ClientChannel = http2ConnectionManager.fetchChannel(route);
 
                 if (activeHttp2ClientChannel != null) {
                     outboundMsgHolder.setHttp2ClientChannel(activeHttp2ClientChannel);

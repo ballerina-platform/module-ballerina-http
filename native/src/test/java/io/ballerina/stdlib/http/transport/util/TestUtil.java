@@ -37,8 +37,10 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -265,7 +267,8 @@ public final class TestUtil {
                                                                 HttpClientConnector httpClientConnector) {
         HttpCarbonMessage httpsPostReq = TestUtil.
                 createHttpsPostReq(TestUtil.HTTP_SERVER_PORT, "hello", "/");
-        DefaultHttpConnectorListener requestListener = new DefaultHttpConnectorListener(latch);
+        DefaultHttpConnectorListener requestListener = latch == null ? new DefaultHttpConnectorListener() :
+                new DefaultHttpConnectorListener(latch);
         HttpResponseFuture responseFuture = httpClientConnector.send(httpsPostReq);
         responseFuture.setHttpConnectorListener(requestListener);
         return requestListener;
@@ -279,6 +282,20 @@ public final class TestUtil {
         HttpResponseFuture responseFuture = httpClientConnector.send(httpsPostReq);
         responseFuture.setHttpConnectorListener(requestListener);
         return requestListener;
+    }
+
+    public static String getResponseMessage(DefaultHttpConnectorListener msgListener) {
+        HttpCarbonMessage response = msgListener.getHttpResponseMessage();
+        return response.getHttpContent().content().toString(CharsetUtil.UTF_8);
+    }
+
+    public static String getErrorResponseMessage(DefaultHttpConnectorListener msgListener) {
+        return msgListener.getHttpErrorMessage().getMessage();
+    }
+
+    public static String getDecoderErrorMessage(DefaultHttpConnectorListener msgListener) {
+        HttpContent content = msgListener.getHttpResponseMessage().getHttpContent();
+        return content.decoderResult().cause().getMessage();
     }
 
     public static void cleanUp(List<ServerConnector> serverConnectors, HttpServer httpServer) {

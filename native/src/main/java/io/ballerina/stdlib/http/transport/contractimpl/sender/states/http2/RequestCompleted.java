@@ -36,6 +36,8 @@ import org.slf4j.LoggerFactory;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_BEFORE_INITIATING_INBOUND_RESPONSE;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE;
+import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_SENT_GOAWAY_BEFORE_INITIATING_INBOUND_RESPONSE;
+import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_SENT_RST_STREAM_BEFORE_INITIATING_INBOUND_RESPONSE;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil.onPushPromiseRead;
 
 /**
@@ -111,5 +113,17 @@ public class RequestCompleted implements SenderState {
         outboundMsgHolder.getResponseFuture().notifyHttpListener(
                 new ServerConnectorException(REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE));
         LOG.error(REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE);
+    }
+
+    @Override
+    public void handleServerGoAway(OutboundMsgHolder outboundMsgHolder) {
+        outboundMsgHolder.getResponseFuture().notifyHttpListener(
+                new ServerConnectorException(REMOTE_SERVER_SENT_GOAWAY_BEFORE_INITIATING_INBOUND_RESPONSE));
+    }
+
+    @Override
+    public void handleRstStream(OutboundMsgHolder outboundMsgHolder) {
+        outboundMsgHolder.getResponseFuture().notifyHttpListener(
+                new ServerConnectorException(REMOTE_SERVER_SENT_RST_STREAM_BEFORE_INITIATING_INBOUND_RESPONSE));
     }
 }

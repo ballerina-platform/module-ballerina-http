@@ -370,7 +370,11 @@ public final class Http2StateUtil {
      * @throws Http2Exception if a protocol-related error occurred
      */
     private static void createStream(Http2Connection conn, int streamId) throws Http2Exception {
-        conn.local().createStream(streamId, false);
+        try {
+            conn.local().createStream(streamId, false);
+        } catch (Http2Exception.StreamException exception) {
+            throw new Http2Exception(exception.error(), "Error occurred while creating stream", exception);
+        }
         if (LOG.isDebugEnabled()) {
             LOG.debug("Stream created streamId: {}", streamId);
         }

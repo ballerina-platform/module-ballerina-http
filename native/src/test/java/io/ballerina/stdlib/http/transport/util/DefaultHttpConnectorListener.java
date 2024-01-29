@@ -36,16 +36,23 @@ public class DefaultHttpConnectorListener implements HttpConnectorListener {
         this.latch = latch;
     }
 
+    // This constructor can be used to create a listener without a latch when an external locking mechanism is in place.
+    public DefaultHttpConnectorListener() {}
+
     @Override
     public void onMessage(HttpCarbonMessage httpMessage) {
         this.httpMessage = httpMessage;
-        latch.countDown();
+        if (latch != null) {
+            latch.countDown();
+        }
     }
 
     @Override
     public void onError(Throwable throwable) {
         this.throwable = throwable;
-        latch.countDown();
+        if (latch != null) {
+            latch.countDown();
+        }
     }
 
     public HttpCarbonMessage getHttpResponseMessage() {

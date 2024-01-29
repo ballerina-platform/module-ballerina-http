@@ -19,6 +19,7 @@
 package io.ballerina.stdlib.http.transport.contractimpl.sender.states.http2;
 
 import io.ballerina.stdlib.http.transport.contract.exceptions.EndpointTimeOutException;
+import io.ballerina.stdlib.http.transport.contract.exceptions.RequestCancelledException;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ClientChannel;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2DataEventListener;
@@ -44,6 +45,8 @@ import java.io.IOException;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_WHILE_WRITING_OUTBOUND_REQUEST_BODY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_BODY;
+import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_SENT_GOAWAY_WHILE_WRITING_OUTBOUND_REQUEST_BODY;
+import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_SENT_RST_STREAM_WHILE_WRITING_OUTBOUND_REQUEST_BODY;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil.onPushPromiseRead;
 
 /**
@@ -135,6 +138,24 @@ public class SendingEntityBody implements SenderState {
         outboundMsgHolder.getResponseFuture().notifyHttpListener(new EndpointTimeOutException(
                 REMOTE_SERVER_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_BODY,
                 HttpResponseStatus.GATEWAY_TIMEOUT.code()));
+    }
+
+    @Override
+    public void handleServerGoAway(OutboundMsgHolder outboundMsgHolder) {
+        outboundMsgHolder.getRequest().setIoException(
+                new IOException(REMOTE_SERVER_SENT_GOAWAY_WHILE_WRITING_OUTBOUND_REQUEST_BODY));
+        outboundMsgHolder.getResponseFuture().notifyHttpListener(new RequestCancelledException(
+                REMOTE_SERVER_SENT_GOAWAY_WHILE_WRITING_OUTBOUND_REQUEST_BODY,
+                HttpResponseStatus.BAD_GATEWAY.code()));
+    }
+
+    @Override
+    public void handleRstStream(OutboundMsgHolder outboundMsgHolder) {
+        outboundMsgHolder.getRequest().setIoException(
+                new IOException(REMOTE_SERVER_SENT_RST_STREAM_WHILE_WRITING_OUTBOUND_REQUEST_BODY));
+        outboundMsgHolder.getResponseFuture().notifyHttpListener(new RequestCancelledException(
+                REMOTE_SERVER_SENT_RST_STREAM_WHILE_WRITING_OUTBOUND_REQUEST_BODY,
+                HttpResponseStatus.BAD_GATEWAY.code()));
     }
 
     private void writeContent(ChannelHandlerContext ctx, HttpContent msg) throws Http2Exception {

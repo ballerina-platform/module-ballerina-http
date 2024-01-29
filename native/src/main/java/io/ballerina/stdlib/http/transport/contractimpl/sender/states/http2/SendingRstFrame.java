@@ -19,6 +19,8 @@
 package io.ballerina.stdlib.http.transport.contractimpl.sender.states.http2;
 
 import io.ballerina.stdlib.http.transport.contract.exceptions.EndpointTimeOutException;
+import io.ballerina.stdlib.http.transport.contract.exceptions.RequestCancelledException;
+import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorException;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ClientChannel;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2TargetHandler;
@@ -35,8 +37,10 @@ import io.netty.handler.codec.http2.Http2Exception;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_WHILE_WRITING_OUTBOUND_REQUEST_HEADERS;
-import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_HEADERS;
+import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_WHILE_SENDING_RST_STREAM;
+import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_SENDING_RST_STREAM;
+import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_SENT_GOAWAY_WHILE_SENDING_RST_STREAM;
+import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_SENT_RST_STREAM_WHILE_SENDING_RST_STREAM;
 
 /**
  * A state to reset the stream in the middle of communication.
@@ -100,16 +104,29 @@ public class SendingRstFrame implements SenderState {
                                     int streamId) throws Http2Exception {
         if (!serverPush) {
             outboundMsgHolder.getResponseFuture().notifyHttpListener(
-                    new EndpointTimeOutException(IDLE_TIMEOUT_TRIGGERED_WHILE_WRITING_OUTBOUND_REQUEST_HEADERS,
+                    new EndpointTimeOutException(IDLE_TIMEOUT_TRIGGERED_WHILE_SENDING_RST_STREAM,
                             HttpResponseStatus.GATEWAY_TIMEOUT.code()));
         }
     }
 
     @Override
     public void handleConnectionClose(OutboundMsgHolder outboundMsgHolder) {
-        outboundMsgHolder.getResponseFuture().notifyHttpListener(new EndpointTimeOutException(
-                REMOTE_SERVER_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_HEADERS,
-                HttpResponseStatus.GATEWAY_TIMEOUT.code()));
+        outboundMsgHolder.getResponseFuture().notifyHttpListener(new ServerConnectorException(
+                REMOTE_SERVER_CLOSED_WHILE_SENDING_RST_STREAM));
+    }
+
+    @Override
+    public void handleServerGoAway(OutboundMsgHolder outboundMsgHolder) {
+        outboundMsgHolder.getResponseFuture().notifyHttpListener(new RequestCancelledException(
+                REMOTE_SERVER_SENT_GOAWAY_WHILE_SENDING_RST_STREAM,
+                HttpResponseStatus.BAD_GATEWAY.code()));
+    }
+
+    @Override
+    public void handleRstStream(OutboundMsgHolder outboundMsgHolder) {
+        outboundMsgHolder.getResponseFuture().notifyHttpListener(new RequestCancelledException(
+                REMOTE_SERVER_SENT_RST_STREAM_WHILE_SENDING_RST_STREAM,
+                HttpResponseStatus.BAD_GATEWAY.code()));
     }
 
     public void resetStream(ChannelHandlerContext ctx) {

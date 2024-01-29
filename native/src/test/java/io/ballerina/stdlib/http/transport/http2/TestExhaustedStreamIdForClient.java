@@ -100,7 +100,7 @@ public class TestExhaustedStreamIdForClient {
         assertEquals(firstResult, testValue, "Expected response not received");
 
         Http2ClientChannel http2ClientChannel = connectionManager.getHttp2ConnectionManager()
-            .borrowChannel(new HttpRoute(Constants.HTTP_SCHEME, LOCALHOST,
+            .fetchChannel(new HttpRoute(Constants.HTTP_SCHEME, LOCALHOST,
                                                HTTP_SERVER_PORT, 0));
 
         //Simulate the stream id to have reached its max value for the connection.
@@ -111,7 +111,7 @@ public class TestExhaustedStreamIdForClient {
         Throwable firstError = new MessageSender(httpClientConnector).sendMessageAndExpectError(secondMessage);
         assertNotNull(firstError, "Expected error not received");
         assertEquals(firstError.getMessage(), "No more streams can be created on this connection",
-                     "Expected error response not received");
+                "Expected error response not received");
 
         //Send another request using the same client and it should not fail
         HttpCarbonMessage thirdMessage = MessageGenerator.generateRequest(HttpMethod.POST, testValue);

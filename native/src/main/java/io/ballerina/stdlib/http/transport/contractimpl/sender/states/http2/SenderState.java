@@ -103,4 +103,14 @@ public interface SenderState {
      * Handles the connection close event.
      */
     void handleConnectionClose(OutboundMsgHolder outboundMsgHolder);
+
+    /**
+     * Handles the Stream close event due to receiving GoAway frame.
+     */
+    void handleServerGoAway(OutboundMsgHolder outboundMsgHolder);
+
+    /**
+     * Handles the Stream close event due to receiving RSTStream frame.
+     */
+    void handleRstStream(OutboundMsgHolder outboundMsgHolder);
 }

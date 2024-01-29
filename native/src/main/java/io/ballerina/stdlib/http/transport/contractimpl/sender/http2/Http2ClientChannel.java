@@ -21,6 +21,7 @@ package io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.handler.codec.http2.Http2Connection;
@@ -60,6 +61,8 @@ public class Http2ClientChannel {
     private int socketIdleTimeout = Constants.ENDPOINT_TIMEOUT;
     private Map<String, Http2DataEventListener> dataEventListeners;
     private StreamCloseListener streamCloseListener;
+    private long timeSinceMarkedAsStale = 0;
+    private AtomicBoolean isStale = new AtomicBoolean(false);
 
     public Http2ClientChannel(Http2ConnectionManager http2ConnectionManager, Http2Connection connection,
                               HttpRoute httpRoute, Channel channel) {
@@ -253,7 +256,7 @@ public class Http2ClientChannel {
         this.connection.removeListener(streamCloseListener);
         inFlightMessages.clear();
         promisedMessages.clear();
-        http2ConnectionManager.removeClientChannel(httpRoute, this);
+        removeFromConnectionPool();
     }
 
     /**
@@ -269,6 +272,10 @@ public class Http2ClientChannel {
                 }
             });
         }
+    }
+
+    ConcurrentHashMap<Integer, OutboundMsgHolder> getInFlightMessages() {
+        return inFlightMessages;
     }
 
     /**
@@ -289,13 +296,50 @@ public class Http2ClientChannel {
             activeStreams.decrementAndGet();
             http2ClientChannel.getDataEventListeners().
                     forEach(dataEventListener -> dataEventListener.onStreamClose(stream.id()));
-            if (isExhausted.getAndSet(false)) {
+            if (!isStale.get() && isExhausted.getAndSet(false)) {
                 http2ConnectionManager.returnClientChannel(httpRoute, http2ClientChannel);
             }
+        }
+
+        @Override
+        public void onGoAwayReceived(int lastStreamId, long errorCode, ByteBuf debugData) {
+            markAsStale();
+            http2ClientChannel.inFlightMessages.forEach((streamId, outboundMsgHolder) -> {
+                if (streamId > lastStreamId) {
+                    http2ClientChannel.removeInFlightMessage(streamId);
+                    activeStreams.decrementAndGet();
+                    http2ClientChannel.getDataEventListeners().forEach(
+                            dataEventListener -> dataEventListener.onStreamClose(streamId));
+                    Http2MessageStateContext messageStateContext =
+                            outboundMsgHolder.getRequest().getHttp2MessageStateContext();
+                    if (messageStateContext != null) {
+                        messageStateContext.getSenderState().handleServerGoAway(outboundMsgHolder);
+                    }
+                }
+            });
         }
     }
 
     void removeFromConnectionPool() {
         http2ConnectionManager.removeClientChannel(httpRoute, this);
+    }
+
+    void markAsStale() {
+        synchronized (http2ConnectionManager) {
+            isStale.set(true);
+            http2ConnectionManager.markClientChannelAsStale(httpRoute, this);
+        }
+    }
+
+    boolean hasInFlightMessages() {
+        return !inFlightMessages.isEmpty();
+    }
+
+    void setTimeSinceMarkedAsStale(long timeSinceMarkedAsStale) {
+        this.timeSinceMarkedAsStale = timeSinceMarkedAsStale;
+    }
+
+    long getTimeSinceMarkedAsStale() {
+        return timeSinceMarkedAsStale;
     }
 }
