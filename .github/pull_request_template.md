@@ -8,3 +8,4 @@
 - [ ] Added tests
 - [ ] Updated the spec
 - [ ] Checked native-image compatibility
+- [ ] Checked the impact on OpenAPI generation
