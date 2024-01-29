@@ -92,7 +92,7 @@ public class HttpCallableUnitCallback implements Callback {
             return;
         }
         if (result instanceof BError) {
-            invokeErrorInterceptors((BError) result, true);
+            invokeErrorInterceptors((BError) result, false);
             return;
         }
         if (isLastService) {
@@ -130,7 +130,6 @@ public class HttpCallableUnitCallback implements Callback {
             @Override
             public void notifySuccess(Object result) {
                 stopObserverContext();
-                printStacktraceIfError(result);
             }
 
             @Override
@@ -166,17 +165,19 @@ public class HttpCallableUnitCallback implements Callback {
         System.exit(1);
     }
 
-    public void invokeErrorInterceptors(BError error, boolean printError) {
-        requestMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR, error);
-        if (printError) {
-            error.printStackTrace();
+    public void invokeErrorInterceptors(BError error, boolean isInternalError) {
+        if (isInternalError) {
+            requestMessage.setProperty(HttpConstants.INTERNAL_ERROR, true);
+        } else {
+            requestMessage.removeProperty(HttpConstants.INTERNAL_ERROR);
         }
+        requestMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR, error);
         returnErrorResponse(error);
     }
 
     public void sendFailureResponse(BError error) {
         stopObserverContext();
-        HttpUtil.handleFailure(requestMessage, error, true);
+        HttpUtil.handleFailure(requestMessage, error);
     }
 
     public void cleanupRequestMessage() {
@@ -186,19 +187,13 @@ public class HttpCallableUnitCallback implements Callback {
     private boolean alreadyResponded(Object result) {
         try {
             HttpUtil.methodInvocationCheck(requestMessage, HttpConstants.INVALID_STATUS_CODE, ILLEGAL_FUNCTION_INVOKED);
-        } catch (BError e) {
+        } catch (BError bError) {
             if (result != null) { // handles nil return and end of resource exec
-                printStacktraceIfError(result);
-                err.println(HttpConstants.HTTP_RUNTIME_WARNING_PREFIX + e.getMessage());
+                bError.printStackTrace();
+                err.println(HttpConstants.HTTP_RUNTIME_WARNING_PREFIX + bError.getMessage());
             }
             return true;
         }
         return false;
-    }
-
-    private void printStacktraceIfError(Object result) {
-        if (result instanceof BError) {
-            ((BError) result).printStackTrace();
-        }
     }
 }
