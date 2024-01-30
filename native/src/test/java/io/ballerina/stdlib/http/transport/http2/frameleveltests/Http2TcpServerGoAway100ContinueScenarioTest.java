@@ -37,7 +37,8 @@ import java.net.Socket;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_SENT_GOAWAY_BEFORE_INITIATING_INBOUND_RESPONSE;
+import static io.ballerina.stdlib.http.transport.contract.Constants
+        .REMOTE_SERVER_SENT_GOAWAY_BEFORE_INITIATING_INBOUND_RESPONSE;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.END_SLEEP_TIME;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.GO_AWAY_FRAME_MAX_STREAM_01;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SETTINGS_FRAME;
@@ -72,7 +73,8 @@ public class Http2TcpServerGoAway100ContinueScenarioTest {
             HttpResponseFuture responseFuture = h2ClientWithPriorKnowledge.send(httpsPostReq);
             responseFuture.setHttpConnectorListener(requestListener);
             latch.await(TestUtil.HTTP2_RESPONSE_TIME_OUT, TimeUnit.SECONDS);
-            assertEquals(getErrorResponseMessage(requestListener), REMOTE_SERVER_SENT_GOAWAY_BEFORE_INITIATING_INBOUND_RESPONSE);
+            assertEquals(getErrorResponseMessage(requestListener),
+                    REMOTE_SERVER_SENT_GOAWAY_BEFORE_INITIATING_INBOUND_RESPONSE);
         } catch (InterruptedException e) {
             LOGGER.error("Interrupted exception occurred");
         }
