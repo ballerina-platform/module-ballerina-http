@@ -36,7 +36,6 @@ import io.ballerina.stdlib.http.transport.contractimpl.sender.states.http2.Reque
 import io.ballerina.stdlib.http.transport.message.Http2DataFrame;
 import io.ballerina.stdlib.http.transport.message.Http2InboundContentListener;
 import io.ballerina.stdlib.http.transport.message.Http2PushPromise;
-import io.ballerina.stdlib.http.transport.message.Http2Reset;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonRequest;
 import io.ballerina.stdlib.http.transport.message.PooledDataStreamerFactory;
@@ -282,7 +281,7 @@ public final class Http2StateUtil {
     }
 
     /**
-     * Sends {@link Http2Reset} frame with `NO_ERROR` error code.
+     * Sends `RST_STREAM` frame with `NO_ERROR` error code.
      *
      * @param ctx      the channel handler context
      * @param encoder  the HTTP2 connection encoder
@@ -371,7 +370,11 @@ public final class Http2StateUtil {
      * @throws Http2Exception if a protocol-related error occurred
      */
     private static void createStream(Http2Connection conn, int streamId) throws Http2Exception {
-        conn.local().createStream(streamId, false);
+        try {
+            conn.local().createStream(streamId, false);
+        } catch (Http2Exception.StreamException exception) {
+            throw new Http2Exception(exception.error(), "Error occurred while creating stream", exception);
+        }
         if (LOG.isDebugEnabled()) {
             LOG.debug("Stream created streamId: {}", streamId);
         }

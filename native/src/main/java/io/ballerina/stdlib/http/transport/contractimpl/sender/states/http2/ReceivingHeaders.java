@@ -59,6 +59,8 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT
 import static io.ballerina.stdlib.http.transport.contract.Constants.INBOUND_RESPONSE;
 import static io.ballerina.stdlib.http.transport.contract.Constants.POOLED_BYTE_BUFFER_FACTORY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_HEADERS;
+import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_SENT_GOAWAY_WHILE_READING_INBOUND_RESPONSE_HEADERS;
+import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_SENT_RST_STREAM_WHILE_READING_INBOUND_RESPONSE_HEADERS;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil.releaseContent;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.handleIncompleteInboundMessage;
 import static io.netty.handler.codec.http.HttpHeaderNames.TRAILER;
@@ -139,6 +141,18 @@ public class ReceivingHeaders implements SenderState {
     public void handleConnectionClose(OutboundMsgHolder outboundMsgHolder) {
         handleIncompleteInboundMessage(outboundMsgHolder.getResponse(),
                                        REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_HEADERS);
+    }
+
+    @Override
+    public void handleServerGoAway(OutboundMsgHolder outboundMsgHolder) {
+        handleIncompleteInboundMessage(outboundMsgHolder.getResponse(),
+                REMOTE_SERVER_SENT_GOAWAY_WHILE_READING_INBOUND_RESPONSE_HEADERS);
+    }
+
+    @Override
+    public void handleRstStream(OutboundMsgHolder outboundMsgHolder) {
+        handleIncompleteInboundMessage(outboundMsgHolder.getResponse(),
+                REMOTE_SERVER_SENT_RST_STREAM_WHILE_READING_INBOUND_RESPONSE_HEADERS);
     }
 
     private void onHeadersRead(ChannelHandlerContext ctx, Http2HeadersFrame http2HeadersFrame,
