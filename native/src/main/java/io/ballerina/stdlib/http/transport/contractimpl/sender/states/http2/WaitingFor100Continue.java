@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.sender.states.http2;
 
+import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorException;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ClientChannel;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ClientTimeoutHandler;
@@ -41,6 +42,7 @@ import java.util.concurrent.ScheduledFuture;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_HEADERS;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_SENT_GOAWAY_WHILE_READING_INBOUND_RESPONSE_HEADERS;
+import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_SENT_RST_STREAM_WHILE_READING_INBOUND_RESPONSE_HEADERS;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.handleIncompleteInboundMessage;
 
 /**
@@ -155,13 +157,13 @@ public class WaitingFor100Continue implements SenderState {
 
     @Override
     public void handleServerGoAway(OutboundMsgHolder outboundMsgHolder) {
-        handleIncompleteInboundMessage(outboundMsgHolder.getResponse(),
-                REMOTE_SERVER_SENT_GOAWAY_WHILE_READING_INBOUND_RESPONSE_HEADERS);
+        outboundMsgHolder.getResponseFuture().notifyHttpListener(
+                new ServerConnectorException(REMOTE_SERVER_SENT_GOAWAY_WHILE_READING_INBOUND_RESPONSE_HEADERS));
     }
 
     @Override
     public void handleRstStream(OutboundMsgHolder outboundMsgHolder) {
-        handleIncompleteInboundMessage(outboundMsgHolder.getResponse(),
-                REMOTE_SERVER_SENT_GOAWAY_WHILE_READING_INBOUND_RESPONSE_HEADERS);
+        outboundMsgHolder.getResponseFuture().notifyHttpListener(
+                new ServerConnectorException(REMOTE_SERVER_SENT_RST_STREAM_WHILE_READING_INBOUND_RESPONSE_HEADERS));
     }
 }
