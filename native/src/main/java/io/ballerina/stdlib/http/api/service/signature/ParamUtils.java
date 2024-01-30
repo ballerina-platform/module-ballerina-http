@@ -100,7 +100,16 @@ public class ParamUtils {
             case DECIMAL_TAG:
             case MAP_TAG:
             case RECORD_TYPE_TAG:
-                return getBArray(argValueArr, TypeCreator.createArrayType(elementType), elementType);
+                try {
+                    return getBArray(argValueArr, TypeCreator.createArrayType(elementType), elementType);
+                } catch (Exception exp) {
+                    String errorMessage = "error occurred while converting '" + argValueArr +
+                            "' to the target array type";
+                    if (exp instanceof BError) {
+                        throw ErrorCreator.createError(StringUtils.fromString(errorMessage), exp);
+                    }
+                    throw ErrorCreator.createError(StringUtils.fromString(errorMessage));
+                }
             default:
                 return StringUtils.fromStringArray(argValueArr);
         }
