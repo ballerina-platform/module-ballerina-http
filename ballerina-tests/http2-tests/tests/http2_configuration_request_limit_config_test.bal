@@ -145,10 +145,7 @@ function testHttp2ValidHeaderLength() returns error? {
 }
 
 //Tests the behaviour when header size is greater than the configured threshold
-// TODO: Enable after fixing this issue : https://github.com/ballerina-platform/ballerina-standard-library/issues/3963
-@test:Config {
-    enable: true
-}
+@test:Config {}
 function testHttp2InvalidHeaderLength() returns error? {
     http:Client limitClient = check new ("http://localhost:" + http2RequestLimitsTestPort3.toString(),
         http2Settings = {http2PriorKnowledge: true});
@@ -159,9 +156,7 @@ function testHttp2InvalidHeaderLength() returns error? {
 
 // Tests the fallback behaviour when header size is greater than the configured http2 service
 // TODO: Enable after fixing this issue : https://github.com/ballerina-platform/ballerina-standard-library/issues/3963
-@test:Config {
-    enable: false
-}
+@test:Config {}
 function testHttp2Http2ServiceInvalidHeaderLength() returns error? {
     http:Client limitClient = check new ("http://localhost:" + requestLimitsTestPort5.toString(),
         http2Settings = {http2PriorKnowledge: true});
