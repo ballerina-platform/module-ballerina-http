@@ -38,6 +38,8 @@ public type LoadBalanceActionErrorData record {
 # Defines the common error type for the module.
 public type Error distinct error;
 
+type InternalError distinct Error;
+
 // Level 2
 # Defines the possible listener error types.
 public type ListenerError distinct Error;
@@ -64,41 +66,55 @@ public type GenericListenerError distinct ListenerError;
 # Represents an error, which occurred due to a failure in interceptor return.
 public type InterceptorReturnError distinct ListenerError & httpscerr:InternalServerErrorError;
 
+type InternalInterceptorReturnError InterceptorReturnError & InternalError;
+
 # Represents an error, which occurred due to a header binding.
 public type HeaderBindingError distinct ListenerError & httpscerr:BadRequestError;
+
+type InternalHeaderBindingError HeaderBindingError & InternalError;
 
 // TODO: Change the error type as HeaderBindingError once this issue is fixed:
 // https://github.com/ballerina-platform/ballerina-lang/issues/40273
 # Represents an error, which occurred due to a header constraint validation.
 public type HeaderValidationError distinct HeaderBindingError & httpscerr:BadRequestError;
 
+type InternalHeaderValidationError HeaderValidationError & InternalError;
+
 # Represents an error, which occurred due to the absence of the payload.
 public type NoContentError distinct ClientError;
 
 type PayloadBindingClientError ClientError & PayloadBindingError;
 
-type PayloadBindingListenerError distinct ListenerError & PayloadBindingError & httpscerr:BadRequestError;
+type InternalPayloadBindingListenerError distinct ListenerError & PayloadBindingError & httpscerr:BadRequestError & InternalError;
 
 # Represents an error, which occurred due to payload constraint validation.
 public type PayloadValidationError distinct PayloadBindingError;
 
 type PayloadValidationClientError ClientError & PayloadValidationError;
 
-type PayloadValidationListenerError distinct ListenerError & PayloadValidationError & httpscerr:BadRequestError;
+type InternalPayloadValidationListenerError distinct ListenerError & PayloadValidationError & httpscerr:BadRequestError & InternalError;
 
 # Represents an error, which occurred due to a query parameter binding.
 public type QueryParameterBindingError distinct ListenerError & httpscerr:BadRequestError;
+
+type InternalQueryParameterBindingError QueryParameterBindingError & InternalError;
 
 // TODO: Change the error type as QueryParameterBindingError once this issue is fixed:
 // https://github.com/ballerina-platform/ballerina-lang/issues/40273
 # Represents an error, which occurred due to a query parameter constraint validation.
 public type QueryParameterValidationError distinct QueryParameterBindingError & httpscerr:BadRequestError;
 
+type InternalQueryParameterValidationError QueryParameterValidationError & InternalError;
+
 # Represents an error, which occurred due to a path parameter binding.
 public type PathParameterBindingError distinct ListenerError & httpscerr:BadRequestError;
 
+type InternalPathParameterBindingError PathParameterBindingError & InternalError;
+
 # Represents an error, which occurred during the request dispatching.
 public type RequestDispatchingError distinct ListenerError;
+
+type InternalRequestDispatchingError RequestDispatchingError & InternalError;
 
 # Represents an error, which occurred during the service dispatching.
 public type ServiceDispatchingError distinct RequestDispatchingError;
@@ -242,23 +258,39 @@ public type InvalidCookieError distinct OutboundResponseError;
 # Represents Service Not Found error.
 public type ServiceNotFoundError httpscerr:NotFoundError & ServiceDispatchingError;
 
+type InternalServiceNotFoundError ServiceNotFoundError & InternalError;
+
 # Represents Bad Matrix Parameter in the request error.
 public type BadMatrixParamError httpscerr:BadRequestError & ServiceDispatchingError;
+
+type InternalBadMatrixParamError BadMatrixParamError & InternalError;
 
 # Represents an error, which occurred when the resource is not found during dispatching.
 public type ResourceNotFoundError httpscerr:NotFoundError & ResourceDispatchingError;
 
+type InternalResourceNotFoundError ResourceNotFoundError & InternalError;
+
 # Represents an error, which occurred due to a path parameter constraint validation.
 public type ResourcePathValidationError httpscerr:BadRequestError & ResourceDispatchingError;
+
+type InternalResourcePathValidationError ResourcePathValidationError & InternalError;
 
 # Represents an error, which occurred when the resource method is not allowed during dispatching.
 public type ResourceMethodNotAllowedError httpscerr:MethodNotAllowedError & ResourceDispatchingError;
 
+type InternalResourceMethodNotAllowedError ResourceMethodNotAllowedError & InternalError;
+
 # Represents an error, which occurred when the media type is not supported during dispatching.
 public type UnsupportedRequestMediaTypeError httpscerr:UnsupportedMediaTypeError & ResourceDispatchingError;
+
+type InternalUnsupportedRequestMediaTypeError UnsupportedRequestMediaTypeError & InternalError;
 
 # Represents an error, which occurred when the payload is not acceptable during dispatching.
 public type RequestNotAcceptableError httpscerr:NotAcceptableError & ResourceDispatchingError;
 
+type InternalRequestNotAcceptableError RequestNotAcceptableError & InternalError;
+
 # Represents other internal server errors during dispatching.
 public type ResourceDispatchingServerError httpscerr:InternalServerErrorError & ResourceDispatchingError;
+
+type InternalResourceDispatchingServerError ResourceDispatchingServerError & InternalError;

@@ -64,7 +64,7 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
     public void notifySuccess(Object result) {
         if (result instanceof BError) {
             requestMessage.setHttpStatusCode(500);
-            invokeErrorInterceptors((BError) result, true);
+            invokeErrorInterceptors((BError) result, false);
             return;
         }
         if (possibleLastInterceptor) {
@@ -80,18 +80,14 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
         System.exit(1);
     }
 
-    public void invokeErrorInterceptors(BError error, boolean printError) {
+    public void invokeErrorInterceptors(BError error, boolean isInternalError) {
+        if (isInternalError) {
+            requestMessage.setProperty(HttpConstants.INTERNAL_ERROR, true);
+        } else {
+            requestMessage.removeProperty(HttpConstants.INTERNAL_ERROR);
+        }
         requestMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR, error);
-        if (printError) {
-            error.printStackTrace();
-        }
         returnErrorResponse(error);
-    }
-
-    private void printStacktraceIfError(Object result) {
-        if (result instanceof BError) {
-            ((BError) result).printStackTrace();
-        }
     }
 
     private void sendResponseToNextService() {
@@ -142,8 +138,8 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
                 if (result.equals(interceptor)) {
                     sendResponseToNextService();
                 } else {
-                    String message = "next interceptor service did not match with the configuration";
-                    BError err = HttpUtil.createHttpStatusCodeError(HttpErrorType.INTERCEPTOR_RETURN_ERROR, message);
+                    BError err = HttpUtil.createHttpStatusCodeError(HttpErrorType.INTERNAL_INTERCEPTOR_RETURN_ERROR,
+                            "next interceptor service did not match with the configuration");
                     invokeErrorInterceptors(err, true);
                 }
             }
@@ -171,7 +167,6 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
             public void notifySuccess(Object result) {
                 stopObserverContext();
                 dataContext.notifyOutboundResponseStatus(null);
-                printStacktraceIfError(result);
             }
 
             @Override

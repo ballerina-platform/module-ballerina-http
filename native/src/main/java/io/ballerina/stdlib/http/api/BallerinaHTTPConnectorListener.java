@@ -87,7 +87,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         } catch (Exception ex) {
             HttpRequestInterceptorUnitCallback callback = new HttpRequestInterceptorUnitCallback(inboundMessage,
                     httpServicesRegistry.getRuntime(), this);
-            callback.invokeErrorInterceptors(HttpUtil.createError(ex), false);
+            callback.invokeErrorInterceptors(HttpUtil.createError(ex), true);
             return;
         }
 
@@ -101,7 +101,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
             } catch (Exception ex) {
                 HttpCallableUnitCallback callback = new HttpCallableUnitCallback(inboundMessage,
                         httpServicesRegistry.getRuntime());
-                callback.invokeErrorInterceptors(HttpUtil.createError(ex), false);
+                callback.invokeErrorInterceptors(HttpUtil.createError(ex), true);
             }
         }
     }
@@ -285,7 +285,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         } catch (BallerinaConnectorException ex) {
             HttpCallableUnitCallback callback = new HttpCallableUnitCallback(inboundMessage,
                     httpServicesRegistry.getRuntime());
-            callback.invokeErrorInterceptors(HttpUtil.createError(ex), false);
+            callback.invokeErrorInterceptors(HttpUtil.createError(ex), true);
         }
     }
 
@@ -319,7 +319,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         } catch (Exception e) {
             if (((BArray) listenerLevelInterceptors).size() == 1 &&
                     e instanceof BError && ((BError) e).getType().getName()
-                    .equals(HttpErrorType.SERVICE_NOT_FOUND_ERROR.getErrorName())) {
+                    .equals(HttpErrorType.INTERNAL_SERVICE_NOT_FOUND_ERROR.getErrorName())) {
                 HttpService singleService = HttpDispatcher.findSingleService(httpServicesRegistry);
                 if (singleService != null && singleService.hasInterceptors()) {
                     inboundMessage.setProperty(INTERCEPTORS, singleService.getBalInterceptorServicesArray());

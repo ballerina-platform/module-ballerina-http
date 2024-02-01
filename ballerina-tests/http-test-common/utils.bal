@@ -57,7 +57,7 @@ public isolated function assertJsonPayloadtoJsonString(json|error payload, json 
 }
 
 public isolated function assertJsonErrorPayload(json payload, string message, string reason, int statusCode, string path, string method) returns error? {
-    test:assertEquals(payload.message, message);
+    test:assertTrue((check payload.message).toString().startsWith(message));
     test:assertEquals(payload.reason, reason);
     test:assertEquals(payload.status, statusCode);
     test:assertEquals(payload.path, path);

@@ -28,7 +28,7 @@ import io.ballerina.stdlib.http.api.HttpErrorType;
 import io.ballerina.stdlib.http.api.HttpUtil;
 import org.ballerinalang.langlib.value.EnsureType;
 
-import static io.ballerina.stdlib.http.api.HttpErrorType.INTERCEPTOR_RETURN_ERROR;
+import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_INTERCEPTOR_RETURN_ERROR;
 
 /**
  * Utilities related to HTTP request context.
@@ -61,13 +61,14 @@ public final class ExternRequestContext {
             if (!isInterceptorService(requestCtx)) {
                 // TODO : After introducing response interceptors, calling ctx.next() should return "illegal function
                 //  invocation : next()" if there is a response interceptor service in the pipeline
-                return HttpUtil.createHttpStatusCodeError(INTERCEPTOR_RETURN_ERROR, "no next service to be returned");
+                return HttpUtil.createHttpStatusCodeError(INTERNAL_INTERCEPTOR_RETURN_ERROR,
+                        "no next service to be returned");
             }
             requestCtx.addNativeData(HttpConstants.REQUEST_CONTEXT_NEXT, true);
             return getNextInterceptor(requestCtx, interceptors);
         } else {
             String message = "request context object does not contain the configured interceptors";
-            return HttpUtil.createHttpStatusCodeError(INTERCEPTOR_RETURN_ERROR, message);
+            return HttpUtil.createHttpStatusCodeError(INTERNAL_INTERCEPTOR_RETURN_ERROR, message);
         }
     }
 
@@ -90,7 +91,8 @@ public final class ExternRequestContext {
             }
         }
         if (interceptorIndex > interceptors.size()) {
-            return HttpUtil.createHttpStatusCodeError(INTERCEPTOR_RETURN_ERROR, "no next service to be returned");
+            return HttpUtil.createHttpStatusCodeError(INTERNAL_INTERCEPTOR_RETURN_ERROR,
+                    "no next service to be returned");
         }
         if (interceptorIndex < 0) {
             return null;

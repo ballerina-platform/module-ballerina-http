@@ -39,7 +39,7 @@ import static io.ballerina.stdlib.http.api.HttpConstants.PERCENTAGE;
 import static io.ballerina.stdlib.http.api.HttpConstants.PERCENTAGE_ENCODED;
 import static io.ballerina.stdlib.http.api.HttpConstants.PLUS_SIGN;
 import static io.ballerina.stdlib.http.api.HttpConstants.PLUS_SIGN_ENCODED;
-import static io.ballerina.stdlib.http.api.HttpErrorType.RESOURCE_NOT_FOUND_ERROR;
+import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_RESOURCE_NOT_FOUND_ERROR;
 import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castParam;
 import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castParamArray;
 
@@ -95,10 +95,12 @@ public class AllPathParams implements Parameter {
             } catch (Exception ex) {
                 String message = "error in casting path parameter : '" + paramToken + "'";
                 if (ParamUtils.isFiniteType(paramType)) {
-                    message = "no matching resource found for path";
-                    throw HttpUtil.createHttpStatusCodeError(RESOURCE_NOT_FOUND_ERROR, message);
+                    message = "no matching resource found for path : " +
+                            httpCarbonMessage.getProperty(HttpConstants.TO) +
+                            " , method : " + httpCarbonMessage.getHttpMethod();
+                    throw HttpUtil.createHttpStatusCodeError(INTERNAL_RESOURCE_NOT_FOUND_ERROR, message);
                 } else {
-                    throw HttpUtil.createHttpStatusCodeError(HttpErrorType.PATH_PARAM_BINDING_ERROR, message,
+                    throw HttpUtil.createHttpStatusCodeError(HttpErrorType.INTERNAL_PATH_PARAM_BINDING_ERROR, message,
                             null, HttpUtil.createError(ex));
                 }
             }

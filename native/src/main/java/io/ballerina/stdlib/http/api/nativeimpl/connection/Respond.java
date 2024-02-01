@@ -206,6 +206,11 @@ public class Respond extends ConnectionAction {
                     throw new BallerinaConnectorException("no Interceptor Service found to handle the response");
                 }
 
+                if (interceptorServiceIndex == 0 && inboundMessage.isInterceptorInternalError()) {
+                    BError bError = (BError) inboundMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
+                    bError.printStackTrace();
+                }
+
                 interceptorServiceIndex -= 1;
                 inboundMessage.setProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX, interceptorServiceIndex);
                 startInterceptResponseMethod(inboundMessage, outboundResponseObj, callerObj, service, env,
@@ -215,6 +220,7 @@ public class Respond extends ConnectionAction {
                 throw HttpUtil.createHttpError(e.getMessage(), HttpErrorType.GENERIC_LISTENER_ERROR);
             }
         }
+        // Handling error panics
         if (inboundMessage.isInterceptorError()) {
             HttpResponseInterceptorUnitCallback callback = new HttpResponseInterceptorUnitCallback(inboundMessage,
                     callerObj, outboundResponseObj, env, dataContext, null, false);

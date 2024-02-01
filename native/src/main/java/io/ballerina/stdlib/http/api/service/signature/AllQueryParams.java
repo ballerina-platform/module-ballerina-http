@@ -30,7 +30,7 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import java.util.ArrayList;
 import java.util.List;
 
-import static io.ballerina.stdlib.http.api.HttpErrorType.QUERY_PARAM_BINDING_ERROR;
+import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_QUERY_PARAM_BINDING_ERROR;
 import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castParam;
 import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castParamArray;
 
@@ -76,7 +76,7 @@ public class AllQueryParams implements Parameter {
                     continue;
                 } else {
                     String message = "no query param value found for '" + token + "'";
-                    throw HttpUtil.createHttpStatusCodeError(QUERY_PARAM_BINDING_ERROR, message);
+                    throw HttpUtil.createHttpStatusCodeError(INTERNAL_QUERY_PARAM_BINDING_ERROR, message);
                 }
             }
             Object castedQueryValue;
@@ -93,7 +93,7 @@ public class AllQueryParams implements Parameter {
                 castedQueryValue = ValueUtils.convert(parsedQueryValue, queryParam.getOriginalType());
             } catch (Exception ex) {
                 String message = "error in casting query param : '" + token + "'";
-                throw HttpUtil.createHttpStatusCodeError(QUERY_PARAM_BINDING_ERROR, message, null,
+                throw HttpUtil.createHttpStatusCodeError(INTERNAL_QUERY_PARAM_BINDING_ERROR, message, null,
                         HttpUtil.createError(ex));
             }
 

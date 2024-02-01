@@ -44,7 +44,7 @@ public class StringToByteArrayConverter {
             return readonly ? createReadonlyArrayValue(values) : createArrayValue(values);
         }
         String message = "incompatible array element type found: '" + elementType.toString() + "'";
-        throw HttpUtil.createHttpStatusCodeError(HttpErrorType.PAYLOAD_BINDING_LISTENER_ERROR, message);
+        throw HttpUtil.createHttpStatusCodeError(HttpErrorType.INTERNAL_PAYLOAD_BINDING_LISTENER_ERROR, message);
     }
 
     private StringToByteArrayConverter() {

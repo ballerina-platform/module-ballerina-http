@@ -20,6 +20,7 @@ package io.ballerina.stdlib.http.api.service.signature;
 
 import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.TypeTags;
+import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
@@ -33,6 +34,7 @@ import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.utils.ValueUtils;
 import io.ballerina.runtime.api.values.BArray;
+import io.ballerina.runtime.api.values.BError;
 import io.ballerina.stdlib.http.api.BallerinaConnectorException;
 import io.ballerina.stdlib.http.api.HttpUtil;
 
@@ -64,20 +66,28 @@ import static io.ballerina.stdlib.http.api.HttpConstants.QUERY_PARAM;
 public class ParamUtils {
 
     public static Object castParam(int targetParamTypeTag, String argValue) {
-        switch (targetParamTypeTag) {
-            case INT_TAG:
-                return Long.parseLong(argValue);
-            case FLOAT_TAG:
-                return Double.parseDouble(argValue);
-            case BOOLEAN_TAG:
-                return Boolean.parseBoolean(argValue);
-            case DECIMAL_TAG:
-                return ValueCreator.createDecimalValue(argValue);
-            case MAP_TAG:
-            case RECORD_TYPE_TAG:
-                return JsonUtils.parse(argValue);
-            default:
-                return StringUtils.fromString(argValue);
+        try {
+            switch (targetParamTypeTag) {
+                case INT_TAG:
+                    return Long.parseLong(argValue);
+                case FLOAT_TAG:
+                    return Double.parseDouble(argValue);
+                case BOOLEAN_TAG:
+                    return Boolean.parseBoolean(argValue);
+                case DECIMAL_TAG:
+                    return ValueCreator.createDecimalValue(argValue);
+                case MAP_TAG:
+                case RECORD_TYPE_TAG:
+                    return JsonUtils.parse(argValue);
+                default:
+                    return StringUtils.fromString(argValue);
+            }
+        } catch (Exception exp) {
+            String errorMessage = "error occurred while converting '" + argValue + "' to the target type";
+            if (exp instanceof BError) {
+                throw ErrorCreator.createError(StringUtils.fromString(errorMessage), exp);
+            }
+            throw ErrorCreator.createError(StringUtils.fromString(errorMessage));
         }
     }
 
@@ -90,7 +100,16 @@ public class ParamUtils {
             case DECIMAL_TAG:
             case MAP_TAG:
             case RECORD_TYPE_TAG:
-                return getBArray(argValueArr, TypeCreator.createArrayType(elementType), elementType);
+                try {
+                    return getBArray(argValueArr, TypeCreator.createArrayType(elementType), elementType);
+                } catch (Exception exp) {
+                    String errorMessage = "error occurred while converting '" + argValueArr +
+                            "' to the target array type";
+                    if (exp instanceof BError) {
+                        throw ErrorCreator.createError(StringUtils.fromString(errorMessage), exp);
+                    }
+                    throw ErrorCreator.createError(StringUtils.fromString(errorMessage));
+                }
             default:
                 return StringUtils.fromStringArray(argValueArr);
         }

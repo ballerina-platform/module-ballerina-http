@@ -24,7 +24,7 @@ import io.ballerina.stdlib.constraint.Constraints;
 import io.ballerina.stdlib.http.api.HttpUtil;
 
 import static io.ballerina.stdlib.http.api.HttpConstants.QUERY_PARAM;
-import static io.ballerina.stdlib.http.api.HttpErrorType.QUERY_PARAM_VALIDATION_ERROR;
+import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_QUERY_PARAM_VALIDATION_ERROR;
 
 /**
  * {@code {@link QueryParam }} represents a query parameter details.
@@ -54,7 +54,7 @@ public class QueryParam extends SignatureParam {
             Object result = Constraints.validateAfterTypeConversion(queryValue, getOriginalType());
             if (result instanceof BError) {
                 String message = "query validation failed: " + HttpUtil.getPrintableErrorMsg((BError) result);
-                throw HttpUtil.createHttpStatusCodeError(QUERY_PARAM_VALIDATION_ERROR, message);
+                throw HttpUtil.createHttpStatusCodeError(INTERNAL_QUERY_PARAM_VALIDATION_ERROR, message);
             }
         }
         return queryValue;

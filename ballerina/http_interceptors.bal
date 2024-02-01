@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/jwt;
+import ballerina/log;
 
 # The HTTP request interceptor service object type
 public type RequestInterceptor distinct service object {
@@ -57,6 +58,9 @@ service class DefaultErrorInterceptor {
     *ResponseErrorInterceptor;
 
     remote function interceptResponseError(error err, Request request) returns Response {
+        if err !is InternalError {
+            log:printError("unhandled error returned from the service", err, path = request.rawPath, method = request.method);
+        }
         return getErrorResponseForInterceptor(err, request);
     }
 }

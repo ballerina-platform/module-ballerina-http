@@ -675,6 +675,11 @@ public class HttpCarbonMessage {
         return this.getProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR) != null;
     }
 
+    public boolean isInterceptorInternalError() {
+        return this.getProperty(HttpConstants.INTERNAL_ERROR) != null &&
+                this.getProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR) != null;
+    }
+
     public String getRequestInterceptorServiceState() {
         if (isInterceptorError()) {
             return HttpConstants.REQUEST_ERROR_INTERCEPTOR;

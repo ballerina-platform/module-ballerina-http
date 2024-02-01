@@ -416,7 +416,7 @@ function tesHttp2RequestInterceptorPathAndVerb() returns error? {
 
     res = check http2InterceptorsBasicTestsClientEP3->get("/interceptorPathAndVerb/bar");
     test:assertEquals(res.statusCode, 404);
-    common:assertTextPayload(res.getTextPayload(), "no matching resource found for path");
+    common:assertTextPayload(res.getTextPayload(), "no matching resource found for path : /interceptorPathAndVerb/bar , method : GET");
     common:assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-error-interceptor");
     common:assertHeaderValue(check res.getHeader("default-response-error-interceptor"), "true");
     common:assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");

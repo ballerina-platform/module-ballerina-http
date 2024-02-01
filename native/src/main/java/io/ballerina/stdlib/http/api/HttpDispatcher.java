@@ -62,7 +62,7 @@ import static io.ballerina.stdlib.http.api.HttpConstants.JWT_INFORMATION;
 import static io.ballerina.stdlib.http.api.HttpConstants.QUERY_STRING_SEPARATOR;
 import static io.ballerina.stdlib.http.api.HttpConstants.REQUEST_CTX_MEMBERS;
 import static io.ballerina.stdlib.http.api.HttpConstants.WHITESPACE;
-import static io.ballerina.stdlib.http.api.HttpErrorType.SERVICE_NOT_FOUND_ERROR;
+import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_SERVICE_NOT_FOUND_ERROR;
 import static io.ballerina.stdlib.http.api.HttpUtil.getParameterTypes;
 
 /**
@@ -90,7 +90,7 @@ public class HttpDispatcher {
             } else {
                 String localAddress = inboundReqMsg.getProperty(HttpConstants.LOCAL_ADDRESS).toString();
                 String message = "no service has registered for listener : " + localAddress;
-                throw HttpUtil.createHttpStatusCodeError(SERVICE_NOT_FOUND_ERROR, message);
+                throw HttpUtil.createHttpStatusCodeError(INTERNAL_SERVICE_NOT_FOUND_ERROR, message);
             }
 
             String rawUri = (String) inboundReqMsg.getProperty(HttpConstants.TO);
@@ -103,8 +103,8 @@ public class HttpDispatcher {
                                                                            servicesOnInterface, sortedServiceURIs);
 
             if (basePath == null) {
-                String message = "no matching service found for path";
-                throw HttpUtil.createHttpStatusCodeError(SERVICE_NOT_FOUND_ERROR, message);
+                String message = "no matching service found for path: " + rawPathAndQuery[0];
+                throw HttpUtil.createHttpStatusCodeError(INTERNAL_SERVICE_NOT_FOUND_ERROR, message);
             }
 
             HttpService service = servicesOnInterface.get(basePath);
@@ -117,7 +117,7 @@ public class HttpDispatcher {
             return service;
         } catch (Exception e) {
             if (!(e instanceof BError)) {
-                throw HttpUtil.createHttpStatusCodeError(SERVICE_NOT_FOUND_ERROR, e.getMessage());
+                throw HttpUtil.createHttpStatusCodeError(INTERNAL_SERVICE_NOT_FOUND_ERROR, e.getMessage());
             }
             throw e;
         }
@@ -154,7 +154,7 @@ public class HttpDispatcher {
             } else {
                 String localAddress = inboundReqMsg.getProperty(HttpConstants.LOCAL_ADDRESS).toString();
                 String message = "no service has registered for listener : " + localAddress;
-                throw HttpUtil.createHttpStatusCodeError(SERVICE_NOT_FOUND_ERROR, message);
+                throw HttpUtil.createHttpStatusCodeError(INTERNAL_SERVICE_NOT_FOUND_ERROR, message);
             }
 
             if (isResponsePath) {
@@ -177,8 +177,8 @@ public class HttpDispatcher {
                                                                            servicesOnInterface, sortedServiceURIs);
 
             if (basePath == null) {
-                String message = "no matching service found for path";
-                throw HttpUtil.createHttpStatusCodeError(SERVICE_NOT_FOUND_ERROR, message);
+                String message = "no matching service found for path: " + rawPathAndQuery[0];
+                throw HttpUtil.createHttpStatusCodeError(INTERNAL_SERVICE_NOT_FOUND_ERROR, message);
             }
 
             InterceptorService service = servicesOnInterface.get(basePath);
@@ -186,7 +186,7 @@ public class HttpDispatcher {
             return service;
         } catch (Exception e) {
             if (!(e instanceof BError)) {
-                throw HttpUtil.createHttpStatusCodeError(SERVICE_NOT_FOUND_ERROR, e.getMessage());
+                throw HttpUtil.createHttpStatusCodeError(INTERNAL_SERVICE_NOT_FOUND_ERROR, e.getMessage());
             }
             throw e;
         }
@@ -231,14 +231,14 @@ public class HttpDispatcher {
         String protocol = (String) inboundMessage.getProperty(HttpConstants.PROTOCOL);
         if (protocol == null) {
             throw HttpUtil.createHttpError("protocol not defined in the incoming request",
-                                           HttpErrorType.REQ_DISPATCHING_ERROR);
+                                           HttpErrorType.INTERNAL_REQ_DISPATCHING_ERROR);
         }
 
         // Find the Service TODO can be improved
         HttpService service = HttpDispatcher.findService(servicesRegistry, inboundMessage, false);
         if (service == null) {
             throw HttpUtil.createHttpError("no Service found to handle the service request",
-                                           HttpErrorType.REQ_DISPATCHING_ERROR);
+                                           HttpErrorType.INTERNAL_REQ_DISPATCHING_ERROR);
             // Finer details of the errors are thrown from the dispatcher itself, Ideally we shouldn't get here.
         }
 
@@ -251,14 +251,14 @@ public class HttpDispatcher {
         String protocol = (String) inboundMessage.getProperty(HttpConstants.PROTOCOL);
         if (protocol == null) {
             throw HttpUtil.createHttpError("protocol not defined in the incoming request",
-                                           HttpErrorType.REQ_DISPATCHING_ERROR);
+                                           HttpErrorType.INTERNAL_REQ_DISPATCHING_ERROR);
         }
 
         // Find the Service TODO can be improved
         InterceptorService service = HttpDispatcher.findInterceptorService(servicesRegistry, inboundMessage, false);
         if (service == null) {
             throw HttpUtil.createHttpError("no Service found to handle the service request",
-                                           HttpErrorType.REQ_DISPATCHING_ERROR);
+                                           HttpErrorType.INTERNAL_REQ_DISPATCHING_ERROR);
             // Finer details of the errors are thrown from the dispatcher itself, Ideally we shouldn't get here.
         }
 

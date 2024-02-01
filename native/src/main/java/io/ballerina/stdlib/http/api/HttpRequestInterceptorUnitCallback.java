@@ -29,7 +29,7 @@ import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
-import static io.ballerina.stdlib.http.api.HttpErrorType.INTERCEPTOR_RETURN_ERROR;
+import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_INTERCEPTOR_RETURN_ERROR;
 
 /**
  * {@code HttpRequestInterceptorUnitCallback} is the responsible for acting on notifications received from Ballerina
@@ -61,7 +61,7 @@ public class HttpRequestInterceptorUnitCallback extends HttpCallableUnitCallback
             if (!result.equals(requestCtx.getNativeData(HttpConstants.TARGET_SERVICE))) {
                 requestMessage.setHttpStatusCode(500);
             }
-            invokeErrorInterceptors((BError) result, true);
+            invokeErrorInterceptors((BError) result, false);
             return;
         }
         validateResponseAndProceed(result);
@@ -74,11 +74,13 @@ public class HttpRequestInterceptorUnitCallback extends HttpCallableUnitCallback
         System.exit(1);
     }
 
-    public void invokeErrorInterceptors(BError error, boolean printError) {
-        requestMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR, error);
-        if (printError) {
-            error.printStackTrace();
+    public void invokeErrorInterceptors(BError error, boolean isInternalError) {
+        if (isInternalError) {
+            requestMessage.setProperty(HttpConstants.INTERNAL_ERROR, true);
+        } else {
+            requestMessage.removeProperty(HttpConstants.INTERNAL_ERROR);
         }
+        requestMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR, error);
         ballerinaHTTPConnectorListener.onMessage(requestMessage);
     }
 
@@ -99,12 +101,6 @@ public class HttpRequestInterceptorUnitCallback extends HttpCallableUnitCallback
             return true;
         }
         return false;
-    }
-
-    private void printStacktraceIfError(Object result) {
-        if (result instanceof BError) {
-            ((BError) result).printStackTrace();
-        }
     }
 
     private void sendRequestToNextService() {
@@ -152,7 +148,7 @@ public class HttpRequestInterceptorUnitCallback extends HttpCallableUnitCallback
                     sendRequestToNextService();
                 } else {
                     String message = "next interceptor service did not match with the configuration";
-                    BError err = HttpUtil.createHttpStatusCodeError(INTERCEPTOR_RETURN_ERROR, message);
+                    BError err = HttpUtil.createHttpStatusCodeError(INTERNAL_INTERCEPTOR_RETURN_ERROR, message);
                     invokeErrorInterceptors(err, true);
                 }
             } else {
@@ -161,7 +157,7 @@ public class HttpRequestInterceptorUnitCallback extends HttpCallableUnitCallback
                     sendRequestToNextService();
                 } else {
                     String message = "target service did not match with the configuration";
-                    BError err = HttpUtil.createHttpStatusCodeError(INTERCEPTOR_RETURN_ERROR, message);
+                    BError err = HttpUtil.createHttpStatusCodeError(INTERNAL_INTERCEPTOR_RETURN_ERROR, message);
                     invokeErrorInterceptors(err, true);
                 }
             }
@@ -186,13 +182,12 @@ public class HttpRequestInterceptorUnitCallback extends HttpCallableUnitCallback
         Callback returnCallback = new Callback() {
             @Override
             public void notifySuccess(Object result) {
-                printStacktraceIfError(result);
             }
 
             @Override
             public void notifyFailure(BError result) {
                 cleanupRequestMessage();
-                HttpUtil.handleFailure(requestMessage, result, false);
+                HttpUtil.handleFailure(requestMessage, result);
             }
         };
         runtime.invokeMethodAsyncSequentially(
