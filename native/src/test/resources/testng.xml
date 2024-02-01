@@ -166,6 +166,7 @@
             <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.Http2ServerAbruptClosureInUpgradeScenarioTest"/>
             <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.Http2TcpServerGoAway100ContinueScenarioTest"/>
             <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.Http2TcpServerRSTStreamFrameFor100ContinueTest"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.Http2ServerAbruptClosureInALPNScenarioTest"/>
         </classes>
     </test>
     <test name="Transport Security Tests" parallel="false">

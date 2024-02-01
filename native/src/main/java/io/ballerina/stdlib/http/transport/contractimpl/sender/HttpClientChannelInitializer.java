@@ -60,6 +60,8 @@ import io.netty.handler.ssl.SslHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.channels.ClosedChannelException;
+
 import javax.net.ssl.SSLEngine;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.MAX_ENTITY_BODY_VALIDATION_HANDLER;
@@ -340,6 +342,12 @@ public class HttpClientChannelInitializer extends ChannelInitializer<SocketChann
             super(ApplicationProtocolNames.HTTP_1_1);
             this.targetHandler = targetHandler;
             this.connectionAvailabilityFuture = connectionAvailabilityFuture;
+        }
+
+        @Override
+        public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+            connectionAvailabilityFuture.notifyFailure(new ClosedChannelException());
+            ctx.close();
         }
 
         /**
