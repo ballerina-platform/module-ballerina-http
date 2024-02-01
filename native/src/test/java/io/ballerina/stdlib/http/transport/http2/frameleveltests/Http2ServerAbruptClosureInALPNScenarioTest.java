@@ -122,7 +122,7 @@ public class Http2ServerAbruptClosureInALPNScenarioTest {
             LOGGER.error(exception.getMessage());
         }
         String data = new String(buffer, 0, bytesRead);
-        LOGGER.info("Received ALPN requesst: " + data);
+        LOGGER.info("Received ALPN request: " + data);
     }
 
     @AfterClass
