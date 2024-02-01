@@ -45,6 +45,8 @@ import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castPara
 public class AllHeaderParams implements Parameter {
 
     private final List<HeaderParam> allHeaderParams = new ArrayList<>();
+    private static final String NO_HEADER_VALUE_ERROR_MSG = "no header value found for '%s'";
+    private static final String HEADER_BINDING_FAILED_ERROR_MSG = "header binding failed for parameter: '%s'";
 
     @Override
     public String getTypeName() {
@@ -78,8 +80,8 @@ public class AllHeaderParams implements Parameter {
                 try {
                     castedHeader = ValueUtils.convert(parsedHeader, headerParam.getOriginalType());
                 } catch (Exception ex) {
-                    String message = "header binding failed for parameter: '" + headerParam.getHeaderName() + "'";
-                    throw HttpUtil.createHttpStatusCodeError(INTERNAL_HEADER_BINDING_ERROR, message, null,
+                    throw HttpUtil.createHttpStatusCodeError(INTERNAL_HEADER_BINDING_ERROR,
+                            String.format(HEADER_BINDING_FAILED_ERROR_MSG, headerParam.getHeaderName()), null,
                             HttpUtil.createError(ex));
                 }
                 paramFeed[index++] = headerParam.validateConstraints(castedHeader);
@@ -94,8 +96,8 @@ public class AllHeaderParams implements Parameter {
                     paramFeed[index] = true;
                     continue;
                 } else {
-                    String message = "no header value found for '" + token + "'";
-                    throw HttpUtil.createHttpStatusCodeError(INTERNAL_HEADER_BINDING_ERROR, message);
+                    throw HttpUtil.createHttpStatusCodeError(INTERNAL_HEADER_BINDING_ERROR,
+                            String.format(NO_HEADER_VALUE_ERROR_MSG, token));
                 }
             }
             if (headerValues.size() == 1 && headerValues.get(0).isEmpty()) {
@@ -104,8 +106,8 @@ public class AllHeaderParams implements Parameter {
                     paramFeed[index] = true;
                     continue;
                 } else {
-                    String message = "no header value found for '" + token + "'";
-                    throw HttpUtil.createHttpStatusCodeError(INTERNAL_HEADER_BINDING_ERROR, message);
+                    throw HttpUtil.createHttpStatusCodeError(INTERNAL_HEADER_BINDING_ERROR,
+                            String.format(NO_HEADER_VALUE_ERROR_MSG, token));
                 }
             }
             int typeTag = headerParam.getEffectiveTypeTag();
@@ -119,9 +121,8 @@ public class AllHeaderParams implements Parameter {
                 }
                 castedHeaderValue = ValueUtils.convert(parsedHeaderValue, headerParam.getOriginalType());
             } catch (Exception ex) {
-                String message = "header binding failed for parameter: '" + token + "'";
-                throw HttpUtil.createHttpStatusCodeError(INTERNAL_HEADER_BINDING_ERROR, message, null,
-                        HttpUtil.createError(ex));
+                throw HttpUtil.createHttpStatusCodeError(INTERNAL_HEADER_BINDING_ERROR,
+                        String.format(HEADER_BINDING_FAILED_ERROR_MSG, token), null, HttpUtil.createError(ex));
             }
 
             paramFeed[index++] = headerParam.validateConstraints(castedHeaderValue);
@@ -146,8 +147,8 @@ public class AllHeaderParams implements Parameter {
                 } else if (headerParam.isNilable()) {
                     return null;
                 } else {
-                    String message = "no header value found for '" + key + "'";
-                    throw HttpUtil.createHttpStatusCodeError(INTERNAL_HEADER_BINDING_ERROR, message);
+                    throw HttpUtil.createHttpStatusCodeError(INTERNAL_HEADER_BINDING_ERROR,
+                            String.format(NO_HEADER_VALUE_ERROR_MSG, key));
                 }
             }
             if (headerValues.size() == 1 && headerValues.get(0).isEmpty()) {
@@ -157,8 +158,8 @@ public class AllHeaderParams implements Parameter {
                 } else if (headerParam.isNilable()) {
                     return null;
                 } else {
-                    String message = "no header value found for '" + key + "'";
-                    throw HttpUtil.createHttpStatusCodeError(INTERNAL_HEADER_BINDING_ERROR, message);
+                    throw HttpUtil.createHttpStatusCodeError(INTERNAL_HEADER_BINDING_ERROR,
+                            String.format(NO_HEADER_VALUE_ERROR_MSG, key));
                 }
             }
             try {
@@ -170,9 +171,8 @@ public class AllHeaderParams implements Parameter {
                     recordValue.put(StringUtils.fromString(key), castParam(fieldTypeTag, headerValues.get(0)));
                 }
             } catch (Exception ex) {
-                String message = "header binding failed for parameter: '" + key + "'";
-                throw HttpUtil.createHttpStatusCodeError(INTERNAL_HEADER_BINDING_ERROR, message, null,
-                        HttpUtil.createError(ex));
+                throw HttpUtil.createHttpStatusCodeError(INTERNAL_HEADER_BINDING_ERROR,
+                        String.format(HEADER_BINDING_FAILED_ERROR_MSG, key), null, HttpUtil.createError(ex));
             }
         }
         return recordValue;

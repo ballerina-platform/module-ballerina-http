@@ -136,8 +136,7 @@ public class ResourceDataElement implements DataElement<Resource, HttpCarbonMess
             return httpResource;
         }
         if (!isOptionsRequest) {
-            String message = "Method not allowed";
-            throw HttpUtil.createHttpStatusCodeError(INTERNAL_RESOURCE_METHOD_NOT_ALLOWED_ERROR, message);
+            throw HttpUtil.createHttpStatusCodeError(INTERNAL_RESOURCE_METHOD_NOT_ALLOWED_ERROR, "Method not allowed");
         }
         return null;
     }
