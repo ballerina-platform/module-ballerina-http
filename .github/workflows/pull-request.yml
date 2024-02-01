@@ -1,4 +1,4 @@
-name: PR Buil
+name: PR Build
 
 on: [pull_request]
 
