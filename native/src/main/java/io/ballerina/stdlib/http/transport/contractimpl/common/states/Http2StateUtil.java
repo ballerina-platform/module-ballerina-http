@@ -43,6 +43,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPromise;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpHeaderNames;
@@ -320,9 +321,13 @@ public final class Http2StateUtil {
                 return;
             }
         }
-
-        encoder.writeHeaders(ctx, streamId, http2Headers, dependencyId, weight, false, 0, endStream,
-                             ctx.newPromise());
+        ChannelPromise promise = ctx.newPromise();
+        encoder.writeHeaders(ctx, streamId, http2Headers, dependencyId, weight, false, 0, endStream, promise);
+        promise.addListener((ChannelFutureListener) channelFuture -> {
+            if (!channelFuture.isSuccess()) {
+                outboundMsgHolder.getResponseFuture().notifyHttpListener(channelFuture.cause());
+            }
+        });
         encoder.flowController().writePendingBytes();
         ctx.flush();
 
