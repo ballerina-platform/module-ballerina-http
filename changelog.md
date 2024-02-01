@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Fixed
 - [Remove unused import from Http2StateUtil](https://github.com/ballerina-platform/ballerina-library/issues/5966)
+- [Fix client getting hanged when server closes connection in the ALPN handshake](https://github.com/ballerina-platform/ballerina-library/issues/6003)
 - [Fix client getting hanged when multiple requests are sent which exceed `maxHeaderSize`](https://github.com/ballerina-platform/ballerina-library/issues/6000)
 - [Fix inconsistencies with error logging](https://github.com/ballerina-platform/ballerina-library/issues/5877)
 
