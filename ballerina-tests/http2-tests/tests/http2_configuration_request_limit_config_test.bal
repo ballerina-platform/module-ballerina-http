@@ -149,9 +149,14 @@ function testHttp2ValidHeaderLength() returns error? {
 function testHttp2InvalidHeaderLength() returns error? {
     http:Client limitClient = check new ("http://localhost:" + http2RequestLimitsTestPort3.toString(),
         http2Settings = {http2PriorKnowledge: true});
-    http:Response response = check limitClient->get("/lowRequestHeaderLimit/invalidHeaderSize", {"X-Test": getLargeHeader()});
+    http:Response|http:Error response = limitClient->get("/lowRequestHeaderLimit/invalidHeaderSize", {"X-Test": getLargeHeader()});
     //431 Request Header Fields Too Large
-    test:assertEquals(response.statusCode, 431, msg = "Found unexpected output");
+    if response is http:Error {
+        test:assertTrue(response is http:ClientError);
+        test:assertEquals(response.message(), "Header size exceeded max allowed size (600)");
+    } else {
+        test:assertEquals(response.statusCode, 431, msg = "Found unexpected output");
+    }
 }
 
 // Tests the fallback behaviour when header size is greater than the configured http2 service
@@ -160,8 +165,13 @@ function testHttp2InvalidHeaderLength() returns error? {
 function testHttp2Http2ServiceInvalidHeaderLength() returns error? {
     http:Client limitClient = check new ("http://localhost:" + requestLimitsTestPort5.toString(),
         http2Settings = {http2PriorKnowledge: true});
-    http:Response response = check limitClient->get("/http2service/invalidHeaderSize", {"X-Test": getLargeHeader()});
-    test:assertEquals(response.statusCode, 431, msg = "Found unexpected output");
+    http:Response|http:Error response = limitClient->get("/http2service/invalidHeaderSize", {"X-Test": getLargeHeader()});
+    if response is http:Error {
+        test:assertTrue(response is http:ClientError);
+        test:assertEquals(response.message(), "Header size exceeded max allowed size (850)");
+    } else {
+        test:assertEquals(response.statusCode, 431, msg = "Found unexpected output");
+    }
 }
 
 //Tests the behaviour when payload size is greater than the configured threshold
