@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Handle GO_AWAY received HTTP/2 clients gracefully](https://github.com/ballerina-platform/ballerina-library/issues/4806)
 
 ### Fixed
+- [Remove unused import from Http2StateUtil](https://github.com/ballerina-platform/ballerina-library/issues/5966)
+- [Fix client getting hanged when multiple requests are sent which exceed `maxHeaderSize`](https://github.com/ballerina-platform/ballerina-library/issues/6000)
 - [Fix inconsistencies with error logging](https://github.com/ballerina-platform/ballerina-library/issues/5877)
 
 ## [2.10.5] - 2023-12-06
