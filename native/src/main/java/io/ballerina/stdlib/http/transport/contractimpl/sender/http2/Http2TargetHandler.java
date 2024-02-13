@@ -295,6 +295,7 @@ public class Http2TargetHandler extends ChannelDuplexHandler {
             LOG.debug("Channel is inactive");
         }
         http2ClientChannel.destroy();
+        http2ClientChannel.removeClosedChannelFromStalePool();
     }
 
     private boolean isUnexpected100ContinueResponse(Http2Headers http2Headers, HttpCarbonMessage inboundReq) {

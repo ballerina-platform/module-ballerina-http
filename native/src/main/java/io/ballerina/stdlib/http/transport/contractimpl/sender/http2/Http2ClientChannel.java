@@ -334,6 +334,10 @@ public class Http2ClientChannel {
         }
     }
 
+    void removeClosedChannelFromStalePool() {
+        http2ConnectionManager.removeClosedChannelFromStalePool(this);
+    }
+
     boolean hasInFlightMessages() {
         return !inFlightMessages.isEmpty();
     }

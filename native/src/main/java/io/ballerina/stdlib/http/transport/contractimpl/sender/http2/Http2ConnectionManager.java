@@ -21,6 +21,8 @@ package io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
 import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.PoolConfiguration;
+import io.netty.channel.DefaultEventLoop;
+import io.netty.util.concurrent.DefaultPromise;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -163,6 +165,10 @@ public class Http2ConnectionManager {
         http2StaleClientChannels.add(http2ClientChannel);
     }
 
+    void removeClosedChannelFromStalePool(Http2ClientChannel http2ClientChannel) {
+        http2StaleClientChannels.remove(http2ClientChannel);
+    }
+
     private void initiateConnectionEvictionTask() {
         Timer timer = new Timer(true);
         TimerTask timerTask = new TimerTask() {
@@ -193,8 +199,7 @@ public class Http2ConnectionManager {
                 if (!result) {
                     logger.warn("Specified channel does not exist in the stale list.");
                 }
-                http2ClientChannel.getConnection()
-                        .close(http2ClientChannel.getChannel().newPromise());
+                http2ClientChannel.getConnection().close(new DefaultPromise(new DefaultEventLoop()));
             }
         };
         timer.schedule(timerTask, poolConfiguration.getTimeBetweenStaleEviction(),
