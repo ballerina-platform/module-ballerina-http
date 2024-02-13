@@ -165,6 +165,7 @@ public class Http2ConnectionManager {
         http2StaleClientChannels.add(http2ClientChannel);
     }
 
+    @SuppressWarnings("java:S899")
     void removeClosedChannelFromStalePool(Http2ClientChannel http2ClientChannel) {
         http2StaleClientChannels.remove(http2ClientChannel);
     }
