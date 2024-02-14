@@ -21,8 +21,6 @@ package io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
 import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.PoolConfiguration;
-import io.netty.channel.DefaultEventLoop;
-import io.netty.util.concurrent.DefaultPromise;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
