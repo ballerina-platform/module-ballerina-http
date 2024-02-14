@@ -145,6 +145,7 @@ function testHttp2ValidHeaderLength() returns error? {
 }
 
 //Tests the behaviour when header size is greater than the configured threshold
+// TODO: Enable after fixing this issue : https://github.com/ballerina-platform/ballerina-library/issues/4461
 @test:Config {enable: false}
 function testHttp2InvalidHeaderLength() returns error? {
     http:Client limitClient = check new ("http://localhost:" + http2RequestLimitsTestPort3.toString(),
