@@ -565,7 +565,7 @@ function testHeaderRecordParamOfPureTypeHeadersNegative() returns error? {
     });
     if response is http:ClientRequestError {
         test:assertEquals(response.detail().statusCode, 400, msg = "Found unexpected output");
-        common:assertErrorHeaderValue(response.detail().headers[common:CONTENT_TYPE], common:APPLICATION_JSON);
+        common:assertErrorHeaderValue(response.detail().headers[common:CONTENT_TYPE], common:TEXT_PLAIN);
         test:assertEquals(response.detail().body, "no header value found for 'did'");
     } else {
         test:assertFail(msg = "Found unexpected output type");
@@ -697,7 +697,7 @@ function testHeaderRecordOfPureTypeHeadersNegative() returns error? {
     });
     if response is http:ClientRequestError {
         test:assertEquals(response.detail().statusCode, 400, msg = "Found unexpected output");
-        common:assertErrorHeaderValue(response.detail().headers[common:CONTENT_TYPE], common:APPLICATION_JSON);
+        common:assertErrorHeaderValue(response.detail().headers[common:CONTENT_TYPE], common:TEXT_PLAIN);
         test:assertEquals(response.detail().body, "no header value found for 'did'");
     } else {
         test:assertFail(msg = "Found unexpected output type");
