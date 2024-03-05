@@ -213,6 +213,9 @@ public abstract class AbstractHTTPAction {
     }
 
     private static void setHostHeader(String host, int port, HttpHeaders headers) {
+        if (headers.contains(HttpHeaderNames.HOST)) {
+            return;
+        }
         if (port == 80 || port == 443) {
             headers.set(HttpHeaderNames.HOST, host);
         } else {
