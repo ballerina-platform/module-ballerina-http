@@ -32,3 +32,6 @@ const int clientSchemeTestHttpsListenerTestPort = 9624;
 
 const int clientResourceMethodsTestPort = 9631;
 const int clientFormUrlEncodedTestPort = 9604;
+
+const int http2ClientHostHeaderTestPort = 9605;
+const int httpClientHostHeaderTestPort = 9606;
