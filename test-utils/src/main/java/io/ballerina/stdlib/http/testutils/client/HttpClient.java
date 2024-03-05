@@ -36,6 +36,7 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import org.slf4j.Logger;
@@ -100,7 +101,7 @@ public class HttpClient {
         this.responseHandler.setLatch(latch);
         this.responseHandler.setWaitForConnectionClosureLatch(this.waitForConnectionClosureLatch);
 
-        httpRequest.headers().set(HttpHeaderNames.HOST, host + ":" + port);
+        addHostHeader(httpRequest);
         this.connectedChannel.writeAndFlush(httpRequest);
         try {
             latch.await();
@@ -117,7 +118,7 @@ public class HttpClient {
         this.responseHandler.setLatch(latch);
         this.responseHandler.setWaitForConnectionClosureLatch(this.waitForConnectionClosureLatch);
 
-        httpRequest.headers().set(HttpHeaderNames.HOST, host + ":" + port);
+        addHostHeader(httpRequest);
         httpRequest.headers().set(HttpHeaderNames.EXPECT, HttpHeaderValues.CONTINUE);
         this.connectedChannel.writeAndFlush(httpRequest);
 
@@ -149,7 +150,7 @@ public class HttpClient {
         this.responseHandler.setLatch(latch);
         this.responseHandler.setWaitForConnectionClosureLatch(this.waitForConnectionClosureLatch);
 
-        httpRequest.headers().set(HttpHeaderNames.HOST, host + ":" + port);
+        addHostHeader(httpRequest);
         this.connectedChannel.writeAndFlush(httpRequest.copy());
 
         this.connectedChannel.writeAndFlush(httpRequest);
@@ -159,6 +160,12 @@ public class HttpClient {
             log.warn("Interrupted before receiving the response");
         }
         return this.responseHandler.getHttpFullResponses();
+    }
+
+    private void addHostHeader(HttpRequest httpRequest) {
+        if (!httpRequest.headers().contains(HttpHeaderNames.HOST)) {
+            httpRequest.headers().set(HttpHeaderNames.HOST, host + ":" + port);
+        }
     }
 
     /**
@@ -236,7 +243,7 @@ public class HttpClient {
      */
     private FullHttpRequest getFullHttpRequest(String path, String requestId) {
         FullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, path);
-        request.headers().set(HttpHeaderNames.HOST, host + ":" + port);
+        addHostHeader(request);
         request.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
         request.headers().set("message-id", requestId);
         return request;

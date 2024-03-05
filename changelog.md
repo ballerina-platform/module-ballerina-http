@@ -5,6 +5,13 @@ This file contains all the notable changes done to the Ballerina HTTP package th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to 
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- [Make the `Host` header overridable](https://github.com/ballerina-platform/ballerina-library/issues/6133)
+- [Expose HTTP/2 pseudo headers as request headers](https://github.com/ballerina-platform/ballerina-standard-library/issues/4732)
+
 ## [2.7.3] - 2023-10-13
 
 ### Fixed
