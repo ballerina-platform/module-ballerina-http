@@ -59,11 +59,11 @@ public class Forward extends AbstractHTTPAction {
         if (HttpUtil.isEntityDataSourceAvailable(requestObj)) {
             HttpUtil.enrichOutboundMessage(outboundRequestMsg, requestObj);
             prepareOutboundRequest(serviceUri, path, outboundRequestMsg,
-                                   !checkRequestBodySizeHeadersAvailability(outboundRequestMsg));
+                    !checkRequestBodySizeHeadersAvailability(outboundRequestMsg), isHostHeaderSet(requestObj));
             outboundRequestMsg.setHttpMethod(requestObj.get(HttpConstants.HTTP_REQUEST_METHOD).toString());
         } else {
             prepareOutboundRequest(serviceUri, path, outboundRequestMsg,
-                                   !checkRequestBodySizeHeadersAvailability(outboundRequestMsg));
+                    !checkRequestBodySizeHeadersAvailability(outboundRequestMsg), isHostHeaderSet(requestObj));
             String httpVerb = outboundRequestMsg.getHttpMethod();
             outboundRequestMsg.setHttpMethod(httpVerb.trim().toUpperCase(Locale.getDefault()));
         }
