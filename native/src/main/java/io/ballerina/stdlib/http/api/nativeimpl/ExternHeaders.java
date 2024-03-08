@@ -39,6 +39,7 @@ import java.util.TreeSet;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_HEADERS;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_TRAILER_HEADERS;
 import static io.ballerina.stdlib.http.api.HttpConstants.LEADING_HEADER;
+import static io.ballerina.stdlib.http.api.HttpConstants.SET_HOST_HEADER;
 import static io.ballerina.stdlib.http.api.HttpErrorType.HEADER_NOT_FOUND_ERROR;
 import static io.ballerina.stdlib.mime.util.MimeConstants.INVALID_HEADER_OPERATION_ERROR;
 
@@ -120,6 +121,7 @@ public class ExternHeaders {
         }
         try {
             getOrCreateHeadersBasedOnPosition(messageObj, position).set(headerName.getValue(), headerValue.getValue());
+            messageObj.addNativeData(SET_HOST_HEADER, true);
         } catch (IllegalArgumentException ex) {
             throw MimeUtil.createError(INVALID_HEADER_OPERATION_ERROR, ex.getMessage());
         }

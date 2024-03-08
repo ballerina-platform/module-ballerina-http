@@ -55,7 +55,8 @@ public class Execute extends AbstractHTTPAction {
 
         HttpUtil.checkEntityAvailability(requestObj);
         HttpUtil.enrichOutboundMessage(outboundRequestMsg, requestObj);
-        prepareOutboundRequest(serviceUri, path, outboundRequestMsg, isNoEntityBodyRequest(requestObj));
+        prepareOutboundRequest(serviceUri, path, outboundRequestMsg, isNoEntityBodyRequest(requestObj),
+                isHostHeaderSet(requestObj));
 
         String verb = "";
         if (!httpVerb.isEmpty()) {
