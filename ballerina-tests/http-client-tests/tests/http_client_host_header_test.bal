@@ -163,12 +163,12 @@ service /api on new http:Listener(passthroughHostTestPort2) {
     }
 
     resource function get update2/host(string host, http:Request req) returns http:Response|error {
-        req.setHeader("Host", host);
+        req.setHeader("host", host);
         return http2HostPassthroughClientEP->execute(req.method, req.rawPath, req);
     }
 
     resource function get update3/host(string host, http:Request req) returns http:Response|error {
-        req.setHeader("Host", host);
+        req.setHeader("HOST", host);
         return http2HostPassthroughClientEPWithPriorKnowledge->execute(req.method, req.rawPath, req);
     }
 
@@ -206,6 +206,34 @@ service /api on new http:Listener(passthroughHostTestPort2) {
 
     resource function get update12/host(string host, http:Request req) returns http:Response|error {
         return http2HostPassthroughClientEPWithPriorKnowledge->/api/test/host.post(req, {host: host});
+    }
+
+    resource function get negative1/host(string host, http:Request req) returns http:Response|error {
+        return httpHostPassthroughClientEP->execute(req.method, req.rawPath, req, {host123: host});
+    }
+
+    resource function get negative2/host(string host, http:Request req) returns http:Response|error {
+        req.setHeader("X-Host", host);
+        return httpHostPassthroughClientEP->execute(req.method, req.rawPath, req);
+    }
+
+    resource function get negative3/host(string host, http:Request req) returns http:Response|error {
+        req.setHeader("Host", host);
+        req.removeHeader("Host");
+        return httpHostPassthroughClientEP->execute(req.method, req.rawPath, req);
+    }
+
+    resource function get negative4/host(string host, http:Request req) returns http:Response|error {
+        req.setHeader("Host", host);
+        req.removeHeader("Host");
+        return httpHostPassthroughClientEP->execute(req.method, req.rawPath, req, {host: "random.com"});
+    }
+
+    resource function get negative5/host(string host, http:Request req) returns http:Response|error {
+        req.setHeader("Host", host);
+        req.removeHeader("Host");
+        req.setHeader("Host", "random.com");
+        return httpHostPassthroughClientEP->execute(req.method, req.rawPath, req);
     }
 }
 
@@ -258,4 +286,22 @@ function testUpdateHostHeaderInPassthrough() returns error? {
 
     host = check httpHostPassthroughTestClient->/api/update12/host.get(host = "random-update-12.com");
     test:assertEquals(host, "random-update-12.com", "Invalid host header in passthrough");
+}
+
+@test:Config {}
+function testNegativeCasesInPassthrough() returns error? {
+    string host = check httpHostPassthroughTestClient->/api/negative1/host.get(host = "random-update-1.com");
+    test:assertEquals(host, "localhost:9607", "Invalid host header in passthrough");
+
+    host = check httpHostPassthroughTestClient->/api/negative2/host.get(host = "random-update-2.com");
+    test:assertEquals(host, "localhost:9607", "Invalid host header in passthrough");
+
+    host = check httpHostPassthroughTestClient->/api/negative3/host.get(host = "random-update-3.com");
+    test:assertEquals(host, "localhost:9607", "Invalid host header in passthrough");
+
+    host = check httpHostPassthroughTestClient->/api/negative4/host.get(host = "random-update-4.com");
+    test:assertEquals(host, "random.com", "Invalid host header in passthrough");
+
+    host = check httpHostPassthroughTestClient->/api/negative5/host.get(host = "random-update-5.com");
+    test:assertEquals(host, "random.com", "Invalid host header in passthrough");
 }
