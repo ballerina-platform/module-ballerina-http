@@ -129,3 +129,133 @@ function testHttp2ClientHostHeader3() returns error? {
     host = check http2ClientHost2->post("/host", req, {"Host": "mock3.com"});
     test:assertEquals(host, "mock3.com");
 }
+
+service /api on new http:Listener(passthroughHostTestPort1) {
+
+    resource function 'default [string test]/host(@http:Header string host) returns string {
+        return host;
+    }
+}
+
+final http:Client httpHostPassthroughClientEP = check new (string `localhost:${passthroughHostTestPort1}`, httpVersion = http:HTTP_1_1);
+final http:Client http2HostPassthroughClientEP = check new (string `localhost:${passthroughHostTestPort1}`);
+final http:Client http2HostPassthroughClientEPWithPriorKnowledge = check new (string `localhost:${passthroughHostTestPort1}`, http2Settings = {http2PriorKnowledge: true});
+
+final http:Client httpHostPassthroughTestClient = check new (string `localhost:${passthroughHostTestPort2}`);
+
+service /api on new http:Listener(passthroughHostTestPort2) {
+
+    resource function get http/host(http:Request req) returns http:Response|error {
+        return httpHostPassthroughClientEP->execute(req.method, req.rawPath, req);
+    }
+
+    resource function get http2/host(http:Request req) returns http:Response|error {
+        return http2HostPassthroughClientEP->execute(req.method, req.rawPath, req);
+    }
+
+    resource function get http2prior/host(http:Request req) returns http:Response|error {
+        return http2HostPassthroughClientEPWithPriorKnowledge->execute(req.method, req.rawPath, req);
+    }
+
+    resource function get update1/host(string host, http:Request req) returns http:Response|error {
+        req.setHeader("Host", host);
+        return httpHostPassthroughClientEP->execute(req.method, req.rawPath, req);
+    }
+
+    resource function get update2/host(string host, http:Request req) returns http:Response|error {
+        req.setHeader("Host", host);
+        return http2HostPassthroughClientEP->execute(req.method, req.rawPath, req);
+    }
+
+    resource function get update3/host(string host, http:Request req) returns http:Response|error {
+        req.setHeader("Host", host);
+        return http2HostPassthroughClientEPWithPriorKnowledge->execute(req.method, req.rawPath, req);
+    }
+
+    resource function get update4/host(string host, http:Request req) returns http:Response|error {
+        return httpHostPassthroughClientEP->execute(req.method, req.rawPath, req, {host: host});
+    }
+
+    resource function get update5/host(string host, http:Request req) returns http:Response|error {
+        return http2HostPassthroughClientEP->execute(req.method, req.rawPath, req, {host: host});
+    }
+
+    resource function get update6/host(string host, http:Request req) returns http:Response|error {
+        return http2HostPassthroughClientEPWithPriorKnowledge->execute(req.method, req.rawPath, req, {host: host});
+    }
+
+    resource function get update7/host(string host, http:Request req) returns http:Response|error {
+        return httpHostPassthroughClientEP->post(req.rawPath, req, {host: host});
+    }
+
+    resource function get update8/host(string host, http:Request req) returns http:Response|error {
+        return http2HostPassthroughClientEP->post(req.rawPath, req, {host: host});
+    }
+
+    resource function get update9/host(string host, http:Request req) returns http:Response|error {
+        return http2HostPassthroughClientEPWithPriorKnowledge->post(req.rawPath, req, {host: host});
+    }
+
+    resource function get update10/host(string host, http:Request req) returns http:Response|error {
+        return httpHostPassthroughClientEP->/api/test/host.post(req, {host: host});
+    }
+
+    resource function get update11/host(string host, http:Request req) returns http:Response|error {
+        return http2HostPassthroughClientEP->/api/test/host.post(req, {host: host});
+    }
+
+    resource function get update12/host(string host, http:Request req) returns http:Response|error {
+        return http2HostPassthroughClientEPWithPriorKnowledge->/api/test/host.post(req, {host: host});
+    }
+}
+
+@test:Config {}
+function testHostHeaderInPassthrough() returns error? {
+    string host = check httpHostPassthroughTestClient->/api/http/host.get();
+    test:assertEquals(host, "localhost:9607", "Invalid host header in passthrough");
+
+    host = check httpHostPassthroughTestClient->/api/http2/host.get();
+    test:assertEquals(host, "localhost:9607", "Invalid host header in passthrough");
+
+    host = check httpHostPassthroughTestClient->/api/http2prior/host.get();
+    test:assertEquals(host, "localhost:9607", "Invalid host header in passthrough");
+}
+
+@test:Config {}
+function testUpdateHostHeaderInPassthrough() returns error? {
+    string host = check httpHostPassthroughTestClient->/api/update1/host.get(host = "random-update-1.com");
+    test:assertEquals(host, "random-update-1.com", "Invalid host header in passthrough");
+
+    host = check httpHostPassthroughTestClient->/api/update2/host.get(host = "random-update-2.com");
+    test:assertEquals(host, "random-update-2.com", "Invalid host header in passthrough");
+
+    host = check httpHostPassthroughTestClient->/api/update3/host.get(host = "random-update-3.com");
+    test:assertEquals(host, "random-update-3.com", "Invalid host header in passthrough");
+
+    host = check httpHostPassthroughTestClient->/api/update4/host.get(host = "random-update-4.com");
+    test:assertEquals(host, "random-update-4.com", "Invalid host header in passthrough");
+
+    host = check httpHostPassthroughTestClient->/api/update5/host.get(host = "random-update-5.com");
+    test:assertEquals(host, "random-update-5.com", "Invalid host header in passthrough");
+
+    host = check httpHostPassthroughTestClient->/api/update6/host.get(host = "random-update-6.com");
+    test:assertEquals(host, "random-update-6.com", "Invalid host header in passthrough");
+
+    host = check httpHostPassthroughTestClient->/api/update7/host.get(host = "random-update-7.com");
+    test:assertEquals(host, "random-update-7.com", "Invalid host header in passthrough");
+
+    host = check httpHostPassthroughTestClient->/api/update8/host.get(host = "random-update-8.com");
+    test:assertEquals(host, "random-update-8.com", "Invalid host header in passthrough");
+
+    host = check httpHostPassthroughTestClient->/api/update9/host.get(host = "random-update-9.com");
+    test:assertEquals(host, "random-update-9.com", "Invalid host header in passthrough");
+
+    host = check httpHostPassthroughTestClient->/api/update10/host.get(host = "random-update-10.com");
+    test:assertEquals(host, "random-update-10.com", "Invalid host header in passthrough");
+
+    host = check httpHostPassthroughTestClient->/api/update11/host.get(host = "random-update-11.com");
+    test:assertEquals(host, "random-update-11.com", "Invalid host header in passthrough");
+
+    host = check httpHostPassthroughTestClient->/api/update12/host.get(host = "random-update-12.com");
+    test:assertEquals(host, "random-update-12.com", "Invalid host header in passthrough");
+}
