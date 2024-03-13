@@ -11,4 +11,4 @@ version = "2.7.5"
 
 [[platform.java11.dependency]]
 scope = "testOnly"
-path = "../../test-utils/build/libs/http-test-utils-2.7.5-SNAPSHOT.jar"
+path = "../../test-utils/build/libs/http-test-utils-2.7.5.jar"
