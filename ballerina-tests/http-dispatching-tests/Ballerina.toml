@@ -1,17 +1,17 @@
 [package]
 org = "ballerina"
 name = "http_dispatching_tests"
-version = "2.9.6"
+version = "2.9.7"
 
 [[dependency]]
 org = "ballerina"
 name = "http_test_common"
 repository = "local"
-version = "2.9.6"
+version = "2.9.7"
 
 [platform.java11]
 graalvmCompatible = true
 
 [[platform.java11.dependency]]
 scope = "testOnly"
-path = "../../test-utils/build/libs/http-test-utils-2.9.6.jar"
+path = "../../test-utils/build/libs/http-test-utils-2.9.7-SNAPSHOT.jar"
