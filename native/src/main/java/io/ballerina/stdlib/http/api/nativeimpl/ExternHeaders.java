@@ -121,7 +121,9 @@ public class ExternHeaders {
         }
         try {
             getOrCreateHeadersBasedOnPosition(messageObj, position).set(headerName.getValue(), headerValue.getValue());
-            messageObj.addNativeData(SET_HOST_HEADER, true);
+            if (headerName.getValue().equalsIgnoreCase(HttpHeaderNames.HOST.toString())) {
+                messageObj.addNativeData(SET_HOST_HEADER, true);
+            }
         } catch (IllegalArgumentException ex) {
             throw MimeUtil.createError(INVALID_HEADER_OPERATION_ERROR, ex.getMessage());
         }
