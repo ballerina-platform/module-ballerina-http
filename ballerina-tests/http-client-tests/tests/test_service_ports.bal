@@ -35,3 +35,5 @@ const int clientFormUrlEncodedTestPort = 9604;
 
 const int http2ClientHostHeaderTestPort = 9605;
 const int httpClientHostHeaderTestPort = 9606;
+const int passthroughHostTestPort1 = 9607;
+const int passthroughHostTestPort2 = 9608;
