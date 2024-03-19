@@ -66,9 +66,11 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 import static io.ballerina.runtime.api.constants.RuntimeConstants.BALLERINA_VERSION;
 import static io.ballerina.stdlib.http.api.HttpConstants.ANN_CONFIG_ATTR_COMPRESSION;
+import static io.ballerina.stdlib.http.api.HttpConstants.SET_HOST_HEADER;
 import static io.ballerina.stdlib.http.api.HttpUtil.extractEntity;
 import static io.ballerina.stdlib.http.api.HttpUtil.getCompressionState;
 import static io.ballerina.stdlib.http.transport.contract.Constants.ENCODING_DEFLATE;
@@ -93,7 +95,7 @@ public abstract class AbstractHTTPAction {
         HttpCarbonMessage requestMsg = HttpUtil.getCarbonMsg(request, HttpUtil.createHttpCarbonMessage(true));
         HttpUtil.checkEntityAvailability(request);
         HttpUtil.enrichOutboundMessage(requestMsg, request);
-        prepareOutboundRequest(serviceUri, path, requestMsg, isNoEntityBodyRequest(request));
+        prepareOutboundRequest(serviceUri, path, requestMsg, isNoEntityBodyRequest(request), isHostHeaderSet(request));
         handleAcceptEncodingHeader(requestMsg, getCompressionConfigFromEndpointConfig(config));
         return requestMsg;
     }
@@ -115,7 +117,7 @@ public abstract class AbstractHTTPAction {
     }
 
     static void prepareOutboundRequest(String serviceUri, String path, HttpCarbonMessage outboundRequest,
-                                       Boolean nonEntityBodyReq) {
+                                       Boolean nonEntityBodyReq, Boolean isHostHeaderSet) {
         TransactionResourceManager trxResourceManager = TransactionResourceManager.getInstance();
         if (trxResourceManager.isInTransaction()) {
             TransactionLocalContext transactionLocalContext = trxResourceManager.getCurrentTransactionContext();
@@ -132,7 +134,7 @@ public abstract class AbstractHTTPAction {
             String host = url.getHost();
 
             setOutboundReqProperties(outboundRequest, url, port, host, nonEntityBodyReq);
-            setOutboundReqHeaders(outboundRequest, port, host);
+            setOutboundReqHeaders(outboundRequest, port, host, isHostHeaderSet);
 
         } catch (MalformedURLException e) {
             throw HttpUtil.createHttpError("malformed URL specified. " + e.getMessage(),
@@ -158,9 +160,10 @@ public abstract class AbstractHTTPAction {
         return uri.trim().replaceAll(WHITESPACE, "%20");
     }
 
-    private static void setOutboundReqHeaders(HttpCarbonMessage outboundRequest, int port, String host) {
+    private static void setOutboundReqHeaders(HttpCarbonMessage outboundRequest, int port, String host,
+                                              Boolean isHostHeaderSet) {
         HttpHeaders headers = outboundRequest.getHeaders();
-        setHostHeader(host, port, headers);
+        setHostHeader(host, port, headers, isHostHeaderSet);
         setOutboundUserAgent(headers);
         removeConnectionHeader(headers);
     }
@@ -212,7 +215,10 @@ public abstract class AbstractHTTPAction {
         return 0;
     }
 
-    private static void setHostHeader(String host, int port, HttpHeaders headers) {
+    private static void setHostHeader(String host, int port, HttpHeaders headers, Boolean isHostHeaderSet) {
+        if (isHostHeaderSet && headers.contains(HttpHeaderNames.HOST)) {
+            return;
+        }
         if (port == 80 || port == 443) {
             headers.set(HttpHeaderNames.HOST, host);
         } else {
@@ -318,6 +324,10 @@ public abstract class AbstractHTTPAction {
 
     static boolean isNoEntityBodyRequest(BObject request) {
         return (Boolean) request.get(HttpConstants.REQUEST_NO_ENTITY_BODY_FIELD);
+    }
+
+    static boolean isHostHeaderSet(BObject request) {
+        return Objects.nonNull(request.getNativeData(SET_HOST_HEADER));
     }
 
     private static boolean dirty(BObject request) {

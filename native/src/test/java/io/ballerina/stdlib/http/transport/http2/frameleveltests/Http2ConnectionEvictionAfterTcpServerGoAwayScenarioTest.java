@@ -129,7 +129,6 @@ public class Http2ConnectionEvictionAfterTcpServerGoAwayScenarioTest {
     private void testConnectionEvictionBeforeAllStreamsAreClosedScenario() {
         try {
             runTcpServer(TestUtil.HTTP_SERVER_PORT);
-            // Setting to -1 will make the runner to wait until all pending streams are completed
             h2ClientWithPriorKnowledge = setupHttp2PriorKnowledgeClient(5000, 1000);
             CountDownLatch latch1 = new CountDownLatch(2);
             DefaultHttpConnectorListener msgListener1 = TestUtil.sendRequestAsync(latch1, h2ClientWithPriorKnowledge);

@@ -21,8 +21,6 @@ package io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
 import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.PoolConfiguration;
-import io.netty.channel.DefaultEventLoop;
-import io.netty.util.concurrent.DefaultPromise;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +33,8 @@ import java.util.concurrent.LinkedBlockingQueue;
  * {@code Http2ConnectionManager} Manages HTTP/2 connections.
  */
 public class Http2ConnectionManager {
+
+    Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final Http2ChannelPool http2ChannelPool = new Http2ChannelPool();
     private final BlockingQueue<Http2ClientChannel> http2StaleClientChannels = new LinkedBlockingQueue<>();
@@ -165,10 +165,15 @@ public class Http2ConnectionManager {
         http2StaleClientChannels.add(http2ClientChannel);
     }
 
+    void removeClosedChannelFromStalePool(Http2ClientChannel http2ClientChannel) {
+        if (!http2StaleClientChannels.remove(http2ClientChannel)) {
+            logger.warn("Specified channel does not exist in the stale list.");
+        }
+    }
+
     private void initiateConnectionEvictionTask() {
         Timer timer = new Timer(true);
         TimerTask timerTask = new TimerTask() {
-            Logger logger = LoggerFactory.getLogger(this.getClass());
             @Override
             public void run() {
                 http2StaleClientChannels.forEach(http2ClientChannel -> {
@@ -191,12 +196,8 @@ public class Http2ConnectionManager {
             }
 
             public void closeChannelAndEvict(Http2ClientChannel http2ClientChannel) {
-                boolean result = http2StaleClientChannels.remove(http2ClientChannel);
-                if (!result) {
-                    logger.warn("Specified channel does not exist in the stale list.");
-                }
-                http2ClientChannel.getConnection()
-                        .close(new DefaultPromise(new DefaultEventLoop()));
+                removeClosedChannelFromStalePool(http2ClientChannel);
+                http2ClientChannel.getConnection().close(http2ClientChannel.getChannel().newPromise());
             }
         };
         timer.schedule(timerTask, poolConfiguration.getTimeBetweenStaleEviction(),

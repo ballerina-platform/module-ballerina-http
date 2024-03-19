@@ -122,6 +122,7 @@ def debugParams = ""
 def balJavaDebugParam = ""
 def testParams = ""
 def graalvmFlag = ""
+def parallelTestFlag = ""
 def skipTests = false
 
 task initializeVariables {
@@ -139,6 +140,9 @@ task initializeVariables {
     }
     if (project.hasProperty('balGraalVMTest')) {
         graalvmFlag = '--graalvm'
+    }
+    if (project.hasProperty('balParallelTest')) {
+        parallelTestFlag = '--parallel'
     }
     if (project.hasProperty('balTests')) {
         testPackages = project.findProperty('balTests').toString().split(",")
@@ -208,10 +212,10 @@ task ballerinaTest {
                     environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
                     if (Os.isFamily(Os.FAMILY_WINDOWS)) {
                         commandLine 'cmd', '/c', "${balJavaDebugParam} ${distributionBinPath}/bal.bat test ${graalvmFlag}" +
-                                " ${testParams} ${groupParams} ${disableGroups} ${windowsDisableGroups} ${debugParams}" +
-                                " && exit %%ERRORLEVEL%%"
+                                " ${parallelTestFlag} ${testParams} ${groupParams} ${disableGroups} ${windowsDisableGroups}" +
+                                "  ${debugParams} && exit %%ERRORLEVEL%%"
                     } else {
-                        commandLine 'sh', '-c', "${distributionBinPath}/bal test ${graalvmFlag} ${testParams}" +
+                        commandLine 'sh', '-c', "${distributionBinPath}/bal test ${graalvmFlag} ${parallelTestFlag} ${testParams}" +
                                 " ${groupParams} ${disableGroups} ${debugParams}"
                     }
                 }
