@@ -100,13 +100,13 @@ isolated function comparator(Cookie c1, Cookie c2) returns int {
 isolated function getClone(Cookie cookie, time:Utc createdTime, time:Utc lastAccessedTime) returns Cookie {
     CookieOptions options = {};
     if cookie.domain is string {
-        options.domain = <string> cookie.domain;
+        options.domain = cookie.domain;
     }
     if cookie.path is string {
-        options.path = <string> cookie.path;
+        options.path = cookie.path;
     }
     if cookie.expires is string {
-        options.expires = <string> cookie.expires;
+        options.expires = cookie.expires;
     }
     options.maxAge = cookie.maxAge;
     options.httpOnly = cookie.httpOnly;
@@ -120,10 +120,10 @@ isolated function getClone(Cookie cookie, time:Utc createdTime, time:Utc lastAcc
 isolated function getCloneWithExpiresAndMaxAge(Cookie cookie, string expires, int maxAge) returns Cookie {
     CookieOptions options = {};
     if cookie.domain is string {
-        options.domain = <string> cookie.domain;
+        options.domain = cookie.domain;
     }
     if cookie.path is string {
-        options.path = <string> cookie.path;
+        options.path = cookie.path;
     }
     options.expires = expires;
     options.maxAge = maxAge;
@@ -138,10 +138,10 @@ isolated function getCloneWithExpiresAndMaxAge(Cookie cookie, string expires, in
 isolated function getCloneWithPath(Cookie cookie, string path) returns Cookie {
     CookieOptions options = {};
     if cookie.domain is string {
-        options.domain = <string> cookie.domain;
+        options.domain = cookie.domain;
     }
     if cookie.expires is string {
-        options.expires = <string> cookie.expires;
+        options.expires = cookie.expires;
     }
     options.path = path;
     options.maxAge = cookie.maxAge;
@@ -156,10 +156,10 @@ isolated function getCloneWithPath(Cookie cookie, string path) returns Cookie {
 isolated function getCloneWithDomainAndHostOnly(Cookie cookie, string domain, boolean hostOnly) returns Cookie {
     CookieOptions options = {};
     if cookie.path is string {
-        options.path = <string> cookie.path;
+        options.path = cookie.path;
     }
     if cookie.expires is string {
-        options.expires = <string> cookie.expires;
+        options.expires = cookie.expires;
     }
     options.domain = domain;
     options.maxAge = cookie.maxAge;
@@ -174,13 +174,13 @@ isolated function getCloneWithDomainAndHostOnly(Cookie cookie, string domain, bo
 isolated function getCloneWithHostOnly(Cookie cookie, boolean hostOnly) returns Cookie {
     CookieOptions options = {};
     if cookie.path is string {
-        options.path = <string> cookie.path;
+        options.path = cookie.path;
     }
     if cookie.domain is string {
-        options.domain = <string> cookie.domain;
+        options.domain = cookie.domain;
     }
     if cookie.expires is string {
-        options.expires = <string> cookie.expires;
+        options.expires = cookie.expires;
     }
     options.maxAge = cookie.maxAge;
     options.httpOnly = cookie.httpOnly;

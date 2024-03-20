@@ -75,14 +75,14 @@ public readonly class Cookie {
     public isolated function init(string name, string value, *CookieOptions options) {
         self.name = name.trim();
         self.value = value.trim();
-        var domain = options?.domain;
-        if domain is string {
-            domain = domain.trim().toLowerAscii();
-            if (<string> domain).startsWith(".") {
-                domain = (<string> domain).substring(1, (<string> domain).length());
+        string? domainOpt = options?.domain;
+        if domainOpt is string {
+            string domain = domainOpt.trim().toLowerAscii();
+            if domain.startsWith(".") {
+                domain = (domain).substring(1, domain.length());
             }
-            if (<string> domain).endsWith(".") {
-                domain = (<string> domain).substring(0, (<string> domain).length() - 1);
+            if domain.endsWith(".") {
+                domain = domain.substring(0, domain.length() - 1);
             }
             self.domain = domain;
         } else {
@@ -94,10 +94,10 @@ public readonly class Cookie {
         } else {
             self.path = ();
         }
-        var expires = options?.expires;
-        if expires is string {
-            expires = expires.trim();
-            time:Utc|error t1 = utcFromString(<string> expires, "yyyy-MM-dd HH:mm:ss");
+        var expiresOpt = options?.expires;
+        if expiresOpt is string {
+            string expires = expiresOpt.trim();
+            time:Utc|error t1 = utcFromString(expires, "yyyy-MM-dd HH:mm:ss");
             if t1 is time:Utc {
                 string|error timeString = utcToString(t1, "E, dd MMM yyyy HH:mm:ss");
                 if timeString is string {
