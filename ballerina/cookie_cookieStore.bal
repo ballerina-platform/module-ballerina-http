@@ -47,11 +47,7 @@ public isolated class CookieStore {
             return error CookieHandlingError("Number of total cookies for the domain: " + domain + " in the cookie store can not exceed the maximum amount per domain");
         }
 
-        string path  = requestPath;
-        int? index = requestPath.indexOf("?");
-        if index is int {
-            path = requestPath.substring(0, index);
-        }
+        string path  = getCookiePath(requestPath);
 
         Cookie? domainValidated = matchDomain(cookie, domain, cookieConfig);
         if domainValidated is () {
@@ -114,12 +110,8 @@ public isolated class CookieStore {
     public isolated function getCookies(string url, string requestPath) returns Cookie[] {
         Cookie[] cookiesToReturn = [];
         string domain = getDomain(url);
-        string path  = requestPath;
-        int? index = requestPath.indexOf("?");
-        if index is int {
-            path = requestPath.substring(0,index);
-        }
-        Cookie[] allCookies = self.getAllCookies();
+        string path  = getCookiePath(requestPath);
+        Cookie[] allCookies = self.getCookiesByPath(path);
         lock {
             foreach var cookie in allCookies {
                 if isExpired(cookie) {
@@ -132,12 +124,12 @@ public isolated class CookieStore {
                     continue;
                 }
                 if cookie.hostOnly == true {
-                    if cookie.domain == domain && checkPath(path, cookie) {
+                    if cookie.domain == domain {
                         cookiesToReturn.push(cookie);
                     }
                 } else {
                     var cookieDomain = cookie.domain;
-                    if ((cookieDomain is string && domain.endsWith("." + cookieDomain)) || cookie.domain == domain ) && checkPath(path, cookie) {
+                    if ((cookieDomain is string && domain.endsWith("." + cookieDomain)) || cookie.domain == domain ) {
                         cookiesToReturn.push(cookie);
                     }
                 }
@@ -166,6 +158,22 @@ public isolated class CookieStore {
             }
         }
         return allCookies;
+    }
+
+    # Gets all the cookies, which have the path matching with the request path. Optionally, returns
+    # all the cookies in the order where the cookies with more specific paths come first.
+    #
+    # + requestPath - Path of the request URI
+    # + mostSpecificFirst - If true, returns all the cookies in the order where the cookies with more
+    #  specific paths come first. Default value is true.
+    # + return - Array of all the matched cookie objects
+    public isolated function getCookiesByPath(string requestPath, boolean mostSpecificFirst = true) returns Cookie[] {
+        Cookie[] allCookies = self.getAllCookies();
+        Cookie[] allCookiesByPath = allCookies.filter(cookie => checkPath(requestPath, cookie));
+        if mostSpecificFirst {
+            return allCookiesByPath.sort("descending", cookie => getCookiePathLength(cookie));
+        }
+        return allCookiesByPath;
     }
 
     # Gets all the cookies, which have the given name as the name of the cookie.
@@ -444,6 +452,11 @@ isolated function checkPath(string path, Cookie cookie) returns boolean {
     return false;
 }
 
+isolated function getCookiePathLength(Cookie cookie) returns int {
+    string? path = cookie.path;
+    return path is string ? path.length() : 0;
+}
+
 // Returns true if the cookie expires attribute value is valid according to [RFC-6265](https://tools.ietf.org/html/rfc6265#section-5.1.1).
 isolated function validateExpiresAttribute(Cookie cookie) returns Cookie? {
     var expiryTime = cookie.expires;
@@ -495,4 +508,20 @@ isolated function isExpired(Cookie cookie) returns boolean {
         }
     }
     return false;
+}
+
+// Returns the computed cookie path from the URI path
+// - If the path is empty, does not start with "/", or contains no more than one "/" character,
+// then the default value for Path is "/".
+// - Otherwise, the default value for Path is the path from the start up to but not including the
+// final "/" character.
+// For example, if the cookie was set from "https://example.org/a/b/c, then the default value of
+// Path would be "/a/b".
+isolated function getCookiePath(string requestPath) returns string {
+    if !requestPath.startsWith("/") {
+        return "/";
+    }
+
+    int? lastSlashIndex = requestPath.lastIndexOf("/");
+    return lastSlashIndex is () ? "/" : requestPath.substring(0, lastSlashIndex);
 }
