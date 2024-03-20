@@ -65,7 +65,7 @@ public isolated class CookieStore {
         if validated is () {
             return;
         }
-        if !((url.startsWith(HTTP) && validated.httpOnly) || validated.httpOnly == false) {
+        if !((url.startsWith(HTTP) && validated.httpOnly) || !validated.httpOnly) {
             return;
         }
         lock {
