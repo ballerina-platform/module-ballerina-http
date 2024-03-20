@@ -1848,7 +1848,7 @@ public class HttpUtil {
         if (!sslProtocol.isBlank()) {
             sslConfiguration.setSSLProtocol(sslProtocol);
         }
-        if (System.getProperty(JAVA_CONFIG_TLS_NAMED_GROUPS).isBlank()) {
+        if (System.getProperty(JAVA_CONFIG_TLS_NAMED_GROUPS) == null) {
             System.setProperty(JAVA_CONFIG_TLS_NAMED_GROUPS, String.join(",", DEFAULT_NAMED_GROUPS));
         }
     }
