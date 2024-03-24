@@ -31,6 +31,7 @@ import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.api.ValueCreatorUtils;
 import io.netty.handler.codec.http.HttpHeaders;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -172,23 +173,34 @@ public class ExternResponseProcessor {
     }
 
     private static Type getAnydataType(Type targetType) {
+        List<Type> anydataTypes = extractAnydataTypes(targetType, new ArrayList<>());
+        if (anydataTypes.isEmpty()) {
+            throw HttpUtil.createHttpError("unsupported target type: " + targetType);
+        } else if (anydataTypes.size() == 1) {
+            return anydataTypes.get(0);
+        } else {
+            return TypeCreator.createUnionType(anydataTypes);
+        }
+    }
+
+    private static List<Type> extractAnydataTypes(Type targetType, List<Type> anydataTypes) {
         if (targetType.isAnydata()) {
-            return targetType;
+            anydataTypes.add(targetType);
+            return anydataTypes;
         }
-        if (targetType.getTag() == TypeTags.TYPE_REFERENCED_TYPE_TAG) {
-            targetType = TypeUtils.getImpliedType(targetType);
-        }
-        if (targetType.getTag() == TypeTags.UNION_TAG) {
-            List<Type> memberTypes = ((UnionType) targetType).getMemberTypes();
-            for (Type memberType : memberTypes) {
-                try {
-                    return getAnydataType(memberType);
-                } catch (BError e) {
-                    // ignore
+
+        switch (targetType.getTag()) {
+            case TypeTags.UNION_TAG:
+                List<Type> memberTypes = ((UnionType) targetType).getMemberTypes();
+                for (Type memberType : memberTypes) {
+                    extractAnydataTypes(memberType, anydataTypes);
                 }
-            }
+                return anydataTypes;
+            case TypeTags.TYPE_REFERENCED_TYPE_TAG:
+                return extractAnydataTypes(TypeUtils.getImpliedType(targetType), anydataTypes);
+            default:
+                return anydataTypes;
         }
-        throw HttpUtil.createHttpError("unsupported target type: " + targetType);
     }
 
     private static Object getMediaType(BObject response, Type mediaTypeType, boolean requireValidation) {
