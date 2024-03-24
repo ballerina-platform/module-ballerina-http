@@ -539,6 +539,30 @@ public class Response {
         }
         return cookiesInResponse;
     }
+
+    isolated function performDataBinding(typedesc<anydata> targetType, boolean requireValidation) returns anydata|ClientError {
+        anydata payload = check performDataBinding(self, targetType);
+        if requireValidation {
+            return performDataValidation(payload, targetType);
+        }
+        return payload;
+    }
+
+    isolated function getApplicationResponseError() returns ClientError {
+        string reasonPhrase = self.reasonPhrase;
+        map<string[]> headers = getHeaders(self);
+        anydata|error payload = getPayload(self);
+        int statusCode = self.statusCode;
+        if payload is error {
+            if payload is NoContentError {
+                return createResponseError(statusCode, reasonPhrase, headers);
+            }
+            return error PayloadBindingClientError("http:ApplicationResponseError creation failed: " + statusCode.toString() +
+                " response payload extraction failed", payload);
+        } else {
+            return createResponseError(statusCode, reasonPhrase, headers, payload);
+        }
+    }
 }
 
 isolated function externCreateNewResEntity(Response response) returns mime:Entity =

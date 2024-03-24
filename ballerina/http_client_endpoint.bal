@@ -88,14 +88,17 @@ public client isolated class Client {
     } external;
 
     private isolated function processPost(string path, RequestMessage message, TargetType targetType,
-            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
+            string? mediaType, map<string|string[]>? headers) returns Response|StatusCodeResponse|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->post(path, req);
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, HTTP_POST, response.statusCode, self.url);
         }
-        return processResponse(response, targetType, self.requireValidation);
+        if response is ClientError {
+            return response;
+        }
+        return externProcessResponse(response, targetType, self.requireValidation);
     }
 
     # The client resource function to send HTTP PUT requests to HTTP endpoints.
@@ -130,14 +133,17 @@ public client isolated class Client {
     } external;
 
     private isolated function processPut(string path, RequestMessage message, TargetType targetType,
-            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
+            string? mediaType, map<string|string[]>? headers) returns Response|StatusCodeResponse|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->put(path, req);
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, HTTP_PUT, response.statusCode, self.url);
         }
-        return processResponse(response, targetType, self.requireValidation);
+        if response is ClientError {
+            return response;
+        }
+        return externProcessResponse(response, targetType, self.requireValidation);
     }
 
     # The client resource function to send HTTP PATCH requests to HTTP endpoints.
@@ -172,14 +178,17 @@ public client isolated class Client {
     } external;
 
     private isolated function processPatch(string path, RequestMessage message, TargetType targetType,
-            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
+            string? mediaType, map<string|string[]>? headers) returns Response|StatusCodeResponse|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->patch(path, req);
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, HTTP_PATCH, response.statusCode, self.url);
         }
-        return processResponse(response, targetType, self.requireValidation);
+        if response is ClientError {
+            return response;
+        }
+        return externProcessResponse(response, targetType, self.requireValidation);
     }
 
     # The client resource function to send HTTP DELETE requests to HTTP endpoints.
@@ -214,14 +223,17 @@ public client isolated class Client {
     } external;
 
     private isolated function processDelete(string path, RequestMessage message, TargetType targetType,
-            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
+            string? mediaType, map<string|string[]>? headers) returns Response|StatusCodeResponse|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->delete(path, req);
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, HTTP_DELETE, response.statusCode, self.url);
         }
-        return processResponse(response, targetType, self.requireValidation);
+        if response is ClientError {
+            return response;
+        }
+        return externProcessResponse(response, targetType, self.requireValidation);
     }
 
     # The client resource function to send HTTP HEAD requests to HTTP endpoints.
@@ -277,13 +289,16 @@ public client isolated class Client {
     } external;
 
     private isolated function processGet(string path, map<string|string[]>? headers, TargetType targetType)
-            returns Response|anydata|ClientError {
+            returns Response|StatusCodeResponse|anydata|ClientError {
         Request req = buildRequestWithHeaders(headers);
         Response|ClientError response = self.httpClient->get(path, message = req);
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, HTTP_GET, response.statusCode, self.url);
         }
-        return processResponse(response, targetType, self.requireValidation);
+        if response is ClientError {
+            return response;
+        }
+        return externProcessResponse(response, targetType, self.requireValidation);
     }
 
     # The client resource function to send HTTP OPTIONS requests to HTTP endpoints.
@@ -313,13 +328,16 @@ public client isolated class Client {
     } external;
 
     private isolated function processOptions(string path, map<string|string[]>? headers, TargetType targetType)
-            returns Response|anydata|ClientError {
+            returns Response|StatusCodeResponse|anydata|ClientError {
         Request req = buildRequestWithHeaders(headers);
         Response|ClientError response = self.httpClient->options(path, message = req);
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, HTTP_OPTIONS, response.statusCode, self.url);
         }
-        return processResponse(response, targetType, self.requireValidation);
+        if response is ClientError {
+            return response;
+        }
+        return externProcessResponse(response, targetType, self.requireValidation);
     }
 
     # Invokes an HTTP call with the specified HTTP verb.
@@ -340,14 +358,17 @@ public client isolated class Client {
 
     private isolated function processExecute(string httpVerb, string path, RequestMessage message,
             TargetType targetType, string? mediaType, map<string|string[]>? headers)
-            returns Response|anydata|ClientError {
+            returns Response|StatusCodeResponse|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->execute(httpVerb, path, req);
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, httpVerb, response.statusCode, self.url);
         }
-        return processResponse(response, targetType, self.requireValidation);
+        if response is ClientError {
+            return response;
+        }
+        return externProcessResponse(response, targetType, self.requireValidation);
     }
 
     # The `Client.forward()` function can be used to invoke an HTTP call with inbound request's HTTP verb
@@ -363,12 +384,15 @@ public client isolated class Client {
     } external;
 
     private isolated function processForward(string path, Request request, TargetType targetType)
-            returns Response|anydata|ClientError {
+            returns Response|StatusCodeResponse|anydata|ClientError {
         Response|ClientError response = self.httpClient->forward(path, request);
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, request.method, response.statusCode, self.url);
         }
-        return processResponse(response, targetType, self.requireValidation);
+        if response is ClientError {
+            return response;
+        }
+        return externProcessResponse(response, targetType, self.requireValidation);
     }
 
     # Submits an HTTP request to a service with the specified HTTP verb.
@@ -707,3 +731,10 @@ isolated function createResponseError(int statusCode, string reasonPhrase, map<s
         return error RemoteServerError(reasonPhrase, statusCode = statusCode, headers = headers, body = body);
     }
 }
+
+isolated function externProcessResponse(Response response, TargetType targetType, boolean requireValidation)
+                                  returns Response|anydata|StatusCodeResponse|ClientError =
+@java:Method {
+    'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternResponseProcessor",
+    name: "processResponse"
+} external;

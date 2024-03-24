@@ -258,8 +258,6 @@ public final class HttpConstants {
     public static final String HTTP_ERROR_RECORD = "HTTPError";
     public static final BString HTTP_ERROR_MESSAGE = StringUtils.fromString("message");
     public static final BString HTTP_ERROR_STATUS_CODE = StringUtils.fromString("statusCode");
-    public static final String HTTP_CLIENT_REQUEST_ERROR = "ClientRequestError";
-    public static final String HTTP_REMOTE_SERVER_ERROR = "RemoteServerError";
 
     // ServeConnector struct indices
     public static final BString HTTP_CONNECTOR_CONFIG_FIELD = StringUtils.fromString("config");

@@ -63,6 +63,7 @@ public enum HttpErrorType {
     INVALID_CONTENT_LENGTH("InvalidContentLengthError"),
     HEADER_NOT_FOUND_ERROR("HeaderNotFoundError"),
     CLIENT_ERROR("ClientError"),
+    PAYLOAD_BINDING_CLIENT_ERROR("PayloadBindingClientError"),
     INTERNAL_PAYLOAD_BINDING_LISTENER_ERROR("InternalPayloadBindingListenerError"),
     INTERNAL_PAYLOAD_VALIDATION_LISTENER_ERROR("InternalPayloadValidationListenerError"),
     INTERNAL_HEADER_BINDING_ERROR("InternalHeaderBindingError"),
