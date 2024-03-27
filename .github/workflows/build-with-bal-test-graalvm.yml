@@ -6,7 +6,7 @@ on:
             lang_tag:
                 description: Branch/Release Tag of the Ballerina Lang
                 required: true
-                default: master
+                default: 2201.8.x
             lang_version:
                 description: Ballerina Lang Version (If given ballerina lang buid will be skipped)
                 required: false
@@ -26,6 +26,7 @@ on:
     pull_request:
         branches: 
             - master
+            - 2201.8.x
             - 2201.7.x
         types: [opened, synchronize, reopened, labeled, unlabeled]
 
@@ -37,7 +38,7 @@ jobs:
     call_stdlib_workflow:
         name: Run StdLib Workflow
         if: ${{ github.event_name != 'schedule' || (github.event_name == 'schedule' && github.repository_owner == 'ballerina-platform') }}
-        uses: ballerina-platform/ballerina-standard-library/.github/workflows/build-with-bal-test-graalvm-template.yml@main
+        uses: ballerina-platform/ballerina-standard-library/.github/workflows/build-with-bal-test-graalvm-template.yml@2201.8.x
         with:
             lang_tag: ${{ inputs.lang_tag }}
             lang_version: ${{ inputs.lang_version }}
