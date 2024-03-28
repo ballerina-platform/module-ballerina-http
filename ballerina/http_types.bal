@@ -29,7 +29,7 @@ public type Service distinct service object {
 };
 
 # The types of data values that are expected by the HTTP `client` to return after the data binding operation.
-public type TargetType typedesc<Response|anydata>;
+public type TargetType typedesc<Response|StatusCodeResponse|anydata>;
 
 # Defines the HTTP operations related to circuit breaker, failover and load balancer.
 #
