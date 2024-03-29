@@ -22,6 +22,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 - [Fix connection getting closed by stale eviction task after it has been closed by the server](https://github.com/ballerina-platform/ballerina-library/issues/6050)
 
+## Unreleased
+
+### Added
+
+- [Supporting X25519Kyber768 key encapsulation for TLS 1.3](https://github.com/ballerina-platform/ballerina-library/issues/6200)
+
 ## [2.10.6] - 2024-02-01
 
 ### Added
