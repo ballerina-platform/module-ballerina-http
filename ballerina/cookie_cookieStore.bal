@@ -53,23 +53,23 @@ public isolated class CookieStore {
             path = requestPath.substring(0, index);
         }
 
-        Cookie? identicalCookie = self.getIdenticalCookie(cookie);
         Cookie? domainValidated = matchDomain(cookie, domain, cookieConfig);
         if domainValidated is () {
             return;
         }
-        Cookie? pathValidated = matchPath(<Cookie> domainValidated, path, cookieConfig);
+        Cookie? pathValidated = matchPath(domainValidated, path, cookieConfig);
         if pathValidated is () {
             return;
         }
-        Cookie? validated = validateExpiresAttribute(<Cookie> pathValidated);
+        Cookie? validated = validateExpiresAttribute(pathValidated);
         if validated is () {
             return;
         }
-        if !((url.startsWith(HTTP) && validated.httpOnly) || validated.httpOnly == false) {
+        if !((url.startsWith(HTTP) && validated.httpOnly) || !validated.httpOnly) {
             return;
         }
         lock {
+            Cookie? identicalCookie = self.getIdenticalCookie(validated);
             if validated.isPersistent() {
                 var persistentCookieHandler = self.persistentCookieHandler;
                 if persistentCookieHandler is PersistentCookieHandler {
