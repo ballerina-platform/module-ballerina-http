@@ -644,37 +644,6 @@ isolated function createDefaultClient(string url, ClientConfiguration configurat
     return createHttpSecureClient(url, configuration);
 }
 
-isolated function processResponse(Response|ClientError response, TargetType targetType, boolean requireValidation)
-        returns Response|anydata|ClientError {
-    if targetType is typedesc<Response> || response is ClientError {
-        return response;
-    }
-    int statusCode = response.statusCode;
-    if 400 <= statusCode && statusCode <= 599 {
-        string reasonPhrase = response.reasonPhrase;
-        map<string[]> headers = getHeaders(response);
-        anydata|error payload = getPayload(response);
-        if payload is error {
-            if payload is NoContentError {
-                return createResponseError(statusCode, reasonPhrase, headers);
-            }
-            return error PayloadBindingClientError("http:ApplicationResponseError creation failed: " + statusCode.toString() +
-                " response payload extraction failed", payload);
-        } else {
-            return createResponseError(statusCode, reasonPhrase, headers, payload);
-        }
-    }
-    if targetType is typedesc<anydata> {
-        anydata payload = check performDataBinding(response, targetType);
-        if requireValidation {
-            return performDataValidation(payload, targetType);
-        }
-        return payload;
-    } else {
-        panic error GenericClientError("invalid payload target type");
-    }
-}
-
 isolated function getPayload(Response response) returns anydata|error {
     string|error contentTypeValue = response.getHeader(CONTENT_TYPE);
     string value = "";
