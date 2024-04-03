@@ -733,8 +733,7 @@ isolated function createResponseError(int statusCode, string reasonPhrase, map<s
 }
 
 isolated function externProcessResponse(Response response, TargetType targetType, boolean requireValidation)
-                                  returns Response|anydata|StatusCodeResponse|ClientError =
-@java:Method {
+                                  returns Response|anydata|StatusCodeResponse|ClientError = @java:Method {
     'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternResponseProcessor",
     name: "processResponse"
 } external;
