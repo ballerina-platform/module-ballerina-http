@@ -294,6 +294,9 @@ public final class HttpConstants {
     //StatusCodeResponse struct field names
     public static final String STATUS_CODE_RESPONSE_BODY_FIELD = "body";
     public static final String STATUS_CODE_RESPONSE_STATUS_FIELD = "status";
+    public static final String STATUS_CODE_RESPONSE_STATUS_CODE_FIELD = "code";
+    public static final String STATUS_CODE_RESPONSE_MEDIA_TYPE_FIELD = "mediaType";
+    public static final String STATUS_CODE_RESPONSE_HEADERS_FIELD = "headers";
 
     //PushPromise struct field names
     public static final BString PUSH_PROMISE_PATH_FIELD = StringUtils.fromString("path");

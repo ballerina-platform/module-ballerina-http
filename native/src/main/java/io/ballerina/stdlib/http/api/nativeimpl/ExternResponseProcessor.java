@@ -32,6 +32,7 @@ import io.ballerina.stdlib.http.api.ValueCreatorUtils;
 import io.netty.handler.codec.http.HttpHeaders;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,17 +40,23 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
-import java.util.stream.Collectors;
 
+import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_HEADERS;
+import static io.ballerina.stdlib.http.api.HttpConstants.STATUS_CODE_RESPONSE_BODY_FIELD;
+import static io.ballerina.stdlib.http.api.HttpConstants.STATUS_CODE_RESPONSE_HEADERS_FIELD;
+import static io.ballerina.stdlib.http.api.HttpConstants.STATUS_CODE_RESPONSE_MEDIA_TYPE_FIELD;
+import static io.ballerina.stdlib.http.api.HttpConstants.STATUS_CODE_RESPONSE_STATUS_CODE_FIELD;
+import static io.ballerina.stdlib.http.api.HttpConstants.STATUS_CODE_RESPONSE_STATUS_FIELD;
 import static io.ballerina.stdlib.http.api.HttpErrorType.CLIENT_ERROR;
 import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_HEADER_BINDING_ERROR;
 import static io.ballerina.stdlib.http.api.HttpErrorType.PAYLOAD_BINDING_CLIENT_ERROR;
 
-public class ExternResponseProcessor {
+public final class ExternResponseProcessor {
 
     private static final String NO_HEADER_VALUE_ERROR_MSG = "no header value found for '%s'";
     private static final String HEADER_BINDING_FAILED_ERROR_MSG = "header binding failed for parameter: '%s'";
     private static final Map<String, String> STATUS_CODE_OBJS;
+
     static {
         Map<String, String> statusCodeObjectsMap = new HashMap<>();
         statusCodeObjectsMap.put("100", "StatusContinue");
@@ -116,6 +123,9 @@ public class ExternResponseProcessor {
         STATUS_CODE_OBJS = statusCodeObjectsMap;
     }
 
+    private ExternResponseProcessor() {
+    }
+
     public static Object processResponse(Environment env, BObject response, BTypedesc targetType,
                                          boolean requireValidation) {
         return getResponseWithType(response, targetType.getDescribingType(), requireValidation, env.getRuntime());
@@ -126,50 +136,57 @@ public class ExternResponseProcessor {
         long responseStatusCode = response.getIntValue(StringUtils.fromString("statusCode"));
         Optional<Type> statusCodeResponseType = getStatusCodeResponseType(targetType,
                 Long.toString(responseStatusCode));
-        if (statusCodeResponseType.isPresent()) {
-            RecordType statusCodeRecordType = (RecordType) TypeUtils.getImpliedType(statusCodeResponseType.get());
-            BMap<BString, Object> statusCodeRecord = ValueCreator.createRecordValue(statusCodeRecordType);
-
-            String statusCodeObjName = STATUS_CODE_OBJS.get(Long.toString(responseStatusCode));
-            if (Objects.isNull(statusCodeObjName)) {
-                throw HttpUtil.createHttpError("unsupported status code: " + responseStatusCode);
-            }
-            Object status = ValueCreatorUtils.createStatusCodeObject(statusCodeObjName);
-            statusCodeRecord.put(StringUtils.fromString("status"), status);
-
-            Type mediaTypeType = statusCodeRecordType.getFields().get("mediaType").getFieldType();
-            Object mediaType = getMediaType(response, mediaTypeType, requireValidation);
-            statusCodeRecord.put(StringUtils.fromString("mediaType"), mediaType);
-
-            Type headersType = statusCodeRecordType.getFields().get("headers").getFieldType();
-            Object headerMap = getHeadersMap(response, headersType, requireValidation);
-            statusCodeRecord.put(StringUtils.fromString("headers"), headerMap);
-
-            if (statusCodeRecordType.getFields().containsKey("body")) {
-                Type bodyType = statusCodeRecordType.getFields().get("body").getFieldType();
-                Object payload = getPayload(runtime, response, bodyType, requireValidation);
-                if (payload instanceof BError) {
-                    return payload;
-                }
-                statusCodeRecord.put(StringUtils.fromString("body"), payload);
-            }
-            return statusCodeRecord;
+        if (statusCodeResponseType.isPresent() &&
+                TypeUtils.getImpliedType(statusCodeResponseType.get()) instanceof RecordType statusCodeRecordType) {
+            return generateStatusCodeResponseType(response, requireValidation, runtime, statusCodeRecordType,
+                    responseStatusCode);
         } else if ((399 < responseStatusCode) && (responseStatusCode < 600)) {
+            return hasHttpResponseType(targetType) ? response : getApplicationResponseError(runtime, response);
+        } else {
+            return generatePayload(response, targetType, requireValidation, runtime);
+        }
+    }
+
+    private static Object generatePayload(BObject response, Type targetType, boolean requireValidation,
+                                          Runtime runtime) {
+        try {
+            return getPayload(runtime, response, getAnydataType(targetType), requireValidation);
+        } catch (BError e) {
             if (hasHttpResponseType(targetType)) {
                 return response;
-            } else {
-                return getApplicationResponseError(runtime, response);
             }
-        } else {
-            try {
-                return getPayload(runtime, response, getAnydataType(targetType), requireValidation);
-            } catch (BError e) {
-                if (hasHttpResponseType(targetType)) {
-                    return response;
-                }
-                return e;
-            }
+            return e;
         }
+    }
+
+    private static Object generateStatusCodeResponseType(BObject response, boolean requireValidation, Runtime runtime,
+                                                         RecordType statusCodeRecordType, long responseStatusCode) {
+        BMap<BString, Object> statusCodeRecord = ValueCreator.createRecordValue(statusCodeRecordType);
+
+        String statusCodeObjName = STATUS_CODE_OBJS.get(Long.toString(responseStatusCode));
+        if (Objects.isNull(statusCodeObjName)) {
+            throw HttpUtil.createHttpError("unsupported status code: " + responseStatusCode);
+        }
+        Object status = ValueCreatorUtils.createStatusCodeObject(statusCodeObjName);
+        statusCodeRecord.put(StringUtils.fromString(STATUS_CODE_RESPONSE_STATUS_FIELD), status);
+
+        Type mediaTypeType = statusCodeRecordType.getFields().get(STATUS_CODE_RESPONSE_MEDIA_TYPE_FIELD).getFieldType();
+        Object mediaType = getMediaType(response, mediaTypeType, requireValidation);
+        statusCodeRecord.put(StringUtils.fromString(STATUS_CODE_RESPONSE_MEDIA_TYPE_FIELD), mediaType);
+
+        Type headersType = statusCodeRecordType.getFields().get(STATUS_CODE_RESPONSE_HEADERS_FIELD).getFieldType();
+        Object headerMap = getHeadersMap(response, headersType, requireValidation);
+        statusCodeRecord.put(StringUtils.fromString(STATUS_CODE_RESPONSE_HEADERS_FIELD), headerMap);
+
+        if (statusCodeRecordType.getFields().containsKey(STATUS_CODE_RESPONSE_BODY_FIELD)) {
+            Type bodyType = statusCodeRecordType.getFields().get(STATUS_CODE_RESPONSE_BODY_FIELD).getFieldType();
+            Object payload = getPayload(runtime, response, bodyType, requireValidation);
+            if (payload instanceof BError) {
+                return payload;
+            }
+            statusCodeRecord.put(StringUtils.fromString(STATUS_CODE_RESPONSE_BODY_FIELD), payload);
+        }
+        return statusCodeRecord;
     }
 
     private static Type getAnydataType(Type targetType) {
@@ -215,12 +232,12 @@ public class ExternResponseProcessor {
     }
 
     private static String getContentType(BObject response) {
-        HttpHeaders httpHeaders = (HttpHeaders) response.getNativeData("http_headers");
+        HttpHeaders httpHeaders = (HttpHeaders) response.getNativeData(HTTP_HEADERS);
         return httpHeaders.get("Content-Type");
     }
 
     private static Object getHeadersMap(BObject response, Type headersType, boolean requireValidation) {
-        HttpHeaders httpHeaders = (HttpHeaders) response.getNativeData("http_headers");
+        HttpHeaders httpHeaders = (HttpHeaders) response.getNativeData(HTTP_HEADERS);
         Type headersImpliedType = TypeUtils.getImpliedType(headersType);
         if (headersImpliedType.getTag() == TypeTags.TYPE_REFERENCED_TYPE_TAG) {
             headersImpliedType = TypeUtils.getReferredType(headersImpliedType);
@@ -252,18 +269,17 @@ public class ExternResponseProcessor {
             if (getStatusCode(targetType).equals(statusCode)) {
                 return Optional.of(targetType);
             }
-        } else if (targetType instanceof UnionType) {
-            List<Type> memberTypes = ((UnionType) targetType).getMemberTypes();
+        } else if (targetType instanceof UnionType unionType) {
+            List<Type> memberTypes = unionType.getMemberTypes();
             for (Type memberType : memberTypes) {
                 Optional<Type> statusCodeResponseType = getStatusCodeResponseType(memberType, statusCode);
                 if (statusCodeResponseType.isPresent()) {
                     return statusCodeResponseType;
                 }
             }
-        } else if (targetType instanceof ReferenceType) {
-            if (!targetType.equals(TypeUtils.getImpliedType(targetType))) {
+        } else if (targetType instanceof ReferenceType
+                && (!targetType.equals(TypeUtils.getImpliedType(targetType)))) {
                 return getStatusCodeResponseType(TypeUtils.getImpliedType(targetType), statusCode);
-            }
         }
         return Optional.empty();
     }
@@ -271,13 +287,14 @@ public class ExternResponseProcessor {
     private static boolean isStatusCodeResponseType(Type targetType) {
         return targetType instanceof ReferenceType referenceType &&
                 TypeUtils.getImpliedType(referenceType) instanceof RecordType recordType &&
-                recordType.getFields().containsKey("status") &&
-                recordType.getFields().get("status").getFieldType() instanceof ObjectType;
+                recordType.getFields().containsKey(STATUS_CODE_RESPONSE_STATUS_FIELD) &&
+                recordType.getFields().get(STATUS_CODE_RESPONSE_STATUS_FIELD).getFieldType() instanceof ObjectType;
     }
 
     private static String getStatusCode(Type targetType) {
         return ((ObjectType) ((RecordType) TypeUtils.getImpliedType(targetType)).getFields().
-                get("status").getFieldType()).getFields().get("code").getFieldType().getEmptyValue().toString();
+                get(STATUS_CODE_RESPONSE_STATUS_FIELD).getFieldType()).getFields().
+                get(STATUS_CODE_RESPONSE_STATUS_CODE_FIELD).getFieldType().getEmptyValue().toString();
     }
 
     private static Object createHeaderMap(HttpHeaders httpHeaders, Type elementType) throws BError {
@@ -331,9 +348,9 @@ public class ExternResponseProcessor {
     private static BArray parseHeaderValue(List<String> header) {
         List<Object> parsedValues;
         try {
-            parsedValues = header.stream().map(JsonUtils::parse).collect(Collectors.toList());
+            parsedValues = header.stream().map(JsonUtils::parse).toList();
         } catch (Exception e) {
-            parsedValues = header.stream().map(StringUtils::fromString).collect(Collectors.toList());
+            parsedValues = Collections.singletonList(header.stream().map(StringUtils::fromString));
         }
         return ValueCreator.createArrayValue(parsedValues.toArray(),
                 TypeCreator.createArrayType(PredefinedTypes.TYPE_JSON));
@@ -408,8 +425,8 @@ public class ExternResponseProcessor {
                                               String errorMsg) {
         if (requireValidation) {
             Object result = Constraints.validate(convertedValue, ValueCreator.createTypedescValue(type));
-            if (result instanceof BError) {
-                String message = errorMsg + ": " + HttpUtil.getPrintableErrorMsg((BError) result);
+            if (result instanceof BError bError) {
+                String message = errorMsg + ": " + HttpUtil.getPrintableErrorMsg(bError);
                 throw HttpUtil.createHttpError(message, CLIENT_ERROR);
             }
         }
@@ -445,6 +462,7 @@ public class ExternResponseProcessor {
             countDownLatch.await();
             return payload[0];
         } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
             return HttpUtil.createHttpError("payload binding failed", CLIENT_ERROR, HttpUtil.createError(exception));
         }
     }
@@ -471,6 +489,7 @@ public class ExternResponseProcessor {
             countDownLatch.await();
             return clientError[0];
         } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
             return HttpUtil.createHttpError("http:ApplicationResponseError creation failed",
                     PAYLOAD_BINDING_CLIENT_ERROR, HttpUtil.createError(exception));
         }
