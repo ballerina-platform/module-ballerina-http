@@ -153,7 +153,7 @@ public final class ExternResponseProcessor {
     private static Object getResponseWithType(BObject response, Type targetType, boolean requireValidation,
                                               Runtime runtime) {
         long responseStatusCode = getStatusCode(response);
-        Optional<Type> statusCodeResponseType = getStatusCodeResponseType(targetType, 
+        Optional<Type> statusCodeResponseType = getStatusCodeResponseType(targetType,
                 Long.toString(responseStatusCode));
         if (statusCodeResponseType.isPresent() &&
                 TypeUtils.getImpliedType(statusCodeResponseType.get()) instanceof RecordType statusCodeRecordType) {
@@ -369,7 +369,7 @@ public final class ExternResponseProcessor {
                 Object convertedValue = convertHeaderValues(headerValues, elementType);
                 headerMap.put(StringUtils.fromString(headerName), convertedValue);
             } catch (BError ex) {
-                return HttpUtil.createHttpError(String.format(HEADER_BINDING_FAILED_ERROR_MSG, headerName),
+                return createHttpError(String.format(HEADER_BINDING_FAILED_ERROR_MSG, headerName),
                         HEADER_BINDING_CLIENT_ERROR,  ex);
             }
         }
@@ -387,10 +387,8 @@ public final class ExternResponseProcessor {
             List<String> headerValues = getHeader(httpHeaders, headerName);
 
             if (headerValues.isEmpty()) {
-                if (isOptionalHeaderField(headerField) || headerFieldType.isNilable()) {
-                    if (headerFieldType.isNilable()) {
-                        headerMap.put(StringUtils.fromString(headerName), null);
-                    }
+                // Only optional is allowed at the moment
+                if (isOptionalHeaderField(headerField)) {
                     continue;
                 }
                 // Return Header Not Found Error
