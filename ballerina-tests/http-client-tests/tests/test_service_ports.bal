@@ -39,3 +39,4 @@ const int passthroughHostTestPort1 = 9607;
 const int passthroughHostTestPort2 = 9608;
 
 const int statusCodeBindingPort1 = 9609;
+const int statusCodeBindingPort2 = 9610;
