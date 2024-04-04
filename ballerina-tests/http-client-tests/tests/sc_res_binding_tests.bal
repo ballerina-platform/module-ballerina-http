@@ -167,7 +167,7 @@ function testGetSuccessStatusCodeResponse() returns error? {
     AlbumNotFound|error res8 = albumClient->/albums/'1;
     if res8 is error {
         test:assertTrue(res8 is http:PayloadBindingError);
-        test:assertEquals(res8.message(), "incompatible status_code_binding_test:AlbumNotFound found for response with 200",
+        test:assertEquals(res8.message(), "incompatible http_client_tests:AlbumNotFound found for response with 200",
             "Invalid error message");
         error? cause = res8.cause();
         if cause is error {
