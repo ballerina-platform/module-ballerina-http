@@ -53,6 +53,7 @@ import static io.ballerina.stdlib.http.api.HttpErrorType.CLIENT_ERROR;
 import static io.ballerina.stdlib.http.api.HttpErrorType.HEADER_BINDING_CLIENT_ERROR;
 import static io.ballerina.stdlib.http.api.HttpErrorType.HEADER_NOT_FOUND_CLIENT_ERROR;
 import static io.ballerina.stdlib.http.api.HttpErrorType.HEADER_VALIDATION_CLIENT_ERROR;
+import static io.ballerina.stdlib.http.api.HttpErrorType.MEDIA_TYPE_BINDING_CLIENT_ERROR;
 import static io.ballerina.stdlib.http.api.HttpErrorType.MEDIA_TYPE_VALIDATION_CLIENT_ERROR;
 import static io.ballerina.stdlib.http.api.HttpErrorType.PAYLOAD_BINDING_CLIENT_ERROR;
 import static io.ballerina.stdlib.http.api.HttpErrorType.STATUS_CODE_RECORD_BINDING_ERROR;
@@ -278,7 +279,7 @@ public final class ExternResponseProcessor {
             return validateConstraints(requireValidation, convertedValue, mediaTypeType,
                     MEDIA_TYPE_VALIDATION_CLIENT_ERROR, MEDIA_TYPE_BINDING_FAILED);
         } catch (BError conversionError) {
-            return createHttpError(MEDIA_TYPE_BINDING_FAILED, MEDIA_TYPE_VALIDATION_CLIENT_ERROR, conversionError);
+            return createHttpError(MEDIA_TYPE_BINDING_FAILED, MEDIA_TYPE_BINDING_CLIENT_ERROR, conversionError);
         }
     }
 

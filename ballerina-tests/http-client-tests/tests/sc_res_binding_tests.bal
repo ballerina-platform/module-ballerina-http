@@ -14,6 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/constraint;
 import ballerina/http;
 import ballerina/test;
 
@@ -59,9 +60,40 @@ type ArrayHeaderWithUnion record {|
     int[]|boolean[] req\-id;
 |};
 
+type ReqIdUnionType int|boolean[];
+
+enum UserIds {
+    USER1 = "user-1",
+    USER2 = "user-2",
+    USER3 = "user-3"
+}
+
+type ArrayHeaderWithTypes record {|
+    UserIds user\-id;
+    ReqIdUnionType req\-id;
+|};
+
 type IntHeaders record {|
     int user\-id;
     int req\-id;
+|};
+
+type AdditionalHeaders record {|
+    string user\-id;
+    int req\-id;
+    string content\-type;
+|};
+
+type AdditionalMissingHeaders record {|
+    string user\-id;
+    int req\-id;
+    string x\-content\-type;
+|};
+
+type AdditionalOptionalHeaders record {|
+    string user\-id;
+    int req\-id;
+    string x\-content\-type?;
 |};
 
 type AlbumNotFound record {|
@@ -92,6 +124,104 @@ type AlbumFoundMock3 record {|
     *http:Ok;
     AlbumUnion2 body;
     Headers headers;
+|};
+
+type AlbumInvalid record {|
+    *Album;
+    string invalidField;
+|};
+
+type AlbumFoundInvalid record {|
+    *http:Ok;
+    AlbumInvalid body;
+    Headers headers;
+|};
+
+enum AllowedMediaTypes {
+    APPLICATION_JSON = "application/json",
+    APPLICATION_XML = "application/xml"
+}
+
+@constraint:String {pattern: re `application/json|application/xml`}
+type MediaTypeWithConstraint string;
+
+type AlbumFoundWithConstraints record {|
+    *http:Ok;
+    record {|
+        @constraint:String {minLength: 1, maxLength: 10}
+        string id;
+        string name;
+        string artist;
+        @constraint:String {pattern: re `Hard Rock|Progressive Rock`}
+        string genre;
+    |} body;
+    record {|
+        @constraint:String {minLength: 1, maxLength: 10}
+        string user\-id;
+        @constraint:Int {minValue: 1, maxValue: 10}
+        int req\-id;
+    |} headers;
+    MediaTypeWithConstraint mediaType;
+|};
+
+type AlbumFoundWithInvalidConstraints1 record {|
+    *http:Ok;
+    record {|
+        @constraint:String {minLength: 1, maxLength: 10}
+        string id;
+        string name;
+        string artist;
+        @constraint:String {pattern: re `Hard-Rock|Progressive-Rock`}
+        string genre;
+    |} body;
+    record {|
+        @constraint:String {minLength: 1, maxLength: 10}
+        string user\-id;
+        @constraint:Int {minValue: 1, maxValue: 10}
+        int req\-id;
+    |} headers;
+    MediaTypeWithConstraint mediaType;
+|};
+
+type AlbumFoundWithInvalidConstraints2 record {|
+    *http:Ok;
+    record {|
+        @constraint:String {minLength: 1, maxLength: 10}
+        string id;
+        string name;
+        string artist;
+        @constraint:String {pattern: re `Hard Rock|Progressive Rock`}
+        string genre;
+    |} body;
+    record {|
+        @constraint:String {minLength: 1, maxLength: 10}
+        string user\-id;
+        @constraint:Int {minValue: 10}
+        int req\-id;
+    |} headers;
+    MediaTypeWithConstraint mediaType;
+|};
+
+@constraint:String {pattern: re `application+org/json|application/xml`}
+type MediaTypeWithInvalidPattern string;
+
+type AlbumFoundWithInvalidConstraints3 record {|
+    *http:Ok;
+    record {|
+        @constraint:String {minLength: 1, maxLength: 10}
+        string id;
+        string name;
+        string artist;
+        @constraint:String {pattern: re `Hard Rock|Progressive Rock`}
+        string genre;
+    |} body;
+    record {|
+        @constraint:String {minLength: 1, maxLength: 10}
+        string user\-id;
+        @constraint:Int {minValue: 1, maxValue: 10}
+        int req\-id;
+    |} headers;
+    MediaTypeWithInvalidPattern mediaType;
 |};
 
 service /api on new http:Listener(statusCodeBindingPort2) {
@@ -379,6 +509,15 @@ function testUnionPayloadBindingWithStatusCodeResponse() returns error? {
     } else {
         test:assertFail("Invalid response type");
     }
+
+    AlbumFoundInvalid|AlbumFound|AlbumNotFound|error res11 = albumClient->/albums/'1;
+    if res11 is error {
+        test:assertTrue(res11 is http:PayloadBindingError);
+        test:assertTrue(res11.message().includes("Payload binding failed: 'map<json>' value cannot be" +
+        " converted to 'http_client_tests:AlbumInvalid"), "Invalid error message");
+    } else {
+        test:assertFail("Invalid response type");
+    }
 }
 
 @test:Config {}
@@ -395,10 +534,139 @@ function testStatusCodeBindingWithDifferentHeaders() returns error? {
     test:assertEquals(res2.headers.req\-id, [1], "Invalid req-id header");
     test:assertEquals(res2.mediaType, "application/json", "Invalid media type");
 
-    record {|*http:Ok; IntHeaders headers;|}|error res3 = albumClient->/albums/'1;
+    record {|*http:Ok; ArrayHeaderWithTypes headers;|} res3 = check albumClient->/albums/'1;
+    test:assertEquals(res3?.body, albums.get("1"), "Invalid album returned");
+    test:assertEquals(res3.headers.user\-id, USER1, "Invalid user-id header");
+    test:assertEquals(res3.headers.req\-id, 1, "Invalid req-id header");
+    test:assertEquals(res3.mediaType, "application/json", "Invalid media type");
+
+    record {|*http:Ok; IntHeaders headers;|}|error res4 = albumClient->/albums/'1;
+    if res4 is error {
+        test:assertTrue(res4 is http:HeaderBindingError);
+        test:assertEquals(res4.message(), "header binding failed for parameter: 'user-id'", "Invalid error message");
+    } else {
+        test:assertFail("Invalid response type");
+    }
+
+    record {|*http:Ok; AdditionalHeaders headers;|} res5 = check albumClient->/albums/'1;
+    test:assertEquals(res5?.body, albums.get("1"), "Invalid album returned");
+    test:assertEquals(res5.headers.user\-id, "user-1", "Invalid user-id header");
+    test:assertEquals(res5.headers.req\-id, 1, "Invalid req-id header");
+    test:assertEquals(res5.headers.content\-type, "application/json", "Invalid content-type header");
+    test:assertEquals(res5.mediaType, "application/json", "Invalid media type");
+
+    record {|*http:Ok; AdditionalMissingHeaders headers;|}|error res6 = albumClient->/albums/'1;
+    if res6 is error {
+        test:assertTrue(res6 is http:HeaderNotFoundError);
+        test:assertEquals(res6.message(), "no header value found for 'x-content-type'", "Invalid error message");
+    } else {
+        test:assertFail("Invalid response type");
+    }
+
+    record {|*http:Ok; AdditionalOptionalHeaders headers;|} res7 = check albumClient->/albums/'1;
+    test:assertEquals(res7?.body, albums.get("1"), "Invalid album returned");
+    test:assertEquals(res7.headers.user\-id, "user-1", "Invalid user-id header");
+    test:assertEquals(res7.headers.req\-id, 1, "Invalid req-id header");
+    test:assertEquals(res7.headers.x\-content\-type, (), "Invalid x-content-type header");
+    test:assertEquals(res7.mediaType, "application/json", "Invalid media type");
+}
+
+@test:Config {}
+function testStatusCodeBindingWithMediaTypes() returns error? {
+    record {|*http:Ok; "application/json" mediaType;|} res1 = check albumClient->/albums/'1;
+    test:assertEquals(res1?.body, albums.get("1"), "Invalid album returned");
+    test:assertEquals(res1.mediaType, "application/json", "Invalid media type");
+    map<string|int|boolean|string[]|int[]|boolean[]> headers = res1.headers ?: {};
+    test:assertEquals(headers.get("user-id"), "user-1", "Invalid user-id header");
+    test:assertEquals(headers.get("req-id"), "1", "Invalid req-id header");
+
+    record {|*http:Ok; "application/xml"|"application/json" mediaType;|} res2 = check albumClient->/albums/'1;
+    test:assertEquals(res2?.body, albums.get("1"), "Invalid album returned");
+    test:assertEquals(res2.mediaType, "application/json", "Invalid media type");
+    headers = res2.headers ?: {};
+    test:assertEquals(headers.get("user-id"), "user-1", "Invalid user-id header");
+    test:assertEquals(headers.get("req-id"), "1", "Invalid req-id header");
+
+    record {|*http:Ok; AllowedMediaTypes mediaType;|} res3 = check albumClient->/albums/'1;
+    test:assertEquals(res3?.body, albums.get("1"), "Invalid album returned");
+    test:assertEquals(res3.mediaType, APPLICATION_JSON, "Invalid media type");
+    headers = res3.headers ?: {};
+    test:assertEquals(headers.get("user-id"), "user-1", "Invalid user-id header");
+    test:assertEquals(headers.get("req-id"), "1", "Invalid req-id header");
+
+    record {|*http:Ok; "application/xml" mediaType;|}|error res4 = albumClient->/albums/'1;
+    if res4 is error {
+        test:assertTrue(res4 is http:MediaTypeBindingError);
+        test:assertEquals(res4.message(), "media-type binding failed", "Invalid error message");
+    } else {
+        test:assertFail("Invalid response type");
+    }
+}
+
+@test:Config {}
+function testStatusCodeBindingWithConstraintsSuccess() returns error? {
+    AlbumFoundWithConstraints res1 = check albumClient->/albums/'2;
+    test:assertEquals(res1.body, albums.get("2"), "Invalid album returned");
+    test:assertEquals(res1.headers.user\-id, "user-1", "Invalid user-id header");
+    test:assertEquals(res1.headers.req\-id, 1, "Invalid req-id header");
+    test:assertEquals(res1.mediaType, "application/json", "Invalid media type");
+
+    AlbumFoundWithConstraints|AlbumFound|Album|http:Response res2 = check albumClient->get("/albums/2");
+    if res2 is AlbumFoundWithConstraints {
+        test:assertEquals(res2.body, albums.get("2"), "Invalid album returned");
+        test:assertEquals(res2.headers.user\-id, "user-1", "Invalid user-id header");
+        test:assertEquals(res2.headers.req\-id, 1, "Invalid req-id header");
+        test:assertEquals(res2.mediaType, "application/json", "Invalid media type");
+    } else {
+        test:assertFail("Invalid response type");
+    }
+
+    AlbumFound|AlbumFoundWithConstraints res3 = check albumClient->/albums/'2;
+    if res3 is AlbumFound {
+        test:assertEquals(res3.body, albums.get("2"), "Invalid album returned");
+        test:assertEquals(res3.headers.user\-id, "user-1", "Invalid user-id header");
+        test:assertEquals(res3.headers.req\-id, 1, "Invalid req-id header");
+        test:assertEquals(res3.mediaType, "application/json", "Invalid media type");
+    } else {
+        test:assertFail("Invalid response type");
+    }
+}
+
+@test:Config {}
+function testStatusCodeBindingWithConstraintsFailure() returns error? {
+    AlbumFoundWithInvalidConstraints1|error res1 = albumClient->/albums/'2;
+    if res1 is error {
+        test:assertTrue(res1 is http:PayloadValidationError);
+        test:assertEquals(res1.message(), "payload validation failed: Validation failed for " +
+        "'$.genre:pattern' constraint(s).", "Invalid error message");
+    } else {
+        test:assertFail("Invalid response type");
+    }
+
+    AlbumFoundWithInvalidConstraints2|AlbumFound|error res2 = albumClient->get("/albums/2");
+    if res2 is error {
+        test:assertTrue(res2 is http:HeaderValidationError);
+        test:assertEquals(res2.message(), "header binding failed: Validation failed for " +
+        "'$.req-id:minValue' constraint(s).", "Invalid error message");
+    } else {
+        test:assertFail("Invalid response type");
+    }
+
+    AlbumFoundWithInvalidConstraints3|Album|error res3 = albumClient->/albums/'2;
     if res3 is error {
-        test:assertTrue(res3 is http:HeaderBindingError);
-        test:assertEquals(res3.message(), "header binding failed for parameter: 'user-id'", "Invalid error message");
+        test:assertTrue(res3 is http:MediaTypeValidationError);
+        test:assertEquals(res3.message(), "media-type binding failed: Validation failed for " +
+        "'$:pattern' constraint(s).", "Invalid error message");
+    } else {
+        test:assertFail("Invalid response type");
+    }
+
+    AlbumFound|AlbumFoundWithInvalidConstraints1|error res4 = albumClient->get("/albums/2");
+    if res4 is AlbumFound {
+        test:assertEquals(res4.body, albums.get("2"), "Invalid album returned");
+        test:assertEquals(res4.headers.user\-id, "user-1", "Invalid user-id header");
+        test:assertEquals(res4.headers.req\-id, 1, "Invalid req-id header");
+        test:assertEquals(res4.mediaType, "application/json", "Invalid media type");
     } else {
         test:assertFail("Invalid response type");
     }
