@@ -95,6 +95,7 @@ public final class ExternRequestContext {
                     "no next service to be returned");
         }
         if (interceptorIndex < 0) {
+            requestCtx.addNativeData(HttpConstants.RESPONSE_INTERCEPTOR_INDEX, -1);
             return null;
         }
         updateInterceptorIndex(requestCtx, requiredInterceptorType, interceptorIndex);
