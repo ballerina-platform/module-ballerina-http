@@ -28,12 +28,12 @@ import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.api.values.BTypedesc;
 import io.ballerina.stdlib.constraint.Constraints;
+import io.ballerina.stdlib.http.api.HttpErrorType;
 import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.api.ValueCreatorUtils;
 import io.netty.handler.codec.http.HttpHeaders;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,8 +50,13 @@ import static io.ballerina.stdlib.http.api.HttpConstants.STATUS_CODE_RESPONSE_ME
 import static io.ballerina.stdlib.http.api.HttpConstants.STATUS_CODE_RESPONSE_STATUS_CODE_FIELD;
 import static io.ballerina.stdlib.http.api.HttpConstants.STATUS_CODE_RESPONSE_STATUS_FIELD;
 import static io.ballerina.stdlib.http.api.HttpErrorType.CLIENT_ERROR;
-import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_HEADER_BINDING_ERROR;
+import static io.ballerina.stdlib.http.api.HttpErrorType.HEADER_BINDING_CLIENT_ERROR;
+import static io.ballerina.stdlib.http.api.HttpErrorType.HEADER_NOT_FOUND_CLIENT_ERROR;
+import static io.ballerina.stdlib.http.api.HttpErrorType.HEADER_VALIDATION_CLIENT_ERROR;
+import static io.ballerina.stdlib.http.api.HttpErrorType.MEDIA_TYPE_VALIDATION_CLIENT_ERROR;
 import static io.ballerina.stdlib.http.api.HttpErrorType.PAYLOAD_BINDING_CLIENT_ERROR;
+import static io.ballerina.stdlib.http.api.HttpErrorType.STATUS_CODE_RECORD_BINDING_ERROR;
+import static io.ballerina.stdlib.http.api.HttpUtil.createHttpError;
 
 public final class ExternResponseProcessor {
 
@@ -168,7 +173,7 @@ public final class ExternResponseProcessor {
             if (hasHttpResponseType(targetType)) {
                 return response;
             }
-            return HttpUtil.createHttpError(String.format(INCOMPATIBLE_TYPE_FOUND_FOR_RESPONSE, targetType,
+            return createHttpError(String.format(INCOMPATIBLE_TYPE_FOUND_FOR_RESPONSE, targetType,
                     getStatusCode(response)), PAYLOAD_BINDING_CLIENT_ERROR, e);
         }
     }
@@ -183,14 +188,24 @@ public final class ExternResponseProcessor {
 
         String statusCodeObjName = STATUS_CODE_OBJS.get(Long.toString(responseStatusCode));
         if (Objects.isNull(statusCodeObjName)) {
-            throw HttpUtil.createHttpError(String.format(UNSUPPORTED_STATUS_CODE, responseStatusCode));
+            return createHttpError(String.format(UNSUPPORTED_STATUS_CODE, responseStatusCode),
+                    STATUS_CODE_RECORD_BINDING_ERROR);
         }
 
         populateStatusCodeObject(statusCodeObjName, statusCodeRecord);
-        populatedHeaders(response, requireValidation, statusCodeRecordType, statusCodeRecord);
+
+        Object headerMap = getHeaders(response, requireValidation, statusCodeRecordType);
+        if (headerMap instanceof BError) {
+            return headerMap;
+        }
+        statusCodeRecord.put(StringUtils.fromString(STATUS_CODE_RESPONSE_HEADERS_FIELD), headerMap);
 
         if (statusCodeRecordType.getFields().containsKey(STATUS_CODE_RESPONSE_MEDIA_TYPE_FIELD)) {
-            populateMediaType(response, requireValidation, statusCodeRecordType, statusCodeRecord);
+            Object mediaType = getMediaType(response, requireValidation, statusCodeRecordType);
+            if (mediaType instanceof BError) {
+                return mediaType;
+            }
+            statusCodeRecord.put(StringUtils.fromString(STATUS_CODE_RESPONSE_MEDIA_TYPE_FIELD), mediaType);
         }
 
         if (statusCodeRecordType.getFields().containsKey(STATUS_CODE_RESPONSE_BODY_FIELD)) {
@@ -209,18 +224,14 @@ public final class ExternResponseProcessor {
         return getPayload(runtime, response, bodyType, requireValidation);
     }
 
-    private static void populatedHeaders(BObject response, boolean requireValidation, RecordType statusCodeRecordType,
-                                         BMap<BString, Object> statusCodeRecord) {
+    private static Object getHeaders(BObject response, boolean requireValidation, RecordType statusCodeRecordType) {
         Type headersType = statusCodeRecordType.getFields().get(STATUS_CODE_RESPONSE_HEADERS_FIELD).getFieldType();
-        Object headerMap = getHeadersMap(response, headersType, requireValidation);
-        statusCodeRecord.put(StringUtils.fromString(STATUS_CODE_RESPONSE_HEADERS_FIELD), headerMap);
+        return getHeadersMap(response, headersType, requireValidation);
     }
 
-    private static void populateMediaType(BObject response, boolean requireValidation, RecordType statusCodeRecordType,
-                                          BMap<BString, Object> statusCodeRecord) {
+    private static Object getMediaType(BObject response, boolean requireValidation, RecordType statusCodeRecordType) {
         Type mediaTypeType = statusCodeRecordType.getFields().get(STATUS_CODE_RESPONSE_MEDIA_TYPE_FIELD).getFieldType();
-        Object mediaType = getMediaType(response, mediaTypeType, requireValidation);
-        statusCodeRecord.put(StringUtils.fromString(STATUS_CODE_RESPONSE_MEDIA_TYPE_FIELD), mediaType);
+        return getMediaType(response, mediaTypeType, requireValidation);
     }
 
     private static void populateStatusCodeObject(String statusCodeObjName, BMap<BString, Object> statusCodeRecord) {
@@ -264,9 +275,10 @@ public final class ExternResponseProcessor {
         try {
             Object convertedValue = ValueUtils.convert(Objects.nonNull(contentType) ?
                     StringUtils.fromString(contentType) : null, mediaTypeType);
-            return validateConstraints(requireValidation, convertedValue, mediaTypeType, MEDIA_TYPE_BINDING_FAILED);
+            return validateConstraints(requireValidation, convertedValue, mediaTypeType,
+                    MEDIA_TYPE_VALIDATION_CLIENT_ERROR, MEDIA_TYPE_BINDING_FAILED);
         } catch (BError conversionError) {
-            throw HttpUtil.createHttpError(MEDIA_TYPE_BINDING_FAILED, CLIENT_ERROR, conversionError);
+            return createHttpError(MEDIA_TYPE_BINDING_FAILED, MEDIA_TYPE_VALIDATION_CLIENT_ERROR, conversionError);
         }
     }
 
@@ -281,6 +293,7 @@ public final class ExternResponseProcessor {
         if (headersImpliedType.getTag() == TypeTags.TYPE_REFERENCED_TYPE_TAG) {
             headersImpliedType = TypeUtils.getReferredType(headersImpliedType);
         }
+
         Object headerMap;
         if (headersImpliedType.getTag() == TypeTags.MAP_TAG) {
             headerMap = createHeaderMap(httpHeaders,
@@ -288,10 +301,21 @@ public final class ExternResponseProcessor {
         } else if (headersImpliedType.getTag() == TypeTags.RECORD_TYPE_TAG) {
             headerMap = createHeaderRecord(httpHeaders, (RecordType) headersImpliedType);
         } else {
-            throw HttpUtil.createHttpError(String.format(UNSUPPORTED_HEADERS_TYPE, headersType));
+            return createHttpError(String.format(UNSUPPORTED_HEADERS_TYPE, headersType),
+                    STATUS_CODE_RECORD_BINDING_ERROR);
         }
-        Object convertedHeaderMap = ValueUtils.convert(headerMap, headersType);
-        return validateConstraints(requireValidation, convertedHeaderMap, headersType, HEADER_BINDING_FAILED);
+
+        if (headerMap instanceof BError) {
+            return headerMap;
+        }
+
+        try {
+            Object convertedHeaderMap = ValueUtils.convert(headerMap, headersType);
+            return validateConstraints(requireValidation, convertedHeaderMap, headersType,
+                    HEADER_VALIDATION_CLIENT_ERROR, HEADER_BINDING_FAILED);
+        } catch (BError conversionError) {
+            return createHttpError(HEADER_BINDING_FAILED, HEADER_BINDING_CLIENT_ERROR, conversionError);
+        }
     }
 
     private static boolean hasHttpResponseType(Type targetType) {
@@ -335,23 +359,23 @@ public final class ExternResponseProcessor {
                 get(STATUS_CODE_RESPONSE_STATUS_CODE_FIELD).getFieldType().getEmptyValue().toString();
     }
 
-    private static Object createHeaderMap(HttpHeaders httpHeaders, Type elementType) throws BError {
+    private static Object createHeaderMap(HttpHeaders httpHeaders, Type elementType) {
         BMap<BString, Object> headerMap = ValueCreator.createMapValue();
         Set<String> headerNames = httpHeaders.names();
         for (String headerName : headerNames) {
-            List<String> headerValues = httpHeaders.getAll(headerName);
+            List<String> headerValues = getHeader(httpHeaders, headerName);
             try {
                 Object convertedValue = convertHeaderValues(headerValues, elementType);
                 headerMap.put(StringUtils.fromString(headerName), convertedValue);
-            } catch (Exception ex) {
-                throw HttpUtil.createHttpStatusCodeError(INTERNAL_HEADER_BINDING_ERROR,
-                        String.format(HEADER_BINDING_FAILED_ERROR_MSG, headerName), null, HttpUtil.createError(ex));
+            } catch (BError ex) {
+                return HttpUtil.createHttpError(String.format(HEADER_BINDING_FAILED_ERROR_MSG, headerName),
+                        HEADER_BINDING_CLIENT_ERROR,  ex);
             }
         }
         return headerMap;
     }
 
-    private static Object createHeaderRecord(HttpHeaders httpHeaders, RecordType headersType) throws BError {
+    private static Object createHeaderRecord(HttpHeaders httpHeaders, RecordType headersType) {
         Map<String, Field> headers = headersType.getFields();
         BMap<BString, Object> headerMap = ValueCreator.createMapValue();
         for (Map.Entry<String, Field> header : headers.entrySet()) {
@@ -361,37 +385,37 @@ public final class ExternResponseProcessor {
             String headerName = header.getKey();
             List<String> headerValues = getHeader(httpHeaders, headerName);
 
-            if (Objects.isNull(headerValues) || headerValues.isEmpty()) {
+            if (headerValues.isEmpty()) {
                 if (isOptionalHeaderField(headerField) || headerFieldType.isNilable()) {
                     if (headerFieldType.isNilable()) {
                         headerMap.put(StringUtils.fromString(headerName), null);
                     }
                     continue;
                 }
-                throw HttpUtil.createHttpStatusCodeError(INTERNAL_HEADER_BINDING_ERROR,
-                        String.format(NO_HEADER_VALUE_ERROR_MSG, headerName));
+                // Return Header Not Found Error
+                return createHttpError(String.format(NO_HEADER_VALUE_ERROR_MSG, headerName),
+                        HEADER_NOT_FOUND_CLIENT_ERROR);
             }
 
             try {
                 Object convertedValue = convertHeaderValues(headerValues, headerFieldType);
                 headerMap.put(StringUtils.fromString(headerName), convertedValue);
-            } catch (Exception ex) {
-                throw HttpUtil.createHttpStatusCodeError(INTERNAL_HEADER_BINDING_ERROR,
-                        String.format(HEADER_BINDING_FAILED_ERROR_MSG, headerName), null, HttpUtil.createError(ex));
+            } catch (BError ex) {
+                return createHttpError(String.format(HEADER_BINDING_FAILED_ERROR_MSG, headerName),
+                        HEADER_BINDING_CLIENT_ERROR, ex);
             }
         }
         return headerMap;
     }
 
     private static BArray parseHeaderValue(List<String> header) {
-        List<Object> parsedValues;
+        Object[] parsedValues;
         try {
-            parsedValues = header.stream().map(JsonUtils::parse).toList();
+            parsedValues = header.stream().map(JsonUtils::parse).toList().toArray();
         } catch (Exception e) {
-            parsedValues = Collections.singletonList(header.stream().map(StringUtils::fromString));
+            parsedValues = header.stream().map(StringUtils::fromString).toList().toArray();
         }
-        return ValueCreator.createArrayValue(parsedValues.toArray(),
-                TypeCreator.createArrayType(PredefinedTypes.TYPE_JSON));
+        return ValueCreator.createArrayValue(parsedValues, TypeCreator.createArrayType(PredefinedTypes.TYPE_JSON));
     }
 
     static class HeaderTypeInfo {
@@ -456,16 +480,16 @@ public final class ExternResponseProcessor {
     }
 
     private static List<String> getHeader(HttpHeaders httpHeaders, String headerName) {
-        return httpHeaders.getAll(headerName);
+        return httpHeaders.getAllAsString(headerName);
     }
 
     private static Object validateConstraints(boolean requireValidation, Object convertedValue, Type type,
-                                              String errorMsg) {
+                                              HttpErrorType errorType, String errorMsg) {
         if (requireValidation) {
             Object result = Constraints.validate(convertedValue, ValueCreator.createTypedescValue(type));
             if (result instanceof BError bError) {
                 String message = errorMsg + ": " + HttpUtil.getPrintableErrorMsg(bError);
-                throw HttpUtil.createHttpError(message, CLIENT_ERROR);
+                return createHttpError(message, errorType);
             }
         }
         return convertedValue;
@@ -501,7 +525,7 @@ public final class ExternResponseProcessor {
             return payload[0];
         } catch (InterruptedException exception) {
             Thread.currentThread().interrupt();
-            return HttpUtil.createHttpError(PAYLOAD_BINDING_FAILED, CLIENT_ERROR, HttpUtil.createError(exception));
+            return createHttpError(PAYLOAD_BINDING_FAILED, CLIENT_ERROR, HttpUtil.createError(exception));
         }
     }
 
@@ -528,7 +552,7 @@ public final class ExternResponseProcessor {
             return clientError[0];
         } catch (InterruptedException exception) {
             Thread.currentThread().interrupt();
-            return HttpUtil.createHttpError(APPLICATION_RES_ERROR_CREATION_FAILED,
+            return createHttpError(APPLICATION_RES_ERROR_CREATION_FAILED,
                     PAYLOAD_BINDING_CLIENT_ERROR, HttpUtil.createError(exception));
         }
     }
