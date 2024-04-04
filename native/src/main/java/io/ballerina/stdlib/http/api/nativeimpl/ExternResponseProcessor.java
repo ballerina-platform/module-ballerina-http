@@ -66,7 +66,7 @@ public final class ExternResponseProcessor {
         statusCodeObjectsMap.put("200", "StatusOK");
         statusCodeObjectsMap.put("201", "StatusCreated");
         statusCodeObjectsMap.put("202", "StatusAccepted");
-        statusCodeObjectsMap.put("203", "StatusNonAuthoritativeInfo");
+        statusCodeObjectsMap.put("203", "StatusNonAuthoritativeInformation");
         statusCodeObjectsMap.put("204", "StatusNoContent");
         statusCodeObjectsMap.put("205", "StatusResetContent");
         statusCodeObjectsMap.put("206", "StatusPartialContent");
@@ -88,16 +88,16 @@ public final class ExternResponseProcessor {
         statusCodeObjectsMap.put("404", "StatusNotFound");
         statusCodeObjectsMap.put("405", "StatusMethodNotAllowed");
         statusCodeObjectsMap.put("406", "StatusNotAcceptable");
-        statusCodeObjectsMap.put("407", "StatusProxyAuthRequired");
+        statusCodeObjectsMap.put("407", "StatusProxyAuthenticationRequired");
         statusCodeObjectsMap.put("408", "StatusRequestTimeout");
         statusCodeObjectsMap.put("409", "StatusConflict");
         statusCodeObjectsMap.put("410", "StatusGone");
         statusCodeObjectsMap.put("411", "StatusLengthRequired");
         statusCodeObjectsMap.put("412", "StatusPreconditionFailed");
-        statusCodeObjectsMap.put("413", "StatusRequestEntityTooLarge");
-        statusCodeObjectsMap.put("414", "StatusRequestURITooLong");
+        statusCodeObjectsMap.put("413", "StatusPayloadTooLarge");
+        statusCodeObjectsMap.put("414", "StatusUriTooLong");
         statusCodeObjectsMap.put("415", "StatusUnsupportedMediaType");
-        statusCodeObjectsMap.put("416", "StatusRequestedRangeNotSatisfiable");
+        statusCodeObjectsMap.put("416", "StatusRangeNotSatisfiable");
         statusCodeObjectsMap.put("417", "StatusExpectationFailed");
         statusCodeObjectsMap.put("421", "StatusMisdirectedRequest");
         statusCodeObjectsMap.put("422", "StatusUnprocessableEntity");
@@ -108,13 +108,13 @@ public final class ExternResponseProcessor {
         statusCodeObjectsMap.put("428", "StatusPreconditionRequired");
         statusCodeObjectsMap.put("429", "StatusTooManyRequests");
         statusCodeObjectsMap.put("431", "StatusRequestHeaderFieldsTooLarge");
-        statusCodeObjectsMap.put("451", "StatusUnavailableForLegalReasons");
+        statusCodeObjectsMap.put("451", "StatusUnavailableDueToLegalReasons");
         statusCodeObjectsMap.put("500", "StatusInternalServerError");
         statusCodeObjectsMap.put("501", "StatusNotImplemented");
         statusCodeObjectsMap.put("502", "StatusBadGateway");
         statusCodeObjectsMap.put("503", "StatusServiceUnavailable");
         statusCodeObjectsMap.put("504", "StatusGatewayTimeout");
-        statusCodeObjectsMap.put("505", "StatusHTTPVersionNotSupported");
+        statusCodeObjectsMap.put("505", "StatusHttpVersionNotSupported");
         statusCodeObjectsMap.put("506", "StatusVariantAlsoNegotiates");
         statusCodeObjectsMap.put("507", "StatusInsufficientStorage");
         statusCodeObjectsMap.put("508", "StatusLoopDetected");
@@ -167,26 +167,47 @@ public final class ExternResponseProcessor {
         if (Objects.isNull(statusCodeObjName)) {
             throw HttpUtil.createHttpError("unsupported status code: " + responseStatusCode);
         }
-        Object status = ValueCreatorUtils.createStatusCodeObject(statusCodeObjName);
-        statusCodeRecord.put(StringUtils.fromString(STATUS_CODE_RESPONSE_STATUS_FIELD), status);
 
-        Type mediaTypeType = statusCodeRecordType.getFields().get(STATUS_CODE_RESPONSE_MEDIA_TYPE_FIELD).getFieldType();
-        Object mediaType = getMediaType(response, mediaTypeType, requireValidation);
-        statusCodeRecord.put(StringUtils.fromString(STATUS_CODE_RESPONSE_MEDIA_TYPE_FIELD), mediaType);
+        populateStatusCodeObject(statusCodeObjName, statusCodeRecord);
+        populatedHeaders(response, requireValidation, statusCodeRecordType, statusCodeRecord);
 
-        Type headersType = statusCodeRecordType.getFields().get(STATUS_CODE_RESPONSE_HEADERS_FIELD).getFieldType();
-        Object headerMap = getHeadersMap(response, headersType, requireValidation);
-        statusCodeRecord.put(StringUtils.fromString(STATUS_CODE_RESPONSE_HEADERS_FIELD), headerMap);
+        if (statusCodeRecordType.getFields().containsKey(STATUS_CODE_RESPONSE_MEDIA_TYPE_FIELD)) {
+            populateMediaType(response, requireValidation, statusCodeRecordType, statusCodeRecord);
+        }
 
         if (statusCodeRecordType.getFields().containsKey(STATUS_CODE_RESPONSE_BODY_FIELD)) {
-            Type bodyType = statusCodeRecordType.getFields().get(STATUS_CODE_RESPONSE_BODY_FIELD).getFieldType();
-            Object payload = getPayload(runtime, response, bodyType, requireValidation);
+            Object payload = getBody(response, requireValidation, runtime, statusCodeRecordType);
             if (payload instanceof BError) {
                 return payload;
             }
             statusCodeRecord.put(StringUtils.fromString(STATUS_CODE_RESPONSE_BODY_FIELD), payload);
         }
         return statusCodeRecord;
+    }
+
+    private static Object getBody(BObject response, boolean requireValidation, Runtime runtime,
+                                  RecordType statusCodeRecordType) {
+        Type bodyType = statusCodeRecordType.getFields().get(STATUS_CODE_RESPONSE_BODY_FIELD).getFieldType();
+        return getPayload(runtime, response, bodyType, requireValidation);
+    }
+
+    private static void populatedHeaders(BObject response, boolean requireValidation, RecordType statusCodeRecordType,
+                                         BMap<BString, Object> statusCodeRecord) {
+        Type headersType = statusCodeRecordType.getFields().get(STATUS_CODE_RESPONSE_HEADERS_FIELD).getFieldType();
+        Object headerMap = getHeadersMap(response, headersType, requireValidation);
+        statusCodeRecord.put(StringUtils.fromString(STATUS_CODE_RESPONSE_HEADERS_FIELD), headerMap);
+    }
+
+    private static void populateMediaType(BObject response, boolean requireValidation, RecordType statusCodeRecordType,
+                                          BMap<BString, Object> statusCodeRecord) {
+        Type mediaTypeType = statusCodeRecordType.getFields().get(STATUS_CODE_RESPONSE_MEDIA_TYPE_FIELD).getFieldType();
+        Object mediaType = getMediaType(response, mediaTypeType, requireValidation);
+        statusCodeRecord.put(StringUtils.fromString(STATUS_CODE_RESPONSE_MEDIA_TYPE_FIELD), mediaType);
+    }
+
+    private static void populateStatusCodeObject(String statusCodeObjName, BMap<BString, Object> statusCodeRecord) {
+        Object status = ValueCreatorUtils.createStatusCodeObject(statusCodeObjName);
+        statusCodeRecord.put(StringUtils.fromString(STATUS_CODE_RESPONSE_STATUS_FIELD), status);
     }
 
     private static Type getAnydataType(Type targetType) {
@@ -251,7 +272,8 @@ public final class ExternResponseProcessor {
         } else {
             throw HttpUtil.createHttpError("unsupported headers type: " + headersType);
         }
-        return validateConstraints(requireValidation, headerMap, headersType, "header binding failed");
+        Object convertedHeaderMap = ValueUtils.convert(headerMap, headersType);
+        return validateConstraints(requireValidation, convertedHeaderMap, headersType, "header binding failed");
     }
 
     private static boolean hasHttpResponseType(Type targetType) {
