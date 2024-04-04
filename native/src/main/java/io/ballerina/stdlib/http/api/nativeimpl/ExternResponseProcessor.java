@@ -5,6 +5,7 @@ import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.async.Callback;
+import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.flags.SymbolFlags;
@@ -42,6 +43,7 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_HEADERS;
+import static io.ballerina.stdlib.http.api.HttpConstants.STATUS_CODE;
 import static io.ballerina.stdlib.http.api.HttpConstants.STATUS_CODE_RESPONSE_BODY_FIELD;
 import static io.ballerina.stdlib.http.api.HttpConstants.STATUS_CODE_RESPONSE_HEADERS_FIELD;
 import static io.ballerina.stdlib.http.api.HttpConstants.STATUS_CODE_RESPONSE_MEDIA_TYPE_FIELD;
@@ -133,7 +135,7 @@ public final class ExternResponseProcessor {
 
     private static Object getResponseWithType(BObject response, Type targetType, boolean requireValidation,
                                               Runtime runtime) {
-        long responseStatusCode = response.getIntValue(StringUtils.fromString("statusCode"));
+        long responseStatusCode = response.getIntValue(StringUtils.fromString(STATUS_CODE));
         Optional<Type> statusCodeResponseType = getStatusCodeResponseType(targetType,
                 Long.toString(responseStatusCode));
         if (statusCodeResponseType.isPresent() &&
@@ -155,7 +157,8 @@ public final class ExternResponseProcessor {
             if (hasHttpResponseType(targetType)) {
                 return response;
             }
-            return e;
+            return HttpUtil.createHttpError("incompatible " + targetType + " found for response with " +
+                    response.getIntValue(StringUtils.fromString(STATUS_CODE)), PAYLOAD_BINDING_CLIENT_ERROR, e);
         }
     }
 
@@ -213,7 +216,7 @@ public final class ExternResponseProcessor {
     private static Type getAnydataType(Type targetType) {
         List<Type> anydataTypes = extractAnydataTypes(targetType, new ArrayList<>());
         if (anydataTypes.isEmpty()) {
-            throw HttpUtil.createHttpError("unsupported target type: " + targetType);
+            throw ErrorCreator.createError(StringUtils.fromString("no 'anydata' type found in the target type"));
         } else if (anydataTypes.size() == 1) {
             return anydataTypes.get(0);
         } else {
