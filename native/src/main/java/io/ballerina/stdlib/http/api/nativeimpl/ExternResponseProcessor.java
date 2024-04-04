@@ -310,8 +310,11 @@ public final class ExternResponseProcessor {
                 return Optional.of(targetType);
             }
         } else if (targetType instanceof UnionType unionType) {
-            return unionType.getMemberTypes().stream().map(member -> getStatusCodeResponseType(member, statusCode)).
-                    filter(Optional::isPresent).findFirst().orElse(Optional.empty());
+            return unionType.getMemberTypes().stream()
+                    .map(member -> getStatusCodeResponseType(member, statusCode))
+                    .filter(Optional::isPresent)
+                    .flatMap(Optional::stream)
+                    .findFirst();
         } else if (targetType instanceof ReferenceType
                 && (!targetType.equals(TypeUtils.getImpliedType(targetType)))) {
                 return getStatusCodeResponseType(TypeUtils.getImpliedType(targetType), statusCode);
