@@ -95,10 +95,7 @@ public client isolated class Client {
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, HTTP_POST, response.statusCode, self.url);
         }
-        if response is ClientError {
-            return response;
-        }
-        return externProcessResponse(response, targetType, self.requireValidation);
+        return processResponse(response, targetType, self.requireValidation);
     }
 
     # The client resource function to send HTTP PUT requests to HTTP endpoints.
@@ -140,10 +137,7 @@ public client isolated class Client {
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, HTTP_PUT, response.statusCode, self.url);
         }
-        if response is ClientError {
-            return response;
-        }
-        return externProcessResponse(response, targetType, self.requireValidation);
+        return processResponse(response, targetType, self.requireValidation);
     }
 
     # The client resource function to send HTTP PATCH requests to HTTP endpoints.
@@ -185,10 +179,7 @@ public client isolated class Client {
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, HTTP_PATCH, response.statusCode, self.url);
         }
-        if response is ClientError {
-            return response;
-        }
-        return externProcessResponse(response, targetType, self.requireValidation);
+        return processResponse(response, targetType, self.requireValidation);
     }
 
     # The client resource function to send HTTP DELETE requests to HTTP endpoints.
@@ -230,10 +221,7 @@ public client isolated class Client {
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, HTTP_DELETE, response.statusCode, self.url);
         }
-        if response is ClientError {
-            return response;
-        }
-        return externProcessResponse(response, targetType, self.requireValidation);
+        return processResponse(response, targetType, self.requireValidation);
     }
 
     # The client resource function to send HTTP HEAD requests to HTTP endpoints.
@@ -295,10 +283,7 @@ public client isolated class Client {
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, HTTP_GET, response.statusCode, self.url);
         }
-        if response is ClientError {
-            return response;
-        }
-        return externProcessResponse(response, targetType, self.requireValidation);
+        return processResponse(response, targetType, self.requireValidation);
     }
 
     # The client resource function to send HTTP OPTIONS requests to HTTP endpoints.
@@ -334,10 +319,7 @@ public client isolated class Client {
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, HTTP_OPTIONS, response.statusCode, self.url);
         }
-        if response is ClientError {
-            return response;
-        }
-        return externProcessResponse(response, targetType, self.requireValidation);
+        return processResponse(response, targetType, self.requireValidation);
     }
 
     # Invokes an HTTP call with the specified HTTP verb.
@@ -365,10 +347,7 @@ public client isolated class Client {
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, httpVerb, response.statusCode, self.url);
         }
-        if response is ClientError {
-            return response;
-        }
-        return externProcessResponse(response, targetType, self.requireValidation);
+        return processResponse(response, targetType, self.requireValidation);
     }
 
     # The `Client.forward()` function can be used to invoke an HTTP call with inbound request's HTTP verb
@@ -389,10 +368,7 @@ public client isolated class Client {
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, request.method, response.statusCode, self.url);
         }
-        if response is ClientError {
-            return response;
-        }
-        return externProcessResponse(response, targetType, self.requireValidation);
+        return processResponse(response, targetType, self.requireValidation);
     }
 
     # Submits an HTTP request to a service with the specified HTTP verb.
@@ -699,6 +675,14 @@ isolated function createResponseError(int statusCode, string reasonPhrase, map<s
     } else {
         return error RemoteServerError(reasonPhrase, statusCode = statusCode, headers = headers, body = body);
     }
+}
+
+isolated function processResponse(Response|ClientError response, TargetType targetType, boolean requireValidation)
+        returns Response|anydata|StatusCodeResponse|ClientError {
+    if response is ClientError {
+        return response;
+    }
+    return externProcessResponse(response, targetType, requireValidation);
 }
 
 isolated function externProcessResponse(Response response, TargetType targetType, boolean requireValidation)

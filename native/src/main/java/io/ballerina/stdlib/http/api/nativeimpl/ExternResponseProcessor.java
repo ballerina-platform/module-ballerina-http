@@ -57,72 +57,83 @@ public final class ExternResponseProcessor {
 
     private static final String NO_HEADER_VALUE_ERROR_MSG = "no header value found for '%s'";
     private static final String HEADER_BINDING_FAILED_ERROR_MSG = "header binding failed for parameter: '%s'";
-    private static final Map<String, String> STATUS_CODE_OBJS;
+    private static final String HEADER_BINDING_FAILED = "header binding failed";
+    private static final String UNSUPPORTED_HEADERS_TYPE = "unsupported headers type: %s";
+    private static final String UNSUPPORTED_STATUS_CODE = "unsupported status code: %d";
+    private static final String INCOMPATIBLE_TYPE_FOUND_FOR_RESPONSE = "incompatible %s found for response with %d";
+    private static final String NO_ANYDATA_TYPE_FOUND_IN_THE_TARGET_TYPE = "no 'anydata' type found in the target type";
+    private static final String PAYLOAD_BINDING_FAILED = "payload binding failed";
+    private static final String MEDIA_TYPE_BINDING_FAILED = "media-type binding failed";
+    private static final String APPLICATION_RES_ERROR_CREATION_FAILED = "http:ApplicationResponseError creation failed";
+
+    private static final String PERFORM_DATA_BINDING = "performDataBinding";
+    private static final String GET_APPLICATION_RESPONSE_ERROR = "getApplicationResponseError";
+
+
+    private static final Map<String, String> STATUS_CODE_OBJS = new HashMap<>();
 
     static {
-        Map<String, String> statusCodeObjectsMap = new HashMap<>();
-        statusCodeObjectsMap.put("100", "StatusContinue");
-        statusCodeObjectsMap.put("101", "StatusSwitchingProtocols");
-        statusCodeObjectsMap.put("102", "StatusProcessing");
-        statusCodeObjectsMap.put("103", "StatusEarlyHints");
-        statusCodeObjectsMap.put("200", "StatusOK");
-        statusCodeObjectsMap.put("201", "StatusCreated");
-        statusCodeObjectsMap.put("202", "StatusAccepted");
-        statusCodeObjectsMap.put("203", "StatusNonAuthoritativeInformation");
-        statusCodeObjectsMap.put("204", "StatusNoContent");
-        statusCodeObjectsMap.put("205", "StatusResetContent");
-        statusCodeObjectsMap.put("206", "StatusPartialContent");
-        statusCodeObjectsMap.put("207", "StatusMultiStatus");
-        statusCodeObjectsMap.put("208", "StatusAlreadyReported");
-        statusCodeObjectsMap.put("226", "StatusIMUsed");
-        statusCodeObjectsMap.put("300", "StatusMultipleChoices");
-        statusCodeObjectsMap.put("301", "StatusMovedPermanently");
-        statusCodeObjectsMap.put("302", "StatusFound");
-        statusCodeObjectsMap.put("303", "StatusSeeOther");
-        statusCodeObjectsMap.put("304", "StatusNotModified");
-        statusCodeObjectsMap.put("305", "StatusUseProxy");
-        statusCodeObjectsMap.put("307", "StatusTemporaryRedirect");
-        statusCodeObjectsMap.put("308", "StatusPermanentRedirect");
-        statusCodeObjectsMap.put("400", "StatusBadRequest");
-        statusCodeObjectsMap.put("401", "StatusUnauthorized");
-        statusCodeObjectsMap.put("402", "StatusPaymentRequired");
-        statusCodeObjectsMap.put("403", "StatusForbidden");
-        statusCodeObjectsMap.put("404", "StatusNotFound");
-        statusCodeObjectsMap.put("405", "StatusMethodNotAllowed");
-        statusCodeObjectsMap.put("406", "StatusNotAcceptable");
-        statusCodeObjectsMap.put("407", "StatusProxyAuthenticationRequired");
-        statusCodeObjectsMap.put("408", "StatusRequestTimeout");
-        statusCodeObjectsMap.put("409", "StatusConflict");
-        statusCodeObjectsMap.put("410", "StatusGone");
-        statusCodeObjectsMap.put("411", "StatusLengthRequired");
-        statusCodeObjectsMap.put("412", "StatusPreconditionFailed");
-        statusCodeObjectsMap.put("413", "StatusPayloadTooLarge");
-        statusCodeObjectsMap.put("414", "StatusUriTooLong");
-        statusCodeObjectsMap.put("415", "StatusUnsupportedMediaType");
-        statusCodeObjectsMap.put("416", "StatusRangeNotSatisfiable");
-        statusCodeObjectsMap.put("417", "StatusExpectationFailed");
-        statusCodeObjectsMap.put("421", "StatusMisdirectedRequest");
-        statusCodeObjectsMap.put("422", "StatusUnprocessableEntity");
-        statusCodeObjectsMap.put("423", "StatusLocked");
-        statusCodeObjectsMap.put("424", "StatusFailedDependency");
-        statusCodeObjectsMap.put("425", "StatusTooEarly");
-        statusCodeObjectsMap.put("426", "StatusUpgradeRequired");
-        statusCodeObjectsMap.put("428", "StatusPreconditionRequired");
-        statusCodeObjectsMap.put("429", "StatusTooManyRequests");
-        statusCodeObjectsMap.put("431", "StatusRequestHeaderFieldsTooLarge");
-        statusCodeObjectsMap.put("451", "StatusUnavailableDueToLegalReasons");
-        statusCodeObjectsMap.put("500", "StatusInternalServerError");
-        statusCodeObjectsMap.put("501", "StatusNotImplemented");
-        statusCodeObjectsMap.put("502", "StatusBadGateway");
-        statusCodeObjectsMap.put("503", "StatusServiceUnavailable");
-        statusCodeObjectsMap.put("504", "StatusGatewayTimeout");
-        statusCodeObjectsMap.put("505", "StatusHttpVersionNotSupported");
-        statusCodeObjectsMap.put("506", "StatusVariantAlsoNegotiates");
-        statusCodeObjectsMap.put("507", "StatusInsufficientStorage");
-        statusCodeObjectsMap.put("508", "StatusLoopDetected");
-        statusCodeObjectsMap.put("510", "StatusNotExtended");
-        statusCodeObjectsMap.put("511", "StatusNetworkAuthenticationRequired");
-        STATUS_CODE_OBJS = statusCodeObjectsMap;
+        STATUS_CODE_OBJS.put("100", "StatusContinue");
+        STATUS_CODE_OBJS.put("101", "StatusSwitchingProtocols");
+        STATUS_CODE_OBJS.put("102", "StatusProcessing");
+        STATUS_CODE_OBJS.put("103", "StatusEarlyHints");
+        STATUS_CODE_OBJS.put("200", "StatusOK");
+        STATUS_CODE_OBJS.put("201", "StatusCreated");
+        STATUS_CODE_OBJS.put("202", "StatusAccepted");
+        STATUS_CODE_OBJS.put("203", "StatusNonAuthoritativeInformation");
+        STATUS_CODE_OBJS.put("204", "StatusNoContent");
+        STATUS_CODE_OBJS.put("205", "StatusResetContent");
+        STATUS_CODE_OBJS.put("206", "StatusPartialContent");
+        STATUS_CODE_OBJS.put("207", "StatusMultiStatus");
+        STATUS_CODE_OBJS.put("208", "StatusAlreadyReported");
+        STATUS_CODE_OBJS.put("226", "StatusIMUsed");
+        STATUS_CODE_OBJS.put("300", "StatusMultipleChoices");
+        STATUS_CODE_OBJS.put("301", "StatusMovedPermanently");
+        STATUS_CODE_OBJS.put("302", "StatusFound");
+        STATUS_CODE_OBJS.put("303", "StatusSeeOther");
+        STATUS_CODE_OBJS.put("304", "StatusNotModified");
+        STATUS_CODE_OBJS.put("305", "StatusUseProxy");
+        STATUS_CODE_OBJS.put("307", "StatusTemporaryRedirect");
+        STATUS_CODE_OBJS.put("308", "StatusPermanentRedirect");
+        STATUS_CODE_OBJS.put("400", "StatusBadRequest");
+        STATUS_CODE_OBJS.put("401", "StatusUnauthorized");
+        STATUS_CODE_OBJS.put("402", "StatusPaymentRequired");
+        STATUS_CODE_OBJS.put("403", "StatusForbidden");
+        STATUS_CODE_OBJS.put("404", "StatusNotFound");
+        STATUS_CODE_OBJS.put("405", "StatusMethodNotAllowed");
+        STATUS_CODE_OBJS.put("406", "StatusNotAcceptable");
+        STATUS_CODE_OBJS.put("407", "StatusProxyAuthenticationRequired");
+        STATUS_CODE_OBJS.put("408", "StatusRequestTimeout");
+        STATUS_CODE_OBJS.put("409", "StatusConflict");
+        STATUS_CODE_OBJS.put("410", "StatusGone");
+        STATUS_CODE_OBJS.put("411", "StatusLengthRequired");
+        STATUS_CODE_OBJS.put("412", "StatusPreconditionFailed");
+        STATUS_CODE_OBJS.put("413", "StatusPayloadTooLarge");
+        STATUS_CODE_OBJS.put("414", "StatusUriTooLong");
+        STATUS_CODE_OBJS.put("415", "StatusUnsupportedMediaType");
+        STATUS_CODE_OBJS.put("416", "StatusRangeNotSatisfiable");
+        STATUS_CODE_OBJS.put("417", "StatusExpectationFailed");
+        STATUS_CODE_OBJS.put("421", "StatusMisdirectedRequest");
+        STATUS_CODE_OBJS.put("422", "StatusUnprocessableEntity");
+        STATUS_CODE_OBJS.put("423", "StatusLocked");
+        STATUS_CODE_OBJS.put("424", "StatusFailedDependency");
+        STATUS_CODE_OBJS.put("425", "StatusTooEarly");
+        STATUS_CODE_OBJS.put("426", "StatusUpgradeRequired");
+        STATUS_CODE_OBJS.put("428", "StatusPreconditionRequired");
+        STATUS_CODE_OBJS.put("429", "StatusTooManyRequests");
+        STATUS_CODE_OBJS.put("431", "StatusRequestHeaderFieldsTooLarge");
+        STATUS_CODE_OBJS.put("451", "StatusUnavailableDueToLegalReasons");
+        STATUS_CODE_OBJS.put("500", "StatusInternalServerError");
+        STATUS_CODE_OBJS.put("501", "StatusNotImplemented");
+        STATUS_CODE_OBJS.put("502", "StatusBadGateway");
+        STATUS_CODE_OBJS.put("503", "StatusServiceUnavailable");
+        STATUS_CODE_OBJS.put("504", "StatusGatewayTimeout");
+        STATUS_CODE_OBJS.put("505", "StatusHttpVersionNotSupported");
+        STATUS_CODE_OBJS.put("506", "StatusVariantAlsoNegotiates");
+        STATUS_CODE_OBJS.put("507", "StatusInsufficientStorage");
+        STATUS_CODE_OBJS.put("508", "StatusLoopDetected");
+        STATUS_CODE_OBJS.put("510", "StatusNotExtended");
+        STATUS_CODE_OBJS.put("511", "StatusNetworkAuthenticationRequired");
     }
 
     private ExternResponseProcessor() {
@@ -135,8 +146,8 @@ public final class ExternResponseProcessor {
 
     private static Object getResponseWithType(BObject response, Type targetType, boolean requireValidation,
                                               Runtime runtime) {
-        long responseStatusCode = response.getIntValue(StringUtils.fromString(STATUS_CODE));
-        Optional<Type> statusCodeResponseType = getStatusCodeResponseType(targetType,
+        long responseStatusCode = getStatusCode(response);
+        Optional<Type> statusCodeResponseType = getStatusCodeResponseType(targetType, 
                 Long.toString(responseStatusCode));
         if (statusCodeResponseType.isPresent() &&
                 TypeUtils.getImpliedType(statusCodeResponseType.get()) instanceof RecordType statusCodeRecordType) {
@@ -157,9 +168,13 @@ public final class ExternResponseProcessor {
             if (hasHttpResponseType(targetType)) {
                 return response;
             }
-            return HttpUtil.createHttpError("incompatible " + targetType + " found for response with " +
-                    response.getIntValue(StringUtils.fromString(STATUS_CODE)), PAYLOAD_BINDING_CLIENT_ERROR, e);
+            return HttpUtil.createHttpError(String.format(INCOMPATIBLE_TYPE_FOUND_FOR_RESPONSE, targetType,
+                    getStatusCode(response)), PAYLOAD_BINDING_CLIENT_ERROR, e);
         }
+    }
+
+    private static long getStatusCode(BObject response) {
+        return response.getIntValue(StringUtils.fromString(STATUS_CODE));
     }
 
     private static Object generateStatusCodeResponseType(BObject response, boolean requireValidation, Runtime runtime,
@@ -168,7 +183,7 @@ public final class ExternResponseProcessor {
 
         String statusCodeObjName = STATUS_CODE_OBJS.get(Long.toString(responseStatusCode));
         if (Objects.isNull(statusCodeObjName)) {
-            throw HttpUtil.createHttpError("unsupported status code: " + responseStatusCode);
+            throw HttpUtil.createHttpError(String.format(UNSUPPORTED_STATUS_CODE, responseStatusCode));
         }
 
         populateStatusCodeObject(statusCodeObjName, statusCodeRecord);
@@ -216,7 +231,7 @@ public final class ExternResponseProcessor {
     private static Type getAnydataType(Type targetType) {
         List<Type> anydataTypes = extractAnydataTypes(targetType, new ArrayList<>());
         if (anydataTypes.isEmpty()) {
-            throw ErrorCreator.createError(StringUtils.fromString("no 'anydata' type found in the target type"));
+            throw ErrorCreator.createError(StringUtils.fromString(NO_ANYDATA_TYPE_FOUND_IN_THE_TARGET_TYPE));
         } else if (anydataTypes.size() == 1) {
             return anydataTypes.get(0);
         } else {
@@ -249,9 +264,9 @@ public final class ExternResponseProcessor {
         try {
             Object convertedValue = ValueUtils.convert(Objects.nonNull(contentType) ?
                     StringUtils.fromString(contentType) : null, mediaTypeType);
-            return validateConstraints(requireValidation, convertedValue, mediaTypeType, "media-type binding failed");
+            return validateConstraints(requireValidation, convertedValue, mediaTypeType, MEDIA_TYPE_BINDING_FAILED);
         } catch (BError conversionError) {
-            throw HttpUtil.createHttpError("media-type binding failed", CLIENT_ERROR, conversionError);
+            throw HttpUtil.createHttpError(MEDIA_TYPE_BINDING_FAILED, CLIENT_ERROR, conversionError);
         }
     }
 
@@ -273,10 +288,10 @@ public final class ExternResponseProcessor {
         } else if (headersImpliedType.getTag() == TypeTags.RECORD_TYPE_TAG) {
             headerMap = createHeaderRecord(httpHeaders, (RecordType) headersImpliedType);
         } else {
-            throw HttpUtil.createHttpError("unsupported headers type: " + headersType);
+            throw HttpUtil.createHttpError(String.format(UNSUPPORTED_HEADERS_TYPE, headersType));
         }
         Object convertedHeaderMap = ValueUtils.convert(headerMap, headersType);
-        return validateConstraints(requireValidation, convertedHeaderMap, headersType, "header binding failed");
+        return validateConstraints(requireValidation, convertedHeaderMap, headersType, HEADER_BINDING_FAILED);
     }
 
     private static boolean hasHttpResponseType(Type targetType) {
@@ -295,13 +310,8 @@ public final class ExternResponseProcessor {
                 return Optional.of(targetType);
             }
         } else if (targetType instanceof UnionType unionType) {
-            List<Type> memberTypes = unionType.getMemberTypes();
-            for (Type memberType : memberTypes) {
-                Optional<Type> statusCodeResponseType = getStatusCodeResponseType(memberType, statusCode);
-                if (statusCodeResponseType.isPresent()) {
-                    return statusCodeResponseType;
-                }
-            }
+            return unionType.getMemberTypes().stream().map(member -> getStatusCodeResponseType(member, statusCode)).
+                    filter(Optional::isPresent).findFirst().orElse(Optional.empty());
         } else if (targetType instanceof ReferenceType
                 && (!targetType.equals(TypeUtils.getImpliedType(targetType)))) {
                 return getStatusCodeResponseType(TypeUtils.getImpliedType(targetType), statusCode);
@@ -480,7 +490,7 @@ public final class ExternResponseProcessor {
         paramFeed[1] = true;
         paramFeed[2] = requireValidation;
         paramFeed[3] = true;
-        runtime.invokeMethodAsyncSequentially(response, "performDataBinding", null,
+        runtime.invokeMethodAsyncSequentially(response, PERFORM_DATA_BINDING, null,
                 ModuleUtils.getNotifySuccessMetaData(), returnCallback, null, PredefinedTypes.TYPE_ANY,
                 paramFeed);
         try {
@@ -488,7 +498,7 @@ public final class ExternResponseProcessor {
             return payload[0];
         } catch (InterruptedException exception) {
             Thread.currentThread().interrupt();
-            return HttpUtil.createHttpError("payload binding failed", CLIENT_ERROR, HttpUtil.createError(exception));
+            return HttpUtil.createHttpError(PAYLOAD_BINDING_FAILED, CLIENT_ERROR, HttpUtil.createError(exception));
         }
     }
 
@@ -508,14 +518,14 @@ public final class ExternResponseProcessor {
                 countDownLatch.countDown();
             }
         };
-        runtime.invokeMethodAsyncSequentially(response, "getApplicationResponseError", null,
+        runtime.invokeMethodAsyncSequentially(response, GET_APPLICATION_RESPONSE_ERROR, null,
                 ModuleUtils.getNotifySuccessMetaData(), returnCallback, null, PredefinedTypes.TYPE_ERROR);
         try {
             countDownLatch.await();
             return clientError[0];
         } catch (InterruptedException exception) {
             Thread.currentThread().interrupt();
-            return HttpUtil.createHttpError("http:ApplicationResponseError creation failed",
+            return HttpUtil.createHttpError(APPLICATION_RES_ERROR_CREATION_FAILED,
                     PAYLOAD_BINDING_CLIENT_ERROR, HttpUtil.createError(exception));
         }
     }

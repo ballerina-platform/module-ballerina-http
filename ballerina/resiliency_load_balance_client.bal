@@ -96,10 +96,7 @@ public client isolated class LoadBalanceClient {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         var result = self.performLoadBalanceAction(path, req, HTTP_POST);
-        if result is ClientError {
-            return result;
-        }
-        return externProcessResponse(result, targetType, self.requireValidation);
+        return processResponse(result, targetType, self.requireValidation);
     }
 
     # The PUT resource function implementation of the LoadBalancer Connector.
@@ -138,10 +135,7 @@ public client isolated class LoadBalanceClient {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         var result = self.performLoadBalanceAction(path, req, HTTP_PUT);
-        if result is ClientError {
-            return result;
-        }
-        return externProcessResponse(result, targetType, self.requireValidation);
+        return processResponse(result, targetType, self.requireValidation);
     }
 
     # The PATCH resource function implementation of the LoadBalancer Connector.
@@ -180,10 +174,7 @@ public client isolated class LoadBalanceClient {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         var result = self.performLoadBalanceAction(path, req, HTTP_PATCH);
-        if result is ClientError {
-            return result;
-        }
-        return externProcessResponse(result, targetType, self.requireValidation);
+        return processResponse(result, targetType, self.requireValidation);
     }
 
     # The DELETE resource function implementation of the LoadBalancer Connector.
@@ -222,10 +213,7 @@ public client isolated class LoadBalanceClient {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         var result = self.performLoadBalanceAction(path, req, HTTP_DELETE);
-        if result is ClientError {
-            return result;
-        }
-        return externProcessResponse(result, targetType, self.requireValidation);
+        return processResponse(result, targetType, self.requireValidation);
     }
 
     # The HEAD resource function implementation of the LoadBalancer Connector.
@@ -280,10 +268,7 @@ public client isolated class LoadBalanceClient {
             returns Response|StatusCodeResponse|anydata|ClientError {
         Request req = buildRequestWithHeaders(headers);
         var result = self.performLoadBalanceAction(path, req, HTTP_GET);
-        if result is ClientError {
-            return result;
-        }
-        return externProcessResponse(result, targetType, self.requireValidation);
+        return processResponse(result, targetType, self.requireValidation);
     }
 
     # The OPTIONS resource function implementation of the LoadBalancer Connector.
@@ -316,10 +301,7 @@ public client isolated class LoadBalanceClient {
             returns Response|StatusCodeResponse|anydata|ClientError {
         Request req = buildRequestWithHeaders(headers);
         var result = self.performLoadBalanceAction(path, req, HTTP_OPTIONS);
-        if result is ClientError {
-            return result;
-        }
-        return externProcessResponse(result, targetType, self.requireValidation);
+        return processResponse(result, targetType, self.requireValidation);
     }
 
     # The EXECUTE remote function implementation of the LoadBalancer Connector.
@@ -344,10 +326,7 @@ public client isolated class LoadBalanceClient {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         var result = self.performLoadBalanceExecuteAction(path, req, httpVerb);
-        if result is ClientError {
-            return result;
-        }
-        return externProcessResponse(result, targetType, self.requireValidation);
+        return processResponse(result, targetType, self.requireValidation);
     }
 
     # The FORWARD remote function implementation of the LoadBalancer Connector.
@@ -365,10 +344,7 @@ public client isolated class LoadBalanceClient {
     private isolated function processForward(string path, Request request, TargetType targetType)
             returns Response|StatusCodeResponse|anydata|ClientError {
         var result = self.performLoadBalanceAction(path, request, HTTP_FORWARD);
-        if result is ClientError {
-            return result;
-        }
-        return externProcessResponse(result, targetType, self.requireValidation);
+        return processResponse(result, targetType, self.requireValidation);
     }
 
     # The submit implementation of the LoadBalancer Connector.
