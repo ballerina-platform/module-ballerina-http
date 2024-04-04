@@ -88,7 +88,7 @@ function testGetSuccessStatusCodeResponse() returns error? {
     Album expectedAlbum = albums.get("1");
     test:assertEquals(album, expectedAlbum, "Invalid album returned");
 
-    AlbumFound albumFound = check albumClient->/albums/'1;
+    AlbumFound albumFound = check albumClient->get("/albums/1");
     test:assertEquals(albumFound.body, expectedAlbum, "Invalid album returned");
     test:assertEquals(albumFound.headers.user\-id, "user-1", "Invalid user-id header");
     test:assertEquals(albumFound.headers.req\-id, 1, "Invalid req-id header");
@@ -100,7 +100,7 @@ function testGetSuccessStatusCodeResponse() returns error? {
     album = check payload.fromJsonWithType();
     test:assertEquals(album, expectedAlbum, "Invalid album returned");
 
-    Album|AlbumFound res1 = check albumClient->/albums/'1;
+    Album|AlbumFound res1 = check albumClient->get("/albums/1");
     if res1 is AlbumFound {
         test:assertEquals(res1.body, expectedAlbum, "Invalid album returned");
         test:assertEquals(res1.headers.user\-id, "user-1", "Invalid user-id header");
@@ -120,7 +120,7 @@ function testGetSuccessStatusCodeResponse() returns error? {
         test:assertFail("Invalid response type");
     }
 
-    Album|AlbumNotFound res3 = check albumClient->/albums/'1;
+    Album|AlbumNotFound res3 = check albumClient->get("/albums/1");
     if res3 is Album {
         test:assertEquals(res3, expectedAlbum, "Invalid album returned");
     } else {
@@ -137,7 +137,7 @@ function testGetSuccessStatusCodeResponse() returns error? {
         test:assertFail("Invalid response type");
     }
 
-    Album|AlbumFound|AlbumNotFound res5 = check albumClient->/albums/'1;
+    Album|AlbumFound|AlbumNotFound res5 = check albumClient->get("/albums/1");
     if res5 is AlbumFound {
         test:assertEquals(res5.body, expectedAlbum, "Invalid album returned");
         test:assertEquals(res5.headers.user\-id, "user-1", "Invalid user-id header");
@@ -154,7 +154,7 @@ function testGetSuccessStatusCodeResponse() returns error? {
         test:assertFail("Invalid response type");
     }
 
-    AlbumNotFound|http:Response res7 = check albumClient->/albums/'1;
+    AlbumNotFound|http:Response res7 = check albumClient->get("/albums/1");
     if res7 is http:Response {
         test:assertEquals(res.statusCode, 200, "Invalid status code");
         payload = check res.getJsonPayload();
@@ -167,7 +167,7 @@ function testGetSuccessStatusCodeResponse() returns error? {
     AlbumNotFound|error res8 = albumClient->/albums/'1;
     if res8 is error {
         test:assertTrue(res8 is http:PayloadBindingError);
-        test:assertEquals(res8.message(), "incompatible http_client_tests:AlbumNotFound found for response with 200",
+        test:assertEquals(res8.message(), "incompatible status_code_binding_test:AlbumNotFound found for response with 200",
             "Invalid error message");
         error? cause = res8.cause();
         if cause is error {
@@ -187,7 +187,7 @@ function testGetFailureStatusCodeResponse() returns error? {
     test:assertEquals(albumNotFound.headers.req\-id, 1, "Invalid req-id header");
     test:assertEquals(albumNotFound.mediaType, "application/json", "Invalid media type");
 
-    http:Response res = check albumClient->/albums/'4;
+    http:Response res = check albumClient->get("/albums/4");
     test:assertEquals(res.statusCode, 404, "Invalid status code");
     json payload = check res.getJsonPayload();
     ErrorMessage errorMessage = check payload.fromJsonWithType();
@@ -203,7 +203,7 @@ function testGetFailureStatusCodeResponse() returns error? {
         test:assertFail("Invalid response type");
     }
 
-    AlbumNotFound|http:Response res2 = check albumClient->/albums/'4;
+    AlbumNotFound|http:Response res2 = check albumClient->get("/albums/4");
     if res2 is AlbumNotFound {
         test:assertEquals(res2.body, expectedErrorMessage, "Invalid error message");
         test:assertEquals(res2.headers.user\-id, "user-1", "Invalid user-id header");
@@ -223,7 +223,7 @@ function testGetFailureStatusCodeResponse() returns error? {
         test:assertFail("Invalid response type");
     }
 
-    http:Response|AlbumFound res4 = check albumClient->/albums/'4;
+    http:Response|AlbumFound res4 = check albumClient->get("/albums/4");
     if res4 is http:Response {
         test:assertEquals(res4.statusCode, 404, "Invalid status code");
         payload = check res4.getJsonPayload();
@@ -249,7 +249,7 @@ function testGetFailureStatusCodeResponse() returns error? {
         test:assertFail("Invalid response type");
     }
 
-    AlbumFound|error res6 = albumClient->/albums/'4;
+    AlbumFound|error res6 = albumClient->get("/albums/4");
     if res6 is error {
         test:assertTrue(res6 is http:ClientRequestError);
         test:assertEquals(res6.message(), "Not Found", "Invalid error message");
