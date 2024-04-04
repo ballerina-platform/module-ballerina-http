@@ -24,6 +24,15 @@ type Album record {|
     string genre;
 |};
 
+type MockAlbum record {|
+    *Album;
+    string 'type = "mock";
+|};
+
+type AlbumUnion1 Album|MockAlbum;
+
+type AlbumUnion2 MockAlbum|Album;
+
 table<Album> key(id) albums = table [
     {id: "1", name: "The Dark Side of the Moon", artist: "Pink Floyd", genre: "Progressive Rock"},
     {id: "2", name: "Back in Black", artist: "AC/DC", genre: "Hard Rock"},
@@ -40,6 +49,21 @@ type Headers record {|
     int req\-id;
 |};
 
+type ArrayHeaders record {|
+    string[] user\-id;
+    int[] req\-id;
+|};
+
+type ArrayHeaderWithUnion record {|
+    string[]|int[] user\-id;
+    int[]|boolean[] req\-id;
+|};
+
+type IntHeaders record {|
+    int user\-id;
+    int req\-id;
+|};
+
 type AlbumNotFound record {|
     *http:NotFound;
     ErrorMessage body;
@@ -49,6 +73,24 @@ type AlbumNotFound record {|
 type AlbumFound record {|
     *http:Ok;
     Album body;
+    Headers headers;
+|};
+
+type AlbumFoundMock1 record {|
+    *http:Ok;
+    Album|MockAlbum body;
+    Headers headers;
+|};
+
+type AlbumFoundMock2 record {|
+    *http:Ok;
+    AlbumUnion1 body;
+    Headers headers;
+|};
+
+type AlbumFoundMock3 record {|
+    *http:Ok;
+    AlbumUnion2 body;
     Headers headers;
 |};
 
@@ -69,18 +111,6 @@ service /api on new http:Listener(statusCodeBindingPort2) {
 }
 
 final http:Client albumClient = check new (string `localhost:${statusCodeBindingPort2}/api`);
-
-public function main() returns error? {
-    Album _ = check albumClient->/albums/'1;
-
-    AlbumFound _ = check albumClient->/albums/'1;
-
-    Album|AlbumNotFound _ = check albumClient->/albums/'1;
-
-    AlbumFound|AlbumNotFound _ = check albumClient->/albums/'1;
-
-    Album|http:Response _ = check albumClient->/albums/'1;
-}
 
 @test:Config {}
 function testGetSuccessStatusCodeResponse() returns error? {
@@ -261,6 +291,114 @@ function testGetFailureStatusCodeResponse() returns error? {
             test:assertEquals(headers.get("req-id")[0], "1", "Invalid req-id header");
         }
 
+    } else {
+        test:assertFail("Invalid response type");
+    }
+}
+
+@test:Config {}
+function testUnionPayloadBindingWithStatusCodeResponse() returns error? {
+    Album|AlbumNotFound|map<json>|json res1 = check albumClient->/albums/'1;
+    if res1 is Album {
+        test:assertEquals(res1, albums.get("1"), "Invalid album returned");
+    } else {
+        test:assertFail("Invalid response type");
+    }
+
+    map<json>|AlbumNotFound|Album|json res2 = check albumClient->get("/albums/1");
+    if res2 is map<json> {
+        test:assertEquals(res2, albums.get("1"), "Invalid album returned");
+    } else {
+        test:assertFail("Invalid response type");
+    }
+
+    Album|MockAlbum|AlbumNotFound res3 = check albumClient->/albums/'1;
+    if res3 is Album {
+        test:assertEquals(res3, albums.get("1"), "Invalid album returned");
+    } else {
+        test:assertFail("Invalid response type");
+    }
+
+    MockAlbum|Album|AlbumNotFound res4 = check albumClient->get("/albums/1");
+    if res4 is MockAlbum {
+        test:assertEquals(res4, {...albums.get("1"), "type": "mock"}, "Invalid album returned");
+    } else {
+        test:assertFail("Invalid response type");
+    }
+
+    AlbumUnion1|AlbumNotFound res5 = check albumClient->/albums/'1;
+    if res5 is Album {
+        test:assertEquals(res5, albums.get("1"), "Invalid album returned");
+    } else {
+        test:assertFail("Invalid response type");
+    }
+
+    AlbumUnion2|AlbumNotFound res6 = check albumClient->get("/albums/1");
+    if res6 is MockAlbum {
+        test:assertEquals(res6, {...albums.get("1"), "type": "mock"}, "Invalid album returned");
+    } else {
+        test:assertFail("Invalid response type");
+    }
+
+    AlbumFound|AlbumNotFound|AlbumFoundMock1 res7 = check albumClient->/albums/'1;
+    if res7 is AlbumFound {
+        test:assertEquals(res7.body, albums.get("1"), "Invalid album returned");
+        test:assertEquals(res7.headers.user\-id, "user-1", "Invalid user-id header");
+        test:assertEquals(res7.headers.req\-id, 1, "Invalid req-id header");
+        test:assertEquals(res7.mediaType, "application/json", "Invalid media type");
+    } else {
+        test:assertFail("Invalid response type");
+    }
+
+    AlbumFoundMock1|AlbumFound|AlbumNotFound res8 = check albumClient->get("/albums/1");
+    if res8 is AlbumFoundMock1 {
+        test:assertEquals(res8.body, albums.get("1"), "Invalid album returned");
+        test:assertEquals(res8.headers.user\-id, "user-1", "Invalid user-id header");
+        test:assertEquals(res8.headers.req\-id, 1, "Invalid req-id header");
+        test:assertEquals(res8.mediaType, "application/json", "Invalid media type");
+    } else {
+        test:assertFail("Invalid response type");
+    }
+
+    AlbumFoundMock2|AlbumFound|AlbumFoundMock1|AlbumNotFound res9 = check albumClient->/albums/'1;
+    if res9 is AlbumFoundMock2 {
+        test:assertEquals(res9.body, albums.get("1"), "Invalid album returned");
+        test:assertEquals(res9.headers.user\-id, "user-1", "Invalid user-id header");
+        test:assertEquals(res9.headers.req\-id, 1, "Invalid req-id header");
+        test:assertEquals(res9.mediaType, "application/json", "Invalid media type");
+    } else {
+        test:assertFail("Invalid response type");
+    }
+
+    AlbumFoundMock3|AlbumFound|AlbumFoundMock1|AlbumFoundMock2|AlbumNotFound res10 = check albumClient->get("/albums/1");
+    if res10 is AlbumFoundMock3 {
+        test:assertEquals(res10.body, {...albums.get("1"), "type": "mock"}, "Invalid album returned");
+        test:assertEquals(res10.headers.user\-id, "user-1", "Invalid user-id header");
+        test:assertEquals(res10.headers.req\-id, 1, "Invalid req-id header");
+        test:assertEquals(res10.mediaType, "application/json", "Invalid media type");
+    } else {
+        test:assertFail("Invalid response type");
+    }
+}
+
+@test:Config {}
+function testStatusCodeBindingWithDifferentHeaders() returns error? {
+    record {|*http:Ok; ArrayHeaders headers;|} res1 = check albumClient->/albums/'1;
+    test:assertEquals(res1?.body, albums.get("1"), "Invalid album returned");
+    test:assertEquals(res1.headers.user\-id, ["user-1"], "Invalid user-id header");
+    test:assertEquals(res1.headers.req\-id, [1], "Invalid req-id header");
+    test:assertEquals(res1.mediaType, "application/json", "Invalid media type");
+
+    record {|*http:Ok; ArrayHeaderWithUnion headers;|} res2 = check albumClient->/albums/'1;
+    test:assertEquals(res2?.body, albums.get("1"), "Invalid album returned");
+    test:assertEquals(res2.headers.user\-id, ["user-1"], "Invalid user-id header");
+    test:assertEquals(res2.headers.req\-id, [1], "Invalid req-id header");
+    test:assertEquals(res2.mediaType, "application/json", "Invalid media type");
+
+    record {|*http:Ok; IntHeaders headers;|}|error res3 = albumClient->/albums/'1;
+    if res3 is error {
+        test:assertTrue(res3 is http:HeaderBindingError);
+        test:assertEquals(res3.message(), "header binding failed for parameter: 'user-id'", "Invalid error message");
     } else {
         test:assertFail("Invalid response type");
     }
