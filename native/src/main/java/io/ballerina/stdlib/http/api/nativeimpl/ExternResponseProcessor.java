@@ -76,6 +76,11 @@ import static io.ballerina.stdlib.http.api.HttpErrorType.PAYLOAD_BINDING_CLIENT_
 import static io.ballerina.stdlib.http.api.HttpErrorType.STATUS_CODE_RECORD_BINDING_ERROR;
 import static io.ballerina.stdlib.http.api.HttpUtil.createHttpError;
 
+/**
+ * Extern response processor to process the response and generate the response with the given target type.
+ *
+ * @since 2.11.0
+ */
 public final class ExternResponseProcessor {
 
     private static final String NO_HEADER_VALUE_ERROR_MSG = "no header value found for '%s'";
