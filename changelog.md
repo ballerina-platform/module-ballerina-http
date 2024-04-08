@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+
+- [Add status code response binding support for the HTTP client](https://github.com/ballerina-platform/ballerina-library/issues/6100)
+
 ### Fixed
 
 - [Address CVE-2024-29025 netty's vulnerability](https://github.com/ballerina-platform/ballerina-library/issues/6242)

@@ -31,7 +31,7 @@ import java.util.Map;
 
 import static io.ballerina.runtime.api.TypeTags.RECORD_TYPE_TAG;
 import static io.ballerina.stdlib.http.api.HttpConstants.HEADER_PARAM;
-import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_HEADER_VALIDATION_ERROR;
+import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_HEADER_VALIDATION_LISTENER_ERROR;
 
 /**
  * {@code {@link HeaderParam }} represents a inbound request header parameter details.
@@ -98,7 +98,7 @@ public class HeaderParam extends SignatureParam {
             Object result = Constraints.validateAfterTypeConversion(headerValue, getOriginalType());
             if (result instanceof BError) {
                 String message = "header validation failed: " + HttpUtil.getPrintableErrorMsg((BError) result);
-                throw HttpUtil.createHttpStatusCodeError(INTERNAL_HEADER_VALIDATION_ERROR, message);
+                throw HttpUtil.createHttpStatusCodeError(INTERNAL_HEADER_VALIDATION_LISTENER_ERROR, message);
             }
         }
         return headerValue;

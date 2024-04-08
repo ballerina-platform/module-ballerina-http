@@ -258,8 +258,6 @@ public final class HttpConstants {
     public static final String HTTP_ERROR_RECORD = "HTTPError";
     public static final BString HTTP_ERROR_MESSAGE = StringUtils.fromString("message");
     public static final BString HTTP_ERROR_STATUS_CODE = StringUtils.fromString("statusCode");
-    public static final String HTTP_CLIENT_REQUEST_ERROR = "ClientRequestError";
-    public static final String HTTP_REMOTE_SERVER_ERROR = "RemoteServerError";
 
     // ServeConnector struct indices
     public static final BString HTTP_CONNECTOR_CONFIG_FIELD = StringUtils.fromString("config");
@@ -296,6 +294,10 @@ public final class HttpConstants {
     //StatusCodeResponse struct field names
     public static final String STATUS_CODE_RESPONSE_BODY_FIELD = "body";
     public static final String STATUS_CODE_RESPONSE_STATUS_FIELD = "status";
+    public static final String STATUS_CODE_RESPONSE_STATUS_CODE_FIELD = "code";
+    public static final String STATUS_CODE = "statusCode";
+    public static final String STATUS_CODE_RESPONSE_MEDIA_TYPE_FIELD = "mediaType";
+    public static final String STATUS_CODE_RESPONSE_HEADERS_FIELD = "headers";
 
     //PushPromise struct field names
     public static final BString PUSH_PROMISE_PATH_FIELD = StringUtils.fromString("path");

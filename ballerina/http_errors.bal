@@ -50,8 +50,14 @@ public type ClientError distinct Error;
 # Represents a header not found error when retrieving headers.
 public type HeaderNotFoundError distinct Error;
 
+# Represents an error, which occurred due to header binding.
+public type HeaderBindingError distinct Error;
+
 # Represents an error, which occurred due to payload binding.
 public type PayloadBindingError distinct Error;
+
+# Represents an error, which occurred due to media-type binding.
+public type MediaTypeBindingError distinct Error;
 
 // Level 3
 # Defines the listener error types that returned while receiving inbound request.
@@ -68,17 +74,18 @@ public type InterceptorReturnError distinct ListenerError & httpscerr:InternalSe
 
 type InternalInterceptorReturnError InterceptorReturnError & InternalError;
 
-# Represents an error, which occurred due to a header binding.
-public type HeaderBindingError distinct ListenerError & httpscerr:BadRequestError;
+type HeaderNotFoundClientError ClientError & HeaderNotFoundError;
 
-type InternalHeaderBindingError HeaderBindingError & InternalError;
+type HeaderBindingClientError ClientError & HeaderBindingError;
 
-// TODO: Change the error type as HeaderBindingError once this issue is fixed:
-// https://github.com/ballerina-platform/ballerina-lang/issues/40273
+type InternalHeaderBindingListenerError ListenerError & HeaderBindingError & httpscerr:BadRequestError & InternalError;
+
 # Represents an error, which occurred due to a header constraint validation.
-public type HeaderValidationError distinct HeaderBindingError & httpscerr:BadRequestError;
+public type HeaderValidationError distinct HeaderBindingError;
 
-type InternalHeaderValidationError HeaderValidationError & InternalError;
+type HeaderValidationClientError ClientError & HeaderValidationError;
+
+type InternalHeaderValidationListenerError ListenerError & HeaderValidationError & httpscerr:BadRequestError & InternalError;
 
 # Represents an error, which occurred due to the absence of the payload.
 public type NoContentError distinct ClientError;
@@ -99,10 +106,8 @@ public type QueryParameterBindingError distinct ListenerError & httpscerr:BadReq
 
 type InternalQueryParameterBindingError QueryParameterBindingError & InternalError;
 
-// TODO: Change the error type as QueryParameterBindingError once this issue is fixed:
-// https://github.com/ballerina-platform/ballerina-lang/issues/40273
 # Represents an error, which occurred due to a query parameter constraint validation.
-public type QueryParameterValidationError distinct QueryParameterBindingError & httpscerr:BadRequestError;
+public type QueryParameterValidationError distinct QueryParameterBindingError;
 
 type InternalQueryParameterValidationError QueryParameterValidationError & InternalError;
 
@@ -110,6 +115,13 @@ type InternalQueryParameterValidationError QueryParameterValidationError & Inter
 public type PathParameterBindingError distinct ListenerError & httpscerr:BadRequestError;
 
 type InternalPathParameterBindingError PathParameterBindingError & InternalError;
+
+type MediaTypeBindingClientError ClientError & MediaTypeBindingError;
+
+# Represents an error, which occurred due to media type validation.
+public type MediaTypeValidationError distinct MediaTypeBindingError;
+
+type MediaTypeValidationClientError ClientError & MediaTypeValidationError;
 
 # Represents an error, which occurred during the request dispatching.
 public type RequestDispatchingError distinct ListenerError;
@@ -294,3 +306,6 @@ type InternalRequestNotAcceptableError RequestNotAcceptableError & InternalError
 public type ResourceDispatchingServerError httpscerr:InternalServerErrorError & ResourceDispatchingError;
 
 type InternalResourceDispatchingServerError ResourceDispatchingServerError & InternalError;
+
+# Represents the client status code binding error
+public type StatusCodeRecordBindingError distinct ClientError;
