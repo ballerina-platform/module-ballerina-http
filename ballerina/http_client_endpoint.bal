@@ -88,7 +88,7 @@ public client isolated class Client {
     } external;
 
     private isolated function processPost(string path, RequestMessage message, TargetType targetType,
-            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
+            string? mediaType, map<string|string[]>? headers) returns Response|StatusCodeResponse|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->post(path, req);
@@ -130,7 +130,7 @@ public client isolated class Client {
     } external;
 
     private isolated function processPut(string path, RequestMessage message, TargetType targetType,
-            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
+            string? mediaType, map<string|string[]>? headers) returns Response|StatusCodeResponse|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->put(path, req);
@@ -172,7 +172,7 @@ public client isolated class Client {
     } external;
 
     private isolated function processPatch(string path, RequestMessage message, TargetType targetType,
-            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
+            string? mediaType, map<string|string[]>? headers) returns Response|StatusCodeResponse|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->patch(path, req);
@@ -214,7 +214,7 @@ public client isolated class Client {
     } external;
 
     private isolated function processDelete(string path, RequestMessage message, TargetType targetType,
-            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
+            string? mediaType, map<string|string[]>? headers) returns Response|StatusCodeResponse|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->delete(path, req);
@@ -277,7 +277,7 @@ public client isolated class Client {
     } external;
 
     private isolated function processGet(string path, map<string|string[]>? headers, TargetType targetType)
-            returns Response|anydata|ClientError {
+            returns Response|StatusCodeResponse|anydata|ClientError {
         Request req = buildRequestWithHeaders(headers);
         Response|ClientError response = self.httpClient->get(path, message = req);
         if observabilityEnabled && response is Response {
@@ -313,7 +313,7 @@ public client isolated class Client {
     } external;
 
     private isolated function processOptions(string path, map<string|string[]>? headers, TargetType targetType)
-            returns Response|anydata|ClientError {
+            returns Response|StatusCodeResponse|anydata|ClientError {
         Request req = buildRequestWithHeaders(headers);
         Response|ClientError response = self.httpClient->options(path, message = req);
         if observabilityEnabled && response is Response {
@@ -340,7 +340,7 @@ public client isolated class Client {
 
     private isolated function processExecute(string httpVerb, string path, RequestMessage message,
             TargetType targetType, string? mediaType, map<string|string[]>? headers)
-            returns Response|anydata|ClientError {
+            returns Response|StatusCodeResponse|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->execute(httpVerb, path, req);
@@ -363,7 +363,7 @@ public client isolated class Client {
     } external;
 
     private isolated function processForward(string path, Request request, TargetType targetType)
-            returns Response|anydata|ClientError {
+            returns Response|StatusCodeResponse|anydata|ClientError {
         Response|ClientError response = self.httpClient->forward(path, request);
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, request.method, response.statusCode, self.url);
@@ -620,37 +620,6 @@ isolated function createDefaultClient(string url, ClientConfiguration configurat
     return createHttpSecureClient(url, configuration);
 }
 
-isolated function processResponse(Response|ClientError response, TargetType targetType, boolean requireValidation)
-        returns Response|anydata|ClientError {
-    if targetType is typedesc<Response> || response is ClientError {
-        return response;
-    }
-    int statusCode = response.statusCode;
-    if 400 <= statusCode && statusCode <= 599 {
-        string reasonPhrase = response.reasonPhrase;
-        map<string[]> headers = getHeaders(response);
-        anydata|error payload = getPayload(response);
-        if payload is error {
-            if payload is NoContentError {
-                return createResponseError(statusCode, reasonPhrase, headers);
-            }
-            return error PayloadBindingClientError("http:ApplicationResponseError creation failed: " + statusCode.toString() +
-                " response payload extraction failed", payload);
-        } else {
-            return createResponseError(statusCode, reasonPhrase, headers, payload);
-        }
-    }
-    if targetType is typedesc<anydata> {
-        anydata payload = check performDataBinding(response, targetType);
-        if requireValidation {
-            return performDataValidation(payload, targetType);
-        }
-        return payload;
-    } else {
-        panic error GenericClientError("invalid payload target type");
-    }
-}
-
 isolated function getPayload(Response response) returns anydata|error {
     string|error contentTypeValue = response.getHeader(CONTENT_TYPE);
     string value = "";
@@ -707,3 +676,17 @@ isolated function createResponseError(int statusCode, string reasonPhrase, map<s
         return error RemoteServerError(reasonPhrase, statusCode = statusCode, headers = headers, body = body);
     }
 }
+
+isolated function processResponse(Response|ClientError response, TargetType targetType, boolean requireValidation)
+        returns Response|anydata|StatusCodeResponse|ClientError {
+    if response is ClientError {
+        return response;
+    }
+    return externProcessResponse(response, targetType, requireValidation);
+}
+
+isolated function externProcessResponse(Response response, TargetType targetType, boolean requireValidation)
+                                  returns Response|anydata|StatusCodeResponse|ClientError = @java:Method {
+    'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternResponseProcessor",
+    name: "processResponse"
+} external;

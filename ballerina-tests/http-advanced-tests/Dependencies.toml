@@ -5,7 +5,7 @@
 
 [ballerina]
 dependencies-toml-version = "2"
-distribution-version = "2201.8.0"
+distribution-version = "2201.9.0-20240404-200900-0a7e4c9e"
 
 [[package]]
 org = "ballerina"
@@ -35,7 +35,7 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "constraint"
-version = "1.4.0"
+version = "1.5.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
@@ -44,7 +44,7 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "crypto"
-version = "2.5.0"
+version = "2.6.2"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
@@ -72,7 +72,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "http"
-version = "2.10.13"
+version = "2.11.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "auth"},
@@ -105,7 +105,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "http_advanced_tests"
-version = "2.10.13"
+version = "2.11.0"
 dependencies = [
 	{org = "ballerina", name = "crypto"},
 	{org = "ballerina", name = "file"},
@@ -125,7 +125,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "http_test_common"
-version = "2.10.13"
+version = "2.11.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "lang.string"},
@@ -346,6 +346,7 @@ version = "0.0.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
+	{org = "ballerina", name = "lang.array"},
 	{org = "ballerina", name = "lang.error"}
 ]
 modules = [

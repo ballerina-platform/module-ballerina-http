@@ -5,12 +5,12 @@
 
 [ballerina]
 dependencies-toml-version = "2"
-distribution-version = "2201.8.0"
+distribution-version = "2201.9.0-20240404-200900-0a7e4c9e"
 
 [[package]]
 org = "ballerina"
 name = "http_test_common"
-version = "2.10.13"
+version = "2.11.0"
 dependencies = [
 	{org = "ballerina", name = "lang.string"},
 	{org = "ballerina", name = "mime"},
@@ -43,6 +43,15 @@ version = "0.0.0"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "lang.object"}
+]
+
+[[package]]
+org = "ballerina"
+name = "lang.array"
+version = "0.0.0"
+dependencies = [
+	{org = "ballerina", name = "jballerina.java"},
+	{org = "ballerina", name = "lang.__internal"}
 ]
 
 [[package]]
@@ -115,6 +124,7 @@ name = "test"
 version = "0.0.0"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
+	{org = "ballerina", name = "lang.array"},
 	{org = "ballerina", name = "lang.error"}
 ]
 modules = [

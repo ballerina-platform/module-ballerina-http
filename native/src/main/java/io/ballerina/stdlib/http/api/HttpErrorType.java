@@ -63,9 +63,10 @@ public enum HttpErrorType {
     INVALID_CONTENT_LENGTH("InvalidContentLengthError"),
     HEADER_NOT_FOUND_ERROR("HeaderNotFoundError"),
     CLIENT_ERROR("ClientError"),
+    PAYLOAD_BINDING_CLIENT_ERROR("PayloadBindingClientError"),
     INTERNAL_PAYLOAD_BINDING_LISTENER_ERROR("InternalPayloadBindingListenerError"),
     INTERNAL_PAYLOAD_VALIDATION_LISTENER_ERROR("InternalPayloadValidationListenerError"),
-    INTERNAL_HEADER_BINDING_ERROR("InternalHeaderBindingError"),
+    INTERNAL_HEADER_BINDING_LISTENER_ERROR("InternalHeaderBindingListenerError"),
     INTERNAL_QUERY_PARAM_BINDING_ERROR("InternalQueryParameterBindingError"),
     INTERNAL_PATH_PARAM_BINDING_ERROR("InternalPathParameterBindingError"),
     INTERNAL_INTERCEPTOR_RETURN_ERROR("InternalInterceptorReturnError"),
@@ -81,8 +82,14 @@ public enum HttpErrorType {
     INTERNAL_LISTENER_AUTHN_ERROR("InternalListenerAuthnError"),
     CLIENT_CONNECTOR_ERROR("ClientConnectorError"),
     INTERNAL_RESOURCE_PATH_VALIDATION_ERROR("InternalResourcePathValidationError"),
-    INTERNAL_HEADER_VALIDATION_ERROR("InternalHeaderValidationError"),
-    INTERNAL_QUERY_PARAM_VALIDATION_ERROR("InternalQueryParameterValidationError");
+    INTERNAL_HEADER_VALIDATION_LISTENER_ERROR("InternalHeaderValidationListenerError"),
+    INTERNAL_QUERY_PARAM_VALIDATION_ERROR("InternalQueryParameterValidationError"),
+    STATUS_CODE_RECORD_BINDING_ERROR("StatusCodeRecordBindingError"),
+    HEADER_NOT_FOUND_CLIENT_ERROR("HeaderNotFoundClientError"),
+    HEADER_BINDING_CLIENT_ERROR("HeaderBindingClientError"),
+    HEADER_VALIDATION_CLIENT_ERROR("HeaderValidationClientError"),
+    MEDIA_TYPE_BINDING_CLIENT_ERROR("MediaTypeBindingClientError"),
+    MEDIA_TYPE_VALIDATION_CLIENT_ERROR("MediaTypeValidationClientError");
 
     private final String errorName;
 

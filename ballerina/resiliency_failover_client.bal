@@ -99,13 +99,13 @@ public client isolated class FailoverClient {
     } external;
 
     private isolated function processPost(string path, RequestMessage message, TargetType targetType, 
-            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
+            string? mediaType, map<string|string[]>? headers) returns Response|StatusCodeResponse|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         var result = self.performFailoverAction(path, req, HTTP_POST);
         if result is HttpFuture {
             return getInvalidTypeError();
-        } else if result is Response || result is ClientError {
+        } else if result is ClientError|Response {
             return processResponse(result, targetType, self.requireValidation);
         } else {
             panic error ClientError("invalid response type received");
@@ -144,13 +144,13 @@ public client isolated class FailoverClient {
     } external;
     
     private isolated function processPut(string path, RequestMessage message, TargetType targetType, 
-            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
+            string? mediaType, map<string|string[]>? headers) returns Response|StatusCodeResponse|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         var result = self.performFailoverAction(path, req, HTTP_PUT);
         if result is HttpFuture {
             return getInvalidTypeError();
-        } else if result is Response || result is ClientError {
+        } else if result is ClientError|Response {
             return processResponse(result, targetType, self.requireValidation);
         } else {
             panic error ClientError("invalid response type received");
@@ -189,13 +189,13 @@ public client isolated class FailoverClient {
     } external;
     
     private isolated function processPatch(string path, RequestMessage message, TargetType targetType, 
-            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
+            string? mediaType, map<string|string[]>? headers) returns Response|StatusCodeResponse|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         var result = self.performFailoverAction(path, req, HTTP_PATCH);
         if result is HttpFuture {
             return getInvalidTypeError();
-        } else if result is Response || result is ClientError {
+        } else if result is ClientError|Response {
             return processResponse(result, targetType, self.requireValidation);
         } else {
             panic error ClientError("invalid response type received");
@@ -234,13 +234,13 @@ public client isolated class FailoverClient {
     } external;
     
     private isolated function processDelete(string path, RequestMessage message, TargetType targetType, 
-            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
+            string? mediaType, map<string|string[]>? headers) returns Response|StatusCodeResponse|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         var result = self.performFailoverAction(path, req, HTTP_DELETE);
         if result is HttpFuture {
             return getInvalidTypeError();
-        } else if result is Response || result is ClientError {
+        } else if result is ClientError|Response {
             return processResponse(result, targetType, self.requireValidation);
         } else {
             panic error ClientError("invalid response type received");
@@ -303,12 +303,12 @@ public client isolated class FailoverClient {
     } external;
         
     private isolated function processGet(string path, map<string|string[]>? headers, TargetType targetType)
-            returns Response|anydata|ClientError {
+            returns Response|StatusCodeResponse|anydata|ClientError {
         Request req = buildRequestWithHeaders(headers);
         var result = self.performFailoverAction(path, req, HTTP_GET);
         if result is HttpFuture {
             return getInvalidTypeError();
-        } else if result is Response || result is ClientError {
+        } else if result is ClientError|Response {
             return processResponse(result, targetType, self.requireValidation);
         } else {
             panic error ClientError("invalid response type received");
@@ -342,12 +342,12 @@ public client isolated class FailoverClient {
     } external;
     
     private isolated function processOptions(string path, map<string|string[]>? headers, TargetType targetType)
-            returns Response|anydata|ClientError {
+            returns Response|StatusCodeResponse|anydata|ClientError {
         Request req = buildRequestWithHeaders(headers);
         var result = self.performFailoverAction(path, req, HTTP_OPTIONS);
         if result is HttpFuture {
             return getInvalidTypeError();
-        } else if result is Response || result is ClientError {
+        } else if result is ClientError|Response {
             return processResponse(result, targetType, self.requireValidation);
         } else {
             panic error ClientError("invalid response type received");
@@ -372,13 +372,13 @@ public client isolated class FailoverClient {
     
     private isolated function processExecute(string httpVerb, string path, RequestMessage message,
             TargetType targetType, string? mediaType, map<string|string[]>? headers) 
-            returns Response|anydata|ClientError {
+            returns Response|StatusCodeResponse|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         var result = self.performExecuteAction(path, req, httpVerb);
         if result is HttpFuture {
             return getInvalidTypeError();
-        } else if result is Response || result is ClientError {
+        } else if result is ClientError|Response {
             return processResponse(result, targetType, self.requireValidation);
         } else {
             panic error ClientError("invalid response type received");
@@ -398,11 +398,11 @@ public client isolated class FailoverClient {
     } external;
     
     private isolated function processForward(string path, Request request, TargetType targetType)
-            returns Response|anydata|ClientError {
+            returns Response|StatusCodeResponse|anydata|ClientError {
         var result = self.performFailoverAction(path, request, HTTP_FORWARD);
         if result is HttpFuture {
             return getInvalidTypeError();
-        } else if result is Response || result is ClientError {
+        } else if result is ClientError|Response {
             return processResponse(result, targetType, self.requireValidation);
         } else {
             panic error ClientError("invalid response type received");

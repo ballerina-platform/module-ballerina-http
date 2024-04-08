@@ -92,7 +92,7 @@ public client isolated class LoadBalanceClient {
     } external;
     
     private isolated function processPost(string path, RequestMessage message, TargetType targetType, 
-            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
+            string? mediaType, map<string|string[]>? headers) returns Response|StatusCodeResponse|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         var result = self.performLoadBalanceAction(path, req, HTTP_POST);
@@ -129,9 +129,9 @@ public client isolated class LoadBalanceClient {
             returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction"
     } external;
-    
-    private isolated function processPut(string path, RequestMessage message, TargetType targetType, 
-            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
+
+    private isolated function processPut(string path, RequestMessage message, TargetType targetType,
+            string? mediaType, map<string|string[]>? headers) returns Response|StatusCodeResponse|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         var result = self.performLoadBalanceAction(path, req, HTTP_PUT);
@@ -168,9 +168,9 @@ public client isolated class LoadBalanceClient {
             returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction"
     } external;
-    
-    private isolated function processPatch(string path, RequestMessage message, TargetType targetType, 
-            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
+
+    private isolated function processPatch(string path, RequestMessage message, TargetType targetType,
+            string? mediaType, map<string|string[]>? headers) returns Response|StatusCodeResponse|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         var result = self.performLoadBalanceAction(path, req, HTTP_PATCH);
@@ -207,9 +207,9 @@ public client isolated class LoadBalanceClient {
             returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction"
     } external;
-    
-    private isolated function processDelete(string path, RequestMessage message, TargetType targetType, 
-            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
+
+    private isolated function processDelete(string path, RequestMessage message, TargetType targetType,
+            string? mediaType, map<string|string[]>? headers) returns Response|StatusCodeResponse|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         var result = self.performLoadBalanceAction(path, req, HTTP_DELETE);
@@ -253,7 +253,7 @@ public client isolated class LoadBalanceClient {
     } external;
 
     # The GET remote function implementation of the LoadBalancer Connector.
-    # 
+    #
     # + path - Request path
     # + headers - The entity headers
     # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
@@ -263,9 +263,9 @@ public client isolated class LoadBalanceClient {
             returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction"
     } external;
-    
+
     private isolated function processGet(string path, map<string|string[]>? headers, TargetType targetType)
-            returns Response|anydata|ClientError {
+            returns Response|StatusCodeResponse|anydata|ClientError {
         Request req = buildRequestWithHeaders(headers);
         var result = self.performLoadBalanceAction(path, req, HTTP_GET);
         return processResponse(result, targetType, self.requireValidation);
@@ -296,9 +296,9 @@ public client isolated class LoadBalanceClient {
             returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction"
     } external;
-    
+
     private isolated function processOptions(string path, map<string|string[]>? headers, TargetType targetType)
-            returns Response|anydata|ClientError {
+            returns Response|StatusCodeResponse|anydata|ClientError {
         Request req = buildRequestWithHeaders(headers);
         var result = self.performLoadBalanceAction(path, req, HTTP_OPTIONS);
         return processResponse(result, targetType, self.requireValidation);
@@ -319,10 +319,10 @@ public client isolated class LoadBalanceClient {
             returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction"
     } external;
-    
+
     private isolated function processExecute(string httpVerb, string path, RequestMessage message,
-            TargetType targetType, string? mediaType, map<string|string[]>? headers) 
-            returns Response|anydata|ClientError {
+            TargetType targetType, string? mediaType, map<string|string[]>? headers)
+            returns Response|StatusCodeResponse|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         var result = self.performLoadBalanceExecuteAction(path, req, httpVerb);
@@ -342,7 +342,7 @@ public client isolated class LoadBalanceClient {
     } external;
 
     private isolated function processForward(string path, Request request, TargetType targetType)
-            returns Response|anydata|ClientError {
+            returns Response|StatusCodeResponse|anydata|ClientError {
         var result = self.performLoadBalanceAction(path, request, HTTP_FORWARD);
         return processResponse(result, targetType, self.requireValidation);
     }

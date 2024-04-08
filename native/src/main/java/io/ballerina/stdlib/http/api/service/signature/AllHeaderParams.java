@@ -33,7 +33,7 @@ import io.netty.handler.codec.http.HttpHeaders;
 import java.util.ArrayList;
 import java.util.List;
 
-import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_HEADER_BINDING_ERROR;
+import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_HEADER_BINDING_LISTENER_ERROR;
 import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castParam;
 import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castParamArray;
 
@@ -80,7 +80,7 @@ public class AllHeaderParams implements Parameter {
                 try {
                     castedHeader = ValueUtils.convert(parsedHeader, headerParam.getOriginalType());
                 } catch (Exception ex) {
-                    throw HttpUtil.createHttpStatusCodeError(INTERNAL_HEADER_BINDING_ERROR,
+                    throw HttpUtil.createHttpStatusCodeError(INTERNAL_HEADER_BINDING_LISTENER_ERROR,
                             String.format(HEADER_BINDING_FAILED_ERROR_MSG, headerParam.getHeaderName()), null,
                             HttpUtil.createError(ex));
                 }
@@ -96,7 +96,7 @@ public class AllHeaderParams implements Parameter {
                     paramFeed[index] = true;
                     continue;
                 } else {
-                    throw HttpUtil.createHttpStatusCodeError(INTERNAL_HEADER_BINDING_ERROR,
+                    throw HttpUtil.createHttpStatusCodeError(INTERNAL_HEADER_BINDING_LISTENER_ERROR,
                             String.format(NO_HEADER_VALUE_ERROR_MSG, token));
                 }
             }
@@ -106,7 +106,7 @@ public class AllHeaderParams implements Parameter {
                     paramFeed[index] = true;
                     continue;
                 } else {
-                    throw HttpUtil.createHttpStatusCodeError(INTERNAL_HEADER_BINDING_ERROR,
+                    throw HttpUtil.createHttpStatusCodeError(INTERNAL_HEADER_BINDING_LISTENER_ERROR,
                             String.format(NO_HEADER_VALUE_ERROR_MSG, token));
                 }
             }
@@ -121,7 +121,7 @@ public class AllHeaderParams implements Parameter {
                 }
                 castedHeaderValue = ValueUtils.convert(parsedHeaderValue, headerParam.getOriginalType());
             } catch (Exception ex) {
-                throw HttpUtil.createHttpStatusCodeError(INTERNAL_HEADER_BINDING_ERROR,
+                throw HttpUtil.createHttpStatusCodeError(INTERNAL_HEADER_BINDING_LISTENER_ERROR,
                         String.format(HEADER_BINDING_FAILED_ERROR_MSG, token), null, HttpUtil.createError(ex));
             }
 
@@ -147,7 +147,7 @@ public class AllHeaderParams implements Parameter {
                 } else if (headerParam.isNilable()) {
                     return null;
                 } else {
-                    throw HttpUtil.createHttpStatusCodeError(INTERNAL_HEADER_BINDING_ERROR,
+                    throw HttpUtil.createHttpStatusCodeError(INTERNAL_HEADER_BINDING_LISTENER_ERROR,
                             String.format(NO_HEADER_VALUE_ERROR_MSG, key));
                 }
             }
@@ -158,7 +158,7 @@ public class AllHeaderParams implements Parameter {
                 } else if (headerParam.isNilable()) {
                     return null;
                 } else {
-                    throw HttpUtil.createHttpStatusCodeError(INTERNAL_HEADER_BINDING_ERROR,
+                    throw HttpUtil.createHttpStatusCodeError(INTERNAL_HEADER_BINDING_LISTENER_ERROR,
                             String.format(NO_HEADER_VALUE_ERROR_MSG, key));
                 }
             }
@@ -171,7 +171,7 @@ public class AllHeaderParams implements Parameter {
                     recordValue.put(StringUtils.fromString(key), castParam(fieldTypeTag, headerValues.get(0)));
                 }
             } catch (Exception ex) {
-                throw HttpUtil.createHttpStatusCodeError(INTERNAL_HEADER_BINDING_ERROR,
+                throw HttpUtil.createHttpStatusCodeError(INTERNAL_HEADER_BINDING_LISTENER_ERROR,
                         String.format(HEADER_BINDING_FAILED_ERROR_MSG, key), null, HttpUtil.createError(ex));
             }
         }
