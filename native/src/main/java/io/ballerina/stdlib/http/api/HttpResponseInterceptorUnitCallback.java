@@ -114,8 +114,7 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
             return;
         }
 
-        if (result == null) {
-            requestMessage.setProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX, -1);
+        if (result == null && interceptorId == -1) {
             sendResponseToNextService();
             return;
         }

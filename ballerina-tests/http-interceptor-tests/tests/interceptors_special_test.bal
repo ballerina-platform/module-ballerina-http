@@ -259,10 +259,9 @@ service http:InterceptableService / on responseInterceptorWithoutCtxNextServerEP
 @test:Config{}
 function testResponseInterceptorWithoutCtxNext() returns error? {
     http:Response res = check responseInterceptorWithoutCtxNextClientEP->get("/");
-    common:assertHeaderValue(check res.getHeader("last-interceptor"), "response-interceptor-without-ctx-next");
-    common:assertHeaderValue(check res.getHeader("default-response-interceptor"), "true");
-    common:assertHeaderValue(check res.getHeader("response-interceptor-without-ctx-next"), "true");
-    common:assertTextPayload(check res.getTextPayload(), "Response from response interceptor");
+    common:assertHeaderValue(check res.getHeader("last-interceptor"), "default-response-interceptor");
+    common:assertHeaderValue(check res.getHeader("last-response-interceptor"), "true");
+    test:assertEquals(res.statusCode, 202);
 }
 
 final http:Client requestInterceptorSkipClientEP = check new("http://localhost:" + requestInterceptorSkipTestPort.toString(), httpVersion = http:HTTP_1_1);
