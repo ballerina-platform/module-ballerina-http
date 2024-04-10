@@ -671,7 +671,7 @@ public type NonAuthoritativeInformation record {|
 # + headers - The response headers
 # + status - The response status code obj
 public type NoContent record {|
-    map<string|string[]> headers?;
+    map<string|int|boolean|string[]|int[]|boolean[]> headers?;
     readonly StatusNoContent status = STATUS_NO_CONTENT_OBJ;
 |};
 
