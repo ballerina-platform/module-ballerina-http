@@ -105,6 +105,12 @@ path = "./lib/bcprov-jdk18on-@bouncycastle.version@.jar"
 
 [[platform.java17.dependency]]
 groupId = "org.bouncycastle"
+artifactId = "bcutil-jdk18on"
+version = "@bouncycastle.version@"
+path = "./lib/bcutil-jdk18on-@bouncycastle.version@.jar"
+
+[[platform.java17.dependency]]
+groupId = "org.bouncycastle"
 artifactId = "bcpkix-jdk18on"
 version = "@bouncycastle.version@"
 path = "./lib/bcpkix-jdk18on-@bouncycastle.version@.jar"
