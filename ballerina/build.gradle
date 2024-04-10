@@ -113,6 +113,9 @@ dependencies {
     externalJars(group: 'org.bouncycastle', name: 'bcprov-jdk18on', version: "${bouncycastleVersion}") {
         transitive = false
     }
+    externalJars(group: 'org.bouncycastle', name: 'bcutil-jdk18on', version: "${bouncycastleVersion}") {
+        transitive = false
+    }
     externalJars(group: 'org.bouncycastle', name: 'bcpkix-jdk18on', version: "${bouncycastleVersion}") {
         transitive = false
     }
