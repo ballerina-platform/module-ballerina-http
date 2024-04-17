@@ -9,7 +9,3 @@ patches:
     version: v1
     kind: Deployment
     name: h1-h1-passthrou-deployment
-- path: secret-patch.yaml
-  target:
-    version: v1
-    kind: Secret
