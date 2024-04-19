@@ -22,7 +22,6 @@ import io.ballerina.runtime.api.Future;
 import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.async.Callback;
-import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.flags.SymbolFlags;
@@ -50,7 +49,6 @@ import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.api.ValueCreatorUtils;
 import io.netty.handler.codec.http.HttpHeaders;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,7 +70,6 @@ import static io.ballerina.stdlib.http.api.HttpErrorType.HEADER_VALIDATION_CLIEN
 import static io.ballerina.stdlib.http.api.HttpErrorType.MEDIA_TYPE_BINDING_CLIENT_ERROR;
 import static io.ballerina.stdlib.http.api.HttpErrorType.MEDIA_TYPE_VALIDATION_CLIENT_ERROR;
 import static io.ballerina.stdlib.http.api.HttpErrorType.PAYLOAD_BINDING_CLIENT_ERROR;
-import static io.ballerina.stdlib.http.api.HttpErrorType.STATUS_CODE_RECORD_BINDING_ERROR;
 import static io.ballerina.stdlib.http.api.HttpUtil.createHttpError;
 
 /**
@@ -88,14 +85,11 @@ public final class ExternResponseProcessor {
     private static final String UNSUPPORTED_HEADERS_TYPE = "unsupported headers type: %s";
     private static final String UNSUPPORTED_STATUS_CODE = "unsupported status code: %d";
     private static final String INCOMPATIBLE_TYPE_FOUND_FOR_RESPONSE = "incompatible %s found for response with %d";
-    private static final String NO_ANYDATA_TYPE_FOUND_IN_THE_TARGET_TYPE = "no 'anydata' type found in the target type";
-    private static final String PAYLOAD_BINDING_FAILED = "payload binding failed";
     private static final String MEDIA_TYPE_BINDING_FAILED = "media-type binding failed";
     private static final String APPLICATION_RES_ERROR_CREATION_FAILED = "http:ApplicationResponseError creation failed";
     private static final String STATUS_CODE_RES_CREATION_FAILED = "http:StatusCodeResponse creation failed";
 
-    private static final String PERFORM_DATA_BINDING = "performDataBinding";
-    private static final String GET_APPLICATION_RESPONSE_ERROR = "getApplicationResponseError";
+    private static final String GET_STATUS_CODE_RESPONSE_BINDING_ERROR = "getStatusCodeResponseBindingError";
     private static final String BUILD_STATUS_CODE_RESPONSE = "buildStatusCodeResponse";
 
 
@@ -173,6 +167,23 @@ public final class ExternResponseProcessor {
         return getResponseWithType(response, targetType.getDescribingType(), requireValidation, env);
     }
 
+    public static Object buildStatusCodeResponse(BTypedesc statusCodeResponseTypeDesc, BObject status, BMap headers,
+                                                 Object body, Object mediaType) {
+        if (statusCodeResponseTypeDesc.getDescribingType() instanceof RecordType statusCodeRecordType) {
+            BMap<BString, Object> statusCodeRecord = ValueCreator.createRecordValue(statusCodeRecordType);
+            statusCodeRecord.put(StringUtils.fromString(STATUS_CODE_RESPONSE_STATUS_FIELD), status);
+            statusCodeRecord.put(StringUtils.fromString(STATUS_CODE_RESPONSE_HEADERS_FIELD), headers);
+            if (statusCodeRecordType.getFields().containsKey(STATUS_CODE_RESPONSE_MEDIA_TYPE_FIELD)) {
+                statusCodeRecord.put(StringUtils.fromString(STATUS_CODE_RESPONSE_MEDIA_TYPE_FIELD), mediaType);
+            }
+            if (statusCodeRecordType.getFields().containsKey(STATUS_CODE_RESPONSE_BODY_FIELD)) {
+                statusCodeRecord.put(StringUtils.fromString(STATUS_CODE_RESPONSE_BODY_FIELD), body);
+            }
+            return statusCodeRecord;
+        }
+        return createHttpError(STATUS_CODE_RES_CREATION_FAILED, CLIENT_ERROR);
+    }
+
     private static Object getResponseWithType(BObject response, Type targetType, boolean requireValidation,
                                               Environment env) {
         long responseStatusCode = getStatusCode(response);
@@ -182,24 +193,10 @@ public final class ExternResponseProcessor {
                 TypeUtils.getImpliedType(statusCodeResponseType.get()) instanceof RecordType statusCodeRecordType) {
             return generateStatusCodeResponseType(response, requireValidation, env, statusCodeRecordType,
                     responseStatusCode);
-        } else if ((399 < responseStatusCode) && (responseStatusCode < 600)) {
-            return hasHttpResponseType(targetType) ? response : getApplicationResponseError(env, response);
-        } else {
-            return generatePayload(response, targetType, requireValidation, env);
         }
-    }
-
-    private static Object generatePayload(BObject response, Type targetType, boolean requireValidation,
-                                          Environment env) {
-        try {
-            return getPayload(env, response, getAnydataType(targetType), requireValidation);
-        } catch (BError e) {
-            if (hasHttpResponseType(targetType)) {
-                return response;
-            }
-            return createHttpError(String.format(INCOMPATIBLE_TYPE_FOUND_FOR_RESPONSE, targetType,
-                    getStatusCode(response)), PAYLOAD_BINDING_CLIENT_ERROR, e);
-        }
+        String reasonPhrase = String.format(INCOMPATIBLE_TYPE_FOUND_FOR_RESPONSE, targetType.getName(),
+                responseStatusCode);
+        return getStatusCodeResponseBindingError(env, response, reasonPhrase, false);
     }
 
     private static long getStatusCode(BObject response) {
@@ -210,13 +207,13 @@ public final class ExternResponseProcessor {
                                                          RecordType statusCodeRecordType, long responseStatusCode) {
         String statusCodeObjName = STATUS_CODE_OBJS.get(Long.toString(responseStatusCode));
         if (Objects.isNull(statusCodeObjName)) {
-            return createHttpError(String.format(UNSUPPORTED_STATUS_CODE, responseStatusCode),
-                    STATUS_CODE_RECORD_BINDING_ERROR);
+            return getStatusCodeResponseBindingError(env, response, String.format(UNSUPPORTED_STATUS_CODE,
+                    responseStatusCode), true);
         }
 
         Object status = ValueCreatorUtils.createStatusCodeObject(statusCodeObjName);
 
-        Object headers = getHeaders(response, requireValidation, statusCodeRecordType);
+        Object headers = getHeaders(env, response, requireValidation, statusCodeRecordType);
         if (headers instanceof BError) {
             return headers;
         }
@@ -233,49 +230,39 @@ public final class ExternResponseProcessor {
         if (statusCodeRecordType.getFields().containsKey(STATUS_CODE_RESPONSE_BODY_FIELD)) {
             payloadType = statusCodeRecordType.getFields().get(STATUS_CODE_RESPONSE_BODY_FIELD).getFieldType();
         }
-        return getStatusCodeResponse(env, response, payloadType, statusCodeRecordType, requireValidation, status,
-                headers, mediaType);
+        Object[] paramFeed = getParamFeedForStatusCodeBinding(requireValidation, statusCodeRecordType, payloadType,
+                status, headers, mediaType);
+        return getStatusCodeResponse(env, response, paramFeed);
     }
 
-    private static Object getHeaders(BObject response, boolean requireValidation, RecordType statusCodeRecordType) {
+    private static Object[] getParamFeedForStatusCodeBinding(boolean requireValidation, RecordType statusCodeType,
+                                                             Type payloadType, Object status, Object headers,
+                                                             Object mediaType) {
+        Object[] paramFeed = new Object[12];
+        paramFeed[0] = Objects.isNull(payloadType) ? null : ValueCreator.createTypedescValue(payloadType);
+        paramFeed[1] = true;
+        paramFeed[2] = ValueCreator.createTypedescValue(statusCodeType);
+        paramFeed[3] = true;
+        paramFeed[4] = requireValidation;
+        paramFeed[5] = true;
+        paramFeed[6] = status;
+        paramFeed[7] = true;
+        paramFeed[8] = headers;
+        paramFeed[9] = true;
+        paramFeed[10] = mediaType;
+        paramFeed[11] = true;
+        return paramFeed;
+    }
+
+    private static Object getHeaders(Environment env, BObject response, boolean requireValidation,
+                                     RecordType statusCodeRecordType) {
         Type headersType = statusCodeRecordType.getFields().get(STATUS_CODE_RESPONSE_HEADERS_FIELD).getFieldType();
-        return getHeadersMap(response, headersType, requireValidation);
+        return getHeadersMap(env, response, headersType, requireValidation);
     }
 
     private static Object getMediaType(BObject response, boolean requireValidation, RecordType statusCodeRecordType) {
         Type mediaTypeType = statusCodeRecordType.getFields().get(STATUS_CODE_RESPONSE_MEDIA_TYPE_FIELD).getFieldType();
         return getMediaType(response, mediaTypeType, requireValidation);
-    }
-
-    private static Type getAnydataType(Type targetType) {
-        List<Type> anydataTypes = extractAnydataTypes(targetType, new ArrayList<>());
-        if (anydataTypes.isEmpty()) {
-            throw ErrorCreator.createError(StringUtils.fromString(NO_ANYDATA_TYPE_FOUND_IN_THE_TARGET_TYPE));
-        } else if (anydataTypes.size() == 1) {
-            return anydataTypes.get(0);
-        } else {
-            return TypeCreator.createUnionType(anydataTypes);
-        }
-    }
-
-    private static List<Type> extractAnydataTypes(Type targetType, List<Type> anydataTypes) {
-        if (targetType.isAnydata()) {
-            anydataTypes.add(targetType);
-            return anydataTypes;
-        }
-
-        switch (targetType.getTag()) {
-            case TypeTags.UNION_TAG:
-                List<Type> memberTypes = ((UnionType) targetType).getMemberTypes();
-                for (Type memberType : memberTypes) {
-                    extractAnydataTypes(memberType, anydataTypes);
-                }
-                return anydataTypes;
-            case TypeTags.TYPE_REFERENCED_TYPE_TAG:
-                return extractAnydataTypes(TypeUtils.getImpliedType(targetType), anydataTypes);
-            default:
-                return anydataTypes;
-        }
     }
 
     private static Object getMediaType(BObject response, Type mediaTypeType, boolean requireValidation) {
@@ -295,7 +282,8 @@ public final class ExternResponseProcessor {
         return httpHeaders.get("Content-Type");
     }
 
-    private static Object getHeadersMap(BObject response, Type headersType, boolean requireValidation) {
+    private static Object getHeadersMap(Environment env, BObject response, Type headersType,
+                                        boolean requireValidation) {
         HttpHeaders httpHeaders = (HttpHeaders) response.getNativeData(HTTP_HEADERS);
         Type headersImpliedType = TypeUtils.getImpliedType(headersType);
         if (headersImpliedType.getTag() == TypeTags.TYPE_REFERENCED_TYPE_TAG) {
@@ -309,8 +297,8 @@ public final class ExternResponseProcessor {
         } else if (headersImpliedType.getTag() == TypeTags.RECORD_TYPE_TAG) {
             headerMap = createHeaderRecord(httpHeaders, (RecordType) headersImpliedType);
         } else {
-            return createHttpError(String.format(UNSUPPORTED_HEADERS_TYPE, headersType),
-                    STATUS_CODE_RECORD_BINDING_ERROR);
+            return getStatusCodeResponseBindingError(env, response, String.format(UNSUPPORTED_HEADERS_TYPE,
+                    headersImpliedType.getName()), true);
         }
 
         if (headerMap instanceof BError) {
@@ -324,16 +312,6 @@ public final class ExternResponseProcessor {
         } catch (BError conversionError) {
             return createHttpError(HEADER_BINDING_FAILED, HEADER_BINDING_CLIENT_ERROR, conversionError);
         }
-    }
-
-    private static boolean hasHttpResponseType(Type targetType) {
-        return switch (targetType.getTag()) {
-            case TypeTags.OBJECT_TYPE_TAG -> true;
-            case TypeTags.UNION_TAG -> ((UnionType) targetType).getMemberTypes().stream().anyMatch(
-                    ExternResponseProcessor::hasHttpResponseType);
-            case TypeTags.TYPE_REFERENCED_TYPE_TAG -> hasHttpResponseType(TypeUtils.getImpliedType(targetType));
-            default -> false;
-        };
     }
 
     private static Optional<Type> getStatusCodeResponseType(Type targetType, String statusCode) {
@@ -477,10 +455,6 @@ public final class ExternResponseProcessor {
         }
     }
 
-    private static Object getPayload(Environment env, BObject response, Type payloadType, boolean requireValidation) {
-        return performBalDataBinding(env, response, payloadType, requireValidation);
-    }
-
     private static boolean isOptionalHeaderField(Field headerField) {
         return SymbolFlags.isFlagOn(headerField.getFlags(), SymbolFlags.OPTIONAL);
     }
@@ -501,33 +475,8 @@ public final class ExternResponseProcessor {
         return convertedValue;
     }
 
-    public static Object performBalDataBinding(Environment env, BObject response, Type payloadType,
-                                               boolean requireValidation) {
-        Future balFuture = env.markAsync();
-        Callback returnCallback = new Callback() {
-            @Override
-            public void notifySuccess(Object result) {
-                balFuture.complete(result);
-            }
-
-            @Override
-            public void notifyFailure(BError bError) {
-                BError error = createHttpError(PAYLOAD_BINDING_FAILED, CLIENT_ERROR, bError);
-                balFuture.complete(error);
-            }
-        };
-        Object[] paramFeed = new Object[4];
-        paramFeed[0] = ValueCreator.createTypedescValue(payloadType);
-        paramFeed[1] = true;
-        paramFeed[2] = requireValidation;
-        paramFeed[3] = true;
-        env.getRuntime().invokeMethodAsyncSequentially(response, PERFORM_DATA_BINDING, null,
-                ModuleUtils.getNotifySuccessMetaData(), returnCallback, null, PredefinedTypes.TYPE_ANY,
-                paramFeed);
-        return null;
-    }
-
-    public static Object getApplicationResponseError(Environment env, BObject response) {
+    private static Object getStatusCodeResponseBindingError(Environment env, BObject response, String reasonPhrase,
+                                                            boolean generalError) {
         Future balFuture = env.markAsync();
         Callback returnCallback = new Callback() {
             @Override
@@ -542,14 +491,17 @@ public final class ExternResponseProcessor {
                 balFuture.complete(error);
             }
         };
-        env.getRuntime().invokeMethodAsyncSequentially(response, GET_APPLICATION_RESPONSE_ERROR, null,
-                ModuleUtils.getNotifySuccessMetaData(), returnCallback, null, PredefinedTypes.TYPE_ERROR);
+        Object[] paramFeed = new Object[4];
+        paramFeed[0] = StringUtils.fromString(reasonPhrase);
+        paramFeed[1] = true;
+        paramFeed[2] = generalError;
+        paramFeed[3] = true;
+        env.getRuntime().invokeMethodAsyncSequentially(response, GET_STATUS_CODE_RESPONSE_BINDING_ERROR, null,
+                ModuleUtils.getNotifySuccessMetaData(), returnCallback, null, PredefinedTypes.TYPE_ERROR, paramFeed);
         return null;
     }
 
-    public static Object getStatusCodeResponse(Environment env, BObject response, Type payloadType,
-                                               Type statusCodeResponseType, boolean requireValidation, Object status,
-                                               Object headers, Object mediaType) {
+    private static Object getStatusCodeResponse(Environment env, BObject response, Object[] paramFeed) {
         Future balFuture = env.markAsync();
         Callback returnCallback = new Callback() {
             @Override
@@ -559,44 +511,13 @@ public final class ExternResponseProcessor {
 
             @Override
             public void notifyFailure(BError bError) {
-                BError error = createHttpError(STATUS_CODE_RES_CREATION_FAILED, STATUS_CODE_RECORD_BINDING_ERROR,
-                        bError);
+                BError error = createHttpError(STATUS_CODE_RES_CREATION_FAILED, CLIENT_ERROR, bError);
                 balFuture.complete(error);
             }
         };
-        Object[] paramFeed = new Object[12];
-        paramFeed[0] = Objects.isNull(payloadType) ? null : ValueCreator.createTypedescValue(payloadType);
-        paramFeed[1] = true;
-        paramFeed[2] = ValueCreator.createTypedescValue(statusCodeResponseType);
-        paramFeed[3] = true;
-        paramFeed[4] = requireValidation;
-        paramFeed[5] = true;
-        paramFeed[6] = status;
-        paramFeed[7] = true;
-        paramFeed[8] = headers;
-        paramFeed[9] = true;
-        paramFeed[10] = mediaType;
-        paramFeed[11] = true;
         env.getRuntime().invokeMethodAsyncSequentially(response, BUILD_STATUS_CODE_RESPONSE, null,
                 ModuleUtils.getNotifySuccessMetaData(), returnCallback, null, PredefinedTypes.TYPE_ANY,
                 paramFeed);
         return null;
-    }
-
-    public static Object buildStatusCodeResponse(BTypedesc statusCodeResponseTypeDesc, BObject status, BMap headers,
-                                                 Object body, Object mediaType) {
-        if (statusCodeResponseTypeDesc.getDescribingType() instanceof RecordType statusCodeRecordType) {
-            BMap<BString, Object> statusCodeRecord = ValueCreator.createRecordValue(statusCodeRecordType);
-            statusCodeRecord.put(StringUtils.fromString(STATUS_CODE_RESPONSE_STATUS_FIELD), status);
-            statusCodeRecord.put(StringUtils.fromString(STATUS_CODE_RESPONSE_HEADERS_FIELD), headers);
-            if (statusCodeRecordType.getFields().containsKey(STATUS_CODE_RESPONSE_MEDIA_TYPE_FIELD)) {
-                statusCodeRecord.put(StringUtils.fromString(STATUS_CODE_RESPONSE_MEDIA_TYPE_FIELD), mediaType);
-            }
-            if (statusCodeRecordType.getFields().containsKey(STATUS_CODE_RESPONSE_BODY_FIELD)) {
-                statusCodeRecord.put(StringUtils.fromString(STATUS_CODE_RESPONSE_BODY_FIELD), body);
-            }
-            return statusCodeRecord;
-        }
-        return createHttpError(STATUS_CODE_RES_CREATION_FAILED, STATUS_CODE_RECORD_BINDING_ERROR);
     }
 }

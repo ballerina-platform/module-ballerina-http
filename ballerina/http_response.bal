@@ -562,19 +562,18 @@ public class Response {
         return payload;
     }
 
-    isolated function getApplicationResponseError() returns ClientError {
-        string reasonPhrase = self.reasonPhrase;
+    isolated function getStatusCodeResponseBindingError(string reasonPhrase, boolean generalError) returns ClientError {
         map<string[]> headers = getHeaders(self);
         anydata|error payload = getPayload(self);
         int statusCode = self.statusCode;
         if payload is error {
             if payload is NoContentError {
-                return createResponseError(statusCode, reasonPhrase, headers);
+                return createStatusCodeResponseBindingError(generalError, statusCode, reasonPhrase, headers);
             }
-            return error PayloadBindingClientError("http:ApplicationResponseError creation failed: " + statusCode.toString() +
+            return error PayloadBindingClientError("http:StatusCodeBindingError creation failed: " + statusCode.toString() +
                 " response payload extraction failed", payload);
         } else {
-            return createResponseError(statusCode, reasonPhrase, headers, payload);
+            return createStatusCodeResponseBindingError(generalError, statusCode, reasonPhrase, headers, payload);
         }
     }
 }
