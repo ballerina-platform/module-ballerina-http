@@ -679,8 +679,30 @@ isolated function createResponseError(int statusCode, string reasonPhrase, map<s
 
 isolated function processResponse(Response|ClientError response, TargetType targetType, boolean requireValidation)
         returns Response|anydata|StatusCodeResponse|ClientError {
-    if response is ClientError {
+    if response is ClientError || targetType is typedesc<Response> {
         return response;
+    }
+    if targetType is typedesc<anydata> {
+        int statusCode = response.statusCode;
+        if 400 <= statusCode && statusCode <= 599 {
+            string reasonPhrase = response.reasonPhrase;
+            map<string[]> headers = getHeaders(response);
+            anydata|error payload = getPayload(response);
+            if payload is error {
+                if payload is NoContentError {
+                    return createResponseError(statusCode, reasonPhrase, headers);
+                }
+                return error PayloadBindingClientError("http:ApplicationResponseError creation failed: " + statusCode.toString() +
+                    " response payload extraction failed", payload);
+            } else {
+                return createResponseError(statusCode, reasonPhrase, headers, payload);
+            }
+        }
+        anydata payload = check performDataBinding(response, targetType);
+        if requireValidation {
+            return performDataValidation(payload, targetType);
+        }
+        return payload;
     }
     return externProcessResponse(response, targetType, requireValidation);
 }
