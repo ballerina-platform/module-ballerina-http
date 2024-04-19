@@ -540,6 +540,20 @@ public class Response {
         return cookiesInResponse;
     }
 
+    isolated function buildStatusCodeResponse(typedesc<anydata>? payloadType, typedesc<StatusCodeResponse> statusCodeResType,
+        boolean requireValidation, Status status, map<string|int|boolean|string[]|int[]|boolean[]> headers, string? mediaType)
+            returns StatusCodeResponse|ClientError {
+        if payloadType !is () {
+            anydata|ClientError payload = self.performDataBinding(payloadType, requireValidation);
+            if payload is ClientError {
+                return payload;
+            }
+            return externBuildStatusCodeResponse(statusCodeResType, status, headers, payload, mediaType);
+        } else {
+            return externBuildStatusCodeResponse(statusCodeResType, status, headers, (), ());
+        }
+    }
+
     isolated function performDataBinding(typedesc<anydata> targetType, boolean requireValidation) returns anydata|ClientError {
         anydata payload = check performDataBinding(self, targetType);
         if requireValidation {
@@ -548,19 +562,18 @@ public class Response {
         return payload;
     }
 
-    isolated function getApplicationResponseError() returns ClientError {
-        string reasonPhrase = self.reasonPhrase;
+    isolated function getStatusCodeResponseBindingError(string reasonPhrase, boolean generalError) returns ClientError {
         map<string[]> headers = getHeaders(self);
         anydata|error payload = getPayload(self);
         int statusCode = self.statusCode;
         if payload is error {
             if payload is NoContentError {
-                return createResponseError(statusCode, reasonPhrase, headers);
+                return createStatusCodeResponseBindingError(generalError, statusCode, reasonPhrase, headers);
             }
-            return error PayloadBindingClientError("http:ApplicationResponseError creation failed: " + statusCode.toString() +
+            return error PayloadBindingClientError("http:StatusCodeBindingError creation failed: " + statusCode.toString() +
                 " response payload extraction failed", payload);
         } else {
-            return createResponseError(statusCode, reasonPhrase, headers, payload);
+            return createStatusCodeResponseBindingError(generalError, statusCode, reasonPhrase, headers, payload);
         }
     }
 }
@@ -646,4 +659,11 @@ isolated function externResponseHasHeader(Response response, string headerName, 
 @java:Method {
     'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternHeaders",
     name: "hasHeader"
+} external;
+
+isolated function externBuildStatusCodeResponse(typedesc<StatusCodeResponse> statusCodeResType, Status status,
+    map<string|int|boolean|string[]|int[]|boolean[]> headers, anydata body, string? mediaType)
+                                  returns StatusCodeResponse|ClientError = @java:Method {
+    'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternResponseProcessor",
+    name: "buildStatusCodeResponse"
 } external;

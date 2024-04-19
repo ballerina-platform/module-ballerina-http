@@ -308,4 +308,10 @@ public type ResourceDispatchingServerError httpscerr:InternalServerErrorError & 
 type InternalResourceDispatchingServerError ResourceDispatchingServerError & InternalError;
 
 # Represents the client status code binding error
-public type StatusCodeRecordBindingError distinct ClientError;
+public type StatusCodeResponseBindingError distinct ClientError & error<Detail>;
+
+type StatusCodeBindingClientRequestError distinct StatusCodeResponseBindingError & ClientRequestError;
+
+type StatusCodeBindingRemoteServerError distinct StatusCodeResponseBindingError & RemoteServerError;
+
+type StatusCodeBindingSuccessError distinct StatusCodeResponseBindingError;

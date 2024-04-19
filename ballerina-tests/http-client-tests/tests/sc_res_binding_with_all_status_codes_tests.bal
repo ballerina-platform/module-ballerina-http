@@ -17,7 +17,7 @@
 import ballerina/http;
 import ballerina/test;
 
-final http:Client statusCodeBindingClient1 = check new (string `localhost:${statusCodeBindingPort1}`);
+final http:StatusCodeClient statusCodeBindingClient1 = check new (string `localhost:${statusCodeBindingPort1}`);
 
 service /api on new http:Listener(statusCodeBindingPort1) {
 
