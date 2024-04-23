@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: netty-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: netty-backend
+  template:
+    metadata:
+      labels:
+        app: netty-backend
+        logs: "true"
+    spec:
+      containers:
+      - name: netty-container
+        image: ldclakmal/netty-echo-backend:latest
+        ports:
+        - containerPort: 8688
+        env:
+        - name: "SSL"
+          value: "true"
+        - name: "HTTP2"
+          value: "true"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: netty
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8688
+  selector:
+    app: netty-backend

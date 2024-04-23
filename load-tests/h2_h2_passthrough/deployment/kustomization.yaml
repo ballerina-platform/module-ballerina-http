@@ -1,0 +1,15 @@
+resources:
+  - h2_h2_passthrough.yaml
+  - ingress.yaml
+  - netty-backend.yaml
+patches:
+- path: deployment-patch.yaml
+  target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: h2-h2-passthrou-deployment
+- path: secret-patch.yaml
+  target:
+    version: v1
+    kind: Secret
