@@ -1,0 +1,7 @@
+[package]
+org = "wso2"
+name = "h2_transformation"
+version = "0.0.1"
+
+[build-options]
+cloud = "k8s"
