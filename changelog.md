@@ -10,11 +10,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 
 - [Add status code response binding support for the HTTP client](https://github.com/ballerina-platform/ballerina-library/issues/6100)
+- [Add response binding support for types union with `http:Response`](https://github.com/ballerina-platform/ballerina-library/issues/6416)
 
 ### Fixed
 
 - [Address CVE-2024-29025 netty's vulnerability](https://github.com/ballerina-platform/ballerina-library/issues/6242)
 - [Fix interceptor pipeline getting exited when there is a `nil` return](https://github.com/ballerina-platform/ballerina-library/issues/6278)
+- [Fix response binding error for `anydata` type](https://github.com/ballerina-platform/ballerina-library/issues/6414)
 
 ## [2.10.12] - 2024-03-21
 
