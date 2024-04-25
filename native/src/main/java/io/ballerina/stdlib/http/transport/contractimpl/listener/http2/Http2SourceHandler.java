@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.listener.http2;
 
+import io.ballerina.stdlib.http.api.logging.accesslog.HttpAccessLogMessage;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
 import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorException;
@@ -50,6 +51,8 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -81,6 +84,7 @@ public final class Http2SourceHandler extends ChannelInboundHandlerAdapter {
     private SocketAddress remoteAddress;
     private ChannelGroup allChannels;
     private ChannelGroup listenerChannels;
+    private List<HttpAccessLogMessage> httpAccessLogMessages;
 
     Http2SourceHandler(HttpServerChannelInitializer serverChannelInitializer, Http2ConnectionEncoder encoder,
                        String interfaceId, Http2Connection conn, ServerConnectorFuture serverConnectorFuture,
@@ -94,6 +98,7 @@ public final class Http2SourceHandler extends ChannelInboundHandlerAdapter {
         this.targetChannelPool = new ConcurrentHashMap<>();
         this.allChannels = allChannels;
         this.listenerChannels = listenerChannels;
+        this.httpAccessLogMessages = new ArrayList<>();
         setRemoteFlowController();
         setDataEventListeners();
     }
@@ -290,5 +295,13 @@ public final class Http2SourceHandler extends ChannelInboundHandlerAdapter {
 
     public SocketAddress getRemoteAddress() {
         return remoteAddress;
+    }
+
+    public void addHttpAccessLogMessage(HttpAccessLogMessage httpAccessLogMessage) {
+        this.httpAccessLogMessages.add(httpAccessLogMessage);
+    }
+
+    public List<HttpAccessLogMessage> getHttpAccessLogMessages() {
+        return this.httpAccessLogMessages;
     }
 }

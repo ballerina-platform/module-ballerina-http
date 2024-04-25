@@ -29,7 +29,6 @@ import java.util.logging.LogRecord;
  * @since 0.965
  */
 public class HttpAccessLogFormatter extends Formatter {
-
     private static final String format = HttpLogManager.getLogManager().getProperty(
             HttpAccessLogFormatter.class.getCanonicalName() + ".format");
 

@@ -20,6 +20,7 @@ package io.ballerina.stdlib.http.api.logging;
 
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
+import io.ballerina.stdlib.http.api.logging.accesslog.HttpAccessLogConfig;
 import io.ballerina.stdlib.http.api.logging.formatters.HttpAccessLogFormatter;
 import io.ballerina.stdlib.http.api.logging.formatters.HttpTraceLogFormatter;
 import io.ballerina.stdlib.http.api.logging.formatters.JsonLogFormatter;
@@ -70,6 +71,7 @@ public class HttpLogManager extends LogManager {
         this.protocol = protocol.getValue();
         this.setHttpTraceLogHandler(traceLogConsole, traceLogAdvancedConfig);
         this.setHttpAccessLogHandler(accessLogConfig);
+        HttpAccessLogConfig.getInstance().initializeHttpAccessLogConfig(accessLogConfig);
     }
 
     /**
@@ -166,5 +168,4 @@ public class HttpLogManager extends LogManager {
             stdErr.println("ballerina: " + protocol + " access log enabled");
         }
     }
-
 }

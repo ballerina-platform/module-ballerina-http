@@ -18,6 +18,8 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.listener.states.http2;
 
+import io.ballerina.stdlib.http.api.logging.accesslog.HttpAccessLogMessage;
+import io.ballerina.stdlib.http.api.logging.accesslog.HttpAccessLogger;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
 import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorException;
@@ -47,20 +49,18 @@ import io.netty.handler.codec.http2.Http2Error;
 import io.netty.handler.codec.http2.Http2Exception;
 import io.netty.handler.codec.http2.Http2Headers;
 import io.netty.handler.codec.http2.HttpConversionUtil;
-import io.netty.util.internal.logging.InternalLogLevel;
-import io.netty.util.internal.logging.InternalLogger;
-import io.netty.util.internal.logging.InternalLoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
-import static io.ballerina.stdlib.http.transport.contract.Constants.ACCESS_LOG;
-import static io.ballerina.stdlib.http.transport.contract.Constants.ACCESS_LOG_FORMAT;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_X_FORWARDED_FOR;
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY;
+import static io.ballerina.stdlib.http.transport.contract.Constants.SRC_HANDLER;
 import static io.ballerina.stdlib.http.transport.contract.Constants.TO;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil.validatePromisedStreamState;
 
@@ -72,7 +72,6 @@ import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http
 public class SendingEntityBody implements ListenerState {
 
     private static final Logger LOG = LoggerFactory.getLogger(SendingEntityBody.class);
-    private static final InternalLogger ACCESS_LOGGER = InternalLoggerFactory.getInstance(ACCESS_LOG);
 
     private final Http2MessageStateContext http2MessageStateContext;
     private final ChannelHandlerContext ctx;
@@ -167,10 +166,6 @@ public class SendingEntityBody implements ListenerState {
                               HttpCarbonMessage outboundResponseMsg, HttpContent httpContent, int streamId)
             throws Http2Exception {
         if (httpContent instanceof LastHttpContent) {
-            if (serverChannelInitializer.isHttpAccessLogEnabled()) {
-                logAccessInfo(outboundResponseMsg, streamId);
-            }
-
             final LastHttpContent lastContent = (httpContent == LastHttpContent.EMPTY_LAST_CONTENT) ?
                     new DefaultLastHttpContent() : (LastHttpContent) httpContent;
             HttpHeaders trailers = lastContent.trailingHeaders();
@@ -185,6 +180,9 @@ public class SendingEntityBody implements ListenerState {
                                                          inboundRequestMsg);
             }
             http2OutboundRespListener.removeDefaultResponseWriter();
+            if (serverChannelInitializer.isHttpAccessLogEnabled()) {
+                logAccessInfo(http2OutboundRespListener.getInboundRequestMsg(), outboundResponseMsg, streamId);
+            }
             http2MessageStateContext
                     .setListenerState(new ResponseCompleted(http2OutboundRespListener, http2MessageStateContext));
         } else {
@@ -214,8 +212,9 @@ public class SendingEntityBody implements ListenerState {
         }
     }
 
-    private void logAccessInfo(HttpCarbonMessage outboundResponseMsg, int streamId) {
-        if (!ACCESS_LOGGER.isEnabled(InternalLogLevel.INFO)) {
+    private void logAccessInfo(HttpCarbonMessage inboundRequestMsg, HttpCarbonMessage outboundResponseMsg,
+                               int streamId) {
+        if (!HttpAccessLogger.isEnabled()) {
             return;
         }
         if (originalStreamId != streamId) { // Skip access logs for server push messages
@@ -252,8 +251,18 @@ public class SendingEntityBody implements ListenerState {
         // Populate response parameters
         int statusCode = Util.getHttpResponseStatus(outboundResponseMsg).code();
 
-        ACCESS_LOGGER.log(InternalLogLevel.INFO, String.format(
-                ACCESS_LOG_FORMAT, remoteAddress, inboundRequestArrivalTime, method, uri, protocol,
-                statusCode, contentLength, referrer, userAgent));
+        long requestTime = Calendar.getInstance().getTimeInMillis() - inboundRequestArrivalTime.getTimeInMillis();
+        HttpAccessLogMessage inboundMessage = new HttpAccessLogMessage(remoteAddress,
+                inboundRequestArrivalTime, method, uri, protocol, statusCode, contentLength, referrer, userAgent);
+        inboundMessage.setRequestBodySize((long) inboundRequestMsg.getContentSize());
+        inboundMessage.setRequestTime(requestTime);
+
+        List<HttpAccessLogMessage> outboundMessages = new ArrayList<>();
+        Object sourceHandlerObject = inboundRequestMsg.getProperty(SRC_HANDLER);
+
+        if (sourceHandlerObject instanceof Http2SourceHandler http2SourceHandler) {
+            outboundMessages.addAll(http2SourceHandler.getHttpAccessLogMessages());
+        }
+        HttpAccessLogger.log(inboundMessage, outboundMessages);
     }
 }
