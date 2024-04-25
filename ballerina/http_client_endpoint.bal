@@ -693,7 +693,7 @@ isolated function createStatusCodeResponseBindingError(boolean generalError, int
 
 isolated function processResponse(Response|ClientError response, TargetType targetType, boolean requireValidation)
         returns Response|anydata|ClientError {
-    if targetType is typedesc<Response> || response is ClientError {
+    if response is ClientError || hasHttpResponseType(targetType) {
         return response;
     }
     int statusCode = response.statusCode;
@@ -740,4 +740,8 @@ isolated function externProcessResponseNew(Response response, typedesc<StatusCod
                                   returns StatusCodeResponse|ClientError = @java:Method {
     'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternResponseProcessor",
     name: "processResponse"
+} external;
+
+isolated function hasHttpResponseType(typedesc targetTypeDesc) returns boolean = @java:Method {
+    'class: "io.ballerina.stdlib.http.api.service.signature.builder.AbstractPayloadBuilder"
 } external;
