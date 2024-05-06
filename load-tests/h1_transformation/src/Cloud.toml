@@ -11,3 +11,7 @@ max_cpu="2000m"
 [cloud.deployment.autoscaling]
 min_replicas=1
 max_replicas=1
+
+[[cloud.secret.files]]
+mount_dir="./security"
+file="./security"
