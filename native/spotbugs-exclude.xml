@@ -167,4 +167,14 @@
         <Method name="getInstance"/>
         <Bug pattern="MS_EXPOSE_REP" />
     </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.api.service.signature.builder.AbstractPayloadBuilder" />
+        <Method name="matchingTypeInternal"/>
+        <Bug pattern="BC_UNCONFIRMED_CAST" />
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.api.service.signature.builder.AbstractPayloadBuilder" />
+        <Method name="hasHttpResponseTypeInternal"/>
+        <Bug pattern="BC_UNCONFIRMED_CAST" />
+    </Match>
 </FindBugsFilter>

@@ -84,7 +84,7 @@ public enum HttpErrorType {
     INTERNAL_RESOURCE_PATH_VALIDATION_ERROR("InternalResourcePathValidationError"),
     INTERNAL_HEADER_VALIDATION_LISTENER_ERROR("InternalHeaderValidationListenerError"),
     INTERNAL_QUERY_PARAM_VALIDATION_ERROR("InternalQueryParameterValidationError"),
-    STATUS_CODE_RECORD_BINDING_ERROR("StatusCodeRecordBindingError"),
+    STATUS_CODE_RESPONSE_BINDING_ERROR("StatusCodeResponseBindingError"),
     HEADER_NOT_FOUND_CLIENT_ERROR("HeaderNotFoundClientError"),
     HEADER_BINDING_CLIENT_ERROR("HeaderBindingClientError"),
     HEADER_VALIDATION_CLIENT_ERROR("HeaderValidationClientError"),

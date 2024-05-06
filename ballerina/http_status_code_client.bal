@@ -1,6 +1,6 @@
-// Copyright (c) 2018 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+// Copyright (c) 2024 WSO2 LLC. (https://www.wso2.com).
 //
-// WSO2 Inc. licenses this file to you under the Apache License,
+// WSO2 LLC. licenses this file to you under the Apache License,
 // Version 2.0 (the "License"); you may not use this file except
 // in compliance with the License.
 // You may obtain a copy of the License at
@@ -15,21 +15,19 @@
 // under the License.
 
 import ballerina/jballerina.java;
-import ballerina/mime;
 import ballerina/observe;
-import ballerina/time;
 
-# The HTTP client provides the capability for initiating contact with a remote HTTP service. The API it
+# The HTTP status code client provides the capability for initiating contact with a remote HTTP service. The API it
 # provides includes the functions for the standard HTTP methods forwarding a received request and sending requests
-# using custom HTTP verbs.
+# using custom HTTP verbs. The responses can be binded to `http:StatusCodeResponse` types
 
 # + url - Target service url
 # + httpClient - Chain of different HTTP clients which provides the capability for initiating contact with a remote
 #                HTTP service in resilient manner
 # + cookieStore - Stores the cookies of the client
 # + requireValidation - Enables the inbound payload validation functionalty which provided by the constraint package
-public client isolated class Client {
-    *ClientObject;
+public client isolated class StatusCodeClient {
+    *StatusCodeClientObject;
 
     private final string url;
     private CookieStore? cookieStore = ();
@@ -62,12 +60,12 @@ public client isolated class Client {
     # + message - An HTTP outbound request or any allowed payload
     # + headers - The entity headers
     # + mediaType - The MIME type header of the request entity
-    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + targetType - HTTP status code response, which is expected to be returned after data binding
     # + params - The query parameters
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     isolated resource function post [PathParamType ...path](RequestMessage message, map<string|string[]>? headers = (), string?
-            mediaType = (), TargetType targetType = <>, *QueryParams params) returns targetType|ClientError = @java:Method {
+            mediaType = (), typedesc<StatusCodeResponse> targetType = <>, *QueryParams params) returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
         name: "postResource"
     } external;
@@ -78,24 +76,24 @@ public client isolated class Client {
     # + message - An HTTP outbound request or any allowed payload
     # + headers - The entity headers
     # + mediaType - The MIME type header of the request entity
-    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + targetType - HTTP status code response, which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function post(string path, RequestMessage message, map<string|string[]>? headers = (),
-            string? mediaType = (), TargetType targetType = <>)
+            string? mediaType = (), typedesc<StatusCodeResponse> targetType = <>)
             returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction"
     } external;
 
-    private isolated function processPost(string path, RequestMessage message, TargetType targetType,
-            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
+    private isolated function processPost(string path, RequestMessage message, typedesc<StatusCodeResponse> targetType,
+            string? mediaType, map<string|string[]>? headers) returns StatusCodeResponse|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->post(path, req);
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, HTTP_POST, response.statusCode, self.url);
         }
-        return processResponse(response, targetType, self.requireValidation);
+        return processResponseNew(response, targetType, self.requireValidation);
     }
 
     # The client resource function to send HTTP PUT requests to HTTP endpoints.
@@ -104,12 +102,12 @@ public client isolated class Client {
     # + message - An HTTP outbound request or any allowed payload
     # + headers - The entity headers
     # + mediaType - The MIME type header of the request entity
-    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + targetType - HTTP status code response, which is expected to be returned after data binding
     # + params - The query parameters
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     isolated resource function put [PathParamType ...path](RequestMessage message, map<string|string[]>? headers = (), string?
-            mediaType = (), TargetType targetType = <>, *QueryParams params) returns targetType|ClientError = @java:Method {
+            mediaType = (), typedesc<StatusCodeResponse> targetType = <>, *QueryParams params) returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
         name: "putResource"
     } external;
@@ -120,24 +118,24 @@ public client isolated class Client {
     # + message - An HTTP outbound request or any allowed payload
     # + mediaType - The MIME type header of the request entity
     # + headers - The entity headers
-    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + targetType - HTTP status code response, which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function put(string path, RequestMessage message, map<string|string[]>? headers = (),
-            string? mediaType = (), TargetType targetType = <>)
+            string? mediaType = (), typedesc<StatusCodeResponse> targetType = <>)
             returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction"
     } external;
 
-    private isolated function processPut(string path, RequestMessage message, TargetType targetType,
-            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
+    private isolated function processPut(string path, RequestMessage message, typedesc<StatusCodeResponse> targetType,
+            string? mediaType, map<string|string[]>? headers) returns StatusCodeResponse|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->put(path, req);
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, HTTP_PUT, response.statusCode, self.url);
         }
-        return processResponse(response, targetType, self.requireValidation);
+        return processResponseNew(response, targetType, self.requireValidation);
     }
 
     # The client resource function to send HTTP PATCH requests to HTTP endpoints.
@@ -146,12 +144,12 @@ public client isolated class Client {
     # + message - An HTTP outbound request or any allowed payload
     # + headers - The entity headers
     # + mediaType - The MIME type header of the request entity
-    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + targetType - HTTP status code response, which is expected to be returned after data binding
     # + params - The query parameters
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     isolated resource function patch [PathParamType ...path](RequestMessage message, map<string|string[]>? headers = (),
-            string? mediaType = (), TargetType targetType = <>, *QueryParams params) returns targetType|ClientError = @java:Method {
+            string? mediaType = (), typedesc<StatusCodeResponse> targetType = <>, *QueryParams params) returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
         name: "patchResource"
     } external;
@@ -162,24 +160,24 @@ public client isolated class Client {
     # + message - An HTTP outbound request or any allowed payload
     # + mediaType - The MIME type header of the request entity
     # + headers - The entity headers
-    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + targetType - HTTP status code response, which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function patch(string path, RequestMessage message, map<string|string[]>? headers = (),
-            string? mediaType = (), TargetType targetType = <>)
+            string? mediaType = (), typedesc<StatusCodeResponse> targetType = <>)
             returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction"
     } external;
 
-    private isolated function processPatch(string path, RequestMessage message, TargetType targetType,
-            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
+    private isolated function processPatch(string path, RequestMessage message, typedesc<StatusCodeResponse> targetType,
+            string? mediaType, map<string|string[]>? headers) returns StatusCodeResponse|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->patch(path, req);
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, HTTP_PATCH, response.statusCode, self.url);
         }
-        return processResponse(response, targetType, self.requireValidation);
+        return processResponseNew(response, targetType, self.requireValidation);
     }
 
     # The client resource function to send HTTP DELETE requests to HTTP endpoints.
@@ -188,12 +186,12 @@ public client isolated class Client {
     # + message - An optional HTTP outbound request or any allowed payload
     # + headers - The entity headers
     # + mediaType - The MIME type header of the request entity
-    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + targetType - HTTP status code response, which is expected to be returned after data binding
     # + params - The query parameters
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     isolated resource function delete [PathParamType ...path](RequestMessage message = (), map<string|string[]>? headers = (),
-            string? mediaType = (), TargetType targetType = <>, *QueryParams params) returns targetType|ClientError = @java:Method {
+            string? mediaType = (), typedesc<StatusCodeResponse> targetType = <>, *QueryParams params) returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
         name: "deleteResource"
     } external;
@@ -204,24 +202,24 @@ public client isolated class Client {
     # + message - An optional HTTP outbound request message or any allowed payload
     # + mediaType - The MIME type header of the request entity
     # + headers - The entity headers
-    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + targetType - HTTP status code response, which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function delete(string path, RequestMessage message = (),
-            map<string|string[]>? headers = (), string? mediaType = (), TargetType targetType = <>)
+            map<string|string[]>? headers = (), string? mediaType = (), typedesc<StatusCodeResponse> targetType = <>)
             returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction"
     } external;
 
-    private isolated function processDelete(string path, RequestMessage message, TargetType targetType,
-            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
+    private isolated function processDelete(string path, RequestMessage message, typedesc<StatusCodeResponse> targetType,
+            string? mediaType, map<string|string[]>? headers) returns StatusCodeResponse|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->delete(path, req);
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, HTTP_DELETE, response.statusCode, self.url);
         }
-        return processResponse(response, targetType, self.requireValidation);
+        return processResponseNew(response, targetType, self.requireValidation);
     }
 
     # The client resource function to send HTTP HEAD requests to HTTP endpoints.
@@ -254,11 +252,11 @@ public client isolated class Client {
     #
     # + path - Request path
     # + headers - The entity headers
-    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + targetType - HTTP status code response, which is expected to be returned after data binding
     # + params - The query parameters
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    isolated resource function get [PathParamType ...path](map<string|string[]>? headers = (), TargetType targetType = <>,
+    isolated resource function get [PathParamType ...path](map<string|string[]>? headers = (), typedesc<StatusCodeResponse> targetType = <>,
             *QueryParams params) returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
         name: "getResource"
@@ -268,33 +266,33 @@ public client isolated class Client {
     #
     # + path - Request path
     # + headers - The entity headers
-    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + targetType - HTTP status code response, which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote isolated function get(string path, map<string|string[]>? headers = (), TargetType targetType = <>)
+    remote isolated function get(string path, map<string|string[]>? headers = (), typedesc<StatusCodeResponse> targetType = <>)
             returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction"
     } external;
 
-    private isolated function processGet(string path, map<string|string[]>? headers, TargetType targetType)
-            returns Response|anydata|ClientError {
+    private isolated function processGet(string path, map<string|string[]>? headers, typedesc<StatusCodeResponse> targetType)
+            returns StatusCodeResponse|ClientError {
         Request req = buildRequestWithHeaders(headers);
         Response|ClientError response = self.httpClient->get(path, message = req);
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, HTTP_GET, response.statusCode, self.url);
         }
-        return processResponse(response, targetType, self.requireValidation);
+        return processResponseNew(response, targetType, self.requireValidation);
     }
 
     # The client resource function to send HTTP OPTIONS requests to HTTP endpoints.
     #
     # + path - Request path
     # + headers - The entity headers
-    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + targetType - HTTP status code response, which is expected to be returned after data binding
     # + params - The query parameters
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    isolated resource function options [PathParamType ...path](map<string|string[]>? headers = (), TargetType targetType = <>,
+    isolated resource function options [PathParamType ...path](map<string|string[]>? headers = (), typedesc<StatusCodeResponse> targetType = <>,
             *QueryParams params) returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
         name: "optionsResource"
@@ -304,22 +302,22 @@ public client isolated class Client {
     #
     # + path - Request path
     # + headers - The entity headers
-    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + targetType - HTTP status code response, which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote isolated function options(string path, map<string|string[]>? headers = (), TargetType targetType = <>)
+    remote isolated function options(string path, map<string|string[]>? headers = (), typedesc<StatusCodeResponse> targetType = <>)
             returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction"
     } external;
 
-    private isolated function processOptions(string path, map<string|string[]>? headers, TargetType targetType)
-            returns Response|anydata|ClientError {
+    private isolated function processOptions(string path, map<string|string[]>? headers, typedesc<StatusCodeResponse> targetType)
+            returns StatusCodeResponse|ClientError {
         Request req = buildRequestWithHeaders(headers);
         Response|ClientError response = self.httpClient->options(path, message = req);
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, HTTP_OPTIONS, response.statusCode, self.url);
         }
-        return processResponse(response, targetType, self.requireValidation);
+        return processResponseNew(response, targetType, self.requireValidation);
     }
 
     # Invokes an HTTP call with the specified HTTP verb.
@@ -329,46 +327,46 @@ public client isolated class Client {
     # + message - An HTTP outbound request or any allowed payload
     # + mediaType - The MIME type header of the request entity
     # + headers - The entity headers
-    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + targetType - HTTP status code response, which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function execute(string httpVerb, string path, RequestMessage message,
-            map<string|string[]>? headers = (), string? mediaType = (), TargetType targetType = <>)
+            map<string|string[]>? headers = (), string? mediaType = (), typedesc<StatusCodeResponse> targetType = <>)
             returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction"
     } external;
 
     private isolated function processExecute(string httpVerb, string path, RequestMessage message,
-            TargetType targetType, string? mediaType, map<string|string[]>? headers)
-            returns Response|anydata|ClientError {
+            typedesc<StatusCodeResponse> targetType, string? mediaType, map<string|string[]>? headers)
+            returns StatusCodeResponse|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->execute(httpVerb, path, req);
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, httpVerb, response.statusCode, self.url);
         }
-        return processResponse(response, targetType, self.requireValidation);
+        return processResponseNew(response, targetType, self.requireValidation);
     }
 
     # The `Client.forward()` function can be used to invoke an HTTP call with inbound request's HTTP verb
     #
     # + path - Request path
     # + request - An HTTP inbound request message
-    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + targetType - HTTP status code response, which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
-    remote isolated function forward(string path, Request request, TargetType targetType = <>)
+    remote isolated function forward(string path, Request request, typedesc<StatusCodeResponse> targetType = <>)
             returns targetType|ClientError = @java:Method {
         'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction"
     } external;
 
-    private isolated function processForward(string path, Request request, TargetType targetType)
-            returns Response|anydata|ClientError {
+    private isolated function processForward(string path, Request request, typedesc<StatusCodeResponse> targetType)
+            returns StatusCodeResponse|ClientError {
         Response|ClientError response = self.httpClient->forward(path, request);
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, request.method, response.statusCode, self.url);
         }
-        return processResponse(response, targetType, self.requireValidation);
+        return processResponseNew(response, targetType, self.requireValidation);
     }
 
     # Submits an HTTP request to a service with the specified HTTP verb.
@@ -479,269 +477,3 @@ public client isolated class Client {
         }
     }
 }
-
-isolated function initialize(string url, ClientConfiguration config, CookieStore? cookieStore) returns HttpClient|ClientError {
-    var cbConfig = config.circuitBreaker;
-    if cbConfig is CircuitBreakerConfig {
-        return createCircuitBreakerClient(url, config, cookieStore);
-    } else {
-        var redirectConfigVal = config.followRedirects;
-        if redirectConfigVal is FollowRedirects {
-            return createRedirectClient(url, config, cookieStore);
-        } else {
-            return checkForRetry(url, config, cookieStore);
-        }
-    }
-}
-
-isolated function createRedirectClient(string url, ClientConfiguration configuration, CookieStore? cookieStore) returns HttpClient|ClientError {
-    var redirectConfig = configuration.followRedirects;
-    if redirectConfig is FollowRedirects {
-        if redirectConfig.enabled {
-            var retryClient = createRetryClient(url, configuration, cookieStore);
-            if retryClient is HttpClient {
-                return new RedirectClient(url, configuration, redirectConfig, retryClient);
-            } else {
-                return retryClient;
-            }
-        } else {
-            return createRetryClient(url, configuration, cookieStore);
-        }
-    } else {
-        return createRetryClient(url, configuration, cookieStore);
-    }
-}
-
-isolated function checkForRetry(string url, ClientConfiguration config, CookieStore? cookieStore) returns HttpClient|ClientError {
-    var retryConfigVal = config.retryConfig;
-    if retryConfigVal is RetryConfig {
-        return createRetryClient(url, config, cookieStore);
-    } else {
-         return createCookieClient(url, config, cookieStore);
-    }
-}
-
-isolated function createCircuitBreakerClient(string uri, ClientConfiguration configuration, CookieStore? cookieStore) returns HttpClient|ClientError {
-    HttpClient cbHttpClient;
-    var cbConfig = configuration.circuitBreaker;
-    if cbConfig is CircuitBreakerConfig {
-        validateCircuitBreakerConfiguration(cbConfig);
-        var redirectConfig = configuration.followRedirects;
-        if redirectConfig is FollowRedirects {
-            var redirectClient = createRedirectClient(uri, configuration, cookieStore);
-            if redirectClient is HttpClient {
-                cbHttpClient = redirectClient;
-            } else {
-                return redirectClient;
-            }
-        } else {
-            var retryClient = checkForRetry(uri, configuration, cookieStore);
-            if retryClient is HttpClient {
-                cbHttpClient = retryClient;
-            } else {
-                return retryClient;
-            }
-        }
-
-        time:Utc circuitStartTime = time:utcNow();
-        int numberOfBuckets = <int> (cbConfig.rollingWindow.timeWindow / cbConfig.rollingWindow.bucketSize);
-        Bucket?[] bucketArray = [];
-        int bucketIndex = 0;
-        while bucketIndex < numberOfBuckets {
-            bucketArray[bucketIndex] = {};
-            bucketIndex = bucketIndex + 1;
-        }
-
-        CircuitBreakerInferredConfig circuitBreakerInferredConfig = {
-            failureThreshold: cbConfig.failureThreshold,
-            resetTime: cbConfig.resetTime,
-            statusCodes: cbConfig.statusCodes,
-            noOfBuckets: numberOfBuckets,
-            rollingWindow: cbConfig.rollingWindow
-        };
-        CircuitHealth circuitHealth = {
-            startTime: circuitStartTime,
-            lastRequestTime: circuitStartTime,
-            lastErrorTime: circuitStartTime,
-            lastForcedOpenTime: circuitStartTime,
-            totalBuckets: bucketArray
-        };
-        return new CircuitBreakerClient(uri, configuration, circuitBreakerInferredConfig, cbHttpClient, circuitHealth);
-    } else {
-        return createCookieClient(uri, configuration, cookieStore);
-    }
-}
-
-isolated function createRetryClient(string url, ClientConfiguration configuration, CookieStore? cookieStore) returns HttpClient|ClientError {
-    var retryConfig = configuration.retryConfig;
-    if retryConfig is RetryConfig {
-        RetryInferredConfig retryInferredConfig = {
-            count: retryConfig.count,
-            interval: retryConfig.interval,
-            backOffFactor: retryConfig.backOffFactor,
-            maxWaitInterval: retryConfig.maxWaitInterval,
-            statusCodes: retryConfig.statusCodes
-        };
-        var httpCookieClient = createCookieClient(url, configuration, cookieStore);
-        if httpCookieClient is HttpClient {
-            return new RetryClient(url, configuration, retryInferredConfig, httpCookieClient);
-        }
-        return httpCookieClient;
-    }
-    return createCookieClient(url, configuration, cookieStore);
-}
-
-isolated function createCookieClient(string url, ClientConfiguration configuration, CookieStore? cookieStore) returns HttpClient|ClientError {
-    var cookieConfigVal = configuration.cookieConfig;
-    if cookieConfigVal is CookieConfig {
-        if !cookieConfigVal.enabled {
-            return createDefaultClient(url, configuration);
-        }
-        if configuration.cache.enabled {
-            var httpCachingClient = createHttpCachingClient(url, configuration, configuration.cache);
-            if httpCachingClient is HttpClient {
-                return new CookieClient(url, cookieConfigVal, httpCachingClient, cookieStore);
-            }
-            return httpCachingClient;
-        }
-        var httpSecureClient = createHttpSecureClient(url, configuration);
-        if httpSecureClient is HttpClient {
-            return new CookieClient(url, cookieConfigVal, httpSecureClient, cookieStore);
-        }
-        return httpSecureClient;
-    }
-    return createDefaultClient(url, configuration);
-}
-
-isolated function createDefaultClient(string url, ClientConfiguration configuration) returns HttpClient|ClientError {
-    if configuration.cache.enabled {
-        return createHttpCachingClient(url, configuration, configuration.cache);
-    }
-    return createHttpSecureClient(url, configuration);
-}
-
-isolated function getPayload(Response response) returns anydata|error {
-    string|error contentTypeValue = response.getHeader(CONTENT_TYPE);
-    string value = "";
-    if contentTypeValue is error {
-        return response.getTextPayload();
-    } else {
-        value = contentTypeValue;
-    }
-    var mediaType = mime:getMediaType(value.toLowerAscii());
-    if mediaType is mime:InvalidContentTypeError {
-        return response.getTextPayload();
-    } else {
-        match mediaType.primaryType {
-            "application" => {
-                match mediaType.subType {
-                    "json" => {
-                        return response.getJsonPayload();
-                    }
-                    "xml" => {
-                        return response.getXmlPayload();
-                    }
-                    "octet-stream" => {
-                        return response.getBinaryPayload();
-                    }
-                    _ => {
-                        return response.getTextPayload();
-                    }
-                }
-            }
-            _ => {
-                return response.getTextPayload();
-            }
-        }
-    }
-}
-
-isolated function getHeaders(Response response) returns map<string[]> {
-    map<string[]> headers = {};
-    string[] headerKeys = response.getHeaderNames();
-    foreach string key in headerKeys {
-        string[]|HeaderNotFoundError values = response.getHeaders(key);
-        if values is string[] {
-            headers[key] = values;
-        }
-    }
-    return headers;
-}
-
-isolated function createResponseError(int statusCode, string reasonPhrase, map<string[]> headers, anydata body = ())
-        returns ClientRequestError|RemoteServerError {
-    if 400 <= statusCode && statusCode <= 499 {
-        return error ClientRequestError(reasonPhrase, statusCode = statusCode, headers = headers, body = body);
-    } else {
-        return error RemoteServerError(reasonPhrase, statusCode = statusCode, headers = headers, body = body);
-    }
-}
-
-isolated function createStatusCodeResponseBindingError(boolean generalError, int statusCode, string reasonPhrase,
-        map<string[]> headers, anydata body = ()) returns ClientError {
-    if generalError {
-        return error StatusCodeResponseBindingError(reasonPhrase, statusCode = statusCode, headers = headers, body = body);
-    }
-    if 100 <= statusCode && statusCode <= 399 {
-        return error StatusCodeBindingSuccessError(reasonPhrase, statusCode = statusCode, headers = headers, body = body);
-    } else if 400 <= statusCode && statusCode <= 499 {
-        return error StatusCodeBindingClientRequestError(reasonPhrase, statusCode = statusCode, headers = headers, body = body);
-    } else {
-        return error StatusCodeBindingRemoteServerError(reasonPhrase, statusCode = statusCode, headers = headers, body = body);
-    }
-}
-
-isolated function processResponse(Response|ClientError response, TargetType targetType, boolean requireValidation)
-        returns Response|anydata|ClientError {
-    if response is ClientError || hasHttpResponseType(targetType) {
-        return response;
-    }
-    int statusCode = response.statusCode;
-    if 400 <= statusCode && statusCode <= 599 {
-        string reasonPhrase = response.reasonPhrase;
-        map<string[]> headers = getHeaders(response);
-        anydata|error payload = getPayload(response);
-        if payload is error {
-            if payload is NoContentError {
-                return createResponseError(statusCode, reasonPhrase, headers);
-            }
-            return error PayloadBindingClientError("http:ApplicationResponseError creation failed: " + statusCode.toString() +
-                " response payload extraction failed", payload);
-        } else {
-            return createResponseError(statusCode, reasonPhrase, headers, payload);
-        }
-    }
-    if targetType is typedesc<anydata> {
-        anydata payload = check performDataBinding(response, targetType);
-        if requireValidation {
-            return performDataValidation(payload, targetType);
-        }
-        return payload;
-    } else {
-        panic error GenericClientError("invalid payload target type");
-    }
-}
-
-isolated function processResponseNew(Response|ClientError response, typedesc<StatusCodeResponse> targetType, boolean requireValidation)
-        returns StatusCodeResponse|ClientError {
-    if response is ClientError {
-        return response;
-    }
-    return externProcessResponseNew(response, targetType, requireValidation);
-}
-
-isolated function externProcessResponse(Response response, TargetType targetType, boolean requireValidation)
-                                  returns Response|anydata|StatusCodeResponse|ClientError = @java:Method {
-    'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternResponseProcessor",
-    name: "processResponse"
-} external;
-
-isolated function externProcessResponseNew(Response response, typedesc<StatusCodeResponse> targetType, boolean requireValidation)
-                                  returns StatusCodeResponse|ClientError = @java:Method {
-    'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternResponseProcessor",
-    name: "processResponse"
-} external;
-
-isolated function hasHttpResponseType(typedesc targetTypeDesc) returns boolean = @java:Method {
-    'class: "io.ballerina.stdlib.http.api.service.signature.builder.AbstractPayloadBuilder"
-} external;
