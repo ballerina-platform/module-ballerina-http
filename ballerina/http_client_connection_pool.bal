@@ -27,11 +27,15 @@ configurable int maxActiveStreamsPerConnection = 100;
 # + maxIdleConnections - Maximum number of idle connections allowed per pool.
 # + waitTime - Maximum amount of time (in seconds), the client should wait for an idle connection before it sends an error when the pool is exhausted
 # + maxActiveStreamsPerConnection - Maximum active streams per connection. This only applies to HTTP/2. Default value is 100
+# + minEvictableIdleTime - Minimum evictable time for an idle connection in seconds. Default value is 5 minutes
+# + timeBetweenEvictionRuns - Time between eviction runs in seconds. Default value is 30 seconds
 public type PoolConfiguration record {|
     int maxActiveConnections = maxActiveConnections;
     int maxIdleConnections = maxIdleConnections;
     decimal waitTime = waitTime;
     int maxActiveStreamsPerConnection = maxActiveStreamsPerConnection;
+    decimal minEvictableIdleTime = 300;
+    decimal timeBetweenEvictionRuns = 30;
 |};
 //This is a hack to get the global map initialized, without involving locking.
 class ConnectionManager {
