@@ -11,6 +11,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - [Expose HTTP connection eviction configurations in the client level](https://github.com/ballerina-platform/ballerina-library/issues/6503)
 
+### Fixed
+
+- [Address CVE-2024-29025 netty's vulnerability](https://github.com/ballerina-platform/ballerina-library/issues/6242)
+
 ## [2.8.5] - 2024-03-13
 
 ### Changed
