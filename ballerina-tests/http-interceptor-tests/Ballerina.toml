@@ -1,14 +1,14 @@
 [package]
 org = "ballerina"
 name = "http_interceptor_tests"
-version = "2.7.5"
+version = "2.7.6"
 
 [[dependency]]
 org = "ballerina"
 name = "http_test_common"
 repository = "local"
-version = "2.7.5"
+version = "2.7.6"
 
 [[platform.java11.dependency]]
 scope = "testOnly"
-path = "../../test-utils/build/libs/http-test-utils-2.7.5.jar"
+path = "../../test-utils/build/libs/http-test-utils-2.7.6.jar"
