@@ -5,12 +5,13 @@ This file contains all the notable changes done to the Ballerina HTTP package th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to 
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.11.0] - 2024-05-03
 
 ### Added
 
 - [Add status code response binding support for the HTTP client](https://github.com/ballerina-platform/ballerina-library/issues/6100)
 - [Add response binding support for types union with `http:Response`](https://github.com/ballerina-platform/ballerina-library/issues/6416)
+- [Supporting X25519Kyber768 key encapsulation for TLS 1.3](https://github.com/ballerina-platform/ballerina-library/issues/6200)
 
 ### Fixed
 
@@ -40,12 +41,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Fixed
 - [Fix connection getting closed by stale eviction task after it has been closed by the server](https://github.com/ballerina-platform/ballerina-library/issues/6050)
-
-## Unreleased
-
-### Added
-
-- [Supporting X25519Kyber768 key encapsulation for TLS 1.3](https://github.com/ballerina-platform/ballerina-library/issues/6200)
 
 ## [2.10.6] - 2024-02-01
 
