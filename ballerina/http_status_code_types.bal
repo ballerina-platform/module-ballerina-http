@@ -16,7 +16,7 @@
 
 // Remove the union once https://github.com/ballerina-platform/ballerina-lang/issues/30490 is fixed.
 # Defines the possible status code response record types.
-public type StatusCodeResponse Continue|SwitchingProtocols|Processing|EarlyHints|Ok|Created|Accepted|
+public type StatusCodeResponse DefaultStatusCodeResponse|Continue|SwitchingProtocols|Processing|EarlyHints|Ok|Created|Accepted|
     NonAuthoritativeInformation|NoContent|ResetContent|PartialContent|MultiStatus|AlreadyReported|IMUsed|
     MultipleChoices|MovedPermanently|Found|SeeOther|NotModified|UseProxy|TemporaryRedirect|PermanentRedirect|
     BadRequest|Unauthorized|PaymentRequired|Forbidden|NotFound|MethodNotAllowed|NotAcceptable|
@@ -50,6 +50,18 @@ public type CommonResponse record {|
 |};
 
 // Status code class declarations
+
+# The default status code class.
+#
+# + code - The response status code
+public readonly class DefaultStatus {
+    *Status;
+
+    public isolated function init(int code) {
+        self.code = code;
+    }
+}
+
 # Represents the status code of `STATUS_CONTINUE`.
 #
 # + code - The response status code
@@ -602,6 +614,15 @@ final StatusNotExtended STATUS_NOT_EXTENDED_OBJ = new;
 final StatusNetworkAuthenticationRequired STATUS_NETWORK_AUTHENTICATION_REQUIRED_OBJ = new;
 
 // Status code record types
+
+# The default status code response record.
+#
+# + status - The response status code obj
+public type DefaultStatusCodeResponse record {|
+    *CommonResponse;
+    readonly DefaultStatus status;
+|};
+
 # The status code response record of `Continue`.
 #
 # + status - The response status code obj
