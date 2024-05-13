@@ -343,7 +343,8 @@ public final class ExternResponseProcessor {
     }
 
     private static String getStatusCode(Type targetType) {
-        ObjectType statusCodeType = (ObjectType) ((RecordType) TypeUtils.getImpliedType(targetType)).getFields().get(STATUS_CODE_RESPONSE_STATUS_FIELD).getFieldType();
+        ObjectType statusCodeType = (ObjectType) ((RecordType) TypeUtils.getImpliedType(targetType)).getFields().
+                get(STATUS_CODE_RESPONSE_STATUS_FIELD).getFieldType();
         if (statusCodeType.getName().equals(DEFAULT_STATUS)) {
             return DEFAULT;
         }
