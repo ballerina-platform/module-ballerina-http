@@ -269,9 +269,11 @@ public final class ExternResponseProcessor {
 
     private static Object getMediaType(BObject response, Type mediaTypeType, boolean requireValidation) {
         String contentType = getContentType(response);
+        if (Objects.isNull(contentType)) {
+            return null;
+        }
         try {
-            Object convertedValue = ValueUtils.convert(Objects.nonNull(contentType) ?
-                    StringUtils.fromString(contentType) : null, mediaTypeType);
+            Object convertedValue = ValueUtils.convert(StringUtils.fromString(contentType), mediaTypeType);
             return validateConstraints(requireValidation, convertedValue, mediaTypeType,
                     MEDIA_TYPE_VALIDATION_CLIENT_ERROR, MEDIA_TYPE_BINDING_FAILED);
         } catch (BError conversionError) {

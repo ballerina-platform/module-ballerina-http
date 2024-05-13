@@ -16,7 +16,7 @@
 
 // Remove the union once https://github.com/ballerina-platform/ballerina-lang/issues/30490 is fixed.
 # Defines the possible status code response record types.
-public type StatusCodeResponse DefaultStatusCodeResponse|Continue|SwitchingProtocols|Processing|EarlyHints|Ok|Created|Accepted|
+public type StatusCodeResponse Continue|SwitchingProtocols|Processing|EarlyHints|Ok|Created|Accepted|
     NonAuthoritativeInformation|NoContent|ResetContent|PartialContent|MultiStatus|AlreadyReported|IMUsed|
     MultipleChoices|MovedPermanently|Found|SeeOther|NotModified|UseProxy|TemporaryRedirect|PermanentRedirect|
     BadRequest|Unauthorized|PaymentRequired|Forbidden|NotFound|MethodNotAllowed|NotAcceptable|
@@ -25,7 +25,7 @@ public type StatusCodeResponse DefaultStatusCodeResponse|Continue|SwitchingProto
     Locked|FailedDependency|TooEarly|PreconditionRequired|UnavailableDueToLegalReasons|UpgradeRequired|TooManyRequests|
     RequestHeaderFieldsTooLarge|InternalServerError|NotImplemented|BadGateway|ServiceUnavailable|GatewayTimeout|
     HttpVersionNotSupported|VariantAlsoNegotiates|InsufficientStorage|LoopDetected|NotExtended|
-    NetworkAuthenticationRequired;
+    NetworkAuthenticationRequired|DefaultStatusCodeResponse;
 
 # Defines the possible success status code response record types.
 type SuccessStatusCodeResponse Ok|Created|Accepted|NonAuthoritativeInformation|NoContent|ResetContent|
