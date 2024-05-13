@@ -94,6 +94,8 @@ public final class ExternResponseProcessor {
 
 
     private static final Map<String, String> STATUS_CODE_OBJS = new HashMap<>();
+    public static final String DEFAULT_STATUS = "DefaultStatus";
+    public static final String DEFAULT = "default";
 
     static {
         STATUS_CODE_OBJS.put("100", "StatusContinue");
@@ -316,7 +318,8 @@ public final class ExternResponseProcessor {
 
     private static Optional<Type> getStatusCodeResponseType(Type targetType, String statusCode) {
         if (isStatusCodeResponseType(targetType)) {
-            if (getStatusCode(targetType).equals(statusCode)) {
+            String statusCodeFromType = getStatusCode(targetType);
+            if (statusCodeFromType.equals(statusCode) || statusCodeFromType.equals(DEFAULT)) {
                 return Optional.of(targetType);
             }
         } else if (targetType instanceof UnionType unionType) {
@@ -340,9 +343,12 @@ public final class ExternResponseProcessor {
     }
 
     private static String getStatusCode(Type targetType) {
-        return ((ObjectType) ((RecordType) TypeUtils.getImpliedType(targetType)).getFields().
-                get(STATUS_CODE_RESPONSE_STATUS_FIELD).getFieldType()).getFields().
-                get(STATUS_CODE_RESPONSE_STATUS_CODE_FIELD).getFieldType().getEmptyValue().toString();
+        ObjectType statusCodeType = (ObjectType) ((RecordType) TypeUtils.getImpliedType(targetType)).getFields().get(STATUS_CODE_RESPONSE_STATUS_FIELD).getFieldType();
+        if (statusCodeType.getName().equals(DEFAULT_STATUS)) {
+            return DEFAULT;
+        }
+        return statusCodeType.getFields().get(STATUS_CODE_RESPONSE_STATUS_CODE_FIELD).getFieldType().
+                getEmptyValue().toString();
     }
 
     private static Object createHeaderMap(HttpHeaders httpHeaders, Type elementType) {
