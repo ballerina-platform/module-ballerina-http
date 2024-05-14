@@ -197,6 +197,16 @@ service /differentStatusCodes on httpStatusCodeListenerEP {
         }
         return {body: "Authorization Required"};
     }
+
+    resource function get default/[int statusCode]() returns http:DefaultStatusCodeResponse {
+        if statusCode == 204 {
+            return {status: new (204)};
+        }
+        return {
+            body: "Default Response",
+            status: new (statusCode)
+        };
+    }
 }
 
 //Test ballerina ok() function with entity body
@@ -778,6 +788,53 @@ function testNetworkAuthenticationRequired() {
     if response is http:Response {
         test:assertEquals(response.statusCode, 511, msg = "Found unexpected output");
         test:assertEquals(response.reasonPhrase, "Network Authentication Required", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testDefaultStatusCodeResponse() {
+    http:Response|error response = httpStatusCodeClient->get("/differentStatusCodes/default/204");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 204, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "No Content", msg = "Found unexpected output");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+
+    response = httpStatusCodeClient->get("/differentStatusCodes/default/201");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 201, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Created", msg = "Found unexpected output");
+        common:assertTextPayload(response.getTextPayload(), "Default Response");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+
+    response = httpStatusCodeClient->get("/differentStatusCodes/default/404");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 404, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Not Found", msg = "Found unexpected output");
+        common:assertTextPayload(response.getTextPayload(), "Default Response");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+
+    response = httpStatusCodeClient->get("/differentStatusCodes/default/500");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 500, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Internal Server Error", msg = "Found unexpected output");
+        common:assertTextPayload(response.getTextPayload(), "Default Response");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+
+    response = httpStatusCodeClient->get("/differentStatusCodes/default/600");
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 600, msg = "Found unexpected output");
+        test:assertEquals(response.reasonPhrase, "Unknown Status (600)", msg = "Found unexpected output");
+        common:assertTextPayload(response.getTextPayload(), "Default Response");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
