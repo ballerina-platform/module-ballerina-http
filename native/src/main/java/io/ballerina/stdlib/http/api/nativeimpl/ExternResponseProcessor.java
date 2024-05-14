@@ -46,7 +46,6 @@ import io.ballerina.runtime.api.values.BTypedesc;
 import io.ballerina.stdlib.constraint.Constraints;
 import io.ballerina.stdlib.http.api.HttpErrorType;
 import io.ballerina.stdlib.http.api.HttpUtil;
-import io.ballerina.stdlib.http.api.ValueCreatorUtils;
 import io.netty.handler.codec.http.HttpHeaders;
 
 import java.util.HashMap;
@@ -71,6 +70,8 @@ import static io.ballerina.stdlib.http.api.HttpErrorType.MEDIA_TYPE_BINDING_CLIE
 import static io.ballerina.stdlib.http.api.HttpErrorType.MEDIA_TYPE_VALIDATION_CLIENT_ERROR;
 import static io.ballerina.stdlib.http.api.HttpErrorType.PAYLOAD_BINDING_CLIENT_ERROR;
 import static io.ballerina.stdlib.http.api.HttpUtil.createHttpError;
+import static io.ballerina.stdlib.http.api.ValueCreatorUtils.createDefaultStatusCodeObject;
+import static io.ballerina.stdlib.http.api.ValueCreatorUtils.createStatusCodeObject;
 
 /**
  * Extern response processor to process the response and generate the response with the given target type.
@@ -209,11 +210,16 @@ public final class ExternResponseProcessor {
                                                          RecordType statusCodeRecordType, long responseStatusCode) {
         String statusCodeObjName = STATUS_CODE_OBJS.get(Long.toString(responseStatusCode));
         if (Objects.isNull(statusCodeObjName)) {
-            return getStatusCodeResponseBindingError(env, response, String.format(UNSUPPORTED_STATUS_CODE,
-                    responseStatusCode), true);
+            if (isDefaultStatusCodeResponseType(statusCodeRecordType)) {
+                statusCodeObjName = DEFAULT_STATUS;
+            } else {
+                return getStatusCodeResponseBindingError(env, response, String.format(UNSUPPORTED_STATUS_CODE,
+                        responseStatusCode), true);
+            }
         }
 
-        Object status = ValueCreatorUtils.createStatusCodeObject(statusCodeObjName);
+        Object status = statusCodeObjName.equals(DEFAULT_STATUS) ? createDefaultStatusCodeObject(responseStatusCode) :
+                createStatusCodeObject(statusCodeObjName);
 
         Object headers = getHeaders(env, response, requireValidation, statusCodeRecordType);
         if (headers instanceof BError) {
@@ -352,6 +358,10 @@ public final class ExternResponseProcessor {
         }
         return statusCodeType.getFields().get(STATUS_CODE_RESPONSE_STATUS_CODE_FIELD).getFieldType().
                 getEmptyValue().toString();
+    }
+
+    private static boolean isDefaultStatusCodeResponseType(RecordType statusCodeRecordType) {
+        return getStatusCode(statusCodeRecordType).equals(DEFAULT);
     }
 
     private static Object createHeaderMap(HttpHeaders httpHeaders, Type elementType) {
