@@ -617,7 +617,7 @@ final StatusNetworkAuthenticationRequired STATUS_NETWORK_AUTHENTICATION_REQUIRED
 
 # The default status code response record.
 #
-# + status - The response status code obj
+# + status - The response status code object
 public type DefaultStatusCodeResponse record {|
     *CommonResponse;
     readonly DefaultStatus status;
