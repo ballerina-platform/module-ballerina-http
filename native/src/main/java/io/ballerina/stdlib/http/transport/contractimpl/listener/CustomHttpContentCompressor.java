@@ -1,6 +1,7 @@
 package io.ballerina.stdlib.http.transport.contractimpl.listener;
 
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.compression.StandardCompressionOptions;
 import io.netty.handler.codec.http.HttpContentCompressor;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
@@ -17,7 +18,8 @@ public class CustomHttpContentCompressor extends HttpContentCompressor {
     private HttpMethod method;
 
     public CustomHttpContentCompressor() {
-        super();
+        super(StandardCompressionOptions.gzip(), StandardCompressionOptions.deflate(),
+                StandardCompressionOptions.brotli());
     }
 
     @Override

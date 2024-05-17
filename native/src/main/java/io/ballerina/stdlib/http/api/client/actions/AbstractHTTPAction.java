@@ -73,6 +73,7 @@ import static io.ballerina.stdlib.http.api.HttpConstants.ANN_CONFIG_ATTR_COMPRES
 import static io.ballerina.stdlib.http.api.HttpConstants.SET_HOST_HEADER;
 import static io.ballerina.stdlib.http.api.HttpUtil.extractEntity;
 import static io.ballerina.stdlib.http.api.HttpUtil.getCompressionState;
+import static io.ballerina.stdlib.http.transport.contract.Constants.ENCODING_BR;
 import static io.ballerina.stdlib.http.transport.contract.Constants.ENCODING_DEFLATE;
 import static io.ballerina.stdlib.http.transport.contract.Constants.ENCODING_GZIP;
 import static io.netty.handler.codec.http.HttpHeaderNames.ACCEPT_ENCODING;
@@ -109,7 +110,8 @@ public abstract class AbstractHTTPAction {
 
         if (compressionState == CompressionConfigState.ALWAYS && (outboundRequest.getHeader(
                 ACCEPT_ENCODING.toString()) == null)) {
-            outboundRequest.setHeader(ACCEPT_ENCODING.toString(), ENCODING_DEFLATE + ", " + ENCODING_GZIP);
+            outboundRequest.setHeader(ACCEPT_ENCODING.toString(), ENCODING_DEFLATE + ", " + ENCODING_GZIP + ", "
+                    + ENCODING_BR);
         } else if (compressionState == CompressionConfigState.NEVER && (outboundRequest.getHeader(
                 ACCEPT_ENCODING.toString()) != null)) {
             outboundRequest.removeHeader(ACCEPT_ENCODING.toString());

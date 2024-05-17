@@ -18,6 +18,8 @@
 
 package io.ballerina.stdlib.http.transport.message;
 
+import com.aayushatharva.brotli4j.Brotli4jLoader;
+import com.aayushatharva.brotli4j.decoder.BrotliInputStream;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -210,6 +212,9 @@ public class HttpMessageDataStreamer {
                     return new GZIPInputStream(createInputStreamIfNull());
                 } else if (contentEncodingHeader.equalsIgnoreCase(Constants.ENCODING_DEFLATE)) {
                     return new InflaterInputStream(createInputStreamIfNull());
+                } else if (contentEncodingHeader.equalsIgnoreCase(Constants.ENCODING_BR)) {
+                    Brotli4jLoader.ensureAvailability();
+                    return new BrotliInputStream(createInputStreamIfNull());
                 } else if (!contentEncodingHeader.equalsIgnoreCase(Constants.HTTP_TRANSFER_ENCODING_IDENTITY)) {
                     LOG.warn("Unknown Content-Encoding: {}", contentEncodingHeader);
                 }

@@ -119,6 +119,7 @@ public final class Constants {
 
     public static final String ENCODING_GZIP = "gzip";
     public static final String ENCODING_DEFLATE = "deflate";
+    public static final String ENCODING_BR = "br";
     public static final String HTTP_TRANSFER_ENCODING_IDENTITY = "identity";
 
     // TODO: Move string constants for HTTP headers and header values to their own class
