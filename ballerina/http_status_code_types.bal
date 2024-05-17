@@ -52,8 +52,6 @@ public type CommonResponse record {|
 // Status code class declarations
 
 # The default status code class.
-#
-# + code - The response status code
 public readonly class DefaultStatus {
     *Status;
 
