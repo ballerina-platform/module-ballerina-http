@@ -18,6 +18,36 @@
             },
             {
                 "pattern": "\\Qlogging.properties\\E"
+            },
+            {
+                "pattern":"\\Qlib/linux-aarch64/libbrotli.so\\E"
+            },
+            {
+                "pattern":"\\Qlib/linux-armv7/libbrotli.so\\E"
+            },
+            {
+                "pattern":"\\Qlib/linux-ppc64le/libbrotli.so\\E"
+            },
+            {
+                "pattern":"\\Qlib/linux-riscv64/libbrotli.so\\E"
+            },
+            {
+                "pattern":"\\Qlib/linux-s390x/brotli.dll\\E"
+            },
+            {
+                "pattern":"\\Qlib/linux-x86_64/libbrotli.so\\E"
+            },
+            {
+                "pattern":"\\Qlib/osx-aarch64/libbrotli.dylib\\E"
+            },
+            {
+                "pattern":"\\Qlib/osx-x86_64/libbrotli.dylib\\E"
+            },
+            {
+                "pattern":"\\Qlib/windows-aarch64/brotli.dll\\E"
+            },
+            {
+                "pattern":"\\Qlib/windows-x86_64/brotli.dll\\E"
             }
         ]
     }
