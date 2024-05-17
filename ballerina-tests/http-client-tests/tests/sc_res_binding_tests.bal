@@ -323,10 +323,10 @@ function testGetSuccessStatusCodeResponse() returns error? {
     test:assertEquals(res5.status.code, 200, "Invalid status code");
 
     http:DefaultStatusCodeResponse|AlbumFound|AlbumFoundDefault res6 = check albumClient->get("/albums/1");
-    if res6 !is AlbumFound && res6 !is AlbumFoundDefault {
+    if res6 is AlbumFound {
         test:assertEquals(res6?.body, expectedAlbum, "Invalid album returned");
         test:assertEquals(res6?.headers["user-id"], "user-1", "Invalid user-id header");
-        test:assertEquals(res6?.headers["req-id"], "1", "Invalid req-id header");
+        test:assertEquals(res6?.headers["req-id"], 1, "Invalid req-id header");
         test:assertEquals(res6.mediaType, "application/json", "Invalid media type");
         test:assertEquals(res6.status.code, 200, "Invalid status code");
     } else {
