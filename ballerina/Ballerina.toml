@@ -1,7 +1,7 @@
 [package]
 org = "ballerina"
 name = "http"
-version = "2.11.0"
+version = "2.11.1"
 authors = ["Ballerina"]
 keywords = ["http", "network", "service", "listener", "client"]
 repository = "https://github.com/ballerina-platform/module-ballerina-http"
@@ -16,8 +16,8 @@ graalvmCompatible = true
 [[platform.java17.dependency]]
 groupId = "io.ballerina.stdlib"
 artifactId = "http-native"
-version = "2.11.0"
-path = "../native/build/libs/http-native-2.11.0.jar"
+version = "2.11.1"
+path = "../native/build/libs/http-native-2.11.1-SNAPSHOT.jar"
 
 [[platform.java17.dependency]]
 groupId = "io.ballerina.stdlib"
@@ -171,3 +171,69 @@ groupId = "com.google.protobufl"
 artifactId = "protobuf-java"
 version = "3.20.3"
 path = "./lib/protobuf-java-3.20.3.jar"
+
+[[platform.java17.dependency]]
+groupId = "com.aayushatharva.brotli4j"
+artifactId = "brotli4j"
+version = "1.16.0"
+path = "./lib/brotli4j-1.16.0.jar"
+
+[[platform.java17.dependency]]
+groupId = "com.aayushatharva.brotli4j"
+artifactId = "service"
+version = "1.16.0"
+path = "./lib/service-1.16.0.jar"
+
+[[platform.java17.dependency]]
+groupId = "com.aayushatharva.brotli4j"
+artifactId = "native-linux-ppc64le"
+version = "1.16.0"
+path = "./lib/native-linux-ppc64le-1.16.0.jar"
+
+[[platform.java17.dependency]]
+groupId = "com.aayushatharva.brotli4j"
+artifactId = "native-linux-x86_64"
+version = "1.16.0"
+path = "./lib/native-linux-x86_64-1.16.0.jar"
+
+[[platform.java17.dependency]]
+groupId = "com.aayushatharva.brotli4j"
+artifactId = "native-linux-aarch64"
+version = "1.16.0"
+path = "./lib/native-linux-aarch64-1.16.0.jar"
+
+[[platform.java17.dependency]]
+groupId = "com.aayushatharva.brotli4j"
+artifactId = "native-linux-armv7"
+version = "1.16.0"
+path = "./lib/native-linux-armv7-1.16.0.jar"
+
+[[platform.java17.dependency]]
+groupId = "com.aayushatharva.brotli4j"
+artifactId = "native-linux-riscv64"
+version = "1.16.0"
+path = "./lib/native-linux-riscv64-1.16.0.jar"
+
+[[platform.java17.dependency]]
+groupId = "com.aayushatharva.brotli4j"
+artifactId = "native-osx-x86_64"
+version = "1.16.0"
+path = "./lib/native-osx-x86_64-1.16.0.jar"
+
+[[platform.java17.dependency]]
+groupId = "com.aayushatharva.brotli4j"
+artifactId = "native-osx-aarch64"
+version = "1.16.0"
+path = "./lib/native-osx-aarch64-1.16.0.jar"
+
+[[platform.java17.dependency]]
+groupId = "com.aayushatharva.brotli4j"
+artifactId = "native-windows-x86_64"
+version = "1.16.0"
+path = "./lib/native-windows-x86_64-1.16.0.jar"
+
+[[platform.java17.dependency]]
+groupId = "com.aayushatharva.brotli4j"
+artifactId = "native-windows-aarch64"
+version = "1.16.0"
+path = "./lib/native-windows-aarch64-1.16.0.jar"
