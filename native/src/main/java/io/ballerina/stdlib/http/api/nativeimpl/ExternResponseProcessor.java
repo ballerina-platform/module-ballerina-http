@@ -190,8 +190,15 @@ public final class ExternResponseProcessor {
     private static Object getResponseWithType(BObject response, Type targetType, boolean requireValidation,
                                               Environment env) {
         long responseStatusCode = getStatusCode(response);
-        Optional<Type> statusCodeResponseType = getStatusCodeResponseType(targetType,
+
+        // Find the most specific status code record type
+        Optional<Type> statusCodeResponseType = getSpecificStatusCodeResponseType(targetType,
                 Long.toString(responseStatusCode));
+        if (statusCodeResponseType.isEmpty()) {
+            // Find the default status code record type
+            statusCodeResponseType = getDefaultStatusCodeResponseType(targetType);
+        }
+
         if (statusCodeResponseType.isPresent() &&
                 TypeUtils.getImpliedType(statusCodeResponseType.get()) instanceof RecordType statusCodeRecordType) {
             return generateStatusCodeResponseType(response, requireValidation, env, statusCodeRecordType,
@@ -324,23 +331,27 @@ public final class ExternResponseProcessor {
         }
     }
 
-    private static Optional<Type> getStatusCodeResponseType(Type targetType, String statusCode) {
+    private static Optional<Type> getSpecificStatusCodeResponseType(Type targetType, String statusCode) {
         if (isStatusCodeResponseType(targetType)) {
             String statusCodeFromType = getStatusCode(targetType);
-            if (statusCodeFromType.equals(statusCode) || statusCodeFromType.equals(DEFAULT)) {
+            if (statusCodeFromType.equals(statusCode)) {
                 return Optional.of(targetType);
             }
         } else if (targetType instanceof UnionType unionType) {
             return unionType.getMemberTypes().stream()
-                    .map(member -> getStatusCodeResponseType(member, statusCode))
+                    .map(member -> getSpecificStatusCodeResponseType(member, statusCode))
                     .filter(Optional::isPresent)
                     .flatMap(Optional::stream)
                     .findFirst();
         } else if (targetType instanceof ReferenceType
                 && (!targetType.equals(TypeUtils.getImpliedType(targetType)))) {
-                return getStatusCodeResponseType(TypeUtils.getImpliedType(targetType), statusCode);
+            return getSpecificStatusCodeResponseType(TypeUtils.getImpliedType(targetType), statusCode);
         }
         return Optional.empty();
+    }
+
+    private static Optional<Type> getDefaultStatusCodeResponseType(Type targetType) {
+        return getSpecificStatusCodeResponseType(targetType, DEFAULT);
     }
 
     private static boolean isStatusCodeResponseType(Type targetType) {
