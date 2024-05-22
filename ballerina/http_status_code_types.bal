@@ -52,7 +52,7 @@ public type CommonResponse record {|
 // Status code class declarations
 
 # The default status code class.
-public readonly class DefaultStatus {
+public readonly distinct class DefaultStatus {
     *Status;
 
     public isolated function init(int code) {
