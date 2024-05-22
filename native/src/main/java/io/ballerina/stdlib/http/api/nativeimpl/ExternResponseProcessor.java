@@ -518,19 +518,7 @@ public final class ExternResponseProcessor {
 
     private static Object getStatusCodeResponseBindingError(Environment env, BObject response, String reasonPhrase) {
         Future balFuture = env.markAsync();
-        Callback returnCallback = new Callback() {
-            @Override
-            public void notifySuccess(Object result) {
-                balFuture.complete(result);
-            }
-
-            @Override
-            public void notifyFailure(BError bError) {
-                BError error = createHttpError(APPLICATION_RES_ERROR_CREATION_FAILED,
-                        STATUS_CODE_RESPONSE_BINDING_ERROR, bError);
-                balFuture.complete(error);
-            }
-        };
+        Callback returnCallback = getReturnCallback(balFuture, APPLICATION_RES_ERROR_CREATION_FAILED);
         Object[] paramFeed = new Object[2];
         paramFeed[0] = StringUtils.fromString(reasonPhrase);
         paramFeed[1] = true;
@@ -543,19 +531,7 @@ public final class ExternResponseProcessor {
                                                                 BError cause, boolean isDefaultStatusCodeResponse,
                                                                 String errorType) {
         Future balFuture = env.markAsync();
-        Callback returnCallback = new Callback() {
-            @Override
-            public void notifySuccess(Object result) {
-                balFuture.complete(result);
-            }
-
-            @Override
-            public void notifyFailure(BError bError) {
-                BError error = createHttpError(APPLICATION_RES_ERROR_CREATION_FAILED,
-                        STATUS_CODE_RESPONSE_BINDING_ERROR, bError);
-                balFuture.complete(error);
-            }
-        };
+        Callback returnCallback = getReturnCallback(balFuture, APPLICATION_RES_ERROR_CREATION_FAILED);
         Object[] paramFeed = new Object[8];
         paramFeed[0] = StringUtils.fromString(reasonPhrase);
         paramFeed[1] = true;
@@ -572,7 +548,15 @@ public final class ExternResponseProcessor {
 
     private static Object getStatusCodeResponse(Environment env, BObject response, Object[] paramFeed) {
         Future balFuture = env.markAsync();
-        Callback returnCallback = new Callback() {
+        Callback returnCallback = getReturnCallback(balFuture, STATUS_CODE_RES_CREATION_FAILED);
+        env.getRuntime().invokeMethodAsyncSequentially(response, BUILD_STATUS_CODE_RESPONSE, null,
+                ModuleUtils.getNotifySuccessMetaData(), returnCallback, null, PredefinedTypes.TYPE_ANY,
+                paramFeed);
+        return null;
+    }
+
+    private static Callback getReturnCallback(Future balFuture, String errorMessage) {
+        return new Callback() {
             @Override
             public void notifySuccess(Object result) {
                 balFuture.complete(result);
@@ -580,14 +564,9 @@ public final class ExternResponseProcessor {
 
             @Override
             public void notifyFailure(BError bError) {
-                BError error = createHttpError(STATUS_CODE_RES_CREATION_FAILED,
-                        STATUS_CODE_RESPONSE_BINDING_ERROR, bError);
+                BError error = createHttpError(errorMessage, STATUS_CODE_RESPONSE_BINDING_ERROR, bError);
                 balFuture.complete(error);
             }
         };
-        env.getRuntime().invokeMethodAsyncSequentially(response, BUILD_STATUS_CODE_RESPONSE, null,
-                ModuleUtils.getNotifySuccessMetaData(), returnCallback, null, PredefinedTypes.TYPE_ANY,
-                paramFeed);
-        return null;
     }
 }
