@@ -276,7 +276,7 @@ function testGetSuccessStatusCodeResponse() returns error? {
     AlbumNotFound|error res2 = albumClient->/albums/'1;
     if res2 is error {
         test:assertTrue(res2 is http:StatusCodeResponseBindingError);
-        test:assertEquals(res2.message(), "incompatible AlbumNotFound found for response with 200",
+        test:assertEquals(res2.message(), "incompatible type: AlbumNotFound for response with status code: 200",
             "Invalid error message");
         error? cause = res2.cause();
         if cause is error {
@@ -347,7 +347,7 @@ function testGetFailureStatusCodeResponse() returns error? {
     if res1 is error {
         test:assertTrue(res1 is http:ClientRequestError);
         test:assertTrue(res1 is http:StatusCodeResponseBindingError);
-        test:assertEquals(res1.message(), "incompatible AlbumFound found for response with 404", "Invalid error message");
+        test:assertEquals(res1.message(), "incompatible type: AlbumFound for response with status code: 404", "Invalid error message");
         test:assertEquals(res1.detail()["statusCode"], 404, "Invalid status code");
         test:assertEquals(res1.detail()["body"], expectedErrorMessage, "Invalid error message");
         if res1.detail()["headers"] is map<string[]> {
@@ -479,8 +479,16 @@ function testStatusCodeBindingWithDifferentHeaders() returns error? {
 
     record {|*http:Ok; AdditionalMissingHeaders headers;|}|error res6 = albumClient->/albums/'1;
     if res6 is error {
-        test:assertTrue(res6 is http:HeaderNotFoundError);
-        test:assertEquals(res6.message(), "no header value found for 'x-content-type'", "Invalid error message");
+        test:assertTrue(res6 is http:HeaderBindingError);
+        test:assertTrue(res6 is http:StatusCodeResponseBindingError);
+        test:assertEquals(res6.message(), "header binding failed");
+        error? cause = res6.cause();
+        if cause is error {
+            test:assertTrue(cause is http:HeaderNotFoundError);
+            test:assertEquals(cause.message(), "no header value found for 'x-content-type'", "Invalid cause error message");
+        } else {
+            test:assertFail("Invalid cause error type");
+        }
     } else {
         test:assertFail("Invalid response type");
     }
