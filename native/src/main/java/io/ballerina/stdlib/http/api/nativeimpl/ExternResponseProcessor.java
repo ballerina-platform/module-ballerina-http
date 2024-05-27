@@ -83,7 +83,7 @@ public final class ExternResponseProcessor {
     private static final String HEADER_BINDING_FAILED = "header binding failed";
     private static final String UNSUPPORTED_HEADERS_TYPE = "unsupported headers type: %s";
     private static final String UNSUPPORTED_STATUS_CODE = "unsupported status code: %d";
-    private static final String INCOMPATIBLE_TYPE_FOUND_FOR_RESPONSE = "incompatible type: %s for response with " +
+    private static final String INCOMPATIBLE_TYPE_FOUND_FOR_RESPONSE = "incompatible type: %s found for the response with " +
             "status code: %d";
     private static final String MEDIA_TYPE_BINDING_FAILED = "media-type binding failed";
     private static final String APPLICATION_RES_ERROR_CREATION_FAILED = "http:ApplicationResponseError creation failed";

@@ -276,7 +276,7 @@ function testGetSuccessStatusCodeResponse() returns error? {
     AlbumNotFound|error res2 = albumClient->/albums/'1;
     if res2 is error {
         test:assertTrue(res2 is http:StatusCodeResponseBindingError);
-        test:assertEquals(res2.message(), "incompatible type: AlbumNotFound for response with status code: 200",
+        test:assertEquals(res2.message(), "incompatible type: AlbumNotFound found for the response with status code: 200",
             "Invalid error message");
         error? cause = res2.cause();
         if cause is error {
@@ -347,7 +347,7 @@ function testGetFailureStatusCodeResponse() returns error? {
     if res1 is error {
         test:assertTrue(res1 is http:ClientRequestError);
         test:assertTrue(res1 is http:StatusCodeResponseBindingError);
-        test:assertEquals(res1.message(), "incompatible type: AlbumFound for response with status code: 404", "Invalid error message");
+        test:assertEquals(res1.message(), "incompatible type: AlbumFound found for the response with status code: 404", "Invalid error message");
         test:assertEquals(res1.detail()["statusCode"], 404, "Invalid status code");
         test:assertEquals(res1.detail()["body"], expectedErrorMessage, "Invalid error message");
         if res1.detail()["headers"] is map<string[]> {
