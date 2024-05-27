@@ -680,37 +680,37 @@ isolated function createResponseError(int statusCode, string reasonPhrase, map<s
 isolated function createStatusCodeResponseBindingError(int statusCode, string reasonPhrase, map<string[]> headers,
         anydata body = ()) returns ClientError {
     if 100 <= statusCode && statusCode <= 399 {
-        return error StatusCodeResponseBindingError(reasonPhrase, statusCode = statusCode, headers = headers, body = body, fromDefaultStatusCodeResponse = false);
+        return error StatusCodeResponseBindingError(reasonPhrase, statusCode = statusCode, headers = headers, body = body, fromDefaultStatusCodeMapping = false);
     } else if 400 <= statusCode && statusCode <= 499 {
-        return error StatusCodeBindingClientRequestError(reasonPhrase, statusCode = statusCode, headers = headers, body = body, fromDefaultStatusCodeResponse = false);
+        return error StatusCodeBindingClientRequestError(reasonPhrase, statusCode = statusCode, headers = headers, body = body, fromDefaultStatusCodeMapping = false);
     } else {
-        return error StatusCodeBindingRemoteServerError(reasonPhrase, statusCode = statusCode, headers = headers, body = body, fromDefaultStatusCodeResponse = false);
+        return error StatusCodeBindingRemoteServerError(reasonPhrase, statusCode = statusCode, headers = headers, body = body, fromDefaultStatusCodeMapping = false);
     }
 }
 
-isolated function createStatusCodeResponseDataBindingError("header"|"mediaType"|"payload"|"generic" errorType, boolean fromDefaultStatusCodeResponse,
+isolated function createStatusCodeResponseDataBindingError("header"|"mediaType"|"payload"|"generic" errorType, boolean fromDefaultStatusCodeMapping,
         int statusCode, string reasonPhrase, map<string[]> headers, anydata body = (), error? cause = ()) returns ClientError {
     match (errorType) {
         "header" => {
             if cause is HeaderValidationClientError {
-                return error HeaderValidationStatusCodeClientError(reasonPhrase, cause, statusCode = statusCode, headers = headers, body = body, fromDefaultStatusCodeResponse = fromDefaultStatusCodeResponse);
+                return error HeaderValidationStatusCodeClientError(reasonPhrase, cause, statusCode = statusCode, headers = headers, body = body, fromDefaultStatusCodeMapping = fromDefaultStatusCodeMapping);
             }
-            return error HeaderBindingStatusCodeClientError(reasonPhrase, cause, statusCode = statusCode, headers = headers, body = body, fromDefaultStatusCodeResponse = fromDefaultStatusCodeResponse);
+            return error HeaderBindingStatusCodeClientError(reasonPhrase, cause, statusCode = statusCode, headers = headers, body = body, fromDefaultStatusCodeMapping = fromDefaultStatusCodeMapping);
         }
         "mediaType" => {
             if cause is MediaTypeValidationClientError {
-                return error MediaTypeValidationStatusCodeClientError(reasonPhrase, cause, statusCode = statusCode, headers = headers, body = body, fromDefaultStatusCodeResponse = fromDefaultStatusCodeResponse);
+                return error MediaTypeValidationStatusCodeClientError(reasonPhrase, cause, statusCode = statusCode, headers = headers, body = body, fromDefaultStatusCodeMapping = fromDefaultStatusCodeMapping);
             }
-            return error MediaTypeBindingStatusCodeClientError(reasonPhrase, cause, statusCode = statusCode, headers = headers, body = body, fromDefaultStatusCodeResponse = fromDefaultStatusCodeResponse);
+            return error MediaTypeBindingStatusCodeClientError(reasonPhrase, cause, statusCode = statusCode, headers = headers, body = body, fromDefaultStatusCodeMapping = fromDefaultStatusCodeMapping);
         }
         "payload" => {
             if cause is PayloadValidationClientError {
-                return error PayloadValidationStatusCodeClientError(reasonPhrase, cause, statusCode = statusCode, headers = headers, body = body, fromDefaultStatusCodeResponse = fromDefaultStatusCodeResponse);
+                return error PayloadValidationStatusCodeClientError(reasonPhrase, cause, statusCode = statusCode, headers = headers, body = body, fromDefaultStatusCodeMapping = fromDefaultStatusCodeMapping);
             }
-            return error PayloadBindingStatusCodeClientError(reasonPhrase, cause, statusCode = statusCode, headers = headers, body = body, fromDefaultStatusCodeResponse = fromDefaultStatusCodeResponse);
+            return error PayloadBindingStatusCodeClientError(reasonPhrase, cause, statusCode = statusCode, headers = headers, body = body, fromDefaultStatusCodeMapping = fromDefaultStatusCodeMapping);
         }
         _ => {
-            return error StatusCodeResponseBindingError(reasonPhrase, cause, statusCode = statusCode, headers = headers, body = body, fromDefaultStatusCodeResponse = fromDefaultStatusCodeResponse);
+            return error StatusCodeResponseBindingError(reasonPhrase, cause, statusCode = statusCode, headers = headers, body = body, fromDefaultStatusCodeMapping = fromDefaultStatusCodeMapping);
         }
     }
 }

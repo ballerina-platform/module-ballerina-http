@@ -29,10 +29,10 @@ public type Detail record {
 
 # Represents the details of an HTTP status code binding client error.
 #
-# + fromDefaultStatusCodeResponse - Indicates whether the error orginates from default status code response mapping
+# + fromDefaultStatusCodeMapping - Indicates whether the error orginates from default status code response mapping
 public type StatusCodeBindingErrorDetail record {
     *Detail;
-    boolean fromDefaultStatusCodeResponse;
+    boolean fromDefaultStatusCodeMapping;
 };
 
 # Represents the details of the `LoadBalanceActionError`.
