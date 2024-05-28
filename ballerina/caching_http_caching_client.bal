@@ -105,7 +105,7 @@ client isolated class HttpCachingClient {
         Request request = <Request>message;
         setRequestCacheControlHeader(request);
 
-        if httpMethod == HTTP_GET || httpMethod == HTTP_HEAD {
+        if httpMethod.equalsIgnoreCaseAscii(HTTP_GET) || httpMethod.equalsIgnoreCaseAscii(HTTP_HEAD) {
             return getCachedResponse(self.cache, self.httpClient, request, httpMethod, path,
                                      self.cacheConfig.isShared, false);
         }
@@ -187,7 +187,7 @@ client isolated class HttpCachingClient {
     # + request - The HTTP request to be forwarded
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function forward(string path, Request request) returns Response|ClientError {
-        if request.method == HTTP_GET || request.method == HTTP_HEAD {
+        if request.method.equalsIgnoreCaseAscii(HTTP_GET) || request.method.equalsIgnoreCaseAscii(HTTP_HEAD) {
             return getCachedResponse(self.cache, self.httpClient, request, request.method, path,
                                      self.cacheConfig.isShared, true);
         }
@@ -367,9 +367,9 @@ isolated function sendNewRequest(HttpClient httpClient, Request request, string 
     if forwardRequest {
         return httpClient->forward(path, request);
     }
-    if httpMethod == HTTP_GET {
+    if httpMethod.equalsIgnoreCaseAscii(HTTP_GET) {
         return httpClient->get(path, message = request);
-    } else if httpMethod == HTTP_HEAD {
+    } else if httpMethod.equalsIgnoreCaseAscii(HTTP_HEAD) {
         return httpClient->head(path, message = request);
     } else {
         string message = "HTTP method not supported in caching client: " + httpMethod;
