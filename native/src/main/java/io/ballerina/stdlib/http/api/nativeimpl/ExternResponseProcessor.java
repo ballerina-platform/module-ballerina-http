@@ -97,9 +97,9 @@ public final class ExternResponseProcessor {
     private static final Map<String, String> STATUS_CODE_OBJS = new HashMap<>();
     private static final String DEFAULT_STATUS = "DefaultStatus";
     private static final String DEFAULT = "default";
-    private static final String HEADER = "header";
-    private static final String MEDIA_TYPE = "mediaType";
-    private static final String GENERIC = "generic";
+    private static final String HEADER = "HEADER";
+    private static final String MEDIA_TYPE = "MEDIA_TYPE";
+    private static final String GENERIC = "GENERIC";
 
     static {
         STATUS_CODE_OBJS.put("100", "StatusContinue");

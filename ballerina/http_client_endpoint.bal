@@ -688,22 +688,26 @@ isolated function createStatusCodeResponseBindingError(int statusCode, string re
     }
 }
 
-isolated function createStatusCodeResponseDataBindingError("header"|"mediaType"|"payload"|"generic" errorType, boolean fromDefaultStatusCodeMapping,
+enum DataBindingErrorType {
+    HEADER, MEDIA_TYPE, PAYLOAD, GENERIC
+}
+
+isolated function createStatusCodeResponseDataBindingError(DataBindingErrorType errorType, boolean fromDefaultStatusCodeMapping,
         int statusCode, string reasonPhrase, map<string[]> headers, anydata body = (), error? cause = ()) returns ClientError {
     match (errorType) {
-        "header" => {
+        HEADER => {
             if cause is HeaderValidationClientError {
                 return error HeaderValidationStatusCodeClientError(reasonPhrase, cause, statusCode = statusCode, headers = headers, body = body, fromDefaultStatusCodeMapping = fromDefaultStatusCodeMapping);
             }
             return error HeaderBindingStatusCodeClientError(reasonPhrase, cause, statusCode = statusCode, headers = headers, body = body, fromDefaultStatusCodeMapping = fromDefaultStatusCodeMapping);
         }
-        "mediaType" => {
+        MEDIA_TYPE => {
             if cause is MediaTypeValidationClientError {
                 return error MediaTypeValidationStatusCodeClientError(reasonPhrase, cause, statusCode = statusCode, headers = headers, body = body, fromDefaultStatusCodeMapping = fromDefaultStatusCodeMapping);
             }
             return error MediaTypeBindingStatusCodeClientError(reasonPhrase, cause, statusCode = statusCode, headers = headers, body = body, fromDefaultStatusCodeMapping = fromDefaultStatusCodeMapping);
         }
-        "payload" => {
+        PAYLOAD => {
             if cause is PayloadValidationClientError {
                 return error PayloadValidationStatusCodeClientError(reasonPhrase, cause, statusCode = statusCode, headers = headers, body = body, fromDefaultStatusCodeMapping = fromDefaultStatusCodeMapping);
             }

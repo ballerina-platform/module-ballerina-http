@@ -546,7 +546,7 @@ public class Response {
         if payloadType !is () {
             anydata|ClientError payload = self.performDataBinding(payloadType, requireValidation);
             if payload is ClientError {
-                return self.getStatusCodeResponseDataBindingError(payload.message(), fromDefaultStatusCodeMapping, "payload", payload);
+                return self.getStatusCodeResponseDataBindingError(payload.message(), fromDefaultStatusCodeMapping, PAYLOAD, payload);
             }
             return externBuildStatusCodeResponse(statusCodeResType, status, headers, payload, mediaType);
         } else {
@@ -578,7 +578,7 @@ public class Response {
     }
 
     isolated function getStatusCodeResponseDataBindingError(string reasonPhrase, boolean fromDefaultStatusCodeMapping,
-        "header"|"mediaType"|"payload"|"generic" errorType, error? cause) returns ClientError {
+        DataBindingErrorType errorType, error? cause) returns ClientError {
         map<string[]> headers = getHeaders(self);
         anydata|error payload = getPayload(self);
         int statusCode = self.statusCode;

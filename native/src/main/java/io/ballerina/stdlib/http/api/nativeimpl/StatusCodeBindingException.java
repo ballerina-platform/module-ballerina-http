@@ -26,8 +26,8 @@ import io.ballerina.runtime.api.values.BError;
  */
 public class StatusCodeBindingException extends RuntimeException {
 
-    final String errorType;
-    final BError cause;
+    private final String errorType;
+    private final BError cause;
 
     public StatusCodeBindingException(String errorType, String message) {
         super(message);
