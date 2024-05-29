@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Fixed
 
+- [Fix caching behaviour with client execute method](https://github.com/ballerina-platform/ballerina-library/issues/6570)
 - [Address CVE-2024-29025 netty's vulnerability](https://github.com/ballerina-platform/ballerina-library/issues/6242)
 
 ## [2.10.12] - 2024-03-21
