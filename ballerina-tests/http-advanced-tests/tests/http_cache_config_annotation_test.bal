@@ -331,11 +331,11 @@ function testReturnStatusCodeResponsesWithAnnotation() returns error? {
 function testBasicCachingBehaviourWithExecute() returns error? {
     check checkBasicCachingBehaviourWithExecute("GET", 1);
     runtime:sleep(1);
-    check checkBasicCachingBehaviourWithExecute("get", 2);
+    check checkBasicCachingBehaviourWithExecute("get", 1);
     runtime:sleep(1);
-    check checkBasicCachingBehaviourWithExecute("HEAD", 3);
+    check checkBasicCachingBehaviourWithExecute("HEAD", 2);
     runtime:sleep(1);
-    check checkBasicCachingBehaviourWithExecute("head", 4);
+    check checkBasicCachingBehaviourWithExecute("head", 2);
 }
 
 function checkBasicCachingBehaviourWithExecute(string method, int hitCount) returns error? {
