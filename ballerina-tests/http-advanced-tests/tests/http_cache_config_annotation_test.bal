@@ -31,6 +31,7 @@ isolated int noCacheHitCountNew = 0;
 isolated int maxAgeHitCountNew = 0;
 isolated int numberOfHitsNew = 0;
 isolated int statusHits = 0;
+isolated int greetingHits = 0;
 final readonly & xml maxAgePayload1 = xml `<message>before cache expiration</message>`;
 final readonly & xml maxAgePayload2 = xml `<message>after cache expiration</message>`;
 readonly & string errorBody = "Error";
@@ -159,6 +160,13 @@ service / on new http:Listener(cacheAnnotationTestPort2, httpVersion = http:HTTP
         } else {
             return err;
         }
+    }
+
+    resource function default greeting() returns @http:Cache {maxAge: 10} json {
+        lock {
+            greetingHits += 1;
+        }
+        return {"message": "Hello, World!"};
     }
 }
 
@@ -317,4 +325,51 @@ function testReturnStatusCodeResponsesWithAnnotation() returns error? {
     common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:TEXT_PLAIN);
     common:assertTextPayload(response.getTextPayload(), errorBody);
     return;
+}
+
+@test:Config {}
+function testBasicCachingBehaviourWithExecute() returns error? {
+    check checkBasicCachingBehaviourWithExecute("GET", 1);
+    runtime:sleep(1);
+    check checkBasicCachingBehaviourWithExecute("get", 1);
+    runtime:sleep(1);
+    check checkBasicCachingBehaviourWithExecute("HEAD", 2);
+    runtime:sleep(1);
+    check checkBasicCachingBehaviourWithExecute("head", 2);
+}
+
+function checkBasicCachingBehaviourWithExecute(string method, int hitCount) returns error? {
+    http:Response|error response = cacheBackendEP->execute(method, "/greeting", new http:Request());
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        lock {
+            test:assertEquals(greetingHits, hitCount);
+        }
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+
+    runtime:sleep(1);
+
+    response = cacheBackendEP->execute(method, "/greeting", new http:Request());
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        lock {
+            test:assertEquals(greetingHits, hitCount);
+        }
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+
+    runtime:sleep(1);
+
+    response = cacheBackendEP->execute(method, "/greeting", new http:Request());
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
+        lock {
+            test:assertEquals(greetingHits, hitCount);
+        }
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
 }
