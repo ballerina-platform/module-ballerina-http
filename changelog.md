@@ -11,6 +11,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - [Introduce default status code response record](https://github.com/ballerina-platform/ballerina-library/issues/6491)
 
+## [2.11.1] - 2024-05-29
+
+### Fixed
+
+- [Fix caching behaviour with client execute method](https://github.com/ballerina-platform/ballerina-library/issues/6570)
+
 ## [2.11.0] - 2024-05-03
 
 ### Added
