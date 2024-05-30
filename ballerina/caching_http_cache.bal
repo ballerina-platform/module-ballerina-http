@@ -194,5 +194,5 @@ isolated function weakValidatorEquals(string etag1, string etag2) returns boolea
 }
 
 isolated function getCacheKey(string httpMethod, string url) returns string {
-    return string `${httpMethod} ${url}`;
+    return string `${httpMethod.toUpperAscii()} ${url}`;
 }
