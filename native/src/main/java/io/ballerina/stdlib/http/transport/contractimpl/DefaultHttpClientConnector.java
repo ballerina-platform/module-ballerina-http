@@ -198,7 +198,6 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
                     new RequestWriteStarter(outboundMsgHolder, activeHttp2ClientChannel).startWritingContent();
                     httpResponseFuture = outboundMsgHolder.getResponseFuture();
                     httpResponseFuture.notifyResponseHandle(new ResponseHandle(outboundMsgHolder));
-
                     return httpResponseFuture;
                 }
             }

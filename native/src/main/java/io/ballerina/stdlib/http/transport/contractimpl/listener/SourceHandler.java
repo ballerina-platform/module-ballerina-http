@@ -19,6 +19,7 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.listener;
 
+import io.ballerina.stdlib.http.api.logging.accesslog.HttpAccessLogMessage;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
 import io.ballerina.stdlib.http.transport.contract.config.ChunkConfig;
@@ -46,7 +47,10 @@ import org.apache.commons.pool.impl.GenericObjectPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
@@ -73,8 +77,10 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
 
     private KeepAliveConfig keepAliveConfig;
     private ServerConnectorFuture serverConnectorFuture;
+    private HttpServerChannelInitializer serverChannelInitializer;
     private String interfaceId;
     private String serverName;
+    private String remoteHost;
     private boolean idleTimeout;
     private ChannelGroup allChannels;
     private ChannelGroup listenerChannels;
@@ -87,12 +93,15 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
     private long sequenceId = 1L; //Keep track of the request order for http 1.1 pipelining
     private final Queue holdingQueue = new PriorityQueue<>(NUMBER_OF_INITIAL_EVENTS_HELD);
     private EventExecutorGroup pipeliningGroup;
+    private List<HttpAccessLogMessage> httpAccessLogMessages;
 
-    public SourceHandler(ServerConnectorFuture serverConnectorFuture, String interfaceId, ChunkConfig chunkConfig,
-                         KeepAliveConfig keepAliveConfig, String serverName, ChannelGroup allChannels,
-                         ChannelGroup listenerChannels, boolean pipeliningEnabled, long pipeliningLimit,
-                         EventExecutorGroup pipeliningGroup) {
+    public SourceHandler(ServerConnectorFuture serverConnectorFuture,
+                         HttpServerChannelInitializer serverChannelInitializer, String interfaceId,
+                         ChunkConfig chunkConfig, KeepAliveConfig keepAliveConfig, String serverName,
+                         ChannelGroup allChannels, ChannelGroup listenerChannels, boolean pipeliningEnabled,
+                         long pipeliningLimit, EventExecutorGroup pipeliningGroup) {
         this.serverConnectorFuture = serverConnectorFuture;
+        this.serverChannelInitializer = serverChannelInitializer;
         this.interfaceId = interfaceId;
         this.chunkConfig = chunkConfig;
         this.keepAliveConfig = keepAliveConfig;
@@ -104,6 +113,7 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
         this.pipeliningEnabled = pipeliningEnabled;
         this.pipeliningLimit = pipeliningLimit;
         this.pipeliningGroup = pipeliningGroup;
+        this.httpAccessLogMessages = new ArrayList<>();
     }
 
     @SuppressWarnings("unchecked")
@@ -156,6 +166,12 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
             handlerExecutor.executeAtSourceConnectionInitiation(Integer.toString(ctx.hashCode()));
         }
         this.remoteAddress = ctx.channel().remoteAddress();
+        if (this.remoteAddress instanceof InetSocketAddress) {
+            remoteHost = ((InetSocketAddress) this.remoteAddress).getAddress().toString();
+            if (remoteHost.startsWith("/")) {
+                remoteHost = remoteHost.substring(1);
+            }
+        }
     }
 
     @Override
@@ -317,6 +333,10 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
         return serverConnectorFuture;
     }
 
+    public HttpServerChannelInitializer getServerChannelInitializer() {
+        return serverChannelInitializer;
+    }
+
     public ChunkConfig getChunkConfig() {
         return chunkConfig;
     }
@@ -329,6 +349,10 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
         return serverName;
     }
 
+    public String getRemoteHost() {
+        return remoteHost;
+    }
+
     public void setConnectedState(boolean connectedState) {
         this.connectedState = connectedState;
     }
@@ -339,5 +363,13 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
 
     public void resetInboundRequestMsg() {
         this.inboundRequestMsg = null;
+    }
+
+    public void addHttpAccessLogMessage(HttpAccessLogMessage httpAccessLogMessage) {
+        this.httpAccessLogMessages.add(httpAccessLogMessage);
+    }
+
+    public List<HttpAccessLogMessage> getHttpAccessLogMessages() {
+        return this.httpAccessLogMessages;
     }
 }
