@@ -24,6 +24,7 @@ import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.SenderReqRespStateManager;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil;
+import io.ballerina.stdlib.http.transport.contractimpl.listener.SourceHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.http2.Http2SourceHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.TargetHandler;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
@@ -130,9 +131,7 @@ public class ReceivingEntityBody implements SenderState {
         HttpCarbonMessage httpOutboundRequest = targetHandler.getOutboundRequestMsg();
         HttpAccessLogMessage outboundAccessLogMessage =
                 getTypedProperty(httpOutboundRequest, OUTBOUND_ACCESS_LOG_MESSAGE, HttpAccessLogMessage.class);
-        Http2SourceHandler http2SourceHandler =
-                getTypedProperty(httpOutboundRequest, Constants.SRC_HANDLER, Http2SourceHandler.class);
-        if (outboundAccessLogMessage == null || http2SourceHandler == null) {
+        if (outboundAccessLogMessage == null) {
             return;
         }
 
@@ -182,7 +181,15 @@ public class ReceivingEntityBody implements SenderState {
                 outboundAccessLogMessage.getDateTime().getTimeInMillis();
         outboundAccessLogMessage.setRequestTime(requestTime);
 
-        http2SourceHandler.addHttpAccessLogMessage(outboundAccessLogMessage);
+        SourceHandler srcHandler = getTypedProperty(httpOutboundRequest, Constants.SRC_HANDLER, SourceHandler.class);
+        Http2SourceHandler http2SourceHandler =
+                getTypedProperty(httpOutboundRequest, Constants.SRC_HANDLER, Http2SourceHandler.class);
+
+        if (srcHandler != null) {
+            srcHandler.addHttpAccessLogMessage(outboundAccessLogMessage);
+        } else if (http2SourceHandler != null) {
+            http2SourceHandler.addHttpAccessLogMessage(outboundAccessLogMessage);
+        }
     }
 
     private <T> T getTypedProperty(HttpCarbonMessage request, String propertyName, Class<T> type) {
