@@ -27,6 +27,14 @@ public type Detail record {
     anydata body;
 };
 
+# Represents the details of an HTTP status code binding client error.
+#
+# + fromDefaultStatusCodeMapping - Indicates whether the error orginates from default status code response mapping
+public type StatusCodeBindingErrorDetail record {
+    *Detail;
+    boolean fromDefaultStatusCodeMapping;
+};
+
 # Represents the details of the `LoadBalanceActionError`.
 #
 # + httpActionErr - Array of errors occurred at each endpoint
@@ -308,10 +316,25 @@ public type ResourceDispatchingServerError httpscerr:InternalServerErrorError & 
 type InternalResourceDispatchingServerError ResourceDispatchingServerError & InternalError;
 
 # Represents the client status code binding error
-public type StatusCodeResponseBindingError distinct ClientError & error<Detail>;
+public type StatusCodeResponseBindingError distinct ClientError & error<StatusCodeBindingErrorDetail>;
 
-type StatusCodeBindingClientRequestError distinct StatusCodeResponseBindingError & ClientRequestError;
+# Represents the status code binding error that occurred due to 4XX status code response binding
+public type StatusCodeBindingClientRequestError distinct StatusCodeResponseBindingError & ClientRequestError;
 
-type StatusCodeBindingRemoteServerError distinct StatusCodeResponseBindingError & RemoteServerError;
+# Represents the status code binding error that occurred due to 5XX status code response binding
+public type StatusCodeBindingRemoteServerError distinct StatusCodeResponseBindingError & RemoteServerError;
 
-type StatusCodeBindingSuccessError distinct StatusCodeResponseBindingError;
+type MediaTypeBindingStatusCodeClientError distinct MediaTypeBindingClientError & StatusCodeResponseBindingError;
+
+type MediaTypeValidationStatusCodeClientError distinct MediaTypeValidationClientError & StatusCodeResponseBindingError;
+
+type PayloadBindingStatusCodeClientError distinct PayloadBindingClientError & StatusCodeResponseBindingError;
+
+type PayloadValidationStatusCodeClientError distinct PayloadValidationClientError & StatusCodeResponseBindingError;
+
+type HeaderBindingStatusCodeClientError distinct HeaderBindingClientError & StatusCodeResponseBindingError;
+
+type HeaderValidationStatusCodeClientError distinct HeaderValidationClientError & StatusCodeResponseBindingError;
+
+# Represents the client status code response data binding error
+public type StatusCodeResponseDataBindingError MediaTypeBindingStatusCodeClientError|PayloadBindingStatusCodeClientError|HeaderBindingStatusCodeClientError;
