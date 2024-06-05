@@ -1,0 +1,14 @@
+apiVersion: "apps/v1"
+kind: Deployment
+metadata:
+  name: no-name
+spec:
+  template:
+    metadata:
+      labels:
+        logs: "true"
+    spec:
+      containers:
+      - name: "h1-accesslog-enable-deployment"
+        imagePullPolicy: Always
+
