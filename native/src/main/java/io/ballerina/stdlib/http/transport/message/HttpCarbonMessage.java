@@ -79,6 +79,7 @@ public class HttpCarbonMessage {
     private String httpMethod;
     private String requestUrl;
     private Integer httpStatusCode;
+    private Integer contentSize = 0;
     private boolean contentReleased = false;
 
     public HttpCarbonMessage(HttpMessage httpMessage, Listener contentListener) {
@@ -144,6 +145,9 @@ public class HttpCarbonMessage {
     public HttpContent getHttpContent() {
         HttpContent httpContent = this.blockingEntityCollector.getHttpContent();
         this.contentObservable.notifyGetListener(httpContent);
+        if (httpContent != null) {
+            this.setContentSize(httpContent.content().readableBytes());
+        }
         return httpContent;
     }
 
@@ -545,6 +549,14 @@ public class HttpCarbonMessage {
 
     public boolean isPipeliningEnabled() {
         return pipeliningEnabled;
+    }
+
+    public void setContentSize(Integer contentSize) {
+        this.contentSize = contentSize;
+    }
+
+    public Integer getContentSize() {
+        return contentSize;
     }
 
     public void setContentReleased(boolean contentReleased) {

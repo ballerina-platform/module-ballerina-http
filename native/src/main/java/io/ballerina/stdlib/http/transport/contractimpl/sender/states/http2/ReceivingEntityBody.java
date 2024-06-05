@@ -18,7 +18,12 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.sender.states.http2;
 
+import io.ballerina.stdlib.http.api.logging.accesslog.HttpAccessLogConfig;
+import io.ballerina.stdlib.http.api.logging.accesslog.HttpAccessLogMessage;
+import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
+import io.ballerina.stdlib.http.transport.contractimpl.listener.SourceHandler;
+import io.ballerina.stdlib.http.transport.contractimpl.listener.http2.Http2SourceHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ClientChannel;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2TargetHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.OutboundMsgHolder;
@@ -31,13 +36,24 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.DefaultHttpContent;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpContent;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http2.Http2Exception;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.util.Calendar;
+
+import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_X_FORWARDED_FOR;
+import static io.ballerina.stdlib.http.transport.contract.Constants.OUTBOUND_ACCESS_LOG_MESSAGE;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_BODY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_SENT_GOAWAY_WHILE_READING_INBOUND_RESPONSE_BODY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_SENT_RST_STREAM_WHILE_READING_INBOUND_RESPONSE_BODY;
+import static io.ballerina.stdlib.http.transport.contract.Constants.TO;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil.releaseContent;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.handleIncompleteInboundMessage;
 
@@ -53,6 +69,7 @@ public class ReceivingEntityBody implements SenderState {
     private final Http2TargetHandler http2TargetHandler;
     private final Http2ClientChannel http2ClientChannel;
     private final Http2TargetHandler.Http2RequestWriter http2RequestWriter;
+    private Long contentLength = 0L;
 
     ReceivingEntityBody(Http2TargetHandler http2TargetHandler,
                         Http2TargetHandler.Http2RequestWriter http2RequestWriter) {
@@ -135,6 +152,7 @@ public class ReceivingEntityBody implements SenderState {
                             Http2MessageStateContext http2MessageStateContext) {
         int streamId = http2DataFrame.getStreamId();
         ByteBuf data = http2DataFrame.getData();
+        contentLength += data.readableBytes();
         boolean endOfStream = http2DataFrame.isEndOfStream();
 
         if (serverPush) {
@@ -143,6 +161,7 @@ public class ReceivingEntityBody implements SenderState {
             onResponseDataRead(outboundMsgHolder, streamId, endOfStream, data);
         }
         if (endOfStream) {
+            updateAccessLogInfo(outboundMsgHolder);
             http2MessageStateContext.setSenderState(new EntityBodyReceived(http2TargetHandler, http2RequestWriter));
         }
     }
@@ -169,5 +188,78 @@ public class ReceivingEntityBody implements SenderState {
         } else {
             responseMessage.addHttpContent(new DefaultHttpContent(data.retain()));
         }
+    }
+
+    private void updateAccessLogInfo(OutboundMsgHolder outboundMsgHolder) {
+        HttpCarbonMessage httpOutboundRequest = outboundMsgHolder.getRequest();
+        HttpAccessLogMessage outboundAccessLogMessage =
+                getTypedProperty(httpOutboundRequest, OUTBOUND_ACCESS_LOG_MESSAGE, HttpAccessLogMessage.class);
+        if (outboundAccessLogMessage == null) {
+            return;
+        }
+
+        SocketAddress remoteAddress = http2TargetHandler.getHttp2ClientChannel().getChannel().remoteAddress();
+        if (remoteAddress instanceof InetSocketAddress inetSocketAddress) {
+            InetAddress inetAddress = inetSocketAddress.getAddress();
+            outboundAccessLogMessage.setIp(inetAddress.getHostAddress());
+            outboundAccessLogMessage.setHost(inetAddress.getHostName());
+            outboundAccessLogMessage.setPort(inetSocketAddress.getPort());
+        }
+        if (outboundAccessLogMessage.getIp().startsWith("/")) {
+            outboundAccessLogMessage.setIp(outboundAccessLogMessage.getIp().substring(1));
+        }
+
+        // Populate with header parameters
+        HttpHeaders headers = httpOutboundRequest.getHeaders();
+        if (headers.contains(HTTP_X_FORWARDED_FOR)) {
+            String forwardedHops = headers.get(HTTP_X_FORWARDED_FOR);
+            outboundAccessLogMessage.setHttpXForwardedFor(forwardedHops);
+            // If multiple IPs available, the first ip is the client
+            int firstCommaIndex = forwardedHops.indexOf(',');
+            outboundAccessLogMessage.setIp(firstCommaIndex != -1 ?
+                    forwardedHops.substring(0, firstCommaIndex) : forwardedHops);
+        }
+        if (headers.contains(HttpHeaderNames.USER_AGENT)) {
+            outboundAccessLogMessage.setHttpUserAgent(headers.get(HttpHeaderNames.USER_AGENT));
+        }
+        if (headers.contains(HttpHeaderNames.REFERER)) {
+            outboundAccessLogMessage.setHttpReferrer(headers.get(HttpHeaderNames.REFERER));
+        }
+        HttpAccessLogConfig.getInstance().getCustomHeaders().forEach(customHeader ->
+                outboundAccessLogMessage.putCustomHeader(customHeader, headers.contains(customHeader) ?
+                        headers.get(customHeader) : "-"));
+
+        outboundAccessLogMessage.setRequestMethod(httpOutboundRequest.getHttpMethod());
+        outboundAccessLogMessage.setRequestUri((String) httpOutboundRequest.getProperty(TO));
+        HttpMessage outboundRequest = httpOutboundRequest.getNettyHttpRequest();
+        if (outboundRequest != null) {
+            outboundAccessLogMessage.setScheme(outboundRequest.protocolVersion().toString());
+        } else {
+            outboundAccessLogMessage.setScheme(httpOutboundRequest.getHttpVersion());
+        }
+        outboundAccessLogMessage.setRequestBodySize((long) httpOutboundRequest.getContentSize());
+        outboundAccessLogMessage.setStatus(outboundMsgHolder.getResponse().getHttpStatusCode());
+        outboundAccessLogMessage.setResponseBodySize(contentLength);
+        long requestTime = Calendar.getInstance().getTimeInMillis() -
+                outboundAccessLogMessage.getDateTime().getTimeInMillis();
+        outboundAccessLogMessage.setRequestTime(requestTime);
+
+        SourceHandler srcHandler = getTypedProperty(httpOutboundRequest, Constants.SRC_HANDLER, SourceHandler.class);
+        Http2SourceHandler http2SourceHandler =
+                getTypedProperty(httpOutboundRequest, Constants.SRC_HANDLER, Http2SourceHandler.class);
+
+        if (srcHandler != null) {
+            srcHandler.addHttpAccessLogMessage(outboundAccessLogMessage);
+        } else if (http2SourceHandler != null) {
+            http2SourceHandler.addHttpAccessLogMessage(outboundAccessLogMessage);
+        }
+    }
+
+    private <T> T getTypedProperty(HttpCarbonMessage request, String propertyName, Class<T> type) {
+        Object property = request.getProperty(propertyName);
+        if (type.isInstance(property)) {
+            return type.cast(property);
+        }
+        return null;
     }
 }
