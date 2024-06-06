@@ -43,6 +43,7 @@ import io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingFieldNode;
 import io.ballerina.compiler.syntax.tree.MetadataNode;
+import io.ballerina.compiler.syntax.tree.MethodDeclarationNode;
 import io.ballerina.compiler.syntax.tree.NameReferenceNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
@@ -134,14 +135,23 @@ public final class HttpResourceValidator {
 
     static void validateResource(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
                                  LinksMetaData linksMetaData, Map<String, TypeSymbol> typeSymbols) {
-        extractResourceAnnotationAndValidate(ctx, member, linksMetaData);
-        extractInputParamTypeAndValidate(ctx, member, false, typeSymbols);
-        extractReturnTypeAndValidate(ctx, member, typeSymbols);
+        HttpResourceFunctionNode functionNode = new HttpResourceFunctionNode(member);
+        extractResourceAnnotationAndValidate(ctx, functionNode, linksMetaData);
+        extractInputParamTypeAndValidate(ctx, functionNode, false, typeSymbols);
+        extractReturnTypeAndValidate(ctx, functionNode, typeSymbols);
         validateHttpCallerUsage(ctx, member);
     }
 
+    static void validateResource(SyntaxNodeAnalysisContext ctx, MethodDeclarationNode member,
+                                 LinksMetaData linksMetaData, Map<String, TypeSymbol> typeSymbols) {
+        HttpResourceFunctionNode functionNode = new HttpResourceFunctionNode(member);
+        extractResourceAnnotationAndValidate(ctx, functionNode, linksMetaData);
+        extractInputParamTypeAndValidate(ctx, functionNode, false, typeSymbols);
+        extractReturnTypeAndValidate(ctx, functionNode, typeSymbols);
+    }
+
     private static void extractResourceAnnotationAndValidate(SyntaxNodeAnalysisContext ctx,
-                                                             FunctionDefinitionNode member,
+                                                             HttpResourceFunctionNode member,
                                                              LinksMetaData linksMetaData) {
         Optional<MetadataNode> metadataNodeOptional = member.metadata();
         if (metadataNodeOptional.isEmpty()) {
@@ -155,14 +165,12 @@ public final class HttpResourceValidator {
                 String[] strings = annotName.split(Constants.COLON);
                 if (RESOURCE_CONFIG_ANNOTATION.equals(strings[strings.length - 1].trim())) {
                     validateLinksInResourceConfig(ctx, member, annotation, linksMetaData);
-                    continue;
                 }
             }
-            reportInvalidResourceAnnotation(ctx, annotReference.location(), annotName);
         }
     }
 
-    private static void validateLinksInResourceConfig(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
+    private static void validateLinksInResourceConfig(SyntaxNodeAnalysisContext ctx, HttpResourceFunctionNode member,
                                                       AnnotationNode annotation, LinksMetaData linksMetaData) {
         Optional<MappingConstructorExpressionNode> optionalMapping = annotation.annotValue();
         if (optionalMapping.isEmpty()) {
@@ -185,7 +193,7 @@ public final class HttpResourceValidator {
         }
     }
 
-    private static void validateResourceNameField(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
+    private static void validateResourceNameField(SyntaxNodeAnalysisContext ctx, HttpResourceFunctionNode member,
                                                   SpecificFieldNode field, LinksMetaData linksMetaData) {
         Optional<ExpressionNode> fieldValueExpression = field.valueExpr();
         if (fieldValueExpression.isEmpty()) {
@@ -206,7 +214,7 @@ public final class HttpResourceValidator {
         }
     }
 
-    private static String getRelativePathFromFunctionNode(FunctionDefinitionNode member) {
+    private static String getRelativePathFromFunctionNode(HttpResourceFunctionNode member) {
         NodeList<Node> nodes = member.relativeResourcePath();
         String path = EMPTY;
         for (Node node : nodes) {
@@ -282,7 +290,7 @@ public final class HttpResourceValidator {
         }
     }
 
-    public static void extractInputParamTypeAndValidate(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
+    public static void extractInputParamTypeAndValidate(SyntaxNodeAnalysisContext ctx, HttpResourceFunctionNode member,
                                                         boolean isErrorInterceptor,
                                                         Map<String, TypeSymbol> typeSymbols) {
         boolean callerPresent = false;
@@ -292,7 +300,7 @@ public final class HttpResourceValidator {
         boolean errorPresent = false;
         boolean payloadAnnotationPresent = false;
         boolean headerAnnotationPresent = false;
-        Optional<Symbol> resourceMethodSymbolOptional = ctx.semanticModel().symbol(member);
+        Optional<Symbol> resourceMethodSymbolOptional = member.getSymbol(ctx.semanticModel());
         Location paramLocation = member.location();
         if (resourceMethodSymbolOptional.isEmpty()) {
             return;
@@ -426,7 +434,10 @@ public final class HttpResourceValidator {
                                 updateDiagnostic(ctx, paramLocation, HttpDiagnosticCodes.HTTP_115, paramName);
                             } else {
                                 callerPresent = true;
-                                extractCallerInfoValueAndValidate(ctx, member, paramIndex);
+                                Optional<FunctionDefinitionNode> functionDefNode = member.getFunctionDefinitionNode();
+                                if (functionDefNode.isPresent()) {
+                                    extractCallerInfoValueAndValidate(ctx, functionDefNode.get(), paramIndex);
+                                }
                             }
                         } else {
                             reportInvalidCallerParameterType(ctx, paramLocation, paramName);
@@ -767,7 +778,7 @@ public final class HttpResourceValidator {
         return respondNodeVisitor.getRespondStatementNodes();
     }
 
-    private static void extractReturnTypeAndValidate(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
+    private static void extractReturnTypeAndValidate(SyntaxNodeAnalysisContext ctx, HttpResourceFunctionNode member,
                                                      Map<String, TypeSymbol> typeSymbols) {
         Optional<ReturnTypeDescriptorNode> returnTypeDescriptorNode = member.functionSignature().returnTypeDesc();
         if (returnTypeDescriptorNode.isEmpty()) {
@@ -775,7 +786,7 @@ public final class HttpResourceValidator {
         }
         Node returnTypeNode = returnTypeDescriptorNode.get().type();
         String returnTypeStringValue = HttpCompilerPluginUtil.getReturnTypeDescription(returnTypeDescriptorNode.get());
-        Optional<Symbol> functionSymbol = ctx.semanticModel().symbol(member);
+        Optional<Symbol> functionSymbol = member.getSymbol(ctx.semanticModel());
         if (functionSymbol.isEmpty()) {
             return;
         }
@@ -921,11 +932,6 @@ public final class HttpResourceValidator {
         } else {
             return TypeDescKind.ERROR.equals(typeKind) || TypeDescKind.NIL.equals(typeKind);
         }
-    }
-
-    private static void reportInvalidResourceAnnotation(SyntaxNodeAnalysisContext ctx, Location location,
-                                                        String annotName) {
-        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_103, annotName);
     }
 
     private static void reportInvalidParameterAnnotation(SyntaxNodeAnalysisContext ctx, Location location,

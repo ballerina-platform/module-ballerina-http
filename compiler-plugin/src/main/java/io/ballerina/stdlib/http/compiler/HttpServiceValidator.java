@@ -18,44 +18,61 @@
 
 package io.ballerina.stdlib.http.compiler;
 
+import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.AnnotationAttachmentSymbol;
+import io.ballerina.compiler.api.symbols.ObjectTypeSymbol;
 import io.ballerina.compiler.api.symbols.ServiceDeclarationSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
+import io.ballerina.compiler.api.values.ConstantValue;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
+import io.ballerina.compiler.syntax.tree.BasicLiteralNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingFieldNode;
 import io.ballerina.compiler.syntax.tree.MetadataNode;
+import io.ballerina.compiler.syntax.tree.MethodDeclarationNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
-import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
+import io.ballerina.compiler.syntax.tree.NodeLocation;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.Token;
+import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
 import io.ballerina.projects.plugins.AnalysisTask;
 import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
 import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.diagnostics.DiagnosticFactory;
 import io.ballerina.tools.diagnostics.DiagnosticInfo;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
+import io.ballerina.tools.diagnostics.Location;
+import org.wso2.ballerinalang.compiler.diagnostic.BLangDiagnosticLocation;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
+import static io.ballerina.stdlib.http.compiler.Constants.BALLERINA;
 import static io.ballerina.stdlib.http.compiler.Constants.COLON;
 import static io.ballerina.stdlib.http.compiler.Constants.DEFAULT;
+import static io.ballerina.stdlib.http.compiler.Constants.EMPTY;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
-import static io.ballerina.stdlib.http.compiler.Constants.INTERCEPTABLE_SERVICE;
 import static io.ballerina.stdlib.http.compiler.Constants.MEDIA_TYPE_SUBTYPE_PREFIX;
 import static io.ballerina.stdlib.http.compiler.Constants.MEDIA_TYPE_SUBTYPE_REGEX;
 import static io.ballerina.stdlib.http.compiler.Constants.PLUS;
 import static io.ballerina.stdlib.http.compiler.Constants.REMOTE_KEYWORD;
 import static io.ballerina.stdlib.http.compiler.Constants.SERVICE_CONFIG_ANNOTATION;
+import static io.ballerina.stdlib.http.compiler.Constants.SERVICE_CONTRACT_CONFIG_ANNOTATION;
+import static io.ballerina.stdlib.http.compiler.Constants.SERVICE_CONTRACT_TYPE;
+import static io.ballerina.stdlib.http.compiler.Constants.SERVICE_TYPE;
+import static io.ballerina.stdlib.http.compiler.Constants.SERVICE_CONTRACT_CONFIG;
 import static io.ballerina.stdlib.http.compiler.Constants.SUFFIX_SEPARATOR_REGEX;
 import static io.ballerina.stdlib.http.compiler.Constants.UNNECESSARY_CHARS_REGEX;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.getCtxTypes;
@@ -72,6 +89,7 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
 
     @Override
     public void perform(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext) {
+        checkForServiceImplementationErrors(syntaxNodeAnalysisContext);
         if (diagnosticContainsErrors(syntaxNodeAnalysisContext)) {
             return;
         }
@@ -81,10 +99,186 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
             return;
         }
 
-        extractServiceAnnotationAndValidate(syntaxNodeAnalysisContext, serviceDeclarationNode);
+        Optional<TypeDescriptorNode> serviceTypeDesc = getServiceContractTypeDesc(
+                syntaxNodeAnalysisContext.semanticModel(), serviceDeclarationNode);
 
-        LinksMetaData linksMetaData = new LinksMetaData();
+        if (serviceTypeDesc.isPresent() && !validateBasePathFromServiceType(syntaxNodeAnalysisContext,
+                serviceTypeDesc.get(), serviceDeclarationNode)) {
+            return;
+        }
+
+        Optional<MetadataNode> metadataNodeOptional = serviceDeclarationNode.metadata();
+        metadataNodeOptional.ifPresent(metadataNode -> validateServiceAnnotation(syntaxNodeAnalysisContext,
+                metadataNode, serviceTypeDesc.orElse(null), false));
+
         NodeList<Node> members = serviceDeclarationNode.members();
+        if (serviceTypeDesc.isPresent()) {
+            Set<String> resourcesFromServiceType = extractMethodsFromServiceType(serviceTypeDesc.get(),
+                    syntaxNodeAnalysisContext.semanticModel());
+            validateServiceContractResources(syntaxNodeAnalysisContext, resourcesFromServiceType, members,
+                    serviceTypeDesc.get().toString().trim());
+        } else {
+            validateResources(syntaxNodeAnalysisContext, members);
+        }
+    }
+
+    public static boolean isServiceContractImplementation(SemanticModel semanticModel, ServiceDeclarationNode node) {
+        ServiceDeclarationNode serviceDeclarationNode = getServiceDeclarationNode(node, semanticModel);
+        if (serviceDeclarationNode == null) {
+            return false;
+        }
+
+        return getServiceContractTypeDesc(semanticModel, serviceDeclarationNode).isPresent();
+    }
+
+    private static Optional<TypeDescriptorNode> getServiceContractTypeDesc(SemanticModel semanticModel, Node node) {
+        ServiceDeclarationNode serviceDeclarationNode = getServiceDeclarationNode(node, semanticModel);
+        if (serviceDeclarationNode == null) {
+            return Optional.empty();
+        }
+
+        return getServiceContractTypeDesc(semanticModel, serviceDeclarationNode);
+    }
+
+    public static Optional<TypeDescriptorNode> getServiceContractTypeDesc(SemanticModel semanticModel,
+                                                                          ServiceDeclarationNode serviceDeclaration) {
+        Optional<TypeDescriptorNode> serviceTypeDesc = serviceDeclaration.typeDescriptor();
+        if (serviceTypeDesc.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Optional<Symbol> serviceTypeSymbol = semanticModel.symbol(serviceTypeDesc.get());
+        if (serviceTypeSymbol.isEmpty() ||
+                !(serviceTypeSymbol.get() instanceof TypeReferenceTypeSymbol serviceTypeRef)) {
+            return Optional.empty();
+        }
+
+        Optional<Symbol> serviceContractType = semanticModel.types().getTypeByName(BALLERINA, HTTP, EMPTY,
+                SERVICE_CONTRACT_TYPE);
+        if (serviceContractType.isEmpty() ||
+                !(serviceContractType.get() instanceof TypeDefinitionSymbol serviceContractTypeDef)) {
+            return Optional.empty();
+        }
+
+        if (serviceTypeRef.subtypeOf(serviceContractTypeDef.typeDescriptor())) {
+            return serviceTypeDesc;
+        }
+        return Optional.empty();
+    }
+
+    private static Set<String> extractMethodsFromServiceType(TypeDescriptorNode serviceTypeDesc,
+                                                             SemanticModel semanticModel) {
+        Optional<Symbol> serviceTypeSymbol = semanticModel.symbol(serviceTypeDesc);
+        if (serviceTypeSymbol.isEmpty() ||
+                !(serviceTypeSymbol.get() instanceof TypeReferenceTypeSymbol serviceTypeRef)) {
+            return Collections.emptySet();
+        }
+
+        TypeSymbol serviceTypeRefSymbol = serviceTypeRef.typeDescriptor();
+        if (!(serviceTypeRefSymbol instanceof ObjectTypeSymbol serviceObjTypeSymbol)) {
+            return Collections.emptySet();
+        }
+
+        return serviceObjTypeSymbol.methods().keySet();
+    }
+
+    private static boolean validateBasePathFromServiceType(SyntaxNodeAnalysisContext ctx,
+                                                           TypeDescriptorNode serviceTypeDesc,
+                                                           ServiceDeclarationNode serviceDeclarationNode) {
+        SemanticModel semanticModel = ctx.semanticModel();
+        Optional<Symbol> serviceTypeSymbol = semanticModel.symbol(serviceTypeDesc);
+        if (serviceTypeSymbol.isEmpty() ||
+                !(serviceTypeSymbol.get() instanceof TypeReferenceTypeSymbol serviceTypeRef)) {
+            return true;
+        }
+
+        Symbol serviceTypeDef = serviceTypeRef.definition();
+        if (Objects.isNull(serviceTypeDef) || !(serviceTypeDef instanceof TypeDefinitionSymbol serviceType)) {
+            return true;
+        }
+
+        Optional<AnnotationAttachmentSymbol> serviceTypeInfo = serviceType.annotAttachments().stream().filter(
+                annotationAttachment -> isOpenServiceTypeInfoAnnotation(annotationAttachment, semanticModel)
+        ).findFirst();
+        if (serviceTypeInfo.isEmpty() || !serviceTypeInfo.get().isConstAnnotation()) {
+            return true;
+        }
+
+        Optional<String> expectedBasePathOpt = getBasePathFromServiceTypeInfo(serviceTypeInfo.get());
+        if (expectedBasePathOpt.isEmpty()) {
+            return true;
+        }
+
+        String expectedBasePath = expectedBasePathOpt.get().trim();
+
+        NodeList<Node> nodes = serviceDeclarationNode.absoluteResourcePath();
+        if (nodes.isEmpty()) {
+            if (!expectedBasePath.equals("/")) {
+                reportBasePathNotFound(ctx, expectedBasePath, serviceTypeDesc.location());
+                return false;
+            }
+            return true;
+        }
+
+        String actualBasePath = constructBasePathFormNodeList(nodes);
+        if (!actualBasePath.equals(expectedBasePath)) {
+            reportInvalidBasePathFound(ctx, expectedBasePath, actualBasePath, nodes);
+            return false;
+        }
+        return true;
+    }
+
+    private static String constructBasePathFormNodeList(NodeList<Node> nodes) {
+        // Handle string literal values
+        if (nodes.size() == 1 && nodes.get(0).kind().equals(SyntaxKind.STRING_LITERAL)) {
+            String basicLiteralText = ((BasicLiteralNode) nodes.get(0)).literalToken().text();
+            return basicLiteralText.substring(1, basicLiteralText.length() - 1);
+        }
+
+        StringBuilder basePath = new StringBuilder();
+        for (Node node : nodes) {
+            if (node.kind().equals(SyntaxKind.SLASH_TOKEN)) {
+                basePath.append("/");
+            } else if (node.kind().equals(SyntaxKind.IDENTIFIER_TOKEN)) {
+                basePath.append(((Token) node).text().replaceAll("\\\\", "").replaceAll("'", ""));
+            }
+        }
+        return basePath.toString();
+    }
+
+    private static boolean isOpenServiceTypeInfoAnnotation(AnnotationAttachmentSymbol annotationAttachmentSymbol,
+                                                           SemanticModel semanticModel) {
+        Optional<Symbol> serviceTypeInfo = semanticModel.types().getTypeByName(BALLERINA, HTTP, EMPTY,
+                SERVICE_CONTRACT_CONFIG);
+        Optional<TypeSymbol> annotationDescType = annotationAttachmentSymbol.typeDescriptor().typeDescriptor();
+        if (annotationDescType.isPresent() && serviceTypeInfo.isPresent() &&
+                serviceTypeInfo.get() instanceof TypeDefinitionSymbol serviceTypeInfoSymbol) {
+            return annotationDescType.get().subtypeOf(serviceTypeInfoSymbol.typeDescriptor());
+        }
+        return false;
+    }
+
+    private static Optional<String> getBasePathFromServiceTypeInfo(AnnotationAttachmentSymbol serviceTypeInfo) {
+        Optional<ConstantValue> serviceTypeInfoValue = serviceTypeInfo.attachmentValue();
+        if (serviceTypeInfoValue.isEmpty()) {
+            return Optional.empty();
+        }
+        Object serviceTypeInfoMapObject = serviceTypeInfoValue.get().value();
+        if (serviceTypeInfoMapObject instanceof Map<?, ?> serviceTypeInfoMap) {
+            Object basePath = serviceTypeInfoMap.get("basePath");
+            if (Objects.nonNull(basePath) && basePath instanceof ConstantValue basePathConstant) {
+                Object basePathString = basePathConstant.value();
+                if (Objects.nonNull(basePathString) && basePathString instanceof String basePathStrValue) {
+                    return Optional.of(basePathStrValue);
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+    protected static void validateResources(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext,
+                                            NodeList<Node> members) {
+        LinksMetaData linksMetaData = new LinksMetaData();
         for (Node member : members) {
             if (member.kind() == SyntaxKind.OBJECT_METHOD_DEFINITION) {
                 FunctionDefinitionNode node = (FunctionDefinitionNode) member;
@@ -99,10 +293,58 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
             } else if (member.kind() == SyntaxKind.RESOURCE_ACCESSOR_DEFINITION) {
                 HttpResourceValidator.validateResource(syntaxNodeAnalysisContext, (FunctionDefinitionNode) member,
                                                        linksMetaData, getCtxTypes(syntaxNodeAnalysisContext));
+            } else if (member.kind() == SyntaxKind.RESOURCE_ACCESSOR_DECLARATION) {
+                HttpResourceValidator.validateResource(syntaxNodeAnalysisContext, (MethodDeclarationNode) member,
+                                                       linksMetaData, getCtxTypes(syntaxNodeAnalysisContext));
             }
         }
 
         validateResourceLinks(syntaxNodeAnalysisContext, linksMetaData);
+    }
+
+    private static void validateServiceContractResources(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext,
+                                                         Set<String> resourcesFromServiceType, NodeList<Node> members,
+                                                         String serviceTypeName) {
+        for (Node member : members) {
+            if (member.kind() == SyntaxKind.OBJECT_METHOD_DEFINITION) {
+                FunctionDefinitionNode node = (FunctionDefinitionNode) member;
+                NodeList<Token> tokens = node.qualifierList();
+                if (tokens.isEmpty()) {
+                    // Object methods are allowed.
+                    continue;
+                }
+                if (tokens.stream().anyMatch(token -> token.text().equals(REMOTE_KEYWORD))) {
+                    reportInvalidFunctionType(syntaxNodeAnalysisContext, node);
+                }
+            } else if (member.kind() == SyntaxKind.RESOURCE_ACCESSOR_DEFINITION) {
+                // Only resources defined in the serviceTypeDes is allowed
+                // No annotations are allowed in either in resource function or in the parameters
+                HttpServiceContractResourceValidator.validateResource(syntaxNodeAnalysisContext,
+                        (FunctionDefinitionNode) member, resourcesFromServiceType, serviceTypeName);
+            }
+        }
+    }
+
+    private static void checkForServiceImplementationErrors(SyntaxNodeAnalysisContext context) {
+        Node node = context.node();
+        Optional<TypeDescriptorNode> serviceContractTypeDesc = getServiceContractTypeDesc(context.semanticModel(),
+                node);
+        if (serviceContractTypeDesc.isEmpty()) {
+            return;
+        }
+        String serviceType = serviceContractTypeDesc.get().toString().trim();
+
+        NodeLocation location = node.location();
+        for (Diagnostic diagnostic : context.semanticModel().diagnostics()) {
+            Location diagnosticLocation = diagnostic.location();
+
+            if (diagnostic.message().contains("no implementation found for the method 'resource function")
+                    && diagnosticLocation.textRange().equals(location.textRange())
+                    && diagnosticLocation.lineRange().equals(location.lineRange())) {
+                enableImplementServiceContractCodeAction(context, serviceType, location);
+                return;
+            }
+        }
     }
 
     public static boolean diagnosticContainsErrors(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext) {
@@ -112,8 +354,18 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
     }
 
     public static ServiceDeclarationNode getServiceDeclarationNode(SyntaxNodeAnalysisContext context) {
-        ServiceDeclarationNode serviceDeclarationNode = (ServiceDeclarationNode) context.node();
-        Optional<Symbol> serviceSymOptional = context.semanticModel().symbol(serviceDeclarationNode);
+        if (!(context.node() instanceof ServiceDeclarationNode serviceDeclarationNode)) {
+            return null;
+        }
+        return getServiceDeclarationNode(serviceDeclarationNode, context.semanticModel());
+    }
+
+    public static ServiceDeclarationNode getServiceDeclarationNode(Node node, SemanticModel semanticModel) {
+        if (!(node instanceof ServiceDeclarationNode serviceDeclarationNode)) {
+            return null;
+        }
+
+        Optional<Symbol> serviceSymOptional = semanticModel.symbol(node);
         if (serviceSymOptional.isPresent()) {
             List<TypeSymbol> listenerTypes = ((ServiceDeclarationSymbol) serviceSymOptional.get()).listenerTypes();
             if (listenerTypes.stream().noneMatch(HttpServiceValidator::isListenerBelongsToHttpModule)) {
@@ -146,7 +398,7 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
         return kind;
     }
 
-    private void validateResourceLinks(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext,
+    private static void validateResourceLinks(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext,
                                        LinksMetaData linksMetaData) {
         if (!linksMetaData.hasNameReferenceObjects()) {
             for (Map<String, LinkedToResource> linkedToResourceMap : linksMetaData.getLinkedToResourceMaps()) {
@@ -159,7 +411,7 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
         }
     }
 
-    private void checkLinkedResourceExistence(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext,
+    private static void checkLinkedResourceExistence(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext,
                                               LinksMetaData linksMetaData, LinkedToResource linkedToResource) {
         if (linksMetaData.getLinkedResourcesMap().containsKey(linkedToResource.getName())) {
             List<LinkedResource> linkedResources =
@@ -195,14 +447,10 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
         }
     }
 
-    private static void extractServiceAnnotationAndValidate(SyntaxNodeAnalysisContext ctx,
-                                                            ServiceDeclarationNode serviceDeclarationNode) {
-        Optional<MetadataNode> metadataNodeOptional = serviceDeclarationNode.metadata();
-
-        if (metadataNodeOptional.isEmpty()) {
-            return;
-        }
-        NodeList<AnnotationNode> annotations = metadataNodeOptional.get().annotations();
+    protected static void validateServiceAnnotation(SyntaxNodeAnalysisContext ctx, MetadataNode metadataNode,
+                                                    TypeDescriptorNode serviceTypeDesc,
+                                                    boolean isServiceContractType) {
+        NodeList<AnnotationNode> annotations = metadataNode.annotations();
         for (AnnotationNode annotation : annotations) {
             Node annotReference = annotation.annotReference();
             String annotName = annotReference.toString();
@@ -212,24 +460,53 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
             }
             String[] annotStrings = annotName.split(COLON);
             if (SERVICE_CONFIG_ANNOTATION.equals(annotStrings[annotStrings.length - 1].trim())
-                    && (annotValue.isPresent())) {
-                boolean isInterceptableService = false;
-                for (Node child:serviceDeclarationNode.children()) {
-                    if (child.kind() == SyntaxKind.QUALIFIED_NAME_REFERENCE &&
-                            ((QualifiedNameReferenceNode) child).modulePrefix().text().equals(HTTP) &&
-                            ((QualifiedNameReferenceNode) child).identifier().text().equals(INTERCEPTABLE_SERVICE)) {
-                        isInterceptableService = true;
-                        break;
-                    }
+                    && HTTP.equals(annotStrings[0].trim())) {
+                if (Objects.nonNull(serviceTypeDesc)) {
+                    validateAnnotationUsageForServiceContractType(ctx, annotation, annotValue.orElse(null),
+                            serviceTypeDesc);
+                    return;
                 }
-                validateServiceConfigAnnotation(ctx, annotValue, isInterceptableService);
+                if (annotValue.isPresent()) {
+                    validateServiceConfigAnnotation(ctx, annotValue);
+                }
+            }
+            if (SERVICE_CONTRACT_CONFIG_ANNOTATION.equals(annotStrings[annotStrings.length - 1].trim())
+                    && HTTP.equals(annotStrings[0].trim()) && !isServiceContractType) {
+                reportServiceContractTypeAnnotationNotAllowedFound(ctx, annotation.location());
             }
         }
     }
 
-    private static void validateServiceConfigAnnotation(SyntaxNodeAnalysisContext ctx,
-                                                        Optional<MappingConstructorExpressionNode> maps,
-                                                                          boolean isInterceptableService) {
+    private static void validateAnnotationUsageForServiceContractType(SyntaxNodeAnalysisContext ctx,
+                                                                      AnnotationNode annotation,
+                                                                      MappingConstructorExpressionNode annotValue,
+                                                                      TypeDescriptorNode typeDescriptorNode) {
+        if (Objects.isNull(annotValue) || annotValue.fields().isEmpty() || annotValue.fields().size() > 1) {
+            reportInvalidServiceConfigAnnotationUsage(ctx, annotation.location());
+            return;
+        }
+
+        MappingFieldNode field = annotValue.fields().get(0);
+        String fieldString = field.toString();
+        fieldString = fieldString.trim().replaceAll(UNNECESSARY_CHARS_REGEX, "");
+        if (field.kind().equals(SyntaxKind.SPECIFIC_FIELD)) {
+            String[] strings = fieldString.split(COLON, 2);
+            if (SERVICE_TYPE.equals(strings[0].trim())) {
+                String expectedServiceType = typeDescriptorNode.toString().trim();
+                String actualServiceType = strings[1].trim();
+                if (!actualServiceType.equals(expectedServiceType)) {
+                    reportInvalidServiceContractType(ctx, expectedServiceType, actualServiceType,
+                            annotation.location());
+                }
+                return;
+            }
+        }
+
+        reportInvalidServiceConfigAnnotationUsage(ctx, annotation.location());
+    }
+
+    protected static void validateServiceConfigAnnotation(SyntaxNodeAnalysisContext ctx,
+                                                          Optional<MappingConstructorExpressionNode> maps) {
         MappingConstructorExpressionNode mapping = maps.get();
         for (MappingFieldNode field : mapping.fields()) {
             String fieldName = field.toString();
@@ -239,19 +516,20 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
                 if (MEDIA_TYPE_SUBTYPE_PREFIX.equals(strings[0].trim())) {
                     if (!(strings[1].trim().matches(MEDIA_TYPE_SUBTYPE_REGEX))) {
                         reportInvalidMediaTypeSubtype(ctx, strings[1].trim(), field);
-                        break;
+                        continue;
                     }
                     if (strings[1].trim().contains(PLUS)) {
                         String suffix = strings[1].trim().split(SUFFIX_SEPARATOR_REGEX, 2)[1];
                         reportErrorMediaTypeSuffix(ctx, suffix.trim(), field);
-                        break;
                     }
+                } else if (SERVICE_TYPE.equals(strings[0].trim())) {
+                    reportServiceTypeNotAllowedFound(ctx, field.location());
                 }
             }
         }
     }
 
-    private void reportInvalidFunctionType(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode node) {
+    private static void reportInvalidFunctionType(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode node) {
         DiagnosticInfo diagnosticInfo = new DiagnosticInfo(HTTP_101.getCode(), HTTP_101.getMessage(),
                                                            HTTP_101.getSeverity());
         ctx.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, node.location()));
@@ -283,5 +561,43 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
                                                                  LinkedToResource resource) {
         updateDiagnostic(ctx, resource.getNode().location(), HttpDiagnosticCodes.HTTP_150, resource.getMethod(),
                          resource.getName());
+    }
+
+    private static void reportInvalidServiceConfigAnnotationUsage(SyntaxNodeAnalysisContext ctx, Location location) {
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_153);
+    }
+
+    private static void reportInvalidServiceContractType(SyntaxNodeAnalysisContext ctx, String expectedServiceType,
+                                                         String actualServiceType, Location location) {
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_156, expectedServiceType, actualServiceType);
+    }
+
+    private static void reportBasePathNotFound(SyntaxNodeAnalysisContext ctx, String expectedBasePath,
+                                               Location location) {
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_154, expectedBasePath);
+    }
+
+    private static void reportInvalidBasePathFound(SyntaxNodeAnalysisContext ctx, String expectedBasePath,
+                                                   String actualBasePath, NodeList<Node> nodes) {
+        Location startLocation = nodes.get(0).location();
+        Location endLocation = nodes.get(nodes.size() - 1).location();
+        BLangDiagnosticLocation location = new BLangDiagnosticLocation(startLocation.lineRange().fileName(),
+                startLocation.lineRange().startLine().line(), startLocation.lineRange().endLine().line(),
+                startLocation.lineRange().startLine().offset(), endLocation.lineRange().endLine().offset(), 0, 0);
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_155, expectedBasePath, actualBasePath);
+    }
+
+    private static void reportServiceTypeNotAllowedFound(SyntaxNodeAnalysisContext ctx, NodeLocation location) {
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_157);
+    }
+
+    private static void reportServiceContractTypeAnnotationNotAllowedFound(SyntaxNodeAnalysisContext ctx,
+                                                                           NodeLocation location) {
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_161);
+    }
+
+    private static void enableImplementServiceContractCodeAction(SyntaxNodeAnalysisContext ctx, String serviceType,
+                                                                 NodeLocation location) {
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_HINT_105, serviceType);
     }
 }

@@ -44,7 +44,8 @@ public final class HttpInterceptorResourceValidator {
         if (isRequestErrorInterceptor(type)) {
             extractAndValidateMethodAndPath(ctx, member);
         }
-        HttpResourceValidator.extractInputParamTypeAndValidate(ctx, member, isRequestErrorInterceptor(type),
+        HttpResourceFunctionNode functionNode = new HttpResourceFunctionNode(member);
+        HttpResourceValidator.extractInputParamTypeAndValidate(ctx, functionNode, isRequestErrorInterceptor(type),
                 typeSymbols);
         HttpCompilerPluginUtil.extractInterceptorReturnTypeAndValidate(ctx, typeSymbols, member,
                 HttpDiagnosticCodes.HTTP_126);

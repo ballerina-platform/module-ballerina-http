@@ -29,6 +29,7 @@ import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeFactory;
 import io.ballerina.compiler.syntax.tree.NodeList;
+import io.ballerina.compiler.syntax.tree.ObjectTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.ParameterNode;
 import io.ballerina.compiler.syntax.tree.RequiredParameterNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
@@ -37,6 +38,7 @@ import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.Token;
+import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
@@ -53,6 +55,9 @@ import io.ballerina.tools.text.TextDocument;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static io.ballerina.stdlib.http.compiler.HttpServiceObjTypeAnalyzer.isHttpServiceType;
+import static io.ballerina.stdlib.http.compiler.HttpServiceValidator.isServiceContractImplementation;
 
 /**
  * {@code HttpPayloadParamIdentifier} injects the @http:Payload annotation to the Payload param which found during the
@@ -108,7 +113,9 @@ public class PayloadAnnotationModifierTask implements ModifierTask<SourceModifie
         for (ModuleMemberDeclarationNode memberNode : oldMembers) {
             int serviceId;
             NodeList<Node> members;
-            if (memberNode.kind() == SyntaxKind.SERVICE_DECLARATION) {
+            if (memberNode.kind() == SyntaxKind.SERVICE_DECLARATION &&
+                    !isServiceContractImplementation(documentContext.getContext().semanticModel(),
+                            (ServiceDeclarationNode) memberNode)) {
                 ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) memberNode;
                 serviceId = serviceNode.hashCode();
                 members = serviceNode.members();
@@ -116,6 +123,12 @@ public class PayloadAnnotationModifierTask implements ModifierTask<SourceModifie
                 ClassDefinitionNode classDefinitionNode = (ClassDefinitionNode) memberNode;
                 serviceId = classDefinitionNode.hashCode();
                 members = classDefinitionNode.members();
+            } else if (memberNode.kind() == SyntaxKind.TYPE_DEFINITION && isHttpServiceType(documentContext.
+                    getContext().semanticModel(), ((TypeDefinitionNode) memberNode).typeDescriptor())) {
+                ObjectTypeDescriptorNode serviceTypeDesNode = (ObjectTypeDescriptorNode)
+                        ((TypeDefinitionNode) memberNode).typeDescriptor();
+                serviceId = serviceTypeDesNode.hashCode();
+                members = serviceTypeDesNode.members();
             } else {
                 updatedMembers.add(memberNode);
                 continue;
@@ -184,13 +197,25 @@ public class PayloadAnnotationModifierTask implements ModifierTask<SourceModifie
                 ServiceDeclarationNode updatedServiceDeclarationNode =
                         serviceDeclarationNodeModifier.withMembers(resourceNodeList).apply();
                 updatedMembers.add(updatedServiceDeclarationNode);
-            } else {
+            } else if (memberNode.kind() == SyntaxKind.CLASS_DEFINITION) {
                 ClassDefinitionNode classDefinitionNode = (ClassDefinitionNode) memberNode;
                 ClassDefinitionNode.ClassDefinitionNodeModifier classDefinitionNodeModifier =
                         classDefinitionNode.modify();
                 ClassDefinitionNode updatedClassDefinitionNode =
                         classDefinitionNodeModifier.withMembers(resourceNodeList).apply();
                 updatedMembers.add(updatedClassDefinitionNode);
+            } else {
+                TypeDefinitionNode typeDefinitionNode = (TypeDefinitionNode) memberNode;
+                ObjectTypeDescriptorNode objectTypeDescriptorNode = (ObjectTypeDescriptorNode) typeDefinitionNode
+                        .typeDescriptor();
+                ObjectTypeDescriptorNode.ObjectTypeDescriptorNodeModifier objectTypeDescriptorNodeModifier =
+                        objectTypeDescriptorNode.modify();
+                ObjectTypeDescriptorNode updatedObjectTypeDescriptorNode =
+                        objectTypeDescriptorNodeModifier.withMembers(resourceNodeList).apply();
+                TypeDefinitionNode.TypeDefinitionNodeModifier typeDefinitionNodeModifier = typeDefinitionNode.modify();
+                TypeDefinitionNode updatedTypeDefinitionNode = typeDefinitionNodeModifier.withTypeDescriptor(
+                        updatedObjectTypeDescriptorNode).apply();
+                updatedMembers.add(updatedTypeDefinitionNode);
             }
         }
         return AbstractNodeFactory.createNodeList(updatedMembers);

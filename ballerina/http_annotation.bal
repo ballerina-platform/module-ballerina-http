@@ -25,6 +25,7 @@
 # + treatNilableAsOptional - Treat Nilable parameters as optional
 # + openApiDefinition - The generated OpenAPI definition for the HTTP service. This is auto-generated at compile-time if OpenAPI doc auto generation is enabled
 # + validation - Enables the inbound payload validation functionalty which provided by the constraint package. Enabled by default
+# + serviceType - The service object type which defines the service contract
 public type HttpServiceConfig record {|
     string host = "b7a.default";
     CompressionConfig compression = {};
@@ -35,6 +36,7 @@ public type HttpServiceConfig record {|
     boolean treatNilableAsOptional = true;
     byte[] openApiDefinition = [];
     boolean validation = true;
+    typedesc<ServiceContract> serviceType?;
 |};
 
 # Configurations for CORS support.
@@ -55,7 +57,7 @@ public type CorsConfig record {|
 |};
 
 # The annotation which is used to configure an HTTP service.
-public annotation HttpServiceConfig ServiceConfig on service;
+public annotation HttpServiceConfig ServiceConfig on service, type;
 
 # Configuration for an HTTP resource.
 #
@@ -87,7 +89,7 @@ public type HttpPayload record {|
 |};
 
 # The annotation which is used to define the Payload resource signature parameter and return parameter.
-public annotation HttpPayload Payload on parameter, return;
+public const annotation HttpPayload Payload on parameter, return;
 
 # Configures the typing details type of the Caller resource signature parameter.
 #
@@ -108,13 +110,13 @@ public type HttpHeader record {|
 |};
 
 # The annotation which is used to define the Header resource signature parameter.
-public annotation HttpHeader Header on parameter;
+public const annotation HttpHeader Header on parameter;
 
 # Defines the query resource signature parameter.
 public type HttpQuery record {||};
 
 # The annotation which is used to define the query resource signature parameter.
-public annotation HttpQuery Query on parameter;
+public const annotation HttpQuery Query on parameter;
 
 # Defines the HTTP response cache configuration. By default the `no-cache` directive is setted to the `cache-control`
 # header. In addition to that `etag` and `last-modified` headers are also added for cache validation.
@@ -152,3 +154,12 @@ public type HttpCacheConfig record {|
 # Success(2XX) `StatusCodeResponses` return types. Default annotation adds `must-revalidate,public,max-age=3600` as
 # `cache-control` header in addition to `etag` and `last-modified` headers.
 public annotation HttpCacheConfig Cache on return;
+
+# Service contract configuration
+# + basePath - Base path for generated service contract
+public type ServiceContractConfiguration record {|
+    string basePath;
+|};
+
+# Annotation for mapping service contract information to a Ballerina service type.
+public const annotation ServiceContractConfiguration ServiceContractConfig on type;

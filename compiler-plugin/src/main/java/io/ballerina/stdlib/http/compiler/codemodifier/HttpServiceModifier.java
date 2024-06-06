@@ -44,7 +44,8 @@ public class HttpServiceModifier extends CodeModifier {
     public void init(CodeModifierContext codeModifierContext) {
         codeModifierContext.addSyntaxNodeAnalysisTask(
                 new HttpPayloadParamIdentifier(this.payloadParamContextMap),
-                List.of(SyntaxKind.SERVICE_DECLARATION, SyntaxKind.CLASS_DEFINITION));
+                List.of(SyntaxKind.SERVICE_DECLARATION, SyntaxKind.CLASS_DEFINITION, SyntaxKind.OBJECT_TYPE_DESC));
         codeModifierContext.addSourceModifierTask(new PayloadAnnotationModifierTask(this.payloadParamContextMap));
+        codeModifierContext.addSourceModifierTask(new ServiceTypeModifierTask());
     }
 }

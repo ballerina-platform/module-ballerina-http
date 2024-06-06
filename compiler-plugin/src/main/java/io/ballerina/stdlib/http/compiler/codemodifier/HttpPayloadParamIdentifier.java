@@ -27,8 +27,10 @@ import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.syntax.tree.MethodDeclarationNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
+import io.ballerina.compiler.syntax.tree.ObjectTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.Token;
@@ -37,6 +39,7 @@ import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
 import io.ballerina.stdlib.http.compiler.Constants;
 import io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes;
+import io.ballerina.stdlib.http.compiler.HttpResourceFunctionNode;
 import io.ballerina.stdlib.http.compiler.HttpResourceValidator;
 import io.ballerina.stdlib.http.compiler.HttpServiceValidator;
 import io.ballerina.stdlib.http.compiler.codemodifier.context.DocumentContext;
@@ -69,6 +72,7 @@ import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.updateDia
 import static io.ballerina.stdlib.http.compiler.HttpResourceValidator.getEffectiveType;
 import static io.ballerina.stdlib.http.compiler.HttpResourceValidator.isValidBasicParamType;
 import static io.ballerina.stdlib.http.compiler.HttpResourceValidator.isValidNilableBasicParamType;
+import static io.ballerina.stdlib.http.compiler.HttpServiceObjTypeAnalyzer.isHttpServiceType;
 
 
 /**
@@ -94,6 +98,9 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
             validateServiceDeclaration(syntaxNodeAnalysisContext, typeSymbols);
         } else if (kind == SyntaxKind.CLASS_DEFINITION) {
             validateClassDefinition(syntaxNodeAnalysisContext, typeSymbols);
+        } else if (kind == SyntaxKind.OBJECT_TYPE_DESC && isHttpServiceType(syntaxNodeAnalysisContext.semanticModel(),
+                syntaxNodeAnalysisContext.node())) {
+            validateServiceObjDefinition(syntaxNodeAnalysisContext, typeSymbols);
         }
     }
 
@@ -105,9 +112,27 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
         }
         NodeList<Node> members = serviceDeclarationNode.members();
         ServiceContext serviceContext = new ServiceContext(serviceDeclarationNode.hashCode());
+        validateResources(syntaxNodeAnalysisContext, typeSymbols, members, serviceContext);
+    }
+
+    private void validateServiceObjDefinition(SyntaxNodeAnalysisContext context, Map<String, TypeSymbol> typeSymbols) {
+        ObjectTypeDescriptorNode serviceObjType = (ObjectTypeDescriptorNode) context.node();
+        NodeList<Node> members = serviceObjType.members();
+        ServiceContext serviceContext = new ServiceContext(serviceObjType.hashCode());
+        validateResources(context, typeSymbols, members, serviceContext);
+    }
+
+    private void validateResources(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext,
+                                   Map<String, TypeSymbol> typeSymbols, NodeList<Node> members,
+                                   ServiceContext serviceContext) {
         for (Node member : members) {
             if (member.kind() == SyntaxKind.RESOURCE_ACCESSOR_DEFINITION) {
-                validateResource(syntaxNodeAnalysisContext, (FunctionDefinitionNode) member, serviceContext,
+                validateResource(syntaxNodeAnalysisContext,
+                        new HttpResourceFunctionNode((FunctionDefinitionNode) member), serviceContext,
+                        typeSymbols);
+            } else if (member.kind() == SyntaxKind.RESOURCE_ACCESSOR_DECLARATION) {
+                validateResource(syntaxNodeAnalysisContext,
+                        new HttpResourceFunctionNode((MethodDeclarationNode) member), serviceContext,
                         typeSymbols);
             }
         }
@@ -141,24 +166,19 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
             }
         }
         if (proceed) {
-            for (Node member : members) {
-                if (member.kind() == SyntaxKind.RESOURCE_ACCESSOR_DEFINITION) {
-                    validateResource(syntaxNodeAnalysisContext, (FunctionDefinitionNode) member, serviceContext,
-                            typeSymbols);
-                }
-            }
+            validateResources(syntaxNodeAnalysisContext, typeSymbols, members, serviceContext);
         }
     }
 
-    void validateResource(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member, ServiceContext serviceContext,
+    void validateResource(SyntaxNodeAnalysisContext ctx, HttpResourceFunctionNode member, ServiceContext serviceContext,
                           Map<String, TypeSymbol> typeSymbols) {
         extractInputParamTypeAndValidate(ctx, member, serviceContext, typeSymbols);
     }
 
-    void extractInputParamTypeAndValidate(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
+    void extractInputParamTypeAndValidate(SyntaxNodeAnalysisContext ctx, HttpResourceFunctionNode member,
                                           ServiceContext serviceContext, Map<String, TypeSymbol> typeSymbols) {
 
-        Optional<Symbol> resourceMethodSymbolOptional = ctx.semanticModel().symbol(member);
+        Optional<Symbol> resourceMethodSymbolOptional = member.getSymbol(ctx.semanticModel());
         int resourceId = member.hashCode();
         if (resourceMethodSymbolOptional.isEmpty()) {
             return;
