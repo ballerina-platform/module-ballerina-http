@@ -218,9 +218,6 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
             if (httpTraceLogEnabled) {
                 serverPipeline.addLast(HTTP_TRACE_LOG_HANDLER, new HttpTraceLoggingHandler(TRACE_LOG_DOWNSTREAM));
             }
-//            if (httpAccessLogEnabled) {
-//                serverPipeline.addLast(HTTP_ACCESS_LOG_HANDLER, new HttpAccessLoggingHandler(ACCESS_LOG));
-//            }
         }
         serverPipeline.addLast(URI_HEADER_LENGTH_VALIDATION_HANDLER, new UriAndHeaderLengthValidator(this.serverName));
         if (reqSizeValidationConfig.getMaxEntityBodySize() > -1) {
@@ -265,9 +262,6 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
             pipeline.addLast(HTTP_TRACE_LOG_HANDLER,
                              new HttpTraceLoggingHandler(TRACE_LOG_DOWNSTREAM));
         }
-//        if (httpAccessLogEnabled) {
-//            pipeline.addLast(HTTP_ACCESS_LOG_HANDLER, new HttpAccessLoggingHandler(ACCESS_LOG));
-//        }
 
         final HttpServerUpgradeHandler.UpgradeCodecFactory upgradeCodecFactory = protocol -> {
             if (AsciiString.contentEquals(Http2CodecUtil.HTTP_UPGRADE_PROTOCOL_NAME, protocol)) {

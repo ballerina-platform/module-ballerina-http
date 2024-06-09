@@ -151,9 +151,11 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
     }
 
     public HttpResponseFuture send(OutboundMsgHolder outboundMsgHolder, HttpCarbonMessage httpOutboundRequest) {
-        HttpAccessLogMessage outboundAccessLogMessage = new HttpAccessLogMessage();
-        outboundAccessLogMessage.setDateTime(Calendar.getInstance());
-        httpOutboundRequest.setProperty(OUTBOUND_ACCESS_LOG_MESSAGE, outboundAccessLogMessage);
+        if (senderConfiguration.isHttpAccessLogEnabled()) {
+            HttpAccessLogMessage outboundAccessLogMessage = new HttpAccessLogMessage();
+            outboundAccessLogMessage.setDateTime(Calendar.getInstance());
+            httpOutboundRequest.setProperty(OUTBOUND_ACCESS_LOG_MESSAGE, outboundAccessLogMessage);
+        }
 
         final HttpResponseFuture httpResponseFuture;
 
