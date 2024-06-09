@@ -78,6 +78,7 @@ public class HttpClientChannelInitializer extends ChannelInitializer<SocketChann
 
     private TargetHandler targetHandler;
     private boolean httpTraceLogEnabled;
+    private boolean httpAccessLogEnabled;
     private KeepAliveConfig keepAliveConfig;
     private ProxyServerConfiguration proxyServerConfiguration;
     private Http2ConnectionManager http2ConnectionManager;
@@ -98,6 +99,7 @@ public class HttpClientChannelInitializer extends ChannelInitializer<SocketChann
                                         ConnectionManager connectionManager,
                                         ConnectionAvailabilityFuture connectionAvailabilityFuture) {
         this.httpTraceLogEnabled = senderConfiguration.isHttpTraceLogEnabled();
+        this.httpAccessLogEnabled = senderConfiguration.isHttpAccessLogEnabled();
         this.keepAliveConfig = senderConfiguration.getKeepAliveConfig();
         this.proxyServerConfiguration = senderConfiguration.getProxyServerConfiguration();
         this.http2ConnectionManager = connectionManager.getHttp2ConnectionManager();
@@ -122,6 +124,7 @@ public class HttpClientChannelInitializer extends ChannelInitializer<SocketChann
         connectionHandlerBuilder.initialSettings().initialWindowSize(senderConfiguration.getHttp2InitialWindowSize());
         http2ConnectionHandler = connectionHandlerBuilder.connection(connection).frameListener(frameListener).build();
         http2TargetHandler = new Http2TargetHandler(connection, http2ConnectionHandler.encoder());
+        http2TargetHandler.setHttpClientChannelInitializer(this);
         if (sslConfig != null) {
             sslHandlerFactory = new SSLHandlerFactory(sslConfig);
         }
@@ -136,6 +139,7 @@ public class HttpClientChannelInitializer extends ChannelInitializer<SocketChann
         targetHandler = new TargetHandler();
         targetHandler.setHttp2TargetHandler(http2TargetHandler);
         targetHandler.setKeepAliveConfig(getKeepAliveConfig());
+        targetHandler.setHttpClientChannelInitializer(this);
         if (http2) {
             if (sslConfig != null) {
                 configureSslForHttp2(socketChannel, clientPipeline, sslConfig);
@@ -225,6 +229,10 @@ public class HttpClientChannelInitializer extends ChannelInitializer<SocketChann
                 new ALPNClientHandler(targetHandler, connectionAvailabilityFuture));
         clientPipeline
                 .addLast(Constants.HTTP2_EXCEPTION_HANDLER, new Http2ExceptionHandler(http2ConnectionHandler));
+    }
+
+    public boolean isHttpAccessLogEnabled() {
+        return httpAccessLogEnabled;
     }
 
     public TargetHandler getTargetHandler() {

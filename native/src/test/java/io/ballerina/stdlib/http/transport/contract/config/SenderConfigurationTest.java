@@ -58,6 +58,15 @@ public class SenderConfigurationTest {
     }
 
     @Test
+    public void testIsHttpAccessLogEnabled() {
+        SenderConfiguration senderConfiguration = new SenderConfiguration();
+        Assert.assertFalse(senderConfiguration.isHttpAccessLogEnabled());
+
+        senderConfiguration.setHttpAccessLogEnabled(true);
+        Assert.assertTrue(senderConfiguration.isHttpAccessLogEnabled());
+    }
+
+    @Test
     public void testGetHttpVersion() {
         SenderConfiguration senderConfiguration = new SenderConfiguration();
         Assert.assertEquals(senderConfiguration.getHttpVersion(), "1.1");
