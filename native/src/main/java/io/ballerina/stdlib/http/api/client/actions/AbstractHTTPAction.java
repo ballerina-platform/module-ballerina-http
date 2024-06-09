@@ -290,6 +290,8 @@ public abstract class AbstractHTTPAction {
         }
         outboundRequestMsg.setProperty(HttpConstants.ORIGIN_HOST,
                 dataContext.getEnvironment().getStrandLocal(HttpConstants.ORIGIN_HOST));
+        outboundRequestMsg.setProperty(HttpConstants.INBOUND_MESSAGE,
+                dataContext.getEnvironment().getStrandLocal(HttpConstants.INBOUND_MESSAGE));
         sendOutboundRequest(dataContext, outboundRequestMsg, async);
     }
 

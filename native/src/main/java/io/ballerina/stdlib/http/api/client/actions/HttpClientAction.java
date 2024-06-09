@@ -52,6 +52,7 @@ import static io.ballerina.stdlib.http.api.HttpConstants.CLIENT_ENDPOINT_SERVICE
 import static io.ballerina.stdlib.http.api.HttpConstants.CURRENT_TRANSACTION_CONTEXT_PROPERTY;
 import static io.ballerina.stdlib.http.api.HttpConstants.EMPTY;
 import static io.ballerina.stdlib.http.api.HttpConstants.EQUAL_SIGN;
+import static io.ballerina.stdlib.http.api.HttpConstants.INBOUND_MESSAGE;
 import static io.ballerina.stdlib.http.api.HttpConstants.MAIN_STRAND;
 import static io.ballerina.stdlib.http.api.HttpConstants.ORIGIN_HOST;
 import static io.ballerina.stdlib.http.api.HttpConstants.POOLED_BYTE_BUFFER_FACTORY;
@@ -242,7 +243,7 @@ public class HttpClientAction extends AbstractHTTPAction {
 
     private static Map<String, Object> getPropertiesToPropagate(Environment env) {
         String[] keys = {CURRENT_TRANSACTION_CONTEXT_PROPERTY, KEY_OBSERVER_CONTEXT, SRC_HANDLER, MAIN_STRAND,
-                POOLED_BYTE_BUFFER_FACTORY, REMOTE_ADDRESS, ORIGIN_HOST};
+                POOLED_BYTE_BUFFER_FACTORY, REMOTE_ADDRESS, ORIGIN_HOST, INBOUND_MESSAGE};
         Map<String, Object> subMap = new HashMap<>();
         for (String key : keys) {
             Object value = env.getStrandLocal(key);

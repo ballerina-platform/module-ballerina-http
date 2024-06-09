@@ -158,6 +158,7 @@ public final class Constants {
     public static final String HTTP_REASON_PHRASE = "HTTP_REASON_PHRASE";
 
     public static final String CHNL_HNDLR_CTX = "CHNL_HNDLR_CTX";
+    public static final String OUTBOUND_ACCESS_LOG_MESSAGES = "OUTBOUND_ACCESS_LOG_MESSAGES";
     public static final String OUTBOUND_ACCESS_LOG_MESSAGE = "OUTBOUND_ACCESS_LOG_MESSAGE";
 
     public static final String SRC_HANDLER = "SRC_HANDLER";
