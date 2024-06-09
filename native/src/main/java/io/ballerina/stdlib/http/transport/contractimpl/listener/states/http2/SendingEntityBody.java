@@ -61,7 +61,6 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_X_FORWA
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.SRC_HANDLER;
-import static io.ballerina.stdlib.http.transport.contract.Constants.TO;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil.validatePromisedStreamState;
 
 /**
@@ -239,7 +238,7 @@ public class SendingEntityBody implements ListenerState {
             referrer = headers.get(HttpHeaderNames.REFERER);
         }
         String method = inboundRequestMsg.getHttpMethod();
-        String uri = (String) inboundRequestMsg.getProperty(TO);
+        String uri = inboundRequestMsg.getRequestUrl();
         HttpMessage request = inboundRequestMsg.getNettyHttpRequest();
         String protocol;
         if (request != null) {

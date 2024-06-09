@@ -19,7 +19,6 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.listener;
 
-import io.ballerina.stdlib.http.api.logging.accesslog.HttpAccessLogMessage;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
 import io.ballerina.stdlib.http.transport.contract.config.ChunkConfig;
@@ -49,8 +48,6 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
@@ -93,7 +90,6 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
     private long sequenceId = 1L; //Keep track of the request order for http 1.1 pipelining
     private final Queue holdingQueue = new PriorityQueue<>(NUMBER_OF_INITIAL_EVENTS_HELD);
     private EventExecutorGroup pipeliningGroup;
-    private List<HttpAccessLogMessage> httpAccessLogMessages;
 
     public SourceHandler(ServerConnectorFuture serverConnectorFuture,
                          HttpServerChannelInitializer serverChannelInitializer, String interfaceId,
@@ -113,7 +109,6 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
         this.pipeliningEnabled = pipeliningEnabled;
         this.pipeliningLimit = pipeliningLimit;
         this.pipeliningGroup = pipeliningGroup;
-        this.httpAccessLogMessages = new ArrayList<>();
     }
 
     @SuppressWarnings("unchecked")
@@ -363,13 +358,5 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
 
     public void resetInboundRequestMsg() {
         this.inboundRequestMsg = null;
-    }
-
-    public void addHttpAccessLogMessage(HttpAccessLogMessage httpAccessLogMessage) {
-        this.httpAccessLogMessages.add(httpAccessLogMessage);
-    }
-
-    public List<HttpAccessLogMessage> getHttpAccessLogMessages() {
-        return this.httpAccessLogMessages;
     }
 }

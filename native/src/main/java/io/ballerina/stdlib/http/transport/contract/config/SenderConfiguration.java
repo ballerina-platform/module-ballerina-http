@@ -41,6 +41,7 @@ public class SenderConfiguration extends SslConfiguration {
     private String id = DEFAULT_KEY;
     private int socketIdleTimeout = 60000;
     private boolean httpTraceLogEnabled;
+    private boolean httpAccessLogEnabled;
     private ChunkConfig chunkingConfig = ChunkConfig.AUTO;
     private KeepAliveConfig keepAliveConfig = KeepAliveConfig.AUTO;
     private boolean forceHttp2 = false;
@@ -91,6 +92,14 @@ public class SenderConfiguration extends SslConfiguration {
 
     public void setHttpTraceLogEnabled(boolean httpTraceLogEnabled) {
         this.httpTraceLogEnabled = httpTraceLogEnabled;
+    }
+
+    public boolean isHttpAccessLogEnabled() {
+        return httpAccessLogEnabled;
+    }
+
+    public void setHttpAccessLogEnabled(boolean httpAccessLogEnabled) {
+        this.httpAccessLogEnabled = httpAccessLogEnabled;
     }
 
     public ChunkConfig getChunkingConfig() {
