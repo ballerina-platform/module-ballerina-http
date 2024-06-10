@@ -53,14 +53,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_X_FORWARDED_FOR;
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY;
+import static io.ballerina.stdlib.http.transport.contract.Constants.OUTBOUND_ACCESS_LOG_MESSAGES;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY;
-import static io.ballerina.stdlib.http.transport.contract.Constants.SRC_HANDLER;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil.validatePromisedStreamState;
 
 /**
@@ -213,9 +212,6 @@ public class SendingEntityBody implements ListenerState {
 
     private void logAccessInfo(HttpCarbonMessage inboundRequestMsg, HttpCarbonMessage outboundResponseMsg,
                                int streamId) {
-        if (!HttpAccessLogger.isEnabled()) {
-            return;
-        }
         if (originalStreamId != streamId) { // Skip access logs for server push messages
             LOG.debug("Access logging skipped for server push response");
             return;
@@ -256,12 +252,23 @@ public class SendingEntityBody implements ListenerState {
         inboundMessage.setRequestBodySize((long) inboundRequestMsg.getContentSize());
         inboundMessage.setRequestTime(requestTime);
 
-        List<HttpAccessLogMessage> outboundMessages = new ArrayList<>();
-        Object sourceHandlerObject = inboundRequestMsg.getProperty(SRC_HANDLER);
+        List<HttpAccessLogMessage> outboundMessages = getHttpAccessLogMessages(inboundRequestMsg);
 
-        if (sourceHandlerObject instanceof Http2SourceHandler http2SourceHandler) {
-            outboundMessages.addAll(http2SourceHandler.getHttpAccessLogMessages());
-        }
         HttpAccessLogger.log(inboundMessage, outboundMessages);
+    }
+
+    private List<HttpAccessLogMessage> getHttpAccessLogMessages(HttpCarbonMessage request) {
+        Object outboundAccessLogMessagesObject = request.getProperty(OUTBOUND_ACCESS_LOG_MESSAGES);
+        if (outboundAccessLogMessagesObject instanceof List<?> rawList) {
+            for (Object item : rawList) {
+                if (!(item instanceof HttpAccessLogMessage)) {
+                    return null;
+                }
+            }
+            @SuppressWarnings("unchecked")
+            List<HttpAccessLogMessage> outboundAccessLogMessages = (List<HttpAccessLogMessage>) rawList;
+            return outboundAccessLogMessages;
+        }
+        return null;
     }
 }
