@@ -20,10 +20,7 @@ package io.ballerina.stdlib.http.transport.contractimpl.sender.states.http2;
 
 import io.ballerina.stdlib.http.api.logging.accesslog.HttpAccessLogConfig;
 import io.ballerina.stdlib.http.api.logging.accesslog.HttpAccessLogMessage;
-import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
-import io.ballerina.stdlib.http.transport.contractimpl.listener.SourceHandler;
-import io.ballerina.stdlib.http.transport.contractimpl.listener.http2.Http2SourceHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ClientChannel;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2TargetHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.OutboundMsgHolder;
@@ -236,11 +233,11 @@ public class ReceivingEntityBody implements SenderState {
 
         outboundAccessLogMessage.setRequestMethod(httpOutboundRequest.getHttpMethod());
         outboundAccessLogMessage.setRequestUri((String) httpOutboundRequest.getProperty(TO));
-        HttpMessage outboundRequest = httpOutboundRequest.getNettyHttpRequest();
-        if (outboundRequest != null) {
-            outboundAccessLogMessage.setScheme(outboundRequest.protocolVersion().toString());
+        HttpMessage inboundResponse = outboundMsgHolder.getResponse().getNettyHttpResponse();
+        if (inboundResponse != null) {
+            outboundAccessLogMessage.setScheme(inboundResponse.protocolVersion().toString());
         } else {
-            outboundAccessLogMessage.setScheme(httpOutboundRequest.getHttpVersion());
+            outboundAccessLogMessage.setScheme(outboundMsgHolder.getResponse().getHttpVersion());
         }
         outboundAccessLogMessage.setRequestBodySize((long) httpOutboundRequest.getContentSize());
         outboundAccessLogMessage.setStatus(outboundMsgHolder.getResponse().getHttpStatusCode());
@@ -251,16 +248,12 @@ public class ReceivingEntityBody implements SenderState {
 
         HttpCarbonMessage inboundReqMsg =
                 getTypedProperty(httpOutboundRequest, INBOUND_MESSAGE, HttpCarbonMessage.class);
-        Http2SourceHandler http2SourceHandler =
-                getTypedProperty(httpOutboundRequest, Constants.SRC_HANDLER, Http2SourceHandler.class);
 
         if (inboundReqMsg != null) {
             List<HttpAccessLogMessage> outboundAccessLogMessages = getHttpAccessLogMessages(inboundReqMsg);
             if (outboundAccessLogMessages != null) {
                 outboundAccessLogMessages.add(outboundAccessLogMessage);
             }
-        } else if (http2SourceHandler != null) {
-            http2SourceHandler.addHttpAccessLogMessage(outboundAccessLogMessage);
         }
     }
 

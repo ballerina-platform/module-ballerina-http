@@ -27,7 +27,6 @@ import io.netty.util.internal.logging.InternalLoggerFactory;
 
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -51,10 +50,6 @@ public class HttpAccessLogger {
     private static final InternalLogger ACCESS_LOGGER = InternalLoggerFactory.getInstance(ACCESS_LOG);
 
     private HttpAccessLogger() {}
-
-    public static boolean isEnabled() {
-        return ACCESS_LOGGER.isEnabled(InternalLogLevel.INFO);
-    }
 
     public static void log(HttpAccessLogMessage inboundMessage, List<HttpAccessLogMessage> outboundMessages) {
         String formattedAccessLogMessage = formatAccessLogMessage(inboundMessage, outboundMessages,
@@ -156,8 +151,13 @@ public class HttpAccessLogger {
                                                            String attribute) {
         Map<String, String> customHeaders = httpAccessLogMessage.getCustomHeaders();
         if (attribute.startsWith("http_")) {
-            String customHeaderKey = attribute.substring(5).toLowerCase(Locale.getDefault());
-            return customHeaders.getOrDefault(customHeaderKey, "-");
+            String customHeaderKey = attribute.substring(5);
+            for (Map.Entry<String, String> entry : customHeaders.entrySet()) {
+                if (entry.getKey().equalsIgnoreCase(customHeaderKey)) {
+                    return entry.getValue();
+                }
+            }
+            return "-";
         }
         return null;
     }
