@@ -124,7 +124,6 @@ public class HttpClientChannelInitializer extends ChannelInitializer<SocketChann
         connectionHandlerBuilder.initialSettings().initialWindowSize(senderConfiguration.getHttp2InitialWindowSize());
         http2ConnectionHandler = connectionHandlerBuilder.connection(connection).frameListener(frameListener).build();
         http2TargetHandler = new Http2TargetHandler(connection, http2ConnectionHandler.encoder());
-        http2TargetHandler.setHttpClientChannelInitializer(this);
         if (sslConfig != null) {
             sslHandlerFactory = new SSLHandlerFactory(sslConfig);
         }
@@ -140,6 +139,7 @@ public class HttpClientChannelInitializer extends ChannelInitializer<SocketChann
         targetHandler.setHttp2TargetHandler(http2TargetHandler);
         targetHandler.setKeepAliveConfig(getKeepAliveConfig());
         targetHandler.setHttpClientChannelInitializer(this);
+        http2TargetHandler.setHttpClientChannelInitializer(this);
         if (http2) {
             if (sslConfig != null) {
                 configureSslForHttp2(socketChannel, clientPipeline, sslConfig);

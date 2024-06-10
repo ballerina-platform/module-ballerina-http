@@ -290,10 +290,6 @@ public class SendingEntityBody implements ListenerState {
     }
 
     private void logAccessInfo(HttpCarbonMessage inboundRequestMsg, HttpCarbonMessage outboundResponseMsg) {
-        if (!HttpAccessLogger.isEnabled()) {
-            return;
-        }
-
         HttpHeaders headers = inboundRequestMsg.getHeaders();
         if (headers.contains(HTTP_X_FORWARDED_FOR)) {
             String forwardedHops = headers.get(HTTP_X_FORWARDED_FOR);
