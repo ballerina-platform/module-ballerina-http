@@ -26,6 +26,7 @@ import io.ballerina.runtime.api.flags.SymbolFlags;
 import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.MethodType;
 import io.ballerina.runtime.api.types.ObjectType;
+import io.ballerina.runtime.api.types.ResourceMethodType;
 import io.ballerina.runtime.api.types.ServiceType;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.utils.TypeUtils;
@@ -71,13 +72,13 @@ public class HttpService implements Service {
     private static final Logger log = LoggerFactory.getLogger(HttpService.class);
 
     protected static final BString BASE_PATH_FIELD = fromString("basePath");
-    private static final BString CORS_FIELD = fromString("cors");
+    protected static final BString CORS_FIELD = fromString("cors");
     private static final BString VERSIONING_FIELD = fromString("versioning");
-    private static final BString HOST_FIELD = fromString("host");
-    private static final BString OPENAPI_DEF_FIELD = fromString("openApiDefinition");
-    private static final BString MEDIA_TYPE_SUBTYPE_PREFIX = fromString("mediaTypeSubtypePrefix");
-    private static final BString TREAT_NILABLE_AS_OPTIONAL = fromString("treatNilableAsOptional");
-    private static final BString DATA_VALIDATION = fromString("validation");
+    protected static final BString HOST_FIELD = fromString("host");
+    protected static final BString OPENAPI_DEF_FIELD = fromString("openApiDefinition");
+    protected static final BString MEDIA_TYPE_SUBTYPE_PREFIX = fromString("mediaTypeSubtypePrefix");
+    protected static final BString TREAT_NILABLE_AS_OPTIONAL = fromString("treatNilableAsOptional");
+    protected static final BString DATA_VALIDATION = fromString("validation");
 
     private BObject balService;
     private List<HttpResource> resources;
@@ -115,7 +116,7 @@ public class HttpService implements Service {
         this.keepAlive = keepAlive;
     }
 
-    private void setCompressionConfig(BMap<BString, Object> compression) {
+    protected void setCompressionConfig(BMap<BString, Object> compression) {
         this.compression = compression;
     }
 
@@ -259,10 +260,9 @@ public class HttpService implements Service {
         return httpService;
     }
 
-    private static void processResources(HttpService httpService) {
+    protected static void processResources(HttpService httpService) {
         List<HttpResource> httpResources = new ArrayList<>();
-        for (MethodType resource : ((ServiceType) TypeUtils.getType(
-                httpService.getBalService())).getResourceMethods()) {
+        for (MethodType resource : httpService.getResourceMethods()) {
             if (!SymbolFlags.isFlagOn(resource.getFlags(), SymbolFlags.RESOURCE)) {
                 continue;
             }
@@ -278,6 +278,10 @@ public class HttpService implements Service {
         }
         processLinks(httpService, httpResources);
         httpService.setResources(httpResources);
+    }
+
+    protected ResourceMethodType[] getResourceMethods() {
+        return ((ServiceType) TypeUtils.getType(balService)).getResourceMethods();
     }
 
     private static void processLinks(HttpService httpService, List<HttpResource> httpResources) {
@@ -393,7 +397,7 @@ public class HttpService implements Service {
         httpResources.add(httpResource);
     }
 
-    private static BMap getHttpServiceConfigAnnotation(BObject service) {
+    public static BMap getHttpServiceConfigAnnotation(BObject service) {
         return getServiceConfigAnnotation(service, ModuleUtils.getHttpPackageIdentifier(),
                                           HttpConstants.ANN_NAME_HTTP_SERVICE_CONFIG);
     }
@@ -539,7 +543,7 @@ public class HttpService implements Service {
         return constraintValidation;
     }
 
-    private void setConstraintValidation(boolean constraintValidation) {
+    protected void setConstraintValidation(boolean constraintValidation) {
         this.constraintValidation = constraintValidation;
     }
 }
