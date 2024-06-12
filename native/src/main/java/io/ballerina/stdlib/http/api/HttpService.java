@@ -273,6 +273,8 @@ public class HttpService implements Service {
         if (introspectionPayload.length > 0) {
             updateResourceTree(httpService, httpResources, new HttpIntrospectionResource(httpService,
                                                                                          introspectionPayload));
+            updateResourceTree(
+                    httpService, httpResources, new HttpSwaggerUiResource(httpService, introspectionPayload));
         } else {
             log.debug("OpenAPI definition is not available");
         }

@@ -47,6 +47,10 @@ public class ResourceDispatcher {
                 handleIntrospectionRequest(inboundRequest, (HttpIntrospectionResource) resource);
                 return null;
             }
+            if (resource instanceof HttpSwaggerUiResource swaggerUiResource) {
+                handleSwaggerUiRequest(inboundRequest, swaggerUiResource);
+                return null;
+            }
             if (resource != null) {
                 inboundRequest.setProperty(HttpConstants.RESOURCE_ARGS, resourceArgumentValues);
                 inboundRequest.setProperty(HttpConstants.RESOURCES_CORS, resource.getCorsHeaders());
@@ -106,6 +110,16 @@ public class ResourceDispatcher {
         response.waitAndReleaseAllEntities();
         response.addHttpContent(new DefaultLastHttpContent(Unpooled.wrappedBuffer(resource.getPayload())));
         response.setHeader(HttpHeaderNames.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString());
+        response.setHttpStatusCode(200);
+        PipeliningHandler.sendPipelinedResponse(cMsg, response);
+        cMsg.waitAndReleaseAllEntities();
+    }
+
+    private static void handleSwaggerUiRequest(HttpCarbonMessage cMsg, HttpSwaggerUiResource resource) {
+        HttpCarbonMessage response = HttpUtil.createHttpCarbonMessage(false);
+        response.waitAndReleaseAllEntities();
+        response.addHttpContent(new DefaultLastHttpContent(Unpooled.wrappedBuffer(resource.getPayload())));
+        response.setHeader(HttpHeaderNames.CONTENT_TYPE.toString(), HttpHeaderValues.TEXT_HTML.toString());
         response.setHttpStatusCode(200);
         PipeliningHandler.sendPipelinedResponse(cMsg, response);
         cMsg.waitAndReleaseAllEntities();
