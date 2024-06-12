@@ -58,6 +58,11 @@ import static io.ballerina.stdlib.http.compiler.HttpServiceValidator.getServiceC
 import static io.ballerina.stdlib.http.compiler.codeaction.Constants.LS;
 import static io.ballerina.stdlib.http.compiler.codeaction.Constants.NODE_LOCATION_KEY;
 
+/**
+ * Represents a code action to implement all the resource methods from the service contract type.
+ *
+ * @since 2.12.0
+ */
 public class ImplementServiceContract implements CodeAction {
     @Override
     public List<String> supportedDiagnosticCodes() {

@@ -56,6 +56,8 @@ import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.updateDia
 
 /**
  * Validates a ballerina http resource implemented via the service contract type.
+ *
+ * @since 2.12.0
  */
 public final class HttpServiceContractResourceValidator {
 

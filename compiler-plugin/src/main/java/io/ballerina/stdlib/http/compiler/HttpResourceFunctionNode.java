@@ -31,6 +31,11 @@ import io.ballerina.tools.diagnostics.Location;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * Represents an HTTP resource function node which abstracts the function definition node and method declaration node.
+ *
+ * @since 2.12.0
+ */
 public class HttpResourceFunctionNode {
 
     Node functionNode;

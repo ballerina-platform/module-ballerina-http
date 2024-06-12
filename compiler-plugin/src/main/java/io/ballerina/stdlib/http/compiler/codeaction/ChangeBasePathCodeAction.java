@@ -42,6 +42,12 @@ import java.util.regex.Pattern;
 import static io.ballerina.stdlib.http.compiler.codeaction.Constants.EXPECTED_BASE_PATH;
 import static io.ballerina.stdlib.http.compiler.codeaction.Constants.NODE_LOCATION_KEY;
 
+/**
+ * Represents a code action to replace the existing base path of the service declaration
+ * with the expected base path from the service contract type.
+ *
+ * @since 2.12.0
+ */
 public class ChangeBasePathCodeAction implements CodeAction {
     @Override
     public List<String> supportedDiagnosticCodes() {

@@ -39,6 +39,11 @@ import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP_SERVICE_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.SERVICE_CONTRACT_TYPE;
 
+/**
+ * Validates the HTTP service object type.
+ *
+ * @since 2.12.0
+ */
 public class HttpServiceObjTypeAnalyzer extends HttpServiceValidator {
 
     @Override
