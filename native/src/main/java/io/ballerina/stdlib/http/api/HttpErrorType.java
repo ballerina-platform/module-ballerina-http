@@ -88,7 +88,6 @@ public enum HttpErrorType {
     HEADER_NOT_FOUND_CLIENT_ERROR("HeaderNotFoundClientError"),
     HEADER_BINDING_CLIENT_ERROR("HeaderBindingClientError"),
     HEADER_VALIDATION_CLIENT_ERROR("HeaderValidationClientError"),
-    MEDIA_TYPE_BINDING_CLIENT_ERROR("MediaTypeBindingClientError"),
     MEDIA_TYPE_VALIDATION_CLIENT_ERROR("MediaTypeValidationClientError");
 
     private final String errorName;

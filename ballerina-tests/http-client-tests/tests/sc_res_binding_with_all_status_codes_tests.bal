@@ -213,7 +213,7 @@ function getStatusCodeResponse(int code) returns http:StatusCodeResponse {
             return <http:NetworkAuthenticationRequired>{body: {msg: "Network authentication required error"}, mediaType: "application/org+json", headers: {"x-error": "Network authentication required"}};
         }
         _ => {
-            return <http:BadRequest>{body: {msg: "Bad request with unknown status code"}, mediaType: "application/org+json", headers: {"x-error": "Unknown status code"}};
+            return <http:DefaultStatusCodeResponse>{body: {msg: string`Default status code response with code: ${code}`}, mediaType: "application/org+json", headers: {"x-error": "Default status code"}, status: new(code)};
         }
     }
 }
@@ -467,10 +467,6 @@ function testSCResBindingWith5XXStatusCodes() returns error? {
     http:NetworkAuthenticationRequired networkAuthenticationRequiredResponse = check statusCodeBindingClient1->/api/status\-code\-response(code = 511);
     test:assertTrue(networkAuthenticationRequiredResponse is http:NetworkAuthenticationRequired, "Response type mismatched");
     testStatusCodeResponse(networkAuthenticationRequiredResponse, 511, "Network authentication required", "Network authentication required error");
-
-    http:BadRequest badRequestWithUnknownStatusCodeResponse = check statusCodeBindingClient1->/api/status\-code\-response(code = 999);
-    test:assertTrue(badRequestWithUnknownStatusCodeResponse is http:BadRequest, "Response type mismatched");
-    testStatusCodeResponse(badRequestWithUnknownStatusCodeResponse, 400, "Unknown status code", "Bad request with unknown status code");
 }
 
 @test:Config {}
@@ -498,6 +494,34 @@ function testSCResBindingWithCommonType() returns error? {
     statusCodeResponse = check statusCodeBindingClient1->/api/status\-code\-response(code = 504);
     test:assertTrue(statusCodeResponse is http:GatewayTimeout, "Response type mismatched");
     testStatusCodeResponse(statusCodeResponse, 504, "Gateway timeout", "Gateway timeout error");
+
+    statusCodeResponse = check statusCodeBindingClient1->/api/status\-code\-response(code = 600);
+    test:assertTrue(statusCodeResponse is http:DefaultStatusCodeResponse, "Response type mismatched");
+    testStatusCodeResponse(statusCodeResponse, 600, "Default status code", "Default status code response with code: 600");
+}
+
+@test:Config {}
+function testSCResBindingWithDefaultType() returns error? {
+    http:DefaultStatusCodeResponse statusCodeResponse = check statusCodeBindingClient1->/api/status\-code\-response(code = 103);
+    testStatusCodeResponse(statusCodeResponse, 103, "Early hints", "Early hints response");
+
+    statusCodeResponse = check statusCodeBindingClient1->/api/status\-code\-response(code = 201);
+    testStatusCodeResponse(statusCodeResponse, 201, "Created", "Created response");
+
+    statusCodeResponse = check statusCodeBindingClient1->/api/status\-code\-response(code = 204);
+    testStatusCodeResponse(statusCodeResponse, 204, "No content");
+
+    statusCodeResponse = check statusCodeBindingClient1->/api/status\-code\-response(code = 304);
+    testStatusCodeResponse(statusCodeResponse, 304, "Not modified", "Not modified response");
+
+    statusCodeResponse = check statusCodeBindingClient1->/api/status\-code\-response(code = 405);
+    testStatusCodeResponse(statusCodeResponse, 405, "Method not allowed", "Method not allowed error");
+
+    statusCodeResponse = check statusCodeBindingClient1->/api/status\-code\-response(code = 504);
+    testStatusCodeResponse(statusCodeResponse, 504, "Gateway timeout", "Gateway timeout error");
+
+    statusCodeResponse = check statusCodeBindingClient1->/api/status\-code\-response(code = 600);
+    testStatusCodeResponse(statusCodeResponse, 600, "Default status code", "Default status code response with code: 600");
 }
 
 function testStatusCodeResponse(http:StatusCodeResponse statusCodeResponse, int statusCode, string header, string? body = ()) {

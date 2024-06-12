@@ -25,7 +25,7 @@ public type StatusCodeResponse Continue|SwitchingProtocols|Processing|EarlyHints
     Locked|FailedDependency|TooEarly|PreconditionRequired|UnavailableDueToLegalReasons|UpgradeRequired|TooManyRequests|
     RequestHeaderFieldsTooLarge|InternalServerError|NotImplemented|BadGateway|ServiceUnavailable|GatewayTimeout|
     HttpVersionNotSupported|VariantAlsoNegotiates|InsufficientStorage|LoopDetected|NotExtended|
-    NetworkAuthenticationRequired;
+    NetworkAuthenticationRequired|DefaultStatusCodeResponse;
 
 # Defines the possible success status code response record types.
 type SuccessStatusCodeResponse Ok|Created|Accepted|NonAuthoritativeInformation|NoContent|ResetContent|
@@ -50,6 +50,16 @@ public type CommonResponse record {|
 |};
 
 // Status code class declarations
+
+# The default status code class.
+public readonly distinct class DefaultStatus {
+    *Status;
+
+    public isolated function init(int code) {
+        self.code = code;
+    }
+}
+
 # Represents the status code of `STATUS_CONTINUE`.
 #
 # + code - The response status code
@@ -602,6 +612,15 @@ final StatusNotExtended STATUS_NOT_EXTENDED_OBJ = new;
 final StatusNetworkAuthenticationRequired STATUS_NETWORK_AUTHENTICATION_REQUIRED_OBJ = new;
 
 // Status code record types
+
+# The default status code response record.
+#
+# + status - The response status code object
+public type DefaultStatusCodeResponse record {|
+    *CommonResponse;
+    readonly DefaultStatus status;
+|};
+
 # The status code response record of `Continue`.
 #
 # + status - The response status code obj
