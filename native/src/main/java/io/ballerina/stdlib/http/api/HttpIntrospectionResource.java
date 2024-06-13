@@ -51,6 +51,6 @@ public class HttpIntrospectionResource extends HttpOASResource {
     }
 
     public static String getResourceId() {
-        return RESOURCE_METHOD + RESOURCE_NAME;
+        return String.format("%s%s", RESOURCE_METHOD, RESOURCE_NAME);
     }
 }
