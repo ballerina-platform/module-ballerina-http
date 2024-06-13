@@ -412,7 +412,7 @@ public class HttpService implements Service {
         if (this.oasResourceLinks.isEmpty()) {
             return null;
         }
-        return this.oasResourceLinks.stream().collect(Collectors.joining(", "));
+        return String.join(", ", this.oasResourceLinks);
     }
 
     protected void addOasResourceLink(String oasResourcePath) {
