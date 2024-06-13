@@ -22,7 +22,6 @@ import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 
 import static io.ballerina.stdlib.http.compiler.Constants.ALLOWED_INTERCEPTOR_RETURN_UNION;
 import static io.ballerina.stdlib.http.compiler.Constants.ALLOWED_RETURN_UNION;
-import static io.ballerina.stdlib.http.compiler.Constants.RESOURCE_CONFIG_ANNOTATION;
 import static io.ballerina.tools.diagnostics.DiagnosticSeverity.ERROR;
 import static io.ballerina.tools.diagnostics.DiagnosticSeverity.INTERNAL;
 
@@ -32,8 +31,6 @@ import static io.ballerina.tools.diagnostics.DiagnosticSeverity.INTERNAL;
 public enum HttpDiagnosticCodes {
     HTTP_101("HTTP_101", "remote methods are not allowed in http:Service", ERROR),
     HTTP_102("HTTP_102", "invalid resource method return type: expected '" + ALLOWED_RETURN_UNION +
-            "', but found '%s'", ERROR),
-    HTTP_103("HTTP_103", "invalid resource method annotation type: expected 'http:" + RESOURCE_CONFIG_ANNOTATION +
             "', but found '%s'", ERROR),
     HTTP_104("HTTP_104", "invalid annotation type on param '%s': expected one of the following types: " +
             "'http:Payload', 'http:CallerInfo', 'http:Header', 'http:Query'", ERROR),

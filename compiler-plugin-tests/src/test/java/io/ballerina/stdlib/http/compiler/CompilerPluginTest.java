@@ -134,16 +134,6 @@ public class CompilerPluginTest {
     }
 
     @Test
-    public void testInValidAnnotations() {
-        Package currentPackage = loadPackage("sample_package_3");
-        PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 1);
-        assertError(diagnosticResult, 0, "invalid resource method annotation type: expected 'http:ResourceConfig', " +
-                "but found 'display '", CompilerPluginTestConstants.HTTP_103);
-    }
-
-    @Test
     public void testInValidInputPayloadArgs() {
         Package currentPackage = loadPackage("sample_package_4");
         PackageCompilation compilation = currentPackage.getCompilation();
