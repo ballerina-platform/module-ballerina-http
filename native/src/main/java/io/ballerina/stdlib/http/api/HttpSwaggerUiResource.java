@@ -22,7 +22,7 @@ import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.util.CharsetUtil;
 
 /**
- * {@code HttpIntrospectionResource} is the resource which respond the service Open API JSON specification.
+ * {@code HttpSwaggerUiResource} is the resource which respond the Swagger-UI for the generated Open API specification.
  *
  * @since v2.11.2
  */

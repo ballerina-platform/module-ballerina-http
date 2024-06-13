@@ -25,7 +25,6 @@ import io.ballerina.stdlib.http.uri.URITemplateException;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaderValues;
 
 import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_RESOURCE_DISPATCHING_SERVER_ERROR;
 import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_RESOURCE_NOT_FOUND_ERROR;
@@ -95,7 +94,7 @@ public class ResourceDispatcher {
             throw HttpUtil.createHttpStatusCodeError(INTERNAL_RESOURCE_NOT_FOUND_ERROR, message);
         }
         CorsHeaderGenerator.process(cMsg, response, false);
-        String introspectionResourcePathHeaderValue = service.getIntrospectionResourcePathHeaderValue();
+        String introspectionResourcePathHeaderValue = service.getOasResourceLink();
         if (introspectionResourcePathHeaderValue != null) {
             response.setHeader(HttpConstants.LINK_HEADER, introspectionResourcePathHeaderValue);
         }

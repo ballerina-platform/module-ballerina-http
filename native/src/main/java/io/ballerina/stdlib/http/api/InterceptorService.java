@@ -74,7 +74,7 @@ public class InterceptorService implements Service {
     }
 
     @Override
-    public String getIntrospectionResourcePathHeaderValue() {
+    public String getOasResourceLink() {
         return null;
     }
 

@@ -20,8 +20,6 @@ package io.ballerina.stdlib.http.api;
 
 import io.netty.handler.codec.http.HttpHeaderValues;
 
-import static io.ballerina.stdlib.http.api.HttpConstants.SINGLE_SLASH;
-
 /**
  * {@code HttpIntrospectionResource} is the resource which respond the service Open API JSON specification.
  *

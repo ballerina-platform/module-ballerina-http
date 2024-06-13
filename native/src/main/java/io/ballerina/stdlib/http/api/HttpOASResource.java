@@ -33,7 +33,7 @@ public abstract class HttpOASResource extends HttpResource {
 
     public HttpOASResource(HttpService httpService, String resourcePath) {
         String path = (httpService.getBasePath() + SINGLE_SLASH + resourcePath).replaceAll("/+", SINGLE_SLASH);
-        httpService.setIntrospectionResourcePathHeaderValue("<" + path + ">;" + REL_PARAM);
+        httpService.addOasResourceLink("<" + path + ">;" + REL_PARAM);
     }
 
     public String getName() {
