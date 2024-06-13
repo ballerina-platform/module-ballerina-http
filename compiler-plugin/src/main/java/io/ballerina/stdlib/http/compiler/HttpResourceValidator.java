@@ -155,10 +155,8 @@ public final class HttpResourceValidator {
                 String[] strings = annotName.split(Constants.COLON);
                 if (RESOURCE_CONFIG_ANNOTATION.equals(strings[strings.length - 1].trim())) {
                     validateLinksInResourceConfig(ctx, member, annotation, linksMetaData);
-                    continue;
                 }
             }
-            reportInvalidResourceAnnotation(ctx, annotReference.location(), annotName);
         }
     }
 
@@ -921,11 +919,6 @@ public final class HttpResourceValidator {
         } else {
             return TypeDescKind.ERROR.equals(typeKind) || TypeDescKind.NIL.equals(typeKind);
         }
-    }
-
-    private static void reportInvalidResourceAnnotation(SyntaxNodeAnalysisContext ctx, Location location,
-                                                        String annotName) {
-        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_103, annotName);
     }
 
     private static void reportInvalidParameterAnnotation(SyntaxNodeAnalysisContext ctx, Location location,
