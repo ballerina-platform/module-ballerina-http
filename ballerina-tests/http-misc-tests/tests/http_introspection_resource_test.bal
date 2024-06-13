@@ -80,12 +80,14 @@ function testIntrospectionResourceLink() returns error? {
     http:Response response = check httpIntroResTestClient->options("/hello");
     test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
     test:assertEquals(check response.getHeader(common:ALLOW), "GET, OPTIONS", msg = "Found unexpected Header");
-    common:assertHeaderValue(check response.getHeader(common:LINK), "</hello/openapi-doc-dygixywsw>;rel=\"service-desc\"");
+    common:assertHeaderValue(check response.getHeader(common:LINK), 
+        "</hello/openapi-doc-dygixywsw>;rel=\"service-desc\", </hello/swagger-ui-dygixywsw>;rel=\"service-desc\"");
 
     response = check httpIntroResTestClient->options("/hello/greeting");
     test:assertEquals(response.statusCode, 204, msg = "Found unexpected statusCode");
     test:assertEquals(check response.getHeader(common:ALLOW), "GET, OPTIONS", msg = "Found unexpected Header");
-    common:assertHeaderValue(check response.getHeader(common:LINK), "</hello/openapi-doc-dygixywsw>;rel=\"service-desc\"");
+    common:assertHeaderValue(check response.getHeader(common:LINK), 
+        "</hello/openapi-doc-dygixywsw>;rel=\"service-desc\", </hello/swagger-ui-dygixywsw>;rel=\"service-desc\"");
 }
 
 @test:Config {}
