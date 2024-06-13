@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 
 - [Introduce default status code response record](https://github.com/ballerina-platform/ballerina-library/issues/6491)
+- [Generate and host SwaggerUI for the generated OpenAPI specification for an HTTP service as a built-in resource](https://github.com/ballerina-platform/ballerina-library/issues/6622)
 
 ## [2.11.1] - 2024-05-29
 
