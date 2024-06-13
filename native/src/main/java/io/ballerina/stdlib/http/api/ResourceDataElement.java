@@ -75,12 +75,12 @@ public class ResourceDataElement implements DataElement<Resource, HttpCarbonMess
         this.resource.forEach(r -> {
             for (String newMethod : newMethods) {
                 if (DispatcherUtil.isMatchingMethodExist(r, newMethod)) {
-                    if (r.getName().equals(HttpIntrospectionResource.getIntrospectionResourceId())) {
+                    if (r.getName().equals(HttpIntrospectionResource.getResourceId())) {
                         String message = "Resources cannot have the accessor and name as same as the auto generated " +
                                 "Open API spec retrieval resource: '" + r.getName() + "'";
                         throw HttpUtil.createHttpError(message, GENERIC_LISTENER_ERROR);
                     }
-                    if (r.getName().equals(HttpSwaggerUiResource.getSwaggerUiResourceId())) {
+                    if (r.getName().equals(HttpSwaggerUiResource.getResourceId())) {
                         String message = "Resources cannot have the accessor and name as same as the auto generated " +
                                 "Swagger-UI retrieval resource: '" + r.getName() + "'";
                         throw HttpUtil.createHttpError(message, GENERIC_LISTENER_ERROR);

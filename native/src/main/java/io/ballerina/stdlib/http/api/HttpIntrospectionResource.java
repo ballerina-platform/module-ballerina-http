@@ -50,7 +50,7 @@ public class HttpIntrospectionResource extends HttpOASResource {
         return HttpHeaderValues.APPLICATION_JSON.toString();
     }
 
-    public static String getIntrospectionResourceId() {
+    public static String getResourceId() {
         return RESOURCE_METHOD + RESOURCE_NAME;
     }
 }

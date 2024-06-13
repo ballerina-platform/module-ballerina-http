@@ -74,7 +74,7 @@ public class HttpServiceTest {
 
     @Test
     public void testGetIntrospectionResourceIdOfIntrospectionResource() {
-        Assert.assertEquals(HttpIntrospectionResource.getIntrospectionResourceId(), "$get$openapi-doc-dygixywsw");
+        Assert.assertEquals(HttpIntrospectionResource.getResourceId(), "$get$openapi-doc-dygixywsw");
     }
 
     @Test
@@ -87,7 +87,7 @@ public class HttpServiceTest {
 
     @Test
     public void testGetSwaggerUiResourceIdOfIntrospectionResource() {
-        Assert.assertEquals(HttpSwaggerUiResource.getSwaggerUiResourceId(), "$get$swagger-ui-dygixywsw");
+        Assert.assertEquals(HttpSwaggerUiResource.getResourceId(), "$get$swagger-ui-dygixywsw");
     }
 
     @Test

@@ -78,7 +78,7 @@ public class HttpSwaggerUiResource extends HttpOASResource {
         return HttpHeaderValues.TEXT_HTML.toString();
     }
 
-    public static String getSwaggerUiResourceId() {
+    public static String getResourceId() {
         return RESOURCE_METHOD + RESOURCE_NAME;
     }
 }
