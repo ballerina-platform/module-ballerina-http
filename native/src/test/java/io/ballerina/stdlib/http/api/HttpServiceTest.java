@@ -86,6 +86,19 @@ public class HttpServiceTest {
     }
 
     @Test
+    public void testGetSwaggerUiResourceIdOfIntrospectionResource() {
+        Assert.assertEquals(HttpSwaggerUiResource.getSwaggerUiResourceId(), "$get$swagger-ui-dygixywsw");
+    }
+
+    @Test
+    public void testGetNameOfSwaggerUiResource() {
+        BObject service = TestUtils.getNewServiceObject("hello");
+        HttpService httpService = new HttpService(service);
+        HttpSwaggerUiResource swaggerUiResource = new HttpSwaggerUiResource(httpService, "abc".getBytes());
+        Assert.assertEquals(swaggerUiResource.getName(), "$get$swagger-ui-dygixywsw");
+    }
+
+    @Test
     public void testGetAbsoluteResourcePath() {
         HttpService httpService = new HttpService(TestUtils.getNewServiceObject("hello"));
         httpService.setBasePath("/basePath/");
