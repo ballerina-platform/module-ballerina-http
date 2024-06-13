@@ -80,6 +80,11 @@ public class ResourceDataElement implements DataElement<Resource, HttpCarbonMess
                                 "Open API spec retrieval resource: '" + r.getName() + "'";
                         throw HttpUtil.createHttpError(message, GENERIC_LISTENER_ERROR);
                     }
+                    if (r.getName().equals(HttpSwaggerUiResource.getSwaggerUiResourceId())) {
+                        String message = "Resources cannot have the accessor and name as same as the auto generated " +
+                                "Swagger-UI retrieval resource: '" + r.getName() + "'";
+                        throw HttpUtil.createHttpError(message, GENERIC_LISTENER_ERROR);
+                    }
                     throw HttpUtil.createHttpError("Two resources have the same addressable URI, "
                                                            + r.getName() + " and " + newResource.getName(),
                                                    GENERIC_LISTENER_ERROR);
