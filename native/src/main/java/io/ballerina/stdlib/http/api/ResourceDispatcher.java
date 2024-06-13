@@ -43,12 +43,12 @@ public class ResourceDispatcher {
         HttpResourceArguments resourceArgumentValues = new HttpResourceArguments();
         try {
             Resource resource = service.getUriTemplate().matches(subPath, resourceArgumentValues, inboundRequest);
-            if (resource instanceof HttpIntrospectionResource) {
-                handleIntrospectionRequest(inboundRequest, (HttpIntrospectionResource) resource);
+            if (resource instanceof HttpIntrospectionResource introspectionResource) {
+                handleOasResourceRequest(inboundRequest, introspectionResource);
                 return null;
             }
             if (resource instanceof HttpSwaggerUiResource swaggerUiResource) {
-                handleSwaggerUiRequest(inboundRequest, swaggerUiResource);
+                handleOasResourceRequest(inboundRequest, swaggerUiResource);
                 return null;
             }
             if (resource != null) {
@@ -105,21 +105,11 @@ public class ResourceDispatcher {
         cMsg.waitAndReleaseAllEntities();
     }
 
-    private static void handleIntrospectionRequest(HttpCarbonMessage cMsg, HttpIntrospectionResource resource) {
+    private static void handleOasResourceRequest(HttpCarbonMessage cMsg, HttpOASResource resource) {
         HttpCarbonMessage response = HttpUtil.createHttpCarbonMessage(false);
         response.waitAndReleaseAllEntities();
         response.addHttpContent(new DefaultLastHttpContent(Unpooled.wrappedBuffer(resource.getPayload())));
-        response.setHeader(HttpHeaderNames.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString());
-        response.setHttpStatusCode(200);
-        PipeliningHandler.sendPipelinedResponse(cMsg, response);
-        cMsg.waitAndReleaseAllEntities();
-    }
-
-    private static void handleSwaggerUiRequest(HttpCarbonMessage cMsg, HttpSwaggerUiResource resource) {
-        HttpCarbonMessage response = HttpUtil.createHttpCarbonMessage(false);
-        response.waitAndReleaseAllEntities();
-        response.addHttpContent(new DefaultLastHttpContent(Unpooled.wrappedBuffer(resource.getPayload())));
-        response.setHeader(HttpHeaderNames.CONTENT_TYPE.toString(), HttpHeaderValues.TEXT_HTML.toString());
+        response.setHeader(HttpHeaderNames.CONTENT_TYPE.toString(), resource.getContentType());
         response.setHttpStatusCode(200);
         PipeliningHandler.sendPipelinedResponse(cMsg, response);
         cMsg.waitAndReleaseAllEntities();

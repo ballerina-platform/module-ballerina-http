@@ -18,18 +18,15 @@
 
 package io.ballerina.stdlib.http.api;
 
+import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.util.CharsetUtil;
-
-import java.util.List;
-
-import static io.ballerina.stdlib.http.api.HttpConstants.SINGLE_SLASH;
 
 /**
  * {@code HttpIntrospectionResource} is the resource which respond the service Open API JSON specification.
  *
  * @since v2.11.2
  */
-public class HttpSwaggerUiResource extends HttpResource {
+public class HttpSwaggerUiResource extends HttpOASResource {
 
     private static final String STATIC_HTML_PAGE = """
                     <!DOCTYPE html>
@@ -47,7 +44,7 @@ public class HttpSwaggerUiResource extends HttpResource {
                     <script>
                       window.onload = () => {
                         window.ui = SwaggerUIBundle({
-                          spec: OPEN_API_SPEC,
+                          spec: OPENAPI_SPEC,
                           dom_id: '#swagger-ui',
                         });
                       };
@@ -56,44 +53,32 @@ public class HttpSwaggerUiResource extends HttpResource {
                     </html>
             """;
     private static final String RESOURCE_NAME = "swagger-ui-dygixywsw";
-    private static final String RESOURCE_METHOD = "$get$";
-    private static final String REL_PARAM = "rel=\"service-desc\"";
-
+    private static final String OAS_PLACEHOLDER = "OPENAPI_SPEC";
     private final byte[] payload;
 
     public HttpSwaggerUiResource(HttpService httpService, byte[] payload) {
-//        String path = (httpService.getBasePath() + SINGLE_SLASH + RESOURCE_NAME).replaceAll("/+", SINGLE_SLASH);
-//        httpService.setIntrospectionResourcePathHeaderValue("<" + path + ">;" + REL_PARAM);
+        super(httpService, RESOURCE_NAME);
         String oasSpec = new String(payload.clone(), CharsetUtil.UTF_8);
-        String content = STATIC_HTML_PAGE.replace("OPEN_API_SPEC", oasSpec);
+        String content = STATIC_HTML_PAGE.replace(OAS_PLACEHOLDER, oasSpec);
         this.payload = content.getBytes(CharsetUtil.UTF_8);
     }
 
-    public String getName() {
-        return RESOURCE_METHOD + RESOURCE_NAME;
-    }
-
-    public String getPath() {
-        return SINGLE_SLASH + RESOURCE_NAME;
-    }
-
+    @Override
     public byte[] getPayload() {
         return this.payload.clone();
     }
 
-    public List<String> getMethods() {
-        return List.of(HttpConstants.HTTP_METHOD_GET);
+    @Override
+    protected String getResourceName() {
+        return RESOURCE_NAME;
     }
 
-    public List<String> getConsumes() {
-        return null;
+    @Override
+    public String getContentType() {
+        return HttpHeaderValues.TEXT_HTML.toString();
     }
 
-    public List<String> getProduces() {
-        return null;
-    }
-
-    public static String getIntrospectionResourceId() {
+    public static String getSwaggerUiResourceId() {
         return RESOURCE_METHOD + RESOURCE_NAME;
     }
 }
