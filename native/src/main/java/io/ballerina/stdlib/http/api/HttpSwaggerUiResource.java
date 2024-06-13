@@ -53,11 +53,12 @@ public class HttpSwaggerUiResource extends HttpOASResource {
                     </html>
             """;
     private static final String RESOURCE_NAME = "swagger-ui-dygixywsw";
+    private static final String REL_PARAM = "rel=\"swagger-ui\"";
     private static final String OAS_PLACEHOLDER = "OPENAPI_SPEC";
     private final byte[] payload;
 
     public HttpSwaggerUiResource(HttpService httpService, byte[] payload) {
-        super(httpService, RESOURCE_NAME);
+        super(httpService, REL_PARAM, RESOURCE_NAME);
         String oasSpec = new String(payload.clone(), CharsetUtil.UTF_8);
         String content = STATIC_HTML_PAGE.replace(OAS_PLACEHOLDER, oasSpec);
         this.payload = content.getBytes(CharsetUtil.UTF_8);

@@ -28,10 +28,11 @@ import io.netty.handler.codec.http.HttpHeaderValues;
 public class HttpIntrospectionResource extends HttpOASResource {
 
     private static final String RESOURCE_NAME = "openapi-doc-dygixywsw";
+    private static final String REL_PARAM = "rel=\"service-desc\"";
     private final byte[] payload;
 
     public HttpIntrospectionResource(HttpService httpService, byte[] payload) {
-        super(httpService, RESOURCE_NAME);
+        super(httpService, REL_PARAM, RESOURCE_NAME);
         this.payload = payload;
     }
 

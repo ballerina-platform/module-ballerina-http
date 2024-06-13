@@ -28,11 +28,10 @@ import static io.ballerina.stdlib.http.api.HttpConstants.SINGLE_SLASH;
  */
 public abstract class HttpOASResource extends HttpResource {
     protected static final String RESOURCE_METHOD = "$get$";
-    protected static final String REL_PARAM = "rel=\"service-desc\"";
 
-    public HttpOASResource(HttpService httpService, String resourcePath) {
+    public HttpOASResource(HttpService httpService, String rel, String resourcePath) {
         String path = (httpService.getBasePath() + SINGLE_SLASH + resourcePath).replaceAll("/+", SINGLE_SLASH);
-        httpService.addOasResourceLink("<" + path + ">;" + REL_PARAM);
+        httpService.addOasResourceLink("<" + path + ">;" + rel);
     }
 
     public String getName() {
