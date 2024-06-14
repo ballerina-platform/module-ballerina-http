@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+- [Generate and host SwaggerUI for the generated OpenAPI specification as a built-in resource](https://github.com/ballerina-platform/ballerina-library/issues/6622)
+
 ### Fixed
 
 - [Remove the resource level annotation restrictions](https://github.com/ballerina-platform/ballerina-library/issues/5831)
