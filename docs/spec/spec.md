@@ -43,7 +43,7 @@ The conforming implementation of the specification is released and included in t
             * 2.3.5.2. [Return nil](#2352-return-nil)
             * 2.3.5.3. [Default response status codes](#2353-default-response-status-codes)
         * 2.3.6. [OpenAPI specification resources](#236-openapi-specification-resources)
-            * 2.3.6.3. [Introspection resource](#2361-introspection-resource)
+            * 2.3.6.1. [Introspection resource](#2361-introspection-resource)
             * 2.3.6.2. [SwaggerUI resource](#2362-swaggerui-resource)
     * 2.4. [Client](#24-client)
         * 2.4.1. [Client types](#241-client-types)
