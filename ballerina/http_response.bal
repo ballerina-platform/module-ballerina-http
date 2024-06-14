@@ -541,12 +541,12 @@ public class Response {
     }
 
     isolated function buildStatusCodeResponse(typedesc<anydata>? payloadType, typedesc<StatusCodeResponse> statusCodeResType,
-        boolean requireValidation, Status status, map<string|int|boolean|string[]|int[]|boolean[]> headers, string? mediaType)
-            returns StatusCodeResponse|ClientError {
+        boolean requireValidation, Status status, map<string|int|boolean|string[]|int[]|boolean[]> headers, string? mediaType,
+        boolean fromDefaultStatusCodeMapping) returns StatusCodeResponse|ClientError {
         if payloadType !is () {
             anydata|ClientError payload = self.performDataBinding(payloadType, requireValidation);
             if payload is ClientError {
-                return payload;
+                return self.getStatusCodeResponseDataBindingError(payload.message(), fromDefaultStatusCodeMapping, PAYLOAD, payload);
             }
             return externBuildStatusCodeResponse(statusCodeResType, status, headers, payload, mediaType);
         } else {
@@ -562,18 +562,34 @@ public class Response {
         return payload;
     }
 
-    isolated function getStatusCodeResponseBindingError(string reasonPhrase, boolean generalError) returns ClientError {
+    isolated function getStatusCodeResponseBindingError(string reasonPhrase) returns ClientError {
         map<string[]> headers = getHeaders(self);
         anydata|error payload = getPayload(self);
         int statusCode = self.statusCode;
         if payload is error {
             if payload is NoContentError {
-                return createStatusCodeResponseBindingError(generalError, statusCode, reasonPhrase, headers);
+                return createStatusCodeResponseBindingError(statusCode, reasonPhrase, headers);
             }
             return error PayloadBindingClientError("http:StatusCodeBindingError creation failed: " + statusCode.toString() +
                 " response payload extraction failed", payload);
         } else {
-            return createStatusCodeResponseBindingError(generalError, statusCode, reasonPhrase, headers, payload);
+            return createStatusCodeResponseBindingError(statusCode, reasonPhrase, headers, payload);
+        }
+    }
+
+    isolated function getStatusCodeResponseDataBindingError(string reasonPhrase, boolean fromDefaultStatusCodeMapping,
+        DataBindingErrorType errorType, error? cause) returns ClientError {
+        map<string[]> headers = getHeaders(self);
+        anydata|error payload = getPayload(self);
+        int statusCode = self.statusCode;
+        if payload is error {
+            if payload is NoContentError {
+                return createStatusCodeResponseDataBindingError(errorType, fromDefaultStatusCodeMapping, statusCode, reasonPhrase, headers, cause = cause);
+            }
+            return error PayloadBindingClientError("http:StatusCodeBindingError creation failed: " + statusCode.toString() +
+                " response payload extraction failed", payload);
+        } else {
+            return createStatusCodeResponseDataBindingError(errorType, fromDefaultStatusCodeMapping, statusCode, reasonPhrase, headers, payload, cause);
         }
     }
 }
