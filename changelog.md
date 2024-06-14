@@ -5,7 +5,7 @@ This file contains all the notable changes done to the Ballerina HTTP package th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to 
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.11.2] - 2024-06-14
 
 ### Added
 - [Generate and host SwaggerUI for the generated OpenAPI specification as a built-in resource](https://github.com/ballerina-platform/ballerina-library/issues/6622)

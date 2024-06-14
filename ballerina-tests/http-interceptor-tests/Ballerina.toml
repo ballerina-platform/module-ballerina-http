@@ -14,4 +14,4 @@ graalvmCompatible = true
 
 [[platform.java17.dependency]]
 scope = "testOnly"
-path = "../../test-utils/build/libs/http-test-utils-2.11.2-SNAPSHOT.jar"
+path = "../../test-utils/build/libs/http-test-utils-2.11.2.jar"
