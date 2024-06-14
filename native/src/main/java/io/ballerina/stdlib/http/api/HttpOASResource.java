@@ -17,6 +17,7 @@
  */
 package io.ballerina.stdlib.http.api;
 
+import java.util.Collections;
 import java.util.List;
 
 import static io.ballerina.stdlib.http.api.HttpConstants.SINGLE_SLASH;
@@ -29,29 +30,34 @@ import static io.ballerina.stdlib.http.api.HttpConstants.SINGLE_SLASH;
 public abstract class HttpOASResource extends HttpResource {
     protected static final String RESOURCE_METHOD = "$get$";
 
-    public HttpOASResource(HttpService httpService, String rel, String resourcePath) {
+    protected HttpOASResource(HttpService httpService, String rel, String resourcePath) {
         String path = (httpService.getBasePath() + SINGLE_SLASH + resourcePath).replaceAll("/+", SINGLE_SLASH);
         httpService.addOasResourceLink("<" + path + ">;" + rel);
     }
 
+    @Override
     public String getName() {
         return String.format("%s%s", RESOURCE_METHOD, getResourceName());
     }
 
+    @Override
     public String getPath() {
         return String.format("%s%s", SINGLE_SLASH, getResourceName());
     }
 
+    @Override
     public List<String> getMethods() {
         return List.of(HttpConstants.HTTP_METHOD_GET);
     }
 
+    @Override
     public List<String> getConsumes() {
-        return null;
+        return Collections.emptyList();
     }
 
+    @Override
     public List<String> getProduces() {
-        return null;
+        return Collections.emptyList();
     }
 
     protected abstract String getResourceName();

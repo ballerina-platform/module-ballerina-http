@@ -182,7 +182,7 @@ public class ResourceDataElement implements DataElement<Resource, HttpCarbonMess
         String contentMediaType = extractContentMediaType(cMsg.getHeader(HttpHeaderNames.CONTENT_TYPE.toString()));
         List<String> consumesList = resource.getConsumes();
 
-        if (consumesList == null) {
+        if (consumesList == null || consumesList.isEmpty()) {
             return;
         }
         //when Content-Type header is not set, treat it as "application/octet-stream"
@@ -210,7 +210,7 @@ public class ResourceDataElement implements DataElement<Resource, HttpCarbonMess
         List<String> acceptMediaTypes = extractAcceptMediaTypes(cMsg.getHeader(HttpHeaderNames.ACCEPT.toString()));
         List<String> producesList = resource.getProduces();
 
-        if (producesList == null || acceptMediaTypes == null) {
+        if (producesList == null || producesList.isEmpty() || acceptMediaTypes == null) {
             return;
         }
         //If Accept header field is not present, then it is assumed that the client accepts all media types.
