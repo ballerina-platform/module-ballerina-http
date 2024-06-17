@@ -147,7 +147,7 @@ scope = "testOnly"
 [[package]]
 org = "ballerina"
 name = "jwt"
-version = "2.12.1"
+version = "2.11.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "cache"},
