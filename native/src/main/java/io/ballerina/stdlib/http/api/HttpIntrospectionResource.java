@@ -18,53 +18,40 @@
 
 package io.ballerina.stdlib.http.api;
 
-import java.util.List;
-
-import static io.ballerina.stdlib.http.api.HttpConstants.SINGLE_SLASH;
+import io.netty.handler.codec.http.HttpHeaderValues;
 
 /**
  * {@code HttpIntrospectionResource} is the resource which respond the service Open API JSON specification.
  *
  * @since SL beta 3
  */
-public class HttpIntrospectionResource extends HttpResource {
+public class HttpIntrospectionResource extends HttpOASResource {
 
     private static final String RESOURCE_NAME = "openapi-doc-dygixywsw";
-    private static final String RESOURCE_METHOD = "$get$";
     private static final String REL_PARAM = "rel=\"service-desc\"";
     private final byte[] payload;
 
-    protected HttpIntrospectionResource(HttpService httpService, byte[] payload) {
-        String path = (httpService.getBasePath() + SINGLE_SLASH + RESOURCE_NAME).replaceAll("/+", SINGLE_SLASH);
-        httpService.setIntrospectionResourcePathHeaderValue("<" + path + ">;" + REL_PARAM);
-        this.payload = payload.clone();
+    public HttpIntrospectionResource(HttpService httpService, byte[] payload) {
+        super(httpService, REL_PARAM, RESOURCE_NAME);
+        this.payload = payload;
     }
 
-    public String getName() {
-        return RESOURCE_METHOD + RESOURCE_NAME;
-    }
-
-    public String getPath() {
-        return SINGLE_SLASH + RESOURCE_NAME;
-    }
-
+    @Override
     public byte[] getPayload() {
         return this.payload.clone();
     }
 
-    public List<String> getMethods() {
-        return List.of(HttpConstants.HTTP_METHOD_GET);
+    @Override
+    protected String getResourceName() {
+        return RESOURCE_NAME;
     }
 
-    public List<String> getConsumes() {
-        return null;
+    @Override
+    public String getContentType() {
+        return HttpHeaderValues.APPLICATION_JSON.toString();
     }
 
-    public List<String> getProduces() {
-        return null;
-    }
-
-    public static String getIntrospectionResourceId() {
-        return RESOURCE_METHOD + RESOURCE_NAME;
+    public static String getResourceId() {
+        return String.format("%s%s", RESOURCE_METHOD, RESOURCE_NAME);
     }
 }
