@@ -1,7 +1,7 @@
 [package]
 org = "ballerina"
 name = "http"
-version = "2.10.13"
+version = "2.10.14"
 authors = ["Ballerina"]
 keywords = ["http", "network", "service", "listener", "client"]
 repository = "https://github.com/ballerina-platform/module-ballerina-http"
@@ -16,8 +16,8 @@ graalvmCompatible = true
 [[platform.java17.dependency]]
 groupId = "io.ballerina.stdlib"
 artifactId = "http-native"
-version = "2.10.13"
-path = "../native/build/libs/http-native-2.10.13.jar"
+version = "2.10.14"
+path = "../native/build/libs/http-native-2.10.14-SNAPSHOT.jar"
 
 [[platform.java17.dependency]]
 groupId = "io.ballerina.stdlib"
@@ -100,14 +100,20 @@ path = "./lib/netty-transport-native-unix-common-4.1.108.Final.jar"
 [[platform.java17.dependency]]
 groupId = "org.bouncycastle"
 artifactId = "bcprov-jdk18on"
-version = "1.74"
-path = "./lib/bcprov-jdk18on-1.74.jar"
+version = "1.78"
+path = "./lib/bcprov-jdk18on-1.78.jar"
+
+[[platform.java17.dependency]]
+groupId = "org.bouncycastle"
+artifactId = "bcutil-jdk18on"
+version = "1.78"
+path = "./lib/bcutil-jdk18on-1.78.jar"
 
 [[platform.java17.dependency]]
 groupId = "org.bouncycastle"
 artifactId = "bcpkix-jdk18on"
-version = "1.74"
-path = "./lib/bcpkix-jdk18on-1.74.jar"
+version = "1.78"
+path = "./lib/bcpkix-jdk18on-1.78.jar"
 
 [[platform.java17.dependency]]
 groupId = "io.netty"
