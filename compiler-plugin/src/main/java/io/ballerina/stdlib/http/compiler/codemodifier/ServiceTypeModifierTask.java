@@ -17,6 +17,7 @@
  */
 package io.ballerina.stdlib.http.compiler.codemodifier;
 
+import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.AbstractNodeFactory;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
@@ -58,6 +59,7 @@ import static io.ballerina.compiler.syntax.tree.SyntaxKind.COLON_TOKEN;
 import static io.ballerina.stdlib.http.compiler.Constants.COLON;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
 import static io.ballerina.stdlib.http.compiler.Constants.SERVICE_CONFIG_ANNOTATION;
+import static io.ballerina.stdlib.http.compiler.HttpServiceValidator.getServiceContractTypeDesc;
 
 /**
  * {@code ServiceTypeModifierTask} injects the `serviceType` field in the `http:ServiceConfig` annotation.
@@ -97,7 +99,8 @@ public class ServiceTypeModifierTask implements ModifierTask<SourceModifierConte
                                                       Module currentModule) {
         Document currentDoc = currentModule.document(documentId);
         ModulePartNode rootNode = currentDoc.syntaxTree().rootNode();
-        NodeList<ModuleMemberDeclarationNode> newMembers = updateMemberNodes(rootNode.members());
+        SemanticModel semanticModel = modifierContext.compilation().getSemanticModel(currentModule.moduleId());
+        NodeList<ModuleMemberDeclarationNode> newMembers = updateMemberNodes(rootNode.members(), semanticModel);
         ModulePartNode newModulePart = rootNode.modify(rootNode.imports(), newMembers, rootNode.eofToken());
         SyntaxTree updatedSyntaxTree = currentDoc.syntaxTree().modifyWith(newModulePart);
         TextDocument textDocument = updatedSyntaxTree.textDocument();
@@ -108,11 +111,12 @@ public class ServiceTypeModifierTask implements ModifierTask<SourceModifierConte
         }
     }
 
-    private NodeList<ModuleMemberDeclarationNode> updateMemberNodes(NodeList<ModuleMemberDeclarationNode> oldMembers) {
+    private NodeList<ModuleMemberDeclarationNode> updateMemberNodes(NodeList<ModuleMemberDeclarationNode> oldMembers,
+                                                                    SemanticModel semanticModel) {
         List<ModuleMemberDeclarationNode> updatedMembers = new ArrayList<>();
         for (ModuleMemberDeclarationNode memberNode : oldMembers) {
             if (memberNode.kind().equals(SyntaxKind.SERVICE_DECLARATION)) {
-                updatedMembers.add(updateServiceDeclarationNode((ServiceDeclarationNode) memberNode));
+                updatedMembers.add(updateServiceDeclarationNode((ServiceDeclarationNode) memberNode, semanticModel));
             } else {
                 updatedMembers.add(memberNode);
             }
@@ -120,8 +124,10 @@ public class ServiceTypeModifierTask implements ModifierTask<SourceModifierConte
         return AbstractNodeFactory.createNodeList(updatedMembers);
     }
 
-    private ServiceDeclarationNode updateServiceDeclarationNode(ServiceDeclarationNode serviceDeclarationNode) {
-        Optional<TypeDescriptorNode> serviceTypeDesc = serviceDeclarationNode.typeDescriptor();
+    private ServiceDeclarationNode updateServiceDeclarationNode(ServiceDeclarationNode serviceDeclarationNode,
+                                                                SemanticModel semanticModel) {
+        Optional<TypeDescriptorNode> serviceTypeDesc = getServiceContractTypeDesc(semanticModel,
+                serviceDeclarationNode);
         if (serviceTypeDesc.isEmpty()) {
             return serviceDeclarationNode;
         }
