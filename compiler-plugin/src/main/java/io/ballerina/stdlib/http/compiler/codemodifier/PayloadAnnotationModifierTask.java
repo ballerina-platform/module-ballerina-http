@@ -24,6 +24,7 @@ import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
+import io.ballerina.compiler.syntax.tree.MethodDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
@@ -46,6 +47,7 @@ import io.ballerina.projects.ModuleId;
 import io.ballerina.projects.plugins.ModifierTask;
 import io.ballerina.projects.plugins.SourceModifierContext;
 import io.ballerina.stdlib.http.compiler.Constants;
+import io.ballerina.stdlib.http.compiler.HttpResourceFunctionNode;
 import io.ballerina.stdlib.http.compiler.codemodifier.context.DocumentContext;
 import io.ballerina.stdlib.http.compiler.codemodifier.context.ResourceContext;
 import io.ballerina.stdlib.http.compiler.codemodifier.context.ServiceContext;
@@ -141,19 +143,24 @@ public class PayloadAnnotationModifierTask implements ModifierTask<SourceModifie
             ServiceContext serviceContext = documentContext.getServiceContext(serviceId);
             List<Node> resourceMembers = new ArrayList<>();
             for (Node member : members) {
-                if (member.kind() != SyntaxKind.RESOURCE_ACCESSOR_DEFINITION) {
+                HttpResourceFunctionNode resourceFunctionNode;
+                if (member.kind() == SyntaxKind.RESOURCE_ACCESSOR_DEFINITION) {
+                    resourceFunctionNode = new HttpResourceFunctionNode((FunctionDefinitionNode) member);
+                } else if (member.kind() != SyntaxKind.RESOURCE_ACCESSOR_DECLARATION) {
+                    resourceFunctionNode = new HttpResourceFunctionNode((MethodDeclarationNode) member);
+                } else {
                     resourceMembers.add(member);
                     continue;
                 }
-                FunctionDefinitionNode resourceNode = (FunctionDefinitionNode) member;
-                int resourceId = resourceNode.hashCode();
+
+                int resourceId = member.hashCode();
 
                 if (!serviceContext.containsResource(resourceId)) {
                     resourceMembers.add(member);
                     continue;
                 }
                 ResourceContext resourceContext = serviceContext.getResourceContext(resourceId);
-                FunctionSignatureNode functionSignatureNode = resourceNode.functionSignature();
+                FunctionSignatureNode functionSignatureNode = resourceFunctionNode.functionSignature();
                 SeparatedNodeList<ParameterNode> parameterNodes = functionSignatureNode.parameters();
                 List<Node> newParameterNodes = new ArrayList<>();
                 int index = 0;
@@ -183,22 +190,17 @@ public class PayloadAnnotationModifierTask implements ModifierTask<SourceModifie
                         new ArrayList<>(newParameterNodes));
                 signatureModifier.withParameters(separatedNodeList);
                 FunctionSignatureNode updatedFunctionNode = signatureModifier.apply();
-
-                FunctionDefinitionNode.FunctionDefinitionNodeModifier resourceModifier = resourceNode.modify();
-                resourceModifier.withFunctionSignature(updatedFunctionNode);
-                FunctionDefinitionNode updatedResourceNode = resourceModifier.apply();
+                Node updatedResourceNode = resourceFunctionNode.modify(updatedFunctionNode);
                 resourceMembers.add(updatedResourceNode);
             }
             NodeList<Node> resourceNodeList = AbstractNodeFactory.createNodeList(resourceMembers);
-            if (memberNode instanceof ServiceDeclarationNode) {
-                ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) memberNode;
+            if (memberNode instanceof ServiceDeclarationNode serviceNode) {
                 ServiceDeclarationNode.ServiceDeclarationNodeModifier serviceDeclarationNodeModifier =
                         serviceNode.modify();
                 ServiceDeclarationNode updatedServiceDeclarationNode =
                         serviceDeclarationNodeModifier.withMembers(resourceNodeList).apply();
                 updatedMembers.add(updatedServiceDeclarationNode);
-            } else if (memberNode.kind() == SyntaxKind.CLASS_DEFINITION) {
-                ClassDefinitionNode classDefinitionNode = (ClassDefinitionNode) memberNode;
+            } else if (memberNode instanceof ClassDefinitionNode classDefinitionNode) {
                 ClassDefinitionNode.ClassDefinitionNodeModifier classDefinitionNodeModifier =
                         classDefinitionNode.modify();
                 ClassDefinitionNode updatedClassDefinitionNode =

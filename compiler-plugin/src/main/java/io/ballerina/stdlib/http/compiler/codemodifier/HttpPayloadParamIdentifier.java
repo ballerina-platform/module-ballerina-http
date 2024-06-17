@@ -179,10 +179,10 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
                                           ServiceContext serviceContext, Map<String, TypeSymbol> typeSymbols) {
 
         Optional<Symbol> resourceMethodSymbolOptional = member.getSymbol(ctx.semanticModel());
-        int resourceId = member.hashCode();
         if (resourceMethodSymbolOptional.isEmpty()) {
             return;
         }
+        int resourceId = member.getResourceIdentifierCode();
         Optional<String> resourceMethodOptional = resourceMethodSymbolOptional.get().getName();
 
         if (resourceMethodOptional.isPresent()) {

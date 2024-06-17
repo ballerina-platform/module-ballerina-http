@@ -43,6 +43,7 @@ public class HttpResourceFunctionNode {
     NodeList<Node> resourcePath;
     FunctionSignatureNode functionSignatureNode;
     IdentifierToken functionName;
+    int hashCode;
 
     public HttpResourceFunctionNode(FunctionDefinitionNode functionDefinitionNode) {
         functionNode = new FunctionDefinitionNode(functionDefinitionNode.internalNode(),
@@ -51,6 +52,7 @@ public class HttpResourceFunctionNode {
         resourcePath = functionDefinitionNode.relativeResourcePath();
         functionSignatureNode = functionDefinitionNode.functionSignature();
         functionName = functionDefinitionNode.functionName();
+        hashCode = functionDefinitionNode.hashCode();
     }
 
     public HttpResourceFunctionNode(MethodDeclarationNode methodDeclarationNode) {
@@ -60,6 +62,7 @@ public class HttpResourceFunctionNode {
         resourcePath = methodDeclarationNode.relativeResourcePath();
         functionSignatureNode = methodDeclarationNode.methodSignature();
         functionName = methodDeclarationNode.methodName();
+        hashCode = methodDeclarationNode.hashCode();
     }
 
     public Optional<MetadataNode> metadata() {
@@ -90,5 +93,22 @@ public class HttpResourceFunctionNode {
 
     public Optional<Symbol> getSymbol(SemanticModel semanticModel) {
         return semanticModel.symbol(functionNode);
+    }
+
+    public Node modify(FunctionSignatureNode updatedFunctionNode) {
+        if (functionNode instanceof FunctionDefinitionNode functionDefNode) {
+            FunctionDefinitionNode.FunctionDefinitionNodeModifier resourceModifier = functionDefNode.modify();
+            resourceModifier.withFunctionSignature(updatedFunctionNode);
+            return resourceModifier.apply();
+        } else {
+            MethodDeclarationNode.MethodDeclarationNodeModifier resourceModifier =
+                    ((MethodDeclarationNode) functionNode).modify();
+            resourceModifier.withMethodSignature(updatedFunctionNode);
+            return resourceModifier.apply();
+        }
+    }
+
+    public int getResourceIdentifierCode() {
+        return hashCode;
     }
 }
