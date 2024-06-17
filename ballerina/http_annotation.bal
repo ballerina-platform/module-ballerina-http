@@ -89,7 +89,7 @@ public type HttpPayload record {|
 |};
 
 # The annotation which is used to define the Payload resource signature parameter and return parameter.
-public const annotation HttpPayload Payload on parameter, return;
+public annotation HttpPayload Payload on parameter, return;
 
 # Configures the typing details type of the Caller resource signature parameter.
 #
