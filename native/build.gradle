@@ -62,6 +62,7 @@ dependencies {
     implementation group: 'org.wso2.eclipse.osgi', name: 'org.eclipse.osgi', version:"${wso2EclipseOsgiVersion}"
     implementation group: 'commons-pool.wso2', name: 'commons-pool', version:"${wso2CommonsPoolVersion}"
     implementation group: 'org.bouncycastle', name: 'bcprov-jdk18on', version: "${bouncycastleVersion}"
+    implementation group: 'org.bouncycastle', name: 'bcutil-jdk18on', version: "${bouncycastleVersion}"
     implementation group: 'org.bouncycastle', name: 'bcpkix-jdk18on', version: "${bouncycastleVersion}"
     implementation group: 'jakarta.xml.bind', name: 'jakarta.xml.bind-api', version: "${jakartaXmlBindVersion}"
 
