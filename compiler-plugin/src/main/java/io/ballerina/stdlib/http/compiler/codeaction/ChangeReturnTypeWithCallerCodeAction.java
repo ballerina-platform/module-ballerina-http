@@ -20,7 +20,6 @@ import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.projects.plugins.codeaction.CodeAction;
-import io.ballerina.projects.plugins.codeaction.CodeActionArgument;
 import io.ballerina.projects.plugins.codeaction.CodeActionContext;
 import io.ballerina.projects.plugins.codeaction.CodeActionExecutionContext;
 import io.ballerina.projects.plugins.codeaction.CodeActionInfo;
@@ -37,7 +36,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static io.ballerina.stdlib.http.compiler.codeaction.Constants.NODE_LOCATION_KEY;
+import static io.ballerina.stdlib.http.compiler.codeaction.CodeActionUtil.getCodeActionInfoWithLocation;
+import static io.ballerina.stdlib.http.compiler.codeaction.CodeActionUtil.getLineRangeFromLocationKey;
 
 /**
  * Codeaction to change the return type to <pre>error?</pre> if the resource function has <pre>http:Caller</pre> as a
@@ -58,28 +58,22 @@ public class ChangeReturnTypeWithCallerCodeAction implements CodeAction {
             return Optional.empty();
         }
 
-        CodeActionArgument locationArg = CodeActionArgument.from(NODE_LOCATION_KEY, node.location().lineRange());
-        return Optional.of(CodeActionInfo.from("Change return type to 'error?'", List.of(locationArg)));
+        return getCodeActionInfoWithLocation(node, "Change return type to 'error?'");
     }
 
     @Override
     public List<DocumentEdit> execute(CodeActionExecutionContext context) {
-        LineRange lineRange = null;
-        for (CodeActionArgument argument : context.arguments()) {
-            if (NODE_LOCATION_KEY.equals(argument.key())) {
-                lineRange = argument.valueAs(LineRange.class);
-            }
-        }
+        Optional<LineRange> lineRange = getLineRangeFromLocationKey(context);
 
-        if (lineRange == null) {
+        if (lineRange.isEmpty()) {
             return Collections.emptyList();
         }
 
         SyntaxTree syntaxTree = context.currentDocument().syntaxTree();
         TextDocument textDocument = syntaxTree.textDocument();
 
-        int start = textDocument.textPositionFrom(lineRange.startLine());
-        int end = textDocument.textPositionFrom(lineRange.endLine());
+        int start = textDocument.textPositionFrom(lineRange.get().startLine());
+        int end = textDocument.textPositionFrom(lineRange.get().endLine());
 
         List<TextEdit> textEdits = new ArrayList<>();
         textEdits.add(TextEdit.from(TextRange.from(start, end - start), "error?"));

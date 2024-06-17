@@ -71,14 +71,12 @@ public class HttpService implements Service {
 
     private static final Logger log = LoggerFactory.getLogger(HttpService.class);
 
-    protected static final BString BASE_PATH_FIELD = fromString("basePath");
-    protected static final BString CORS_FIELD = fromString("cors");
-    private static final BString VERSIONING_FIELD = fromString("versioning");
-    protected static final BString HOST_FIELD = fromString("host");
-    protected static final BString OPENAPI_DEF_FIELD = fromString("openApiDefinition");
-    protected static final BString MEDIA_TYPE_SUBTYPE_PREFIX = fromString("mediaTypeSubtypePrefix");
-    protected static final BString TREAT_NILABLE_AS_OPTIONAL = fromString("treatNilableAsOptional");
-    protected static final BString DATA_VALIDATION = fromString("validation");
+    private static final BString CORS_FIELD = fromString("cors");
+    private static final BString HOST_FIELD = fromString("host");
+    private static final BString OPENAPI_DEF_FIELD = fromString("openApiDefinition");
+    private static final BString MEDIA_TYPE_SUBTYPE_PREFIX = fromString("mediaTypeSubtypePrefix");
+    private static final BString TREAT_NILABLE_AS_OPTIONAL = fromString("treatNilableAsOptional");
+    private static final BString DATA_VALIDATION = fromString("validation");
 
     private BObject balService;
     private List<HttpResource> resources;
@@ -239,25 +237,29 @@ public class HttpService implements Service {
     public static HttpService buildHttpService(BObject service, String basePath) {
         HttpService httpService = new HttpService(service, basePath);
         BMap serviceConfig = getHttpServiceConfigAnnotation(service);
+        httpService.populateServiceConfig(serviceConfig);
+        return httpService;
+    }
+
+    protected void populateServiceConfig(BMap serviceConfig) {
         if (checkConfigAnnotationAvailability(serviceConfig)) {
-            httpService.setCompressionConfig(
+            this.setCompressionConfig(
                     (BMap<BString, Object>) serviceConfig.get(HttpConstants.ANN_CONFIG_ATTR_COMPRESSION));
-            httpService.setChunkingConfig(serviceConfig.get(HttpConstants.ANN_CONFIG_ATTR_CHUNKING).toString());
-            httpService.setCorsHeaders(CorsHeaders.buildCorsHeaders(serviceConfig.getMapValue(CORS_FIELD)));
-            httpService.setHostName(serviceConfig.getStringValue(HOST_FIELD).getValue().trim());
-            httpService.setIntrospectionPayload(serviceConfig.getArrayValue(OPENAPI_DEF_FIELD).getByteArray());
+            this.setChunkingConfig(serviceConfig.get(HttpConstants.ANN_CONFIG_ATTR_CHUNKING).toString());
+            this.setCorsHeaders(CorsHeaders.buildCorsHeaders(serviceConfig.getMapValue(CORS_FIELD)));
+            this.setHostName(serviceConfig.getStringValue(HOST_FIELD).getValue().trim());
+            this.setIntrospectionPayload(serviceConfig.getArrayValue(OPENAPI_DEF_FIELD).getByteArray());
             if (serviceConfig.containsKey(MEDIA_TYPE_SUBTYPE_PREFIX)) {
-                httpService.setMediaTypeSubtypePrefix(serviceConfig.getStringValue(MEDIA_TYPE_SUBTYPE_PREFIX)
+                this.setMediaTypeSubtypePrefix(serviceConfig.getStringValue(MEDIA_TYPE_SUBTYPE_PREFIX)
                         .getValue().trim());
             }
-            httpService.setTreatNilableAsOptional(serviceConfig.getBooleanValue(TREAT_NILABLE_AS_OPTIONAL));
-            httpService.setConstraintValidation(serviceConfig.getBooleanValue(DATA_VALIDATION));
+            this.setTreatNilableAsOptional(serviceConfig.getBooleanValue(TREAT_NILABLE_AS_OPTIONAL));
+            this.setConstraintValidation(serviceConfig.getBooleanValue(DATA_VALIDATION));
         } else {
-            httpService.setHostName(HttpConstants.DEFAULT_HOST);
+            this.setHostName(HttpConstants.DEFAULT_HOST);
         }
-        processResources(httpService);
-        httpService.setAllAllowedMethods(DispatcherUtil.getAllResourceMethods(httpService));
-        return httpService;
+        processResources(this);
+        this.setAllAllowedMethods(DispatcherUtil.getAllResourceMethods(this));
     }
 
     protected static void processResources(HttpService httpService) {

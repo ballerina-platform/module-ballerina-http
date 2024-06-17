@@ -25,7 +25,6 @@ import io.ballerina.compiler.syntax.tree.RequiredParameterNode;
 import io.ballerina.compiler.syntax.tree.RestParameterNode;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.projects.plugins.codeaction.CodeAction;
-import io.ballerina.projects.plugins.codeaction.CodeActionArgument;
 import io.ballerina.projects.plugins.codeaction.CodeActionContext;
 import io.ballerina.projects.plugins.codeaction.CodeActionExecutionContext;
 import io.ballerina.projects.plugins.codeaction.CodeActionInfo;
@@ -44,7 +43,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static io.ballerina.stdlib.http.compiler.codeaction.Constants.NODE_LOCATION_KEY;
+import static io.ballerina.stdlib.http.compiler.codeaction.CodeActionUtil.getCodeActionInfoWithLocation;
+import static io.ballerina.stdlib.http.compiler.codeaction.CodeActionUtil.getLineRangeFromLocationKey;
 
 /**
  * Abstract implementation of code action to change a resource header param's type.
@@ -66,38 +66,27 @@ public abstract class ChangeHeaderParamTypeCodeAction implements CodeAction {
 
         DiagnosticProperty<?> diagnosticProperty = properties.get(0);
         if (!(diagnosticProperty instanceof BSymbolicProperty) || 
-                !(diagnosticProperty.value() instanceof ParameterSymbol)) {
+                !(diagnosticProperty.value() instanceof ParameterSymbol parameterSymbol)) {
             return Optional.empty();
         }
 
-        ParameterSymbol parameterSymbol = (ParameterSymbol) diagnosticProperty.value();
         Optional<NonTerminalNode> nonTerminalNode = parameterSymbol.getLocation()
                 .flatMap(location -> Optional.ofNullable(CodeActionUtil.findNode(syntaxTree, parameterSymbol)));
-        if (nonTerminalNode.isEmpty()) {
-            return Optional.empty();
-        }
+        return nonTerminalNode.flatMap(terminalNode -> getCodeActionInfoWithLocation(terminalNode,
+                String.format("Change header param to '%s'", headerParamType())));
 
-        CodeActionArgument locationArg = CodeActionArgument.from(NODE_LOCATION_KEY,
-                                                                 nonTerminalNode.get().location().lineRange());
-        return Optional.of(CodeActionInfo.from(String.format("Change header param to '%s'", headerParamType()),
-                List.of(locationArg)));
     }
 
     @Override
     public List<DocumentEdit> execute(CodeActionExecutionContext context) {
-        LineRange lineRange = null;
-        for (CodeActionArgument argument : context.arguments()) {
-            if (NODE_LOCATION_KEY.equals(argument.key())) {
-                lineRange = argument.valueAs(LineRange.class);
-            }
-        }
+        Optional<LineRange> lineRange = getLineRangeFromLocationKey(context);
 
-        if (lineRange == null) {
+        if (lineRange.isEmpty()) {
             return Collections.emptyList();
         }
 
         SyntaxTree syntaxTree = context.currentDocument().syntaxTree();
-        NonTerminalNode node = CodeActionUtil.findNode(syntaxTree, lineRange);
+        NonTerminalNode node = CodeActionUtil.findNode(syntaxTree, lineRange.get());
 
         TextRange typeNodeTextRange;
         switch (node.kind()) {

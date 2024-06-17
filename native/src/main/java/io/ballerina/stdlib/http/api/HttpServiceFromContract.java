@@ -24,9 +24,7 @@ import io.ballerina.runtime.api.types.ServiceType;
 import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
-import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
-import io.ballerina.stdlib.http.uri.DispatcherUtil;
 
 import java.util.Objects;
 
@@ -40,7 +38,7 @@ import static io.ballerina.stdlib.http.api.HttpUtil.checkConfigAnnotationAvailab
  */
 public class HttpServiceFromContract extends HttpService {
 
-    private ReferenceType serviceContractType;
+    private final ReferenceType serviceContractType;
 
     protected HttpServiceFromContract(BObject service, String basePath, ReferenceType httpServiceContractType) {
         super(service, basePath);
@@ -51,29 +49,19 @@ public class HttpServiceFromContract extends HttpService {
                                                ReferenceType serviceContractType) {
         HttpService httpService = new HttpServiceFromContract(service, basePath, serviceContractType);
         BMap serviceConfig = getHttpServiceConfigAnnotation(serviceContractType);
+        httpService.populateServiceConfig(serviceConfig);
+        return httpService;
+    }
+
+    @Override
+    protected void populateServiceConfig(BMap serviceConfig) {
         if (checkConfigAnnotationAvailability(serviceConfig)) {
             Object basePathFromAnnotation = serviceConfig.get(HttpConstants.ANN_CONFIG_BASE_PATH);
             if (Objects.nonNull(basePathFromAnnotation)) {
-                httpService.setBasePath(basePathFromAnnotation.toString());
+                this.setBasePath(basePathFromAnnotation.toString());
             }
-            httpService.setCompressionConfig(
-                    (BMap<BString, Object>) serviceConfig.get(HttpConstants.ANN_CONFIG_ATTR_COMPRESSION));
-            httpService.setChunkingConfig(serviceConfig.get(HttpConstants.ANN_CONFIG_ATTR_CHUNKING).toString());
-            httpService.setCorsHeaders(CorsHeaders.buildCorsHeaders(serviceConfig.getMapValue(CORS_FIELD)));
-            httpService.setHostName(serviceConfig.getStringValue(HOST_FIELD).getValue().trim());
-            httpService.setIntrospectionPayload(serviceConfig.getArrayValue(OPENAPI_DEF_FIELD).getByteArray());
-            if (serviceConfig.containsKey(MEDIA_TYPE_SUBTYPE_PREFIX)) {
-                httpService.setMediaTypeSubtypePrefix(serviceConfig.getStringValue(MEDIA_TYPE_SUBTYPE_PREFIX)
-                        .getValue().trim());
-            }
-            httpService.setTreatNilableAsOptional(serviceConfig.getBooleanValue(TREAT_NILABLE_AS_OPTIONAL));
-            httpService.setConstraintValidation(serviceConfig.getBooleanValue(DATA_VALIDATION));
-        } else {
-            httpService.setHostName(HttpConstants.DEFAULT_HOST);
         }
-        processResources(httpService);
-        httpService.setAllAllowedMethods(DispatcherUtil.getAllResourceMethods(httpService));
-        return httpService;
+        super.populateServiceConfig(serviceConfig);
     }
 
     public static BMap getHttpServiceConfigAnnotation(ReferenceType serviceContractType) {

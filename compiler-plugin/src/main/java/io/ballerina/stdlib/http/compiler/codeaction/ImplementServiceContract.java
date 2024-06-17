@@ -33,7 +33,6 @@ import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
 import io.ballerina.projects.plugins.codeaction.CodeAction;
-import io.ballerina.projects.plugins.codeaction.CodeActionArgument;
 import io.ballerina.projects.plugins.codeaction.CodeActionContext;
 import io.ballerina.projects.plugins.codeaction.CodeActionExecutionContext;
 import io.ballerina.projects.plugins.codeaction.CodeActionInfo;
@@ -55,8 +54,9 @@ import java.util.regex.Pattern;
 
 import static io.ballerina.stdlib.http.compiler.HttpServiceContractResourceValidator.constructResourcePathName;
 import static io.ballerina.stdlib.http.compiler.HttpServiceValidator.getServiceContractTypeDesc;
+import static io.ballerina.stdlib.http.compiler.codeaction.CodeActionUtil.getCodeActionInfoWithLocation;
+import static io.ballerina.stdlib.http.compiler.codeaction.CodeActionUtil.getLineRangeFromLocationKey;
 import static io.ballerina.stdlib.http.compiler.codeaction.Constants.LS;
-import static io.ballerina.stdlib.http.compiler.codeaction.Constants.NODE_LOCATION_KEY;
 
 /**
  * Represents a code action to implement all the resource methods from the service contract type.
@@ -77,27 +77,20 @@ public class ImplementServiceContract implements CodeAction {
             return Optional.empty();
         }
 
-        CodeActionArgument locationArg = CodeActionArgument.from(NODE_LOCATION_KEY, node.location().lineRange());
-        return Optional.of(CodeActionInfo.from("Implement all the resource methods from service contract",
-                List.of(locationArg)));
+        return getCodeActionInfoWithLocation(node, "Implement all the resource methods from service contract");
     }
 
     @Override
     public List<DocumentEdit> execute(CodeActionExecutionContext context) {
-        LineRange lineRange = null;
-        for (CodeActionArgument argument : context.arguments()) {
-            if (NODE_LOCATION_KEY.equals(argument.key())) {
-                lineRange = argument.valueAs(LineRange.class);
-            }
-        }
+        Optional<LineRange> lineRange = getLineRangeFromLocationKey(context);
 
-        if (lineRange == null) {
+        if (lineRange.isEmpty()) {
             return Collections.emptyList();
         }
 
         SyntaxTree syntaxTree = context.currentDocument().syntaxTree();
         SemanticModel semanticModel = context.currentSemanticModel();
-        NonTerminalNode node = CodeActionUtil.findNode(syntaxTree, lineRange);
+        NonTerminalNode node = CodeActionUtil.findNode(syntaxTree, lineRange.get());
         if (!node.kind().equals(SyntaxKind.SERVICE_DECLARATION)) {
             return Collections.emptyList();
         }
