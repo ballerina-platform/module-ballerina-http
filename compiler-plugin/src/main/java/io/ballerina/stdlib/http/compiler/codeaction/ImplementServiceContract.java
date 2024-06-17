@@ -160,7 +160,7 @@ public class ImplementServiceContract implements CodeAction {
     }
 
     private String sanitizePackageNames(String input) {
-        Pattern pattern = Pattern.compile("(\\w+)/(\\w+:)(\\d+.\\d+.\\d+):");
+        Pattern pattern = Pattern.compile("(\\w+)/(\\w+:)(\\d+\\.\\d+\\.\\d+):");
         Matcher matcher = pattern.matcher(input);
         return matcher.replaceAll("$2");
     }
