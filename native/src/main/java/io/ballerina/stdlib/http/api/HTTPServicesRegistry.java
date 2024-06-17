@@ -104,13 +104,15 @@ public class HTTPServicesRegistry {
      * Register a service into the map.
      *
      * @param service  requested serviceInfo to be registered.
-     * @param basePath absolute resource path of the service
+     * @param basePathFromDeclaration absolute resource path of the service
      */
-    public void registerService(BObject service, String basePath) {
+    public void registerService(BObject service, String basePathFromDeclaration) {
         Optional<ReferenceType> serviceContractType = getServiceContractType(service);
         HttpService httpService = serviceContractType.map(referenceType ->
-                        HttpServiceFromContract.buildHttpService(service, basePath, referenceType)).orElseGet(
-                                () -> HttpService.buildHttpService(service, basePath));
+                HttpServiceFromContract.buildHttpService(service, basePathFromDeclaration,
+                        referenceType)).orElseGet(
+                                () -> HttpService.buildHttpService(service, basePathFromDeclaration));
+        String basePath = httpService.getBasePath();
         service.addNativeData(HttpConstants.ABSOLUTE_RESOURCE_PATH, basePath);
         String hostName = httpService.getHostName();
         if (servicesMapByHost.get(hostName) == null) {

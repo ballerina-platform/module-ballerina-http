@@ -24,8 +24,9 @@
 # + mediaTypeSubtypePrefix - Service specific media-type subtype prefix
 # + treatNilableAsOptional - Treat Nilable parameters as optional
 # + openApiDefinition - The generated OpenAPI definition for the HTTP service. This is auto-generated at compile-time if OpenAPI doc auto generation is enabled
-# + validation - Enables the inbound payload validation functionalty which provided by the constraint package. Enabled by default
-# + serviceType - The service object type which defines the service contract
+# + validation - Enables the inbound payload validation functionality which provided by the constraint package. Enabled by default
+# + serviceType - The service object type which defines the service contract. This is auto-generated at compile-time
+# + basePath - Base path to be used with the service implementation. This is only allowed on service contract types
 public type HttpServiceConfig record {|
     string host = "b7a.default";
     CompressionConfig compression = {};
@@ -37,6 +38,7 @@ public type HttpServiceConfig record {|
     byte[] openApiDefinition = [];
     boolean validation = true;
     typedesc<ServiceContract> serviceType?;
+    string basePath?;
 |};
 
 # Configurations for CORS support.
@@ -154,12 +156,3 @@ public type HttpCacheConfig record {|
 # Success(2XX) `StatusCodeResponses` return types. Default annotation adds `must-revalidate,public,max-age=3600` as
 # `cache-control` header in addition to `etag` and `last-modified` headers.
 public annotation HttpCacheConfig Cache on return;
-
-# Service contract configuration
-# + basePath - Base path for generated service contract
-public type ServiceContractConfiguration record {|
-    string basePath;
-|};
-
-# Annotation for mapping service contract information to a Ballerina service type.
-public const annotation ServiceContractConfiguration ServiceContractConfig on type;

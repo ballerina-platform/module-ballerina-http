@@ -19,7 +19,6 @@
 package io.ballerina.stdlib.http.compiler;
 
 import io.ballerina.compiler.api.SemanticModel;
-import io.ballerina.compiler.api.symbols.AnnotationAttachmentSymbol;
 import io.ballerina.compiler.api.symbols.ObjectTypeSymbol;
 import io.ballerina.compiler.api.symbols.ServiceDeclarationSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
@@ -28,9 +27,7 @@ import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
-import io.ballerina.compiler.api.values.ConstantValue;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
-import io.ballerina.compiler.syntax.tree.BasicLiteralNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingFieldNode;
@@ -60,6 +57,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static io.ballerina.stdlib.http.compiler.Constants.BALLERINA;
+import static io.ballerina.stdlib.http.compiler.Constants.BASE_PATH;
 import static io.ballerina.stdlib.http.compiler.Constants.COLON;
 import static io.ballerina.stdlib.http.compiler.Constants.DEFAULT;
 import static io.ballerina.stdlib.http.compiler.Constants.EMPTY;
@@ -69,10 +67,8 @@ import static io.ballerina.stdlib.http.compiler.Constants.MEDIA_TYPE_SUBTYPE_REG
 import static io.ballerina.stdlib.http.compiler.Constants.PLUS;
 import static io.ballerina.stdlib.http.compiler.Constants.REMOTE_KEYWORD;
 import static io.ballerina.stdlib.http.compiler.Constants.SERVICE_CONFIG_ANNOTATION;
-import static io.ballerina.stdlib.http.compiler.Constants.SERVICE_CONTRACT_CONFIG_ANNOTATION;
 import static io.ballerina.stdlib.http.compiler.Constants.SERVICE_CONTRACT_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.SERVICE_TYPE;
-import static io.ballerina.stdlib.http.compiler.Constants.SERVICE_CONTRACT_CONFIG;
 import static io.ballerina.stdlib.http.compiler.Constants.SUFFIX_SEPARATOR_REGEX;
 import static io.ballerina.stdlib.http.compiler.Constants.UNNECESSARY_CHARS_REGEX;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.getCtxTypes;
@@ -102,10 +98,8 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
         Optional<TypeDescriptorNode> serviceTypeDesc = getServiceContractTypeDesc(
                 syntaxNodeAnalysisContext.semanticModel(), serviceDeclarationNode);
 
-        if (serviceTypeDesc.isPresent() && !validateBasePathFromServiceType(syntaxNodeAnalysisContext,
-                serviceTypeDesc.get(), serviceDeclarationNode)) {
-            return;
-        }
+        serviceTypeDesc.ifPresent(typeDescriptorNode ->
+                checkBasePathExistence(syntaxNodeAnalysisContext, serviceDeclarationNode));
 
         Optional<MetadataNode> metadataNodeOptional = serviceDeclarationNode.metadata();
         metadataNodeOptional.ifPresent(metadataNode -> validateServiceAnnotation(syntaxNodeAnalysisContext,
@@ -182,98 +176,12 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
         return serviceObjTypeSymbol.methods().keySet();
     }
 
-    private static boolean validateBasePathFromServiceType(SyntaxNodeAnalysisContext ctx,
-                                                           TypeDescriptorNode serviceTypeDesc,
-                                                           ServiceDeclarationNode serviceDeclarationNode) {
-        SemanticModel semanticModel = ctx.semanticModel();
-        Optional<Symbol> serviceTypeSymbol = semanticModel.symbol(serviceTypeDesc);
-        if (serviceTypeSymbol.isEmpty() ||
-                !(serviceTypeSymbol.get() instanceof TypeReferenceTypeSymbol serviceTypeRef)) {
-            return true;
-        }
-
-        Symbol serviceTypeDef = serviceTypeRef.definition();
-        if (Objects.isNull(serviceTypeDef) || !(serviceTypeDef instanceof TypeDefinitionSymbol serviceType)) {
-            return true;
-        }
-
-        Optional<AnnotationAttachmentSymbol> serviceTypeInfo = serviceType.annotAttachments().stream().filter(
-                annotationAttachment -> isOpenServiceTypeInfoAnnotation(annotationAttachment, semanticModel)
-        ).findFirst();
-        if (serviceTypeInfo.isEmpty() || !serviceTypeInfo.get().isConstAnnotation()) {
-            return true;
-        }
-
-        Optional<String> expectedBasePathOpt = getBasePathFromServiceTypeInfo(serviceTypeInfo.get());
-        if (expectedBasePathOpt.isEmpty()) {
-            return true;
-        }
-
-        String expectedBasePath = expectedBasePathOpt.get().trim();
-
+    private static void checkBasePathExistence(SyntaxNodeAnalysisContext ctx,
+                                               ServiceDeclarationNode serviceDeclarationNode) {
         NodeList<Node> nodes = serviceDeclarationNode.absoluteResourcePath();
-        if (nodes.isEmpty()) {
-            if (!expectedBasePath.equals("/")) {
-                reportBasePathNotFound(ctx, expectedBasePath, serviceTypeDesc.location());
-                return false;
-            }
-            return true;
+        if (!nodes.isEmpty()) {
+            reportBasePathNotAllowed(ctx, nodes);
         }
-
-        String actualBasePath = constructBasePathFormNodeList(nodes);
-        if (!actualBasePath.equals(expectedBasePath)) {
-            reportInvalidBasePathFound(ctx, expectedBasePath, actualBasePath, nodes);
-            return false;
-        }
-        return true;
-    }
-
-    private static String constructBasePathFormNodeList(NodeList<Node> nodes) {
-        // Handle string literal values
-        if (nodes.size() == 1 && nodes.get(0).kind().equals(SyntaxKind.STRING_LITERAL)) {
-            String basicLiteralText = ((BasicLiteralNode) nodes.get(0)).literalToken().text();
-            return basicLiteralText.substring(1, basicLiteralText.length() - 1);
-        }
-
-        StringBuilder basePath = new StringBuilder();
-        for (Node node : nodes) {
-            if (node.kind().equals(SyntaxKind.SLASH_TOKEN)) {
-                basePath.append("/");
-            } else if (node.kind().equals(SyntaxKind.IDENTIFIER_TOKEN)) {
-                basePath.append(((Token) node).text().replaceAll("\\\\", "").replaceAll("'", ""));
-            }
-        }
-        return basePath.toString();
-    }
-
-    private static boolean isOpenServiceTypeInfoAnnotation(AnnotationAttachmentSymbol annotationAttachmentSymbol,
-                                                           SemanticModel semanticModel) {
-        Optional<Symbol> serviceTypeInfo = semanticModel.types().getTypeByName(BALLERINA, HTTP, EMPTY,
-                SERVICE_CONTRACT_CONFIG);
-        Optional<TypeSymbol> annotationDescType = annotationAttachmentSymbol.typeDescriptor().typeDescriptor();
-        if (annotationDescType.isPresent() && serviceTypeInfo.isPresent() &&
-                serviceTypeInfo.get() instanceof TypeDefinitionSymbol serviceTypeInfoSymbol) {
-            return annotationDescType.get().subtypeOf(serviceTypeInfoSymbol.typeDescriptor());
-        }
-        return false;
-    }
-
-    private static Optional<String> getBasePathFromServiceTypeInfo(AnnotationAttachmentSymbol serviceTypeInfo) {
-        Optional<ConstantValue> serviceTypeInfoValue = serviceTypeInfo.attachmentValue();
-        if (serviceTypeInfoValue.isEmpty()) {
-            return Optional.empty();
-        }
-        Object serviceTypeInfoMapObject = serviceTypeInfoValue.get().value();
-        if (serviceTypeInfoMapObject instanceof Map<?, ?> serviceTypeInfoMap) {
-            Object basePath = serviceTypeInfoMap.get("basePath");
-            if (Objects.nonNull(basePath) && basePath instanceof ConstantValue basePathConstant) {
-                Object basePathString = basePathConstant.value();
-                if (Objects.nonNull(basePathString) && basePathString instanceof String basePathStrValue) {
-                    return Optional.of(basePathStrValue);
-                }
-            }
-        }
-        return Optional.empty();
     }
 
     protected static void validateResources(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext,
@@ -389,15 +297,6 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
         return false;
     }
 
-    public static TypeDescKind getReferencedTypeDescKind(TypeSymbol typeSymbol) {
-        TypeDescKind kind = typeSymbol.typeKind();
-        if (kind == TypeDescKind.TYPE_REFERENCE) {
-            TypeSymbol typeDescriptor = ((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor();
-            kind = getReferencedTypeDescKind(typeDescriptor);
-        }
-        return kind;
-    }
-
     private static void validateResourceLinks(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext,
                                        LinksMetaData linksMetaData) {
         if (!linksMetaData.hasNameReferenceObjects()) {
@@ -466,13 +365,8 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
                             serviceTypeDesc);
                     return;
                 }
-                if (annotValue.isPresent()) {
-                    validateServiceConfigAnnotation(ctx, annotValue);
-                }
-            }
-            if (SERVICE_CONTRACT_CONFIG_ANNOTATION.equals(annotStrings[annotStrings.length - 1].trim())
-                    && HTTP.equals(annotStrings[0].trim()) && !isServiceContractType) {
-                reportServiceContractTypeAnnotationNotAllowedFound(ctx, annotation.location());
+                annotValue.ifPresent(mappingConstructorExpressionNode ->
+                        validateServiceConfigAnnotation(ctx, mappingConstructorExpressionNode, isServiceContractType));
             }
         }
     }
@@ -506,8 +400,8 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
     }
 
     protected static void validateServiceConfigAnnotation(SyntaxNodeAnalysisContext ctx,
-                                                          Optional<MappingConstructorExpressionNode> maps) {
-        MappingConstructorExpressionNode mapping = maps.get();
+                                                          MappingConstructorExpressionNode mapping,
+                                                          boolean isServiceContractType) {
         for (MappingFieldNode field : mapping.fields()) {
             String fieldName = field.toString();
             fieldName = fieldName.trim().replaceAll(UNNECESSARY_CHARS_REGEX, "");
@@ -524,6 +418,8 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
                     }
                 } else if (SERVICE_TYPE.equals(strings[0].trim())) {
                     reportServiceTypeNotAllowedFound(ctx, field.location());
+                } else if (BASE_PATH.equals(strings[0].trim()) && !isServiceContractType) {
+                    reportBasePathFieldNotAllowed(ctx, field.location());
                 }
             }
         }
@@ -572,28 +468,21 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
         updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_156, expectedServiceType, actualServiceType);
     }
 
-    private static void reportBasePathNotFound(SyntaxNodeAnalysisContext ctx, String expectedBasePath,
-                                               Location location) {
-        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_154, expectedBasePath);
-    }
-
-    private static void reportInvalidBasePathFound(SyntaxNodeAnalysisContext ctx, String expectedBasePath,
-                                                   String actualBasePath, NodeList<Node> nodes) {
+    private static void reportBasePathNotAllowed(SyntaxNodeAnalysisContext ctx, NodeList<Node> nodes) {
         Location startLocation = nodes.get(0).location();
         Location endLocation = nodes.get(nodes.size() - 1).location();
         BLangDiagnosticLocation location = new BLangDiagnosticLocation(startLocation.lineRange().fileName(),
                 startLocation.lineRange().startLine().line(), startLocation.lineRange().endLine().line(),
                 startLocation.lineRange().startLine().offset(), endLocation.lineRange().endLine().offset(), 0, 0);
-        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_155, expectedBasePath, actualBasePath);
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_154);
+    }
+
+    private static void reportBasePathFieldNotAllowed(SyntaxNodeAnalysisContext ctx, Location location) {
+        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_155);
     }
 
     private static void reportServiceTypeNotAllowedFound(SyntaxNodeAnalysisContext ctx, NodeLocation location) {
         updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_157);
-    }
-
-    private static void reportServiceContractTypeAnnotationNotAllowedFound(SyntaxNodeAnalysisContext ctx,
-                                                                           NodeLocation location) {
-        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_161);
     }
 
     private static void enableImplementServiceContractCodeAction(SyntaxNodeAnalysisContext ctx, String serviceType,

@@ -23,14 +23,12 @@ import io.ballerina.projects.plugins.CompilerPlugin;
 import io.ballerina.projects.plugins.CompilerPluginContext;
 import io.ballerina.projects.plugins.codeaction.CodeAction;
 import io.ballerina.projects.plugins.completion.CompletionProvider;
-import io.ballerina.stdlib.http.compiler.codeaction.AddBasePathCodeAction;
 import io.ballerina.stdlib.http.compiler.codeaction.AddHeaderParameterCodeAction;
 import io.ballerina.stdlib.http.compiler.codeaction.AddInterceptorRemoteMethodCodeAction;
 import io.ballerina.stdlib.http.compiler.codeaction.AddInterceptorResourceMethodCodeAction;
 import io.ballerina.stdlib.http.compiler.codeaction.AddPayloadParameterCodeAction;
 import io.ballerina.stdlib.http.compiler.codeaction.AddResponseCacheConfigCodeAction;
 import io.ballerina.stdlib.http.compiler.codeaction.AddResponseContentTypeCodeAction;
-import io.ballerina.stdlib.http.compiler.codeaction.ChangeBasePathCodeAction;
 import io.ballerina.stdlib.http.compiler.codeaction.ChangeHeaderParamTypeToStringArrayCodeAction;
 import io.ballerina.stdlib.http.compiler.codeaction.ChangeHeaderParamTypeToStringCodeAction;
 import io.ballerina.stdlib.http.compiler.codeaction.ChangeReturnTypeWithCallerCodeAction;
@@ -64,9 +62,7 @@ public class HttpCompilerPlugin extends CompilerPlugin {
                 new AddResponseCacheConfigCodeAction(),
                 new AddInterceptorResourceMethodCodeAction(),
                 new AddInterceptorRemoteMethodCodeAction(),
-                new ImplementServiceContract(),
-                new AddBasePathCodeAction(),
-                new ChangeBasePathCodeAction()
+                new ImplementServiceContract()
         );
     }
 

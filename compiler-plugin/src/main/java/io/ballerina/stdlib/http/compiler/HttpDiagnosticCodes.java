@@ -109,10 +109,10 @@ public enum HttpDiagnosticCodes {
             ERROR),
     HTTP_153("HTTP_153", "'http:ServiceConfig' annotation is not allowed for service declaration implemented via the " +
             "'http:ServiceContract' type. The HTTP annotations are inferred from the service contract type", ERROR),
-    HTTP_154("HTTP_154", "base path not found for the service defined with 'http:ServiceContract' type. " +
-            "Expected base path is '%s'", ERROR),
-    HTTP_155("HTTP_155", "invalid base path found for the service defined with 'http:ServiceContract' type." +
-            " Expected base path is '%s', but found '%s'", ERROR),
+    HTTP_154("HTTP_154", "base path not allowed in the service declaration which is implemented via the " +
+            "'http:ServiceContract' type. The base path is inferred from the service contract type", ERROR),
+    HTTP_155("HTTP_155", "configuring base path in the 'http:ServiceConfig' annotation is not allowed for non service" +
+            " contract types", ERROR),
     HTTP_156("HTTP_156", "invalid service type descriptor found in 'http:ServiceConfig' annotation. " +
             "Expected service type: '%s' but found: '%s'", ERROR),
     HTTP_157("HTTP_157", "'serviceType' is not allowed in the service which is not implemented " +
@@ -123,8 +123,6 @@ public enum HttpDiagnosticCodes {
             "'http:ServiceContract' type. The HTTP annotations are inferred from the service contract type", ERROR),
     HTTP_160("HTTP_160", "'%s' annotation is not allowed for resource function implemented via the " +
             "'http:ServiceContract' type. The HTTP annotations are inferred from the service contract type", ERROR),
-    HTTP_161("HTTP_161", "'http:ServiceContractConfig' annotation is only allowed for service object type " +
-            "including 'http:ServiceContract' type", ERROR),
 
     HTTP_HINT_101("HTTP_HINT_101", "Payload annotation can be added", INTERNAL),
     HTTP_HINT_102("HTTP_HINT_102", "Header annotation can be added", INTERNAL),

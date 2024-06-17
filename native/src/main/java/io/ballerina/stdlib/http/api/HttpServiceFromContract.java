@@ -28,6 +28,8 @@ import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.uri.DispatcherUtil;
 
+import java.util.Objects;
+
 import static io.ballerina.runtime.api.utils.StringUtils.fromString;
 import static io.ballerina.stdlib.http.api.HttpUtil.checkConfigAnnotationAvailability;
 
@@ -50,6 +52,10 @@ public class HttpServiceFromContract extends HttpService {
         HttpService httpService = new HttpServiceFromContract(service, basePath, serviceContractType);
         BMap serviceConfig = getHttpServiceConfigAnnotation(serviceContractType);
         if (checkConfigAnnotationAvailability(serviceConfig)) {
+            Object basePathFromAnnotation = serviceConfig.get(HttpConstants.ANN_CONFIG_BASE_PATH);
+            if (Objects.nonNull(basePathFromAnnotation)) {
+                httpService.setBasePath(basePathFromAnnotation.toString());
+            }
             httpService.setCompressionConfig(
                     (BMap<BString, Object>) serviceConfig.get(HttpConstants.ANN_CONFIG_ATTR_COMPRESSION));
             httpService.setChunkingConfig(serviceConfig.get(HttpConstants.ANN_CONFIG_ATTR_CHUNKING).toString());

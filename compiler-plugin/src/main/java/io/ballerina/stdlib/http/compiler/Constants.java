@@ -26,7 +26,6 @@ public final class Constants {
 
     public static final String BALLERINA = "ballerina";
     public static final String HTTP = "http";
-    public static final String SERVICE_CONTRACT_CONFIG = "ServiceContractConfiguration";
     public static final String SERVICE_CONTRACT_TYPE = "ServiceContract";
     public static final String HTTP_SERVICE_TYPE = "Service";
     public static final String SERVICE_TYPE = "serviceType";
@@ -81,9 +80,8 @@ public final class Constants {
     public static final String CALLER_ANNOTATION = "Caller";
     public static final String CACHE_ANNOTATION = "Cache";
     public static final String SERVICE_CONFIG_ANNOTATION = "ServiceConfig";
-    public static final String SERVICE_CONTRACT_CONFIG_ANNOTATION = "ServiceContractConfig";
     public static final String MEDIA_TYPE_SUBTYPE_PREFIX = "mediaTypeSubtypePrefix";
-    public static final String INTERCEPTABLE_SERVICE = "InterceptableService";
+    public static final String BASE_PATH = "basePath";
     public static final String RESOURCE_CONFIG_ANNOTATION = "ResourceConfig";
     public static final String PAYLOAD_ANNOTATION_TYPE = "HttpPayload";
     public static final String CALLER_ANNOTATION_TYPE = "HttpCallerInfo";
