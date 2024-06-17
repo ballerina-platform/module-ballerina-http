@@ -146,7 +146,7 @@ public class PayloadAnnotationModifierTask implements ModifierTask<SourceModifie
                 HttpResourceFunctionNode resourceFunctionNode;
                 if (member.kind() == SyntaxKind.RESOURCE_ACCESSOR_DEFINITION) {
                     resourceFunctionNode = new HttpResourceFunctionNode((FunctionDefinitionNode) member);
-                } else if (member.kind() != SyntaxKind.RESOURCE_ACCESSOR_DECLARATION) {
+                } else if (member.kind() == SyntaxKind.RESOURCE_ACCESSOR_DECLARATION) {
                     resourceFunctionNode = new HttpResourceFunctionNode((MethodDeclarationNode) member);
                 } else {
                     resourceMembers.add(member);
