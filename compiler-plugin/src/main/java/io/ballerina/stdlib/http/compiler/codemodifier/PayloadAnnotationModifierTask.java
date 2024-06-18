@@ -47,7 +47,9 @@ import io.ballerina.projects.ModuleId;
 import io.ballerina.projects.plugins.ModifierTask;
 import io.ballerina.projects.plugins.SourceModifierContext;
 import io.ballerina.stdlib.http.compiler.Constants;
-import io.ballerina.stdlib.http.compiler.HttpResourceFunctionNode;
+import io.ballerina.stdlib.http.compiler.ResourceFunction;
+import io.ballerina.stdlib.http.compiler.ResourceFunctionDeclaration;
+import io.ballerina.stdlib.http.compiler.ResourceFunctionDefinition;
 import io.ballerina.stdlib.http.compiler.codemodifier.context.DocumentContext;
 import io.ballerina.stdlib.http.compiler.codemodifier.context.ResourceContext;
 import io.ballerina.stdlib.http.compiler.codemodifier.context.ServiceContext;
@@ -143,11 +145,11 @@ public class PayloadAnnotationModifierTask implements ModifierTask<SourceModifie
             ServiceContext serviceContext = documentContext.getServiceContext(serviceId);
             List<Node> resourceMembers = new ArrayList<>();
             for (Node member : members) {
-                HttpResourceFunctionNode resourceFunctionNode;
+                ResourceFunction resourceFunctionNode;
                 if (member.kind() == SyntaxKind.RESOURCE_ACCESSOR_DEFINITION) {
-                    resourceFunctionNode = new HttpResourceFunctionNode((FunctionDefinitionNode) member);
+                    resourceFunctionNode = new ResourceFunctionDefinition((FunctionDefinitionNode) member);
                 } else if (member.kind() == SyntaxKind.RESOURCE_ACCESSOR_DECLARATION) {
-                    resourceFunctionNode = new HttpResourceFunctionNode((MethodDeclarationNode) member);
+                    resourceFunctionNode = new ResourceFunctionDeclaration((MethodDeclarationNode) member);
                 } else {
                     resourceMembers.add(member);
                     continue;
@@ -190,7 +192,7 @@ public class PayloadAnnotationModifierTask implements ModifierTask<SourceModifie
                         new ArrayList<>(newParameterNodes));
                 signatureModifier.withParameters(separatedNodeList);
                 FunctionSignatureNode updatedFunctionNode = signatureModifier.apply();
-                Node updatedResourceNode = resourceFunctionNode.modify(updatedFunctionNode);
+                Node updatedResourceNode = resourceFunctionNode.modifyWithSignature(updatedFunctionNode);
                 resourceMembers.add(updatedResourceNode);
             }
             NodeList<Node> resourceNodeList = AbstractNodeFactory.createNodeList(resourceMembers);

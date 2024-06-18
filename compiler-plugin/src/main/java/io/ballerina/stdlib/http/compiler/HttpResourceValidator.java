@@ -135,7 +135,7 @@ public final class HttpResourceValidator {
 
     static void validateResource(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
                                  LinksMetaData linksMetaData, Map<String, TypeSymbol> typeSymbols) {
-        HttpResourceFunctionNode functionNode = new HttpResourceFunctionNode(member);
+        ResourceFunction functionNode = new ResourceFunctionDefinition(member);
         extractResourceAnnotationAndValidate(ctx, functionNode, linksMetaData);
         extractInputParamTypeAndValidate(ctx, functionNode, false, typeSymbols);
         extractReturnTypeAndValidate(ctx, functionNode, typeSymbols);
@@ -144,14 +144,14 @@ public final class HttpResourceValidator {
 
     static void validateResource(SyntaxNodeAnalysisContext ctx, MethodDeclarationNode member,
                                  LinksMetaData linksMetaData, Map<String, TypeSymbol> typeSymbols) {
-        HttpResourceFunctionNode functionNode = new HttpResourceFunctionNode(member);
+        ResourceFunction functionNode = new ResourceFunctionDeclaration(member);
         extractResourceAnnotationAndValidate(ctx, functionNode, linksMetaData);
         extractInputParamTypeAndValidate(ctx, functionNode, false, typeSymbols);
         extractReturnTypeAndValidate(ctx, functionNode, typeSymbols);
     }
 
     private static void extractResourceAnnotationAndValidate(SyntaxNodeAnalysisContext ctx,
-                                                             HttpResourceFunctionNode member,
+                                                             ResourceFunction member,
                                                              LinksMetaData linksMetaData) {
         Optional<MetadataNode> metadataNodeOptional = member.metadata();
         if (metadataNodeOptional.isEmpty()) {
@@ -170,7 +170,7 @@ public final class HttpResourceValidator {
         }
     }
 
-    private static void validateLinksInResourceConfig(SyntaxNodeAnalysisContext ctx, HttpResourceFunctionNode member,
+    private static void validateLinksInResourceConfig(SyntaxNodeAnalysisContext ctx, ResourceFunction member,
                                                       AnnotationNode annotation, LinksMetaData linksMetaData) {
         Optional<MappingConstructorExpressionNode> optionalMapping = annotation.annotValue();
         if (optionalMapping.isEmpty()) {
@@ -193,7 +193,7 @@ public final class HttpResourceValidator {
         }
     }
 
-    private static void validateResourceNameField(SyntaxNodeAnalysisContext ctx, HttpResourceFunctionNode member,
+    private static void validateResourceNameField(SyntaxNodeAnalysisContext ctx, ResourceFunction member,
                                                   SpecificFieldNode field, LinksMetaData linksMetaData) {
         Optional<ExpressionNode> fieldValueExpression = field.valueExpr();
         if (fieldValueExpression.isEmpty()) {
@@ -214,7 +214,7 @@ public final class HttpResourceValidator {
         }
     }
 
-    private static String getRelativePathFromFunctionNode(HttpResourceFunctionNode member) {
+    private static String getRelativePathFromFunctionNode(ResourceFunction member) {
         NodeList<Node> nodes = member.relativeResourcePath();
         String path = EMPTY;
         for (Node node : nodes) {
@@ -290,7 +290,7 @@ public final class HttpResourceValidator {
         }
     }
 
-    public static void extractInputParamTypeAndValidate(SyntaxNodeAnalysisContext ctx, HttpResourceFunctionNode member,
+    public static void extractInputParamTypeAndValidate(SyntaxNodeAnalysisContext ctx, ResourceFunction member,
                                                         boolean isErrorInterceptor,
                                                         Map<String, TypeSymbol> typeSymbols) {
         boolean callerPresent = false;
@@ -778,7 +778,7 @@ public final class HttpResourceValidator {
         return respondNodeVisitor.getRespondStatementNodes();
     }
 
-    private static void extractReturnTypeAndValidate(SyntaxNodeAnalysisContext ctx, HttpResourceFunctionNode member,
+    private static void extractReturnTypeAndValidate(SyntaxNodeAnalysisContext ctx, ResourceFunction member,
                                                      Map<String, TypeSymbol> typeSymbols) {
         Optional<ReturnTypeDescriptorNode> returnTypeDescriptorNode = member.functionSignature().returnTypeDesc();
         if (returnTypeDescriptorNode.isEmpty()) {

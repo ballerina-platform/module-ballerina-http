@@ -39,9 +39,11 @@ import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
 import io.ballerina.stdlib.http.compiler.Constants;
 import io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes;
-import io.ballerina.stdlib.http.compiler.HttpResourceFunctionNode;
 import io.ballerina.stdlib.http.compiler.HttpResourceValidator;
 import io.ballerina.stdlib.http.compiler.HttpServiceValidator;
+import io.ballerina.stdlib.http.compiler.ResourceFunction;
+import io.ballerina.stdlib.http.compiler.ResourceFunctionDeclaration;
+import io.ballerina.stdlib.http.compiler.ResourceFunctionDefinition;
 import io.ballerina.stdlib.http.compiler.codemodifier.context.DocumentContext;
 import io.ballerina.stdlib.http.compiler.codemodifier.context.ParamAvailability;
 import io.ballerina.stdlib.http.compiler.codemodifier.context.ParamData;
@@ -128,11 +130,11 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
         for (Node member : members) {
             if (member.kind() == SyntaxKind.RESOURCE_ACCESSOR_DEFINITION) {
                 validateResource(syntaxNodeAnalysisContext,
-                        new HttpResourceFunctionNode((FunctionDefinitionNode) member), serviceContext,
+                        new ResourceFunctionDefinition((FunctionDefinitionNode) member), serviceContext,
                         typeSymbols);
             } else if (member.kind() == SyntaxKind.RESOURCE_ACCESSOR_DECLARATION) {
                 validateResource(syntaxNodeAnalysisContext,
-                        new HttpResourceFunctionNode((MethodDeclarationNode) member), serviceContext,
+                        new ResourceFunctionDeclaration((MethodDeclarationNode) member), serviceContext,
                         typeSymbols);
             }
         }
@@ -170,12 +172,12 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
         }
     }
 
-    void validateResource(SyntaxNodeAnalysisContext ctx, HttpResourceFunctionNode member, ServiceContext serviceContext,
+    void validateResource(SyntaxNodeAnalysisContext ctx, ResourceFunction member, ServiceContext serviceContext,
                           Map<String, TypeSymbol> typeSymbols) {
         extractInputParamTypeAndValidate(ctx, member, serviceContext, typeSymbols);
     }
 
-    void extractInputParamTypeAndValidate(SyntaxNodeAnalysisContext ctx, HttpResourceFunctionNode member,
+    void extractInputParamTypeAndValidate(SyntaxNodeAnalysisContext ctx, ResourceFunction member,
                                           ServiceContext serviceContext, Map<String, TypeSymbol> typeSymbols) {
 
         Optional<Symbol> resourceMethodSymbolOptional = member.getSymbol(ctx.semanticModel());
