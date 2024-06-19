@@ -42,11 +42,12 @@ import java.util.Calendar;
 import java.util.List;
 
 import static io.ballerina.stdlib.http.api.HttpConstants.INBOUND_MESSAGE;
+import static io.ballerina.stdlib.http.api.logging.accesslog.HttpAccessLogUtil.getHttpAccessLogMessages;
+import static io.ballerina.stdlib.http.api.logging.accesslog.HttpAccessLogUtil.getTypedProperty;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_X_FORWARDED_FOR;
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_STATE_HANDLER;
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_WHILE_READING_INBOUND_RESPONSE_BODY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.OUTBOUND_ACCESS_LOG_MESSAGE;
-import static io.ballerina.stdlib.http.transport.contract.Constants.OUTBOUND_ACCESS_LOG_MESSAGES;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_BODY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.TO;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.isKeepAlive;
@@ -192,28 +193,5 @@ public class ReceivingEntityBody implements SenderState {
                 outboundAccessLogMessages.add(outboundAccessLogMessage);
             }
         }
-    }
-
-    private <T> T getTypedProperty(HttpCarbonMessage request, String propertyName, Class<T> type) {
-        Object property = request.getProperty(propertyName);
-        if (type.isInstance(property)) {
-            return type.cast(property);
-        }
-        return null;
-    }
-
-    private List<HttpAccessLogMessage> getHttpAccessLogMessages(HttpCarbonMessage request) {
-        Object outboundAccessLogMessagesObject = request.getProperty(OUTBOUND_ACCESS_LOG_MESSAGES);
-        if (outboundAccessLogMessagesObject instanceof List<?> rawList) {
-            for (Object item : rawList) {
-                if (!(item instanceof HttpAccessLogMessage)) {
-                    return null;
-                }
-            }
-            @SuppressWarnings("unchecked")
-            List<HttpAccessLogMessage> outboundAccessLogMessages = (List<HttpAccessLogMessage>) rawList;
-            return outboundAccessLogMessages;
-        }
-        return null;
     }
 }
