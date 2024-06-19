@@ -54,10 +54,10 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Queue;
 
+import static io.ballerina.stdlib.http.api.logging.accesslog.HttpAccessLogUtil.getHttpAccessLogMessages;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_HEAD_METHOD;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_X_FORWARDED_FOR;
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY;
-import static io.ballerina.stdlib.http.transport.contract.Constants.OUTBOUND_ACCESS_LOG_MESSAGES;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_TO_HOST_CONNECTION_CLOSED;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.createFullHttpResponse;
@@ -335,20 +335,5 @@ public class SendingEntityBody implements ListenerState {
         contentList.clear();
         contentLength = 0;
         headersWritten = false;
-    }
-
-    private List<HttpAccessLogMessage> getHttpAccessLogMessages(HttpCarbonMessage request) {
-        Object outboundAccessLogMessagesObject = request.getProperty(OUTBOUND_ACCESS_LOG_MESSAGES);
-        if (outboundAccessLogMessagesObject instanceof List<?> rawList) {
-            for (Object item : rawList) {
-                if (!(item instanceof HttpAccessLogMessage)) {
-                    return null;
-                }
-            }
-            @SuppressWarnings("unchecked")
-            List<HttpAccessLogMessage> outboundAccessLogMessages = (List<HttpAccessLogMessage>) rawList;
-            return outboundAccessLogMessages;
-        }
-        return null;
     }
 }
