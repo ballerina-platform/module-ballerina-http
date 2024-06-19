@@ -2519,6 +2519,7 @@ format = "json"             # Options: "flat", "json"; Default is "flat". Omit t
 attributes = ["ip", "date_time", "request", "status", "response_body_size", "http_referrer", "http_user_agent"]
 # Default attributes: ip, date_time, request, status, response_body_size, http_referrer, http_user_agent
 ```
+
 ##### Configurable Attributes
 Users can customize which parts of the access data are logged by specifying attributes in the configuration.
 This allows for tailored logging that can focus on particular details relevant to the users' needs.
