@@ -167,7 +167,9 @@ public class HttpLogManager extends LogManager {
         }
 
         BString logFormat = accessLogConfig.getStringValue(HTTP_LOG_FORMAT);
-        if (!(logFormat.getValue().equals(HTTP_LOG_FORMAT_JSON) || logFormat.getValue().equals(HTTP_LOG_FORMAT_FLAT))) {
+        if (logFormat != null &&
+                !logFormat.getValue().equals(HTTP_LOG_FORMAT_JSON) &&
+                !logFormat.getValue().equals(HTTP_LOG_FORMAT_FLAT)) {
             stdErr.println("WARNING: Unsupported log format '" + logFormat.getValue() +
                     "'. Defaulting to 'flat' format.");
         }
