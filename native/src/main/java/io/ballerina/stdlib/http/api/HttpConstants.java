@@ -326,6 +326,7 @@ public final class HttpConstants {
     public static final String HTTP_ACCESS_LOG = "http.accesslog";
     public static final String HTTP_ACCESS_LOG_ENABLED = "http.accesslog.enabled";
     public static final String HTTP_LOG_FORMAT_JSON = "json";
+    public static final String HTTP_LOG_FORMAT_FLAT = "flat";
 
     // TraceLog and AccessLog configs
     public static final BString HTTP_LOG_CONSOLE = StringUtils.fromString("console");
