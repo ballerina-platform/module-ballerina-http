@@ -39,6 +39,9 @@ import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_ACCESS_LOG;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_ACCESS_LOG_ENABLED;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_LOG_CONSOLE;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_LOG_FILE_PATH;
+import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_LOG_FORMAT;
+import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_LOG_FORMAT_FLAT;
+import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_LOG_FORMAT_JSON;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_TRACE_LOG;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_TRACE_LOG_ENABLED;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_TRACE_LOG_HOST;
@@ -161,6 +164,11 @@ public class HttpLogManager extends LogManager {
             } catch (IOException e) {
                 throw new RuntimeException("failed to setup HTTP access log file: " + filePath.getValue(), e);
             }
+        }
+
+        BString logFormat = accessLogConfig.getStringValue(HTTP_LOG_FORMAT);
+        if (!(logFormat.getValue().equals(HTTP_LOG_FORMAT_JSON) || logFormat.getValue().equals(HTTP_LOG_FORMAT_FLAT))) {
+            stdErr.println("WARNING: Unsupported log format '" + logFormat.getValue() + "'. Defaulting to 'flat'.");
         }
 
         if (accessLogsEnabled) {
