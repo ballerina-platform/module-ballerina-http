@@ -35,14 +35,21 @@ public type TraceLogAdvancedConfiguration record {|
 # Represents HTTP access log configuration.
 #
 # + console - Boolean value to enable or disable console access logs
+# + format - The format of access logs to be printed (either `flat` or `json`)
+# + attributes - The list of attributes of access logs to be printed
 # + path - Optional file path to store access logs
 public type AccessLogConfiguration record {|
     boolean console = false;
+    string format = "flat";
+    string[] attributes?;
     string path?;
 |};
 
 configurable TraceLogAdvancedConfiguration traceLogAdvancedConfig = {};
-configurable AccessLogConfiguration accessLogConfig = {};
+configurable AccessLogConfiguration accessLogConfig = {
+    console: true,
+    format: "flat"
+};
 
 isolated function initializeHttpLogs(boolean traceLogConsole, TraceLogAdvancedConfiguration traceLogAdvancedConfig,
 AccessLogConfiguration accessLogConfig, string protocol = "HTTP") returns handle = @java:Constructor {

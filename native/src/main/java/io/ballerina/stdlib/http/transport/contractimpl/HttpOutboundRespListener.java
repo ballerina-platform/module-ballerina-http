@@ -35,6 +35,7 @@ import io.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Calendar;
 import java.util.Locale;
 
 /**
@@ -53,6 +54,8 @@ public class HttpOutboundRespListener implements HttpConnectorListener {
     private ChunkConfig chunkConfig;
     private KeepAliveConfig keepAliveConfig;
     private String serverName;
+    private Calendar inboundRequestArrivalTime;
+    private String remoteAddress = "-";
 
     public HttpOutboundRespListener(HttpCarbonMessage requestMsg, SourceHandler sourceHandler) {
         this.requestDataHolder = new RequestDataHolder(requestMsg);
@@ -64,6 +67,8 @@ public class HttpOutboundRespListener implements HttpConnectorListener {
         this.handlerExecutor = HttpTransportContextHolder.getInstance().getHandlerExecutor();
         this.serverName = sourceHandler.getServerName();
         this.listenerReqRespStateManager = requestMsg.listenerReqRespStateManager;
+        this.remoteAddress = sourceHandler.getRemoteHost();
+        this.inboundRequestArrivalTime = Calendar.getInstance();
         setBackPressureObservableToHttpResponseFuture();
     }
 
@@ -145,5 +150,13 @@ public class HttpOutboundRespListener implements HttpConnectorListener {
 
     public SourceHandler getSourceHandler() {
         return sourceHandler;
+    }
+
+    public Calendar getInboundRequestArrivalTime() {
+        return inboundRequestArrivalTime;
+    }
+
+    public String getRemoteAddress() {
+        return remoteAddress;
     }
 }
