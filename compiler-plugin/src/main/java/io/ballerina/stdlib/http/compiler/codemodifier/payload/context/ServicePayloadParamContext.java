@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package io.ballerina.stdlib.http.compiler.codemodifier.context;
+package io.ballerina.stdlib.http.compiler.codemodifier.payload.context;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,16 +26,16 @@ import java.util.Map;
  *
  *  @since 2201.5.0
  */
-public class ServiceContext {
+public class ServicePayloadParamContext {
     private final int serviceId;
-    private final Map<Integer, ResourceContext> resourceContextMap;
+    private final Map<Integer, ResourcePayloadParamContext> resourceContextMap;
 
-    public ServiceContext(int serviceId) {
+    public ServicePayloadParamContext(int serviceId) {
         this.serviceId = serviceId;
         this.resourceContextMap = new HashMap<>();
     }
 
-    public void setResourceContext(int resourceId, ResourceContext payloadParamInfo) {
+    public void setResourceContext(int resourceId, ResourcePayloadParamContext payloadParamInfo) {
         this.resourceContextMap.put(resourceId, payloadParamInfo);
     }
 
@@ -51,7 +51,7 @@ public class ServiceContext {
         return resourceContextMap.containsKey(resourceId);
     }
 
-    public ResourceContext getResourceContext(int resourceId) {
+    public ResourcePayloadParamContext getResourceContext(int resourceId) {
         return resourceContextMap.get(resourceId);
     }
 }

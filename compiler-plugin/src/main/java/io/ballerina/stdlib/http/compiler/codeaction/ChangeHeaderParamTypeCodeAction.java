@@ -30,7 +30,7 @@ import io.ballerina.projects.plugins.codeaction.CodeActionContext;
 import io.ballerina.projects.plugins.codeaction.CodeActionExecutionContext;
 import io.ballerina.projects.plugins.codeaction.CodeActionInfo;
 import io.ballerina.projects.plugins.codeaction.DocumentEdit;
-import io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes;
+import io.ballerina.stdlib.http.compiler.HttpDiagnostic;
 import io.ballerina.tools.diagnostics.DiagnosticProperty;
 import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextDocument;
@@ -53,7 +53,7 @@ public abstract class ChangeHeaderParamTypeCodeAction implements CodeAction {
 
     @Override
     public List<String> supportedDiagnosticCodes() {
-        return List.of(HttpDiagnosticCodes.HTTP_109.getCode());
+        return List.of(HttpDiagnostic.HTTP_109.getCode());
     }
 
     @Override

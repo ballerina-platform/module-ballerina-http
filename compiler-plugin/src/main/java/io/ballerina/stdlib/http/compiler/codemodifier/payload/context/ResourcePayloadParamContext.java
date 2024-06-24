@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package io.ballerina.stdlib.http.compiler.codemodifier.context;
+package io.ballerina.stdlib.http.compiler.codemodifier.payload.context;
 
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
 
@@ -25,11 +25,11 @@ import io.ballerina.compiler.api.symbols.ParameterSymbol;
  *
  * @since 2201.5.0
  */
-public class ResourceContext {
+public class ResourcePayloadParamContext {
     private final int index;
     private final ParameterSymbol parameterSymbol;
 
-    public ResourceContext(ParameterSymbol parameterSymbol, int index) {
+    public ResourcePayloadParamContext(ParameterSymbol parameterSymbol, int index) {
         this.parameterSymbol = parameterSymbol;
         this.index = index;
     }

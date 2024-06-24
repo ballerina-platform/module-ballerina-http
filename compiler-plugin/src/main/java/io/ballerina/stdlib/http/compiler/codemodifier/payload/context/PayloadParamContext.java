@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package io.ballerina.stdlib.http.compiler.codemodifier.context;
+package io.ballerina.stdlib.http.compiler.codemodifier.payload.context;
 
 import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
 
@@ -28,11 +28,11 @@ import java.util.Map;
  *
  *  @since 2201.5.0
  */
-public class DocumentContext {
+public class PayloadParamContext {
     private final SyntaxNodeAnalysisContext context;
-    private final Map<Integer, ServiceContext> serviceContextMap;
+    private final Map<Integer, ServicePayloadParamContext> serviceContextMap;
 
-    public DocumentContext(SyntaxNodeAnalysisContext context) {
+    public PayloadParamContext(SyntaxNodeAnalysisContext context) {
         this.context = context;
         this.serviceContextMap = new HashMap<>();
     }
@@ -41,7 +41,7 @@ public class DocumentContext {
         return context;
     }
 
-    public void setServiceContext(ServiceContext serviceContext) {
+    public void setServiceContext(ServicePayloadParamContext serviceContext) {
         serviceContextMap.put(serviceContext.getServiceId(), serviceContext);
     }
 
@@ -49,7 +49,7 @@ public class DocumentContext {
         return serviceContextMap.containsKey(serviceId);
     }
 
-    public ServiceContext getServiceContext(int serviceId) {
+    public ServicePayloadParamContext getServiceContext(int serviceId) {
         return serviceContextMap.get(serviceId);
     }
 }

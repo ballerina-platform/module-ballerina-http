@@ -18,7 +18,7 @@
 
 package io.ballerina.stdlib.http.compiler.codeaction;
 
-import io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes;
+import io.ballerina.stdlib.http.compiler.HttpDiagnostic;
 
 /**
  * CodeAction to add the annotated header parameter.
@@ -27,7 +27,7 @@ public class AddHeaderParameterCodeAction extends AddResourceParameterCodeAction
 
     @Override
     protected String diagnosticCode() {
-        return HttpDiagnosticCodes.HTTP_HINT_102.getCode();
+        return HttpDiagnostic.HTTP_HINT_102.getCode();
     }
 
     protected String paramKind() {

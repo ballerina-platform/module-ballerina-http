@@ -24,11 +24,12 @@ import static io.ballerina.stdlib.http.compiler.Constants.ALLOWED_INTERCEPTOR_RE
 import static io.ballerina.stdlib.http.compiler.Constants.ALLOWED_RETURN_UNION;
 import static io.ballerina.tools.diagnostics.DiagnosticSeverity.ERROR;
 import static io.ballerina.tools.diagnostics.DiagnosticSeverity.INTERNAL;
+import static io.ballerina.tools.diagnostics.DiagnosticSeverity.WARNING;
 
 /**
  * {@code DiagnosticCodes} is used to hold diagnostic codes.
  */
-public enum HttpDiagnosticCodes {
+public enum HttpDiagnostic {
     HTTP_101("HTTP_101", "remote methods are not allowed in http:Service", ERROR),
     HTTP_102("HTTP_102", "invalid resource method return type: expected '" + ALLOWED_RETURN_UNION +
             "', but found '%s'", ERROR),
@@ -107,6 +108,8 @@ public enum HttpDiagnosticCodes {
     HTTP_151("HTTP_151", "ambiguous types for parameter '%s' and '%s'. Use annotations to avoid ambiguity", ERROR),
     HTTP_152("HTTP_152", "invalid union type for default payload param: '%s'. Use basic structured anydata types",
             ERROR),
+    HTTP_153("HTTP_153", "generated open-api definition is empty", WARNING),
+    HTTP_154("HTTP_154", "The openapi definition is overridden by the `embed: true` option", WARNING),
 
     HTTP_HINT_101("HTTP_HINT_101", "Payload annotation can be added", INTERNAL),
     HTTP_HINT_102("HTTP_HINT_102", "Header annotation can be added", INTERNAL),
@@ -117,7 +120,7 @@ public enum HttpDiagnosticCodes {
     private final String message;
     private final DiagnosticSeverity severity;
 
-    HttpDiagnosticCodes(String code, String message, DiagnosticSeverity severity) {
+    HttpDiagnostic(String code, String message, DiagnosticSeverity severity) {
         this.code = code;
         this.message = message;
         this.severity = severity;
