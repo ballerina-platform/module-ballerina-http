@@ -193,15 +193,15 @@ public final class HttpServiceContractResourceValidator {
 
     private static void reportResourceFunctionNotAllowed(SyntaxNodeAnalysisContext ctx, String serviceContractType,
                                                          Location location) {
-        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_158, serviceContractType);
+        updateDiagnostic(ctx, location, HttpDiagnostic.HTTP_158, serviceContractType);
     }
 
     private static void reportResourceConfigAnnotationNotAllowed(SyntaxNodeAnalysisContext ctx, Location location) {
-        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_159);
+        updateDiagnostic(ctx, location, HttpDiagnostic.HTTP_159);
     }
 
     private static void reportAnnotationNotAllowed(SyntaxNodeAnalysisContext ctx, Location location,
                                                    String annotationName) {
-        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_160, annotationName);
+        updateDiagnostic(ctx, location, HttpDiagnostic.HTTP_160, annotationName);
     }
 }

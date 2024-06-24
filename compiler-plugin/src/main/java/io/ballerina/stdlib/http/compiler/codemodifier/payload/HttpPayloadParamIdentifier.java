@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package io.ballerina.stdlib.http.compiler.codemodifier;
+package io.ballerina.stdlib.http.compiler.codemodifier.payload;
 
 import io.ballerina.compiler.api.symbols.AnnotationSymbol;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
@@ -38,17 +38,17 @@ import io.ballerina.compiler.syntax.tree.TypeReferenceNode;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
 import io.ballerina.stdlib.http.compiler.Constants;
-import io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes;
+import io.ballerina.stdlib.http.compiler.HttpDiagnostic;
 import io.ballerina.stdlib.http.compiler.HttpResourceValidator;
 import io.ballerina.stdlib.http.compiler.HttpServiceValidator;
 import io.ballerina.stdlib.http.compiler.ResourceFunction;
 import io.ballerina.stdlib.http.compiler.ResourceFunctionDeclaration;
 import io.ballerina.stdlib.http.compiler.ResourceFunctionDefinition;
-import io.ballerina.stdlib.http.compiler.codemodifier.context.DocumentContext;
-import io.ballerina.stdlib.http.compiler.codemodifier.context.ParamAvailability;
-import io.ballerina.stdlib.http.compiler.codemodifier.context.ParamData;
-import io.ballerina.stdlib.http.compiler.codemodifier.context.ResourceContext;
-import io.ballerina.stdlib.http.compiler.codemodifier.context.ServiceContext;
+import io.ballerina.stdlib.http.compiler.codemodifier.payload.context.PayloadParamAvailability;
+import io.ballerina.stdlib.http.compiler.codemodifier.payload.context.PayloadParamContext;
+import io.ballerina.stdlib.http.compiler.codemodifier.payload.context.PayloadParamData;
+import io.ballerina.stdlib.http.compiler.codemodifier.payload.context.ResourcePayloadParamContext;
+import io.ballerina.stdlib.http.compiler.codemodifier.payload.context.ServicePayloadParamContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -83,9 +83,9 @@ import static io.ballerina.stdlib.http.compiler.HttpServiceObjTypeAnalyzer.isHtt
  * @since 2201.5.0
  */
 public class HttpPayloadParamIdentifier extends HttpServiceValidator {
-    private final Map<DocumentId, DocumentContext> documentContextMap;
+    private final Map<DocumentId, PayloadParamContext> documentContextMap;
 
-    public HttpPayloadParamIdentifier(Map<DocumentId, DocumentContext> documentContextMap) {
+    public HttpPayloadParamIdentifier(Map<DocumentId, PayloadParamContext> documentContextMap) {
         this.documentContextMap = documentContextMap;
     }
 
@@ -113,20 +113,20 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
             return;
         }
         NodeList<Node> members = serviceDeclarationNode.members();
-        ServiceContext serviceContext = new ServiceContext(serviceDeclarationNode.hashCode());
+        ServicePayloadParamContext serviceContext = new ServicePayloadParamContext(serviceDeclarationNode.hashCode());
         validateResources(syntaxNodeAnalysisContext, typeSymbols, members, serviceContext);
     }
 
     private void validateServiceObjDefinition(SyntaxNodeAnalysisContext context, Map<String, TypeSymbol> typeSymbols) {
         ObjectTypeDescriptorNode serviceObjType = (ObjectTypeDescriptorNode) context.node();
         NodeList<Node> members = serviceObjType.members();
-        ServiceContext serviceContext = new ServiceContext(serviceObjType.hashCode());
+        ServicePayloadParamContext serviceContext = new ServicePayloadParamContext(serviceObjType.hashCode());
         validateResources(context, typeSymbols, members, serviceContext);
     }
 
     private void validateResources(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext,
                                    Map<String, TypeSymbol> typeSymbols, NodeList<Node> members,
-                                   ServiceContext serviceContext) {
+                                   ServicePayloadParamContext serviceContext) {
         for (Node member : members) {
             if (member.kind() == SyntaxKind.RESOURCE_ACCESSOR_DEFINITION) {
                 validateResource(syntaxNodeAnalysisContext,
@@ -151,7 +151,7 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
             return;
         }
         NodeList<Node> members = classDefinitionNode.members();
-        ServiceContext serviceContext = new ServiceContext(classDefinitionNode.hashCode());
+        ServicePayloadParamContext serviceContext = new ServicePayloadParamContext(classDefinitionNode.hashCode());
         boolean proceed = false;
         for (Node member : members) {
             if (member.kind() == SyntaxKind.TYPE_REFERENCE) {
@@ -172,13 +172,15 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
         }
     }
 
-    void validateResource(SyntaxNodeAnalysisContext ctx, ResourceFunction member, ServiceContext serviceContext,
+    void validateResource(SyntaxNodeAnalysisContext ctx, ResourceFunction member,
+                          ServicePayloadParamContext serviceContext,
                           Map<String, TypeSymbol> typeSymbols) {
         extractInputParamTypeAndValidate(ctx, member, serviceContext, typeSymbols);
     }
 
     void extractInputParamTypeAndValidate(SyntaxNodeAnalysisContext ctx, ResourceFunction member,
-                                          ServiceContext serviceContext, Map<String, TypeSymbol> typeSymbols) {
+                                          ServicePayloadParamContext serviceContext,
+                                          Map<String, TypeSymbol> typeSymbols) {
 
         Optional<Symbol> resourceMethodSymbolOptional = member.getSymbol(ctx.semanticModel());
         if (resourceMethodSymbolOptional.isEmpty()) {
@@ -202,9 +204,9 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
             return; // No modification is done for non param resources functions
         }
 
-        List<ParamData> nonAnnotatedParams = new ArrayList<>();
-        List<ParamData> annotatedParams = new ArrayList<>();
-        ParamAvailability paramAvailability = new ParamAvailability();
+        List<PayloadParamData> nonAnnotatedParams = new ArrayList<>();
+        List<PayloadParamData> annotatedParams = new ArrayList<>();
+        PayloadParamAvailability paramAvailability = new PayloadParamAvailability();
         // Disable error diagnostic in the code modifier since this validation is also done in the code analyzer
         paramAvailability.setErrorDiagnostic(false);
         int index = 0;
@@ -213,29 +215,29 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
                     .filter(annotationSymbol -> annotationSymbol.typeDescriptor().isPresent())
                     .collect(Collectors.toList());
             if (annotations.isEmpty()) {
-                nonAnnotatedParams.add(new ParamData(param, index++));
+                nonAnnotatedParams.add(new PayloadParamData(param, index++));
             } else {
-                annotatedParams.add(new ParamData(param, index++));
+                annotatedParams.add(new PayloadParamData(param, index++));
             }
         }
 
-        for (ParamData annotatedParam : annotatedParams) {
+        for (PayloadParamData annotatedParam : annotatedParams) {
             validateAnnotatedParams(annotatedParam.getParameterSymbol(), paramAvailability);
             if (paramAvailability.isAnnotatedPayloadParam()) {
                 return;
             }
         }
 
-        for (ParamData nonAnnotatedParam : nonAnnotatedParams) {
+        for (PayloadParamData nonAnnotatedParam : nonAnnotatedParams) {
             ParameterSymbol parameterSymbol = nonAnnotatedParam.getParameterSymbol();
 
             if (validateNonAnnotatedParams(ctx, parameterSymbol.typeDescriptor(),
                     paramAvailability, parameterSymbol, typeSymbols)) {
-                ResourceContext resourceContext =
-                        new ResourceContext(parameterSymbol, nonAnnotatedParam.getIndex());
-                DocumentContext documentContext = documentContextMap.get(ctx.documentId());
+                ResourcePayloadParamContext resourceContext =
+                        new ResourcePayloadParamContext(parameterSymbol, nonAnnotatedParam.getIndex());
+                PayloadParamContext documentContext = documentContextMap.get(ctx.documentId());
                 if (documentContext == null) {
-                    documentContext = new DocumentContext(ctx);
+                    documentContext = new PayloadParamContext(ctx);
                     documentContextMap.put(ctx.documentId(), documentContext);
                 }
                 serviceContext.setResourceContext(resourceId, resourceContext);
@@ -248,7 +250,8 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
         }
     }
 
-    public static void validateAnnotatedParams(ParameterSymbol parameterSymbol, ParamAvailability paramAvailability) {
+    public static void validateAnnotatedParams(ParameterSymbol parameterSymbol,
+                                               PayloadParamAvailability paramAvailability) {
         List<AnnotationSymbol> annotations = parameterSymbol.annotations().stream()
                 .filter(annotationSymbol -> annotationSymbol.typeDescriptor().isPresent())
                 .collect(Collectors.toList());
@@ -269,7 +272,7 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
     }
 
     public static boolean validateNonAnnotatedParams(SyntaxNodeAnalysisContext analysisContext,
-                                                     TypeSymbol typeSymbol, ParamAvailability paramAvailability,
+                                                     TypeSymbol typeSymbol, PayloadParamAvailability paramAvailability,
                                                      ParameterSymbol parameterSymbol,
                                                      Map<String, TypeSymbol> typeSymbols) {
         typeSymbol = getEffectiveType(typeSymbol);
@@ -298,7 +301,8 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
     }
 
     private static boolean isUnionStructuredType(SyntaxNodeAnalysisContext ctx, UnionTypeSymbol unionTypeSymbol,
-                                                 ParameterSymbol parameterSymbol, ParamAvailability paramAvailability,
+                                                 ParameterSymbol parameterSymbol,
+                                                 PayloadParamAvailability paramAvailability,
                                                  Map<String, TypeSymbol> typeSymbols) {
         List<TypeSymbol> typeDescriptors = unionTypeSymbol.memberTypeDescriptors();
         boolean foundNonStructuredType = false;
@@ -347,7 +351,7 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
     }
 
     private static boolean checkErrorsAndReturn(SyntaxNodeAnalysisContext analysisContext,
-                                                ParamAvailability availability, ParameterSymbol pSymbol) {
+                                                PayloadParamAvailability availability, ParameterSymbol pSymbol) {
         if (availability.isDefaultPayloadParam() && isDistinctVariable(availability, pSymbol)) {
             reportAmbiguousPayloadParam(analysisContext, pSymbol, availability);
             availability.setErrorOccurred(true);
@@ -357,28 +361,28 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
         return true;
     }
 
-    private static boolean isDistinctVariable(ParamAvailability availability, ParameterSymbol pSymbol) {
+    private static boolean isDistinctVariable(PayloadParamAvailability availability, ParameterSymbol pSymbol) {
         return !pSymbol.getName().get().equals(availability.getPayloadParamSymbol().getName().get());
     }
 
     private static void reportAmbiguousPayloadParam(SyntaxNodeAnalysisContext analysisContext,
                                                     ParameterSymbol parameterSymbol,
-                                                    ParamAvailability paramAvailability) {
+                                                    PayloadParamAvailability paramAvailability) {
         if (paramAvailability.isEnableErrorDiagnostic()) {
-            updateDiagnostic(analysisContext, parameterSymbol.getLocation().get(), HttpDiagnosticCodes.HTTP_151,
+            updateDiagnostic(analysisContext, parameterSymbol.getLocation().get(), HttpDiagnostic.HTTP_151,
                     paramAvailability.getPayloadParamSymbol().getName().get(), parameterSymbol.getName().get());
         }
     }
 
     private static void reportInvalidUnionPayloadParam(SyntaxNodeAnalysisContext analysisContext,
                                                        ParameterSymbol parameterSymbol,
-                                                       ParamAvailability paramAvailability) {
+                                                       PayloadParamAvailability paramAvailability) {
         if (paramAvailability.isErrorOccurred()) {
             return;
         }
         if (!paramAvailability.isDefaultPayloadParam()) {
             if (paramAvailability.isEnableErrorDiagnostic()) {
-                updateDiagnostic(analysisContext, parameterSymbol.getLocation().get(), HttpDiagnosticCodes.HTTP_152,
+                updateDiagnostic(analysisContext, parameterSymbol.getLocation().get(), HttpDiagnostic.HTTP_152,
                         parameterSymbol.getName().get());
             }
             paramAvailability.setErrorOccurred(true);

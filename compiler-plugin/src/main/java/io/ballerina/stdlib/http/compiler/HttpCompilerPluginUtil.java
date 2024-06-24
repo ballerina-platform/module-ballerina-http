@@ -98,25 +98,25 @@ public final class HttpCompilerPluginUtil {
     private HttpCompilerPluginUtil() {}
 
     public static void updateDiagnostic(SyntaxNodeAnalysisContext ctx, Location location,
-                                        HttpDiagnosticCodes httpDiagnosticCodes) {
+                                        HttpDiagnostic httpDiagnosticCodes) {
         DiagnosticInfo diagnosticInfo = getDiagnosticInfo(httpDiagnosticCodes);
         ctx.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, location));
     }
 
     public static void updateDiagnostic(SyntaxNodeAnalysisContext ctx, Location location,
-                                        HttpDiagnosticCodes httpDiagnosticCodes, Object... argName) {
+                                        HttpDiagnostic httpDiagnosticCodes, Object... argName) {
         DiagnosticInfo diagnosticInfo = getDiagnosticInfo(httpDiagnosticCodes, argName);
         ctx.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, location));
     }
 
     public static void updateDiagnostic(SyntaxNodeAnalysisContext ctx, Location location,
-                                        HttpDiagnosticCodes httpDiagnosticCodes,
+                                        HttpDiagnostic httpDiagnosticCodes,
                                         List<DiagnosticProperty<?>> diagnosticProperties, String argName) {
         DiagnosticInfo diagnosticInfo = getDiagnosticInfo(httpDiagnosticCodes, argName);
         ctx.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, location, diagnosticProperties));
     }
 
-    public static DiagnosticInfo getDiagnosticInfo(HttpDiagnosticCodes diagnostic, Object... args) {
+    public static DiagnosticInfo getDiagnosticInfo(HttpDiagnostic diagnostic, Object... args) {
         return new DiagnosticInfo(diagnostic.getCode(), String.format(diagnostic.getMessage(), args),
                 diagnostic.getSeverity());
     }
@@ -128,7 +128,7 @@ public final class HttpCompilerPluginUtil {
     public static void extractInterceptorReturnTypeAndValidate(SyntaxNodeAnalysisContext ctx,
                                                                Map<String, TypeSymbol> typeSymbols,
                                                                FunctionDefinitionNode member,
-                                                               HttpDiagnosticCodes httpDiagnosticCode) {
+                                                               HttpDiagnostic httpDiagnosticCode) {
         Optional<ReturnTypeDescriptorNode> returnTypeDescriptorNode = member.functionSignature().returnTypeDesc();
         if (returnTypeDescriptorNode.isEmpty()) {
             return;
@@ -154,7 +154,7 @@ public final class HttpCompilerPluginUtil {
 
     public static void validateResourceReturnType(SyntaxNodeAnalysisContext ctx, Node node,
                                                   Map<String, TypeSymbol> typeSymbols, String returnTypeStringValue,
-                                                  TypeSymbol returnTypeSymbol, HttpDiagnosticCodes diagnosticCode,
+                                                  TypeSymbol returnTypeSymbol, HttpDiagnostic diagnosticCode,
                                                   boolean isInterceptorType) {
         if (subtypeOf(typeSymbols, returnTypeSymbol,
                 isInterceptorType ? INTERCEPTOR_RESOURCE_RETURN_TYPE : RESOURCE_RETURN_TYPE)) {
@@ -200,16 +200,16 @@ public final class HttpCompilerPluginUtil {
     }
 
     private static void reportInvalidReturnType(SyntaxNodeAnalysisContext ctx, Node node,
-                                                String returnType, HttpDiagnosticCodes diagnosticCode) {
+                                                String returnType, HttpDiagnostic diagnosticCode) {
         HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), diagnosticCode, returnType);
     }
 
     private static void reportReturnTypeAnnotationsAreNotAllowed(SyntaxNodeAnalysisContext ctx, Node node) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_142);
+        HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), HttpDiagnostic.HTTP_142);
     }
 
     public static void reportMissingParameterError(SyntaxNodeAnalysisContext ctx, Location location, String method) {
-        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_143, method);
+        updateDiagnostic(ctx, location, HttpDiagnostic.HTTP_143, method);
     }
 
     public static String getNodeString(Node node, boolean isCaseSensitive) {

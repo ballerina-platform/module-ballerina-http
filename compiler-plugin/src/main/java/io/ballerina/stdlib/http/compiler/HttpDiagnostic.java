@@ -24,11 +24,12 @@ import static io.ballerina.stdlib.http.compiler.Constants.ALLOWED_INTERCEPTOR_RE
 import static io.ballerina.stdlib.http.compiler.Constants.ALLOWED_RETURN_UNION;
 import static io.ballerina.tools.diagnostics.DiagnosticSeverity.ERROR;
 import static io.ballerina.tools.diagnostics.DiagnosticSeverity.INTERNAL;
+import static io.ballerina.tools.diagnostics.DiagnosticSeverity.WARNING;
 
 /**
  * {@code DiagnosticCodes} is used to hold diagnostic codes.
  */
-public enum HttpDiagnosticCodes {
+public enum HttpDiagnostic {
     HTTP_101("HTTP_101", "remote methods are not allowed in http:Service", ERROR),
     HTTP_102("HTTP_102", "invalid resource method return type: expected '" + ALLOWED_RETURN_UNION +
             "', but found '%s'", ERROR),
@@ -124,6 +125,9 @@ public enum HttpDiagnosticCodes {
     HTTP_160("HTTP_160", "'%s' annotation is not allowed for resource function implemented via the " +
             "'http:ServiceContract' type. The HTTP annotations are inferred from the service contract type", ERROR),
 
+    HTTP_WARNING_101("HTTP_WARNING_101", "generated open-api definition is empty", WARNING),
+    HTTP_WARNING_102("HTTP_WARNING_102", "The openapi definition is overridden by the `embed: true` option", WARNING),
+
     HTTP_HINT_101("HTTP_HINT_101", "Payload annotation can be added", INTERNAL),
     HTTP_HINT_102("HTTP_HINT_102", "Header annotation can be added", INTERNAL),
     HTTP_HINT_103("HTTP_HINT_103", "Response content-type can be added", INTERNAL),
@@ -134,7 +138,7 @@ public enum HttpDiagnosticCodes {
     private final String message;
     private final DiagnosticSeverity severity;
 
-    HttpDiagnosticCodes(String code, String message, DiagnosticSeverity severity) {
+    HttpDiagnostic(String code, String message, DiagnosticSeverity severity) {
         this.code = code;
         this.message = message;
         this.severity = severity;

@@ -26,7 +26,7 @@ import io.ballerina.projects.plugins.codeaction.CodeActionContext;
 import io.ballerina.projects.plugins.codeaction.CodeActionExecutionContext;
 import io.ballerina.projects.plugins.codeaction.CodeActionInfo;
 import io.ballerina.projects.plugins.codeaction.DocumentEdit;
-import io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes;
+import io.ballerina.stdlib.http.compiler.HttpDiagnostic;
 import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextDocumentChange;
@@ -47,7 +47,7 @@ import static io.ballerina.stdlib.http.compiler.codeaction.CodeActionUtil.getLin
 public class AddResponseCacheConfigCodeAction implements CodeAction {
     @Override
     public List<String> supportedDiagnosticCodes() {
-        return List.of(HttpDiagnosticCodes.HTTP_HINT_104.getCode());
+        return List.of(HttpDiagnostic.HTTP_HINT_104.getCode());
     }
 
     @Override

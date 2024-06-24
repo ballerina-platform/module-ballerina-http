@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package io.ballerina.stdlib.http.compiler.codemodifier;
+package io.ballerina.stdlib.http.compiler.codemodifier.payload;
 
 import io.ballerina.compiler.syntax.tree.AbstractNodeFactory;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
@@ -50,9 +50,9 @@ import io.ballerina.stdlib.http.compiler.Constants;
 import io.ballerina.stdlib.http.compiler.ResourceFunction;
 import io.ballerina.stdlib.http.compiler.ResourceFunctionDeclaration;
 import io.ballerina.stdlib.http.compiler.ResourceFunctionDefinition;
-import io.ballerina.stdlib.http.compiler.codemodifier.context.DocumentContext;
-import io.ballerina.stdlib.http.compiler.codemodifier.context.ResourceContext;
-import io.ballerina.stdlib.http.compiler.codemodifier.context.ServiceContext;
+import io.ballerina.stdlib.http.compiler.codemodifier.payload.context.PayloadParamContext;
+import io.ballerina.stdlib.http.compiler.codemodifier.payload.context.ResourcePayloadParamContext;
+import io.ballerina.stdlib.http.compiler.codemodifier.payload.context.ServicePayloadParamContext;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 import io.ballerina.tools.text.TextDocument;
 
@@ -71,9 +71,9 @@ import static io.ballerina.stdlib.http.compiler.HttpServiceValidator.isServiceCo
  */
 public class PayloadAnnotationModifierTask implements ModifierTask<SourceModifierContext> {
 
-    private final Map<DocumentId, DocumentContext> documentContextMap;
+    private final Map<DocumentId, PayloadParamContext> documentContextMap;
 
-    public PayloadAnnotationModifierTask(Map<DocumentId, DocumentContext> documentContextMap) {
+    public PayloadAnnotationModifierTask(Map<DocumentId, PayloadParamContext> documentContextMap) {
         this.documentContextMap = documentContextMap;
     }
 
@@ -86,15 +86,15 @@ public class PayloadAnnotationModifierTask implements ModifierTask<SourceModifie
             return;
         }
 
-        for (Map.Entry<DocumentId, DocumentContext> entry : documentContextMap.entrySet()) {
+        for (Map.Entry<DocumentId, PayloadParamContext> entry : documentContextMap.entrySet()) {
             DocumentId documentId = entry.getKey();
-            DocumentContext documentContext = entry.getValue();
+            PayloadParamContext documentContext = entry.getValue();
             modifyPayloadParam(modifierContext, documentId, documentContext);
         }
     }
 
     private void modifyPayloadParam(SourceModifierContext modifierContext, DocumentId documentId,
-                                    DocumentContext documentContext) {
+                                    PayloadParamContext documentContext) {
         ModuleId moduleId = documentId.moduleId();
         Module currentModule = modifierContext.currentPackage().module(moduleId);
         Document currentDoc = currentModule.document(documentId);
@@ -111,7 +111,7 @@ public class PayloadAnnotationModifierTask implements ModifierTask<SourceModifie
     }
 
     private NodeList<ModuleMemberDeclarationNode> updateMemberNodes(NodeList<ModuleMemberDeclarationNode> oldMembers,
-                                                                    DocumentContext documentContext) {
+                                                                    PayloadParamContext documentContext) {
 
         List<ModuleMemberDeclarationNode> updatedMembers = new ArrayList<>();
         for (ModuleMemberDeclarationNode memberNode : oldMembers) {
@@ -142,7 +142,7 @@ public class PayloadAnnotationModifierTask implements ModifierTask<SourceModifie
                 updatedMembers.add(memberNode);
                 continue;
             }
-            ServiceContext serviceContext = documentContext.getServiceContext(serviceId);
+            ServicePayloadParamContext serviceContext = documentContext.getServiceContext(serviceId);
             List<Node> resourceMembers = new ArrayList<>();
             for (Node member : members) {
                 ResourceFunction resourceFunctionNode;
@@ -161,7 +161,7 @@ public class PayloadAnnotationModifierTask implements ModifierTask<SourceModifie
                     resourceMembers.add(member);
                     continue;
                 }
-                ResourceContext resourceContext = serviceContext.getResourceContext(resourceId);
+                ResourcePayloadParamContext resourceContext = serviceContext.getResourceContext(resourceId);
                 FunctionSignatureNode functionSignatureNode = resourceFunctionNode.functionSignature();
                 SeparatedNodeList<ParameterNode> parameterNodes = functionSignatureNode.parameters();
                 List<Node> newParameterNodes = new ArrayList<>();

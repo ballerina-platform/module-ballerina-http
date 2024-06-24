@@ -48,7 +48,7 @@ public final class HttpInterceptorResourceValidator {
         HttpResourceValidator.extractInputParamTypeAndValidate(ctx, functionNode, isRequestErrorInterceptor(type),
                 typeSymbols);
         HttpCompilerPluginUtil.extractInterceptorReturnTypeAndValidate(ctx, typeSymbols, member,
-                HttpDiagnosticCodes.HTTP_126);
+                HttpDiagnostic.HTTP_126);
     }
 
     private static boolean isRequestErrorInterceptor(String type) {
@@ -79,16 +79,16 @@ public final class HttpInterceptorResourceValidator {
     }
 
     private static void reportResourceAnnotationNotAllowed(SyntaxNodeAnalysisContext ctx, AnnotationNode node) {
-        updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_125,
+        updateDiagnostic(ctx, node.location(), HttpDiagnostic.HTTP_125,
                                                 node.annotReference().toString());
     }
 
     private static void reportInvalidResourcePath(SyntaxNodeAnalysisContext ctx, Node node) {
-        updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_127, node.toString());
+        updateDiagnostic(ctx, node.location(), HttpDiagnostic.HTTP_127, node.toString());
     }
 
     private static void reportInvalidResourceMethod(SyntaxNodeAnalysisContext ctx, IdentifierToken identifierToken) {
-        updateDiagnostic(ctx, identifierToken.location(), HttpDiagnosticCodes.HTTP_128,
+        updateDiagnostic(ctx, identifierToken.location(), HttpDiagnostic.HTTP_128,
                                                 identifierToken.toString().strip());
     }
 }

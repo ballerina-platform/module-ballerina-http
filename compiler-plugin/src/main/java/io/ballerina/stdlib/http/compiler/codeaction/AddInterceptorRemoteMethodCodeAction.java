@@ -18,7 +18,7 @@
 
 package io.ballerina.stdlib.http.compiler.codeaction;
 
-import io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes;
+import io.ballerina.stdlib.http.compiler.HttpDiagnostic;
 
 import static io.ballerina.stdlib.http.compiler.codeaction.Constants.LS;
 import static io.ballerina.stdlib.http.compiler.codeaction.Constants.REMOTE;
@@ -29,7 +29,7 @@ import static io.ballerina.stdlib.http.compiler.codeaction.Constants.REMOTE;
 public class AddInterceptorRemoteMethodCodeAction extends AddInterceptorMethodCodeAction {
     @Override
     protected String diagnosticCode() {
-        return HttpDiagnosticCodes.HTTP_135.getCode();
+        return HttpDiagnostic.HTTP_135.getCode();
     }
 
     @Override
