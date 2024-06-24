@@ -61,9 +61,9 @@ import static io.ballerina.stdlib.http.compiler.Constants.UNNECESSARY_CHARS_REGE
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.getCtxTypes;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.isHttpModule;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.updateDiagnostic;
-import static io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes.HTTP_101;
-import static io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes.HTTP_119;
-import static io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes.HTTP_120;
+import static io.ballerina.stdlib.http.compiler.HttpDiagnostic.HTTP_101;
+import static io.ballerina.stdlib.http.compiler.HttpDiagnostic.HTTP_119;
+import static io.ballerina.stdlib.http.compiler.HttpDiagnostic.HTTP_120;
 
 /**
  * Validates a Ballerina Http Service.
@@ -272,16 +272,16 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
     }
 
     private static void reportResourceNameDoesNotExist(SyntaxNodeAnalysisContext ctx, LinkedToResource resource) {
-        updateDiagnostic(ctx, resource.getNode().location(), HttpDiagnosticCodes.HTTP_148, resource.getName());
+        updateDiagnostic(ctx, resource.getNode().location(), HttpDiagnostic.HTTP_148, resource.getName());
     }
 
     private static void reportUnresolvedLinkedResource(SyntaxNodeAnalysisContext ctx, LinkedToResource resource) {
-        updateDiagnostic(ctx, resource.getNode().location(), HttpDiagnosticCodes.HTTP_149);
+        updateDiagnostic(ctx, resource.getNode().location(), HttpDiagnostic.HTTP_149);
     }
 
     private static void reportUnresolvedLinkedResourceWithMethod(SyntaxNodeAnalysisContext ctx,
                                                                  LinkedToResource resource) {
-        updateDiagnostic(ctx, resource.getNode().location(), HttpDiagnosticCodes.HTTP_150, resource.getMethod(),
+        updateDiagnostic(ctx, resource.getNode().location(), HttpDiagnostic.HTTP_150, resource.getMethod(),
                          resource.getName());
     }
 }

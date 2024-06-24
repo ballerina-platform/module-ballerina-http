@@ -218,7 +218,7 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
                                              String type, Map<String, TypeSymbol> typeSymbols) {
         validateInputParamType(ctx, member, type, typeSymbols);
         HttpCompilerPluginUtil.extractInterceptorReturnTypeAndValidate(ctx, typeSymbols, member,
-                HttpDiagnosticCodes.HTTP_141);
+                HttpDiagnostic.HTTP_141);
     }
 
     private static void validateInputParamType(SyntaxNodeAnalysisContext ctx, FunctionDefinitionNode member,
@@ -251,19 +251,19 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
             TypeSymbol typeSymbol = param.typeDescriptor();
             if (subtypeOf(typeSymbols, typeSymbol, CALLER_OBJ_NAME)) {
                 callerPresent = isObjectPresent(ctx, paramLocation, callerPresent, paramName,
-                        HttpDiagnosticCodes.HTTP_115);
+                        HttpDiagnostic.HTTP_115);
             } else if (subtypeOf(typeSymbols, typeSymbol, REQUEST_OBJ_NAME)) {
                 requestPresent = isObjectPresent(ctx, paramLocation, requestPresent, paramName,
-                        HttpDiagnosticCodes.HTTP_116);
+                        HttpDiagnostic.HTTP_116);
             } else if (subtypeOf(typeSymbols, typeSymbol, RESPONSE_OBJ_NAME)) {
                 responsePresent = isObjectPresent(ctx, paramLocation, responsePresent, paramName,
-                        HttpDiagnosticCodes.HTTP_139);
+                        HttpDiagnostic.HTTP_139);
             } else if (subtypeOf(typeSymbols, typeSymbol, REQUEST_CONTEXT_OBJ_NAME)) {
                 requestCtxPresent = isObjectPresent(ctx, paramLocation, requestCtxPresent, paramName,
-                        HttpDiagnosticCodes.HTTP_121);
+                        HttpDiagnostic.HTTP_121);
             } else if (isResponseErrorInterceptor(type) && kind == TypeDescKind.ERROR) {
                 errorPresent = isObjectPresent(ctx, paramLocation, errorPresent, paramName,
-                            HttpDiagnosticCodes.HTTP_122);
+                            HttpDiagnostic.HTTP_122);
             } else {
                 reportInvalidParameterType(ctx, paramLocation, paramType, isResponseErrorInterceptor(type));
             }
@@ -274,7 +274,7 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
     }
 
     private static boolean isObjectPresent(SyntaxNodeAnalysisContext ctx, Location location,
-                                           boolean objectPresent, String paramName, HttpDiagnosticCodes code) {
+                                           boolean objectPresent, String paramName, HttpDiagnostic code) {
         if (objectPresent) {
             HttpCompilerPluginUtil.updateDiagnostic(ctx, location, code, paramName);
         }
@@ -285,44 +285,44 @@ public class HttpInterceptorServiceValidator implements AnalysisTask<SyntaxNodeA
                                                    String typeName, boolean isResponseErrorInterceptor) {
         String functionName = isResponseErrorInterceptor ? Constants.INTERCEPT_RESPONSE_ERROR :
                 Constants.INTERCEPT_RESPONSE;
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_140, typeName, functionName);
+        HttpCompilerPluginUtil.updateDiagnostic(ctx, location, HttpDiagnostic.HTTP_140, typeName, functionName);
     }
 
     private static void reportMultipleReferencesFound(SyntaxNodeAnalysisContext ctx, TypeReferenceNode node) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_123,
+        HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), HttpDiagnostic.HTTP_123,
                                                 node.typeName().toString());
     }
 
     private static void reportMultipleResourceFunctionsFound(SyntaxNodeAnalysisContext ctx,
                                                              FunctionDefinitionNode node) {
-        DiagnosticInfo diagnosticInfo = new DiagnosticInfo(HttpDiagnosticCodes.HTTP_124.getCode(),
-                HttpDiagnosticCodes.HTTP_124.getMessage(), HttpDiagnosticCodes.HTTP_124.getSeverity());
+        DiagnosticInfo diagnosticInfo = new DiagnosticInfo(HttpDiagnostic.HTTP_124.getCode(),
+                HttpDiagnostic.HTTP_124.getMessage(), HttpDiagnostic.HTTP_124.getSeverity());
         ctx.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, node.location()));
     }
 
     private static void reportResourceFunctionNotFound(SyntaxNodeAnalysisContext ctx, String type) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, ctx.node().location(), HttpDiagnosticCodes.HTTP_132, type);
+        HttpCompilerPluginUtil.updateDiagnostic(ctx, ctx.node().location(), HttpDiagnostic.HTTP_132, type);
     }
 
     private static void reportRemoteFunctionNotFound(SyntaxNodeAnalysisContext ctx, String type) {
         String requiredFunctionName = isResponseErrorInterceptor(type) ? Constants.INTERCEPT_RESPONSE_ERROR :
                 Constants.INTERCEPT_RESPONSE;
-        DiagnosticInfo diagnosticInfo = HttpCompilerPluginUtil.getDiagnosticInfo(HttpDiagnosticCodes.HTTP_135,
+        DiagnosticInfo diagnosticInfo = HttpCompilerPluginUtil.getDiagnosticInfo(HttpDiagnostic.HTTP_135,
                 type, requiredFunctionName);
         ctx.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, ctx.node().location()));
     }
 
     private static void reportResourceFunctionNotAllowed(SyntaxNodeAnalysisContext ctx, Node node, String type) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_136, type);
+        HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), HttpDiagnostic.HTTP_136, type);
     }
 
     private static void reportRemoteFunctionNotAllowed(SyntaxNodeAnalysisContext ctx, Node node, String type) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_137, type);
+        HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), HttpDiagnostic.HTTP_137, type);
     }
 
     private static void reportInvalidRemoteFunction(SyntaxNodeAnalysisContext ctx, Node node, String functionName,
                                                     String interceptorType, String requiredFunctionName) {
-        DiagnosticInfo diagnosticInfo = HttpCompilerPluginUtil.getDiagnosticInfo(HttpDiagnosticCodes.HTTP_138,
+        DiagnosticInfo diagnosticInfo = HttpCompilerPluginUtil.getDiagnosticInfo(HttpDiagnostic.HTTP_138,
                                         functionName, interceptorType, requiredFunctionName);
         ctx.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, node.location()));
     }
