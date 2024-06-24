@@ -86,8 +86,18 @@ public class ResponseBodyCompressionTestCase {
 
         streamId = streamId + 2;
         responseHandler = h2ClientWithoutDecompressor.sendPostRequest(PAYLOAD, streamId, "deflate;q=1.0, gzip;q=0.8");
-        assertCompressedResults("deflate", responseHandler.getFullResponse(streamId),
+        assertCompressedResults(Constants.ENCODING_DEFLATE, responseHandler.getFullResponse(streamId),
                                 responseHandler.getResponsePayload(streamId));
+
+        streamId = streamId + 2;
+        responseHandler = h2ClientWithoutDecompressor.sendPostRequest(PAYLOAD, streamId, "br");
+        assertCompressedResults(Constants.ENCODING_BR, responseHandler.getFullResponse(streamId),
+                responseHandler.getResponsePayload(streamId));
+
+        streamId = streamId + 2;
+        responseHandler = h2ClientWithoutDecompressor.sendPostRequest(PAYLOAD, streamId, "br, deflate");
+        assertCompressedResults(Constants.ENCODING_BR, responseHandler.getFullResponse(streamId),
+                responseHandler.getResponsePayload(streamId));
 
         streamId = streamId + 2;
         responseHandler = h2ClientWithoutDecompressor.sendPostRequest(PAYLOAD, streamId, null);
@@ -99,11 +109,11 @@ public class ResponseBodyCompressionTestCase {
         assertPlainResults(responseHandler.getFullResponse(streamId), responseHandler.getResponsePayload(streamId));
 
         streamId = streamId + 2;
-        responseHandler = h2ClientWithoutDecompressor.sendPostRequest(PAYLOAD, streamId, "sdch, br");
+        responseHandler = h2ClientWithoutDecompressor.sendPostRequest(PAYLOAD, streamId, "sdch, snappy");
         assertPlainResults(responseHandler.getFullResponse(streamId), responseHandler.getResponsePayload(streamId));
 
         streamId = streamId + 2;
-        responseHandler = h2ClientWithoutDecompressor.sendPostRequest(PAYLOAD, streamId, "sdch, br, deflate");
+        responseHandler = h2ClientWithoutDecompressor.sendPostRequest(PAYLOAD, streamId, "sdch, snappy, deflate");
         assertCompressedResults("deflate", responseHandler.getFullResponse(streamId),
                 responseHandler.getResponsePayload(streamId));
     }

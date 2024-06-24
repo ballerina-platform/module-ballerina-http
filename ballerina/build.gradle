@@ -147,6 +147,40 @@ dependencies {
     externalJars(group: 'com.google.protobuf', name: 'protobuf-java', version: "${protobufVersion}") {
         transitive = false
     }
+
+    externalJars(group: 'com.aayushatharva.brotli4j', name: 'brotli4j', version: "${brotli4jVersion}") {
+        transitive = false
+    }
+    externalJars(group: 'com.aayushatharva.brotli4j', name: 'service', version: "${brotli4jVersion}") {
+        transitive = false
+    }
+    externalJars(group: 'com.aayushatharva.brotli4j', name: 'native-linux-ppc64le', version: "${brotli4jVersion}") {
+        transitive = false
+    }
+    externalJars(group: 'com.aayushatharva.brotli4j', name: 'native-linux-x86_64', version: "${brotli4jVersion}") {
+        transitive = false
+    }
+    externalJars(group: 'com.aayushatharva.brotli4j', name: 'native-linux-aarch64', version: "${brotli4jVersion}") {
+        transitive = false
+    }
+    externalJars(group: 'com.aayushatharva.brotli4j', name: 'native-linux-armv7', version: "${brotli4jVersion}") {
+        transitive = false
+    }
+    externalJars(group: 'com.aayushatharva.brotli4j', name: 'native-linux-riscv64', version: "${brotli4jVersion}") {
+        transitive = false
+    }
+    externalJars(group: 'com.aayushatharva.brotli4j', name: 'native-osx-x86_64', version: "${brotli4jVersion}") {
+        transitive = false
+    }
+    externalJars(group: 'com.aayushatharva.brotli4j', name: 'native-osx-aarch64', version: "${brotli4jVersion}") {
+        transitive = false
+    }
+    externalJars(group: 'com.aayushatharva.brotli4j', name: 'native-windows-x86_64', version: "${brotli4jVersion}") {
+        transitive = false
+    }
+    externalJars(group: 'com.aayushatharva.brotli4j', name: 'native-windows-aarch64', version: "${brotli4jVersion}") {
+        transitive = false
+    }
 }
 
 task updateTomlFiles {
@@ -164,6 +198,7 @@ task updateTomlFiles {
         def stdlibDependentLz4Version = project.lz4Version
         def stdlibDependentMarshallingVersion = project.marshallingVersion
         def stdlibDependentProtobufVersion = project.protobufVersion
+        def stdlibDependentBrotli4jVersion = project.brotli4jVersion
 
         def newBallerinaToml = ballerinaTomlFilePlaceHolder.text.replace("@project.version@", project.version)
         newBallerinaToml = newBallerinaToml.replace("@toml.version@", tomlVersion)
@@ -180,6 +215,7 @@ task updateTomlFiles {
         newBallerinaToml = newBallerinaToml.replace("@lz4.version@", stdlibDependentLz4Version)
         newBallerinaToml = newBallerinaToml.replace("@marshalling.version@", stdlibDependentMarshallingVersion)
         newBallerinaToml = newBallerinaToml.replace("@protobuf.version@", stdlibDependentProtobufVersion)
+        newBallerinaToml = newBallerinaToml.replace("@brotli4j.version@", stdlibDependentBrotli4jVersion)
         ballerinaTomlFile.text = newBallerinaToml
 
         def newCompilerPluginToml = compilerPluginTomlFilePlaceHolder.text.replace("@project.version@", project.version)

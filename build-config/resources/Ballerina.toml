@@ -171,3 +171,69 @@ groupId = "com.google.protobufl"
 artifactId = "protobuf-java"
 version = "@protobuf.version@"
 path = "./lib/protobuf-java-@protobuf.version@.jar"
+
+[[platform.java17.dependency]]
+groupId = "com.aayushatharva.brotli4j"
+artifactId = "brotli4j"
+version = "@brotli4j.version@"
+path = "./lib/brotli4j-@brotli4j.version@.jar"
+
+[[platform.java17.dependency]]
+groupId = "com.aayushatharva.brotli4j"
+artifactId = "service"
+version = "@brotli4j.version@"
+path = "./lib/service-@brotli4j.version@.jar"
+
+[[platform.java17.dependency]]
+groupId = "com.aayushatharva.brotli4j"
+artifactId = "native-linux-ppc64le"
+version = "@brotli4j.version@"
+path = "./lib/native-linux-ppc64le-@brotli4j.version@.jar"
+
+[[platform.java17.dependency]]
+groupId = "com.aayushatharva.brotli4j"
+artifactId = "native-linux-x86_64"
+version = "@brotli4j.version@"
+path = "./lib/native-linux-x86_64-@brotli4j.version@.jar"
+
+[[platform.java17.dependency]]
+groupId = "com.aayushatharva.brotli4j"
+artifactId = "native-linux-aarch64"
+version = "@brotli4j.version@"
+path = "./lib/native-linux-aarch64-@brotli4j.version@.jar"
+
+[[platform.java17.dependency]]
+groupId = "com.aayushatharva.brotli4j"
+artifactId = "native-linux-armv7"
+version = "@brotli4j.version@"
+path = "./lib/native-linux-armv7-@brotli4j.version@.jar"
+
+[[platform.java17.dependency]]
+groupId = "com.aayushatharva.brotli4j"
+artifactId = "native-linux-riscv64"
+version = "@brotli4j.version@"
+path = "./lib/native-linux-riscv64-@brotli4j.version@.jar"
+
+[[platform.java17.dependency]]
+groupId = "com.aayushatharva.brotli4j"
+artifactId = "native-osx-x86_64"
+version = "@brotli4j.version@"
+path = "./lib/native-osx-x86_64-@brotli4j.version@.jar"
+
+[[platform.java17.dependency]]
+groupId = "com.aayushatharva.brotli4j"
+artifactId = "native-osx-aarch64"
+version = "@brotli4j.version@"
+path = "./lib/native-osx-aarch64-@brotli4j.version@.jar"
+
+[[platform.java17.dependency]]
+groupId = "com.aayushatharva.brotli4j"
+artifactId = "native-windows-x86_64"
+version = "@brotli4j.version@"
+path = "./lib/native-windows-x86_64-@brotli4j.version@.jar"
+
+[[platform.java17.dependency]]
+groupId = "com.aayushatharva.brotli4j"
+artifactId = "native-windows-aarch64"
+version = "@brotli4j.version@"
+path = "./lib/native-windows-aarch64-@brotli4j.version@.jar"
