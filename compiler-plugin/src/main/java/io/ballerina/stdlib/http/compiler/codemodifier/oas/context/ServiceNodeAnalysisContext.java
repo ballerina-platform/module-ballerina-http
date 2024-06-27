@@ -18,8 +18,8 @@
 package io.ballerina.stdlib.http.compiler.codemodifier.oas.context;
 
 import io.ballerina.compiler.api.SemanticModel;
-import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
+import io.ballerina.openapi.service.mapper.model.ServiceNode;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.ModuleId;
 import io.ballerina.projects.Package;
@@ -33,7 +33,7 @@ import java.util.List;
  */
 public class ServiceNodeAnalysisContext {
 
-    private final ServiceDeclarationNode node;
+    private final ServiceNode node;
     private final ModuleId moduleId;
     private final DocumentId documentId;
     private final SyntaxTree syntaxTree;
@@ -43,7 +43,7 @@ public class ServiceNodeAnalysisContext {
 
     public ServiceNodeAnalysisContext(Package currentPackage, ModuleId moduleId, DocumentId documentId,
                                       SyntaxTree syntaxTree, SemanticModel semanticModel,
-                                      ServiceDeclarationNode node) {
+                                      ServiceNode node) {
         this.moduleId = moduleId;
         this.documentId = documentId;
         this.syntaxTree = syntaxTree;
@@ -53,7 +53,7 @@ public class ServiceNodeAnalysisContext {
         this.node = node;
     }
 
-    public ServiceDeclarationNode node() {
+    public ServiceNode node() {
         return node;
     }
 

@@ -17,8 +17,8 @@
  */
 package io.ballerina.stdlib.http.compiler.codemodifier.oas.gen;
 
-import io.ballerina.compiler.syntax.tree.NodeLocation;
 import io.ballerina.stdlib.http.compiler.codemodifier.oas.context.ServiceNodeAnalysisContext;
+import io.ballerina.tools.diagnostics.Location;
 
 import java.util.List;
 
@@ -33,7 +33,7 @@ public final class DocGeneratorManager {
         this.docGenerators = List.of(new SingleFileOpenApiDocGenerator(), new BalProjectOpenApiDocGenerator());
     }
 
-    public void generate(OpenApiDocConfig config, ServiceNodeAnalysisContext context, NodeLocation location) {
+    public void generate(OpenApiDocConfig config, ServiceNodeAnalysisContext context, Location location) {
         docGenerators.stream()
                 .filter(dg -> dg.isSupported(config.projectType()))
                 .findFirst()

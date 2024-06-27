@@ -21,12 +21,11 @@ import io.ballerina.compiler.syntax.tree.AnnotationNode;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.NodeList;
-import io.ballerina.compiler.syntax.tree.NodeLocation;
-import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.openapi.service.mapper.ServiceToOpenAPIMapper;
 import io.ballerina.openapi.service.mapper.model.OASGenerationMetaInfo;
 import io.ballerina.openapi.service.mapper.model.OASResult;
+import io.ballerina.openapi.service.mapper.model.ServiceNode;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
 import io.ballerina.stdlib.http.compiler.HttpDiagnostic;
@@ -34,6 +33,7 @@ import io.ballerina.stdlib.http.compiler.codemodifier.oas.Constants;
 import io.ballerina.stdlib.http.compiler.codemodifier.oas.context.OpenApiDocContext;
 import io.ballerina.stdlib.http.compiler.codemodifier.oas.context.ServiceNodeAnalysisContext;
 import io.ballerina.tools.diagnostics.Diagnostic;
+import io.ballerina.tools.diagnostics.Location;
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.oas.models.OpenAPI;
 
@@ -59,7 +59,7 @@ public abstract class AbstractOpenApiDocGenerator implements OpenApiDocGenerator
     }
 
     @Override
-    public void generate(OpenApiDocConfig config, ServiceNodeAnalysisContext context, NodeLocation location) {
+    public void generate(OpenApiDocConfig config, ServiceNodeAnalysisContext context, Location location) {
         try {
             int serviceId = config.getServiceId();
             Package currentPackage = config.currentPackage();
@@ -68,15 +68,14 @@ public abstract class AbstractOpenApiDocGenerator implements OpenApiDocGenerator
             // find the project root path
             Path projectRoot = retrieveProjectRoot(srcRoot);
 
-            ServiceDeclarationNode serviceNode = config.serviceNode();
+            ServiceNode serviceNode = config.serviceNode();
             Optional<AnnotationNode> serviceInfoAnnotationOpt = getServiceInfoAnnotation(serviceNode);
             if (serviceInfoAnnotationOpt.isPresent()) {
                 AnnotationNode serviceInfoAnnotation = serviceInfoAnnotationOpt.get();
 
-                boolean embed = retrieveValueForAnnotationFields(
-                        serviceInfoAnnotation, Constants.EMBED)
-                        .map(Boolean::parseBoolean)
-                        .orElse(false);
+                boolean embed = retrieveValueForAnnotationFields(serviceInfoAnnotation, Constants.EMBED)
+                                .map(Boolean::parseBoolean)
+                                .orElse(false);
 
                 // use the available open-api doc and update the context
                 OpenApiContractResolver.ResolverResponse resolverResponse = this.contractResolver
@@ -92,6 +91,9 @@ public abstract class AbstractOpenApiDocGenerator implements OpenApiDocGenerator
                     // generate open-api doc and update the context if the `contract` configuration is not available
                     generateOpenApiDoc(currentPackage.project(), config, context, location, embed);
                 }
+            } else if (serviceNode.kind().equals(ServiceNode.Kind.SERVICE_OBJECT_TYPE)) {
+                // generate open-api doc and update the context if the service is a service contract type
+                generateOpenApiDoc(currentPackage.project(), config, context, location, true);
             }
         } catch (IOException | RuntimeException e) {
             // currently, we do not have open-api doc generation logic for following scenarios:
@@ -108,13 +110,13 @@ public abstract class AbstractOpenApiDocGenerator implements OpenApiDocGenerator
         getContextHandler().updateContext(context.moduleId(), context.documentId(), openApiDef);
     }
 
-    private void updateCompilerContext(ServiceNodeAnalysisContext context, NodeLocation location,
+    private void updateCompilerContext(ServiceNodeAnalysisContext context, Location location,
                                        HttpDiagnostic errorCode) {
         Diagnostic diagnostic = getDiagnostics(errorCode, location);
         context.reportDiagnostic(diagnostic);
     }
 
-    private Optional<AnnotationNode> getServiceInfoAnnotation(ServiceDeclarationNode serviceNode) {
+    private Optional<AnnotationNode> getServiceInfoAnnotation(ServiceNode serviceNode) {
         Optional<MetadataNode> metadata = serviceNode.metadata();
         if (metadata.isEmpty()) {
             return Optional.empty();
@@ -143,7 +145,7 @@ public abstract class AbstractOpenApiDocGenerator implements OpenApiDocGenerator
     }
 
     private void generateOpenApiDoc(Project project, OpenApiDocConfig config, ServiceNodeAnalysisContext context,
-                                    NodeLocation location, boolean embed) {
+                                    Location location, boolean embed) {
         if (!embed) {
             return;
         }
@@ -151,7 +153,7 @@ public abstract class AbstractOpenApiDocGenerator implements OpenApiDocGenerator
         String targetFile = String.format(FILE_NAME_FORMAT, serviceId);
         OASGenerationMetaInfo.OASGenerationMetaInfoBuilder builder = new
                 OASGenerationMetaInfo.OASGenerationMetaInfoBuilder();
-        builder.setServiceDeclarationNode(config.serviceNode())
+        builder.setServiceNode(config.serviceNode())
                 .setSemanticModel(config.semanticModel())
                 .setOpenApiFileName(targetFile)
                 .setBallerinaFilePath(null)

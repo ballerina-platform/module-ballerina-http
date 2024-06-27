@@ -33,12 +33,12 @@ import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.NodeParser;
 import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
-import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.Token;
+import io.ballerina.openapi.service.mapper.model.ServiceNode;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
@@ -61,7 +61,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static io.ballerina.openapi.service.mapper.ServiceToOpenAPIMapper.getServiceNode;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.getDiagnosticInfo;
+import static io.ballerina.stdlib.http.compiler.codemodifier.oas.Constants.SERVICE_CONFIG;
+import static io.ballerina.stdlib.http.compiler.codemodifier.oas.Constants.SERVICE_CONTRACT_INFO;
 import static io.ballerina.stdlib.http.compiler.codemodifier.oas.context.OpenApiDocContextHandler.getContextHandler;
 
 /**
@@ -87,9 +90,10 @@ public class OpenApiInfoUpdaterTask implements ModifierTask<SourceModifierContex
             Module currentModule = context.currentPackage().module(moduleId);
             DocumentId documentId = openApiContext.getDocumentId();
             Document currentDoc = currentModule.document(documentId);
+            SemanticModel semanticModel = context.compilation().getSemanticModel(moduleId);
             ModulePartNode rootNode = currentDoc.syntaxTree().rootNode();
             NodeList<ModuleMemberDeclarationNode> newMembers = updateMemberNodes(
-                    rootNode.members(), openApiContext.getOpenApiDetails(), context);
+                    rootNode.members(), openApiContext.getOpenApiDetails(), context, semanticModel);
             ModulePartNode newModulePart = rootNode.modify(rootNode.imports(), newMembers, rootNode.eofToken());
             SyntaxTree updatedSyntaxTree = currentDoc.syntaxTree().modifyWith(newModulePart);
             TextDocument textDocument = updatedSyntaxTree.textDocument();
@@ -113,12 +117,13 @@ public class OpenApiInfoUpdaterTask implements ModifierTask<SourceModifierContex
                 ModulePartNode rootNode = syntaxTree.rootNode();
                 NodeList<ModuleMemberDeclarationNode> members = rootNode.members();
                 for (ModuleMemberDeclarationNode member: members) {
-                    if (member.kind() != SyntaxKind.SERVICE_DECLARATION) {
+                    Optional<ServiceNode> serviceNode = getServiceNode(member, semanticModel);
+                    if (serviceNode.isEmpty()) {
                         continue;
                     }
                     ServiceNodeAnalysisContext serviceNodeAnalysisContext = new ServiceNodeAnalysisContext(
-                            currentPackage, moduleId, documentId, syntaxTree, semanticModel,
-                            (ServiceDeclarationNode) member);
+                                currentPackage, moduleId, documentId, syntaxTree, semanticModel,
+                                serviceNode.get());
                     serviceAnalysisTask.perform(serviceNodeAnalysisContext);
                     serviceNodeAnalysisContext.diagnostics().forEach(context::reportDiagnostic);
                 }
@@ -128,56 +133,54 @@ public class OpenApiInfoUpdaterTask implements ModifierTask<SourceModifierContex
 
     private NodeList<ModuleMemberDeclarationNode> updateMemberNodes(NodeList<ModuleMemberDeclarationNode> oldMembers,
                                                                     List<OpenApiDocContext.OpenApiDefinition> openApi,
-                                                                    SourceModifierContext context) {
+                                                                    SourceModifierContext context,
+                                                                    SemanticModel semanticModel) {
         List<ModuleMemberDeclarationNode> updatedMembers = new LinkedList<>();
         for (ModuleMemberDeclarationNode memberNode : oldMembers) {
-            if (memberNode.kind() != SyntaxKind.SERVICE_DECLARATION) {
+            Optional<ServiceNode> serviceNode = getServiceNode(memberNode, semanticModel);
+            if (serviceNode.isEmpty()) {
                 updatedMembers.add(memberNode);
                 continue;
             }
-            ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) memberNode;
-            Optional<OpenApiDocContext.OpenApiDefinition> openApiDefOpt = openApi.stream()
-                                    .filter(service -> service.getServiceId() == serviceNode.hashCode())
-                                    .findFirst();
-            if (openApiDefOpt.isEmpty()) {
-                updatedMembers.add(memberNode);
-                continue;
-            }
-            OpenApiDocContext.OpenApiDefinition openApiDef = openApiDefOpt.get();
-            if (!openApiDef.isAutoEmbedToService()) {
-                updatedMembers.add(memberNode);
-                continue;
-            }
-            MetadataNode metadataNode = getMetadataNode(serviceNode);
-            MetadataNode.MetadataNodeModifier modifier = metadataNode.modify();
-            NodeList<AnnotationNode> updatedAnnotations = updateAnnotations(
-                    metadataNode.annotations(), openApiDef.getDefinition(), context);
-            modifier.withAnnotations(updatedAnnotations);
-            MetadataNode updatedMetadataNode = modifier.apply();
-            ServiceDeclarationNode.ServiceDeclarationNodeModifier serviceDecModifier = serviceNode.modify();
-            serviceDecModifier.withMetadata(updatedMetadataNode);
-            ServiceDeclarationNode updatedServiceDecNode = serviceDecModifier.apply();
-            updatedMembers.add(updatedServiceDecNode);
+            updateServiceDeclarationNode(openApi, context, serviceNode.get(), updatedMembers);
         }
         return AbstractNodeFactory.createNodeList(updatedMembers);
     }
 
-    private MetadataNode getMetadataNode(ServiceDeclarationNode serviceNode) {
-        return serviceNode.metadata().orElseGet(() -> {
-            NodeList<AnnotationNode> annotations = NodeFactory.createNodeList();
-            return NodeFactory.createMetadataNode(null, annotations);
-        });
+    private void updateServiceDeclarationNode(List<OpenApiDocContext.OpenApiDefinition> openApi,
+                                              SourceModifierContext context, ServiceNode serviceNode,
+                                              List<ModuleMemberDeclarationNode> updatedMembers) {
+        ModuleMemberDeclarationNode memberNode = serviceNode.getInternalNode();
+        Optional<OpenApiDocContext.OpenApiDefinition> openApiDefOpt = openApi.stream()
+                                .filter(service -> service.getServiceId() == serviceNode.getServiceId())
+                                .findFirst();
+        if (openApiDefOpt.isEmpty()) {
+            updatedMembers.add(memberNode);
+            return;
+        }
+        OpenApiDocContext.OpenApiDefinition openApiDef = openApiDefOpt.get();
+        if (!openApiDef.isAutoEmbedToService()) {
+            updatedMembers.add(memberNode);
+            return;
+        }
+        NodeList<AnnotationNode> existingAnnotations = serviceNode.metadata().map(MetadataNode::annotations)
+                .orElseGet(NodeFactory::createEmptyNodeList);
+        NodeList<AnnotationNode> updatedAnnotations = updateAnnotations(existingAnnotations,
+                openApiDef.getDefinition(), context, serviceNode.kind().equals(ServiceNode.Kind.SERVICE_OBJECT_TYPE));
+        serviceNode.updateAnnotations(updatedAnnotations);
+        updatedMembers.add(serviceNode.getInternalNode());
     }
 
     private NodeList<AnnotationNode> updateAnnotations(NodeList<AnnotationNode> currentAnnotations,
-                                                       String openApiDefinition, SourceModifierContext context) {
+                                                       String openApiDef, SourceModifierContext context,
+                                                       boolean isServiceContract) {
         NodeList<AnnotationNode> updatedAnnotations = NodeFactory.createNodeList();
-        boolean openApiAnnotationUpdated = false;
+        String annotationToBeUpdated = isServiceContract ? SERVICE_CONTRACT_INFO : SERVICE_CONFIG;
+        boolean annotationAlreadyExists = false;
         for (AnnotationNode annotation: currentAnnotations) {
-            if (isHttpServiceConfigAnnotation(annotation)) {
-                openApiAnnotationUpdated = true;
-                SeparatedNodeList<MappingFieldNode> updatedFields = getUpdatedFields(annotation, openApiDefinition,
-                        context);
+            if (isHttpAnnotation(annotation, annotationToBeUpdated)) {
+                annotationAlreadyExists = true;
+                SeparatedNodeList<MappingFieldNode> updatedFields = getUpdatedFields(annotation, openApiDef, context);
                 MappingConstructorExpressionNode annotationValue =
                         NodeFactory.createMappingConstructorExpressionNode(
                                 NodeFactory.createToken(SyntaxKind.OPEN_BRACE_TOKEN), updatedFields,
@@ -186,8 +189,8 @@ public class OpenApiInfoUpdaterTask implements ModifierTask<SourceModifierContex
             }
             updatedAnnotations = updatedAnnotations.add(annotation);
         }
-        if (!openApiAnnotationUpdated) {
-            AnnotationNode openApiAnnotation = getHttpServiceConfigAnnotation(openApiDefinition);
+        if (!annotationAlreadyExists) {
+            AnnotationNode openApiAnnotation = getHttpAnnotationWithOpenApi(annotationToBeUpdated, openApiDef);
             updatedAnnotations = updatedAnnotations.add(openApiAnnotation);
         }
         return updatedAnnotations;
@@ -197,7 +200,7 @@ public class OpenApiInfoUpdaterTask implements ModifierTask<SourceModifierContex
                                                                  SourceModifierContext context) {
         Optional<MappingConstructorExpressionNode> annotationValueOpt = annotation.annotValue();
         if (annotationValueOpt.isEmpty()) {
-            return NodeFactory.createSeparatedNodeList(createOpenApiDefinitionField(servicePath));
+            return NodeFactory.createSeparatedNodeList(createOpenApiDefinitionField(servicePath, false));
         }
         List<Node> fields = new ArrayList<>();
         MappingConstructorExpressionNode annotationValue = annotationValueOpt.get();
@@ -215,7 +218,7 @@ public class OpenApiInfoUpdaterTask implements ModifierTask<SourceModifierContex
             fields.add(field);
             fields.add(separator);
         }
-        fields.add(createOpenApiDefinitionField(servicePath));
+        fields.add(createOpenApiDefinitionField(servicePath, false));
         if (Objects.nonNull(openApiDefNode)) {
             context.reportDiagnostic(DiagnosticFactory.createDiagnostic(
                     getDiagnosticInfo(HttpDiagnostic.HTTP_WARNING_102), openApiDefNode.location()));
@@ -223,40 +226,43 @@ public class OpenApiInfoUpdaterTask implements ModifierTask<SourceModifierContex
         return NodeFactory.createSeparatedNodeList(fields);
     }
 
-    private AnnotationNode getHttpServiceConfigAnnotation(String openApiDefinition) {
+    private AnnotationNode getHttpAnnotationWithOpenApi(String annotationName, String openApiDefinition) {
         String configIdentifierString = Constants.HTTP_PACKAGE_NAME + SyntaxKind.COLON_TOKEN.stringValue() +
-                Constants.SERVICE_CONFIG_ANNOTATION_IDENTIFIER;
+                annotationName;
         IdentifierToken identifierToken = NodeFactory.createIdentifierToken(configIdentifierString);
         Token atToken = NodeFactory.createToken(SyntaxKind.AT_TOKEN);
         SimpleNameReferenceNode nameReferenceNode = NodeFactory.createSimpleNameReferenceNode(identifierToken);
-        MappingConstructorExpressionNode annotValue = getAnnotationExpression(openApiDefinition);
+        MappingConstructorExpressionNode annotValue = getAnnotationExpression(openApiDefinition,
+                annotationName.equals(SERVICE_CONTRACT_INFO));
         return NodeFactory.createAnnotationNode(atToken, nameReferenceNode, annotValue);
     }
 
-    private MappingConstructorExpressionNode getAnnotationExpression(String openApiDefinition) {
+    private MappingConstructorExpressionNode getAnnotationExpression(String openApiDefinition,
+                                                                     boolean isServiceContract) {
         Token openBraceToken = NodeFactory.createToken(SyntaxKind.OPEN_BRACE_TOKEN);
         Token closeBraceToken = NodeFactory.createToken(SyntaxKind.CLOSE_BRACE_TOKEN);
-        SpecificFieldNode specificFieldNode = createOpenApiDefinitionField(openApiDefinition);
+        SpecificFieldNode specificFieldNode = createOpenApiDefinitionField(openApiDefinition, isServiceContract);
         SeparatedNodeList<MappingFieldNode> separatedNodeList = NodeFactory.createSeparatedNodeList(specificFieldNode);
         return NodeFactory.createMappingConstructorExpressionNode(openBraceToken, separatedNodeList, closeBraceToken);
     }
 
-    private static SpecificFieldNode createOpenApiDefinitionField(String openApiDefinition) {
+    private static SpecificFieldNode createOpenApiDefinitionField(String openApiDefinition,
+                                                                  boolean isServiceContract) {
         IdentifierToken fieldName = AbstractNodeFactory.createIdentifierToken(Constants.OPEN_API_DEFINITION_FIELD);
         Token colonToken = AbstractNodeFactory.createToken(SyntaxKind.COLON_TOKEN);
         String encodedValue = Base64.getEncoder().encodeToString(openApiDefinition.getBytes(Charset.defaultCharset()));
-        ExpressionNode expressionNode = NodeParser.parseExpression(
-                String.format("base64 `%s`.cloneReadOnly()", encodedValue));
+        String format = isServiceContract ? "\"%s\"" : "base64 `%s`.cloneReadOnly()";
+        ExpressionNode expressionNode = NodeParser.parseExpression(String.format(format, encodedValue));
         return NodeFactory.createSpecificFieldNode(null, fieldName, colonToken, expressionNode);
     }
 
-    private boolean isHttpServiceConfigAnnotation(AnnotationNode annotationNode) {
+    private boolean isHttpAnnotation(AnnotationNode annotationNode, String annotationName) {
         if (!(annotationNode.annotReference() instanceof QualifiedNameReferenceNode referenceNode)) {
             return false;
         }
         if (!Constants.HTTP_PACKAGE_NAME.equals(referenceNode.modulePrefix().text())) {
             return false;
         }
-        return Constants.SERVICE_CONFIG_ANNOTATION_IDENTIFIER.equals(referenceNode.identifier().text());
+        return annotationName.equals(referenceNode.identifier().text());
     }
 }

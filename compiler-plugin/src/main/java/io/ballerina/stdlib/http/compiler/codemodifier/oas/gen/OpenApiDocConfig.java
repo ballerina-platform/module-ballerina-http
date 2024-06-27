@@ -18,8 +18,8 @@
 package io.ballerina.stdlib.http.compiler.codemodifier.oas.gen;
 
 import io.ballerina.compiler.api.SemanticModel;
-import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
+import io.ballerina.openapi.service.mapper.model.ServiceNode;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.ProjectKind;
 
@@ -33,9 +33,9 @@ import io.ballerina.projects.ProjectKind;
  * @param projectType    project type
  */
 public record OpenApiDocConfig(Package currentPackage, SemanticModel semanticModel, SyntaxTree syntaxTree,
-                               ServiceDeclarationNode serviceNode, ProjectKind projectType) {
+                               ServiceNode serviceNode, ProjectKind projectType) {
 
     public int getServiceId() {
-        return serviceNode.hashCode();
+        return serviceNode.getServiceId();
     }
 }

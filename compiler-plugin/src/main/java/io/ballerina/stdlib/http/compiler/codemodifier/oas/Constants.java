@@ -32,7 +32,8 @@ public interface Constants {
 
     // http module related constants
     String HTTP_PACKAGE_NAME = "http";
-    String SERVICE_CONFIG_ANNOTATION_IDENTIFIER = "ServiceConfig";
+    String SERVICE_CONFIG = "ServiceConfig";
+    String SERVICE_CONTRACT_INFO = "ServiceContractInfo";
     String OPEN_API_DEFINITION_FIELD = "openApiDefinition";
 
     String SLASH = "/";

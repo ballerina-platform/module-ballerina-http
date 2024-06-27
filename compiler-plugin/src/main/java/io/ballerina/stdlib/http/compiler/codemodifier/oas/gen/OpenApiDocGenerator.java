@@ -17,15 +17,15 @@
  */
 package io.ballerina.stdlib.http.compiler.codemodifier.oas.gen;
 
-import io.ballerina.compiler.syntax.tree.NodeLocation;
 import io.ballerina.projects.ProjectKind;
 import io.ballerina.stdlib.http.compiler.codemodifier.oas.context.ServiceNodeAnalysisContext;
+import io.ballerina.tools.diagnostics.Location;
 
 /**
  * {@code Generator} generates open-api related docs for HTTP service.
  */
 public interface OpenApiDocGenerator {
-    void generate(OpenApiDocConfig config, ServiceNodeAnalysisContext context, NodeLocation location);
+    void generate(OpenApiDocConfig config, ServiceNodeAnalysisContext context, Location location);
 
     boolean isSupported(ProjectKind projectType);
 }

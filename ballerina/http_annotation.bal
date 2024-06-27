@@ -156,3 +156,15 @@ public type HttpCacheConfig record {|
 # Success(2XX) `StatusCodeResponses` return types. Default annotation adds `must-revalidate,public,max-age=3600` as
 # `cache-control` header in addition to `etag` and `last-modified` headers.
 public annotation HttpCacheConfig Cache on return;
+
+# Defines the information about the service contract.
+#
+# + openApiDefinition - The generated OpenAPI definition for the HTTP service. This is auto-generated at
+# compile-time by default
+public type ServiceContractInformation record {|
+    string openApiDefinition;
+|};
+
+# The annotation which is used to define the information about the service contract. This annotation is auto-generated
+# at compile-time by default. Adding this annotation manually is not recommended.
+public const annotation ServiceContractInformation ServiceContractInfo on type;
