@@ -57,9 +57,6 @@ public class HttpAccessLogConfig {
 
     public List<String> getCustomHeaders() {
         List<String> attributes = getAccessLogAttributes();
-        if (attributes == null) {
-            return Collections.emptyList();
-        }
 
         return attributes.stream()
                 .filter(attr -> attr.startsWith("http_") && !excludedAttributes.contains(attr))
@@ -85,6 +82,6 @@ public class HttpAccessLogConfig {
                         .collect(Collectors.toList());
             }
         }
-        return null;
+        return Collections.emptyList();
     }
 }

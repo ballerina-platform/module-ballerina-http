@@ -61,8 +61,9 @@ public class HttpAccessLogger {
     private static String formatAccessLogMessage(HttpAccessLogMessage inboundMessage,
                                                 List<HttpAccessLogMessage> outboundMessages, HttpAccessLogFormat format,
                                                 List<String> attributes) {
+
+        Map<String, String> inboundMap = mapAccessLogMessage(inboundMessage, format, attributes);
         if (format == HttpAccessLogFormat.FLAT) {
-            Map<String, String> inboundMap = mapAccessLogMessage(inboundMessage, format, attributes);
             String inboundFormatted = inboundMap.values().stream()
                     .filter(Objects::nonNull)
                     .collect(Collectors.joining(" "));
@@ -80,7 +81,6 @@ public class HttpAccessLogger {
                 return inboundFormatted;
             }
         } else {
-            Map<String, String> inboundMap = mapAccessLogMessage(inboundMessage, format, attributes);
             Gson gson = new Gson();
             JsonObject jsonObject = new JsonObject();
 
@@ -111,7 +111,7 @@ public class HttpAccessLogger {
         Map<String, String> attributeValues = new LinkedHashMap<>();
         allAttributes.forEach(attr -> attributeValues.put(attr, null));
 
-        if (attributes != null) {
+        if (!attributes.isEmpty()) {
             attributes.forEach(attr -> {
                 attributeValues.put(attr, formatAccessLogAttribute(httpAccessLogMessage, format, attr));
             });
