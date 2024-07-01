@@ -24,6 +24,10 @@ plugins {
 
 description = 'Ballerina - HTTP Compiler Plugin'
 
+configurations {
+    externalJars
+}
+
 dependencies {
     checkstyle project(':checkstyle')
     checkstyle "com.puppycrawl.tools:checkstyle:${puppycrawlCheckstyleVersion}"
@@ -33,8 +37,9 @@ dependencies {
     implementation group: 'org.ballerinalang', name: 'ballerina-lang', version: "${ballerinaLangVersion}"
     implementation group: 'org.ballerinalang', name: 'ballerina-tools-api', version: "${ballerinaLangVersion}"
     implementation group: 'org.ballerinalang', name: 'ballerina-parser', version: "${ballerinaLangVersion}"
-
     implementation group: 'io.ballerina.openapi', name: 'ballerina-to-openapi', version: "${ballerinaToOpenApiVersion}"
+
+    externalJars group: 'io.ballerina.openapi', name: 'ballerina-to-openapi', version: "${ballerinaToOpenApiVersion}"
 }
 
 def excludePattern = '**/module-info.java'
@@ -72,3 +77,12 @@ compileJava {
         classpath = files()
     }
 }
+
+task copyOpenApiJar(type: Copy) {
+    from {
+        configurations.externalJars.collect { it }
+    }
+    into "${buildDir}/libs"
+}
+
+build.dependsOn copyOpenApiJar
