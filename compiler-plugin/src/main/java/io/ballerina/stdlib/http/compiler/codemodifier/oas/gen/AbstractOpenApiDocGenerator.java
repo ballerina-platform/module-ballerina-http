@@ -33,6 +33,7 @@ import io.ballerina.stdlib.http.compiler.codemodifier.oas.Constants;
 import io.ballerina.stdlib.http.compiler.codemodifier.oas.context.OpenApiDocContext;
 import io.ballerina.stdlib.http.compiler.codemodifier.oas.context.ServiceNodeAnalysisContext;
 import io.ballerina.tools.diagnostics.Diagnostic;
+import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 import io.ballerina.tools.diagnostics.Location;
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -160,7 +161,9 @@ public abstract class AbstractOpenApiDocGenerator implements OpenApiDocGenerator
                 .setProject(project);
         OASResult oasResult = ServiceToOpenAPIMapper.generateOAS(builder.build());
         Optional<OpenAPI> openApiOpt = oasResult.getOpenAPI();
-        if (!oasResult.getDiagnostics().isEmpty() || openApiOpt.isEmpty()) {
+        if (oasResult.getDiagnostics().stream().noneMatch(
+                diagnostic -> diagnostic.getDiagnosticSeverity().equals(DiagnosticSeverity.ERROR))
+                || openApiOpt.isEmpty()) {
             HttpDiagnostic errorCode = HttpDiagnostic.HTTP_WARNING_101;
             updateCompilerContext(context, location, errorCode);
             return;
