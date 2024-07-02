@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.listener.states;
 
+import io.ballerina.stdlib.http.api.logging.accesslog.ListenerHttpAccessLogger;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
@@ -63,6 +64,7 @@ public class SendingEntityBody implements ListenerState {
     private static final Logger LOG = LoggerFactory.getLogger(SendingEntityBody.class);
 
     private final HandlerExecutor handlerExecutor;
+    private final HttpOutboundRespListener outboundRespListener;
     private final HttpResponseFuture outboundRespStatusFuture;
     private final ListenerReqRespStateManager listenerReqRespStateManager;
     private boolean headersWritten;
@@ -74,12 +76,19 @@ public class SendingEntityBody implements ListenerState {
     private ChannelHandlerContext sourceContext;
     private SourceHandler sourceHandler;
 
-    SendingEntityBody(ListenerReqRespStateManager listenerReqRespStateManager,
+    SendingEntityBody(HttpOutboundRespListener outboundRespListener,
+                      ListenerReqRespStateManager listenerReqRespStateManager,
                       HttpResponseFuture outboundRespStatusFuture, boolean headersWritten) {
+        this.outboundRespListener = outboundRespListener;
         this.listenerReqRespStateManager = listenerReqRespStateManager;
         this.outboundRespStatusFuture = outboundRespStatusFuture;
         this.headersWritten = headersWritten;
         this.handlerExecutor = HttpTransportContextHolder.getInstance().getHandlerExecutor();
+        this.headRequest =
+                outboundRespListener.getRequestDataHolder().getHttpMethod().equalsIgnoreCase(HTTP_HEAD_METHOD);
+        this.inboundRequestMsg = outboundRespListener.getInboundRequestMsg();
+        this.sourceContext = outboundRespListener.getSourceContext();
+        this.sourceHandler = outboundRespListener.getSourceHandler();
     }
 
     @Override
@@ -100,11 +109,6 @@ public class SendingEntityBody implements ListenerState {
     @Override
     public void writeOutboundResponseBody(HttpOutboundRespListener outboundRespListener,
                                           HttpCarbonMessage outboundResponseMsg, HttpContent httpContent) {
-
-        headRequest = outboundRespListener.getRequestDataHolder().getHttpMethod().equalsIgnoreCase(HTTP_HEAD_METHOD);
-        inboundRequestMsg = outboundRespListener.getInboundRequestMsg();
-        sourceContext = outboundRespListener.getSourceContext();
-        sourceHandler = outboundRespListener.getSourceHandler();
         this.outboundResponseMsg = outboundResponseMsg;
 
         ChannelFuture outboundChannelFuture;
@@ -220,6 +224,12 @@ public class SendingEntityBody implements ListenerState {
                 outboundRespStatusFuture.notifyHttpListener(throwable);
             } else {
                 outboundRespStatusFuture.notifyHttpListener(inboundRequestMsg);
+            }
+            if (sourceHandler.getServerChannelInitializer().isHttpAccessLogEnabled()) {
+                ListenerHttpAccessLogger accessLogger = new ListenerHttpAccessLogger(
+                        outboundRespListener.getInboundRequestArrivalTime(), contentLength,
+                        outboundRespListener.getRemoteAddress());
+                accessLogger.logAccessInfo(inboundRequestMsg, outboundResponseMsg);
             }
             resetOutboundListenerState();
         });
