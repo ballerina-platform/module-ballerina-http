@@ -18,8 +18,7 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.sender.states;
 
-import io.ballerina.stdlib.http.api.logging.accesslog.HttpAccessLogConfig;
-import io.ballerina.stdlib.http.api.logging.accesslog.HttpAccessLogMessage;
+import io.ballerina.stdlib.http.api.logging.accesslog.SenderHttpAccessLogger;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.SenderReqRespStateManager;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil;
@@ -27,29 +26,14 @@ import io.ballerina.stdlib.http.transport.contractimpl.sender.TargetHandler;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.LastHttpContent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-import java.util.Calendar;
-import java.util.List;
-
-import static io.ballerina.stdlib.http.api.HttpConstants.INBOUND_MESSAGE;
-import static io.ballerina.stdlib.http.api.logging.accesslog.HttpAccessLogUtil.getHttpAccessLogMessages;
-import static io.ballerina.stdlib.http.api.logging.accesslog.HttpAccessLogUtil.getTypedProperty;
-import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_X_FORWARDED_FOR;
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_STATE_HANDLER;
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_WHILE_READING_INBOUND_RESPONSE_BODY;
-import static io.ballerina.stdlib.http.transport.contract.Constants.OUTBOUND_ACCESS_LOG_MESSAGE;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_BODY;
-import static io.ballerina.stdlib.http.transport.contract.Constants.TO;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.isKeepAlive;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.safelyRemoveHandlers;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.ILLEGAL_STATE_ERROR;
@@ -64,11 +48,14 @@ public class ReceivingEntityBody implements SenderState {
 
     private final SenderReqRespStateManager senderReqRespStateManager;
     private final TargetHandler targetHandler;
-    private Long contentLength = 0L;
+    private SenderHttpAccessLogger accessLogger;
 
     ReceivingEntityBody(SenderReqRespStateManager senderReqRespStateManager, TargetHandler targetHandler) {
         this.senderReqRespStateManager = senderReqRespStateManager;
         this.targetHandler = targetHandler;
+        if (targetHandler.getHttpClientChannelInitializer().isHttpAccessLogEnabled()) {
+            accessLogger = new SenderHttpAccessLogger(targetHandler.getTargetChannel().getChannel().remoteAddress());
+        }
     }
 
     @Override
@@ -93,13 +80,12 @@ public class ReceivingEntityBody implements SenderState {
         if (httpContent instanceof LastHttpContent) {
             StateUtil.setInboundTrailersToNewMessage(((LastHttpContent) httpContent).trailingHeaders(),
                                                      inboundResponseMsg);
-            inboundResponseMsg.addHttpContent(httpContent);
-            contentLength += httpContent.content().readableBytes();
+            addHttpContent(inboundResponseMsg, httpContent);
             inboundResponseMsg.setLastHttpContentArrived();
             targetHandler.resetInboundMsg();
             safelyRemoveHandlers(targetHandler.getTargetChannel().getChannel().pipeline(), IDLE_STATE_HANDLER);
-            if (targetHandler.getHttpClientChannelInitializer().isHttpAccessLogEnabled()) {
-                updateAccessLogInfo(targetHandler, inboundResponseMsg);
+            if (accessLogger != null) {
+                accessLogger.updateAccessLogInfo(targetHandler.getOutboundRequestMsg(), inboundResponseMsg);
             }
             senderReqRespStateManager.state = new EntityBodyReceived(senderReqRespStateManager);
 
@@ -109,8 +95,7 @@ public class ReceivingEntityBody implements SenderState {
             }
             targetHandler.getConnectionManager().returnChannel(targetHandler.getTargetChannel());
         } else {
-            inboundResponseMsg.addHttpContent(httpContent);
-            contentLength += httpContent.content().readableBytes();
+            addHttpContent(inboundResponseMsg, httpContent);
         }
     }
 
@@ -129,69 +114,10 @@ public class ReceivingEntityBody implements SenderState {
                                        IDLE_TIMEOUT_TRIGGERED_WHILE_READING_INBOUND_RESPONSE_BODY);
     }
 
-    private void updateAccessLogInfo(TargetHandler targetHandler,
-                                     HttpCarbonMessage inboundResponseMsg) {
-        HttpCarbonMessage httpOutboundRequest = targetHandler.getOutboundRequestMsg();
-        HttpAccessLogMessage outboundAccessLogMessage =
-                getTypedProperty(httpOutboundRequest, OUTBOUND_ACCESS_LOG_MESSAGE, HttpAccessLogMessage.class);
-        if (outboundAccessLogMessage == null) {
-            return;
-        }
-
-        SocketAddress remoteAddress = targetHandler.getTargetChannel().getChannel().remoteAddress();
-        if (remoteAddress instanceof InetSocketAddress inetSocketAddress) {
-            InetAddress inetAddress = inetSocketAddress.getAddress();
-            outboundAccessLogMessage.setIp(inetAddress.getHostAddress());
-            outboundAccessLogMessage.setHost(inetAddress.getHostName());
-            outboundAccessLogMessage.setPort(inetSocketAddress.getPort());
-        }
-        if (outboundAccessLogMessage.getIp().startsWith("/")) {
-            outboundAccessLogMessage.setIp(outboundAccessLogMessage.getIp().substring(1));
-        }
-
-        // Populate with header parameters
-        HttpHeaders headers = httpOutboundRequest.getHeaders();
-        if (headers.contains(HTTP_X_FORWARDED_FOR)) {
-            String forwardedHops = headers.get(HTTP_X_FORWARDED_FOR);
-            outboundAccessLogMessage.setHttpXForwardedFor(forwardedHops);
-            // If multiple IPs available, the first ip is the client
-            int firstCommaIndex = forwardedHops.indexOf(',');
-            outboundAccessLogMessage.setIp(firstCommaIndex != -1 ?
-                    forwardedHops.substring(0, firstCommaIndex) : forwardedHops);
-        }
-        if (headers.contains(HttpHeaderNames.USER_AGENT)) {
-            outboundAccessLogMessage.setHttpUserAgent(headers.get(HttpHeaderNames.USER_AGENT));
-        }
-        if (headers.contains(HttpHeaderNames.REFERER)) {
-            outboundAccessLogMessage.setHttpReferrer(headers.get(HttpHeaderNames.REFERER));
-        }
-        HttpAccessLogConfig.getInstance().getCustomHeaders().forEach(customHeader ->
-                outboundAccessLogMessage.putCustomHeader(customHeader, headers.contains(customHeader) ?
-                        headers.get(customHeader) : "-"));
-
-        outboundAccessLogMessage.setRequestMethod(httpOutboundRequest.getHttpMethod());
-        outboundAccessLogMessage.setRequestUri((String) httpOutboundRequest.getProperty(TO));
-        HttpMessage inboundResponse = inboundResponseMsg.getNettyHttpResponse();
-        if (inboundResponse != null) {
-            outboundAccessLogMessage.setScheme(inboundResponse.protocolVersion().toString());
-        } else {
-            outboundAccessLogMessage.setScheme(inboundResponseMsg.getHttpVersion());
-        }
-        outboundAccessLogMessage.setRequestBodySize((long) httpOutboundRequest.getContentSize());
-        outboundAccessLogMessage.setStatus(inboundResponseMsg.getHttpStatusCode());
-        outboundAccessLogMessage.setResponseBodySize(contentLength);
-        long requestTime = Calendar.getInstance().getTimeInMillis() -
-                outboundAccessLogMessage.getDateTime().getTimeInMillis();
-        outboundAccessLogMessage.setRequestTime(requestTime);
-
-        HttpCarbonMessage inboundReqMsg =
-                getTypedProperty(httpOutboundRequest, INBOUND_MESSAGE, HttpCarbonMessage.class);
-
-        if (inboundReqMsg != null) {
-            List<HttpAccessLogMessage> outboundAccessLogMessages = getHttpAccessLogMessages(inboundReqMsg);
-            if (outboundAccessLogMessages != null) {
-                outboundAccessLogMessages.add(outboundAccessLogMessage);
-            }
+    private void addHttpContent(HttpCarbonMessage inboundResponseMsg, HttpContent httpContent) {
+        inboundResponseMsg.addHttpContent(httpContent);
+        if (accessLogger != null) {
+            accessLogger.updateContentLength(httpContent.content());
         }
     }
 }
