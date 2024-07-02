@@ -114,13 +114,14 @@ public class HttpAccessLogFormatter {
                                                    HttpAccessLogFormat format, String attribute) {
         return switch (attribute) {
             case ATTRIBUTE_IP -> httpAccessLogMessage.getIp();
-            case ATTRIBUTE_DATE_TIME ->
-                    String.format("[%1$td/%1$tb/%1$tY:%1$tT.%1$tL %1$tz]", httpAccessLogMessage.getDateTime());
+            case ATTRIBUTE_DATE_TIME -> String.format(format == HttpAccessLogFormat.FLAT ?
+                    "[%1$td/%1$tb/%1$tY:%1$tT.%1$tL %1$tz]" : "%1$td/%1$tb/%1$tY:%1$tT.%1$tL %1$tz",
+                    httpAccessLogMessage.getDateTime());
             case ATTRIBUTE_REQUEST_METHOD -> httpAccessLogMessage.getRequestMethod();
             case ATTRIBUTE_REQUEST_URI -> httpAccessLogMessage.getRequestUri();
             case ATTRIBUTE_SCHEME -> httpAccessLogMessage.getScheme();
             case ATTRIBUTE_REQUEST -> String.format(format == HttpAccessLogFormat.FLAT ?
-                            "\"%1$s %2$s %3$s\"" : "%1$s %2$s %3$s", httpAccessLogMessage.getRequestMethod(),
+                    "\"%1$s %2$s %3$s\"" : "%1$s %2$s %3$s", httpAccessLogMessage.getRequestMethod(),
                     httpAccessLogMessage.getRequestUri(), httpAccessLogMessage.getScheme());
             case ATTRIBUTE_STATUS -> String.valueOf(httpAccessLogMessage.getStatus());
             case ATTRIBUTE_REQUEST_BODY_SIZE -> String.valueOf(httpAccessLogMessage.getRequestBodySize());
@@ -130,22 +131,24 @@ public class HttpAccessLogFormatter {
                     "\"%1$s\"" : "%1$s", getHyphenForNull(httpAccessLogMessage.getHttpReferrer()));
             case ATTRIBUTE_HTTP_USER_AGENT -> String.format(format == HttpAccessLogFormat.FLAT ?
                     "\"%1$s\"" : "%1$s", getHyphenForNull(httpAccessLogMessage.getHttpUserAgent()));
-            case ATTRIBUTE_HTTP_X_FORWARDED_FOR -> getHyphenForNull(httpAccessLogMessage.getHttpXForwardedFor());
-            default -> getCustomHeaderValueForAttribute(httpAccessLogMessage, attribute);
+            case ATTRIBUTE_HTTP_X_FORWARDED_FOR -> String.format(format == HttpAccessLogFormat.FLAT ?
+                    "\"%1$s\"" : "%1$s", getHyphenForNull(httpAccessLogMessage.getHttpXForwardedFor()));
+            default -> getCustomHeaderValueForAttribute(httpAccessLogMessage, format, attribute);
         };
     }
 
     private static String getCustomHeaderValueForAttribute(HttpAccessLogMessage httpAccessLogMessage,
-                                                           String attribute) {
+                                                           HttpAccessLogFormat format, String attribute) {
         Map<String, String> customHeaders = httpAccessLogMessage.getCustomHeaders();
         if (attribute.startsWith("http_")) {
             String customHeaderKey = attribute.substring(5);
             for (Map.Entry<String, String> entry : customHeaders.entrySet()) {
                 if (entry.getKey().equalsIgnoreCase(customHeaderKey)) {
-                    return entry.getValue();
+                    String value = entry.getValue();
+                    return format == HttpAccessLogFormat.FLAT ? String.format("\"%s\"", value) : value;
                 }
             }
-            return "-";
+            return format == HttpAccessLogFormat.FLAT ? "\"-\"" : "-";
         }
         return null;
     }
