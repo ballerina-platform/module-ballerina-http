@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package io.ballerina.stdlib.http.compiler.codemodifier.context;
+package io.ballerina.stdlib.http.compiler.codemodifier.payload.context;
 
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
 
@@ -25,7 +25,7 @@ import io.ballerina.compiler.api.symbols.ParameterSymbol;
  *
  * @since 2201.5.0
  */
-public class ParamAvailability {
+public class PayloadParamAvailability {
 
     private boolean annotatedPayloadParam = false;
     private boolean errorOccurred = false;

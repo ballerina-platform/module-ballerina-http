@@ -164,6 +164,7 @@ task updateTomlFiles {
         def stdlibDependentLz4Version = project.lz4Version
         def stdlibDependentMarshallingVersion = project.marshallingVersion
         def stdlibDependentProtobufVersion = project.protobufVersion
+        def ballerinaToOpenApiVersion = project.ballerinaToOpenApiVersion
 
         def newBallerinaToml = ballerinaTomlFilePlaceHolder.text.replace("@project.version@", project.version)
         newBallerinaToml = newBallerinaToml.replace("@toml.version@", tomlVersion)
@@ -183,6 +184,7 @@ task updateTomlFiles {
         ballerinaTomlFile.text = newBallerinaToml
 
         def newCompilerPluginToml = compilerPluginTomlFilePlaceHolder.text.replace("@project.version@", project.version)
+        newCompilerPluginToml = newCompilerPluginToml.replace("@ballerinaToOpenApiVersion.version@", ballerinaToOpenApiVersion)
         compilerPluginTomlFile.text = newCompilerPluginToml
     }
 }

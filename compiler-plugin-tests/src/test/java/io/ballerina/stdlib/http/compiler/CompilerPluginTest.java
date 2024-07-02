@@ -60,6 +60,14 @@ import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP
 import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_150;
 import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_151;
 import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_152;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_153;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_154;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_155;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_156;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_157;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_158;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_159;
+import static io.ballerina.stdlib.http.compiler.CompilerPluginTestConstants.HTTP_160;
 
 /**
  * This class includes tests for Ballerina Http compiler plugin.
@@ -874,5 +882,34 @@ public class CompilerPluginTest {
         DiagnosticResult diagnosticResult = packageCompilation.diagnosticResult();
         Assert.assertFalse(diagnosticResult.hasWarnings());
         Assert.assertFalse(diagnosticResult.hasErrors());
+    }
+
+    @Test
+    public void testServiceContractValidations() {
+        Package currentPackage = loadPackage("sample_package_40");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.errorCount(), 8);
+        assertError(diagnosticResult, 0, "base path not allowed in the service declaration which is" +
+                " implemented via the 'http:ServiceContract' type. The base path is inferred from the service " +
+                "contract type", HTTP_154);
+        assertError(diagnosticResult, 1, "'http:ServiceConfig' annotation is not allowed for service " +
+                "declaration implemented via the 'http:ServiceContract' type. The HTTP annotations are inferred" +
+                " from the service contract type", HTTP_153);
+        assertError(diagnosticResult, 2, "configuring base path in the 'http:ServiceConfig' annotation" +
+                " is not allowed for non service contract types", HTTP_155);
+        assertError(diagnosticResult, 3, "invalid service type descriptor found in 'http:ServiceConfig' " +
+                "annotation. Expected service type: 'ContractService' but found: 'ContractServiceWithoutServiceConfig'",
+                HTTP_156);
+        assertError(diagnosticResult, 4, "'serviceType' is not allowed in the service which is not implemented" +
+                " via the 'http:ServiceContract' type", HTTP_157);
+        assertError(diagnosticResult, 5, "resource function which is not defined in the service contract type:" +
+                " 'ContractServiceWithResource', is not allowed", HTTP_158);
+        assertError(diagnosticResult, 6, "'http:ResourceConfig' annotation is not allowed for resource function " +
+                "implemented via the 'http:ServiceContract' type. The HTTP annotations are inferred from the service" +
+                " contract type", HTTP_159);
+        assertError(diagnosticResult, 7, "'http:Header' annotation is not allowed for resource function implemented" +
+                " via the 'http:ServiceContract' type. The HTTP annotations are inferred from the service contract" +
+                " type", HTTP_160);
     }
 }

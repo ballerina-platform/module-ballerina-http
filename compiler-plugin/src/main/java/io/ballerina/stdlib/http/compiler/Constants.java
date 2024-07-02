@@ -26,6 +26,9 @@ public final class Constants {
 
     public static final String BALLERINA = "ballerina";
     public static final String HTTP = "http";
+    public static final String SERVICE_CONTRACT_TYPE = "ServiceContract";
+    public static final String HTTP_SERVICE_TYPE = "Service";
+    public static final String SERVICE_TYPE = "serviceType";
     public static final String SERVICE_KEYWORD = "service";
     public static final String REMOTE_KEYWORD = "remote";
     public static final String RESOURCE_KEYWORD = "resource";
@@ -72,10 +75,13 @@ public final class Constants {
     public static final String OBJECT = "object";
     public static final String HEADER_OBJ_NAME = "Headers";
     public static final String PAYLOAD_ANNOTATION = "Payload";
+    public static final String HEADER_ANNOTATION = "Header";
+    public static final String QUERY_ANNOTATION = "Query";
+    public static final String CALLER_ANNOTATION = "Caller";
     public static final String CACHE_ANNOTATION = "Cache";
     public static final String SERVICE_CONFIG_ANNOTATION = "ServiceConfig";
     public static final String MEDIA_TYPE_SUBTYPE_PREFIX = "mediaTypeSubtypePrefix";
-    public static final String INTERCEPTABLE_SERVICE = "InterceptableService";
+    public static final String BASE_PATH = "basePath";
     public static final String RESOURCE_CONFIG_ANNOTATION = "ResourceConfig";
     public static final String PAYLOAD_ANNOTATION_TYPE = "HttpPayload";
     public static final String CALLER_ANNOTATION_TYPE = "HttpCallerInfo";

@@ -101,3 +101,4 @@ jacocoTestReport {
 }
 
 test.dependsOn ":http-ballerina:build"
+compileTestJava.dependsOn ":http-compiler-plugin:copyOpenApiJar"

@@ -26,6 +26,7 @@ public final class Constants {
 
     public static final String NODE_LOCATION_KEY = "node.location";
     public static final String IS_ERROR_INTERCEPTOR_TYPE = "node.errorInterceptor";
+    public static final String EXPECTED_BASE_PATH = "expectedBasePath";
 
     public static final String REMOTE = "remote";
     public static final String RESOURCE = "resource";

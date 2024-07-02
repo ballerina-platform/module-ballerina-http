@@ -24,7 +24,9 @@
 # + mediaTypeSubtypePrefix - Service specific media-type subtype prefix
 # + treatNilableAsOptional - Treat Nilable parameters as optional
 # + openApiDefinition - The generated OpenAPI definition for the HTTP service. This is auto-generated at compile-time if OpenAPI doc auto generation is enabled
-# + validation - Enables the inbound payload validation functionalty which provided by the constraint package. Enabled by default
+# + validation - Enables the inbound payload validation functionality which provided by the constraint package. Enabled by default
+# + serviceType - The service object type which defines the service contract. This is auto-generated at compile-time
+# + basePath - Base path to be used with the service implementation. This is only allowed on service contract types
 public type HttpServiceConfig record {|
     string host = "b7a.default";
     CompressionConfig compression = {};
@@ -35,6 +37,8 @@ public type HttpServiceConfig record {|
     boolean treatNilableAsOptional = true;
     byte[] openApiDefinition = [];
     boolean validation = true;
+    typedesc<ServiceContract> serviceType?;
+    string basePath?;
 |};
 
 # Configurations for CORS support.
@@ -55,7 +59,7 @@ public type CorsConfig record {|
 |};
 
 # The annotation which is used to configure an HTTP service.
-public annotation HttpServiceConfig ServiceConfig on service;
+public annotation HttpServiceConfig ServiceConfig on service, type;
 
 # Configuration for an HTTP resource.
 #
@@ -108,13 +112,13 @@ public type HttpHeader record {|
 |};
 
 # The annotation which is used to define the Header resource signature parameter.
-public annotation HttpHeader Header on parameter;
+public const annotation HttpHeader Header on parameter;
 
 # Defines the query resource signature parameter.
 public type HttpQuery record {||};
 
 # The annotation which is used to define the query resource signature parameter.
-public annotation HttpQuery Query on parameter;
+public const annotation HttpQuery Query on parameter;
 
 # Defines the HTTP response cache configuration. By default the `no-cache` directive is setted to the `cache-control`
 # header. In addition to that `etag` and `last-modified` headers are also added for cache validation.
@@ -152,3 +156,15 @@ public type HttpCacheConfig record {|
 # Success(2XX) `StatusCodeResponses` return types. Default annotation adds `must-revalidate,public,max-age=3600` as
 # `cache-control` header in addition to `etag` and `last-modified` headers.
 public annotation HttpCacheConfig Cache on return;
+
+# Defines the information about the service contract.
+#
+# + openApiDefinition - The generated OpenAPI definition for the HTTP service. This is auto-generated at
+# compile-time by default
+public type ServiceContractInformation record {|
+    string openApiDefinition;
+|};
+
+# The annotation which is used to define the information about the service contract. This annotation is auto-generated
+# at compile-time by default. Adding this annotation manually is not recommended.
+public const annotation ServiceContractInformation ServiceContractInfo on type;

@@ -32,6 +32,7 @@ import io.ballerina.stdlib.http.compiler.codeaction.AddResponseContentTypeCodeAc
 import io.ballerina.stdlib.http.compiler.codeaction.ChangeHeaderParamTypeToStringArrayCodeAction;
 import io.ballerina.stdlib.http.compiler.codeaction.ChangeHeaderParamTypeToStringCodeAction;
 import io.ballerina.stdlib.http.compiler.codeaction.ChangeReturnTypeWithCallerCodeAction;
+import io.ballerina.stdlib.http.compiler.codeaction.ImplementServiceContract;
 import io.ballerina.stdlib.http.compiler.codemodifier.HttpServiceModifier;
 import io.ballerina.stdlib.http.compiler.completion.HttpServiceBodyContextProvider;
 
@@ -60,7 +61,8 @@ public class HttpCompilerPlugin extends CompilerPlugin {
                 new AddResponseContentTypeCodeAction(),
                 new AddResponseCacheConfigCodeAction(),
                 new AddInterceptorResourceMethodCodeAction(),
-                new AddInterceptorRemoteMethodCodeAction()
+                new AddInterceptorRemoteMethodCodeAction(),
+                new ImplementServiceContract()
         );
     }
 

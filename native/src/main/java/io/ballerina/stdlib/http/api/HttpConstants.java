@@ -125,6 +125,7 @@ public final class HttpConstants {
     public static final BString ANN_CONFIG_ATTR_COMPRESSION = StringUtils.fromString("compression");
     public static final BString ANN_CONFIG_ATTR_COMPRESSION_ENABLE = StringUtils.fromString("enable");
     public static final BString ANN_CONFIG_ATTR_COMPRESSION_CONTENT_TYPES = StringUtils.fromString("contentTypes");
+    public static final BString ANN_CONFIG_BASE_PATH = StringUtils.fromString("basePath");
     public static final String ANN_CONFIG_ATTR_CACHE_SIZE = "cacheSize";
     public static final String ANN_CONFIG_ATTR_CACHE_VALIDITY_PERIOD = "cacheValidityPeriod";
     public static final String ANN_CONFIG_ATTR_WEBSOCKET = "webSocket";

@@ -24,7 +24,6 @@ import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.projects.plugins.codeaction.CodeAction;
-import io.ballerina.projects.plugins.codeaction.CodeActionArgument;
 import io.ballerina.projects.plugins.codeaction.CodeActionContext;
 import io.ballerina.projects.plugins.codeaction.CodeActionExecutionContext;
 import io.ballerina.projects.plugins.codeaction.CodeActionInfo;
@@ -43,7 +42,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static io.ballerina.stdlib.http.compiler.codeaction.Constants.NODE_LOCATION_KEY;
+import static io.ballerina.stdlib.http.compiler.codeaction.CodeActionUtil.getCodeActionInfoWithLocation;
+import static io.ballerina.stdlib.http.compiler.codeaction.CodeActionUtil.getLineRangeFromLocationKey;
 
 /**
  * Abstract implementation of code action to add a parameter to the resource signature.
@@ -71,25 +71,19 @@ public abstract class AddResourceParameterCodeAction implements CodeAction {
                 cursorPosition.get())) {
             return Optional.empty();
         }
-        CodeActionArgument arg = CodeActionArgument.from(NODE_LOCATION_KEY, node.lineRange());
-        CodeActionInfo info = CodeActionInfo.from(String.format("Add %s parameter", paramKind()), List.of(arg));
-        return Optional.of(info);
+        return getCodeActionInfoWithLocation(node, String.format("Add %s parameter", paramKind()));
     }
 
     @Override
     public List<DocumentEdit> execute(CodeActionExecutionContext context) {
-        LineRange lineRange = null;
-        for (CodeActionArgument arg : context.arguments()) {
-            if (NODE_LOCATION_KEY.equals(arg.key())) {
-                lineRange = arg.valueAs(LineRange.class);
-            }
-        }
-        if (lineRange == null) {
+        Optional<LineRange> lineRange = getLineRangeFromLocationKey(context);
+
+        if (lineRange.isEmpty()) {
             return Collections.emptyList();
         }
 
         SyntaxTree syntaxTree = context.currentDocument().syntaxTree();
-        NonTerminalNode node = CodeActionUtil.findNode(syntaxTree, lineRange);
+        NonTerminalNode node = CodeActionUtil.findNode(syntaxTree, lineRange.get());
 
         if (!node.kind().equals(SyntaxKind.FUNCTION_SIGNATURE)) {
             return Collections.emptyList();
