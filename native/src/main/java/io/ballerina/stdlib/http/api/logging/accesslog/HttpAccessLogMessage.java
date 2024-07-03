@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2024, WSO2 LLC. (http://www.wso2.org).
  *
  *  WSO2 LLC. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -22,6 +22,12 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Represents a single HTTP access log message, encapsulating all relevant data for a specific request-response cycle.
+ * This class stores details such as IP address, date and time, request and response attributes, and custom headers.
+ *
+ * @since 2.11.3
+ */
 public class HttpAccessLogMessage {
     private String ip;
     private Calendar dateTime;

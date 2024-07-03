@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2024, WSO2 LLC. (http://www.wso2.org).
  *
  *  WSO2 LLC. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -36,6 +36,12 @@ import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_LOG_ATTRIBUTES;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_LOG_FORMAT;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_LOG_FORMAT_JSON;
 
+/**
+ * Provides a singleton configuration manager for HTTP access logging within the application.
+ * This class manages settings related to log formats, attributes, and custom header.
+ *
+ * @since 2.11.3
+ */
 public class HttpAccessLogConfig {
 
     private static final HttpAccessLogConfig instance = new HttpAccessLogConfig();

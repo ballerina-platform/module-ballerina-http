@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2024, WSO2 LLC. (http://www.wso2.org).
  *
  *  WSO2 LLC. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -38,6 +38,12 @@ import static io.ballerina.stdlib.http.api.logging.accesslog.HttpAccessLogUtil.g
 import static io.ballerina.stdlib.http.transport.contract.Constants.ACCESS_LOG;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_X_FORWARDED_FOR;
 
+/**
+ * Implements {@link HttpAccessLogger} to log detailed HTTP access information for incoming requests
+ * and their corresponding responses.
+ *
+ * @since 2.11.3
+ */
 public class ListenerHttpAccessLogger implements HttpAccessLogger {
 
     private static final Logger LOG = LoggerFactory.getLogger(ListenerHttpAccessLogger.class);
@@ -86,6 +92,16 @@ public class ListenerHttpAccessLogger implements HttpAccessLogger {
         } else {
             protocol = inboundRequestMsg.getHttpVersion();
         }
+        long requestBodySize;
+        if (headers.contains(HttpHeaderNames.CONTENT_LENGTH)) {
+            try {
+                requestBodySize = Long.parseLong(headers.get(HttpHeaderNames.CONTENT_LENGTH));
+            } catch (Exception ignored) {
+                requestBodySize = 0L;
+            }
+        } else {
+            requestBodySize = (long) inboundRequestMsg.getContentSize();
+        }
 
         // Populate response parameters
         int statusCode = Util.getHttpResponseStatus(outboundResponseMsg).code();
@@ -93,7 +109,7 @@ public class ListenerHttpAccessLogger implements HttpAccessLogger {
         long requestTime = Calendar.getInstance().getTimeInMillis() - inboundRequestArrivalTime.getTimeInMillis();
         HttpAccessLogMessage inboundMessage = new HttpAccessLogMessage(remoteAddress,
                 inboundRequestArrivalTime, method, uri, protocol, statusCode, contentLength, referrer, userAgent);
-        inboundMessage.setRequestBodySize((long) inboundRequestMsg.getContentSize());
+        inboundMessage.setRequestBodySize(requestBodySize);
         inboundMessage.setRequestTime(requestTime);
 
         List<HttpAccessLogMessage> outboundMessages = getHttpAccessLogMessages(inboundRequestMsg);

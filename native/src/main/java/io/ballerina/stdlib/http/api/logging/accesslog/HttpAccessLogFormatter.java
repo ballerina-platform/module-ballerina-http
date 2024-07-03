@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2024, WSO2 LLC. (http://www.wso2.org).
  *
  *  WSO2 LLC. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -42,6 +42,13 @@ import static io.ballerina.stdlib.http.api.HttpConstants.ATTRIBUTE_RESPONSE_BODY
 import static io.ballerina.stdlib.http.api.HttpConstants.ATTRIBUTE_SCHEME;
 import static io.ballerina.stdlib.http.api.HttpConstants.ATTRIBUTE_STATUS;
 
+/**
+ * Handles the formatting of HTTP access log messages based on the specified log format and attributes.
+ * This utility class supports both FLAT and JSON formats for the rendering of access log entries,
+ * accommodating custom attributes and handling multiple messages for detailed logging.
+ *
+ * @since 2.11.3
+ */
 public class HttpAccessLogFormatter {
 
     private HttpAccessLogFormatter() {}

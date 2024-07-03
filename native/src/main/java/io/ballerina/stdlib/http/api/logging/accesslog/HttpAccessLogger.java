@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2024, WSO2 LLC. (http://www.wso2.org).
  *
  *  WSO2 LLC. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -20,6 +20,13 @@ package io.ballerina.stdlib.http.api.logging.accesslog;
 
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
+/**
+ * Defines the contract for logging and updating HTTP access information.
+ * Implementations of this interface should handle the specifics of recording and maintaining HTTP access logs
+ * for both request and response messages.
+ *
+ * @since 2.11.3
+ */
 public interface HttpAccessLogger {
 
     void logAccessInfo(HttpCarbonMessage requestMessage, HttpCarbonMessage responseMessage);
