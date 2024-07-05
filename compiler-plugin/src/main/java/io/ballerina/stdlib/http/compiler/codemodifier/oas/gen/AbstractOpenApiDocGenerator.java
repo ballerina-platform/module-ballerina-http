@@ -161,7 +161,7 @@ public abstract class AbstractOpenApiDocGenerator implements OpenApiDocGenerator
                 .setProject(project);
         OASResult oasResult = ServiceToOpenAPIMapper.generateOAS(builder.build());
         Optional<OpenAPI> openApiOpt = oasResult.getOpenAPI();
-        if (oasResult.getDiagnostics().stream().noneMatch(
+        if (oasResult.getDiagnostics().stream().anyMatch(
                 diagnostic -> diagnostic.getDiagnosticSeverity().equals(DiagnosticSeverity.ERROR))
                 || openApiOpt.isEmpty()) {
             HttpDiagnostic errorCode = HttpDiagnostic.HTTP_WARNING_101;

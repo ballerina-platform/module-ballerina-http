@@ -19,6 +19,7 @@ package io.ballerina.stdlib.http.compiler.codeaction;
 
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.MethodSymbol;
+import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.ObjectTypeSymbol;
 import io.ballerina.compiler.api.symbols.ResourceMethodSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
@@ -48,6 +49,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -77,7 +79,7 @@ public class ImplementServiceContract implements CodeAction {
             return Optional.empty();
         }
 
-        return getCodeActionInfoWithLocation(node, "Implement all the resource methods from service contract");
+        return getCodeActionInfoWithLocation(node, "Implement service contract resources");
     }
 
     @Override
@@ -128,6 +130,7 @@ public class ImplementServiceContract implements CodeAction {
         }
 
         Map<String, MethodSymbol> methodSymbolMap = serviceObjTypeSymbol.methods();
+        String parentModuleName = getParentModuleName(semanticModel, (ServiceDeclarationNode) node);
         StringBuilder methods = new StringBuilder();
         for (Map.Entry<String, MethodSymbol> entry : methodSymbolMap.entrySet()) {
             if (existingMethods.contains(entry.getKey())) {
@@ -135,7 +138,7 @@ public class ImplementServiceContract implements CodeAction {
             }
             MethodSymbol methodSymbol = entry.getValue();
             if (methodSymbol instanceof ResourceMethodSymbol resourceMethodSymbol) {
-                methods.append(getMethodSignature(resourceMethodSymbol));
+                methods.append(getMethodSignature(resourceMethodSymbol, parentModuleName));
             }
         }
 
@@ -148,14 +151,28 @@ public class ImplementServiceContract implements CodeAction {
         return Collections.singletonList(new DocumentEdit(context.fileUri(), SyntaxTree.from(modifiedTextDocument)));
     }
 
-    private String getMethodSignature(ResourceMethodSymbol resourceMethodSymbol) {
-        return LS + "\t" + sanitizePackageNames(resourceMethodSymbol.signature()) + " {" + LS + LS + "\t}" + LS;
+    private String getMethodSignature(ResourceMethodSymbol resourceMethodSymbol, String parentModuleName) {
+        String resourceSignature = resourceMethodSymbol.signature();
+        if (Objects.nonNull(parentModuleName)) {
+            resourceSignature = resourceSignature.replace(parentModuleName + ":", "");
+        }
+        return LS + "\t" + sanitizePackageNames(resourceSignature) + " {" + LS + LS + "\t}" + LS;
     }
 
     private String sanitizePackageNames(String input) {
         Pattern pattern = Pattern.compile("(\\w+)/(\\w+:)(\\d+\\.\\d+\\.\\d+):");
         Matcher matcher = pattern.matcher(input);
         return matcher.replaceAll("$2");
+    }
+
+    private String getParentModuleName(SemanticModel semanticModel, ServiceDeclarationNode serviceDeclarationNode) {
+        Optional<Symbol> serviceDeclarationSymbol = semanticModel.symbol(serviceDeclarationNode);
+        if (serviceDeclarationSymbol.isEmpty()) {
+            return null;
+        }
+
+        Optional<ModuleSymbol> module = serviceDeclarationSymbol.get().getModule();
+        return module.map(moduleSymbol -> moduleSymbol.id().toString()).orElse(null);
     }
 
     @Override

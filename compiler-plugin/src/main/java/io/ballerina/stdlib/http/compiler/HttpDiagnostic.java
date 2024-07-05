@@ -125,7 +125,8 @@ public enum HttpDiagnostic {
     HTTP_160("HTTP_160", "'%s' annotation is not allowed for resource function implemented via the " +
             "'http:ServiceContract' type. The HTTP annotations are inferred from the service contract type", ERROR),
 
-    HTTP_WARNING_101("HTTP_WARNING_101", "generated open-api definition is empty", WARNING),
+    HTTP_WARNING_101("HTTP_WARNING_101", "generated open-api definition is empty due to the errors " +
+            "in the generation", WARNING),
     HTTP_WARNING_102("HTTP_WARNING_102", "The openapi definition is overridden by the `embed: true` option", WARNING),
 
     HTTP_HINT_101("HTTP_HINT_101", "Payload annotation can be added", INTERNAL),
