@@ -114,4 +114,10 @@ public interface ListenerState {
      */
     void handleAbruptChannelClosure(ServerConnectorFuture serverConnectorFuture, ChannelHandlerContext ctx,
                                     Http2OutboundRespListener http2OutboundRespListener, int streamId);
+
+    /**
+     * Handles the Stream close event due to receiving a GoAway frame.
+     */
+    void handleClientGoAway(ServerConnectorFuture serverConnectorFuture, ChannelHandlerContext channelHandlerContext, 
+                            Http2OutboundRespListener http2OutboundRespListener, Integer streamId);
 }

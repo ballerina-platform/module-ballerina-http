@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP2_METHOD;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_READING_INBOUND_REQUEST_HEADERS;
+import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_SENT_GOAWAY_WHILE_READING_INBOUND_REQUEST_HEADERS;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.is100ContinueRequest;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil.notifyRequestListener;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil.setupCarbonRequest;
@@ -148,6 +149,13 @@ public class ReceivingHeaders implements ListenerState {
                                            Http2OutboundRespListener http2OutboundRespListener, int streamId) {
         handleIncompleteInboundMessage(http2OutboundRespListener.getInboundRequestMsg(),
                                        REMOTE_CLIENT_CLOSED_WHILE_READING_INBOUND_REQUEST_HEADERS);
+    }
+
+    @Override
+    public void handleClientGoAway(ServerConnectorFuture serverConnectorFuture, ChannelHandlerContext
+            channelHandlerContext, Http2OutboundRespListener http2OutboundRespListener, Integer streamId) {
+        handleIncompleteInboundMessage(http2OutboundRespListener.getInboundRequestMsg(),
+                REMOTE_CLIENT_SENT_GOAWAY_WHILE_READING_INBOUND_REQUEST_HEADERS);
     }
 
     private HttpCarbonMessage setupHttp2CarbonMsg(Http2Headers http2Headers, int streamId) throws Http2Exception {

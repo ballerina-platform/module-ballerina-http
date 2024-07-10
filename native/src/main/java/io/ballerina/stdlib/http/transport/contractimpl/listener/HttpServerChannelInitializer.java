@@ -27,6 +27,7 @@ import io.ballerina.stdlib.http.transport.contractimpl.common.http2.Http2Excepti
 import io.ballerina.stdlib.http.transport.contractimpl.common.ssl.SSLConfig;
 import io.ballerina.stdlib.http.transport.contractimpl.common.ssl.SSLHandlerFactory;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.http2.Http2SourceConnectionHandlerBuilder;
+import io.ballerina.stdlib.http.transport.contractimpl.listener.http2.Http2SourceHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.http2.Http2ToHttpFallbackHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.http2.Http2WithPriorKnowledgeHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.CertificateValidationHandler;
@@ -61,6 +62,10 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.security.KeyStoreException;
 import java.security.cert.CertificateException;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLContext;
@@ -109,6 +114,9 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
     private EventExecutorGroup pipeliningGroup;
     private boolean webSocketCompressionEnabled;
     private int http2InitialWindowSize;
+    private long minIdleTimeInStaleState;
+    private long timeBetweenStaleEviction;
+    private final BlockingQueue<Http2SourceHandler> http2StaleSourceHandlers = new LinkedBlockingQueue<>();
 
     @Override
     public void initChannel(SocketChannel ch) throws Exception {
@@ -140,6 +148,7 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
             } else {
                 configureH2cPipeline(serverPipeline);
             }
+            initiateHttp2ConnectionEvictionTask();
         } else {
             if (sslHandlerFactory != null) {
                 configureSslForHttp(serverPipeline, ch);
@@ -352,6 +361,14 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
         this.http2InitialWindowSize = http2InitialWindowSize;
     }
 
+    void setTimeBetweenStaleEviction(long timeBetweenStaleEviction) {
+        this.timeBetweenStaleEviction = timeBetweenStaleEviction;
+    }
+
+    void setMinIdleTimeInStaleState(long minIdleTimeInStaleState) {
+        this.minIdleTimeInStaleState = minIdleTimeInStaleState;
+    }
+
     public void setChunkingConfig(ChunkConfig chunkConfig) {
         this.chunkConfig = chunkConfig;
     }
@@ -403,6 +420,10 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
 
     public void setWebSocketCompressionEnabled(boolean webSocketCompressionEnabled) {
         this.webSocketCompressionEnabled = webSocketCompressionEnabled;
+    }
+
+    public void addToStaleChannels(Http2SourceHandler http2SourceHandler) {
+        this.http2StaleSourceHandlers.add(http2SourceHandler);
     }
 
     /**
@@ -468,5 +489,30 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
     void setAllChannels(ChannelGroup allChannels, ChannelGroup listenerChannels) {
         this.allChannels = allChannels;
         this.listenerChannels = listenerChannels;
+    }
+
+    private void initiateHttp2ConnectionEvictionTask() {
+        Timer timer = new Timer(true);
+        TimerTask timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                http2StaleSourceHandlers.forEach(http2SourceHandler -> {
+                    if (minIdleTimeInStaleState == -1) {
+                        if (http2SourceHandler.getStreamIdRequestMap().isEmpty()) {
+                            removeChannelAndEvict(http2SourceHandler);
+                        }
+                    } else if ((System.currentTimeMillis() - http2SourceHandler.getTimeSinceMarkedAsStale()) >
+                            minIdleTimeInStaleState) {
+                        removeChannelAndEvict(http2SourceHandler);
+                    }
+                });
+            }
+
+            public void removeChannelAndEvict(Http2SourceHandler http2SourceHandler) {
+                http2StaleSourceHandlers.remove(http2SourceHandler);
+                http2SourceHandler.closeChannelAfterBecomingStale();
+            }
+        };
+        timer.schedule(timerTask, timeBetweenStaleEviction, timeBetweenStaleEviction);
     }
 }

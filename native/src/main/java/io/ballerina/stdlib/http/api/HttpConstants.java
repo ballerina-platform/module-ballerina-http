@@ -422,6 +422,10 @@ public final class HttpConstants {
     public static final BString ENDPOINT_CONFIG_GRACEFUL_STOP_TIMEOUT = StringUtils.fromString("gracefulStopTimeout");
     public static final BString ENDPOINT_CONFIG_HTTP2_INITIAL_WINDOW_SIZE = StringUtils
             .fromString("http2InitialWindowSize");
+    public static final BString ENDPOINT_CONFIG_IDLE_TIME_STALE_STATE = StringUtils.fromString(
+            "minIdleTimeInStaleState");
+    public static final BString ENDPOINT_CONFIG_TIME_BETWEEN_STALE_CHECK_RUNS = StringUtils.fromString(
+            "timeBetweenStaleEviction");
 
     public static final BString MAX_URI_LENGTH = StringUtils.fromString("maxUriLength");
     public static final BString MAX_STATUS_LINE_LENGTH = StringUtils.fromString("maxStatusLineLength");

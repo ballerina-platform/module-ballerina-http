@@ -159,6 +159,8 @@ public type ListenerConfiguration record {|
     decimal gracefulStopTimeout = DEFAULT_GRACEFULSTOP_TIMEOUT;
     ServerSocketConfig socketConfig = {};
     int http2InitialWindowSize = 65535;
+    decimal minIdleTimeInStaleState = 300;
+    decimal timeBetweenStaleEviction = 30;
 |};
 
 # Provides a set of cloneable configurations for HTTP listener.

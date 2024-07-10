@@ -61,6 +61,7 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.ACCESS_LOG_F
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_X_FORWARDED_FOR;
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY;
+import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_SENT_GOAWAY_WHILE_WRITING_OUTBOUND_RESPONSE_BODY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.TO;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil.validatePromisedStreamState;
 
@@ -161,6 +162,16 @@ public class SendingEntityBody implements ListenerState {
         outboundRespStatusFuture.notifyHttpListener(connectionClose);
 
         LOG.error(REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY);
+    }
+
+    @Override
+    public void handleClientGoAway(ServerConnectorFuture serverConnectorFuture, ChannelHandlerContext
+            channelHandlerContext, Http2OutboundRespListener http2OutboundRespListener, Integer streamId) {
+        IOException connectionClose = new IOException(REMOTE_CLIENT_SENT_GOAWAY_WHILE_WRITING_OUTBOUND_RESPONSE_BODY);
+        outboundResponseMsg.setIoException(connectionClose);
+        outboundRespStatusFuture.notifyHttpListener(connectionClose);
+
+        LOG.error(REMOTE_CLIENT_SENT_GOAWAY_WHILE_WRITING_OUTBOUND_RESPONSE_BODY);
     }
 
     private void writeContent(Http2OutboundRespListener http2OutboundRespListener,
