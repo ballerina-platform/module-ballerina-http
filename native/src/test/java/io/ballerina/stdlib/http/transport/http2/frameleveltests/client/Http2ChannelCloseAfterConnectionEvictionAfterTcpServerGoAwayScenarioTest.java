@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package io.ballerina.stdlib.http.transport.http2.frameleveltests;
+package io.ballerina.stdlib.http.transport.http2.frameleveltests.client;
 
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
@@ -52,13 +52,13 @@ import static org.testng.Assert.fail;
 
 /**
  * This contains a test case where the tcp server sends a GoAway and the connection gets closed from the
- * server side before an eviction occurs. The successfulness of this test case cannot be confirmed by the assert
+ * server side after an eviction occurs. The successfulness of this test case cannot be confirmed by the assert
  * completely. We have to look at the logs in order to check whether there are any internal netty exceptions
  */
-public class Http2ChannelCloseBeforeConnectionEvictionAfterTcpServerGoAwayScenarioTest {
+public class Http2ChannelCloseAfterConnectionEvictionAfterTcpServerGoAwayScenarioTest {
 
     private static final Logger LOGGER =
-            LoggerFactory.getLogger(Http2ChannelCloseBeforeConnectionEvictionAfterTcpServerGoAwayScenarioTest.class);
+            LoggerFactory.getLogger(Http2ChannelCloseAfterConnectionEvictionAfterTcpServerGoAwayScenarioTest.class);
     private HttpClientConnector h2ClientWithPriorKnowledge;
     private ServerSocket serverSocket;
 
@@ -79,14 +79,14 @@ public class Http2ChannelCloseBeforeConnectionEvictionAfterTcpServerGoAwayScenar
     }
 
     @Test
-    private void testChannelCloseBeforeConnectionEvictionScenario() {
+    private void testChannelCloseAfterConnectionEvictionScenario() {
         try {
             runTcpServer(TestUtil.HTTP_SERVER_PORT);
-            h2ClientWithPriorKnowledge = setupHttp2PriorKnowledgeClient(5000, 1000);
+            h2ClientWithPriorKnowledge = setupHttp2PriorKnowledgeClient(3000, 1000);
             CountDownLatch latch1 = new CountDownLatch(1);
             DefaultHttpConnectorListener msgListener1 = TestUtil.sendRequestAsync(latch1, h2ClientWithPriorKnowledge);
             latch1.await(TestUtil.HTTP2_RESPONSE_TIME_OUT, TimeUnit.SECONDS);
-            // Waiting more than the minIdleTimeInStaleState to trigger a connectionEviction try
+            // Waiting more than the minIdleTimeInStaleState to trigger a connectionEviction try and a channelInactive
             Thread.sleep(8000);
 
             String errorMsg1 = getDecoderErrorMessage(msgListener1);
@@ -126,9 +126,9 @@ public class Http2ChannelCloseBeforeConnectionEvictionAfterTcpServerGoAwayScenar
         Thread.sleep(SLEEP_TIME);
         // This will move the connection to the stale connections list
         outputStream.write(GO_AWAY_FRAME_MAX_STREAM_05);
-        // Waiting less than the time of `minIdleTimeInStaleState` and exit the socket write to trigger a
-        // `channelInactive` before minIdleTime exceeds.
-        Thread.sleep(2000);
+        // Waiting more than the time of `minIdleTimeInStaleState` and exit the socket write to trigger a
+        // `channelInactive` after minIdleTime exceeds.
+        Thread.sleep(5000);
     }
 
     @AfterClass

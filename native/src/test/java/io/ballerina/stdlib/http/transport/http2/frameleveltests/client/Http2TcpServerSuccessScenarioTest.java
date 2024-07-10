@@ -16,68 +16,60 @@
  * under the License.
  */
 
-package io.ballerina.stdlib.http.transport.http2.frameleveltests;
+package io.ballerina.stdlib.http.transport.http2.frameleveltests.client;
 
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
-import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
-import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
+import io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils;
 import io.ballerina.stdlib.http.transport.util.DefaultHttpConnectorListener;
 import io.ballerina.stdlib.http.transport.util.TestUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.lang.reflect.Method;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static io.ballerina.stdlib.http.transport.contract.Constants
-        .REMOTE_SERVER_SENT_GOAWAY_WHILE_READING_INBOUND_RESPONSE_HEADERS;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_FRAME_STREAM_03;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_03;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.END_SLEEP_TIME;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.GO_AWAY_FRAME_MAX_STREAM_01;
+import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.HEADER_FRAME_STREAM_03;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SETTINGS_FRAME;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SETTINGS_FRAME_WITH_ACK;
 import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SLEEP_TIME;
-import static io.ballerina.stdlib.http.transport.util.TestUtil.getErrorResponseMessage;
+import static io.ballerina.stdlib.http.transport.util.TestUtil.getResponseMessage;
 import static org.testng.Assert.assertEquals;
 
 /**
- * This contains a test case where the tcp server sends a GoAway for a single request when in 100-continue state.
+ * This contains a test case where the tcp server sends a successful response.
  */
-public class Http2TcpServerGoAway100ContinueScenarioTest {
+public class Http2TcpServerSuccessScenarioTest {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Http2TcpServerGoAway100ContinueScenarioTest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Http2TcpServerSuccessScenarioTest.class);
     private HttpClientConnector h2ClientWithPriorKnowledge;
     private ServerSocket serverSocket;
 
-    @BeforeMethod
-    public void setup(Method method) throws InterruptedException {
+    @BeforeClass
+    public void setup() throws InterruptedException {
+        runTcpServer(TestUtil.HTTP_SERVER_PORT);
         h2ClientWithPriorKnowledge = FrameLevelTestUtils.setupHttp2PriorKnowledgeClient();
     }
 
     @Test
-    private void testGoAwayFor100ContinueForASingleStream() {
-        runTcpServer(TestUtil.HTTP_SERVER_PORT);
+    private void testSuccessfulConnection() {
+        CountDownLatch latch = new CountDownLatch(1);
+        DefaultHttpConnectorListener msgListener = TestUtil.sendRequestAsync(latch, h2ClientWithPriorKnowledge);
         try {
-            CountDownLatch latch = new CountDownLatch(1);
-            HttpCarbonMessage httpsPostReq = TestUtil.
-                    createHttpsPostReq(TestUtil.HTTP_SERVER_PORT, "hello", "/");
-            httpsPostReq.addHeader("Expect", "100-continue");
-            DefaultHttpConnectorListener requestListener = new DefaultHttpConnectorListener(latch);
-            HttpResponseFuture responseFuture = h2ClientWithPriorKnowledge.send(httpsPostReq);
-            responseFuture.setHttpConnectorListener(requestListener);
             latch.await(TestUtil.HTTP2_RESPONSE_TIME_OUT, TimeUnit.SECONDS);
-            assertEquals(getErrorResponseMessage(requestListener),
-                    REMOTE_SERVER_SENT_GOAWAY_WHILE_READING_INBOUND_RESPONSE_HEADERS);
         } catch (InterruptedException e) {
             LOGGER.error("Interrupted exception occurred");
         }
+        assertEquals(getResponseMessage(msgListener), DATA_VALUE_HELLO_WORLD_03);
     }
 
     private void runTcpServer(int port) {
@@ -88,7 +80,7 @@ public class Http2TcpServerGoAway100ContinueScenarioTest {
                 Socket clientSocket = serverSocket.accept();
                 LOGGER.info("Accepted connection from: " + clientSocket.getInetAddress());
                 try (OutputStream outputStream = clientSocket.getOutputStream()) {
-                    sendGoAwayForASingleStream(outputStream);
+                    sendSuccessfulResponse(outputStream);
                 } catch (Exception e) {
                     LOGGER.error(e.getMessage());
                 }
@@ -98,12 +90,15 @@ public class Http2TcpServerGoAway100ContinueScenarioTest {
         }).start();
     }
 
-    private void sendGoAwayForASingleStream(OutputStream outputStream) throws IOException, InterruptedException {
+    private void sendSuccessfulResponse(OutputStream outputStream) throws IOException, InterruptedException {
+        // Sending settings frame with HEADER_TABLE_SIZE=25700
         outputStream.write(SETTINGS_FRAME);
         Thread.sleep(SLEEP_TIME);
         outputStream.write(SETTINGS_FRAME_WITH_ACK);
         Thread.sleep(SLEEP_TIME);
-        outputStream.write(GO_AWAY_FRAME_MAX_STREAM_01);
+        outputStream.write(HEADER_FRAME_STREAM_03);
+        Thread.sleep(SLEEP_TIME);
+        outputStream.write(DATA_FRAME_STREAM_03);
         Thread.sleep(END_SLEEP_TIME);
     }
 
