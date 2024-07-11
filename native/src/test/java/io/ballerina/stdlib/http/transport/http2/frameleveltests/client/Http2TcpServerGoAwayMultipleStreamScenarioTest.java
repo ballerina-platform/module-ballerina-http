@@ -37,22 +37,6 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_FRAME_STREAM_03;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_FRAME_STREAM_05;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_FRAME_STREAM_07;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_FRAME_STREAM_09;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_03;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_05;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_07;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.END_SLEEP_TIME;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.GO_AWAY_FRAME_MAX_STREAM_07;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.HEADER_FRAME_STREAM_03;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.HEADER_FRAME_STREAM_05;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.HEADER_FRAME_STREAM_07;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.HEADER_FRAME_STREAM_09;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SETTINGS_FRAME;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SETTINGS_FRAME_WITH_ACK;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SLEEP_TIME;
 import static io.ballerina.stdlib.http.transport.util.TestUtil.getErrorResponseMessage;
 import static io.ballerina.stdlib.http.transport.util.TestUtil.getResponseMessage;
 import static org.testng.Assert.assertEqualsNoOrder;
@@ -93,9 +77,10 @@ public class Http2TcpServerGoAwayMultipleStreamScenarioTest {
                 getErrorResponseMessage(msgListener3) : getResponseMessage(msgListener3);
         Object responseValOrError4 = msgListener4.getHttpResponseMessage() == null ?
                 getErrorResponseMessage(msgListener4) : getResponseMessage(msgListener4);
-        assertEqualsNoOrder(List.of(responseValOrError1, responseValOrError2, responseValOrError3,
-                responseValOrError4), List.of(DATA_VALUE_HELLO_WORLD_03, DATA_VALUE_HELLO_WORLD_05,
-                DATA_VALUE_HELLO_WORLD_07, Constants.REMOTE_SERVER_SENT_GOAWAY_BEFORE_INITIATING_INBOUND_RESPONSE));
+        assertEqualsNoOrder(List.of(responseValOrError1, responseValOrError2, responseValOrError3, responseValOrError4),
+                List.of(FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_03, FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_05,
+                FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_07,
+                        Constants.REMOTE_SERVER_SENT_GOAWAY_BEFORE_INITIATING_INBOUND_RESPONSE));
     }
 
     private void runTcpServer(int port) {
@@ -119,25 +104,25 @@ public class Http2TcpServerGoAwayMultipleStreamScenarioTest {
     private void sendGoAwayForASingleStreamInAMultipleStreamScenario(OutputStream outputStream)
             throws IOException, InterruptedException {
         // Sending settings frame with HEADER_TABLE_SIZE=25700
-        outputStream.write(SETTINGS_FRAME);
-        outputStream.write(SETTINGS_FRAME_WITH_ACK);
-        Thread.sleep(SLEEP_TIME);
-        outputStream.write(HEADER_FRAME_STREAM_03);
-        Thread.sleep(SLEEP_TIME);
-        outputStream.write(HEADER_FRAME_STREAM_05);
-        outputStream.write(DATA_FRAME_STREAM_05);
-        outputStream.write(GO_AWAY_FRAME_MAX_STREAM_07);
-        Thread.sleep(SLEEP_TIME);
+        outputStream.write(FrameLevelTestUtils.SETTINGS_FRAME);
+        outputStream.write(FrameLevelTestUtils.SETTINGS_FRAME_WITH_ACK);
+        Thread.sleep(FrameLevelTestUtils.SLEEP_TIME);
+        outputStream.write(FrameLevelTestUtils.CLIENT_HEADER_FRAME_STREAM_03);
+        Thread.sleep(FrameLevelTestUtils.SLEEP_TIME);
+        outputStream.write(FrameLevelTestUtils.CLIENT_HEADER_FRAME_STREAM_05);
+        outputStream.write(FrameLevelTestUtils.DATA_FRAME_STREAM_05);
+        outputStream.write(FrameLevelTestUtils.GO_AWAY_FRAME_MAX_STREAM_07);
+        Thread.sleep(FrameLevelTestUtils.SLEEP_TIME);
         // Sending the frames for higher streams to check whether client correctly ignores them.
-        outputStream.write(HEADER_FRAME_STREAM_09);
-        outputStream.write(DATA_FRAME_STREAM_09);
-        Thread.sleep(SLEEP_TIME);
+        outputStream.write(FrameLevelTestUtils.CLIENT_HEADER_FRAME_STREAM_09);
+        outputStream.write(FrameLevelTestUtils.DATA_FRAME_STREAM_09);
+        Thread.sleep(FrameLevelTestUtils.SLEEP_TIME);
         // Sending the frames for lower streams to check whether client correctly accepts them.
-        outputStream.write(HEADER_FRAME_STREAM_07);
-        outputStream.write(DATA_FRAME_STREAM_07);
-        Thread.sleep(SLEEP_TIME);
-        outputStream.write(DATA_FRAME_STREAM_03);
-        Thread.sleep(END_SLEEP_TIME);
+        outputStream.write(FrameLevelTestUtils.CLIENT_HEADER_FRAME_STREAM_07);
+        outputStream.write(FrameLevelTestUtils.DATA_FRAME_STREAM_07);
+        Thread.sleep(FrameLevelTestUtils.SLEEP_TIME);
+        outputStream.write(FrameLevelTestUtils.DATA_FRAME_STREAM_03);
+        Thread.sleep(FrameLevelTestUtils.END_SLEEP_TIME);
     }
 
     @AfterClass

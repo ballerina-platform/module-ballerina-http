@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.transport.http2.frameleveltests.client;
 
+import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils;
@@ -38,13 +39,6 @@ import java.net.Socket;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static io.ballerina.stdlib.http.transport.contract.Constants
-        .REMOTE_SERVER_SENT_GOAWAY_WHILE_READING_INBOUND_RESPONSE_HEADERS;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.END_SLEEP_TIME;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.GO_AWAY_FRAME_MAX_STREAM_01;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SETTINGS_FRAME;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SETTINGS_FRAME_WITH_ACK;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SLEEP_TIME;
 import static io.ballerina.stdlib.http.transport.util.TestUtil.getErrorResponseMessage;
 import static org.testng.Assert.assertEquals;
 
@@ -75,7 +69,7 @@ public class Http2TcpServerGoAway100ContinueScenarioTest {
             responseFuture.setHttpConnectorListener(requestListener);
             latch.await(TestUtil.HTTP2_RESPONSE_TIME_OUT, TimeUnit.SECONDS);
             assertEquals(getErrorResponseMessage(requestListener),
-                    REMOTE_SERVER_SENT_GOAWAY_WHILE_READING_INBOUND_RESPONSE_HEADERS);
+                    Constants.REMOTE_SERVER_SENT_GOAWAY_WHILE_READING_INBOUND_RESPONSE_HEADERS);
         } catch (InterruptedException e) {
             LOGGER.error("Interrupted exception occurred");
         }
@@ -100,12 +94,12 @@ public class Http2TcpServerGoAway100ContinueScenarioTest {
     }
 
     private void sendGoAwayForASingleStream(OutputStream outputStream) throws IOException, InterruptedException {
-        outputStream.write(SETTINGS_FRAME);
-        Thread.sleep(SLEEP_TIME);
-        outputStream.write(SETTINGS_FRAME_WITH_ACK);
-        Thread.sleep(SLEEP_TIME);
-        outputStream.write(GO_AWAY_FRAME_MAX_STREAM_01);
-        Thread.sleep(END_SLEEP_TIME);
+        outputStream.write(FrameLevelTestUtils.SETTINGS_FRAME);
+        Thread.sleep(FrameLevelTestUtils.SLEEP_TIME);
+        outputStream.write(FrameLevelTestUtils.SETTINGS_FRAME_WITH_ACK);
+        Thread.sleep(FrameLevelTestUtils.SLEEP_TIME);
+        outputStream.write(FrameLevelTestUtils.GO_AWAY_FRAME_MAX_STREAM_01);
+        Thread.sleep(FrameLevelTestUtils.END_SLEEP_TIME);
     }
 
     @AfterMethod

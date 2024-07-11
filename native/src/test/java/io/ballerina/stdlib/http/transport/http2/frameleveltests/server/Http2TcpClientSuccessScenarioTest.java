@@ -18,14 +18,27 @@
 
 package io.ballerina.stdlib.http.transport.http2.frameleveltests.server;
 
-import io.ballerina.stdlib.http.transport.contentaware.listeners.EchoMessageListener;
 import io.ballerina.stdlib.http.transport.contract.Constants;
+import io.ballerina.stdlib.http.transport.contract.HttpConnectorListener;
 import io.ballerina.stdlib.http.transport.contract.HttpWsConnectorFactory;
 import io.ballerina.stdlib.http.transport.contract.ServerConnector;
 import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
 import io.ballerina.stdlib.http.transport.contract.config.ListenerConfiguration;
+import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorException;
 import io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpWsConnectorFactory;
+import io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils;
+import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
+import io.ballerina.stdlib.http.transport.message.HttpCarbonResponse;
 import io.ballerina.stdlib.http.transport.util.TestUtil;
+import io.netty.buffer.ByteBuf;
+import io.netty.handler.codec.http.DefaultHttpResponse;
+import io.netty.handler.codec.http.HttpContent;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.LastHttpContent;
+import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterClass;
@@ -33,9 +46,10 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -51,7 +65,7 @@ public class Http2TcpClientSuccessScenarioTest {
     static AtomicBoolean commDone = new AtomicBoolean(false);
     private ServerConnector serverConnector;
     private HttpWsConnectorFactory connectorFactory;
-    private String serverResponse = "";
+    private String serverData = "";
     private Lock readLock = new ReentrantLock();
 
     @BeforeClass
@@ -64,7 +78,7 @@ public class Http2TcpClientSuccessScenarioTest {
         serverConnector = connectorFactory
                 .createServerConnector(TestUtil.getDefaultServerBootstrapConfig(), listenerConfiguration);
         ServerConnectorFuture future = serverConnector.start();
-        future.setHttpConnectorListener(new EchoMessageListener());
+        future.setHttpConnectorListener(new MessageListener());
         future.sync();
     }
 
@@ -72,71 +86,23 @@ public class Http2TcpClientSuccessScenarioTest {
     private void testSuccessfulConnection() throws IOException, InterruptedException {
         Socket socket = new Socket("localhost", TestUtil.HTTP_SERVER_PORT);
         OutputStream outputStream = socket.getOutputStream();
-        InputStream inputStream = socket.getInputStream();
-        startReadingFromInputStream(inputStream);
         sendSuccessfulPriorKnowledgeRequest(outputStream);
         socket.close();
         readLock.lock();
-        assertEquals(serverResponse, "hello world");
+        assertEquals(serverData, FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_03);
     }
 
-    public static void sendSuccessfulPriorKnowledgeRequest(OutputStream outputStream) throws IOException, InterruptedException {
-        System.out.println("Writing preface frame");
-        outputStream.write(new byte[]{0x50, 0x52, 0x49, 0x20, 0x2a, 0x20, 0x48, 0x54, 0x54, 0x50, 0x2f, 0x32, 0x2e, 0x30, 0x0d, 0x0a, 0x0d, 0x0a, 0x53, 0x4d, 0x0d, 0x0a, 0x0d, 0x0a});// Sending setting frame with HEADER_TABLE_SIZE=25700
-
-        System.out.println("Writing settings frame with header table size");
-        outputStream.write(new byte[]{0x00, 0x00, 0x06, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x64, 0x64});// Sending setting frame with HEADER_TABLE_SIZE=25700
-
-        Thread.sleep(1000);
-
-        System.out.println("Writing settings frame with ack");
-        outputStream.write(new byte[]{0x00, 0x00, 0x00, 0x04, 0x01, 0x00, 0x00, 0x00, 0x00});
-
-        System.out.println("Writing headers frame");
-        outputStream.write(new byte[]{0x00, 0x00, (byte) 0x1b, 0x01, 0x04, 0x00, 0x00, 0x00, 0x03, (byte) 0x44, (byte) 0x06, (byte) 0x2F, (byte) 0x68, (byte) 0x65, (byte) 0x6C, (byte) 0x6C, (byte) 0x6F, (byte) 0x83, (byte) 0x5F, (byte) 0x0A, (byte) 0x74, (byte) 0x65, (byte) 0x78, (byte) 0x74, (byte) 0x2F, (byte) 0x70, (byte) 0x6C, (byte) 0x61, (byte) 0x69, (byte) 0x6E, (byte) 0x7A, (byte) 0x04, (byte) 0x77, (byte) 0x73, (byte) 0x6F, (byte) 0x32});
-        Thread.sleep(1000);
-
-        System.out.println("Writing data frame");
-        outputStream.write(new byte[]{0x00, 0x00, 0x0b, 0x00, 0x01, 0x00, 0x00, 0x00, 0x03, 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64});
-
+    public static void sendSuccessfulPriorKnowledgeRequest(OutputStream outputStream) throws IOException,
+            InterruptedException {
+        outputStream.write(FrameLevelTestUtils.PREFACE_FRAME);
+        outputStream.write(FrameLevelTestUtils.SETTINGS_FRAME);
+        Thread.sleep(FrameLevelTestUtils.SLEEP_TIME);
+        outputStream.write(FrameLevelTestUtils.SETTINGS_FRAME_WITH_ACK);
+        outputStream.write(FrameLevelTestUtils.SERVER_HEADER_FRAME_STREAM_03);
+        Thread.sleep(FrameLevelTestUtils.SLEEP_TIME);
+        outputStream.write(FrameLevelTestUtils.DATA_FRAME_STREAM_03);
         commDone.set(true);
-        Thread.sleep(2000);
-    }
-
-    private void startReadingFromInputStream(InputStream inputStream) {
-        Thread readerThread = new Thread(new ReadFromInputStream(inputStream));
-        readerThread.start();
-    }
-
-    class ReadFromInputStream implements Runnable {
-
-        final InputStream inputStream;
-
-        public ReadFromInputStream(InputStream inputStream) {
-            this.inputStream = inputStream;
-        }
-
-        @Override
-        public void run() {
-            readLock.lock();
-            byte[] buffer = new byte[4096];
-            try {
-                while (true) {
-                    inputStream.read(buffer);
-                    // check for data frame type flag
-                    if (String.format("%8s", Integer.toBinaryString(buffer[3] & 0xFF))
-                            .replace(' ', '0').equals("00000000")) {
-                        // read the data part from the frame
-                        serverResponse = new String(buffer, 9, 11);
-                    }
-                    Thread.sleep(1000);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                readLock.unlock();
-            }
-        }
+        Thread.sleep(8000);
     }
 
     @AfterClass
@@ -147,5 +113,37 @@ public class Http2TcpClientSuccessScenarioTest {
         } catch (InterruptedException e) {
             LOGGER.warn("Interrupted while waiting for HttpWsFactory to close");
         }
+    }
+
+    class MessageListener implements HttpConnectorListener {
+        private ExecutorService executor = Executors.newSingleThreadExecutor();
+
+        @Override
+        public void onMessage(HttpCarbonMessage httpRequest) {
+            executor.execute(() -> {
+                try {
+                    HttpContent httpContent = httpRequest.getHttpContent();
+                    HttpCarbonMessage httpResponse = new HttpCarbonResponse(new DefaultHttpResponse(
+                            HttpVersion.HTTP_1_1, HttpResponseStatus.OK));
+                    httpResponse.setHeader(HttpHeaderNames.CONNECTION.toString(),
+                            HttpHeaderValues.KEEP_ALIVE.toString());
+                    httpResponse.setHeader(HttpHeaderNames.CONTENT_TYPE.toString(), Constants.TEXT_PLAIN);
+                    httpResponse.setHttpStatusCode(HttpResponseStatus.OK.code());
+                    do {
+                        httpResponse.addHttpContent(httpContent);
+                        ByteBuf byteBuf = httpContent.content();
+                        serverData += byteBuf.toString(CharsetUtil.UTF_8);
+                        if (httpContent instanceof LastHttpContent) {
+                            break;
+                        }
+                    } while (true);
+                    httpRequest.respond(httpResponse);
+                } catch (ServerConnectorException e) {
+                }
+            });
+        }
+
+        @Override
+        public void onError(Throwable throwable) {}
     }
 }

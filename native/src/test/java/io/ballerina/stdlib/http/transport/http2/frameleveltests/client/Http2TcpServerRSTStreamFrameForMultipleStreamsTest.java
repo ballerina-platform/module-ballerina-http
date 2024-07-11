@@ -35,16 +35,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.Semaphore;
 
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_FRAME_STREAM_05;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_05;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.END_SLEEP_TIME;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.HEADER_FRAME_STREAM_05;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.HEADER_FRAME_STREAM_07;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.RST_STREAM_FRAME_STREAM_03;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.RST_STREAM_FRAME_STREAM_07;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SETTINGS_FRAME;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SETTINGS_FRAME_WITH_ACK;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SLEEP_TIME;
 import static io.ballerina.stdlib.http.transport.util.TestUtil.getDecoderErrorMessage;
 import static io.ballerina.stdlib.http.transport.util.TestUtil.getErrorResponseMessage;
 import static io.ballerina.stdlib.http.transport.util.TestUtil.getResponseMessage;
@@ -83,7 +73,7 @@ public class Http2TcpServerRSTStreamFrameForMultipleStreamsTest {
             readSemaphore.acquire();
             assertEquals(getErrorResponseMessage(msgListener1),
                     Constants.REMOTE_SERVER_SENT_RST_STREAM_BEFORE_INITIATING_INBOUND_RESPONSE);
-            assertEquals(getResponseMessage(msgListener2), DATA_VALUE_HELLO_WORLD_05);
+            assertEquals(getResponseMessage(msgListener2), FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_05);
             assertEquals(getDecoderErrorMessage(msgListener3),
                     Constants.REMOTE_SERVER_SENT_RST_STREAM_WHILE_READING_INBOUND_RESPONSE_BODY);
         } catch (InterruptedException e) {
@@ -116,27 +106,27 @@ public class Http2TcpServerRSTStreamFrameForMultipleStreamsTest {
     // This will send an RST_STREAM frame for stream 3 before sending headers and a successful response for
     // stream 5 and an RST_STREAM frame for stream 7 after sending headers
     private void sendRSTStream(OutputStream outputStream) throws IOException, InterruptedException {
-        Thread.sleep(SLEEP_TIME);
-        outputStream.write(SETTINGS_FRAME);
-        Thread.sleep(SLEEP_TIME);
-        outputStream.write(SETTINGS_FRAME_WITH_ACK);
-        Thread.sleep(SLEEP_TIME);
+        Thread.sleep(FrameLevelTestUtils.SLEEP_TIME);
+        outputStream.write(FrameLevelTestUtils.SETTINGS_FRAME);
+        Thread.sleep(FrameLevelTestUtils.SLEEP_TIME);
+        outputStream.write(FrameLevelTestUtils.SETTINGS_FRAME_WITH_ACK);
+        Thread.sleep(FrameLevelTestUtils.SLEEP_TIME);
         writeSemaphore.acquire();
-        outputStream.write(RST_STREAM_FRAME_STREAM_03);
+        outputStream.write(FrameLevelTestUtils.RST_STREAM_FRAME_STREAM_03);
         readSemaphore.release();
-        Thread.sleep(SLEEP_TIME);
+        Thread.sleep(FrameLevelTestUtils.SLEEP_TIME);
         writeSemaphore.acquire();
-        outputStream.write(HEADER_FRAME_STREAM_05);
-        outputStream.write(DATA_FRAME_STREAM_05);
-        Thread.sleep(SLEEP_TIME);
+        outputStream.write(FrameLevelTestUtils.CLIENT_HEADER_FRAME_STREAM_05);
+        outputStream.write(FrameLevelTestUtils.DATA_FRAME_STREAM_05);
+        Thread.sleep(FrameLevelTestUtils.SLEEP_TIME);
         readSemaphore.release();
         writeSemaphore.acquire();
-        outputStream.write(HEADER_FRAME_STREAM_07);
-        Thread.sleep(SLEEP_TIME);
-        outputStream.write(RST_STREAM_FRAME_STREAM_07);
-        Thread.sleep(SLEEP_TIME);
+        outputStream.write(FrameLevelTestUtils.CLIENT_HEADER_FRAME_STREAM_07);
+        Thread.sleep(FrameLevelTestUtils.SLEEP_TIME);
+        outputStream.write(FrameLevelTestUtils.RST_STREAM_FRAME_STREAM_07);
+        Thread.sleep(FrameLevelTestUtils.SLEEP_TIME);
         readSemaphore.release();
-        Thread.sleep(END_SLEEP_TIME);
+        Thread.sleep(FrameLevelTestUtils.END_SLEEP_TIME);
     }
 
     @AfterMethod

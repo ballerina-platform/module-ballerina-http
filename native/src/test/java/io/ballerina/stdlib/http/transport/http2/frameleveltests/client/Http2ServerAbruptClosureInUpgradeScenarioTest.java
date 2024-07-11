@@ -41,7 +41,6 @@ import java.net.Socket;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE;
 import static io.ballerina.stdlib.http.transport.util.TestUtil.getErrorResponseMessage;
 import static org.testng.Assert.fail;
 import static org.testng.AssertJUnit.assertEquals;
@@ -86,9 +85,9 @@ public class Http2ServerAbruptClosureInUpgradeScenarioTest {
             latch2.await(TestUtil.HTTP2_RESPONSE_TIME_OUT, TimeUnit.SECONDS);
 
             assertEquals(getErrorResponseMessage(msgListener1),
-                    REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE);
+                    Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE);
             assertEquals(getErrorResponseMessage(msgListener2),
-                    REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE);
+                    Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE);
         } catch (InterruptedException e) {
             LOGGER.error("Interrupted exception occurred");
             fail();
