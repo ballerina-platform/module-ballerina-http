@@ -26,7 +26,7 @@ import java.util.Map;
  * Represents a single HTTP access log message, encapsulating all relevant data for a specific request-response cycle.
  * This class stores details such as IP address, date and time, request and response attributes, and custom headers.
  *
- * @since 2.11.3
+ * @since 2.12.0
  */
 public class HttpAccessLogMessage {
     private String ip;

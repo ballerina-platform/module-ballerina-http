@@ -18,6 +18,12 @@
 
 package io.ballerina.stdlib.http.api.logging.accesslog;
 
+/**
+ * Represents the format types available for HTTP access logging.
+ * This enum is used to specify the preferred logging format for HTTP access logs.
+ *
+ * @since 2.12.0
+ */
 public enum HttpAccessLogFormat {
     FLAT, JSON
 }

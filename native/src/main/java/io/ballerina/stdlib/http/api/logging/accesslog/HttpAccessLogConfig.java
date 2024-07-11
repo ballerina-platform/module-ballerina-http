@@ -40,7 +40,7 @@ import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_LOG_FORMAT_JSON;
  * Provides a singleton configuration manager for HTTP access logging within the application.
  * This class manages settings related to log formats, attributes, and custom header.
  *
- * @since 2.11.3
+ * @since 2.12.0
  */
 public class HttpAccessLogConfig {
 

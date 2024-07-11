@@ -25,7 +25,7 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
  * Implementations of this interface should handle the specifics of recording and maintaining HTTP access logs
  * for both request and response messages.
  *
- * @since 2.11.3
+ * @since 2.12.0
  */
 public interface HttpAccessLogger {
 

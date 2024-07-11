@@ -47,7 +47,7 @@ import static io.ballerina.stdlib.http.api.HttpConstants.ATTRIBUTE_STATUS;
  * This utility class supports both FLAT and JSON formats for the rendering of access log entries,
  * accommodating custom attributes and handling multiple messages for detailed logging.
  *
- * @since 2.11.3
+ * @since 2.12.0
  */
 public class HttpAccessLogFormatter {
 

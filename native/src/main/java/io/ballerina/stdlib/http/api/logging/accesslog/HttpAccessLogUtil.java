@@ -30,7 +30,7 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.OUTBOUND_ACC
  * from HttpCarbonMessage objects. This class includes type-safe property retrieval and handling specific
  * logging data structures.
  *
- * @since 2.11.3
+ * @since 2.12.0
  */
 public class HttpAccessLogUtil {
     public static <T> T getTypedProperty(HttpCarbonMessage carbonMessage, String propertyName, Class<T> type) {

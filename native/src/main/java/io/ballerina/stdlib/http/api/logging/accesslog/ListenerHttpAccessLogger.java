@@ -42,7 +42,7 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_X_FORWA
  * Implements {@link HttpAccessLogger} to log detailed HTTP access information for incoming requests
  * and their corresponding responses.
  *
- * @since 2.11.3
+ * @since 2.12.0
  */
 public class ListenerHttpAccessLogger implements HttpAccessLogger {
 

@@ -43,7 +43,7 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.TO;
  * Implements {@link HttpAccessLogger} for the sender side, focusing on updating and enriching
  * HTTP access log information for outbound requests and corresponding inbound responses.
  *
- * @since 2.11.3
+ * @since 2.12.0
  */
 public class SenderHttpAccessLogger implements HttpAccessLogger {
 
