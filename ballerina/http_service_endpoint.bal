@@ -148,6 +148,11 @@ public type Local record {|
 # + gracefulStopTimeout - Grace period of time in seconds for listener gracefulStop
 # + socketConfig - Provides settings related to server socket configuration
 # + http2InitialWindowSize - Configuration to change the initial window size in HTTP/2
+# + minIdleTimeInStaleState - Minimum time in seconds for a connection to be kept open which has received a GOAWAY.
+#                             This only applies for HTTP/2. Default value is 5 minutes. If the value is set to -1,
+#                             the connection will be closed after all in-flight streams are completed
+# + timeBetweenStaleEviction - Time between the connection stale eviction runs in seconds. This only applies for HTTP/2.
+#                              Default value is 30 seconds
 public type ListenerConfiguration record {|
     string host = "0.0.0.0";
     ListenerHttp1Settings http1Settings = {};
