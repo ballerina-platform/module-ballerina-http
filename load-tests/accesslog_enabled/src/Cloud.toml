@@ -1,0 +1,20 @@
+[container.image]
+repository= "ballerina"
+name="h1_h1_passthrough"
+
+[cloud.deployment]
+min_memory="256Mi"
+max_memory="1024Mi"
+min_cpu="200m"
+max_cpu="2000m"
+
+[cloud.deployment.autoscaling]
+min_replicas=1
+max_replicas=1
+
+[[cloud.secret.files]]
+mount_dir="./security"
+file="./security"
+
+[[cloud.config.files]]
+file="./Config.toml"
