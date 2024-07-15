@@ -25,7 +25,6 @@ import io.ballerina.stdlib.http.uri.URITemplateException;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaderValues;
 
 import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_RESOURCE_DISPATCHING_SERVER_ERROR;
 import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_RESOURCE_NOT_FOUND_ERROR;
@@ -43,8 +42,12 @@ public class ResourceDispatcher {
         HttpResourceArguments resourceArgumentValues = new HttpResourceArguments();
         try {
             Resource resource = service.getUriTemplate().matches(subPath, resourceArgumentValues, inboundRequest);
-            if (resource instanceof HttpIntrospectionResource) {
-                handleIntrospectionRequest(inboundRequest, (HttpIntrospectionResource) resource);
+            if (resource instanceof HttpIntrospectionResource introspectionResource) {
+                handleOasResourceRequest(inboundRequest, introspectionResource);
+                return null;
+            }
+            if (resource instanceof HttpSwaggerUiResource swaggerUiResource) {
+                handleOasResourceRequest(inboundRequest, swaggerUiResource);
                 return null;
             }
             if (resource != null) {
@@ -91,7 +94,7 @@ public class ResourceDispatcher {
             throw HttpUtil.createHttpStatusCodeError(INTERNAL_RESOURCE_NOT_FOUND_ERROR, message);
         }
         CorsHeaderGenerator.process(cMsg, response, false);
-        String introspectionResourcePathHeaderValue = service.getIntrospectionResourcePathHeaderValue();
+        String introspectionResourcePathHeaderValue = service.getOasResourceLink();
         if (introspectionResourcePathHeaderValue != null) {
             response.setHeader(HttpConstants.LINK_HEADER, introspectionResourcePathHeaderValue);
         }
@@ -101,11 +104,11 @@ public class ResourceDispatcher {
         cMsg.waitAndReleaseAllEntities();
     }
 
-    private static void handleIntrospectionRequest(HttpCarbonMessage cMsg, HttpIntrospectionResource resource) {
+    private static void handleOasResourceRequest(HttpCarbonMessage cMsg, HttpOASResource resource) {
         HttpCarbonMessage response = HttpUtil.createHttpCarbonMessage(false);
         response.waitAndReleaseAllEntities();
         response.addHttpContent(new DefaultLastHttpContent(Unpooled.wrappedBuffer(resource.getPayload())));
-        response.setHeader(HttpHeaderNames.CONTENT_TYPE.toString(), HttpHeaderValues.APPLICATION_JSON.toString());
+        response.setHeader(HttpHeaderNames.CONTENT_TYPE.toString(), resource.getContentType());
         response.setHttpStatusCode(200);
         PipeliningHandler.sendPipelinedResponse(cMsg, response);
         cMsg.waitAndReleaseAllEntities();

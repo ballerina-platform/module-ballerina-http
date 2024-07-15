@@ -12,6 +12,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Add compression/decompression support for `brotli` compression format](https://github.com/ballerina-platform/ballerina-library/issues/6547)
 - [Introduce default status code response record](https://github.com/ballerina-platform/ballerina-library/issues/6491)
 
+## [2.11.2] - 2024-06-14
+
+### Added
+
+- [Generate and host SwaggerUI for the generated OpenAPI specification as a built-in resource](https://github.com/ballerina-platform/ballerina-library/issues/6622)
+
+### Fixed
+
+- [Remove the resource level annotation restrictions](https://github.com/ballerina-platform/ballerina-library/issues/5831)
+
 ## [2.11.1] - 2024-05-29
 
 ### Fixed

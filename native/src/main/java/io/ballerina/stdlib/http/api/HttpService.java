@@ -90,7 +90,7 @@ public class HttpService implements Service {
     private String hostName;
     private String chunkingConfig;
     private String mediaTypeSubtypePrefix;
-    private String introspectionResourcePath;
+    private List<String> oasResourceLinks = new ArrayList<>();
     private boolean treatNilableAsOptional = true;
     private List<HTTPInterceptorServicesRegistry> interceptorServicesRegistries;
     private BArray balInterceptorServicesArray;
@@ -273,6 +273,8 @@ public class HttpService implements Service {
         if (introspectionPayload.length > 0) {
             updateResourceTree(httpService, httpResources, new HttpIntrospectionResource(httpService,
                                                                                          introspectionPayload));
+            updateResourceTree(
+                    httpService, httpResources, new HttpSwaggerUiResource(httpService, introspectionPayload));
         } else {
             log.debug("OpenAPI definition is not available");
         }
@@ -406,12 +408,15 @@ public class HttpService implements Service {
     }
 
     @Override
-    public String getIntrospectionResourcePathHeaderValue() {
-        return this.introspectionResourcePath;
+    public String getOasResourceLink() {
+        if (this.oasResourceLinks.isEmpty()) {
+            return null;
+        }
+        return String.join(", ", this.oasResourceLinks);
     }
 
-    protected void setIntrospectionResourcePathHeaderValue(String introspectionResourcePath) {
-        this.introspectionResourcePath = introspectionResourcePath;
+    protected void addOasResourceLink(String oasResourcePath) {
+        this.oasResourceLinks.add(oasResourcePath);
     }
 
     public void setInterceptorServicesRegistries(List<HTTPInterceptorServicesRegistry> interceptorServicesRegistries) {

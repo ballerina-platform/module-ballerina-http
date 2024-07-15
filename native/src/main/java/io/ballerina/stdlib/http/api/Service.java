@@ -73,9 +73,9 @@ public interface Service {
     List<String> getAllAllowedMethods();
 
     /**
-     * Returns introspection resource path header configured in the service.
+     * Returns OAS resource path header configured in the service.
      *
      * @return the introspection resource path header string
      */
-    String getIntrospectionResourcePathHeaderValue();
+    String getOasResourceLink();
 }
