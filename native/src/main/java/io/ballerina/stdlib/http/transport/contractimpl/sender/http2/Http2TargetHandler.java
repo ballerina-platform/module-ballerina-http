@@ -19,6 +19,7 @@
 package io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
 
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
+import io.ballerina.stdlib.http.transport.contractimpl.sender.HttpClientChannelInitializer;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.states.http2.RequestCompleted;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.states.http2.SendingEntityBody;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.states.http2.SendingHeaders;
@@ -55,6 +56,7 @@ public class Http2TargetHandler extends ChannelDuplexHandler {
     // Encoder associated with the HTTP2ConnectionHandler
     private Http2ConnectionEncoder encoder;
     private Http2ClientChannel http2ClientChannel;
+    private HttpClientChannelInitializer httpClientChannelInitializer;
 
     public Http2TargetHandler(Http2Connection connection, Http2ConnectionEncoder encoder) {
         this.connection = connection;
@@ -132,6 +134,14 @@ public class Http2TargetHandler extends ChannelDuplexHandler {
      */
     public Http2ConnectionEncoder getEncoder() {
         return encoder;
+    }
+
+    public HttpClientChannelInitializer getHttpClientChannelInitializer() {
+        return httpClientChannelInitializer;
+    }
+
+    public void setHttpClientChannelInitializer(HttpClientChannelInitializer httpClientChannelInitializer) {
+        this.httpClientChannelInitializer = httpClientChannelInitializer;
     }
 
     /**

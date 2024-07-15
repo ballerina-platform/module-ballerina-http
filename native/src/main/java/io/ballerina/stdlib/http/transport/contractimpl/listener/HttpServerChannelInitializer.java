@@ -71,8 +71,6 @@ import java.util.concurrent.TimeUnit;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
-import static io.ballerina.stdlib.http.transport.contract.Constants.ACCESS_LOG;
-import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_ACCESS_LOG_HANDLER;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_TRACE_LOG_HANDLER;
 import static io.ballerina.stdlib.http.transport.contract.Constants.MAX_ENTITY_BODY_VALIDATION_HANDLER;
 import static io.ballerina.stdlib.http.transport.contract.Constants.SECURITY;
@@ -229,9 +227,6 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
             if (httpTraceLogEnabled) {
                 serverPipeline.addLast(HTTP_TRACE_LOG_HANDLER, new HttpTraceLoggingHandler(TRACE_LOG_DOWNSTREAM));
             }
-            if (httpAccessLogEnabled) {
-                serverPipeline.addLast(HTTP_ACCESS_LOG_HANDLER, new HttpAccessLoggingHandler(ACCESS_LOG));
-            }
         }
         serverPipeline.addLast(URI_HEADER_LENGTH_VALIDATION_HANDLER, new UriAndHeaderLengthValidator(this.serverName));
         if (reqSizeValidationConfig.getMaxEntityBodySize() > -1) {
@@ -244,7 +239,7 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
                                                                    webSocketCompressionEnabled));
         serverPipeline.addLast(Constants.BACK_PRESSURE_HANDLER, new BackPressureHandler());
         serverPipeline.addLast(Constants.HTTP_SOURCE_HANDLER,
-                               new SourceHandler(this.serverConnectorFuture, this.interfaceId, this.chunkConfig,
+                               new SourceHandler(this.serverConnectorFuture, this, this.interfaceId, this.chunkConfig,
                                                  keepAliveConfig, this.serverName, this.allChannels,
                                                  this.listenerChannels, this.pipeliningEnabled, this.pipeliningLimit,
                                                  this.pipeliningGroup));
@@ -275,9 +270,6 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
         if (httpTraceLogEnabled) {
             pipeline.addLast(HTTP_TRACE_LOG_HANDLER,
                              new HttpTraceLoggingHandler(TRACE_LOG_DOWNSTREAM));
-        }
-        if (httpAccessLogEnabled) {
-            pipeline.addLast(HTTP_ACCESS_LOG_HANDLER, new HttpAccessLoggingHandler(ACCESS_LOG));
         }
 
         final HttpServerUpgradeHandler.UpgradeCodecFactory upgradeCodecFactory = protocol -> {
