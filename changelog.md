@@ -10,7 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 
 - [Introduce default status code response record](https://github.com/ballerina-platform/ballerina-library/issues/6491)
-- [Added connection eviction feature to handle connections that receive GO_AWAY from the client](https://github.com/ballerina-platform/ballerina-library/issues/6734)
+- [Add connection eviction feature to handle connections that receive GO_AWAY from the client](https://github.com/ballerina-platform/ballerina-library/issues/6734)
 
 ## [2.11.2] - 2024-06-14
 
