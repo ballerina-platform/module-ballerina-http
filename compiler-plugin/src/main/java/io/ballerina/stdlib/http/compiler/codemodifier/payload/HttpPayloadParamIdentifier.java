@@ -68,13 +68,15 @@ import static io.ballerina.stdlib.http.compiler.Constants.STRUCTURED_ARRAY;
 import static io.ballerina.stdlib.http.compiler.Constants.TABLE_OF_ANYDATA_MAP;
 import static io.ballerina.stdlib.http.compiler.Constants.TUPLE_OF_ANYDATA;
 import static io.ballerina.stdlib.http.compiler.Constants.XML;
+import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.diagnosticContainsErrors;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.getCtxTypes;
+import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.getServiceDeclarationNode;
+import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.isHttpServiceType;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.subtypeOf;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.updateDiagnostic;
 import static io.ballerina.stdlib.http.compiler.HttpResourceValidator.getEffectiveType;
 import static io.ballerina.stdlib.http.compiler.HttpResourceValidator.isValidBasicParamType;
 import static io.ballerina.stdlib.http.compiler.HttpResourceValidator.isValidNilableBasicParamType;
-import static io.ballerina.stdlib.http.compiler.HttpServiceObjTypeAnalyzer.isHttpServiceType;
 
 
 /**

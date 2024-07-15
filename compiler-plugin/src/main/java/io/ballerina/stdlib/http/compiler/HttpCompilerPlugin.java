@@ -37,6 +37,7 @@ import io.ballerina.stdlib.http.compiler.codemodifier.HttpServiceModifier;
 import io.ballerina.stdlib.http.compiler.completion.HttpServiceBodyContextProvider;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * The compiler plugin implementation for Ballerina Http package.
@@ -45,8 +46,10 @@ public class HttpCompilerPlugin extends CompilerPlugin {
 
     @Override
     public void init(CompilerPluginContext context) {
-        context.addCodeModifier(new HttpServiceModifier());
-        context.addCodeAnalyzer(new HttpServiceAnalyzer());
+        Map<String, Object> ctxData = context.userData();
+        ctxData.put("HTTP_CODE_MODIFIER_EXECUTED", false);
+        context.addCodeModifier(new HttpServiceModifier(ctxData));
+        context.addCodeAnalyzer(new HttpServiceAnalyzer(ctxData));
         getCodeActions().forEach(context::addCodeAction);
         getCompletionProviders().forEach(context::addCompletionProvider);
     }

@@ -20,13 +20,10 @@ package io.ballerina.stdlib.http.compiler;
 
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ObjectTypeSymbol;
-import io.ballerina.compiler.api.symbols.ServiceDeclarationSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
-import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
-import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
@@ -45,7 +42,6 @@ import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
 import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.diagnostics.DiagnosticFactory;
 import io.ballerina.tools.diagnostics.DiagnosticInfo;
-import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 import io.ballerina.tools.diagnostics.Location;
 import org.wso2.ballerinalang.compiler.diagnostic.BLangDiagnosticLocation;
 
@@ -71,8 +67,9 @@ import static io.ballerina.stdlib.http.compiler.Constants.SERVICE_CONTRACT_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.SERVICE_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.SUFFIX_SEPARATOR_REGEX;
 import static io.ballerina.stdlib.http.compiler.Constants.UNNECESSARY_CHARS_REGEX;
+import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.diagnosticContainsErrors;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.getCtxTypes;
-import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.isHttpModule;
+import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.getServiceDeclarationNode;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.updateDiagnostic;
 import static io.ballerina.stdlib.http.compiler.HttpDiagnostic.HTTP_101;
 import static io.ballerina.stdlib.http.compiler.HttpDiagnostic.HTTP_119;
@@ -255,48 +252,6 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
         }
     }
 
-    public static boolean diagnosticContainsErrors(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext) {
-        List<Diagnostic> diagnostics = syntaxNodeAnalysisContext.semanticModel().diagnostics();
-        return diagnostics.stream()
-                .anyMatch(d -> DiagnosticSeverity.ERROR.equals(d.diagnosticInfo().severity()));
-    }
-
-    public static ServiceDeclarationNode getServiceDeclarationNode(SyntaxNodeAnalysisContext context) {
-        if (!(context.node() instanceof ServiceDeclarationNode serviceDeclarationNode)) {
-            return null;
-        }
-        return getServiceDeclarationNode(serviceDeclarationNode, context.semanticModel());
-    }
-
-    public static ServiceDeclarationNode getServiceDeclarationNode(Node node, SemanticModel semanticModel) {
-        if (!(node instanceof ServiceDeclarationNode serviceDeclarationNode)) {
-            return null;
-        }
-
-        Optional<Symbol> serviceSymOptional = semanticModel.symbol(node);
-        if (serviceSymOptional.isPresent()) {
-            List<TypeSymbol> listenerTypes = ((ServiceDeclarationSymbol) serviceSymOptional.get()).listenerTypes();
-            if (listenerTypes.stream().noneMatch(HttpServiceValidator::isListenerBelongsToHttpModule)) {
-                return null;
-            }
-        }
-        return serviceDeclarationNode;
-    }
-
-    private static boolean isListenerBelongsToHttpModule(TypeSymbol listenerType) {
-        if (listenerType.typeKind() == TypeDescKind.UNION) {
-            return ((UnionTypeSymbol) listenerType).memberTypeDescriptors().stream()
-                    .filter(typeDescriptor -> typeDescriptor instanceof TypeReferenceTypeSymbol)
-                    .map(typeReferenceTypeSymbol -> (TypeReferenceTypeSymbol) typeReferenceTypeSymbol)
-                    .anyMatch(typeReferenceTypeSymbol -> isHttpModule(typeReferenceTypeSymbol.getModule().get()));
-        }
-
-        if (listenerType.typeKind() == TypeDescKind.TYPE_REFERENCE) {
-            return isHttpModule(((TypeReferenceTypeSymbol) listenerType).typeDescriptor().getModule().get());
-        }
-        return false;
-    }
-
     private static void validateResourceLinks(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext,
                                        LinksMetaData linksMetaData) {
         if (!linksMetaData.hasNameReferenceObjects()) {
@@ -375,28 +330,31 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
                                                                       AnnotationNode annotation,
                                                                       MappingConstructorExpressionNode annotValue,
                                                                       TypeDescriptorNode typeDescriptorNode) {
-        if (Objects.isNull(annotValue) || annotValue.fields().isEmpty() || annotValue.fields().size() > 1) {
+        // TODO: Change annotValue.fields().size() > 1 after resource migration
+        if (Objects.isNull(annotValue) || annotValue.fields().isEmpty() || annotValue.fields().size() > 2) {
             reportInvalidServiceConfigAnnotationUsage(ctx, annotation.location());
             return;
         }
 
-        MappingFieldNode field = annotValue.fields().get(0);
-        String fieldString = field.toString();
-        fieldString = fieldString.trim().replaceAll(UNNECESSARY_CHARS_REGEX, "");
-        if (field.kind().equals(SyntaxKind.SPECIFIC_FIELD)) {
-            String[] strings = fieldString.split(COLON, 2);
-            if (SERVICE_TYPE.equals(strings[0].trim())) {
-                String expectedServiceType = typeDescriptorNode.toString().trim();
-                String actualServiceType = strings[1].trim();
-                if (!actualServiceType.equals(expectedServiceType)) {
-                    reportInvalidServiceContractType(ctx, expectedServiceType, actualServiceType,
-                            annotation.location());
+        for (MappingFieldNode field : annotValue.fields()) {
+            String fieldString = field.toString();
+            fieldString = fieldString.trim().replaceAll(UNNECESSARY_CHARS_REGEX, "");
+            if (field.kind().equals(SyntaxKind.SPECIFIC_FIELD)) {
+                String[] strings = fieldString.split(COLON, 2);
+                if (SERVICE_TYPE.equals(strings[0].trim())) {
+                    String expectedServiceType = typeDescriptorNode.toString().trim();
+                    String actualServiceType = strings[1].trim();
+                    if (!actualServiceType.equals(expectedServiceType)) {
+                        reportInvalidServiceContractType(ctx, expectedServiceType, actualServiceType,
+                                annotation.location());
+                        return;
+                    }
+                } else if (!("openApiDefinition".equals(strings[0].trim()))) {
+                    reportInvalidServiceConfigAnnotationUsage(ctx, annotation.location());
+                    return;
                 }
-                return;
             }
         }
-
-        reportInvalidServiceConfigAnnotationUsage(ctx, annotation.location());
     }
 
     protected static void validateServiceConfigAnnotation(SyntaxNodeAnalysisContext ctx,

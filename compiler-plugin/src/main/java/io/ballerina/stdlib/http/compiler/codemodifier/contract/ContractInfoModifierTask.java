@@ -15,17 +15,19 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package io.ballerina.stdlib.http.compiler.codemodifier;
+package io.ballerina.stdlib.http.compiler.codemodifier.contract;
 
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.AbstractNodeFactory;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
+import io.ballerina.compiler.syntax.tree.MappingFieldNode;
 import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
+import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
@@ -44,6 +46,7 @@ import io.ballerina.tools.text.TextDocument;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createIdentifierToken;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createNodeList;
@@ -66,7 +69,7 @@ import static io.ballerina.stdlib.http.compiler.HttpServiceValidator.getServiceC
  *
  * @since 2.12.0
  */
-public class ServiceTypeModifierTask implements ModifierTask<SourceModifierContext> {
+public class ContractInfoModifierTask implements ModifierTask<SourceModifierContext> {
 
     @Override
     public void modify(SourceModifierContext modifierContext) {
@@ -147,11 +150,59 @@ public class ServiceTypeModifierTask implements ModifierTask<SourceModifierConte
             String[] annotStrings = annotName.split(COLON);
             if (SERVICE_CONFIG_ANNOTATION.equals(annotStrings[annotStrings.length - 1].trim())
                     && HTTP.equals(annotStrings[0].trim())) {
-                return serviceDeclarationNode;
+                return updateServiceConfigAnnotation(serviceTypeDesc.get(), serviceDeclarationNode, annotation);
             }
         }
 
         return addServiceConfigAnnotation(serviceTypeDesc.get(), serviceDeclarationNode);
+    }
+
+    private ServiceDeclarationNode updateServiceConfigAnnotation(TypeDescriptorNode serviceTypeDesc,
+                                                                 ServiceDeclarationNode serviceDeclarationNode,
+                                                                 AnnotationNode serviceConfigAnnotation) {
+        SpecificFieldNode serviceTypeField = createSpecificFieldNode(null, createIdentifierToken("serviceType"),
+                createToken(COLON_TOKEN), serviceTypeDesc);
+        Optional<MappingConstructorExpressionNode> serviceConfigConstruct = serviceConfigAnnotation.annotValue();
+        MappingConstructorExpressionNode newServiceConfigConstruct;
+        if (serviceConfigConstruct.isEmpty() || serviceConfigConstruct.get().fields().isEmpty()) {
+            newServiceConfigConstruct = createMappingConstructorExpressionNode(
+                    createToken(SyntaxKind.OPEN_BRACE_TOKEN), createSeparatedNodeList(serviceTypeField),
+                    createToken(SyntaxKind.CLOSE_BRACE_TOKEN));
+        } else {
+            MappingConstructorExpressionNode existingServiceConfigConstruct = serviceConfigConstruct.get();
+            SeparatedNodeList<MappingFieldNode> fields = existingServiceConfigConstruct.fields();
+            boolean hasServiceType = fields.stream().anyMatch(field -> {
+                if (field.kind().equals(SyntaxKind.SPECIFIC_FIELD)) {
+                    SpecificFieldNode specificField = (SpecificFieldNode) field;
+                    return specificField.fieldName().toString().equals("serviceType");
+                }
+                return false;
+            });
+            if (hasServiceType) {
+                return serviceDeclarationNode;
+            }
+            List<Node> fieldList = fields.stream().collect(Collectors.toList());
+            fieldList.add(createToken(SyntaxKind.COMMA_TOKEN));
+            fieldList.add(serviceTypeField);
+            SeparatedNodeList<MappingFieldNode> updatedFields = createSeparatedNodeList(fieldList);
+            newServiceConfigConstruct = createMappingConstructorExpressionNode(
+                    createToken(SyntaxKind.OPEN_BRACE_TOKEN), updatedFields,
+                    createToken(SyntaxKind.CLOSE_BRACE_TOKEN));
+        }
+        AnnotationNode newServiceConfigAnnotation = serviceConfigAnnotation.modify()
+                .withAnnotValue(newServiceConfigConstruct).apply();
+        Optional<MetadataNode> metadata = serviceDeclarationNode.metadata();
+        if (metadata.isEmpty()) {
+            MetadataNode metadataNode = createMetadataNode(null,
+                    createNodeList(newServiceConfigAnnotation));
+            return serviceDeclarationNode.modify().withMetadata(metadataNode).apply();
+        }
+
+        NodeList<AnnotationNode> updatedAnnotations = metadata.get().annotations()
+                .remove(serviceConfigAnnotation)
+                .add(newServiceConfigAnnotation);
+        MetadataNode metadataNode = metadata.get().modify().withAnnotations(updatedAnnotations).apply();
+        return serviceDeclarationNode.modify().withMetadata(metadataNode).apply();
     }
 
     private ServiceDeclarationNode addServiceConfigAnnotation(TypeDescriptorNode serviceTypeDesc,

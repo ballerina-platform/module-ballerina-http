@@ -22,7 +22,7 @@ import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.plugins.CodeModifier;
 import io.ballerina.projects.plugins.CodeModifierContext;
-import io.ballerina.stdlib.http.compiler.codemodifier.oas.OpenApiInfoUpdaterTask;
+import io.ballerina.stdlib.http.compiler.codemodifier.contract.ContractInfoModifierTask;
 import io.ballerina.stdlib.http.compiler.codemodifier.payload.HttpPayloadParamIdentifier;
 import io.ballerina.stdlib.http.compiler.codemodifier.payload.PayloadAnnotationModifierTask;
 import io.ballerina.stdlib.http.compiler.codemodifier.payload.context.PayloadParamContext;
@@ -38,19 +38,21 @@ import java.util.Map;
  */
 public class HttpServiceModifier extends CodeModifier {
     private final Map<DocumentId, PayloadParamContext> payloadParamContextMap;
+    private final Map<String, Object> ctxData;
 
-    public HttpServiceModifier() {
+    public HttpServiceModifier(Map<String, Object> ctxData) {
         this.payloadParamContextMap = new HashMap<>();
+        this.ctxData = ctxData;
     }
 
     @Override
     public void init(CodeModifierContext codeModifierContext) {
+        ctxData.put("HTTP_CODE_MODIFIER_EXECUTED", true);
         codeModifierContext.addSyntaxNodeAnalysisTask(
                 new HttpPayloadParamIdentifier(this.payloadParamContextMap),
                 List.of(SyntaxKind.SERVICE_DECLARATION, SyntaxKind.CLASS_DEFINITION, SyntaxKind.OBJECT_TYPE_DESC));
         codeModifierContext.addSourceModifierTask(new PayloadAnnotationModifierTask(this.payloadParamContextMap));
 
-        codeModifierContext.addSourceModifierTask(new OpenApiInfoUpdaterTask());
-        codeModifierContext.addSourceModifierTask(new ServiceTypeModifierTask());
+        codeModifierContext.addSourceModifierTask(new ContractInfoModifierTask());
     }
 }

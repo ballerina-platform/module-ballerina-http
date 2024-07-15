@@ -44,11 +44,14 @@ import io.ballerina.stdlib.http.uri.parser.Literal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
@@ -238,6 +241,7 @@ public class HttpService implements Service {
         HttpService httpService = new HttpService(service, basePath);
         BMap serviceConfig = getHttpServiceConfigAnnotation(service);
         httpService.populateServiceConfig(serviceConfig);
+        httpService.populateIntrospectionPayload();
         return httpService;
     }
 
@@ -248,6 +252,7 @@ public class HttpService implements Service {
             this.setChunkingConfig(serviceConfig.get(HttpConstants.ANN_CONFIG_ATTR_CHUNKING).toString());
             this.setCorsHeaders(CorsHeaders.buildCorsHeaders(serviceConfig.getMapValue(CORS_FIELD)));
             this.setHostName(serviceConfig.getStringValue(HOST_FIELD).getValue().trim());
+            // TODO: Remove once the field is removed from the annotation
             this.setIntrospectionPayload(serviceConfig.getArrayValue(OPENAPI_DEF_FIELD).getByteArray());
             if (serviceConfig.containsKey(MEDIA_TYPE_SUBTYPE_PREFIX)) {
                 this.setMediaTypeSubtypePrefix(serviceConfig.getStringValue(MEDIA_TYPE_SUBTYPE_PREFIX)
@@ -411,6 +416,36 @@ public class HttpService implements Service {
         String key = packagePath.replaceAll(HttpConstants.REGEX, HttpConstants.SINGLE_SLASH);
         return (BMap) ((ObjectType) TypeUtils.getReferredType(TypeUtils.getType(service))).getAnnotation(
                 fromString(key + ":" + annotationName));
+    }
+
+    private static Optional<String> getOpenApiDocFileName(BObject service) {
+        BMap openApiDocMap = (BMap) ((ObjectType) TypeUtils.getReferredType(TypeUtils.getType(service))).getAnnotation(
+                fromString("ballerina/lang.annotations:0:IntrospectionDocConfig"));
+        if (Objects.isNull(openApiDocMap)) {
+            return Optional.empty();
+        }
+        BString name = openApiDocMap.getStringValue(fromString("name"));
+        return Objects.isNull(name) ? Optional.empty() : Optional.of(name.getValue());
+    }
+
+    protected void populateIntrospectionPayload() {
+        Optional<String> openApiFileNameOpt = getOpenApiDocFileName(balService);
+        if (openApiFileNameOpt.isEmpty()) {
+            return;
+        }
+        // Load from resources
+        String openApiFileName = openApiFileNameOpt.get();
+        String openApiDocPath = String.format("resources/openapi_%s.json",
+                openApiFileName.startsWith("-") ? "0" + openApiFileName.substring(1) : openApiFileName);
+        try (InputStream is = HttpService.class.getClassLoader().getResourceAsStream(openApiDocPath)) {
+            if (Objects.isNull(is)) {
+                log.debug("OpenAPI definition is not available in the resources");
+                return;
+            }
+            this.setIntrospectionPayload(is.readAllBytes());
+        } catch (IOException e) {
+            log.debug("Error while loading OpenAPI definition from resources", e);
+        }
     }
 
     @Override

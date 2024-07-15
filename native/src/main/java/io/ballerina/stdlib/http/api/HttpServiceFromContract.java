@@ -48,6 +48,7 @@ public class HttpServiceFromContract extends HttpService {
     public static HttpService buildHttpService(BObject service, String basePath,
                                                ReferenceType serviceContractType) {
         HttpService httpService = new HttpServiceFromContract(service, basePath, serviceContractType);
+        httpService.populateIntrospectionPayload();
         BMap serviceConfig = getHttpServiceConfigAnnotation(serviceContractType);
         httpService.populateServiceConfig(serviceConfig);
         return httpService;

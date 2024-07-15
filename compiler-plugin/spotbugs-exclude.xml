@@ -81,4 +81,14 @@
         <Field name="serviceNode"/>
         <Bug pattern="EI_EXPOSE_REP2"/>
     </Match>
+    <Match>
+        <Record name="io.ballerina.stdlib.http.compiler.HttpServiceAnalyzer("/>
+        <Field name="ctxData"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Record name="io.ballerina.stdlib.http.compiler.codemodifier.HttpServiceModifier"/>
+        <Field name="ctxData"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
 </FindBugsFilter>

@@ -60,7 +60,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static io.ballerina.stdlib.http.compiler.HttpServiceObjTypeAnalyzer.isHttpServiceType;
+import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.isHttpServiceType;
 import static io.ballerina.stdlib.http.compiler.HttpServiceValidator.isServiceContractImplementation;
 
 /**
