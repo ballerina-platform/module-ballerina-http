@@ -9,6 +9,6 @@ spec:
         logs: "true"
     spec:
       containers:
-      - name: "accesslog_enabl-deployment"
+      - name: "accesslog-enabl-deployment"
         imagePullPolicy: Always
 
