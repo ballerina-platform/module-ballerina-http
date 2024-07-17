@@ -392,7 +392,6 @@ public final class HttpResourceValidator {
                     continue;
                 }
                 if (!HTTP.equals(nameSymbolOptional.get())) {
-                    reportInvalidParameterAnnotation(ctx, paramLocation, paramName);
                     continue;
                 }
 
@@ -465,7 +464,6 @@ public final class HttpResourceValidator {
                         break;
                     }
                     default:
-                        reportInvalidParameterAnnotation(ctx, paramLocation, paramName);
                         break;
                 }
             }
@@ -932,11 +930,6 @@ public final class HttpResourceValidator {
         } else {
             return TypeDescKind.ERROR.equals(typeKind) || TypeDescKind.NIL.equals(typeKind);
         }
-    }
-
-    private static void reportInvalidParameterAnnotation(SyntaxNodeAnalysisContext ctx, Location location,
-                                                         String paramName) {
-        updateDiagnostic(ctx, location, HttpDiagnostic.HTTP_104, paramName);
     }
 
     private static void reportInvalidParameter(SyntaxNodeAnalysisContext ctx, Location location,

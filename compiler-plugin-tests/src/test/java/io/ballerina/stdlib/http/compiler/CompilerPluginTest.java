@@ -146,7 +146,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_4");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 8);
+        Assert.assertEquals(diagnosticResult.errorCount(), 7);
         assertError(diagnosticResult, 0, "invalid multiple resource parameter annotations for 'abc': expected one of " +
                 "the following types: 'http:Payload', 'http:CallerInfo', 'http:Header', 'http:Query'", HTTP_108);
         assertError(diagnosticResult, 1, "invalid usage of payload annotation for a non entity body " +
@@ -155,13 +155,11 @@ public class CompilerPluginTest {
                 "resource : 'head'. Use an accessor that supports entity body", HTTP_129);
         assertError(diagnosticResult, 3, "invalid usage of payload annotation for a non entity body resource" +
                 " : 'options'. Use an accessor that supports entity body", HTTP_129);
-        assertError(diagnosticResult, 4, "invalid annotation type on param 'a': expected one of the following types: " +
-            "'http:Payload', 'http:CallerInfo', 'http:Header', 'http:Query'", CompilerPluginTestConstants.HTTP_104);
-        assertTrue(diagnosticResult, 5, "invalid payload parameter type: 'string|ballerina/http:",
+        assertTrue(diagnosticResult, 4, "invalid payload parameter type: 'string|ballerina/http:",
+                CompilerPluginTestConstants.HTTP_107);
+        assertTrue(diagnosticResult, 5, "invalid payload parameter type:",
                 CompilerPluginTestConstants.HTTP_107);
         assertTrue(diagnosticResult, 6, "invalid payload parameter type:",
-                CompilerPluginTestConstants.HTTP_107);
-        assertTrue(diagnosticResult, 7, "invalid payload parameter type:",
                 CompilerPluginTestConstants.HTTP_107);
     }
 
