@@ -48,10 +48,14 @@ public class Start extends AbstractHttpNativeFunction {
     }
 
     private static Object startServerConnector(Environment env, BObject serviceEndpoint) {
-        // TODO : Move this to `register` after this issue is fixed
+        // TODO : Move these to `register` after this issue is fixed
         //  https://github.com/ballerina-platform/ballerina-lang/issues/33594
-        // Get and populate interceptor services
         HTTPServicesRegistry httpServicesRegistry = getHttpServicesRegistry(serviceEndpoint);
+        // Register services implemented via service contract type
+        for (BObject serviceContractImpl : httpServicesRegistry.getServiceContractImpls()) {
+            httpServicesRegistry.registerServiceImplementedByContract(serviceContractImpl);
+        }
+        // Get and populate interceptor services
         Runtime runtime = getRuntime(env, httpServicesRegistry);
         try {
             HttpUtil.populateInterceptorServicesFromListener(serviceEndpoint, runtime);

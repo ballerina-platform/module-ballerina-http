@@ -32,6 +32,7 @@ import io.ballerina.runtime.api.values.BTypedesc;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -40,6 +41,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import static io.ballerina.stdlib.http.api.HttpConstants.DEFAULT_BASE_PATH;
 import static io.ballerina.stdlib.http.api.HttpConstants.DEFAULT_HOST;
 import static io.ballerina.stdlib.http.api.HttpUtil.checkConfigAnnotationAvailability;
 
@@ -59,6 +61,7 @@ public class HTTPServicesRegistry {
     protected List<String> sortedServiceURIs;
     private Runtime runtime;
     private boolean possibleLastService = true;
+    private List<BObject> serviceContractImpls = new ArrayList<>();
 
     /**
      * Get ServiceInfo instance for given interface and base path.
@@ -108,10 +111,28 @@ public class HTTPServicesRegistry {
      */
     public void registerService(BObject service, String basePathFromDeclaration) {
         Optional<ReferenceType> serviceContractType = getServiceContractType(service);
+        if (serviceContractType.isPresent()) {
+            serviceContractImpls.add(service);
+            return;
+        }
         HttpService httpService = serviceContractType.map(referenceType ->
                 HttpServiceFromContract.buildHttpService(service, basePathFromDeclaration,
                         referenceType)).orElseGet(
                                 () -> HttpService.buildHttpService(service, basePathFromDeclaration));
+        registerBallerinaService(service, httpService);
+    }
+
+    public void registerServiceImplementedByContract(BObject service) {
+        Optional<ReferenceType> serviceContractType = getServiceContractType(service);
+        if (serviceContractType.isEmpty()) {
+            return;
+        }
+        HttpService httpService = HttpServiceFromContract.buildHttpService(service, DEFAULT_BASE_PATH,
+                serviceContractType.get());
+        registerBallerinaService(service, httpService);
+    }
+
+    private void registerBallerinaService(BObject service, HttpService httpService) {
         String basePath = httpService.getBasePath();
         service.addNativeData(HttpConstants.ABSOLUTE_RESOURCE_PATH, basePath);
         String hostName = httpService.getHostName();
@@ -139,6 +160,10 @@ public class HTTPServicesRegistry {
         //basePath will get cached after registering service
         sortedServiceURIs.add(basePath);
         sortedServiceURIs.sort((basePath1, basePath2) -> basePath2.length() - basePath1.length());
+    }
+
+    public List<BObject> getServiceContractImpls() {
+        return serviceContractImpls;
     }
 
 
