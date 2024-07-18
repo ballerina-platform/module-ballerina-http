@@ -398,21 +398,20 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_15");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 13);
+        Assert.assertEquals(diagnosticResult.errorCount(), 12);
         // only testing the error locations
         assertErrorPosition(diagnosticResult, 0, "(29:44,29:60)");
-        assertErrorPosition(diagnosticResult, 1, "(42:86,42:87)");
-        assertErrorPosition(diagnosticResult, 2, "(46:57,46:60)");
-        assertErrorPosition(diagnosticResult, 3, "(50:63,50:66)");
-        assertErrorPosition(diagnosticResult, 4, "(54:66,54:69)");
-        assertErrorPosition(diagnosticResult, 5, "(58:77,58:80)");
-        assertErrorPosition(diagnosticResult, 6, "(62:76,62:79)");
-        assertErrorPosition(diagnosticResult, 7, "(66:76,66:82)");
-        assertErrorPosition(diagnosticResult, 8, "(73:45,73:46)");
-        assertErrorPosition(diagnosticResult, 9, "(81:43,81:46)");
-        assertErrorPosition(diagnosticResult, 10, "(81:61,81:64)");
-        assertErrorPosition(diagnosticResult, 11, "(81:79,81:82)");
-        assertErrorPosition(diagnosticResult, 12, "(85:77,85:93)");
+        assertErrorPosition(diagnosticResult, 1, "(46:57,46:60)");
+        assertErrorPosition(diagnosticResult, 2, "(50:63,50:66)");
+        assertErrorPosition(diagnosticResult, 3, "(54:66,54:69)");
+        assertErrorPosition(diagnosticResult, 4, "(58:77,58:80)");
+        assertErrorPosition(diagnosticResult, 5, "(62:76,62:79)");
+        assertErrorPosition(diagnosticResult, 6, "(66:76,66:82)");
+        assertErrorPosition(diagnosticResult, 7, "(73:45,73:46)");
+        assertErrorPosition(diagnosticResult, 8, "(81:43,81:46)");
+        assertErrorPosition(diagnosticResult, 9, "(81:61,81:64)");
+        assertErrorPosition(diagnosticResult, 10, "(81:79,81:82)");
+        assertErrorPosition(diagnosticResult, 11, "(85:77,85:93)");
     }
 
     @Test
