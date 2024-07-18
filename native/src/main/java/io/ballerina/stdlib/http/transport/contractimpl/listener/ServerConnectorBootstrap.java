@@ -64,7 +64,7 @@ public class ServerConnectorBootstrap {
     private boolean initialized;
     private boolean isHttps = false;
     private ChannelGroup allChannels;
-    private final ChannelGroup listenerChannels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);;
+    private final ChannelGroup listenerChannels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
     private int gracefulStopTimeout = 0;
 
     public ServerConnectorBootstrap(ChannelGroup allChannels) {
@@ -199,6 +199,14 @@ public class ServerConnectorBootstrap {
 
     public void setHttp2InitialWindowSize(int http2InitialWindowSize) {
         httpServerChannelInitializer.setHttp2InitialWindowSize(http2InitialWindowSize);
+    }
+
+    public void setTimeBetweenStaleEviction(long timeBetweenStaleEviction) {
+        httpServerChannelInitializer.setTimeBetweenStaleEviction(timeBetweenStaleEviction);
+    }
+
+    public void setMinIdleTimeInStaleState(long minIdleTimeInStaleState) {
+        httpServerChannelInitializer.setMinIdleTimeInStaleState(minIdleTimeInStaleState);
     }
 
     public ChannelGroup getListenerChannels() {
