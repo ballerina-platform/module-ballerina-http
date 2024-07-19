@@ -8,4 +8,4 @@ patches:
     group: apps
     version: v1
     kind: Deployment
-    name: accesslog_e-deployment
+    name: accesslog-enabl-deployment

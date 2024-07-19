@@ -1,6 +1,6 @@
 [container.image]
 repository= "ballerina"
-name="h1_h1_passthrough"
+name="accesslog_enabled"
 
 [cloud.deployment]
 min_memory="256Mi"
