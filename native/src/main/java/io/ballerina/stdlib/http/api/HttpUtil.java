@@ -1367,7 +1367,7 @@ public class HttpUtil {
         double minIdleTimeInStaleState =
                 ((BDecimal) poolRecord.get(HttpConstants.CONNECTION_POOLING_IDLE_TIME_STALE_STATE)).floatValue();
         poolConfiguration.setMinIdleTimeInStaleState(minIdleTimeInStaleState < -1 ? -1 :
-                (long) minEvictableIdleTime * 1000);
+                (long) minIdleTimeInStaleState * 1000);
 
         double timeBetweenStaleEviction =
                 ((BDecimal) poolRecord.get(HttpConstants.CONNECTION_POOLING_TIME_BETWEEN_STALE_CHECK_RUNS))
@@ -1586,6 +1586,19 @@ public class HttpUtil {
         listenerConfiguration.setPipeliningEnabled(true); //Pipelining is enabled all the time
         listenerConfiguration.setHttp2InitialWindowSize(endpointConfig
                 .getIntValue(ENDPOINT_CONFIG_HTTP2_INITIAL_WINDOW_SIZE).intValue());
+
+        double minIdleTimeInStaleState =
+                ((BDecimal) endpointConfig.get(HttpConstants.ENDPOINT_CONFIG_IDLE_TIME_STALE_STATE)).floatValue();
+        listenerConfiguration.setMinIdleTimeInStaleState(minIdleTimeInStaleState < -1 ? -1 :
+                (long) minIdleTimeInStaleState * 1000);
+
+        double timeBetweenStaleEviction =
+                ((BDecimal) endpointConfig.get(HttpConstants.ENDPOINT_CONFIG_TIME_BETWEEN_STALE_CHECK_RUNS))
+                        .floatValue();
+        if (timeBetweenStaleEviction > 0) {
+            listenerConfiguration.setTimeBetweenStaleEviction((long) timeBetweenStaleEviction * 1000);
+        }
+
         return listenerConfiguration;
     }
 

@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package io.ballerina.stdlib.http.transport.http2.frameleveltests;
+package io.ballerina.stdlib.http.transport.http2.frameleveltests.client;
 
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
@@ -26,7 +26,6 @@ import io.ballerina.stdlib.http.transport.contract.config.TransportsConfiguratio
 import io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpWsConnectorFactory;
 import io.ballerina.stdlib.http.transport.message.HttpConnectorUtil;
 import io.ballerina.stdlib.http.transport.util.DefaultHttpConnectorListener;
-import io.ballerina.stdlib.http.transport.util.Http2Util;
 import io.ballerina.stdlib.http.transport.util.TestUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +35,7 @@ import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.CountDownLatch;
@@ -46,11 +46,12 @@ import static org.testng.Assert.fail;
 import static org.testng.AssertJUnit.assertEquals;
 
 /**
- * This contains a test case where the tcp server closes abruptly while the alpn upgrade is happening.
+ * This contains a test case where the tcp server sends a GoAway and the connection gets timed out from client side.
  */
-public class Http2ServerAbruptClosureInALPNScenarioTest {
+public class Http2ServerAbruptClosureInUpgradeScenarioTest {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Http2ServerAbruptClosureInALPNScenarioTest.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(Http2ServerAbruptClosureInUpgradeScenarioTest.class);
     private HttpClientConnector h2ClientWithUpgrade;
     private ServerSocket serverSocket;
     private int numOfConnections = 0;
@@ -63,14 +64,17 @@ public class Http2ServerAbruptClosureInALPNScenarioTest {
 
     public HttpClientConnector setupHttp2UpgradeClient() {
         HttpWsConnectorFactory connectorFactory = new DefaultHttpWsConnectorFactory();
-        SenderConfiguration senderConfiguration = Http2Util.getSenderConfigs(Constants.HTTP_2_0);
+        TransportsConfiguration transportsConfiguration = new TransportsConfiguration();
+        SenderConfiguration senderConfiguration = new SenderConfiguration();
+        senderConfiguration.setScheme(Constants.HTTP_SCHEME);
+        senderConfiguration.setHttpVersion(Constants.HTTP_2_0);
         senderConfiguration.setForceHttp2(false);
         return connectorFactory.createHttpClientConnector(
-                HttpConnectorUtil.getTransportProperties(new TransportsConfiguration()), senderConfiguration);
+                HttpConnectorUtil.getTransportProperties(transportsConfiguration), senderConfiguration);
     }
 
     @Test
-    private void testServerAbruptClosureInALPNScenario() {
+    private void testServerAbruptClosureInUpgradeScenario() {
         try {
             CountDownLatch latch1 = new CountDownLatch(1);
             DefaultHttpConnectorListener msgListener1 = TestUtil.sendRequestAsync(latch1, h2ClientWithUpgrade);
@@ -81,9 +85,9 @@ public class Http2ServerAbruptClosureInALPNScenarioTest {
             latch2.await(TestUtil.HTTP2_RESPONSE_TIME_OUT, TimeUnit.SECONDS);
 
             assertEquals(getErrorResponseMessage(msgListener1),
-                    "Remote host: localhost/127.0.0.1:9000 closed the connection while SSL handshake");
+                    Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE);
             assertEquals(getErrorResponseMessage(msgListener2),
-                    "Remote host: localhost/127.0.0.1:9000 closed the connection while SSL handshake");
+                    Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE);
         } catch (InterruptedException e) {
             LOGGER.error("Interrupted exception occurred");
             fail();
@@ -98,7 +102,8 @@ public class Http2ServerAbruptClosureInALPNScenarioTest {
                 while (numOfConnections < 2) {
                     Socket clientSocket = serverSocket.accept();
                     LOGGER.info("Accepted connection from: " + clientSocket.getInetAddress());
-                    try (InputStream inputStream = clientSocket.getInputStream()) {
+                    try (OutputStream outputStream = clientSocket.getOutputStream();
+                         InputStream inputStream = clientSocket.getInputStream()) {
                         readSocketAndExit(inputStream);
                         numOfConnections += 1;
                     } catch (Exception e) {
@@ -122,7 +127,7 @@ public class Http2ServerAbruptClosureInALPNScenarioTest {
             LOGGER.error(exception.getMessage());
         }
         String data = new String(buffer, 0, bytesRead);
-        LOGGER.info("Received ALPN request: " + data);
+        LOGGER.info("Received upgrade requesst: " + data);
     }
 
     @AfterClass

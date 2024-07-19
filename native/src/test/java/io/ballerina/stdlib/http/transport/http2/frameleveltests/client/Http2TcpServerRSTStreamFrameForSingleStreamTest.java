@@ -16,10 +16,11 @@
  * under the License.
  */
 
-package io.ballerina.stdlib.http.transport.http2.frameleveltests;
+package io.ballerina.stdlib.http.transport.http2.frameleveltests.client;
 
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
+import io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils;
 import io.ballerina.stdlib.http.transport.util.DefaultHttpConnectorListener;
 import io.ballerina.stdlib.http.transport.util.TestUtil;
 import org.slf4j.Logger;
@@ -35,22 +36,15 @@ import java.net.Socket;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.END_SLEEP_TIME;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.HEADER_FRAME_STREAM_03;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.RST_STREAM_FRAME_STREAM_03;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SETTINGS_FRAME;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SETTINGS_FRAME_WITH_ACK;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SLEEP_TIME;
-import static io.ballerina.stdlib.http.transport.util.TestUtil.getDecoderErrorMessage;
+import static io.ballerina.stdlib.http.transport.util.TestUtil.getErrorResponseMessage;
 import static org.testng.Assert.assertEquals;
 
 /**
  * This contains a test case where the tcp server sends a successful response.
  */
-public class Http2TcpServerRSTStreamFrameWhenReadingBodyForSingleStreamTest {
+public class Http2TcpServerRSTStreamFrameForSingleStreamTest {
 
-    private static final Logger LOGGER =
-            LoggerFactory.getLogger(Http2TcpServerRSTStreamFrameWhenReadingBodyForSingleStreamTest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Http2TcpServerRSTStreamFrameForSingleStreamTest.class);
     private HttpClientConnector h2ClientWithPriorKnowledge;
     private ServerSocket serverSocket;
 
@@ -61,7 +55,7 @@ public class Http2TcpServerRSTStreamFrameWhenReadingBodyForSingleStreamTest {
     }
 
     @Test
-    private void testRSTStreamFrameWhenReadingBodyForSingleStream() {
+    private void testRSTStreamFrameForSingleStream() {
         CountDownLatch latch = new CountDownLatch(1);
         DefaultHttpConnectorListener msgListener = TestUtil.sendRequestAsync(latch, h2ClientWithPriorKnowledge);
         try {
@@ -69,9 +63,8 @@ public class Http2TcpServerRSTStreamFrameWhenReadingBodyForSingleStreamTest {
         } catch (InterruptedException e) {
             LOGGER.error("Interrupted exception occurred");
         }
-        assertEquals(getDecoderErrorMessage(msgListener),
-                Constants.REMOTE_SERVER_SENT_RST_STREAM_WHILE_READING_INBOUND_RESPONSE_BODY);
-
+        assertEquals(getErrorResponseMessage(msgListener),
+                Constants.REMOTE_SERVER_SENT_RST_STREAM_BEFORE_INITIATING_INBOUND_RESPONSE);
     }
 
     private void runTcpServer(int port) {
@@ -94,14 +87,12 @@ public class Http2TcpServerRSTStreamFrameWhenReadingBodyForSingleStreamTest {
 
     private void sendRSTStream(OutputStream outputStream) throws IOException, InterruptedException {
         // Sending settings frame with HEADER_TABLE_SIZE=25700
-        outputStream.write(SETTINGS_FRAME);
-        Thread.sleep(SLEEP_TIME);
-        outputStream.write(SETTINGS_FRAME_WITH_ACK);
-        Thread.sleep(SLEEP_TIME);
-        outputStream.write(HEADER_FRAME_STREAM_03);
-        Thread.sleep(SLEEP_TIME);
-        outputStream.write(RST_STREAM_FRAME_STREAM_03);
-        Thread.sleep(END_SLEEP_TIME);
+        outputStream.write(FrameLevelTestUtils.SETTINGS_FRAME);
+        Thread.sleep(FrameLevelTestUtils.SLEEP_TIME);
+        outputStream.write(FrameLevelTestUtils.SETTINGS_FRAME_WITH_ACK);
+        Thread.sleep(FrameLevelTestUtils.SLEEP_TIME);
+        outputStream.write(FrameLevelTestUtils.RST_STREAM_FRAME_STREAM_03);
+        Thread.sleep(FrameLevelTestUtils.END_SLEEP_TIME);
     }
 
     @AfterMethod
