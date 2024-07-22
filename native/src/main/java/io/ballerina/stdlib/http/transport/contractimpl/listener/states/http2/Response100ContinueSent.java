@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_WRITING_100_CONTINUE_RESPONSE;
+import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_SENT_GOAWAY_WHILE_WRITING_100_CONTINUE_RESPONSE;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.ILLEGAL_STATE_ERROR;
 import static io.netty.handler.codec.http.HttpResponseStatus.CONTINUE;
 import static io.netty.handler.codec.http.HttpResponseStatus.REQUEST_TIMEOUT;
@@ -114,6 +115,12 @@ public class Response100ContinueSent implements ListenerState {
     public void handleAbruptChannelClosure(ServerConnectorFuture serverConnectorFuture, ChannelHandlerContext ctx,
                                            Http2OutboundRespListener http2OutboundRespListener, int streamId) {
         LOG.error(REMOTE_CLIENT_CLOSED_WHILE_WRITING_100_CONTINUE_RESPONSE);
+    }
+
+    @Override
+    public void handleClientGoAway(ServerConnectorFuture serverConnectorFuture, ChannelHandlerContext
+            channelHandlerContext, Http2OutboundRespListener http2OutboundRespListener, Integer streamId) {
+        LOG.error(REMOTE_CLIENT_SENT_GOAWAY_WHILE_WRITING_100_CONTINUE_RESPONSE);
     }
 
     private static void addResponseWriteFailureListener(HttpResponseFuture outboundRespStatusFuture,
