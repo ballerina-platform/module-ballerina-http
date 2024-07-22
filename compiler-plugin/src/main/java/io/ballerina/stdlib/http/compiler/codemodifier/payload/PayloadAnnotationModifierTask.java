@@ -59,6 +59,7 @@ import io.ballerina.tools.text.TextDocument;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.isHttpServiceType;
 import static io.ballerina.stdlib.http.compiler.HttpServiceValidator.isServiceContractImplementation;
@@ -175,7 +176,10 @@ public class PayloadAnnotationModifierTask implements ModifierTask<SourceModifie
                     RequiredParameterNode param = (RequiredParameterNode) parameterNode;
                     //add the annotation
                     AnnotationNode payloadAnnotation = getHttpPayloadAnnotation();
-                    NodeList<AnnotationNode> annotations = NodeFactory.createNodeList();
+                    NodeList<AnnotationNode> annotations = param.annotations();
+                    if (Objects.isNull(annotations)) {
+                        annotations = NodeFactory.createNodeList();
+                    }
                     NodeList<AnnotationNode> updatedAnnotations = annotations.add(payloadAnnotation);
                     RequiredParameterNode.RequiredParameterNodeModifier paramModifier = param.modify();
                     paramModifier.withAnnotations(updatedAnnotations);

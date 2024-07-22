@@ -18,7 +18,9 @@
 
 package io.ballerina.stdlib.http.compiler.codemodifier.payload;
 
+import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.symbols.AnnotationSymbol;
+import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.ResourceMethodSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
@@ -57,9 +59,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static io.ballerina.stdlib.http.compiler.Constants.ANYDATA;
+import static io.ballerina.stdlib.http.compiler.Constants.BALLERINA;
 import static io.ballerina.stdlib.http.compiler.Constants.BYTE_ARRAY;
 import static io.ballerina.stdlib.http.compiler.Constants.GET;
 import static io.ballerina.stdlib.http.compiler.Constants.HEAD;
+import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
 import static io.ballerina.stdlib.http.compiler.Constants.MAP_OF_ANYDATA;
 import static io.ballerina.stdlib.http.compiler.Constants.NIL;
 import static io.ballerina.stdlib.http.compiler.Constants.OPTIONS;
@@ -214,7 +218,8 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
         int index = 0;
         for (ParameterSymbol param : parametersOptional.get()) {
             List<AnnotationSymbol> annotations = param.annotations().stream()
-                    .filter(annotationSymbol -> annotationSymbol.typeDescriptor().isPresent())
+                    .filter(annotationSymbol -> annotationSymbol.typeDescriptor().isPresent() &&
+                            isHttpPackageAnnotationTypeDesc(annotationSymbol.typeDescriptor().get()))
                     .collect(Collectors.toList());
             if (annotations.isEmpty()) {
                 nonAnnotatedParams.add(new PayloadParamData(param, index++));
@@ -250,6 +255,15 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
                 return;
             }
         }
+    }
+
+    private boolean isHttpPackageAnnotationTypeDesc(TypeSymbol typeSymbol) {
+        Optional<ModuleSymbol> module = typeSymbol.getModule();
+        if (module.isEmpty()) {
+            return false;
+        }
+        ModuleID id = module.get().id();
+        return id.orgName().equals(BALLERINA) && id.moduleName().startsWith(HTTP);
     }
 
     public static void validateAnnotatedParams(ParameterSymbol parameterSymbol,
