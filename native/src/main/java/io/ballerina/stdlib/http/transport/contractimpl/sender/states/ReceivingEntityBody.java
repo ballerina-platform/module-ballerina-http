@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.sender.states;
 
+import io.ballerina.stdlib.http.api.logging.accesslog.SenderHttpAccessLogger;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.SenderReqRespStateManager;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil;
@@ -47,10 +48,14 @@ public class ReceivingEntityBody implements SenderState {
 
     private final SenderReqRespStateManager senderReqRespStateManager;
     private final TargetHandler targetHandler;
+    private SenderHttpAccessLogger accessLogger;
 
     ReceivingEntityBody(SenderReqRespStateManager senderReqRespStateManager, TargetHandler targetHandler) {
         this.senderReqRespStateManager = senderReqRespStateManager;
         this.targetHandler = targetHandler;
+        if (targetHandler.getHttpClientChannelInitializer().isHttpAccessLogEnabled()) {
+            accessLogger = new SenderHttpAccessLogger(targetHandler.getTargetChannel().getChannel().remoteAddress());
+        }
     }
 
     @Override
@@ -75,10 +80,13 @@ public class ReceivingEntityBody implements SenderState {
         if (httpContent instanceof LastHttpContent) {
             StateUtil.setInboundTrailersToNewMessage(((LastHttpContent) httpContent).trailingHeaders(),
                                                      inboundResponseMsg);
-            inboundResponseMsg.addHttpContent(httpContent);
+            addHttpContent(inboundResponseMsg, httpContent);
             inboundResponseMsg.setLastHttpContentArrived();
             targetHandler.resetInboundMsg();
             safelyRemoveHandlers(targetHandler.getTargetChannel().getChannel().pipeline(), IDLE_STATE_HANDLER);
+            if (accessLogger != null) {
+                accessLogger.updateAccessLogInfo(targetHandler.getOutboundRequestMsg(), inboundResponseMsg);
+            }
             senderReqRespStateManager.state = new EntityBodyReceived(senderReqRespStateManager);
 
             if (!isKeepAlive(targetHandler.getKeepAliveConfig(),
@@ -87,7 +95,7 @@ public class ReceivingEntityBody implements SenderState {
             }
             targetHandler.getConnectionManager().returnChannel(targetHandler.getTargetChannel());
         } else {
-            inboundResponseMsg.addHttpContent(httpContent);
+            addHttpContent(inboundResponseMsg, httpContent);
         }
     }
 
@@ -104,5 +112,12 @@ public class ReceivingEntityBody implements SenderState {
         senderReqRespStateManager.nettyTargetChannel.close();
         handleIncompleteInboundMessage(targetHandler.getInboundResponseMsg(),
                                        IDLE_TIMEOUT_TRIGGERED_WHILE_READING_INBOUND_RESPONSE_BODY);
+    }
+
+    private void addHttpContent(HttpCarbonMessage inboundResponseMsg, HttpContent httpContent) {
+        inboundResponseMsg.addHttpContent(httpContent);
+        if (accessLogger != null) {
+            accessLogger.updateContentLength(httpContent.content());
+        }
     }
 }

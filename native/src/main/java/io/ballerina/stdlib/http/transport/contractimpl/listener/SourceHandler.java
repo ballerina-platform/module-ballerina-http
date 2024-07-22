@@ -46,6 +46,7 @@ import org.apache.commons.pool.impl.GenericObjectPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Map;
 import java.util.PriorityQueue;
@@ -73,8 +74,10 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
 
     private KeepAliveConfig keepAliveConfig;
     private ServerConnectorFuture serverConnectorFuture;
+    private HttpServerChannelInitializer serverChannelInitializer;
     private String interfaceId;
     private String serverName;
+    private String remoteHost;
     private boolean idleTimeout;
     private ChannelGroup allChannels;
     private ChannelGroup listenerChannels;
@@ -88,11 +91,13 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
     private final Queue holdingQueue = new PriorityQueue<>(NUMBER_OF_INITIAL_EVENTS_HELD);
     private EventExecutorGroup pipeliningGroup;
 
-    public SourceHandler(ServerConnectorFuture serverConnectorFuture, String interfaceId, ChunkConfig chunkConfig,
-                         KeepAliveConfig keepAliveConfig, String serverName, ChannelGroup allChannels,
-                         ChannelGroup listenerChannels, boolean pipeliningEnabled, long pipeliningLimit,
-                         EventExecutorGroup pipeliningGroup) {
+    public SourceHandler(ServerConnectorFuture serverConnectorFuture,
+                         HttpServerChannelInitializer serverChannelInitializer, String interfaceId,
+                         ChunkConfig chunkConfig, KeepAliveConfig keepAliveConfig, String serverName,
+                         ChannelGroup allChannels, ChannelGroup listenerChannels, boolean pipeliningEnabled,
+                         long pipeliningLimit, EventExecutorGroup pipeliningGroup) {
         this.serverConnectorFuture = serverConnectorFuture;
+        this.serverChannelInitializer = serverChannelInitializer;
         this.interfaceId = interfaceId;
         this.chunkConfig = chunkConfig;
         this.keepAliveConfig = keepAliveConfig;
@@ -156,6 +161,12 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
             handlerExecutor.executeAtSourceConnectionInitiation(Integer.toString(ctx.hashCode()));
         }
         this.remoteAddress = ctx.channel().remoteAddress();
+        if (this.remoteAddress instanceof InetSocketAddress) {
+            remoteHost = ((InetSocketAddress) this.remoteAddress).getAddress().toString();
+            if (remoteHost.startsWith("/")) {
+                remoteHost = remoteHost.substring(1);
+            }
+        }
     }
 
     @Override
@@ -317,6 +328,10 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
         return serverConnectorFuture;
     }
 
+    public HttpServerChannelInitializer getServerChannelInitializer() {
+        return serverChannelInitializer;
+    }
+
     public ChunkConfig getChunkConfig() {
         return chunkConfig;
     }
@@ -327,6 +342,10 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
 
     public String getServerName() {
         return serverName;
+    }
+
+    public String getRemoteHost() {
+        return remoteHost;
     }
 
     public void setConnectedState(boolean connectedState) {

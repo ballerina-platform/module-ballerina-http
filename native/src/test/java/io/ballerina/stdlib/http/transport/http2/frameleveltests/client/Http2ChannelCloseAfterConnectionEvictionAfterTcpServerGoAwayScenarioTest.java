@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package io.ballerina.stdlib.http.transport.http2.frameleveltests;
+package io.ballerina.stdlib.http.transport.http2.frameleveltests.client;
 
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
@@ -25,6 +25,7 @@ import io.ballerina.stdlib.http.transport.contract.config.SenderConfiguration;
 import io.ballerina.stdlib.http.transport.contract.config.TransportsConfiguration;
 import io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpWsConnectorFactory;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.PoolConfiguration;
+import io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils;
 import io.ballerina.stdlib.http.transport.message.HttpConnectorUtil;
 import io.ballerina.stdlib.http.transport.util.DefaultHttpConnectorListener;
 import io.ballerina.stdlib.http.transport.util.TestUtil;
@@ -40,25 +41,19 @@ import java.net.Socket;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_BODY;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.GO_AWAY_FRAME_MAX_STREAM_05;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.HEADER_FRAME_STREAM_03;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SETTINGS_FRAME;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SETTINGS_FRAME_WITH_ACK;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SLEEP_TIME;
 import static io.ballerina.stdlib.http.transport.util.TestUtil.getDecoderErrorMessage;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
 
 /**
  * This contains a test case where the tcp server sends a GoAway and the connection gets closed from the
- * server side before an eviction occurs. The successfulness of this test case cannot be confirmed by the assert
+ * server side after an eviction occurs. The successfulness of this test case cannot be confirmed by the assert
  * completely. We have to look at the logs in order to check whether there are any internal netty exceptions
  */
-public class Http2ChannelCloseBeforeConnectionEvictionAfterTcpServerGoAwayScenarioTest {
+public class Http2ChannelCloseAfterConnectionEvictionAfterTcpServerGoAwayScenarioTest {
 
     private static final Logger LOGGER =
-            LoggerFactory.getLogger(Http2ChannelCloseBeforeConnectionEvictionAfterTcpServerGoAwayScenarioTest.class);
+            LoggerFactory.getLogger(Http2ChannelCloseAfterConnectionEvictionAfterTcpServerGoAwayScenarioTest.class);
     private HttpClientConnector h2ClientWithPriorKnowledge;
     private ServerSocket serverSocket;
 
@@ -79,18 +74,18 @@ public class Http2ChannelCloseBeforeConnectionEvictionAfterTcpServerGoAwayScenar
     }
 
     @Test
-    private void testChannelCloseBeforeConnectionEvictionScenario() {
+    private void testChannelCloseAfterConnectionEvictionScenario() {
         try {
             runTcpServer(TestUtil.HTTP_SERVER_PORT);
-            h2ClientWithPriorKnowledge = setupHttp2PriorKnowledgeClient(5000, 1000);
+            h2ClientWithPriorKnowledge = setupHttp2PriorKnowledgeClient(3000, 1000);
             CountDownLatch latch1 = new CountDownLatch(1);
             DefaultHttpConnectorListener msgListener1 = TestUtil.sendRequestAsync(latch1, h2ClientWithPriorKnowledge);
             latch1.await(TestUtil.HTTP2_RESPONSE_TIME_OUT, TimeUnit.SECONDS);
-            // Waiting more than the minIdleTimeInStaleState to trigger a connectionEviction try
+            // Waiting more than the minIdleTimeInStaleState to trigger a connectionEviction try and a channelInactive
             Thread.sleep(8000);
 
             String errorMsg1 = getDecoderErrorMessage(msgListener1);
-            assertEquals(errorMsg1, REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_BODY);
+            assertEquals(errorMsg1, Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_BODY);
         } catch (InterruptedException | IOException e) {
             LOGGER.error("Exception occurred");
             fail();
@@ -119,16 +114,16 @@ public class Http2ChannelCloseBeforeConnectionEvictionAfterTcpServerGoAwayScenar
     }
 
     private void sendGoAwayForASingleStream(OutputStream outputStream) throws IOException, InterruptedException {
-        outputStream.write(SETTINGS_FRAME);
-        outputStream.write(SETTINGS_FRAME_WITH_ACK);
-        Thread.sleep(SLEEP_TIME);
-        outputStream.write(HEADER_FRAME_STREAM_03);
-        Thread.sleep(SLEEP_TIME);
+        outputStream.write(FrameLevelTestUtils.SETTINGS_FRAME);
+        outputStream.write(FrameLevelTestUtils.SETTINGS_FRAME_WITH_ACK);
+        Thread.sleep(FrameLevelTestUtils.SLEEP_TIME);
+        outputStream.write(FrameLevelTestUtils.CLIENT_HEADER_FRAME_STREAM_03);
+        Thread.sleep(FrameLevelTestUtils.SLEEP_TIME);
         // This will move the connection to the stale connections list
-        outputStream.write(GO_AWAY_FRAME_MAX_STREAM_05);
-        // Waiting less than the time of `minIdleTimeInStaleState` and exit the socket write to trigger a
-        // `channelInactive` before minIdleTime exceeds.
-        Thread.sleep(2000);
+        outputStream.write(FrameLevelTestUtils.GO_AWAY_FRAME_MAX_STREAM_05);
+        // Waiting more than the time of `minIdleTimeInStaleState` and exit the socket write to trigger a
+        // `channelInactive` after minIdleTime exceeds.
+        Thread.sleep(5000);
     }
 
     @AfterClass

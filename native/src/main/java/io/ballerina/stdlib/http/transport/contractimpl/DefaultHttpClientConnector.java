@@ -19,6 +19,7 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl;
 
+import io.ballerina.stdlib.http.api.logging.accesslog.HttpAccessLogMessage;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
@@ -57,8 +58,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Calendar;
 import java.util.NoSuchElementException;
 
+import static io.ballerina.stdlib.http.transport.contract.Constants.OUTBOUND_ACCESS_LOG_MESSAGE;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_OUTBOUND_REQUEST;
 
 /**
@@ -148,6 +151,12 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
     }
 
     public HttpResponseFuture send(OutboundMsgHolder outboundMsgHolder, HttpCarbonMessage httpOutboundRequest) {
+        if (senderConfiguration.isHttpAccessLogEnabled()) {
+            HttpAccessLogMessage outboundAccessLogMessage = new HttpAccessLogMessage();
+            outboundAccessLogMessage.setDateTime(Calendar.getInstance());
+            httpOutboundRequest.setProperty(OUTBOUND_ACCESS_LOG_MESSAGE, outboundAccessLogMessage);
+        }
+
         final HttpResponseFuture httpResponseFuture;
 
         Object sourceHandlerObject = httpOutboundRequest.getProperty(Constants.SRC_HANDLER);

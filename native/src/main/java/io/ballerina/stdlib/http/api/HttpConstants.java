@@ -326,13 +326,32 @@ public final class HttpConstants {
     public static final String HTTP_TRACE_LOG_ENABLED = "http.tracelog.enabled";
     public static final String HTTP_ACCESS_LOG = "http.accesslog";
     public static final String HTTP_ACCESS_LOG_ENABLED = "http.accesslog.enabled";
+    public static final String HTTP_LOG_FORMAT_JSON = "json";
+    public static final String HTTP_LOG_FORMAT_FLAT = "flat";
 
     // TraceLog and AccessLog configs
     public static final BString HTTP_LOG_CONSOLE = StringUtils.fromString("console");
+    public static final BString HTTP_LOG_FORMAT = StringUtils.fromString("format");
+    public static final BString HTTP_LOG_ATTRIBUTES = StringUtils.fromString("attributes");
     public static final BString HTTP_LOG_FILE_PATH = StringUtils.fromString("path");
     public static final BString HTTP_TRACE_LOG_HOST = StringUtils.fromString("host");
     public static final BString HTTP_TRACE_LOG_PORT = StringUtils.fromString("port");
     public static final BString HTTP_LOGGING_PROTOCOL = StringUtils.fromString("HTTP");
+
+    // AccessLog fiend names
+    public static final String ATTRIBUTE_IP = "ip";
+    public static final String ATTRIBUTE_DATE_TIME = "date_time";
+    public static final String ATTRIBUTE_REQUEST_METHOD = "request_method";
+    public static final String ATTRIBUTE_REQUEST_URI = "request_uri";
+    public static final String ATTRIBUTE_SCHEME = "scheme";
+    public static final String ATTRIBUTE_REQUEST = "request";
+    public static final String ATTRIBUTE_STATUS = "status";
+    public static final String ATTRIBUTE_REQUEST_BODY_SIZE = "request_body_size";
+    public static final String ATTRIBUTE_RESPONSE_BODY_SIZE = "response_body_size";
+    public static final String ATTRIBUTE_REQUEST_TIME = "request_time";
+    public static final String ATTRIBUTE_HTTP_REFERRER = "http_referrer";
+    public static final String ATTRIBUTE_HTTP_USER_AGENT = "http_user_agent";
+    public static final String ATTRIBUTE_HTTP_X_FORWARDED_FOR = "http_x_forwarded_for";
 
     // ResponseCacheControl struct field names
     public static final BString RES_CACHE_CONTROL_MUST_REVALIDATE_FIELD = StringUtils.fromString("mustRevalidate");
@@ -423,6 +442,10 @@ public final class HttpConstants {
     public static final BString ENDPOINT_CONFIG_GRACEFUL_STOP_TIMEOUT = StringUtils.fromString("gracefulStopTimeout");
     public static final BString ENDPOINT_CONFIG_HTTP2_INITIAL_WINDOW_SIZE = StringUtils
             .fromString("http2InitialWindowSize");
+    public static final BString ENDPOINT_CONFIG_IDLE_TIME_STALE_STATE = StringUtils.fromString(
+            "minIdleTimeInStaleState");
+    public static final BString ENDPOINT_CONFIG_TIME_BETWEEN_STALE_CHECK_RUNS = StringUtils.fromString(
+            "timeBetweenStaleEviction");
 
     public static final BString MAX_URI_LENGTH = StringUtils.fromString("maxUriLength");
     public static final BString MAX_STATUS_LINE_LENGTH = StringUtils.fromString("maxStatusLineLength");

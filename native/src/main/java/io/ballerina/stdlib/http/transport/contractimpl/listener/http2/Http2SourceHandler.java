@@ -31,6 +31,7 @@ import io.ballerina.stdlib.http.transport.message.Http2HeadersFrame;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonRequest;
 import io.ballerina.stdlib.http.transport.message.ServerRemoteFlowControlListener;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.group.ChannelGroup;
@@ -42,6 +43,7 @@ import io.netty.handler.codec.http.HttpServerUpgradeHandler;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http2.Http2Connection;
 import io.netty.handler.codec.http2.Http2ConnectionEncoder;
+import io.netty.handler.codec.http2.Http2EventAdapter;
 import io.netty.handler.codec.http2.Http2Exception;
 import io.netty.handler.codec.http2.Http2RemoteFlowController;
 import org.apache.commons.pool.impl.GenericObjectPool;
@@ -52,6 +54,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.ENDPOINT_TIMEOUT;
 import static io.ballerina.stdlib.http.transport.contract.Constants.STREAM_ID_ONE;
@@ -67,7 +70,7 @@ import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http
 public final class Http2SourceHandler extends ChannelInboundHandlerAdapter {
     private static final Logger LOG = LoggerFactory.getLogger(Http2SourceHandler.class);
 
-    private Http2ServerChannel http2ServerChannel = new Http2ServerChannel();
+    private Http2ServerChannel http2ServerChannel;
     private ChannelHandlerContext ctx;
     private ServerConnectorFuture serverConnectorFuture;
     private HttpServerChannelInitializer serverChannelInitializer;
@@ -81,10 +84,14 @@ public final class Http2SourceHandler extends ChannelInboundHandlerAdapter {
     private SocketAddress remoteAddress;
     private ChannelGroup allChannels;
     private ChannelGroup listenerChannels;
+    private AtomicBoolean isStale = new AtomicBoolean(false);
+    private long timeSinceMarkedAsStale = 0;
+    Http2SourceConnectionHandler sourceConnectionHandler;
 
     Http2SourceHandler(HttpServerChannelInitializer serverChannelInitializer, Http2ConnectionEncoder encoder,
                        String interfaceId, Http2Connection conn, ServerConnectorFuture serverConnectorFuture,
-                       String serverName, ChannelGroup allChannels, ChannelGroup listenerChannels) {
+                       String serverName, ChannelGroup allChannels, ChannelGroup listenerChannels,
+                       Http2SourceConnectionHandler sourceConnectionHandler) {
         this.serverChannelInitializer = serverChannelInitializer;
         this.encoder = encoder;
         this.interfaceId = interfaceId;
@@ -94,8 +101,11 @@ public final class Http2SourceHandler extends ChannelInboundHandlerAdapter {
         this.targetChannelPool = new ConcurrentHashMap<>();
         this.allChannels = allChannels;
         this.listenerChannels = listenerChannels;
+        this.http2ServerChannel = new Http2ServerChannel();
         setRemoteFlowController();
         setDataEventListeners();
+        conn.addListener(new GoAwayListener());
+        this.sourceConnectionHandler = sourceConnectionHandler;
     }
 
     private void setDataEventListeners() {
@@ -212,7 +222,7 @@ public final class Http2SourceHandler extends ChannelInboundHandlerAdapter {
     }
 
     private void destroy() {
-        //Handle channel close for all the streams in the connection.
+        // Handle channel close for all the streams in the connection.
         LOG.debug("Inbound request map size {}", http2ServerChannel.getStreamIdRequestMap().size());
         http2ServerChannel.getStreamIdRequestMap().forEach((streamId, inboundMessageHolder) -> {
             HttpCarbonMessage inboundMsg = inboundMessageHolder.getInboundMsg();
@@ -290,5 +300,56 @@ public final class Http2SourceHandler extends ChannelInboundHandlerAdapter {
 
     public SocketAddress getRemoteAddress() {
         return remoteAddress;
+    }
+
+    public void markAsStale() {
+        isStale.set(true);
+        serverChannelInitializer.addToStaleChannels(this);
+        setTimeSinceMarkedAsStale(System.currentTimeMillis());
+    }
+
+    public void closeChannelAfterBecomingStale() {
+        destroy();
+        closeH2Connection();
+    }
+
+    private void closeH2Connection() {
+        conn.close(getChannelHandlerContext().newPromise());
+        try {
+            this.sourceConnectionHandler.close(getChannelHandlerContext(), getChannelHandlerContext().newPromise());
+        } catch (Exception e) {
+            LOG.error("Exception occured while closing the connection,");
+        }
+    }
+
+    void setTimeSinceMarkedAsStale(long timeSinceMarkedAsStale) {
+        this.timeSinceMarkedAsStale = timeSinceMarkedAsStale;
+    }
+
+    public long getTimeSinceMarkedAsStale() {
+        return timeSinceMarkedAsStale;
+    }
+
+    private class GoAwayListener extends Http2EventAdapter {
+
+        @Override
+        public void onGoAwayReceived(int lastStreamId, long errorCode, ByteBuf debugData) {
+            if (isStale.get()) {
+                return;
+            }
+            markAsStale();
+            getStreamIdRequestMap().forEach((streamId, inboundMsg) -> {
+                if (streamId > lastStreamId) {
+                    http2ServerChannel.getDataEventListeners().forEach(dataEventListener ->
+                            dataEventListener.onStreamClose(streamId));
+                    Http2MessageStateContext messageStateContext = inboundMsg.getInboundMsg()
+                            .getHttp2MessageStateContext();
+                    if (messageStateContext != null) {
+                        messageStateContext.getListenerState().handleClientGoAway(serverConnectorFuture,
+                                getChannelHandlerContext(), inboundMsg.getHttp2OutboundRespListener(), streamId);
+                    }
+                }
+            });
+        }
     }
 }
