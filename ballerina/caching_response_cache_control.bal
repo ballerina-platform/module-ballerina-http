@@ -94,12 +94,12 @@ public class ResponseCacheControl {
         }
 
         if self.maxAge >= 0d {
-            directives[i] = MAX_AGE + "=" + decimal:floor(self.maxAge).toString();
+            directives[i] = string `${MAX_AGE}=${decimal:floor(self.maxAge)}`;
             i += 1;
         }
 
         if self.sMaxAge >= 0d {
-            directives[i] = S_MAX_AGE + "=" + decimal:floor(self.sMaxAge).toString();
+            directives[i] = string `${S_MAX_AGE}=${decimal:floor(self.sMaxAge)}`;
             i += 1;
         }
 
