@@ -203,6 +203,13 @@ public class ResponseCacheControlObj {
     }
 
     private long getIntValue(BObject responseCacheControl, BString fieldName) {
-        return Long.parseLong(responseCacheControl.get(fieldName).toString());
+        try {
+            String value = responseCacheControl.get(fieldName).toString();
+            // The value is decimal, and need to compute the floor value
+            return Long.parseLong(value.split("\\.")[0]);
+        } catch (NumberFormatException e) {
+            // Ignore the exception and set 0 as the value
+            return 0;
+        }
     }
 }
