@@ -48,8 +48,8 @@ public class ResponseCacheControl {
         self.noTransform = cacheConfig.noTransform;
         self.isPrivate = cacheConfig.isPrivate;
         self.proxyRevalidate = cacheConfig.proxyRevalidate;
-        self.maxAge = cacheConfig.maxAge;
-        self.sMaxAge = cacheConfig.sMaxAge;
+        self.maxAge = decimal:floor(cacheConfig.maxAge);
+        self.sMaxAge = decimal:floor(cacheConfig.sMaxAge);
         self.noCacheFields = cacheConfig.noCacheFields;
         self.privateFields = cacheConfig.privateFields;
     }
@@ -94,12 +94,12 @@ public class ResponseCacheControl {
         }
 
         if self.maxAge >= 0d {
-            directives[i] = MAX_AGE + "=" + self.maxAge.toString();
+            directives[i] = MAX_AGE + "=" + decimal:floor(self.maxAge).toString();
             i += 1;
         }
 
         if self.sMaxAge >= 0d {
-            directives[i] = S_MAX_AGE + "=" + self.sMaxAge.toString();
+            directives[i] = S_MAX_AGE + "=" + decimal:floor(self.sMaxAge).toString();
             i += 1;
         }
 
