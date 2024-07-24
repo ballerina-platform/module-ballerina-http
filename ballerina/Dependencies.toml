@@ -50,7 +50,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "crypto"
-version = "2.7.2"
+version = "2.7.0"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "time"}
