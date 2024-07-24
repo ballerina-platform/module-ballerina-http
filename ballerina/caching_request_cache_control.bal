@@ -61,7 +61,7 @@ public class RequestCacheControl {
         }
 
         if self.maxAge >= 0d {
-            directives[i] = MAX_AGE + "=" + self.maxAge.toString();
+            directives[i] = MAX_AGE + "=" + decimal:floor(self.maxAge).toString();
             i += 1;
         }
 
@@ -69,12 +69,12 @@ public class RequestCacheControl {
             directives[i] = MAX_STALE;
             i += 1;
         } else if self.maxStale >= 0d {
-            directives[i] = MAX_STALE + "=" + self.maxStale.toString();
+            directives[i] = MAX_STALE + "=" + decimal:floor(self.maxStale).toString();
             i += 1;
         }
 
         if self.minFresh >= 0d {
-            directives[i] = MIN_FRESH + "=" + self.minFresh.toString();
+            directives[i] = MIN_FRESH + "=" + decimal:floor(self.minFresh).toString();
             i += 1;
         }
 
