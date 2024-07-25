@@ -222,7 +222,9 @@ public class HttpService implements Service {
     }
 
     public void setIntrospectionPayload(byte[] introspectionPayload) {
-        this.introspectionPayload = introspectionPayload.clone();
+        if (this.introspectionPayload.length == 0) {
+            this.introspectionPayload = introspectionPayload.clone();
+        }
     }
 
     public byte[] getIntrospectionPayload() {
