@@ -99,7 +99,7 @@ service /cachingBackend on http2CachingListener2 { //new http:Listener(9240) {
     isolated resource function 'default .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         http:ResponseCacheControl resCC = new;
-        resCC.maxAge = 60;
+        resCC.maxAge = 60.54;
         resCC.isPrivate = false;
 
         res.cacheControl = resCC;
@@ -158,13 +158,13 @@ function testHttp2BasicCachingBehaviour() returns error? {
 @test:Config {}
 function testHttp2RequestCacheControlBuildCacheControlDirectives() {
     http:RequestCacheControl reqCC = new;
-    reqCC.maxAge = 60;
+    reqCC.maxAge = 60.34;
     reqCC.noCache = true;
     reqCC.noStore = true;
     reqCC.noTransform = true;
     reqCC.onlyIfCached = true;
-    reqCC.maxStale = 120;
-    reqCC.minFresh = 6;
+    reqCC.maxStale = 120.04;
+    reqCC.minFresh = 6.0;
     test:assertEquals(reqCC.buildCacheControlDirectives(),
         "no-cache, no-store, no-transform, only-if-cached, max-age=60, max-stale=120, min-fresh=6");
 }
@@ -172,14 +172,14 @@ function testHttp2RequestCacheControlBuildCacheControlDirectives() {
 @test:Config {}
 function testHttp2ResponseCacheControlBuildCacheControlDirectives() {
     http:ResponseCacheControl resCC = new;
-    resCC.maxAge = 60;
+    resCC.maxAge = 60.54;
     resCC.isPrivate = false;
     resCC.mustRevalidate = true;
     resCC.noCache = true;
     resCC.noStore = true;
     resCC.noTransform = true;
     resCC.proxyRevalidate = true;
-    resCC.sMaxAge = 60;
+    resCC.sMaxAge = 60.32;
     test:assertEquals(resCC.buildCacheControlDirectives(),
         "must-revalidate, no-cache, no-store, no-transform, public, proxy-revalidate, max-age=60, s-maxage=60");
 }
