@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.listener.states;
 
+import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
 import io.ballerina.stdlib.http.transport.contract.config.ChunkConfig;
@@ -104,7 +105,7 @@ public class SendingHeaders implements ListenerState {
         }
         outboundRespStatusFuture = outboundResponseListener.getInboundRequestMsg().getHttpOutboundRespStatusFuture();
         String httpVersion = outboundResponseListener.getRequestDataHolder().getHttpVersion();
-
+        keepAlive = HttpUtil.hasEventStreamContentType(outboundResponseMsg) || keepAlive;
         if (isLastHttpContent(httpContent)) {
             if (chunkConfig == ChunkConfig.ALWAYS && checkChunkingCompatibility(httpVersion, chunkConfig)) {
                 writeHeaders(outboundResponseMsg, keepAlive, outboundRespStatusFuture);

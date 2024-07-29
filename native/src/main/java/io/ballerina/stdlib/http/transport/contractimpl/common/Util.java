@@ -15,6 +15,7 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.common;
 
+import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contract.config.ChunkConfig;
@@ -194,6 +195,9 @@ public class Util {
         if (!keepAlive && (Float.valueOf(inboundReqHttpVersion) >= Constants.HTTP_1_1)) {
             outboundResponseMsg.setHeader(HttpHeaderNames.CONNECTION.toString(), Constants.CONNECTION_CLOSE);
         } else if (keepAlive && (Float.valueOf(inboundReqHttpVersion) < Constants.HTTP_1_1)) {
+            outboundResponseMsg.setHeader(HttpHeaderNames.CONNECTION.toString(), Constants.CONNECTION_KEEP_ALIVE);
+        } else if (keepAlive && (Float.valueOf(inboundReqHttpVersion) == Constants.HTTP_1_1)
+                && HttpUtil.hasEventStreamContentType(outboundResponseMsg)) {
             outboundResponseMsg.setHeader(HttpHeaderNames.CONNECTION.toString(), Constants.CONNECTION_KEEP_ALIVE);
         } else {
             outboundResponseMsg.removeHeader(HttpHeaderNames.CONNECTION.toString());

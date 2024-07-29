@@ -14,6 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/io;
 import ballerina/jballerina.java;
 import ballerina/mime;
 import ballerina/observe;
@@ -62,7 +63,7 @@ public client isolated class Client {
     # + message - An HTTP outbound request or any allowed payload
     # + headers - The entity headers
     # + mediaType - The MIME type header of the request entity
-    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + targetType - HTTP response, `anydata` or SseEvent `stream`, which is expected to be returned after data binding
     # + params - The query parameters
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
@@ -78,7 +79,7 @@ public client isolated class Client {
     # + message - An HTTP outbound request or any allowed payload
     # + headers - The entity headers
     # + mediaType - The MIME type header of the request entity
-    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + targetType - HTTP response, `anydata` or SseEvent `stream`, which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function post(string path, RequestMessage message, map<string|string[]>? headers = (),
@@ -88,7 +89,7 @@ public client isolated class Client {
     } external;
 
     private isolated function processPost(string path, RequestMessage message, TargetType targetType,
-            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
+            string? mediaType, map<string|string[]>? headers) returns Response|stream<SseEvent, error?>|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->post(path, req);
@@ -104,7 +105,7 @@ public client isolated class Client {
     # + message - An HTTP outbound request or any allowed payload
     # + headers - The entity headers
     # + mediaType - The MIME type header of the request entity
-    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + targetType - HTTP response, `anydata` or SseEvent `stream`, which is expected to be returned after data binding
     # + params - The query parameters
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
@@ -120,7 +121,7 @@ public client isolated class Client {
     # + message - An HTTP outbound request or any allowed payload
     # + mediaType - The MIME type header of the request entity
     # + headers - The entity headers
-    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + targetType - HTTP response, `anydata` or SseEvent `stream`, which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function put(string path, RequestMessage message, map<string|string[]>? headers = (),
@@ -130,7 +131,7 @@ public client isolated class Client {
     } external;
 
     private isolated function processPut(string path, RequestMessage message, TargetType targetType,
-            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
+            string? mediaType, map<string|string[]>? headers) returns Response|stream<SseEvent, error?>|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->put(path, req);
@@ -146,7 +147,7 @@ public client isolated class Client {
     # + message - An HTTP outbound request or any allowed payload
     # + headers - The entity headers
     # + mediaType - The MIME type header of the request entity
-    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + targetType - HTTP response, `anydata` or SseEvent `stream`, which is expected to be returned after data binding
     # + params - The query parameters
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
@@ -162,7 +163,7 @@ public client isolated class Client {
     # + message - An HTTP outbound request or any allowed payload
     # + mediaType - The MIME type header of the request entity
     # + headers - The entity headers
-    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + targetType - HTTP response, `anydata` or SseEvent `stream`, which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function patch(string path, RequestMessage message, map<string|string[]>? headers = (),
@@ -172,7 +173,7 @@ public client isolated class Client {
     } external;
 
     private isolated function processPatch(string path, RequestMessage message, TargetType targetType,
-            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
+            string? mediaType, map<string|string[]>? headers) returns Response|stream<SseEvent, error?>|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->patch(path, req);
@@ -188,7 +189,7 @@ public client isolated class Client {
     # + message - An optional HTTP outbound request or any allowed payload
     # + headers - The entity headers
     # + mediaType - The MIME type header of the request entity
-    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + targetType - HTTP response, `anydata` or SseEvent `stream`, which is expected to be returned after data binding
     # + params - The query parameters
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
@@ -204,7 +205,7 @@ public client isolated class Client {
     # + message - An optional HTTP outbound request message or any allowed payload
     # + mediaType - The MIME type header of the request entity
     # + headers - The entity headers
-    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + targetType - HTTP response, `anydata` or SseEvent `stream`, which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function delete(string path, RequestMessage message = (),
@@ -214,7 +215,7 @@ public client isolated class Client {
     } external;
 
     private isolated function processDelete(string path, RequestMessage message, TargetType targetType,
-            string? mediaType, map<string|string[]>? headers) returns Response|anydata|ClientError {
+            string? mediaType, map<string|string[]>? headers) returns Response|stream<SseEvent, error?>|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->delete(path, req);
@@ -254,7 +255,7 @@ public client isolated class Client {
     #
     # + path - Request path
     # + headers - The entity headers
-    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + targetType - HTTP response, `anydata` or SseEvent `stream`, which is expected to be returned after data binding
     # + params - The query parameters
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
@@ -268,7 +269,7 @@ public client isolated class Client {
     #
     # + path - Request path
     # + headers - The entity headers
-    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + targetType - HTTP response, `anydata` or SseEvent `stream`, which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function get(string path, map<string|string[]>? headers = (), TargetType targetType = <>)
@@ -277,7 +278,7 @@ public client isolated class Client {
     } external;
 
     private isolated function processGet(string path, map<string|string[]>? headers, TargetType targetType)
-            returns Response|anydata|ClientError {
+            returns Response|stream<SseEvent, error?>|anydata|ClientError {
         Request req = buildRequestWithHeaders(headers);
         Response|ClientError response = self.httpClient->get(path, message = req);
         if observabilityEnabled && response is Response {
@@ -290,7 +291,7 @@ public client isolated class Client {
     #
     # + path - Request path
     # + headers - The entity headers
-    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + targetType - HTTP response, `anydata` or SseEvent `stream`, which is expected to be returned after data binding
     # + params - The query parameters
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
@@ -304,7 +305,7 @@ public client isolated class Client {
     #
     # + path - Request path
     # + headers - The entity headers
-    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + targetType - HTTP response, `anydata` or SseEvent `stream`, which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function options(string path, map<string|string[]>? headers = (), TargetType targetType = <>)
@@ -313,7 +314,7 @@ public client isolated class Client {
     } external;
 
     private isolated function processOptions(string path, map<string|string[]>? headers, TargetType targetType)
-            returns Response|anydata|ClientError {
+            returns Response|stream<SseEvent, error?>|anydata|ClientError {
         Request req = buildRequestWithHeaders(headers);
         Response|ClientError response = self.httpClient->options(path, message = req);
         if observabilityEnabled && response is Response {
@@ -329,7 +330,7 @@ public client isolated class Client {
     # + message - An HTTP outbound request or any allowed payload
     # + mediaType - The MIME type header of the request entity
     # + headers - The entity headers
-    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + targetType - HTTP response, `anydata` or SseEvent `stream`, which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function execute(string httpVerb, string path, RequestMessage message,
@@ -340,7 +341,7 @@ public client isolated class Client {
 
     private isolated function processExecute(string httpVerb, string path, RequestMessage message,
             TargetType targetType, string? mediaType, map<string|string[]>? headers)
-            returns Response|anydata|ClientError {
+            returns Response|stream<SseEvent, error?>|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->execute(httpVerb, path, req);
@@ -354,7 +355,7 @@ public client isolated class Client {
     #
     # + path - Request path
     # + request - An HTTP inbound request message
-    # + targetType - HTTP response or `anydata`, which is expected to be returned after data binding
+    # + targetType - HTTP response, `anydata` or SseEvent `stream`, which is expected to be returned after data binding
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function forward(string path, Request request, TargetType targetType = <>)
@@ -363,7 +364,7 @@ public client isolated class Client {
     } external;
 
     private isolated function processForward(string path, Request request, TargetType targetType)
-            returns Response|anydata|ClientError {
+            returns Response|stream<SseEvent, error?>|anydata|ClientError {
         Response|ClientError response = self.httpClient->forward(path, request);
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, request.method, response.statusCode, self.url);
@@ -720,7 +721,7 @@ isolated function createStatusCodeResponseDataBindingError(DataBindingErrorType 
 }
 
 isolated function processResponse(Response|ClientError response, TargetType targetType, boolean requireValidation)
-        returns Response|anydata|ClientError {
+        returns Response|stream<SseEvent, error?>|anydata|ClientError {
     if response is ClientError || hasHttpResponseType(targetType) {
         return response;
     }
@@ -745,8 +746,26 @@ isolated function processResponse(Response|ClientError response, TargetType targ
             return performDataValidation(payload, targetType);
         }
         return payload;
+    }
+    if targetType is typedesc<stream<SseEvent, error?>> {
+        return getSseEventStream(response);
     } else {
         panic error GenericClientError("invalid payload target type");
+    }
+}
+
+isolated function getSseEventStream(Response response) returns stream<SseEvent, error?>|ClientError {
+    check validateEventStreamContentType(response);
+    stream<byte[], io:Error?>? byteStream = response.statusCode == STATUS_NO_CONTENT ? () : check response.getByteStream(1);
+    BytesToEventStreamGenerator bytesToEventStreamGenerator = new (byteStream);
+    stream<SseEvent, error?> eventStream = new (bytesToEventStreamGenerator);
+    return eventStream;
+}
+
+isolated function validateEventStreamContentType(Response response) returns ClientError? {
+    string|HeaderNotFoundError contentType = response.getHeader(CONTENT_TYPE);
+    if contentType is HeaderNotFoundError || !contentType.startsWith(mime:TEXT_EVENT_STREAM) {
+        return error ClientError(string `invalid payload target type. The response is not of ${mime:TEXT_EVENT_STREAM} content type.`);
     }
 }
 

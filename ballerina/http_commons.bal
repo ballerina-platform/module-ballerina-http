@@ -117,6 +117,8 @@ isolated function buildResponse(ResponseMessage message, string? resourceAccesso
         response.setBinaryPayload(message);
     } else if message is stream<byte[], io:Error?> {
         response.setByteStream(message);
+    } else if message is stream<SseEvent, error?> {
+        response.setSseEventStream(message);
     } else if message is mime:Entity[] {
         response.setBodyParts(message);
     } else if message is anydata {
