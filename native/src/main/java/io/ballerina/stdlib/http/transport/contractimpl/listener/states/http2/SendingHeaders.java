@@ -48,8 +48,8 @@ import java.io.IOException;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP2_VERSION;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_SCHEME;
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_WHILE_WRITING_OUTBOUND_RESPONSE_HEADERS;
-import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_HEADERS;
+import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_SENT_GOAWAY_WHILE_WRITING_OUTBOUND_RESPONSE_HEADERS;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil.validatePromisedStreamState;
 
 /**
@@ -140,11 +140,21 @@ public class SendingHeaders implements ListenerState {
     @Override
     public void handleAbruptChannelClosure(ServerConnectorFuture serverConnectorFuture, ChannelHandlerContext ctx,
                                            Http2OutboundRespListener http2OutboundRespListener, int streamId) {
-        IOException connectionClose = new IOException(REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY);
+        IOException connectionClose = new IOException(REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_HEADERS);
         http2OutboundRespListener.getOutboundResponseMsg().setIoException(connectionClose);
         outboundRespStatusFuture.notifyHttpListener(connectionClose);
 
         LOG.error(REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_HEADERS);
+    }
+
+    @Override
+    public void handleClientGoAway(ServerConnectorFuture serverConnectorFuture, ChannelHandlerContext
+            channelHandlerContext, Http2OutboundRespListener http2OutboundRespListener, Integer streamId) {
+        IOException connectionClose = new IOException(REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_HEADERS);
+        http2OutboundRespListener.getOutboundResponseMsg().setIoException(connectionClose);
+        outboundRespStatusFuture.notifyHttpListener(connectionClose);
+
+        LOG.error(REMOTE_CLIENT_SENT_GOAWAY_WHILE_WRITING_OUTBOUND_RESPONSE_HEADERS);
     }
 
     private void writeHeaders(HttpCarbonMessage outboundResponseMsg, int streamId) throws Http2Exception {

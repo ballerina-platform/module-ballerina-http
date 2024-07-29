@@ -93,6 +93,9 @@ public class CreateSimpleHttpClient {
             if (connectionManager.isHTTPTraceLoggerEnabled()) {
                 senderConfiguration.setHttpTraceLogEnabled(true);
             }
+            if (connectionManager.isHTTPAccessLoggerEnabled()) {
+                senderConfiguration.setHttpAccessLogEnabled(true);
+            }
             senderConfiguration.setTLSStoreType(HttpConstants.PKCS_STORE_TYPE);
 
             String httpVersion = clientEndpointConfig.getStringValue(HttpConstants.CLIENT_EP_HTTP_VERSION).getValue();

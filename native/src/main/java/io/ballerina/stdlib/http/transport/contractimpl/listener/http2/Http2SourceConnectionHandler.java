@@ -85,7 +85,7 @@ public class Http2SourceConnectionHandler extends Http2ConnectionHandler {
                 Constants.HTTP_TRACE_LOG_HANDLER, Constants.HTTP_ACCESS_LOG_HANDLER, Constants.HTTP2_EXCEPTION_HANDLER);
         // Add HTTP2 Source handler
         Http2SourceHandler http2SourceHandler = new Http2SourceHandler(serverChannelInitializer, encoder, interfaceId,
-                connection(), serverConnectorFuture, serverName, allChannels, listenerChannels);
+                connection(), serverConnectorFuture, serverName, allChannels, listenerChannels, this);
         ctx.pipeline().addLast(Constants.HTTP2_SOURCE_HANDLER, http2SourceHandler);
         ctx.pipeline().addLast(Constants.HTTP2_EXCEPTION_HANDLER, new Http2ExceptionHandler(this));
     }

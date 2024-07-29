@@ -38,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_CLOSED_BEFORE_INITIATING_100_CONTINUE_RESPONSE;
+import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_SENT_GOAWAY_BEFORE_INITIATING_100_CONTINUE_RESPONSE;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.CONNECTOR_NOTIFYING_ERROR;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.ILLEGAL_STATE_ERROR;
 import static io.netty.handler.codec.http.HttpResponseStatus.REQUEST_TIMEOUT;
@@ -107,6 +108,17 @@ public class Expect100ContinueHeaderReceived implements ListenerState {
         try {
             serverConnectorFuture.notifyErrorListener(
                     new ServerConnectorException(REMOTE_CLIENT_CLOSED_BEFORE_INITIATING_100_CONTINUE_RESPONSE));
+        } catch (ServerConnectorException e) {
+            LOG.error(CONNECTOR_NOTIFYING_ERROR, e);
+        }
+    }
+
+    @Override
+    public void handleClientGoAway(ServerConnectorFuture serverConnectorFuture, ChannelHandlerContext
+            channelHandlerContext, Http2OutboundRespListener http2OutboundRespListener, Integer streamId) {
+        try {
+            serverConnectorFuture.notifyErrorListener(
+                    new ServerConnectorException(REMOTE_CLIENT_SENT_GOAWAY_BEFORE_INITIATING_100_CONTINUE_RESPONSE));
         } catch (ServerConnectorException e) {
             LOG.error(CONNECTOR_NOTIFYING_ERROR, e);
         }

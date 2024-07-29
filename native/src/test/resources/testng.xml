@@ -154,21 +154,25 @@
             <class name="io.ballerina.stdlib.http.transport.http2.trailer.H2ListenerIntendedResponseTrailerHeaderTestCase"/>
             <class name="io.ballerina.stdlib.http.transport.http2.trailer.H2ListenerPushResponseTrailerHeaderTestCase"/>
             <class name="io.ballerina.stdlib.http.transport.http2.trailer.H2ListenerTrailersInInitialHeaderFrameTestCase"/>
-            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.Http2TcpServerSuccessScenarioTest"/>
-            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.Http2TcpServerGoAwaySingleStreamScenarioTest"/>
-            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.Http2TcpServerGoAwayMultipleStreamScenarioTest"/>
-            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.Http2TcpServerSendGoAwayForAllStreamsScenarioTest"/>
-            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.Http2TcpServerGoAwayWhileReceivingBodyScenarioTest"/>
-            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.Http2TcpServerRSTStreamFrameForSingleStreamTest"/>
-            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.Http2TcpServerRSTStreamFrameForMultipleStreamsTest"/>
-            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.Http2TcpServerRSTStreamFrameWhenReadingBodyForSingleStreamTest"/>
-            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.Http2ConnectionEvictionAfterTcpServerGoAwayScenarioTest"/>
-            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.Http2ServerAbruptClosureInUpgradeScenarioTest"/>
-            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.Http2TcpServerGoAway100ContinueScenarioTest"/>
-            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.Http2TcpServerRSTStreamFrameFor100ContinueTest"/>
-            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.Http2ServerAbruptClosureInALPNScenarioTest"/>
-            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.Http2ChannelCloseBeforeConnectionEvictionAfterTcpServerGoAwayScenarioTest"/>
-            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.Http2ChannelCloseAfterConnectionEvictionAfterTcpServerGoAwayScenarioTest"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.client.Http2TcpServerSuccessScenarioTest"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.client.Http2TcpServerGoAwaySingleStreamScenarioTest"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.client.Http2TcpServerGoAwayMultipleStreamScenarioTest"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.client.Http2TcpServerSendGoAwayForAllStreamsScenarioTest"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.client.Http2TcpServerGoAwayWhileReceivingBodyScenarioTest"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.client.Http2TcpServerRSTStreamFrameForSingleStreamTest"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.client.Http2TcpServerRSTStreamFrameForMultipleStreamsTest"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.client.Http2TcpServerRSTStreamFrameWhenReadingBodyForSingleStreamTest"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.client.Http2ConnectionEvictionAfterTcpServerGoAwayScenarioTest"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.client.Http2ServerAbruptClosureInUpgradeScenarioTest"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.client.Http2TcpServerGoAway100ContinueScenarioTest"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.client.Http2TcpServerRSTStreamFrameFor100ContinueTest"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.client.Http2ServerAbruptClosureInALPNScenarioTest"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.client.Http2ChannelCloseBeforeConnectionEvictionAfterTcpServerGoAwayScenarioTest"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.client.Http2ChannelCloseAfterConnectionEvictionAfterTcpServerGoAwayScenarioTest"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.server.Http2TcpClientSuccessScenarioTest"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.server.Http2TcpClientGoAwayAfterSendingHeadersScenarioTest"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.server.Http2SuccessfulResponseBeforeConnectionEvictionAfterTcpClientGoAwayScenarioTest"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.frameleveltests.server.Http2ChannelCloseWhenConnectionEvictionAfterTcpClientGoAwayScenarioTest"/>
         </classes>
     </test>
     <test name="Transport Security Tests" parallel="false">

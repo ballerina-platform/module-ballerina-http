@@ -398,7 +398,9 @@ public class Http2OutboundRespListener implements HttpConnectorListener {
     }
 
     public void removeBackPressureListener() {
-        defaultResponseWriter.getBackPressureObservable().removeListener();
+        if (defaultResponseWriter != null) {
+            defaultResponseWriter.getBackPressureObservable().removeListener();
+        }
     }
 
     public Http2ServerChannel getHttp2ServerChannel() {

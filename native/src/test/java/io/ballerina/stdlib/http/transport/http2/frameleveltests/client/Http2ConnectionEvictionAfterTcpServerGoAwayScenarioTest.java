@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package io.ballerina.stdlib.http.transport.http2.frameleveltests;
+package io.ballerina.stdlib.http.transport.http2.frameleveltests.client;
 
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
@@ -25,6 +25,7 @@ import io.ballerina.stdlib.http.transport.contract.config.SenderConfiguration;
 import io.ballerina.stdlib.http.transport.contract.config.TransportsConfiguration;
 import io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpWsConnectorFactory;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.PoolConfiguration;
+import io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.HttpConnectorUtil;
 import io.ballerina.stdlib.http.transport.util.DefaultHttpConnectorListener;
@@ -43,22 +44,6 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE;
-import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_BODY;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_FRAME_STREAM_03;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests
-        .FrameLevelTestUtils.DATA_FRAME_STREAM_03_DIFFERENT_DATA;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_FRAME_STREAM_05;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_03;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_04;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_05;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.END_SLEEP_TIME;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.GO_AWAY_FRAME_MAX_STREAM_05;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.HEADER_FRAME_STREAM_03;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.HEADER_FRAME_STREAM_05;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SETTINGS_FRAME;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SETTINGS_FRAME_WITH_ACK;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SLEEP_TIME;
 import static io.ballerina.stdlib.http.transport.util.TestUtil.getDecoderErrorMessage;
 import static io.ballerina.stdlib.http.transport.util.TestUtil.getErrorResponseMessage;
 import static io.ballerina.stdlib.http.transport.util.TestUtil.getResponseMessage;
@@ -116,9 +101,9 @@ public class Http2ConnectionEvictionAfterTcpServerGoAwayScenarioTest {
             Object responseVal2 = response2.getHttpContent().content().toString(CharsetUtil.UTF_8);
             Object responseVal3 = response3.getHttpContent().content().toString(CharsetUtil.UTF_8);
 
-            assertEqualsNoOrder(List.of(responseVal1, responseVal2), List.of(DATA_VALUE_HELLO_WORLD_03,
-                    DATA_VALUE_HELLO_WORLD_05));
-            assertEquals(responseVal3, DATA_VALUE_HELLO_WORLD_04);
+            assertEqualsNoOrder(List.of(responseVal1, responseVal2), List.of(
+                    FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_03, FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_05));
+            assertEquals(responseVal3, FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_04);
         } catch (InterruptedException | IOException e) {
             LOGGER.error("Exception occurred");
             fail();
@@ -145,9 +130,9 @@ public class Http2ConnectionEvictionAfterTcpServerGoAwayScenarioTest {
                     getDecoderErrorMessage(msgListener2);
 
             assertEqualsNoOrder(List.of(errorMsg1, errorMsg2),
-                    List.of(REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE,
-                            REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_BODY));
-            assertEquals(getResponseMessage(msgListener3), DATA_VALUE_HELLO_WORLD_04);
+                    List.of(Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE,
+                            Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_BODY));
+            assertEquals(getResponseMessage(msgListener3), FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_04);
         } catch (InterruptedException | IOException e) {
             LOGGER.error("Exception occurred");
             fail();
@@ -186,32 +171,32 @@ public class Http2ConnectionEvictionAfterTcpServerGoAwayScenarioTest {
     }
 
     private void sendGoAwayForASingleStream(OutputStream outputStream) throws IOException, InterruptedException {
-        outputStream.write(SETTINGS_FRAME);
-        outputStream.write(SETTINGS_FRAME_WITH_ACK);
-        Thread.sleep(SLEEP_TIME);
-        outputStream.write(HEADER_FRAME_STREAM_03);
-        Thread.sleep(SLEEP_TIME);
+        outputStream.write(FrameLevelTestUtils.SETTINGS_FRAME);
+        outputStream.write(FrameLevelTestUtils.SETTINGS_FRAME_WITH_ACK);
+        Thread.sleep(FrameLevelTestUtils.SLEEP_TIME);
+        outputStream.write(FrameLevelTestUtils.CLIENT_HEADER_FRAME_STREAM_03);
+        Thread.sleep(FrameLevelTestUtils.SLEEP_TIME);
         // This will move the connection to the stale connections list
-        outputStream.write(GO_AWAY_FRAME_MAX_STREAM_05);
+        outputStream.write(FrameLevelTestUtils.GO_AWAY_FRAME_MAX_STREAM_05);
         // Sleeping for 8 seconds and the timer task will check whether there are inflight message still
         // remaining in the channel.
         Thread.sleep(8000);
-        outputStream.write(DATA_FRAME_STREAM_03);
-        outputStream.write(HEADER_FRAME_STREAM_05);
-        Thread.sleep(SLEEP_TIME);
-        outputStream.write(DATA_FRAME_STREAM_05);
+        outputStream.write(FrameLevelTestUtils.DATA_FRAME_STREAM_03);
+        outputStream.write(FrameLevelTestUtils.CLIENT_HEADER_FRAME_STREAM_05);
+        Thread.sleep(FrameLevelTestUtils.SLEEP_TIME);
+        outputStream.write(FrameLevelTestUtils.DATA_FRAME_STREAM_05);
         // Once all the inflight messages are completed, the connection will be closed.
         Thread.sleep(8000);
     }
 
     private void sendSuccessfulRequest(OutputStream outputStream) throws IOException, InterruptedException {
-        outputStream.write(SETTINGS_FRAME);
-        outputStream.write(SETTINGS_FRAME_WITH_ACK);
-        Thread.sleep(SLEEP_TIME);
-        outputStream.write(HEADER_FRAME_STREAM_03);
-        Thread.sleep(SLEEP_TIME);
-        outputStream.write(DATA_FRAME_STREAM_03_DIFFERENT_DATA);
-        Thread.sleep(END_SLEEP_TIME);
+        outputStream.write(FrameLevelTestUtils.SETTINGS_FRAME);
+        outputStream.write(FrameLevelTestUtils.SETTINGS_FRAME_WITH_ACK);
+        Thread.sleep(FrameLevelTestUtils.SLEEP_TIME);
+        outputStream.write(FrameLevelTestUtils.CLIENT_HEADER_FRAME_STREAM_03);
+        Thread.sleep(FrameLevelTestUtils.SLEEP_TIME);
+        outputStream.write(FrameLevelTestUtils.DATA_FRAME_STREAM_03_DIFFERENT_DATA);
+        Thread.sleep(FrameLevelTestUtils.END_SLEEP_TIME);
     }
 
     @AfterClass

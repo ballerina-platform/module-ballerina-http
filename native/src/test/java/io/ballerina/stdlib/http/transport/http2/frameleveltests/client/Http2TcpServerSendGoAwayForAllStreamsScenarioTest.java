@@ -16,9 +16,10 @@
  * under the License.
  */
 
-package io.ballerina.stdlib.http.transport.http2.frameleveltests;
+package io.ballerina.stdlib.http.transport.http2.frameleveltests.client;
 
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
+import io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils;
 import io.ballerina.stdlib.http.transport.util.DefaultHttpConnectorListener;
 import io.ballerina.stdlib.http.transport.util.TestUtil;
 import org.slf4j.Logger;
@@ -33,17 +34,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.Semaphore;
 
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_FRAME_STREAM_03;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils
-        .DATA_FRAME_STREAM_03_DIFFERENT_DATA;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_03;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_04;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.END_SLEEP_TIME;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.GO_AWAY_FRAME_MAX_STREAM_03;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.HEADER_FRAME_STREAM_03;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SETTINGS_FRAME;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SETTINGS_FRAME_WITH_ACK;
-import static io.ballerina.stdlib.http.transport.http2.frameleveltests.FrameLevelTestUtils.SLEEP_TIME;
 import static io.ballerina.stdlib.http.transport.util.TestUtil.getResponseMessage;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
@@ -82,12 +72,12 @@ public class Http2TcpServerSendGoAwayForAllStreamsScenarioTest {
             semaphore.acquire();
             DefaultHttpConnectorListener msgListener6 = TestUtil.sendRequestAsync(null, h2ClientWithPriorKnowledge);
             semaphore.acquire();
-            assertEquals(getResponseMessage(msgListener1), DATA_VALUE_HELLO_WORLD_03);
-            assertEquals(getResponseMessage(msgListener2), DATA_VALUE_HELLO_WORLD_04);
-            assertEquals(getResponseMessage(msgListener3), DATA_VALUE_HELLO_WORLD_03);
-            assertEquals(getResponseMessage(msgListener4), DATA_VALUE_HELLO_WORLD_04);
-            assertEquals(getResponseMessage(msgListener5), DATA_VALUE_HELLO_WORLD_03);
-            assertEquals(getResponseMessage(msgListener6), DATA_VALUE_HELLO_WORLD_04);
+            assertEquals(getResponseMessage(msgListener1), FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_03);
+            assertEquals(getResponseMessage(msgListener2), FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_04);
+            assertEquals(getResponseMessage(msgListener3), FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_03);
+            assertEquals(getResponseMessage(msgListener4), FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_04);
+            assertEquals(getResponseMessage(msgListener5), FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_03);
+            assertEquals(getResponseMessage(msgListener6), FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_04);
         } catch (InterruptedException e) {
             LOGGER.error("Interrupted exception occurred");
             fail();
@@ -121,29 +111,29 @@ public class Http2TcpServerSendGoAwayForAllStreamsScenarioTest {
     }
 
     private void sendGoAwayBeforeSendingHeaders(OutputStream outputStream) throws IOException, InterruptedException {
-        outputStream.write(SETTINGS_FRAME);
-        Thread.sleep(SLEEP_TIME);
-        outputStream.write(SETTINGS_FRAME_WITH_ACK);
-        Thread.sleep(SLEEP_TIME);
-        outputStream.write(GO_AWAY_FRAME_MAX_STREAM_03);
-        outputStream.write(HEADER_FRAME_STREAM_03);
-        Thread.sleep(SLEEP_TIME);
-        outputStream.write(DATA_FRAME_STREAM_03);
+        outputStream.write(FrameLevelTestUtils.SETTINGS_FRAME);
+        Thread.sleep(FrameLevelTestUtils.SLEEP_TIME);
+        outputStream.write(FrameLevelTestUtils.SETTINGS_FRAME_WITH_ACK);
+        Thread.sleep(FrameLevelTestUtils.SLEEP_TIME);
+        outputStream.write(FrameLevelTestUtils.GO_AWAY_FRAME_MAX_STREAM_03);
+        outputStream.write(FrameLevelTestUtils.CLIENT_HEADER_FRAME_STREAM_03);
+        Thread.sleep(FrameLevelTestUtils.SLEEP_TIME);
+        outputStream.write(FrameLevelTestUtils.DATA_FRAME_STREAM_03);
         semaphore.release();
-        Thread.sleep(END_SLEEP_TIME);
+        Thread.sleep(FrameLevelTestUtils.END_SLEEP_TIME);
     }
 
     private void sendGoAwayAfterSendingHeaders(OutputStream outputStream) throws IOException, InterruptedException {
-        outputStream.write(SETTINGS_FRAME);
-        Thread.sleep(SLEEP_TIME);
-        outputStream.write(SETTINGS_FRAME_WITH_ACK);
-        Thread.sleep(SLEEP_TIME);
-        outputStream.write(HEADER_FRAME_STREAM_03);
-        outputStream.write(GO_AWAY_FRAME_MAX_STREAM_03);
-        Thread.sleep(SLEEP_TIME);
-        outputStream.write(DATA_FRAME_STREAM_03_DIFFERENT_DATA);
+        outputStream.write(FrameLevelTestUtils.SETTINGS_FRAME);
+        Thread.sleep(FrameLevelTestUtils.SLEEP_TIME);
+        outputStream.write(FrameLevelTestUtils.SETTINGS_FRAME_WITH_ACK);
+        Thread.sleep(FrameLevelTestUtils.SLEEP_TIME);
+        outputStream.write(FrameLevelTestUtils.CLIENT_HEADER_FRAME_STREAM_03);
+        outputStream.write(FrameLevelTestUtils.GO_AWAY_FRAME_MAX_STREAM_03);
+        Thread.sleep(FrameLevelTestUtils.SLEEP_TIME);
+        outputStream.write(FrameLevelTestUtils.DATA_FRAME_STREAM_03_DIFFERENT_DATA);
         semaphore.release();
-        Thread.sleep(END_SLEEP_TIME);
+        Thread.sleep(FrameLevelTestUtils.END_SLEEP_TIME);
     }
 
     @AfterMethod

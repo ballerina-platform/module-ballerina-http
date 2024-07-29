@@ -41,6 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_READING_INBOUND_REQUEST_BODY;
+import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_SENT_GOAWAY_WHILE_READING_INBOUND_REQUEST_BODY;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil.writeHttp2Promise;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.handleIncompleteInboundMessage;
 import static io.netty.handler.codec.http.HttpResponseStatus.REQUEST_TIMEOUT;
@@ -141,6 +142,13 @@ public class ReceivingEntityBody implements ListenerState {
                                            Http2OutboundRespListener http2OutboundRespListener, int streamId) {
         handleIncompleteInboundMessage(http2OutboundRespListener.getInboundRequestMsg(),
                                        REMOTE_CLIENT_CLOSED_WHILE_READING_INBOUND_REQUEST_BODY);
+    }
+
+    @Override
+    public void handleClientGoAway(ServerConnectorFuture serverConnectorFuture, ChannelHandlerContext
+            channelHandlerContext, Http2OutboundRespListener http2OutboundRespListener, Integer streamId) {
+        handleIncompleteInboundMessage(http2OutboundRespListener.getInboundRequestMsg(),
+                REMOTE_CLIENT_SENT_GOAWAY_WHILE_READING_INBOUND_REQUEST_BODY);
     }
 
     private boolean isDiffered(HttpCarbonMessage sourceReqCmsg) {

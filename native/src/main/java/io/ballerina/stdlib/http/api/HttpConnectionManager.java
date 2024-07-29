@@ -143,7 +143,7 @@ public class HttpConnectionManager {
         return Boolean.parseBoolean(System.getProperty(HttpConstants.HTTP_TRACE_LOG_ENABLED));
     }
 
-    private boolean isHTTPAccessLoggerEnabled() {
+    public boolean isHTTPAccessLoggerEnabled() {
         return Boolean.parseBoolean(System.getProperty(HttpConstants.HTTP_ACCESS_LOG_ENABLED));
     }
 
