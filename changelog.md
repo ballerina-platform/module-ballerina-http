@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
-
+- [Add support for Server-Sent Events](https://github.com/ballerina-platform/ballerina-library/issues/6687)
 - [Introduce default status code response record](https://github.com/ballerina-platform/ballerina-library/issues/6491)
 
 ## [2.11.2] - 2024-06-14
