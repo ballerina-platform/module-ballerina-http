@@ -17,10 +17,12 @@
 */
 package io.ballerina.stdlib.http.api;
 
+import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
+import io.ballerina.runtime.api.types.FiniteType;
 import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.types.MethodType;
 import io.ballerina.runtime.api.types.RecordType;
@@ -45,11 +47,13 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static io.ballerina.runtime.api.flags.SymbolFlags.OPTIONAL;
 import static io.ballerina.stdlib.http.api.HttpConstants.ANN_NAME_RESOURCE_CONFIG;
 import static io.ballerina.stdlib.http.api.HttpConstants.APPLICATION_JSON;
 import static io.ballerina.stdlib.http.api.HttpConstants.APPLICATION_OCTET_STREAM;
@@ -82,8 +86,8 @@ public class HttpResource implements Resource {
     private static final BString HTTP_RESOURCE_CONFIG =
             StringUtils.fromString(ModuleUtils.getHttpPackageIdentifier() + ":" + ANN_NAME_RESOURCE_CONFIG);
     private static final String RETURN_ANNOT_PREFIX = "$returns$";
-    private static final MapType LINK_MAP_TYPE = TypeCreator.createMapType(TypeCreator.createRecordType(
-            LINK, ModuleUtils.getHttpPackage(), 0, false, 0));
+    private static final RecordType LINK_TYPE = createLinkType();
+    private static final MapType LINK_MAP_TYPE = TypeCreator.createMapType(LINK_TYPE);
 
     private String resourceLinkName;
     private List<LinkedResourceInfo> linkedResources = new ArrayList<>();
@@ -495,6 +499,20 @@ public class HttpResource implements Resource {
 
     public RemoteMethodType getRemoteFunction() {
         return (RemoteMethodType) balResource;
+    }
+
+    private static RecordType createLinkType() {
+        FiniteType method = TypeCreator.createFiniteType("Method",
+                Stream.of("GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS")
+                        .map(StringUtils::fromString).collect(Collectors.toUnmodifiableSet()),
+                0);
+        return TypeCreator.createRecordType(LINK, ModuleUtils.getHttpPackage(), 0, Map.of(
+                "rel", TypeCreator.createField(PredefinedTypes.TYPE_STRING, "rel", OPTIONAL),
+                "href", TypeCreator.createField(PredefinedTypes.TYPE_STRING, "href", 0),
+                "types",
+                TypeCreator.createField(TypeCreator.createArrayType(PredefinedTypes.TYPE_STRING), "types", OPTIONAL),
+                "methods", TypeCreator.createField(TypeCreator.createArrayType(method), "methods", OPTIONAL)
+        ), PredefinedTypes.TYPE_NEVER, false, 0);
     }
 
     /**

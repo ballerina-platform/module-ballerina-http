@@ -17,6 +17,7 @@
  */
 package io.ballerina.stdlib.http.api.nativeimpl;
 
+import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
@@ -29,6 +30,8 @@ import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.api.ValueCreatorUtils;
 import io.ballerina.stdlib.mime.util.HeaderUtil;
+
+import java.util.Map;
 
 import static io.ballerina.stdlib.http.api.HttpConstants.HEADER_VALUE_FIELD;
 import static io.ballerina.stdlib.http.api.HttpConstants.HEADER_VALUE_PARAM_FIELD;
@@ -44,9 +47,8 @@ import static io.ballerina.stdlib.mime.util.MimeConstants.SEMICOLON;
  */
 public class ParseHeader {
 
-    private static final RecordType RECORD_TYPE = TypeCreator.createRecordType(
-            HEADER_VALUE_RECORD, ModuleUtils.getHttpPackage(), 0, false, 0);
-    private static final ArrayType ARRAY_TYPE = TypeCreator.createArrayType(RECORD_TYPE);
+    private static final RecordType HEADER_VALUE_TYPE = createHeaderValueType();
+    private static final ArrayType ARRAY_TYPE = TypeCreator.createArrayType(HEADER_VALUE_TYPE);
     private static final String COMMA_OUT_OF_QUOTATIONS = "(,)(?=(?:[^\"]|\"[^\"]*\")*$)";
 
     public static Object parseHeader(BString headerValue) {
@@ -71,5 +73,15 @@ public class ParseHeader {
     }
 
     private ParseHeader() {
+    }
+
+    private static RecordType createHeaderValueType() {
+        return TypeCreator.createRecordType(HEADER_VALUE_RECORD, ModuleUtils.getHttpPackage(), 0,
+                Map.of(
+                        "value", TypeCreator.createField(PredefinedTypes.TYPE_STRING, "value", 0),
+                        "params",
+                        TypeCreator.createField(TypeCreator.createMapType(PredefinedTypes.TYPE_STRING), "params", 0)
+                ),
+                PredefinedTypes.TYPE_NEVER, false, 0);
     }
 }
