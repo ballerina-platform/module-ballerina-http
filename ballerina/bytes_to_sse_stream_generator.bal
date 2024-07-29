@@ -43,7 +43,7 @@ class BytesToEventStreamGenerator {
             string? sseEvent = check self.readUntilDoubleLineBreaks();
             if sseEvent is () {
                 check self.close();
-                return ();
+                return;
             }
             return {value: check parseSseEvent(sseEvent)};
         } on fail error e {
@@ -65,7 +65,7 @@ class BytesToEventStreamGenerator {
         while !self.isClosed {
             currentByte = check self.getNextByte();
             if currentByte is () {
-                return ();
+                return;
             }
             if foundCariageReturnWithNewLine && currentByte == CARRIAGE_RETURN {
                 // Lookahead for newline
@@ -121,7 +121,7 @@ isolated function parseSseEvent(string event) returns SseEvent|error {
         regexp:Groups? groups = re `(.*?):(.*)`.findGroups(line);
         string filedName = line;
         string fieldValue = "";
-        if (groups is regexp:Groups && groups.length() == 3) {
+        if groups is regexp:Groups && groups.length() == 3 {
             regexp:Span? filedNameSpan = groups[1];
             regexp:Span? filedValueSpan = groups[2];
             if filedNameSpan is () || filedValueSpan is () {
