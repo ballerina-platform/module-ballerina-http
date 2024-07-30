@@ -29,25 +29,32 @@ enum SseFieldName {
     DATA = "data"
 };
 
+# This class is designed to read a stream of data one byte at a time.
+# It specifically handles the scenario where the streaming party sends data 
+# in small increments, potentially one byte at a time. 
+# 
+# The main functionality of this class is to parse the incoming byte stream 
+# and detect consecutive line feed characters. When two consecutive line feeds 
+# ('\n\n' | '\r\r' | '\r\n\r\n') are detected, it signifies the end of an SSE (Server-Sent Event) message, 
+# and a new `SseEvent` record is created to represent this message.
 class BytesToEventStreamGenerator {
     private final stream<byte[], io:Error?> byteStream;
     private boolean isClosed = false;
     private byte[] lookaheadBuffer = [];
 
-    isolated function init(stream<byte[], io:Error?>? byteStream) {
-        self.byteStream = byteStream is () ? (<byte[][]>[]).toStream() : byteStream;
+    isolated function init(stream<byte[], io:Error?> byteStream) {
+        self.byteStream = byteStream;
     }
 
     public isolated function next() returns record {|SseEvent value;|}|error? {
         do {
             string? sseEvent = check self.readUntilDoubleLineBreaks();
             if sseEvent is () {
-                check self.close();
-                return ();
+                return;
             }
             return {value: check parseSseEvent(sseEvent)};
         } on fail error e {
-            log:printError("Failed to construct SseEvent", e);
+            log:printError("failed to construct SseEvent", e);
             return e;
         }
     }
@@ -65,13 +72,13 @@ class BytesToEventStreamGenerator {
         while !self.isClosed {
             currentByte = check self.getNextByte();
             if currentByte is () {
-                return ();
+                return;
             }
             if foundCariageReturnWithNewLine && currentByte == CARRIAGE_RETURN {
                 // Lookahead for newline
                 byte? nextByte = check self.getNextByte();
                 if nextByte is () {
-                    return ();
+                    return;
                 }
                 if nextByte == LINE_FEED {
                     buffer.push(currentByte);
@@ -82,7 +89,7 @@ class BytesToEventStreamGenerator {
                 self.lookaheadBuffer.push(nextByte);
             }
             foundCariageReturnWithNewLine = false;
-            if (currentByte == LINE_FEED || currentByte == CARRIAGE_RETURN) && prevByte == currentByte {
+            if ((currentByte == LINE_FEED || currentByte == CARRIAGE_RETURN) && prevByte == currentByte) {
                 buffer.push(currentByte);
                 return string:fromBytes(buffer);
             }
@@ -92,7 +99,7 @@ class BytesToEventStreamGenerator {
             buffer.push(currentByte);
             prevByte = currentByte;
         }
-        return ();
+        return;
     }
 
     # Reads next byte from the lookahead buffer if data is available, otherwise read from the byte stream
@@ -147,20 +154,7 @@ isolated function parseSseEvent(string event) returns SseEvent|error {
             }
         }
     }
-    SseEvent sseEvent = {data};
-    if id is string {
-        sseEvent.id = id;
-    }
-    if comment is string {
-        sseEvent.comment = comment;
-    }
-    if 'retry is int {
-        sseEvent.'retry = 'retry;
-    }
-    if eventName is string {
-        sseEvent.event = eventName;
-    }
-    return sseEvent;
+    return {data, id, comment, 'retry, event: eventName};
 }
 
 isolated function removeLeadingSpace(string line) returns string {

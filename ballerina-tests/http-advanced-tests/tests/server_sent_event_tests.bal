@@ -19,9 +19,9 @@ import ballerina/lang.runtime;
 import ballerina/test;
 
 listener http:Listener http1SseListener = new http:Listener(http1SsePort, httpVersion = http:HTTP_1_1);
-listener http:Listener http2SseListener = new http:Listener(http2SsePort, httpVersion = http:HTTP_2_0);
+listener http:Listener http2SseListener = new http:Listener(http2SsePort);
 final http:Client http1SseClient = check new (string `http://localhost:${http1SsePort}`, httpVersion = http:HTTP_1_1);
-final http:Client http2SseClient = check new (string `http://localhost:${http2SsePort}`, httpVersion = http:HTTP_2_0);
+final http:Client http2SseClient = check new (string `http://localhost:${http2SsePort}`);
 
 class SseEventGenerator {
     private final int eventCount;
@@ -45,7 +45,27 @@ class SseEventGenerator {
             sseEvent.'retry = 10;
         }
         if self.currentEventCount > self.eventCount {
-            return self.completeWithError ? error("Ending with error") : ();
+            return self.completeWithError ? error("ending with error") : ();
+        }
+        self.currentEventCount += 1;
+        return {value: sseEvent};
+    }
+}
+
+class SseEventGenerator2 {
+    private final int eventCount;
+    private int currentEventCount = 0;
+
+    public isolated function next() returns record {|http:SseEvent value;|}|error {
+        http:SseEvent sseEvent = {data: string `count: ${self.currentEventCount}`, id: self.currentEventCount.toString()};
+        if self.currentEventCount == 0 {
+            sseEvent.event = "start";
+        } else {
+            sseEvent.event = "continue";
+            sseEvent.'retry = 10;
+        }
+        if self.currentEventCount > 3 {
+            return error("ending with error");
         }
         self.currentEventCount += 1;
         return {value: sseEvent};
@@ -54,8 +74,7 @@ class SseEventGenerator {
 
 service /sse on http1SseListener {
     resource function 'default [string... paths](http:Request req) returns stream<http:SseEvent, error?> {
-        stream<http:SseEvent, error?> sseEventStream = new (new SseEventGenerator());
-        return sseEventStream;
+        return new (new SseEventGenerator());
     }
 }
 
@@ -68,8 +87,11 @@ service /sse on http2SseListener {
     }
 
     resource function get completeWithError() returns stream<http:SseEvent, error?> {
-        stream<http:SseEvent, error?> sseEventStream = new (new SseEventGenerator(3, true));
-        return sseEventStream;
+        return new (new SseEventGenerator(3, true));
+    }
+
+    resource function get completeWithError2() returns stream<http:SseEvent, error> {
+        return new (new SseEventGenerator2());
     }
 }
 
@@ -104,6 +126,17 @@ function testClientDataBindingForSseEventStream() returns error? {
 }
 
 @test:Config {}
+function testClientDataBindingFailure() returns error? {
+    stream<http:SseEvent, error?>|json|error actualSseEvents = http1SseClient->/sse;
+    if actualSseEvents is error {
+        test:assertEquals(actualSseEvents.message(), "payload binding failed: " +
+                "Target return type must not be a union of stream<http:SseEvent, error?> and anydata");
+    } else {
+        test:assertFail("An error expected");
+    }
+}
+
+@test:Config {}
 function testClientRequestMethodsWithStreamType() returns error? {
     stream<http:SseEvent, error?> actualSseEvents = check http1SseClient->/sse;
     stream<http:SseEvent, error?> expectedSseEvents = new (new SseEventGenerator());
@@ -135,19 +168,21 @@ function testServiceCompletesStreamWithErrorEvent() returns error? {
     stream<http:SseEvent, error?> actualSseEvents = check http2SseClient->/sse/completeWithError;
     stream<http:SseEvent, error?> expectedSseEvents = new (new SseEventGenerator(3, true));
     check assertEventStream(actualSseEvents, expectedSseEvents);
+
+    actualSseEvents = check http2SseClient->/sse/completeWithError2;
+    expectedSseEvents = new (new SseEventGenerator2());
+    check assertEventStream(actualSseEvents, expectedSseEvents);
 }
 
-function assertEventStream(stream<http:SseEvent, error?> actualSseEvents, stream<http:SseEvent, error?> expectedSseEvents) returns error? {
+isolated function assertEventStream(stream<http:SseEvent, error?> actualSseEvents, stream<http:SseEvent, error?> expectedSseEvents) returns error? {
     error? err = from http:SseEvent expectedEvent in expectedSseEvents
         do {
             record {|http:SseEvent value;|}? valueRecord = check actualSseEvents.next();
-            http:SseEvent? actualEvent = valueRecord !is () ? valueRecord.value : valueRecord;
-            test:assertEquals(actualEvent, expectedEvent);
+            test:assertEquals(valueRecord?.value, expectedEvent);
         };
     if err is error {
         http:SseEvent expectedEvent = {event: "error", data: err.message()};
         record {|http:SseEvent value;|}? valueRecord = check actualSseEvents.next();
-        http:SseEvent? actualEvent = valueRecord !is () ? valueRecord.value : valueRecord;
-        test:assertEquals(actualEvent, expectedEvent);
+        test:assertEquals(valueRecord?.value, expectedEvent);
     }
 }

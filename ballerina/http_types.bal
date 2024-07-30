@@ -21,7 +21,8 @@ import ballerina/mime;
 public type RequestMessage anydata|Request|mime:Entity[]|stream<byte[], io:Error?>;
 
 # The types of messages that are accepted by HTTP `listener` when sending out the outbound response.
-public type ResponseMessage anydata|Response|mime:Entity[]|stream<byte[], io:Error?>|stream<SseEvent, error?>;
+public type ResponseMessage anydata|Response|mime:Entity[]|stream<byte[], io:Error?>|stream<SseEvent, error?>
+                                |stream<SseEvent, error>;
 
 # The HTTP service type.
 public type Service distinct service object {
@@ -152,5 +153,5 @@ public type SseEvent record {|
 |};
 
 # Dummy types used in the compiler plugin
-type ResourceReturnType Response|StatusCodeResponse|anydata|stream<SseEvent, error?>|error;
+type ResourceReturnType Response|StatusCodeResponse|anydata|stream<SseEvent, error?>|stream<SseEvent, error>|error;
 type InterceptorResourceReturnType ResourceReturnType|NextService;

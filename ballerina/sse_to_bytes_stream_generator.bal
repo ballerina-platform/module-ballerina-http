@@ -30,20 +30,19 @@ class SseEventToByteStreamGenerator {
 
     public isolated function next() returns record {|byte[] value;|}|io:Error? {
         if self.isClosed || self. isErrorOccurred {
-            return ();
+            return;
         }
         do {
             record {SseEvent value;}? event = check self.eventStream.next();
             if event is () {
-                check self.close();
-                return ();
+                return;
             }
             check validateSseEvent(event.value);
             string eventText = getEventText(event.value);
             return {value: eventText.toBytes()};
         } on fail error e {
             self.isErrorOccurred = true;
-            log:printError("Unable to obtain byte array", e);
+            log:printError("unable to obtain byte array", e);
             SseEvent errorEvent = getErrorEvent(e);
             string eventText = getEventText(errorEvent);
             return {value: eventText.toBytes()};
@@ -57,9 +56,9 @@ class SseEventToByteStreamGenerator {
 }
 
 isolated function validateSseEvent(SseEvent event) returns error? {
-    if !event.hasKey("event") && !event.hasKey("id")
-        && !event.hasKey("retry") && !event.hasKey("comment")
-        && !event.hasKey("data") {
+    if !event.hasKey(EVENT) && !event.hasKey(ID)
+        && !event.hasKey(RETRY) && !event.hasKey("comment")
+        && !event.hasKey(DATA) {
         return error("Invalid value provided as event: "
                 + "at least one field is expected to be present in the SseEvent record.");
     }

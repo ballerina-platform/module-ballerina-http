@@ -196,7 +196,7 @@ public class Util {
             outboundResponseMsg.setHeader(HttpHeaderNames.CONNECTION.toString(), Constants.CONNECTION_CLOSE);
         } else if (keepAlive && (Float.valueOf(inboundReqHttpVersion) < Constants.HTTP_1_1)) {
             outboundResponseMsg.setHeader(HttpHeaderNames.CONNECTION.toString(), Constants.CONNECTION_KEEP_ALIVE);
-        } else if (keepAlive && (Float.valueOf(inboundReqHttpVersion) == Constants.HTTP_1_1)
+        } else if (Float.valueOf(inboundReqHttpVersion) == Constants.HTTP_1_1
                 && HttpUtil.hasEventStreamContentType(outboundResponseMsg)) {
             outboundResponseMsg.setHeader(HttpHeaderNames.CONNECTION.toString(), Constants.CONNECTION_KEEP_ALIVE);
         } else {
