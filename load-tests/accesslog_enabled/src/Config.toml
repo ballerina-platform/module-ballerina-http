@@ -1,0 +1,3 @@
+[ballerina.http.accessLogConfig]
+console = true
+format = "json"

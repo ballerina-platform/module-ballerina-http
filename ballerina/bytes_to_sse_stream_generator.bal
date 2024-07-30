@@ -128,7 +128,7 @@ isolated function parseSseEvent(string event) returns SseEvent|error {
         regexp:Groups? groups = re `(.*?):(.*)`.findGroups(line);
         string filedName = line;
         string fieldValue = "";
-        if (groups is regexp:Groups && groups.length() == 3) {
+        if groups is regexp:Groups && groups.length() == 3 {
             regexp:Span? filedNameSpan = groups[1];
             regexp:Span? filedValueSpan = groups[2];
             if filedNameSpan is () || filedValueSpan is () {

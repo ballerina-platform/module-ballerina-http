@@ -18,8 +18,10 @@
 
 package io.ballerina.stdlib.http.api.logging;
 
+import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
+import io.ballerina.stdlib.http.api.logging.accesslog.HttpAccessLogConfig;
 import io.ballerina.stdlib.http.api.logging.formatters.HttpAccessLogFormatter;
 import io.ballerina.stdlib.http.api.logging.formatters.HttpTraceLogFormatter;
 import io.ballerina.stdlib.http.api.logging.formatters.JsonLogFormatter;
@@ -36,8 +38,12 @@ import java.util.logging.SocketHandler;
 
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_ACCESS_LOG;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_ACCESS_LOG_ENABLED;
+import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_LOG_ATTRIBUTES;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_LOG_CONSOLE;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_LOG_FILE_PATH;
+import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_LOG_FORMAT;
+import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_LOG_FORMAT_FLAT;
+import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_LOG_FORMAT_JSON;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_TRACE_LOG;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_TRACE_LOG_ENABLED;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_TRACE_LOG_HOST;
@@ -70,6 +76,7 @@ public class HttpLogManager extends LogManager {
         this.protocol = protocol.getValue();
         this.setHttpTraceLogHandler(traceLogConsole, traceLogAdvancedConfig);
         this.setHttpAccessLogHandler(accessLogConfig);
+        HttpAccessLogConfig.getInstance().initializeHttpAccessLogConfig(accessLogConfig);
     }
 
     /**
@@ -161,10 +168,22 @@ public class HttpLogManager extends LogManager {
             }
         }
 
+        BString logFormat = accessLogConfig.getStringValue(HTTP_LOG_FORMAT);
+        if (logFormat != null &&
+                !(logFormat.getValue().equals(HTTP_LOG_FORMAT_JSON) ||
+                        logFormat.getValue().equals(HTTP_LOG_FORMAT_FLAT))) {
+            stdErr.println("WARNING: Unsupported log format '" + logFormat.getValue() +
+                    "'. Defaulting to 'flat' format.");
+        }
+
+        BArray logAttributes = accessLogConfig.getArrayValue(HTTP_LOG_ATTRIBUTES);
+        if (logAttributes != null && logAttributes.getLength() == 0) {
+            accessLogsEnabled = false;
+        }
+
         if (accessLogsEnabled) {
             System.setProperty(HTTP_ACCESS_LOG_ENABLED, "true");
             stdErr.println("ballerina: " + protocol + " access log enabled");
         }
     }
-
 }

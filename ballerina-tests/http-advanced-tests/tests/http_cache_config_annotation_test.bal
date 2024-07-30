@@ -117,7 +117,7 @@ service / on new http:Listener(cacheAnnotationTestPort2, httpVersion = http:HTTP
         }
     }
 
-    resource function default maxAgeBE(http:Request req) returns @http:Cache {maxAge: 5, mustRevalidate: false} xml {
+    resource function default maxAgeBE(http:Request req) returns @http:Cache {maxAge: 5.32, mustRevalidate: false} xml {
         int count = 0;
         lock {
             maxAgeHitCountNew += 1;

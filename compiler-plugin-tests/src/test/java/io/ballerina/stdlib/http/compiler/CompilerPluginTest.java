@@ -141,7 +141,7 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_4");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 8);
+        Assert.assertEquals(diagnosticResult.errorCount(), 7);
         assertError(diagnosticResult, 0, "invalid multiple resource parameter annotations for 'abc': expected one of " +
                 "the following types: 'http:Payload', 'http:CallerInfo', 'http:Header', 'http:Query'", HTTP_108);
         assertError(diagnosticResult, 1, "invalid usage of payload annotation for a non entity body " +
@@ -150,13 +150,11 @@ public class CompilerPluginTest {
                 "resource : 'head'. Use an accessor that supports entity body", HTTP_129);
         assertError(diagnosticResult, 3, "invalid usage of payload annotation for a non entity body resource" +
                 " : 'options'. Use an accessor that supports entity body", HTTP_129);
-        assertError(diagnosticResult, 4, "invalid annotation type on param 'a': expected one of the following types: " +
-            "'http:Payload', 'http:CallerInfo', 'http:Header', 'http:Query'", CompilerPluginTestConstants.HTTP_104);
-        assertTrue(diagnosticResult, 5, "invalid payload parameter type: 'string|ballerina/http:",
+        assertTrue(diagnosticResult, 4, "invalid payload parameter type: 'string|ballerina/http:",
+                CompilerPluginTestConstants.HTTP_107);
+        assertTrue(diagnosticResult, 5, "invalid payload parameter type:",
                 CompilerPluginTestConstants.HTTP_107);
         assertTrue(diagnosticResult, 6, "invalid payload parameter type:",
-                CompilerPluginTestConstants.HTTP_107);
-        assertTrue(diagnosticResult, 7, "invalid payload parameter type:",
                 CompilerPluginTestConstants.HTTP_107);
     }
 
@@ -403,21 +401,20 @@ public class CompilerPluginTest {
         Package currentPackage = loadPackage("sample_package_15");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errorCount(), 13);
+        Assert.assertEquals(diagnosticResult.errorCount(), 12);
         // only testing the error locations
         assertErrorPosition(diagnosticResult, 0, "(29:44,29:60)");
-        assertErrorPosition(diagnosticResult, 1, "(42:86,42:87)");
-        assertErrorPosition(diagnosticResult, 2, "(46:57,46:60)");
-        assertErrorPosition(diagnosticResult, 3, "(50:63,50:66)");
-        assertErrorPosition(diagnosticResult, 4, "(54:66,54:69)");
-        assertErrorPosition(diagnosticResult, 5, "(58:77,58:80)");
-        assertErrorPosition(diagnosticResult, 6, "(62:76,62:79)");
-        assertErrorPosition(diagnosticResult, 7, "(66:76,66:82)");
-        assertErrorPosition(diagnosticResult, 8, "(73:45,73:46)");
-        assertErrorPosition(diagnosticResult, 9, "(81:43,81:46)");
-        assertErrorPosition(diagnosticResult, 10, "(81:61,81:64)");
-        assertErrorPosition(diagnosticResult, 11, "(81:79,81:82)");
-        assertErrorPosition(diagnosticResult, 12, "(85:77,85:93)");
+        assertErrorPosition(diagnosticResult, 1, "(46:57,46:60)");
+        assertErrorPosition(diagnosticResult, 2, "(50:63,50:66)");
+        assertErrorPosition(diagnosticResult, 3, "(54:66,54:69)");
+        assertErrorPosition(diagnosticResult, 4, "(58:77,58:80)");
+        assertErrorPosition(diagnosticResult, 5, "(62:76,62:79)");
+        assertErrorPosition(diagnosticResult, 6, "(66:76,66:82)");
+        assertErrorPosition(diagnosticResult, 7, "(73:45,73:46)");
+        assertErrorPosition(diagnosticResult, 8, "(81:43,81:46)");
+        assertErrorPosition(diagnosticResult, 9, "(81:61,81:64)");
+        assertErrorPosition(diagnosticResult, 10, "(81:79,81:82)");
+        assertErrorPosition(diagnosticResult, 11, "(85:77,85:93)");
     }
 
     @Test

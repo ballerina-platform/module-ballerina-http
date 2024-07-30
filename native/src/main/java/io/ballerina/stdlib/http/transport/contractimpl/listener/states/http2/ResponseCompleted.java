@@ -111,4 +111,10 @@ public class ResponseCompleted implements ListenerState {
                                            Http2OutboundRespListener http2OutboundRespListener, int streamId) {
         LOG.warn("handleAbruptChannelClosure {}", ILLEGAL_STATE_ERROR);
     }
+
+    @Override
+    public void handleClientGoAway(ServerConnectorFuture serverConnectorFuture, ChannelHandlerContext
+            channelHandlerContext, Http2OutboundRespListener http2OutboundRespListener, Integer streamId) {
+        LOG.warn("handleClientGoAway {}", ILLEGAL_STATE_ERROR);
+    }
 }
