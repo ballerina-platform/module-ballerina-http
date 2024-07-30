@@ -76,7 +76,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "http"
-version = "2.11.3"
+version = "2.12.0"
 dependencies = [
 	{org = "ballerina", name = "auth"},
 	{org = "ballerina", name = "cache"},
@@ -128,7 +128,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "jwt"
-version = "2.11.0"
+version = "2.12.1"
 dependencies = [
 	{org = "ballerina", name = "cache"},
 	{org = "ballerina", name = "crypto"},
