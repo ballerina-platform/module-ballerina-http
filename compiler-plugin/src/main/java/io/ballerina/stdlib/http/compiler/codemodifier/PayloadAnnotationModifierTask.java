@@ -53,6 +53,7 @@ import io.ballerina.tools.text.TextDocument;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * {@code HttpPayloadParamIdentifier} injects the @http:Payload annotation to the Payload param which found during the
@@ -153,7 +154,10 @@ public class PayloadAnnotationModifierTask implements ModifierTask<SourceModifie
                     RequiredParameterNode param = (RequiredParameterNode) parameterNode;
                     //add the annotation
                     AnnotationNode payloadAnnotation = getHttpPayloadAnnotation();
-                    NodeList<AnnotationNode> annotations = NodeFactory.createNodeList();
+                    NodeList<AnnotationNode> annotations = param.annotations();
+                    if (Objects.isNull(annotations)) {
+                        annotations = NodeFactory.createNodeList();
+                    }
                     NodeList<AnnotationNode> updatedAnnotations = annotations.add(payloadAnnotation);
                     RequiredParameterNode.RequiredParameterNodeModifier paramModifier = param.modify();
                     paramModifier.withAnnotations(updatedAnnotations);

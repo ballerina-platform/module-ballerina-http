@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.listener.states.http2;
 
+import io.ballerina.stdlib.http.api.logging.accesslog.ListenerHttpAccessLogger;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
 import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorException;
@@ -25,7 +26,6 @@ import io.ballerina.stdlib.http.transport.contractimpl.Http2OutboundRespListener
 import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil;
-import io.ballerina.stdlib.http.transport.contractimpl.listener.HttpServerChannelInitializer;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.http2.Http2SourceHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2DataEventListener;
 import io.ballerina.stdlib.http.transport.message.Http2DataFrame;
@@ -37,9 +37,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http2.Http2Connection;
 import io.netty.handler.codec.http2.Http2ConnectionEncoder;
@@ -47,21 +45,14 @@ import io.netty.handler.codec.http2.Http2Error;
 import io.netty.handler.codec.http2.Http2Exception;
 import io.netty.handler.codec.http2.Http2Headers;
 import io.netty.handler.codec.http2.HttpConversionUtil;
-import io.netty.util.internal.logging.InternalLogLevel;
-import io.netty.util.internal.logging.InternalLogger;
-import io.netty.util.internal.logging.InternalLoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Calendar;
 
-import static io.ballerina.stdlib.http.transport.contract.Constants.ACCESS_LOG;
-import static io.ballerina.stdlib.http.transport.contract.Constants.ACCESS_LOG_FORMAT;
-import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_X_FORWARDED_FOR;
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY;
-import static io.ballerina.stdlib.http.transport.contract.Constants.TO;
+import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_SENT_GOAWAY_WHILE_WRITING_OUTBOUND_RESPONSE_BODY;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil.validatePromisedStreamState;
 
 /**
@@ -72,36 +63,33 @@ import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http
 public class SendingEntityBody implements ListenerState {
 
     private static final Logger LOG = LoggerFactory.getLogger(SendingEntityBody.class);
-    private static final InternalLogger ACCESS_LOGGER = InternalLoggerFactory.getInstance(ACCESS_LOG);
 
     private final Http2MessageStateContext http2MessageStateContext;
     private final ChannelHandlerContext ctx;
-    private final HttpServerChannelInitializer serverChannelInitializer;
     private final Http2Connection conn;
     private final Http2ConnectionEncoder encoder;
     private final HttpResponseFuture outboundRespStatusFuture;
     private final HttpCarbonMessage inboundRequestMsg;
-    private final Calendar inboundRequestArrivalTime;
     private final int originalStreamId;
     private final Http2OutboundRespListener http2OutboundRespListener;
     private HttpCarbonMessage outboundResponseMsg;
-
-    private Long contentLength = 0L;
-    private String remoteAddress;
+    private ListenerHttpAccessLogger accessLogger;
 
     SendingEntityBody(Http2OutboundRespListener http2OutboundRespListener,
                       Http2MessageStateContext http2MessageStateContext) {
         this.http2OutboundRespListener = http2OutboundRespListener;
         this.http2MessageStateContext = http2MessageStateContext;
         this.ctx = http2OutboundRespListener.getChannelHandlerContext();
-        this.serverChannelInitializer = http2OutboundRespListener.getServerChannelInitializer();
         this.conn = http2OutboundRespListener.getConnection();
         this.encoder = http2OutboundRespListener.getEncoder();
         this.inboundRequestMsg = http2OutboundRespListener.getInboundRequestMsg();
         this.outboundRespStatusFuture = inboundRequestMsg.getHttpOutboundRespStatusFuture();
-        this.inboundRequestArrivalTime = http2OutboundRespListener.getInboundRequestArrivalTime();
         this.originalStreamId = http2OutboundRespListener.getOriginalStreamId();
-        this.remoteAddress = http2OutboundRespListener.getRemoteAddress();
+        if (http2OutboundRespListener.getServerChannelInitializer().isHttpAccessLogEnabled()) {
+            this.accessLogger = new ListenerHttpAccessLogger(
+                    http2OutboundRespListener.getInboundRequestArrivalTime(),
+                    http2OutboundRespListener.getRemoteAddress());
+        }
     }
 
     @Override
@@ -163,14 +151,20 @@ public class SendingEntityBody implements ListenerState {
         LOG.error(REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY);
     }
 
+    @Override
+    public void handleClientGoAway(ServerConnectorFuture serverConnectorFuture, ChannelHandlerContext
+            channelHandlerContext, Http2OutboundRespListener http2OutboundRespListener, Integer streamId) {
+        IOException connectionClose = new IOException(REMOTE_CLIENT_SENT_GOAWAY_WHILE_WRITING_OUTBOUND_RESPONSE_BODY);
+        outboundResponseMsg.setIoException(connectionClose);
+        outboundRespStatusFuture.notifyHttpListener(connectionClose);
+
+        LOG.error(REMOTE_CLIENT_SENT_GOAWAY_WHILE_WRITING_OUTBOUND_RESPONSE_BODY);
+    }
+
     private void writeContent(Http2OutboundRespListener http2OutboundRespListener,
                               HttpCarbonMessage outboundResponseMsg, HttpContent httpContent, int streamId)
             throws Http2Exception {
         if (httpContent instanceof LastHttpContent) {
-            if (serverChannelInitializer.isHttpAccessLogEnabled()) {
-                logAccessInfo(outboundResponseMsg, streamId);
-            }
-
             final LastHttpContent lastContent = (httpContent == LastHttpContent.EMPTY_LAST_CONTENT) ?
                     new DefaultLastHttpContent() : (LastHttpContent) httpContent;
             HttpHeaders trailers = lastContent.trailingHeaders();
@@ -185,6 +179,13 @@ public class SendingEntityBody implements ListenerState {
                                                          inboundRequestMsg);
             }
             http2OutboundRespListener.removeDefaultResponseWriter();
+            if (accessLogger != null) {
+                if (originalStreamId != streamId) { // Skip access logs for server push messages
+                    LOG.debug("Access logging skipped for server push response");
+                    return;
+                }
+                accessLogger.logAccessInfo(http2OutboundRespListener.getInboundRequestMsg(), outboundResponseMsg);
+            }
             http2MessageStateContext
                     .setListenerState(new ResponseCompleted(http2OutboundRespListener, http2MessageStateContext));
         } else {
@@ -193,7 +194,9 @@ public class SendingEntityBody implements ListenerState {
     }
 
     private void writeData(HttpContent httpContent, int streamId, boolean endStream) throws Http2Exception {
-        contentLength += httpContent.content().readableBytes();
+        if (accessLogger != null) {
+            accessLogger.updateContentLength(httpContent);
+        }
         validatePromisedStreamState(originalStreamId, streamId, conn, inboundRequestMsg);
         final ByteBuf content = httpContent.content();
         for (Http2DataEventListener dataEventListener : http2OutboundRespListener.getHttp2ServerChannel()
@@ -212,48 +215,5 @@ public class SendingEntityBody implements ListenerState {
         } else {
             Util.addResponseWriteFailureListener(outboundRespStatusFuture, channelFuture, http2OutboundRespListener);
         }
-    }
-
-    private void logAccessInfo(HttpCarbonMessage outboundResponseMsg, int streamId) {
-        if (!ACCESS_LOGGER.isEnabled(InternalLogLevel.INFO)) {
-            return;
-        }
-        if (originalStreamId != streamId) { // Skip access logs for server push messages
-            LOG.debug("Access logging skipped for server push response");
-            return;
-        }
-        HttpHeaders headers = inboundRequestMsg.getHeaders();
-        if (headers.contains(HTTP_X_FORWARDED_FOR)) {
-            String forwardedHops = headers.get(HTTP_X_FORWARDED_FOR);
-            // If multiple IPs available, the first ip is the client
-            int firstCommaIndex = forwardedHops.indexOf(',');
-            remoteAddress = firstCommaIndex != -1 ? forwardedHops.substring(0, firstCommaIndex) : forwardedHops;
-        }
-
-        // Populate request parameters
-        String userAgent = "-";
-        if (headers.contains(HttpHeaderNames.USER_AGENT)) {
-            userAgent = headers.get(HttpHeaderNames.USER_AGENT);
-        }
-        String referrer = "-";
-        if (headers.contains(HttpHeaderNames.REFERER)) {
-            referrer = headers.get(HttpHeaderNames.REFERER);
-        }
-        String method = inboundRequestMsg.getHttpMethod();
-        String uri = (String) inboundRequestMsg.getProperty(TO);
-        HttpMessage request = inboundRequestMsg.getNettyHttpRequest();
-        String protocol;
-        if (request != null) {
-            protocol = request.protocolVersion().toString();
-        } else {
-            protocol = inboundRequestMsg.getHttpVersion();
-        }
-
-        // Populate response parameters
-        int statusCode = Util.getHttpResponseStatus(outboundResponseMsg).code();
-
-        ACCESS_LOGGER.log(InternalLogLevel.INFO, String.format(
-                ACCESS_LOG_FORMAT, remoteAddress, inboundRequestArrivalTime, method, uri, protocol,
-                statusCode, contentLength, referrer, userAgent));
     }
 }

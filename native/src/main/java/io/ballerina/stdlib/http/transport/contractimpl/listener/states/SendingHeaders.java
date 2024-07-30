@@ -124,8 +124,8 @@ public class SendingHeaders implements ListenerState {
     }
 
     private void writeResponse(HttpCarbonMessage outboundResponseMsg, HttpContent httpContent, boolean headersWritten) {
-        listenerReqRespStateManager.state
-                = new SendingEntityBody(listenerReqRespStateManager, outboundRespStatusFuture, headersWritten);
+        listenerReqRespStateManager.state = new SendingEntityBody(outboundResponseListener, listenerReqRespStateManager,
+                outboundRespStatusFuture, headersWritten);
         listenerReqRespStateManager.writeOutboundResponseBody(outboundResponseListener, outboundResponseMsg,
                                                                          httpContent);
     }

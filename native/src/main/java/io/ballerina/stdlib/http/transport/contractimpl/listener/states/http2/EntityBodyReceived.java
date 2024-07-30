@@ -44,6 +44,7 @@ import java.io.IOException;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP2_SERVER_TIMEOUT_ERROR_MESSAGE;
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_BEFORE_INITIATING_OUTBOUND_RESPONSE;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_CLOSED_BEFORE_INITIATING_OUTBOUND_RESPONSE;
+import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_SENT_GOAWAY_BEFORE_INITIATING_OUTBOUND_RESPONSE;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil.writeHttp2Promise;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.CONNECTOR_NOTIFYING_ERROR;
 
@@ -132,5 +133,18 @@ public class EntityBodyReceived implements ListenerState {
         }
         http2OutboundRespListener.getOutboundResponseMsg().setIoException(
                 new IOException(REMOTE_CLIENT_CLOSED_BEFORE_INITIATING_OUTBOUND_RESPONSE));
+    }
+
+    @Override
+    public void handleClientGoAway(ServerConnectorFuture serverConnectorFuture, ChannelHandlerContext
+            channelHandlerContext, Http2OutboundRespListener http2OutboundRespListener, Integer streamId) {
+        try {
+            serverConnectorFuture.notifyErrorListener(
+                    new ClientClosedConnectionException(REMOTE_CLIENT_SENT_GOAWAY_BEFORE_INITIATING_OUTBOUND_RESPONSE));
+        } catch (ServerConnectorException e) {
+            LOG.error(CONNECTOR_NOTIFYING_ERROR, e);
+        }
+        http2OutboundRespListener.getOutboundResponseMsg().setIoException(
+                new IOException(REMOTE_CLIENT_SENT_GOAWAY_BEFORE_INITIATING_OUTBOUND_RESPONSE));
     }
 }

@@ -63,6 +63,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.BASE_64_ENCODED_CERT;
 import static io.ballerina.stdlib.http.transport.contract.Constants.CHNL_HNDLR_CTX;
@@ -74,6 +75,7 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.LISTENER_INT
 import static io.ballerina.stdlib.http.transport.contract.Constants.LISTENER_PORT;
 import static io.ballerina.stdlib.http.transport.contract.Constants.LOCAL_ADDRESS;
 import static io.ballerina.stdlib.http.transport.contract.Constants.MUTUAL_SSL_HANDSHAKE_RESULT;
+import static io.ballerina.stdlib.http.transport.contract.Constants.OUTBOUND_ACCESS_LOG_MESSAGES;
 import static io.ballerina.stdlib.http.transport.contract.Constants.POOLED_BYTE_BUFFER_FACTORY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.PROMISED_STREAM_REJECTED_ERROR;
 import static io.ballerina.stdlib.http.transport.contract.Constants.PROTOCOL;
@@ -158,6 +160,7 @@ public final class Http2StateUtil {
         String uri = httpRequest.uri();
         sourceReqCMsg.setRequestUrl(uri);
         sourceReqCMsg.setProperty(TO, uri);
+        sourceReqCMsg.setProperty(OUTBOUND_ACCESS_LOG_MESSAGES, new ArrayList<>());
         return sourceReqCMsg;
     }
 
