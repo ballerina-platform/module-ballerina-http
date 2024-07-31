@@ -402,16 +402,11 @@ isolated function getDomain(string url) returns string {
 
 // Construct the request path from client url and the path from client method invocation.
 isolated function getReqPath(string url, string path) returns string {
-    string urlWithoutScheme = url;
-    if url.startsWith(URL_TYPE_3) {
-        urlWithoutScheme = url.substring(URL_TYPE_3.length(), url.length());
-    } else if url.startsWith(URL_TYPE_4) {
-        urlWithoutScheme = url.substring(URL_TYPE_4.length(), url.length());
+    regexp:Groups? groups = re `^(?:https?://)?[^/]+(/.*)?$`.findGroups(url);
+    if groups is () || groups.length() == 1 || groups[1] is () {
+        return path;
     }
-
-    int? indexOfSlash = urlWithoutScheme.indexOf("/");
-    string basePath = indexOfSlash is int ? urlWithoutScheme.substring(indexOfSlash, urlWithoutScheme.length()) : "";
-    return basePath + path;
+    return (<regexp:Span>groups[1]).substring() + path;
 }
 
 
