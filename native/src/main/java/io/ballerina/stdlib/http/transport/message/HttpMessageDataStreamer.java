@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.transport.message;
 
+import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -38,6 +39,8 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.InflaterInputStream;
+
+import static io.netty.util.internal.StringUtil.LINE_FEED;
 
 /**
  * Provides input and output stream by taking the HttpCarbonMessage.
@@ -174,19 +177,78 @@ public class HttpMessageDataStreamer {
                 byteBufferOutputStream = null;
             }
         }
+    }
 
-        private ByteBuf getBuffer() {
-            if (pooledByteBufAllocator == null) {
-                return Unpooled.buffer(CONTENT_BUFFER_SIZE);
+    /**
+     * A class which write event-stream into ByteBuffers and add those
+     * ByteBuffers to Content Queue.
+     * No need to worry about thread safety of this class this is called only once by
+     * one thread at particular time.
+     */
+    protected class EventBufferOutputStream extends ByteBufferOutputStream {
+        private ByteBuf dataHolder = getBuffer();
+        private int lastByte = 0;
+
+        @Override
+        public void write(int b) {
+            // Buffer the data until a double line feed (indicating the end of an event)
+            // or until CONTENT_BUFFER_SIZE is reached.
+            if (hasDoubleLineFeed(b))  {
+                try {
+                    writeByte(b);
+                    httpCarbonMessage.addHttpContent(new DefaultHttpContent(this.dataHolder));
+                    this.dataHolder = getBuffer();
+                } catch (RuntimeException ex) {
+                    throw new EncoderException(httpCarbonMessage.getIoException());
+                }
+            } else if (this.dataHolder.writableBytes() != 0) {
+                writeByte(b);
             } else {
-                return pooledByteBufAllocator.directBuffer(CONTENT_BUFFER_SIZE);
+                try {
+                    httpCarbonMessage.addHttpContent(new DefaultHttpContent(this.dataHolder));
+                    this.dataHolder = getBuffer();
+                    writeByte(b);
+                } catch (RuntimeException ex) {
+                    throw new EncoderException(httpCarbonMessage.getIoException());
+                }
             }
+        }
+
+        private void writeByte(int b) {
+            this.dataHolder.writeByte((byte) b);
+            this.lastByte = b;
+        }
+
+        private boolean hasDoubleLineFeed(int currentByte) {
+            return currentByte == this.lastByte && this.lastByte == (int) LINE_FEED;
+        }
+    }
+
+    private ByteBuf getBuffer() {
+        if (pooledByteBufAllocator == null) {
+            return Unpooled.buffer(CONTENT_BUFFER_SIZE);
+        } else {
+            return pooledByteBufAllocator.directBuffer(CONTENT_BUFFER_SIZE);
         }
     }
 
     public OutputStream getOutputStream() {
+        if (HttpUtil.hasEventStreamContentType(httpCarbonMessage)) {
+            return getEventBufferOutputStream();
+        }
+        return getByteBufferOutputStream();
+    }
+
+    private OutputStream getByteBufferOutputStream() {
         if (byteBufferOutputStream == null) {
-            byteBufferOutputStream = new HttpMessageDataStreamer.ByteBufferOutputStream();
+            byteBufferOutputStream = new ByteBufferOutputStream();
+        }
+        return byteBufferOutputStream;
+    }
+
+    private OutputStream getEventBufferOutputStream() {
+        if (byteBufferOutputStream == null) {
+            byteBufferOutputStream = new EventBufferOutputStream();
         }
         return byteBufferOutputStream;
     }

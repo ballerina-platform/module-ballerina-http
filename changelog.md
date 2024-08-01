@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
-
+- [Add support for Server-Sent Events](https://github.com/ballerina-platform/ballerina-library/issues/6687)
 - [Introduce default status code response record](https://github.com/ballerina-platform/ballerina-library/issues/6491)
 - [Add connection eviction feature to handle connections that receive GO_AWAY from the client](https://github.com/ballerina-platform/ballerina-library/issues/6734)
 - [Enhanced the configurability of Ballerina access logging by introducing multiple configuration options.](https://github.com/ballerina-platform/ballerina-library/issues/6111)
@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 
 - [Fix number format exception with decimal values for cache configuration](https://github.com/ballerina-platform/ballerina-library/issues/6765)
+- [Fix cookie path resolution logic](https://github.com/ballerina-platform/ballerina-library/issues/6788)
 
 ## [2.11.2] - 2024-06-14
 

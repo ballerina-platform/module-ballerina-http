@@ -42,7 +42,7 @@ public class Response {
     time:Utc receivedTime = [0, 0.0];
     time:Utc requestTime = [0, 0.0];
     private mime:Entity? entity = ();
-
+    
     public isolated function init() {
         self.entity = self.createNewEntity();
     }
@@ -324,6 +324,13 @@ public class Response {
         }
     }
 
+    # Gets the response payload as a `stream` of SseEvent.
+    #
+    # + return - A SseEvent stream from which the `http:SseEvent` can be read or `http:ClientError` in case of errors
+    public isolated function getSseEventStream() returns stream<SseEvent, error?>|ClientError {
+        return getSseEventStream(self);
+    }
+
     # Extracts body parts from the response. If the content type is not a composite media type, an error is returned.
     #
     # + return - The body parts as an array of entities or else an `http:ClientError` if there were any errors in
@@ -468,6 +475,18 @@ public class Response {
         self.setEntityAndUpdateContentTypeHeader(entity);
     }
 
+    # Sets an `http:SseEvent` stream as the payload, along with the Content-Type and Cache-Control 
+    # headers set to 'text/event-stream' and 'no-cache', respectively.
+    #
+    # + eventStream - SseEvent stream, which needs to be set to the response
+    public isolated function setSseEventStream(stream<SseEvent, error?>|stream<SseEvent, error> eventStream) {
+        ResponseCacheControl cacheControl = new;
+        cacheControl.noCache = true;
+        self.cacheControl = cacheControl;
+        SseEventToByteStreamGenerator byteStreamGen = new(eventStream);
+        self.setByteStream(new (byteStreamGen), mime:TEXT_EVENT_STREAM);
+    }
+    
     # Sets the response payload. This method overrides any existing content-type by passing the content-type
     # as an optional parameter. If the content type parameter is not provided then the default value derived
     # from the payload will be used as content-type only when there are no existing content-type header.
@@ -475,7 +494,7 @@ public class Response {
     # + payload - Payload can be of type `string`, `xml`, `json`, `byte[]`, `stream<byte[], io:Error?>`
     #             or `Entity[]` (i.e., a set of body parts).
     # + contentType - Content-type to be used with the payload. This is an optional parameter
-    public isolated function setPayload(string|xml|json|byte[]|mime:Entity[]|stream<byte[], io:Error?> payload,
+    public isolated function setPayload(string|xml|json|byte[]|mime:Entity[]|stream<byte[], io:Error?>|stream<SseEvent, error?> payload,
             string? contentType = ()) {
         if contentType is string {
             error? err = self.setContentType(contentType);
@@ -496,6 +515,8 @@ public class Response {
             self.setByteStream(payload);
         } else if payload is mime:Entity[] {
             self.setBodyParts(payload);
+        } else if payload is stream<SseEvent, error?> {
+            self.setSseEventStream(payload);
         } else {
             panic error Error("invalid entity body type." +
                 "expected one of the types: string|xml|json|byte[]|mime:Entity[]|stream<byte[],io:Error?>");

@@ -126,6 +126,9 @@ public class ResponseWriter {
             if (outboundMessageSource != null) {
                 HttpUtil.serializeDataSource(outboundMessageSource, entity, messageOutputStream);
                 HttpUtil.closeMessageOutputStream(messageOutputStream);
+            } else if (EntityBodyHandler.getEventStream(entity) != null) {
+                //When the entity body is a byte stream of server sent events and it is not null
+                EntityBodyHandler.writeEventStreamToOutputStream(env, entity, messageOutputStream);
             } else if (EntityBodyHandler.getByteStream(entity) != null) {
                 //When the entity body is a byte stream and when it is not null
                 EntityBodyHandler.writeByteStreamToOutputStream(env, entity, messageOutputStream);
