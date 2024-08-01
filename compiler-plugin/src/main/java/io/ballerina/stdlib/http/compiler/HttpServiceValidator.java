@@ -346,7 +346,7 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
                     String actualServiceType = strings[1].trim();
                     if (!actualServiceType.equals(expectedServiceType)) {
                         reportInvalidServiceContractType(ctx, expectedServiceType, actualServiceType,
-                                annotation.location());
+                                field.location());
                         return;
                     }
                 } else if (!("openApiDefinition".equals(strings[0].trim()))) {
