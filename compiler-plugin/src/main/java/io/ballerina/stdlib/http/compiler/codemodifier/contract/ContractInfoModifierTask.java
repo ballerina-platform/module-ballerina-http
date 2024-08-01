@@ -96,6 +96,9 @@ public class ContractInfoModifierTask implements ModifierTask<SourceModifierCont
         for (DocumentId documentId : currentModule.documentIds()) {
             modifyServiceDeclarationsPerDocument(modifierContext, documentId, currentModule);
         }
+        for (DocumentId documentId : currentModule.testDocumentIds()) {
+            modifyServiceDeclarationsPerDocument(modifierContext, documentId, currentModule);
+        }
     }
 
     private void modifyServiceDeclarationsPerDocument(SourceModifierContext modifierContext, DocumentId documentId,
