@@ -21,6 +21,8 @@ package io.ballerina.stdlib.http.compiler;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.projects.plugins.CodeAnalysisContext;
 import io.ballerina.projects.plugins.CodeAnalyzer;
+import io.ballerina.stdlib.http.compiler.oas.ServiceContractOasGenerator;
+import io.ballerina.stdlib.http.compiler.oas.ServiceOasGenerator;
 
 import java.util.Map;
 

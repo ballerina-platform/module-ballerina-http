@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package io.ballerina.stdlib.http.compiler;
+package io.ballerina.stdlib.http.compiler.oas;
 
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.ObjectTypeDescriptorNode;
