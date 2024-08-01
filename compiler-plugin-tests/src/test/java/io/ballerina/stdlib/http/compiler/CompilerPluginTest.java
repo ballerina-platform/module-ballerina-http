@@ -921,4 +921,12 @@ public class CompilerPluginTest {
                 " via the 'http:ServiceContract' type. The HTTP annotations are inferred from the service contract" +
                 " type", HTTP_160);
     }
+
+    @Test
+    public void testServiceContractSuccess() {
+        Package currentPackage = loadPackage("sample_package_41");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.errorCount(), 0);
+    }
 }
