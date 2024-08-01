@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 
 - [Fix number format exception with decimal values for cache configuration](https://github.com/ballerina-platform/ballerina-library/issues/6765)
+- [Fix cookie path resolution logic](https://github.com/ballerina-platform/ballerina-library/issues/6788)
 
 ## [2.11.2] - 2024-06-14
 
