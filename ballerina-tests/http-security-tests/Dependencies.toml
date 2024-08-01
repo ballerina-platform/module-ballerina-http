@@ -5,7 +5,7 @@
 
 [ballerina]
 dependencies-toml-version = "2"
-distribution-version = "2201.10.0-20240711-141800-6245661f"
+distribution-version = "2201.10.0-20240801-104200-87df251c"
 
 [[package]]
 org = "ballerina"
@@ -123,7 +123,9 @@ name = "http_test_common"
 version = "2.12.0"
 scope = "testOnly"
 dependencies = [
+	{org = "ballerina", name = "http"},
 	{org = "ballerina", name = "lang.string"},
+	{org = "ballerina", name = "log"},
 	{org = "ballerina", name = "mime"},
 	{org = "ballerina", name = "test"},
 	{org = "ballerina", name = "time"},
