@@ -84,7 +84,6 @@ public class ServiceOasGenerator implements AnalysisTask<SyntaxNodeAnalysisConte
 
         Optional<Symbol> symbol = context.semanticModel().symbol(serviceDeclarationNode);
         if (symbol.isEmpty()) {
-            // Add warning diagnostic
             return;
         }
         String fileName = getFileName(symbol.get().hashCode());
