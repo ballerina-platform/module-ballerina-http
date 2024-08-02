@@ -40,7 +40,6 @@ import io.swagger.v3.oas.models.OpenAPI;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 
@@ -108,17 +107,7 @@ public class ServiceOasGenerator implements AnalysisTask<SyntaxNodeAnalysisConte
     }
 
     protected static void writeOpenApiAsTargetResource(Project project, String fileName, String openApi) {
-        Path targetPath = project.targetDir();
-        // Create a folder resources if not exists
-        Path resourcesPath = targetPath.resolve("resources");
-        if (!resourcesPath.toFile().exists()) {
-            try {
-                Files.createDirectory(resourcesPath);
-            } catch (IOException e) {
-                // Add warning diagnostic
-                return;
-            }
-        }
+        Path resourcesPath = project.generatedResourcesDir();
         writeFile(fileName, openApi, resourcesPath);
     }
 
