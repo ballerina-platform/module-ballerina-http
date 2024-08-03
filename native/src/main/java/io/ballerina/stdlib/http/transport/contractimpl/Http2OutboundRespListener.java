@@ -40,6 +40,11 @@ import io.ballerina.stdlib.http.transport.message.Listener;
 import io.ballerina.stdlib.http.transport.message.PassthroughBackPressureListener;
 import io.ballerina.stdlib.http.transport.message.ServerRemoteFlowControlListener;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.compression.Brotli;
+import io.netty.handler.codec.compression.BrotliOptions;
+import io.netty.handler.codec.compression.DeflateOptions;
+import io.netty.handler.codec.compression.GzipOptions;
+import io.netty.handler.codec.compression.StandardCompressionOptions;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http2.Http2Connection;
@@ -52,6 +57,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Calendar;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static io.ballerina.stdlib.http.transport.contract.Constants.ENCODING_BR;
 import static io.ballerina.stdlib.http.transport.contract.Constants.ENCODING_DEFLATE;
 import static io.ballerina.stdlib.http.transport.contract.Constants.ENCODING_GZIP;
 import static io.ballerina.stdlib.http.transport.contract.Constants.PROMISED_STREAM_REJECTED_ERROR;
@@ -80,6 +86,10 @@ public class Http2OutboundRespListener implements HttpConnectorListener {
     private ResponseWriter defaultResponseWriter;
     private Http2ServerChannel http2ServerChannel;
 
+    private final BrotliOptions brotliOptions;
+    private final GzipOptions gzipOptions;
+    private final DeflateOptions deflateOptions;
+
     public Http2OutboundRespListener(HttpServerChannelInitializer serverChannelInitializer,
                                      HttpCarbonMessage inboundRequestMsg, ChannelHandlerContext ctx,
                                      Http2Connection conn, Http2ConnectionEncoder encoder, int streamId,
@@ -101,6 +111,10 @@ public class Http2OutboundRespListener implements HttpConnectorListener {
         http2MessageStateContext = inboundRequestMsg.getHttp2MessageStateContext();
         this.remoteFlowControlListener = remoteFlowControlListener;
         this.http2ServerChannel = http2ServerChannel;
+
+        this.gzipOptions = StandardCompressionOptions.gzip();
+        this.deflateOptions = StandardCompressionOptions.deflate();
+        this.brotliOptions = Brotli.isAvailable() ? StandardCompressionOptions.brotli() : null;
     }
 
     @Override
@@ -178,7 +192,7 @@ public class Http2OutboundRespListener implements HttpConnectorListener {
         if (contentEncoding == null) {
             String acceptEncoding = inboundRequestMsg.getHeader(HttpHeaderNames.ACCEPT_ENCODING.toString());
             if (acceptEncoding != null) {
-                String targetContentEncoding = determineScheme(acceptEncoding);
+                String targetContentEncoding = determineEncoding(acceptEncoding);
                 if (targetContentEncoding != null) {
                     outboundResponseMsg.setHeader(HttpHeaderNames.CONTENT_ENCODING.toString(), targetContentEncoding);
                 }
@@ -188,16 +202,18 @@ public class Http2OutboundRespListener implements HttpConnectorListener {
 
     /***
      * This function is to determine one encoding scheme from the request's `accept-encoding` header. The logic to
-     * determine the scheme is similar to the logic used in Netty's `determineWrapper()` function in the
+     * determine the scheme is similar to the logic used in Netty's `determineEncoding()` function in the
      * `HttpContentCompressor` class which is used to do the same, when doing the HTTP1.1 compression.
      *
      * @param acceptEncoding `accept-encoding` header value
      * @return the chosen encoding scheme
      */
-    private String determineScheme(String acceptEncoding) {
+    private String determineEncoding(String acceptEncoding) {
         float starQ = -1.0f;
         float gzipQ = -1.0f;
         float deflateQ = -1.0f;
+        float brQ = -1.0f;
+
         for (String encoding : acceptEncoding.split(",")) {
             float qValue = 1.0f;
             int equalsPos = encoding.indexOf('=');
@@ -211,6 +227,8 @@ public class Http2OutboundRespListener implements HttpConnectorListener {
             }
             if (encoding.contains("*")) {
                 starQ = qValue;
+            } else if (encoding.contains(ENCODING_BR) && qValue > brQ) {
+                brQ = qValue;
             } else if (encoding.contains(ENCODING_GZIP) && qValue > gzipQ) {
                 gzipQ = qValue;
             } else if (encoding.contains(ENCODING_DEFLATE) && qValue > deflateQ) {
@@ -219,18 +237,29 @@ public class Http2OutboundRespListener implements HttpConnectorListener {
                 LOG.debug("Server does not support the requested encoding scheme: {}", encoding);
             }
         }
-        if (gzipQ > 0.0f || deflateQ > 0.0f) {
-            if (gzipQ >= deflateQ) {
+        if (gzipQ > 0.0f || deflateQ > 0.0f || brQ > 0.0f) {
+            if (brQ != -1.0f && brQ >= gzipQ && this.brotliOptions != null) {
+                return ENCODING_BR;
+            }
+
+            if (gzipQ != -1.0f && gzipQ >= deflateQ && this.gzipOptions != null) {
                 return ENCODING_GZIP;
-            } else {
+            }
+
+            if (deflateQ != -1.0f && this.deflateOptions != null) {
                 return ENCODING_DEFLATE;
             }
         }
         if (starQ > 0.0f) {
-            if (gzipQ == -1.0f) {
+            if (brQ == -1.0f && this.brotliOptions != null) {
+                return ENCODING_BR;
+            }
+
+            if (gzipQ == -1.0f && this.gzipOptions != null) {
                 return ENCODING_GZIP;
             }
-            if (deflateQ == -1.0f) {
+
+            if (deflateQ == -1.0f && this.deflateOptions != null) {
                 return ENCODING_DEFLATE;
             }
         }
