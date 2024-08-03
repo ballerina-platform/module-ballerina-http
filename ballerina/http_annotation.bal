@@ -24,7 +24,9 @@
 # + mediaTypeSubtypePrefix - Service specific media-type subtype prefix
 # + treatNilableAsOptional - Treat Nilable parameters as optional
 # + openApiDefinition - The generated OpenAPI definition for the HTTP service. This is auto-generated at compile-time if OpenAPI doc auto generation is enabled
-# + validation - Enables the inbound payload validation functionalty which provided by the constraint package. Enabled by default
+# + validation - Enables the inbound payload validation functionality which provided by the constraint package. Enabled by default
+# + serviceType - The service object type which defines the service contract. This is auto-generated at compile-time
+# + basePath - Base path to be used with the service implementation. This is only allowed on service contract types
 public type HttpServiceConfig record {|
     string host = "b7a.default";
     CompressionConfig compression = {};
@@ -33,8 +35,11 @@ public type HttpServiceConfig record {|
     ListenerAuthConfig[] auth?;
     string mediaTypeSubtypePrefix?;
     boolean treatNilableAsOptional = true;
+    @deprecated
     byte[] openApiDefinition = [];
     boolean validation = true;
+    typedesc<ServiceContract> serviceType?;
+    string basePath?;
 |};
 
 # Configurations for CORS support.
@@ -55,7 +60,7 @@ public type CorsConfig record {|
 |};
 
 # The annotation which is used to configure an HTTP service.
-public annotation HttpServiceConfig ServiceConfig on service;
+public annotation HttpServiceConfig ServiceConfig on service, type;
 
 # Configuration for an HTTP resource.
 #
@@ -108,13 +113,13 @@ public type HttpHeader record {|
 |};
 
 # The annotation which is used to define the Header resource signature parameter.
-public annotation HttpHeader Header on parameter;
+public const annotation HttpHeader Header on parameter;
 
 # Defines the query resource signature parameter.
 public type HttpQuery record {||};
 
 # The annotation which is used to define the query resource signature parameter.
-public annotation HttpQuery Query on parameter;
+public const annotation HttpQuery Query on parameter;
 
 # Defines the HTTP response cache configuration. By default the `no-cache` directive is setted to the `cache-control`
 # header. In addition to that `etag` and `last-modified` headers are also added for cache validation.

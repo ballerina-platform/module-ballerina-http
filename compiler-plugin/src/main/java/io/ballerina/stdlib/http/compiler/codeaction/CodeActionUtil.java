@@ -20,10 +20,18 @@ import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
+import io.ballerina.projects.plugins.codeaction.CodeActionArgument;
+import io.ballerina.projects.plugins.codeaction.CodeActionExecutionContext;
+import io.ballerina.projects.plugins.codeaction.CodeActionInfo;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextRange;
+
+import java.util.List;
+import java.util.Optional;
+
+import static io.ballerina.stdlib.http.compiler.codeaction.Constants.NODE_LOCATION_KEY;
 
 /**
  * Utilities for code actions.
@@ -89,5 +97,32 @@ public class CodeActionUtil {
                 pos.line() == eLine && pos.offset() <= eCol ||
                 pos.line() == sLine && pos.offset() >= sCol
         ));
+    }
+
+    /**
+     * Get code action info with location.
+     *
+     * @param node  Node
+     * @param title Title
+     * @return Code action info with location
+     */
+    public static Optional<CodeActionInfo> getCodeActionInfoWithLocation(NonTerminalNode node, String title) {
+        CodeActionArgument locationArg = CodeActionArgument.from(NODE_LOCATION_KEY, node.location().lineRange());
+        return Optional.of(CodeActionInfo.from(title, List.of(locationArg)));
+    }
+
+    /**
+     * Get line range from location key.
+     *
+     * @param context Code action execution context
+     * @return Line range
+     */
+    public static Optional<LineRange> getLineRangeFromLocationKey(CodeActionExecutionContext context) {
+        for (CodeActionArgument argument : context.arguments()) {
+            if (NODE_LOCATION_KEY.equals(argument.key())) {
+                return Optional.of(argument.valueAs(LineRange.class));
+            }
+        }
+        return Optional.empty();
     }
 }

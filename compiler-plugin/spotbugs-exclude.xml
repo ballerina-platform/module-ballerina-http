@@ -42,13 +42,53 @@
         <Bug pattern="EI_EXPOSE_REP"/>
     </Match>
     <Match>
-        <Class name="io.ballerina.stdlib.http.compiler.codemodifier.HttpPayloadParamIdentifier"/>
+        <Class name="io.ballerina.stdlib.http.compiler.codemodifier.payload.HttpPayloadParamIdentifier"/>
         <Field name="documentContextMap"/>
         <Bug pattern="EI_EXPOSE_REP2"/>
     </Match>
     <Match>
-        <Class name="io.ballerina.stdlib.http.compiler.codemodifier.PayloadAnnotationModifierTask"/>
+        <Class name="io.ballerina.stdlib.http.compiler.codemodifier.payload.PayloadAnnotationModifierTask"/>
         <Field name="documentContextMap"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.compiler.codemodifier.oas.context.OpenApiDocContextHandler"/>
+        <Method name="getContextHandler"/>
+        <Bug pattern="MS_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Record name="io.ballerina.stdlib.http.compiler.codemodifier.oas.context.ServiceNodeAnalysisContext"/>
+        <Method name="diagnostics"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Record name="io.ballerina.stdlib.http.compiler.codemodifier.oas.context.ServiceNodeAnalysisContext"/>
+        <Method name="node"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Record name="io.ballerina.stdlib.http.compiler.codemodifier.oas.context.ServiceNodeAnalysisContext"/>
+        <Field name="node"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Record name="io.ballerina.stdlib.http.compiler.codemodifier.oas.gen.OpenApiDocConfig"/>
+        <Method name="serviceNode"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Record name="io.ballerina.stdlib.http.compiler.codemodifier.oas.gen.OpenApiDocConfig"/>
+        <Field name="serviceNode"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Record name="io.ballerina.stdlib.http.compiler.HttpServiceAnalyzer("/>
+        <Field name="ctxData"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Record name="io.ballerina.stdlib.http.compiler.codemodifier.HttpServiceModifier"/>
+        <Field name="ctxData"/>
         <Bug pattern="EI_EXPOSE_REP2"/>
     </Match>
 </FindBugsFilter>

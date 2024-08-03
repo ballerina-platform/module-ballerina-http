@@ -18,24 +18,33 @@
 
 package io.ballerina.stdlib.http.compiler;
 
+import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.Types;
 import io.ballerina.compiler.api.symbols.FunctionSymbol;
 import io.ballerina.compiler.api.symbols.FunctionTypeSymbol;
 import io.ballerina.compiler.api.symbols.IntersectionTypeSymbol;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
+import io.ballerina.compiler.api.symbols.ServiceDeclarationSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
+import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
+import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
+import io.ballerina.compiler.syntax.tree.ObjectTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
+import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
+import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
+import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.diagnostics.DiagnosticFactory;
 import io.ballerina.tools.diagnostics.DiagnosticInfo;
 import io.ballerina.tools.diagnostics.DiagnosticProperty;
+import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 import io.ballerina.tools.diagnostics.Location;
 
 import java.util.HashMap;
@@ -59,6 +68,7 @@ import static io.ballerina.stdlib.http.compiler.Constants.FLOAT;
 import static io.ballerina.stdlib.http.compiler.Constants.FLOAT_ARRAY;
 import static io.ballerina.stdlib.http.compiler.Constants.HEADER_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
+import static io.ballerina.stdlib.http.compiler.Constants.HTTP_SERVICE_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.INT;
 import static io.ballerina.stdlib.http.compiler.Constants.INTERCEPTOR_RESOURCE_RETURN_TYPE;
 import static io.ballerina.stdlib.http.compiler.Constants.INT_ARRAY;
@@ -98,25 +108,25 @@ public final class HttpCompilerPluginUtil {
     private HttpCompilerPluginUtil() {}
 
     public static void updateDiagnostic(SyntaxNodeAnalysisContext ctx, Location location,
-                                        HttpDiagnosticCodes httpDiagnosticCodes) {
+                                        HttpDiagnostic httpDiagnosticCodes) {
         DiagnosticInfo diagnosticInfo = getDiagnosticInfo(httpDiagnosticCodes);
         ctx.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, location));
     }
 
     public static void updateDiagnostic(SyntaxNodeAnalysisContext ctx, Location location,
-                                        HttpDiagnosticCodes httpDiagnosticCodes, Object... argName) {
+                                        HttpDiagnostic httpDiagnosticCodes, Object... argName) {
         DiagnosticInfo diagnosticInfo = getDiagnosticInfo(httpDiagnosticCodes, argName);
         ctx.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, location));
     }
 
     public static void updateDiagnostic(SyntaxNodeAnalysisContext ctx, Location location,
-                                        HttpDiagnosticCodes httpDiagnosticCodes,
+                                        HttpDiagnostic httpDiagnosticCodes,
                                         List<DiagnosticProperty<?>> diagnosticProperties, String argName) {
         DiagnosticInfo diagnosticInfo = getDiagnosticInfo(httpDiagnosticCodes, argName);
         ctx.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, location, diagnosticProperties));
     }
 
-    public static DiagnosticInfo getDiagnosticInfo(HttpDiagnosticCodes diagnostic, Object... args) {
+    public static DiagnosticInfo getDiagnosticInfo(HttpDiagnostic diagnostic, Object... args) {
         return new DiagnosticInfo(diagnostic.getCode(), String.format(diagnostic.getMessage(), args),
                 diagnostic.getSeverity());
     }
@@ -128,7 +138,7 @@ public final class HttpCompilerPluginUtil {
     public static void extractInterceptorReturnTypeAndValidate(SyntaxNodeAnalysisContext ctx,
                                                                Map<String, TypeSymbol> typeSymbols,
                                                                FunctionDefinitionNode member,
-                                                               HttpDiagnosticCodes httpDiagnosticCode) {
+                                                               HttpDiagnostic httpDiagnosticCode) {
         Optional<ReturnTypeDescriptorNode> returnTypeDescriptorNode = member.functionSignature().returnTypeDesc();
         if (returnTypeDescriptorNode.isEmpty()) {
             return;
@@ -154,7 +164,7 @@ public final class HttpCompilerPluginUtil {
 
     public static void validateResourceReturnType(SyntaxNodeAnalysisContext ctx, Node node,
                                                   Map<String, TypeSymbol> typeSymbols, String returnTypeStringValue,
-                                                  TypeSymbol returnTypeSymbol, HttpDiagnosticCodes diagnosticCode,
+                                                  TypeSymbol returnTypeSymbol, HttpDiagnostic diagnosticCode,
                                                   boolean isInterceptorType) {
         if (subtypeOf(typeSymbols, returnTypeSymbol,
                 isInterceptorType ? INTERCEPTOR_RESOURCE_RETURN_TYPE : RESOURCE_RETURN_TYPE)) {
@@ -200,16 +210,16 @@ public final class HttpCompilerPluginUtil {
     }
 
     private static void reportInvalidReturnType(SyntaxNodeAnalysisContext ctx, Node node,
-                                                String returnType, HttpDiagnosticCodes diagnosticCode) {
+                                                String returnType, HttpDiagnostic diagnosticCode) {
         HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), diagnosticCode, returnType);
     }
 
     private static void reportReturnTypeAnnotationsAreNotAllowed(SyntaxNodeAnalysisContext ctx, Node node) {
-        HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), HttpDiagnosticCodes.HTTP_142);
+        HttpCompilerPluginUtil.updateDiagnostic(ctx, node.location(), HttpDiagnostic.HTTP_142);
     }
 
     public static void reportMissingParameterError(SyntaxNodeAnalysisContext ctx, Location location, String method) {
-        updateDiagnostic(ctx, location, HttpDiagnosticCodes.HTTP_143, method);
+        updateDiagnostic(ctx, location, HttpDiagnostic.HTTP_143, method);
     }
 
     public static String getNodeString(Node node, boolean isCaseSensitive) {
@@ -308,5 +318,73 @@ public final class HttpCompilerPluginUtil {
                 typeSymbols.get(DECIMAL_ARRAY), types.NIL).build());
         typeSymbols.put(NILABLE_MAP_OF_ANYDATA_ARRAY, types.builder().UNION_TYPE.withMemberTypes(
                 typeSymbols.get(ARRAY_OF_MAP_OF_ANYDATA), types.NIL).build());
+    }
+
+    public static boolean diagnosticContainsErrors(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext) {
+        List<Diagnostic> diagnostics = syntaxNodeAnalysisContext.semanticModel().diagnostics();
+        return diagnostics.stream()
+                .anyMatch(d -> DiagnosticSeverity.ERROR.equals(d.diagnosticInfo().severity()));
+    }
+
+    public static ServiceDeclarationNode getServiceDeclarationNode(SyntaxNodeAnalysisContext context) {
+        if (!(context.node() instanceof ServiceDeclarationNode serviceDeclarationNode)) {
+            return null;
+        }
+        return getServiceDeclarationNode(serviceDeclarationNode, context.semanticModel());
+    }
+
+    public static ServiceDeclarationNode getServiceDeclarationNode(Node node, SemanticModel semanticModel) {
+        if (!(node instanceof ServiceDeclarationNode serviceDeclarationNode)) {
+            return null;
+        }
+
+        Optional<Symbol> serviceSymOptional = semanticModel.symbol(node);
+        if (serviceSymOptional.isPresent()) {
+            List<TypeSymbol> listenerTypes = ((ServiceDeclarationSymbol) serviceSymOptional.get()).listenerTypes();
+            if (listenerTypes.stream().noneMatch(HttpCompilerPluginUtil::isListenerBelongsToHttpModule)) {
+                return null;
+            }
+        }
+        return serviceDeclarationNode;
+    }
+
+    private static boolean isListenerBelongsToHttpModule(TypeSymbol listenerType) {
+        if (listenerType.typeKind() == TypeDescKind.UNION) {
+            return ((UnionTypeSymbol) listenerType).memberTypeDescriptors().stream()
+                    .filter(typeDescriptor -> typeDescriptor instanceof TypeReferenceTypeSymbol)
+                    .map(typeReferenceTypeSymbol -> (TypeReferenceTypeSymbol) typeReferenceTypeSymbol)
+                    .anyMatch(typeReferenceTypeSymbol -> isHttpModule(typeReferenceTypeSymbol.getModule().get()));
+        }
+
+        if (listenerType.typeKind() == TypeDescKind.TYPE_REFERENCE) {
+            return isHttpModule(((TypeReferenceTypeSymbol) listenerType).typeDescriptor().getModule().get());
+        }
+        return false;
+    }
+
+    public static boolean isServiceObjectType(ObjectTypeDescriptorNode typeNode) {
+        return typeNode.objectTypeQualifiers().stream().anyMatch(
+                qualifier -> qualifier.kind().equals(SyntaxKind.SERVICE_KEYWORD));
+    }
+
+    public static boolean isHttpServiceType(SemanticModel semanticModel, Node typeNode) {
+        if (!(typeNode instanceof ObjectTypeDescriptorNode serviceObjType) || !isServiceObjectType(serviceObjType)) {
+            return false;
+        }
+
+        Optional<Symbol> serviceObjSymbol = semanticModel.symbol(serviceObjType.parent());
+        if (serviceObjSymbol.isEmpty() ||
+                (!(serviceObjSymbol.get() instanceof TypeDefinitionSymbol serviceObjTypeDef))) {
+            return false;
+        }
+
+        Optional<Symbol> serviceContractType = semanticModel.types().getTypeByName(BALLERINA, HTTP, EMPTY,
+                HTTP_SERVICE_TYPE);
+        if (serviceContractType.isEmpty() ||
+                !(serviceContractType.get() instanceof TypeDefinitionSymbol serviceContractTypeDef)) {
+            return false;
+        }
+
+        return serviceObjTypeDef.typeDescriptor().subtypeOf(serviceContractTypeDef.typeDescriptor());
     }
 }

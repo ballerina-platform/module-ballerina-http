@@ -37,6 +37,10 @@
         <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD" />
     </Match>
     <Match>
+        <Class name="io.ballerina.stdlib.http.compiler.codeaction.ImplementServiceContractTest" />
+        <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD" />
+    </Match>
+    <Match>
         <Class name="io.ballerina.stdlib.http.compiler.completion.AbstractCompletionTest$TestConfig" />
         <Method name="getItems" />
         <Bug pattern="EI_EXPOSE_REP" />

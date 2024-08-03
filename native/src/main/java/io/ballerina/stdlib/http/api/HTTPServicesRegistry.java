@@ -21,19 +21,29 @@ package io.ballerina.stdlib.http.api;
 
 import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.creators.ErrorCreator;
+import io.ballerina.runtime.api.types.ReferenceType;
+import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.utils.TypeUtils;
+import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.api.values.BString;
+import io.ballerina.runtime.api.values.BTypedesc;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import static io.ballerina.stdlib.http.api.HttpConstants.DEFAULT_BASE_PATH;
 import static io.ballerina.stdlib.http.api.HttpConstants.DEFAULT_HOST;
+import static io.ballerina.stdlib.http.api.HttpUtil.checkConfigAnnotationAvailability;
 
 /**
  * This services registry holds all the services of HTTP + WebSocket. This is a singleton class where all HTTP +
@@ -44,12 +54,14 @@ import static io.ballerina.stdlib.http.api.HttpConstants.DEFAULT_HOST;
 public class HTTPServicesRegistry {
 
     private static final Logger logger = LoggerFactory.getLogger(HTTPServicesRegistry.class);
+    private static final BString SERVICE_TYPE = StringUtils.fromString("serviceType");
 
     protected Map<String, ServicesMapHolder> servicesMapByHost = new ConcurrentHashMap<>();
     protected Map<String, HttpService> servicesByBasePath;
     protected List<String> sortedServiceURIs;
     private Runtime runtime;
     private boolean possibleLastService = true;
+    private List<BObject> serviceContractImpls = new ArrayList<>();
 
     /**
      * Get ServiceInfo instance for given interface and base path.
@@ -95,10 +107,33 @@ public class HTTPServicesRegistry {
      * Register a service into the map.
      *
      * @param service  requested serviceInfo to be registered.
-     * @param basePath absolute resource path of the service
+     * @param basePathFromDeclaration absolute resource path of the service
      */
-    public void registerService(BObject service, String basePath) {
-        HttpService httpService = HttpService.buildHttpService(service, basePath);
+    public void registerService(BObject service, String basePathFromDeclaration) {
+        Optional<ReferenceType> serviceContractType = getServiceContractType(service);
+        if (serviceContractType.isPresent()) {
+            serviceContractImpls.add(service);
+            return;
+        }
+        HttpService httpService = serviceContractType.map(referenceType ->
+                HttpServiceFromContract.buildHttpService(service, basePathFromDeclaration,
+                        referenceType)).orElseGet(
+                                () -> HttpService.buildHttpService(service, basePathFromDeclaration));
+        registerBallerinaService(service, httpService);
+    }
+
+    public void registerServiceImplementedByContract(BObject service) {
+        Optional<ReferenceType> serviceContractType = getServiceContractType(service);
+        if (serviceContractType.isEmpty()) {
+            return;
+        }
+        HttpService httpService = HttpServiceFromContract.buildHttpService(service, DEFAULT_BASE_PATH,
+                serviceContractType.get());
+        registerBallerinaService(service, httpService);
+    }
+
+    private void registerBallerinaService(BObject service, HttpService httpService) {
+        String basePath = httpService.getBasePath();
         service.addNativeData(HttpConstants.ABSOLUTE_RESOURCE_PATH, basePath);
         String hostName = httpService.getHostName();
         if (servicesMapByHost.get(hostName) == null) {
@@ -125,6 +160,30 @@ public class HTTPServicesRegistry {
         //basePath will get cached after registering service
         sortedServiceURIs.add(basePath);
         sortedServiceURIs.sort((basePath1, basePath2) -> basePath2.length() - basePath1.length());
+    }
+
+    public List<BObject> getServiceContractImpls() {
+        return serviceContractImpls;
+    }
+
+
+    private static Optional<ReferenceType> getServiceContractType(BObject service) {
+        BMap serviceConfig = HttpService.getHttpServiceConfigAnnotation(service);
+        if (!checkConfigAnnotationAvailability(serviceConfig)) {
+            return Optional.empty();
+        }
+
+        Object serviceType = ((BMap<BString, Object>) serviceConfig).get(SERVICE_TYPE);
+        if (Objects.isNull(serviceType) || !(serviceType instanceof BTypedesc serviceTypeDesc)) {
+            return Optional.empty();
+        }
+
+        Type serviceContractType = serviceTypeDesc.getDescribingType();
+        if (Objects.isNull(serviceContractType) ||
+                !(serviceContractType instanceof ReferenceType serviceContractRefType)) {
+            return Optional.empty();
+        }
+        return Optional.of(serviceContractRefType);
     }
 
     public String findTheMostSpecificBasePath(String requestURIPath, Map<String, HttpService> services,
