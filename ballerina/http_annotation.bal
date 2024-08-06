@@ -113,13 +113,13 @@ public type HttpHeader record {|
 |};
 
 # The annotation which is used to define the Header resource signature parameter.
-public const annotation HttpHeader Header on parameter;
+public annotation HttpHeader Header on parameter;
 
 # Defines the query resource signature parameter.
 public type HttpQuery record {||};
 
 # The annotation which is used to define the query resource signature parameter.
-public const annotation HttpQuery Query on parameter;
+public annotation HttpQuery Query on parameter;
 
 # Defines the HTTP response cache configuration. By default the `no-cache` directive is setted to the `cache-control`
 # header. In addition to that `etag` and `last-modified` headers are also added for cache validation.
