@@ -244,12 +244,17 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
             Location diagnosticLocation = diagnostic.location();
 
             if (diagnostic.message().contains("no implementation found for the method 'resource function")
-                    && diagnosticLocation.textRange().equals(location.textRange())
-                    && diagnosticLocation.lineRange().equals(location.lineRange())) {
+                    && intersects(location, diagnosticLocation)) {
                 enableImplementServiceContractCodeAction(context, serviceType, location);
                 return;
             }
         }
+    }
+
+    private static boolean intersects(Location targetLocation, Location diagnosticLocation) {
+        return targetLocation.lineRange().startLine().line() <= diagnosticLocation.lineRange().startLine().line() &&
+                targetLocation.lineRange().endLine().line() >= diagnosticLocation.lineRange().endLine().line() &&
+                targetLocation.textRange().intersectionExists(diagnosticLocation.textRange());
     }
 
     private static void validateResourceLinks(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext,
