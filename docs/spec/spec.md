@@ -58,6 +58,7 @@ The conforming implementation of the specification is released and included in t
             * 2.4.1.6. [Cookie](#2416-cookie)
             * 2.4.1.7. [Load balance](#2417-load-balance)
             * 2.4.1.8. [Failover](#2418-failover)
+            * 2.4.1.9. [Status code binding client](#2419-status-code-binding-client)
         * 2.4.2. [Client actions](#242-client-action)
             * 2.4.2.1. [Entity body methods](#2421-entity-body-methods)
             * 2.4.2.2. [Non entity body methods](#2422-non-entity-body-methods)
@@ -1305,6 +1306,28 @@ http:FailoverClient foBackendEP00 = check new (
     ]
 )
 ```
+
+##### 2.4.1.9 Status code binding client
+
+An HTTP status code binding client can be used to bind the response to the status code response records.
+
+```ballerina
+final http:StatusCodeClient albumClient = check new ("localhost:9090");
+
+public type AlbumsOk record {|
+    *http:Ok;
+    Album[] body;
+|};
+
+public function main() {
+    // Status code response binding with generic type 
+    http:Ok|error response1 = albumClient->/v1/albums;
+    
+    // Status code response binding with specific body type
+    AlbumsOk|error response2 = albumClient->/v1/albums;
+}
+```
+
 ##### 2.4.2. Client action
 
 The HTTP client contains separate remote method representing each HTTP method such as `get`, `put`, `post`,
