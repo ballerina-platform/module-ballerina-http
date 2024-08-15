@@ -21,15 +21,35 @@ package io.ballerina.stdlib.http.compiler;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.projects.plugins.CodeAnalysisContext;
 import io.ballerina.projects.plugins.CodeAnalyzer;
+import io.ballerina.stdlib.http.compiler.oas.ServiceContractOasGenerator;
+import io.ballerina.stdlib.http.compiler.oas.ServiceOasGenerator;
+
+import java.util.Map;
 
 /**
  * The {@code CodeAnalyzer} for Ballerina Http services.
  */
 public class HttpServiceAnalyzer extends CodeAnalyzer {
+    private final Map<String, Object> ctxData;
+
+    public HttpServiceAnalyzer(Map<String, Object> ctxData) {
+        this.ctxData = ctxData;
+    }
+
     @Override
     public void init(CodeAnalysisContext codeAnalysisContext) {
+        codeAnalysisContext.addSyntaxNodeAnalysisTask(new HttpServiceObjTypeAnalyzer(), SyntaxKind.OBJECT_TYPE_DESC);
         codeAnalysisContext.addSyntaxNodeAnalysisTask(new HttpServiceValidator(), SyntaxKind.SERVICE_DECLARATION);
+
+        boolean httpCodeModifierExecuted = (boolean) ctxData.getOrDefault("HTTP_CODE_MODIFIER_EXECUTED", false);
+        if (httpCodeModifierExecuted) {
+            codeAnalysisContext.addSyntaxNodeAnalysisTask(new ServiceContractOasGenerator(),
+                    SyntaxKind.OBJECT_TYPE_DESC);
+            codeAnalysisContext.addSyntaxNodeAnalysisTask(new ServiceOasGenerator(),
+                    SyntaxKind.SERVICE_DECLARATION);
+        }
+
         codeAnalysisContext.addSyntaxNodeAnalysisTask(new HttpInterceptorServiceValidator(),
-                                                      SyntaxKind.CLASS_DEFINITION);
+                SyntaxKind.CLASS_DEFINITION);
     }
 }

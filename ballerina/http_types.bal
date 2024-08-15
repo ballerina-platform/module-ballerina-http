@@ -29,6 +29,11 @@ public type Service distinct service object {
 
 };
 
+# The HTTP service contract type.
+public type ServiceContract distinct service object {
+    *Service;
+};
+
 # The types of data values that are expected by the HTTP `client` to return after the data binding operation.
 public type TargetType typedesc<Response|anydata|stream<SseEvent, error?>>;
 

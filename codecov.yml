@@ -5,6 +5,7 @@ fixes:
 ignore:
   - "ballerina-tests"
   - "test-utils"
+  - "compiler-plugin/src/main/java/io/ballerina/stdlib/http/compiler/oas" # This is covered in OpenAPI tool
 
 coverage:
   precision: 2

@@ -22,12 +22,11 @@ import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.projects.plugins.codeaction.CodeAction;
-import io.ballerina.projects.plugins.codeaction.CodeActionArgument;
 import io.ballerina.projects.plugins.codeaction.CodeActionContext;
 import io.ballerina.projects.plugins.codeaction.CodeActionExecutionContext;
 import io.ballerina.projects.plugins.codeaction.CodeActionInfo;
 import io.ballerina.projects.plugins.codeaction.DocumentEdit;
-import io.ballerina.stdlib.http.compiler.HttpDiagnosticCodes;
+import io.ballerina.stdlib.http.compiler.HttpDiagnostic;
 import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextDocumentChange;
@@ -39,7 +38,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static io.ballerina.stdlib.http.compiler.codeaction.Constants.NODE_LOCATION_KEY;
+import static io.ballerina.stdlib.http.compiler.codeaction.CodeActionUtil.getCodeActionInfoWithLocation;
+import static io.ballerina.stdlib.http.compiler.codeaction.CodeActionUtil.getLineRangeFromLocationKey;
 
 /**
  * CodeAction to add response content-type.
@@ -47,7 +47,7 @@ import static io.ballerina.stdlib.http.compiler.codeaction.Constants.NODE_LOCATI
 public class AddResponseContentTypeCodeAction implements CodeAction {
     @Override
     public List<String> supportedDiagnosticCodes() {
-        return List.of(HttpDiagnosticCodes.HTTP_HINT_103.getCode());
+        return List.of(HttpDiagnostic.HTTP_HINT_103.getCode());
     }
 
     @Override
@@ -58,24 +58,19 @@ public class AddResponseContentTypeCodeAction implements CodeAction {
             return Optional.empty();
         }
 
-        CodeActionArgument locationArg = CodeActionArgument.from(NODE_LOCATION_KEY, node.location().lineRange());
-        return Optional.of(CodeActionInfo.from("Add response content-type", List.of(locationArg)));
+        return getCodeActionInfoWithLocation(node, "Add response content-type");
     }
 
     @Override
     public List<DocumentEdit> execute(CodeActionExecutionContext context) {
-        LineRange lineRange = null;
-        for (CodeActionArgument arg : context.arguments()) {
-            if (NODE_LOCATION_KEY.equals(arg.key())) {
-                lineRange = arg.valueAs(LineRange.class);
-            }
-        }
-        if (lineRange == null) {
+        Optional<LineRange> lineRange = getLineRangeFromLocationKey(context);
+
+        if (lineRange.isEmpty()) {
             return Collections.emptyList();
         }
 
         SyntaxTree syntaxTree = context.currentDocument().syntaxTree();
-        NonTerminalNode node = CodeActionUtil.findNode(syntaxTree, lineRange);
+        NonTerminalNode node = CodeActionUtil.findNode(syntaxTree, lineRange.get());
 
         String mediaTypedPayload = "@http:Payload{mediaType: \"\"} ";
         int start = node.position();

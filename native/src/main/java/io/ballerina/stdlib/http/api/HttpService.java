@@ -26,6 +26,7 @@ import io.ballerina.runtime.api.flags.SymbolFlags;
 import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.MethodType;
 import io.ballerina.runtime.api.types.ObjectType;
+import io.ballerina.runtime.api.types.ResourceMethodType;
 import io.ballerina.runtime.api.types.ServiceType;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.utils.TypeUtils;
@@ -43,11 +44,14 @@ import io.ballerina.stdlib.http.uri.parser.Literal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
@@ -70,9 +74,7 @@ public class HttpService implements Service {
 
     private static final Logger log = LoggerFactory.getLogger(HttpService.class);
 
-    protected static final BString BASE_PATH_FIELD = fromString("basePath");
     private static final BString CORS_FIELD = fromString("cors");
-    private static final BString VERSIONING_FIELD = fromString("versioning");
     private static final BString HOST_FIELD = fromString("host");
     private static final BString OPENAPI_DEF_FIELD = fromString("openApiDefinition");
     private static final BString MEDIA_TYPE_SUBTYPE_PREFIX = fromString("mediaTypeSubtypePrefix");
@@ -115,7 +117,7 @@ public class HttpService implements Service {
         this.keepAlive = keepAlive;
     }
 
-    private void setCompressionConfig(BMap<BString, Object> compression) {
+    protected void setCompressionConfig(BMap<BString, Object> compression) {
         this.compression = compression;
     }
 
@@ -220,7 +222,9 @@ public class HttpService implements Service {
     }
 
     public void setIntrospectionPayload(byte[] introspectionPayload) {
-        this.introspectionPayload = introspectionPayload.clone();
+        if (this.introspectionPayload.length == 0) {
+            this.introspectionPayload = introspectionPayload.clone();
+        }
     }
 
     public byte[] getIntrospectionPayload() {
@@ -238,31 +242,36 @@ public class HttpService implements Service {
     public static HttpService buildHttpService(BObject service, String basePath) {
         HttpService httpService = new HttpService(service, basePath);
         BMap serviceConfig = getHttpServiceConfigAnnotation(service);
-        if (checkConfigAnnotationAvailability(serviceConfig)) {
-            httpService.setCompressionConfig(
-                    (BMap<BString, Object>) serviceConfig.get(HttpConstants.ANN_CONFIG_ATTR_COMPRESSION));
-            httpService.setChunkingConfig(serviceConfig.get(HttpConstants.ANN_CONFIG_ATTR_CHUNKING).toString());
-            httpService.setCorsHeaders(CorsHeaders.buildCorsHeaders(serviceConfig.getMapValue(CORS_FIELD)));
-            httpService.setHostName(serviceConfig.getStringValue(HOST_FIELD).getValue().trim());
-            httpService.setIntrospectionPayload(serviceConfig.getArrayValue(OPENAPI_DEF_FIELD).getByteArray());
-            if (serviceConfig.containsKey(MEDIA_TYPE_SUBTYPE_PREFIX)) {
-                httpService.setMediaTypeSubtypePrefix(serviceConfig.getStringValue(MEDIA_TYPE_SUBTYPE_PREFIX)
-                        .getValue().trim());
-            }
-            httpService.setTreatNilableAsOptional(serviceConfig.getBooleanValue(TREAT_NILABLE_AS_OPTIONAL));
-            httpService.setConstraintValidation(serviceConfig.getBooleanValue(DATA_VALIDATION));
-        } else {
-            httpService.setHostName(HttpConstants.DEFAULT_HOST);
-        }
-        processResources(httpService);
-        httpService.setAllAllowedMethods(DispatcherUtil.getAllResourceMethods(httpService));
+        httpService.populateIntrospectionPayload();
+        httpService.populateServiceConfig(serviceConfig);
         return httpService;
     }
 
-    private static void processResources(HttpService httpService) {
+    protected void populateServiceConfig(BMap serviceConfig) {
+        if (checkConfigAnnotationAvailability(serviceConfig)) {
+            this.setCompressionConfig(
+                    (BMap<BString, Object>) serviceConfig.get(HttpConstants.ANN_CONFIG_ATTR_COMPRESSION));
+            this.setChunkingConfig(serviceConfig.get(HttpConstants.ANN_CONFIG_ATTR_CHUNKING).toString());
+            this.setCorsHeaders(CorsHeaders.buildCorsHeaders(serviceConfig.getMapValue(CORS_FIELD)));
+            this.setHostName(serviceConfig.getStringValue(HOST_FIELD).getValue().trim());
+            // TODO: Remove once the field is removed from the annotation
+            this.setIntrospectionPayload(serviceConfig.getArrayValue(OPENAPI_DEF_FIELD).getByteArray());
+            if (serviceConfig.containsKey(MEDIA_TYPE_SUBTYPE_PREFIX)) {
+                this.setMediaTypeSubtypePrefix(serviceConfig.getStringValue(MEDIA_TYPE_SUBTYPE_PREFIX)
+                        .getValue().trim());
+            }
+            this.setTreatNilableAsOptional(serviceConfig.getBooleanValue(TREAT_NILABLE_AS_OPTIONAL));
+            this.setConstraintValidation(serviceConfig.getBooleanValue(DATA_VALIDATION));
+        } else {
+            this.setHostName(HttpConstants.DEFAULT_HOST);
+        }
+        processResources(this);
+        this.setAllAllowedMethods(DispatcherUtil.getAllResourceMethods(this));
+    }
+
+    protected static void processResources(HttpService httpService) {
         List<HttpResource> httpResources = new ArrayList<>();
-        for (MethodType resource : ((ServiceType) TypeUtils.getType(
-                httpService.getBalService())).getResourceMethods()) {
+        for (MethodType resource : httpService.getResourceMethods()) {
             if (!SymbolFlags.isFlagOn(resource.getFlags(), SymbolFlags.RESOURCE)) {
                 continue;
             }
@@ -280,6 +289,10 @@ public class HttpService implements Service {
         }
         processLinks(httpService, httpResources);
         httpService.setResources(httpResources);
+    }
+
+    protected ResourceMethodType[] getResourceMethods() {
+        return ((ServiceType) TypeUtils.getType(balService)).getResourceMethods();
     }
 
     private static void processLinks(HttpService httpService, List<HttpResource> httpResources) {
@@ -395,7 +408,7 @@ public class HttpService implements Service {
         httpResources.add(httpResource);
     }
 
-    private static BMap getHttpServiceConfigAnnotation(BObject service) {
+    public static BMap getHttpServiceConfigAnnotation(BObject service) {
         return getServiceConfigAnnotation(service, ModuleUtils.getHttpPackageIdentifier(),
                                           HttpConstants.ANN_NAME_HTTP_SERVICE_CONFIG);
     }
@@ -405,6 +418,36 @@ public class HttpService implements Service {
         String key = packagePath.replaceAll(HttpConstants.REGEX, HttpConstants.SINGLE_SLASH);
         return (BMap) ((ObjectType) TypeUtils.getReferredType(TypeUtils.getType(service))).getAnnotation(
                 fromString(key + ":" + annotationName));
+    }
+
+    private static Optional<String> getOpenApiDocFileName(BObject service) {
+        BMap openApiDocMap = (BMap) ((ObjectType) TypeUtils.getReferredType(TypeUtils.getType(service))).getAnnotation(
+                fromString("ballerina/lang.annotations:0:IntrospectionDocConfig"));
+        if (Objects.isNull(openApiDocMap)) {
+            return Optional.empty();
+        }
+        BString name = openApiDocMap.getStringValue(fromString("name"));
+        return Objects.isNull(name) ? Optional.empty() : Optional.of(name.getValue());
+    }
+
+    protected void populateIntrospectionPayload() {
+        Optional<String> openApiFileNameOpt = getOpenApiDocFileName(balService);
+        if (openApiFileNameOpt.isEmpty()) {
+            return;
+        }
+        // Load from resources
+        String openApiFileName = openApiFileNameOpt.get();
+        String openApiDocPath = String.format("resources/openapi_%s.json",
+                openApiFileName.startsWith("-") ? "0" + openApiFileName.substring(1) : openApiFileName);
+        try (InputStream is = HttpService.class.getClassLoader().getResourceAsStream(openApiDocPath)) {
+            if (Objects.isNull(is)) {
+                log.debug("OpenAPI definition is not available in the resources");
+                return;
+            }
+            this.setIntrospectionPayload(is.readAllBytes());
+        } catch (IOException e) {
+            log.debug("Error while loading OpenAPI definition from resources", e);
+        }
     }
 
     @Override
@@ -544,7 +587,7 @@ public class HttpService implements Service {
         return constraintValidation;
     }
 
-    private void setConstraintValidation(boolean constraintValidation) {
+    protected void setConstraintValidation(boolean constraintValidation) {
         this.constraintValidation = constraintValidation;
     }
 }

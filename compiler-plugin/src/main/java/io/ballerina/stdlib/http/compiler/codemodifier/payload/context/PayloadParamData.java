@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package io.ballerina.stdlib.http.compiler.codemodifier.context;
+package io.ballerina.stdlib.http.compiler.codemodifier.payload.context;
 
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
 
@@ -25,12 +25,12 @@ import io.ballerina.compiler.api.symbols.ParameterSymbol;
  *
  * @since 2201.5.0
  */
-public class ParamData {
+public class PayloadParamData {
 
     private ParameterSymbol parameterSymbol;
     private int index;
 
-    public ParamData(ParameterSymbol parameterSymbol, int index) {
+    public PayloadParamData(ParameterSymbol parameterSymbol, int index) {
         this.setParameterSymbol(parameterSymbol);
         this.setIndex(index);
     }
