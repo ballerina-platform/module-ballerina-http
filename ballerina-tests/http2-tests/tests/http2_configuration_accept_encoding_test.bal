@@ -55,7 +55,7 @@ function testHttp2AcceptEncodingEnabled() {
     http:Response|error response = http2AcceptEncodingEnableEP->post("/", req);
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
-        common:assertJsonValue(response.getJsonPayload(), "acceptEncoding", "deflate, gzip");
+        common:assertJsonValue(response.getJsonPayload(), "acceptEncoding", "deflate, gzip, br");
         common:assertHeaderValue(response.server, "Mysql");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
