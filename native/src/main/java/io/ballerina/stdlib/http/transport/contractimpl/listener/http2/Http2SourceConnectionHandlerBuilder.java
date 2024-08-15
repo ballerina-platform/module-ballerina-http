@@ -23,6 +23,7 @@ import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
 import io.ballerina.stdlib.http.transport.contractimpl.common.FrameLogger;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.HttpServerChannelInitializer;
 import io.netty.channel.group.ChannelGroup;
+import io.netty.handler.codec.compression.Brotli;
 import io.netty.handler.codec.compression.StandardCompressionOptions;
 import io.netty.handler.codec.http2.AbstractHttp2ConnectionHandlerBuilder;
 import io.netty.handler.codec.http2.CompressorHttp2ConnectionEncoder;
@@ -84,12 +85,20 @@ public final class Http2SourceConnectionHandlerBuilder
     @Override
     public Http2SourceConnectionHandler build(Http2ConnectionDecoder decoder, Http2ConnectionEncoder encoder,
                                               Http2Settings initialSettings) {
-        Http2ConnectionEncoder compressEncoder = new CompressorHttp2ConnectionEncoder(
-                encoder, StandardCompressionOptions.gzip(), StandardCompressionOptions.deflate());
+        Http2ConnectionEncoder compressEncoder = getCompressEncoder(encoder);
         Http2SourceConnectionHandler sourceConnectionHandler = new Http2SourceConnectionHandler(
                 serverChannelInitializer, decoder, compressEncoder, initialSettings, interfaceId,
                 serverConnectorFuture, serverName, allChannels, listenerChannels);
         frameListener(sourceConnectionHandler.getHttp2FrameListener());
         return sourceConnectionHandler;
+    }
+
+    private static Http2ConnectionEncoder getCompressEncoder(Http2ConnectionEncoder encoder) {
+        return Brotli.isAvailable() ?
+                new CompressorHttp2ConnectionEncoder(encoder, StandardCompressionOptions.gzip(),
+                        StandardCompressionOptions.deflate(),
+                        StandardCompressionOptions.brotli()) :
+                new CompressorHttp2ConnectionEncoder(encoder, StandardCompressionOptions.gzip(),
+                        StandardCompressionOptions.deflate());
     }
 }
