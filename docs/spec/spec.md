@@ -305,6 +305,7 @@ with the contract. Additionally, all the metadata related to the service can be 
 type which makes the service declaration clean and readable.
 
 Following is an example of a service contract type:
+
 ```ballerina
 @http:ServiceConfig {basePath: "/v1"}
 public type AlbumService service object {
@@ -332,6 +333,7 @@ The service contract type can have the annotations which are supported on the se
 optional and if not defined, the base path will be defaulted to `/`.
 
 Following is an example of a service implemented with the above service contract type:
+
 ```ballerina
 service AlbumService on new http:Listener(9090) {
 
