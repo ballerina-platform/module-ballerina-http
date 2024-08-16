@@ -116,7 +116,7 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
     private long minIdleTimeInStaleState;
     private long timeBetweenStaleEviction;
     private final BlockingQueue<Http2SourceHandler> http2StaleSourceHandlers = new LinkedBlockingQueue<>();
-    Timer timer;
+    private Timer timer;
 
     @Override
     public void initChannel(SocketChannel ch) throws Exception {
