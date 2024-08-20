@@ -42,6 +42,7 @@ public class Http2ToHttpFallbackHandler extends ChannelInboundHandlerAdapter {
         ChannelPipeline pipeline = ctx.pipeline();
         safelyRemoveHandlers(pipeline, Constants.HTTP2_UPGRADE_HANDLER);
         serverChannelInitializer.configureHttpPipeline(pipeline, Constants.HTTP2_CLEARTEXT_PROTOCOL);
+        serverChannelInitializer.cancelStaleEvictionTask();
         pipeline.remove(this);
         ctx.fireChannelActive();
         ctx.fireChannelRead(msg);
