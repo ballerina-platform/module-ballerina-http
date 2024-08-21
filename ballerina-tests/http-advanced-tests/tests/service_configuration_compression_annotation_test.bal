@@ -112,24 +112,102 @@ function testAutoCompress() {
         test:assertFalse(response.hasHeader(common:CONTENT_ENCODING),
             msg = "The content-encoding header should be null and the identity which means no compression " +
                         "should be done to the response");
+        common:assertTextPayload(response.getTextPayload(), "Hello World!!!");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
-//Test Compression.AUTO, with Accept-Encoding header. 
+//Test Compression.AUTO, with Accept-Encoding header - gzip.
 //The response here means the one that should be sent to transport, not to end user.
 @test:Config {}
-function testAutoCompressWithAcceptEncoding() {
+function testAutoCompressWithAcceptEncoding1() {
     http:Response|error response = compressionClient->get("/autoCompress", {[common:ACCEPT_ENCODING] : [common:ENCODING_GZIP]});
     if response is http:Response {
         test:assertFalse(response.hasHeader(common:CONTENT_ENCODING),
             msg = "The content-encoding header should be null and the original value of Accept-Encoding should " +
                         "be used for compression from the backend");
+        common:assertTextPayload(response.getTextPayload(), "Hello World!!!");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
+
+//Test Compression.AUTO, with Accept-Encoding header - br.
+//The response here means the one that should be sent to transport, not to end user.
+@test:Config {}
+function testAutoCompressWithAcceptEncoding2() {
+    http:Response|error response = compressionClient->get("/autoCompress", {[common:ACCEPT_ENCODING] : [common:ENCODING_BR]});
+    if response is http:Response {
+        test:assertFalse(response.hasHeader(common:CONTENT_ENCODING),
+            msg = "The content-encoding header should be null and the original value of Accept-Encoding should " +
+                        "be used for compression from the backend");
+        common:assertTextPayload(response.getTextPayload(), "Hello World!!!");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+//Test Compression.AUTO, with Accept-Encoding header - deflate.
+//The response here means the one that should be sent to transport, not to end user.
+@test:Config {}
+function testAutoCompressWithAcceptEncoding3() {
+    http:Response|error response = compressionClient->get("/autoCompress", {[common:ACCEPT_ENCODING] : [common:ENCODING_DEFLATE]});
+    if response is http:Response {
+        test:assertFalse(response.hasHeader(common:CONTENT_ENCODING),
+            msg = "The content-encoding header should be null and the original value of Accept-Encoding should " +
+                        "be used for compression from the backend");
+        common:assertTextPayload(response.getTextPayload(), "Hello World!!!");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+//Test Compression.AUTO, with Accept-Encoding header - gzip, deflate.
+//The response here means the one that should be sent to transport, not to end user.
+@test:Config {}
+function testAutoCompressWithAcceptEncoding4() {
+    http:Response|error response = compressionClient->get("/autoCompress", {[common:ACCEPT_ENCODING] : [common:ENCODING_GZIP, common:ENCODING_DEFLATE]});
+    if response is http:Response {
+        test:assertFalse(response.hasHeader(common:CONTENT_ENCODING),
+            msg = "The content-encoding header should be null and the original value of Accept-Encoding should " +
+                        "be used for compression from the backend");
+        common:assertTextPayload(response.getTextPayload(), "Hello World!!!");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+//Test Compression.AUTO, with Accept-Encoding header - gzip, br.
+//The response here means the one that should be sent to transport, not to end user.
+@test:Config {}
+function testAutoCompressWithAcceptEncoding5() {
+    http:Response|error response = compressionClient->get("/autoCompress", {[common:ACCEPT_ENCODING] : [common:ENCODING_GZIP, common:ENCODING_BR]});
+    if response is http:Response {
+        test:assertFalse(response.hasHeader(common:CONTENT_ENCODING),
+            msg = "The content-encoding header should be null and the original value of Accept-Encoding should " +
+                        "be used for compression from the backend");
+        common:assertTextPayload(response.getTextPayload(), "Hello World!!!");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+//Test Compression.AUTO, with Accept-Encoding header - gzip, deflate, br.
+//The response here means the one that should be sent to transport, not to end user.
+@test:Config {}
+function testAutoCompressWithAcceptEncoding6() {
+    http:Response|error response = compressionClient->get("/autoCompress", {[common:ACCEPT_ENCODING] : [common:ENCODING_GZIP, common:ENCODING_DEFLATE, common:ENCODING_BR]});
+    if response is http:Response {
+        test:assertFalse(response.hasHeader(common:CONTENT_ENCODING),
+            msg = "The content-encoding header should be null and the original value of Accept-Encoding should " +
+                        "be used for compression from the backend");
+        common:assertTextPayload(response.getTextPayload(), "Hello World!!!");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
 
 //Test Compression.AUTO, with contentTypes and without Accept-Encoding header. 
 //The response here means the one that should be sent to transport, not to end user.
@@ -154,23 +232,52 @@ function testAlwaysCompress() returns error? {
     if response is http:Response {
         test:assertEquals(check response.getHeader(common:CONTENT_ENCODING), common:ENCODING_GZIP,
             msg = "The content-encoding header should be gzip.");
+        common:assertTextPayload(response.getTextPayload(), "Hello World!!!");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 }
 
-//Test Compression.ALWAYS, with Accept-Encoding header. 
+//Test Compression.ALWAYS, with Accept-Encoding header - deflate.
 //The response here means the one that should be sent to transport, not to end user.
 @test:Config {}
-function testAlwaysCompressWithAcceptEncoding() {
-    http:Request req = new;
-    req.setTextPayload("hello");
-    req.setHeader(common:ACCEPT_ENCODING, common:ENCODING_DEFLATE);
-    http:Response|error response = compressionClient->post("/alwaysCompress", req);
+function testAlwaysCompressWithAcceptEncoding1() {
+    http:Response|error response = compressionClient->get("/alwaysCompress", {[common:ACCEPT_ENCODING]: common:ENCODING_DEFLATE});
     if response is http:Response {
         test:assertFalse(response.hasHeader(common:CONTENT_ENCODING),
             msg = "The content-encoding header should be set to null and the transport will use the original" +
                         "Accept-Encoding value for compression.");
+        common:assertTextPayload(response.getTextPayload(), "Hello World!!!");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+//Test Compression.ALWAYS, with Accept-Encoding header - br.
+//The response here means the one that should be sent to transport, not to end user.
+@test:Config {}
+function testAlwaysCompressWithAcceptEncoding2() {
+    http:Response|error response = compressionClient->get("/alwaysCompress", {[common:ACCEPT_ENCODING]: common:ENCODING_BR});
+    if response is http:Response {
+        test:assertFalse(response.hasHeader(common:CONTENT_ENCODING),
+            msg = "The content-encoding header should be set to null and the transport will use the original" +
+                        "Accept-Encoding value for compression.");
+        common:assertTextPayload(response.getTextPayload(), "Hello World!!!");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+//Test Compression.ALWAYS, with Accept-Encoding header - deflate, br.
+//The response here means the one that should be sent to transport, not to end user.
+@test:Config {}
+function testAlwaysCompressWithAcceptEncoding3() {
+    http:Response|error response = compressionClient->get("/alwaysCompress", {[common:ACCEPT_ENCODING]: [common:ENCODING_DEFLATE + "," + common:ENCODING_BR]});
+    if response is http:Response {
+        test:assertFalse(response.hasHeader(common:CONTENT_ENCODING),
+            msg = "The content-encoding header should be set to null and the transport will use the original" +
+                        "Accept-Encoding value for compression.");
+        common:assertTextPayload(response.getTextPayload(), "Hello World!!!");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

@@ -56,6 +56,7 @@ public const string SERVER = "server";
 
 public const string ENCODING_GZIP = "gzip";
 public const string ENCODING_DEFLATE = "deflate";
+public const string ENCODING_BR = "br";
 public const string HTTP_TRANSFER_ENCODING_IDENTITY = "identity";
 
 public const string HTTP_METHOD_GET = "GET";
