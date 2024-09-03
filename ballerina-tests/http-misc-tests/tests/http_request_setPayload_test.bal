@@ -145,3 +145,18 @@ function testRequestSetBinaryPayload() returns error? {
     test:assertEquals(req.getContentType(), "binary/test2", msg = "Found unexpected headerValue");
     return;
 }
+
+type AnydataRecord record {
+    string a;
+    int b;
+};
+
+@test:Config {}
+function testRequestSetAnydataPayload() returns error? {
+    http:Request req = new;
+    AnydataRecord testValue = {a: "ballerina", b: 1};
+    req.setPayload(testValue);
+    test:assertEquals(req.getContentType(), "application/json", msg = "Found unexpected headerValue");
+    json payload = check req.getJsonPayload();
+    test:assertEquals(payload, testValue.toJson(), msg = "Found unexpected payload");
+}
