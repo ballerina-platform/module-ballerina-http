@@ -215,8 +215,8 @@ task ballerinaTest {
                                 " ${parallelTestFlag} ${testParams} ${groupParams} ${disableGroups} ${windowsDisableGroups}" +
                                 "  ${debugParams} && exit %%ERRORLEVEL%%"
                     } else {
-                        commandLine 'sh', '-c', "${distributionBinPath}/bal test ${graalvmFlag} ${parallelTestFlag} ${testParams}" +
-                                " ${groupParams} ${disableGroups} ${debugParams}"
+                        commandLine 'sh', '-c', "${balJavaDebugParam} ${distributionBinPath}/bal test ${graalvmFlag} " +
+                                "${parallelTestFlag} ${testParams} ${groupParams} ${disableGroups} ${debugParams}"
                     }
                 }
                 if (project.hasProperty('balGraalVMTest')) {
