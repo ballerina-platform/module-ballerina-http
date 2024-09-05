@@ -512,7 +512,8 @@ public class Request {
 
     # Sets the request payload. This method overrides any existing content-type by passing the content-type
     # as an optional parameter. If the content type parameter is not provided then the default value derived
-    # from the payload will be used as content-type only when there are no existing content-type header.
+    # from the payload will be used as content-type only when there are no existing content-type header. If
+    # the payload is non-json typed value then the value is converted to json using the `toJson` method.
     #
     # + payload - Payload can be of type `anydata`, `stream<byte[], io:Error?>`
     #             or `Entity[]` (i.e., a set of body parts).
