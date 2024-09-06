@@ -512,11 +512,11 @@ public class Request {
 
     # Sets the request payload. This method overrides any existing content-type by passing the content-type
     # as an optional parameter. If the content type parameter is not provided then the default value derived
-    # from the payload will be used as content-type only when there are no existing content-type header. If
-    # the payload is non-json typed value then the value is converted to json using the `toJson` method.
+    # from the payload will be used as content-type only when there are no existing content-type header.
     #
-    # + payload - Payload can be of type `anydata`, `stream<byte[], io:Error?>`
-    #             or `Entity[]` (i.e., a set of body parts).
+    # + payload - Payload can be of type `string`, `xml`, `byte[]`, `json`, `stream<byte[], io:Error?>`,
+    #             `Entity[]` (i.e., a set of body parts) or any other value of type `anydata` which will
+    #             be converted to `json` using the `toJson` method.
     # + contentType - Content-type to be used with the payload. This is an optional parameter
     public isolated function setPayload(anydata|mime:Entity[]|stream<byte[], io:Error?> payload,
             string? contentType = ()) {

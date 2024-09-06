@@ -492,8 +492,10 @@ public class Response {
     # from the payload will be used as content-type only when there are no existing content-type header. If
     # the payload is non-json typed value then the value is converted to json using the `toJson` method.
     #
-    # + payload - Payload can be of type `anydata`, `stream<byte[], io:Error?>`, stream<SseEvent, error?>,
-    #             or `Entity[]` (i.e., a set of body parts).
+    # + payload - Payload can be of type `string`, `xml`, `byte[]`, `json`, `stream<byte[], io:Error?>`,
+    #             stream<SseEvent, error?>(represents Server-Sent events), `Entity[]` (i.e., a set of body
+    #             parts) or any other value of type `anydata` which will be converted to `json` using the
+    #             `toJson` method.
     # + contentType - Content-type to be used with the payload. This is an optional parameter
     public isolated function setPayload(anydata|mime:Entity[]|stream<byte[], io:Error?>|stream<SseEvent, error?> payload,
             string? contentType = ()) {
