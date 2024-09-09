@@ -23,6 +23,7 @@ import io.ballerina.runtime.api.Future;
 import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.async.Callback;
+import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
@@ -293,20 +294,47 @@ public class HttpClientAction extends AbstractHTTPAction {
 
     private static String constructQueryString(BMap params) {
         List<String> queryParams = new ArrayList<>();
+        Map<String, String> annotationValues = getQueryNameMapping(params);
         BString[] keys = (BString[]) params.getKeys();
         if (keys.length == 0) {
             return "";
         }
         for (BString key : keys) {
             Object value = params.get(key);
+            String queryName = key.getValue();
+            queryName = annotationValues.getOrDefault(queryName, queryName);
             String valueString = value.toString();
             if (value instanceof BArray) {
                 valueString = valueString.substring(1, valueString.length() - 1);
                 valueString = valueString.replace(QUOTATION_MARK, EMPTY);
             }
-            queryParams.add(key.getValue() + EQUAL_SIGN + valueString);
+            queryParams.add(queryName + EQUAL_SIGN + valueString);
         }
         return String.join(AND_SIGN, queryParams);
+    }
+
+    /**
+     * This util function extracts the query name with the query annotation.
+     *
+     * @param params - Parameter map
+     * @return Map of string with overridden query param names
+     */
+    private static Map<String, String> getQueryNameMapping(BMap params) {
+        RecordType queryRecord = (RecordType) params.getType();
+        BMap<BString, Object> annotations = queryRecord.getAnnotations();
+        Map<String, String> annotationValues = new HashMap<>();
+
+        for (Map.Entry<BString, Object> annotation: annotations.entrySet()) {
+            //store query parameters real name : $field$.<query name>
+            BString key = annotation.getKey().substring(8, annotation.getKey().length());
+            BMap value = (BMap) annotation.getValue();
+            for (Object object : value.values()) {
+                BMap bMap = (BMap) object;
+                BString overrideName = (BString) bMap.get(StringUtils.fromString("name"));
+                annotationValues.put(key.getValue(), overrideName.getValue());
+            }
+        }
+        return annotationValues;
     }
 
     private HttpClientAction() {

@@ -116,10 +116,14 @@ public type HttpHeader record {|
 public const annotation HttpHeader Header on parameter;
 
 # Defines the query resource signature parameter.
-public type HttpQuery record {||};
+# 
+# + name - Specifies the name of the required query
+public type HttpQuery record {|
+    string name?;
+|};
 
 # The annotation which is used to define the query resource signature parameter.
-public const annotation HttpQuery Query on parameter;
+public const annotation HttpQuery Query on parameter, record field;
 
 # Defines the HTTP response cache configuration. By default the `no-cache` directive is setted to the `cache-control`
 # header. In addition to that `etag` and `last-modified` headers are also added for cache validation.
@@ -157,3 +161,13 @@ public type HttpCacheConfig record {|
 # Success(2XX) `StatusCodeResponses` return types. Default annotation adds `must-revalidate,public,max-age=3600` as
 # `cache-control` header in addition to `etag` and `last-modified` headers.
 public annotation HttpCacheConfig Cache on return;
+
+# Overrides the record field name with the given field name.
+# 
+# + name - Specifies the name of the required record field.
+public type HttpRecordField record {|
+    string name?;
+|};
+
+# The annotation which is used to define the query resource signature parameter.
+public const annotation HttpRecordField Field on record field;

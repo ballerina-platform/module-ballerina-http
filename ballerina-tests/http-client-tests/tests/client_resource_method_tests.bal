@@ -120,6 +120,21 @@ service on clientResourceMethodsServerEP {
     }
 }
 
+service /query on clientResourceMethodsServerEP {
+
+    resource function get bar(string first\-name, string 'table, string age) returns string {
+        return "Here are query params: " + first\-name + "," +'table + "," + age.toString();
+    }
+
+    resource function get bar/[int pathParam](string first\-name, string 'table, string age) returns string {
+        return "Here are path param with query params: " + first\-name + "," +'table + "," + age.toString();
+    }
+
+    resource function post bar/[int pathParam](Person body, string first\-name, string 'table, string age) returns string {
+        return "Greetings! Mr. " + first\-name + " "  + body.name ;
+    }
+}
+
 @test:Config {}
 function testClientGetResource() returns error? {
     string response = check clientResourceMethodsClientEP->/foo/bar();
@@ -279,4 +294,36 @@ function testClientResourceWithBasicRestType() returns error? {
     map<json> res = check clientResourceMethodsClientEP->/[...paths6];
     test:assertEquals(res["msg"], "Greetings! from mixed path params");
     test:assertEquals(res["path"], "/bar/foo/45/34.5/45.6/true");
+}
+
+public type QueryParams record {|
+    @http:Query {name: "first-name"}
+    string firstName;
+    @http:Query {name: "table"}
+    string tableNo;
+    @http:Query {name: "age"}
+    int personAge;
+|};
+
+@test:Config {}
+function testQueryParametersNameOverride() returns error? {
+    QueryParams queries = {
+        firstName: "Jhon",
+        tableNo: "10",
+        personAge: 29
+    };
+    string response = check clientResourceMethodsClientEP->/query/bar.get(params = queries);
+    test:assertEquals(response, "Here are query params: Jhon,10,29");
+
+    response = check clientResourceMethodsClientEP->/query/bar/[99].get(params = queries);
+    test:assertEquals(response, "Here are path param with query params: Jhon,10,29");
+
+    Person person = {
+        name: "Harry",
+        age: 29
+    };
+
+    response = check clientResourceMethodsClientEP->/query/bar/[99].post( person, params = queries);
+    test:assertEquals(response, "Greetings! Mr. Jhon Harry");
+
 }
