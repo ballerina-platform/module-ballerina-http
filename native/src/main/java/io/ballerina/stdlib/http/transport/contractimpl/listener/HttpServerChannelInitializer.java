@@ -62,6 +62,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.security.KeyStoreException;
 import java.security.cert.CertificateException;
+import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
@@ -115,6 +116,7 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
     private long minIdleTimeInStaleState;
     private long timeBetweenStaleEviction;
     private final BlockingQueue<Http2SourceHandler> http2StaleSourceHandlers = new LinkedBlockingQueue<>();
+    private Timer timer;
 
     @Override
     public void initChannel(SocketChannel ch) throws Exception {
@@ -484,7 +486,10 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
     }
 
     private void initiateHttp2ConnectionEvictionTask() {
-        Timer timer = new Timer(true);
+        if (Objects.nonNull(timer)) {
+            return;
+        }
+        timer = new Timer(true);
         TimerTask timerTask = new TimerTask() {
             @Override
             public void run() {
@@ -506,5 +511,11 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
             }
         };
         timer.schedule(timerTask, timeBetweenStaleEviction, timeBetweenStaleEviction);
+    }
+
+    public void cancelStaleEvictionTask() {
+        if (Objects.nonNull(timer)) {
+            timer.cancel();
+        }
     }
 }

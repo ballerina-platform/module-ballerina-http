@@ -35,7 +35,6 @@ public type HttpServiceConfig record {|
     ListenerAuthConfig[] auth?;
     string mediaTypeSubtypePrefix?;
     boolean treatNilableAsOptional = true;
-    @deprecated
     byte[] openApiDefinition = [];
     boolean validation = true;
     typedesc<ServiceContract> serviceType?;
@@ -113,7 +112,7 @@ public type HttpHeader record {|
 |};
 
 # The annotation which is used to define the Header resource signature parameter.
-public const annotation HttpHeader Header on parameter;
+public annotation HttpHeader Header on parameter;
 
 # Defines the query resource signature parameter.
 # 

@@ -62,6 +62,7 @@ import static io.ballerina.compiler.syntax.tree.SyntaxKind.COLON_TOKEN;
 import static io.ballerina.stdlib.http.compiler.Constants.COLON;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
 import static io.ballerina.stdlib.http.compiler.Constants.SERVICE_CONFIG_ANNOTATION;
+import static io.ballerina.stdlib.http.compiler.Constants.SERVICE_TYPE;
 import static io.ballerina.stdlib.http.compiler.HttpServiceValidator.getServiceContractTypeDesc;
 
 /**
@@ -177,7 +178,7 @@ public class ContractInfoModifierTask implements ModifierTask<SourceModifierCont
             boolean hasServiceType = fields.stream().anyMatch(field -> {
                 if (field.kind().equals(SyntaxKind.SPECIFIC_FIELD)) {
                     SpecificFieldNode specificField = (SpecificFieldNode) field;
-                    return specificField.fieldName().toString().equals("serviceType");
+                    return specificField.fieldName().toString().trim().equals(SERVICE_TYPE);
                 }
                 return false;
             });

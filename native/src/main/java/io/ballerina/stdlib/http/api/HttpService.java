@@ -242,8 +242,8 @@ public class HttpService implements Service {
     public static HttpService buildHttpService(BObject service, String basePath) {
         HttpService httpService = new HttpService(service, basePath);
         BMap serviceConfig = getHttpServiceConfigAnnotation(service);
-        httpService.populateServiceConfig(serviceConfig);
         httpService.populateIntrospectionPayload();
+        httpService.populateServiceConfig(serviceConfig);
         return httpService;
     }
 

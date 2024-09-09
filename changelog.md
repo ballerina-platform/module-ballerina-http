@@ -5,13 +5,13 @@ This file contains all the notable changes done to the Ballerina HTTP package th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to 
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.12.0] - 2024-08-20
 
 ### Added
 - [Add support for Server-Sent Events](https://github.com/ballerina-platform/ballerina-library/issues/6687)
 - [Introduce default status code response record](https://github.com/ballerina-platform/ballerina-library/issues/6491)
 - [Add connection eviction feature to handle connections that receive GO_AWAY from the client](https://github.com/ballerina-platform/ballerina-library/issues/6734)
-- [Enhanced the configurability of Ballerina access logging by introducing multiple configuration options.](https://github.com/ballerina-platform/ballerina-library/issues/6111)
+- [Enhance the configurability of Ballerina access logging by introducing multiple configuration options.](https://github.com/ballerina-platform/ballerina-library/issues/6111)
 - [Introduce HTTP service contract object type](https://github.com/ballerina-platform/ballerina-library/issues/6378)
 
 ### Fixed
