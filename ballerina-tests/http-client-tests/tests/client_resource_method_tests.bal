@@ -122,16 +122,16 @@ service on clientResourceMethodsServerEP {
 
 service /query on clientResourceMethodsServerEP {
 
-    resource function get bar(string first\-name, string 'table, string age) returns string {
-        return "Here are query params: " + first\-name + "," +'table + "," + age.toString();
+    resource function get bar(string first\-name, string 'table, int age) returns string {
+        return string `Here are query params: ${first\-name}, ${'table}, ${age.toString()}`;
     }
 
-    resource function get bar/[int pathParam](string first\-name, string 'table, string age) returns string {
-        return "Here are path param with query params: " + first\-name + "," +'table + "," + age.toString();
+    resource function get bar/[int pathParam](string first\-name, string 'table, int age) returns string {
+        return string `Here are path param with query params: ${first\-name}, ${'table}, ${age.toString()}`;
     }
 
-    resource function post bar/[int pathParam](Person body, string first\-name, string 'table, string age) returns string {
-        return "Greetings! Mr. " + first\-name + " "  + body.name ;
+    resource function post bar/[int pathParam](Person body, string first\-name, string 'table, int age) returns string {
+        return string `Greetings! Mr. ${first\-name} ${body.name}`;
     }
 }
 
@@ -325,5 +325,4 @@ function testQueryParametersNameOverride() returns error? {
 
     response = check clientResourceMethodsClientEP->/query/bar/[99].post( person, params = queries);
     test:assertEquals(response, "Greetings! Mr. Jhon Harry");
-
 }
