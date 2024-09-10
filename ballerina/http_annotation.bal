@@ -160,13 +160,3 @@ public type HttpCacheConfig record {|
 # Success(2XX) `StatusCodeResponses` return types. Default annotation adds `must-revalidate,public,max-age=3600` as
 # `cache-control` header in addition to `etag` and `last-modified` headers.
 public annotation HttpCacheConfig Cache on return;
-
-# Overrides the record field name with the given field name.
-# 
-# + name - Specifies the name of the required record field.
-public type HttpRecordField record {|
-    string name?;
-|};
-
-# The annotation which is used to define the query resource signature parameter.
-public const annotation HttpRecordField Field on record field;

@@ -45,6 +45,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static io.ballerina.runtime.observability.ObservabilityConstants.KEY_OBSERVER_CONTEXT;
 import static io.ballerina.stdlib.http.api.HttpConstants.AND_SIGN;
@@ -320,21 +322,38 @@ public class HttpClientAction extends AbstractHTTPAction {
      * @return Map of string with overridden query param names
      */
     private static Map<String, String> getQueryNameMapping(BMap params) {
-        RecordType queryRecord = (RecordType) params.getType();
-        BMap<BString, Object> annotations = queryRecord.getAnnotations();
         Map<String, String> annotationValues = new HashMap<>();
+        if (!(params.getType() instanceof RecordType queryRecord)) {
+            return annotationValues;
+        }
+        BMap<BString, Object> annotations = queryRecord.getAnnotations();
 
         for (Map.Entry<BString, Object> annotation: annotations.entrySet()) {
-            //store query parameters real name : $field$.<query name>
-            BString key = annotation.getKey().substring(8, annotation.getKey().length());
             BMap value = (BMap) annotation.getValue();
-            for (Object object : value.values()) {
-                BMap bMap = (BMap) object;
-                BString overrideName = (BString) bMap.get(StringUtils.fromString("name"));
-                annotationValues.put(key.getValue(), overrideName.getValue());
+            Object[] keys = value.getKeys();
+            for (Object annotRef: keys) {
+                String refRegex = "^ballerina/http:\\d+:(Query)$";
+                Pattern pattern = Pattern.compile(refRegex);
+                Matcher matcher = pattern.matcher(annotRef.toString());
+                if (matcher.find()) {
+                    extractedFieldName(annotationValues, annotation, value);
+                }
             }
         }
         return annotationValues;
+    }
+
+    private static void extractedFieldName(Map<String, String> annotationValues, Map.Entry<BString, Object> annotation,
+                                           BMap value) {
+        for (Object object : value.values()) {
+            //store query parameters real name : $field$.<query name>
+            String regex = "(\\$field\\$\\.)";
+            String[] parts = Pattern.compile(regex).split(annotation.getKey().getValue());
+            String key = parts[1];
+            BMap bMap = (BMap) object;
+            BString overrideName = (BString) bMap.get(StringUtils.fromString("name"));
+            annotationValues.put(key, overrideName.getValue());
+        }
     }
 
     private HttpClientAction() {

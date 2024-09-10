@@ -123,15 +123,19 @@ service on clientResourceMethodsServerEP {
 service /query on clientResourceMethodsServerEP {
 
     resource function get bar(string first\-name, string 'table, int age) returns string {
-        return string `Here are query params: ${first\-name}, ${'table}, ${age.toString()}`;
+        return string `Greetings! from query params: ${first\-name}, ${'table}, ${age.toString()}`;
     }
 
     resource function get bar/[int pathParam](string first\-name, string 'table, int age) returns string {
-        return string `Here are path param with query params: ${first\-name}, ${'table}, ${age.toString()}`;
+        return string `Greetings! from query with path param, query: ${first\-name}, path: ${pathParam}`;
     }
 
     resource function post bar/[int pathParam](Person body, string first\-name, string 'table, int age) returns string {
-        return string `Greetings! Mr. ${first\-name} ${body.name}`;
+        return string `Greetings! from query with path param and request payload, query: ${first\-name}, payload.name: ${body.name}, path: ${pathParam}`;
+    }
+
+    resource function put bar/[int pathParam](Person body, string first\-name, int age) returns string {
+        return string `Greetings! from query with different annotation, query: ${first\-name}`;
     }
 }
 
@@ -305,6 +309,20 @@ public type QueryParams record {|
     int personAge;
 |};
 
+
+public type MetaInfo record {|
+    string name;
+|};
+public const annotation MetaInfo Meta on record field;
+public type QueryWithDifferentAnnotation record {|
+    @http:Query {name: "first-name"}
+    @Meta {
+        name: "Potter"
+    }
+    string firstName;
+    int age;
+|};
+
 @test:Config {}
 function testQueryParametersNameOverride() returns error? {
     QueryParams queries = {
@@ -312,17 +330,25 @@ function testQueryParametersNameOverride() returns error? {
         tableNo: "10",
         personAge: 29
     };
+
     string response = check clientResourceMethodsClientEP->/query/bar.get(params = queries);
-    test:assertEquals(response, "Here are query params: Jhon,10,29");
+    test:assertEquals(response, "Greetings! from query params: Jhon, 10, 29");
 
     response = check clientResourceMethodsClientEP->/query/bar/[99].get(params = queries);
-    test:assertEquals(response, "Here are path param with query params: Jhon,10,29");
+    test:assertEquals(response, "Greetings! from query with path param, query: Jhon, path: 99");
 
     Person person = {
         name: "Harry",
         age: 29
     };
 
-    response = check clientResourceMethodsClientEP->/query/bar/[99].post( person, params = queries);
-    test:assertEquals(response, "Greetings! Mr. Jhon Harry");
+    response = check clientResourceMethodsClientEP->/query/bar/[99].post(person, params = queries);
+    test:assertEquals(response, "Greetings! from query with path param and request payload, query: Jhon, payload.name: Harry, path: 99");
+
+    QueryWithDifferentAnnotation annotQ = {
+        firstName: "Ron",
+        age: 29
+    };
+    response = check clientResourceMethodsClientEP->/query/bar/[99].put(person, params = annotQ);
+    test:assertEquals(response, "Greetings! from query with different annotation, query: Ron");
 }
