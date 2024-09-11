@@ -35,6 +35,7 @@ import io.ballerina.stdlib.http.api.DataContext;
 import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.api.HttpErrorType;
 import io.ballerina.stdlib.http.api.HttpUtil;
+import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
 import io.ballerina.stdlib.http.transport.message.Http2PushPromise;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
@@ -52,6 +53,7 @@ import static io.ballerina.runtime.observability.ObservabilityConstants.KEY_OBSE
 import static io.ballerina.stdlib.http.api.HttpConstants.AND_SIGN;
 import static io.ballerina.stdlib.http.api.HttpConstants.CLIENT_ENDPOINT_CONFIG;
 import static io.ballerina.stdlib.http.api.HttpConstants.CLIENT_ENDPOINT_SERVICE_URI;
+import static io.ballerina.stdlib.http.api.HttpConstants.COLON;
 import static io.ballerina.stdlib.http.api.HttpConstants.CURRENT_TRANSACTION_CONTEXT_PROPERTY;
 import static io.ballerina.stdlib.http.api.HttpConstants.EMPTY;
 import static io.ballerina.stdlib.http.api.HttpConstants.EQUAL_SIGN;
@@ -332,7 +334,7 @@ public class HttpClientAction extends AbstractHTTPAction {
             BMap value = (BMap) qField.getValue();
             Object[] keys = value.getKeys();
             for (Object annotRef: keys) {
-                String refRegex = "^ballerina/http:\\d+:(Query)$";
+                String refRegex = ModuleUtils.getHttpPackageIdentifier() + COLON + "Query";
                 Pattern pattern = Pattern.compile(refRegex);
                 Matcher matcher = pattern.matcher(annotRef.toString());
                 if (matcher.find()) {
@@ -351,12 +353,6 @@ public class HttpClientAction extends AbstractHTTPAction {
         String key = parts[1];
         BString overrideName = (BString) value.get(StringUtils.fromString("name"));
         annotationValues.put(key, overrideName.getValue());
-//        for (Object object : value.values()) {
-//            //store query parameters real name : $field$.<query name>
-//            BMap bMap = (BMap) object;
-//            BString overrideName = (BString) bMap.get(StringUtils.fromString("name"));
-//            annotationValues.put(key, overrideName.getValue());
-//        }
     }
 
     private HttpClientAction() {

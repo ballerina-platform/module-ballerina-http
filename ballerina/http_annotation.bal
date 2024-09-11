@@ -116,7 +116,7 @@ public annotation HttpHeader Header on parameter;
 
 # Defines the query resource signature parameter.
 # 
-# + name - Specifies the name of the required query
+# + name - Specifies the name of the query parameter
 public type HttpQuery record {|
     string name?;
 |};
