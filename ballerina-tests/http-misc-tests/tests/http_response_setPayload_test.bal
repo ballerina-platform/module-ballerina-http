@@ -186,3 +186,13 @@ function testResponseSetByteStream() returns error? {
     test:assertEquals(res.getContentType(), "stream/test2", msg = "Found unexpected headerValue");
     return;
 }
+
+@test:Config {}
+function testResponseSetAnydataPayload() returns error? {
+    http:Response res = new;
+    AnydataRecord testValue = {a: "ballerina", b: 1};
+    res.setPayload(testValue);
+    test:assertEquals(res.getContentType(), "application/json", msg = "Found unexpected headerValue");
+    json payload = check res.getJsonPayload();
+    test:assertEquals(payload, testValue.toJson(), msg = "Found unexpected payload");
+}

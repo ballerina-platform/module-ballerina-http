@@ -314,6 +314,12 @@ service /entityService on generalListener {
         }
         check caller->respond(response);
     }
+
+    resource function post anydataTest(AnydataRecord rec) returns http:Response {
+        http:Response response = new;
+        response.setPayload(rec);
+        return response;
+    }
 }
 
 final http:Client entityClient = check new ("http://localhost:" + generalPort.toString());
@@ -332,5 +338,33 @@ function jsonTest() {
         common:assertJsonPayload(response.getJsonPayload(), {test: "菜鸟驿站"});
     } else {
         test:assertFail(msg = "Test Failed! " + <string>response.message());
+    }
+}
+
+@test:Config {}
+function setPayloadWithAnydata() {
+    string path = "/entityService/anydataTest";
+    http:Request request = new;
+    AnydataRecord rec = {a: "ballerina", b: 1};
+    request.setPayload(rec);
+    http:Response|error response = entityClient->post(path, request);
+    if response is http:Response {
+        common:assertJsonPayload(response.getJsonPayload(), rec.toJson());
+    } else {
+        test:assertFail(msg = "Test Failed! " + response.message());
+    }
+}
+
+@test:Config {}
+function setPayloadWithAnydataDataBinding() {
+    string path = "/entityService/anydataTest";
+    http:Request request = new;
+    AnydataRecord rec = {a: "ballerina", b: 1};
+    request.setPayload(rec);
+    AnydataRecord|error response = entityClient->post(path, request);
+    if response is AnydataRecord {
+        test:assertEquals(response, rec);
+    } else {
+        test:assertFail(msg = "Test Failed! " + response.message());
     }
 }

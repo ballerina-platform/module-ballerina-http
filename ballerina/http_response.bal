@@ -489,12 +489,15 @@ public class Response {
     
     # Sets the response payload. This method overrides any existing content-type by passing the content-type
     # as an optional parameter. If the content type parameter is not provided then the default value derived
-    # from the payload will be used as content-type only when there are no existing content-type header.
+    # from the payload will be used as content-type only when there are no existing content-type header. If
+    # the payload is non-json typed value then the value is converted to json using the `toJson` method.
     #
-    # + payload - Payload can be of type `string`, `xml`, `json`, `byte[]`, `stream<byte[], io:Error?>`
-    #             or `Entity[]` (i.e., a set of body parts).
+    # + payload - Payload can be of type `string`, `xml`, `byte[]`, `json`, `stream<byte[], io:Error?>`,
+    #             stream<SseEvent, error?>(represents Server-Sent events), `Entity[]` (i.e., a set of body
+    #             parts) or any other value of type `anydata` which will be converted to `json` using the
+    #             `toJson` method.
     # + contentType - Content-type to be used with the payload. This is an optional parameter
-    public isolated function setPayload(string|xml|json|byte[]|mime:Entity[]|stream<byte[], io:Error?>|stream<SseEvent, error?> payload,
+    public isolated function setPayload(anydata|mime:Entity[]|stream<byte[], io:Error?>|stream<SseEvent, error?> payload,
             string? contentType = ()) {
         if contentType is string {
             error? err = self.setContentType(contentType);
@@ -517,6 +520,8 @@ public class Response {
             self.setBodyParts(payload);
         } else if payload is stream<SseEvent, error?> {
             self.setSseEventStream(payload);
+        } else if payload is anydata {
+            self.setJsonPayload(payload.toJson());
         } else {
             panic error Error("invalid entity body type." +
                 "expected one of the types: string|xml|json|byte[]|mime:Entity[]|stream<byte[],io:Error?>");
