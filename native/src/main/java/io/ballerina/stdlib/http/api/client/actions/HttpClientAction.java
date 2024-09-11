@@ -326,34 +326,37 @@ public class HttpClientAction extends AbstractHTTPAction {
         if (!(params.getType() instanceof RecordType queryRecord)) {
             return annotationValues;
         }
-        BMap<BString, Object> annotations = queryRecord.getAnnotations();
+        BMap<BString, Object> queryFields = queryRecord.getAnnotations();
 
-        for (Map.Entry<BString, Object> annotation: annotations.entrySet()) {
-            BMap value = (BMap) annotation.getValue();
+        for (Map.Entry<BString, Object> qField: queryFields.entrySet()) {
+            BMap value = (BMap) qField.getValue();
             Object[] keys = value.getKeys();
             for (Object annotRef: keys) {
                 String refRegex = "^ballerina/http:\\d+:(Query)$";
                 Pattern pattern = Pattern.compile(refRegex);
                 Matcher matcher = pattern.matcher(annotRef.toString());
                 if (matcher.find()) {
-                    extractedFieldName(annotationValues, annotation, value);
+                    BMap refValue = (BMap) value.get(annotRef);
+                    extractedFieldName(annotationValues, qField, refValue);
                 }
             }
         }
         return annotationValues;
     }
 
-    private static void extractedFieldName(Map<String, String> annotationValues, Map.Entry<BString, Object> annotation,
+    private static void extractedFieldName(Map<String, String> annotationValues, Map.Entry<BString, Object> qField,
                                            BMap value) {
-        for (Object object : value.values()) {
-            //store query parameters real name : $field$.<query name>
-            String regex = "(\\$field\\$\\.)";
-            String[] parts = Pattern.compile(regex).split(annotation.getKey().getValue());
-            String key = parts[1];
-            BMap bMap = (BMap) object;
-            BString overrideName = (BString) bMap.get(StringUtils.fromString("name"));
-            annotationValues.put(key, overrideName.getValue());
-        }
+        String regex = "(\\$field\\$\\.)";
+        String[] parts = Pattern.compile(regex).split(qField.getKey().getValue());
+        String key = parts[1];
+        BString overrideName = (BString) value.get(StringUtils.fromString("name"));
+        annotationValues.put(key, overrideName.getValue());
+//        for (Object object : value.values()) {
+//            //store query parameters real name : $field$.<query name>
+//            BMap bMap = (BMap) object;
+//            BString overrideName = (BString) bMap.get(StringUtils.fromString("name"));
+//            annotationValues.put(key, overrideName.getValue());
+//        }
     }
 
     private HttpClientAction() {
