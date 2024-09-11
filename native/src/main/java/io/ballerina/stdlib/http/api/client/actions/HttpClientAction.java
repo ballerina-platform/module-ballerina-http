@@ -51,18 +51,21 @@ import java.util.regex.Pattern;
 
 import static io.ballerina.runtime.observability.ObservabilityConstants.KEY_OBSERVER_CONTEXT;
 import static io.ballerina.stdlib.http.api.HttpConstants.AND_SIGN;
+import static io.ballerina.stdlib.http.api.HttpConstants.ANN_NAME_QUERY;
 import static io.ballerina.stdlib.http.api.HttpConstants.CLIENT_ENDPOINT_CONFIG;
 import static io.ballerina.stdlib.http.api.HttpConstants.CLIENT_ENDPOINT_SERVICE_URI;
 import static io.ballerina.stdlib.http.api.HttpConstants.COLON;
 import static io.ballerina.stdlib.http.api.HttpConstants.CURRENT_TRANSACTION_CONTEXT_PROPERTY;
 import static io.ballerina.stdlib.http.api.HttpConstants.EMPTY;
 import static io.ballerina.stdlib.http.api.HttpConstants.EQUAL_SIGN;
+import static io.ballerina.stdlib.http.api.HttpConstants.ESCAPE_SLASH;
 import static io.ballerina.stdlib.http.api.HttpConstants.INBOUND_MESSAGE;
 import static io.ballerina.stdlib.http.api.HttpConstants.MAIN_STRAND;
 import static io.ballerina.stdlib.http.api.HttpConstants.ORIGIN_HOST;
 import static io.ballerina.stdlib.http.api.HttpConstants.POOLED_BYTE_BUFFER_FACTORY;
 import static io.ballerina.stdlib.http.api.HttpConstants.QUESTION_MARK;
 import static io.ballerina.stdlib.http.api.HttpConstants.QUOTATION_MARK;
+import static io.ballerina.stdlib.http.api.HttpConstants.REGEX_FOR_FIELD;
 import static io.ballerina.stdlib.http.api.HttpConstants.REMOTE_ADDRESS;
 import static io.ballerina.stdlib.http.api.HttpConstants.SINGLE_SLASH;
 import static io.ballerina.stdlib.http.api.HttpConstants.SRC_HANDLER;
@@ -334,7 +337,7 @@ public class HttpClientAction extends AbstractHTTPAction {
             BMap value = (BMap) qField.getValue();
             Object[] keys = value.getKeys();
             for (Object annotRef: keys) {
-                String refRegex = ModuleUtils.getHttpPackageIdentifier() + COLON + "Query";
+                String refRegex = ModuleUtils.getHttpPackageIdentifier() + COLON + ANN_NAME_QUERY;
                 Pattern pattern = Pattern.compile(refRegex);
                 Matcher matcher = pattern.matcher(annotRef.toString());
                 if (matcher.find()) {
@@ -348,11 +351,17 @@ public class HttpClientAction extends AbstractHTTPAction {
 
     private static void extractedFieldName(Map<String, String> annotationValues, Map.Entry<BString, Object> qField,
                                            BMap value) {
-        String regex = "(\\$field\\$\\.)";
-        String[] parts = Pattern.compile(regex).split(qField.getKey().getValue());
-        String key = parts[1];
-        BString overrideName = (BString) value.get(StringUtils.fromString("name"));
-        annotationValues.put(key, overrideName.getValue());
+        String[] parts = Pattern.compile(REGEX_FOR_FIELD).split(qField.getKey().getValue());
+        String fieldName = unescapeIdentifier(parts[1]);
+        Object overrideValue = value.get(HttpConstants.ANN_FIELD_NAME);
+        if (!(overrideValue instanceof BString overrideName)) {
+            return;
+        }
+        annotationValues.put(fieldName, overrideName.getValue());
+    }
+
+    public static String unescapeIdentifier(String parameterName) {
+        return parameterName.replaceAll(ESCAPE_SLASH, EMPTY);
     }
 
     private HttpClientAction() {

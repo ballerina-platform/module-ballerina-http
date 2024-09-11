@@ -302,7 +302,7 @@ function testClientResourceWithBasicRestType() returns error? {
 
 public type QueryParams record {|
     @http:Query {name: "first-name"}
-    string firstName;
+    string first\-Name;
     @http:Query {name: "table"}
     string tableNo;
     @http:Query {name: "age"}
@@ -326,7 +326,7 @@ public type QueryWithDifferentAnnotation record {|
 @test:Config {}
 function testQueryParametersNameOverride() returns error? {
     QueryParams queries = {
-        firstName: "Jhon",
+        first\-Name: "Jhon",
         tableNo: "10",
         personAge: 29
     };
