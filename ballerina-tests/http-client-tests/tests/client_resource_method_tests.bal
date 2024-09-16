@@ -352,3 +352,59 @@ function testQueryParametersNameOverride() returns error? {
     response = check clientResourceMethodsClientEP->/query/bar/[99].put(person, params = annotQ);
     test:assertEquals(response, "Greetings! from query with different annotation, query: Ron");
 }
+
+public type EmptyName record {|
+    @http:Query {name: ""}
+    string firstName;
+    int age;
+|};
+
+public type NoName record {|
+    @http:Query {}
+    string firstName;
+    int age;
+|};
+
+public type NilName record {|
+    @http:Query {name: ()}
+    string firstName;
+    int age;
+|};
+
+@test:Config
+function testNegativeQueryParametersNameOverride() returns error? {
+    EmptyName emptyName = {
+        firstName: "Ron",
+        age: 29
+    };
+    Person person = {
+        name: "Harry",
+        age: 29
+    };
+
+    //with empty name
+    http:Response response = check clientResourceMethodsClientEP->/query/bar/[99].put(person, params = emptyName);
+    test:assertEquals(response.statusCode, 400);
+    common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:APPLICATION_JSON);
+    check common:assertJsonErrorPayloadPartialMessage(check response.getJsonPayload(), "no query param value found for 'first-name'");
+    
+    // with no name attribute
+    NoName noName = {
+        firstName: "Ron",
+        age: 29
+    };
+    response = check clientResourceMethodsClientEP->/query/bar/[99].put(person, params = noName);
+    test:assertEquals(response.statusCode, 400);
+    common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:APPLICATION_JSON);
+    check common:assertJsonErrorPayloadPartialMessage(check response.getJsonPayload(), "no query param value found for 'first-name'");
+    
+    // with nil name value
+    NilName nilName = {
+        firstName: "Ron",
+        age: 29
+    };
+    response = check clientResourceMethodsClientEP->/query/bar/[99].put(person, params = nilName);
+    test:assertEquals(response.statusCode, 400);
+    common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:APPLICATION_JSON);
+    check common:assertJsonErrorPayloadPartialMessage(check response.getJsonPayload(), "no query param value found for 'first-name'");
+}
