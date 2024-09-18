@@ -21,6 +21,7 @@ import ballerina/log;
 import ballerina/mime;
 import ballerina/jballerina.java;
 import ballerina/url;
+import ballerina/data.jsondata;
 
 # Represents an HTTP request.
 #
@@ -414,14 +415,16 @@ public class Request {
 
     # Sets a `json` as the payload. If the content-type header is not set then this method set content-type
     # headers with the default content-type, which is `application/json`. Any existing content-type can be
-    # overridden by passing the content-type as an optional parameter.
+    # overridden by passing the content-type as an optional parameter. If the given payload is a record type 
+    # with the `@jsondata:Name`` annotation, the `jsondata:toJson`` function processes the name and populates 
+    # the JSON according to the annotation's details.
     #
     # + payload - The `json` payload
     # + contentType - The content type of the payload. This is an optional parameter.
     #                 The `application/json` is the default value
     public isolated function setJsonPayload(json payload, string? contentType = ()) {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
-        setJson(entity, payload, self.getContentType(), contentType);
+        setJson(entity, jsondata:toJson(payload), self.getContentType(), contentType);
         self.setEntityAndUpdateContentTypeHeader(entity);
     }
 
