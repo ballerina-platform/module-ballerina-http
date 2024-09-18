@@ -159,6 +159,7 @@ public final class HttpConstants {
     public static final BString ANN_FIELD_RESPOND_TYPE = StringUtils.fromString("respondType");
     public static final BString ANN_FIELD_NAME = StringUtils.fromString("name");
     public static final String ANN_NAME_CACHE = "Cache";
+    public static final String ANN_NAME_QUERY = "Query";
 
     public static final String VALUE_ATTRIBUTE = "value";
 
@@ -628,6 +629,8 @@ public final class HttpConstants {
     public static final String HTTP_VERSION_1_1 = "1.1";
 
     public static final String CURRENT_TRANSACTION_CONTEXT_PROPERTY = "currentTrxContext";
+    public static final String REGEX_FOR_FIELD = "(\\$field\\$\\.)";
+    public static final String ESCAPE_SLASH = "\\\\";
 
     @Deprecated
     public static final String HTTP_MODULE_VERSION = "1.0.6";
