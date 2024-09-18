@@ -328,9 +328,7 @@ public class HttpClientAction extends AbstractHTTPAction {
      */
     private static Map<String, String> getQueryNameMapping(BMap params) {
         Map<String, String> annotationValues = new HashMap<>();
-        if (!(params.getType() instanceof RecordType queryRecord)) {
-            return annotationValues;
-        }
+        RecordType queryRecord = (RecordType) params.getType();
         BMap<BString, Object> queryFields = queryRecord.getAnnotations();
 
         for (Map.Entry<BString, Object> qField: queryFields.entrySet()) {
