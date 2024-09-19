@@ -18,6 +18,7 @@ import ballerina/http;
 import ballerina/test;
 import ballerina/url;
 import ballerina/http_test_common as common;
+import ballerina/constraint;
 
 listener http:Listener QueryBindingEP = new (queryParamBindingTestPort, httpVersion = http:HTTP_1_1);
 final http:Client queryBindingClient = check new ("http://localhost:" + queryParamBindingTestPort.toString(), httpVersion = http:HTTP_1_1);
@@ -167,7 +168,38 @@ service /queryparamservice on QueryBindingEP {
     resource function get studentRest(StudentRest studentRest) returns StudentRest {
         return studentRest;
     }
+
+    resource function get queryAnnotation(@http:Query{ name: "first"} string firstName, @http:Query{ name: "last-name"} string lastName) returns  string {
+        return string `Hello, ${firstName} ${lastName}`;
+    }
+
+    resource function get queryAnnotation/negative/q1(@http:Query{ name: ""} string firstName) returns  string {
+        return string `Hello, ${firstName}`;
+    }
+
+    resource function get queryAnnotation/negative/q2(@http:Query{ name: ()} string lastName) returns  string {
+        return string `Hello, ${lastName}`;
+    }
+
+    resource function get queryAnnotation/mapQueries(Mq mq) returns  string {
+        return string `Hello, ${mq.name} ${mq.personAge}`;
+    }
 }
+
+public type Mq record {
+    string name;
+    // @http:Query {
+    //     name: "age"
+    // }
+    @constraint:Int {
+        maxValue: 100
+    }
+    int personAge;
+    // @http:Query {
+    //     name: "table"
+    // }
+    int tableNo;
+};
 
 service /default on QueryBindingEP {
     resource function get checkstring(string foo = "hello") returns json {
@@ -735,4 +767,29 @@ function testMapOfJsonTypedQueryParamBinding3() returns error? {
     string mapOfJsonsEncoded = check url:encode(mapOfJsons.toJsonString(), "UTF-8");
     response = check queryBindingClient->get("/queryparamservice/q13?obj=" + mapOfJsonsEncoded);
     test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
+}
+
+@test:Config{}
+function testforQueryParamterNameOverwrite() returns error? {
+    string result = check queryBindingClient->get("/queryparamservice/queryAnnotation?first=Harry&last-name=Potter");
+    test:assertEquals(result, "Hello, Harry Potter", msg = string `Found ${result}, expected Harry`);
+
+    // map<json> mapOfJsons = {
+    //     name: "Ron",
+    //     age: 10,
+    //     'table: 5
+    // };
+    // string mapOfQueries = check url:encode(mapOfJsons.toJsonString(), "UTF-8");
+    
+    // result = check queryBindingClient->get("/queryparamservice/queryAnnotation/mapQueries?mq=" + mapOfQueries);
+    // test:assertEquals(result, "Hello, Ron 10", msg = string `Found ${result}, expected Harry`);
+}
+
+@test:Config{}
+function testforNegativeQueryParamterNameOverwrite() returns error? {
+    string result = check queryBindingClient->get("/queryparamservice/queryAnnotation/negative/q1?firstName=Harry");
+    test:assertEquals(result, "Hello, Harry");
+
+    result = check queryBindingClient->get("/queryparamservice/queryAnnotation/negative/q2?lastName=Anne");
+    test:assertEquals(result, "Hello, Anne");
 }
