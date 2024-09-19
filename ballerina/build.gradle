@@ -178,7 +178,6 @@ task updateTomlFiles {
         def javaJsonSmartVersion = project.javaJsonSmartVersion
         def javaAccessorsSmartVersion = project.javaAccessorsSmartVersion
 
-
         def newBallerinaToml = ballerinaTomlFilePlaceHolder.text.replace("@project.version@", project.version)
         newBallerinaToml = newBallerinaToml.replace("@toml.version@", tomlVersion)
         newBallerinaToml = newBallerinaToml.replace("@stdlib.mimenative.version@", stdlibDependentMimeNativeVersion)
