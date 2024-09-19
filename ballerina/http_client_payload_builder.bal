@@ -162,7 +162,7 @@ isolated function jsonPayloadBuilder(Response response, TargetType targetType) r
 isolated function nonNilablejsonPayloadBuilder(Response response, typedesc<anydata> targetType)
         returns anydata|ClientError {
     json payload = check response.getJsonPayload();
-    var result = jsondata:parseAsType(payload, t= targetType);
+    var result = jsondata:parseAsType(payload, t = targetType);
     return result is error ? createPayloadBindingError(result) : result;
 }
 
@@ -170,7 +170,7 @@ isolated function nilablejsonPayloadBuilder(Response response, typedesc<anydata>
         returns anydata|ClientError {
     json|ClientError payload = response.getJsonPayload();
     if payload is json {
-        var result = jsondata:parseAsType(payload, t= targetType);
+        var result = jsondata:parseAsType(payload, t = targetType);
         return result is error ? createPayloadBindingError(result) : result;
     } else {
         return payload is NoContentError ? () : payload;

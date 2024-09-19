@@ -416,7 +416,7 @@ public class Request {
     # Sets a `json` as the payload. If the content-type header is not set then this method set content-type
     # headers with the default content-type, which is `application/json`. Any existing content-type can be
     # overridden by passing the content-type as an optional parameter. If the given payload is a record type 
-    # with the `@jsondata:Name`` annotation, the `jsondata:toJson`` function processes the name and populates 
+    # with the `@jsondata:Name` annotation, the `jsondata:toJson` function processes the name and populates 
     # the JSON according to the annotation's details.
     #
     # + payload - The `json` payload
