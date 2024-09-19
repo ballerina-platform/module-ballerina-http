@@ -147,6 +147,15 @@ dependencies {
     externalJars(group: 'com.google.protobuf', name: 'protobuf-java', version: "${protobufVersion}") {
         transitive = false
     }
+    externalJars(group: 'com.jayway.jsonpath', name: 'json-path', version: "${javaJsonPathVersion}") {
+        transitive = false
+    }
+    externalJars(group: 'net.minidev', name: 'json-smart', version: "${javaJsonSmartVersion}") {
+        transitive = false
+    }
+    externalJars(group: 'net.minidev', name: 'accessors-smart', version: "${javaAccessorsSmartVersion}") {
+        transitive = false
+    }
 }
 
 task updateTomlFiles {
@@ -165,6 +174,10 @@ task updateTomlFiles {
         def stdlibDependentMarshallingVersion = project.marshallingVersion
         def stdlibDependentProtobufVersion = project.protobufVersion
         def ballerinaToOpenApiVersion = project.ballerinaToOpenApiVersion
+        def javaJsonPathVersion = project.javaJsonPathVersion
+        def javaJsonSmartVersion = project.javaJsonSmartVersion
+        def javaAccessorsSmartVersion = project.javaAccessorsSmartVersion
+
 
         def newBallerinaToml = ballerinaTomlFilePlaceHolder.text.replace("@project.version@", project.version)
         newBallerinaToml = newBallerinaToml.replace("@toml.version@", tomlVersion)
@@ -181,6 +194,9 @@ task updateTomlFiles {
         newBallerinaToml = newBallerinaToml.replace("@lz4.version@", stdlibDependentLz4Version)
         newBallerinaToml = newBallerinaToml.replace("@marshalling.version@", stdlibDependentMarshallingVersion)
         newBallerinaToml = newBallerinaToml.replace("@protobuf.version@", stdlibDependentProtobufVersion)
+        newBallerinaToml = newBallerinaToml.replace("@jsonpath.version@", javaJsonPathVersion)
+        newBallerinaToml = newBallerinaToml.replace("@jsonsmart.version@", javaJsonSmartVersion)
+        newBallerinaToml = newBallerinaToml.replace("@accessors.version@", javaAccessorsSmartVersion)
         ballerinaTomlFile.text = newBallerinaToml
 
         def newCompilerPluginToml = compilerPluginTomlFilePlaceHolder.text.replace("@project.version@", project.version)
