@@ -49,6 +49,9 @@ ext.wso2CommonsPoolVersion = project.wso2CommonsPoolVersion
 ext.bouncycastleVersion = project.bouncycastleVersion
 ext.mimepullVersion = project.mimepullVersion
 ext.testngVersion = project.testngVersion
+ext.javaJsonPathVersion = project.javaJsonPathVersion
+ext.javaJsonSmartVersion = project.javaJsonSmartVersion
+ext.javaAccessorsSmartVersion = project.javaAccessorsSmartVersion
 
 allprojects {
     group = project.group

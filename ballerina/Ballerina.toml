@@ -171,3 +171,21 @@ groupId = "com.google.protobufl"
 artifactId = "protobuf-java"
 version = "3.25.5"
 path = "./lib/protobuf-java-3.25.5.jar"
+
+[[platform.java17.dependency]]
+path = "./lib/json-path-2.9.0.jar"
+groupId = "com.jayway.jsonpath"
+artifactId = "json-path"
+version = "2.9.0"
+
+[[platform.java17.dependency]]
+path = "./lib/json-smart-2.4.11.jar"
+groupId = "net.minidev.json"
+artifactId = "json-smart"
+version = "2.4.11"
+
+[[platform.java17.dependency]]
+path = "./lib/accessors-smart-2.4.7.jar"
+groupId = "net.minidev.json"
+artifactId = "accessors-smart"
+version = "2.4.7"
