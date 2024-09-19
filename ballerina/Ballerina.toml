@@ -173,19 +173,19 @@ version = "3.20.3"
 path = "./lib/protobuf-java-3.20.3.jar"
 
 [[platform.java17.dependency]]
-path = "./lib/json-path-2.9.0.jar"
 groupId = "com.jayway.jsonpath"
 artifactId = "json-path"
-version = "2.9.0"
+version = "@jsonpath.version@"
+path = "./lib/json-path-@jsonpath.version@.jar"
 
 [[platform.java17.dependency]]
-path = "./lib/json-smart-2.4.11.jar"
 groupId = "net.minidev.json"
 artifactId = "json-smart"
-version = "2.4.11"
+version = "@jsonsmart.version@"
+path = "./lib/json-smart-@jsonsmart.version@.jar"
 
 [[platform.java17.dependency]]
-path = "./lib/accessors-smart-2.4.7.jar"
 groupId = "net.minidev.json"
 artifactId = "accessors-smart"
-version = "2.4.7"
+version = "@accessors.version@"
+path = "./lib/accessors-smart-@accessors.version@.jar"
