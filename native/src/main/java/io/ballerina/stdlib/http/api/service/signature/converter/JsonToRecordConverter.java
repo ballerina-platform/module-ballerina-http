@@ -60,6 +60,12 @@ public class JsonToRecordConverter {
      */
     private static Object getRecord(Type entityBodyType, Object bJson) {
         try {
+//            BMap<BString, Object> mapValue = ValueCreator.createRecordValue(
+//                    io.ballerina.lib.data.ModuleUtils.getModule(),
+//                    "Options");
+//            BTypedesc typedescValue = ValueCreator.createTypedescValue(entityBodyType);
+//            return Native.parseAsType(bJson, mapValue, typedescValue);
+
             return ValueUtils.convert(bJson, entityBodyType);
         } catch (NullPointerException ex) {
             throw new BallerinaConnectorException("cannot convert payload to record type: " +

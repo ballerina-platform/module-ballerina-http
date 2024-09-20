@@ -270,7 +270,7 @@ function testResourceConstraintTypeArrayFieldError() returns error? {
     if response is http:ClientRequestError {
         test:assertEquals(response.detail().statusCode, 400, msg = "Found unexpected output");
         common:assertErrorHeaderValue(response.detail().headers[common:CONTENT_TYPE], common:APPLICATION_JSON);
-        check common:assertJsonErrorPayload(<json>response.detail().body, "payload validation failed: Validation failed for '$.weight:length' constraint(s).",
+        check common:assertJsonErrorPayload(<json>response.detail().body, "Payload binding failed: Validation failed for '$.weight:length' constraint(s).",
                     "Bad Request", 400, "/validation/getWeight", "POST");
     } else {
         test:assertFail(msg = "Found unexpected output type");
