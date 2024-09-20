@@ -343,11 +343,11 @@ function testMapJsonOfDefaultableQueryBinding() returns error? {
 function testMapJsonArrOfDefaultableQueryBinding() returns error? {
     json response = check queryBindingClient->get("/default/q4");
     common:assertJsonPayloadtoJsonString(response, {
-                                                       objects: [
-                                                           {name: "test1", value: "json1"},
-                                                           {name: "test2", value: "json2"}
-                                                       ]
-                                                   });
+        objects: [
+            {name: "test1", value: "json1"},
+            {name: "test2", value: "json2"}
+        ]
+    });
 }
 
 @test:Config {}

@@ -291,7 +291,7 @@ public class ParamHandler {
         BMap mapValue = annotations.getMapValue(StringUtils.fromString(QUERY_ANNOTATION));
         Object queryName = mapValue.get(HttpConstants.ANN_FIELD_NAME);
         if (queryName instanceof BString query) {
-            paramName = query.getValue();
+            return query.getValue();
         }
         return paramName;
     }
