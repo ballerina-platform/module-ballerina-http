@@ -18,7 +18,6 @@ import ballerina/http;
 import ballerina/test;
 import ballerina/url;
 import ballerina/http_test_common as common;
-import ballerina/constraint;
 
 listener http:Listener QueryBindingEP = new (queryParamBindingTestPort, httpVersion = http:HTTP_1_1);
 final http:Client queryBindingClient = check new ("http://localhost:" + queryParamBindingTestPort.toString(), httpVersion = http:HTTP_1_1);
@@ -181,24 +180,14 @@ service /queryparamservice on QueryBindingEP {
         return string `Hello, ${lastName}`;
     }
 
-    resource function get queryAnnotation/mapQueries(Mq mq) returns  string {
-        return string `Hello, ${mq.name} ${mq.personAge}`;
+    resource function get queryAnnotation/mapQueries(@http:Query{ name: "rMq"} Mq mq) returns  string {
+        return string `Hello, ${mq.name} ${mq.age}`;
     }
 }
 
 public type Mq record {
     string name;
-    // @http:Query {
-    //     name: "age"
-    // }
-    @constraint:Int {
-        maxValue: 100
-    }
-    int personAge;
-    // @http:Query {
-    //     name: "table"
-    // }
-    int tableNo;
+    int age;
 };
 
 service /default on QueryBindingEP {
@@ -774,15 +763,14 @@ function testforQueryParamterNameOverwrite() returns error? {
     string result = check queryBindingClient->get("/queryparamservice/queryAnnotation?first=Harry&last-name=Potter");
     test:assertEquals(result, "Hello, Harry Potter", msg = string `Found ${result}, expected Harry`);
 
-    // map<json> mapOfJsons = {
-    //     name: "Ron",
-    //     age: 10,
-    //     'table: 5
-    // };
-    // string mapOfQueries = check url:encode(mapOfJsons.toJsonString(), "UTF-8");
+    map<json> mapOfJsons = {
+        name: "Ron",
+        age: 10
+    };
+    string mapOfQueries = check url:encode(mapOfJsons.toJsonString(), "UTF-8");
     
-    // result = check queryBindingClient->get("/queryparamservice/queryAnnotation/mapQueries?mq=" + mapOfQueries);
-    // test:assertEquals(result, "Hello, Ron 10", msg = string `Found ${result}, expected Harry`);
+    result = check queryBindingClient->get("/queryparamservice/queryAnnotation/mapQueries?rMq=" + mapOfQueries);
+    test:assertEquals(result, "Hello, Ron 10", msg = string `Found ${result}, expected Harry`);
 }
 
 @test:Config{}
