@@ -549,7 +549,7 @@ public class Request {
         } else if payload is mime:Entity[] {
             self.setBodyParts(payload);
         } else if payload is anydata {
-            self.setJsonPayload(payload.toJson());
+            self.setJsonPayload(jsondata:toJson(payload));
         } else {
             panic error Error("invalid entity body type." +
                 "expected one of the types: string|xml|json|byte[]|mime:Entity[]|stream<byte[],io:Error?>");
