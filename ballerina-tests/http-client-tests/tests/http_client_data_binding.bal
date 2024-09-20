@@ -616,9 +616,9 @@ function testAllBindingErrorsWithNillableTypes() returns error? {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:TEXT_PLAIN);
         common:assertTextPayload(response.getTextPayload(),
-            "Payload binding failed: 'map<json>' value cannot be converted to " +
-            "'xml<(lang.xml:Element|lang.xml:Comment|lang.xml:ProcessingInstruction|lang.xml:Text)>?'|" +
-            "incompatible typedesc int? found for 'text/plain' mime type");
+            "Payload binding failed: incompatible expected type 'xml<(lang.xml:Element|lang.xml:Comment|" +
+            "lang.xml:ProcessingInstruction|lang.xml:Text)>?' for value " +
+            "'{\"id\":\"chamil\",\"values\":{\"a\":2,\"b\":45,\"c\":{\"x\":\"mnb\",\"y\":\"uio\"}}}'|incompatible typedesc int? found for 'text/plain' mime type");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

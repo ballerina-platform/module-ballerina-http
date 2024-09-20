@@ -21,6 +21,7 @@ import ballerina/crypto;
 import ballerina/time;
 import ballerina/jballerina.java;
 import ballerina/log;
+import ballerina/data.jsondata;
 
 # Represents an HTTP response.
 #

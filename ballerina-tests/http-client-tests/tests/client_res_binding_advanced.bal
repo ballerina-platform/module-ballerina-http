@@ -13,6 +13,8 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
+
+// import ballerina/data.jsondata;
 import ballerina/http;
 import ballerina/mime;
 import ballerina/test;
@@ -41,6 +43,14 @@ service /api on new http:Listener(resBindingAdvancedPort) {
     resource function get byteArray() returns byte[] {
         return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
     }
+
+    // resource function get overwriteNames() returns TPerson {
+    //     return {"firstName": "John", "personAge": "23"};
+    // }
+
+    // resource function get overwriteNames/jsont() returns json {
+    //     return {"name": "John", "age": "23"};
+    // }
 }
 
 final http:Client clientEP = check new (string `localhost:${resBindingAdvancedPort}/api`);
@@ -101,3 +111,20 @@ function testResponseWithAnydataResBinding() returns error? {
         test:assertFail("Invalid response type");
     }
 }
+
+// public type TPerson record {
+//     @jsondata:Name {
+//         value: "name"
+//     }
+//     string firstName;
+//     @jsondata:Name {
+//         value: "age"
+//     }
+//     string personAge;
+// };
+
+// @test:Config {}
+// function clientoverwriteResponseJsonName() returns error? {
+//     json res = check clientEP->/overwriteNames;
+//     test:assertEquals(res, "abc");
+// }
