@@ -15,9 +15,9 @@
 // under the License.
 
 import ballerina/http;
+import ballerina/http_test_common as common;
 import ballerina/test;
 import ballerina/url;
-import ballerina/http_test_common as common;
 
 listener http:Listener QueryBindingEP = new (queryParamBindingTestPort, httpVersion = http:HTTP_1_1);
 final http:Client queryBindingClient = check new ("http://localhost:" + queryParamBindingTestPort.toString(), httpVersion = http:HTTP_1_1);
@@ -168,19 +168,19 @@ service /queryparamservice on QueryBindingEP {
         return studentRest;
     }
 
-    resource function get queryAnnotation(@http:Query{ name: "first"} string firstName, @http:Query{ name: "last-name"} string lastName) returns  string {
+    resource function get queryAnnotation(@http:Query {name: "first"} string firstName, @http:Query {name: "last-name"} string lastName) returns string {
         return string `Hello, ${firstName} ${lastName}`;
     }
 
-    resource function get queryAnnotation/negative/q1(@http:Query{ name: ""} string firstName) returns  string {
+    resource function get queryAnnotation/negative/q1(@http:Query {name: ""} string firstName) returns string {
         return string `Hello, ${firstName}`;
     }
 
-    resource function get queryAnnotation/negative/q2(@http:Query{ name: ()} string lastName) returns  string {
+    resource function get queryAnnotation/negative/q2(@http:Query {name: ()} string lastName) returns string {
         return string `Hello, ${lastName}`;
     }
 
-    resource function get queryAnnotation/mapQueries(@http:Query{ name: "rMq"} Mq mq) returns  string {
+    resource function get queryAnnotation/mapQueries(@http:Query {name: "rMq"} Mq mq) returns string {
         return string `Hello, ${mq.name} ${mq.age}`;
     }
 }
@@ -343,11 +343,11 @@ function testMapJsonOfDefaultableQueryBinding() returns error? {
 function testMapJsonArrOfDefaultableQueryBinding() returns error? {
     json response = check queryBindingClient->get("/default/q4");
     common:assertJsonPayloadtoJsonString(response, {
-        objects: [
-            {name: "test1", value: "json1"},
-            {name: "test2", value: "json2"}
-        ]
-    });
+                                                       objects: [
+                                                           {name: "test1", value: "json1"},
+                                                           {name: "test2", value: "json2"}
+                                                       ]
+                                                   });
 }
 
 @test:Config {}
@@ -374,7 +374,7 @@ function testNegativeStringQueryBindingCaseSensitivity() returns error? {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400);
         check common:assertJsonErrorPayload(check response.getJsonPayload(), "no query param value found for 'foo'",
-            "Bad Request", 400, "/queryparamservice/?FOO=WSO2&bar=go", "GET");
+                "Bad Request", 400, "/queryparamservice/?FOO=WSO2&bar=go", "GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -386,7 +386,7 @@ function testNegativeIntQueryBindingCastingError() returns error? {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400);
         check common:assertJsonErrorPayload(check response.getJsonPayload(), "error in casting query param : 'bar'",
-            "Bad Request", 400, "/queryparamservice/?foo=WSO2&bar=go", "GET");
+                "Bad Request", 400, "/queryparamservice/?foo=WSO2&bar=go", "GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -395,7 +395,7 @@ function testNegativeIntQueryBindingCastingError() returns error? {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400);
         check common:assertJsonErrorPayload(check response.getJsonPayload(), "error in casting query param : 'bar'",
-            "Bad Request", 400, "/queryparamservice/?foo=WSO2&bar=", "GET");
+                "Bad Request", 400, "/queryparamservice/?foo=WSO2&bar=", "GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -570,7 +570,7 @@ function testEmptyQueryParamBinding() returns error? {
     if response is http:Response {
         test:assertEquals(response.statusCode, 400);
         check common:assertJsonErrorPayload(check response.getJsonPayload(), "no query param value found for 'x-Type'",
-            "Bad Request", 400, "/queryparamservice/q9?x-Type", "GET");
+                "Bad Request", 400, "/queryparamservice/q9?x-Type", "GET");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -758,7 +758,7 @@ function testMapOfJsonTypedQueryParamBinding3() returns error? {
     test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
 }
 
-@test:Config{}
+@test:Config {}
 function testforQueryParamterNameOverwrite() returns error? {
     string result = check queryBindingClient->get("/queryparamservice/queryAnnotation?first=Harry&last-name=Potter");
     test:assertEquals(result, "Hello, Harry Potter", msg = string `Found ${result}, expected Harry`);
@@ -768,12 +768,12 @@ function testforQueryParamterNameOverwrite() returns error? {
         age: 10
     };
     string mapOfQueries = check url:encode(mapOfJsons.toJsonString(), "UTF-8");
-    
+
     result = check queryBindingClient->get("/queryparamservice/queryAnnotation/mapQueries?rMq=" + mapOfQueries);
     test:assertEquals(result, "Hello, Ron 10", msg = string `Found ${result}, expected Harry`);
 }
 
-@test:Config{}
+@test:Config {}
 function testforNegativeQueryParamterNameOverwrite() returns error? {
     string result = check queryBindingClient->get("/queryparamservice/queryAnnotation/negative/q1?firstName=Harry");
     test:assertEquals(result, "Hello, Harry");
