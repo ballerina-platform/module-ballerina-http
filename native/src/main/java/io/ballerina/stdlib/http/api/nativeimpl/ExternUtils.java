@@ -26,7 +26,6 @@ import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.api.values.BTypedesc;
 import io.ballerina.stdlib.http.api.HttpConstants;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.util.internal.StringUtil;
 
 import java.util.Objects;
 import java.util.Optional;

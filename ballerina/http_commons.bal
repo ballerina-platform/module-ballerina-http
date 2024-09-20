@@ -50,12 +50,12 @@ public isolated function parseHeader(string headerValue) returns HeaderValue[]|C
 # };
 #
 # Headers headers = {apiVersion: "v1", id: 1};
-# map<string|string[]> headersMap = http:getHeadersMap(headers); // { "X-API-VERSION": "v1", "id": "1" }
+# map<string|string[]> headersMap = http:getHeaderMap(headers); // { "X-API-VERSION": "v1", "id": "1" }
 # ```
 #
 # + headers - The headers represented as a map of anydata
 # + return - A map of string or string array representing the headers
-public isolated function getHeadersMap(map<anydata> headers) returns map<string|string[]> {
+public isolated function getHeaderMap(map<anydata> headers) returns map<string|string[]> {
     return map from var [key, value] in headers.entries()
         select [getHeaderName(key, typeof headers), getHeaderValue(value)];
 }
@@ -214,7 +214,7 @@ isolated function populateHeaders(Request request, map<string|string[]>? headers
         return;
     }
 
-    foreach var [headerKey, headerValue] in getHeadersMap(headers).entries() {
+    foreach var [headerKey, headerValue] in getHeaderMap(headers).entries() {
         if headerValue is string[] {
             foreach string value in headerValue {
                 request.addHeader(headerKey, value);
