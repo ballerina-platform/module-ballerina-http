@@ -381,7 +381,7 @@ public class Response {
     #                 The `application/json` is the default value
     public isolated function setJsonPayload(json payload, string? contentType = ()) {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
-        setJson(entity, payload, self.getContentType(), contentType);
+        setJson(entity, jsondata:toJson(payload), self.getContentType(), contentType);
         self.setEntityAndUpdateContentTypeHeader(entity);
     }
 
@@ -521,7 +521,7 @@ public class Response {
         } else if payload is stream<SseEvent, error?> {
             self.setSseEventStream(payload);
         } else if payload is anydata {
-            self.setJsonPayload(payload.toJson());
+            self.setJsonPayload(jsondata:toJson(payload));
         } else {
             panic error Error("invalid entity body type." +
                 "expected one of the types: string|xml|json|byte[]|mime:Entity[]|stream<byte[],io:Error?>");
