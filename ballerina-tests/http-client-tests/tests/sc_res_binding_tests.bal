@@ -330,7 +330,7 @@ function testGetSuccessStatusCodeResponse() returns error? {
     if res2 is error {
         test:assertTrue(res2 is http:StatusCodeResponseBindingError);
         test:assertEquals(res2.message(), "incompatible type: AlbumNotFound found for the response with status code: 200",
-                "Invalid error message");
+            "Invalid error message");
         error? cause = res2.cause();
         if cause is error {
             test:assertEquals(cause.message(), "no 'anydata' type found in the target type", "Invalid cause error message");
