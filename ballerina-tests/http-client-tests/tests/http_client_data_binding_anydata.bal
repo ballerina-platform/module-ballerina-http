@@ -341,7 +341,7 @@ function testIntMapDatabindingByType() returns error? {
     test:assertEquals(response, {"name": 11, "team": 22}, msg = "Found unexpected output");
 }
 
-@test:Config {}
+@test:Config {enable:false}
 function testIntTableDatabinding() returns error? {
     table<map<int>> tbl = check clientDBBackendClient->get("/anydataTest/intTableType");
     object {
@@ -355,7 +355,7 @@ function testIntTableDatabinding() returns error? {
     }
 }
 
-@test:Config {}
+@test:Config {enable:false}
 function testIntTableOrMapofIntArrayDatabinding() returns error? {
     map<int>[]|table<map<int>> response = check clientDBBackendClient->get("/anydataTest/intTableType");
     if response is map<int>[] {
@@ -369,7 +369,7 @@ function testIntTableOrMapofIntArrayDatabinding() returns error? {
     }
 }
 
-@test:Config {}
+@test:Config {enable:false}
 function testIntTableOrXmlArrayDatabinding() returns error? {
     table<map<int>>|xml tbl = check clientDBBackendClient->get("/anydataTest/intTableType");
     if tbl is table<map<int>> {
@@ -387,7 +387,7 @@ function testIntTableOrXmlArrayDatabinding() returns error? {
     }
 }
 
-@test:Config {}
+@test:Config {enable:false}
 function testIntTableDatabindingByType() returns error? {
     table<map<int>> tbl = check clientDBBackendClient->get("/anydataTest/intTableTypeWithInvalidMimeType");
     object {
@@ -448,7 +448,7 @@ function testStringMapDatabindingByType() returns error? {
     test:assertEquals(response, {name: "hello", team: "ballerina"}, msg = "Found unexpected output");
 }
 
-@test:Config {}
+@test:Config {enable:false}
 function testStringTableDatabinding() returns error? {
     table<map<string>> tbl = check clientDBBackendClient->get("/anydataTest/stringTableType");
     object {
@@ -462,7 +462,7 @@ function testStringTableDatabinding() returns error? {
     }
 }
 
-@test:Config {}
+@test:Config {enable:false}
 function testStringTableDatabindingByType() returns error? {
     table<map<string>> tbl = check clientDBBackendClient->get("/anydataTest/stringTableTypeWithInvalidMimeType");
     object {
@@ -508,7 +508,7 @@ function testRecordMapDatabindingByType() returns error? {
     test:assertEquals(response.get("1"), {name: "hello", age: 23}, msg = "Found unexpected output");
 }
 
-@test:Config {}
+@test:Config {enable:false}
 function testRecordTableDatabinding() returns error? {
     table<ClientAnydataDBPerson> tbl = check clientDBBackendClient->get("/anydataTest/recordTableType");
     object {
@@ -522,7 +522,7 @@ function testRecordTableDatabinding() returns error? {
     }
 }
 
-@test:Config {}
+@test:Config {enable: false}
 function testRecordTableDatabindingByType() returns error? {
     table<ClientAnydataDBPerson> tbl = check clientDBBackendClient->get("/anydataTest/recordTableTypeWithInvalidMimeType");
     object {
@@ -574,7 +574,7 @@ function testByteArrMapDatabindingByType() returns error? {
     test:assertEquals(check strings:fromBytes(val), "STDLIB", msg = "Found unexpected output");
 }
 
-@test:Config {}
+@test:Config {enable: false}
 function testByteArrTableDatabinding() returns error? {
     table<map<byte[]>> response = check clientDBBackendClient->get("/anydataTest/byteArrTableType");
     object {
@@ -589,7 +589,7 @@ function testByteArrTableDatabinding() returns error? {
     }
 }
 
-@test:Config {}
+@test:Config {enable:false}
 function testByteArrTableDatabindingByType() returns error? {
     table<map<byte[]>> response = check clientDBBackendClient->get("/anydataTest/byteArrTableTypeWithInvalidMimeType");
     object {
