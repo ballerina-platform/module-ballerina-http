@@ -17,7 +17,6 @@
  */
 package io.ballerina.stdlib.http.api.nativeimpl;
 
-import io.ballerina.lib.data.jsondata.json.Native;
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Future;
 import io.ballerina.runtime.api.PredefinedTypes;
@@ -296,14 +295,6 @@ public final class ExternResponseProcessor {
             return null;
         }
         try {
-//            Map<String, Object> valueMap = new HashMap<>();
-//            Boolean bool = Boolean.FALSE;
-//            valueMap.put("enableConstraintValidation", bool);
-//            BMap<BString, Object> mapValue = ValueCreator.createRecordValue(
-//                    io.ballerina.lib.data.ModuleUtils.getModule(),
-//                    "Options", valueMap);
-//            BTypedesc typedescValue = ValueCreator.createTypedescValue(mediaTypeType);
-//            Object convertedValue = Native.parseAsType(StringUtils.fromString(contentType), mapValue, typedescValue);
             Object convertedValue = ValueUtils.convert(StringUtils.fromString(contentType), mediaTypeType);
             return validateConstraints(requireValidation, convertedValue, mediaTypeType,
                     MEDIA_TYPE_VALIDATION_CLIENT_ERROR, MEDIA_TYPE_BINDING_FAILED, MEDIA_TYPE);
