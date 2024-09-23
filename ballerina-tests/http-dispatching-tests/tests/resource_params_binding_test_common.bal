@@ -35,6 +35,24 @@ type HeaderRecord record {|
     (EnumValue|Value)[] header4;
 |};
 
+type HeaderRecordWithName record {|
+    @http:Header {name: "x-header1"}
+    string header1;
+    @http:Header {name: "x-header2"}
+    string header2;
+    @http:Header {name: "x-header3"}
+    string[] header3;
+|};
+
+type HeaderRecordWithType record {|
+    @http:Header {name: "x-header1"}
+    "value1"|"value2" header1;
+    @http:Header {name: "x-header2"}
+    EnumValue header2;
+    @http:Header {name: "x-header3"}
+    (EnumValue|Value)[] header3;
+|};
+
 type UnionFiniteType EnumValue|Value;
 
 type QueryRecord record {|
@@ -344,5 +362,9 @@ service /header on resourceParamBindingListener {
 
     resource function get case14(@http:Header StringCharacter header1, @http:Header SmallInt header2) returns [StringCharacter, SmallInt] {
         return [header1, header2];
+    }
+
+    resource function get case15(@http:Header HeaderRecordWithType header) returns map<json>|string {
+        return header;
     }
 }
