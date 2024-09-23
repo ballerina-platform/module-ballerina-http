@@ -15,7 +15,6 @@
 // under the License.
 
 import ballerina/constraint;
-import ballerina/data.jsondata;
 import ballerina/http;
 import ballerina/test;
 
@@ -254,22 +253,6 @@ type AlbumFoundWithInvalidConstraints3 record {|
         int req\-id;
     |} headers;
     MediaTypeWithInvalidPattern mediaType;
-|};
-
-public type TPerson record {
-    @jsondata:Name {
-        value: "name"
-    }
-    string firstName;
-    @jsondata:Name {
-        value: "age"
-    }
-    string personAge;
-};
-
-public type OKPerson record {|
-    *http:Ok;
-    json body;
 |};
 
 service /api on new http:Listener(statusCodeBindingPort2) {

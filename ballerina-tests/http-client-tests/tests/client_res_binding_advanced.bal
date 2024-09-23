@@ -17,6 +17,7 @@
 import ballerina/http;
 import ballerina/mime;
 import ballerina/test;
+import ballerina/data.jsondata;
 
 service /api on new http:Listener(resBindingAdvancedPort) {
 
@@ -151,6 +152,6 @@ function clientoverwriteResponseJsonName() returns error? {
     TPerson res3 = check clientEP->/overwriteNames/jsont.post(j);
     test:assertEquals(res3, {firstName: "Sumudu", personAge: "29"});
 
-    json re4 = check clientEP->/status/code;
-    test:assertEquals(res3, {name: "Potter", age: "40"});
+    json res4 = check clientEP->/status/code;
+    test:assertEquals(res4, {name: "Potter", age: "40"});
 }
