@@ -18,6 +18,7 @@
 import ballerina/http;
 import ballerina/mime;
 import ballerina/test;
+import ballerina/data.jsondata;
 
 service /api on new http:Listener(resBindingAdvancedPort) {
 
@@ -44,13 +45,21 @@ service /api on new http:Listener(resBindingAdvancedPort) {
         return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
     }
 
-    // resource function get overwriteNames() returns TPerson {
-    //     return {"firstName": "John", "personAge": "23"};
-    // }
+    resource function get overwriteNames/jsont(boolean y) returns json|TPerson {
+        if y  {
+            return {"name": "John", "age": "23"};
+        }
+        TPerson t = {firstName: "Potter", personAge: "30"};
+        return t;
+    }
 
-    // resource function get overwriteNames/jsont() returns json {
-    //     return {"name": "John", "age": "23"};
-    // }
+    resource function post overwriteNames/jsont(TPerson payload) returns TPerson {
+        return payload;
+    }
+
+    resource function get status/code() returns OKPerson {
+        return {body: {firstName: "Potter", personAge: "40"}};
+    }
 }
 
 final http:Client clientEP = check new (string `localhost:${resBindingAdvancedPort}/api`);
@@ -112,19 +121,37 @@ function testResponseWithAnydataResBinding() returns error? {
     }
 }
 
-// public type TPerson record {
-//     @jsondata:Name {
-//         value: "name"
-//     }
-//     string firstName;
-//     @jsondata:Name {
-//         value: "age"
-//     }
-//     string personAge;
-// };
+public type TPerson record {
+    @jsondata:Name {
+        value: "name"
+    }
+    string firstName;
+    @jsondata:Name {
+        value: "age"
+    }
+    string personAge;
+};
+public type OKPerson record {|
+    *http:Ok;
+    TPerson body;
+|};
 
-// @test:Config {}
-// function clientoverwriteResponseJsonName() returns error? {
-//     json res = check clientEP->/overwriteNames;
-//     test:assertEquals(res, "abc");
-// }
+@test:Config {}
+function clientoverwriteResponseJsonName() returns error? {
+    TPerson res1 = check clientEP->/overwriteNames/jsont(y=true);
+    test:assertEquals(res1, "{\"firstName\":\"John\",\"personAge\":\"23\"}");
+
+    json res2 = check clientEP->/overwriteNames/jsont(y=false);
+    test:assertEquals(res2, "{\"name\":\"Potter\",\"age\":\"30\"}");
+
+    json j = {
+        name: "Sumudu",
+        age: "29"
+    };
+
+    TPerson res3 = check clientEP->/overwriteNames/jsont.post(j);
+    test:assertEquals("{\"firstName\":\"Sumudu\",\"personAge\":\"29\"}");
+
+    // TPerson re4 = check clientEP->/status/code;
+    // io:print(re4);
+}

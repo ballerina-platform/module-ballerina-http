@@ -24,7 +24,6 @@ import ballerina/log;
 import ballerina/lang.'string as strings;
 import ballerina/url;
 import ballerina/data.jsondata;
-import ballerina/data.jsondata;
 
 final boolean observabilityEnabled = observe:isObservabilityEnabled();
 
