@@ -277,12 +277,19 @@ function testPassthruWithBody() returns error? {
 }
 
 type Headers record {|
-    @http:Header { name: "X-API-VERSION" }
+    @http:Header {name: "X-API-VERSION"}
     string apiVersion;
-    @http:Header { name: "X-REQ-ID" }
+    @http:Header {name: "X-REQ-ID"}
     int reqId;
-    @http:Header { name: "X-IDS" }
+    @http:Header {name: "X-IDS"}
     float[] ids;
+|};
+
+type HeadersNegative record {|
+    @http:Header
+    string header1;
+    @http:Header {name: ()}
+    string header2;
 |};
 
 @test:Config {}
@@ -294,6 +301,12 @@ function testGetHeadersMethod() {
         "X-IDS": ["1.0", "2.0", "3.0"]
     };
     test:assertEquals(http:getHeaderMap(headers), expectedHeaderMap, "Header map is not as expected");
+}
+
+@test:Config {}
+function testGetHeadersMethodNegative() {
+    HeadersNegative headers = {header1: "header1", header2: "header2"};
+    test:assertEquals(http:getHeaderMap(headers), headers, "Header map is not as expected");
 }
 
 type Queries record {|
