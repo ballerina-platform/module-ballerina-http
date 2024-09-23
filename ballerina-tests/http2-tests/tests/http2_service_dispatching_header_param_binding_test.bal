@@ -84,6 +84,15 @@ public type RateLimitHeaders record {|
     string[]? x\-rate\-limit\-types;
 |};
 
+public type RateLimitHeadersNew record {|
+    @http:Header {name: "x-rate-limit-id"}
+    string rateLimitId;
+    @http:Header {name: "x-rate-limit-remaining"}
+    int? rateLimitRemaining;
+    @http:Header {name: "x-rate-limit-types"}
+    string[]? rateLimitTypes;
+|};
+
 public type PureTypeHeaders record {|
     string sid;
     int iid;
@@ -125,6 +134,14 @@ service /headerRecord on HeaderBindingEP {
             header3: rateLimitHeaders.x\-rate\-limit\-types
         };
     }
+
+    resource function get rateLimitHeadersNew(@http:Header RateLimitHeadersNew rateLimitHeaders) returns json {
+            return {
+                header1: rateLimitHeaders.rateLimitId,
+                header2: rateLimitHeaders.rateLimitRemaining,
+                header3: rateLimitHeaders.rateLimitTypes
+            };
+        }
 
     resource function post ofStringOfPost(@http:Header RateLimitHeaders rateLimitHeaders) returns json {
         return {
@@ -504,6 +521,30 @@ function testHeaderRecordParam() returns error? {
     common:assertJsonValue(response, "header1", "dwqfec");
     common:assertJsonValue(response, "header2", 23);
     common:assertJsonValue(response, "header3", ["weweq", "fefw"]);
+}
+
+@test:Config {}
+function testHeaderRecordParamWithHeaderNameAnnotation() returns error? {
+    json response = check headerBindingClient->get("/headerRecord/rateLimitHeadersNew", {
+        "x-rate-limit-id": "dwqfec",
+        "x-rate-limit-remaining": "23",
+        "x-rate-limit-types": ["weweq", "fefw"]
+    });
+    common:assertJsonValue(response, "header1", "dwqfec");
+    common:assertJsonValue(response, "header2", 23);
+    common:assertJsonValue(response, "header3", ["weweq", "fefw"]);
+}
+
+@test:Config {}
+function testHeaderRecordParamWithHeaderNameNotFound() returns error? {
+    http:Response response = check headerBindingClient->get("/headerRecord/rateLimitHeadersNew", {
+        "rate-limit-id": "dwqfec",
+        "x-rate-limit-remaining": "23",
+        "x-rate-limit-types": ["weweq", "fefw"]
+    });
+    test:assertEquals(response.statusCode, 400);
+    check common:assertJsonErrorPayload(check response.getJsonPayload(), "no header value found for 'rateLimitId'",
+        "Bad Request", 400, "/headerRecord/rateLimitHeadersNew", "GET");
 }
 
 @test:Config {}
