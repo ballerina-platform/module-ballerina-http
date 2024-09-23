@@ -136,17 +136,17 @@ isolated function blobPayloadBuilder(Response response, TargetType targetType) r
 }
 
 isolated function jsonPayloadBuilder(Response response, TargetType targetType) returns anydata|ClientError {
-    if targetType is typedesc<record {|anydata...;|}> {
+    if targetType is typedesc<record {| anydata...; |}> {
         return nonNilablejsonPayloadBuilder(response, targetType);
-    } else if targetType is typedesc<record {|anydata...;|}?> {
+    } else if targetType is typedesc<record {| anydata...; |}?> {
         return nilablejsonPayloadBuilder(response, targetType);
-    } else if targetType is typedesc<record {|anydata...;|}[]> {
+    } else if targetType is typedesc<record {| anydata...; |}[]> {
         return nonNilablejsonPayloadBuilder(response, targetType);
-    } else if targetType is typedesc<record {|anydata...;|}[]?> {
+    } else if targetType is typedesc<record {| anydata...; |}[]?> {
         return nilablejsonPayloadBuilder(response, targetType);
     } else if targetType is typedesc<map<json>> {
         json payload = check response.getJsonPayload();
-        return <map<json>>payload;
+        return <map<json>> payload;
     } else if targetType is typedesc<anydata> {
         return nilablejsonPayloadBuilder(response, targetType);
     } else {

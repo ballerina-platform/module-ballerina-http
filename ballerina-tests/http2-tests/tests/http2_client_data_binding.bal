@@ -742,9 +742,9 @@ function testHttp2AllBindingErrorsWithNillableTypes() returns error? {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:TEXT_PLAIN);
         common:assertTextPayload(response.getTextPayload(),
-            "Payload binding failed: 'map<json>' value cannot be converted to " +
-            "'xml<(lang.xml:Element|lang.xml:Comment|lang.xml:ProcessingInstruction|lang.xml:Text)>?'|" +
-            "incompatible typedesc int? found for 'text/plain' mime type");
+            "Payload binding failed: incompatible expected type 'xml<(lang.xml:Element|lang.xml:Comment|" + 
+            "lang.xml:ProcessingInstruction|lang.xml:Text)>?' for value '{\"id\":\"chamil\",\"values\":" + 
+            "{\"a\":2,\"b\":45,\"c\":{\"x\":\"mnb\",\"y\":\"uio\"}}}'|incompatible typedesc int? found for 'text/plain' mime type");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -936,9 +936,7 @@ function testHttp2DBRecordErrorNegative() {
     ClientDBErrorPerson|error response = http2ClientDBBackendClient->post("/backend/getRecord", "want record");
     if (response is error) {
         common:assertTrueTextPayload(response.message(),
-            "Payload binding failed: 'map<json>' value cannot be converted to 'http2_tests:ClientDBErrorPerson'");
-        common:assertTrueTextPayload(response.message(),
-            "missing required field 'weight' of type 'float' in record 'http2_tests:ClientDBErrorPerson'");
+            "Payload binding failed: required field 'weight' not present in JSON");
     } else {
         test:assertFail(msg = "Found unexpected output type: ClientDBErrorPerson");
     }
@@ -949,7 +947,7 @@ function testHttp2DBRecordArrayNegative() {
     ClientDBErrorPerson[]|error response = http2ClientDBBackendClient->post("/backend/getRecordArr", "want record arr");
     if (response is error) {
         common:assertTrueTextPayload(response.message(),
-            "Payload binding failed: 'json[]' value cannot be converted to 'http2_tests:ClientDBErrorPerson[]'");
+            "Payload binding failed: required field 'weight' not present in JSON");
     } else {
         test:assertFail(msg = "Found unexpected output type: ClientDBErrorPerson[]");
     }
@@ -973,7 +971,7 @@ function testHttp2MapOfStringDataBindingWithJsonPayload() {
     map<string>|error response = http2ClientDBBackendClient->get("/backend/getJson");
     if (response is error) {
         common:assertTrueTextPayload(response.message(),
-            "Payload binding failed: 'map<json>' value cannot be converted to 'map<string>'");
+            "Payload binding failed: incompatible expected type 'string' for value '{\"a\":2,\"b\":45,\"c\":{\"x\":\"mnb\",\"y\":\"uio\"}}'");
     } else {
         test:assertFail(msg = "Found unexpected output type: map<string>");
     }
