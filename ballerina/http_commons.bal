@@ -24,6 +24,7 @@ import ballerina/log;
 import ballerina/lang.'string as strings;
 import ballerina/url;
 import ballerina/data.jsondata;
+import ballerina/data.jsondata;
 
 final boolean observabilityEnabled = observe:isObservabilityEnabled();
 
@@ -123,7 +124,7 @@ isolated function buildResponse(ResponseMessage message, string? resourceAccesso
     } else if message is mime:Entity[] {
         response.setBodyParts(message);
     } else if message is anydata {
-        var result = trap val:toJson(message);
+        var result = trap jsondata:toJson(message);
         if result is error {
             return error InitializingOutboundResponseError("json conversion error: " + result.message(), result);
         } else {
