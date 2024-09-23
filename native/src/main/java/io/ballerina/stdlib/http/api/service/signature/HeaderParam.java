@@ -21,18 +21,15 @@ package io.ballerina.stdlib.http.api.service.signature;
 import io.ballerina.runtime.api.types.Field;
 import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.Type;
-import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.stdlib.constraint.Constraints;
 import io.ballerina.stdlib.http.api.HttpUtil;
-import io.ballerina.stdlib.http.api.nativeimpl.ExternUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import static io.ballerina.runtime.api.TypeTags.RECORD_TYPE_TAG;
-import static io.ballerina.stdlib.http.api.HttpConstants.ANN_NAME_HEADER;
 import static io.ballerina.stdlib.http.api.HttpConstants.HEADER_PARAM;
 import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_HEADER_VALIDATION_LISTENER_ERROR;
 
@@ -66,8 +63,7 @@ public class HeaderParam extends SignatureParam {
             HeaderRecordParam.FieldParam[] fields = new HeaderRecordParam.FieldParam[recordFields.size()];
             int i = 0;
             for (Map.Entry<String, Field> field : recordFields.entrySet()) {
-                keys.add(ExternUtils.getName(StringUtils.fromString(field.getKey()), headerRecordType,
-                        ANN_NAME_HEADER).getValue());
+                keys.add(field.getKey());
                 fields[i++] = new HeaderRecordParam.FieldParam(field.getValue().getFieldType());
             }
             this.recordParam = new HeaderRecordParam(getToken(), headerRecordType, keys, fields);

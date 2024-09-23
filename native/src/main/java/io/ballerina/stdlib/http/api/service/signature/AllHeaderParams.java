@@ -27,12 +27,14 @@ import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.api.HttpUtil;
+import io.ballerina.stdlib.http.api.nativeimpl.ExternUtils;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.netty.handler.codec.http.HttpHeaders;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.ballerina.stdlib.http.api.HttpConstants.ANN_NAME_HEADER;
 import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_HEADER_BINDING_LISTENER_ERROR;
 import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castParam;
 import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castParamArray;
@@ -139,7 +141,9 @@ public class AllHeaderParams implements Parameter {
         int i = 0;
         for (String key : keys) {
             HeaderRecordParam.FieldParam field = headerRecordParam.getField(i++);
-            List<String> headerValues = httpHeaders.getAll(key);
+            String headerName = ExternUtils.getName(StringUtils.fromString(key), recordType,
+                    ANN_NAME_HEADER).getValue();
+            List<String> headerValues = httpHeaders.getAll(headerName);
             if (headerValues.isEmpty()) {
                 if (field.isNilable() && treatNilableAsOptional) {
                     recordValue.put(StringUtils.fromString(key), null);
