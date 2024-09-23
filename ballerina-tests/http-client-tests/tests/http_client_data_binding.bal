@@ -816,8 +816,6 @@ function testDBRecordErrorNegative() {
     if (response is error) {
         common:assertTrueTextPayload(response.message(),
             "Payload binding failed: required field 'weight' not present in JSON");
-        // common:assertTrueTextPayload(response.message(),
-        //     "missing required field 'weight' of type 'float' in record 'http_client_tests:ClientDBErrorPerson'");
     } else {
         test:assertFail(msg = "Found unexpected output type: ClientDBErrorPerson");
     }

@@ -75,8 +75,6 @@ public class JsonToRecordConverter {
                     "Options", valueMap);
             BTypedesc typedescValue = ValueCreator.createTypedescValue(entityBodyType);
             return Native.parseAsType(bJson, mapValue, typedescValue);
-
-//            return ValueUtils.convert(bJson, entityBodyType);
         } catch (NullPointerException ex) {
             throw new BallerinaConnectorException("cannot convert payload to record type: " +
                                                           entityBodyType.getName());
