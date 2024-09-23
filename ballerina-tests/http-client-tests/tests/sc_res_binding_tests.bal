@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/constraint;
+import ballerina/data.jsondata;
 import ballerina/http;
 import ballerina/test;
 
@@ -255,6 +256,22 @@ type AlbumFoundWithInvalidConstraints3 record {|
     MediaTypeWithInvalidPattern mediaType;
 |};
 
+public type TPerson record {
+    @jsondata:Name {
+        value: "name"
+    }
+    string firstName;
+    @jsondata:Name {
+        value: "age"
+    }
+    string personAge;
+};
+
+public type OKPerson record {|
+    *http:Ok;
+    json body;
+|};
+
 service /api on new http:Listener(statusCodeBindingPort2) {
 
     resource function get albums/[string id]() returns AlbumFound|AlbumNotFound {
@@ -282,6 +299,10 @@ service /api on new http:Listener(statusCodeBindingPort2) {
                 headers: {userId: "user-1", reqId: 1}
             };
         }
+
+    resource function get album/auther() returns OKPerson {
+        return {body: {firstName: "Potter", personAge: "40"}};
+    }
 }
 
 final http:StatusCodeClient albumClient = check new (string `localhost:${statusCodeBindingPort2}/api`);
@@ -309,7 +330,7 @@ function testGetSuccessStatusCodeResponse() returns error? {
     if res2 is error {
         test:assertTrue(res2 is http:StatusCodeResponseBindingError);
         test:assertEquals(res2.message(), "incompatible type: AlbumNotFound found for the response with status code: 200",
-            "Invalid error message");
+                "Invalid error message");
         error? cause = res2.cause();
         if cause is error {
             test:assertEquals(cause.message(), "no 'anydata' type found in the target type", "Invalid cause error message");
@@ -632,6 +653,12 @@ function testStatusCodeBindingWithConstraintsFailure() returns error? {
     } else {
         test:assertFail("Invalid response type");
     }
+}
+
+@test:Config {}
+function testOverwriteName() returns error? {
+    OKPerson res = check albumClient->/album/auther;
+    test:assertEquals(res.body, {name: "Potter", age: "40"});
 }
 
 @test:Config {}

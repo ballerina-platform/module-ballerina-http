@@ -428,6 +428,21 @@ public class Request {
         self.setEntityAndUpdateContentTypeHeader(entity);
     }
 
+    # Sets a `anydata` type payload, as a `json` payload. If the content-type header is not set then this method set content-type
+    # headers with the default content-type, which is `application/json`. Any existing content-type can be
+    # overridden by passing the content-type as an optional parameter. If the given payload is a record type 
+    # with the `@jsondata:Name` annotation, the `jsondata:toJson` function processes the name and populates 
+    # the JSON according to the annotation's details.
+    #
+    # + payload - The `json` payload
+    # + contentType - The content type of the payload. This is an optional parameter.
+    #                 The `application/json` is the default value
+    isolated function setAnydataAsJsonPayload(anydata payload, string? contentType = ()) {
+     mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
+     setJson(entity, jsondata:toJson(payload), self.getContentType(), contentType);
+     self.setEntityAndUpdateContentTypeHeader(entity);
+}
+
     # Sets an `xml` as the payload. If the content-type header is not set then this method set content-type
     # headers with the default content-type, which is `application/xml`. Any existing content-type can be
     # overridden by passing the content-type as an optional parameter.
@@ -549,7 +564,7 @@ public class Request {
         } else if payload is mime:Entity[] {
             self.setBodyParts(payload);
         } else if payload is anydata {
-            self.setJsonPayload(jsondata:toJson(payload));
+            self.setAnydataAsJsonPayload(payload);
         } else {
             panic error Error("invalid entity body type." +
                 "expected one of the types: string|xml|json|byte[]|mime:Entity[]|stream<byte[],io:Error?>");
