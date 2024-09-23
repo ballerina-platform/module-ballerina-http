@@ -50,6 +50,13 @@ type Headers record {|
     int req\-id;
 |};
 
+type HeadersWithName record {|
+    @http:Header {name: "user-id"}
+    string userId;
+    @http:Header {name: "req-id"}
+    int reqId;
+|};
+
 type ArrayHeaders record {|
     string[] user\-id;
     int[] req\-id;
@@ -102,6 +109,12 @@ type AlbumNotFound record {|
     Headers headers;
 |};
 
+type AlbumNotFoundWithNamedHeaders record {|
+    *http:NotFound;
+    ErrorMessage body;
+    HeadersWithName headers;
+|};
+
 type AlbumNotFoundDefault record {|
     *http:DefaultStatusCodeResponse;
     ErrorMessage body;
@@ -112,6 +125,12 @@ type AlbumFound record {|
     *http:Ok;
     Album body;
     Headers headers;
+|};
+
+type AlbumFoundWithNamedHeaders record {|
+    *http:Ok;
+    Album body;
+    HeadersWithName headers;
 |};
 
 type AlbumFoundDefault record {|
@@ -250,6 +269,19 @@ service /api on new http:Listener(statusCodeBindingPort2) {
             headers: {user\-id: "user-1", req\-id: 1}
         };
     }
+
+    resource function get v1/albums/[string id]() returns AlbumFoundWithNamedHeaders|AlbumNotFoundWithNamedHeaders {
+            if albums.hasKey(id) {
+                return {
+                    body: albums.get(id),
+                    headers: {userId: "user-1", reqId: 1}
+                };
+            }
+            return {
+                body: {albumId: id, message: "Album not found"},
+                headers: {userId: "user-1", reqId: 1}
+            };
+        }
 }
 
 final http:StatusCodeClient albumClient = check new (string `localhost:${statusCodeBindingPort2}/api`);
@@ -597,6 +629,43 @@ function testStatusCodeBindingWithConstraintsFailure() returns error? {
         test:assertEquals(res4.headers.user\-id, "user-1", "Invalid user-id header");
         test:assertEquals(res4.headers.req\-id, 1, "Invalid req-id header");
         test:assertEquals(res4.mediaType, "application/json", "Invalid media type");
+    } else {
+        test:assertFail("Invalid response type");
+    }
+}
+
+@test:Config {}
+function testStatusCodeBindingWithNamedHeaders() returns error? {
+    AlbumFoundWithNamedHeaders albumFound = check albumClient->get("/v1/albums/1");
+    Album expectedAlbum = albums.get("1");
+    test:assertEquals(albumFound.body, expectedAlbum, "Invalid album returned");
+    test:assertEquals(albumFound.headers.userId, "user-1", "Invalid user-id header");
+    test:assertEquals(albumFound.headers.reqId, 1, "Invalid req-id header");
+    test:assertEquals(albumFound.mediaType, "application/json", "Invalid media type");
+
+    AlbumFoundWithNamedHeaders|AlbumNotFoundWithNamedHeaders res1 = check albumClient->/v1/albums/'1;
+    if res1 is AlbumFoundWithNamedHeaders {
+        test:assertEquals(res1.body, expectedAlbum, "Invalid album returned");
+        test:assertEquals(res1.headers.userId, "user-1", "Invalid user-id header");
+        test:assertEquals(res1.headers.reqId, 1, "Invalid req-id header");
+        test:assertEquals(res1.mediaType, "application/json", "Invalid media type");
+    } else {
+        test:assertFail("Invalid response type");
+    }
+
+    AlbumNotFoundWithNamedHeaders albumNotFound = check albumClient->/v1/albums/'4;
+    ErrorMessage expectedErrorMessage = {albumId: "4", message: "Album not found"};
+    test:assertEquals(albumNotFound.body, expectedErrorMessage, "Invalid error message");
+    test:assertEquals(albumNotFound.headers.userId, "user-1", "Invalid user-id header");
+    test:assertEquals(albumNotFound.headers.reqId, 1, "Invalid req-id header");
+    test:assertEquals(albumNotFound.mediaType, "application/json", "Invalid media type");
+
+    res1 = check albumClient->/v1/albums/'4;
+    if res1 is AlbumNotFoundWithNamedHeaders {
+        test:assertEquals(albumNotFound.body, expectedErrorMessage, "Invalid error message");
+        test:assertEquals(albumNotFound.headers.userId, "user-1", "Invalid user-id header");
+        test:assertEquals(albumNotFound.headers.reqId, 1, "Invalid req-id header");
+        test:assertEquals(albumNotFound.mediaType, "application/json", "Invalid media type");
     } else {
         test:assertFail("Invalid response type");
     }

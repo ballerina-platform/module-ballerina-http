@@ -40,6 +40,58 @@ public isolated function parseHeader(string headerValue) returns HeaderValue[]|C
     name: "parseHeader"
 } external;
 
+# Converts the headers represented as a map of `anydata` to a map of `string` or `string` array. The `value:toString`
+# method will be used to convert the values to `string`. Additionally if the header name is specified by the
+# `http:Header` annotation, then it will be used as the header name.
+# ```ballerina
+# type Headers record {
+#   @http:Header {name: "X-API-VERSION"}
+#   string apiVersion;
+#   int id;
+# };
+#
+# Headers headers = {apiVersion: "v1", id: 1};
+# map<string|string[]> headersMap = http:getHeaderMap(headers); // { "X-API-VERSION": "v1", "id": "1" }
+# ```
+#
+# + headers - The headers represented as a map of anydata
+# + return - A map of string or string array representing the headers
+public isolated function getHeaderMap(map<anydata> headers) returns map<string|string[]> {
+    return map from var [key, value] in headers.entries()
+        select [getHeaderName(key, typeof headers), getHeaderValue(value)];
+}
+
+# If the query name is specified by the `http:Query` annotation, then this function will return the queries map
+# with the specified query name. Otherwise, it will return the map as it is.
+# ```ballerina
+# type Queries record {
+#   @http:Query {name: "filter_ids"}
+#   string[] ids;
+# };
+#
+# Queries queries = {ids: ["1", "2"]};
+# map<anydata> queriesMap = http:getQueryMap(queries); // { "filter_ids": ["1", "2"] }
+# ```
+#
+# + queries - The queries represented as a map of anydata
+# + return - The queries map with names specified by the `http:Query` annotation
+public isolated function getQueryMap(map<anydata> queries) returns map<anydata> {
+    return map from var [key, value] in queries.entries()
+        select [getQueryName(key, typeof queries), value];
+}
+
+isolated function getQueryName(string key, typedesc<map<anydata>> queryParamType) returns string = @java:Method {
+    'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternUtils",
+    name: "getQueryName"
+} external;
+
+isolated function getHeaderName(string key, typedesc<map<anydata>> headerParamType) returns string = @java:Method {
+    'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternUtils",
+    name: "getHeaderName"
+} external;
+
+isolated function getHeaderValue(anydata value) returns string|string[] => value is anydata[] ? value.'map(v => v.toString()) : value.toString();
+
 isolated function buildRequest(RequestMessage message, string? mediaType) returns Request|ClientError {
     Request request = new;
     if message is () {
@@ -159,25 +211,17 @@ isolated function buildRequestWithHeaders(map<string|string[]>? headers) returns
 }
 
 isolated function populateHeaders(Request request, map<string|string[]>? headers) {
-    if headers is map<string[]> {
-        foreach var [headerKey, headerValues] in headers.entries() {
-            foreach string headerValue in headerValues {
-                request.addHeader(headerKey, headerValue);
+    if headers is () {
+        return;
+    }
+
+    foreach var [headerKey, headerValue] in getHeaderMap(headers).entries() {
+        if headerValue is string[] {
+            foreach string value in headerValue {
+                request.addHeader(headerKey, value);
             }
-        }
-    } else if headers is map<string> {
-        foreach var [headerKey, headerValue] in headers.entries() {
+        } else {
             request.setHeader(headerKey, headerValue);
-        }
-    } else if headers is map<string|string[]> {
-        foreach var [headerKey, headerValue] in headers.entries() {
-            if headerValue is string[] {
-                foreach string value in headerValue {
-                    request.addHeader(headerKey, value);
-                }
-            } else {
-                request.setHeader(headerKey, headerValue);
-            }
         }
     }
 }

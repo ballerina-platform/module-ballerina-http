@@ -56,6 +56,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+import static io.ballerina.stdlib.http.api.HttpConstants.ANN_NAME_HEADER;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_HEADERS;
 import static io.ballerina.stdlib.http.api.HttpConstants.STATUS_CODE;
 import static io.ballerina.stdlib.http.api.HttpConstants.STATUS_CODE_RESPONSE_BODY_FIELD;
@@ -415,7 +416,8 @@ public final class ExternResponseProcessor {
             Field headerField = header.getValue();
             Type headerFieldType = TypeUtils.getImpliedType(headerField.getFieldType());
 
-            String headerName = header.getKey();
+            BString headerFieldName = StringUtils.fromString(header.getKey());
+            String headerName = ExternUtils.getName(headerFieldName, headersType, ANN_NAME_HEADER).getValue();
             List<String> headerValues = getHeader(httpHeaders, headerName);
 
             if (headerValues.isEmpty()) {
@@ -431,7 +433,7 @@ public final class ExternResponseProcessor {
 
             try {
                 Object convertedValue = convertHeaderValues(headerValues, headerFieldType);
-                headerMap.put(StringUtils.fromString(headerName), convertedValue);
+                headerMap.put(headerFieldName, convertedValue);
             } catch (BError ex) {
                 throw new StatusCodeBindingException(HEADER, String.format(HEADER_BINDING_FAILED_ERROR_MSG,
                         headerName), ex);
