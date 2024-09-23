@@ -467,8 +467,8 @@ function testUnionPayloadBindingWithStatusCodeResponse() returns error? {
     AlbumFoundInvalid|AlbumFound|AlbumNotFound|error res5 = albumClient->/albums/'1;
     if res5 is error {
         test:assertTrue(res5 is http:PayloadBindingError);
-        test:assertTrue(res5.message().includes("Payload binding failed: 'map<json>' value cannot be" +
-        " converted to 'http_client_tests:AlbumInvalid"), "Invalid error message");
+        test:assertTrue(res5.message().includes("Payload binding failed: required field 'invalidField' not present in JSON"),
+         "Invalid error message");
     } else {
         test:assertFail("Invalid response type");
     }

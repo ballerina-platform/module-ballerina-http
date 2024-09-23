@@ -14,10 +14,10 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/log;
-import ballerina/jballerina.java;
 import ballerina/constraint;
 import ballerina/data.jsondata;
+import ballerina/jballerina.java;
+import ballerina/log;
 
 type nilType typedesc<()>;
 type xmlType typedesc<xml>;
@@ -99,7 +99,7 @@ isolated function textPayloadBuilder(Response response, TargetType targetType) r
         }
         return payload;
     } else {
-         return getCommonError(response, targetType);
+        return getCommonError(response, targetType);
     }
 }
 
@@ -136,17 +136,17 @@ isolated function blobPayloadBuilder(Response response, TargetType targetType) r
 }
 
 isolated function jsonPayloadBuilder(Response response, TargetType targetType) returns anydata|ClientError {
-    if targetType is typedesc<record {| anydata...; |}> {
+    if targetType is typedesc<record {|anydata...;|}> {
         return nonNilablejsonPayloadBuilder(response, targetType);
-    } else if targetType is typedesc<record {| anydata...; |}?> {
+    } else if targetType is typedesc<record {|anydata...;|}?> {
         return nilablejsonPayloadBuilder(response, targetType);
-    } else if targetType is typedesc<record {| anydata...; |}[]> {
+    } else if targetType is typedesc<record {|anydata...;|}[]> {
         return nonNilablejsonPayloadBuilder(response, targetType);
-    } else if targetType is typedesc<record {| anydata...; |}[]?> {
+    } else if targetType is typedesc<record {|anydata...;|}[]?> {
         return nilablejsonPayloadBuilder(response, targetType);
     } else if targetType is typedesc<map<json>> {
         json payload = check response.getJsonPayload();
-        return <map<json>> payload;
+        return <map<json>>payload;
     } else if targetType is typedesc<anydata> {
         return nilablejsonPayloadBuilder(response, targetType);
     } else {
@@ -162,7 +162,7 @@ isolated function jsonPayloadBuilder(Response response, TargetType targetType) r
 isolated function nonNilablejsonPayloadBuilder(Response response, typedesc<anydata> targetType)
         returns anydata|ClientError {
     json payload = check response.getJsonPayload();
-    var result = jsondata:parseAsType(payload, { enableConstraintValidation: false }, targetType);
+    var result = jsondata:parseAsType(payload, {enableConstraintValidation: false}, targetType);
     return result is error ? createPayloadBindingError(result) : result;
 }
 
