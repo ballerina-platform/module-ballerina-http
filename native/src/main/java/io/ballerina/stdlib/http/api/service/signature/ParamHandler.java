@@ -47,6 +47,7 @@ import static io.ballerina.stdlib.http.api.HttpConstants.ANN_NAME_CACHE;
 import static io.ballerina.stdlib.http.api.HttpConstants.ANN_NAME_CALLER_INFO;
 import static io.ballerina.stdlib.http.api.HttpConstants.ANN_NAME_HEADER;
 import static io.ballerina.stdlib.http.api.HttpConstants.ANN_NAME_PAYLOAD;
+import static io.ballerina.stdlib.http.api.HttpConstants.ANN_NAME_QUERY;
 import static io.ballerina.stdlib.http.api.HttpConstants.COLON;
 import static io.ballerina.stdlib.http.api.HttpConstants.PROTOCOL_HTTP;
 import static io.ballerina.stdlib.http.api.HttpUtil.getParameterTypes;
@@ -89,6 +90,7 @@ public class ParamHandler {
             + ANN_NAME_CALLER_INFO;
     public static final String CACHE_ANNOTATION = ModuleUtils.getHttpPackageIdentifier() + COLON
             + ANN_NAME_CACHE;
+    public static final String QUERY_ANNOTATION = ModuleUtils.getHttpPackageIdentifier() + COLON + ANN_NAME_QUERY;
 
     public ParamHandler(ResourceMethodType resource, int pathParamCount, boolean constraintValidation) {
         this.resource = resource;
@@ -272,9 +274,26 @@ public class ParamHandler {
 
     private void createQueryParam(int index, ResourceMethodType balResource, Type originalType) {
         io.ballerina.runtime.api.types.Parameter parameter = balResource.getParameters()[index];
-        QueryParam queryParam = new QueryParam(originalType, HttpUtil.unescapeAndEncodeValue(parameter.name), index,
-                parameter.isDefault, constraintValidation);
+        String paramName = parameter.name;
+        BMap annotations = (BMap) balResource.getAnnotation(
+                StringUtils.fromString(PARAM_ANNOT_PREFIX + IdentifierUtils.escapeSpecialCharacters(paramName)));
+        if (annotations != null) {
+            String queryParamName = getQueryParamName(paramName, annotations);
+            paramName = queryParamName.isBlank() ? paramName : queryParamName;
+        }
+        paramName = HttpUtil.unescapeAndEncodeValue(paramName);
+        QueryParam queryParam = new QueryParam(originalType, paramName, index, parameter.isDefault,
+                constraintValidation);
         this.queryParams.add(queryParam);
+    }
+
+    private static String getQueryParamName(String paramName, BMap annotations) {
+        BMap mapValue = annotations.getMapValue(StringUtils.fromString(QUERY_ANNOTATION));
+        Object queryName = mapValue.get(HttpConstants.ANN_FIELD_NAME);
+        if (queryName instanceof BString query) {
+            return query.getValue();
+        }
+        return paramName;
     }
 
     public boolean isPayloadBindingRequired() {

@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - [Add `anydata` support for `setPayload` methods in the request and response objects](https://github.com/ballerina-platform/ballerina-library/issues/6954)
 - [Improve `@http:Query` annotation to overwrite the query parameter name in client](https://github.com/ballerina-platform/ballerina-library/issues/6983)
+- [Improve `@http:Query` annotation to overwrite the query parameter name in service](https://github.com/ballerina-platform/ballerina-library/issues/7006)
 - [Add header name mapping support in record fields](https://github.com/ballerina-platform/ballerina-library/issues/7018)
 - [Introduce util functions to convert query and header record with the `http:Query` and the `http:Header` annotations](https://github.com/ballerina-platform/ballerina-library/issues/7019)
 
