@@ -18,13 +18,20 @@
 
 package io.ballerina.stdlib.http.api.service.signature.converter;
 
+import io.ballerina.lib.data.jsondata.json.Native;
+import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.Type;
-import io.ballerina.runtime.api.utils.ValueUtils;
 import io.ballerina.runtime.api.values.BError;
+import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BRefValue;
+import io.ballerina.runtime.api.values.BString;
+import io.ballerina.runtime.api.values.BTypedesc;
 import io.ballerina.stdlib.http.api.BallerinaConnectorException;
 import io.ballerina.stdlib.mime.util.EntityBodyHandler;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * The converter binds the JSON payload to a record.
@@ -60,13 +67,16 @@ public class JsonToRecordConverter {
      */
     private static Object getRecord(Type entityBodyType, Object bJson) {
         try {
-//            BMap<BString, Object> mapValue = ValueCreator.createRecordValue(
-//                    io.ballerina.lib.data.ModuleUtils.getModule(),
-//                    "Options");
-//            BTypedesc typedescValue = ValueCreator.createTypedescValue(entityBodyType);
-//            return Native.parseAsType(bJson, mapValue, typedescValue);
+            Map<String, Object> valueMap = new HashMap<>();
+            Boolean bool = Boolean.FALSE;
+            valueMap.put("enableConstraintValidation", bool);
+            BMap<BString, Object> mapValue = ValueCreator.createRecordValue(
+                    io.ballerina.lib.data.ModuleUtils.getModule(),
+                    "Options", valueMap);
+            BTypedesc typedescValue = ValueCreator.createTypedescValue(entityBodyType);
+            return Native.parseAsType(bJson, mapValue, typedescValue);
 
-            return ValueUtils.convert(bJson, entityBodyType);
+//            return ValueUtils.convert(bJson, entityBodyType);
         } catch (NullPointerException ex) {
             throw new BallerinaConnectorException("cannot convert payload to record type: " +
                                                           entityBodyType.getName());

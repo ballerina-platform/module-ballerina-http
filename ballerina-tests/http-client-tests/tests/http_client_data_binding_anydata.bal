@@ -609,7 +609,7 @@ function testXmlArrDatabinding() {
     xml[]|error response = clientDBBackendClient->get("/anydataTest/xmlArrType");
     if response is error {
         common:assertTrueTextPayload(response.message(),
-            "Payload binding failed: 'json[]' value cannot be converted to 'xml<");
+            "Payload binding failed: invalid type 'xml<(lang.xml:Element|lang.xml:Comment|lang.xml:ProcessingInstruction|lang.xml:Text)>' expected 'anydata'");
     } else {
         test:assertEquals(response[0], xml `<name>WSO2</name>`, msg = "Found unexpected output");
     }
@@ -620,7 +620,7 @@ function testXmlArrDatabindingByType() {
     xml[]|error response = clientDBBackendClient->get("/anydataTest/xmlArrTypeWithInvalidMimeType");
     if response is error {
         common:assertTrueTextPayload(response.message(),
-            "Payload binding failed: 'json[]' value cannot be converted to 'xml");
+            "Payload binding failed: invalid type 'xml<(lang.xml:Element|lang.xml:Comment|lang.xml:ProcessingInstruction|lang.xml:Text)>' expected 'anydata'");
     } else {
         test:assertEquals(response[0], xml `<name>WSO2</name>`, msg = "Found unexpected output");
     }
