@@ -169,5 +169,5 @@ path = "./lib/lz4-1.3.0.jar"
 [[platform.java17.dependency]]
 groupId = "com.google.protobufl"
 artifactId = "protobuf-java"
-version = "3.20.3"
-path = "./lib/protobuf-java-3.20.3.jar"
+version = "3.25.5"
+path = "./lib/protobuf-java-3.25.5.jar"
