@@ -15,6 +15,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Add header name mapping support in record fields](https://github.com/ballerina-platform/ballerina-library/issues/7018)
 - [Introduce util functions to convert query and header record with the `http:Query` and the `http:Header` annotations](https://github.com/ballerina-platform/ballerina-library/issues/7019)
 
+### Fixed
+
+- [Address CVE-2024-7254 vulnerability](https://github.com/ballerina-platform/ballerina-library/issues/7013)
+
 ## [2.12.0] - 2024-08-20
 
 ### Added
