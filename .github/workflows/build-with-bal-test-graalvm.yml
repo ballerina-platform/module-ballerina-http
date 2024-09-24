@@ -6,7 +6,7 @@ on:
             lang_tag:
                 description: Branch/Release Tag of the Ballerina Lang
                 required: true
-                default: master
+                default: 2201.10.x
             lang_version:
                 description: Ballerina Lang Version (If given ballerina lang buid will be skipped)
                 required: false
@@ -29,6 +29,7 @@ on:
             - 2201.7.x
             - 2201.8.x
             - 2201.9.x
+            - 2201.10.x
         types: [opened, synchronize, reopened, labeled, unlabeled]
 
 concurrency:
