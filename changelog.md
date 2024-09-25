@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 
 - [Fix cookie path resolution logic](https://github.com/ballerina-platform/ballerina-library/issues/6788)
+- [Address CVE-2024-7254 vulnerability](https://github.com/ballerina-platform/ballerina-library/issues/7013)
 
 ## [2.11.3] - 2024-07-24
 
