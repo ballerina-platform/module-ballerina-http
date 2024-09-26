@@ -66,7 +66,7 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "http"
-version = "2.10.15"
+version = "2.10.16"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "auth"},
@@ -99,7 +99,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "http_misc_tests"
-version = "2.10.15"
+version = "2.10.16"
 dependencies = [
 	{org = "ballerina", name = "http"},
 	{org = "ballerina", name = "http_test_common"},
@@ -118,7 +118,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "http_test_common"
-version = "2.10.15"
+version = "2.10.16"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "lang.string"},
@@ -134,7 +134,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "io"
-version = "1.6.0"
+version = "1.6.1"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
