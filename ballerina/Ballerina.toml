@@ -17,7 +17,7 @@ graalvmCompatible = true
 groupId = "io.ballerina.stdlib"
 artifactId = "http-native"
 version = "2.12.1"
-path = "../native/build/libs/http-native-2.12.1-SNAPSHOT.jar"
+path = "../native/build/libs/http-native-2.12.1.jar"
 
 [[platform.java17.dependency]]
 groupId = "io.ballerina.stdlib"
