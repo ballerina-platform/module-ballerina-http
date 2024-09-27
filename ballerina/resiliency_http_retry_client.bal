@@ -130,7 +130,8 @@ client isolated class RetryClient {
     # the underlying HTTP remote function in a way to provide retrying functionality for a given endpoint to recover
     # from network level failures.
     #
-    # + httpVerb - The HTTP verb value
+    # + httpVerb - The HTTP verb value. The HTTP verb is case-sensitive. Use the `http:Method` type to specify the
+    #              the standard HTTP methods.
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
@@ -217,7 +218,8 @@ client isolated class RetryClient {
     # The `RetryClient.submit()` function does not give out a `http:Response` as the result.
     # Rather it returns an `http:HttpFuture`, which can be used to do further interactions with the endpoint.
     #
-    # + httpVerb - The HTTP verb value
+    # + httpVerb - The HTTP verb value. The HTTP verb is case-sensitive. Use the `http:Method` type to specify the
+    #              the standard HTTP methods.
     # + path - The resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation or else an `http:ClientError` if the submission fails

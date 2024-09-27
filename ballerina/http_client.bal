@@ -118,7 +118,8 @@ client isolated class HttpClient {
     # The `HttpClient->submit()` function does not give out an `http:Response` as the result.
     # Rather, it returns an `http:HttpFuture` which can be used to do further interactions with the endpoint.
     #
-    # + httpVerb - The HTTP verb value
+    # + httpVerb - The HTTP verb value. The HTTP verb is case-sensitive. Use the `http:Method` type to specify the
+    #              the standard HTTP methods.
     # + path - The resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation, or else an `http:ClientError` if the submission fails
