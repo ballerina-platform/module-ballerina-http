@@ -207,7 +207,8 @@ public type ClientObject client object {
     # The `Client->submit()` function does not give out a `http:Response` as the result.
     # Rather it returns an `http:HttpFuture` which can be used to do further interactions with the endpoint.
     #
-    # + httpVerb - The HTTP verb value
+    # + httpVerb - The HTTP verb value. The HTTP verb is case-sensitive. Use the `http:Method` type to specify the
+    #              the standard HTTP methods.
     # + path - The resource path
     # + message - An HTTP outbound request message or any payload of type `string`, `xml`, `json`, `byte[]`
     #             or `mime:Entity[]`
