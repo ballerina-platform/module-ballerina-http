@@ -201,7 +201,8 @@ client isolated class HttpCachingClient {
 
     # Submits an HTTP request to a service with the specified HTTP verb.
     #
-    # + httpVerb - The HTTP verb value
+    # + httpVerb - The HTTP verb value. The HTTP verb is case-sensitive. Use the `http:Method` type to specify the
+    #              the standard HTTP methods.
     # + path - The resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - An `HttpFuture` that represents an asynchronous service invocation, or an error if the submission fails

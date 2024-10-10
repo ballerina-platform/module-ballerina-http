@@ -142,7 +142,8 @@ client isolated class HttpSecureClient {
     # This wraps the `HttpSecureClient.submit()` function of the underlying HTTP remote functions provider. Add relevant authentication
     # headers to the request and send the request to actual network call.
     #
-    # + httpVerb - The HTTP verb value
+    # + httpVerb - The HTTP verb value. The HTTP verb is case-sensitive. Use the `http:Method` type to specify the
+    #              the standard HTTP methods.
     # + path - The resource path
     # + message - An HTTP outbound request or any allowed payload
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation, or else an `http:ClientError` if the submission fails
