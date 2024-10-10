@@ -678,5 +678,5 @@ function testStatusCodeBindingWithNamedHeaders() returns error? {
 @test:Config {}
 function testOverwriteName() returns error? {
     OKPerson res = check albumClient->/album/auther;
-    test:assertEquals(res.body, {name: "Potter", age: "40"});
+    test:assertEquals(res.body, {firstName: "Potter", personAge: "40"});
 }
