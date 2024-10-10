@@ -639,12 +639,6 @@ function testStatusCodeBindingWithConstraintsFailure() returns error? {
 }
 
 @test:Config {}
-function testOverwriteName() returns error? {
-    OKPerson res = check albumClient->/album/auther;
-    test:assertEquals(res.body, {name: "Potter", age: "40"});
-}
-
-@test:Config {}
 function testStatusCodeBindingWithNamedHeaders() returns error? {
     AlbumFoundWithNamedHeaders albumFound = check albumClient->get("/v1/albums/1");
     Album expectedAlbum = albums.get("1");
@@ -679,4 +673,10 @@ function testStatusCodeBindingWithNamedHeaders() returns error? {
     } else {
         test:assertFail("Invalid response type");
     }
+}
+
+@test:Config {}
+function testOverwriteName() returns error? {
+    OKPerson res = check albumClient->/album/auther;
+    test:assertEquals(res.body, {firstName: "Potter", personAge: "40"});
 }
