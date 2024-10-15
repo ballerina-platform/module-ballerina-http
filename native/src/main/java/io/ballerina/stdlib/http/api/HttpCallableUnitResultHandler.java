@@ -16,16 +16,13 @@
 
 package io.ballerina.stdlib.http.api;
 
-import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.Runtime;
-import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.observability.ObserveUtils;
 import io.ballerina.runtime.observability.ObserverContext;
-import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
 import java.util.Locale;
@@ -39,7 +36,7 @@ import static java.lang.System.err;
  *
  * @since 0.94
  */
-public class HttpCallableUnitCallback implements Callback {
+public class HttpCallableUnitResultHandler {
     private static final String ILLEGAL_FUNCTION_INVOKED = "illegal return: response has already been sent";
 
     private final BObject caller;
@@ -50,8 +47,8 @@ public class HttpCallableUnitCallback implements Callback {
     private final BMap links;
     private final boolean isLastService;
 
-    HttpCallableUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime, HttpResource resource,
-                             boolean isLastService) {
+    HttpCallableUnitResultHandler(HttpCarbonMessage requestMessage, Runtime runtime, HttpResource resource,
+                                  boolean isLastService) {
         this.requestMessage = requestMessage;
         this.runtime = runtime;
         this.returnMediaType = resource.getReturnMediaType();
@@ -62,7 +59,7 @@ public class HttpCallableUnitCallback implements Callback {
         this.isLastService = isLastService;
     }
 
-    HttpCallableUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime) {
+    HttpCallableUnitResultHandler(HttpCarbonMessage requestMessage, Runtime runtime) {
         this.requestMessage = requestMessage;
         this.runtime = runtime;
         this.returnMediaType = null;
@@ -85,8 +82,7 @@ public class HttpCallableUnitCallback implements Callback {
         return caller;
     }
 
-    @Override
-    public void notifySuccess(Object result) {
+    public void handleResult(Object result) {
         if (alreadyResponded(result)) {
             stopObserverContext();
             return;
@@ -126,20 +122,12 @@ public class HttpCallableUnitCallback implements Callback {
     }
 
     public void invokeBalMethod(Object[] paramFeed, String methodName) {
-        Callback returnCallback = new Callback() {
-            @Override
-            public void notifySuccess(Object result) {
-                stopObserverContext();
-            }
-
-            @Override
-            public void notifyFailure(BError result) {
-                sendFailureResponse(result);
-            }
-        };
-        runtime.invokeMethodAsyncSequentially(
-                caller, methodName, null, ModuleUtils.getNotifySuccessMetaData(),
-                returnCallback, null, PredefinedTypes.TYPE_NULL, paramFeed);
+        Object result = runtime.call(caller, methodName, paramFeed);;
+        if (result instanceof BError error) {
+            sendFailureResponse(error);
+        } else {
+            stopObserverContext();
+        }
     }
 
     public void stopObserverContext() {
@@ -152,8 +140,7 @@ public class HttpCallableUnitCallback implements Callback {
         }
     }
 
-    @Override
-    public void notifyFailure(BError error) { // handles panic and check_panic
+    public void handleError(BError error) { // handles panic and check_panic
         // Allow the panics from internal authentication/authorization to be handled by the interceptors.
         if (error.getType().getName().equals(HttpErrorType.INTERNAL_LISTENER_AUTHN_ERROR.getErrorName())
                 || error.getType().getName().equals(HttpErrorType.INTERNAL_LISTENER_AUTHZ_ERROR.getErrorName())) {

@@ -18,15 +18,12 @@
 
 package io.ballerina.stdlib.http.api;
 
-import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.Runtime;
-import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.types.ServiceType;
 import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
-import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
 import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_INTERCEPTOR_RETURN_ERROR;
@@ -37,7 +34,7 @@ import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_INTERCEPTOR_RE
  *
  * @since SL Beta 4
  */
-public class HttpRequestInterceptorUnitCallback extends HttpCallableUnitCallback {
+public class HttpRequestInterceptorUnitHandler extends HttpCallableUnitResultHandler {
     private static final String ILLEGAL_FUNCTION_INVOKED = "illegal return: response has already been sent";
     private final BObject caller;
     private final Runtime runtime;
@@ -45,8 +42,8 @@ public class HttpRequestInterceptorUnitCallback extends HttpCallableUnitCallback
     private final BallerinaHTTPConnectorListener ballerinaHTTPConnectorListener;
     private final BObject requestCtx;
 
-    HttpRequestInterceptorUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime,
-                                       BallerinaHTTPConnectorListener ballerinaHTTPConnectorListener) {
+    HttpRequestInterceptorUnitHandler(HttpCarbonMessage requestMessage, Runtime runtime,
+                                      BallerinaHTTPConnectorListener ballerinaHTTPConnectorListener) {
         super(requestMessage, runtime);
         this.runtime = runtime;
         this.requestMessage = requestMessage;
@@ -56,7 +53,7 @@ public class HttpRequestInterceptorUnitCallback extends HttpCallableUnitCallback
     }
 
     @Override
-    public void notifySuccess(Object result) {
+    public void handleResult(Object result) {
         if (result instanceof BError) {
             if (!result.equals(requestCtx.getNativeData(HttpConstants.TARGET_SERVICE))) {
                 requestMessage.setHttpStatusCode(500);
@@ -68,7 +65,7 @@ public class HttpRequestInterceptorUnitCallback extends HttpCallableUnitCallback
     }
 
     @Override
-    public void notifyFailure(BError error) { // handles panic and check_panic
+    public void handleError(BError error) { // handles panic and check_panic
         cleanupRequestMessage();
         sendFailureResponse(error);
         System.exit(1);
@@ -179,20 +176,11 @@ public class HttpRequestInterceptorUnitCallback extends HttpCallableUnitCallback
     }
 
     public void invokeBalMethod(Object[] paramFeed, String methodName) {
-        Callback returnCallback = new Callback() {
-            @Override
-            public void notifySuccess(Object result) {
-            }
-
-            @Override
-            public void notifyFailure(BError result) {
-                cleanupRequestMessage();
-                HttpUtil.handleFailure(requestMessage, result);
-            }
-        };
-        runtime.invokeMethodAsyncSequentially(
-                caller, methodName, null, ModuleUtils.getNotifySuccessMetaData(),
-                returnCallback, null, PredefinedTypes.TYPE_NULL, paramFeed);
+        Object result = runtime.call(caller, methodName, paramFeed);
+        if (result instanceof BError error) {
+            cleanupRequestMessage();
+            HttpUtil.handleFailure(requestMessage, error);
+        }
     }
 
     private int getRequestInterceptorId() {

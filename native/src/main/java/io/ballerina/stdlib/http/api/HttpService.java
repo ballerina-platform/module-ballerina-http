@@ -19,7 +19,6 @@ package io.ballerina.stdlib.http.api;
 
 import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.Runtime;
-import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.flags.SymbolFlags;
@@ -492,29 +491,18 @@ public class HttpService implements Service {
         if (includesInterceptableService) {
             final Object[] createdInterceptors = new Object[1];
             CountDownLatch latch = new CountDownLatch(1);
-            runtime.invokeMethodAsyncConcurrently(service.getBalService(), CREATE_INTERCEPTORS_FUNCTION_NAME, null,
-                    null, new Callback() {
-                @Override
-                public void notifySuccess(Object response) {
-                    if (response instanceof BError) {
-                        log.error("Error occurred while creating interceptors", response);
-                    } else {
-                        createdInterceptors[0] = response;
-                    }
-                    latch.countDown();
-                }
-
-                @Override
-                public void notifyFailure(BError bError) {
-                    bError.printStackTrace();
-                    System.exit(1);
-                }
-            }, null, PredefinedTypes.TYPE_ANY);
+            Object result = runtime.call(service.getBalService(), CREATE_INTERCEPTORS_FUNCTION_NAME);
             try {
                 latch.await();
             } catch (InterruptedException exception) {
                 log.warn("Interrupted before getting the return type");
             }
+            if (result instanceof BError error) {
+                error.printStackTrace();
+                System.exit(1);
+            }
+            createdInterceptors[0] = result;
+            latch.countDown();;
 
             if (Objects.isNull(createdInterceptors[0]) || (createdInterceptors[0] instanceof BArray &&
                     ((BArray) createdInterceptors[0]).size() == 0)) {

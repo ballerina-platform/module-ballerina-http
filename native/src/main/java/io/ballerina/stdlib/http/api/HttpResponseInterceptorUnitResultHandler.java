@@ -19,15 +19,12 @@
 package io.ballerina.stdlib.http.api;
 
 import io.ballerina.runtime.api.Environment;
-import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.Runtime;
-import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.types.ServiceType;
 import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
-import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.api.nativeimpl.connection.Respond;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
@@ -35,7 +32,7 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
  * {@code HttpResponseInterceptorUnitCallback} is the responsible for acting on notifications received from Ballerina
  * side when a response interceptor service is invoked.
  */
-public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallback {
+public class HttpResponseInterceptorUnitResultHandler extends HttpCallableUnitResultHandler {
     private static final String ILLEGAL_FUNCTION_INVOKED = "illegal return: response has already been sent";
 
     private final HttpCarbonMessage requestMessage;
@@ -47,9 +44,9 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
     private final boolean possibleLastInterceptor;
 
 
-    public HttpResponseInterceptorUnitCallback(HttpCarbonMessage requestMessage, BObject caller, BObject response,
-                                               Environment env, DataContext dataContext, Runtime runtime,
-                                               boolean possibleLastInterceptor) {
+    public HttpResponseInterceptorUnitResultHandler(HttpCarbonMessage requestMessage, BObject caller, BObject response,
+                                                    Environment env, DataContext dataContext, Runtime runtime,
+                                                    boolean possibleLastInterceptor) {
         super(requestMessage, runtime);
         this.requestMessage = requestMessage;
         this.requestCtx = (BObject) requestMessage.getProperty(HttpConstants.REQUEST_CONTEXT);
@@ -61,7 +58,7 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
     }
 
     @Override
-    public void notifySuccess(Object result) {
+    public void handleResult(Object result) {
         if (result instanceof BError) {
             requestMessage.setHttpStatusCode(500);
             invokeErrorInterceptors((BError) result, false);
@@ -74,7 +71,7 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
     }
 
     @Override
-    public void notifyFailure(BError error) { // handles panic and check_panic
+    public void handleError(BError error) { // handles panic and check_panic
         cleanupRequestMessage();
         sendFailureResponse(error);
         System.exit(1);
@@ -161,22 +158,14 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
 
     @Override
     public void invokeBalMethod(Object[] paramFeed, String methodName) {
-        Callback returnCallback = new Callback() {
-            @Override
-            public void notifySuccess(Object result) {
-                stopObserverContext();
-                dataContext.notifyOutboundResponseStatus(null);
-            }
-
-            @Override
-            public void notifyFailure(BError result) {
-                dataContext.notifyOutboundResponseStatus(null);
-                sendFailureResponse(result);
-            }
-        };
-        this.getRuntime().invokeMethodAsyncSequentially(
-                caller, methodName, null, ModuleUtils.getNotifySuccessMetaData(),
-                returnCallback, null, PredefinedTypes.TYPE_NULL, paramFeed);
+        Object result = this.getRuntime().call(caller, methodName, paramFeed);
+        if (result instanceof BError error) {
+            dataContext.notifyOutboundResponseStatus(null);
+            sendFailureResponse(error);
+        } else {
+            stopObserverContext();
+            dataContext.notifyOutboundResponseStatus(null);
+        }
     }
 
     private int getResponseInterceptorId() {

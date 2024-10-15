@@ -20,9 +20,6 @@ package io.ballerina.stdlib.http.api.nativeimpl.connection;
 
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Runtime;
-import io.ballerina.runtime.api.async.Callback;
-import io.ballerina.runtime.api.types.ObjectType;
-import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.observability.ObserveUtils;
@@ -33,7 +30,7 @@ import io.ballerina.stdlib.http.api.HTTPInterceptorServicesRegistry;
 import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.api.HttpDispatcher;
 import io.ballerina.stdlib.http.api.HttpErrorType;
-import io.ballerina.stdlib.http.api.HttpResponseInterceptorUnitCallback;
+import io.ballerina.stdlib.http.api.HttpResponseInterceptorUnitResultHandler;
 import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.api.InterceptorService;
 import io.ballerina.stdlib.http.api.client.caching.ResponseCacheControlObj;
@@ -222,8 +219,8 @@ public class Respond extends ConnectionAction {
         }
         // Handling error panics
         if (inboundMessage.isInterceptorError()) {
-            HttpResponseInterceptorUnitCallback callback = new HttpResponseInterceptorUnitCallback(inboundMessage,
-                    callerObj, outboundResponseObj, env, dataContext, null, false);
+            HttpResponseInterceptorUnitResultHandler callback = new HttpResponseInterceptorUnitResultHandler(
+                    inboundMessage, callerObj, outboundResponseObj, env, dataContext, null, false);
             callback.sendFailureResponse((BError) inboundMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR));
         }
         return false;
@@ -247,20 +244,18 @@ public class Respond extends ConnectionAction {
         Runtime runtime = interceptorServicesRegistry.getRuntime();
         Object[] signatureParams = HttpDispatcher.getRemoteSignatureParameters(service, outboundResponseObj, callerObj,
                                    inboundMessage, runtime);
-        Callback callback = new HttpResponseInterceptorUnitCallback(inboundMessage, callerObj, outboundResponseObj,
-                env, dataContext, runtime, interceptorServicesRegistry.isPossibleLastInterceptor());
+        HttpResponseInterceptorUnitResultHandler resultHandler = new HttpResponseInterceptorUnitResultHandler(
+                inboundMessage, callerObj, outboundResponseObj, env, dataContext, runtime,
+                interceptorServicesRegistry.isPossibleLastInterceptor());
 
         inboundMessage.removeProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
         String methodName = service.getServiceType().equals(HttpConstants.RESPONSE_ERROR_INTERCEPTOR)
                             ? HttpConstants.INTERCEPT_RESPONSE_ERROR : HttpConstants.INTERCEPT_RESPONSE;
-
-        ObjectType serviceType = (ObjectType) TypeUtils.getReferredType(TypeUtils.getType(serviceObj));
-        if (serviceType.isIsolated() && serviceType.isIsolated(methodName)) {
-            runtime.invokeMethodAsyncConcurrently(serviceObj, methodName, null, null,
-                    callback, null, service.getRemoteMethod().getReturnType(), signatureParams);
+        Object result = runtime.call(serviceObj, methodName, signatureParams);
+        if (result instanceof BError) {
+            resultHandler.handleError((BError) result);
         } else {
-            runtime.invokeMethodAsyncSequentially(serviceObj, methodName, null, null,
-                    callback, null, service.getRemoteMethod().getReturnType(), signatureParams);
+            resultHandler.handleResult(result);
         }
     }
 }

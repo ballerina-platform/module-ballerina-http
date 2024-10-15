@@ -19,14 +19,13 @@
 package io.ballerina.stdlib.http.api.client.actions;
 
 import io.ballerina.runtime.api.Environment;
-import io.ballerina.runtime.api.Future;
-import io.ballerina.runtime.api.PredefinedTypes;
+import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.TypeTags;
-import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
+import io.ballerina.runtime.api.values.BFuture;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
@@ -230,23 +229,16 @@ public class HttpClientAction extends AbstractHTTPAction {
     }
 
     private static Object invokeClientMethod(Environment env, BObject client, String methodName, Object[] paramFeed) {
-        Future balFuture = env.markAsync();
+        Runtime runtime = env.getRuntime();
         Map<String, Object> propertyMap = getPropertiesToPropagate(env);
-        env.getRuntime().invokeMethodAsync(client, methodName, null, null, new Callback() {
-            @Override
-            public void notifySuccess(Object result) {
-                balFuture.complete(result);
-            }
-
-            @Override
-            public void notifyFailure(BError bError) {
-                BError invocationError =
-                        HttpUtil.createHttpError("client method invocation failed: " + bError.getErrorMessage(),
-                                                 HttpErrorType.CLIENT_ERROR, bError);
-                balFuture.complete(invocationError);
-            }
-        }, propertyMap, PredefinedTypes.TYPE_NULL, paramFeed);
-        return null;
+        BFuture bFuture = runtime.startIsolatedWorker(client, methodName, methodName, null, propertyMap,
+                paramFeed);
+        Object result = bFuture.get();
+        if (result instanceof BError error) {
+            return HttpUtil.createHttpError("client method invocation failed: " + error.getErrorMessage(),
+                    HttpErrorType.CLIENT_ERROR, error);
+        }
+        return result;
     }
 
     private static Map<String, Object> getPropertiesToPropagate(Environment env) {

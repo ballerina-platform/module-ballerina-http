@@ -20,10 +20,8 @@ package io.ballerina.stdlib.http.api;
 
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Module;
-import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.TypeTags;
-import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.Field;
@@ -1647,24 +1645,14 @@ public class HttpUtil {
     public static void populateInterceptorServicesFromListener(BObject serviceEndpoint, Runtime runtime) {
         final CountDownLatch latch = new CountDownLatch(1);
         final BArray[] interceptorResponse = new BArray[1];
-        Callback interceptorCallback = new Callback() {
-            @Override
-            public void notifySuccess(Object result) {
-                if (result instanceof BArray) {
-                    interceptorResponse[0] = (BArray) result;
-                } else {
-                    ((BError) result).printStackTrace();
-                }
-                latch.countDown();
-            }
-            @Override
-            public void notifyFailure(BError bError) {
-                bError.printStackTrace();
-                System.exit(1);
-            }
-        };
-        runtime.invokeMethodAsyncSequentially(serviceEndpoint, CREATE_INTERCEPTORS_FUNCTION_NAME, null, null,
-                interceptorCallback, null, PredefinedTypes.TYPE_ANY, null, true);
+        Object result = runtime.call(serviceEndpoint, CREATE_INTERCEPTORS_FUNCTION_NAME);
+        if (result instanceof BError error) {
+            error.printStackTrace();
+            System.exit(1);
+        } else {
+            interceptorResponse[0] = (BArray) result;
+            latch.countDown();
+        }
         try {
             latch.await();
         } catch (InterruptedException exception) {

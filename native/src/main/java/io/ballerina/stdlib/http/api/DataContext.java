@@ -19,11 +19,12 @@
 package io.ballerina.stdlib.http.api;
 
 import io.ballerina.runtime.api.Environment;
-import io.ballerina.runtime.api.Future;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
  * {@code DataContext} is the wrapper to hold {@code Context} and {@code Callback}.
@@ -32,13 +33,13 @@ public class DataContext {
     private Environment environment;
     private HttpClientConnector clientConnector;
     private BObject requestObj;
-    private Future balFuture;
+    private CompletableFuture<Object> balFuture;
     private HttpCarbonMessage correlatedMessage;
 
     public DataContext(Environment environment, HttpClientConnector clientConnector,
                        BObject requestObj, HttpCarbonMessage outboundRequestMsg) {
         this.environment = environment;
-        this.balFuture = environment.markAsync();
+        this.balFuture = new CompletableFuture<>();
         this.clientConnector = clientConnector;
         this.requestObj = requestObj;
         this.correlatedMessage = outboundRequestMsg;
@@ -46,7 +47,7 @@ public class DataContext {
 
     public DataContext(Environment environment, HttpCarbonMessage inboundRequestMsg) {
         this.environment = environment;
-        this.balFuture = environment.markAsync();
+        this.balFuture = new CompletableFuture<>();
         this.clientConnector = null;
         this.requestObj = null;
         this.correlatedMessage = inboundRequestMsg;
@@ -84,7 +85,7 @@ public class DataContext {
         return environment;
     }
 
-    public Future getFuture() {
+    public CompletableFuture<Object> getFuture() {
         return balFuture;
     }
 }

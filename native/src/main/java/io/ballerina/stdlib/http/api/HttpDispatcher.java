@@ -18,9 +18,7 @@
 
 package io.ballerina.stdlib.http.api;
 
-import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.Runtime;
-import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.Type;
@@ -51,7 +49,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.CountDownLatch;
 
 import static io.ballerina.stdlib.http.api.HttpConstants.AUTHORIZATION_HEADER;
 import static io.ballerina.stdlib.http.api.HttpConstants.BEARER_AUTHORIZATION_HEADER;
@@ -474,40 +471,16 @@ public class HttpDispatcher {
 
     private static Object invokeJwtDecode(Runtime runtime, String authHeader) {
         final Object[] jwtInformation = new Object[1];
-        CountDownLatch countDownLatch = new CountDownLatch(1);
-        Callback decodeCallback = new Callback() {
-            @Override
-            public void notifySuccess(Object result) {
-                if (!(result instanceof Exception)) {
-                    jwtInformation[0] = result;
-                }
-                countDownLatch.countDown();
-            }
-
-            @Override
-            public void notifyFailure(BError bError) {
-                countDownLatch.countDown();
-            }
-        };
-
         String[] splitValues = authHeader.split(WHITESPACE);
         if (splitValues.length != 2) {
             return null;
         }
-        runtime.invokeMethodAsyncSequentially(
-                ValueCreator.createObjectValue(ModuleUtils.getHttpPackage(), JWT_DECODER_CLASS_NAME),
-                JWT_DECODE_METHOD_NAME,
-                null,
-                ModuleUtils.getNotifySuccessMetaData(),
-                decodeCallback,
-                null,
-                PredefinedTypes.TYPE_ANY,
-                StringUtils.fromString(splitValues[1]),
-                true);
-        try {
-            countDownLatch.await();
-        } catch (InterruptedException exception) {
-            logger.warn("Interrupted before receiving the response");
+        Object result  = runtime.call(ValueCreator.createObjectValue(ModuleUtils.getHttpPackage(),
+                        JWT_DECODER_CLASS_NAME), JWT_DECODE_METHOD_NAME, StringUtils.fromString(splitValues[1]));
+        if (!(result instanceof BError)) {
+            if (!(result instanceof Exception)) {
+                jwtInformation[0] = result;
+            }
         }
         return jwtInformation[0];
     }
