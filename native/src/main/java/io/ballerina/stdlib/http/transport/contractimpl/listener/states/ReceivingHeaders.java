@@ -68,9 +68,9 @@ public class ReceivingHeaders implements ListenerState {
         this.httpVersion = Float.parseFloat(inboundRequestMsg.getHttpVersion());
         boolean continueRequest = is100ContinueRequest(inboundRequestMsg);
         if (continueRequest) {
-            listenerReqRespStateManager.state =
+            listenerReqRespStateManager.setState(
                     new Expect100ContinueHeaderReceived(listenerReqRespStateManager, sourceHandler,
-                                                        inboundRequestMsg, httpVersion);
+                                                        inboundRequestMsg, httpVersion));
         }
         notifyRequestListener(inboundRequestMsg);
 
@@ -104,8 +104,8 @@ public class ReceivingHeaders implements ListenerState {
 
     @Override
     public void readInboundRequestBody(Object inboundRequestEntityBody) throws ServerConnectorException {
-        listenerReqRespStateManager.state
-                = new ReceivingEntityBody(listenerReqRespStateManager, inboundRequestMsg, sourceHandler, httpVersion);
+        listenerReqRespStateManager.setState(
+                new ReceivingEntityBody(listenerReqRespStateManager, inboundRequestMsg, sourceHandler, httpVersion));
         listenerReqRespStateManager.readInboundRequestBody(inboundRequestEntityBody);
     }
 
@@ -142,8 +142,8 @@ public class ReceivingHeaders implements ListenerState {
             handleIncompleteInboundMessage(inboundRequestMsg,
                                            IDLE_TIMEOUT_TRIGGERED_WHILE_READING_INBOUND_REQUEST_HEADERS);
         });
-        listenerReqRespStateManager.state
-                = new ResponseCompleted(listenerReqRespStateManager, sourceHandler, inboundRequestMsg);
+        listenerReqRespStateManager.setState(
+                new ResponseCompleted(listenerReqRespStateManager, sourceHandler, inboundRequestMsg));
         return outboundRespFuture;
     }
 }

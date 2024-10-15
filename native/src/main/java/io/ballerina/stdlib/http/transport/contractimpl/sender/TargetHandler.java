@@ -76,7 +76,7 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
     @SuppressWarnings("unchecked")
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        SenderReqRespStateManager senderReqRespStateManager = targetChannel.senderReqRespStateManager;
+        SenderReqRespStateManager senderReqRespStateManager = targetChannel.getSenderReqRespStateManager();
 
         if (handlerExecutor != null) {
             handlerExecutor.executeAtTargetResponseReceiving(inboundResponseMsg);
@@ -119,7 +119,7 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         if (!idleTimeoutTriggered) {
-            targetChannel.senderReqRespStateManager.handleAbruptChannelClosure(this, httpResponseFuture);
+            targetChannel.getSenderReqRespStateManager().handleAbruptChannelClosure(this, httpResponseFuture);
         }
         releasePerRoutePoolLatchOnFailure();
         connectionManager.invalidateTargetChannel(targetChannel);
@@ -141,7 +141,7 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         if (evt instanceof IdleStateEvent) {
             this.idleTimeoutTriggered = true;
-            targetChannel.senderReqRespStateManager.handleIdleTimeoutConnectionClosure(this,
+            targetChannel.getSenderReqRespStateManager().handleIdleTimeoutConnectionClosure(this,
                     httpResponseFuture, ctx.channel().id().asLongText());
         } else if (evt instanceof HttpClientUpgradeHandler.UpgradeEvent) {
             HttpClientUpgradeHandler.UpgradeEvent upgradeEvent = (HttpClientUpgradeHandler.UpgradeEvent) evt;

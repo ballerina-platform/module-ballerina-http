@@ -87,7 +87,7 @@ public class ReceivingEntityBody implements SenderState {
             if (accessLogger != null) {
                 accessLogger.updateAccessLogInfo(targetHandler.getOutboundRequestMsg(), inboundResponseMsg);
             }
-            senderReqRespStateManager.state = new EntityBodyReceived(senderReqRespStateManager);
+            senderReqRespStateManager.setState(new EntityBodyReceived(senderReqRespStateManager));
 
             if (!isKeepAlive(targetHandler.getKeepAliveConfig(),
                     targetHandler.getOutboundRequestMsg(), inboundResponseMsg)) {

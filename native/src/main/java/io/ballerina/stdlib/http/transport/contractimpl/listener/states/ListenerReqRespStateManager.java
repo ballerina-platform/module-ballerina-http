@@ -32,7 +32,7 @@ import io.netty.handler.codec.http.HttpRequest;
  */
 public class ListenerReqRespStateManager {
 
-    public ListenerState state;
+    private ListenerState state;
 
     public void readInboundRequestHeaders(HttpCarbonMessage inboundRequestMsg, HttpRequest inboundRequestHeaders) {
         state.readInboundRequestHeaders(inboundRequestMsg, inboundRequestHeaders);
@@ -58,5 +58,9 @@ public class ListenerReqRespStateManager {
     public ChannelFuture handleIdleTimeoutConnectionClosure(ServerConnectorFuture serverConnectorFuture,
                                                             ChannelHandlerContext ctx) {
         return state.handleIdleTimeoutConnectionClosure(serverConnectorFuture, ctx);
+    }
+
+    public void setState(ListenerState state) {
+        this.state = state;
     }
 }

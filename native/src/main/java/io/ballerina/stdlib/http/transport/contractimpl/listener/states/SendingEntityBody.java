@@ -214,8 +214,8 @@ public class SendingEntityBody implements ListenerState {
     private void checkForResponseWriteStatus(HttpCarbonMessage inboundRequestMsg,
                                              HttpResponseFuture outboundRespStatusFuture, ChannelFuture channelFuture) {
         channelFuture.addListener(writeOperationPromise -> {
-            listenerReqRespStateManager.state
-                    = new ResponseCompleted(listenerReqRespStateManager, sourceHandler, inboundRequestMsg);
+            listenerReqRespStateManager.setState(
+                    new ResponseCompleted(listenerReqRespStateManager, sourceHandler, inboundRequestMsg));
             Throwable throwable = writeOperationPromise.cause();
             if (throwable != null) {
                 if (throwable instanceof ClosedChannelException) {

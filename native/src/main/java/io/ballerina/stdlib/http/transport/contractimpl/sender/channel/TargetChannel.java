@@ -44,10 +44,15 @@ public class TargetChannel {
 
     private static final Logger LOG = LoggerFactory.getLogger(TargetChannel.class);
 
-    public SenderReqRespStateManager senderReqRespStateManager;
+    private SenderReqRespStateManager senderReqRespStateManager;
     public String trgHlrConnPoolId;
 
     private boolean requestHeaderWritten = false;
+
+    public SenderReqRespStateManager getSenderReqRespStateManager() {
+        return senderReqRespStateManager;
+    }
+
     private Channel channel;
     private HttpClientChannelInitializer httpClientChannelInitializer;
     private ChannelInboundHandlerAdapter correlatedSource;
@@ -164,5 +169,9 @@ public class TargetChannel {
 
     public HttpRoute getHttpRoute() {
         return httpRoute;
+    }
+
+    public void setSenderReqRespStateManager(SenderReqRespStateManager senderReqRespStateManager) {
+        this.senderReqRespStateManager = senderReqRespStateManager;
     }
 }

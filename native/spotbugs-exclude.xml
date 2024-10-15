@@ -177,4 +177,21 @@
         <Method name="hasHttpResponseTypeInternal"/>
         <Bug pattern="BC_UNCONFIRMED_CAST" />
     </Match>
+    <Match>
+        <Bug pattern="CT_CONSTRUCTOR_THROW" />
+    </Match>
+    <Match>
+        <Bug pattern="UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR" />
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.api.HttpService"/>
+        <Method name="populateInterceptorServicesRegistries"/>
+        <Bug pattern="DM_EXIT" />
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.api.HttpUtil"/>
+        <Method name="populateInterceptorServicesFromListener"/>
+        <Bug pattern="DM_EXIT" />
+    </Match>
+
 </FindBugsFilter>

@@ -62,7 +62,7 @@ public class RequestCompleted implements SenderState {
     @Override
     public void readInboundResponseHeaders(TargetHandler targetHandler, HttpResponse httpInboundResponse) {
         if (httpInboundResponse.status().code() != HttpResponseStatus.CONTINUE.code()) {
-            senderReqRespStateManager.state = new ReceivingHeaders(senderReqRespStateManager);
+            senderReqRespStateManager.setState(new ReceivingHeaders(senderReqRespStateManager));
             senderReqRespStateManager.readInboundResponseHeaders(targetHandler, httpInboundResponse);
         }
     }

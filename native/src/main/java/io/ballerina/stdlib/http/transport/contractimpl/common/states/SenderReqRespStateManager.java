@@ -35,7 +35,7 @@ import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.safely
  */
 public class SenderReqRespStateManager {
 
-    public SenderState state;
+    private SenderState state;
 
     public final Channel nettyTargetChannel;
     public final int socketTimeout;
@@ -71,5 +71,9 @@ public class SenderReqRespStateManager {
     public void handleIdleTimeoutConnectionClosure(TargetHandler targetHandler,
                                                    HttpResponseFuture httpResponseFuture, String channelID) {
         state.handleIdleTimeoutConnectionClosure(targetHandler, httpResponseFuture, channelID);
+    }
+
+    public void setState(SenderState state) {
+        this.state = state;
     }
 }

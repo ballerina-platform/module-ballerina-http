@@ -133,7 +133,7 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
             //incorrect sequence number
             setSequenceNumber();
 
-            listenerReqRespStateManager.state = new ReceivingHeaders(listenerReqRespStateManager, this);
+            listenerReqRespStateManager.setState(new ReceivingHeaders(listenerReqRespStateManager, this));
             listenerReqRespStateManager.readInboundRequestHeaders(inboundRequestMsg, (HttpRequest) msg);
         } else {
             if (inboundRequestMsg != null) {

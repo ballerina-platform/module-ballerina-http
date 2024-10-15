@@ -85,7 +85,7 @@ public class ReceivingHeaders implements SenderState {
     @Override
     public void readInboundResponseEntityBody(ChannelHandlerContext ctx, HttpContent httpContent,
                                               HttpCarbonMessage inboundResponseMsg) throws Exception {
-        senderReqRespStateManager.state = new ReceivingEntityBody(senderReqRespStateManager, targetHandler);
+        senderReqRespStateManager.setState(new ReceivingEntityBody(senderReqRespStateManager, targetHandler));
         senderReqRespStateManager.readInboundResponseEntityBody(ctx, httpContent, inboundResponseMsg);
     }
 

@@ -88,7 +88,7 @@ public class SendingEntityBody implements SenderState {
         // of request body write.
         if (httpInboundResponse.status().code() != HttpResponseStatus.CONTINUE.code()) {
             targetHandler.getOutboundRequestMsg().setIoException(new IOException(INBOUND_RESPONSE_ALREADY_RECEIVED));
-            senderReqRespStateManager.state = new ReceivingHeaders(senderReqRespStateManager);
+            senderReqRespStateManager.setState(new ReceivingHeaders(senderReqRespStateManager));
             senderReqRespStateManager.readInboundResponseHeaders(targetHandler, httpInboundResponse);
         }
     }
@@ -139,7 +139,7 @@ public class SendingEntityBody implements SenderState {
                 }
                 httpInboundResponseFuture.notifyHttpListener(throwable);
             } else {
-                senderReqRespStateManager.state = new RequestCompleted(senderReqRespStateManager);
+                senderReqRespStateManager.setState(new RequestCompleted(senderReqRespStateManager));
             }
         });
     }

@@ -64,7 +64,7 @@ public abstract class AbstractCodeActionTest extends AbstractLSCompilerPluginTes
             throws IOException {
         Project project = ProjectLoader.loadProject(filePath, getEnvironmentBuilder());
         List<CodeActionInfo> codeActions = getCodeActions(filePath, cursorPos, project);
-        Assert.assertTrue(codeActions.size() > 0, "Expect atleast 1 code action");
+        Assert.assertFalse(codeActions.isEmpty(), "Expect atleast 1 code action");
 
         JsonObject expectedCodeAction = GSON.toJsonTree(expected).getAsJsonObject();
         Optional<CodeActionInfo> found = codeActions.stream()
@@ -110,7 +110,7 @@ public abstract class AbstractCodeActionTest extends AbstractLSCompilerPluginTes
 
         return compilation.diagnosticResult().diagnostics().stream()
                 .filter(diagnostic -> CodeActionUtil.isWithinRange(diagnostic.location().lineRange(), cursorPos) &&
-                        filePath.endsWith(diagnostic.location().lineRange().filePath()))
+                        filePath.endsWith(diagnostic.location().lineRange().fileName()))
                 .flatMap(diagnostic -> {
                     CodeActionContextImpl context = CodeActionContextImpl.from(
                             filePath.toUri().toString(),

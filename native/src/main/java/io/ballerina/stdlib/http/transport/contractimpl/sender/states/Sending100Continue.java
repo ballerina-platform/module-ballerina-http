@@ -90,8 +90,8 @@ public class Sending100Continue implements SenderState {
         configIdleTimeoutTrigger(senderReqRespStateManager.socketTimeout);
 
         if (httpInboundResponse.status().code() == HttpResponseStatus.CONTINUE.code()) {
-            senderReqRespStateManager.state =
-                    new SendingEntityBody(senderReqRespStateManager, httpInboundResponseFuture);
+            senderReqRespStateManager.setState(
+                    new SendingEntityBody(senderReqRespStateManager, httpInboundResponseFuture));
 
             for (HttpContent cachedHttpContent : contentList) {
                 senderReqRespStateManager.writeOutboundRequestEntity(httpOutboundRequest, cachedHttpContent);
@@ -101,7 +101,7 @@ public class Sending100Continue implements SenderState {
                 for (HttpContent cachedHttpContent : contentList) {
                     cachedHttpContent.release();
                 }
-                senderReqRespStateManager.state = new ReceivingHeaders(senderReqRespStateManager);
+                senderReqRespStateManager.setState(new ReceivingHeaders(senderReqRespStateManager));
                 senderReqRespStateManager.readInboundResponseHeaders(targetHandler, httpInboundResponse);
             } else {
                 LOG.error("Cannot notify the response to client as there is no associated responseFuture");
@@ -112,7 +112,7 @@ public class Sending100Continue implements SenderState {
     @Override
     public void readInboundResponseEntityBody(ChannelHandlerContext ctx, HttpContent httpContent,
                                               HttpCarbonMessage inboundResponseMsg) throws Exception {
-        senderReqRespStateManager.state = new ReceivingEntityBody(senderReqRespStateManager, targetHandler);
+        senderReqRespStateManager.setState(new ReceivingEntityBody(senderReqRespStateManager, targetHandler));
         senderReqRespStateManager.readInboundResponseEntityBody(ctx, httpContent, inboundResponseMsg);
     }
 
@@ -133,8 +133,8 @@ public class Sending100Continue implements SenderState {
     public void handleIdleTimeoutConnectionClosure(TargetHandler targetHandler,
                                                    HttpResponseFuture httpResponseFuture, String channelID) {
         configIdleTimeoutTrigger(senderReqRespStateManager.socketTimeout);
-        senderReqRespStateManager.state =
-                new SendingEntityBody(senderReqRespStateManager, httpInboundResponseFuture);
+        senderReqRespStateManager.setState(
+                new SendingEntityBody(senderReqRespStateManager, httpInboundResponseFuture));
 
         for (HttpContent cachedHttpContent : contentList) {
             senderReqRespStateManager.writeOutboundRequestEntity(httpOutboundRequest, cachedHttpContent);

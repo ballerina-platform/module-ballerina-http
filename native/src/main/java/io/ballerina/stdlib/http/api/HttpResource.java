@@ -97,7 +97,6 @@ public class HttpResource implements Resource {
     private MethodType balResource;
     private List<String> methods;
     private String path;
-    private String entityBodyAttribute;
     private List<String> consumes;
     private List<String> produces;
     private List<String> producesSubTypes;

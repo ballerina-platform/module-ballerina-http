@@ -79,9 +79,9 @@ public class Response100ContinueSent extends SendingHeaders {
 
     @Override
     public void readInboundRequestBody(Object inboundRequestEntityBody) throws ServerConnectorException {
-        listenerReqRespStateManager.state
-                = new ReceivingEntityBody(listenerReqRespStateManager, outboundResponseListener.getInboundRequestMsg(),
-                                                                            sourceHandler, httpVersion);
+        listenerReqRespStateManager.setState(
+                new ReceivingEntityBody(listenerReqRespStateManager, outboundResponseListener.getInboundRequestMsg(),
+                                                                            sourceHandler, httpVersion));
         listenerReqRespStateManager.readInboundRequestBody(inboundRequestEntityBody);
     }
 

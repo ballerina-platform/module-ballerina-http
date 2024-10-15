@@ -293,10 +293,10 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
                 private void initializeSenderReqRespStateMgr(Channel targetNettyChannel) {
                     SenderReqRespStateManager senderReqRespStateManager =
                             new SenderReqRespStateManager(targetNettyChannel, socketIdleTimeout);
-                    senderReqRespStateManager.state =
+                    senderReqRespStateManager.setState(
                             new SendingHeaders(senderReqRespStateManager, targetChannel, httpVersion,
-                                               chunkConfig, httpResponseFuture);
-                    targetChannel.senderReqRespStateManager = senderReqRespStateManager;
+                                               chunkConfig, httpResponseFuture));
+                    targetChannel.setSenderReqRespStateManager(senderReqRespStateManager);
                 }
 
                 // Switching is done to make sure, inbound request/response and the outbound request/response

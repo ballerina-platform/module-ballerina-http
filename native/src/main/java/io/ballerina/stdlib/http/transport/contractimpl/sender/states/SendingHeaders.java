@@ -146,12 +146,12 @@ public class SendingHeaders implements SenderState {
     private void writeRequestBody(HttpCarbonMessage httpOutboundRequest, HttpContent httpContent) {
         String expectHeader = httpOutboundRequest.getHeader(HttpHeaderNames.EXPECT.toString());
         if (expectHeader != null && expectHeader.equalsIgnoreCase(HEADER_VAL_100_CONTINUE)) {
-            senderReqRespStateManager.state =
-                    new Sending100Continue(senderReqRespStateManager, httpInboundResponseFuture);
+            senderReqRespStateManager.setState(
+                    new Sending100Continue(senderReqRespStateManager, httpInboundResponseFuture));
             senderReqRespStateManager.nettyTargetChannel.flush();
         } else {
-            senderReqRespStateManager.state =
-                    new SendingEntityBody(senderReqRespStateManager, httpInboundResponseFuture);
+            senderReqRespStateManager.setState(
+                    new SendingEntityBody(senderReqRespStateManager, httpInboundResponseFuture));
         }
 
         for (HttpContent cachedHttpContent : contentList) {
@@ -170,7 +170,7 @@ public class SendingHeaders implements SenderState {
         // If this method is called, it is an application error. Inbound response is receiving before the completion
         // of request header write.
         targetHandler.getOutboundRequestMsg().setIoException(new IOException(INBOUND_RESPONSE_ALREADY_RECEIVED));
-        senderReqRespStateManager.state = new ReceivingHeaders(senderReqRespStateManager);
+        senderReqRespStateManager.setState(new ReceivingHeaders(senderReqRespStateManager));
         senderReqRespStateManager.readInboundResponseHeaders(targetHandler, httpInboundResponse);
     }
 

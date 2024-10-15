@@ -74,8 +74,8 @@ public class Expect100ContinueHeaderReceived implements ListenerState {
     @Override
     public void readInboundRequestBody(Object inboundRequestEntityBody) throws ServerConnectorException {
         // Client may send request body without/after waiting for the 100-continue response.
-        listenerReqRespStateManager.state = new ReceivingEntityBody(listenerReqRespStateManager,
-                                                                    inboundRequestMsg, sourceHandler, httpVersion);
+        listenerReqRespStateManager.setState(new ReceivingEntityBody(listenerReqRespStateManager,
+                                                                    inboundRequestMsg, sourceHandler, httpVersion));
         listenerReqRespStateManager.readInboundRequestBody(inboundRequestEntityBody);
     }
 
@@ -88,11 +88,11 @@ public class Expect100ContinueHeaderReceived implements ListenerState {
     public void writeOutboundResponseBody(HttpOutboundRespListener outboundResponseListener,
                                           HttpCarbonMessage outboundResponseMsg, HttpContent httpContent) {
         if (Util.getHttpResponseStatus(outboundResponseMsg).code() == HttpResponseStatus.CONTINUE.code()) {
-            listenerReqRespStateManager.state =
-                    new Response100ContinueSent(listenerReqRespStateManager, sourceHandler, outboundResponseListener);
+            listenerReqRespStateManager.setState(
+                    new Response100ContinueSent(listenerReqRespStateManager, sourceHandler, outboundResponseListener));
         } else {
-            listenerReqRespStateManager.state =
-                    new EntityBodyReceived(listenerReqRespStateManager, sourceHandler, httpVersion);
+            listenerReqRespStateManager.setState(
+                    new EntityBodyReceived(listenerReqRespStateManager, sourceHandler, httpVersion));
         }
         listenerReqRespStateManager.writeOutboundResponseBody(outboundResponseListener, outboundResponseMsg,
                                                                          httpContent);

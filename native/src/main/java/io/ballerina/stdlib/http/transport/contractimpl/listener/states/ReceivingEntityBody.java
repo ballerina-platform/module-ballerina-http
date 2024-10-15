@@ -91,8 +91,8 @@ public class ReceivingEntityBody implements ListenerState {
                     }
                     inboundRequestMsg.setLastHttpContentArrived();
                     sourceHandler.resetInboundRequestMsg();
-                    listenerReqRespStateManager.state
-                            = new EntityBodyReceived(listenerReqRespStateManager, sourceHandler, httpVersion);
+                    listenerReqRespStateManager.setState(
+                            new EntityBodyReceived(listenerReqRespStateManager, sourceHandler, httpVersion));
                 }
             } catch (RuntimeException ex) {
                 httpContent.release();
@@ -141,8 +141,8 @@ public class ReceivingEntityBody implements ListenerState {
             handleIncompleteInboundMessage(inboundRequestMsg,
                                            IDLE_TIMEOUT_TRIGGERED_WHILE_READING_INBOUND_REQUEST_BODY);
         });
-        listenerReqRespStateManager.state
-                = new ResponseCompleted(listenerReqRespStateManager, sourceHandler, inboundRequestMsg);
+        listenerReqRespStateManager.setState(
+                new ResponseCompleted(listenerReqRespStateManager, sourceHandler, inboundRequestMsg));
         return outboundRespFuture;
     }
 
