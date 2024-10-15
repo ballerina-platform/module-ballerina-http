@@ -42,7 +42,7 @@ public class BlockingEntityCollectorTest {
     @Test
     public void testAddMessageBody() {
         BlockingEntityCollector blockingEntityCollector = new BlockingEntityCollector(5);
-        ByteBuffer msgBody = mock(ByteBuffer.class);
+        ByteBuffer msgBody = ByteBuffer.allocate(16);
         blockingEntityCollector.addMessageBody(msgBody);
     }
 
@@ -56,7 +56,7 @@ public class BlockingEntityCollectorTest {
     @Test
     public void testGetMessageBody() {
         BlockingEntityCollector blockingEntityCollector = new BlockingEntityCollector(5);
-        ByteBuffer msgBody = mock(ByteBuffer.class);
+        ByteBuffer msgBody = ByteBuffer.allocate(16);
         blockingEntityCollector.addMessageBody(msgBody);
         ByteBuf returnVal = blockingEntityCollector.getMessageBody();
         Assert.assertNotNull(returnVal);
@@ -84,7 +84,7 @@ public class BlockingEntityCollectorTest {
     @Test
     public void testGetFullMessageLength() {
         BlockingEntityCollector blockingEntityCollector = new BlockingEntityCollector(5);
-        ByteBuffer msgBody = mock(ByteBuffer.class);
+        ByteBuffer msgBody = ByteBuffer.allocate(0);
         blockingEntityCollector.addMessageBody(msgBody);
         long returnVal = blockingEntityCollector.getFullMessageLength();
         Assert.assertEquals(returnVal, 0);
@@ -93,7 +93,7 @@ public class BlockingEntityCollectorTest {
     @Test
     public void testWaitAndReleaseAllEntitiesWithNullObject() {
         BlockingEntityCollector blockingEntityCollector = new BlockingEntityCollector(5);
-        ByteBuffer msgBody = mock(ByteBuffer.class);
+        ByteBuffer msgBody = ByteBuffer.allocate(16);
         blockingEntityCollector.addMessageBody(msgBody);
         blockingEntityCollector.waitAndReleaseAllEntities();
     }

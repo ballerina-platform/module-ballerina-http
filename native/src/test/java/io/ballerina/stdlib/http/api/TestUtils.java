@@ -72,11 +72,6 @@ public final class TestUtils {
             };
 
             @Override
-            public Type[] getParameterTypes() {
-                return new Type[0];
-            }
-
-            @Override
             public Type getReturnType() {
                 return null;
             }
