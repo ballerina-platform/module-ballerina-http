@@ -1,14 +1,14 @@
 [package]
 org = "ballerina"
 name = "http_dispatching_tests"
-version = "2.7.7"
+version = "2.7.8"
 
 [[dependency]]
 org = "ballerina"
 name = "http_test_common"
 repository = "local"
-version = "2.7.7"
+version = "2.7.8"
 
 [[platform.java11.dependency]]
 scope = "testOnly"
-path = "../../test-utils/build/libs/http-test-utils-2.7.7.jar"
+path = "../../test-utils/build/libs/http-test-utils-2.7.8-SNAPSHOT.jar"
