@@ -62,10 +62,10 @@ jobs:
           publishPAT: ${{ secrets.BALLERINA_BOT_TOKEN }}
         run: |
           ./gradlew clean release -Prelease.useAutomaticVersion=true
-          ./gradlew -Pversion=${VERSION} publish -x test -PpublishToCentral=true
+          ./gradlew -Pversion=${VERSION} publish -x test
       - name: GitHub Release and Release Sync PR
         env:
           GITHUB_TOKEN: ${{ secrets.BALLERINA_BOT_TOKEN }}
         run: |
           gh release create v$VERSION --title "module-ballerina-http-v$VERSION"
-          gh pr create --title "[Automated] Sync master after $VERSION release" --body "Sync master after $VERSION release"
+          gh pr create --title "[Automated] Sync 2201.5.x after $VERSION release" --body "Sync 2201.5.x after $VERSION release"
