@@ -185,11 +185,11 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
                 runtime, httpResource, httpServicesRegistry.isPossibleLastService());
         BObject service = httpResource.getParentService().getBalService();
         String resourceName = httpResource.getName();
-        Object result = runtime.call(service, resourceName, signatureParams);
-        if (result instanceof BError error) {
-            resultHandler.handleError(error);
-        } else {
+        try {
+            Object result = runtime.call(service, resourceName, signatureParams);
             resultHandler.handleResult(result);
+        } catch (BError error) {
+            resultHandler.handleError(error);
         }
     }
 
@@ -238,13 +238,11 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         String resourceName = resource.getName();
 
         inboundMessage.removeProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
-
-        ObjectType serviceType = (ObjectType) TypeUtils.getReferredType(TypeUtils.getType(service));
-        Object result = runtime.call(service, resourceName, signatureParams);
-        if (result instanceof  BError error) {
-            handler.handleError(error);
-        } else {
+        try {
+            Object result = runtime.call(service, resourceName, signatureParams);
             handler.handleResult(result);
+        } catch (BError error) {
+            handler.handleError(error);
         }
     }
 

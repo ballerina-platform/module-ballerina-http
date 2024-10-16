@@ -122,11 +122,11 @@ public class HttpCallableUnitResultHandler {
     }
 
     public void invokeBalMethod(Object[] paramFeed, String methodName) {
-        Object result = runtime.call(caller, methodName, paramFeed);;
-        if (result instanceof BError error) {
-            sendFailureResponse(error);
-        } else {
+        try {
+            runtime.call(caller, methodName, paramFeed);
             stopObserverContext();
+        } catch (BError error) {
+            sendFailureResponse(error);
         }
     }
 

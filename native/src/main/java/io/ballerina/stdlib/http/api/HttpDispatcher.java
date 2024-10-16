@@ -475,12 +475,13 @@ public class HttpDispatcher {
         if (splitValues.length != 2) {
             return null;
         }
-        Object result  = runtime.call(ValueCreator.createObjectValue(ModuleUtils.getHttpPackage(),
-                        JWT_DECODER_CLASS_NAME), JWT_DECODE_METHOD_NAME, StringUtils.fromString(splitValues[1]));
-        if (!(result instanceof BError)) {
+        try {
+            Object result = runtime.call(ValueCreator.createObjectValue(ModuleUtils.getHttpPackage(), JWT_DECODER_CLASS_NAME), JWT_DECODE_METHOD_NAME, StringUtils.fromString(splitValues[1]));
             if (!(result instanceof Exception)) {
                 jwtInformation[0] = result;
             }
+        } catch (BError error) {
+            // ignore error
         }
         return jwtInformation[0];
     }

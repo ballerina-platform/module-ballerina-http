@@ -176,8 +176,9 @@ public class HttpRequestInterceptorUnitHandler extends HttpCallableUnitResultHan
     }
 
     public void invokeBalMethod(Object[] paramFeed, String methodName) {
-        Object result = runtime.call(caller, methodName, paramFeed);
-        if (result instanceof BError error) {
+        try {
+            runtime.call(caller, methodName, paramFeed);
+        } catch ( BError error) {
             cleanupRequestMessage();
             HttpUtil.handleFailure(requestMessage, error);
         }

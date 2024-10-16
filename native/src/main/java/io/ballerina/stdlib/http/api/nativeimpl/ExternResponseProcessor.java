@@ -520,11 +520,11 @@ public final class ExternResponseProcessor {
         Object[] paramFeed = new Object[2];
         paramFeed[0] = StringUtils.fromString(reasonPhrase);
         paramFeed[1] = true;
-        Object result = env.getRuntime().call(response, GET_STATUS_CODE_RESPONSE_BINDING_ERROR, paramFeed);
-        if (result instanceof BError error) {
+        try {
+            return env.getRuntime().call(response, GET_STATUS_CODE_RESPONSE_BINDING_ERROR, paramFeed);
+        } catch (BError error) {
             return createHttpError(APPLICATION_RES_ERROR_CREATION_FAILED, STATUS_CODE_RESPONSE_BINDING_ERROR, error);
         }
-        return result;
     }
 
     private static Object getStatusCodeResponseDataBindingError(Environment env, BObject response, String reasonPhrase,
@@ -539,18 +539,18 @@ public final class ExternResponseProcessor {
         paramFeed[5] = true;
         paramFeed[6] = cause;
         paramFeed[7] = true;
-        Object result = env.getRuntime().call(response, GET_STATUS_CODE_RESPONSE_DATA_BINDING_ERROR, paramFeed);
-        if (result instanceof BError error) {
+        try {
+            return env.getRuntime().call(response, GET_STATUS_CODE_RESPONSE_DATA_BINDING_ERROR, paramFeed);
+        } catch (BError error) {
             return createHttpError(APPLICATION_RES_ERROR_CREATION_FAILED, STATUS_CODE_RESPONSE_BINDING_ERROR, error);
         }
-        return result;
     }
 
     private static Object getStatusCodeResponse(Environment env, BObject response, Object[] paramFeed) {
-         Object result = env.getRuntime().call(response, BUILD_STATUS_CODE_RESPONSE, paramFeed);
-        if (result instanceof BError error) {
+        try {
+            return env.getRuntime().call(response, BUILD_STATUS_CODE_RESPONSE, paramFeed);
+        }catch (BError error) {
             return createHttpError(STATUS_CODE_RES_CREATION_FAILED, STATUS_CODE_RESPONSE_BINDING_ERROR, error);
         }
-        return result;
     }
 }

@@ -1643,20 +1643,13 @@ public class HttpUtil {
     }
 
     public static void populateInterceptorServicesFromListener(BObject serviceEndpoint, Runtime runtime) {
-        final CountDownLatch latch = new CountDownLatch(1);
         final BArray[] interceptorResponse = new BArray[1];
-        Object result = runtime.call(serviceEndpoint, CREATE_INTERCEPTORS_FUNCTION_NAME);
-        if (result instanceof BError error) {
+        try {
+            Object result = runtime.call(serviceEndpoint, CREATE_INTERCEPTORS_FUNCTION_NAME);
+            interceptorResponse[0] = (BArray) result;
+        } catch (BError error) {
             error.printStackTrace();
             System.exit(1);
-        } else {
-            interceptorResponse[0] = (BArray) result;
-            latch.countDown();
-        }
-        try {
-            latch.await();
-        } catch (InterruptedException exception) {
-            log.warn("Interrupted before receiving the interceptor response");
         }
         if (interceptorResponse[0] == null) {
             return;

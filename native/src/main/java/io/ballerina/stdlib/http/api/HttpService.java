@@ -490,19 +490,17 @@ public class HttpService implements Service {
         BArray interceptorsArrayFromService;
         if (includesInterceptableService) {
             final Object[] createdInterceptors = new Object[1];
-            CountDownLatch latch = new CountDownLatch(1);
-            Object result = runtime.call(service.getBalService(), CREATE_INTERCEPTORS_FUNCTION_NAME);
             try {
-                latch.await();
-            } catch (InterruptedException exception) {
-                log.warn("Interrupted before getting the return type");
-            }
-            if (result instanceof BError error) {
+                Object result = runtime.call(service.getBalService(), CREATE_INTERCEPTORS_FUNCTION_NAME);
+                if (result instanceof BError) {
+                    log.error("Error occurred while creating interceptors", result);
+                } else {
+                    createdInterceptors[0] = result;
+                }
+            } catch (BError error) {
                 error.printStackTrace();
                 System.exit(1);
             }
-            createdInterceptors[0] = result;
-            latch.countDown();;
 
             if (Objects.isNull(createdInterceptors[0]) || (createdInterceptors[0] instanceof BArray &&
                     ((BArray) createdInterceptors[0]).size() == 0)) {

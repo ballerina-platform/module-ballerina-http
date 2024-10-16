@@ -251,11 +251,11 @@ public class Respond extends ConnectionAction {
         inboundMessage.removeProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
         String methodName = service.getServiceType().equals(HttpConstants.RESPONSE_ERROR_INTERCEPTOR)
                             ? HttpConstants.INTERCEPT_RESPONSE_ERROR : HttpConstants.INTERCEPT_RESPONSE;
-        Object result = runtime.call(serviceObj, methodName, signatureParams);
-        if (result instanceof BError) {
-            resultHandler.handleError((BError) result);
-        } else {
+        try {
+            Object result = runtime.call(serviceObj, methodName, signatureParams);
             resultHandler.handleResult(result);
+        } catch (BError error) {
+            resultHandler.handleError(error);
         }
     }
 }
