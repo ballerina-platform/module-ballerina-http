@@ -159,7 +159,7 @@ public class HttpResponseInterceptorUnitResultHandler extends HttpCallableUnitRe
     @Override
     public void invokeBalMethod(Object[] paramFeed, String methodName) {
         try {
-            Object result = this.getRuntime().call(caller, methodName, paramFeed);
+            this.getRuntime().call(caller, methodName, paramFeed);
             stopObserverContext();
             dataContext.notifyOutboundResponseStatus(null);
         } catch (BError error) {

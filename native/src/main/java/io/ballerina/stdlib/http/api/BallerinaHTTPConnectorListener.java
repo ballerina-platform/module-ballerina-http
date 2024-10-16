@@ -19,8 +19,6 @@ package io.ballerina.stdlib.http.api;
 
 import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.constants.RuntimeConstants;
-import io.ballerina.runtime.api.types.ObjectType;
-import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;

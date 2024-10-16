@@ -549,7 +549,7 @@ public final class ExternResponseProcessor {
     private static Object getStatusCodeResponse(Environment env, BObject response, Object[] paramFeed) {
         try {
             return env.getRuntime().call(response, BUILD_STATUS_CODE_RESPONSE, paramFeed);
-        }catch (BError error) {
+        } catch (BError error) {
             return createHttpError(STATUS_CODE_RES_CREATION_FAILED, STATUS_CODE_RESPONSE_BINDING_ERROR, error);
         }
     }
