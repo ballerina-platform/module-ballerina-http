@@ -68,4 +68,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.BALLERINA_BOT_TOKEN }}
         run: |
           gh release create v$VERSION --title "module-ballerina-http-v$VERSION"
-          gh pr create --title "[Automated] Sync 2201.5.x after $VERSION release" --body "Sync 2201.5.x after $VERSION release"
+          gh pr create --title "[Automated] Sync 2201.6.x after $VERSION release" --body "Sync 2201.6.x after $VERSION release"
