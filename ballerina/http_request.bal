@@ -164,17 +164,12 @@ public class Request {
         externRequestSetHeader(self, headerName, headerValue);
     }
 
-    # Adds the specified header to the request. Existing header values are not replaced, except for the `Content-Type`
-    # header. In the case of the `Content-Type` header, the existing value is replaced with the specified value.
-    # Panic if an illegal header is passed.
+    # Adds the specified header to the request. Existing header values are not replaced. Panic if an illegal header is passed.
     #
     # + headerName - The header name
     # + headerValue - The header value
     public isolated function addHeader(string headerName, string headerValue) {
-        if headerName.equalsIgnoreCaseAscii(CONTENT_TYPE) {
-            return externRequestSetHeader(self, headerName, headerValue);
-        }
-        return externRequestAddHeader(self, headerName, headerValue);
+        externRequestAddHeader(self, headerName, headerValue);
     }
 
     # Removes the specified header from the request.

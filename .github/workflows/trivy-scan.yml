@@ -24,7 +24,7 @@ jobs:
       - name: Create lib directory if not exists
         run: mkdir -p ballerina/lib
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.23.0
+        uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'rootfs'
           scan-ref: '/github/workspace/ballerina/lib'
