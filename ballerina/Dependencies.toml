@@ -50,7 +50,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "crypto"
-version = "2.3.1"
+version = "2.3.2"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "time"}
@@ -76,7 +76,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "http"
-version = "2.8.7"
+version = "2.8.8"
 dependencies = [
 	{org = "ballerina", name = "auth"},
 	{org = "ballerina", name = "cache"},
@@ -312,7 +312,7 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "time"
-version = "2.2.4"
+version = "2.2.5"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
 ]
@@ -323,7 +323,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "url"
-version = "2.2.3"
+version = "2.2.4"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
 ]
