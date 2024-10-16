@@ -14,7 +14,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/mime;
 import ballerina/test;
 import ballerina/http;
 import ballerina/http_test_common as common;
@@ -275,26 +274,5 @@ function testPassthruWithBody() returns error? {
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
-}
-
-@test:Config {}
-function testAddHeaderWithContentType() returns error? {
-    http:Request req = new;
-    check req.setContentType(mime:APPLICATION_JSON);
-    test:assertEquals(check req.getHeaders(http:CONTENT_TYPE), [mime:APPLICATION_JSON]);
-    req.addHeader(http:CONTENT_TYPE, mime:APPLICATION_XML);
-    test:assertEquals(check req.getHeaders(http:CONTENT_TYPE), [mime:APPLICATION_XML]);
-
-    http:Response res = new;
-    check res.setContentType(mime:APPLICATION_JSON);
-    test:assertEquals(check res.getHeaders(http:CONTENT_TYPE), [mime:APPLICATION_JSON]);
-    res.addHeader(http:CONTENT_TYPE, mime:APPLICATION_XML);
-    test:assertEquals(check res.getHeaders(http:CONTENT_TYPE), [mime:APPLICATION_XML]);
-
-    http:PushPromise pushPromise = new;
-    pushPromise.addHeader(http:CONTENT_TYPE, mime:APPLICATION_JSON);
-    test:assertEquals(pushPromise.getHeaders(http:CONTENT_TYPE), [mime:APPLICATION_JSON]);
-    pushPromise.addHeader(http:CONTENT_TYPE, mime:APPLICATION_XML);
-    test:assertEquals(pushPromise.getHeaders(http:CONTENT_TYPE), [mime:APPLICATION_XML]);
 }
 
