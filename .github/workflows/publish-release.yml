@@ -28,6 +28,14 @@ jobs:
             ./gradlew build -x check -x test
       - name: Create lib directory if not exists
         run: mkdir -p ballerina/lib
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.23.0
+        with:
+          scan-type: 'rootfs'
+          scan-ref: '/github/workspace/ballerina/lib'
+          format: 'table'
+          timeout: '10m0s'
+          exit-code: '1'
       - name: Set version env variable
         run: echo "VERSION=$((grep -w 'version' | cut -d= -f2) < gradle.properties | rev | cut --complement -d- -f1 | rev)" >> $GITHUB_ENV
       - name: Pre release dependency version update
@@ -53,11 +61,11 @@ jobs:
           publishUser: ${{ secrets.BALLERINA_BOT_USERNAME }}
           publishPAT: ${{ secrets.BALLERINA_BOT_TOKEN }}
         run: |
-          ./gradlew clean -x test release -Prelease.useAutomaticVersion=true
-          ./gradlew -Pversion=${VERSION} publish -x test
+          ./gradlew clean release -Prelease.useAutomaticVersion=true
+          ./gradlew -Pversion=${VERSION} publish -x test -PpublishToCentral=true
       - name: GitHub Release and Release Sync PR
         env:
           GITHUB_TOKEN: ${{ secrets.BALLERINA_BOT_TOKEN }}
         run: |
           gh release create v$VERSION --title "module-ballerina-http-v$VERSION"
-          gh pr create --title "[Automated] Sync 2201.6.x after $VERSION release" --body "Sync 2201.6.x after $VERSION release"
+          gh pr create --title "[Automated] Sync master after $VERSION release" --body "Sync master after $VERSION release"
