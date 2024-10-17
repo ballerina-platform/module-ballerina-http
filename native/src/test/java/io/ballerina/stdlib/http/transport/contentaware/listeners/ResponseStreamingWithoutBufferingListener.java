@@ -28,9 +28,6 @@ import io.netty.handler.codec.http.LastHttpContent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import static io.netty.handler.codec.http.HttpHeaderNames.CONNECTION;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderNames.TRANSFER_ENCODING;
@@ -46,11 +43,10 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 public class ResponseStreamingWithoutBufferingListener implements HttpConnectorListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(RequestResponseTransformStreamingListener.class);
-    private ExecutorService executor = Executors.newCachedThreadPool();
 
     @Override
     public void onMessage(HttpCarbonMessage inboundRequest) {
-        executor.execute(() -> {
+        Thread.startVirtualThread(() -> {
             HttpCarbonMessage outboundResponse =
                     new HttpCarbonMessage(new DefaultHttpResponse(HTTP_1_1, OK));
             outboundResponse.setHeader(CONNECTION.toString(), KEEP_ALIVE.toString());

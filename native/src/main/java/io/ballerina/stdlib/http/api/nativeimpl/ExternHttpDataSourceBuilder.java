@@ -19,7 +19,6 @@
 package io.ballerina.stdlib.http.api.nativeimpl;
 
 import io.ballerina.runtime.api.Environment;
-import io.ballerina.runtime.api.Future;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.stdlib.http.api.HttpUtil;
@@ -39,6 +38,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 import static io.ballerina.stdlib.mime.util.EntityBodyHandler.constructBlobDataSource;
 import static io.ballerina.stdlib.mime.util.EntityBodyHandler.constructJsonDataSource;
@@ -65,81 +65,96 @@ public class ExternHttpDataSourceBuilder extends MimeDataSourceBuilder {
         if (isStreamingRequired(entityObj) || transportMessage == null) {
             return getByteArray(entityObj);
         }
-
-        // access payload in non blocking manner
-        Future balFuture = null;
         try {
             Object messageDataSource = EntityBodyHandler.getMessageDataSource(entityObj);
             if (messageDataSource != null) {
                 return getAlreadyBuiltByteArray(entityObj, messageDataSource);
             }
-            balFuture = env.markAsync();
-            constructNonBlockingDataSource(balFuture, entityObj, SourceType.BLOB);
         } catch (Exception exception) {
-            return notifyError(balFuture, exception, "blob");
+            return createError(exception, "blob");
         }
-        return null;
+        // access payload in non-blocking manner
+        return env.yieldAndRun(() -> {
+            CompletableFuture<Object> balFuture = new CompletableFuture<>();
+            constructNonBlockingDataSource(balFuture, entityObj, SourceType.BLOB);
+            try {
+                return balFuture.get();
+            } catch (Exception exception) {
+                return createError(exception, "blob");
+            }
+        });
     }
 
     public static Object getNonBlockingJson(Environment env, BObject entityObj) {
         if (isStreamingRequired(entityObj)) {
             return getJson(entityObj);
         }
-
-        // access payload in non blocking manner
-        Future balFuture = null;
         try {
             Object dataSource = EntityBodyHandler.getMessageDataSource(entityObj);
             if (dataSource != null) {
                 return getAlreadyBuiltJson(dataSource);
             }
-             balFuture = env.markAsync();
-            constructNonBlockingDataSource(balFuture, entityObj, SourceType.JSON);
         } catch (Exception exception) {
-            return notifyError(balFuture, exception, "json");
+            return createError(exception, "json");
         }
-        return null;
+        // access payload in non-blocking manner
+        return env.yieldAndRun(() -> {
+            CompletableFuture<Object> balFuture = new CompletableFuture<>();
+            constructNonBlockingDataSource(balFuture, entityObj, SourceType.JSON);
+            try {
+                return balFuture.get();
+            } catch (Exception exception) {
+                return createError(exception, "json");
+            }
+        });
     }
 
     public static Object getNonBlockingText(Environment env, BObject entityObj) {
         if (isStreamingRequired(entityObj)) {
             return getText(entityObj);
         }
-
-        // access payload in non blocking manner
-        Future balFuture = null;
         try {
             Object dataSource = EntityBodyHandler.getMessageDataSource(entityObj);
             if (dataSource != null) {
                 return io.ballerina.runtime.api.utils.StringUtils.fromString(MimeUtil.getMessageAsString(dataSource));
             }
-            balFuture = env.markAsync();
-            constructNonBlockingDataSource(balFuture, entityObj, SourceType.TEXT);
         } catch (Exception exception) {
-            return notifyError(balFuture, exception, "text");
+            return createError(exception, "text");
         }
-        return null;
+        // access payload in non-blocking manner
+        return env.yieldAndRun(() -> {
+            CompletableFuture<Object> balFuture = new CompletableFuture<>();
+            constructNonBlockingDataSource(balFuture, entityObj, SourceType.TEXT);
+            try {
+                return balFuture.get();
+            } catch (Exception exception) {
+                return createError(exception, "text");
+            }
+        });
     }
 
     public static Object getNonBlockingXml(Environment env, BObject entityObj) {
         if (isStreamingRequired(entityObj)) {
             return getXml(entityObj);
         }
-
-        // access payload in non blocking manner
-        Future balFuture = null;
         try {
             Object dataSource = EntityBodyHandler.getMessageDataSource(entityObj);
             if (dataSource != null) {
                 return getAlreadyBuiltXml(dataSource);
             }
-
-            balFuture = env.markAsync();
-            constructNonBlockingDataSource(balFuture, entityObj, SourceType.XML);
         } catch (Exception exception) {
-            return notifyError(balFuture, exception, "xml");
+            return createError(exception, "text");
         }
-        return null;
+        // access payload in non-blocking manner
+        return env.yieldAndRun(() -> {
+            CompletableFuture<Object> balFuture = new CompletableFuture<>();
+            constructNonBlockingDataSource(balFuture, entityObj, SourceType.XML);
+            try {
+                return balFuture.get();
+            } catch (Exception exception) {
+                return createError(exception, "text");
+            }
+        });
     }
 
     public static Object getByteChannel(BObject entityObj) {
@@ -164,7 +179,7 @@ public class ExternHttpDataSourceBuilder extends MimeDataSourceBuilder {
         }
     }
 
-    public static void constructNonBlockingDataSource(Future balFuture, BObject entity,
+    public static void constructNonBlockingDataSource(CompletableFuture<Object> balFuture, BObject entity,
                                                       SourceType sourceType) {
         HttpCarbonMessage inboundMessage = extractTransportMessageFromEntity(entity);
         if (inboundMessage.isContentReleased()) {
@@ -214,7 +229,11 @@ public class ExternHttpDataSourceBuilder extends MimeDataSourceBuilder {
         });
     }
 
-    private static Object notifyError(Future balFuture, Exception exception, String type) {
+    private static Object notifyError(Exception exception, String type) {
+        return createError(exception, type);
+    }
+
+    private static Object notifyError(CompletableFuture<Object> balFuture, Exception exception, String type) {
         BError error = (BError) createError(exception, type);
         if (balFuture != null) {
             setReturnValuesAndNotify(balFuture, error);
@@ -223,22 +242,22 @@ public class ExternHttpDataSourceBuilder extends MimeDataSourceBuilder {
         return error;
     }
 
-    private static void createErrorAndNotify(Future balFuture, String errMsg) {
+    private static void createErrorAndNotify(CompletableFuture<Object> balFuture, String errMsg) {
         BError error = MimeUtil.createError(PARSER_ERROR, errMsg);
         setReturnValuesAndNotify(balFuture, error);
     }
 
-    private static void setReturnValuesAndNotify(Future balFuture, Object result) {
+    private static void setReturnValuesAndNotify(CompletableFuture<Object> balFuture, Object result) {
         balFuture.complete(result);
     }
 
-    private static void updateDataSourceAndNotify(Future balFuture, BObject entityObj,
+    private static void updateDataSourceAndNotify(CompletableFuture<Object> balFuture, BObject entityObj,
                                                   Object result) {
         updateDataSource(entityObj, result);
         setReturnValuesAndNotify(balFuture, result);
     }
 
-    private static void updateJsonDataSourceAndNotify(Future balFuture, BObject entityObj,
+    private static void updateJsonDataSourceAndNotify(CompletableFuture<Object> balFuture, BObject entityObj,
                                                       Object result) {
         updateJsonDataSource(entityObj, result);
         setReturnValuesAndNotify(balFuture, result);

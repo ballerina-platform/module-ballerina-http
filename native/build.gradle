@@ -43,6 +43,7 @@ dependencies {
     implementation group: 'io.ballerina.stdlib', name: 'mime-native', version: "${stdlibMimeVersion}"
     implementation group: 'io.ballerina.stdlib', name: 'constraint-native', version: "${stdlibConstraintVersion}"
 
+    implementation group: 'org.slf4j', name: 'slf4j-api', version: "${slf4jVersion}"
     implementation group: 'org.slf4j', name: 'slf4j-jdk14', version: "${slf4jVersion}"
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: "${commonsLang3Version}"
     implementation group: 'com.google.code.gson', name: 'gson', version: "${gsonVersion}"
@@ -115,8 +116,11 @@ checkstyleMain.dependsOn(":checkstyle:downloadCheckstyleRuleFiles")
 checkstyleTest.dependsOn(":checkstyle:downloadCheckstyleRuleFiles")
 
 spotbugsMain {
-    effort "max"
-    reportLevel "low"
+    def classLoader = plugins["com.github.spotbugs"].class.classLoader
+    def SpotBugsConfidence = classLoader.findLoadedClass("com.github.spotbugs.snom.Confidence")
+    def SpotBugsEffort = classLoader.findLoadedClass("com.github.spotbugs.snom.Effort")
+    effort = SpotBugsEffort.MAX
+    reportLevel = SpotBugsConfidence.LOW
     reportsDir = file("$project.buildDir/reports/spotbugs")
     reports {
         html.enabled true

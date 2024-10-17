@@ -30,8 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * {@code Http2ServerConnectorListener} is a HttpConnectorListener which receives messages and respond back with
@@ -40,8 +38,6 @@ import java.util.concurrent.Executors;
 public class Http2ServerConnectorListener implements HttpConnectorListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(Http2ServerConnectorListener.class);
-
-    private ExecutorService executor = Executors.newSingleThreadExecutor();
 
     private String expectedResource;
     private String[] promisedResources;
@@ -57,7 +53,7 @@ public class Http2ServerConnectorListener implements HttpConnectorListener {
 
     @Override
     public void onMessage(HttpCarbonMessage httpRequest) {
-        executor.execute(() -> {
+        Thread.startVirtualThread(() -> {
             try {
                 // Send Push Promise messages
                 List<Http2PushPromise> promises = new ArrayList<>();

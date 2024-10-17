@@ -41,8 +41,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * A Message Processor class to be used for test pass through scenarios.
@@ -50,7 +48,6 @@ import java.util.concurrent.Executors;
 public class PassthroughMessageProcessorListener implements HttpConnectorListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(PassthroughMessageProcessorListener.class);
-    private ExecutorService executor = Executors.newSingleThreadExecutor();
     private HttpClientConnector clientConnector;
     private HttpWsConnectorFactory httpWsConnectorFactory;
     private SenderConfiguration senderConfiguration;
@@ -73,7 +70,7 @@ public class PassthroughMessageProcessorListener implements HttpConnectorListene
 
     @Override
     public void onMessage(HttpCarbonMessage httpRequestMessage) {
-        executor.execute(() -> {
+        Thread.startVirtualThread(() -> {
             httpRequestMessage.setProperty(Constants.HTTP_HOST, TestUtil.TEST_HOST);
             httpRequestMessage.setProperty(Constants.HTTP_PORT, TestUtil.HTTP_SERVER_PORT);
             httpRequestMessage
@@ -90,7 +87,7 @@ public class PassthroughMessageProcessorListener implements HttpConnectorListene
                 future.setHttpConnectorListener(new HttpConnectorListener() {
                     @Override
                     public void onMessage(HttpCarbonMessage httpResponse) {
-                        executor.execute(() -> {
+                        Thread.startVirtualThread(() -> {
                             try {
                                 httpRequestMessage.respond(httpResponse);
                             } catch (ServerConnectorException e) {

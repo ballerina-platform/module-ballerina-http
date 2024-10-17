@@ -26,20 +26,27 @@ import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.message.Http2PushPromise;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
+import java.util.concurrent.CompletableFuture;
+
+import static io.ballerina.stdlib.http.api.nativeimpl.ExternUtils.getResult;
+
 /**
  * {@code Promise} is the extern function to respond back to the client with a PUSH_PROMISE frame.
  */
 public class Promise extends ConnectionAction {
     public static Object promise(Environment env, BObject connectionObj, BObject pushPromiseObj) {
         HttpCarbonMessage inboundRequestMsg = HttpUtil.getCarbonMsg(connectionObj, null);
-        DataContext dataContext = new DataContext(env, inboundRequestMsg);
-        HttpUtil.serverConnectionStructCheck(inboundRequestMsg);
+        return env.yieldAndRun(() -> {
+            CompletableFuture<Object> balFuture = new CompletableFuture<>();
+            DataContext dataContext = new DataContext(env, balFuture, inboundRequestMsg);
+            HttpUtil.serverConnectionStructCheck(inboundRequestMsg);
 
-        Http2PushPromise http2PushPromise = HttpUtil.getPushPromise(pushPromiseObj,
-                HttpUtil.createHttpPushPromise(pushPromiseObj));
-        HttpResponseFuture outboundRespStatusFuture = HttpUtil.pushPromise(inboundRequestMsg, http2PushPromise);
-        setResponseConnectorListener(dataContext, outboundRespStatusFuture);
-        return null;
+            Http2PushPromise http2PushPromise = HttpUtil.getPushPromise(pushPromiseObj,
+                    HttpUtil.createHttpPushPromise(pushPromiseObj));
+            HttpResponseFuture outboundRespStatusFuture = HttpUtil.pushPromise(inboundRequestMsg, http2PushPromise);
+            setResponseConnectorListener(dataContext, outboundRespStatusFuture);
+            return getResult(balFuture);
+        });
     }
 
     private Promise() {}

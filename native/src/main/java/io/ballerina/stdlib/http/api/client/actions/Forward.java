@@ -29,9 +29,11 @@ import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
 
 import static io.ballerina.stdlib.http.api.HttpConstants.CLIENT_ENDPOINT_SERVICE_URI;
 import static io.ballerina.stdlib.http.api.HttpUtil.checkRequestBodySizeHeadersAvailability;
+import static io.ballerina.stdlib.http.api.nativeimpl.ExternUtils.getResult;
 
 /**
  * {@code Forward} action can be used to invoke an http call with incoming request httpVerb.
@@ -42,9 +44,12 @@ public class Forward extends AbstractHTTPAction {
         String url = (String) httpClient.getNativeData(CLIENT_ENDPOINT_SERVICE_URI);
         HttpCarbonMessage outboundRequestMsg = createOutboundRequestMsg(url, path.getValue(), requestObj);
         HttpClientConnector clientConnector = (HttpClientConnector) httpClient.getNativeData(HttpConstants.CLIENT);
-        DataContext dataContext = new DataContext(env, clientConnector, requestObj, outboundRequestMsg);
-        executeNonBlockingAction(dataContext, false);
-        return null;
+        return env.yieldAndRun(() -> {
+            CompletableFuture<Object> balFuture = new CompletableFuture<>();
+            DataContext dataContext = new DataContext(env, balFuture, clientConnector, requestObj, outboundRequestMsg);
+            executeNonBlockingAction(dataContext, false);
+            return getResult(balFuture);
+        });
     }
 
     protected static HttpCarbonMessage createOutboundRequestMsg(String serviceUri, String path, BObject requestObj) {
