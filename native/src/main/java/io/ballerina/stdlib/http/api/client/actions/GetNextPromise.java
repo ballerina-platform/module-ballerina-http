@@ -29,6 +29,10 @@ import io.ballerina.stdlib.http.transport.contract.HttpClientConnectorListener;
 import io.ballerina.stdlib.http.transport.message.Http2PushPromise;
 import io.ballerina.stdlib.http.transport.message.ResponseHandle;
 
+import java.util.concurrent.CompletableFuture;
+
+import static io.ballerina.stdlib.http.api.nativeimpl.ExternUtils.getResult;
+
 /**
  * {@code GetNextPromise} action can be used to get the next available push promise message associated with
  * a previous asynchronous invocation.
@@ -37,13 +41,16 @@ public class GetNextPromise extends AbstractHTTPAction {
 
     public static Object getNextPromise(Environment env, BObject clientObj, BObject handleObj) {
         HttpClientConnector clientConnector = (HttpClientConnector) clientObj.getNativeData(HttpConstants.CLIENT);
-        DataContext dataContext = new DataContext(env, clientConnector, handleObj, null);
-        ResponseHandle responseHandle = (ResponseHandle) handleObj.getNativeData(HttpConstants.TRANSPORT_HANDLE);
-        if (responseHandle == null) {
-            throw HttpUtil.createHttpError("invalid http handle");
-        }
-        clientConnector.getNextPushPromise(responseHandle).setPushPromiseListener(new PromiseListener(dataContext));
-        return null;
+        return env.yieldAndRun(() -> {
+            CompletableFuture<Object> balFuture = new CompletableFuture<>();
+            DataContext dataContext = new DataContext(env, balFuture, clientConnector, handleObj, null);
+            ResponseHandle responseHandle = (ResponseHandle) handleObj.getNativeData(HttpConstants.TRANSPORT_HANDLE);
+            if (responseHandle == null) {
+                throw HttpUtil.createHttpError("invalid http handle");
+            }
+            clientConnector.getNextPushPromise(responseHandle).setPushPromiseListener(new PromiseListener(dataContext));
+            return getResult(balFuture);
+        });
     }
 
     private static class PromiseListener implements HttpClientConnectorListener {

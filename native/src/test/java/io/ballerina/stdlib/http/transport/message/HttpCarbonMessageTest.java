@@ -59,7 +59,7 @@ public class HttpCarbonMessageTest {
         HttpMessage httpMessage = mock(HttpMessage.class);
         Listener contentListener = mock(Listener.class);
         HttpCarbonMessage httpCarbonMessage = new HttpCarbonMessage(httpMessage, 100, contentListener);
-        ByteBuffer msgBody = mock(ByteBuffer.class);
+        ByteBuffer msgBody = ByteBuffer.allocate(16);
         httpCarbonMessage.addMessageBody(msgBody);
     }
 

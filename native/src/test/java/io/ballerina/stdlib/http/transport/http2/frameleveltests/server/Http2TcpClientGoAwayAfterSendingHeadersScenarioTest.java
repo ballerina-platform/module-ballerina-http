@@ -48,8 +48,6 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 
 import static org.testng.Assert.assertEquals;
@@ -122,11 +120,10 @@ public class Http2TcpClientGoAwayAfterSendingHeadersScenarioTest {
 
 
     class GoAwayMessageListener implements HttpConnectorListener {
-        private ExecutorService executor = Executors.newSingleThreadExecutor();
 
         @Override
         public void onMessage(HttpCarbonMessage httpRequest) {
-            executor.execute(() -> {
+            Thread.startVirtualThread(() -> {
                 try {
                     HttpContent httpContent = httpRequest.getHttpContent();
                     if (httpContent.decoderResult().isFailure()) {

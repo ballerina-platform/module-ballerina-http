@@ -25,8 +25,11 @@ import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
+import java.util.concurrent.CompletableFuture;
+
 import static io.ballerina.stdlib.http.api.HttpConstants.CLIENT_ENDPOINT_CONFIG;
 import static io.ballerina.stdlib.http.api.HttpConstants.CLIENT_ENDPOINT_SERVICE_URI;
+import static io.ballerina.stdlib.http.api.nativeimpl.ExternUtils.getResult;
 
 /**
  * {@code Submit} action can be used to invoke a http call with any httpVerb in asynchronous manner.
@@ -40,8 +43,11 @@ public class Submit extends Execute {
         HttpClientConnector clientConnector = (HttpClientConnector) httpClient.getNativeData(HttpConstants.CLIENT);
         HttpCarbonMessage outboundRequestMsg = createOutboundRequestMsg(url, config, path.getValue(), requestObj);
         outboundRequestMsg.setHttpMethod(httpVerb.getValue());
-        DataContext dataContext = new DataContext(env, clientConnector, requestObj, outboundRequestMsg);
-        executeNonBlockingAction(dataContext, true);
-        return null;
+        return env.yieldAndRun(() -> {
+            CompletableFuture<Object> balFuture = new CompletableFuture<>();
+            DataContext dataContext = new DataContext(env, balFuture, clientConnector, requestObj, outboundRequestMsg);
+            executeNonBlockingAction(dataContext, true);
+            return getResult(balFuture);
+        });
     }
 }

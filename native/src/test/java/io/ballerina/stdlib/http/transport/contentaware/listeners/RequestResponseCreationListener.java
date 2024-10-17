@@ -39,8 +39,6 @@ import org.slf4j.LoggerFactory;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * A Message Processor which creates Request and Response.
@@ -49,7 +47,6 @@ public class RequestResponseCreationListener implements HttpConnectorListener {
     private static final Logger LOG = LoggerFactory.getLogger(RequestResponseCreationListener.class);
 
     private String responseValue;
-    private ExecutorService executor = Executors.newSingleThreadExecutor();
 
     public RequestResponseCreationListener(String responseValue) {
         this.responseValue = responseValue;
@@ -57,7 +54,7 @@ public class RequestResponseCreationListener implements HttpConnectorListener {
 
     @Override
     public void onMessage(HttpCarbonMessage httpRequest) {
-        executor.execute(() -> {
+        Thread.startVirtualThread(() -> {
             try {
                 String requestValue = TestUtil
                         .getStringFromInputStream(new HttpMessageDataStreamer(httpRequest).getInputStream());
@@ -82,7 +79,7 @@ public class RequestResponseCreationListener implements HttpConnectorListener {
                 future.setHttpConnectorListener(new HttpConnectorListener() {
                     @Override
                     public void onMessage(HttpCarbonMessage httpResponse) {
-                        executor.execute(() -> {
+                        Thread.startVirtualThread(() -> {
                             String responseValue = TestUtil.getStringFromInputStream(
                                     new HttpMessageDataStreamer(httpResponse).getInputStream());
                             String responseStringValue = responseValue + ":" + requestValue;

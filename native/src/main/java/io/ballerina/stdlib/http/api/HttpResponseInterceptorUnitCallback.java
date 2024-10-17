@@ -19,9 +19,7 @@
 package io.ballerina.stdlib.http.api;
 
 import io.ballerina.runtime.api.Environment;
-import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.Runtime;
-import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.types.ServiceType;
 import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BArray;
@@ -61,7 +59,7 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
     }
 
     @Override
-    public void notifySuccess(Object result) {
+    public void handleResult(Object result) {
         if (result instanceof BError) {
             requestMessage.setHttpStatusCode(500);
             invokeErrorInterceptors((BError) result, false);
@@ -74,7 +72,7 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
     }
 
     @Override
-    public void notifyFailure(BError error) { // handles panic and check_panic
+    public void handlePanic(BError error) { // handles panic and check_panic
         cleanupRequestMessage();
         sendFailureResponse(error);
         System.exit(1);
@@ -146,37 +144,27 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
     }
 
     private void returnResponse(Object result) {
-        Object[] paramFeed = new Object[8];
+        Object[] paramFeed = new Object[4];
         paramFeed[0] = result;
-        paramFeed[1] = true;
+        paramFeed[1] = null;
         paramFeed[2] = null;
-        paramFeed[3] = true;
-        paramFeed[4] = null;
-        paramFeed[5] = true;
-        paramFeed[6] = null;
-        paramFeed[7] = true;
-
+        paramFeed[3] = null;
         invokeBalMethod(paramFeed, "returnResponse");
     }
 
     @Override
     public void invokeBalMethod(Object[] paramFeed, String methodName) {
-        Callback returnCallback = new Callback() {
-            @Override
-            public void notifySuccess(Object result) {
+        Thread.startVirtualThread(() -> {
+            try {
+                this.getRuntime().startIsolatedWorker(caller, methodName, null,
+                        ModuleUtils.getNotifySuccessMetaData(), null, paramFeed);
                 stopObserverContext();
                 dataContext.notifyOutboundResponseStatus(null);
-            }
-
-            @Override
-            public void notifyFailure(BError result) {
+            } catch (BError error) {
                 dataContext.notifyOutboundResponseStatus(null);
-                sendFailureResponse(result);
+                sendFailureResponse(error);
             }
-        };
-        this.getRuntime().invokeMethodAsyncSequentially(
-                caller, methodName, null, ModuleUtils.getNotifySuccessMetaData(),
-                returnCallback, null, PredefinedTypes.TYPE_NULL, paramFeed);
+        });
     }
 
     private int getResponseInterceptorId() {
@@ -185,12 +173,9 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
     }
 
     public void returnErrorResponse(BError error) {
-        Object[] paramFeed = new Object[4];
+        Object[] paramFeed = new Object[2];
         paramFeed[0] = error;
-        paramFeed[1] = true;
-        paramFeed[2] = null;
-        paramFeed[3] = true;
-
+        paramFeed[1] = null;
         invokeBalMethod(paramFeed, "returnErrorResponse");
     }
 }

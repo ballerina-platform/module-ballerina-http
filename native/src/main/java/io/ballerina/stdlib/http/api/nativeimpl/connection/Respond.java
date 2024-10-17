@@ -20,9 +20,6 @@ package io.ballerina.stdlib.http.api.nativeimpl.connection;
 
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Runtime;
-import io.ballerina.runtime.api.async.Callback;
-import io.ballerina.runtime.api.types.ObjectType;
-import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.observability.ObserveUtils;
@@ -46,12 +43,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import static io.ballerina.runtime.observability.ObservabilityConstants.PROPERTY_KEY_HTTP_STATUS_CODE;
 import static io.ballerina.stdlib.http.api.HttpConstants.INTERCEPTOR_SERVICES_REGISTRIES;
 import static io.ballerina.stdlib.http.api.HttpConstants.OBSERVABILITY_CONTEXT_PROPERTY;
 import static io.ballerina.stdlib.http.api.HttpConstants.RESPONSE_CACHE_CONTROL_FIELD;
 import static io.ballerina.stdlib.http.api.HttpConstants.RESPONSE_STATUS_CODE_FIELD;
+import static io.ballerina.stdlib.http.api.nativeimpl.ExternUtils.getResult;
 import static io.ballerina.stdlib.http.api.nativeimpl.pipelining.PipeliningHandler.executePipeliningLogic;
 import static io.ballerina.stdlib.http.api.nativeimpl.pipelining.PipeliningHandler.pipeliningRequired;
 import static io.ballerina.stdlib.http.api.nativeimpl.pipelining.PipeliningHandler.setPipeliningListener;
@@ -69,13 +68,21 @@ public class Respond extends ConnectionAction {
                                             BError error) {
         HttpCarbonMessage inboundRequest = HttpUtil.getCarbonMsg(connectionObj, null);
         inboundRequest.setProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR, error);
-        return nativeRespondWithDataCtx(env, connectionObj, outboundResponseObj,
-                new DataContext(env, inboundRequest));
+        return env.yieldAndRun(() -> {
+            CompletableFuture<Object> balFuture = new CompletableFuture<>();
+            nativeRespondWithDataCtx(env, connectionObj, outboundResponseObj, new DataContext(env, balFuture,
+                    inboundRequest));
+            return getResult(balFuture);
+        });
     }
 
     public static Object nativeRespond(Environment env, BObject connectionObj, BObject outboundResponseObj) {
-        return nativeRespondWithDataCtx(env, connectionObj, outboundResponseObj,
-                new DataContext(env, HttpUtil.getCarbonMsg(connectionObj, null)));
+        return env.yieldAndRun(() -> {
+            CompletableFuture<Object> balFuture = new CompletableFuture<>();
+            nativeRespondWithDataCtx(env, connectionObj, outboundResponseObj, new DataContext(env,
+                    balFuture, HttpUtil.getCarbonMsg(connectionObj, null)));
+            return getResult(balFuture);
+        });
     }
 
     public static Object nativeRespondWithDataCtx(Environment env, BObject connectionObj, BObject outboundResponseObj,
@@ -247,20 +254,18 @@ public class Respond extends ConnectionAction {
         Runtime runtime = interceptorServicesRegistry.getRuntime();
         Object[] signatureParams = HttpDispatcher.getRemoteSignatureParameters(service, outboundResponseObj, callerObj,
                                    inboundMessage, runtime);
-        Callback callback = new HttpResponseInterceptorUnitCallback(inboundMessage, callerObj, outboundResponseObj,
+        HttpResponseInterceptorUnitCallback callback = new HttpResponseInterceptorUnitCallback(inboundMessage,
+                callerObj, outboundResponseObj,
                 env, dataContext, runtime, interceptorServicesRegistry.isPossibleLastInterceptor());
 
         inboundMessage.removeProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
         String methodName = service.getServiceType().equals(HttpConstants.RESPONSE_ERROR_INTERCEPTOR)
                             ? HttpConstants.INTERCEPT_RESPONSE_ERROR : HttpConstants.INTERCEPT_RESPONSE;
-
-        ObjectType serviceType = (ObjectType) TypeUtils.getReferredType(TypeUtils.getType(serviceObj));
-        if (serviceType.isIsolated() && serviceType.isIsolated(methodName)) {
-            runtime.invokeMethodAsyncConcurrently(serviceObj, methodName, null, null,
-                    callback, null, service.getRemoteMethod().getReturnType(), signatureParams);
-        } else {
-            runtime.invokeMethodAsyncSequentially(serviceObj, methodName, null, null,
-                    callback, null, service.getRemoteMethod().getReturnType(), signatureParams);
+        try {
+            Object result = runtime.call(serviceObj, methodName, signatureParams);
+            callback.handleResult(result);
+        } catch (BError bError) {
+            callback.handlePanic(bError);
         }
     }
 }
