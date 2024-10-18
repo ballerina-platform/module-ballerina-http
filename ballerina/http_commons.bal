@@ -23,6 +23,7 @@ import ballerina/time;
 import ballerina/log;
 import ballerina/lang.'string as strings;
 import ballerina/url;
+import ballerina/data.jsondata;
 
 final boolean observabilityEnabled = observe:isObservabilityEnabled();
 
@@ -146,7 +147,7 @@ isolated function processUrlEncodedContent(map<string> message) returns string|C
 }
 
 isolated function processJsonContent(anydata message) returns json|ClientError {
-    var result = trap val:toJson(message);
+    var result = trap jsondata:toJson(message);
     if result is error {
         return error InitializingOutboundRequestError("json conversion error: " + result.message(), result);
     }
@@ -174,7 +175,7 @@ isolated function buildResponse(ResponseMessage message, string? resourceAccesso
     } else if message is mime:Entity[] {
         response.setBodyParts(message);
     } else if message is anydata {
-        var result = trap val:toJson(message);
+        var result = trap jsondata:toJson(message);
         if result is error {
             return error InitializingOutboundResponseError("json conversion error: " + result.message(), result);
         } else {
