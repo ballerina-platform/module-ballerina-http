@@ -109,13 +109,18 @@ public class Response {
         return externResponseGetHeader(self, headerName, position);
     }
 
-    # Adds the specified header to the response. Existing header values are not replaced. Panic if an illegal header is passed.
+    # Adds the specified header to the response. Existing header values are not replaced, except for the `Content-Type`
+    # header. In the case of the `Content-Type` header, the existing value is replaced with the specified value.
+    #. Panic if an illegal header is passed.
     #
     # + headerName - The header name
     # + headerValue - The header value
     # + position - Represents the position of the header as an optional parameter. If the position is `http:TRAILING`,
     #              the entity-body of the `Response` must be accessed initially.
     public isolated function addHeader(string headerName, string headerValue, HeaderPosition position = LEADING) {
+        if headerName.equalsIgnoreCaseAscii(CONTENT_TYPE) {
+            return externResponseSetHeader(self, headerName, headerValue, position);
+        }
         return externResponseAddHeader(self, headerName, headerValue, position);
     }
 
