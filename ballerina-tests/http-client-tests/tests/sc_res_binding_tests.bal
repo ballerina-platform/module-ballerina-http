@@ -271,17 +271,21 @@ service /api on new http:Listener(statusCodeBindingPort2) {
     }
 
     resource function get v1/albums/[string id]() returns AlbumFoundWithNamedHeaders|AlbumNotFoundWithNamedHeaders {
-            if albums.hasKey(id) {
-                return {
-                    body: albums.get(id),
-                    headers: {userId: "user-1", reqId: 1}
-                };
-            }
+        if albums.hasKey(id) {
             return {
-                body: {albumId: id, message: "Album not found"},
+                body: albums.get(id),
                 headers: {userId: "user-1", reqId: 1}
             };
         }
+        return {
+            body: {albumId: id, message: "Album not found"},
+            headers: {userId: "user-1", reqId: 1}
+        };
+    }
+
+    resource function get album/auther() returns OKPerson {
+        return {body: {firstName: "Potter", personAge: "40"}};
+    }
 }
 
 final http:StatusCodeClient albumClient = check new (string `localhost:${statusCodeBindingPort2}/api`);
@@ -309,7 +313,7 @@ function testGetSuccessStatusCodeResponse() returns error? {
     if res2 is error {
         test:assertTrue(res2 is http:StatusCodeResponseBindingError);
         test:assertEquals(res2.message(), "incompatible type: AlbumNotFound found for the response with status code: 200",
-            "Invalid error message");
+                "Invalid error message");
         error? cause = res2.cause();
         if cause is error {
             test:assertEquals(cause.message(), "no 'anydata' type found in the target type", "Invalid cause error message");
@@ -467,8 +471,8 @@ function testUnionPayloadBindingWithStatusCodeResponse() returns error? {
     AlbumFoundInvalid|AlbumFound|AlbumNotFound|error res5 = albumClient->/albums/'1;
     if res5 is error {
         test:assertTrue(res5 is http:PayloadBindingError);
-        test:assertTrue(res5.message().includes("Payload binding failed: 'map<json>' value cannot be" +
-        " converted to 'http_client_tests:AlbumInvalid"), "Invalid error message");
+        test:assertTrue(res5.message().includes("Payload binding failed: required field 'invalidField' not present in JSON"),
+         "Invalid error message");
     } else {
         test:assertFail("Invalid response type");
     }
@@ -669,4 +673,10 @@ function testStatusCodeBindingWithNamedHeaders() returns error? {
     } else {
         test:assertFail("Invalid response type");
     }
+}
+
+@test:Config {}
+function testOverwriteName() returns error? {
+    OKPerson res = check albumClient->/album/auther;
+    test:assertEquals(res.body, {firstName: "Potter", personAge: "40"});
 }

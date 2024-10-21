@@ -20,6 +20,7 @@ import ballerina/lang.'string as strings;
 import ballerina/url;
 import ballerina/mime;
 import http.httpscerr;
+import ballerina/data.jsondata;
 
 # The caller actions for responding to client requests.
 #
@@ -370,7 +371,7 @@ isolated function retrieveUrlEncodedData(map<string> message) returns string|err
 }
 
 isolated function setJsonPayload(Response response, anydata payload, boolean setETag) {
-    var result = trap val:toJson(payload);
+    var result = trap jsondata:toJson(payload);
     if result is error {
         panic error InitializingOutboundResponseError(string `anydata to json conversion error: ${result.message()}`, result);
     }
