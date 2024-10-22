@@ -34,20 +34,15 @@ import io.netty.handler.codec.http.LastHttpContent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 /**
  * A Message processor which echos the incoming message.
  */
 public class EchoMessageListener implements HttpConnectorListener {
     private static final Logger LOG = LoggerFactory.getLogger(EchoMessageListener.class);
 
-    private ExecutorService executor = Executors.newSingleThreadExecutor();
-
     @Override
     public void onMessage(HttpCarbonMessage httpRequest) {
-        executor.execute(() -> {
+        Thread.startVirtualThread(() -> {
             try {
                 HttpCarbonMessage httpResponse =
                         new HttpCarbonResponse(new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK));

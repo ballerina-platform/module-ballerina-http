@@ -28,9 +28,11 @@ import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
 
 import static io.ballerina.stdlib.http.api.HttpConstants.CLIENT_ENDPOINT_CONFIG;
 import static io.ballerina.stdlib.http.api.HttpConstants.CLIENT_ENDPOINT_SERVICE_URI;
+import static io.ballerina.stdlib.http.api.nativeimpl.ExternUtils.getResult;
 
 /**
  * {@code Execute} action can be used to invoke execute a http call with any httpVerb.
@@ -42,10 +44,13 @@ public class Execute extends AbstractHTTPAction {
         BMap<BString, Object> config = (BMap<BString, Object>) httpClient.getNativeData(CLIENT_ENDPOINT_CONFIG);
         HttpClientConnector clientConnector = (HttpClientConnector) httpClient.getNativeData(HttpConstants.CLIENT);
         HttpCarbonMessage outboundRequestMsg = createOutboundRequestMsg(config, url, verb.getValue(), path.getValue(),
-                                                                        requestObj);
-        DataContext dataContext = new DataContext(env, clientConnector, requestObj, outboundRequestMsg);
-        executeNonBlockingAction(dataContext, false);
-        return null;
+                requestObj);
+        return env.yieldAndRun(() -> {
+            CompletableFuture<Object> balFuture = new CompletableFuture<>();
+            DataContext dataContext = new DataContext(env, balFuture, clientConnector, requestObj, outboundRequestMsg);
+            executeNonBlockingAction(dataContext, false);
+            return getResult(balFuture);
+        });
     }
 
     protected static HttpCarbonMessage createOutboundRequestMsg(BMap<BString, Object> config, String serviceUri,

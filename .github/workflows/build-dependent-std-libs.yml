@@ -30,11 +30,11 @@ jobs:
             matrix:
                 module: ${{ fromJson(inputs.ballerina_modules) }}
         steps:
-            - name: Set up JDK 17
+            - name: Set up JDK 21
               uses: actions/setup-java@v3
               with:
                   distribution: 'temurin'
-                  java-version: 17.0.7
+                  java-version: 21
 
             - name: Checkout module
               uses: actions/checkout@v3
@@ -98,11 +98,11 @@ jobs:
             matrix:
                 module: ${{ fromJson(inputs.ballerinax_modules) }}
         steps:
-            - name: Set up JDK 17
+            - name: Set up JDK 21
               uses: actions/setup-java@v3
               with:
                   distribution: 'temurin'
-                  java-version: 17.0.7
+                  java-version: 21
 
             - name: Checkout module
               uses: actions/checkout@v3

@@ -38,8 +38,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * A class which read and write content through streams.
@@ -48,11 +46,9 @@ public class RequestResponseCreationStreamingListener implements HttpConnectorLi
 
     private static final Logger LOG = LoggerFactory.getLogger(RequestResponseCreationStreamingListener.class);
 
-    private ExecutorService executor = Executors.newSingleThreadExecutor();
-
     @Override
     public void onMessage(HttpCarbonMessage httpRequest) {
-        executor.execute(() -> {
+        Thread.startVirtualThread(() -> {
             try {
                 HttpMessageDataStreamer streamer = new HttpMessageDataStreamer(httpRequest);
                 InputStream inputStream = streamer.getInputStream();
@@ -73,7 +69,7 @@ public class RequestResponseCreationStreamingListener implements HttpConnectorLi
                 future.setHttpConnectorListener(new HttpConnectorListener() {
                     @Override
                     public void onMessage(HttpCarbonMessage httpMessage) {
-                        executor.execute(() -> {
+                        Thread.startVirtualThread(() -> {
                             HttpCarbonMessage newMsg = httpMessage.cloneCarbonMessageWithOutData();
                             OutputStream outputStream = new HttpMessageDataStreamer(newMsg).getOutputStream();
                             try {

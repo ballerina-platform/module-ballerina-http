@@ -35,20 +35,16 @@ import io.netty.handler.codec.http.LastHttpContent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 /**
  * A continue 100 test listener.
  */
 public class Continue100Listener implements HttpConnectorListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(Continue100Listener.class);
-    private ExecutorService executor = Executors.newSingleThreadExecutor();
 
     @Override
     public void onMessage(HttpCarbonMessage httpRequest) {
-        executor.execute(() -> {
+        Thread.startVirtualThread(() -> {
             try {
                 String expectHeader = httpRequest.getHeader(HttpHeaderNames.EXPECT.toString());
 

@@ -32,8 +32,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * HTTP connector Listener for Content reading.
@@ -42,11 +40,9 @@ public class ContentReadingListener implements HttpConnectorListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(ContentReadingListener.class);
 
-    private ExecutorService executor = Executors.newSingleThreadExecutor();
-
     @Override
     public void onMessage(HttpCarbonMessage httpMessage) {
-        executor.execute(() -> {
+        Thread.startVirtualThread(() -> {
             try {
                 InputStream inputStream = new HttpMessageDataStreamer(httpMessage).getInputStream();
                 String response = new String(ByteStreams.toByteArray(inputStream), Charset.defaultCharset());

@@ -39,8 +39,6 @@ import org.slf4j.LoggerFactory;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Transform message in request and response path.
@@ -49,7 +47,6 @@ public class RequestResponseTransformListener implements HttpConnectorListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(RequestResponseTransformListener.class);
 
-    private ExecutorService executor = Executors.newSingleThreadExecutor();
     private String responseValue;
     private String requestValue;
 
@@ -59,7 +56,7 @@ public class RequestResponseTransformListener implements HttpConnectorListener {
 
     @Override
     public void onMessage(HttpCarbonMessage httpRequest) {
-        executor.execute(() -> {
+        Thread.startVirtualThread(() -> {
             try {
                 requestValue = TestUtil.getStringFromInputStream(
                         new HttpMessageDataStreamer(httpRequest).getInputStream());
@@ -83,7 +80,7 @@ public class RequestResponseTransformListener implements HttpConnectorListener {
                 future.setHttpConnectorListener(new HttpConnectorListener() {
                     @Override
                     public void onMessage(HttpCarbonMessage httpMessage) {
-                        executor.execute(() -> {
+                        Thread.startVirtualThread(() -> {
                             String content = TestUtil.getStringFromInputStream(
                                     new HttpMessageDataStreamer(httpMessage).getInputStream());
 
