@@ -105,8 +105,7 @@ public class AllPathParams implements Parameter {
                 }
             }
 
-            paramFeed[index++] = pathParam.validateConstraints(castedPathValue);
-            paramFeed[index] = true;
+            paramFeed[index] = pathParam.validateConstraints(castedPathValue);
         }
     }
 

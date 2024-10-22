@@ -136,24 +136,23 @@ public class PayloadParam implements Parameter {
         // Check if datasource is already available from interceptor service read
         // TODO : Validate the dataSource type with payload type and populate
         if (dataSource != null) {
-            index = populateFeedWithAlreadyBuiltPayload(paramFeed, inRequestEntity, index, payloadType, dataSource);
+            populateFeedWithAlreadyBuiltPayload(paramFeed, inRequestEntity, index, payloadType, dataSource);
         } else {
-            index = populateFeedWithFreshPayload(httpCarbonMessage, paramFeed, inRequestEntity, index, payloadType);
+            populateFeedWithFreshPayload(httpCarbonMessage, paramFeed, inRequestEntity, index, payloadType);
         }
-        paramFeed[index] = true;
     }
 
-    private int populateFeedWithAlreadyBuiltPayload(Object[] paramFeed, BObject inRequestEntity, int index,
+    private void populateFeedWithAlreadyBuiltPayload(Object[] paramFeed, BObject inRequestEntity, int index,
                                                     Type payloadType, Object dataSource) {
         try {
             switch (payloadType.getTag()) {
                 case ARRAY_TAG:
                     int actualTypeTag = TypeUtils.getReferredType(((ArrayType) payloadType).getElementType()).getTag();
                     if (actualTypeTag == TypeTags.BYTE_TAG) {
-                        paramFeed[index++] = validateConstraints(dataSource);
+                        paramFeed[index] = validateConstraints(dataSource);
                     } else if (actualTypeTag == TypeTags.RECORD_TYPE_TAG) {
                         dataSource = JsonToRecordConverter.convert(payloadType, inRequestEntity, readonly);
-                        paramFeed[index++]  = validateConstraints(dataSource);
+                        paramFeed[index]  = validateConstraints(dataSource);
                     } else {
                         throw HttpUtil.createHttpError("incompatible element type found inside an array " +
                                                        ((ArrayType) payloadType).getElementType().getName());
@@ -161,19 +160,18 @@ public class PayloadParam implements Parameter {
                     break;
                 case TypeTags.RECORD_TYPE_TAG:
                     dataSource = JsonToRecordConverter.convert(payloadType, inRequestEntity, readonly);
-                    paramFeed[index++]  = validateConstraints(dataSource);
+                    paramFeed[index]  = validateConstraints(dataSource);
                     break;
                 default:
-                    paramFeed[index++] = validateConstraints(dataSource);
+                    paramFeed[index] = validateConstraints(dataSource);
             }
         } catch (BError ex) {
             String message = "data binding failed: " + HttpUtil.getPrintableErrorMsg(ex);
             throw HttpUtil.createHttpStatusCodeError(INTERNAL_PAYLOAD_BINDING_LISTENER_ERROR, message);
         }
-        return index;
     }
 
-    private int populateFeedWithFreshPayload(HttpCarbonMessage inboundMessage, Object[] paramFeed,
+    private void populateFeedWithFreshPayload(HttpCarbonMessage inboundMessage, Object[] paramFeed,
                                              BObject inRequestEntity, int index, Type payloadType) {
         try {
             String contentType = HttpUtil.getContentTypeFromTransportMessage(inboundMessage);
@@ -181,12 +179,10 @@ public class PayloadParam implements Parameter {
             Object payloadBuilderValue = payloadBuilder.getValue(inRequestEntity, this.readonly);
             paramFeed[index] = validateConstraints(payloadBuilderValue);
             inboundMessage.setProperty(HttpConstants.ENTITY_OBJ, inRequestEntity);
-            return ++index;
         } catch (BError ex) {
             String typeName = ex.getType().getName();
             if (MimeConstants.NO_CONTENT_ERROR.equals(typeName) && this.nilable) {
                 paramFeed[index] = null;
-                return ++index;
             }
             if (INTERNAL_PAYLOAD_VALIDATION_LISTENER_ERROR.getErrorName().equals(typeName)) {
                 throw ex;
