@@ -59,11 +59,15 @@ public class PushPromise {
         return externPromiseGetHeaders(self, headerName);
     }
 
-    # Adds the specified key/value pair as an HTTP header to the `http:PushPromise`.
+    # Adds the specified key/value pair as an HTTP header to the `http:PushPromise`. In the case of the `Content-Type`
+    # header, the existing value is replaced with the specified value.
     #
     # + headerName - The header name
     # + headerValue - The header value
     public isolated function addHeader(string headerName, string headerValue) {
+        if headerName.equalsIgnoreCaseAscii(CONTENT_TYPE) {
+            return externPromiseSetHeader(self, headerName, headerValue);
+        }
         return externPromiseAddHeader(self, headerName, headerValue);
     }
 
