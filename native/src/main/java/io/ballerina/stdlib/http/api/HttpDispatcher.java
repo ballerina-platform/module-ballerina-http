@@ -331,7 +331,7 @@ public class HttpDispatcher {
         ParamHandler paramHandler = resource.getParamHandler();
         Type[] parameterTypes = getParameterTypes(resource.getBalResource());
         int sigParamCount = parameterTypes.length;
-        Object[] paramFeed = new Object[sigParamCount * 2];
+        Object[] paramFeed = new Object[sigParamCount];
         boolean treatNilableAsOptional = resource.isTreatNilableAsOptional();
         // Following was written assuming that they are validated
         for (Parameter param : paramHandler.getParamList()) {
@@ -343,37 +343,32 @@ public class HttpDispatcher {
                 case HttpConstants.CALLER:
                     int index = ((NonRecurringParam) param).getIndex();
                     httpCaller.set(HttpConstants.CALLER_PRESENT_FIELD, true);
-                    paramFeed[index++] = httpCaller;
-                    paramFeed[index] = true;
+                    paramFeed[index] = httpCaller;
                     break;
                 case HttpConstants.REQUEST_CONTEXT:
                     index = ((NonRecurringParam) param).getIndex();
-                    paramFeed[index++] = requestCtx;
-                    paramFeed[index] = true;
+                    paramFeed[index] = requestCtx;
                     break;
                 case HttpConstants.STRUCT_GENERIC_ERROR:
                     if (error == null) {
                         error = createError();
                     }
                     index = ((NonRecurringParam) param).getIndex();
-                    paramFeed[index++] = error;
-                    paramFeed[index] = true;
+                    paramFeed[index] = error;
                     break;
                 case HttpConstants.REQUEST:
                     if (inRequest == null) {
                         inRequest = createRequest(httpCarbonMessage, entityObj);
                     }
                     index = ((NonRecurringParam) param).getIndex();
-                    paramFeed[index++] = inRequest;
-                    paramFeed[index] = true;
+                    paramFeed[index] = inRequest;
                     break;
                 case HttpConstants.HEADERS:
                     if (inRequest == null) {
                         inRequest = createRequest(httpCarbonMessage, entityObj);
                     }
                     index = ((NonRecurringParam) param).getIndex();
-                    paramFeed[index++] = createHeadersObject(inRequest);
-                    paramFeed[index] = true;
+                    paramFeed[index] = createHeadersObject(inRequest);
                     break;
                 case HttpConstants.QUERY_PARAM:
                     ((AllQueryParams) param).populateFeed(httpCarbonMessage, paramHandler, paramFeed,

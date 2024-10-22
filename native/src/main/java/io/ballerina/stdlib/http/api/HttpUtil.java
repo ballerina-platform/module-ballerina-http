@@ -1644,7 +1644,7 @@ public class HttpUtil {
     public static void populateInterceptorServicesFromListener(BObject serviceEndpoint, Runtime runtime) {
         final BArray[] interceptorResponse = new BArray[1];
         try {
-            Object result =  runtime.call(serviceEndpoint, CREATE_INTERCEPTORS_FUNCTION_NAME, (Object) null);
+            Object result =  runtime.call(serviceEndpoint, CREATE_INTERCEPTORS_FUNCTION_NAME);
             if (result instanceof BArray) {
                 interceptorResponse[0] = (BArray) result;
             } else {
