@@ -22,6 +22,7 @@ import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.utils.ValueUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BMap;
+import io.ballerina.runtime.api.values.BNever;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.api.HttpUtil;
@@ -67,7 +68,8 @@ public class AllQueryParams implements Parameter {
             Object queryValue = urlQueryParams.get(StringUtils.fromString(token));
             if (queryValue == null) {
                 if (queryParam.isDefaultable()) {
-                    paramFeed[index] = queryParam.validateConstraints(queryParam.getOriginalType().getZeroValue());
+                    queryParam.validateConstraints(queryParam.getOriginalType().getZeroValue());
+                    paramFeed[index] = BNever.getValue();
                     continue;
                 } else if (queryParam.isNilable() && (treatNilableAsOptional || queryExist)) {
                     paramFeed[index] = null;

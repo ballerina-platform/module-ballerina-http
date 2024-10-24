@@ -83,9 +83,9 @@ public class HttpRequestInterceptorUnitCallback extends HttpCallableUnitCallback
     }
 
     public void returnErrorResponse(Object error) {
-        Object[] paramFeed = new Object[4];
+        Object[] paramFeed = new Object[2];
         paramFeed[0] = error;
-        paramFeed[2] = null;
+        paramFeed[1] = null;
         invokeBalMethod(paramFeed, "returnErrorResponse");
     }
 
