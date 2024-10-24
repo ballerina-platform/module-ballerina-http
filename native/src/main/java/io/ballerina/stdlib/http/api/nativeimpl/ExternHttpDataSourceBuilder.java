@@ -40,6 +40,7 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
+import static io.ballerina.stdlib.http.api.nativeimpl.ExternUtils.getResult;
 import static io.ballerina.stdlib.mime.util.EntityBodyHandler.constructBlobDataSource;
 import static io.ballerina.stdlib.mime.util.EntityBodyHandler.constructJsonDataSource;
 import static io.ballerina.stdlib.mime.util.EntityBodyHandler.constructStringDataSource;
@@ -75,10 +76,10 @@ public class ExternHttpDataSourceBuilder extends MimeDataSourceBuilder {
         }
         // access payload in non-blocking manner
         return env.yieldAndRun(() -> {
-            CompletableFuture<Object> balFuture = new CompletableFuture<>();
-            constructNonBlockingDataSource(balFuture, entityObj, SourceType.BLOB);
             try {
-                return balFuture.get();
+                CompletableFuture<Object> balFuture = new CompletableFuture<>();
+                constructNonBlockingDataSource(balFuture, entityObj, SourceType.BLOB);
+                return getResult(balFuture);
             } catch (Exception exception) {
                 return createError(exception, "blob");
             }
@@ -99,10 +100,10 @@ public class ExternHttpDataSourceBuilder extends MimeDataSourceBuilder {
         }
         // access payload in non-blocking manner
         return env.yieldAndRun(() -> {
-            CompletableFuture<Object> balFuture = new CompletableFuture<>();
-            constructNonBlockingDataSource(balFuture, entityObj, SourceType.JSON);
             try {
-                return balFuture.get();
+                CompletableFuture<Object> balFuture = new CompletableFuture<>();
+                constructNonBlockingDataSource(balFuture, entityObj, SourceType.JSON);
+                return getResult(balFuture);
             } catch (Exception exception) {
                 return createError(exception, "json");
             }
@@ -123,10 +124,10 @@ public class ExternHttpDataSourceBuilder extends MimeDataSourceBuilder {
         }
         // access payload in non-blocking manner
         return env.yieldAndRun(() -> {
-            CompletableFuture<Object> balFuture = new CompletableFuture<>();
-            constructNonBlockingDataSource(balFuture, entityObj, SourceType.TEXT);
             try {
-                return balFuture.get();
+                CompletableFuture<Object> balFuture = new CompletableFuture<>();
+                constructNonBlockingDataSource(balFuture, entityObj, SourceType.TEXT);
+                return getResult(balFuture);
             } catch (Exception exception) {
                 return createError(exception, "text");
             }
@@ -147,10 +148,10 @@ public class ExternHttpDataSourceBuilder extends MimeDataSourceBuilder {
         }
         // access payload in non-blocking manner
         return env.yieldAndRun(() -> {
-            CompletableFuture<Object> balFuture = new CompletableFuture<>();
-            constructNonBlockingDataSource(balFuture, entityObj, SourceType.XML);
             try {
-                return balFuture.get();
+                CompletableFuture<Object> balFuture = new CompletableFuture<>();
+                constructNonBlockingDataSource(balFuture, entityObj, SourceType.XML);
+                return getResult(balFuture);
             } catch (Exception exception) {
                 return createError(exception, "text");
             }
