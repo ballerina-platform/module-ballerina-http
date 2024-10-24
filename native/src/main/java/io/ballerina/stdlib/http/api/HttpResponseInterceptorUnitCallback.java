@@ -157,7 +157,7 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
         Thread.startVirtualThread(() -> {
             try {
                 this.getRuntime().startIsolatedWorker(caller, methodName, null,
-                        ModuleUtils.getNotifySuccessMetaData(), null, paramFeed);
+                        ModuleUtils.getNotifySuccessMetaData(), null, paramFeed).get();
                 stopObserverContext();
                 dataContext.notifyOutboundResponseStatus(null);
             } catch (BError error) {

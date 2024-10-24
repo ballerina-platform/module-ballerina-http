@@ -67,12 +67,10 @@ public class AllQueryParams implements Parameter {
             Object queryValue = urlQueryParams.get(StringUtils.fromString(token));
             if (queryValue == null) {
                 if (queryParam.isDefaultable()) {
-                    paramFeed[index++] = queryParam.validateConstraints(queryParam.getOriginalType().getZeroValue());
-                    paramFeed[index] = false;
+                    paramFeed[index] = queryParam.validateConstraints(queryParam.getOriginalType().getZeroValue());
                     continue;
                 } else if (queryParam.isNilable() && (treatNilableAsOptional || queryExist)) {
-                    paramFeed[index++] = null;
-                    paramFeed[index] = true;
+                    paramFeed[index] = null;
                     continue;
                 } else {
                     String message = "no query param value found for '" + token + "'";
@@ -97,8 +95,7 @@ public class AllQueryParams implements Parameter {
                         HttpUtil.createError(ex));
             }
 
-            paramFeed[index++] = queryParam.validateConstraints(castedQueryValue);
-            paramFeed[index] = true;
+            paramFeed[index] = queryParam.validateConstraints(castedQueryValue);
         }
     }
 }

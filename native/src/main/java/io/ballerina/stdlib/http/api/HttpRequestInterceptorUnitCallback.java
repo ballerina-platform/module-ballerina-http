@@ -85,10 +85,7 @@ public class HttpRequestInterceptorUnitCallback extends HttpCallableUnitCallback
     public void returnErrorResponse(Object error) {
         Object[] paramFeed = new Object[4];
         paramFeed[0] = error;
-        paramFeed[1] = true;
         paramFeed[2] = null;
-        paramFeed[3] = true;
-
         invokeBalMethod(paramFeed, "returnErrorResponse");
     }
 
@@ -175,7 +172,7 @@ public class HttpRequestInterceptorUnitCallback extends HttpCallableUnitCallback
         Thread.startVirtualThread(() -> {
             try {
                 runtime.startNonIsolatedWorker(caller, methodName, null, ModuleUtils.getNotifySuccessMetaData(), null
-                        , paramFeed);
+                        , paramFeed).get();
             } catch (BError error) {
                 cleanupRequestMessage();
                 HttpUtil.handleFailure(requestMessage, error);
