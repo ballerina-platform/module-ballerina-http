@@ -207,12 +207,12 @@ public class HttpClientAction extends AbstractHTTPAction {
 
     private static Object invokeClientMethod(Environment env, BObject client, String methodName, Object[] paramFeed) {
         return env.yieldAndRun(() -> {
-            String strandParentFunctionName = Objects.isNull(env.getStrandMetadata()) ? null :
-                    env.getStrandMetadata().getParentFunctionName();
-            if (Objects.nonNull(strandParentFunctionName) && strandParentFunctionName.equals("onMessage")) {
-                env.setStrandLocal(MAIN_STRAND, true);
-            }
             try {
+                String strandParentFunctionName = Objects.isNull(env.getStrandMetadata()) ? null :
+                        env.getStrandMetadata().getParentFunctionName();
+                if (Objects.nonNull(strandParentFunctionName) && strandParentFunctionName.equals("onMessage")) {
+                    env.setStrandLocal(MAIN_STRAND, true);
+                }
                 return env.getRuntime().call(client, methodName, paramFeed);
             } catch (BError bError) {
                 return HttpUtil.createHttpError("client method invocation failed: " + bError.getErrorMessage(),

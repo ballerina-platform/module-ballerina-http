@@ -254,7 +254,7 @@ public final class ExternResponseProcessor {
         try {
             return env.getRuntime().call(response, BUILD_STATUS_CODE_RESPONSE,
                     Objects.isNull(payloadType) ? null : ValueCreator.createTypedescValue(payloadType),
-                    ValueCreator.createTypedescValue(statusCodeRecordType).getDescribingType(),
+                    ValueCreator.createTypedescValue(statusCodeRecordType),
                     requireValidation, status, headers, mediaType,
                     isDefaultStatusCodeResponseType(statusCodeRecordType));
         } catch (BError error) {

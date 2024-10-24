@@ -86,16 +86,14 @@ public class AllHeaderParams implements Parameter {
                             String.format(HEADER_BINDING_FAILED_ERROR_MSG, headerParam.getHeaderName()), null,
                             HttpUtil.createError(ex));
                 }
-                paramFeed[index++] = headerParam.validateConstraints(castedHeader);
-                paramFeed[index] = true;
+                paramFeed[index] = headerParam.validateConstraints(castedHeader);
                 continue;
             }
             String token = headerParam.getHeaderName();
             List<String> headerValues = httpHeaders.getAll(token);
             if (headerValues.isEmpty()) {
                 if (headerParam.isNilable() && treatNilableAsOptional) {
-                    paramFeed[index++] = null;
-                    paramFeed[index] = true;
+                    paramFeed[index] = null;
                     continue;
                 } else {
                     throw HttpUtil.createHttpStatusCodeError(INTERNAL_HEADER_BINDING_LISTENER_ERROR,
@@ -104,8 +102,7 @@ public class AllHeaderParams implements Parameter {
             }
             if (headerValues.size() == 1 && headerValues.get(0).isEmpty()) {
                 if (headerParam.isNilable()) {
-                    paramFeed[index++] = null;
-                    paramFeed[index] = true;
+                    paramFeed[index] = null;
                     continue;
                 } else {
                     throw HttpUtil.createHttpStatusCodeError(INTERNAL_HEADER_BINDING_LISTENER_ERROR,
@@ -127,8 +124,7 @@ public class AllHeaderParams implements Parameter {
                         String.format(HEADER_BINDING_FAILED_ERROR_MSG, token), null, HttpUtil.createError(ex));
             }
 
-            paramFeed[index++] = headerParam.validateConstraints(castedHeaderValue);
-            paramFeed[index] = true;
+            paramFeed[index] = headerParam.validateConstraints(castedHeaderValue);
         }
     }
 

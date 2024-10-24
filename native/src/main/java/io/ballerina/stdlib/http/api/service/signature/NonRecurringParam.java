@@ -39,6 +39,6 @@ public class NonRecurringParam implements Parameter {
     }
 
     public int getIndex() {
-        return this.index * 2;
+        return this.index;
     }
 }

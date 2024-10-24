@@ -258,10 +258,10 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
             try {
                 if (serviceType.isIsolated() && serviceType.isIsolated(resourceName)) {
                     result = runtime.startIsolatedWorker(service, resourceName, null,
-                            ModuleUtils.getOnMessageMetaData(), properties, signatureParams);
+                            ModuleUtils.getOnMessageMetaData(), properties, signatureParams).get();
                 } else {
                     result = runtime.startNonIsolatedWorker(service, resourceName, null,
-                            ModuleUtils.getOnMessageMetaData(), properties, signatureParams);
+                            ModuleUtils.getOnMessageMetaData(), properties, signatureParams).get();
                 }
                 callback.handleResult(result);
             } catch (BError error) {

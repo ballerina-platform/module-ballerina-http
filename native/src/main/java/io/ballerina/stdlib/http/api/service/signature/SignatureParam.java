@@ -57,7 +57,7 @@ public abstract class SignatureParam {
     }
 
     public int getIndex() {
-        return index * 2;
+        return index;
     }
 
     public Type getOriginalType() {
