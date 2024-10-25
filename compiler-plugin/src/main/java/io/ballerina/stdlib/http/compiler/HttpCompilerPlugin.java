@@ -23,6 +23,7 @@ import io.ballerina.projects.plugins.CompilerPlugin;
 import io.ballerina.projects.plugins.CompilerPluginContext;
 import io.ballerina.projects.plugins.codeaction.CodeAction;
 import io.ballerina.projects.plugins.completion.CompletionProvider;
+import io.ballerina.scan.ScannerContext;
 import io.ballerina.stdlib.http.compiler.codeaction.AddHeaderParameterCodeAction;
 import io.ballerina.stdlib.http.compiler.codeaction.AddInterceptorRemoteMethodCodeAction;
 import io.ballerina.stdlib.http.compiler.codeaction.AddInterceptorResourceMethodCodeAction;
@@ -35,9 +36,12 @@ import io.ballerina.stdlib.http.compiler.codeaction.ChangeReturnTypeWithCallerCo
 import io.ballerina.stdlib.http.compiler.codeaction.ImplementServiceContract;
 import io.ballerina.stdlib.http.compiler.codemodifier.HttpServiceModifier;
 import io.ballerina.stdlib.http.compiler.completion.HttpServiceBodyContextProvider;
+import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticCodeAnalyzer;
 
 import java.util.List;
 import java.util.Map;
+
+import static io.ballerina.stdlib.http.compiler.Constants.SCANNER_CONTEXT;
 
 /**
  * The compiler plugin implementation for Ballerina Http package.
@@ -52,6 +56,10 @@ public class HttpCompilerPlugin extends CompilerPlugin {
         context.addCodeAnalyzer(new HttpServiceAnalyzer(ctxData));
         getCodeActions().forEach(context::addCodeAction);
         getCompletionProviders().forEach(context::addCompletionProvider);
+        Object object = context.userData().get(SCANNER_CONTEXT);
+        if (object instanceof ScannerContext scannerContext) {
+            context.addCodeAnalyzer(new HttpStaticCodeAnalyzer(scannerContext.getReporter()));
+        }
     }
 
     private List<CodeAction> getCodeActions() {
