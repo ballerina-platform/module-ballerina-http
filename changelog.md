@@ -19,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 
 - [Address CVE-2024-7254 vulnerability](https://github.com/ballerina-platform/ballerina-library/issues/7013)
+- [Fix duplicating `Content-Type` header via the `addHeader` method](https://github.com/ballerina-platform/ballerina-library/issues/7268)
 
 ## [2.12.0] - 2024-08-20
 
