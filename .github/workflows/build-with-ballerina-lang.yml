@@ -8,7 +8,7 @@ on:
                 required: false
                 default: master
             lang_version:
-                description: Ballerina Lang Version (If given ballerina lang buid will be skipped)
+                description: Ballerina Lang Version (If given ballerina lang build will be skipped)
                 required: false
                 default: ''
             build_properties:
