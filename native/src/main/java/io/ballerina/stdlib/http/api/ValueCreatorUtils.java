@@ -119,12 +119,9 @@ public class ValueCreatorUtils {
      */
     private static BObject createObjectValue(Module module, String objectTypeName, Object... fieldValues) {
         if (fieldValues.length > 0) {
-            Object[] fields = new Object[fieldValues.length * 2];
+            Object[] fields = new Object[fieldValues.length];
             // Adding boolean values for each arg
-            for (int i = 0, j = 0; i < fieldValues.length; i++) {
-                fields[j++] = fieldValues[i];
-                fields[j++] = true;
-            }
+            System.arraycopy(fieldValues, 0, fields, 0, fieldValues.length);
             return ValueCreator.createObjectValue(module, objectTypeName, fields);
         }
         return ValueCreator.createObjectValue(module, objectTypeName);
