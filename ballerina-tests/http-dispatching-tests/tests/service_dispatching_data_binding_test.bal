@@ -394,11 +394,8 @@ function testDataBindingStructWithNoMatchingContent() returns error? {
     http:Response|error response = dataBindingClient->post("/dataBinding/body6", req);
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        check common:assertJsonErrorPayloadPartialMessage(check response.getJsonPayload(), "data binding failed: {ballerina");
-        check common:assertJsonErrorPayloadPartialMessage(check response.getJsonPayload(), "}ConversionError, {\"message\":\"'map<json>' ");
-        check common:assertJsonErrorPayloadPartialMessage(check response.getJsonPayload(), "value cannot be converted to 'http_dispatching_tests:Person':");
-        check common:assertJsonErrorPayloadPartialMessage(check response.getJsonPayload(), "missing required field 'age' of type 'int' in record 'http_dispatching_tests:Person'");
-        check common:assertJsonErrorPayloadPartialMessage(check response.getJsonPayload(), "field 'team' cannot be added to the closed record 'http_dispatching_tests:Person'\"");
+        check common:assertJsonErrorPayloadPartialMessage(check response.getJsonPayload(), "data binding failed:");
+        check common:assertJsonErrorPayloadPartialMessage(check response.getJsonPayload(), "required field 'age' not present in JSON");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -411,11 +408,7 @@ function testDataBindingStructWithInvalidTypes() returns error? {
     http:Response|error response = dataBindingClient->post("/dataBinding/body7", req);
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        check common:assertJsonErrorPayloadPartialMessage(check response.getJsonPayload(), "'map<json>' value cannot be converted to 'http_dispatching_tests:Stock'");
-        check common:assertJsonErrorPayloadPartialMessage(check response.getJsonPayload(), "missing required field 'price' of type 'float' in record 'http_dispatching_tests:Stock'");
-        check common:assertJsonErrorPayloadPartialMessage(check response.getJsonPayload(), "missing required field 'id' of type 'int' in record 'http_dispatching_tests:Stock'");
-        check common:assertJsonErrorPayloadPartialMessage(check response.getJsonPayload(), "field 'name' cannot be added to the closed record 'http_dispatching_tests:Stock'");
-        check common:assertJsonErrorPayloadPartialMessage(check response.getJsonPayload(), "field 'team' cannot be added to the closed record 'http_dispatching_tests:Stock'");
+        check common:assertJsonErrorPayloadPartialMessage(check response.getJsonPayload(), "required field 'price' not present in JSON");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
