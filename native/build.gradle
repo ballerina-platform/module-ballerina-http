@@ -43,6 +43,7 @@ dependencies {
     implementation group: 'io.ballerina.stdlib', name: 'mime-native', version: "${stdlibMimeVersion}"
     implementation group: 'io.ballerina.stdlib', name: 'constraint-native', version: "${stdlibConstraintVersion}"
     implementation group: 'io.ballerina.lib', name: 'data.jsondata-native', version: "${stdlibDataJsonDataVersion}"
+    
     implementation group: 'org.slf4j', name: 'slf4j-jdk14', version: "${slf4jVersion}"
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: "${commonsLang3Version}"
     implementation group: 'com.google.code.gson', name: 'gson', version: "${gsonVersion}"

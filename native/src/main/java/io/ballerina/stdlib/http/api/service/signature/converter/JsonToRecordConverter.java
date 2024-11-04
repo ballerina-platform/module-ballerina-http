@@ -33,6 +33,10 @@ import io.ballerina.stdlib.mime.util.EntityBodyHandler;
 import java.util.HashMap;
 import java.util.Map;
 
+import static io.ballerina.stdlib.http.api.HttpConstants.ALLOW_DATA_PROJECTION;
+import static io.ballerina.stdlib.http.api.HttpConstants.ENABLE_CONSTRAINT_VALIDATION;
+import static io.ballerina.stdlib.http.api.HttpConstants.PARSER_AS_TYPE_OPTIONS;
+
 /**
  * The converter binds the JSON payload to a record.
  *
@@ -69,10 +73,11 @@ public class JsonToRecordConverter {
         try {
             Map<String, Object> valueMap = new HashMap<>();
             Boolean bool = Boolean.FALSE;
-            valueMap.put("enableConstraintValidation", bool);
+            valueMap.put(ENABLE_CONSTRAINT_VALIDATION, bool);
+            valueMap.put(ALLOW_DATA_PROJECTION, bool);
             BMap<BString, Object> mapValue = ValueCreator.createRecordValue(
                     io.ballerina.lib.data.ModuleUtils.getModule(),
-                    "Options", valueMap);
+                    PARSER_AS_TYPE_OPTIONS, valueMap);
             BTypedesc typedescValue = ValueCreator.createTypedescValue(entityBodyType);
             return Native.parseAsType(bJson, mapValue, typedescValue);
         } catch (NullPointerException ex) {
