@@ -136,7 +136,7 @@ public type OKPerson record {|
     TPerson body;
 |};
 
-@test:Config {enable: false}
+@test:Config {}
 function clientoverwriteResponseJsonName() returns error? {
     TPerson res1 = check clientEP->/overwriteNames/jsont(y = true);
     test:assertEquals(res1, {firstName: "John", personAge: "23"});

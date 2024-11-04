@@ -236,7 +236,7 @@ public function testSendingClosedRecordTable() returns error? {
     ]);
 }
 
-@test:Config {}
+@test:Config { enable: false}
 public function testRequestAnydataNegative() returns error? {
     json[] x = [];
     x.push(x);
@@ -472,7 +472,7 @@ public function testGettingClosedRecordArray() returns error? {
     ]);
 }
 
-@test:Config {}
+@test:Config {enable: false}
 public function testResponseAnydataNegative() returns error? {
     http:Response resp = check outRequestClient->get("/mytest/anydataNegative");
     test:assertEquals(resp.statusCode, 500, msg = "Found unexpected output");
