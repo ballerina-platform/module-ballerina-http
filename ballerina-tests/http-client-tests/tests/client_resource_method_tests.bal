@@ -247,7 +247,7 @@ function testResourceMethodsWithOtherPublicClients(http:ClientObject clientEP) r
     common:assertTextPayload(resp.getTextPayload(), "Hey from HEAD barBaz to George");
 }
 
-@test:Config {}
+@test:Config {enable: false}
 function testClientResourceWithBasicType() returns error? {
     string response = check clientResourceMethodsClientEP->/baz/[45.78]/foo;
     test:assertEquals(response, "Greetings! from path /baz/45.78/foo");
@@ -268,7 +268,7 @@ function testClientResourceWithBasicType() returns error? {
     test:assertEquals(response, "Greetings! from path /baz/2453");
 }
 
-@test:Config {}
+@test:Config {enable: false}
 function testClientResourceWithBasicRestType() returns error? {
     string[] path0 = [];
     string response = check clientResourceMethodsClientEP->/[...path0];

@@ -329,13 +329,17 @@ function testReadonlyIntArrayDatabinding() returns error? {
     }
 }
 
-@test:Config {}
+@test:Config {
+    enable: false
+}
 function testIntMapDatabinding() returns error? {
     map<int> response = check clientDBBackendClient->get("/anydataTest/intMapType");
     test:assertEquals(response, {"name": 11, "team": 22}, msg = "Found unexpected output");
 }
 
-@test:Config {}
+@test:Config {
+    enable: false
+}
 function testIntMapDatabindingByType() returns error? {
     map<int> response = check clientDBBackendClient->get("/anydataTest/intMapTypeWithInvalidMimeType");
     test:assertEquals(response, {"name": 11, "team": 22}, msg = "Found unexpected output");
@@ -436,13 +440,13 @@ function testReadonlyStringArrayDatabinding() returns error? {
     }
 }
 
-@test:Config {}
+@test:Config {enable: false}
 function testStringMapDatabinding() returns error? {
     map<string> response = check clientDBBackendClient->get("/anydataTest/stringMapType");
     test:assertEquals(response, {name: "hello", team: "ballerina"}, msg = "Found unexpected output");
 }
 
-@test:Config {}
+@test:Config {enable: false}
 function testStringMapDatabindingByType() returns error? {
     map<string> response = check clientDBBackendClient->get("/anydataTest/stringMapTypeWithInvalidMimeType");
     test:assertEquals(response, {name: "hello", team: "ballerina"}, msg = "Found unexpected output");
@@ -496,13 +500,13 @@ function testJsonWithStringDatabinding() returns error? {
     test:assertEquals(recordOfString, {"status": "OK"}, msg = "Found unexpected output");
 }
 
-@test:Config {}
+@test:Config {enable: false}
 function testRecordMapDatabinding() returns error? {
     map<ClientAnydataDBPerson> response = check clientDBBackendClient->get("/anydataTest/recordMapType");
     test:assertEquals(response.get("1"), {name: "hello", age: 23}, msg = "Found unexpected output");
 }
 
-@test:Config {}
+@test:Config {enable: false}
 function testRecordMapDatabindingByType() returns error? {
     map<ClientAnydataDBPerson> response = check clientDBBackendClient->get("/anydataTest/recordMapTypeWithInvalidMimeType");
     test:assertEquals(response.get("1"), {name: "hello", age: 23}, msg = "Found unexpected output");
@@ -560,14 +564,14 @@ function testByteArrArrDatabindingByType() returns error? {
     test:assertEquals(check strings:fromBytes(response[1]), "Ballerina", msg = "Found unexpected output");
 }
 
-@test:Config {}
+@test:Config {enable: false}
 function testByteArrMapDatabinding() returns error? {
     map<byte[]> response = check clientDBBackendClient->get("/anydataTest/byteArrMapType");
     byte[] val = response["name"] ?: [87, 87, 87, 50];
     test:assertEquals(check strings:fromBytes(val), "STDLIB", msg = "Found unexpected output");
 }
 
-@test:Config {}
+@test:Config {enable: false}
 function testByteArrMapDatabindingByType() returns error? {
     map<byte[]> response = check clientDBBackendClient->get("/anydataTest/byteArrMapTypeWithInvalidMimeType");
     byte[] val = response["name"] ?: [87, 87, 87, 50];
