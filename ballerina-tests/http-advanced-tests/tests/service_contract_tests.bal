@@ -67,7 +67,7 @@ function testCachingWithServiceContract() returns error? {
     common:assertJsonPayload(response.getJsonPayload(), payload);
 }
 
-@test:Config {enable: false}
+@test:Config {}
 function testLinksInServiceContract() returns error? {
     record{*http:Links; *common:User;} response = check serviceContractClient->/users/'2;
     map<http:Link> expectedLinks = {
@@ -91,7 +91,7 @@ function testLinksInServiceContract() returns error? {
     test:assertEquals(response, payload);
 }
 
-@test:Config {enable: false}
+@test:Config {}
 function testPayloadAnnotationWithServiceContract() returns error? {
     common:NewUser newUser = {name: "Alice", email: "alice@gmail.com"};
     http:Response response = check serviceContractClient->/users.post(newUser);

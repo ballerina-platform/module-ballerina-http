@@ -194,7 +194,7 @@ service /restBucks on new http:Listener(hateoasTestPort, httpVersion = http:HTTP
 
 http:Client jsonClientEP = check new(string`http://localhost:${hateoasTestPort}/restBucks`, httpVersion = http:HTTP_1_1);
 
-@test:Config {enable: false}
+@test:Config {}
 function testHateoasLinks1() returns error? {
     record{*http:Links; *OrderReceipt;} orderReceipt = check jsonClientEP->post("/order?closed=false", mockOrder);
     map<http:Link> expectedLinks = {
@@ -297,7 +297,7 @@ function testHateoasLinkHeaderWithReadOnlyPayload() returns error? {
     test:assertEquals(parsedLinkHeader, expectedLinkHeader);
 }
 
-@test:Config {enable: false}
+@test:Config {}
 function testHateoasLinks2() returns error? {
     record{*http:Links; *OrderReceipt;} orderReceipt = check jsonClientEP->put("/orders/001", mockOrder);
     map<http:Link> expectedLinks = {
@@ -341,7 +341,7 @@ function testHateoasLinkHeaderWithoutBody() returns error? {
     test:assertEquals(parsedLinkHeader, expectedLinkHeader);
 }
 
-@test:Config {enable: false}
+@test:Config {}
 function testHateoasLinksInBody() returns error? {
     record{*http:Links; *PaymentReceipt;} paymentReceipt = check jsonClientEP->put("/payment/001?closed=false", mockPayment);
     map<http:Link> expectedLinks = {

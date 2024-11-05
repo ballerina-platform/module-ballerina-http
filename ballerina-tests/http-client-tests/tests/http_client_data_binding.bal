@@ -500,8 +500,7 @@ service /redirect1 on clientDBBackendListener2 {
 
 // Test HTTP basic client with all binding data types(targetTypes)
 @test:Config {
-    groups: ["dataBinding"],
-    enable: false
+    groups: ["dataBinding"]
 }
 function testAllBindingDataTypes() returns error? {
     http:Response|error response = clientDBTestClient->get("/passthrough/allTypes");
@@ -517,8 +516,7 @@ function testAllBindingDataTypes() returns error? {
 }
 
 @test:Config {
-    groups: ["dataBinding"],
-    enable: false
+    groups: ["dataBinding"]
 }
 function testAllBindingNillableTypes() returns error? {
     http:Response|error response = clientDBTestClient->get("/passthrough/nillableTypes");
@@ -847,7 +845,7 @@ function testMapOfStringDataBinding() returns error? {
     }
 }
 
-@test:Config { enable: false}
+@test:Config {}
 function testMapOfStringDataBindingWithJsonPayload() {
     map<string>|error response = clientDBBackendClient->get("/backend/getJson");
     if (response is error) {
