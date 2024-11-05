@@ -394,8 +394,7 @@ function testDataBindingStructWithNoMatchingContent() returns error? {
     http:Response|error response = dataBindingClient->post("/dataBinding/body6", req);
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        check common:assertJsonErrorPayloadPartialMessage(check response.getJsonPayload(), "data binding failed:");
-        check common:assertJsonErrorPayloadPartialMessage(check response.getJsonPayload(), "required field 'age' not present in JSON");
+        check common:assertJsonErrorPayloadPartialMessage(check response.getJsonPayload(), "data binding failed: undefined field 'team'");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -408,7 +407,7 @@ function testDataBindingStructWithInvalidTypes() returns error? {
     http:Response|error response = dataBindingClient->post("/dataBinding/body7", req);
     if response is http:Response {
         test:assertEquals(response.statusCode, 400, msg = "Found unexpected output");
-        check common:assertJsonErrorPayloadPartialMessage(check response.getJsonPayload(), "required field 'price' not present in JSON");
+        check common:assertJsonErrorPayloadPartialMessage(check response.getJsonPayload(), "data binding failed: undefined field 'name'");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

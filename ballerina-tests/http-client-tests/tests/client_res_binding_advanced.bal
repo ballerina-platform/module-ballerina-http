@@ -59,6 +59,15 @@ service /api on new http:Listener(resBindingAdvancedPort) {
     resource function get status/code() returns OKPerson {
         return {body: {firstName: "Potter", personAge: "40"}};
     }
+
+    resource function get projection/tests() returns json {
+        json v = {
+            a: "a",
+            b: "b",
+            c: "c"
+        };
+        return v;
+    }
 }
 
 final http:Client clientEP = check new (string `localhost:${resBindingAdvancedPort}/api`);
@@ -154,4 +163,17 @@ function clientoverwriteResponseJsonName() returns error? {
 
     json res4 = check clientEP->/status/code;
     test:assertEquals(res4, {name: "Potter", age: "40"});
+}
+
+public type AB record {|
+    string a;
+    string b;
+|};
+
+@test:Config {}
+function projectionTestWithClient() {
+    AB|error res =  clientEP->/projection/tests();
+    if res is error {
+        test:assertEquals(res.message(), "Payload binding failed: undefined field 'c'");
+    }
 }
