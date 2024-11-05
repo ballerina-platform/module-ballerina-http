@@ -32,6 +32,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -51,13 +52,13 @@ class StaticCodeAnalyzerTest {
 
     @BeforeSuite
     public void pullScanTool() throws IOException, InterruptedException {
-        String scanToolVersion = "0.1.0";
-        ProcessBuilder processBuilder = new ProcessBuilder(BALLERINA_PATH.toString(),
-                "tool", "pull", SCAN_COMMAND + ":" + scanToolVersion, "--repository=local");
+        ProcessBuilder processBuilder = new ProcessBuilder(BALLERINA_PATH.toString(), "tool", "pull", SCAN_COMMAND);
         Process process = processBuilder.start();
         int exitCode = process.waitFor();
         String output = convertInputStreamToString(process.getInputStream());
-        if (output.startsWith("tool '" + SCAN_COMMAND + ":" + scanToolVersion + "' is already active.")) {
+        if (Pattern.compile("tool 'scan:.+\\..+\\..+' successfully set as the active version\\.")
+                .matcher(output).find() || Pattern.compile("tool 'scan:.+\\..+\\..+' is already active\\.")
+                .matcher(output).find()) {
             return;
         }
         Assert.assertFalse(ExitCode.hasFailure(exitCode));
