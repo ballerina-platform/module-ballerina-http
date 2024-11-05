@@ -24,9 +24,11 @@ import org.testng.annotations.Test;
 import org.testng.internal.ExitCode;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -104,8 +106,18 @@ class StaticCodeAnalyzerTest {
         return stringBuilder.toString();
     }
 
-    private void assertJsonEqual(String actual, String expected) {
-        Assert.assertEquals(normalizeJson(actual), normalizeJson(expected));
+    private void assertJsonEqual(String actual, String expected) throws IOException {
+        try {
+            Assert.assertEquals(normalizeJson(actual), normalizeJson(expected));
+        } catch (AssertionError e) {
+            File temp = File.createTempFile("abc", "efg");
+            PrintStream ps = new PrintStream(temp);
+            e.printStackTrace(ps);
+            var p = System.out;
+            String fileContent = Files.readString(temp.toPath());
+            p.println(fileContent);
+            throw e;
+        }
     }
 
     private static String normalizeJson(String json) {
