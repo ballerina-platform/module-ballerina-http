@@ -22,6 +22,8 @@ import io.ballerina.projects.plugins.CodeAnalysisContext;
 import io.ballerina.projects.plugins.CodeAnalyzer;
 import io.ballerina.scan.Reporter;
 
+import java.util.List;
+
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.ANNOTATION;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.CLASS_DEFINITION;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.OBJECT_TYPE_DESC;
@@ -39,9 +41,8 @@ public class HttpStaticCodeAnalyzer extends CodeAnalyzer {
 
     @Override
     public void init(CodeAnalysisContext analysisContext) {
-        analysisContext.addSyntaxNodeAnalysisTask(new HttpServiceDeclarationAnalyzer(reporter), SERVICE_DECLARATION);
-        analysisContext.addSyntaxNodeAnalysisTask(new HttpServiceObjectTypeAnalyzer(reporter), OBJECT_TYPE_DESC);
-        analysisContext.addSyntaxNodeAnalysisTask(new HttpServiceClassAnalyzer(reporter), CLASS_DEFINITION);
+        analysisContext.addSyntaxNodeAnalysisTask(new HttpServiceAnalyzer(reporter),
+                List.of(SERVICE_DECLARATION, OBJECT_TYPE_DESC, CLASS_DEFINITION));
         analysisContext.addSyntaxNodeAnalysisTask(new HttpAnnotationAnalyzer(reporter), ANNOTATION);
     }
 }
