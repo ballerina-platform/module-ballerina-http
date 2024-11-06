@@ -111,7 +111,7 @@ class StaticCodeAnalyzerTest {
             Assert.assertEquals(normalizeJson(actual), normalizeJson(expected));
         } catch (AssertionError e) {
             File temp = File.createTempFile("abc", "efg");
-            PrintStream ps = new PrintStream(temp);
+            PrintStream ps = new PrintStream(temp, StandardCharsets.UTF_8);
             e.printStackTrace(ps);
             var p = System.out;
             String fileContent = Files.readString(temp.toPath());
