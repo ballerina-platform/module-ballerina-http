@@ -32,6 +32,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -44,11 +45,16 @@ class StaticCodeAnalyzerTest {
             .get("src", "test", "resources", "static_code_analyzer", "ballerina_packages").toAbsolutePath();
     private static final Path EXPECTED_JSON_OUTPUT_DIRECTORY = Paths.
             get("src", "test", "resources", "static_code_analyzer", "expected_output").toAbsolutePath();
-    private static final Path BALLERINA_PATH = Paths
-            .get("../", "target", "ballerina-runtime", "bin", "bal").toAbsolutePath();
+    private static final Path BALLERINA_PATH = getBalCommandPath();
     private static final Path JSON_RULES_FILE_PATH = Paths
             .get("../", "compiler-plugin", "src", "main", "resources", "rules.json").toAbsolutePath();
     private static final String SCAN_COMMAND = "scan";
+
+    private static Path getBalCommandPath() {
+        String os = System.getProperty("os.name");
+        String balCommand = os.toLowerCase(Locale.ENGLISH).startsWith("windows") ? "bal.bat" : "bal";
+        return Paths.get("../", "target", "ballerina-runtime", "bin", balCommand).toAbsolutePath();
+    }
 
     @BeforeSuite
     public void pullScanTool() throws IOException, InterruptedException {
