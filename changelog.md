@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Improve `@http:Query` annotation to overwrite the query parameter name in service](https://github.com/ballerina-platform/ballerina-library/issues/7006)
 - [Add header name mapping support in record fields](https://github.com/ballerina-platform/ballerina-library/issues/7018)
 - [Introduce util functions to convert query and header record with the `http:Query` and the `http:Header` annotations](https://github.com/ballerina-platform/ballerina-library/issues/7019)
+- [Add static code rules](https://github.com/ballerina-platform/ballerina-library/issues/7283)
 
 ### Fixed
 
