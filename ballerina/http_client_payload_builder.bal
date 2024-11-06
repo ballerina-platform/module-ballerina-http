@@ -14,9 +14,10 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/log;
-import ballerina/jballerina.java;
 import ballerina/constraint;
+import ballerina/data.jsondata;
+import ballerina/jballerina.java;
+import ballerina/log;
 
 type nilType typedesc<()>;
 type xmlType typedesc<xml>;
@@ -98,7 +99,7 @@ isolated function textPayloadBuilder(Response response, TargetType targetType) r
         }
         return payload;
     } else {
-         return getCommonError(response, targetType);
+        return getCommonError(response, targetType);
     }
 }
 
@@ -161,7 +162,7 @@ isolated function jsonPayloadBuilder(Response response, TargetType targetType) r
 isolated function nonNilablejsonPayloadBuilder(Response response, typedesc<anydata> targetType)
         returns anydata|ClientError {
     json payload = check response.getJsonPayload();
-    var result = payload.fromJsonWithType(targetType);
+    var result = jsondata:parseAsType(payload, {enableConstraintValidation: false, allowDataProjection: false}, targetType);
     return result is error ? createPayloadBindingError(result) : result;
 }
 
@@ -169,7 +170,7 @@ isolated function nilablejsonPayloadBuilder(Response response, typedesc<anydata>
         returns anydata|ClientError {
     json|ClientError payload = response.getJsonPayload();
     if payload is json {
-        var result = payload.fromJsonWithType(targetType);
+        var result = jsondata:parseAsType(payload, {enableConstraintValidation: false, allowDataProjection: false}, targetType);
         return result is error ? createPayloadBindingError(result) : result;
     } else {
         return payload is NoContentError ? () : payload;
