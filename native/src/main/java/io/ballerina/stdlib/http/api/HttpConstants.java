@@ -503,7 +503,6 @@ public final class HttpConstants {
     public static final String PARSER_AS_TYPE_OPTIONS =  "Options";
 
     //Client Endpoint (CallerActions)
-
     public static final String CLIENT_ENDPOINT_SERVICE_URI = "url";
     public static final String CLIENT_ENDPOINT_CONFIG = "config";
     public static final int CLIENT_ENDPOINT_CONFIG_INDEX = 0;
