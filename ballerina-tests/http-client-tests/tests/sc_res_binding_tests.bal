@@ -282,6 +282,10 @@ service /api on new http:Listener(statusCodeBindingPort2) {
                 headers: {userId: "user-1", reqId: 1}
             };
         }
+
+    resource function get album/auther() returns OKPerson {
+        return {body: {firstName: "Potter", personAge: "40"}};
+    }
 }
 
 final http:StatusCodeClient albumClient = check new (string `localhost:${statusCodeBindingPort2}/api`);
@@ -467,8 +471,8 @@ function testUnionPayloadBindingWithStatusCodeResponse() returns error? {
     AlbumFoundInvalid|AlbumFound|AlbumNotFound|error res5 = albumClient->/albums/'1;
     if res5 is error {
         test:assertTrue(res5 is http:PayloadBindingError);
-        test:assertTrue(res5.message().includes("Payload binding failed: 'map<json>' value cannot be" +
-        " converted to 'http_client_tests:AlbumInvalid"), "Invalid error message");
+        test:assertTrue(res5.message().includes("Payload binding failed: required field 'invalidField' not present in JSON"),
+         "Invalid error message");
     } else {
         test:assertFail("Invalid response type");
     }
@@ -669,4 +673,10 @@ function testStatusCodeBindingWithNamedHeaders() returns error? {
     } else {
         test:assertFail("Invalid response type");
     }
+}
+
+@test:Config {}
+function testOverwriteName() returns error? {
+    OKPerson res = check albumClient->/album/auther;
+    test:assertEquals(res.body, {firstName: "Potter", personAge: "40"});
 }
