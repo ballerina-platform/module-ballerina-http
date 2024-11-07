@@ -101,7 +101,10 @@ class StaticCodeAnalyzerTest {
         ProcessBuilder processBuilder2 = new ProcessBuilder(BALLERINA_PATH.toString(), SCAN_COMMAND);
         processBuilder2.directory(RESOURCE_PACKAGES_DIRECTORY.resolve(targetPackage).toFile());
         Process process2 = processBuilder2.start();
+        var printer = System.out;
+        printer.println("before executeScanProcess");
         int exitCode = process2.waitFor();
+        printer.println("after executeScanProcess");
         Assert.assertFalse(ExitCode.hasFailure(exitCode));
         return Files.readString(RESOURCE_PACKAGES_DIRECTORY.resolve(targetPackage)
                 .resolve("target").resolve("report").resolve("scan_results.json"));
