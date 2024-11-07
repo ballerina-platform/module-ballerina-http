@@ -367,18 +367,18 @@ public final class HttpCompilerPluginUtil {
             return null;
         }
         ClassDefinitionNode classDefinitionNode = (ClassDefinitionNode) ctx.node();
-        Optional<Symbol> serviceContractType = ctx.semanticModel().types()
+        Optional<Symbol> serviceType = ctx.semanticModel().types()
                 .getTypeByName(BALLERINA, HTTP, EMPTY, HTTP_SERVICE_TYPE);
-        if (!hasServiceKeyWord(classDefinitionNode) || serviceContractType.isEmpty()) {
+        if (!hasServiceKeyWord(classDefinitionNode) || serviceType.isEmpty()) {
             return null;
         }
         Optional<Symbol> symbol = ctx.semanticModel().symbol(classDefinitionNode);
-        if (symbol.isEmpty() || serviceContractType.get().kind() != TYPE_DEFINITION) {
+        if (symbol.isEmpty() || serviceType.get().kind() != TYPE_DEFINITION) {
             return null;
         }
         ClassSymbol classSymbol = (ClassSymbol) symbol.get();
-        TypeSymbol serviceType = ((TypeDefinitionSymbol) serviceContractType.get()).typeDescriptor();
-        return classSymbol.subtypeOf(serviceType) ? classDefinitionNode : null;
+        TypeSymbol serviceTypeSymbol = ((TypeDefinitionSymbol) serviceType.get()).typeDescriptor();
+        return classSymbol.subtypeOf(serviceTypeSymbol) ? classDefinitionNode : null;
     }
 
     public static AnnotationNode getAnnotationNode(SyntaxNodeAnalysisContext context) {
@@ -433,16 +433,14 @@ public final class HttpCompilerPluginUtil {
             return false;
         }
 
-        Optional<Symbol> serviceContractType = semanticModel.types().getTypeByName(BALLERINA, HTTP, EMPTY,
+        Optional<Symbol> serviceType = semanticModel.types().getTypeByName(BALLERINA, HTTP, EMPTY,
                 HTTP_SERVICE_TYPE);
-        if (serviceContractType.isEmpty() ||
-                !(serviceContractType.get() instanceof TypeDefinitionSymbol serviceContractTypeDef)) {
+        if (serviceType.isEmpty() ||
+                !(serviceType.get() instanceof TypeDefinitionSymbol serviceTypeDef)) {
             return false;
         }
-
-        return serviceObjTypeDef.typeDescriptor().subtypeOf(serviceContractTypeDef.typeDescriptor());
+        return serviceObjTypeDef.typeDescriptor().subtypeOf(serviceTypeDef.typeDescriptor());
     }
-
 
     public static List<ResourceFunction> getResourceMethodWithDefaultAccessor(NodeList<Node> members) {
         List<ResourceFunction> resourceFunctions = new ArrayList<>();

@@ -497,6 +497,11 @@ public final class HttpConstants {
     public static final BString SOCKET_CONFIG_SOCKET_REUSE = StringUtils.fromString("socketReuse");
     public static final BString SOCKET_CONFIG_KEEP_ALIVE = StringUtils.fromString("keepAlive");
 
+    //Service parseAsType constants
+    public static final String ENABLE_CONSTRAINT_VALIDATION = "enableConstraintValidation";
+    public static final String ALLOW_DATA_PROJECTION = "allowDataProjection";
+    public static final String PARSER_AS_TYPE_OPTIONS =  "Options";
+
     //Client Endpoint (CallerActions)
     public static final String CLIENT_ENDPOINT_SERVICE_URI = "url";
     public static final String CLIENT_ENDPOINT_CONFIG = "config";

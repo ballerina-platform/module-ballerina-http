@@ -13,9 +13,11 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
+
 import ballerina/http;
 import ballerina/mime;
 import ballerina/test;
+import ballerina/data.jsondata;
 
 service /api on new http:Listener(resBindingAdvancedPort) {
 
@@ -40,6 +42,31 @@ service /api on new http:Listener(resBindingAdvancedPort) {
 
     resource function get byteArray() returns byte[] {
         return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    }
+
+    resource function get overwriteNames/jsont(boolean y) returns json|TPerson {
+        if y {
+            return {"name": "John", "age": "23"};
+        }
+        TPerson t = {firstName: "Potter", personAge: "30"};
+        return t;
+    }
+
+    resource function post overwriteNames/jsont(TPerson payload) returns TPerson {
+        return payload;
+    }
+
+    resource function get status/code() returns OKPerson {
+        return {body: {firstName: "Potter", personAge: "40"}};
+    }
+
+    resource function get projection/tests() returns json {
+        json v = {
+            a: "a",
+            b: "b",
+            c: "c"
+        };
+        return v;
     }
 }
 
@@ -99,5 +126,54 @@ function testResponseWithAnydataResBinding() returns error? {
         test:assertEquals(check response.getBinaryPayload(), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
     } else {
         test:assertFail("Invalid response type");
+    }
+}
+
+public type TPerson record {
+    @jsondata:Name {
+        value: "name"
+    }
+    string firstName;
+    @jsondata:Name {
+        value: "age"
+    }
+    string personAge;
+};
+
+public type OKPerson record {|
+    *http:Ok;
+    TPerson body;
+|};
+
+@test:Config {}
+function clientoverwriteResponseJsonName() returns error? {
+    TPerson res1 = check clientEP->/overwriteNames/jsont(y = true);
+    test:assertEquals(res1, {firstName: "John", personAge: "23"});
+
+    json res2 = check clientEP->/overwriteNames/jsont(y = false);
+    test:assertEquals(res2, {"name": "Potter", "age": "30"});
+
+    json j = {
+        name: "Sumudu",
+        age: "29"
+    };
+
+    TPerson res3 = check clientEP->/overwriteNames/jsont.post(j);
+    test:assertEquals(res3, {firstName: "Sumudu", personAge: "29"});
+
+    json res4 = check clientEP->/status/code;
+    test:assertEquals(res4, {name: "Potter", age: "40"});
+}
+
+public type AB record {|
+    string a;
+    string b;
+|};
+
+@test:Config {}
+function projectionTestWithClient() {
+    AB|error res =  clientEP->/projection/tests();
+    if res is error {
+        test:assertEquals(res.message(), "Payload binding failed: undefined field 'c'");
     }
 }

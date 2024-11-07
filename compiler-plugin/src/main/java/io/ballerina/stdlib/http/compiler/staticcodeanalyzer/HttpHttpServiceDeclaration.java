@@ -18,24 +18,19 @@
 
 package io.ballerina.stdlib.http.compiler.staticcodeanalyzer;
 
+import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
-import io.ballerina.projects.Document;
-import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
-import io.ballerina.scan.Reporter;
-import io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil;
 
-class HttpServiceDeclarationAnalyzer extends HttpServiceAnalyzer {
-    public HttpServiceDeclarationAnalyzer(Reporter reporter) {
-        super(reporter);
+class HttpHttpServiceDeclaration implements HttpService {
+    private final ServiceDeclarationNode serviceDeclarationNode;
+
+    public HttpHttpServiceDeclaration(ServiceDeclarationNode serviceDeclarationNode) {
+        this.serviceDeclarationNode = serviceDeclarationNode;
     }
 
     @Override
-    public void perform(SyntaxNodeAnalysisContext context) {
-        ServiceDeclarationNode serviceDeclarationNode = HttpCompilerPluginUtil.getServiceDeclarationNode(context);
-        if (serviceDeclarationNode == null) {
-            return;
-        }
-        Document document = HttpCompilerPluginUtil.getDocument(context);
-        validateServiceMembers(serviceDeclarationNode.members(), document);
+    public NodeList<Node> members() {
+        return this.serviceDeclarationNode.members();
     }
 }

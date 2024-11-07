@@ -18,13 +18,24 @@
 
 package io.ballerina.stdlib.http.api.service.signature.converter;
 
+import io.ballerina.lib.data.jsondata.json.Native;
+import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.Type;
-import io.ballerina.runtime.api.utils.ValueUtils;
 import io.ballerina.runtime.api.values.BError;
+import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BRefValue;
+import io.ballerina.runtime.api.values.BString;
+import io.ballerina.runtime.api.values.BTypedesc;
 import io.ballerina.stdlib.http.api.BallerinaConnectorException;
 import io.ballerina.stdlib.mime.util.EntityBodyHandler;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static io.ballerina.stdlib.http.api.HttpConstants.ALLOW_DATA_PROJECTION;
+import static io.ballerina.stdlib.http.api.HttpConstants.ENABLE_CONSTRAINT_VALIDATION;
+import static io.ballerina.stdlib.http.api.HttpConstants.PARSER_AS_TYPE_OPTIONS;
 
 /**
  * The converter binds the JSON payload to a record.
@@ -60,7 +71,15 @@ public class JsonToRecordConverter {
      */
     private static Object getRecord(Type entityBodyType, Object bJson) {
         try {
-            return ValueUtils.convert(bJson, entityBodyType);
+            Map<String, Object> valueMap = new HashMap<>();
+            Boolean bool = Boolean.FALSE;
+            valueMap.put(ENABLE_CONSTRAINT_VALIDATION, bool);
+            valueMap.put(ALLOW_DATA_PROJECTION, bool);
+            BMap<BString, Object> mapValue = ValueCreator.createRecordValue(
+                    io.ballerina.lib.data.ModuleUtils.getModule(),
+                    PARSER_AS_TYPE_OPTIONS, valueMap);
+            BTypedesc typedescValue = ValueCreator.createTypedescValue(entityBodyType);
+            return Native.parseAsType(bJson, mapValue, typedescValue);
         } catch (NullPointerException ex) {
             throw new BallerinaConnectorException("cannot convert payload to record type: " +
                                                           entityBodyType.getName());
