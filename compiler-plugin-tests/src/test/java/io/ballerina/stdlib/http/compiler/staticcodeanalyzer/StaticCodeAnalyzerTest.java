@@ -55,7 +55,11 @@ class StaticCodeAnalyzerTest {
     private static Path getBalCommandPath() {
         String os = System.getProperty("os.name");
         String balCommand = os.toLowerCase(Locale.ENGLISH).startsWith("windows") ? "bal.bat" : "bal";
-        return Paths.get("../", "target", "ballerina-runtime", "bin", balCommand).toAbsolutePath();
+        Path path = Paths.get("../", "target", "ballerina-runtime", "bin", balCommand).toAbsolutePath();
+        var printer = System.out;
+        printer.println(os);
+        printer.println(path);
+        return path;
     }
 
     @BeforeSuite
@@ -64,6 +68,8 @@ class StaticCodeAnalyzerTest {
         Process process = processBuilder.start();
         int exitCode = process.waitFor();
         String output = convertInputStreamToString(process.getInputStream());
+        var printer = System.out;
+        printer.println(output);
         if (Pattern.compile("tool 'scan:.+\\..+\\..+' successfully set as the active version\\.")
                 .matcher(output).find() || Pattern.compile("tool 'scan:.+\\..+\\..+' is already active\\.")
                 .matcher(output).find()) {
