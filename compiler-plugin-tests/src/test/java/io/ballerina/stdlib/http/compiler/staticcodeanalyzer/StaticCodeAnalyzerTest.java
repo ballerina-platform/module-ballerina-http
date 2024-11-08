@@ -90,10 +90,10 @@ class StaticCodeAnalyzerTest {
     }
 
     public static String executeScanProcess(String targetPackage) throws IOException, InterruptedException {
-        ProcessBuilder processBuilder2 = new ProcessBuilder(BALLERINA_PATH.toString(), SCAN_COMMAND);
-        processBuilder2.directory(RESOURCE_PACKAGES_DIRECTORY.resolve(targetPackage).toFile());
-        Process process2 = processBuilder2.start();
-        int exitCode = process2.waitFor();
+        ProcessBuilder processBuilder = new ProcessBuilder(BALLERINA_PATH.toString(), SCAN_COMMAND);
+        processBuilder.directory(RESOURCE_PACKAGES_DIRECTORY.resolve(targetPackage).toFile());
+        Process process = processBuilder.start();
+        int exitCode = process.waitFor();
         Assert.assertFalse(ExitCode.hasFailure(exitCode));
         return Files.readString(RESOURCE_PACKAGES_DIRECTORY.resolve(targetPackage)
                 .resolve("target").resolve("report").resolve("scan_results.json"));
