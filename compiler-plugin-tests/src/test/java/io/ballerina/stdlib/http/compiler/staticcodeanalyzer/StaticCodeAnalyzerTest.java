@@ -23,7 +23,10 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.testng.internal.ExitCode;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -130,7 +133,7 @@ class StaticCodeAnalyzerTest {
                 .replaceAll("\\s*]\\s*", "]")
                 .replaceAll("\n", "")
                 .replaceAll(":\".*module-ballerina-http", ":\"module-ballerina-http");
-        return isWindows() ? normalizedJson.replaceAll("\\\\", "\\") : normalizedJson;
+        return isWindows() ? normalizedJson.replaceAll("/", "\\\\\\\\") : normalizedJson;
     }
 
     private static boolean isWindows() {
