@@ -23,11 +23,7 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.testng.internal.ExitCode;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -51,23 +47,20 @@ class StaticCodeAnalyzerTest {
     private static final String SCAN_COMMAND = "scan";
 
     private static Path getBalCommandPath() {
-        String os = System.getProperty("os.name");
-        String balCommand = os.toLowerCase(Locale.ENGLISH).startsWith("windows") ? "bal.bat" : "bal";
+        String balCommand = isWindows() ? "bal.bat" : "bal";
         return Paths.get("../", "target", "ballerina-runtime", "bin", balCommand).toAbsolutePath();
     }
 
     @BeforeSuite
     public void pullScanTool() throws IOException, InterruptedException {
         ProcessBuilder processBuilder = new ProcessBuilder(BALLERINA_PATH.toString(), "tool", "pull", SCAN_COMMAND);
-        Process process = processBuilder.start();
-        int exitCode = process.waitFor();
-        String output = convertInputStreamToString(process.getInputStream());
+        ProcessOutputGobbler output = getOutput(processBuilder.start());
         if (Pattern.compile("tool 'scan:.+\\..+\\..+' successfully set as the active version\\.")
-                .matcher(output).find() || Pattern.compile("tool 'scan:.+\\..+\\..+' is already active\\.")
-                .matcher(output).find()) {
+                .matcher(output.getOutput()).find() || Pattern.compile("tool 'scan:.+\\..+\\..+' is already active\\.")
+                .matcher(output.getOutput()).find()) {
             return;
         }
-        Assert.assertFalse(ExitCode.hasFailure(exitCode));
+        Assert.assertFalse(ExitCode.hasFailure(output.getExitCode()));
     }
 
     @Test
@@ -92,22 +85,25 @@ class StaticCodeAnalyzerTest {
     public static String executeScanProcess(String targetPackage) throws IOException, InterruptedException {
         ProcessBuilder processBuilder = new ProcessBuilder(BALLERINA_PATH.toString(), SCAN_COMMAND);
         processBuilder.directory(RESOURCE_PACKAGES_DIRECTORY.resolve(targetPackage).toFile());
-        Process process = processBuilder.start();
-        int exitCode = process.waitFor();
-        Assert.assertFalse(ExitCode.hasFailure(exitCode));
+        ProcessOutputGobbler output = getOutput(processBuilder.start());
+        Assert.assertFalse(ExitCode.hasFailure(output.getExitCode()));
         return Files.readString(RESOURCE_PACKAGES_DIRECTORY.resolve(targetPackage)
                 .resolve("target").resolve("report").resolve("scan_results.json"));
     }
 
-    public static String convertInputStreamToString(InputStream inputStream) throws IOException {
-        StringBuilder stringBuilder = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                stringBuilder.append(line).append(System.lineSeparator());
-            }
-        }
-        return stringBuilder.toString();
+    private static ProcessOutputGobbler getOutput(Process process) throws InterruptedException {
+        ProcessOutputGobbler outputGobbler = new ProcessOutputGobbler(process.getInputStream());
+        ProcessOutputGobbler errorGobbler = new ProcessOutputGobbler(process.getErrorStream());
+        Thread outputThread = new Thread(outputGobbler);
+        Thread errorThread = new Thread(errorGobbler);
+        outputThread.start();
+        errorThread.start();
+        int exitCode = process.waitFor();
+        outputGobbler.setExitCode(exitCode);
+        errorGobbler.setExitCode(exitCode);
+        outputThread.join();
+        errorThread.join();
+        return outputGobbler;
     }
 
     private void assertJsonEqual(String actual, String expected) {
@@ -115,7 +111,7 @@ class StaticCodeAnalyzerTest {
     }
 
     private static String normalizeJson(String json) {
-        return json.replaceAll("\\s*\"\\s*", "\"")
+        String normalizedJson = json.replaceAll("\\s*\"\\s*", "\"")
                 .replaceAll("\\s*:\\s*", ":")
                 .replaceAll("\\s*,\\s*", ",")
                 .replaceAll("\\s*\\{\\s*", "{")
@@ -124,5 +120,10 @@ class StaticCodeAnalyzerTest {
                 .replaceAll("\\s*]\\s*", "]")
                 .replaceAll("\n", "")
                 .replaceAll(":\".*module-ballerina-http", ":\"module-ballerina-http");
+        return isWindows() ? normalizedJson.replaceAll("/", "\\\\\\\\") : normalizedJson;
+    }
+
+    private static boolean isWindows() {
+        return System.getProperty("os.name").toLowerCase(Locale.ENGLISH).startsWith("windows");
     }
 }
