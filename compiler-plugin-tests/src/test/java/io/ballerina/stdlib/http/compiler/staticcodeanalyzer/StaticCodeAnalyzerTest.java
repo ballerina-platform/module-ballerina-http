@@ -169,7 +169,7 @@ class StaticCodeAnalyzerTest {
     }
 
     private static String normalizeJson(String json) {
-        return json.replaceAll("\\s*\"\\s*", "\"")
+        String normalizedJson = json.replaceAll("\\s*\"\\s*", "\"")
                 .replaceAll("\\s*:\\s*", ":")
                 .replaceAll("\\s*,\\s*", ",")
                 .replaceAll("\\s*\\{\\s*", "{")
@@ -178,5 +178,7 @@ class StaticCodeAnalyzerTest {
                 .replaceAll("\\s*]\\s*", "]")
                 .replaceAll("\n", "")
                 .replaceAll(":\".*module-ballerina-http", ":\"module-ballerina-http");
+        return System.getProperty("os.name").toLowerCase(Locale.ENGLISH).startsWith("windows") ?
+                normalizedJson.replaceAll("/", "\\") : normalizedJson;
     }
 }
