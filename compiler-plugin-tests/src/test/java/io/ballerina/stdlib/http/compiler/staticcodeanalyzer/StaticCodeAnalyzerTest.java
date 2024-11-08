@@ -98,16 +98,49 @@ class StaticCodeAnalyzerTest {
     }
 
     public static String executeScanProcess(String targetPackage) throws IOException, InterruptedException {
-        ProcessBuilder processBuilder2 = new ProcessBuilder(BALLERINA_PATH.toString(), SCAN_COMMAND);
-        processBuilder2.directory(RESOURCE_PACKAGES_DIRECTORY.resolve(targetPackage).toFile());
-        Process process2 = processBuilder2.start();
-        var printer = System.out;
-        printer.println("before executeScanProcess");
-        int exitCode = process2.waitFor();
-        printer.println("after executeScanProcess");
+        ProcessBuilder processBuilder = new ProcessBuilder(BALLERINA_PATH.toString(), SCAN_COMMAND);
+        processBuilder.directory(RESOURCE_PACKAGES_DIRECTORY.resolve(targetPackage).toFile());
+        Process process = processBuilder.start();
+        StreamGobbler outputGobbler = new StreamGobbler(process.getInputStream());
+        StreamGobbler errorGobbler = new StreamGobbler(process.getErrorStream());
+        Thread outputThread = new Thread(outputGobbler);
+        Thread errorThread = new Thread(errorGobbler);
+        outputThread.start();
+        errorThread.start();
+        int exitCode = process.waitFor();
+        outputThread.join();
+        errorThread.join();
+
         Assert.assertFalse(ExitCode.hasFailure(exitCode));
         return Files.readString(RESOURCE_PACKAGES_DIRECTORY.resolve(targetPackage)
                 .resolve("target").resolve("report").resolve("scan_results.json"));
+    }
+
+    // Helper class to consume the process streams
+    private static class StreamGobbler implements Runnable {
+        private final InputStream inputStream;
+        private final StringBuilder output = new StringBuilder();
+
+        public StreamGobbler(InputStream inputStream) {
+            this.inputStream = inputStream;
+        }
+
+        @Override
+        public void run() {
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    output.append(line).append("\n");
+                }
+            } catch (IOException e) {
+                output.append(e.getMessage());
+            }
+        }
+
+        public String getOutput() {
+            return output.toString();
+        }
     }
 
     public static String convertInputStreamToString(InputStream inputStream) throws IOException {
