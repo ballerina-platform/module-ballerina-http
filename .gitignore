@@ -48,3 +48,5 @@ load-tests/**/Dependencies.toml
 # Ballerina related ignores
 Ballerina.lock
 velocity.log*
+
+compiler-plugin-tests/**/target
