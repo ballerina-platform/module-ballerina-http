@@ -112,7 +112,7 @@ function testHeaderParamBindingCase8() returns error? {
 }
 
 @test:Config {}
-function testHeaderParamBindingCase9() returns error? {
+function testHeaderParamBindingCase91() returns error? {
     map<string|string[]> headers = {header1: "value1", header2: "VALUE3", header3: ["1", "2", "3"], header4: ["VALUE1", "value2"]};
     map<json> resPayload = check resourceHeaderParamBindingClient->/header/case9(headers);
     test:assertEquals(resPayload, {header1: "value1", header2: "VALUE3", header3: [1,2,3], header4: ["VALUE1", "value2"]});
@@ -120,6 +120,14 @@ function testHeaderParamBindingCase9() returns error? {
     headers = {header1: "value1", header2: "VALUE3", header3: ["1", "2", "3"], header4: ["VALUE1", "value5"]};
     http:Response res = check resourceHeaderParamBindingClient->/header/case9(headers);
     test:assertEquals(res.statusCode, 400);
+}
+
+@test:Config {}
+function testHeaderParamBindingCase92() returns error? {
+    HeaderRecord headers = {header1: "value1", header2: "VALUE3", header3: [1, 2, 3], header4: ["VALUE1", "value2"]};
+    map<string|string[]> headerMap = http:getHeaderMap(headers);
+    map<json> resPayload = check resourceHeaderParamBindingClient->/header/case9(headerMap);
+    test:assertEquals(resPayload, {header1: "value1", header2: "VALUE3", header3: [1,2,3], header4: ["VALUE1", "value2"]});
 }
 
 @test:Config {}
@@ -182,5 +190,38 @@ function testHeaderParamBindingCase14() returns error? {
     test:assertEquals(res.statusCode, 400);
 
     res = check resourceHeaderParamBindingClient->/header/case14({header1: "ab", header2: "5000000000"});
+    test:assertEquals(res.statusCode, 400);
+}
+
+@test:Config {}
+function testHeaderParamBindingCase151() returns error? {
+    HeaderRecordWithName headers = {header1: "value1", header2: "VALUE3", header3: ["VALUE1", "value2"]};
+    map<json> resPayload = check resourceHeaderParamBindingClient->/header/case15(headers);
+    test:assertEquals(resPayload, {header1: "value1", header2: "VALUE3", header3: ["VALUE1", "value2"]});
+
+    headers = {header1: "value1", header2: "VALUE3", header3: ["VALUE1", "value5"]};
+    http:Response res = check resourceHeaderParamBindingClient->/header/case15(headers);
+    test:assertEquals(res.statusCode, 400);
+}
+
+@test:Config {}
+function testHeaderParamBindingCase152() returns error? {
+    HeaderRecordWithType headers = {header1: "value1", header2: "VALUE3", header3: ["VALUE1", "value2"]};
+    map<string|string[]> headerMap = http:getHeaderMap(headers);
+    map<json> resPayload = check resourceHeaderParamBindingClient->/header/case15(headerMap);
+    test:assertEquals(resPayload, {header1: "value1", header2: "VALUE3", header3: ["VALUE1", "value2"]});
+}
+
+@test:Config {}
+function testHeaderParamBindingCase153() returns error? {
+    map<string|string[]> headerMap = {x\-header1: "value1", x\-header2: "VALUE3", x\-header3: ["VALUE1", "value2"]};
+    map<json> resPayload = check resourceHeaderParamBindingClient->/header/case15(headerMap);
+    test:assertEquals(resPayload, {header1: "value1", header2: "VALUE3", header3: ["VALUE1", "value2"]});
+}
+
+@test:Config {}
+function testHeaderParamBindingCase154() returns error? {
+    map<string|string[]> headerMap = {header1: "value1", x\-header2: "VALUE3", x\-header3: ["VALUE1", "value2"]};
+    http:Response res = check resourceHeaderParamBindingClient->/header/case15(headerMap);
     test:assertEquals(res.statusCode, 400);
 }

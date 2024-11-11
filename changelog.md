@@ -10,8 +10,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 
 - [Add `anydata` support for `setPayload` methods in the request and response objects](https://github.com/ballerina-platform/ballerina-library/issues/6954)
-- [Improve `@http:Query` annotation to overwrite the query parameter name in client] (https://github.com/ballerina-platform/ballerina-library/issues/6983)
-- [Improve `@http:Query` annotation to overwrite the query parameter name in service] (https://github.com/ballerina-platform/ballerina-library/issues/7006)
+- [Improve `@http:Query` annotation to overwrite the query parameter name in client](https://github.com/ballerina-platform/ballerina-library/issues/6983)
+- [Improve `@http:Query` annotation to overwrite the query parameter name in service](https://github.com/ballerina-platform/ballerina-library/issues/7006)
+- [Add header name mapping support in record fields](https://github.com/ballerina-platform/ballerina-library/issues/7018)
+- [Introduce util functions to convert query and header record with the `http:Query` and the `http:Header` annotations](https://github.com/ballerina-platform/ballerina-library/issues/7019)
+- [Migrate client and service data binding lang utils usage into data.jsondata module utils `toJson` and `parserAsType`] (https://github.com/ballerina-platform/ballerina-library/issues/6747)
+- [Add static code rules](https://github.com/ballerina-platform/ballerina-library/issues/7283)
+
+### Fixed
+
+- [Address CVE-2024-7254 vulnerability](https://github.com/ballerina-platform/ballerina-library/issues/7013)
+- [Fix duplicating `Content-Type` header via the `addHeader` method](https://github.com/ballerina-platform/ballerina-library/issues/7268)
 
 ## [2.12.0] - 2024-08-20
 

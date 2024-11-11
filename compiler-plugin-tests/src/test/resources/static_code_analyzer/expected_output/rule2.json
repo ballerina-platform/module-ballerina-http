@@ -1,0 +1,142 @@
+[
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 20,
+      "endLine": 20,
+      "startColumn": 23,
+      "endColumn": 26,
+      "startOffset": 726,
+      "length": 3
+    },
+    "rule": {
+      "id": "ballerina/http:2",
+      "numericId": 2,
+      "description": "Avoid permissive Cross-Origin Resource Sharing",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule2/service.bal",
+    "filePath": "/Users/admin/Desktop/WORKSPACE/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule2/service.bal"
+  },
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 27,
+      "endLine": 27,
+      "startColumn": 27,
+      "endColumn": 30,
+      "startOffset": 847,
+      "length": 3
+    },
+    "rule": {
+      "id": "ballerina/http:2",
+      "numericId": 2,
+      "description": "Avoid permissive Cross-Origin Resource Sharing",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule2/service.bal",
+    "filePath": "/Users/admin/Desktop/WORKSPACE/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule2/service.bal"
+  },
+  {
+    "location": {
+      "filePath": "service_class.bal",
+      "startLine": 23,
+      "endLine": 23,
+      "startColumn": 27,
+      "endColumn": 30,
+      "startOffset": 791,
+      "length": 3
+    },
+    "rule": {
+      "id": "ballerina/http:2",
+      "numericId": 2,
+      "description": "Avoid permissive Cross-Origin Resource Sharing",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule2/service_class.bal",
+    "filePath": "/Users/admin/Desktop/WORKSPACE/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule2/service_class.bal"
+  },
+  {
+    "location": {
+      "filePath": "service_object.bal",
+      "startLine": 20,
+      "endLine": 20,
+      "startColumn": 23,
+      "endColumn": 26,
+      "startOffset": 726,
+      "length": 3
+    },
+    "rule": {
+      "id": "ballerina/http:2",
+      "numericId": 2,
+      "description": "Avoid permissive Cross-Origin Resource Sharing",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule2/service_object.bal",
+    "filePath": "/Users/admin/Desktop/WORKSPACE/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule2/service_object.bal"
+  },
+  {
+    "location": {
+      "filePath": "service_object.bal",
+      "startLine": 28,
+      "endLine": 28,
+      "startColumn": 27,
+      "endColumn": 30,
+      "startOffset": 867,
+      "length": 3
+    },
+    "rule": {
+      "id": "ballerina/http:2",
+      "numericId": 2,
+      "description": "Avoid permissive Cross-Origin Resource Sharing",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule2/service_object.bal",
+    "filePath": "/Users/admin/Desktop/WORKSPACE/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule2/service_object.bal"
+  },
+  {
+    "location": {
+      "filePath": "service_object.bal",
+      "startLine": 36,
+      "endLine": 36,
+      "startColumn": 23,
+      "endColumn": 26,
+      "startOffset": 999,
+      "length": 3
+    },
+    "rule": {
+      "id": "ballerina/http:2",
+      "numericId": 2,
+      "description": "Avoid permissive Cross-Origin Resource Sharing",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule2/service_object.bal",
+    "filePath": "/Users/admin/Desktop/WORKSPACE/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule2/service_object.bal"
+  },
+  {
+    "location": {
+      "filePath": "service_object.bal",
+      "startLine": 44,
+      "endLine": 44,
+      "startColumn": 27,
+      "endColumn": 30,
+      "startOffset": 1143,
+      "length": 3
+    },
+    "rule": {
+      "id": "ballerina/http:2",
+      "numericId": 2,
+      "description": "Avoid permissive Cross-Origin Resource Sharing",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule2/service_object.bal",
+    "filePath": "/Users/admin/Desktop/WORKSPACE/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule2/service_object.bal"
+  }
+]

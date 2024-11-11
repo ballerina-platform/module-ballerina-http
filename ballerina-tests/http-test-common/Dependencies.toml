@@ -5,7 +5,7 @@
 
 [ballerina]
 dependencies-toml-version = "2"
-distribution-version = "2201.10.0"
+distribution-version = "2201.11.0-20241008-112400-81975006"
 
 [[package]]
 org = "ballerina"
@@ -49,6 +49,15 @@ dependencies = [
 
 [[package]]
 org = "ballerina"
+name = "data.jsondata"
+version = "0.3.0"
+dependencies = [
+	{org = "ballerina", name = "jballerina.java"},
+	{org = "ballerina", name = "lang.object"}
+]
+
+[[package]]
+org = "ballerina"
 name = "file"
 version = "1.10.0"
 dependencies = [
@@ -61,12 +70,13 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "http"
-version = "2.12.1"
+version = "2.13.0"
 dependencies = [
 	{org = "ballerina", name = "auth"},
 	{org = "ballerina", name = "cache"},
 	{org = "ballerina", name = "constraint"},
 	{org = "ballerina", name = "crypto"},
+	{org = "ballerina", name = "data.jsondata"},
 	{org = "ballerina", name = "file"},
 	{org = "ballerina", name = "io"},
 	{org = "ballerina", name = "jballerina.java"},
@@ -93,7 +103,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "http_test_common"
-version = "2.12.1"
+version = "2.13.0"
 dependencies = [
 	{org = "ballerina", name = "http"},
 	{org = "ballerina", name = "lang.string"},
@@ -238,7 +248,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "mime"
-version = "2.10.0"
+version = "2.10.1"
 dependencies = [
 	{org = "ballerina", name = "io"},
 	{org = "ballerina", name = "jballerina.java"},
@@ -304,7 +314,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "time"
-version = "2.4.0"
+version = "2.5.0"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
 ]

@@ -14,6 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/mime;
 import ballerina/test;
 import ballerina/http;
 import ballerina/http_test_common as common;
@@ -276,3 +277,76 @@ function testPassthruWithBody() returns error? {
     }
 }
 
+@test:Config {}
+function testAddHeaderWithContentType() returns error? {
+    http:Request req = new;
+    check req.setContentType(mime:APPLICATION_JSON);
+    test:assertEquals(check req.getHeaders(http:CONTENT_TYPE), [mime:APPLICATION_JSON]);
+    req.addHeader(http:CONTENT_TYPE, mime:APPLICATION_XML);
+    test:assertEquals(check req.getHeaders(http:CONTENT_TYPE), [mime:APPLICATION_XML]);
+
+    http:Response res = new;
+    check res.setContentType(mime:APPLICATION_JSON);
+    test:assertEquals(check res.getHeaders(http:CONTENT_TYPE), [mime:APPLICATION_JSON]);
+    res.addHeader(http:CONTENT_TYPE, mime:APPLICATION_XML);
+    test:assertEquals(check res.getHeaders(http:CONTENT_TYPE), [mime:APPLICATION_XML]);
+
+    http:PushPromise pushPromise = new;
+    pushPromise.addHeader(http:CONTENT_TYPE, mime:APPLICATION_JSON);
+    test:assertEquals(pushPromise.getHeaders(http:CONTENT_TYPE), [mime:APPLICATION_JSON]);
+    pushPromise.addHeader(http:CONTENT_TYPE, mime:APPLICATION_XML);
+    test:assertEquals(pushPromise.getHeaders(http:CONTENT_TYPE), [mime:APPLICATION_XML]);
+}
+
+type Headers record {|
+    @http:Header {name: "X-API-VERSION"}
+    string apiVersion;
+    @http:Header {name: "X-REQ-ID"}
+    int reqId;
+    @http:Header {name: "X-IDS"}
+    float[] ids;
+|};
+
+type HeadersNegative record {|
+    @http:Header
+    string header1;
+    @http:Header {name: ()}
+    string header2;
+|};
+
+@test:Config {}
+function testGetHeadersMethod() {
+    Headers headers = {apiVersion: "v1", reqId: 123, ids: [1.0, 2.0, 3.0]};
+    map<string|string[]> expectedHeaderMap = {
+        "X-API-VERSION": "v1",
+        "X-REQ-ID": "123",
+        "X-IDS": ["1.0", "2.0", "3.0"]
+    };
+    test:assertEquals(http:getHeaderMap(headers), expectedHeaderMap, "Header map is not as expected");
+}
+
+@test:Config {}
+function testGetHeadersMethodNegative() {
+    HeadersNegative headers = {header1: "header1", header2: "header2"};
+    test:assertEquals(http:getHeaderMap(headers), headers, "Header map is not as expected");
+}
+
+type Queries record {|
+    @http:Query { name: "XName" }
+    string name;
+    @http:Query { name: "XAge" }
+    int age;
+    @http:Query { name: "XIDs" }
+    float[] ids;
+|};
+
+@test:Config {}
+function testGetQueryMapMethod() {
+    Queries queries = {name: "John", age: 30, ids: [1.0, 2.0, 3.0]};
+    map<anydata> expectedQueryMap = {
+        "XName": "John",
+        "XAge": 30,
+        "XIDs": [1.0, 2.0, 3.0]
+    };
+    test:assertEquals(http:getQueryMap(queries), expectedQueryMap, "Query map is not as expected");
+}
