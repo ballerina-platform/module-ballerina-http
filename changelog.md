@@ -26,7 +26,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [2.12.0] - 2024-08-20
 
 ### Added
-
 - [Add support for Server-Sent Events](https://github.com/ballerina-platform/ballerina-library/issues/6687)
 - [Introduce default status code response record](https://github.com/ballerina-platform/ballerina-library/issues/6491)
 - [Add connection eviction feature to handle connections that receive GO_AWAY from the client](https://github.com/ballerina-platform/ballerina-library/issues/6734)
