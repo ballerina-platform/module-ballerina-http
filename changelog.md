@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Introduce util functions to convert query and header record with the `http:Query` and the `http:Header` annotations](https://github.com/ballerina-platform/ballerina-library/issues/7019)
 - [Migrate client and service data binding lang utils usage into data.jsondata module utils `toJson` and `parserAsType`] (https://github.com/ballerina-platform/ballerina-library/issues/6747)
 - [Add static code rules](https://github.com/ballerina-platform/ballerina-library/issues/7283)
+- [Add compression/decompression support for `brotli` compression format](https://github.com/ballerina-platform/ballerina-library/issues/6547)
 
 ### Fixed
 
@@ -26,7 +27,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Added
 
-- [Add compression/decompression support for `brotli` compression format](https://github.com/ballerina-platform/ballerina-library/issues/6547)
 - [Add support for Server-Sent Events](https://github.com/ballerina-platform/ballerina-library/issues/6687)
 - [Introduce default status code response record](https://github.com/ballerina-platform/ballerina-library/issues/6491)
 - [Add connection eviction feature to handle connections that receive GO_AWAY from the client](https://github.com/ballerina-platform/ballerina-library/issues/6734)
