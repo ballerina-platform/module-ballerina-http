@@ -18,6 +18,7 @@
 package io.ballerina.stdlib.http.api;
 
 import io.ballerina.runtime.api.Runtime;
+import io.ballerina.runtime.api.concurrent.StrandMetadata;
 import io.ballerina.runtime.api.constants.RuntimeConstants;
 import io.ballerina.runtime.api.types.ObjectType;
 import io.ballerina.runtime.api.utils.TypeUtils;
@@ -28,7 +29,6 @@ import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.observability.ObservabilityConstants;
 import io.ballerina.runtime.observability.ObserveUtils;
 import io.ballerina.runtime.observability.ObserverContext;
-import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.transport.contract.HttpConnectorListener;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import org.slf4j.Logger;
@@ -189,15 +189,10 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         ObjectType serviceType = (ObjectType) TypeUtils.getReferredType(TypeUtils.getType(service));
         Thread.startVirtualThread(() -> {
             Object result;
+            boolean isIsolated = serviceType.isIsolated() && serviceType.isIsolated(resourceName);
+            StrandMetadata metaData = new StrandMetadata(isIsolated, properties);
             try {
-                if (serviceType.isIsolated() && serviceType.isIsolated(resourceName)) {
-                    result = runtime.startIsolatedWorker(service, resourceName, null,
-                            ModuleUtils.getOnMessageMetaData(), properties, signatureParams).get();
-
-                } else {
-                    result = runtime.startNonIsolatedWorker(service, resourceName, null,
-                            ModuleUtils.getOnMessageMetaData(), properties, signatureParams).get();
-                }
+                result = runtime.callMethod(service, resourceName, metaData, signatureParams);
                 callback.handleResult(result);
             } catch (BError error) {
                 callback.handlePanic(error);
@@ -254,15 +249,10 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
 
         ObjectType serviceType = (ObjectType) TypeUtils.getReferredType(TypeUtils.getType(service));
         Thread.startVirtualThread(() -> {
-            Object result;
+            boolean isIsolated = serviceType.isIsolated() && serviceType.isIsolated(resourceName);
+            StrandMetadata metaData = new StrandMetadata(isIsolated, properties);
             try {
-                if (serviceType.isIsolated() && serviceType.isIsolated(resourceName)) {
-                    result = runtime.startIsolatedWorker(service, resourceName, null,
-                            ModuleUtils.getOnMessageMetaData(), properties, signatureParams).get();
-                } else {
-                    result = runtime.startNonIsolatedWorker(service, resourceName, null,
-                            ModuleUtils.getOnMessageMetaData(), properties, signatureParams).get();
-                }
+                Object result = runtime.callMethod(service, resourceName, metaData, signatureParams);
                 callback.handleResult(result);
             } catch (BError error) {
                 callback.handlePanic(error);

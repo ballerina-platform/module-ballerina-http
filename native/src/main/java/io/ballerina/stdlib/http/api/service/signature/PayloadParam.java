@@ -18,11 +18,11 @@
 
 package io.ballerina.stdlib.http.api.service.signature;
 
-import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.IntersectionType;
 import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.types.TypeTags;
 import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BError;
@@ -39,7 +39,6 @@ import io.ballerina.stdlib.mime.util.MimeConstants;
 import java.util.ArrayList;
 import java.util.List;
 
-import static io.ballerina.runtime.api.TypeTags.ARRAY_TAG;
 import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_PAYLOAD_BINDING_LISTENER_ERROR;
 import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_PAYLOAD_VALIDATION_LISTENER_ERROR;
 import static io.ballerina.stdlib.http.api.service.signature.builder.AbstractPayloadBuilder.getBuilder;
@@ -146,7 +145,7 @@ public class PayloadParam implements Parameter {
                                                     Type payloadType, Object dataSource) {
         try {
             switch (payloadType.getTag()) {
-                case ARRAY_TAG:
+                case TypeTags.ARRAY_TAG:
                     int actualTypeTag = TypeUtils.getReferredType(((ArrayType) payloadType).getElementType()).getTag();
                     if (actualTypeTag == TypeTags.BYTE_TAG) {
                         paramFeed[index] = validateConstraints(dataSource);

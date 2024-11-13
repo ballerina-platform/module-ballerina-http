@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static io.ballerina.runtime.api.TypeTags.RECORD_TYPE_TAG;
+import static io.ballerina.runtime.api.types.TypeTags.RECORD_TYPE_TAG;
 import static io.ballerina.stdlib.http.api.HttpConstants.HEADER_PARAM;
 import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_HEADER_VALIDATION_LISTENER_ERROR;
 

@@ -20,12 +20,12 @@ package io.ballerina.stdlib.http.api;
 
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Runtime;
+import io.ballerina.runtime.api.concurrent.StrandMetadata;
 import io.ballerina.runtime.api.types.ServiceType;
 import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
-import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.api.nativeimpl.connection.Respond;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
@@ -156,8 +156,8 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
     public void invokeBalMethod(Object[] paramFeed, String methodName) {
         Thread.startVirtualThread(() -> {
             try {
-                this.getRuntime().startIsolatedWorker(caller, methodName, null,
-                        ModuleUtils.getNotifySuccessMetaData(), null, paramFeed).get();
+                StrandMetadata metaData = new StrandMetadata(true, null);
+                this.getRuntime().callMethod(caller, methodName, metaData, paramFeed);
                 stopObserverContext();
                 dataContext.notifyOutboundResponseStatus(null);
             } catch (BError error) {
