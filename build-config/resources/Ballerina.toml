@@ -7,7 +7,7 @@ keywords = ["http", "network", "service", "listener", "client"]
 repository = "https://github.com/ballerina-platform/module-ballerina-http"
 icon = "icon.png"
 license = ["Apache-2.0"]
-distribution = "2201.10.0"
+distribution = "2201.11.0"
 export = ["http", "http.httpscerr"]
 
 [platform.java21]
