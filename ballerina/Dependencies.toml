@@ -5,7 +5,7 @@
 
 [ballerina]
 dependencies-toml-version = "2"
-distribution-version = "2201.10.0-20241011-161100-51978649"
+distribution-version = "2201.11.0-20241112-214900-6b80ab87"
 
 [[package]]
 org = "ballerina"
@@ -29,7 +29,8 @@ version = "3.8.1"
 dependencies = [
 	{org = "ballerina", name = "constraint"},
 	{org = "ballerina", name = "jballerina.java"},
-	{org = "ballerina", name = "task"}
+	{org = "ballerina", name = "task"},
+	{org = "ballerina", name = "time"}
 ]
 modules = [
 	{org = "ballerina", packageName = "cache", moduleName = "cache"}
@@ -38,7 +39,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "constraint"
-version = "1.5.1"
+version = "1.6.0"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
 ]
@@ -148,7 +149,8 @@ dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "lang.int"},
 	{org = "ballerina", name = "lang.string"},
-	{org = "ballerina", name = "log"}
+	{org = "ballerina", name = "log"},
+	{org = "ballerina", name = "time"}
 ]
 modules = [
 	{org = "ballerina", packageName = "jwt", moduleName = "jwt"}
@@ -266,7 +268,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "mime"
-version = "2.10.1"
+version = "2.10.2"
 dependencies = [
 	{org = "ballerina", name = "io"},
 	{org = "ballerina", name = "jballerina.java"},
@@ -286,6 +288,7 @@ dependencies = [
 	{org = "ballerina", name = "crypto"},
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "log"},
+	{org = "ballerina", name = "time"},
 	{org = "ballerina", name = "url"}
 ]
 modules = [
@@ -295,7 +298,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "observe"
-version = "1.3.1"
+version = "1.4.0"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
 ]
@@ -325,7 +328,7 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "time"
-version = "2.5.1"
+version = "2.6.0"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
 ]
