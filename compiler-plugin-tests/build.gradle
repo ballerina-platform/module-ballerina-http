@@ -93,6 +93,7 @@ test {
     systemProperty "ballerina.offline.flag", "true"
     useTestNG()
     finalizedBy jacocoTestReport
+    testLogging.showStandardStreams = true
 }
 
 jacocoTestReport {

@@ -17,13 +17,13 @@
 package io.ballerina.stdlib.http.api;
 
 import io.ballerina.runtime.api.Runtime;
+import io.ballerina.runtime.api.concurrent.StrandMetadata;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.observability.ObserveUtils;
 import io.ballerina.runtime.observability.ObserverContext;
-import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
 import java.util.Locale;
@@ -117,8 +117,8 @@ public class HttpCallableUnitCallback {
     public void invokeBalMethod(Object[] paramFeed, String methodName) {
         Thread.startVirtualThread(() -> {
             try {
-                runtime.startNonIsolatedWorker(caller, methodName, null,
-                        ModuleUtils.getNotifySuccessMetaData(), null, paramFeed).get();
+                StrandMetadata metaData = new StrandMetadata(false, null);
+                runtime.callMethod(caller, methodName, metaData, paramFeed);
                 stopObserverContext();
             } catch (BError error) {
                 sendFailureResponse(error);

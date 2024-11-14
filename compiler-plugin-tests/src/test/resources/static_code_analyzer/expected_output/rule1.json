@@ -1,0 +1,162 @@
+[
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 19,
+      "endLine": 19,
+      "startColumn": 22,
+      "endColumn": 29,
+      "startOffset": 728,
+      "length": 7
+    },
+    "rule": {
+      "id": "ballerina/http:1",
+      "numericId": 1,
+      "description": "Avoid allowing default resource accessor",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule1/service.bal",
+    "filePath": "/Users/admin/Desktop/WORKSPACE/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule1/service.bal"
+  },
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 23,
+      "endLine": 23,
+      "startColumn": 22,
+      "endColumn": 29,
+      "startOffset": 803,
+      "length": 7
+    },
+    "rule": {
+      "id": "ballerina/http:1",
+      "numericId": 1,
+      "description": "Avoid allowing default resource accessor",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule1/service.bal",
+    "filePath": "/Users/admin/Desktop/WORKSPACE/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule1/service.bal"
+  },
+  {
+    "location": {
+      "filePath": "service_class.bal",
+      "startLine": 21,
+      "endLine": 21,
+      "startColumn": 22,
+      "endColumn": 29,
+      "startOffset": 743,
+      "length": 7
+    },
+    "rule": {
+      "id": "ballerina/http:1",
+      "numericId": 1,
+      "description": "Avoid allowing default resource accessor",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule1/service_class.bal",
+    "filePath": "/Users/admin/Desktop/WORKSPACE/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule1/service_class.bal"
+  },
+  {
+    "location": {
+      "filePath": "service_class.bal",
+      "startLine": 25,
+      "endLine": 25,
+      "startColumn": 22,
+      "endColumn": 29,
+      "startOffset": 820,
+      "length": 7
+    },
+    "rule": {
+      "id": "ballerina/http:1",
+      "numericId": 1,
+      "description": "Avoid allowing default resource accessor",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule1/service_class.bal",
+    "filePath": "/Users/admin/Desktop/WORKSPACE/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule1/service_class.bal"
+  },
+  {
+    "location": {
+      "filePath": "service_object.bal",
+      "startLine": 20,
+      "endLine": 20,
+      "startColumn": 22,
+      "endColumn": 29,
+      "startOffset": 748,
+      "length": 7
+    },
+    "rule": {
+      "id": "ballerina/http:1",
+      "numericId": 1,
+      "description": "Avoid allowing default resource accessor",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule1/service_object.bal",
+    "filePath": "/Users/admin/Desktop/WORKSPACE/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule1/service_object.bal"
+  },
+  {
+    "location": {
+      "filePath": "service_object.bal",
+      "startLine": 21,
+      "endLine": 21,
+      "startColumn": 22,
+      "endColumn": 29,
+      "startOffset": 798,
+      "length": 7
+    },
+    "rule": {
+      "id": "ballerina/http:1",
+      "numericId": 1,
+      "description": "Avoid allowing default resource accessor",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule1/service_object.bal",
+    "filePath": "/Users/admin/Desktop/WORKSPACE/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule1/service_object.bal"
+  },
+  {
+    "location": {
+      "filePath": "service_object.bal",
+      "startLine": 26,
+      "endLine": 26,
+      "startColumn": 22,
+      "endColumn": 29,
+      "startOffset": 916,
+      "length": 7
+    },
+    "rule": {
+      "id": "ballerina/http:1",
+      "numericId": 1,
+      "description": "Avoid allowing default resource accessor",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule1/service_object.bal",
+    "filePath": "/Users/admin/Desktop/WORKSPACE/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule1/service_object.bal"
+  },
+  {
+    "location": {
+      "filePath": "service_object.bal",
+      "startLine": 27,
+      "endLine": 27,
+      "startColumn": 22,
+      "endColumn": 29,
+      "startOffset": 966,
+      "length": 7
+    },
+    "rule": {
+      "id": "ballerina/http:1",
+      "numericId": 1,
+      "description": "Avoid allowing default resource accessor",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule1/service_object.bal",
+    "filePath": "/Users/admin/Desktop/WORKSPACE/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule1/service_object.bal"
+  }
+]

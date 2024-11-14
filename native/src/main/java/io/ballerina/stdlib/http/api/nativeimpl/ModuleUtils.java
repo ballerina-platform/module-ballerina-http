@@ -20,12 +20,9 @@ package io.ballerina.stdlib.http.api.nativeimpl;
 
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Module;
-import io.ballerina.runtime.api.async.StrandMetadata;
 import io.ballerina.stdlib.http.api.HttpConstants;
 
-import static io.ballerina.runtime.api.constants.RuntimeConstants.BALLERINA_BUILTIN_PKG_PREFIX;
 import static io.ballerina.runtime.api.constants.RuntimeConstants.ORG_NAME_SEPARATOR;
-import static io.ballerina.stdlib.http.api.HttpConstants.PROTOCOL_HTTP;
 
 /**
  * This class will hold module related utility functions.
@@ -36,20 +33,14 @@ public class ModuleUtils {
 
     private static Module httpModule;
     private static Module httpStatusModule;
-    private static StrandMetadata onMessageMetaData;
-    private static StrandMetadata notifySuccessMetaData;
     private static String packageIdentifier;
 
     private ModuleUtils() {}
 
     public static void setModule(Environment env) {
         httpModule = env.getCurrentModule();
-        onMessageMetaData = new StrandMetadata(BALLERINA_BUILTIN_PKG_PREFIX, PROTOCOL_HTTP, httpModule.getVersion(),
-                                               "onMessage");
-        notifySuccessMetaData = new StrandMetadata(BALLERINA_BUILTIN_PKG_PREFIX, PROTOCOL_HTTP, httpModule.getVersion(),
-                                                   "notifySuccess");
         packageIdentifier = HttpConstants.PACKAGE + ORG_NAME_SEPARATOR + HttpConstants.PROTOCOL_HTTP +
-                HttpConstants.COLON + httpModule.getVersion();
+                HttpConstants.COLON + httpModule.getMajorVersion();
     }
 
     public static void setHttpStatusModule(Environment env) {
@@ -72,24 +63,6 @@ public class ModuleUtils {
      */
     public static Module getHttpStatusPackage() {
         return httpStatusModule;
-    }
-
-    /**
-     * Gets the metadata of onMessage() method to invoke resource method.
-     *
-     * @return metadata of onMessage() method
-     */
-    public static StrandMetadata getOnMessageMetaData() {
-        return onMessageMetaData;
-    }
-
-    /**
-     * Gets the metadata of notifySuccess() method to invoke Caller.returnResponse() method.
-     *
-     * @return metadata of notifySuccess() method
-     */
-    public static StrandMetadata getNotifySuccessMetaData() {
-        return notifySuccessMetaData;
     }
 
     /**

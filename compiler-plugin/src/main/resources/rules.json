@@ -1,0 +1,12 @@
+[
+  {
+    "id": 1,
+    "kind": "VULNERABILITY",
+    "description": "Avoid allowing default resource accessor"
+  },
+  {
+    "id": 2,
+    "kind": "VULNERABILITY",
+    "description": "Avoid permissive Cross-Origin Resource Sharing"
+  }
+]

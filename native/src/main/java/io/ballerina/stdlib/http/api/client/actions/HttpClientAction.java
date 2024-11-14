@@ -19,8 +19,9 @@
 package io.ballerina.stdlib.http.api.client.actions;
 
 import io.ballerina.runtime.api.Environment;
-import io.ballerina.runtime.api.TypeTags;
+import io.ballerina.runtime.api.concurrent.StrandMetadata;
 import io.ballerina.runtime.api.types.RecordType;
+import io.ballerina.runtime.api.types.TypeTags;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
@@ -55,7 +56,6 @@ import static io.ballerina.stdlib.http.api.HttpConstants.COLON;
 import static io.ballerina.stdlib.http.api.HttpConstants.EMPTY;
 import static io.ballerina.stdlib.http.api.HttpConstants.EQUAL_SIGN;
 import static io.ballerina.stdlib.http.api.HttpConstants.ESCAPE_SLASH;
-import static io.ballerina.stdlib.http.api.HttpConstants.MAIN_STRAND;
 import static io.ballerina.stdlib.http.api.HttpConstants.QUESTION_MARK;
 import static io.ballerina.stdlib.http.api.HttpConstants.QUOTATION_MARK;
 import static io.ballerina.stdlib.http.api.HttpConstants.REGEX_FOR_FIELD;
@@ -208,12 +208,7 @@ public class HttpClientAction extends AbstractHTTPAction {
     private static Object invokeClientMethod(Environment env, BObject client, String methodName, Object[] paramFeed) {
         return env.yieldAndRun(() -> {
             try {
-                String strandParentFunctionName = Objects.isNull(env.getStrandMetadata()) ? null :
-                        env.getStrandMetadata().getParentFunctionName();
-                if (Objects.nonNull(strandParentFunctionName) && strandParentFunctionName.equals("onMessage")) {
-                    env.setStrandLocal(MAIN_STRAND, true);
-                }
-                return env.getRuntime().call(client, methodName, paramFeed);
+                return env.getRuntime().callMethod(client, methodName, new StrandMetadata(true, null), paramFeed);
             } catch (BError bError) {
                 return HttpUtil.createHttpError("client method invocation failed: " + bError.getErrorMessage(),
                         HttpErrorType.CLIENT_ERROR, bError);

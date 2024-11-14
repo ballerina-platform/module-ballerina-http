@@ -18,8 +18,6 @@
 package io.ballerina.stdlib.http.api.nativeimpl;
 
 import io.ballerina.runtime.api.Environment;
-import io.ballerina.runtime.api.PredefinedTypes;
-import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
@@ -28,9 +26,11 @@ import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.Field;
 import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.types.ObjectType;
+import io.ballerina.runtime.api.types.PredefinedTypes;
 import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.ReferenceType;
 import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.types.TypeTags;
 import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
@@ -252,7 +252,7 @@ public final class ExternResponseProcessor {
             payloadType = statusCodeRecordType.getFields().get(STATUS_CODE_RESPONSE_BODY_FIELD).getFieldType();
         }
         try {
-            return env.getRuntime().call(response, BUILD_STATUS_CODE_RESPONSE,
+            return env.getRuntime().callMethod(response, BUILD_STATUS_CODE_RESPONSE, null,
                     Objects.isNull(payloadType) ? null : ValueCreator.createTypedescValue(payloadType),
                     ValueCreator.createTypedescValue(statusCodeRecordType),
                     requireValidation, status, headers, mediaType,
@@ -507,7 +507,7 @@ public final class ExternResponseProcessor {
 
     private static Object getStatusCodeResponseBindingError(Environment env, BObject response, String reasonPhrase) {
         try {
-            return env.getRuntime().call(response, GET_STATUS_CODE_RESPONSE_BINDING_ERROR,
+            return env.getRuntime().callMethod(response, GET_STATUS_CODE_RESPONSE_BINDING_ERROR, null,
                     StringUtils.fromString(reasonPhrase));
         } catch (BError error) {
             return createHttpError(APPLICATION_RES_ERROR_CREATION_FAILED, STATUS_CODE_RESPONSE_BINDING_ERROR, error);
@@ -521,7 +521,7 @@ public final class ExternResponseProcessor {
                                                                 BError cause, boolean isDefaultStatusCodeResponse,
                                                                 String errorType) {
         try {
-            return env.getRuntime().call(response, GET_STATUS_CODE_RESPONSE_DATA_BINDING_ERROR,
+            return env.getRuntime().callMethod(response, GET_STATUS_CODE_RESPONSE_DATA_BINDING_ERROR, null,
                     StringUtils.fromString(reasonPhrase), isDefaultStatusCodeResponse,
                     StringUtils.fromString(errorType), cause);
         } catch (BError error) {
