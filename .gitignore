@@ -48,3 +48,6 @@ load-tests/**/Dependencies.toml
 # Ballerina related ignores
 Ballerina.lock
 velocity.log*
+
+# Cache directory created by the trivy scan
+.cache/
