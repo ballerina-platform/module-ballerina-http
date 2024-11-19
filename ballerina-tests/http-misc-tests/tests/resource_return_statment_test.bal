@@ -680,9 +680,7 @@ public function testReturnMapOfJson() returns error? {
     }
 }
 
-@test:Config {
-    enable: false
-}
+@test:Config {}
 public function testReturnMapOfJsonArr() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test22");
     if resp is http:Response {
@@ -697,9 +695,7 @@ public function testReturnMapOfJsonArr() returns error? {
     }
 }
 
-@test:Config {
-    enable: false
-}
+@test:Config {}
 public function testReturnTableArr() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test23");
     if resp is http:Response {
@@ -720,9 +716,7 @@ public function testReturnTableArr() returns error? {
     }
 }
 
-@test:Config {
-    enable: false
-}
+@test:Config {}
 public function testReturnXmlArr() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test24");
     if resp is http:Response {
@@ -734,9 +728,7 @@ public function testReturnXmlArr() returns error? {
     }
 }
 
-@test:Config {
-    enable: false
-}
+@test:Config {}
 public function testReturnMapOfXml() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test25");
     if resp is http:Response {

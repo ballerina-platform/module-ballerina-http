@@ -77,9 +77,7 @@ public function testSendingMap() returns error? {
     common:assertJsonPayload(resp.getJsonPayload(), {sam: 50, jhon: 60});
 }
 
-@test:Config {
-    enable: false
-}
+@test:Config {}
 public function testSendingMapArray() returns error? {
     map<json> jj = {sam: {hello: "world"}, jhon: {no: 56}};
     map<json>[] val = [jj, jj];
@@ -104,9 +102,7 @@ public function testSendingTable() returns error? {
     ]);
 }
 
-@test:Config {
-    enable: false
-}
+@test:Config {}
 public function testSendingTableArray() returns error? {
     CustomerTable customerTab = table [
         {id: 13, fname: "Dan", lname: "Bing"}
