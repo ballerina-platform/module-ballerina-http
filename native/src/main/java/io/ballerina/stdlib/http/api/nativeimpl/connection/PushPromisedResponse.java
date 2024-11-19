@@ -32,8 +32,10 @@ import io.ballerina.stdlib.http.transport.message.HttpMessageDataStreamer;
 import io.ballerina.stdlib.mime.util.EntityBodyHandler;
 
 import java.io.OutputStream;
+import java.util.concurrent.CompletableFuture;
 
 import static io.ballerina.stdlib.http.api.HttpUtil.extractEntity;
+import static io.ballerina.stdlib.http.api.nativeimpl.ExternUtils.getResult;
 
 /**
  * {@code PushPromisedResponse} is the extern function to respond back the client with Server Push response.
@@ -43,20 +45,22 @@ public class PushPromisedResponse extends ConnectionAction {
     public static Object pushPromisedResponse(Environment env, BObject connectionObj, BObject pushPromiseObj,
                                               BObject outboundResponseObj) {
         HttpCarbonMessage inboundRequestMsg = HttpUtil.getCarbonMsg(connectionObj, null);
-        DataContext dataContext = new DataContext(env, inboundRequestMsg);
-        HttpUtil.serverConnectionStructCheck(inboundRequestMsg);
-
-        Http2PushPromise http2PushPromise = HttpUtil.getPushPromise(pushPromiseObj, null);
-        if (http2PushPromise == null) {
-            throw ErrorCreator.createError(StringUtils.fromString("invalid push promise"));
-        }
-
-        HttpCarbonMessage outboundResponseMsg = HttpUtil
-                .getCarbonMsg(outboundResponseObj, HttpUtil.createHttpCarbonMessage(false));
-        HttpUtil.prepareOutboundResponse(connectionObj, inboundRequestMsg, outboundResponseMsg, outboundResponseObj);
-        pushResponseRobust(dataContext, inboundRequestMsg, outboundResponseObj, outboundResponseMsg,
-                http2PushPromise);
-        return null;
+        return env.yieldAndRun(() -> {
+            CompletableFuture<Object> balFuture = new CompletableFuture<>();
+            DataContext dataContext = new DataContext(env, balFuture, inboundRequestMsg);
+            HttpUtil.serverConnectionStructCheck(inboundRequestMsg);
+            Http2PushPromise http2PushPromise = HttpUtil.getPushPromise(pushPromiseObj, null);
+            if (http2PushPromise == null) {
+                throw ErrorCreator.createError(StringUtils.fromString("invalid push promise"));
+            }
+            HttpCarbonMessage outboundResponseMsg = HttpUtil
+                    .getCarbonMsg(outboundResponseObj, HttpUtil.createHttpCarbonMessage(false));
+            HttpUtil.prepareOutboundResponse(connectionObj, inboundRequestMsg, outboundResponseMsg,
+                    outboundResponseObj);
+            pushResponseRobust(dataContext, inboundRequestMsg, outboundResponseObj, outboundResponseMsg,
+                    http2PushPromise);
+            return getResult(balFuture);
+        });
     }
 
     private static void pushResponseRobust(DataContext dataContext, HttpCarbonMessage requestMessage,

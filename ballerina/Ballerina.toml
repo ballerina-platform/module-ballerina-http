@@ -10,163 +10,163 @@ license = ["Apache-2.0"]
 distribution = "2201.11.0"
 export = ["http", "http.httpscerr"]
 
-[platform.java17]
+[platform.java21]
 graalvmCompatible = true
 
-[[platform.java17.dependency]]
+[[platform.java21.dependency]]
 groupId = "io.ballerina.stdlib"
 artifactId = "http-native"
 version = "2.13.0"
 path = "../native/build/libs/http-native-2.13.0-SNAPSHOT.jar"
 
-[[platform.java17.dependency]]
+[[platform.java21.dependency]]
 groupId = "io.ballerina.stdlib"
 artifactId = "mime-native"
-version = "2.10.0"
-path = "./lib/mime-native-2.10.0.jar"
+version = "2.10.2"
+path = "./lib/mime-native-2.10.2-20241113-154200-d953747.jar"
 
-[[platform.java17.dependency]]
+[[platform.java21.dependency]]
 groupId = "io.ballerina.stdlib"
 artifactId = "constraint-native"
-version = "1.5.0"
-path = "./lib/constraint-native-1.5.0.jar"
+version = "1.6.0"
+path = "./lib/constraint-native-1.6.0-20241113-090900-d276ad5.jar"
 
-[[platform.java17.dependency]]
+[[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-common"
 version = "4.1.115.Final"
 path = "./lib/netty-common-4.1.115.Final.jar"
 
-[[platform.java17.dependency]]
+[[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-buffer"
 version = "4.1.115.Final"
 path = "./lib/netty-buffer-4.1.115.Final.jar"
 
-[[platform.java17.dependency]]
+[[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-transport"
 version = "4.1.115.Final"
 path = "./lib/netty-transport-4.1.115.Final.jar"
 
-[[platform.java17.dependency]]
+[[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-resolver"
 version = "4.1.115.Final"
 path = "./lib/netty-resolver-4.1.115.Final.jar"
 
-[[platform.java17.dependency]]
+[[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-handler"
 version = "4.1.115.Final"
 path = "./lib/netty-handler-4.1.115.Final.jar"
 
-[[platform.java17.dependency]]
+[[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-codec-http"
 version = "4.1.115.Final"
 path = "./lib/netty-codec-http-4.1.115.Final.jar"
 
-[[platform.java17.dependency]]
+[[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-codec"
 version = "4.1.115.Final"
 path = "./lib/netty-codec-4.1.115.Final.jar"
 
-[[platform.java17.dependency]]
+[[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-handler-proxy"
 version = "4.1.115.Final"
 path = "./lib/netty-handler-proxy-4.1.115.Final.jar"
 
-[[platform.java17.dependency]]
+[[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-codec-http2"
 version = "4.1.115.Final"
 path = "./lib/netty-codec-http2-4.1.115.Final.jar"
 
-[[platform.java17.dependency]]
+[[platform.java21.dependency]]
 groupId = "commons-pool.wso2"
 artifactId = "commons-pool"
 version = "1.5.6.wso2v1"
 path = "./lib/commons-pool-1.5.6.wso2v1.jar"
 
-[[platform.java17.dependency]]
+[[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-transport-native-unix-common"
 version = "4.1.115.Final"
 path = "./lib/netty-transport-native-unix-common-4.1.115.Final.jar"
 
-[[platform.java17.dependency]]
+[[platform.java21.dependency]]
 groupId = "org.bouncycastle"
 artifactId = "bcprov-jdk18on"
 version = "1.78"
 path = "./lib/bcprov-jdk18on-1.78.jar"
 
-[[platform.java17.dependency]]
+[[platform.java21.dependency]]
 groupId = "org.bouncycastle"
 artifactId = "bcutil-jdk18on"
 version = "1.78"
 path = "./lib/bcutil-jdk18on-1.78.jar"
 
-[[platform.java17.dependency]]
+[[platform.java21.dependency]]
 groupId = "org.bouncycastle"
 artifactId = "bcpkix-jdk18on"
 version = "1.78"
 path = "./lib/bcpkix-jdk18on-1.78.jar"
 
-[[platform.java17.dependency]]
+[[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-tcnative-boringssl-static"
 version = "2.0.65.Final"
 path = "./lib/netty-tcnative-boringssl-static-2.0.65.Final.jar"
 
-[[platform.java17.dependency]]
+[[platform.java21.dependency]]
 path = "./lib/netty-tcnative-boringssl-static-2.0.65.Final-windows-x86_64.jar"
 
-[[platform.java17.dependency]]
+[[platform.java21.dependency]]
 path = "./lib/netty-tcnative-boringssl-static-2.0.65.Final-linux-aarch_64.jar"
 
-[[platform.java17.dependency]]
+[[platform.java21.dependency]]
 path = "./lib/netty-tcnative-boringssl-static-2.0.65.Final-linux-x86_64.jar"
 
-[[platform.java17.dependency]]
+[[platform.java21.dependency]]
 path = "./lib/netty-tcnative-boringssl-static-2.0.65.Final-osx-aarch_64.jar"
 
-[[platform.java17.dependency]]
+[[platform.java21.dependency]]
 path = "./lib/netty-tcnative-boringssl-static-2.0.65.Final-osx-x86_64.jar"
 
-[[platform.java17.dependency]]
+[[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-tcnative-classes"
 version = "2.0.65.Final"
 path = "./lib/netty-tcnative-classes-2.0.65.Final.jar"
 
-[[platform.java17.dependency]]
+[[platform.java21.dependency]]
 groupId = "org.jvnet.mimepull"
 artifactId = "mimepull"
 version = "1.9.11"
 path = "./lib/mimepull-1.9.11.jar"
 
-[[platform.java17.dependency]]
+[[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-codec-socks"
 version = "4.1.115.Final"
 path = "./lib/netty-codec-socks-4.1.115.Final.jar"
 
-[[platform.java17.dependency]]
+[[platform.java21.dependency]]
 groupId = "org.jboss.marshalling"
 artifactId = "jboss-marshalling"
 version = "2.0.5.Final"
 path = "./lib/jboss-marshalling-2.0.5.Final.jar"
 
-[[platform.java17.dependency]]
+[[platform.java21.dependency]]
 groupId = "net.jpountz.lz4"
 artifactId = "lz4"
 version = "1.3.0"
 path = "./lib/lz4-1.3.0.jar"
 
-[[platform.java17.dependency]]
+[[platform.java21.dependency]]
 groupId = "com.google.protobufl"
 artifactId = "protobuf-java"
 version = "3.25.5"

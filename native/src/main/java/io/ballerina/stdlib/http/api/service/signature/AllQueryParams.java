@@ -22,6 +22,7 @@ import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.utils.ValueUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BMap;
+import io.ballerina.runtime.api.values.BNever;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.api.HttpUtil;
@@ -67,12 +68,11 @@ public class AllQueryParams implements Parameter {
             Object queryValue = urlQueryParams.get(StringUtils.fromString(token));
             if (queryValue == null) {
                 if (queryParam.isDefaultable()) {
-                    paramFeed[index++] = queryParam.validateConstraints(queryParam.getOriginalType().getZeroValue());
-                    paramFeed[index] = false;
+                    queryParam.validateConstraints(queryParam.getOriginalType().getZeroValue());
+                    paramFeed[index] = BNever.getValue();
                     continue;
                 } else if (queryParam.isNilable() && (treatNilableAsOptional || queryExist)) {
-                    paramFeed[index++] = null;
-                    paramFeed[index] = true;
+                    paramFeed[index] = null;
                     continue;
                 } else {
                     String message = "no query param value found for '" + token + "'";
@@ -97,8 +97,7 @@ public class AllQueryParams implements Parameter {
                         HttpUtil.createError(ex));
             }
 
-            paramFeed[index++] = queryParam.validateConstraints(castedQueryValue);
-            paramFeed[index] = true;
+            paramFeed[index] = queryParam.validateConstraints(castedQueryValue);
         }
     }
 }

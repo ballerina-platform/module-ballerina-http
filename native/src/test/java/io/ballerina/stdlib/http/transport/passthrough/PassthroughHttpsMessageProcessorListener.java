@@ -33,15 +33,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * A class for https pass-through message processor.
  */
 public class PassthroughHttpsMessageProcessorListener implements HttpConnectorListener {
     private static final Logger LOG = LoggerFactory.getLogger(PassthroughHttpsMessageProcessorListener.class);
-    private ExecutorService executor = Executors.newSingleThreadExecutor();
     private HttpClientConnector clientConnector;
     private HttpWsConnectorFactory httpWsConnectorFactory;
     private SenderConfiguration senderConfiguration;
@@ -66,7 +63,7 @@ public class PassthroughHttpsMessageProcessorListener implements HttpConnectorLi
 
     @Override
     public void onMessage(HttpCarbonMessage httpRequestMessage) {
-        executor.execute(() -> {
+        Thread.startVirtualThread(() -> {
             HttpCarbonMessage outboundRequest = TestUtil.createHttpsPostReq(TestUtil.HTTP_SERVER_PORT, testValue, "");
             outboundRequest.setProperty(Constants.SRC_HANDLER, httpRequestMessage.getProperty(Constants.SRC_HANDLER));
             try {
@@ -81,7 +78,7 @@ public class PassthroughHttpsMessageProcessorListener implements HttpConnectorLi
                 future.setHttpConnectorListener(new HttpConnectorListener() {
                     @Override
                     public void onMessage(HttpCarbonMessage httpResponse) {
-                        executor.execute(() -> {
+                        Thread.startVirtualThread(() -> {
                             try {
                                 httpRequestMessage.respond(httpResponse);
                             } catch (ServerConnectorException e) {

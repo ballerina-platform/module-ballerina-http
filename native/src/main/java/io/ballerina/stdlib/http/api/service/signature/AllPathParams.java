@@ -75,7 +75,7 @@ public class AllPathParams implements Parameter {
             Type paramType = pathParam.getOriginalType();
             int paramTypeTag = pathParam.getEffectiveTypeTag();
             int index = pathParam.getIndex();
-            String argumentValue = resourceArgumentValues.getMap().get(paramToken).get(index / 2);
+            String argumentValue = resourceArgumentValues.getMap().get(paramToken).get(index);
             if (argumentValue.endsWith(PERCENTAGE)) {
                 argumentValue = argumentValue.replaceAll(PERCENTAGE, PERCENTAGE_ENCODED);
             }
@@ -105,8 +105,7 @@ public class AllPathParams implements Parameter {
                 }
             }
 
-            paramFeed[index++] = pathParam.validateConstraints(castedPathValue);
-            paramFeed[index] = true;
+            paramFeed[index] = pathParam.validateConstraints(castedPathValue);
         }
     }
 

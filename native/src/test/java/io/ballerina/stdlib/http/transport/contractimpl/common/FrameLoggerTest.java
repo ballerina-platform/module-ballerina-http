@@ -20,12 +20,11 @@ package io.ballerina.stdlib.http.transport.contractimpl.common;
 
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http2.Http2FrameLogger;
 import org.junit.Assert;
 import org.testng.annotations.Test;
-
-import java.nio.ByteBuffer;
 
 import static io.netty.handler.logging.LogLevel.TRACE;
 import static org.mockito.Mockito.mock;
@@ -42,18 +41,14 @@ public class FrameLoggerTest {
         Assert.assertNotNull(frameLogger);
         Http2FrameLogger.Direction direction = mock(Http2FrameLogger.Direction.class);
         ChannelHandlerContext ctx = mock(ChannelHandlerContext.class);
-        ByteBuf data = mock(ByteBuf.class);
-        ByteBuffer buffer = mock(ByteBuffer.class);
+        ByteBuf data = Unpooled.buffer();
         when(direction.name()).thenReturn("testDirection");
-        when(data.readableBytes()).thenReturn(0);
-        when(data.nioBuffer()).thenReturn(buffer);
-        when(buffer.remaining()).thenReturn(0);
+        data.clear();
         frameLogger.logData(direction, ctx, 5, data, 10, true);
-
-        when(data.readableBytes()).thenReturn(16);
+        data.writeBytes(new byte[16]);
         frameLogger.logData(direction, ctx, 5, data, 10, true);
-
-        when(data.readableBytes()).thenReturn(10);
+        data.clear();
+        data.writeBytes(new byte[10]);
         frameLogger.logData(direction, ctx, 5, data, 10, true);
     }
 

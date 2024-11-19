@@ -18,8 +18,8 @@
 
 package io.ballerina.stdlib.http.api.service.signature.builder;
 
-import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.types.TypeTags;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BXml;
 import io.ballerina.stdlib.http.api.HttpErrorType;

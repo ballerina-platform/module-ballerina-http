@@ -18,16 +18,16 @@
 
 package io.ballerina.stdlib.http.api.service.signature;
 
-import io.ballerina.runtime.api.PredefinedTypes;
-import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.FiniteType;
 import io.ballerina.runtime.api.types.IntersectionType;
+import io.ballerina.runtime.api.types.PredefinedTypes;
 import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.types.TypeTags;
 import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
@@ -42,19 +42,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import static io.ballerina.runtime.api.TypeTags.ARRAY_TAG;
-import static io.ballerina.runtime.api.TypeTags.BOOLEAN_TAG;
-import static io.ballerina.runtime.api.TypeTags.DECIMAL_TAG;
-import static io.ballerina.runtime.api.TypeTags.FINITE_TYPE_TAG;
-import static io.ballerina.runtime.api.TypeTags.FLOAT_TAG;
-import static io.ballerina.runtime.api.TypeTags.INTERSECTION_TAG;
-import static io.ballerina.runtime.api.TypeTags.INT_TAG;
-import static io.ballerina.runtime.api.TypeTags.MAP_TAG;
-import static io.ballerina.runtime.api.TypeTags.NULL_TAG;
-import static io.ballerina.runtime.api.TypeTags.READONLY_TAG;
-import static io.ballerina.runtime.api.TypeTags.RECORD_TYPE_TAG;
-import static io.ballerina.runtime.api.TypeTags.STRING_TAG;
-import static io.ballerina.runtime.api.TypeTags.UNION_TAG;
+import static io.ballerina.runtime.api.types.TypeTags.ARRAY_TAG;
+import static io.ballerina.runtime.api.types.TypeTags.BOOLEAN_TAG;
+import static io.ballerina.runtime.api.types.TypeTags.DECIMAL_TAG;
+import static io.ballerina.runtime.api.types.TypeTags.FINITE_TYPE_TAG;
+import static io.ballerina.runtime.api.types.TypeTags.FLOAT_TAG;
+import static io.ballerina.runtime.api.types.TypeTags.INTERSECTION_TAG;
+import static io.ballerina.runtime.api.types.TypeTags.INT_TAG;
+import static io.ballerina.runtime.api.types.TypeTags.MAP_TAG;
+import static io.ballerina.runtime.api.types.TypeTags.NULL_TAG;
+import static io.ballerina.runtime.api.types.TypeTags.READONLY_TAG;
+import static io.ballerina.runtime.api.types.TypeTags.RECORD_TYPE_TAG;
+import static io.ballerina.runtime.api.types.TypeTags.STRING_TAG;
+import static io.ballerina.runtime.api.types.TypeTags.UNION_TAG;
 import static io.ballerina.stdlib.http.api.HttpConstants.PATH_PARAM;
 import static io.ballerina.stdlib.http.api.HttpConstants.QUERY_PARAM;
 

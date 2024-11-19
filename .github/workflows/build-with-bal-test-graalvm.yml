@@ -6,9 +6,9 @@ on:
             lang_tag:
                 description: Branch/Release Tag of the Ballerina Lang
                 required: true
-                default: master
+                default: java21
             lang_version:
-                description: Ballerina Lang Version (If given ballerina lang buid will be skipped)
+                description: Ballerina Lang Version (If given ballerina lang build will be skipped)
                 required: false
                 default: ''
             native_image_options:
@@ -46,7 +46,5 @@ jobs:
             lang_version: ${{ inputs.lang_version }}
             native_image_options: '-J-Xmx7G ${{ inputs.native_image_options }}'
             additional_ubuntu_build_flags: '-x :http-native:test -x :http-compiler-plugin-tests:test ${{ inputs.build_properties }}'
-            # additional_windows_build_flags: '-x :http-native:test -x :http-compiler-plugin-tests:test ${{ inputs.build_properties }}'
-            # TODO : Enable after fixing this issue : https://github.com/ballerina-platform/ballerina-lang/issues/38882
-            additional_windows_build_flags: '-x test'
+            additional_windows_build_flags: '-x :http-native:test -x :http-compiler-plugin-tests:test ${{ inputs.build_properties }}'
             java_tool_options: '-Dfile.encoding=UTF8'

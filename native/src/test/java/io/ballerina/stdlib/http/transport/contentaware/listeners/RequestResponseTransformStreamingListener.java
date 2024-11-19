@@ -38,8 +38,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Streaming processor which reads from same and write to same message.
@@ -47,11 +45,10 @@ import java.util.concurrent.Executors;
 public class RequestResponseTransformStreamingListener implements HttpConnectorListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(RequestResponseTransformStreamingListener.class);
-    private ExecutorService executor = Executors.newSingleThreadExecutor();
 
     @Override
     public void onMessage(HttpCarbonMessage httpRequestMessage) {
-        executor.execute(() -> {
+        Thread.startVirtualThread(() -> {
             try {
                 InputStream inputStream = new HttpMessageDataStreamer(httpRequestMessage).getInputStream();
                 OutputStream outputStream = new HttpMessageDataStreamer(httpRequestMessage).getOutputStream();
@@ -68,7 +65,7 @@ public class RequestResponseTransformStreamingListener implements HttpConnectorL
                 future.setHttpConnectorListener(new HttpConnectorListener() {
                     @Override
                     public void onMessage(HttpCarbonMessage httpResponse) {
-                        executor.execute(() -> {
+                        Thread.startVirtualThread(() -> {
                             InputStream inputS = new HttpMessageDataStreamer(httpResponse).getInputStream();
                             OutputStream outputS = new HttpMessageDataStreamer(httpResponse).getOutputStream();
                             try {
