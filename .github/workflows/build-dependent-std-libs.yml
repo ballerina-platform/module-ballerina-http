@@ -34,7 +34,7 @@ jobs:
               uses: actions/setup-java@v3
               with:
                   distribution: 'temurin'
-                  java-version: 21
+                  java-version: 21.0.3
 
             - name: Checkout module
               uses: actions/checkout@v3
@@ -102,7 +102,7 @@ jobs:
               uses: actions/setup-java@v3
               with:
                   distribution: 'temurin'
-                  java-version: 21
+                  java-version: 21.0.3
 
             - name: Checkout module
               uses: actions/checkout@v3

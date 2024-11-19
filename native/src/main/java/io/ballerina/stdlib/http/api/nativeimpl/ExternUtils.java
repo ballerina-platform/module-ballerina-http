@@ -122,10 +122,13 @@ public final class ExternUtils {
     public static Object getResult(CompletableFuture<Object> balFuture) {
         try {
             return balFuture.get();
-        } catch (BError bError) {
-            return bError;
+        } catch (BError error) {
+            throw error;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw ErrorCreator.createError(e);
         } catch (Throwable throwable) {
-            return ErrorCreator.createError(throwable);
+            throw ErrorCreator.createError(throwable);
         }
     }
 }
