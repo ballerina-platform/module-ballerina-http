@@ -19,7 +19,6 @@
 package io.ballerina.stdlib.http.api.client.actions;
 
 import io.ballerina.runtime.api.Environment;
-import io.ballerina.runtime.api.concurrent.StrandMetadata;
 import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.TypeTags;
 import io.ballerina.runtime.api.utils.StringUtils;
@@ -208,7 +207,7 @@ public class HttpClientAction extends AbstractHTTPAction {
     private static Object invokeClientMethod(Environment env, BObject client, String methodName, Object[] paramFeed) {
         return env.yieldAndRun(() -> {
             try {
-                return env.getRuntime().callMethod(client, methodName, new StrandMetadata(true, null), paramFeed);
+                return env.getRuntime().callMethod(client, methodName, null, paramFeed);
             } catch (BError bError) {
                 return HttpUtil.createHttpError("client method invocation failed: " + bError.getErrorMessage(),
                         HttpErrorType.CLIENT_ERROR, bError);
