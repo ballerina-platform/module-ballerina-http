@@ -27,6 +27,10 @@ import io.ballerina.stdlib.http.transport.contract.HttpConnectorListener;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.ResponseHandle;
 
+import java.util.concurrent.CompletableFuture;
+
+import static io.ballerina.stdlib.http.api.nativeimpl.ExternUtils.getResult;
+
 /**
  * {@code GetResponse} action can be used to fetch the response message for a previous asynchronous invocation.
  */
@@ -34,15 +38,17 @@ public class GetResponse extends AbstractHTTPAction {
 
     public static Object getResponse(Environment env, BObject clientObj, BObject handleObj) {
         HttpClientConnector clientConnector = (HttpClientConnector) clientObj.getNativeData(HttpConstants.CLIENT);
-        DataContext dataContext = new DataContext(env, clientConnector, handleObj,
-                                                  null);
-        ResponseHandle responseHandle = (ResponseHandle) handleObj.getNativeData(HttpConstants.TRANSPORT_HANDLE);
-        if (responseHandle == null) {
-            throw HttpUtil.createHttpError("invalid http handle");
-        }
-        clientConnector.getResponse(responseHandle).
-                setHttpConnectorListener(new ResponseListener(dataContext));
-        return null;
+        return env.yieldAndRun(() -> {
+            CompletableFuture<Object> balFuture = new CompletableFuture<>();
+            DataContext dataContext = new DataContext(env, balFuture, clientConnector, handleObj, null);
+            ResponseHandle responseHandle = (ResponseHandle) handleObj.getNativeData(HttpConstants.TRANSPORT_HANDLE);
+            if (responseHandle == null) {
+                throw HttpUtil.createHttpError("invalid http handle");
+            }
+            clientConnector.getResponse(responseHandle).
+                    setHttpConnectorListener(new ResponseListener(dataContext));
+            return getResult(balFuture);
+        });
     }
 
     private static class ResponseListener implements HttpConnectorListener {

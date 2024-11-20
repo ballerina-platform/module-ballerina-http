@@ -31,9 +31,6 @@ import io.netty.handler.codec.http.HttpVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 /**
  * Listener to process the HEAD request related test cases.
  */
@@ -41,10 +38,8 @@ public class HeadRequestMessageProcessorListener implements HttpConnectorListene
 
     private static final Logger LOG = LoggerFactory.getLogger(HeadRequestMessageProcessorListener.class);
 
-    private ExecutorService executor = Executors.newSingleThreadExecutor();
-
     @Override public void onMessage(HttpCarbonMessage httpRequest) {
-        executor.execute(() -> {
+        Thread.startVirtualThread(() -> {
             try {
                 HttpCarbonMessage httpResponse = new HttpCarbonResponse(new DefaultHttpResponse(HttpVersion.HTTP_1_1,
                                                                                                 HttpResponseStatus.OK));

@@ -29,9 +29,6 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 /**
  * {@code Http2RedirectListener} is a HttpConnectorListener which receives messages and respond back with
  * redirect response messages.
@@ -39,8 +36,6 @@ import java.util.concurrent.Executors;
 public class Http2RedirectListener implements HttpConnectorListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(Http2RedirectListener.class);
-
-    private ExecutorService executor = Executors.newSingleThreadExecutor();
 
     private int numberOfRedirects;
     private String expectedResponse;
@@ -55,7 +50,7 @@ public class Http2RedirectListener implements HttpConnectorListener {
 
     @Override
     public void onMessage(HttpCarbonMessage httpRequest) {
-        executor.execute(() -> {
+        Thread.startVirtualThread(() -> {
             try {
                 if (redirectCount < numberOfRedirects) {
                     if (redirectCount != 0) {

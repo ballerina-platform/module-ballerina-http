@@ -18,15 +18,13 @@
 
 package io.ballerina.stdlib.http.api;
 
-import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.Runtime;
-import io.ballerina.runtime.api.async.Callback;
+import io.ballerina.runtime.api.concurrent.StrandMetadata;
 import io.ballerina.runtime.api.types.ServiceType;
 import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
-import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
 import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_INTERCEPTOR_RETURN_ERROR;
@@ -56,7 +54,7 @@ public class HttpRequestInterceptorUnitCallback extends HttpCallableUnitCallback
     }
 
     @Override
-    public void notifySuccess(Object result) {
+    public void handleResult(Object result) {
         if (result instanceof BError) {
             if (!result.equals(requestCtx.getNativeData(HttpConstants.TARGET_SERVICE))) {
                 requestMessage.setHttpStatusCode(500);
@@ -68,7 +66,7 @@ public class HttpRequestInterceptorUnitCallback extends HttpCallableUnitCallback
     }
 
     @Override
-    public void notifyFailure(BError error) { // handles panic and check_panic
+    public void handlePanic(BError error) { // handles panic and check_panic
         cleanupRequestMessage();
         sendFailureResponse(error);
         System.exit(1);
@@ -85,12 +83,9 @@ public class HttpRequestInterceptorUnitCallback extends HttpCallableUnitCallback
     }
 
     public void returnErrorResponse(Object error) {
-        Object[] paramFeed = new Object[4];
+        Object[] paramFeed = new Object[2];
         paramFeed[0] = error;
-        paramFeed[1] = true;
-        paramFeed[2] = null;
-        paramFeed[3] = true;
-
+        paramFeed[1] = null;
         invokeBalMethod(paramFeed, "returnErrorResponse");
     }
 
@@ -165,34 +160,24 @@ public class HttpRequestInterceptorUnitCallback extends HttpCallableUnitCallback
     }
 
     private void returnResponse(Object result) {
-        Object[] paramFeed = new Object[8];
+        Object[] paramFeed = new Object[4];
         paramFeed[0] = result;
-        paramFeed[1] = true;
+        paramFeed[1] = null;
         paramFeed[2] = null;
-        paramFeed[3] = true;
-        paramFeed[4] = null;
-        paramFeed[5] = true;
-        paramFeed[6] = null;
-        paramFeed[7] = true;
-
+        paramFeed[3] = null;
         invokeBalMethod(paramFeed, "returnResponse");
     }
 
     public void invokeBalMethod(Object[] paramFeed, String methodName) {
-        Callback returnCallback = new Callback() {
-            @Override
-            public void notifySuccess(Object result) {
-            }
-
-            @Override
-            public void notifyFailure(BError result) {
+        Thread.startVirtualThread(() -> {
+            try {
+                StrandMetadata metaData = new StrandMetadata(false, null);
+                runtime.callMethod(caller, methodName, metaData, paramFeed);
+            } catch (BError error) {
                 cleanupRequestMessage();
-                HttpUtil.handleFailure(requestMessage, result);
+                HttpUtil.handleFailure(requestMessage, error);
             }
-        };
-        runtime.invokeMethodAsyncSequentially(
-                caller, methodName, null, ModuleUtils.getNotifySuccessMetaData(),
-                returnCallback, null, PredefinedTypes.TYPE_NULL, paramFeed);
+        });
     }
 
     private int getRequestInterceptorId() {

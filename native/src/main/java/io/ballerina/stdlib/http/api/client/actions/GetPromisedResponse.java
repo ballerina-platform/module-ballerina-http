@@ -27,6 +27,10 @@ import io.ballerina.stdlib.http.transport.contract.HttpClientConnectorListener;
 import io.ballerina.stdlib.http.transport.message.Http2PushPromise;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
+import java.util.concurrent.CompletableFuture;
+
+import static io.ballerina.stdlib.http.api.nativeimpl.ExternUtils.getResult;
+
 /**
  * {@code GetPromisedResponse} action can be used to get a push response message associated with a
  * previous asynchronous invocation.
@@ -35,15 +39,18 @@ public class GetPromisedResponse extends AbstractHTTPAction {
 
     public static Object getPromisedResponse(Environment env, BObject clientObj, BObject pushPromiseObj) {
         HttpClientConnector clientConnector = (HttpClientConnector) clientObj.getNativeData(HttpConstants.CLIENT);
-        DataContext dataContext = new DataContext(env, clientConnector,
-                                                  pushPromiseObj, null);
-        Http2PushPromise http2PushPromise = HttpUtil.getPushPromise(pushPromiseObj, null);
-        if (http2PushPromise == null) {
-            throw HttpUtil.createHttpError("invalid push promise");
-        }
-        clientConnector.getPushResponse(http2PushPromise).
-                setPushResponseListener(new PushResponseListener(dataContext), http2PushPromise.getPromisedStreamId());
-        return null;
+        return env.yieldAndRun(() -> {
+            CompletableFuture<Object> balFuture = new CompletableFuture<>();
+            DataContext dataContext = new DataContext(env, balFuture, clientConnector, pushPromiseObj, null);
+            Http2PushPromise http2PushPromise = HttpUtil.getPushPromise(pushPromiseObj, null);
+            if (http2PushPromise == null) {
+                throw HttpUtil.createHttpError("invalid push promise");
+            }
+            clientConnector.getPushResponse(http2PushPromise).
+                    setPushResponseListener(new PushResponseListener(dataContext),
+                            http2PushPromise.getPromisedStreamId());
+            return getResult(balFuture);
+        });
     }
 
     private static class PushResponseListener implements HttpClientConnectorListener {

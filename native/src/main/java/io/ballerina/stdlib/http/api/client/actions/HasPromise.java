@@ -17,13 +17,16 @@
 package io.ballerina.stdlib.http.api.client.actions;
 
 import io.ballerina.runtime.api.Environment;
-import io.ballerina.runtime.api.Future;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnectorListener;
 import io.ballerina.stdlib.http.transport.message.ResponseHandle;
+
+import java.util.concurrent.CompletableFuture;
+
+import static io.ballerina.stdlib.http.api.nativeimpl.ExternUtils.getResult;
 
 /**
  * {@code HasPromise} action can be used to check whether a push promise is available.
@@ -36,16 +39,19 @@ public class HasPromise extends AbstractHTTPAction {
             throw HttpUtil.createHttpError("invalid http handle");
         }
         HttpClientConnector clientConnector = (HttpClientConnector) clientObj.getNativeData(HttpConstants.CLIENT);
-        clientConnector.hasPushPromise(responseHandle).
-                setPromiseAvailabilityListener(new PromiseAvailabilityCheckListener(env.markAsync()));
-        return false;
+        return (boolean) env.yieldAndRun(() -> {
+            CompletableFuture<Object> balFuture = new CompletableFuture<>();
+            clientConnector.hasPushPromise(responseHandle).
+                    setPromiseAvailabilityListener(new PromiseAvailabilityCheckListener(balFuture));
+            return getResult(balFuture);
+        });
     }
 
     private static class PromiseAvailabilityCheckListener implements HttpClientConnectorListener {
 
-        private Future balFuture;
+        private final CompletableFuture<Object> balFuture;
 
-        PromiseAvailabilityCheckListener(Future balFuture) {
+        PromiseAvailabilityCheckListener(CompletableFuture<Object> balFuture) {
             this.balFuture = balFuture;
         }
 

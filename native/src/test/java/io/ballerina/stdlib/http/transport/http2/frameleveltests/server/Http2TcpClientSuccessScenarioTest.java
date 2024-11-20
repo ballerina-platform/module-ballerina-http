@@ -48,8 +48,6 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -116,11 +114,10 @@ public class Http2TcpClientSuccessScenarioTest {
     }
 
     class MessageListener implements HttpConnectorListener {
-        private ExecutorService executor = Executors.newSingleThreadExecutor();
 
         @Override
         public void onMessage(HttpCarbonMessage httpRequest) {
-            executor.execute(() -> {
+            Thread.startVirtualThread(() -> {
                 try {
                     HttpContent httpContent = httpRequest.getHttpContent();
                     HttpCarbonMessage httpResponse = new HttpCarbonResponse(new DefaultHttpResponse(

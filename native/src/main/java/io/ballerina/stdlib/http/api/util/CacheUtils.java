@@ -18,7 +18,7 @@
 
 package io.ballerina.stdlib.http.api.util;
 
-import io.ballerina.runtime.api.PredefinedTypes;
+import io.ballerina.runtime.api.types.PredefinedTypes;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;

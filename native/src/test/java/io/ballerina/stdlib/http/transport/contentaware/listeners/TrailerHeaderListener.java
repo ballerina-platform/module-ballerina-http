@@ -41,8 +41,6 @@ import org.slf4j.LoggerFactory;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * {@code TrailerHeaderListener} is a HttpConnectorListener which receives messages and respond back with
@@ -53,7 +51,6 @@ import java.util.concurrent.Executors;
 public class TrailerHeaderListener extends EchoMessageListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(TrailerHeaderListener.class);
-    private ExecutorService executor = Executors.newSingleThreadExecutor();
     private HttpHeaders expectedTrailer;
     private MessageType messageType;
 
@@ -75,7 +72,7 @@ public class TrailerHeaderListener extends EchoMessageListener {
 
     @Override
     public void onMessage(HttpCarbonMessage httpRequest) {
-        executor.execute(() -> {
+        Thread.startVirtualThread(() -> {
             switch (messageType) {
                 case RESPONSE:
                     HttpCarbonMessage httpResponse = getHttpCarbonMessage();

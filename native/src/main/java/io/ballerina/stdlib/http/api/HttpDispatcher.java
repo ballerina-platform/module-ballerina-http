@@ -18,9 +18,7 @@
 
 package io.ballerina.stdlib.http.api;
 
-import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.Runtime;
-import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.Type;
@@ -51,7 +49,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.CountDownLatch;
 
 import static io.ballerina.stdlib.http.api.HttpConstants.AUTHORIZATION_HEADER;
 import static io.ballerina.stdlib.http.api.HttpConstants.BEARER_AUTHORIZATION_HEADER;
@@ -275,40 +272,35 @@ public class HttpDispatcher {
         BError error = (BError) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
         RemoteMethodParamHandler paramHandler = service.getRemoteMethodParamHandler();
         int sigParamCount = paramHandler.getParamCount();
-        Object[] paramFeed = new Object[sigParamCount * 2];
+        Object[] paramFeed = new Object[sigParamCount];
         for (Parameter param : paramHandler.getOtherParamList()) {
             String typeName = param.getTypeName();
             switch (typeName) {
                 case HttpConstants.REQUEST_CONTEXT:
                     int index = ((NonRecurringParam) param).getIndex();
-                    paramFeed[index++] = requestCtx;
-                    paramFeed[index] = true;
+                    paramFeed[index] = requestCtx;
                     break;
                 case HttpConstants.REQUEST:
                     if (inRequest == null) {
                         inRequest = createRequest(httpCarbonMessage, entityObj);
                     }
                     index = ((NonRecurringParam) param).getIndex();
-                    paramFeed[index++] = inRequest;
-                    paramFeed[index] = true;
+                    paramFeed[index] = inRequest;
                     break;
                 case HttpConstants.STRUCT_GENERIC_ERROR:
                     if (error == null) {
                         error = createError();
                     }
                     index = ((NonRecurringParam) param).getIndex();
-                    paramFeed[index++] = error;
-                    paramFeed[index] = true;
+                    paramFeed[index] = error;
                     break;
                 case HttpConstants.RESPONSE:
                     index = ((NonRecurringParam) param).getIndex();
-                    paramFeed[index++] = response;
-                    paramFeed[index] = true;
+                    paramFeed[index] = response;
                     break;
                 case HttpConstants.CALLER:
                     index = ((NonRecurringParam) param).getIndex();
-                    paramFeed[index++] = caller;
-                    paramFeed[index] = true;
+                    paramFeed[index] = caller;
                     break;
                 default:
                     break;
@@ -339,7 +331,7 @@ public class HttpDispatcher {
         ParamHandler paramHandler = resource.getParamHandler();
         Type[] parameterTypes = getParameterTypes(resource.getBalResource());
         int sigParamCount = parameterTypes.length;
-        Object[] paramFeed = new Object[sigParamCount * 2];
+        Object[] paramFeed = new Object[sigParamCount];
         boolean treatNilableAsOptional = resource.isTreatNilableAsOptional();
         // Following was written assuming that they are validated
         for (Parameter param : paramHandler.getParamList()) {
@@ -351,37 +343,32 @@ public class HttpDispatcher {
                 case HttpConstants.CALLER:
                     int index = ((NonRecurringParam) param).getIndex();
                     httpCaller.set(HttpConstants.CALLER_PRESENT_FIELD, true);
-                    paramFeed[index++] = httpCaller;
-                    paramFeed[index] = true;
+                    paramFeed[index] = httpCaller;
                     break;
                 case HttpConstants.REQUEST_CONTEXT:
                     index = ((NonRecurringParam) param).getIndex();
-                    paramFeed[index++] = requestCtx;
-                    paramFeed[index] = true;
+                    paramFeed[index] = requestCtx;
                     break;
                 case HttpConstants.STRUCT_GENERIC_ERROR:
                     if (error == null) {
                         error = createError();
                     }
                     index = ((NonRecurringParam) param).getIndex();
-                    paramFeed[index++] = error;
-                    paramFeed[index] = true;
+                    paramFeed[index] = error;
                     break;
                 case HttpConstants.REQUEST:
                     if (inRequest == null) {
                         inRequest = createRequest(httpCarbonMessage, entityObj);
                     }
                     index = ((NonRecurringParam) param).getIndex();
-                    paramFeed[index++] = inRequest;
-                    paramFeed[index] = true;
+                    paramFeed[index] = inRequest;
                     break;
                 case HttpConstants.HEADERS:
                     if (inRequest == null) {
                         inRequest = createRequest(httpCarbonMessage, entityObj);
                     }
                     index = ((NonRecurringParam) param).getIndex();
-                    paramFeed[index++] = createHeadersObject(inRequest);
-                    paramFeed[index] = true;
+                    paramFeed[index] = createHeadersObject(inRequest);
                     break;
                 case HttpConstants.QUERY_PARAM:
                     ((AllQueryParams) param).populateFeed(httpCarbonMessage, paramHandler, paramFeed,
@@ -474,40 +461,14 @@ public class HttpDispatcher {
 
     private static Object invokeJwtDecode(Runtime runtime, String authHeader) {
         final Object[] jwtInformation = new Object[1];
-        CountDownLatch countDownLatch = new CountDownLatch(1);
-        Callback decodeCallback = new Callback() {
-            @Override
-            public void notifySuccess(Object result) {
-                if (!(result instanceof Exception)) {
-                    jwtInformation[0] = result;
-                }
-                countDownLatch.countDown();
-            }
-
-            @Override
-            public void notifyFailure(BError bError) {
-                countDownLatch.countDown();
-            }
-        };
-
         String[] splitValues = authHeader.split(WHITESPACE);
         if (splitValues.length != 2) {
             return null;
         }
-        runtime.invokeMethodAsyncSequentially(
-                ValueCreator.createObjectValue(ModuleUtils.getHttpPackage(), JWT_DECODER_CLASS_NAME),
-                JWT_DECODE_METHOD_NAME,
-                null,
-                ModuleUtils.getNotifySuccessMetaData(),
-                decodeCallback,
-                null,
-                PredefinedTypes.TYPE_ANY,
-                StringUtils.fromString(splitValues[1]),
-                true);
-        try {
-            countDownLatch.await();
-        } catch (InterruptedException exception) {
-            logger.warn("Interrupted before receiving the response");
+        Object result = runtime.callMethod(ValueCreator.createObjectValue(ModuleUtils.getHttpPackage(),
+                JWT_DECODER_CLASS_NAME), JWT_DECODE_METHOD_NAME, null, StringUtils.fromString(splitValues[1]));
+        if (!(result instanceof Exception)) {
+            jwtInformation[0] = result;
         }
         return jwtInformation[0];
     }

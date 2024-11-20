@@ -77,7 +77,6 @@ public class SendingHeaders implements SenderState {
     private final Http2ConnectionEncoder encoder;
     private final Http2ClientChannel http2ClientChannel;
     private int streamId;
-    private boolean continueHeader;
 
     public SendingHeaders(Http2TargetHandler http2TargetHandler, Http2RequestWriter http2RequestWriter) {
         this.http2TargetHandler = http2TargetHandler;

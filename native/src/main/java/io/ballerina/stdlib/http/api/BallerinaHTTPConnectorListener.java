@@ -18,7 +18,7 @@
 package io.ballerina.stdlib.http.api;
 
 import io.ballerina.runtime.api.Runtime;
-import io.ballerina.runtime.api.async.Callback;
+import io.ballerina.runtime.api.concurrent.StrandMetadata;
 import io.ballerina.runtime.api.constants.RuntimeConstants;
 import io.ballerina.runtime.api.types.ObjectType;
 import io.ballerina.runtime.api.utils.TypeUtils;
@@ -29,7 +29,6 @@ import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.observability.ObservabilityConstants;
 import io.ballerina.runtime.observability.ObserveUtils;
 import io.ballerina.runtime.observability.ObserverContext;
-import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.transport.contract.HttpConnectorListener;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import org.slf4j.Logger;
@@ -183,20 +182,22 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
             inboundMessage.setProperty(HttpConstants.OBSERVABILITY_CONTEXT_PROPERTY, observerContext);
         }
         Runtime runtime = httpServicesRegistry.getRuntime();
-        Callback callback = new HttpCallableUnitCallback(inboundMessage, runtime, httpResource,
+        HttpCallableUnitCallback callback = new HttpCallableUnitCallback(inboundMessage, runtime, httpResource,
                 httpServicesRegistry.isPossibleLastService());
         BObject service = httpResource.getParentService().getBalService();
         String resourceName = httpResource.getName();
         ObjectType serviceType = (ObjectType) TypeUtils.getReferredType(TypeUtils.getType(service));
-        if (serviceType.isIsolated() && serviceType.isIsolated(resourceName)) {
-            runtime.invokeMethodAsyncConcurrently(service, resourceName, null,
-                                                  ModuleUtils.getOnMessageMetaData(), callback, properties,
-                                                  httpResource.getBalResource().getReturnType(), signatureParams);
-        } else {
-            runtime.invokeMethodAsyncSequentially(service, resourceName, null,
-                                                  ModuleUtils.getOnMessageMetaData(), callback, properties,
-                                                  httpResource.getBalResource().getReturnType(), signatureParams);
-        }
+        Thread.startVirtualThread(() -> {
+            Object result;
+            boolean isIsolated = serviceType.isIsolated() && serviceType.isIsolated(resourceName);
+            StrandMetadata metaData = new StrandMetadata(isIsolated, properties);
+            try {
+                result = runtime.callMethod(service, resourceName, metaData, signatureParams);
+                callback.handleResult(result);
+            } catch (BError error) {
+                callback.handlePanic(error);
+            }
+        });
     }
 
     protected boolean accessed(HttpCarbonMessage inboundMessage) {
@@ -234,27 +235,29 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
     protected void extractPropertiesAndStartInterceptorResourceExecution(HttpCarbonMessage inboundMessage,
                                                                          InterceptorResource resource,
                                                                          HTTPInterceptorServicesRegistry registry) {
+
         Map<String, Object> properties = collectRequestProperties(inboundMessage, true);
         Runtime runtime = registry.getRuntime();
         Object[] signatureParams = HttpDispatcher.getSignatureParameters(resource, inboundMessage, endpointConfig,
                 registry.getRuntime());
-        Callback callback = new HttpRequestInterceptorUnitCallback(
-                inboundMessage, runtime, this);
+        HttpRequestInterceptorUnitCallback callback = new HttpRequestInterceptorUnitCallback(inboundMessage, runtime,
+                this);
         BObject service = resource.getParentService().getBalService();
         String resourceName = resource.getName();
 
         inboundMessage.removeProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
 
         ObjectType serviceType = (ObjectType) TypeUtils.getReferredType(TypeUtils.getType(service));
-        if (serviceType.isIsolated() && serviceType.isIsolated(resourceName)) {
-            runtime.invokeMethodAsyncConcurrently(service, resourceName, null,
-                                                  ModuleUtils.getOnMessageMetaData(), callback, properties,
-                                                  resource.getBalResource().getReturnType(), signatureParams);
-        } else {
-            runtime.invokeMethodAsyncSequentially(service, resourceName, null,
-                                                  ModuleUtils.getOnMessageMetaData(), callback, properties,
-                                                  resource.getBalResource().getReturnType(), signatureParams);
-        }
+        Thread.startVirtualThread(() -> {
+            boolean isIsolated = serviceType.isIsolated() && serviceType.isIsolated(resourceName);
+            StrandMetadata metaData = new StrandMetadata(isIsolated, properties);
+            try {
+                Object result = runtime.callMethod(service, resourceName, metaData, signatureParams);
+                callback.handleResult(result);
+            } catch (BError error) {
+                callback.handlePanic(error);
+            }
+        });
     }
 
     protected void executeMainResourceOnMessage(HttpCarbonMessage inboundMessage) {

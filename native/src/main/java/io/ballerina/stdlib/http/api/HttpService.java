@@ -17,15 +17,15 @@
  */
 package io.ballerina.stdlib.http.api;
 
-import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.Runtime;
-import io.ballerina.runtime.api.async.Callback;
+import io.ballerina.runtime.api.concurrent.StrandMetadata;
 import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.flags.SymbolFlags;
 import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.MethodType;
 import io.ballerina.runtime.api.types.ObjectType;
+import io.ballerina.runtime.api.types.PredefinedTypes;
 import io.ballerina.runtime.api.types.ResourceMethodType;
 import io.ballerina.runtime.api.types.ServiceType;
 import io.ballerina.runtime.api.utils.StringUtils;
@@ -53,7 +53,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -491,31 +490,18 @@ public class HttpService implements Service {
         BArray interceptorsArrayFromService;
         if (includesInterceptableService) {
             final Object[] createdInterceptors = new Object[1];
-            CountDownLatch latch = new CountDownLatch(1);
-            runtime.invokeMethodAsyncConcurrently(service.getBalService(), CREATE_INTERCEPTORS_FUNCTION_NAME, null,
-                    null, new Callback() {
-                @Override
-                public void notifySuccess(Object response) {
-                    if (response instanceof BError) {
-                        log.error("Error occurred while creating interceptors", response);
-                    } else {
-                        createdInterceptors[0] = response;
-                    }
-                    latch.countDown();
-                }
-
-                @Override
-                public void notifyFailure(BError bError) {
-                    bError.printStackTrace();
-                    System.exit(1);
-                }
-            }, null, PredefinedTypes.TYPE_ANY);
             try {
-                latch.await();
-            } catch (InterruptedException exception) {
-                log.warn("Interrupted before getting the return type");
+                Object response = runtime.callMethod(service.getBalService(), CREATE_INTERCEPTORS_FUNCTION_NAME,
+                        new StrandMetadata(true, null));
+                if (response instanceof BError) {
+                    log.error("Error occurred while creating interceptors", response);
+                } else {
+                    createdInterceptors[0] = response;
+                }
+            } catch (BError bError) {
+                bError.printStackTrace();
+                System.exit(1);
             }
-
             if (Objects.isNull(createdInterceptors[0]) || (createdInterceptors[0] instanceof BArray &&
                     ((BArray) createdInterceptors[0]).size() == 0)) {
                 service.setInterceptorServicesRegistries(interceptorServicesRegistries);
