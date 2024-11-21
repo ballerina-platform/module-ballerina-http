@@ -40,6 +40,7 @@ import java.io.InputStream;
 import java.util.Locale;
 import java.util.Objects;
 
+import static io.ballerina.stdlib.http.api.HttpConstants.FUTURE_COMPLETE_ERR_MSG;
 import static io.ballerina.stdlib.mime.util.EntityBodyHandler.constructBlobDataSource;
 import static io.ballerina.stdlib.mime.util.EntityBodyHandler.constructJsonDataSource;
 import static io.ballerina.stdlib.mime.util.EntityBodyHandler.constructStringDataSource;
@@ -229,7 +230,13 @@ public class ExternHttpDataSourceBuilder extends MimeDataSourceBuilder {
     }
 
     private static void setReturnValuesAndNotify(Future balFuture, Object result) {
-        balFuture.complete(result);
+        try {
+            balFuture.complete(result);
+        } catch (BError error) {
+            String resultType = result instanceof BError ? "error" : "success";
+            System.err.printf(FUTURE_COMPLETE_ERR_MSG, "return data source builder " + resultType + " result",
+                    error.getMessage());
+        }
     }
 
     private static void updateDataSourceAndNotify(Future balFuture, BObject entityObj,

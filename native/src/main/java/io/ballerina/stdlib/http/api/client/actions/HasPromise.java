@@ -18,12 +18,15 @@ package io.ballerina.stdlib.http.api.client.actions;
 
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Future;
+import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnectorListener;
 import io.ballerina.stdlib.http.transport.message.ResponseHandle;
+
+import static io.ballerina.stdlib.http.api.HttpConstants.FUTURE_COMPLETE_ERR_MSG;
 
 /**
  * {@code HasPromise} action can be used to check whether a push promise is available.
@@ -51,7 +54,11 @@ public class HasPromise extends AbstractHTTPAction {
 
         @Override
         public void onPushPromiseAvailability(boolean isPromiseAvailable) {
-            balFuture.complete(isPromiseAvailable);
+            try {
+                balFuture.complete(isPromiseAvailable);
+            } catch (BError err) {
+                System.err.printf(FUTURE_COMPLETE_ERR_MSG, "check promise availability", err.getMessage());
+            }
         }
     }
 

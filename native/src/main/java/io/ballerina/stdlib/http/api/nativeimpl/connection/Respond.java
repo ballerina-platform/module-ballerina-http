@@ -92,7 +92,7 @@ public class Respond extends ConnectionAction {
                                   "as the response has been already used.", inboundRequestMsg.getSequenceId());
             }
             BError httpError = HttpUtil.createHttpError(errorMessage, HttpErrorType.GENERIC_LISTENER_ERROR);
-            dataContext.getFuture().complete(httpError);
+            dataContext.completeFuture(httpError, "notify outbound dirty response");
             return null;
         }
         outboundResponseObj.addNativeData(HttpConstants.DIRTY_RESPONSE, true);
@@ -107,7 +107,7 @@ public class Respond extends ConnectionAction {
             HttpUtil.checkFunctionValidity(inboundRequestMsg, outboundResponseMsg);
         } catch (BError e) {
             log.debug(e.getPrintableStackTrace(), e);
-            dataContext.getFuture().complete(e);
+            dataContext.completeFuture(e, "notify function availability failure");
             return null;
         }
 
@@ -151,14 +151,14 @@ public class Respond extends ConnectionAction {
             }
         } catch (BError e) {
             log.debug(e.getPrintableStackTrace(), e);
-            dataContext.getFuture().complete(
-                    HttpUtil.createHttpError(e.getMessage(), HttpErrorType.GENERIC_LISTENER_ERROR));
+            dataContext.completeFuture(HttpUtil.createHttpError(e.getMessage(), HttpErrorType.GENERIC_LISTENER_ERROR),
+                    "notify outbound response sent error");
         } catch (Throwable e) {
             //Exception is already notified by http transport.
             String errorMessage = "Couldn't complete outbound response: " + e.getMessage();
             log.debug(errorMessage, e);
-            dataContext.getFuture().complete(
-                    HttpUtil.createHttpError(errorMessage, HttpErrorType.GENERIC_LISTENER_ERROR));
+            dataContext.completeFuture(HttpUtil.createHttpError(errorMessage, HttpErrorType.GENERIC_LISTENER_ERROR),
+                    "notify outbound response completion error");
         }
         return null;
     }

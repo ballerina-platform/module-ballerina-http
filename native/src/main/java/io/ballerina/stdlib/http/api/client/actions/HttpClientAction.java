@@ -52,6 +52,7 @@ import static io.ballerina.stdlib.http.api.HttpConstants.CLIENT_ENDPOINT_SERVICE
 import static io.ballerina.stdlib.http.api.HttpConstants.CURRENT_TRANSACTION_CONTEXT_PROPERTY;
 import static io.ballerina.stdlib.http.api.HttpConstants.EMPTY;
 import static io.ballerina.stdlib.http.api.HttpConstants.EQUAL_SIGN;
+import static io.ballerina.stdlib.http.api.HttpConstants.FUTURE_COMPLETE_ERR_MSG;
 import static io.ballerina.stdlib.http.api.HttpConstants.MAIN_STRAND;
 import static io.ballerina.stdlib.http.api.HttpConstants.ORIGIN_HOST;
 import static io.ballerina.stdlib.http.api.HttpConstants.POOLED_BYTE_BUFFER_FACTORY;
@@ -226,7 +227,12 @@ public class HttpClientAction extends AbstractHTTPAction {
         env.getRuntime().invokeMethodAsync(client, methodName, null, null, new Callback() {
             @Override
             public void notifySuccess(Object result) {
-                balFuture.complete(result);
+                try {
+                    balFuture.complete(result);
+                } catch (BError err) {
+                    System.err.printf(FUTURE_COMPLETE_ERR_MSG, "invoke client method with success result",
+                            err.getMessage());
+                }
             }
 
             @Override
@@ -234,7 +240,12 @@ public class HttpClientAction extends AbstractHTTPAction {
                 BError invocationError =
                         HttpUtil.createHttpError("client method invocation failed: " + bError.getErrorMessage(),
                                                  HttpErrorType.CLIENT_ERROR, bError);
-                balFuture.complete(invocationError);
+                try {
+                    balFuture.complete(invocationError);
+                } catch (BError err) {
+                    System.err.printf(FUTURE_COMPLETE_ERR_MSG, "invoke client method with failure result",
+                            err.getMessage());
+                }
             }
         }, propertyMap, PredefinedTypes.TYPE_NULL, paramFeed);
         return null;

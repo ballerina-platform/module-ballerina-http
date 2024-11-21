@@ -613,6 +613,8 @@ public class HttpConstants {
 
     public static final BString REQUEST_CTX_MEMBERS = StringUtils.fromString("members");
 
+    public static final String FUTURE_COMPLETE_ERR_MSG = "%s failed with bal future completion error: %s%n";
+
     private HttpConstants() {
     }
 }

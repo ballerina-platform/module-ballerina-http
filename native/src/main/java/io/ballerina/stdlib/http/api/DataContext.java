@@ -25,6 +25,8 @@ import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
+import static io.ballerina.stdlib.http.api.HttpConstants.FUTURE_COMPLETE_ERR_MSG;
+
 /**
  * {@code DataContext} is the wrapper to hold {@code Context} and {@code Callback}.
  */
@@ -55,17 +57,17 @@ public class DataContext {
     public void notifyInboundResponseStatus(BObject inboundResponse, BError httpConnectorError) {
         //Make the request associate with this response consumable again so that it can be reused.
         if (inboundResponse != null) {
-            getFuture().complete(inboundResponse);
+            completeFuture(inboundResponse, "notify inbound response status");
         } else if (httpConnectorError != null) {
-            getFuture().complete(httpConnectorError);
+            completeFuture(httpConnectorError, "notify inbound response connector error");
         } else {
             BError err = HttpUtil.createHttpError("inbound response retrieval error", HttpErrorType.CLIENT_ERROR);
-            getFuture().complete(err);
+            completeFuture(err, "notify inbound response retrieval error");
         }
     }
 
     public void notifyOutboundResponseStatus(BError httpConnectorError) {
-        getFuture().complete(httpConnectorError);
+        completeFuture(httpConnectorError, "notify outbound response connector error");
     }
 
     public HttpCarbonMessage getOutboundRequest() {
@@ -84,7 +86,11 @@ public class DataContext {
         return environment;
     }
 
-    public Future getFuture() {
-        return balFuture;
+    public void completeFuture(Object result, String methodCall) {
+        try {
+            balFuture.complete(result);
+        } catch (BError err) {
+            System.err.printf(FUTURE_COMPLETE_ERR_MSG, methodCall, err.getMessage());
+        }
     }
 }
