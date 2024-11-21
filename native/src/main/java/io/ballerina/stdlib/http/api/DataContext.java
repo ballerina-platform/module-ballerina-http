@@ -91,6 +91,7 @@ public class DataContext {
             balFuture.complete(result);
         } catch (BError err) {
             System.err.printf(FUTURE_COMPLETE_ERR_MSG, methodCall, err.getMessage());
+            HttpUtil.printStacktraceIfError(result);
         }
     }
 }

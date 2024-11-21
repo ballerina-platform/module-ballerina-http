@@ -130,7 +130,7 @@ public class HttpCallableUnitCallback implements Callback {
             @Override
             public void notifySuccess(Object result) {
                 stopObserverContext();
-                printStacktraceIfError(result);
+                HttpUtil.printStacktraceIfError(result);
             }
 
             @Override
@@ -188,17 +188,11 @@ public class HttpCallableUnitCallback implements Callback {
             HttpUtil.methodInvocationCheck(requestMessage, HttpConstants.INVALID_STATUS_CODE, ILLEGAL_FUNCTION_INVOKED);
         } catch (BError e) {
             if (result != null) { // handles nil return and end of resource exec
-                printStacktraceIfError(result);
+                HttpUtil.printStacktraceIfError(result);
                 err.println(HttpConstants.HTTP_RUNTIME_WARNING_PREFIX + e.getMessage());
             }
             return true;
         }
         return false;
-    }
-
-    private void printStacktraceIfError(Object result) {
-        if (result instanceof BError) {
-            ((BError) result).printStackTrace();
-        }
     }
 }

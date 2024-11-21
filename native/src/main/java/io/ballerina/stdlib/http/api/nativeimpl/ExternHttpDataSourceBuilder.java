@@ -236,6 +236,7 @@ public class ExternHttpDataSourceBuilder extends MimeDataSourceBuilder {
             String resultType = result instanceof BError ? "error" : "success";
             System.err.printf(FUTURE_COMPLETE_ERR_MSG, "return data source builder " + resultType + " result",
                     error.getMessage());
+            HttpUtil.printStacktraceIfError(result);
         }
     }
 

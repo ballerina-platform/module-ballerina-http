@@ -1971,6 +1971,12 @@ public class HttpUtil {
         return false;
     }
 
+    public static void printStacktraceIfError(Object result) {
+        if (result instanceof BError) {
+            ((BError) result).printStackTrace();
+        }
+    }
+
     private HttpUtil() {
     }
 }

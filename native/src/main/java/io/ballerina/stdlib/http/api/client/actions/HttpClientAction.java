@@ -232,6 +232,7 @@ public class HttpClientAction extends AbstractHTTPAction {
                 } catch (BError err) {
                     System.err.printf(FUTURE_COMPLETE_ERR_MSG, "invoke client method with success result",
                             err.getMessage());
+                    HttpUtil.printStacktraceIfError(result);
                 }
             }
 
@@ -245,6 +246,7 @@ public class HttpClientAction extends AbstractHTTPAction {
                 } catch (BError err) {
                     System.err.printf(FUTURE_COMPLETE_ERR_MSG, "invoke client method with failure result",
                             err.getMessage());
+                    HttpUtil.printStacktraceIfError(invocationError);
                 }
             }
         }, propertyMap, PredefinedTypes.TYPE_NULL, paramFeed);
