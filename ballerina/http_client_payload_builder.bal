@@ -25,10 +25,10 @@ type stringType typedesc<string>;
 type byteArrType typedesc<byte[]>;
 type mapStringType typedesc<map<string>>;
 
-isolated function performDataBinding(Response response, TargetType targetType) returns anydata|ClientError {
+isolated function performDataBinding(Response response, TargetType targetType, boolean requireLaxDataBinding) returns anydata|ClientError {
     string contentType = response.getContentType().trim();
     if contentType == "" {
-        return getBuilderFromType(response, targetType);
+        return getBuilderFromType(response, targetType, requireLaxDataBinding);
     }
     if XML_PATTERN.isFullMatch(contentType) {
         return xmlPayloadBuilder(response, targetType);
@@ -39,13 +39,13 @@ isolated function performDataBinding(Response response, TargetType targetType) r
     } else if OCTET_STREAM_PATTERN.isFullMatch(contentType) {
         return blobPayloadBuilder(response, targetType);
     } else if JSON_PATTERN.isFullMatch(contentType) {
-        return jsonPayloadBuilder(response, targetType);
+        return jsonPayloadBuilder(response, targetType, requireLaxDataBinding);
     } else {
-        return getBuilderFromType(response, targetType);
+        return getBuilderFromType(response, targetType, requireLaxDataBinding);
     }
 }
 
-isolated function getBuilderFromType(Response response, TargetType targetType) returns anydata|ClientError {
+isolated function getBuilderFromType(Response response, TargetType targetType, boolean requireLaxDataBinding) returns anydata|ClientError {
     if targetType is typedesc<string> {
         return response.getTextPayload();
     } else if targetType is typedesc<string?> {
@@ -67,7 +67,7 @@ isolated function getBuilderFromType(Response response, TargetType targetType) r
     } else {
         // Due to the limitation of https://github.com/ballerina-platform/ballerina-spec/issues/1090
         // all the other types including union are considered as json subtypes.
-        return jsonPayloadBuilder(response, targetType);
+        return jsonPayloadBuilder(response, targetType, requireLaxDataBinding);
     }
 }
 
@@ -135,20 +135,20 @@ isolated function blobPayloadBuilder(Response response, TargetType targetType) r
     }
 }
 
-isolated function jsonPayloadBuilder(Response response, TargetType targetType) returns anydata|ClientError {
+isolated function jsonPayloadBuilder(Response response, TargetType targetType, boolean requireLaxDataBinding) returns anydata|ClientError {
     if targetType is typedesc<record {| anydata...; |}> {
-        return nonNilablejsonPayloadBuilder(response, targetType);
+        return nonNilablejsonPayloadBuilder(response, targetType, requireLaxDataBinding);
     } else if targetType is typedesc<record {| anydata...; |}?> {
-        return nilablejsonPayloadBuilder(response, targetType);
+        return nilablejsonPayloadBuilder(response, targetType, requireLaxDataBinding);
     } else if targetType is typedesc<record {| anydata...; |}[]> {
-        return nonNilablejsonPayloadBuilder(response, targetType);
+        return nonNilablejsonPayloadBuilder(response, targetType, requireLaxDataBinding);
     } else if targetType is typedesc<record {| anydata...; |}[]?> {
-        return nilablejsonPayloadBuilder(response, targetType);
+        return nilablejsonPayloadBuilder(response, targetType, requireLaxDataBinding);
     } else if targetType is typedesc<map<json>> {
         json payload = check response.getJsonPayload();
         return <map<json>> payload;
     } else if targetType is typedesc<anydata> {
-        return nilablejsonPayloadBuilder(response, targetType);
+        return nilablejsonPayloadBuilder(response, targetType, requireLaxDataBinding);
     } else {
         // Consume payload to avoid memory leaks
         byte[]|ClientError payload = response.getBinaryPayload();
@@ -159,18 +159,30 @@ isolated function jsonPayloadBuilder(Response response, TargetType targetType) r
     }
 }
 
-isolated function nonNilablejsonPayloadBuilder(Response response, typedesc<anydata> targetType)
+isolated function nonNilablejsonPayloadBuilder(Response response, typedesc<anydata> targetType, boolean requireLaxDataBinding)
         returns anydata|ClientError {
     json payload = check response.getJsonPayload();
-    var result = jsondata:parseAsType(payload, {enableConstraintValidation: false, allowDataProjection: false}, targetType);
+    var result = jsondata:parseAsType(
+        payload,
+        requireLaxDataBinding 
+            ? {allowDataProjection: {nilAsOptionalField: true, absentAsNilableType: true}, enableConstraintValidation: false}
+            : {enableConstraintValidation: false, allowDataProjection: false},
+        targetType
+    );
     return result is error ? createPayloadBindingError(result) : result;
 }
 
-isolated function nilablejsonPayloadBuilder(Response response, typedesc<anydata> targetType)
+isolated function nilablejsonPayloadBuilder(Response response, typedesc<anydata> targetType, boolean requireLaxDataBinding)
         returns anydata|ClientError {
     json|ClientError payload = response.getJsonPayload();
     if payload is json {
-        var result = jsondata:parseAsType(payload, {enableConstraintValidation: false, allowDataProjection: false}, targetType);
+        var result = jsondata:parseAsType(
+            payload,
+            requireLaxDataBinding 
+                ? {allowDataProjection: {nilAsOptionalField: true, absentAsNilableType: true}, enableConstraintValidation: false}
+                : {enableConstraintValidation: false, allowDataProjection: false},
+            targetType
+        );
         return result is error ? createPayloadBindingError(result) : result;
     } else {
         return payload is NoContentError ? () : payload;

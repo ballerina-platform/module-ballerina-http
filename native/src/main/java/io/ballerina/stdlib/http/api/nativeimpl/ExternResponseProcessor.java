@@ -170,8 +170,8 @@ public final class ExternResponseProcessor {
     }
 
     public static Object processResponse(Environment env, BObject response, BTypedesc targetType,
-                                         boolean requireValidation) {
-        return getResponseWithType(response, targetType.getDescribingType(), requireValidation, env);
+                                         boolean requireValidation, boolean requireLaxDataBinding) {
+        return getResponseWithType(response, targetType.getDescribingType(), requireValidation, requireLaxDataBinding, env);
     }
 
     public static Object buildStatusCodeResponse(BTypedesc statusCodeResponseTypeDesc, BObject status, BMap headers,
@@ -192,7 +192,7 @@ public final class ExternResponseProcessor {
     }
 
     private static Object getResponseWithType(BObject response, Type targetType, boolean requireValidation,
-                                              Environment env) {
+                                              boolean requireLaxDataBinding, Environment env) {
         long responseStatusCode = getStatusCode(response);
 
         // Find the most specific status code record type
@@ -206,7 +206,7 @@ public final class ExternResponseProcessor {
         if (statusCodeResponseType.isPresent() &&
                 TypeUtils.getImpliedType(statusCodeResponseType.get()) instanceof RecordType statusCodeRecordType) {
             try {
-                return generateStatusCodeResponseType(response, requireValidation, env, statusCodeRecordType,
+                return generateStatusCodeResponseType(response, requireValidation, requireLaxDataBinding, env, statusCodeRecordType,
                         responseStatusCode);
             } catch (StatusCodeBindingException exp) {
                 return getStatusCodeResponseDataBindingError(env, response, exp.getMessage(), exp.getBError(),
@@ -222,8 +222,8 @@ public final class ExternResponseProcessor {
         return response.getIntValue(StringUtils.fromString(STATUS_CODE));
     }
 
-    private static Object generateStatusCodeResponseType(BObject response, boolean requireValidation, Environment env,
-                                                         RecordType statusCodeRecordType, long responseStatusCode)
+    private static Object generateStatusCodeResponseType(BObject response, boolean requireValidation, boolean requireLaxDataBinding,
+                                                         Environment env, RecordType statusCodeRecordType, long responseStatusCode)
             throws StatusCodeBindingException {
         String statusCodeObjName = STATUS_CODE_OBJS.get(Long.toString(responseStatusCode));
         if (Objects.isNull(statusCodeObjName)) {
@@ -252,15 +252,15 @@ public final class ExternResponseProcessor {
         if (statusCodeRecordType.getFields().containsKey(STATUS_CODE_RESPONSE_BODY_FIELD)) {
             payloadType = statusCodeRecordType.getFields().get(STATUS_CODE_RESPONSE_BODY_FIELD).getFieldType();
         }
-        Object[] paramFeed = getParamFeedForStatusCodeBinding(requireValidation, statusCodeRecordType, payloadType,
-                status, headers, mediaType);
+        Object[] paramFeed = getParamFeedForStatusCodeBinding(requireValidation, statusCodeRecordType,
+                payloadType, status, headers, mediaType, requireLaxDataBinding);
         return getStatusCodeResponse(env, response, paramFeed);
     }
 
     private static Object[] getParamFeedForStatusCodeBinding(boolean requireValidation, RecordType statusCodeType,
                                                              Type payloadType, Object status, Object headers,
-                                                             Object mediaType) {
-        Object[] paramFeed = new Object[14];
+                                                             Object mediaType, boolean requireLaxDataBinding) {
+        Object[] paramFeed = new Object[15];
         paramFeed[0] = Objects.isNull(payloadType) ? null : ValueCreator.createTypedescValue(payloadType);
         paramFeed[1] = true;
         paramFeed[2] = ValueCreator.createTypedescValue(statusCodeType);
@@ -275,6 +275,7 @@ public final class ExternResponseProcessor {
         paramFeed[11] = true;
         paramFeed[12] = isDefaultStatusCodeResponseType(statusCodeType);
         paramFeed[13] = true;
+        paramFeed[14] = requireLaxDataBinding;
         return paramFeed;
     }
 

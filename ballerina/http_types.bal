@@ -105,6 +105,8 @@ public type CommonClientConfiguration record {|
     boolean validation = true;
     # Provides settings related to client socket configuration
     ClientSocketConfig socketConfig = {};
+    # Enables or disalbles relaxed data binding on the client side. Disabled by default
+    boolean laxDataBinding = false;
 |};
 
 # Represents a server-provided hyperlink
