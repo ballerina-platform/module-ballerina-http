@@ -1919,15 +1919,19 @@ public class HttpUtil {
     }
 
     /**
-     * This method will remove the escape character "\" from a string and encode it. This is used for both basePath and
-     * resource path sanitization. When the special chars are present in those paths, user can escape them in order to
-     * get through the compilation phrase. Then listener sanitize and register paths in both basePath map and resource
-     * syntax tree using encoded values as during the dispatching, the path matches with raw path.
+     * This method will remove the escape character "\" and identifier quote character "'" from a string and encode it.
+     * This is used for both basePath and resource path sanitization. When the special chars are present in those
+     * paths, user can escape them in order to get through the compilation phrase. Then listener sanitize and register
+     * paths in both basePath map and resource syntax tree using encoded values as during the dispatching, the path
+     * matches with raw path.
      *
      * @param segment path segment
      * @return encoded value
      */
     public static String unescapeAndEncodeValue(String segment) {
+        if (segment.length() > 1 && segment.startsWith("'")) {
+            segment = segment.substring(1);
+        }
         if (!segment.contains("\\")) {
             return segment;
         }
