@@ -491,8 +491,7 @@ public class HttpService implements Service {
         if (includesInterceptableService) {
             final Object[] createdInterceptors = new Object[1];
             try {
-                Object response = runtime.callMethod(service.getBalService(), CREATE_INTERCEPTORS_FUNCTION_NAME,
-                        new StrandMetadata(true, null));
+                Object response = runtime.callMethod(service.getBalService(), CREATE_INTERCEPTORS_FUNCTION_NAME, null);
                 if (response instanceof BError) {
                     log.error("Error occurred while creating interceptors", response);
                 } else {

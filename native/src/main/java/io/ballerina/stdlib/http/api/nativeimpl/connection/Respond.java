@@ -20,9 +20,6 @@ package io.ballerina.stdlib.http.api.nativeimpl.connection;
 
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Runtime;
-import io.ballerina.runtime.api.concurrent.StrandMetadata;
-import io.ballerina.runtime.api.types.ObjectType;
-import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.observability.ObserveUtils;
@@ -265,10 +262,7 @@ public class Respond extends ConnectionAction {
         String methodName = service.getServiceType().equals(HttpConstants.RESPONSE_ERROR_INTERCEPTOR)
                             ? HttpConstants.INTERCEPT_RESPONSE_ERROR : HttpConstants.INTERCEPT_RESPONSE;
         try {
-            ObjectType serviceType = (ObjectType) TypeUtils.getReferredType(TypeUtils.getType(serviceObj));
-            Object result = runtime.callMethod(serviceObj, methodName,
-                    new StrandMetadata(serviceType.isIsolated() && serviceType.isIsolated(methodName), null),
-                    signatureParams);
+            Object result = runtime.callMethod(serviceObj, methodName, null, signatureParams);
             callback.handleResult(result);
         } catch (BError bError) {
             callback.handlePanic(bError);
