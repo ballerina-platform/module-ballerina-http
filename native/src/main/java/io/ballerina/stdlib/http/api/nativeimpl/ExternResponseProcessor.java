@@ -263,31 +263,6 @@ public final class ExternResponseProcessor {
             return createHttpError(STATUS_CODE_RES_CREATION_FAILED, STATUS_CODE_RESPONSE_BINDING_ERROR,
                     ErrorCreator.createError(throwable));
         }
-        Object[] paramFeed = getParamFeedForStatusCodeBinding(requireValidation, statusCodeRecordType,
-                payloadType, status, headers, mediaType, requireLaxDataBinding);
-        return getStatusCodeResponse(env, response, paramFeed);
-    }
-
-    private static Object[] getParamFeedForStatusCodeBinding(boolean requireValidation, RecordType statusCodeType,
-                                                             Type payloadType, Object status, Object headers,
-                                                             Object mediaType, boolean requireLaxDataBinding) {
-        Object[] paramFeed = new Object[15];
-        paramFeed[0] = Objects.isNull(payloadType) ? null : ValueCreator.createTypedescValue(payloadType);
-        paramFeed[1] = true;
-        paramFeed[2] = ValueCreator.createTypedescValue(statusCodeType);
-        paramFeed[3] = true;
-        paramFeed[4] = requireValidation;
-        paramFeed[5] = true;
-        paramFeed[6] = status;
-        paramFeed[7] = true;
-        paramFeed[8] = headers;
-        paramFeed[9] = true;
-        paramFeed[10] = mediaType;
-        paramFeed[11] = true;
-        paramFeed[12] = isDefaultStatusCodeResponseType(statusCodeType);
-        paramFeed[13] = true;
-        paramFeed[14] = requireLaxDataBinding;
-        return paramFeed;
     }
 
     private static Object getHeaders(BObject response, boolean requireValidation, RecordType statusCodeRecordType) {
