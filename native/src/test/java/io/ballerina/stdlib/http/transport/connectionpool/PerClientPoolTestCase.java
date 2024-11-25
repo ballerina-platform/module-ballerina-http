@@ -42,9 +42,7 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.CompletableFuture;
 
 import static org.junit.Assert.assertNotEquals;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -57,8 +55,6 @@ import static org.testng.AssertJUnit.assertNotNull;
  */
 public class PerClientPoolTestCase {
     private static final Logger LOG = LoggerFactory.getLogger(PerClientPoolTestCase.class);
-
-    private ExecutorService executor = Executors.newFixedThreadPool(2);
 
     private HttpWsConnectorFactory httpWsConnectorFactory;
     private ServerConnector serverConnector;
@@ -86,15 +82,19 @@ public class PerClientPoolTestCase {
     @Test
     public void testPerClientConnectionPool() {
         try {
-            Future<String> requestOneResponse;
-            Future<String> requestTwoResponse;
+            final CompletableFuture<String> requestOneResponse = new CompletableFuture<>();
+            final CompletableFuture<String> requestTwoResponse = new CompletableFuture<>();
 
             ClientWorker clientWorkerOne = new ClientWorker();
             ClientWorker clientWorkerTwo = new ClientWorker();
 
-            requestOneResponse = executor.submit(clientWorkerOne);
+            Thread.startVirtualThread(() -> {
+                requestOneResponse.complete(clientWorkerOne.call());
+            });
             assertNotNull(requestOneResponse.get());
-            requestTwoResponse = executor.submit(clientWorkerTwo);
+            Thread.startVirtualThread(() -> {
+                requestTwoResponse.complete(clientWorkerTwo.call());
+            });
             assertNotNull(requestTwoResponse.get());
 
             assertNotEquals(requestOneResponse.get(), requestTwoResponse.get());
@@ -119,7 +119,7 @@ public class PerClientPoolTestCase {
         private String response;
 
         @Override
-        public String call() throws Exception {
+        public String call() {
             try {
                 URI baseURI = URI.create(String.format("http://%s:%d", "localhost", TestUtil.SERVER_CONNECTOR_PORT));
                 HttpURLConnection urlConn = TestUtil.request(baseURI, "/", HttpMethod.POST.name(), true);

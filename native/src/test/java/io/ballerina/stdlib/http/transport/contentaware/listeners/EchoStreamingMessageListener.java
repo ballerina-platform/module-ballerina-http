@@ -32,21 +32,17 @@ import io.netty.handler.codec.http.HttpVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 /**
  * A Message processor which echos the incoming message.
  */
 public class EchoStreamingMessageListener implements HttpConnectorListener {
     private static final Logger LOG = LoggerFactory.getLogger(EchoStreamingMessageListener.class);
 
-    private ExecutorService executor = Executors.newSingleThreadExecutor();
     private Exception receivedException;
 
     @Override
     public void onMessage(HttpCarbonMessage httpRequest) {
-        executor.execute(() -> {
+        Thread.startVirtualThread(() -> {
             try {
                 HttpCarbonMessage httpResponse = new HttpCarbonResponse(new DefaultHttpResponse(HttpVersion.HTTP_1_1,
                                                                                                 HttpResponseStatus.OK));

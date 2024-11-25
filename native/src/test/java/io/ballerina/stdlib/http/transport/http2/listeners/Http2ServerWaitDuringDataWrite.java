@@ -37,8 +37,6 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Sleeps during response data write.
@@ -46,7 +44,6 @@ import java.util.concurrent.Executors;
 public class Http2ServerWaitDuringDataWrite implements HttpConnectorListener {
     private static final Logger LOG = LoggerFactory.getLogger(Http2ServerWaitDuringDataWrite.class);
     private long waitTimeInMillis;
-    private ExecutorService executor = Executors.newScheduledThreadPool(2);
 
     public Http2ServerWaitDuringDataWrite(long waitTimeInMillis) {
         this.waitTimeInMillis = waitTimeInMillis;
@@ -54,7 +51,7 @@ public class Http2ServerWaitDuringDataWrite implements HttpConnectorListener {
 
     @Override
     public void onMessage(HttpCarbonMessage httpRequest) {
-        executor.execute(() -> {
+        Thread.startVirtualThread(() -> {
             try {
                 HttpCarbonMessage httpResponse = new HttpCarbonResponse(
                         new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK));

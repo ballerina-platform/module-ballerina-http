@@ -16,16 +16,14 @@
 
 package io.ballerina.stdlib.http.api;
 
-import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.Runtime;
-import io.ballerina.runtime.api.async.Callback;
+import io.ballerina.runtime.api.concurrent.StrandMetadata;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.observability.ObserveUtils;
 import io.ballerina.runtime.observability.ObserverContext;
-import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
 import java.util.Locale;
@@ -39,7 +37,7 @@ import static java.lang.System.err;
  *
  * @since 0.94
  */
-public class HttpCallableUnitCallback implements Callback {
+public class HttpCallableUnitCallback {
     private static final String ILLEGAL_FUNCTION_INVOKED = "illegal return: response has already been sent";
 
     private final BObject caller;
@@ -85,8 +83,7 @@ public class HttpCallableUnitCallback implements Callback {
         return caller;
     }
 
-    @Override
-    public void notifySuccess(Object result) {
+    public void handleResult(Object result) {
         if (alreadyResponded(result)) {
             stopObserverContext();
             return;
@@ -102,44 +99,31 @@ public class HttpCallableUnitCallback implements Callback {
     }
 
     private void returnResponse(Object result) {
-        Object[] paramFeed = new Object[8];
+        Object[] paramFeed = new Object[4];
         paramFeed[0] = result;
-        paramFeed[1] = true;
-        paramFeed[2] = Objects.nonNull(returnMediaType) ? StringUtils.fromString(returnMediaType) : null;
-        paramFeed[3] = true;
-        paramFeed[4] = cacheConfig;
-        paramFeed[5] = true;
-        paramFeed[6] = Objects.nonNull(links) && !links.isEmpty() ? links : null;
-        paramFeed[7] = true;
-
+        paramFeed[1] = Objects.nonNull(returnMediaType) ? StringUtils.fromString(returnMediaType) : null;
+        paramFeed[2] = cacheConfig;
+        paramFeed[3] = Objects.nonNull(links) && !links.isEmpty() ? links : null;
         invokeBalMethod(paramFeed, "returnResponse");
     }
 
     private void returnErrorResponse(BError error) {
-        Object[] paramFeed = new Object[4];
+        Object[] paramFeed = new Object[2];
         paramFeed[0] = error;
-        paramFeed[1] = true;
-        paramFeed[2] = returnMediaType != null ? StringUtils.fromString(returnMediaType) : null;
-        paramFeed[3] = true;
-
+        paramFeed[1] = returnMediaType != null ? StringUtils.fromString(returnMediaType) : null;
         invokeBalMethod(paramFeed, "returnErrorResponse");
     }
 
     public void invokeBalMethod(Object[] paramFeed, String methodName) {
-        Callback returnCallback = new Callback() {
-            @Override
-            public void notifySuccess(Object result) {
+        Thread.startVirtualThread(() -> {
+            try {
+                StrandMetadata metaData = new StrandMetadata(false, null);
+                runtime.callMethod(caller, methodName, metaData, paramFeed);
                 stopObserverContext();
+            } catch (BError error) {
+                sendFailureResponse(error);
             }
-
-            @Override
-            public void notifyFailure(BError result) {
-                sendFailureResponse(result);
-            }
-        };
-        runtime.invokeMethodAsyncSequentially(
-                caller, methodName, null, ModuleUtils.getNotifySuccessMetaData(),
-                returnCallback, null, PredefinedTypes.TYPE_NULL, paramFeed);
+        });
     }
 
     public void stopObserverContext() {
@@ -152,8 +136,7 @@ public class HttpCallableUnitCallback implements Callback {
         }
     }
 
-    @Override
-    public void notifyFailure(BError error) { // handles panic and check_panic
+    public void handlePanic(BError error) { // handles panic and check_panic
         // Allow the panics from internal authentication/authorization to be handled by the interceptors.
         if (error.getType().getName().equals(HttpErrorType.INTERNAL_LISTENER_AUTHN_ERROR.getErrorName())
                 || error.getType().getName().equals(HttpErrorType.INTERNAL_LISTENER_AUTHZ_ERROR.getErrorName())) {

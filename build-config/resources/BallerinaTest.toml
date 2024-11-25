@@ -9,9 +9,9 @@ name = "@test.common@"
 repository = "local"
 version = "@toml.version@"
 
-[platform.java17]
+[platform.java21]
 graalvmCompatible = true
 
-[[platform.java17.dependency]]
+[[platform.java21.dependency]]
 scope = "testOnly"
 path = "../../test-utils/build/libs/http-test-utils-@project.version@.jar"

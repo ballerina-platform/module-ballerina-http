@@ -39,6 +39,8 @@ dependencies {
     implementation group: 'org.ballerinalang', name: 'ballerina-parser', version: "${ballerinaLangVersion}"
     implementation group: 'io.ballerina.openapi', name: 'ballerina-to-openapi', version: "${ballerinaToOpenApiVersion}"
 
+    implementation group: 'io.ballerina.scan', name: 'scan-command', version: "${balScanVersion}"
+
     externalJars group: 'io.ballerina.openapi', name: 'ballerina-to-openapi', version: "${ballerinaToOpenApiVersion}"
 }
 
@@ -56,8 +58,11 @@ checkstyle {
 checkstyleMain.dependsOn(":checkstyle:downloadCheckstyleRuleFiles")
 
 spotbugsMain {
-    effort "max"
-    reportLevel "low"
+    def classLoader = plugins["com.github.spotbugs"].class.classLoader
+    def SpotBugsConfidence = classLoader.findLoadedClass("com.github.spotbugs.snom.Confidence")
+    def SpotBugsEffort = classLoader.findLoadedClass("com.github.spotbugs.snom.Effort")
+    effort = SpotBugsEffort.MAX
+    reportLevel = SpotBugsConfidence.LOW
     reportsDir = file("$project.buildDir/reports/spotbugs")
     reports {
         html.enabled true

@@ -9,9 +9,9 @@ name = "http_test_common"
 repository = "local"
 version = "2.13.0"
 
-[platform.java17]
+[platform.java21]
 graalvmCompatible = true
 
-[[platform.java17.dependency]]
+[[platform.java21.dependency]]
 scope = "testOnly"
 path = "../../test-utils/build/libs/http-test-utils-2.13.0-SNAPSHOT.jar"

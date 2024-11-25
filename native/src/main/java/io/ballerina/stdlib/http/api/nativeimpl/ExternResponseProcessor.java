@@ -18,10 +18,7 @@
 package io.ballerina.stdlib.http.api.nativeimpl;
 
 import io.ballerina.runtime.api.Environment;
-import io.ballerina.runtime.api.Future;
-import io.ballerina.runtime.api.PredefinedTypes;
-import io.ballerina.runtime.api.TypeTags;
-import io.ballerina.runtime.api.async.Callback;
+import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.flags.SymbolFlags;
@@ -29,9 +26,11 @@ import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.Field;
 import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.types.ObjectType;
+import io.ballerina.runtime.api.types.PredefinedTypes;
 import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.ReferenceType;
 import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.types.TypeTags;
 import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
@@ -170,8 +169,8 @@ public final class ExternResponseProcessor {
     }
 
     public static Object processResponse(Environment env, BObject response, BTypedesc targetType,
-                                         boolean requireValidation, boolean requireLaxDataBinding) {
-        return getResponseWithType(response, targetType.getDescribingType(), requireValidation, requireLaxDataBinding, env);
+                                         boolean requireValidation) {
+        return getResponseWithType(response, targetType.getDescribingType(), requireValidation, env);
     }
 
     public static Object buildStatusCodeResponse(BTypedesc statusCodeResponseTypeDesc, BObject status, BMap headers,
@@ -192,7 +191,7 @@ public final class ExternResponseProcessor {
     }
 
     private static Object getResponseWithType(BObject response, Type targetType, boolean requireValidation,
-                                              boolean requireLaxDataBinding, Environment env) {
+                                              Environment env) {
         long responseStatusCode = getStatusCode(response);
 
         // Find the most specific status code record type
@@ -206,7 +205,7 @@ public final class ExternResponseProcessor {
         if (statusCodeResponseType.isPresent() &&
                 TypeUtils.getImpliedType(statusCodeResponseType.get()) instanceof RecordType statusCodeRecordType) {
             try {
-                return generateStatusCodeResponseType(response, requireValidation, requireLaxDataBinding, env, statusCodeRecordType,
+                return generateStatusCodeResponseType(response, requireValidation, env, statusCodeRecordType,
                         responseStatusCode);
             } catch (StatusCodeBindingException exp) {
                 return getStatusCodeResponseDataBindingError(env, response, exp.getMessage(), exp.getBError(),
@@ -222,8 +221,8 @@ public final class ExternResponseProcessor {
         return response.getIntValue(StringUtils.fromString(STATUS_CODE));
     }
 
-    private static Object generateStatusCodeResponseType(BObject response, boolean requireValidation, boolean requireLaxDataBinding,
-                                                         Environment env, RecordType statusCodeRecordType, long responseStatusCode)
+    private static Object generateStatusCodeResponseType(BObject response, boolean requireValidation, Environment env,
+                                                         RecordType statusCodeRecordType, long responseStatusCode)
             throws StatusCodeBindingException {
         String statusCodeObjName = STATUS_CODE_OBJS.get(Long.toString(responseStatusCode));
         if (Objects.isNull(statusCodeObjName)) {
@@ -251,6 +250,18 @@ public final class ExternResponseProcessor {
         Type payloadType = null;
         if (statusCodeRecordType.getFields().containsKey(STATUS_CODE_RESPONSE_BODY_FIELD)) {
             payloadType = statusCodeRecordType.getFields().get(STATUS_CODE_RESPONSE_BODY_FIELD).getFieldType();
+        }
+        try {
+            return env.getRuntime().callMethod(response, BUILD_STATUS_CODE_RESPONSE, null,
+                    Objects.isNull(payloadType) ? null : ValueCreator.createTypedescValue(payloadType),
+                    ValueCreator.createTypedescValue(statusCodeRecordType),
+                    requireValidation, status, headers, mediaType,
+                    isDefaultStatusCodeResponseType(statusCodeRecordType));
+        } catch (BError error) {
+            return createHttpError(STATUS_CODE_RES_CREATION_FAILED, STATUS_CODE_RESPONSE_BINDING_ERROR, error);
+        } catch (Throwable throwable) {
+            return createHttpError(STATUS_CODE_RES_CREATION_FAILED, STATUS_CODE_RESPONSE_BINDING_ERROR,
+                    ErrorCreator.createError(throwable));
         }
         Object[] paramFeed = getParamFeedForStatusCodeBinding(requireValidation, statusCodeRecordType,
                 payloadType, status, headers, mediaType, requireLaxDataBinding);
@@ -520,56 +531,29 @@ public final class ExternResponseProcessor {
     }
 
     private static Object getStatusCodeResponseBindingError(Environment env, BObject response, String reasonPhrase) {
-        Future balFuture = env.markAsync();
-        Callback returnCallback = getReturnCallback(balFuture, APPLICATION_RES_ERROR_CREATION_FAILED);
-        Object[] paramFeed = new Object[2];
-        paramFeed[0] = StringUtils.fromString(reasonPhrase);
-        paramFeed[1] = true;
-        env.getRuntime().invokeMethodAsyncSequentially(response, GET_STATUS_CODE_RESPONSE_BINDING_ERROR, null,
-                ModuleUtils.getNotifySuccessMetaData(), returnCallback, null, PredefinedTypes.TYPE_ERROR, paramFeed);
-        return null;
+        try {
+            return env.getRuntime().callMethod(response, GET_STATUS_CODE_RESPONSE_BINDING_ERROR, null,
+                    StringUtils.fromString(reasonPhrase));
+        } catch (BError error) {
+            return createHttpError(APPLICATION_RES_ERROR_CREATION_FAILED, STATUS_CODE_RESPONSE_BINDING_ERROR, error);
+        } catch (Throwable throwable) {
+            return createHttpError(APPLICATION_RES_ERROR_CREATION_FAILED, STATUS_CODE_RESPONSE_BINDING_ERROR,
+                    ErrorCreator.createError(throwable));
+        }
     }
 
     private static Object getStatusCodeResponseDataBindingError(Environment env, BObject response, String reasonPhrase,
                                                                 BError cause, boolean isDefaultStatusCodeResponse,
                                                                 String errorType) {
-        Future balFuture = env.markAsync();
-        Callback returnCallback = getReturnCallback(balFuture, APPLICATION_RES_ERROR_CREATION_FAILED);
-        Object[] paramFeed = new Object[8];
-        paramFeed[0] = StringUtils.fromString(reasonPhrase);
-        paramFeed[1] = true;
-        paramFeed[2] = isDefaultStatusCodeResponse;
-        paramFeed[3] = true;
-        paramFeed[4] = StringUtils.fromString(errorType);
-        paramFeed[5] = true;
-        paramFeed[6] = cause;
-        paramFeed[7] = true;
-        env.getRuntime().invokeMethodAsyncSequentially(response, GET_STATUS_CODE_RESPONSE_DATA_BINDING_ERROR, null,
-                ModuleUtils.getNotifySuccessMetaData(), returnCallback, null, PredefinedTypes.TYPE_ERROR, paramFeed);
-        return null;
-    }
-
-    private static Object getStatusCodeResponse(Environment env, BObject response, Object[] paramFeed) {
-        Future balFuture = env.markAsync();
-        Callback returnCallback = getReturnCallback(balFuture, STATUS_CODE_RES_CREATION_FAILED);
-        env.getRuntime().invokeMethodAsyncSequentially(response, BUILD_STATUS_CODE_RESPONSE, null,
-                ModuleUtils.getNotifySuccessMetaData(), returnCallback, null, PredefinedTypes.TYPE_ANY,
-                paramFeed);
-        return null;
-    }
-
-    private static Callback getReturnCallback(Future balFuture, String errorMessage) {
-        return new Callback() {
-            @Override
-            public void notifySuccess(Object result) {
-                balFuture.complete(result);
-            }
-
-            @Override
-            public void notifyFailure(BError bError) {
-                BError error = createHttpError(errorMessage, STATUS_CODE_RESPONSE_BINDING_ERROR, bError);
-                balFuture.complete(error);
-            }
-        };
+        try {
+            return env.getRuntime().callMethod(response, GET_STATUS_CODE_RESPONSE_DATA_BINDING_ERROR, null,
+                    StringUtils.fromString(reasonPhrase), isDefaultStatusCodeResponse,
+                    StringUtils.fromString(errorType), cause);
+        } catch (BError error) {
+            return createHttpError(APPLICATION_RES_ERROR_CREATION_FAILED, STATUS_CODE_RESPONSE_BINDING_ERROR, error);
+        } catch (Throwable throwable) {
+            return createHttpError(APPLICATION_RES_ERROR_CREATION_FAILED, STATUS_CODE_RESPONSE_BINDING_ERROR,
+                    ErrorCreator.createError(throwable));
+        }
     }
 }

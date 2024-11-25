@@ -34,9 +34,6 @@ import io.netty.handler.codec.http.LastHttpContent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 /**
  * This class implements GetFullMessageListener. GetFullMessageListener is responsible for echoing back the
  * request payload using getFullHttpCarbonMessage API.
@@ -44,12 +41,11 @@ import java.util.concurrent.Executors;
 public class GetFullMessageListener implements HttpConnectorListener {
     private static final Logger LOG = LoggerFactory.getLogger(GetFullMessageListener.class);
 
-    private ExecutorService executor = Executors.newSingleThreadExecutor();
-
     @Override
     public void onMessage(HttpCarbonMessage httpRequest) {
-        executor.execute(() -> httpRequest.getFullHttpCarbonMessage().addListener(new FullHttpMessageListener() {
-            @Override
+        Thread.startVirtualThread(() -> httpRequest.getFullHttpCarbonMessage()
+                .addListener(new FullHttpMessageListener() {
+                    @Override
             public void onComplete(HttpCarbonMessage httpCarbonMessage) {
                 HttpCarbonMessage httpResponse =
                         new HttpCarbonResponse(new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK));

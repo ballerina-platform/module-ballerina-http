@@ -42,9 +42,7 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.CompletableFuture;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -56,9 +54,7 @@ public class ConnectionPoolProxyTestCase {
 
     private static final Logger LOG = LoggerFactory.getLogger(ConnectionPoolProxyTestCase.class);
 
-    private Future<String> requestTwoResponse;
-    private ExecutorService executor = Executors.newFixedThreadPool(2);
-
+    private CompletableFuture<String> requestTwoResponse = new CompletableFuture<>();
     private HttpWsConnectorFactory httpWsConnectorFactory;
     private ServerConnector serverConnector;
     private HttpServer httpServer;
@@ -86,23 +82,29 @@ public class ConnectionPoolProxyTestCase {
     @Test
     public void testConnectionReuseForProxy() {
         try {
-            Future<String> requestOneResponse;
-            Future<String> requestThreeResponse;
+            final CompletableFuture<String> requestOneResponse = new CompletableFuture<>();
+            final CompletableFuture<String> requestThreeResponse = new CompletableFuture<>();
 
             ClientWorker clientWorkerOne = new ClientWorker();
             ClientWorker clientWorkerTwo = new ClientWorker();
             ClientWorker clientWorkerThree = new ClientWorker();
 
-            requestOneResponse = executor.submit(clientWorkerOne);
+            Thread.startVirtualThread(() -> {
+                requestOneResponse.complete(clientWorkerOne.call());
+            });
 
             // While the first request is being processed by the back-end,
             // we send the second request which forces the client connector to
             // create a new connection.
             Thread.sleep(2500);
-            requestTwoResponse = executor.submit(clientWorkerTwo);
+            Thread.startVirtualThread(() -> {
+                requestTwoResponse.complete(clientWorkerTwo.call());
+            });
             assertNotNull(requestOneResponse.get());
 
-            requestThreeResponse = executor.submit(clientWorkerThree);
+            Thread.startVirtualThread(() -> {
+                requestThreeResponse.complete(clientWorkerThree.call());
+            });
 
             assertEquals(requestOneResponse.get(), requestThreeResponse.get());
         } catch (Exception e) {
@@ -127,7 +129,7 @@ public class ConnectionPoolProxyTestCase {
         private String response;
 
         @Override
-        public String call() throws Exception {
+        public String call() {
             try {
                 URI baseURI = URI.create(String.format("http://%s:%d", "localhost", TestUtil.SERVER_CONNECTOR_PORT));
                 HttpURLConnection urlConn = TestUtil

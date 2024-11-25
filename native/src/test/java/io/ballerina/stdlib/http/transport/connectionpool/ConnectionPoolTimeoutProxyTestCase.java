@@ -44,9 +44,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.CompletableFuture;
 
 import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertNotNull;
@@ -58,7 +56,6 @@ public class ConnectionPoolTimeoutProxyTestCase {
 
     private static final Logger LOG = LoggerFactory.getLogger(ConnectionPoolTimeoutProxyTestCase.class);
 
-    private ExecutorService executor = Executors.newFixedThreadPool(2);
     private HttpWsConnectorFactory httpWsConnectorFactory;
     private ServerConnector serverConnector;
     private HttpServer httpServer;
@@ -91,15 +88,19 @@ public class ConnectionPoolTimeoutProxyTestCase {
             + "This test case validates that.")
     public void connectionPoolTimeoutProxyTestCase() {
         try {
-            Future<String> requestOneResponse;
-            Future<String> requestTwoResponse;
+            final CompletableFuture<String> requestOneResponse = new CompletableFuture<>();
+            final CompletableFuture<String> requestTwoResponse = new CompletableFuture<>();
 
             ClientWorker clientWorker = new ClientWorker();
 
-            requestOneResponse = executor.submit(clientWorker);
+            Thread.startVirtualThread(() -> {
+                requestOneResponse.complete(clientWorker.call());
+            });
             assertNotNull(requestOneResponse.get());
 
-            requestTwoResponse = executor.submit(clientWorker);
+            Thread.startVirtualThread(() -> {
+                requestTwoResponse.complete(clientWorker.call());
+            });
             assertNotEquals(requestOneResponse.get(), requestTwoResponse.get());
         } catch (Exception e) {
             TestUtil.handleException("IOException occurred while running testConnectionReuseForProxy", e);
@@ -111,7 +112,7 @@ public class ConnectionPoolTimeoutProxyTestCase {
         private String response;
 
         @Override
-        public String call() throws Exception {
+        public String call() {
             try {
                 URI baseURI = URI.create(String.format("http://%s:%d", "localhost", TestUtil.SERVER_CONNECTOR_PORT));
                 HttpResponse<String> httpResponse = Unirest.post(baseURI.resolve("/").toString())

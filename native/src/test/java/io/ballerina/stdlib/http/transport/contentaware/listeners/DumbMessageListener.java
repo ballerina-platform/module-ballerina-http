@@ -26,9 +26,6 @@ import io.netty.handler.codec.http.LastHttpContent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 /**
  * A class implements a DumbMessageListener. DumbMessageListener is responsible for just reading the inbound request
  * payload and doing nothing.
@@ -36,11 +33,9 @@ import java.util.concurrent.Executors;
 public class DumbMessageListener implements HttpConnectorListener {
     private static final Logger LOG = LoggerFactory.getLogger(DumbMessageListener.class);
 
-    private ExecutorService executor = Executors.newSingleThreadExecutor();
-
     @Override
     public void onMessage(HttpCarbonMessage httpRequest) {
-        executor.execute(() -> {
+        Thread.startVirtualThread(() -> {
             try {
                 do {
                     HttpContent httpContent = httpRequest.getHttpContent();
