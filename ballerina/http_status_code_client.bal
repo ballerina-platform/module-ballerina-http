@@ -26,7 +26,7 @@ import ballerina/observe;
 #                HTTP service in resilient manner
 # + cookieStore - Stores the cookies of the client
 # + requireValidation - Enables the inbound payload validation functionalty which provided by the constraint package
-# + requireLaxDataBinding - Enables or disalbles relaxed data binding on the client side.
+# + requireLaxDataBinding - Enables or disables relaxed data binding on the client side.
 public client isolated class StatusCodeClient {
     *StatusCodeClientObject;
 
