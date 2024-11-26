@@ -170,7 +170,8 @@ public final class ExternResponseProcessor {
 
     public static Object processResponse(Environment env, BObject response, BTypedesc targetType,
                                          boolean requireValidation, boolean requireLaxDataBinding) {
-        return getResponseWithType(response, targetType.getDescribingType(), requireValidation, requireLaxDataBinding, env);
+        return getResponseWithType(response, targetType.getDescribingType(), requireValidation,
+                requireLaxDataBinding, env);
     }
 
     public static Object buildStatusCodeResponse(BTypedesc statusCodeResponseTypeDesc, BObject status, BMap headers,
@@ -205,8 +206,8 @@ public final class ExternResponseProcessor {
         if (statusCodeResponseType.isPresent() &&
                 TypeUtils.getImpliedType(statusCodeResponseType.get()) instanceof RecordType statusCodeRecordType) {
             try {
-                return generateStatusCodeResponseType(response, requireValidation, requireLaxDataBinding, env, statusCodeRecordType,
-                        responseStatusCode);
+                return generateStatusCodeResponseType(response, requireValidation, requireLaxDataBinding, env,
+                        statusCodeRecordType, responseStatusCode);
             } catch (StatusCodeBindingException exp) {
                 return getStatusCodeResponseDataBindingError(env, response, exp.getMessage(), exp.getBError(),
                         isDefaultStatusCodeResponseType(statusCodeRecordType), exp.getErrorType());
@@ -221,8 +222,9 @@ public final class ExternResponseProcessor {
         return response.getIntValue(StringUtils.fromString(STATUS_CODE));
     }
 
-    private static Object generateStatusCodeResponseType(BObject response, boolean requireValidation, boolean requireLaxDataBinding,
-                                                         Environment env, RecordType statusCodeRecordType, long responseStatusCode)
+    private static Object generateStatusCodeResponseType(BObject response, boolean requireValidation,
+                                                         boolean requireLaxDataBinding, Environment env,
+                                                         RecordType statusCodeRecordType, long responseStatusCode)
             throws StatusCodeBindingException {
         String statusCodeObjName = STATUS_CODE_OBJS.get(Long.toString(responseStatusCode));
         if (Objects.isNull(statusCodeObjName)) {
