@@ -98,7 +98,7 @@ public class HttpService implements Service {
     private BArray balInterceptorServicesArray;
     private byte[] introspectionPayload = new byte[0];
     private Boolean constraintValidation = true;
-    private Boolean laxDataBinding;
+    private Boolean laxDataBinding = false;
 
     protected HttpService(BObject service, String basePath) {
         this.balService = service;
