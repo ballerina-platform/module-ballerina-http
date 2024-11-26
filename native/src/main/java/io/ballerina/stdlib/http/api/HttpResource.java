@@ -110,6 +110,7 @@ public class HttpResource implements Resource {
     private BMap cacheConfig;
     private boolean treatNilableAsOptional;
     private boolean constraintValidation;
+    private boolean laxDataBinding;
 
     protected HttpResource(MethodType resource, HttpService parentService) {
         this.balResource = resource;
@@ -309,6 +310,7 @@ public class HttpResource implements Resource {
         }
         processResourceCors(httpResource, httpService);
         httpResource.setConstraintValidation(httpService.getConstraintValidation());
+        httpResource.setLaxDataBinding(httpService.getLaxDataBinding());
         httpResource.prepareAndValidateSignatureParams();
         if (Objects.nonNull(httpResource.getResourceLinkName()) && httpResource.linkReturnMediaTypes.isEmpty()) {
             Type resourceReturnType = httpResource.getBalResource().getType().getReturnType();
@@ -328,6 +330,14 @@ public class HttpResource implements Resource {
 
     private boolean getConstraintValidation() {
         return this.constraintValidation;
+    }
+
+    private void setLaxDataBinding(boolean laxDataBinding) {
+        this.laxDataBinding = laxDataBinding;
+    }
+
+    private boolean getLaxDataBinding() {
+        return this.laxDataBinding;
     }
 
     private void updateLinkedResources(Object[] links) {
@@ -386,7 +396,8 @@ public class HttpResource implements Resource {
     }
 
     private void prepareAndValidateSignatureParams() {
-        paramHandler = new ParamHandler(getBalResource(), this.pathParamCount, this.getConstraintValidation());
+        paramHandler = new ParamHandler(getBalResource(), this.pathParamCount, this.getConstraintValidation(),
+                this.getLaxDataBinding());
     }
 
     @Override

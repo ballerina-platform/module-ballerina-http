@@ -28,6 +28,7 @@ import ballerina/time;
 #                HTTP service in resilient manner
 # + cookieStore - Stores the cookies of the client
 # + requireValidation - Enables the inbound payload validation functionalty which provided by the constraint package
+# + requireLaxDataBinding - Enables or disables relaxed data binding.
 public client isolated class Client {
     *ClientObject;
 
@@ -35,6 +36,7 @@ public client isolated class Client {
     private CookieStore? cookieStore = ();
     final HttpClient httpClient;
     private final boolean requireValidation;
+    private final boolean requireLaxDataBinding;
 
     # Gets invoked to initialize the `client`. During initialization, the configurations provided through the `config`
     # record is used to determine which type of additional behaviours are added to the endpoint (e.g., caching,
@@ -53,6 +55,7 @@ public client isolated class Client {
         }
         self.httpClient = check initialize(url, config, self.cookieStore);
         self.requireValidation = config.validation;
+        self.requireLaxDataBinding = config.laxDataBinding;
         return;
     }
 
@@ -95,7 +98,7 @@ public client isolated class Client {
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, HTTP_POST, response.statusCode, self.url);
         }
-        return processResponse(response, targetType, self.requireValidation);
+        return processResponse(response, targetType, self.requireValidation, self.requireLaxDataBinding);
     }
 
     # The client resource function to send HTTP PUT requests to HTTP endpoints.
@@ -137,7 +140,7 @@ public client isolated class Client {
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, HTTP_PUT, response.statusCode, self.url);
         }
-        return processResponse(response, targetType, self.requireValidation);
+        return processResponse(response, targetType, self.requireValidation, self.requireLaxDataBinding);
     }
 
     # The client resource function to send HTTP PATCH requests to HTTP endpoints.
@@ -179,7 +182,7 @@ public client isolated class Client {
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, HTTP_PATCH, response.statusCode, self.url);
         }
-        return processResponse(response, targetType, self.requireValidation);
+        return processResponse(response, targetType, self.requireValidation, self.requireLaxDataBinding);
     }
 
     # The client resource function to send HTTP DELETE requests to HTTP endpoints.
@@ -221,7 +224,7 @@ public client isolated class Client {
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, HTTP_DELETE, response.statusCode, self.url);
         }
-        return processResponse(response, targetType, self.requireValidation);
+        return processResponse(response, targetType, self.requireValidation, self.requireLaxDataBinding);
     }
 
     # The client resource function to send HTTP HEAD requests to HTTP endpoints.
@@ -283,7 +286,7 @@ public client isolated class Client {
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, HTTP_GET, response.statusCode, self.url);
         }
-        return processResponse(response, targetType, self.requireValidation);
+        return processResponse(response, targetType, self.requireValidation, self.requireLaxDataBinding);
     }
 
     # The client resource function to send HTTP OPTIONS requests to HTTP endpoints.
@@ -319,7 +322,7 @@ public client isolated class Client {
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, HTTP_OPTIONS, response.statusCode, self.url);
         }
-        return processResponse(response, targetType, self.requireValidation);
+        return processResponse(response, targetType, self.requireValidation, self.requireLaxDataBinding);
     }
 
     # Invokes an HTTP call with the specified HTTP verb.
@@ -347,7 +350,7 @@ public client isolated class Client {
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, httpVerb, response.statusCode, self.url);
         }
-        return processResponse(response, targetType, self.requireValidation);
+        return processResponse(response, targetType, self.requireValidation, self.requireLaxDataBinding);
     }
 
     # The `Client.forward()` function can be used to invoke an HTTP call with inbound request's HTTP verb
@@ -368,7 +371,7 @@ public client isolated class Client {
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, request.method, response.statusCode, self.url);
         }
-        return processResponse(response, targetType, self.requireValidation);
+        return processResponse(response, targetType, self.requireValidation, self.requireLaxDataBinding);
     }
 
     # Submits an HTTP request to a service with the specified HTTP verb.
@@ -720,7 +723,7 @@ isolated function createStatusCodeResponseDataBindingError(DataBindingErrorType 
     }
 }
 
-isolated function processResponse(Response|ClientError response, TargetType targetType, boolean requireValidation)
+isolated function processResponse(Response|ClientError response, TargetType targetType, boolean requireValidation, boolean requireLaxDataBinding)
         returns Response|stream<SseEvent, error?>|anydata|ClientError {
     if response is ClientError || hasHttpResponseType(targetType) {
         return response;
@@ -741,7 +744,7 @@ isolated function processResponse(Response|ClientError response, TargetType targ
         }
     }
     if targetType is typedesc<anydata> {
-        anydata payload = check performDataBinding(response, targetType);
+        anydata payload = check performDataBinding(response, targetType, requireLaxDataBinding);
         if requireValidation {
             return performDataValidation(payload, targetType);
         }
@@ -773,21 +776,21 @@ isolated function validateEventStreamContentType(Response response) returns Clie
     }
 }
 
-isolated function processResponseNew(Response|ClientError response, typedesc<StatusCodeResponse> targetType, boolean requireValidation)
-        returns StatusCodeResponse|ClientError {
+isolated function processResponseNew(Response|ClientError response, typedesc<StatusCodeResponse> targetType, boolean requireValidation, 
+    boolean requireLaxDataBinding) returns StatusCodeResponse|ClientError {
     if response is ClientError {
         return response;
     }
-    return externProcessResponseNew(response, targetType, requireValidation);
+    return externProcessResponseNew(response, targetType, requireValidation, requireLaxDataBinding);
 }
 
-isolated function externProcessResponse(Response response, TargetType targetType, boolean requireValidation)
+isolated function externProcessResponse(Response response, TargetType targetType, boolean requireValidation, boolean requireLaxDataBinding)
                                   returns Response|anydata|StatusCodeResponse|ClientError = @java:Method {
     'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternResponseProcessor",
     name: "processResponse"
 } external;
 
-isolated function externProcessResponseNew(Response response, typedesc<StatusCodeResponse> targetType, boolean requireValidation)
+isolated function externProcessResponseNew(Response response, typedesc<StatusCodeResponse> targetType, boolean requireValidation, boolean requireLaxDataBinding)
                                   returns StatusCodeResponse|ClientError = @java:Method {
     'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternResponseProcessor",
     name: "processResponse"

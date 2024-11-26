@@ -27,6 +27,9 @@
 # + validation - Enables the inbound payload validation functionality which provided by the constraint package. Enabled by default
 # + serviceType - The service object type which defines the service contract. This is auto-generated at compile-time
 # + basePath - Base path to be used with the service implementation. This is only allowed on service contract types
+# + laxDataBinding - Enables or disables relaxed data binding on the service side. Disabled by default. 
+#                    When enabled, the JSON data will be projected to the Ballerina record type and during the projection,
+#                    nil values will be considered as optional fields and absent fields will be considered for nilable types
 public type HttpServiceConfig record {|
     string host = "b7a.default";
     CompressionConfig compression = {};
@@ -39,6 +42,7 @@ public type HttpServiceConfig record {|
     boolean validation = true;
     typedesc<ServiceContract> serviceType?;
     string basePath?;
+    boolean laxDataBinding = false;
 |};
 
 # Configurations for CORS support.

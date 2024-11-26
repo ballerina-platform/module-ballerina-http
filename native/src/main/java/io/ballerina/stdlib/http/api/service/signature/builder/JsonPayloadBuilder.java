@@ -33,9 +33,11 @@ import io.ballerina.stdlib.mime.util.EntityBodyHandler;
  */
 public class JsonPayloadBuilder extends AbstractPayloadBuilder {
     private final Type payloadType;
+    private final boolean laxDataBinding;
 
-    public JsonPayloadBuilder(Type payloadType) {
+    public JsonPayloadBuilder(Type payloadType, boolean laxDataBinding) {
         this.payloadType = payloadType;
+        this.laxDataBinding = laxDataBinding;
     }
 
     @Override
@@ -43,7 +45,7 @@ public class JsonPayloadBuilder extends AbstractPayloadBuilder {
         // Following can be removed based on the solution of
         // https://github.com/ballerina-platform/ballerina-lang/issues/35780
         if (isSubtypeOfAllowedType(payloadType, TypeTags.RECORD_TYPE_TAG)) {
-            return JsonToRecordConverter.convert(payloadType, entity, readonly);
+            return JsonToRecordConverter.convert(payloadType, entity, readonly, laxDataBinding);
         }
         Object bJson = EntityBodyHandler.constructJsonDataSource(entity);
         EntityBodyHandler.addJsonMessageDataSource(entity, bJson);

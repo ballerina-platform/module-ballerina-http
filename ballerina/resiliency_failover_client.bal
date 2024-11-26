@@ -33,6 +33,7 @@ type FailoverInferredConfig record {|
 # + failoverInferredConfig - Configurations derived from `FailoverConfig`
 # + failoverClientsArray - Array of `Client` for target endpoints
 # + requireValidation - Enables the inbound payload validation functionalty which provided by the constraint package
+# + requireLaxDataBinding - Enables or disalbles relaxed data binding.
 public client isolated class FailoverClient {
     *ClientObject;
 
@@ -40,6 +41,7 @@ public client isolated class FailoverClient {
     private final FailoverInferredConfig & readonly failoverInferredConfig;
     private final Client?[] failoverClientsArray;
     private final boolean requireValidation;
+    private final boolean requireLaxDataBinding;
 
     # Failover caller actions which provides failover capabilities to an HTTP client endpoint.
     #
@@ -64,6 +66,7 @@ public client isolated class FailoverClient {
         };
         self.failoverInferredConfig = failoverInferredConfig.cloneReadOnly();
         self.requireValidation = failoverClientConfig.validation;
+        self.requireLaxDataBinding = failoverClientConfig.laxDataBinding;
         return;
     }
 
@@ -106,7 +109,7 @@ public client isolated class FailoverClient {
         if result is HttpFuture {
             return getInvalidTypeError();
         } else if result is ClientError|Response {
-            return processResponse(result, targetType, self.requireValidation);
+            return processResponse(result, targetType, self.requireValidation, self.requireLaxDataBinding);
         } else {
             panic error ClientError("invalid response type received");
         }
@@ -151,7 +154,7 @@ public client isolated class FailoverClient {
         if result is HttpFuture {
             return getInvalidTypeError();
         } else if result is ClientError|Response {
-            return processResponse(result, targetType, self.requireValidation);
+            return processResponse(result, targetType, self.requireValidation, self.requireLaxDataBinding);
         } else {
             panic error ClientError("invalid response type received");
         }
@@ -196,7 +199,7 @@ public client isolated class FailoverClient {
         if result is HttpFuture {
             return getInvalidTypeError();
         } else if result is ClientError|Response {
-            return processResponse(result, targetType, self.requireValidation);
+            return processResponse(result, targetType, self.requireValidation, self.requireLaxDataBinding);
         } else {
             panic error ClientError("invalid response type received");
         }
@@ -241,7 +244,7 @@ public client isolated class FailoverClient {
         if result is HttpFuture {
             return getInvalidTypeError();
         } else if result is ClientError|Response {
-            return processResponse(result, targetType, self.requireValidation);
+            return processResponse(result, targetType, self.requireValidation, self.requireLaxDataBinding);
         } else {
             panic error ClientError("invalid response type received");
         }
@@ -309,7 +312,7 @@ public client isolated class FailoverClient {
         if result is HttpFuture {
             return getInvalidTypeError();
         } else if result is ClientError|Response {
-            return processResponse(result, targetType, self.requireValidation);
+            return processResponse(result, targetType, self.requireValidation, self.requireLaxDataBinding);
         } else {
             panic error ClientError("invalid response type received");
         }
@@ -348,7 +351,7 @@ public client isolated class FailoverClient {
         if result is HttpFuture {
             return getInvalidTypeError();
         } else if result is ClientError|Response {
-            return processResponse(result, targetType, self.requireValidation);
+            return processResponse(result, targetType, self.requireValidation, self.requireLaxDataBinding);
         } else {
             panic error ClientError("invalid response type received");
         }
@@ -379,7 +382,7 @@ public client isolated class FailoverClient {
         if result is HttpFuture {
             return getInvalidTypeError();
         } else if result is ClientError|Response {
-            return processResponse(result, targetType, self.requireValidation);
+            return processResponse(result, targetType, self.requireValidation, self.requireLaxDataBinding);
         } else {
             panic error ClientError("invalid response type received");
         }
@@ -403,7 +406,7 @@ public client isolated class FailoverClient {
         if result is HttpFuture {
             return getInvalidTypeError();
         } else if result is ClientError|Response {
-            return processResponse(result, targetType, self.requireValidation);
+            return processResponse(result, targetType, self.requireValidation, self.requireLaxDataBinding);
         } else {
             panic error ClientError("invalid response type received");
         }
