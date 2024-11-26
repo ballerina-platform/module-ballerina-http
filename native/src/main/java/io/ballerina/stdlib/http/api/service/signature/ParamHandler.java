@@ -74,6 +74,7 @@ public class ParamHandler {
     private final AllQueryParams queryParams = new AllQueryParams();
     private final AllHeaderParams headerParams = new AllHeaderParams();
     private final boolean constraintValidation;
+    private final boolean laxDataBinding;
 
     private static final String PARAM_ANNOT_PREFIX = "$param$.";
     private static final MapType MAP_TYPE = TypeCreator.createMapType(
@@ -92,11 +93,13 @@ public class ParamHandler {
             + ANN_NAME_CACHE;
     public static final String QUERY_ANNOTATION = ModuleUtils.getHttpPackageIdentifier() + COLON + ANN_NAME_QUERY;
 
-    public ParamHandler(ResourceMethodType resource, int pathParamCount, boolean constraintValidation) {
+    public ParamHandler(ResourceMethodType resource, int pathParamCount, boolean constraintValidation,
+                        boolean laxDataBinding) {
         this.resource = resource;
         this.pathParamCount = pathParamCount;
         this.paramTypes = getParameterTypes(resource);
         this.constraintValidation = constraintValidation;
+        this.laxDataBinding = laxDataBinding;
         populatePathParamTokens(resource, pathParamCount);
         populatePayloadAndHeaderParamTokens(resource);
         validateSignatureParams();
@@ -202,7 +205,7 @@ public class ParamHandler {
                 String key = ((BString) objKey).getValue();
                 if (PAYLOAD_ANNOTATION.equals(key)) {
                     if (payloadParam == null) {
-                        createPayloadParam(paramName, annotations, constraintValidation);
+                        createPayloadParam(paramName, annotations, constraintValidation, laxDataBinding);
                     } else {
                         throw HttpUtil.createHttpError(
                                 "invalid multiple '" + PROTOCOL_HTTP + COLON + ANN_NAME_PAYLOAD + "' annotation usage");
@@ -237,8 +240,9 @@ public class ParamHandler {
         return PAYLOAD_ANNOTATION.equals(key) || CALLER_ANNOTATION.equals(key) || HEADER_ANNOTATION.equals(key);
     }
 
-    private void createPayloadParam(String paramName, BMap annotations, boolean constraintValidation) {
-        this.payloadParam = new PayloadParam(paramName, constraintValidation);
+    private void createPayloadParam(String paramName, BMap annotations, boolean constraintValidation,
+                                    boolean laxDataBinding) {
+        this.payloadParam = new PayloadParam(paramName, constraintValidation, laxDataBinding);
         BMap mapValue = annotations.getMapValue(StringUtils.fromString(PAYLOAD_ANNOTATION));
         Object mediaType = mapValue.get(HttpConstants.ANN_FIELD_MEDIA_TYPE);
         if (mediaType instanceof BString) {
