@@ -162,27 +162,23 @@ isolated function jsonPayloadBuilder(Response response, TargetType targetType, b
 isolated function nonNilablejsonPayloadBuilder(Response response, typedesc<anydata> targetType, boolean requireLaxDataBinding)
         returns anydata|ClientError {
     json payload = check response.getJsonPayload();
-    var result = jsondata:parseAsType(
-        payload,
-        requireLaxDataBinding 
-            ? {allowDataProjection: {nilAsOptionalField: true, absentAsNilableType: true}, enableConstraintValidation: false}
-            : {enableConstraintValidation: false, allowDataProjection: false},
-        targetType
-    );
+    jsondata:Options jsonParserOptions = {
+        enableConstraintValidation: false,
+        allowDataProjection: requireLaxDataBinding ? {nilAsOptionalField: true, absentAsNilableType: true} : false
+    };
+    var result = jsondata:parseAsType(payload, jsonParserOptions, targetType);
     return result is error ? createPayloadBindingError(result) : result;
 }
 
 isolated function nilablejsonPayloadBuilder(Response response, typedesc<anydata> targetType, boolean requireLaxDataBinding)
         returns anydata|ClientError {
     json|ClientError payload = response.getJsonPayload();
+    jsondata:Options jsonParserOptions = {
+        enableConstraintValidation: false,
+        allowDataProjection: requireLaxDataBinding ? {nilAsOptionalField: true, absentAsNilableType: true} : false
+    };
     if payload is json {
-        var result = jsondata:parseAsType(
-            payload,
-            requireLaxDataBinding 
-                ? {allowDataProjection: {nilAsOptionalField: true, absentAsNilableType: true}, enableConstraintValidation: false}
-                : {enableConstraintValidation: false, allowDataProjection: false},
-            targetType
-        );
+        var result = jsondata:parseAsType(payload, jsonParserOptions, targetType);
         return result is error ? createPayloadBindingError(result) : result;
     } else {
         return payload is NoContentError ? () : payload;

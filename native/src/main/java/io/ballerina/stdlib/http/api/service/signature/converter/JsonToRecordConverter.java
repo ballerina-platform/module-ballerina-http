@@ -39,7 +39,6 @@ import static io.ballerina.stdlib.http.api.HttpConstants.PARSER_AS_TYPE_OPTIONS;
 import static io.ballerina.stdlib.http.api.HttpConstants.NIL_AS_OPTIONAL;
 import static io.ballerina.stdlib.http.api.HttpConstants.ABSENT_AS_NILABLE;
 
-
 /**
  * The converter binds the JSON payload to a record.
  *
