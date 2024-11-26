@@ -187,7 +187,6 @@ import static io.ballerina.stdlib.mime.util.MimeConstants.OCTET_STREAM;
 import static io.ballerina.stdlib.mime.util.MimeConstants.REQUEST_ENTITY_FIELD;
 import static io.ballerina.stdlib.mime.util.MimeConstants.RESPONSE_ENTITY_FIELD;
 import static io.netty.handler.codec.http.HttpHeaderNames.CACHE_CONTROL;
-
 import static java.lang.System.err;
 
 /**

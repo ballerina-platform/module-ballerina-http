@@ -18,7 +18,6 @@
 package io.ballerina.stdlib.http.api;
 
 import io.ballerina.runtime.api.Runtime;
-import io.ballerina.runtime.api.concurrent.StrandMetadata;
 import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.flags.SymbolFlags;
