@@ -21,7 +21,6 @@ package io.ballerina.stdlib.http.api;
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Module;
 import io.ballerina.runtime.api.Runtime;
-import io.ballerina.runtime.api.concurrent.StrandMetadata;
 import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.Field;
@@ -1645,8 +1644,7 @@ public class HttpUtil {
     public static void populateInterceptorServicesFromListener(BObject serviceEndpoint, Runtime runtime) {
         final BArray[] interceptorResponse = new BArray[1];
         try {
-            Object result =  runtime.callMethod(serviceEndpoint, CREATE_INTERCEPTORS_FUNCTION_NAME,
-                    new StrandMetadata(false, null));
+            Object result =  runtime.callMethod(serviceEndpoint, CREATE_INTERCEPTORS_FUNCTION_NAME, null);
             if (result instanceof BArray) {
                 interceptorResponse[0] = (BArray) result;
             } else {
