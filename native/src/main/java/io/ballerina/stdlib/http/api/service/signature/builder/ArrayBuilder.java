@@ -30,9 +30,11 @@ import io.ballerina.runtime.api.values.BObject;
  */
 public class ArrayBuilder extends AbstractPayloadBuilder {
     private final Type payloadType;
+    private final boolean laxDataBinding;
 
-    public ArrayBuilder(Type payloadType) {
+    public ArrayBuilder(Type payloadType, boolean laxDataBinding) {
         this.payloadType = payloadType;
+        this.laxDataBinding = laxDataBinding;
     }
 
     @Override
@@ -41,6 +43,6 @@ public class ArrayBuilder extends AbstractPayloadBuilder {
         if (elementType.getTag() == TypeTags.BYTE_TAG) {
             return new BinaryPayloadBuilder(payloadType).getValue(entity, readonly);
         }
-        return new JsonPayloadBuilder(payloadType).getValue(entity, readonly);
+        return new JsonPayloadBuilder(payloadType, laxDataBinding).getValue(entity, readonly);
     }
 }

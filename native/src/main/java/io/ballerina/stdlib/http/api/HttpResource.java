@@ -336,6 +336,10 @@ public class HttpResource implements Resource {
         this.laxDataBinding = laxDataBinding;
     }
 
+    private boolean getLaxDataBinding() {
+        return this.laxDataBinding;
+    }
+
     private void updateLinkedResources(Object[] links) {
         for (Object link : links) {
             BMap linkMap = (BMap) link;
@@ -392,7 +396,8 @@ public class HttpResource implements Resource {
     }
 
     private void prepareAndValidateSignatureParams() {
-        paramHandler = new ParamHandler(getBalResource(), this.pathParamCount, this.getConstraintValidation());
+        paramHandler = new ParamHandler(getBalResource(), this.pathParamCount, this.getConstraintValidation(),
+                this.getLaxDataBinding());
     }
 
     @Override

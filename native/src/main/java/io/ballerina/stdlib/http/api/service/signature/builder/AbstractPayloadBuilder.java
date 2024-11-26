@@ -63,9 +63,9 @@ public abstract class AbstractPayloadBuilder {
      */
     public abstract Object getValue(BObject inRequestEntity, boolean readonly);
 
-    public static AbstractPayloadBuilder getBuilder(String contentType, Type payloadType) {
+    public static AbstractPayloadBuilder getBuilder(String contentType, Type payloadType, boolean laxDataBinding) {
         if (contentType == null || contentType.isEmpty()) {
-            return getBuilderFromType(payloadType);
+            return getBuilderFromType(payloadType, laxDataBinding);
         }
         contentType = contentType.toLowerCase(Locale.getDefault()).trim();
         String baseType = HeaderUtil.getHeaderValue(contentType);
@@ -78,22 +78,22 @@ public abstract class AbstractPayloadBuilder {
         } else if (baseType.matches(OCTET_STREAM_PATTERN)) {
             return new BinaryPayloadBuilder(payloadType);
         } else if (baseType.matches(JSON_PATTERN)) {
-            return new JsonPayloadBuilder(payloadType);
+            return new JsonPayloadBuilder(payloadType, laxDataBinding);
         } else {
-            return getBuilderFromType(payloadType);
+            return getBuilderFromType(payloadType, laxDataBinding);
         }
     }
 
-    private static AbstractPayloadBuilder getBuilderFromType(Type payloadType) {
+    private static AbstractPayloadBuilder getBuilderFromType(Type payloadType, boolean laxDataBinding) {
         switch (payloadType.getTag()) {
             case STRING_TAG:
                 return new StringPayloadBuilder(payloadType);
             case XML_TAG:
                 return new XmlPayloadBuilder(payloadType);
             case ARRAY_TAG:
-                return new ArrayBuilder(payloadType);
+                return new ArrayBuilder(payloadType, laxDataBinding);
             default:
-                return new JsonPayloadBuilder(payloadType);
+                return new JsonPayloadBuilder(payloadType, laxDataBinding);
         }
     }
 

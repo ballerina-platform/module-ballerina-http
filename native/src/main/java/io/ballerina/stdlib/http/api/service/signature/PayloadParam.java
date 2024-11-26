@@ -59,10 +59,12 @@ public class PayloadParam implements Parameter {
     private final List<String> mediaTypes = new ArrayList<>();
     private Type customParameterType;
     private final boolean requireConstraintValidation;
+    private final boolean laxDataBinding;
 
-    PayloadParam(String token, boolean constraintValidation) {
+    PayloadParam(String token, boolean constraintValidation, boolean laxDataBinding) {
         this.token = token;
         this.requireConstraintValidation = constraintValidation;
+        this.laxDataBinding = laxDataBinding;
     }
 
     public void init(Type type, Type customParameterType, int index) {
@@ -150,7 +152,8 @@ public class PayloadParam implements Parameter {
                     if (actualTypeTag == TypeTags.BYTE_TAG) {
                         paramFeed[index] = validateConstraints(dataSource);
                     } else if (actualTypeTag == TypeTags.RECORD_TYPE_TAG) {
-                        dataSource = JsonToRecordConverter.convert(payloadType, inRequestEntity, readonly);
+                        dataSource = JsonToRecordConverter.convert(payloadType, inRequestEntity, readonly,
+                                laxDataBinding);
                         paramFeed[index]  = validateConstraints(dataSource);
                     } else {
                         throw HttpUtil.createHttpError("incompatible element type found inside an array " +
@@ -158,7 +161,7 @@ public class PayloadParam implements Parameter {
                     }
                     break;
                 case TypeTags.RECORD_TYPE_TAG:
-                    dataSource = JsonToRecordConverter.convert(payloadType, inRequestEntity, readonly);
+                    dataSource = JsonToRecordConverter.convert(payloadType, inRequestEntity, readonly, laxDataBinding);
                     paramFeed[index]  = validateConstraints(dataSource);
                     break;
                 default:
@@ -174,7 +177,7 @@ public class PayloadParam implements Parameter {
                                              BObject inRequestEntity, int index, Type payloadType) {
         try {
             String contentType = HttpUtil.getContentTypeFromTransportMessage(inboundMessage);
-            AbstractPayloadBuilder payloadBuilder = getBuilder(contentType, payloadType);
+            AbstractPayloadBuilder payloadBuilder = getBuilder(contentType, payloadType, laxDataBinding);
             Object payloadBuilderValue = payloadBuilder.getValue(inRequestEntity, this.readonly);
             paramFeed[index] = validateConstraints(payloadBuilderValue);
             inboundMessage.setProperty(HttpConstants.ENTITY_OBJ, inRequestEntity);
