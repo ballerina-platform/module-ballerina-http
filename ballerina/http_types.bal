@@ -105,7 +105,10 @@ public type CommonClientConfiguration record {|
     boolean validation = true;
     # Provides settings related to client socket configuration
     ClientSocketConfig socketConfig = {};
-    # Enables or disalbles relaxed data binding on the client side. Disabled by default
+    # Enables or disables relaxed data binding on the client side. Disabled by default.
+    # When enabled, the JSON data will be projected to the Ballerina record type and
+    # during the projection, nil values will be considered as optional fields and
+    # absent fields will be considered for nilable types
     boolean laxDataBinding = false;
 |};
 
