@@ -336,10 +336,6 @@ public class HttpResource implements Resource {
         this.laxDataBinding = laxDataBinding;
     }
 
-    private boolean getLaxDataBinding() {
-        return this.laxDataBinding;
-    } 
-
     private void updateLinkedResources(Object[] links) {
         for (Object link : links) {
             BMap linkMap = (BMap) link;
