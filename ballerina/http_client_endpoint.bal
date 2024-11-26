@@ -28,7 +28,7 @@ import ballerina/time;
 #                HTTP service in resilient manner
 # + cookieStore - Stores the cookies of the client
 # + requireValidation - Enables the inbound payload validation functionalty which provided by the constraint package
-# + requireLaxDataBinding - Enables or disalbles relaxed data binding.
+# + requireLaxDataBinding - Enables or disables relaxed data binding.
 public client isolated class Client {
     *ClientObject;
 
