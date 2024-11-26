@@ -502,6 +502,9 @@ public final class HttpConstants {
     public static final String ALLOW_DATA_PROJECTION = "allowDataProjection";
     public static final String PARSER_AS_TYPE_OPTIONS =  "Options";
 
+    public static final String NIL_AS_OPTIONAL = "nilAsOptional";
+    public static final String ABSENT_AS_NILABLE = "absentAsNilable";
+
     //Client Endpoint (CallerActions)
     public static final String CLIENT_ENDPOINT_SERVICE_URI = "url";
     public static final String CLIENT_ENDPOINT_CONFIG = "config";

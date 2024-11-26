@@ -169,8 +169,9 @@ public final class ExternResponseProcessor {
     }
 
     public static Object processResponse(Environment env, BObject response, BTypedesc targetType,
-                                         boolean requireValidation) {
-        return getResponseWithType(response, targetType.getDescribingType(), requireValidation, env);
+                                         boolean requireValidation, boolean requireLaxDataBinding) {
+        return getResponseWithType(response, targetType.getDescribingType(), requireValidation,
+                requireLaxDataBinding, env);
     }
 
     public static Object buildStatusCodeResponse(BTypedesc statusCodeResponseTypeDesc, BObject status, BMap headers,
@@ -191,7 +192,7 @@ public final class ExternResponseProcessor {
     }
 
     private static Object getResponseWithType(BObject response, Type targetType, boolean requireValidation,
-                                              Environment env) {
+                                              boolean requireLaxDataBinding, Environment env) {
         long responseStatusCode = getStatusCode(response);
 
         // Find the most specific status code record type
@@ -205,8 +206,8 @@ public final class ExternResponseProcessor {
         if (statusCodeResponseType.isPresent() &&
                 TypeUtils.getImpliedType(statusCodeResponseType.get()) instanceof RecordType statusCodeRecordType) {
             try {
-                return generateStatusCodeResponseType(response, requireValidation, env, statusCodeRecordType,
-                        responseStatusCode);
+                return generateStatusCodeResponseType(response, requireValidation, requireLaxDataBinding, env,
+                        statusCodeRecordType, responseStatusCode);
             } catch (StatusCodeBindingException exp) {
                 return getStatusCodeResponseDataBindingError(env, response, exp.getMessage(), exp.getBError(),
                         isDefaultStatusCodeResponseType(statusCodeRecordType), exp.getErrorType());
@@ -221,7 +222,8 @@ public final class ExternResponseProcessor {
         return response.getIntValue(StringUtils.fromString(STATUS_CODE));
     }
 
-    private static Object generateStatusCodeResponseType(BObject response, boolean requireValidation, Environment env,
+    private static Object generateStatusCodeResponseType(BObject response, boolean requireValidation,
+                                                         boolean requireLaxDataBinding, Environment env,
                                                          RecordType statusCodeRecordType, long responseStatusCode)
             throws StatusCodeBindingException {
         String statusCodeObjName = STATUS_CODE_OBJS.get(Long.toString(responseStatusCode));
@@ -255,7 +257,7 @@ public final class ExternResponseProcessor {
             return env.getRuntime().callMethod(response, BUILD_STATUS_CODE_RESPONSE, null,
                     Objects.isNull(payloadType) ? null : ValueCreator.createTypedescValue(payloadType),
                     ValueCreator.createTypedescValue(statusCodeRecordType),
-                    requireValidation, status, headers, mediaType,
+                    requireValidation, requireLaxDataBinding, status, headers, mediaType,
                     isDefaultStatusCodeResponseType(statusCodeRecordType));
         } catch (BError error) {
             return createHttpError(STATUS_CODE_RES_CREATION_FAILED, STATUS_CODE_RESPONSE_BINDING_ERROR, error);

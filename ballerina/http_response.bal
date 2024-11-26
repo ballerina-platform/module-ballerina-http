@@ -586,10 +586,10 @@ public class Response {
     }
 
     isolated function buildStatusCodeResponse(typedesc<anydata>? payloadType, typedesc<StatusCodeResponse> statusCodeResType,
-        boolean requireValidation, Status status, map<string|int|boolean|string[]|int[]|boolean[]> headers, string? mediaType,
+        boolean requireValidation, boolean requireLaxDataBinding, Status status, map<string|int|boolean|string[]|int[]|boolean[]> headers, string? mediaType,
         boolean fromDefaultStatusCodeMapping) returns StatusCodeResponse|ClientError {
         if payloadType !is () {
-            anydata|ClientError payload = self.performDataBinding(payloadType, requireValidation);
+            anydata|ClientError payload = self.performDataBinding(payloadType, requireValidation, requireLaxDataBinding);
             if payload is ClientError {
                 return self.getStatusCodeResponseDataBindingError(payload.message(), fromDefaultStatusCodeMapping, PAYLOAD, payload);
             }
@@ -599,8 +599,8 @@ public class Response {
         }
     }
 
-    isolated function performDataBinding(typedesc<anydata> targetType, boolean requireValidation) returns anydata|ClientError {
-        anydata payload = check performDataBinding(self, targetType);
+    isolated function performDataBinding(typedesc<anydata> targetType, boolean requireValidation, boolean requireLaxDataBinding) returns anydata|ClientError {
+        anydata payload = check performDataBinding(self, targetType, requireLaxDataBinding);
         if requireValidation {
             return performDataValidation(payload, targetType);
         }
