@@ -163,7 +163,8 @@ function testClientRequestMethodsWithStreamType() returns error? {
     check assertEventStream(actualSseEvents, expectedSseEvents);
 }
 
-@test:Config {}
+// disabled due to https://github.com/ballerina-platform/ballerina-library/issues/7427
+@test:Config {enable: false}
 function testServiceCompletesStreamWithErrorEvent() returns error? {
     stream<http:SseEvent, error?> actualSseEvents = check http2SseClient->/sse/completeWithError;
     stream<http:SseEvent, error?> expectedSseEvents = new (new SseEventGenerator(3, true));
