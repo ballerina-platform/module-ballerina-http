@@ -21,7 +21,7 @@ import ballerina/test;
 listener http:Listener http1SseListener = new http:Listener(http1SsePort, httpVersion = http:HTTP_1_1);
 listener http:Listener http2SseListener = new http:Listener(http2SsePort);
 final http:Client http1SseClient = check new (string `http://localhost:${http1SsePort}`, httpVersion = http:HTTP_1_1);
-final http:Client http2SseClient = check new (string `http://localhost:${http2SsePort}`);
+final http:Client http2SseClient = check new (string `http://localhost:${http2SsePort}`, timeout = 120);
 
 class SseEventGenerator {
     private final int eventCount;
