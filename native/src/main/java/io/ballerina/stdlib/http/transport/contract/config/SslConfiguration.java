@@ -39,6 +39,7 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.SERVER_SUPPO
 import static io.ballerina.stdlib.http.transport.contract.Constants.SERVER_SUPPORTED_SNIMATCHERS;
 import static io.ballerina.stdlib.http.transport.contract.Constants.SERVER_SUPPORT_CIPHERS;
 import static io.ballerina.stdlib.http.transport.contract.Constants.SERVER_SUPPORT_SSL_PROTOCOLS;
+import static io.ballerina.stdlib.http.transport.contract.Constants.SNI_SERVER_NAME;
 import static io.ballerina.stdlib.http.transport.contract.Constants.TLS_PROTOCOL;
 /**
  * SSL configuration for HTTP connection.
@@ -276,6 +277,9 @@ public class SslConfiguration {
                         break;
                     case CLIENT_ENABLE_SESSION_CREATION:
                         sslConfig.setEnableSessionCreation(Boolean.parseBoolean(parameter.getValue()));
+                        break;
+                    case SNI_SERVER_NAME:
+                        sslConfig.setSniHostName(parameter.getValue());
                         break;
                     default:
                         //do nothing

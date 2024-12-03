@@ -36,7 +36,8 @@ http:ClientConfiguration http2SslClientConf1 = {
         cert: {
             path: common:TRUSTSTORE_PATH,
             password: "ballerina"
-        }
+        },
+        sniHostName: "localhost2"
     }
 };
 
