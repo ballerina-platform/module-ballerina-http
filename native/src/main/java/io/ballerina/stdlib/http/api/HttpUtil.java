@@ -1916,6 +1916,11 @@ public class HttpUtil {
         Parameter enableSessionCreationParam = new Parameter(HttpConstants.SECURESOCKET_CONFIG_SHARE_SESSION.getValue(),
                                                              enableSessionCreation);
         paramList.add(enableSessionCreationParam);
+        if (secureSocket.containsKey(HttpConstants.SECURESOCKET_CONFIG_SNI_HOST_NAME)) {
+            Parameter sniHostNameParam = new Parameter(HttpConstants.SECURESOCKET_CONFIG_SNI_HOST_NAME.getValue(),
+                    String.valueOf(secureSocket.getStringValue(HttpConstants.SECURESOCKET_CONFIG_SNI_HOST_NAME)));
+            paramList.add(sniHostNameParam);
+        }
     }
 
     private static BMap<BString, Object> getBMapValueIfPresent(BMap<BString, Object> map, BString key) {
