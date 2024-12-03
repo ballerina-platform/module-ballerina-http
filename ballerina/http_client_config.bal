@@ -96,6 +96,7 @@ public type RetryConfig record {|
 # + shareSession - Enable/disable new SSL session creation
 # + handshakeTimeout - SSL handshake time out
 # + sessionTimeout - SSL session time out
+# + sniHostName - Server name indication(SNI) to be used. If this is not present, hostname from the target URL will be used
 public type ClientSecureSocket record {|
     boolean enable = true;
     crypto:TrustStore|string cert?;
@@ -114,6 +115,7 @@ public type ClientSecureSocket record {|
     boolean shareSession = true;
     decimal handshakeTimeout?;
     decimal sessionTimeout?;
+    string sniHostName?;
 |};
 
 # Provides configurations for controlling the endpoint's behaviour in response to HTTP redirect related responses.
