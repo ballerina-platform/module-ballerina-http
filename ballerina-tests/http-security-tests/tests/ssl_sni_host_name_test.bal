@@ -76,6 +76,12 @@ http:ClientConfiguration http1SniClientConf2 = {
     }
 };
 
+http:ClientConfiguration http2SniClientConf3 = {
+    secureSocket: {
+        serverName: "localhost"
+    }
+};
+
 @test:Config {}
 public function testHttp2WithSni() returns error? {
     http:Client clientEP = check new ("https://127.0.0.1:9207", http2SniClientConf);
