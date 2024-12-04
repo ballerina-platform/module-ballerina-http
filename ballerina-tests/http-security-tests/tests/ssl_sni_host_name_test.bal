@@ -18,7 +18,7 @@ import ballerina/http;
 import ballerina/test;
 import ballerina/http_test_common as common;
 
-listener http:Listener http2SniListener = new (9207, http2SslServiceConf);
+listener http:Listener http2SniListener = new (http2SniListenerPort, http2SslServiceConf);
 
 http:ListenerConfiguration http1SniServiceConf = {
     httpVersion: http:HTTP_1_1,
@@ -30,7 +30,7 @@ http:ListenerConfiguration http1SniServiceConf = {
     }
 };
 
-listener http:Listener http1SniListener = new (9208, http1SniServiceConf);
+listener http:Listener http1SniListener = new (http1SniListenerPort, http1SniServiceConf);
 
 service /http2SniService on http2SniListener {
     resource function get .() returns string {
