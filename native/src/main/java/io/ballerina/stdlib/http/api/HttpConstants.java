@@ -451,6 +451,7 @@ public class HttpConstants {
     public static final BString SECURESOCKET_CONFIG_VERIFY_CLIENT = StringUtils.fromString("verifyClient");
     public static final BString SECURESOCKET_CONFIG_CERT_VALIDATION_TYPE_OCSP_STAPLING =
             StringUtils.fromString("OCSP_STAPLING");
+    public static final BString SECURESOCKET_CONFIG_SNI_HOST_NAME = StringUtils.fromString("serverName");
 
     //Socket Config
     public static final BString SOCKET_CONFIG = StringUtils.fromString("socketConfig");
