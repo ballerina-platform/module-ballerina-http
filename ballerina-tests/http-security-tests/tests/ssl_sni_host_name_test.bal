@@ -18,7 +18,7 @@ import ballerina/http;
 import ballerina/test;
 import ballerina/http_test_common as common;
 
-listener http:Listener http2SniListener = new (9207, http2SslServiceConf);
+listener http:Listener http2SniListener = new (http2SniListenerPort, http2SslServiceConf);
 
 http:ListenerConfiguration http1SniServiceConf = {
     httpVersion: http:HTTP_1_1,
@@ -30,7 +30,7 @@ http:ListenerConfiguration http1SniServiceConf = {
     }
 };
 
-listener http:Listener http1SniListener = new (9208, http1SniServiceConf);
+listener http:Listener http1SniListener = new (http1SniListenerPort, http1SniServiceConf);
 
 service /http2SniService on http2SniListener {
     resource function get .() returns string {
@@ -65,16 +65,38 @@ http:ClientConfiguration http1SniClientConf = {
     }
 };
 
-@test:Config {enable: true}
-public function testHttp2Sni() returns error? {
+http:ClientConfiguration http1SniClientConf2 = {
+    httpVersion: http:HTTP_1_1,
+    secureSocket: {
+        cert: {
+            path: common:TRUSTSTORE_PATH,
+            password: "ballerina"
+        },
+        serverName: "xxxx"
+    }
+};
+
+@test:Config {}
+public function testHttp2WithSni() returns error? {
     http:Client clientEP = check new ("https://127.0.0.1:9207", http2SniClientConf);
     string resp = check clientEP->get("/http2SniService/");
     common:assertTextPayload(resp, "Sni works with HTTP_2!");
 }
 
-@test:Config {enable: true}
-public function testHttp1Sni() returns error? {
+@test:Config {}
+public function testHttp1WithSni() returns error? {
     http:Client clientEP = check new ("https://127.0.0.1:9208", http1SniClientConf);
     string resp = check clientEP->get("/http1SniService/");
     common:assertTextPayload(resp, "Sni works with HTTP_1.1!");
+}
+
+@test:Config {}
+public function testSniFailure() returns error? {
+    http:Client clientEP = check new ("https://127.0.0.1:9208", http1SniClientConf2);
+    string|error resp = clientEP->get("/http1SniService/");
+    if resp is error {
+        test:assertEquals(resp.message(), "SSL connection failed:No subject alternative names present /127.0.0.1:9208");
+    } else {
+        test:assertFail("Test `testSniFailure` is expecting an error. But received a success response");
+    }
 }
