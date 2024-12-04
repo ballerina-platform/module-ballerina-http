@@ -64,6 +64,7 @@ public class SSLConfig {
     private long handshakeTimeOut;
     private boolean disableSsl = false;
     private boolean useJavaDefaults = false;
+    private String sniHostName;
 
     public SSLConfig() {}
 
@@ -177,6 +178,14 @@ public class SSLConfig {
             LOG.debug("Enable Session Creation {}", enableSessionCreation);
         }
         this.enableSessionCreation = enableSessionCreation;
+    }
+
+    public void setSniHostName(String sniHostName) {
+        this.sniHostName = sniHostName;
+    }
+
+    public String getSniHostName() {
+        return sniHostName;
     }
 
     public String[] getEnableProtocols() {
