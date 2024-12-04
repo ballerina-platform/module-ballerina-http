@@ -245,27 +245,7 @@ public class SslConfiguration {
     }
 
     private SSLConfig getSSLConfigForSender() {
-        if (parameters != null) {
-            for (Parameter parameter : parameters) {
-                switch (parameter.getName()) {
-                    case CLIENT_SUPPORT_CIPHERS:
-                        sslConfig.setCipherSuites(parameter.getValue());
-                        break;
-                    case CLIENT_SUPPORT_SSL_PROTOCOLS:
-                        sslConfig.setEnableProtocols(parameter.getValue());
-                        break;
-                    case CLIENT_ENABLE_SESSION_CREATION:
-                        sslConfig.setEnableSessionCreation(Boolean.parseBoolean(parameter.getValue()));
-                        break;
-                    case SNI_SERVER_NAME:
-                        sslConfig.setSniHostName(parameter.getValue());
-                        break;
-                    default:
-                        //do nothing
-                        break;
-                }
-            }
-        }
+        setSslParameters();
         if (sslConfig.isDisableSsl() || sslConfig.useJavaDefaults()) {
             return sslConfig;
         }
@@ -287,5 +267,29 @@ public class SslConfiguration {
         String tlsStoreType = sslConfig.getTLSStoreType() != null ? sslConfig.getTLSStoreType() : JKS;
         sslConfig.setTLSStoreType(tlsStoreType);
         return sslConfig;
+    }
+
+    private void setSslParameters() {
+        if (parameters != null) {
+            for (Parameter parameter : parameters) {
+                switch (parameter.getName()) {
+                    case CLIENT_SUPPORT_CIPHERS:
+                        sslConfig.setCipherSuites(parameter.getValue());
+                        break;
+                    case CLIENT_SUPPORT_SSL_PROTOCOLS:
+                        sslConfig.setEnableProtocols(parameter.getValue());
+                        break;
+                    case CLIENT_ENABLE_SESSION_CREATION:
+                        sslConfig.setEnableSessionCreation(Boolean.parseBoolean(parameter.getValue()));
+                        break;
+                    case SNI_SERVER_NAME:
+                        sslConfig.setSniHostName(parameter.getValue());
+                        break;
+                    default:
+                        //do nothing
+                        break;
+                }
+            }
+        }
     }
 }
