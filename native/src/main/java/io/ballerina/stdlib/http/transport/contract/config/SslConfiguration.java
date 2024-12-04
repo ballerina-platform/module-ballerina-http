@@ -245,27 +245,6 @@ public class SslConfiguration {
     }
 
     private SSLConfig getSSLConfigForSender() {
-        if (sslConfig.isDisableSsl() || sslConfig.useJavaDefaults()) {
-            return sslConfig;
-        }
-        if ((sslConfig.getTrustStore() == null || sslConfig.getTrustStorePass() == null) && (
-                sslConfig.getClientTrustCertificates() == null)) {
-            throw new IllegalArgumentException("TrustStoreFile or TrustStorePassword not defined for HTTPS/WS scheme");
-        }
-        if (sslConfig.getTrustStore() != null) {
-            if (!sslConfig.getTrustStore().exists()) {
-                throw new IllegalArgumentException("TrustStore File " + sslConfig.getTrustStore() + " not found");
-            }
-            sslConfig.setCertPass(sslConfig.getKeyStorePass());
-        } else if (!sslConfig.getClientTrustCertificates().exists()) {
-            throw new IllegalArgumentException("Key file or server certificates file not found");
-        }
-        sslConfig.setTrustStore(sslConfig.getTrustStore()).setTrustStorePass(sslConfig.getTrustStorePass());
-        String sslProtocol = sslConfig.getSSLProtocol() != null ? sslConfig.getSSLProtocol() : TLS_PROTOCOL;
-        sslConfig.setSSLProtocol(sslProtocol);
-        String tlsStoreType = sslConfig.getTLSStoreType() != null ? sslConfig.getTLSStoreType() : JKS;
-        sslConfig.setTLSStoreType(tlsStoreType);
-
         if (parameters != null) {
             for (Parameter parameter : parameters) {
                 switch (parameter.getName()) {
@@ -287,6 +266,26 @@ public class SslConfiguration {
                 }
             }
         }
+        if (sslConfig.isDisableSsl() || sslConfig.useJavaDefaults()) {
+            return sslConfig;
+        }
+        if ((sslConfig.getTrustStore() == null || sslConfig.getTrustStorePass() == null) && (
+                sslConfig.getClientTrustCertificates() == null)) {
+            throw new IllegalArgumentException("TrustStoreFile or TrustStorePassword not defined for HTTPS/WS scheme");
+        }
+        if (sslConfig.getTrustStore() != null) {
+            if (!sslConfig.getTrustStore().exists()) {
+                throw new IllegalArgumentException("TrustStore File " + sslConfig.getTrustStore() + " not found");
+            }
+            sslConfig.setCertPass(sslConfig.getKeyStorePass());
+        } else if (!sslConfig.getClientTrustCertificates().exists()) {
+            throw new IllegalArgumentException("Key file or server certificates file not found");
+        }
+        sslConfig.setTrustStore(sslConfig.getTrustStore()).setTrustStorePass(sslConfig.getTrustStorePass());
+        String sslProtocol = sslConfig.getSSLProtocol() != null ? sslConfig.getSSLProtocol() : TLS_PROTOCOL;
+        sslConfig.setSSLProtocol(sslProtocol);
+        String tlsStoreType = sslConfig.getTLSStoreType() != null ? sslConfig.getTLSStoreType() : JKS;
+        sslConfig.setTLSStoreType(tlsStoreType);
         return sslConfig;
     }
 }
