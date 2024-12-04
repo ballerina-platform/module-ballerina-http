@@ -65,16 +65,44 @@ http:ClientConfiguration http1SniClientConf = {
     }
 };
 
+http:ClientConfiguration http1SniClientConf2 = {
+    httpVersion: http:HTTP_1_1,
+    secureSocket: {
+        cert: {
+            path: common:TRUSTSTORE_PATH,
+            password: "ballerina"
+        },
+        serverName: "xxxx"
+    }
+};
+
+http:ClientConfiguration http2SniClientConf3 = {
+    secureSocket: {
+        serverName: "localhost"
+    }
+};
+
 @test:Config {}
-public function testHttp2Sni() returns error? {
+public function testHttp2WithSni() returns error? {
     http:Client clientEP = check new ("https://127.0.0.1:9207", http2SniClientConf);
     string resp = check clientEP->get("/http2SniService/");
     common:assertTextPayload(resp, "Sni works with HTTP_2!");
 }
 
 @test:Config {}
-public function testHttp1Sni() returns error? {
+public function testHttp1WithSni() returns error? {
     http:Client clientEP = check new ("https://127.0.0.1:9208", http1SniClientConf);
     string resp = check clientEP->get("/http1SniService/");
     common:assertTextPayload(resp, "Sni works with HTTP_1.1!");
+}
+
+@test:Config {}
+public function testSniFailure() returns error? {
+    http:Client clientEP = check new ("https://127.0.0.1:9208", http1SniClientConf2);
+    string|error resp = clientEP->get("/http1SniService/");
+    if resp is error {
+        test:assertEquals(resp.message(), "SSL connection failed:No subject alternative names present /127.0.0.1:9208");
+    } else {
+        test:assertFail("Test `testSniFailure` is expecting an error. But received a success response");
+    }
 }
