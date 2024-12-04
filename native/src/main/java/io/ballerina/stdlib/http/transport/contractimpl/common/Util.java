@@ -514,7 +514,7 @@ public class Util {
         return sslEngine;
     }
 
-    private static void configureSniServerName(SSLConfig sslConfig, String host, SSLHandlerFactory sslHandlerFactory,
+    public static void configureSniServerName(SSLConfig sslConfig, String host, SSLHandlerFactory sslHandlerFactory,
                                                SSLEngine sslEngine) {
         sslHandlerFactory.setSNIServerNames(sslEngine,
                 sslConfig.getSniHostName() != null ? sslConfig.getSniHostName() : host);

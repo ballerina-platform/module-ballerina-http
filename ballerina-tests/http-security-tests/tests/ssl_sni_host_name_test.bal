@@ -65,14 +65,14 @@ http:ClientConfiguration http1SniClientConf = {
     }
 };
 
-@test:Config {enable: true}
+@test:Config {}
 public function testHttp2Sni() returns error? {
     http:Client clientEP = check new ("https://127.0.0.1:9207", http2SniClientConf);
     string resp = check clientEP->get("/http2SniService/");
     common:assertTextPayload(resp, "Sni works with HTTP_2!");
 }
 
-@test:Config {enable: true}
+@test:Config {}
 public function testHttp1Sni() returns error? {
     http:Client clientEP = check new ("https://127.0.0.1:9208", http1SniClientConf);
     string resp = check clientEP->get("/http1SniService/");
