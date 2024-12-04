@@ -1409,13 +1409,15 @@ public class HttpUtil {
         }
         Object cert = secureSocket.get(HttpConstants.SECURESOCKET_CONFIG_CERT);
         if (cert == null) {
+            senderConfiguration.useJavaDefaults();
             BMap<BString, Object> key = getBMapValueIfPresent(secureSocket, HttpConstants.SECURESOCKET_CONFIG_KEY);
             if (key != null) {
                 senderConfiguration.useJavaDefaults();
-            } else {
-                throw createHttpError("Need to configure cert with client SSL certificates file",
-                        HttpErrorType.SSL_ERROR);
             }
+//            else {
+//                throw createHttpError("Need to configure cert with client SSL certificates file",
+//                        HttpErrorType.SSL_ERROR);
+//            }
         } else {
             evaluateCertField(cert, senderConfiguration);
         }
