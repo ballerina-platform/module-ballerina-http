@@ -209,11 +209,8 @@ public class HttpClientChannelInitializer extends ChannelInitializer<SocketChann
             SslContext sslCtx = sslHandlerFactory.createHttp2TLSContextForClient(false);
             SslHandler sslHandler = sslCtx.newHandler(ch.alloc(), httpRoute.getHost(), httpRoute.getPort());
             SSLEngine sslEngine = sslHandler.engine();
-            if (sslConfig.getSniHostName().isEmpty()) {
-                sslHandlerFactory.setSNIServerNames(sslEngine, httpRoute.getHost());
-            } else {
-                sslHandlerFactory.setSNIServerNames(sslEngine, sslConfig.getSniHostName());
-            }
+            sslHandlerFactory.setSNIServerNames(sslEngine,
+                    sslConfig.getSniHostName() != null ? sslConfig.getSniHostName() : httpRoute.getHost());
             if (sslConfig.isHostNameVerificationEnabled()) {
                 setHostNameVerfication(sslEngine);
             }
