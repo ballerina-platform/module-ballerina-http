@@ -77,7 +77,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "http"
-version = "2.7.9"
+version = "2.7.19"
 dependencies = [
 	{org = "ballerina", name = "auth"},
 	{org = "ballerina", name = "cache"},
