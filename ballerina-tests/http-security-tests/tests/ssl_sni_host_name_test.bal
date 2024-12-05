@@ -106,3 +106,25 @@ public function testSniFailure() returns error? {
         test:assertFail("Test `testSniFailure` is expecting an error. But received a success response");
     }
 }
+
+@test:Config {}
+public function testSniWhenUsingDefaultCerts() returns error? {
+    http:Client httpClient = check new("https://www.google.com", http2SniClientConf3);
+    string|error resp = httpClient->get("/");
+    // This response is success because even though we send a wrong server name, google.com sends the default cert which
+    // is valid and trusted by the client.
+    if resp is error {
+        test:assertFail("Found unexpected output: " +  resp.message());
+    }
+}
+
+@test:Config {}
+public function testSniFailureWhenUsingDefaultCerts() returns error? {
+    http:Client clientEP = check new ("https://127.0.0.1:9208", http2SniClientConf3);
+    string|error resp = clientEP->get("/http1SniService/");
+    if resp is error {
+        common:assertTrueTextPayload(resp.message(), "SSL connection failed:javax.net.ssl.SSLHandshakeException:");
+    } else {
+        test:assertFail("Test `testSniFailureWhenUsingDefaultCerts` is expecting an error. But received a success response");
+    }
+}
