@@ -56,6 +56,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static io.ballerina.runtime.api.TypeTags.ARRAY_TAG;
 import static io.ballerina.stdlib.http.api.HttpConstants.AUTHORIZATION_HEADER;
@@ -518,18 +520,17 @@ public class HttpDispatcher {
             if (argumentValue.endsWith(PERCENTAGE)) {
                 argumentValue = argumentValue.replaceAll(PERCENTAGE, PERCENTAGE_ENCODED);
             }
-            argumentValue = URLDecoder.decode(argumentValue.replaceAll(PLUS_SIGN, PLUS_SIGN_ENCODED),
-                    StandardCharsets.UTF_8);
             int paramIndex = actualSignatureParamIndex * 2;
             Type pathParamType = parameterTypes[actualSignatureParamIndex++];
 
             try {
                 if (pathParamType.getTag() == ARRAY_TAG) {
                     Type elementType = ((ArrayType) pathParamType).getElementType();
-                    String[] segments = argumentValue.substring(1).split(HttpConstants.SINGLE_SLASH);
+                    String[] segments = Stream.of(argumentValue.substring(1).split(HttpConstants.SINGLE_SLASH))
+                            .map(HttpDispatcher::decodePathSegment).toArray(String[]::new);
                     paramFeed[paramIndex++] = castParamArray(elementType, segments);
                 } else {
-                    paramFeed[paramIndex++] = castParam(pathParamType.getTag(), argumentValue);
+                    paramFeed[paramIndex++] = castParam(pathParamType.getTag(), decodePathSegment(argumentValue));
                 }
                 paramFeed[paramIndex] = true;
             } catch (Exception ex) {
@@ -538,6 +539,10 @@ public class HttpDispatcher {
                         null, HttpUtil.createError(ex));
             }
         }
+    }
+
+    private static String decodePathSegment(String pathSegment) {
+        return URLDecoder.decode(pathSegment.replaceAll(PLUS_SIGN, PLUS_SIGN_ENCODED), StandardCharsets.UTF_8);
     }
 
     private static void updateWildcardToken(String wildcardToken, int wildCardIndex,
