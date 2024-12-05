@@ -245,6 +245,7 @@ public class SslConfiguration {
     }
 
     private SSLConfig getSSLConfigForSender() {
+        setSslParameters();
         if (sslConfig.isDisableSsl() || sslConfig.useJavaDefaults()) {
             return sslConfig;
         }
@@ -265,7 +266,10 @@ public class SslConfiguration {
         sslConfig.setSSLProtocol(sslProtocol);
         String tlsStoreType = sslConfig.getTLSStoreType() != null ? sslConfig.getTLSStoreType() : JKS;
         sslConfig.setTLSStoreType(tlsStoreType);
+        return sslConfig;
+    }
 
+    private void setSslParameters() {
         if (parameters != null) {
             for (Parameter parameter : parameters) {
                 switch (parameter.getName()) {
@@ -287,6 +291,5 @@ public class SslConfiguration {
                 }
             }
         }
-        return sslConfig;
     }
 }
