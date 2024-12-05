@@ -383,6 +383,11 @@ service /encodedUri on utmTestEP {
 }
 
 service /restParam on utmTestEP {
+
+    resource function 'default 'string/[string... aaa]() returns json {
+        return {aaa: aaa};
+    }
+
     resource function 'default 'int/[int... aaa](http:Caller caller) returns error? {
         http:Response res = new;
         json responseJson = {aaa: aaa};
@@ -1020,6 +1025,16 @@ function testEncodedPathParams() {
     if response is http:Response {
         common:assertJsonValue(response.getJsonPayload(), "xxx", "123");
         common:assertJsonValue(response.getJsonPayload(), "yyy", "456");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
+function testRestParamWithEncodedPathSegments() {
+http:Response|error response = utmClient->get("/restParam/string/path%2Fseg/path%20seg/path%2Fseg+123");
+    if response is http:Response {
+        common:assertJsonValue(response.getJsonPayload(), "aaa", ["path/seg", "path seg", "path/seg+123"]);
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
