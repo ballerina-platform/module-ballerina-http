@@ -6,7 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+### Added
 - [Add support for configuring server name to be used in the SSL SNI extension](https://github.com/ballerina-platform/ballerina-library/issues/7435)
+
+### Fixed
+- [Fix the issue of not being able to configure only server name in the secureSocket config](https://github.com/ballerina-platform/ballerina-library/issues/7443)
 
 ## [2.7.8] - 2024-10-16
 
