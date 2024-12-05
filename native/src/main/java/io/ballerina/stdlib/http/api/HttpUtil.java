@@ -1384,13 +1384,7 @@ public class HttpUtil {
         }
         Object cert = secureSocket.get(HttpConstants.SECURESOCKET_CONFIG_CERT);
         if (cert == null) {
-            BMap<BString, Object> key = getBMapValueIfPresent(secureSocket, HttpConstants.SECURESOCKET_CONFIG_KEY);
-            if (key != null) {
-                senderConfiguration.useJavaDefaults();
-            } else {
-                throw createHttpError("Need to configure cert with client SSL certificates file",
-                        HttpErrorType.SSL_ERROR);
-            }
+            senderConfiguration.useJavaDefaults();
         } else {
             evaluateCertField(cert, senderConfiguration);
         }
@@ -1840,6 +1834,11 @@ public class HttpUtil {
         Parameter enableSessionCreationParam = new Parameter(HttpConstants.SECURESOCKET_CONFIG_SHARE_SESSION.getValue(),
                                                              enableSessionCreation);
         paramList.add(enableSessionCreationParam);
+        if (secureSocket.containsKey(HttpConstants.SECURESOCKET_CONFIG_SNI_HOST_NAME)) {
+            Parameter sniHostNameParam = new Parameter(HttpConstants.SECURESOCKET_CONFIG_SNI_HOST_NAME.getValue(),
+                    String.valueOf(secureSocket.getStringValue(HttpConstants.SECURESOCKET_CONFIG_SNI_HOST_NAME)));
+            paramList.add(sniHostNameParam);
+        }
     }
 
     private static BMap<BString, Object> getBMapValueIfPresent(BMap<BString, Object> map, BString key) {
