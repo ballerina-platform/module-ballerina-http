@@ -5,6 +5,14 @@ This file contains all the notable changes done to the Ballerina HTTP package th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- [Add support for configuring server name to be used in the SSL SNI extension](https://github.com/ballerina-platform/ballerina-library/issues/7435)
+
+### Fixed
+- [Fix the issue of not being able to configure only server name in the secureSocket config](https://github.com/ballerina-platform/ballerina-library/issues/7443)
+
 ## [2.12.3] - 2024-11-19
 
 ### Fixed
