@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Fixed
 - [Fix the issue of not being able to configure only server name in the secureSocket config](https://github.com/ballerina-platform/ballerina-library/issues/7443)
+- [Fix rest path parameter generation with decoded path segments](https://github.com/ballerina-platform/ballerina-library/issues/7430)
 
 ## [2.7.8] - 2024-10-16
 
