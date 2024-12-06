@@ -13,7 +13,7 @@ distribution = "2201.5.0"
 groupId = "io.ballerina.stdlib"
 artifactId = "http-native"
 version = "2.7.9"
-path = "../native/build/libs/http-native-2.7.9-SNAPSHOT.jar"
+path = "../native/build/libs/http-native-2.7.9.jar"
 
 [[platform.java11.dependency]]
 groupId = "io.ballerina.stdlib"
