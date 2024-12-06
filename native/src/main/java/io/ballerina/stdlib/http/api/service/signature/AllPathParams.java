@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static io.ballerina.stdlib.http.api.HttpConstants.EXTRA_PATH_INDEX;
 import static io.ballerina.stdlib.http.api.HttpConstants.PERCENTAGE;
@@ -79,17 +80,16 @@ public class AllPathParams implements Parameter {
             if (argumentValue.endsWith(PERCENTAGE)) {
                 argumentValue = argumentValue.replaceAll(PERCENTAGE, PERCENTAGE_ENCODED);
             }
-            argumentValue = URLDecoder.decode(argumentValue.replaceAll(PLUS_SIGN, PLUS_SIGN_ENCODED),
-                    StandardCharsets.UTF_8);
 
             Object castedPathValue;
             try {
                 Object parsedValue;
                 if (pathParam.isArray()) {
-                    String[] segments = argumentValue.substring(1).split(HttpConstants.SINGLE_SLASH);
+                    String[] segments = Stream.of(argumentValue.substring(1).split(HttpConstants.SINGLE_SLASH))
+                            .map(AllPathParams::decodePathSegment).toArray(String[]::new);
                     parsedValue = castParamArray(paramTypeTag, segments);
                 } else {
-                    parsedValue = castParam(paramTypeTag, argumentValue);
+                    parsedValue = castParam(paramTypeTag, decodePathSegment(argumentValue));
                 }
                 castedPathValue = ValueUtils.convert(parsedValue, paramType);
             } catch (Exception ex) {
@@ -108,6 +108,10 @@ public class AllPathParams implements Parameter {
             paramFeed[index++] = pathParam.validateConstraints(castedPathValue);
             paramFeed[index] = true;
         }
+    }
+
+    private static String decodePathSegment(String pathSegment) {
+        return URLDecoder.decode(pathSegment.replaceAll(PLUS_SIGN, PLUS_SIGN_ENCODED), StandardCharsets.UTF_8);
     }
 
     private static void updateWildcardToken(String wildcardToken, int wildCardIndex,
