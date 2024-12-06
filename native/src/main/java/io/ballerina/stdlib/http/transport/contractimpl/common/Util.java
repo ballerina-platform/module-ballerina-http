@@ -418,7 +418,7 @@ public class Util {
         SslHandler sslHandler = sslContext.newHandler(socketChannel.alloc(), host, port);
         SSLEngine sslEngine = sslHandler.engine();
         sslHandlerFactory.addCommonConfigs(sslEngine);
-        sslHandlerFactory.setSNIServerNames(sslEngine, host);
+        configureSniServerName(sslConfig, host, sslHandlerFactory, sslEngine);
         if (sslConfig.isHostNameVerificationEnabled()) {
             setHostNameVerfication(sslEngine);
         }
@@ -513,12 +513,18 @@ public class Util {
         if (sslConfig != null) {
             sslEngine = sslHandlerFactory.buildClientSSLEngine(host, port);
             sslEngine.setUseClientMode(true);
-            sslHandlerFactory.setSNIServerNames(sslEngine, host);
+            configureSniServerName(sslConfig, host, sslHandlerFactory, sslEngine);
             if (hostNameVerificationEnabled) {
                 sslHandlerFactory.setHostNameVerfication(sslEngine);
             }
         }
         return sslEngine;
+    }
+
+    private static void configureSniServerName(SSLConfig sslConfig, String host, SSLHandlerFactory sslHandlerFactory,
+                                               SSLEngine sslEngine) {
+        sslHandlerFactory.setSNIServerNames(sslEngine,
+                sslConfig.getSniHostName() != null ? sslConfig.getSniHostName() : host);
     }
 
     /**

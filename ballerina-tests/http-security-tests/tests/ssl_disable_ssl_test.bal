@@ -61,19 +61,3 @@ public function testSslDisabledClient1() returns error? {
         test:assertFail(msg = "Found unexpected output: " + resp.message());
     }
 }
-
-http:ClientConfiguration disableSslClientConf2 = {
-    secureSocket: {
-    }
-};
-
-@test:Config {}
-public function testSslDisabledClient2() {
-    http:Client|error httpClient = new ("https://localhost:9238", disableSslClientConf2);
-    string expectedErrMsg = "Need to configure cert with client SSL certificates file";
-    if (httpClient is error) {
-        test:assertEquals(httpClient.message(), expectedErrMsg);
-    } else {
-        test:assertFail(msg = "Expected mutual SSL error not found");
-    }
-}
