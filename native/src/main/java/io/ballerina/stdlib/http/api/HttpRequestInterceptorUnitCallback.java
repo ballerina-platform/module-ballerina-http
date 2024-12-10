@@ -101,12 +101,6 @@ public class HttpRequestInterceptorUnitCallback extends HttpCallableUnitCallback
         return false;
     }
 
-    private void printStacktraceIfError(Object result) {
-        if (result instanceof BError) {
-            ((BError) result).printStackTrace();
-        }
-    }
-
     private void sendRequestToNextService() {
         ballerinaHTTPConnectorListener.onMessage(requestMessage);
     }
@@ -186,7 +180,7 @@ public class HttpRequestInterceptorUnitCallback extends HttpCallableUnitCallback
         Callback returnCallback = new Callback() {
             @Override
             public void notifySuccess(Object result) {
-                printStacktraceIfError(result);
+                HttpUtil.printStacktraceIfError(result);
             }
 
             @Override

@@ -88,12 +88,6 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
         returnErrorResponse(error);
     }
 
-    private void printStacktraceIfError(Object result) {
-        if (result instanceof BError) {
-            ((BError) result).printStackTrace();
-        }
-    }
-
     private void sendResponseToNextService() {
         Respond.nativeRespondWithDataCtx(environment, caller, response, dataContext);
     }
@@ -171,7 +165,7 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
             public void notifySuccess(Object result) {
                 stopObserverContext();
                 dataContext.notifyOutboundResponseStatus(null);
-                printStacktraceIfError(result);
+                HttpUtil.printStacktraceIfError(result);
             }
 
             @Override
