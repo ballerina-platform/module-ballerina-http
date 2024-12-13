@@ -500,11 +500,11 @@ public final class HttpConstants {
 
     //Service parseAsType constants
     public static final String ENABLE_CONSTRAINT_VALIDATION = "enableConstraintValidation";
-    public static final String ALLOW_DATA_PROJECTION = "allowDataProjection";
+    public static final BString ALLOW_DATA_PROJECTION = StringUtils.fromString("allowDataProjection");
     public static final String PARSER_AS_TYPE_OPTIONS =  "Options";
 
-    public static final String NIL_AS_OPTIONAL = "nilAsOptional";
-    public static final String ABSENT_AS_NILABLE = "absentAsNilable";
+    public static final BString NIL_AS_OPTIONAL = StringUtils.fromString("nilAsOptionalField");
+    public static final BString ABSENT_AS_NILABLE = StringUtils.fromString("absentAsNilableType");
 
     //Client Endpoint (CallerActions)
     public static final String CLIENT_ENDPOINT_SERVICE_URI = "url";

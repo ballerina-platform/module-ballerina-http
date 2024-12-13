@@ -76,15 +76,16 @@ public class JsonToRecordConverter {
             Map<String, Object> valueMap = new HashMap<>();
             Boolean bool = Boolean.FALSE;
             valueMap.put(ENABLE_CONSTRAINT_VALIDATION, bool);
-            if (laxDataBinding) {
-                valueMap.put(NIL_AS_OPTIONAL, Boolean.TRUE);
-                valueMap.put(ABSENT_AS_NILABLE, Boolean.TRUE);
-            } else {
-                valueMap.put(ALLOW_DATA_PROJECTION, bool);
-            }
             BMap<BString, Object> mapValue = ValueCreator.createRecordValue(
                     io.ballerina.lib.data.ModuleUtils.getModule(),
                     PARSER_AS_TYPE_OPTIONS, valueMap);
+            if (laxDataBinding) {
+                BMap allowDataProjection = mapValue.getMapValue(ALLOW_DATA_PROJECTION);
+                allowDataProjection.put(NIL_AS_OPTIONAL, Boolean.TRUE);
+                allowDataProjection.put(ABSENT_AS_NILABLE, Boolean.TRUE);
+            } else {
+                mapValue.put(ALLOW_DATA_PROJECTION, bool);
+            }
             BTypedesc typedescValue = ValueCreator.createTypedescValue(entityBodyType);
             return Native.parseAsType(bJson, mapValue, typedescValue);
         } catch (NullPointerException ex) {
