@@ -51,4 +51,4 @@ const int http2SsePort = 9095;
 
 const int serviceContractTestPort = 9096;
 
-const int laxeDataBindingTestPort = 9015;
+const int laxDataBindingTestPort = 9015;

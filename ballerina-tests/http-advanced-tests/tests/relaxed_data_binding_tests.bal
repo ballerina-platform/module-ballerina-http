@@ -17,9 +17,6 @@
 import ballerina/test;
 import ballerina/http;
 
-listener http:Listener laxedDataBindingEP = new (laxeDataBindingTestPort, httpVersion = http:HTTP_2_0);
-final http:Client laxClient = check new ("http://localhost:" + laxeDataBindingTestPort.toString(), httpVersion = http:HTTP_2_0);
-
 type Citizen record {
     int id;
     string name;
@@ -38,10 +35,16 @@ type Teacher record {
     string? subject;
 };
 
+listener http:Listener laxDataBindingEP = new (laxDataBindingTestPort, httpVersion = http:HTTP_2_0);
+final http:Client laxClient = check new ("http://localhost:" + laxDataBindingTestPort.toString(), {
+    httpVersion: http:HTTP_2_0,
+    laxDataBinding: true
+});
+
 @http:ServiceConfig {
     laxDataBinding: true
 }
-service /people on laxedDataBindingEP {
+service /people on laxDataBindingEP {
 
     resource function post test1(@http:Payload Citizen citizen) returns Citizen {
         return citizen;
@@ -53,6 +56,21 @@ service /people on laxedDataBindingEP {
 
     resource function post test3(@http:Payload Teacher teacher) returns Teacher {
         return teacher;
+    }
+
+    resource function get test4() returns json {
+        return {
+            "id": 3001,
+            "name": "Sachin",
+            "address": null
+        };
+    }
+
+    resource function get test5() returns json {
+        return {
+            "id": 1001,
+            "name": "Anna"
+        };
     }
 }
 
@@ -84,7 +102,7 @@ function testExtraFieldsIgnored() returns error? {
 }
 
 @test:Config
-function testAbsentForRequiredField() returns error? {
+function testMissingRequiredField() returns error? {
     Teacher expectedPayload = {"id": 3001, "name": "Anna", "subject": null};
     Teacher response = check laxClient->/people/test3.post({ "id": 3001, "name": "Anna"});
     test:assertEquals(response, expectedPayload);
@@ -94,5 +112,27 @@ function testAbsentForRequiredField() returns error? {
 function testNullForRequiredField() returns error? {
     Teacher expectedPayload = {"id": 3001, "name": "Anna", "subject": null};
     Teacher response = check laxClient->/people/test3.post({ "id": 3001, "name": "Anna", "subject": null});
+    test:assertEquals(response, expectedPayload);
+}
+
+@test:Config
+function testNullForOptionalFieldClient() returns error? {
+    Citizen expectedPayload = {
+        "id": 3001,
+        "name": "Sachin",
+        "address": null
+    };
+    Citizen response = check laxClient->/people/test4;
+    test:assertEquals(response, expectedPayload);
+}
+
+@test:Config
+function testMissingRequiredFieldClient() returns error? {
+    Teacher expectedPayload = {
+        "id": 1001,
+        "name": "Anna",
+        "subject": null
+    };
+    Teacher response = check laxClient->/people/test5;
     test:assertEquals(response, expectedPayload);
 }
