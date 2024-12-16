@@ -74,7 +74,6 @@ public class JsonToRecordConverter {
     private static Object getRecord(Type entityBodyType, Object bJson, boolean laxDataBinding) {
         try {
             Map<String, Object> valueMap = new HashMap<>();
-            Boolean bool = Boolean.FALSE;
             valueMap.put(ENABLE_CONSTRAINT_VALIDATION, Boolean.FALSE);
             BMap<BString, Object> mapValue = ValueCreator.createRecordValue(
                     io.ballerina.lib.data.ModuleUtils.getModule(),
