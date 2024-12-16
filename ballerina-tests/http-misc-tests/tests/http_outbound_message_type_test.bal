@@ -243,7 +243,7 @@ public function testRequestAnydataNegative() returns error? {
     json|error payload = outRequestClient->post("/mytest/json", x);
     if payload is error {
         if payload is http:InitializingOutboundRequestError {
-            test:assertEquals(payload.message(), "json conversion error: {ballerina/lang.value}CyclicValueReferenceError");
+            test:assertEquals(payload.message(), "json conversion error: the value has a cyclic reference");
             return;
         }
     }
@@ -477,7 +477,7 @@ public function testResponseAnydataNegative() returns error? {
     http:Response resp = check outRequestClient->get("/mytest/anydataNegative");
     test:assertEquals(resp.statusCode, 500, msg = "Found unexpected output");
     common:assertHeaderValue(check resp.getHeader(common:CONTENT_TYPE), common:APPLICATION_JSON);
-    check common:assertJsonErrorPayload(check resp.getJsonPayload(), "json conversion error: {ballerina/lang.value}CyclicValueReferenceError",
+    check common:assertJsonErrorPayload(check resp.getJsonPayload(), "json conversion error: the value has a cyclic reference",
         "Internal Server Error", 500, "/mytest/anydataNegative", "GET");
 }
 
