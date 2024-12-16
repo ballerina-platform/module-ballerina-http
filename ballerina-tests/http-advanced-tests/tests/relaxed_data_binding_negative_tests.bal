@@ -35,9 +35,7 @@ type Lead record {|
 |};
 
 listener http:Listener laxDataBindingNegativeEP = new (laxDataBindingNegativeTestPort, httpVersion = http:HTTP_2_0);
-final http:Client laxNegativeClient = check new ("http://localhost:" + laxDataBindingNegativeTestPort.toString(), {
-    httpVersion: http:HTTP_2_0
-});
+final http:Client laxNegativeClient = check new ("http://localhost:" + laxDataBindingNegativeTestPort.toString());
 
 service /company on laxDataBindingNegativeEP {
 
@@ -45,11 +43,11 @@ service /company on laxDataBindingNegativeEP {
         return employee;
     }
 
-    resource function post test2(@http:Payload Department department) returns Department {
+    resource function post test2(Department department) returns Department {
         return department;
     }
 
-    resource function post test3(@http:Payload Lead lead) returns Lead {
+    resource function post test3(Lead lead) returns Lead {
         return lead;
     }
 
@@ -90,7 +88,7 @@ function testNullForOptionalFieldNegative() returns error? {
 @test:Config
 function testMissingRequiredFieldNegative() returns error? {
     Department|error response = laxNegativeClient->/company/test2.post({"name": "Tharmigan"});
-    if (response is http:ClientRequestError) {
+    if response is http:ClientRequestError {
         common:assertErrorMessage(response, "Bad Request");
     } else {
         test:assertFail("Found unexpected output");
@@ -100,7 +98,7 @@ function testMissingRequiredFieldNegative() returns error? {
 @test:Config
 function testExtraFieldsIgnoredNegative() returns error? {
     Lead|error response = laxNegativeClient->/company/test3.post({"id": 2001, "name": "Danesh", "address": "Piliyandala"});
-    if (response is http:ClientRequestError) {
+    if response is http:ClientRequestError {
         common:assertErrorMessage(response, "Bad Request");
     } else {
         test:assertFail("Found unexpected output");
@@ -110,7 +108,7 @@ function testExtraFieldsIgnoredNegative() returns error? {
 @test:Config
 function testNullForOptionalFieldClientNegative() returns error? {
     Employee|error response = laxNegativeClient->/company/test4;
-    if (response is http:PayloadBindingError) {
+    if response is http:PayloadBindingError {
         common:assertErrorMessage(response, "Payload binding failed: incompatible value 'null' for type 'string' in field 'address'");
     } else {
         test:assertFail("Found unexpected output");
@@ -120,7 +118,7 @@ function testNullForOptionalFieldClientNegative() returns error? {
 @test:Config
 function testMissingRequiredFieldClientNegative() returns error? {
     Department|error response = laxNegativeClient->/company/test5;
-    if (response is http:PayloadBindingError) {
+    if response is http:PayloadBindingError {
         common:assertErrorMessage(response, "Payload binding failed: required field 'employeeCount' not present in JSON");
     } else {
         test:assertFail("Found unexpected output");
@@ -130,7 +128,7 @@ function testMissingRequiredFieldClientNegative() returns error? {
 @test:Config
 function testExtraFieldsIgnoreClientNegative() returns error? {
     Lead|error response = laxNegativeClient->/company/test6;
-    if (response is http:PayloadBindingError) {
+    if response is http:PayloadBindingError {
         common:assertErrorMessage(response, "Payload binding failed: undefined field 'address'");
     } else {
         test:assertFail("Found unexpected output");

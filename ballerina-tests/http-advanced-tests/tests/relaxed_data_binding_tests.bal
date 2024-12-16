@@ -37,7 +37,6 @@ type Teacher record {
 
 listener http:Listener laxDataBindingEP = new (laxDataBindingTestPort, httpVersion = http:HTTP_2_0);
 final http:Client laxClient = check new ("http://localhost:" + laxDataBindingTestPort.toString(), {
-    httpVersion: http:HTTP_2_0,
     laxDataBinding: true
 });
 
@@ -46,15 +45,15 @@ final http:Client laxClient = check new ("http://localhost:" + laxDataBindingTes
 }
 service /people on laxDataBindingEP {
 
-    resource function post test1(@http:Payload Citizen citizen) returns Citizen {
+    resource function post test1(Citizen citizen) returns Citizen {
         return citizen;
     }
 
-    resource function post test2(@http:Payload Student student) returns Student {
+    resource function post test2(Student student) returns Student {
         return student;
     }
 
-    resource function post test3(@http:Payload Teacher teacher) returns Teacher {
+    resource function post test3(Teacher teacher) returns Teacher {
         return teacher;
     }
 
