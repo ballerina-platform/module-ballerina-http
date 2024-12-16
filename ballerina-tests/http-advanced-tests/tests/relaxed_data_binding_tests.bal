@@ -104,7 +104,7 @@ function testExtraFieldsIgnored() returns error? {
 @test:Config
 function testMissingRequiredField() returns error? {
     Teacher expectedPayload = {"id": 3001, "name": "Anna", "subject": null};
-    Teacher response = check laxClient->/people/test3.post({ "id": 3001, "name": "Anna"});
+    Teacher response = check laxClient->/people/test3.post({"id": 3001, "name": "Anna"});
     test:assertEquals(response, expectedPayload);
 }
 

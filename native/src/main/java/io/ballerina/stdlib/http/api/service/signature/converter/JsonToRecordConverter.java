@@ -75,7 +75,7 @@ public class JsonToRecordConverter {
         try {
             Map<String, Object> valueMap = new HashMap<>();
             Boolean bool = Boolean.FALSE;
-            valueMap.put(ENABLE_CONSTRAINT_VALIDATION, bool);
+            valueMap.put(ENABLE_CONSTRAINT_VALIDATION, Boolean.FALSE);
             BMap<BString, Object> mapValue = ValueCreator.createRecordValue(
                     io.ballerina.lib.data.ModuleUtils.getModule(),
                     PARSER_AS_TYPE_OPTIONS, valueMap);
@@ -84,7 +84,7 @@ public class JsonToRecordConverter {
                 allowDataProjection.put(NIL_AS_OPTIONAL, Boolean.TRUE);
                 allowDataProjection.put(ABSENT_AS_NILABLE, Boolean.TRUE);
             } else {
-                mapValue.put(ALLOW_DATA_PROJECTION, bool);
+                mapValue.put(ALLOW_DATA_PROJECTION, Boolean.FALSE);
             }
             BTypedesc typedescValue = ValueCreator.createTypedescValue(entityBodyType);
             return Native.parseAsType(bJson, mapValue, typedescValue);
