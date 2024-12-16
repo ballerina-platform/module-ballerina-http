@@ -87,7 +87,7 @@ service /people on laxDataBindingEP {
 @test:Config
 function testNullForOptionalField() returns error? {
     Citizen expectedPayload = {"id": 3001, "name": "Sachin", "address": null};
-    Citizen response = check laxClient->/people/test1.post({ "id": 3001, "name": "Sachin", "address": null });
+    Citizen response = check laxClient->/people/test1.post({"id": 3001, "name": "Sachin", "address": null});
     test:assertEquals(response, expectedPayload);
 }
 
