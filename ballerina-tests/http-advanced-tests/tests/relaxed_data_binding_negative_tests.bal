@@ -41,7 +41,7 @@ final http:Client laxNegativeClient = check new ("http://localhost:" + laxDataBi
 
 service /company on laxDataBindingNegativeEP {
 
-    resource function post test1(@http:Payload Employee employee) returns Employee {
+    resource function post test1(Employee employee) returns Employee {
         return employee;
     }
 
@@ -80,7 +80,7 @@ service /company on laxDataBindingNegativeEP {
 @test:Config
 function testNullForOptionalFieldNegative() returns error? {
     Employee|error response = laxNegativeClient->/company/test1.post({ "id": 1001, "name": "Tharmigan", "address": null});
-    if (response is http:ClientRequestError) {
+    if response is http:ClientRequestError {
         common:assertErrorMessage(response, "Bad Request");
     } else {
         test:assertFail("Found unexpected output");
