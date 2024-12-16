@@ -72,6 +72,16 @@ service /people on laxDataBindingEP {
             "name": "Anna"
         };
     }
+
+    resource function get test6() returns json {
+        return {
+            "name": "Sumudu",
+            "module": "DSA",
+            "grade": null,
+            "rank": "1",
+            "classification": "unknown"
+        };
+    }
 }
 
 @test:Config
@@ -134,5 +144,12 @@ function testMissingRequiredFieldClient() returns error? {
         "subject": null
     };
     Teacher response = check laxClient->/people/test5;
+    test:assertEquals(response, expectedPayload);
+}
+
+@test:Config
+function testExtraFieldsIgnoreClient() returns error? {
+    Student expectedPayload = {"name": "Sumudu", "module": "DSA", "grade": null};
+    Student response = check laxClient->/people/test6;
     test:assertEquals(response, expectedPayload);
 }
