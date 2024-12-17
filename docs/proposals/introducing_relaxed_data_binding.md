@@ -45,15 +45,12 @@ A more user-friendly solution is to implement relaxed data binding, which would 
 
 ## Description
 Following is the breakdown of the cases we need to reconsider within the context of payload data binding:
-<meta charset="utf-8"><b style="font-weight:normal;" id="docs-internal-guid-f6c8a312-7fff-fcbf-faf3-0b5d1af4efa6"><div dir="ltr" style="margin-left:0pt;" align="left">
-Scenario | Ballerina Representation | Current Behavior | Expected Behavior
--- | -- | -- | --
-Required & non-nullable | T foo; | Both null values and absent fields cause runtime failures | Same
-Required & nullable | T? foo; | Absent fields will cause runtime failures | Need relaxed data binding to map absent fields as nil values
-Optional & non-nullable | T foo?; | Null values will cause runtime failures | Need relaxed data binding to map null values as absent fields
-Optional & nullable | T? foo?; | Both nil values and absent fields are allowed | Same
-
-</div></b>
+| Scenario                | Ballerina Record Field Representation | Default Behavior                                          | Relaxed Behavior                                              |
+|-------------------------|---------------------------------------|-----------------------------------------------------------|---------------------------------------------------------------|
+| Required & non-nullable | `T foo;`                              | Both null values and absent fields cause runtime failures | Same                                                          |
+| Required & nullable     | `T? foo;`                             | Absent fields will cause runtime failures                 | Need relaxed data binding to map absent fields as nil values  |
+| Optional & non-nullable | `T foo?;`                             | Null values will cause runtime failures                   | Need relaxed data binding to map null values as absent fields |
+| Optional & nullable     | `T? foo?;`                            | Both nil values and absent fields are allowed             | Same                                                          |
 
 In the `data.jsondata` package, the `Options` configuration already provides support for handling various field types in JSON data binding, accommodating scenarios with both absent fields and null values. The `Options` record allows us to adjust how nullability and optionality are treated, making it a versatile solution for managing the differences between required and optional fields, as well as nullable and non-nullable fields.
 
