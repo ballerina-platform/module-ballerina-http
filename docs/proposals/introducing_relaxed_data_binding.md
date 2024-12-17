@@ -79,8 +79,6 @@ The approach involves adding a new field, `laxDataBinding`, to the `CommonClient
 public type CommonClientConfiguration record {|
     boolean laxDataBinding = false;
     // Other fields
-    boolean laxDataBinding = false;
-    // Other fields
 |};
 ```
 
@@ -89,8 +87,6 @@ We can configure the relaxed data binding in the service level by improving the 
 
 ```ballerina
 public type HttpServiceConfig record {|
-    boolean laxDataBinding = false;
-    // Other fields
     boolean laxDataBinding = false;
     // Other fields
 |};
