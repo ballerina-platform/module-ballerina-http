@@ -1,6 +1,6 @@
 # Proposal: Introduce Relaxed Data Binding to Ballerina HTTP Module
 
-_Owners_: @SachinAkash01  
+_Owners_: @shafreenAnfar @daneshk @NipunaRanasinghe @lnash94 @TharmiganK @SachinAkash01  
 _Reviewers_: @lnash94 @TharmiganK @shafreenAnfar    
 _Created_: 2024/11/13  
 _Updated_: 2024/11/18  
@@ -50,11 +50,11 @@ Following is the breakdown of the cases we need to reconsider within the context
 | Required & non-nullable | `T foo;`                              | Both null values and absent fields cause runtime failures | Same                                                          |
 | Required & nullable     | `T? foo;`                             | Absent fields will cause runtime failures                 | Need relaxed data binding to map absent fields as nil values  |
 | Optional & non-nullable | `T foo?;`                             | Null values will cause runtime failures                   | Need relaxed data binding to map null values as absent fields |
-| Optional & nullable     | `T? foo?;`                            | Both nil values and absent fields are allowed             | Same                                                          |
+| Optional & nullable     | `T? foo?;`                            | Both nil values and absent fields are allowed             | Same                                                          |              |
 
 In the `data.jsondata` package, the `Options` configuration already provides support for handling various field types in JSON data binding, accommodating scenarios with both absent fields and null values. The `Options` record allows us to adjust how nullability and optionality are treated, making it a versatile solution for managing the differences between required and optional fields, as well as nullable and non-nullable fields.
 
-The `Options` record in the data.jsondata module is defined as follows:,
+The `Options` record in the `data.jsondata` module is defined as follows:,
 
 ```ballerina
 public type Options record {
@@ -79,6 +79,8 @@ The approach involves adding a new field, `laxDataBinding`, to the `CommonClient
 public type CommonClientConfiguration record {|
     boolean laxDataBinding = false;
     // Other fields
+    boolean laxDataBinding = false;
+    // Other fields
 |};
 ```
 
@@ -87,6 +89,8 @@ We can configure the relaxed data binding in the service level by improving the 
 
 ```ballerina
 public type HttpServiceConfig record {|
+    boolean laxDataBinding = false;
+    // Other fields
     boolean laxDataBinding = false;
     // Other fields
 |};
