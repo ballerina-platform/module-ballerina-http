@@ -73,6 +73,7 @@ import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorExc
 import io.ballerina.stdlib.http.transport.contract.exceptions.SslException;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.ConnectionManager;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.PoolConfiguration;
+import io.ballerina.stdlib.http.transport.internal.ResourceLock;
 import io.ballerina.stdlib.http.transport.message.Http2PushPromise;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.HttpMessageDataStreamer;
@@ -206,6 +207,7 @@ public class HttpUtil {
     private static final String JAVA_CONFIG_TLS_NAMED_GROUPS = "jdk.tls.namedGroups";
     private static final String[] DEFAULT_NAMED_GROUPS = { "X25519Kyber768Draft00", "x25519", "secp256r1",
             "secp384r1", "secp521r1" };
+    private static final ResourceLock resourceLock = new ResourceLock();
 
     /**
      * Set new entity to in/out request/response struct.
@@ -1324,7 +1326,7 @@ public class HttpUtil {
     public static ConnectionManager getConnectionManager(BMap poolStruct) {
         ConnectionManager poolManager = (ConnectionManager) poolStruct.getNativeData(HttpConstants.CONNECTION_MANAGER);
         if (poolManager == null) {
-            synchronized (poolStruct) {
+            try (ResourceLock ignored = resourceLock.obtain()) {
                 if (poolStruct.getNativeData(HttpConstants.CONNECTION_MANAGER) == null) {
                     PoolConfiguration userDefinedPool = new PoolConfiguration();
                     populatePoolingConfig(poolStruct, userDefinedPool);

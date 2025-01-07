@@ -18,6 +18,8 @@
 
 package io.ballerina.stdlib.http.transport.message;
 
+import io.ballerina.stdlib.http.transport.internal.ResourceLock;
+
 /**
  * Default implementation of the {@link FullHttpMessageFuture}.
  */
@@ -26,6 +28,7 @@ public class DefaultFullHttpMessageFuture implements FullHttpMessageFuture {
     private final HttpCarbonMessage httpCarbonMessage;
     private FullHttpMessageListener messageListener;
     private Exception error;
+    private final ResourceLock resourceLock = new ResourceLock();
 
     DefaultFullHttpMessageFuture(HttpCarbonMessage httpCarbonMessage) {
         this.httpCarbonMessage = httpCarbonMessage;
@@ -33,7 +36,7 @@ public class DefaultFullHttpMessageFuture implements FullHttpMessageFuture {
 
     @Override
     public void addListener(FullHttpMessageListener messageListener) {
-        synchronized (httpCarbonMessage) {
+        try (ResourceLock ignored = resourceLock.obtain()) {
             this.messageListener = messageListener;
             if (httpCarbonMessage.isLastHttpContentArrived()) {
                 notifySuccess();

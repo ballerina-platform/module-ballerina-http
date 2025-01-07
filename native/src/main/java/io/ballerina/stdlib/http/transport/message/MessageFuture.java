@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.transport.message;
 
+import io.ballerina.stdlib.http.transport.internal.ResourceLock;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.LastHttpContent;
 import org.slf4j.Logger;
@@ -31,13 +32,14 @@ public class MessageFuture {
     private static final Logger LOG = LoggerFactory.getLogger(MessageFuture.class);
     private MessageListener messageListener;
     private final HttpCarbonMessage httpCarbonMessage;
+    private final ResourceLock resourceLock = new ResourceLock();
 
     public MessageFuture(HttpCarbonMessage httpCarbonMessage) {
         this.httpCarbonMessage = httpCarbonMessage;
     }
 
     public void setMessageListener(MessageListener messageListener) {
-        synchronized (httpCarbonMessage) {
+        try (ResourceLock ignored = resourceLock.obtain()) {
             this.messageListener = messageListener;
             while (!httpCarbonMessage.isEmpty()) {
                 HttpContent httpContent = httpCarbonMessage.getHttpContent();

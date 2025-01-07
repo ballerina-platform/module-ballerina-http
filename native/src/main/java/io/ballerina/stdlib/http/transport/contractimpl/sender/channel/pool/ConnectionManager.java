@@ -22,6 +22,7 @@ import io.ballerina.stdlib.http.transport.contractimpl.listener.http2.Http2Sourc
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.BootstrapConfiguration;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.TargetChannel;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ConnectionManager;
+import io.ballerina.stdlib.http.transport.internal.ResourceLock;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.EventLoopGroup;
@@ -46,6 +47,7 @@ public class ConnectionManager {
     private final Map<String, GenericObjectPool> globalConnPool;
     private final Map<String, PoolableTargetChannelFactory> globalFactoryObjects;
     private final Http2ConnectionManager http2ConnectionManager;
+    private final ResourceLock resourceLock = new ResourceLock();
 
     public ConnectionManager(PoolConfiguration poolConfiguration) {
         this.poolConfiguration = poolConfiguration;
@@ -103,7 +105,7 @@ public class ConnectionManager {
                                                           EventLoopGroup clientEventGroup) {
         GenericObjectPool trgHlrConnPool;
         Class eventLoopClass = NioSocketChannel.class;
-        synchronized (this) {
+        try (ResourceLock ignored = resourceLock.obtain()) {
             if (!globalConnPool.containsKey(httpRoute.toString())) {
                 createTrgHlrPoolInGlobalPool(httpRoute, senderConfig, bootstrapConfig, clientEventGroup,
                                              eventLoopClass);
@@ -122,7 +124,7 @@ public class ConnectionManager {
                                                                      Map<String, GenericObjectPool> srcHlrConnPool) {
         GenericObjectPool trgHlrConnPool = srcHlrConnPool.get(trgHlrConnPoolId);
         if (trgHlrConnPool == null) {
-            synchronized (this) {
+            try (ResourceLock ignored = resourceLock.obtain()) {
                 if (!globalConnPool.containsKey(httpRoute.toString())) {
                     createTrgHlrPoolInGlobalPool(httpRoute, senderConfig, bootstrapConfig,
                                                  clientEventGroup, eventLoopClass);

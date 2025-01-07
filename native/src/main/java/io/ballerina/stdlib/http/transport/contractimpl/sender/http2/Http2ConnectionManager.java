@@ -21,6 +21,7 @@ package io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
 import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.PoolConfiguration;
+import io.ballerina.stdlib.http.transport.internal.ResourceLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +40,7 @@ public class Http2ConnectionManager {
     private final Http2ChannelPool http2ChannelPool = new Http2ChannelPool();
     private final BlockingQueue<Http2ClientChannel> http2StaleClientChannels = new LinkedBlockingQueue<>();
     private final PoolConfiguration poolConfiguration;
+    private final ResourceLock resourceLock = new ResourceLock();
 
     public Http2ConnectionManager(PoolConfiguration poolConfiguration) {
         this.poolConfiguration = poolConfiguration;
@@ -124,7 +126,7 @@ public class Http2ConnectionManager {
      */
     public Http2ClientChannel fetchChannel(HttpRoute httpRoute) {
         Http2ChannelPool.PerRouteConnectionPool perRouteConnectionPool;
-        synchronized (this) {
+        try (ResourceLock ignored = resourceLock.obtain()) {
             perRouteConnectionPool = getOrCreatePerRoutePool(this.http2ChannelPool, generateKey(httpRoute));
             return perRouteConnectionPool != null ? perRouteConnectionPool.fetchTargetChannel() : null;
         }

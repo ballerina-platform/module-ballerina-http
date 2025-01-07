@@ -27,6 +27,7 @@ import io.ballerina.stdlib.http.transport.contractimpl.HttpOutboundRespListener;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.SourceHandler;
 import io.ballerina.stdlib.http.transport.internal.HandlerExecutor;
 import io.ballerina.stdlib.http.transport.internal.HttpTransportContextHolder;
+import io.ballerina.stdlib.http.transport.internal.ResourceLock;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.netty.buffer.CompositeByteBuf;
 import io.netty.buffer.Unpooled;
@@ -75,6 +76,7 @@ public class SendingEntityBody implements ListenerState {
     private HttpCarbonMessage outboundResponseMsg;
     private ChannelHandlerContext sourceContext;
     private SourceHandler sourceHandler;
+    private final ResourceLock resourceLock = new ResourceLock();
 
     SendingEntityBody(HttpOutboundRespListener outboundRespListener,
                       ListenerReqRespStateManager listenerReqRespStateManager,
@@ -245,7 +247,7 @@ public class SendingEntityBody implements ListenerState {
         if (outboundResponseMsg.isPipeliningEnabled() && Constants.HTTP_1_1_VERSION.equalsIgnoreCase
                 (httpVersion)) {
             Queue responseQueue;
-            synchronized (sourceContext.channel().attr(Constants.RESPONSE_QUEUE).get()) {
+            try (ResourceLock ignored = resourceLock.obtain()) {
                 responseQueue = sourceContext.channel().attr(Constants.RESPONSE_QUEUE).get();
                 Long nextSequenceNumber = sourceContext.channel().attr(Constants.NEXT_SEQUENCE_NUMBER).get();
                 //IMPORTANT:Next sequence number should never be incremented for interim 100 continue response

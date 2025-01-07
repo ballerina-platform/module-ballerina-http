@@ -21,6 +21,7 @@ package io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
+import io.ballerina.stdlib.http.transport.internal.ResourceLock;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -53,7 +54,7 @@ public class Http2ClientChannel {
     private Http2Connection connection;
     private ChannelFuture channelFuture;
     private HttpRoute httpRoute;
-    private Http2ConnectionManager http2ConnectionManager;
+    private final Http2ConnectionManager http2ConnectionManager;
     // Whether channel is operates with maximum number of allowed streams
     private AtomicBoolean isExhausted = new AtomicBoolean(false);
     // Number of active streams. Need to start from 1 to prevent someone stealing the connection from the creator
@@ -63,6 +64,7 @@ public class Http2ClientChannel {
     private StreamCloseListener streamCloseListener;
     private long timeSinceMarkedAsStale = 0;
     private AtomicBoolean isStale = new AtomicBoolean(false);
+    private final ResourceLock resourceLock = new ResourceLock();
 
     public Http2ClientChannel(Http2ConnectionManager http2ConnectionManager, Http2Connection connection,
                               HttpRoute httpRoute, Channel channel) {
@@ -328,7 +330,7 @@ public class Http2ClientChannel {
     }
 
     void markAsStale() {
-        synchronized (http2ConnectionManager) {
+        try (ResourceLock ignored = resourceLock.obtain()) {
             isStale.set(true);
             http2ConnectionManager.markClientChannelAsStale(httpRoute, this);
         }

@@ -23,6 +23,7 @@ import io.ballerina.stdlib.http.api.nativeimpl.connection.ResponseWriter;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorException;
+import io.ballerina.stdlib.http.transport.internal.ResourceLock;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.HttpPipeliningFuture;
 import io.netty.channel.ChannelHandlerContext;
@@ -41,6 +42,7 @@ import static io.ballerina.stdlib.http.api.HttpUtil.sendOutboundResponse;
 public class PipeliningHandler {
 
     private static final Logger log = LoggerFactory.getLogger(PipeliningHandler.class);
+    private static final ResourceLock resourceLock = new ResourceLock();
 
     /**
      * This method should be used whenever a response should be sent out via other places (eg:- error responses,
@@ -79,7 +81,7 @@ public class PipeliningHandler {
                                                             PipelinedResponse pipelinedResponse) {
         HttpResponseFuture responseFuture = null;
 
-        synchronized (sourceContext.channel().attr(Constants.RESPONSE_QUEUE).get()) {
+        try (ResourceLock ignored = resourceLock.obtain()) {
             Queue<PipelinedResponse> responseQueue = sourceContext.channel().attr(Constants.RESPONSE_QUEUE).get();
             if (thresholdReached(sourceContext, responseQueue)) {
                 return null;
