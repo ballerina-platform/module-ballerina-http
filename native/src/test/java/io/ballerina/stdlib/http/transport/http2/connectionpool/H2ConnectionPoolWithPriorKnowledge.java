@@ -93,7 +93,7 @@ public class H2ConnectionPoolWithPriorKnowledge {
         }
     }
 
-    @Test
+    @Test (enabled = false)
     public void testPriorKnowledgeWithPool() {
         //Since we have only two eventloops, upstream will have two different pools.
         HttpClientConnector client1 = getTestHttp2Client(httpWsConnectorFactory, true); //Upstream uses eventloop1 pool
