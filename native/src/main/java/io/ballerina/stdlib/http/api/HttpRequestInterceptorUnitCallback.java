@@ -171,7 +171,7 @@ public class HttpRequestInterceptorUnitCallback extends HttpCallableUnitCallback
     public void invokeBalMethod(Object[] paramFeed, String methodName) {
         Thread.startVirtualThread(() -> {
             try {
-                StrandMetadata metaData = new StrandMetadata(false, null);
+                StrandMetadata metaData = new StrandMetadata(true, null);
                 runtime.callMethod(caller, methodName, metaData, paramFeed);
             } catch (BError error) {
                 cleanupRequestMessage();
