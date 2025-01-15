@@ -37,13 +37,13 @@ import static java.lang.System.err;
  * @since 0.94
  */
 public class HttpCallableUnitCallback {
-    private static final String ILLEGAL_FUNCTION_INVOKED = "illegal return: response has already been sent";
+    public static final String ILLEGAL_FUNCTION_INVOKED = "illegal return: response has already been sent";
 
-    private final BObject caller;
-    private final Runtime runtime;
+    protected final BObject caller;
+    protected final Runtime runtime;
+    protected final HttpCarbonMessage requestMessage;
     private final String returnMediaType;
     private final BMap cacheConfig;
-    private final HttpCarbonMessage requestMessage;
     private final BMap links;
     private final boolean isLastService;
 
@@ -66,6 +66,16 @@ public class HttpCallableUnitCallback {
         this.cacheConfig = null;
         this.links = null;
         this.caller = getCaller(requestMessage, null);
+        this.isLastService = false;
+    }
+
+    HttpCallableUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime, BObject caller) {
+        this.requestMessage = requestMessage;
+        this.runtime = runtime;
+        this.returnMediaType = null;
+        this.cacheConfig = null;
+        this.links = null;
+        this.caller = caller;
         this.isLastService = false;
     }
 
@@ -97,7 +107,7 @@ public class HttpCallableUnitCallback {
         returnResponse(result);
     }
 
-    private void returnResponse(Object result) {
+    public void returnResponse(Object result) {
         Object[] paramFeed = new Object[4];
         paramFeed[0] = result;
         paramFeed[1] = Objects.nonNull(returnMediaType) ? StringUtils.fromString(returnMediaType) : null;
@@ -106,7 +116,7 @@ public class HttpCallableUnitCallback {
         invokeBalMethod(paramFeed, "returnResponse", false);
     }
 
-    private void returnErrorResponse(BError error, boolean startNewThread) {
+    public void returnErrorResponse(Object error, boolean startNewThread) {
         Object[] paramFeed = new Object[2];
         paramFeed[0] = error;
         paramFeed[1] = returnMediaType != null ? StringUtils.fromString(returnMediaType) : null;
@@ -115,13 +125,13 @@ public class HttpCallableUnitCallback {
 
     public void invokeBalMethod(Object[] paramFeed, String methodName, boolean startNewThread) {
         if (startNewThread) {
-            new Thread(() -> callBalMethod(paramFeed, methodName)).start();
+            Thread.startVirtualThread(() -> callBalMethod(paramFeed, methodName));
         } else {
             callBalMethod(paramFeed, methodName);
         }
     }
 
-    private void callBalMethod(Object[] paramFeed, String methodName) {
+    public void callBalMethod(Object[] paramFeed, String methodName) {
         try {
             runtime.callMethod(caller, methodName, null, paramFeed);
             stopObserverContext();
@@ -171,7 +181,7 @@ public class HttpCallableUnitCallback {
         requestMessage.waitAndReleaseAllEntities();
     }
 
-    private boolean alreadyResponded(Object result) {
+    public boolean alreadyResponded(Object result) {
         try {
             HttpUtil.methodInvocationCheck(requestMessage, HttpConstants.INVALID_STATUS_CODE, ILLEGAL_FUNCTION_INVOKED);
         } catch (BError bError) {

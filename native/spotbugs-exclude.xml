@@ -57,11 +57,7 @@
         <Bug pattern="DM_EXIT" />
     </Match>
     <Match>
-        <Class name="io.ballerina.stdlib.http.api.HttpResponseInterceptorUnitCallback" />
-        <Bug pattern="DM_EXIT" />
-    </Match>
-    <Match>
-        <Class name="io.ballerina.stdlib.http.api.HttpRequestInterceptorUnitCallback" />
+        <Class name="io.ballerina.stdlib.http.api.HttpInterceptorUnitCallback" />
         <Bug pattern="DM_EXIT" />
     </Match>
     <Match>
@@ -191,18 +187,6 @@
     <Match>
         <Class name="io.ballerina.stdlib.http.api.HttpUtil"/>
         <Method name="populateInterceptorServicesFromListener"/>
-        <Bug pattern="DM_EXIT" />
-    </Match>
-    <Match>
-        <Class name="io.ballerina.stdlib.http.api.HttpCallableUnitResultHandler" />
-        <Bug pattern="DM_EXIT" />
-    </Match>
-    <Match>
-        <Class name="io.ballerina.stdlib.http.api.HttpResponseInterceptorUnitResultHandler" />
-        <Bug pattern="DM_EXIT" />
-    </Match>
-    <Match>
-        <Class name="io.ballerina.stdlib.http.api.HttpRequestInterceptorUnitHandler" />
         <Bug pattern="DM_EXIT" />
     </Match>
     <Match>

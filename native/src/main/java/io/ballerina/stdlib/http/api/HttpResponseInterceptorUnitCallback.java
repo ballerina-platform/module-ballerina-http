@@ -20,8 +20,6 @@ package io.ballerina.stdlib.http.api;
 
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Runtime;
-import io.ballerina.runtime.api.types.ServiceType;
-import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
@@ -32,14 +30,9 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
  * {@code HttpResponseInterceptorUnitCallback} is the responsible for acting on notifications received from Ballerina
  * side when a response interceptor service is invoked.
  */
-public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallback {
-    private static final String ILLEGAL_FUNCTION_INVOKED = "illegal return: response has already been sent";
-
-    private final HttpCarbonMessage requestMessage;
-    private final BObject caller;
+public class HttpResponseInterceptorUnitCallback extends HttpInterceptorUnitCallback {
     private final BObject response;
     private final Environment environment;
-    private final BObject requestCtx;
     private final DataContext dataContext;
     private final boolean possibleLastInterceptor;
 
@@ -47,10 +40,7 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
     public HttpResponseInterceptorUnitCallback(HttpCarbonMessage requestMessage, BObject caller, BObject response,
                                                Environment env, DataContext dataContext, Runtime runtime,
                                                boolean possibleLastInterceptor) {
-        super(requestMessage, runtime);
-        this.requestMessage = requestMessage;
-        this.requestCtx = (BObject) requestMessage.getProperty(HttpConstants.REQUEST_CONTEXT);
-        this.caller = caller;
+        super(requestMessage, runtime, caller);
         this.response = response;
         this.environment = env;
         this.dataContext = dataContext;
@@ -70,34 +60,8 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
         validateResponseAndProceed(result);
     }
 
-    @Override
-    public void handlePanic(BError error) { // handles panic and check_panic
-        cleanupRequestMessage();
-        sendFailureResponse(error);
-        System.exit(1);
-    }
-
-    public void invokeErrorInterceptors(BError error, boolean isInternalError, boolean startNewThread) {
-        if (isInternalError) {
-            requestMessage.setProperty(HttpConstants.INTERNAL_ERROR, true);
-        } else {
-            requestMessage.removeProperty(HttpConstants.INTERNAL_ERROR);
-        }
-        requestMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR, error);
-        returnErrorResponse(error, startNewThread);
-    }
-
     private void sendResponseToNextService() {
         Respond.nativeRespondWithDataCtx(environment, caller, response, dataContext);
-    }
-
-    private boolean alreadyResponded() {
-        try {
-            HttpUtil.methodInvocationCheck(requestMessage, HttpConstants.INVALID_STATUS_CODE, ILLEGAL_FUNCTION_INVOKED);
-        } catch (BError e) {
-            return true;
-        }
-        return false;
     }
 
     private void validateResponseAndProceed(Object result) {
@@ -105,7 +69,7 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
         requestMessage.setProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX, interceptorId);
         BArray interceptors = (BArray) requestCtx.getNativeData(HttpConstants.INTERCEPTORS);
 
-        if (alreadyResponded()) {
+        if (alreadyResponded(result)) {
             dataContext.notifyOutboundResponseStatus(null);
             stopObserverContext();
             return;
@@ -123,10 +87,6 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
         }
     }
 
-    private boolean isServiceType(Object result) {
-        return result instanceof BObject && TypeUtils.getType(result) instanceof ServiceType;
-    }
-
     private void validateServiceReturnType(Object result, int interceptorId, BArray interceptors) {
         if (interceptors != null) {
             if (interceptorId < interceptors.size()) {
@@ -142,44 +102,8 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
         }
     }
 
-    private void returnResponse(Object result) {
-        Object[] paramFeed = new Object[4];
-        paramFeed[0] = result;
-        paramFeed[1] = null;
-        paramFeed[2] = null;
-        paramFeed[3] = null;
-        invokeBalMethod(paramFeed, "returnResponse", false);
-    }
-
-    @Override
-    public void invokeBalMethod(Object[] paramFeed, String methodName, boolean startNewThread) {
-        if (startNewThread) {
-            Thread.startVirtualThread(() -> callBalMethod(paramFeed, methodName));
-        } else {
-            callBalMethod(paramFeed, methodName);
-        }
-    }
-
-    private void callBalMethod(Object[] paramFeed, String methodName) {
-        try {
-            this.getRuntime().callMethod(caller, methodName, null, paramFeed);
-            stopObserverContext();
-            dataContext.notifyOutboundResponseStatus(null);
-        } catch (BError error) {
-            dataContext.notifyOutboundResponseStatus(null);
-            sendFailureResponse(error);
-        }
-    }
-
     private int getResponseInterceptorId() {
         return Math.min((int) requestCtx.getNativeData(HttpConstants.RESPONSE_INTERCEPTOR_INDEX),
                         (int) requestMessage.getProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX));
-    }
-
-    public void returnErrorResponse(BError error, boolean startNewThread) {
-        Object[] paramFeed = new Object[2];
-        paramFeed[0] = error;
-        paramFeed[1] = null;
-        invokeBalMethod(paramFeed, "returnErrorResponse", startNewThread);
     }
 }

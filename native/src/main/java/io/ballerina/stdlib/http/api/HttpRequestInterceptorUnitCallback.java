@@ -19,11 +19,8 @@
 package io.ballerina.stdlib.http.api;
 
 import io.ballerina.runtime.api.Runtime;
-import io.ballerina.runtime.api.types.ServiceType;
-import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
-import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
 import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_INTERCEPTOR_RETURN_ERROR;
@@ -34,22 +31,13 @@ import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_INTERCEPTOR_RE
  *
  * @since SL Beta 4
  */
-public class HttpRequestInterceptorUnitCallback extends HttpCallableUnitCallback {
-    private static final String ILLEGAL_FUNCTION_INVOKED = "illegal return: response has already been sent";
-    private final BObject caller;
-    private final Runtime runtime;
-    private final HttpCarbonMessage requestMessage;
+public class HttpRequestInterceptorUnitCallback extends HttpInterceptorUnitCallback {
     private final BallerinaHTTPConnectorListener ballerinaHTTPConnectorListener;
-    private final BObject requestCtx;
 
     HttpRequestInterceptorUnitCallback(HttpCarbonMessage requestMessage, Runtime runtime,
                                        BallerinaHTTPConnectorListener ballerinaHTTPConnectorListener) {
         super(requestMessage, runtime);
-        this.runtime = runtime;
-        this.requestMessage = requestMessage;
-        this.requestCtx = (BObject) requestMessage.getProperty(HttpConstants.REQUEST_CONTEXT);
         this.ballerinaHTTPConnectorListener = ballerinaHTTPConnectorListener;
-        this.caller = (BObject) requestMessage.getProperty(HttpConstants.CALLER);
     }
 
     @Override
@@ -64,13 +52,6 @@ public class HttpRequestInterceptorUnitCallback extends HttpCallableUnitCallback
         validateResponseAndProceed(result);
     }
 
-    @Override
-    public void handlePanic(BError error) { // handles panic and check_panic
-        cleanupRequestMessage();
-        sendFailureResponse(error);
-        System.exit(1);
-    }
-
     public void invokeErrorInterceptors(BError error, boolean isInternalError) {
         if (isInternalError) {
             requestMessage.setProperty(HttpConstants.INTERNAL_ERROR, true);
@@ -79,22 +60,6 @@ public class HttpRequestInterceptorUnitCallback extends HttpCallableUnitCallback
         }
         requestMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR, error);
         ballerinaHTTPConnectorListener.onMessage(requestMessage);
-    }
-
-    public void returnErrorResponse(Object error, boolean startNewThread) {
-        Object[] paramFeed = new Object[2];
-        paramFeed[0] = error;
-        paramFeed[1] = null;
-        invokeBalMethod(paramFeed, "returnErrorResponse", startNewThread);
-    }
-
-    private boolean alreadyResponded() {
-        try {
-            HttpUtil.methodInvocationCheck(requestMessage, HttpConstants.INVALID_STATUS_CODE, ILLEGAL_FUNCTION_INVOKED);
-        } catch (BError e) {
-            return true;
-        }
-        return false;
     }
 
     private void sendRequestToNextService() {
@@ -107,7 +72,7 @@ public class HttpRequestInterceptorUnitCallback extends HttpCallableUnitCallback
         BArray interceptors = (BArray) requestCtx.getNativeData(HttpConstants.INTERCEPTORS);
         boolean nextCalled = (boolean) requestCtx.getNativeData(HttpConstants.REQUEST_CONTEXT_NEXT);
 
-        if (alreadyResponded()) {
+        if (alreadyResponded(result)) {
             if (nextCalled) {
                 sendRequestToNextService();
             }
@@ -128,10 +93,6 @@ public class HttpRequestInterceptorUnitCallback extends HttpCallableUnitCallback
         } else {
             returnResponse(result);
         }
-    }
-
-    private boolean isServiceType(Object result) {
-        return result instanceof BObject && TypeUtils.getType(result) instanceof ServiceType;
     }
 
     private void validateServiceReturnType(Object result, int interceptorId, BArray interceptors) {
@@ -155,32 +116,6 @@ public class HttpRequestInterceptorUnitCallback extends HttpCallableUnitCallback
                     invokeErrorInterceptors(err, true);
                 }
             }
-        }
-    }
-
-    private void returnResponse(Object result) {
-        Object[] paramFeed = new Object[4];
-        paramFeed[0] = result;
-        paramFeed[1] = null;
-        paramFeed[2] = null;
-        paramFeed[3] = null;
-        invokeBalMethod(paramFeed, "returnResponse", false);
-    }
-
-    public void invokeBalMethod(Object[] paramFeed, String methodName, boolean startNewThread) {
-        if (startNewThread) {
-            Thread.startVirtualThread(() -> callBalMethod(paramFeed, methodName));
-        } else {
-            callBalMethod(paramFeed, methodName);
-        }
-    }
-
-    private void callBalMethod(Object[] paramFeed, String methodName) {
-        try {
-            runtime.callMethod(caller, methodName, null, paramFeed);
-        } catch (BError error) {
-            cleanupRequestMessage();
-            HttpUtil.handleFailure(requestMessage, error);
         }
     }
 
