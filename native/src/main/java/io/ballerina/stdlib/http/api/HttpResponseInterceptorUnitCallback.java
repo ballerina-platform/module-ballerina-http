@@ -20,7 +20,6 @@ package io.ballerina.stdlib.http.api;
 
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Runtime;
-import io.ballerina.runtime.api.concurrent.StrandMetadata;
 import io.ballerina.runtime.api.types.ServiceType;
 import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BArray;
@@ -163,8 +162,7 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
 
     private void callBalMethod(Object[] paramFeed, String methodName) {
         try {
-            StrandMetadata metaData = new StrandMetadata(true, null);
-            this.getRuntime().callMethod(caller, methodName, metaData, paramFeed);
+            this.getRuntime().callMethod(caller, methodName, null, paramFeed);
             stopObserverContext();
             dataContext.notifyOutboundResponseStatus(null);
         } catch (BError error) {

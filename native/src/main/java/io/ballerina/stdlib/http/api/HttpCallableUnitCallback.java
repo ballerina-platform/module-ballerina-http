@@ -17,7 +17,6 @@
 package io.ballerina.stdlib.http.api;
 
 import io.ballerina.runtime.api.Runtime;
-import io.ballerina.runtime.api.concurrent.StrandMetadata;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
@@ -124,8 +123,7 @@ public class HttpCallableUnitCallback {
 
     private void callBalMethod(Object[] paramFeed, String methodName) {
         try {
-            StrandMetadata metaData = new StrandMetadata(true, null);
-            runtime.callMethod(caller, methodName, metaData, paramFeed);
+            runtime.callMethod(caller, methodName, null, paramFeed);
             stopObserverContext();
         } catch (BError error) {
             sendFailureResponse(error);
