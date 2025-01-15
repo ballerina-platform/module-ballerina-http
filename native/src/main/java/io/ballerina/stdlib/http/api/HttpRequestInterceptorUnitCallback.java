@@ -82,11 +82,11 @@ public class HttpRequestInterceptorUnitCallback extends HttpCallableUnitCallback
         ballerinaHTTPConnectorListener.onMessage(requestMessage);
     }
 
-    public void returnErrorResponse(Object error) {
+    public void returnErrorResponse(Object error, boolean startNewThread) {
         Object[] paramFeed = new Object[2];
         paramFeed[0] = error;
         paramFeed[1] = null;
-        invokeBalMethod(paramFeed, "returnErrorResponse");
+        invokeBalMethod(paramFeed, "returnErrorResponse", startNewThread);
     }
 
     private boolean alreadyResponded() {
@@ -165,19 +165,25 @@ public class HttpRequestInterceptorUnitCallback extends HttpCallableUnitCallback
         paramFeed[1] = null;
         paramFeed[2] = null;
         paramFeed[3] = null;
-        invokeBalMethod(paramFeed, "returnResponse");
+        invokeBalMethod(paramFeed, "returnResponse", false);
     }
 
-    public void invokeBalMethod(Object[] paramFeed, String methodName) {
-        Thread.startVirtualThread(() -> {
-            try {
-                StrandMetadata metaData = new StrandMetadata(true, null);
-                runtime.callMethod(caller, methodName, metaData, paramFeed);
-            } catch (BError error) {
-                cleanupRequestMessage();
-                HttpUtil.handleFailure(requestMessage, error);
-            }
-        });
+    public void invokeBalMethod(Object[] paramFeed, String methodName, boolean startNewThread) {
+        if (startNewThread) {
+            Thread.startVirtualThread(() -> callBalMethod(paramFeed, methodName));
+        } else {
+            callBalMethod(paramFeed, methodName);
+        }
+    }
+
+    private void callBalMethod(Object[] paramFeed, String methodName) {
+        try {
+            StrandMetadata metaData = new StrandMetadata(true, null);
+            runtime.callMethod(caller, methodName, metaData, paramFeed);
+        } catch (BError error) {
+            cleanupRequestMessage();
+            HttpUtil.handleFailure(requestMessage, error);
+        }
     }
 
     private int getRequestInterceptorId() {

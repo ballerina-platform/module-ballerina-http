@@ -85,11 +85,11 @@ public class Respond extends ConnectionAction {
         });
     }
 
-    public static Object nativeRespondWithDataCtx(Environment env, BObject connectionObj, BObject outboundResponseObj,
-                                                  DataContext dataContext) {
+    public static void nativeRespondWithDataCtx(Environment env, BObject connectionObj, BObject outboundResponseObj,
+                                                DataContext dataContext) {
         HttpCarbonMessage inboundRequestMsg = HttpUtil.getCarbonMsg(connectionObj, null);
         if (invokeResponseInterceptor(env, inboundRequestMsg, outboundResponseObj, connectionObj, dataContext)) {
-            return null;
+            return;
         }
         if (isDirtyResponse(outboundResponseObj)) {
             String errorMessage = "Couldn't complete the respond operation as the response has been already used.";
@@ -100,7 +100,7 @@ public class Respond extends ConnectionAction {
             }
             BError httpError = HttpUtil.createHttpError(errorMessage, HttpErrorType.GENERIC_LISTENER_ERROR);
             dataContext.getFuture().complete(httpError);
-            return null;
+            return;
         }
         outboundResponseObj.addNativeData(HttpConstants.DIRTY_RESPONSE, true);
         HttpCarbonMessage outboundResponseMsg = HttpUtil.getCarbonMsg(outboundResponseObj, HttpUtil.
@@ -115,7 +115,7 @@ public class Respond extends ConnectionAction {
         } catch (BError e) {
             log.debug(e.getPrintableStackTrace(), e);
             dataContext.getFuture().complete(e);
-            return null;
+            return;
         }
 
         // Based on https://tools.ietf.org/html/rfc7232#section-4.1
@@ -167,7 +167,6 @@ public class Respond extends ConnectionAction {
             dataContext.getFuture().complete(
                     HttpUtil.createHttpError(errorMessage, HttpErrorType.GENERIC_LISTENER_ERROR));
         }
-        return null;
     }
 
     private static void setCacheControlHeader(BObject outboundRespObj, HttpCarbonMessage outboundResponse) {

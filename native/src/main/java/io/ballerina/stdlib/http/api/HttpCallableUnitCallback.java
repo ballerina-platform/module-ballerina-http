@@ -89,7 +89,7 @@ public class HttpCallableUnitCallback {
             return;
         }
         if (result instanceof BError) {
-            invokeErrorInterceptors((BError) result, false);
+            invokeErrorInterceptors((BError) result, false, false);
             return;
         }
         if (isLastService) {
@@ -104,26 +104,32 @@ public class HttpCallableUnitCallback {
         paramFeed[1] = Objects.nonNull(returnMediaType) ? StringUtils.fromString(returnMediaType) : null;
         paramFeed[2] = cacheConfig;
         paramFeed[3] = Objects.nonNull(links) && !links.isEmpty() ? links : null;
-        invokeBalMethod(paramFeed, "returnResponse");
+        invokeBalMethod(paramFeed, "returnResponse", false);
     }
 
-    private void returnErrorResponse(BError error) {
+    private void returnErrorResponse(BError error, boolean startNewThread) {
         Object[] paramFeed = new Object[2];
         paramFeed[0] = error;
         paramFeed[1] = returnMediaType != null ? StringUtils.fromString(returnMediaType) : null;
-        invokeBalMethod(paramFeed, "returnErrorResponse");
+        invokeBalMethod(paramFeed, "returnErrorResponse", startNewThread);
     }
 
-    public void invokeBalMethod(Object[] paramFeed, String methodName) {
-        Thread.startVirtualThread(() -> {
-            try {
-                StrandMetadata metaData = new StrandMetadata(true, null);
-                runtime.callMethod(caller, methodName, metaData, paramFeed);
-                stopObserverContext();
-            } catch (BError error) {
-                sendFailureResponse(error);
-            }
-        });
+    public void invokeBalMethod(Object[] paramFeed, String methodName, boolean startNewThread) {
+        if (startNewThread) {
+            new Thread(() -> callBalMethod(paramFeed, methodName)).start();
+        } else {
+            callBalMethod(paramFeed, methodName);
+        }
+    }
+
+    private void callBalMethod(Object[] paramFeed, String methodName) {
+        try {
+            StrandMetadata metaData = new StrandMetadata(true, null);
+            runtime.callMethod(caller, methodName, metaData, paramFeed);
+            stopObserverContext();
+        } catch (BError error) {
+            sendFailureResponse(error);
+        }
     }
 
     public void stopObserverContext() {
@@ -140,7 +146,7 @@ public class HttpCallableUnitCallback {
         // Allow the panics from internal authentication/authorization to be handled by the interceptors.
         if (error.getType().getName().equals(HttpErrorType.INTERNAL_LISTENER_AUTHN_ERROR.getErrorName())
                 || error.getType().getName().equals(HttpErrorType.INTERNAL_LISTENER_AUTHZ_ERROR.getErrorName())) {
-            invokeErrorInterceptors(error, true);
+            invokeErrorInterceptors(error, true, false);
             return;
         }
         cleanupRequestMessage();
@@ -148,14 +154,14 @@ public class HttpCallableUnitCallback {
         System.exit(1);
     }
 
-    public void invokeErrorInterceptors(BError error, boolean isInternalError) {
+    public void invokeErrorInterceptors(BError error, boolean isInternalError, boolean startNewThread) {
         if (isInternalError) {
             requestMessage.setProperty(HttpConstants.INTERNAL_ERROR, true);
         } else {
             requestMessage.removeProperty(HttpConstants.INTERNAL_ERROR);
         }
         requestMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR, error);
-        returnErrorResponse(error);
+        returnErrorResponse(error, startNewThread);
     }
 
     public void sendFailureResponse(BError error) {

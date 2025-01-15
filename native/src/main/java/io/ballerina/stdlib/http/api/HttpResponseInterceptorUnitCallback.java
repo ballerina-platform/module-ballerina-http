@@ -62,7 +62,7 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
     public void handleResult(Object result) {
         if (result instanceof BError) {
             requestMessage.setHttpStatusCode(500);
-            invokeErrorInterceptors((BError) result, false);
+            invokeErrorInterceptors((BError) result, false, false);
             return;
         }
         if (possibleLastInterceptor) {
@@ -78,14 +78,14 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
         System.exit(1);
     }
 
-    public void invokeErrorInterceptors(BError error, boolean isInternalError) {
+    public void invokeErrorInterceptors(BError error, boolean isInternalError, boolean startNewThread) {
         if (isInternalError) {
             requestMessage.setProperty(HttpConstants.INTERNAL_ERROR, true);
         } else {
             requestMessage.removeProperty(HttpConstants.INTERNAL_ERROR);
         }
         requestMessage.setProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR, error);
-        returnErrorResponse(error);
+        returnErrorResponse(error, startNewThread);
     }
 
     private void sendResponseToNextService() {
@@ -137,7 +137,7 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
                 } else {
                     BError err = HttpUtil.createHttpStatusCodeError(HttpErrorType.INTERNAL_INTERCEPTOR_RETURN_ERROR,
                             "next interceptor service did not match with the configuration");
-                    invokeErrorInterceptors(err, true);
+                    invokeErrorInterceptors(err, true, false);
                 }
             }
         }
@@ -149,22 +149,28 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
         paramFeed[1] = null;
         paramFeed[2] = null;
         paramFeed[3] = null;
-        invokeBalMethod(paramFeed, "returnResponse");
+        invokeBalMethod(paramFeed, "returnResponse", false);
     }
 
     @Override
-    public void invokeBalMethod(Object[] paramFeed, String methodName) {
-        Thread.startVirtualThread(() -> {
-            try {
-                StrandMetadata metaData = new StrandMetadata(true, null);
-                this.getRuntime().callMethod(caller, methodName, metaData, paramFeed);
-                stopObserverContext();
-                dataContext.notifyOutboundResponseStatus(null);
-            } catch (BError error) {
-                dataContext.notifyOutboundResponseStatus(null);
-                sendFailureResponse(error);
-            }
-        });
+    public void invokeBalMethod(Object[] paramFeed, String methodName, boolean startNewThread) {
+        if (startNewThread) {
+            Thread.startVirtualThread(() -> callBalMethod(paramFeed, methodName));
+        } else {
+            callBalMethod(paramFeed, methodName);
+        }
+    }
+
+    private void callBalMethod(Object[] paramFeed, String methodName) {
+        try {
+            StrandMetadata metaData = new StrandMetadata(true, null);
+            this.getRuntime().callMethod(caller, methodName, metaData, paramFeed);
+            stopObserverContext();
+            dataContext.notifyOutboundResponseStatus(null);
+        } catch (BError error) {
+            dataContext.notifyOutboundResponseStatus(null);
+            sendFailureResponse(error);
+        }
     }
 
     private int getResponseInterceptorId() {
@@ -172,10 +178,10 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
                         (int) requestMessage.getProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX));
     }
 
-    public void returnErrorResponse(BError error) {
+    public void returnErrorResponse(BError error, boolean startNewThread) {
         Object[] paramFeed = new Object[2];
         paramFeed[0] = error;
         paramFeed[1] = null;
-        invokeBalMethod(paramFeed, "returnErrorResponse");
+        invokeBalMethod(paramFeed, "returnErrorResponse", startNewThread);
     }
 }
