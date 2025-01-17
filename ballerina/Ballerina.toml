@@ -8,7 +8,11 @@ repository = "https://github.com/ballerina-platform/module-ballerina-http"
 icon = "icon.png"
 license = ["Apache-2.0"]
 distribution = "2201.11.0"
-export = ["http", "http.httpscerr"]
+
+[[package.modules]]
+name = "http.httpscerr"
+description = "This module provides status code error types."
+export = true
 
 [platform.java21]
 graalvmCompatible = true
