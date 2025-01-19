@@ -356,7 +356,7 @@ The service implemented via the service contract type has the following restrict
 ### 2.2.7. Relaxed data binding
 
 Enables relaxed data binding for the JSON payload binding process, allowing graceful handling of null values and absent fields 
-to reduce type conversion errors and better align with inconsistent API responses.
+to reduce type conversion errors and better align with inconsistent API requests.
 - For fields that are marked as optional but non-nullable, null values in the response are treated as absent fields instead of causing
 runtime failures.
 - For required fields that are absent in the response are treated as null values instead of causing runtime failures.
