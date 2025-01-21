@@ -117,7 +117,8 @@ public class Http2ConnectionManager {
         try {
             Http2ChannelPool.PerRouteConnectionPool perRouteConnectionPool = pool.getPerRouteConnectionPools().get(key);
             if (perRouteConnectionPool == null) {
-                perRouteConnectionPool = new Http2ChannelPool.PerRouteConnectionPool(Integer.MAX_VALUE);
+                perRouteConnectionPool = new Http2ChannelPool.PerRouteConnectionPool(this.poolConfiguration
+                        .getHttp2MaxActiveStreamsPerConnection());
                 pool.getPerRouteConnectionPools().put(key, perRouteConnectionPool);
             }
             return perRouteConnectionPool;
@@ -135,7 +136,7 @@ public class Http2ConnectionManager {
     public Http2ClientChannel fetchChannel(HttpRoute httpRoute) {
         Http2ChannelPool.PerRouteConnectionPool perRouteConnectionPool;
         perRouteConnectionPool = getOrCreatePerRoutePool(this.http2ChannelPool, generateKey(httpRoute));
-        return perRouteConnectionPool != null ? perRouteConnectionPool.fetchTargetChannel() : null;
+        return perRouteConnectionPool.fetchTargetChannel();
     }
 
     /**
