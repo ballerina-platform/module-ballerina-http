@@ -23,6 +23,7 @@
         <packages>
             <package name="io.ballerina.stdlib.http.compiler.codeaction.*"/>
             <package name="io.ballerina.stdlib.http.compiler.completion.*"/>
+            <package name="io.ballerina.stdlib.http.compiler.staticcodeanalyzer.*"/>
         </packages>
         <classes>
             <class name="io.ballerina.stdlib.http.compiler.CompilerPluginTest"/>

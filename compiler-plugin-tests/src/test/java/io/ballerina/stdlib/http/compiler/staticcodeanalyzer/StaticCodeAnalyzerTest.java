@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 /**
  * This class includes tests for Ballerina Http static code analyzer.
  */
-class StaticCodeAnalyzerTest {
+public class StaticCodeAnalyzerTest {
 
     private static final Path RESOURCE_PACKAGES_DIRECTORY = Paths
             .get("src", "test", "resources", "static_code_analyzer", "ballerina_packages").toAbsolutePath();
