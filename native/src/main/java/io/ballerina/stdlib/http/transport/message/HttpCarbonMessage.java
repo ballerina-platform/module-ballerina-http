@@ -47,6 +47,7 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * HTTP based representation for HttpCarbonMessage.
@@ -55,13 +56,13 @@ public class HttpCarbonMessage {
 
     protected HttpMessage httpMessage;
     private EntityCollector blockingEntityCollector;
-    private Map<String, Object> properties = new HashMap<>(Constants.HTTP_CARBON_MESSAGE_PROPERTIES_MAP_DEFAULT_SIZE);
+    private final Map<String, Object> properties = new HashMap<>(Constants.HTTP_CARBON_MESSAGE_PROPERTIES_MAP_DEFAULT_SIZE);
 
     private MessageFuture messageFuture;
     private final ServerConnectorFuture httpOutboundRespFuture = new HttpWsServerConnectorFuture();
     private final DefaultHttpResponseFuture httpOutboundRespStatusFuture = new DefaultHttpResponseFuture();
     private final Observable contentObservable = new DefaultObservable();
-    private HttpHeaders httpTrailerHeaders = new DefaultLastHttpContent().trailingHeaders();
+    private final HttpHeaders httpTrailerHeaders = new DefaultLastHttpContent().trailingHeaders();
     private IOException ioException;
     public ListenerReqRespStateManager listenerReqRespStateManager;
     private Http2MessageStateContext http2MessageStateContext;
@@ -81,6 +82,8 @@ public class HttpCarbonMessage {
     private Integer httpStatusCode;
     private Integer contentSize = 0;
     private boolean contentReleased = false;
+
+    private final ReentrantLock messageLock = new ReentrantLock();
 
     public HttpCarbonMessage(HttpMessage httpMessage, Listener contentListener) {
         this.httpMessage = httpMessage;
@@ -104,36 +107,41 @@ public class HttpCarbonMessage {
      *
      * @param httpContent chunks of the payload.
      */
-    public synchronized void addHttpContent(HttpContent httpContent) {
-        contentObservable.notifyAddListener(httpContent);
-        if (messageFuture != null) {
-            if (ioException != null) {
-                blockingEntityCollector.addHttpContent(new DefaultLastHttpContent());
-                messageFuture.notifyMessageListener(blockingEntityCollector.getHttpContent());
-                removeMessageFuture();
-                throw new RuntimeException(this.getIoException());
-            }
-            blockingEntityCollector.addHttpContent(httpContent);
-            if (messageFuture.isMessageListenerSet()) {
-                messageFuture.notifyMessageListener(blockingEntityCollector.getHttpContent());
-                //This should only be called once the message listener is set and the HttpContent is retrieved from the
-                //blocking entity collector. Calling this before that will raise a race condition in passthrough
-                //scenario.
-                contentObservable.notifyGetListener(httpContent);
-            }
-            // We remove the feature as the message has reached it life time. If there is a need
-            // for using the same message again, we need to set the future again and restart
-            // the life-cycle.
-            if (httpContent instanceof LastHttpContent) {
-                removeMessageFuture();
-            }
-        } else {
-            if (ioException != null) {
-                blockingEntityCollector.addHttpContent(new DefaultLastHttpContent());
-                throw new RuntimeException(this.getIoException());
-            } else {
+    public void addHttpContent(HttpContent httpContent) {
+        messageLock.lock();
+        try {
+            contentObservable.notifyAddListener(httpContent);
+            if (messageFuture != null) {
+                if (ioException != null) {
+                    blockingEntityCollector.addHttpContent(new DefaultLastHttpContent());
+                    messageFuture.notifyMessageListener(blockingEntityCollector.getHttpContent());
+                    removeMessageFuture();
+                    throw new RuntimeException(this.getIoException());
+                }
                 blockingEntityCollector.addHttpContent(httpContent);
+                if (messageFuture.isMessageListenerSet()) {
+                    messageFuture.notifyMessageListener(blockingEntityCollector.getHttpContent());
+                    //This should only be called once the message listener is set and the HttpContent is retrieved from the
+                    //blocking entity collector. Calling this before that will raise a race condition in passthrough
+                    //scenario.
+                    contentObservable.notifyGetListener(httpContent);
+                }
+                // We remove the feature as the message has reached it life time. If there is a need
+                // for using the same message again, we need to set the future again and restart
+                // the life-cycle.
+                if (httpContent instanceof LastHttpContent) {
+                    removeMessageFuture();
+                }
+            } else {
+                if (ioException != null) {
+                    blockingEntityCollector.addHttpContent(new DefaultLastHttpContent());
+                    throw new RuntimeException(this.getIoException());
+                } else {
+                    blockingEntityCollector.addHttpContent(httpContent);
+                }
             }
+        } finally {
+            messageLock.unlock();
         }
     }
 
@@ -151,9 +159,14 @@ public class HttpCarbonMessage {
         return httpContent;
     }
 
-    public synchronized MessageFuture getHttpContentAsync() {
-        this.messageFuture = new MessageFuture(this);
-        return this.messageFuture;
+    public MessageFuture getHttpContentAsync() {
+        messageLock.lock();
+        try {
+            this.messageFuture = new MessageFuture(this);
+            return this.messageFuture;
+        } finally {
+            messageLock.unlock();
+        }
     }
 
     /**
@@ -309,17 +322,18 @@ public class HttpCarbonMessage {
     }
 
     public Object getProperty(String key) {
-        if (properties != null) {
-            return properties.get(key);
-        } else {
-            return null;
-        }
+        return properties.get(key);
     }
 
-    public synchronized void removeMessageFuture() {
-        this.messageFuture = null;
-        // To ensure that the carbon message is reusable.
-        passthrough = false;
+    public void removeMessageFuture() {
+        messageLock.lock();
+        try {
+            this.messageFuture = null;
+            // To ensure that the carbon message is reusable.
+            passthrough = false;
+        } finally {
+            messageLock.unlock();
+        }
     }
 
     public Map<String, Object> getProperties() {
@@ -502,11 +516,11 @@ public class HttpCarbonMessage {
         return (HttpResponse) this.httpMessage;
     }
 
-    public synchronized IOException getIoException() {
+    public IOException getIoException() {
         return ioException;
     }
 
-    public synchronized void setIoException(IOException ioException) {
+    public void setIoException(IOException ioException) {
         this.ioException = ioException;
     }
 
@@ -643,24 +657,34 @@ public class HttpCarbonMessage {
      *
      * @return the default implementation of the {@link FullHttpMessageFuture}.
      */
-    public synchronized FullHttpMessageFuture getFullHttpCarbonMessage() {
-        removeInboundContentListener();
-        fullHttpMessageFuture = new DefaultFullHttpMessageFuture(this);
-        return fullHttpMessageFuture;
+    public FullHttpMessageFuture getFullHttpCarbonMessage() {
+        messageLock.lock();
+        try {
+            removeInboundContentListener();
+            fullHttpMessageFuture = new DefaultFullHttpMessageFuture(this);
+            return fullHttpMessageFuture;
+        } finally {
+            messageLock.unlock();
+        }
     }
 
     /**
      * Sets the lastHttpContentArrived flag true upon the last HTTP content arrival and notifies the
      * {@link FullHttpMessageFuture} if available.
      */
-    public synchronized void setLastHttpContentArrived() {
-        this.lastHttpContentArrived = true;
-        if (fullHttpMessageFuture != null) {
-            fullHttpMessageFuture.notifySuccess();
+    public void setLastHttpContentArrived() {
+        messageLock.lock();
+        try {
+            this.lastHttpContentArrived = true;
+            if (fullHttpMessageFuture != null) {
+                fullHttpMessageFuture.notifySuccess();
+            }
+        } finally {
+            messageLock.unlock();
         }
     }
 
-    public synchronized boolean isLastHttpContentArrived() {
+    public boolean isLastHttpContentArrived() {
         return lastHttpContentArrived;
     }
 
@@ -669,9 +693,14 @@ public class HttpCarbonMessage {
      *
      * @param exception of content accumulation
      */
-    public synchronized void notifyContentFailure(Exception exception) {
-        if (fullHttpMessageFuture != null) {
-            fullHttpMessageFuture.notifyFailure(exception);
+    public void notifyContentFailure(Exception exception) {
+        messageLock.lock();
+        try {
+            if (fullHttpMessageFuture != null) {
+                fullHttpMessageFuture.notifyFailure(exception);
+            }
+        } finally {
+            messageLock.unlock();
         }
     }
 
