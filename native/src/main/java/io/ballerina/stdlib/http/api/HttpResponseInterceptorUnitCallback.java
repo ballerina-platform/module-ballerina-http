@@ -154,17 +154,15 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
 
     @Override
     public void invokeBalMethod(Object[] paramFeed, String methodName) {
-        Thread.startVirtualThread(() -> {
-            try {
-                StrandMetadata metaData = new StrandMetadata(true, null);
-                this.getRuntime().callMethod(caller, methodName, metaData, paramFeed);
-                stopObserverContext();
-                dataContext.notifyOutboundResponseStatus(null);
-            } catch (BError error) {
-                dataContext.notifyOutboundResponseStatus(null);
-                sendFailureResponse(error);
-            }
-        });
+        try {
+            StrandMetadata metaData = new StrandMetadata(true, null);
+            this.getRuntime().callMethod(caller, methodName, metaData, paramFeed);
+            stopObserverContext();
+            dataContext.notifyOutboundResponseStatus(null);
+        } catch (BError error) {
+            dataContext.notifyOutboundResponseStatus(null);
+            sendFailureResponse(error);
+        }
     }
 
     private int getResponseInterceptorId() {
@@ -173,9 +171,11 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
     }
 
     public void returnErrorResponse(BError error) {
-        Object[] paramFeed = new Object[2];
-        paramFeed[0] = error;
-        paramFeed[1] = null;
-        invokeBalMethod(paramFeed, "returnErrorResponse");
+        Thread.startVirtualThread(() -> {
+            Object[] paramFeed = new Object[2];
+            paramFeed[0] = error;
+            paramFeed[1] = null;
+            invokeBalMethod(paramFeed, "returnErrorResponse");
+        });
     }
 }
