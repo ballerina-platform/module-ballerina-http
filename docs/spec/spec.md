@@ -358,7 +358,7 @@ The service implemented via the service contract type has the following restrict
 Enables relaxed data binding for the JSON payload binding process, allowing graceful handling of null values and absent fields 
 to reduce type conversion errors and better align with inconsistent API requests.
 
-The following rules applies for relaxed data binding in addition to data projection,
+The following additional rules applies to data projection used for the relaxed data binding,
 
 - For fields that are marked as optional but non-nullable, null values in the response are treated as absent fields instead of causing
 runtime failures.
@@ -1372,7 +1372,7 @@ public function main() {
 Enables relaxed data binding for the JSON payload binding process, allowing graceful handling of null values and absent fields 
 to reduce type conversion errors and better align with inconsistent API responses.
 
-The following rules applies for relaxed data binding in addition to data projection.
+The following additional rules applies to data projection used for the relaxed data binding,
 
 - For fields that are marked as optional but non-nullable, null values in the response are treated as absent fields instead of causing
 runtime failures.
