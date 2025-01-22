@@ -41,20 +41,17 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
     private final BObject response;
     private final Environment environment;
     private final BObject requestCtx;
-    private final DataContext dataContext;
     private final boolean possibleLastInterceptor;
 
 
     public HttpResponseInterceptorUnitCallback(HttpCarbonMessage requestMessage, BObject caller, BObject response,
-                                               Environment env, DataContext dataContext, Runtime runtime,
-                                               boolean possibleLastInterceptor) {
+                                               Environment env, Runtime runtime, boolean possibleLastInterceptor) {
         super(requestMessage, runtime);
         this.requestMessage = requestMessage;
         this.requestCtx = (BObject) requestMessage.getProperty(HttpConstants.REQUEST_CONTEXT);
         this.caller = caller;
         this.response = response;
         this.environment = env;
-        this.dataContext = dataContext;
         this.possibleLastInterceptor = possibleLastInterceptor;
     }
 
@@ -89,7 +86,7 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
     }
 
     private void sendResponseToNextService() {
-        Respond.nativeRespondWithDataCtx(environment, caller, response, dataContext);
+        Respond.nativeRespond(environment, caller, response);
     }
 
     private boolean alreadyResponded() {
@@ -107,7 +104,6 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
         BArray interceptors = (BArray) requestCtx.getNativeData(HttpConstants.INTERCEPTORS);
 
         if (alreadyResponded()) {
-            dataContext.notifyOutboundResponseStatus(null);
             stopObserverContext();
             return;
         }
@@ -158,9 +154,7 @@ public class HttpResponseInterceptorUnitCallback extends HttpCallableUnitCallbac
             StrandMetadata metaData = new StrandMetadata(true, null);
             this.getRuntime().callMethod(caller, methodName, metaData, paramFeed);
             stopObserverContext();
-            dataContext.notifyOutboundResponseStatus(null);
         } catch (BError error) {
-            dataContext.notifyOutboundResponseStatus(null);
             sendFailureResponse(error);
         }
     }
