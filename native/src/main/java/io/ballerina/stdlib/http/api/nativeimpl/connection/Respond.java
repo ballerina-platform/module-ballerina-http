@@ -68,29 +68,19 @@ public class Respond extends ConnectionAction {
                                             BError error) {
         HttpCarbonMessage inboundRequest = HttpUtil.getCarbonMsg(connectionObj, null);
         inboundRequest.setProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR, error);
-        return env.yieldAndRun(() -> {
-            CompletableFuture<Object> balFuture = new CompletableFuture<>();
-            nativeRespondWithDataCtx(env, connectionObj, outboundResponseObj, new DataContext(env, balFuture,
-                    inboundRequest));
-            return getResult(balFuture);
-        });
+        return nativeRespond(env, connectionObj, outboundResponseObj);
     }
 
     public static Object nativeRespond(Environment env, BObject connectionObj, BObject outboundResponseObj) {
-        return env.yieldAndRun(() -> {
-            CompletableFuture<Object> balFuture = new CompletableFuture<>();
-            nativeRespondWithDataCtx(env, connectionObj, outboundResponseObj, new DataContext(env,
-                    balFuture, HttpUtil.getCarbonMsg(connectionObj, null)));
-            return getResult(balFuture);
-        });
-    }
-
-    public static Object nativeRespondWithDataCtx(Environment env, BObject connectionObj, BObject outboundResponseObj,
-                                                  DataContext dataContext) {
         HttpCarbonMessage inboundRequestMsg = HttpUtil.getCarbonMsg(connectionObj, null);
-        if (invokeResponseInterceptor(env, inboundRequestMsg, outboundResponseObj, connectionObj, dataContext)) {
+        if (invokeResponseInterceptor(env, inboundRequestMsg, outboundResponseObj, connectionObj)) {
             return null;
         }
+        return nativeRespondInternal(env, connectionObj, outboundResponseObj, inboundRequestMsg);
+    }
+
+    public static Object nativeRespondInternal(Environment env, BObject connectionObj, BObject outboundResponseObj,
+                                               HttpCarbonMessage inboundRequestMsg) {
         if (isDirtyResponse(outboundResponseObj)) {
             String errorMessage = "Couldn't complete the respond operation as the response has been already used.";
             HttpUtil.sendOutboundResponse(inboundRequestMsg, HttpUtil.createErrorMessage(errorMessage, 500));
@@ -98,9 +88,7 @@ public class Respond extends ConnectionAction {
                 log.debug("Couldn't complete the respond operation for the sequence id of the request: {} " +
                                   "as the response has been already used.", inboundRequestMsg.getSequenceId());
             }
-            BError httpError = HttpUtil.createHttpError(errorMessage, HttpErrorType.GENERIC_LISTENER_ERROR);
-            dataContext.getFuture().complete(httpError);
-            return null;
+            return HttpUtil.createHttpError(errorMessage, HttpErrorType.GENERIC_LISTENER_ERROR);
         }
         outboundResponseObj.addNativeData(HttpConstants.DIRTY_RESPONSE, true);
         HttpCarbonMessage outboundResponseMsg = HttpUtil.getCarbonMsg(outboundResponseObj, HttpUtil.
@@ -114,15 +102,14 @@ public class Respond extends ConnectionAction {
             HttpUtil.checkFunctionValidity(inboundRequestMsg, outboundResponseMsg);
         } catch (BError e) {
             log.debug(e.getPrintableStackTrace(), e);
-            dataContext.getFuture().complete(e);
-            return null;
+            return e;
         }
 
         // Based on https://tools.ietf.org/html/rfc7232#section-4.1
         if (CacheUtils.isValidCachedResponse(outboundResponseMsg, inboundRequestMsg)) {
             outboundResponseMsg.setHttpStatusCode(HttpResponseStatus.NOT_MODIFIED.code());
             outboundResponseMsg.setProperty(HttpConstants.HTTP_REASON_PHRASE,
-                                            HttpResponseStatus.NOT_MODIFIED.reasonPhrase());
+                    HttpResponseStatus.NOT_MODIFIED.reasonPhrase());
             outboundResponseMsg.removeHeader(HttpHeaderNames.CONTENT_LENGTH.toString());
             outboundResponseMsg.removeHeader(HttpHeaderNames.CONTENT_TYPE.toString());
             outboundResponseMsg.waitAndReleaseAllEntities();
@@ -143,31 +130,35 @@ public class Respond extends ConnectionAction {
                 observerContext.addProperty(PROPERTY_KEY_HTTP_STATUS_CODE, statusCode);
             }
         }
-        try {
-            if (pipeliningRequired(inboundRequestMsg)) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Pipelining is required. Sequence id of the request: {}",
-                            inboundRequestMsg.getSequenceId());
+
+        return env.yieldAndRun(() -> {
+            try {
+                CompletableFuture<Object> balFuture = new CompletableFuture<>();
+                DataContext dataContext = new DataContext(env, balFuture, HttpUtil.getCarbonMsg(connectionObj, null));
+                if (pipeliningRequired(inboundRequestMsg)) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Pipelining is required. Sequence id of the request: {}",
+                                inboundRequestMsg.getSequenceId());
+                    }
+                    PipelinedResponse pipelinedResponse = new PipelinedResponse(inboundRequestMsg, outboundResponseMsg,
+                            dataContext, outboundResponseObj);
+                    setPipeliningListener(outboundResponseMsg);
+                    executePipeliningLogic(inboundRequestMsg.getSourceContext(), pipelinedResponse);
+                } else {
+                    sendOutboundResponseRobust(dataContext, inboundRequestMsg, outboundResponseObj,
+                            outboundResponseMsg);
                 }
-                PipelinedResponse pipelinedResponse = new PipelinedResponse(inboundRequestMsg, outboundResponseMsg,
-                                                                            dataContext, outboundResponseObj);
-                setPipeliningListener(outboundResponseMsg);
-                executePipeliningLogic(inboundRequestMsg.getSourceContext(), pipelinedResponse);
-            } else {
-                sendOutboundResponseRobust(dataContext, inboundRequestMsg, outboundResponseObj, outboundResponseMsg);
+                return getResult(balFuture);
+            } catch (BError e) {
+                log.debug(e.getPrintableStackTrace(), e);
+                return HttpUtil.createHttpError(e.getMessage(), HttpErrorType.GENERIC_LISTENER_ERROR);
+            } catch (Throwable e) {
+                //Exception is already notified by http transport.
+                String errorMessage = "Couldn't complete outbound response: " + e.getMessage();
+                log.debug(errorMessage, e);
+                return HttpUtil.createHttpError(errorMessage, HttpErrorType.GENERIC_LISTENER_ERROR);
             }
-        } catch (BError e) {
-            log.debug(e.getPrintableStackTrace(), e);
-            dataContext.getFuture().complete(
-                    HttpUtil.createHttpError(e.getMessage(), HttpErrorType.GENERIC_LISTENER_ERROR));
-        } catch (Throwable e) {
-            //Exception is already notified by http transport.
-            String errorMessage = "Couldn't complete outbound response: " + e.getMessage();
-            log.debug(errorMessage, e);
-            dataContext.getFuture().complete(
-                    HttpUtil.createHttpError(errorMessage, HttpErrorType.GENERIC_LISTENER_ERROR));
-        }
-        return null;
+        });
     }
 
     private static void setCacheControlHeader(BObject outboundRespObj, HttpCarbonMessage outboundResponse) {
@@ -187,8 +178,7 @@ public class Respond extends ConnectionAction {
     private Respond() {}
 
     public static boolean invokeResponseInterceptor(Environment env, HttpCarbonMessage inboundMessage,
-                                                    BObject outboundResponseObj, BObject callerObj,
-                                                    DataContext dataContext) {
+                                                    BObject outboundResponseObj, BObject callerObj) {
         List<HTTPInterceptorServicesRegistry> interceptorServicesRegistries =
                 (List<HTTPInterceptorServicesRegistry>) inboundMessage.getProperty(INTERCEPTOR_SERVICES_REGISTRIES);
         if (interceptorServicesRegistries.isEmpty()) {
@@ -221,7 +211,7 @@ public class Respond extends ConnectionAction {
                 interceptorServiceIndex -= 1;
                 inboundMessage.setProperty(HttpConstants.RESPONSE_INTERCEPTOR_INDEX, interceptorServiceIndex);
                 startInterceptResponseMethod(inboundMessage, outboundResponseObj, callerObj, service, env,
-                        interceptorServicesRegistry, dataContext);
+                        interceptorServicesRegistry);
                 return true;
             } catch (Exception e) {
                 throw HttpUtil.createHttpError(e.getMessage(), HttpErrorType.GENERIC_LISTENER_ERROR);
@@ -230,7 +220,7 @@ public class Respond extends ConnectionAction {
         // Handling error panics
         if (inboundMessage.isInterceptorError()) {
             HttpResponseInterceptorUnitCallback callback = new HttpResponseInterceptorUnitCallback(inboundMessage,
-                    callerObj, outboundResponseObj, env, dataContext, null, false);
+                    callerObj, outboundResponseObj, env, null, false);
             callback.sendFailureResponse((BError) inboundMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR));
         }
         return false;
@@ -248,15 +238,13 @@ public class Respond extends ConnectionAction {
 
     private static void startInterceptResponseMethod(HttpCarbonMessage inboundMessage, BObject outboundResponseObj,
                                                      BObject callerObj, InterceptorService service, Environment env,
-                                                     HTTPInterceptorServicesRegistry interceptorServicesRegistry,
-                                                     DataContext dataContext) {
+                                                     HTTPInterceptorServicesRegistry interceptorServicesRegistry) {
         BObject serviceObj = service.getBalService();
         Runtime runtime = interceptorServicesRegistry.getRuntime();
         Object[] signatureParams = HttpDispatcher.getRemoteSignatureParameters(service, outboundResponseObj, callerObj,
                                    inboundMessage, runtime);
         HttpResponseInterceptorUnitCallback callback = new HttpResponseInterceptorUnitCallback(inboundMessage,
-                callerObj, outboundResponseObj,
-                env, dataContext, runtime, interceptorServicesRegistry.isPossibleLastInterceptor());
+                callerObj, outboundResponseObj, env, runtime, interceptorServicesRegistry.isPossibleLastInterceptor());
 
         inboundMessage.removeProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
         String methodName = service.getServiceType().equals(HttpConstants.RESPONSE_ERROR_INTERCEPTOR)
