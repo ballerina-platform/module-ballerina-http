@@ -397,7 +397,7 @@ service http:InterceptableService / on requestInterceptorCtxNextServerEP {
     }
 }
 
-@test:Config {enable: false}
+@test:Config
 function testRequestInterceptorCtxNext() returns error? {
     http:Response res = check requestInterceptorCtxNextClientEP->get("/");
     test:assertEquals(res.statusCode, 202);
