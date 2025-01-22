@@ -14,6 +14,11 @@ name = "http.httpscerr"
 description = "This module provides status code error types."
 export = true
 
+[[package.modules]]
+name = "http.default"
+description = "This module provides the default HTTP listener."
+export = true
+
 [platform.java21]
 graalvmCompatible = true
 
