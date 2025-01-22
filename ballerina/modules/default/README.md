@@ -1,11 +1,10 @@
 ## Overview
 
-This module provides a default HTTP listener implementation. The default HTTP listener is a built-in listener that
-can be used to attach multiple services. Additionally, the default listener configuration can be customized.
+This module provides a built-in HTTP listener that serves as the default listener for attaching HTTP servers. It supports the attachment of multiple services, making it ideal for centralized deployment. Additionally, it allows for the customization of its port and configuration, offering versatility for various use cases.
 
-### Usage
+## Usage Example
 
-Following is an example of using the default HTTP listener to start an HTTP server.
+The following example demonstrates how to use the default HTTP listener to create an HTTP server:
 
 ```ballerina
 import ballerina/http.default;
@@ -18,15 +17,20 @@ service /api on default:httpListener {
 }
 ```
 
-The default listener port is defaulted to 9090. The port can be changed in the `Config.toml` file.
+## Customizing the Listener Port
+
+By default, the listener uses port 9090. To change this, specify the desired port in the `Config.toml` file as shown below:
 
 ```toml
 [ballerina.http.default]
 listenerPort = 8080
 ```
 
-Additionally, you can configure all the listener configurations. Example configuration for changing
-the HTTP version to 1.1 and enable SSL.
+## Configuring the Listener
+
+You can customize all [HTTP listener configuration](https://central.ballerina.io/ballerina/http/latest#ListenerConfiguration) in the `Config.toml` file. For detailed instructions on configuring variables, refer to the [Configurability](https://ballerina.io/learn/provide-values-to-configurable-variables/) guide.
+
+The following example configures the HTTP listener to use HTTP/1.1 and enables SSL:
 
 ```toml
 [ballerina.http.default.listenerConfig]
