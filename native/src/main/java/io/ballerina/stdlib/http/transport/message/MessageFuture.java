@@ -23,6 +23,8 @@ import io.netty.handler.codec.http.LastHttpContent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.locks.ReentrantLock;
+
 /**
  * Represents future contents of the message.
  */
@@ -31,13 +33,15 @@ public class MessageFuture {
     private static final Logger LOG = LoggerFactory.getLogger(MessageFuture.class);
     private MessageListener messageListener;
     private final HttpCarbonMessage httpCarbonMessage;
+    private final ReentrantLock futureLock = new ReentrantLock();
 
     public MessageFuture(HttpCarbonMessage httpCarbonMessage) {
         this.httpCarbonMessage = httpCarbonMessage;
     }
 
     public void setMessageListener(MessageListener messageListener) {
-        synchronized (httpCarbonMessage) {
+        futureLock.lock();
+        try {
             this.messageListener = messageListener;
             while (!httpCarbonMessage.isEmpty()) {
                 HttpContent httpContent = httpCarbonMessage.getHttpContent();
@@ -53,6 +57,8 @@ public class MessageFuture {
             if (httpCarbonMessage.isPassthrough()) {
                 httpCarbonMessage.removeInboundContentListener();
             }
+        } finally {
+            futureLock.unlock();
         }
     }
 
@@ -68,7 +74,7 @@ public class MessageFuture {
         return messageListener != null;
     }
 
-    public synchronized HttpContent sync() {
+    public HttpContent sync() {
         return this.httpCarbonMessage.getBlockingEntityCollector().getHttpContent();
     }
 }

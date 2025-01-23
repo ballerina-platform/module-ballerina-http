@@ -28,6 +28,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * {@code Http2ConnectionManager} Manages HTTP/2 connections.
@@ -40,6 +41,7 @@ public class Http2ConnectionManager {
     private final BlockingQueue<Http2ClientChannel> http2StaleClientChannels = new LinkedBlockingQueue<>();
     private final BlockingQueue<Http2ClientChannel> http2ClientChannels = new LinkedBlockingQueue<>();
     private final PoolConfiguration poolConfiguration;
+    private final ReentrantLock lock = new ReentrantLock();
 
     public Http2ConnectionManager(PoolConfiguration poolConfiguration) {
         this.poolConfiguration = poolConfiguration;
@@ -111,11 +113,20 @@ public class Http2ConnectionManager {
      * @param key  the route key
      * @return PerRouteConnectionPool
      */
-    private synchronized Http2ChannelPool.PerRouteConnectionPool createPerRouteConnectionPool(
+    private Http2ChannelPool.PerRouteConnectionPool createPerRouteConnectionPool(
             Http2ChannelPool pool, String key) {
-        return pool.getPerRouteConnectionPools()
-                .computeIfAbsent(key, p -> new Http2ChannelPool.PerRouteConnectionPool(
-                        this.poolConfiguration.getHttp2MaxActiveStreamsPerConnection()));
+        lock.lock();
+        try {
+            Http2ChannelPool.PerRouteConnectionPool perRouteConnectionPool = pool.getPerRouteConnectionPools().get(key);
+            if (perRouteConnectionPool == null) {
+                perRouteConnectionPool = new Http2ChannelPool.PerRouteConnectionPool(this.poolConfiguration
+                        .getHttp2MaxActiveStreamsPerConnection());
+                pool.getPerRouteConnectionPools().put(key, perRouteConnectionPool);
+            }
+            return perRouteConnectionPool;
+        } finally {
+            lock.unlock();
+        }
     }
 
     /**
@@ -126,10 +137,8 @@ public class Http2ConnectionManager {
      */
     public Http2ClientChannel fetchChannel(HttpRoute httpRoute) {
         Http2ChannelPool.PerRouteConnectionPool perRouteConnectionPool;
-        synchronized (this) {
-            perRouteConnectionPool = getOrCreatePerRoutePool(this.http2ChannelPool, generateKey(httpRoute));
-            return perRouteConnectionPool != null ? perRouteConnectionPool.fetchTargetChannel() : null;
-        }
+        perRouteConnectionPool = getOrCreatePerRoutePool(this.http2ChannelPool, generateKey(httpRoute));
+        return perRouteConnectionPool.fetchTargetChannel();
     }
 
     /**

@@ -108,22 +108,22 @@ public class HttpCallableUnitCallback {
     }
 
     private void returnErrorResponse(BError error) {
-        Object[] paramFeed = new Object[2];
-        paramFeed[0] = error;
-        paramFeed[1] = returnMediaType != null ? StringUtils.fromString(returnMediaType) : null;
-        invokeBalMethod(paramFeed, "returnErrorResponse");
+        Thread.startVirtualThread(() -> {
+            Object[] paramFeed = new Object[2];
+            paramFeed[0] = error;
+            paramFeed[1] = returnMediaType != null ? StringUtils.fromString(returnMediaType) : null;
+            invokeBalMethod(paramFeed, "returnErrorResponse");
+        });
     }
 
     public void invokeBalMethod(Object[] paramFeed, String methodName) {
-        Thread.startVirtualThread(() -> {
-            try {
-                StrandMetadata metaData = new StrandMetadata(false, null);
-                runtime.callMethod(caller, methodName, metaData, paramFeed);
-                stopObserverContext();
-            } catch (BError error) {
-                sendFailureResponse(error);
-            }
-        });
+        try {
+            StrandMetadata metaData = new StrandMetadata(true, null);
+            runtime.callMethod(caller, methodName, metaData, paramFeed);
+            stopObserverContext();
+        } catch (BError error) {
+            sendFailureResponse(error);
+        }
     }
 
     public void stopObserverContext() {
