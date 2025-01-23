@@ -18,6 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Add static code rules](https://github.com/ballerina-platform/ballerina-library/issues/7283)
 - [Add relax data binding support for service and client data binding](https://github.com/ballerina-platform/ballerina-library/issues/7366)
 - [Add support for configuring server name to be used in the SSL SNI extension](https://github.com/ballerina-platform/ballerina-library/issues/7435)
+- [Add default HTTP listener](https://github.com/ballerina-platform/ballerina-library/issues/7514)
 
 ### Fixed
 
