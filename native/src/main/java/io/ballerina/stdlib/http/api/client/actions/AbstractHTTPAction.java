@@ -483,7 +483,7 @@ public abstract class AbstractHTTPAction {
 
     private static class HTTPClientConnectorListener implements HttpClientConnectorListener {
 
-        private DataContext dataContext;
+        private final DataContext dataContext;
 
         private HTTPClientConnectorListener(DataContext dataContext) {
             this.dataContext = dataContext;

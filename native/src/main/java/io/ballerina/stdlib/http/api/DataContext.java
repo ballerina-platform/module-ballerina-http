@@ -30,11 +30,11 @@ import java.util.concurrent.CompletableFuture;
  * {@code DataContext} is the wrapper to hold {@code Context} and {@code Callback}.
  */
 public class DataContext {
-    private Environment environment;
-    private HttpClientConnector clientConnector;
-    private BObject requestObj;
-    private CompletableFuture<Object> balFuture;
-    private HttpCarbonMessage correlatedMessage;
+    private final Environment environment;
+    private final HttpClientConnector clientConnector;
+    private final BObject requestObj;
+    private final CompletableFuture<Object> balFuture;
+    private final HttpCarbonMessage correlatedMessage;
 
     public DataContext(Environment environment, CompletableFuture<Object> balFuture,
                        HttpClientConnector clientConnector, BObject requestObj,
