@@ -5,7 +5,7 @@
 
 [ballerina]
 dependencies-toml-version = "2"
-distribution-version = "2201.11.0-20241209-162400-0c015833"
+distribution-version = "2201.11.0-20250127-101700-a4b67fe5"
 
 [[package]]
 org = "ballerina"
@@ -139,7 +139,9 @@ dependencies = [
 	{org = "ballerina", name = "url"}
 ]
 modules = [
-	{org = "ballerina", packageName = "http_test_common", moduleName = "http_test_common"}
+	{org = "ballerina", packageName = "http_test_common", moduleName = "http_test_common"},
+	{org = "ballerina", packageName = "http_test_common", moduleName = "http_test_common.service1"},
+	{org = "ballerina", packageName = "http_test_common", moduleName = "http_test_common.service2"}
 ]
 
 [[package]]
