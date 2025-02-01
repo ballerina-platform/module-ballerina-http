@@ -43,12 +43,9 @@ public configurable ListenerConfiguration defaultListenerConfig = {};
 # + return - The default HTTP listener or an error if the listener creation fails.
 public isolated function getDefaultListener() returns Listener|ListenerError {
     lock {
-        Listener? tempListener = defaultListener;
-        if tempListener is Listener {
-            return tempListener;
+        if defaultListener is () {
+            defaultListener = check new (defaultListenerPort, defaultListenerConfig);
         }
-        Listener 'listener = check new Listener(defaultListenerPort, defaultListenerConfig);
-        defaultListener = 'listener;
-        return 'listener;
+        return checkpanic defaultListener.ensureType();
     }
 }
