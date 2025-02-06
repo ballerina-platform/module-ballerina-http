@@ -5,7 +5,7 @@
 
 [ballerina]
 dependencies-toml-version = "2"
-distribution-version = "2201.11.0-20241218-101200-109f6cc7"
+distribution-version = "2201.11.0-20250127-101700-a4b67fe5"
 
 [[package]]
 org = "ballerina"
@@ -115,7 +115,6 @@ dependencies = [
 ]
 modules = [
 	{org = "ballerina", packageName = "http", moduleName = "http"},
-	{org = "ballerina", packageName = "http", moduleName = "http.default"},
 	{org = "ballerina", packageName = "http", moduleName = "http.httpscerr"}
 ]
 
