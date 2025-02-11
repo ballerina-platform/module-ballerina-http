@@ -21,19 +21,19 @@ graalvmCompatible = true
 groupId = "io.ballerina.stdlib"
 artifactId = "http-native"
 version = "2.13.0"
-path = "../native/build/libs/http-native-2.13.0-SNAPSHOT.jar"
+path = "../native/build/libs/http-native-2.13.0.jar"
 
 [[platform.java21.dependency]]
 groupId = "io.ballerina.stdlib"
 artifactId = "mime-native"
 version = "2.11.0"
-path = "./lib/mime-native-2.11.0-20250131-135500-0bd7a51.jar"
+path = "./lib/mime-native-2.11.0.jar"
 
 [[platform.java21.dependency]]
 groupId = "io.ballerina.stdlib"
 artifactId = "constraint-native"
 version = "1.6.0"
-path = "./lib/constraint-native-1.6.0-20250127-170900-48ad9ae.jar"
+path = "./lib/constraint-native-1.6.0.jar"
 
 [[platform.java21.dependency]]
 groupId = "io.netty"
