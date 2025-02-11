@@ -3,7 +3,7 @@ id = "http-compiler-plugin"
 class = "io.ballerina.stdlib.http.compiler.HttpCompilerPlugin"
 
 [[dependency]]
-path = "../compiler-plugin/build/libs/http-compiler-plugin-2.13.0-SNAPSHOT.jar"
+path = "../compiler-plugin/build/libs/http-compiler-plugin-2.13.0.jar"
 
 [[dependency]]
-path = "../compiler-plugin/build/libs/ballerina-to-openapi-2.2.0-20250127-223930-4c87b7d.jar"
+path = "../compiler-plugin/build/libs/ballerina-to-openapi-2.2.0.jar"
