@@ -7,6 +7,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- [Address Netty security vulnerabilities: `CVE-2025-24970` and `CVE-2025-25193`](https://github.com/ballerina-platform/ballerina-library/issues/7571)
+
+## [2.13.0] - 2025-02-07
+
 ### Added
 
 - [Add `anydata` support for `setPayload` methods in the request and response objects](https://github.com/ballerina-platform/ballerina-library/issues/6954)
