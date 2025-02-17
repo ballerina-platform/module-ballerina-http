@@ -10,6 +10,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - [Add idle based eviction for HTTP/2 connections](https://github.com/ballerina-platform/ballerina-library/issues/7309)
 
+## [2.12.6] - 2025-02-14
+
+### Changed
+
+- [Downgrade netty tcnative version](https://github.com/ballerina-platform/ballerina-library/issues/7584)
+
+## [2.12.5] - 2025-02-13
+
+### Fixed
+
+- [Address Netty security vulnerabilities: `CVE-2025-24970` and `CVE-2025-25193`](https://github.com/ballerina-platform/ballerina-library/issues/7571)
+
 ## [2.12.4] - 2024-12-10
 
 ### Added
