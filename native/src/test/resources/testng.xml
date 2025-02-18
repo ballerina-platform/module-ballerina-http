@@ -132,6 +132,7 @@
             <class name="io.ballerina.stdlib.http.transport.http2.clienttimeout.TimeoutDuringResponseReceive"/>
             <class name="io.ballerina.stdlib.http.transport.http2.Http2WithHttp2ResetContent"/>
             <class name="io.ballerina.stdlib.http.transport.http2.Http2WithPriorKnowledgeTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.connectionpool.ConnectionPoolEvictionTest"/>
             <class name="io.ballerina.stdlib.http.transport.http2.connectionpool.H2ConnectionPoolWithALPN"/>
             <class name="io.ballerina.stdlib.http.transport.http2.connectionpool.H2ConnectionPoolWithPriorKnowledge"/>
             <class name="io.ballerina.stdlib.http.transport.http2.connectionpool.H2ConnectionPoolWithUpgrade"/>
