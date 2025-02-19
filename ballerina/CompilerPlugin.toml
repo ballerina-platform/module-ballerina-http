@@ -3,4 +3,4 @@ id = "http-compiler-plugin"
 class = "io.ballerina.stdlib.http.compiler.HttpCompilerPlugin"
 
 [[dependency]]
-path = "../compiler-plugin/build/libs/http-compiler-plugin-2.10.19.jar"
+path = "../compiler-plugin/build/libs/http-compiler-plugin-2.10.20.jar"
