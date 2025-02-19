@@ -39,12 +39,14 @@ public class Http2ConnectionManager {
 
     private final Http2ChannelPool http2ChannelPool = new Http2ChannelPool();
     private final BlockingQueue<Http2ClientChannel> http2StaleClientChannels = new LinkedBlockingQueue<>();
+    private final BlockingQueue<Http2ClientChannel> http2ClientChannels = new LinkedBlockingQueue<>();
     private final PoolConfiguration poolConfiguration;
     private final ReentrantLock lock = new ReentrantLock();
 
     public Http2ConnectionManager(PoolConfiguration poolConfiguration) {
         this.poolConfiguration = poolConfiguration;
-        initiateConnectionEvictionTask();
+        initiateStaleConnectionEvictionTask();
+        initiateIdleConnectionEvictionTask();
     }
 
     /**
@@ -180,7 +182,20 @@ public class Http2ConnectionManager {
         }
     }
 
-    private void initiateConnectionEvictionTask() {
+    void removeClosedChannelFromIdlePool(Http2ClientChannel http2ClientChannel) {
+        if (!http2ClientChannels.remove(http2ClientChannel)) {
+            logger.warn("Specified channel does not exist in the HTTP2 client channel list.");
+        }
+    }
+
+    void markClientChannelAsIdle(Http2ClientChannel http2ClientChannel) {
+        http2ClientChannel.setTimeSinceMarkedAsIdle(System.currentTimeMillis());
+        if (!http2ClientChannels.contains(http2ClientChannel)) {
+            http2ClientChannels.add(http2ClientChannel);
+        }
+    }
+
+    private void initiateStaleConnectionEvictionTask() {
         Timer timer = new Timer(true);
         TimerTask timerTask = new TimerTask() {
             @Override
@@ -192,25 +207,47 @@ public class Http2ConnectionManager {
                         }
                     } else if ((System.currentTimeMillis() - http2ClientChannel.getTimeSinceMarkedAsStale()) >
                             poolConfiguration.getMinIdleTimeInStaleState()) {
-                        http2ClientChannel.getInFlightMessages().forEach((streamId, outboundMsgHolder) -> {
-                            Http2MessageStateContext messageStateContext =
-                                    outboundMsgHolder.getRequest().getHttp2MessageStateContext();
-                            if (messageStateContext != null) {
-                                messageStateContext.getSenderState().handleConnectionClose(outboundMsgHolder);
-                            }
-                        });
+                        closeInFlightRequests(http2ClientChannel);
                         closeChannelAndEvict(http2ClientChannel);
                     }
                 });
             }
-
-            public void closeChannelAndEvict(Http2ClientChannel http2ClientChannel) {
-                removeClosedChannelFromStalePool(http2ClientChannel);
-                http2ClientChannel.getConnection().close(http2ClientChannel.getChannel().newPromise());
-            }
         };
         timer.schedule(timerTask, poolConfiguration.getTimeBetweenStaleEviction(),
                 poolConfiguration.getTimeBetweenStaleEviction());
+    }
+
+    private void initiateIdleConnectionEvictionTask() {
+        Timer timer = new Timer(true);
+        TimerTask timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                http2ClientChannels.forEach(http2ClientChannel -> {
+                    if (poolConfiguration.getMinEvictableIdleTime() == -1) {
+                        if (!http2ClientChannel.hasInFlightMessages()) {
+                            closeChannelAndEvict(http2ClientChannel);
+                        }
+                    } else if ((System.currentTimeMillis() - http2ClientChannel.getTimeSinceMarkedAsIdle()) >
+                                    poolConfiguration.getMinEvictableIdleTime()) {
+                        closeInFlightRequests(http2ClientChannel);
+                        removeClientChannel(http2ClientChannel.getHttpRoute(), http2ClientChannel);
+                        closeChannelAndEvict(http2ClientChannel);
+                    }
+                });
+            }
+        };
+        timer.schedule(timerTask, poolConfiguration.getTimeBetweenEvictionRuns(),
+                poolConfiguration.getTimeBetweenEvictionRuns());
+    }
+
+    private static void closeInFlightRequests(Http2ClientChannel http2ClientChannel) {
+        http2ClientChannel.getInFlightMessages().forEach((streamId, outboundMsgHolder) -> {
+            Http2MessageStateContext messageStateContext =
+                    outboundMsgHolder.getRequest().getHttp2MessageStateContext();
+            if (messageStateContext != null) {
+                messageStateContext.getSenderState().handleConnectionClose(outboundMsgHolder);
+            }
+        });
     }
 
     private Http2ChannelPool.PerRouteConnectionPool fetchPerRoutePool(HttpRoute httpRoute) {
@@ -221,5 +258,10 @@ public class Http2ConnectionManager {
     private String generateKey(HttpRoute httpRoute) {
         return httpRoute.getScheme() + ":" + httpRoute.getHost() + ":" + httpRoute.getPort() + ":" +
                 httpRoute.getConfigHash();
+    }
+
+    private void closeChannelAndEvict(Http2ClientChannel http2ClientChannel) {
+        removeClosedChannelFromIdlePool(http2ClientChannel);
+        http2ClientChannel.getConnection().close(http2ClientChannel.getChannel().newPromise());
     }
 }
