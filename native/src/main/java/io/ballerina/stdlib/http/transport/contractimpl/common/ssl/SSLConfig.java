@@ -18,6 +18,8 @@
  */
 package io.ballerina.stdlib.http.transport.contractimpl.common.ssl;
 
+import io.netty.handler.ssl.ReferenceCountedOpenSslContext;
+import io.netty.handler.ssl.SslContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,6 +67,9 @@ public class SSLConfig {
     private boolean disableSsl = false;
     private boolean useJavaDefaults = false;
     private String sniHostName;
+    private ReferenceCountedOpenSslContext referenceCountedOpenSslContext;
+    private SslContext sslContext;
+    private SSLHandlerFactory sslHandlerFactory;
 
     public SSLConfig() {}
 
@@ -352,5 +357,29 @@ public class SSLConfig {
 
     public void setUseJavaDefaults() {
         this.useJavaDefaults = true;
+    }
+
+    public void setSslContext(SslContext sslContext) {
+        this.sslContext = sslContext;
+    }
+
+    public SslContext getSslContext() {
+        return sslContext;
+    }
+
+    public void setReferenceCountedOpenSslContext(ReferenceCountedOpenSslContext referenceCountedOpenSslContext) {
+        this.referenceCountedOpenSslContext = referenceCountedOpenSslContext;
+    }
+
+    public ReferenceCountedOpenSslContext getReferenceCountedOpenSslContext() {
+        return referenceCountedOpenSslContext;
+    }
+
+    public SSLHandlerFactory getSslHandlerFactory() {
+        return sslHandlerFactory;
+    }
+
+    public void setSslHandlerFactory(SSLHandlerFactory sslHandlerFactory) {
+        this.sslHandlerFactory = sslHandlerFactory;
     }
 }

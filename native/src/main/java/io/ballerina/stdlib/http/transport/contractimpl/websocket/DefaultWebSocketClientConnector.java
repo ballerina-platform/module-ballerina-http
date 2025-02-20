@@ -22,8 +22,13 @@ package io.ballerina.stdlib.http.transport.contractimpl.websocket;
 import io.ballerina.stdlib.http.transport.contract.websocket.ClientHandshakeFuture;
 import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketClientConnector;
 import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketClientConnectorConfig;
+import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
+import io.ballerina.stdlib.http.transport.contractimpl.common.ssl.SSLConfig;
+import io.ballerina.stdlib.http.transport.contractimpl.common.ssl.SSLHandlerFactory;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.websocket.WebSocketClient;
 import io.netty.channel.EventLoopGroup;
+
+import java.util.Objects;
 
 /**
  * Implementation of WebSocket client connector.
@@ -31,14 +36,40 @@ import io.netty.channel.EventLoopGroup;
 public class DefaultWebSocketClientConnector implements WebSocketClientConnector {
 
     private final WebSocketClient webSocketClient;
+    private final SSLConfig sslConfig;
 
     public DefaultWebSocketClientConnector(WebSocketClientConnectorConfig clientConnectorConfig,
-            EventLoopGroup wsClientEventLoopGroup) {
+            EventLoopGroup wsClientEventLoopGroup) throws Exception {
         this.webSocketClient = new WebSocketClient(wsClientEventLoopGroup, clientConnectorConfig);
+        this.sslConfig = clientConnectorConfig.getClientSSLConfig();
+        initializeSSLContext();
     }
 
     @Override
     public ClientHandshakeFuture connect() {
         return webSocketClient.handshake();
+    }
+
+    private void initializeSSLContext() throws Exception {
+        if (Objects.isNull(sslConfig)) {
+            return;
+        }
+        SSLHandlerFactory sslHandlerFactory = new SSLHandlerFactory(sslConfig);
+        if (sslConfig.isOcspStaplingEnabled()) {
+            sslHandlerFactory.createSSLContextFromKeystores(false);
+            sslConfig.setReferenceCountedOpenSslContext(
+                    sslHandlerFactory.buildClientReferenceCountedOpenSslContext());
+        } else {
+            if (sslConfig.isDisableSsl()) {
+                sslConfig.setSslContext(Util.createInsecureSslEngineForHttp(sslConfig));
+            } else {
+                if (sslConfig.getTrustStore() != null) {
+                    sslHandlerFactory.createSSLContextFromKeystores(false);
+                } else {
+                    sslConfig.setSslContext(sslHandlerFactory.createHttpTLSContextForClient());
+                }
+            }
+        }
+        sslConfig.setSslHandlerFactory(sslHandlerFactory);
     }
 }

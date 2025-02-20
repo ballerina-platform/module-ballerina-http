@@ -30,6 +30,7 @@ import io.ballerina.stdlib.http.transport.contract.exceptions.ClientConnectorExc
 import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
 import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
 import io.ballerina.stdlib.http.transport.contractimpl.common.ssl.SSLConfig;
+import io.ballerina.stdlib.http.transport.contractimpl.common.ssl.SSLHandlerFactory;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.SenderReqRespStateManager;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.SourceHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.http2.Http2SourceHandler;
@@ -53,6 +54,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http2.Http2CodecUtil;
+import io.netty.handler.ssl.ReferenceCountedOpenSslContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,6 +62,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Calendar;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.OUTBOUND_ACCESS_LOG_MESSAGE;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_OUTBOUND_REQUEST;
@@ -86,7 +89,7 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
 
     public DefaultHttpClientConnector(ConnectionManager connectionManager, SenderConfiguration senderConfiguration,
                                       BootstrapConfiguration bootstrapConfig, EventLoopGroup clientEventGroup,
-                                      int configHashCode) {
+                                      int configHashCode) throws Exception {
         this.connectionManager = connectionManager;
         this.http2ConnectionManager = connectionManager.getHttp2ConnectionManager();
         this.senderConfiguration = senderConfiguration;
@@ -97,6 +100,7 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
         this.clientEventGroup = clientEventGroup;
         this.bootstrapConfig = bootstrapConfig;
         this.configHashCode = configHashCode;
+        initializeSSLContext();
     }
 
     @Override
@@ -391,5 +395,49 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
         this.socketIdleTimeout = senderConfiguration.getSocketIdleTimeout(Constants.ENDPOINT_TIMEOUT);
         this.sslConfig = senderConfiguration.getClientSSLConfig();
         this.forwardedExtensionConfig = senderConfiguration.getForwardedExtensionConfig();
+    }
+
+    private void initializeSSLContext() throws Exception {
+        if (Objects.nonNull(sslConfig)) {
+            if (http2) {
+                initializeSSLContextForHTTP2();
+            } else {
+                initializeSSLContextForHTTP();
+            }
+        }
+    }
+
+    private void initializeSSLContextForHTTP() throws Exception {
+        SSLHandlerFactory sslHandlerFactory = new SSLHandlerFactory(sslConfig);
+        if (sslConfig.isOcspStaplingEnabled()) {
+            sslHandlerFactory.createSSLContextFromKeystores(false);
+            senderConfiguration.setReferenceCountedOpenSslContext(
+                    sslHandlerFactory.buildClientReferenceCountedOpenSslContext());
+        } else {
+            if (sslConfig.isDisableSsl()) {
+                senderConfiguration.setSslContext(Util.createInsecureSslEngineForHttp(sslConfig));
+            } else {
+                if (sslConfig.getTrustStore() != null) {
+                    sslHandlerFactory.createSSLContextFromKeystores(false);
+                } else {
+                    senderConfiguration.setSslContext(sslHandlerFactory.createHttpTLSContextForClient());
+                }
+            }
+        }
+        senderConfiguration.setSslHandlerFactory(sslHandlerFactory);
+    }
+
+    private void initializeSSLContextForHTTP2() throws Exception {
+        SSLHandlerFactory sslHandlerFactory = new SSLHandlerFactory(sslConfig);
+        if (sslConfig.isOcspStaplingEnabled()) {
+            senderConfiguration.setReferenceCountedOpenSslContext((ReferenceCountedOpenSslContext) sslHandlerFactory.
+                            createHttp2TLSContextForClient(sslConfig.isOcspStaplingEnabled()));
+        } else if (sslConfig.isDisableSsl()) {
+            senderConfiguration.setSslContext(Util.createInsecureSslEngineForHttp2(sslConfig));
+        } else {
+            sslHandlerFactory.createSSLContextFromKeystores(false);
+            senderConfiguration.setSslContext(sslHandlerFactory.createHttp2TLSContextForClient(false));
+        }
+        senderConfiguration.setSslHandlerFactory(sslHandlerFactory);
     }
 }
