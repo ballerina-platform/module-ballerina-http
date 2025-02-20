@@ -18,10 +18,14 @@
  */
 package io.ballerina.stdlib.http.transport.contractimpl.common.ssl;
 
+import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
+import io.netty.handler.ssl.ReferenceCountedOpenSslContext;
+import io.netty.handler.ssl.SslContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.Objects;
 
 /**
  * A class that encapsulates SSLContext configuration.
@@ -65,6 +69,9 @@ public class SSLConfig {
     private boolean disableSsl = false;
     private boolean useJavaDefaults = false;
     private String sniHostName;
+    private ReferenceCountedOpenSslContext referenceCountedOpenSslContext;
+    private SslContext sslContext;
+    private SSLHandlerFactory sslHandlerFactory;
 
     public SSLConfig() {}
 
@@ -352,5 +359,64 @@ public class SSLConfig {
 
     public void setUseJavaDefaults() {
         this.useJavaDefaults = true;
+    }
+
+    public void setSslContext(SslContext sslContext) {
+        this.sslContext = sslContext;
+    }
+
+    public SslContext getSslContext() {
+        return sslContext;
+    }
+
+    public ReferenceCountedOpenSslContext getReferenceCountedOpenSslContext() {
+        return referenceCountedOpenSslContext;
+    }
+
+    public SSLHandlerFactory getSslHandlerFactory() {
+        return sslHandlerFactory;
+    }
+
+    public void initializeSSLContext(boolean http2) throws Exception {
+        if (http2) {
+            initializeSSLContextForHTTP2();
+        } else {
+            initializeSSLContextForHTTP();
+        }
+    }
+
+    private void initializeSSLContextForHTTP() throws Exception {
+        sslHandlerFactory = new SSLHandlerFactory(this);
+        if (isOcspStaplingEnabled()) {
+            sslHandlerFactory.createSSLContextFromKeystores(false);
+            referenceCountedOpenSslContext = sslHandlerFactory.buildClientReferenceCountedOpenSslContext();
+        } else {
+            if (isDisableSsl()) {
+                sslContext = Util.createInsecureSslEngineForHttp(this);
+            } else {
+                if (this.getTrustStore() != null) {
+                    sslHandlerFactory.createSSLContextFromKeystores(false);
+                } else {
+                    sslContext = sslHandlerFactory.createHttpTLSContextForClient();
+                }
+            }
+        }
+    }
+
+    private void initializeSSLContextForHTTP2() throws Exception {
+        sslHandlerFactory = new SSLHandlerFactory(this);
+        if (isOcspStaplingEnabled()) {
+            referenceCountedOpenSslContext = (ReferenceCountedOpenSslContext) sslHandlerFactory.
+                    createHttp2TLSContextForClient(isOcspStaplingEnabled());
+        } else if (isDisableSsl()) {
+            sslContext = Util.createInsecureSslEngineForHttp2(this);
+        } else {
+            sslHandlerFactory.createSSLContextFromKeystores(false);
+            sslContext = sslHandlerFactory.createHttp2TLSContextForClient(false);
+        }
+    }
+
+    public boolean hasSslCtxInitialized() {
+        return Objects.nonNull(sslHandlerFactory);
     }
 }

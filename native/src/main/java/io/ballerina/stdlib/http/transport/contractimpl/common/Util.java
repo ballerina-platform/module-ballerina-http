@@ -372,17 +372,14 @@ public class Util {
      * @throws SSLException if any error occurs in the SSL connection
      */
     public static SSLEngine configureHttpPipelineForSSL(SocketChannel socketChannel, String host, int port,
-                                                        SSLConfig sslConfig) throws Exception {
+                                                        SSLConfig sslConfig) {
         LOG.debug("adding ssl handler");
         SSLEngine sslEngine = null;
         SslHandler sslHandler;
         ChannelPipeline pipeline = socketChannel.pipeline();
-        SSLHandlerFactory sslHandlerFactory = new SSLHandlerFactory(sslConfig);
         if (sslConfig.isOcspStaplingEnabled()) {
-            sslHandlerFactory.createSSLContextFromKeystores(false);
-            ReferenceCountedOpenSslContext referenceCountedOpenSslContext = sslHandlerFactory
-                    .buildClientReferenceCountedOpenSslContext();
-
+            ReferenceCountedOpenSslContext referenceCountedOpenSslContext =
+                    sslConfig.getReferenceCountedOpenSslContext();
             if (referenceCountedOpenSslContext != null) {
                 sslHandler = referenceCountedOpenSslContext.newHandler(socketChannel.alloc());
                 sslEngine = sslHandler.engine();
@@ -395,11 +392,11 @@ public class Util {
                 sslEngine = createInsecureSslEngine(socketChannel, sslConfig, host, port);
             } else {
                 if (sslConfig.getTrustStore() != null) {
-                    sslHandlerFactory.createSSLContextFromKeystores(false);
                     sslEngine = instantiateAndConfigSSL(sslConfig, host, port,
-                            sslConfig.isHostNameVerificationEnabled(), sslHandlerFactory);
+                            sslConfig.isHostNameVerificationEnabled(), sslConfig.getSslHandlerFactory());
                 } else {
-                    sslEngine = getSslEngineForCerts(socketChannel, host, port, sslConfig, sslHandlerFactory);
+                    sslEngine = getSslEngineForCerts(socketChannel, host, port, sslConfig,
+                            sslConfig.getSslHandlerFactory());
                 }
             }
             sslHandler = new SslHandler(sslEngine);
@@ -414,8 +411,8 @@ public class Util {
     }
 
     private static SSLEngine getSslEngineForCerts(SocketChannel socketChannel, String host, int port,
-            SSLConfig sslConfig, SSLHandlerFactory sslHandlerFactory) throws SSLException {
-        SslContext sslContext = sslHandlerFactory.createHttpTLSContextForClient();
+            SSLConfig sslConfig, SSLHandlerFactory sslHandlerFactory) {
+        SslContext sslContext = sslConfig.getSslContext();
         SslHandler sslHandler = sslContext.newHandler(socketChannel.alloc(), host, port);
         SSLEngine sslEngine = sslHandler.engine();
         sslHandlerFactory.addCommonConfigs(sslEngine);
@@ -427,27 +424,8 @@ public class Util {
     }
 
     private static SSLEngine createInsecureSslEngine(SocketChannel socketChannel, SSLConfig sslConfig, String host,
-                                                     int port) throws Exception {
-        SslContext sslContext;
-        if (sslConfig.getKeyStore() != null && sslConfig.getKeyStorePass() != null) {
-            KeyStore ks = getKeyStore(sslConfig);
-            KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-            kmf.init(ks, sslConfig.getCertPass() != null ?
-                    sslConfig.getCertPass().toCharArray() :
-                    sslConfig.getKeyStorePass().toCharArray());
-            sslContext = SslContextBuilder.forClient().sslProvider(SslProvider.JDK)
-                    .trustManager(InsecureTrustManagerFactory.INSTANCE)
-                    .keyManager(kmf)
-                    .build();
-        } else if (sslConfig.getClientKeyFile() != null && sslConfig.getClientCertificates() != null) {
-            String keyPassword = sslConfig.getClientKeyPassword();
-            sslContext = SslContextBuilder.forClient().sslProvider(SslProvider.JDK)
-                    .keyManager(sslConfig.getClientCertificates(), sslConfig.getClientKeyFile(), keyPassword)
-                    .trustManager(InsecureTrustManagerFactory.INSTANCE).build();
-        } else {
-            sslContext = SslContextBuilder.forClient().sslProvider(SslProvider.JDK)
-                    .trustManager(InsecureTrustManagerFactory.INSTANCE).build();
-        }
+                                                     int port) {
+        SslContext sslContext = sslConfig.getSslContext();
         SslHandler sslHandler = sslContext.newHandler(socketChannel.alloc(), host, port);
         return sslHandler.engine();
     }
@@ -486,7 +464,29 @@ public class Util {
         return sslContextBuilder.build();
     }
 
-    private static KeyStore getKeyStore(SSLConfig sslConfig) throws IOException {
+    public static SslContext createInsecureSslEngineForHttp(SSLConfig sslConfig) throws Exception {
+        if (sslConfig.getKeyStore() != null && sslConfig.getKeyStorePass() != null) {
+            KeyStore ks = getKeyStore(sslConfig);
+            KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+            kmf.init(ks, sslConfig.getCertPass() != null ?
+                    sslConfig.getCertPass().toCharArray() :
+                    sslConfig.getKeyStorePass().toCharArray());
+            return SslContextBuilder.forClient().sslProvider(SslProvider.JDK)
+                    .trustManager(InsecureTrustManagerFactory.INSTANCE)
+                    .keyManager(kmf)
+                    .build();
+        } else if (sslConfig.getClientKeyFile() != null && sslConfig.getClientCertificates() != null) {
+            String keyPassword = sslConfig.getClientKeyPassword();
+            return SslContextBuilder.forClient().sslProvider(SslProvider.JDK)
+                    .keyManager(sslConfig.getClientCertificates(), sslConfig.getClientKeyFile(), keyPassword)
+                    .trustManager(InsecureTrustManagerFactory.INSTANCE).build();
+        } else {
+            return SslContextBuilder.forClient().sslProvider(SslProvider.JDK)
+                    .trustManager(InsecureTrustManagerFactory.INSTANCE).build();
+        }
+    }
+
+    public static KeyStore getKeyStore(SSLConfig sslConfig) throws IOException {
         String tlsStoreType = sslConfig.getTLSStoreType();
         try (InputStream is = new FileInputStream(sslConfig.getKeyStore())) {
             KeyStore ks = KeyStore.getInstance(tlsStoreType);
