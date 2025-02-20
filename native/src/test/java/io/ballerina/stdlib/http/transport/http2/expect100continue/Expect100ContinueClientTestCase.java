@@ -63,7 +63,7 @@ public class Expect100ContinueClientTestCase {
     private String testValue = "Test Message";
 
     @BeforeClass
-    public void setup() throws InterruptedException {
+    public void setup() throws Exception {
         given100ContinueSupportingServer();
         givenNormalClient();
     }
@@ -118,7 +118,7 @@ public class Expect100ContinueClientTestCase {
         serverConnectorFuture.sync();
     }
 
-    private void givenNormalClient() {
+    private void givenNormalClient() throws Exception {
         httpClientConnector = connectorFactory
                 .createHttpClientConnector(new HashMap<>(), Continue100Util.getSenderConfigs());
     }

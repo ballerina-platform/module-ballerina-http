@@ -87,7 +87,7 @@ public class CipherSuitesTest {
      */
     @Test(dataProvider = "ciphers")
     public void setup(String clientCiphers, String serverCiphers, boolean hasException, int serverPort)
-            throws InterruptedException {
+            throws Exception {
 
         Parameter paramClientCiphers = new Parameter("ciphers", clientCiphers);
         clientParams = new ArrayList<>();

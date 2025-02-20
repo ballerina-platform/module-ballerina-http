@@ -59,7 +59,7 @@ public class ClientContinue100ClosureTestCase {
     private DefaultHttpConnectorListener listener;
 
     @BeforeClass
-    public void setup() throws InterruptedException {
+    public void setup() throws Exception {
         givenServerClosingWithoutResponding();
         givenChunkingNeverClient();
     }
@@ -101,7 +101,7 @@ public class ClientContinue100ClosureTestCase {
         latch.await(6, TimeUnit.SECONDS);
     }
 
-    private void givenChunkingNeverClient() {
+    private void givenChunkingNeverClient() throws Exception {
         httpWsConnectorFactory = new DefaultHttpWsConnectorFactory();
         SenderConfiguration senderConfiguration = new SenderConfiguration();
         senderConfiguration.setChunkingConfig(ChunkConfig.NEVER);

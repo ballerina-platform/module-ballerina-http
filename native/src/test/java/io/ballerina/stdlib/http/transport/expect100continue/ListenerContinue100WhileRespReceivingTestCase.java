@@ -68,7 +68,7 @@ public class ListenerContinue100WhileRespReceivingTestCase {
     private DefaultHttpConnectorListener listener;
 
     @BeforeClass
-    public void setup() throws InterruptedException {
+    public void setup() throws Exception {
         httpWsConnectorFactory = new DefaultHttpWsConnectorFactory();
         givenAbnormalClient();
         givenNormalListener();
@@ -134,7 +134,7 @@ public class ListenerContinue100WhileRespReceivingTestCase {
         serverConnectorFuture.sync();
     }
 
-    private void givenAbnormalClient() {
+    private void givenAbnormalClient() throws Exception {
         SenderConfiguration senderConfiguration = new SenderConfiguration();
         senderConfiguration.setSocketIdleTimeout(15000);
         httpClientConnector = httpWsConnectorFactory.createHttpClientConnector(new HashMap<>(), senderConfiguration);

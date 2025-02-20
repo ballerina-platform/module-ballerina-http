@@ -50,7 +50,7 @@ public class MutualSSLTestCase {
     private ServerConnector connector;
 
     @BeforeClass
-    public void setup() throws InterruptedException {
+    public void setup() throws Exception {
 
         factory = new DefaultHttpWsConnectorFactory();
 

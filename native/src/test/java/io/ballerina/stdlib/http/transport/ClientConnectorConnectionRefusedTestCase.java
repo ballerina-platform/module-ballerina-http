@@ -51,7 +51,7 @@ public class ClientConnectorConnectionRefusedTestCase {
     private HttpWsConnectorFactory connectorFactory;
 
     @BeforeClass
-    public void setup() {
+    public void setup() throws Exception {
         connectorFactory = new DefaultHttpWsConnectorFactory();
         SenderConfiguration senderConfiguration = new SenderConfiguration();
         senderConfiguration.setSocketIdleTimeout(3000);

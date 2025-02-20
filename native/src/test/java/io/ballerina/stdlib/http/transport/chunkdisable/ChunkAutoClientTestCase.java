@@ -33,7 +33,7 @@ import static org.testng.AssertJUnit.assertEquals;
 public class ChunkAutoClientTestCase extends ChunkClientTemplate {
 
     @BeforeClass
-    public void setUp() {
+    public void setUp() throws Exception {
         senderConfiguration.setChunkingConfig(ChunkConfig.AUTO);
         super.setUp();
     }

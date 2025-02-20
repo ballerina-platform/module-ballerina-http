@@ -90,7 +90,7 @@ public class FrameLevelTestUtils {
     public static final String DATA_VALUE_HELLO_WORLD_05 = "hello world5";
     public static final String DATA_VALUE_HELLO_WORLD_07 = "hello world7";
 
-    public static HttpClientConnector setupHttp2PriorKnowledgeClient() {
+    public static HttpClientConnector setupHttp2PriorKnowledgeClient() throws Exception {
         HttpWsConnectorFactory connectorFactory = new DefaultHttpWsConnectorFactory();
         TransportsConfiguration transportsConfiguration = new TransportsConfiguration();
         SenderConfiguration senderConfiguration = new SenderConfiguration();

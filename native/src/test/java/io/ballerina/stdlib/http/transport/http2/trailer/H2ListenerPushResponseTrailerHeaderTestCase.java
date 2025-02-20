@@ -56,7 +56,7 @@ public class H2ListenerPushResponseTrailerHeaderTestCase extends TrailerHeaderTe
     private HttpClientConnector h2ClientWithPriorKnowledge;
 
     @BeforeClass
-    public void setup() {
+    public void setup() throws Exception {
         ListenerConfiguration listenerConfiguration = Http2Util.getH2CListenerConfiguration();
         HttpHeaders trailers = new DefaultLastHttpContent().trailingHeaders();
         trailers.add("foo", "bar;q=0.8");

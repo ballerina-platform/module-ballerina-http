@@ -98,7 +98,7 @@ public final class Http2Util {
      * @return HttpClientConnector
      */
     public static HttpClientConnector getTestHttp2Client(HttpWsConnectorFactory httpWsConnectorFactory,
-                                                         boolean withPriorKnowledge) {
+                                                         boolean withPriorKnowledge) throws Exception {
         TransportsConfiguration transportsConfiguration = new TransportsConfiguration();
         SenderConfiguration senderConfiguration = HttpConnectorUtil.getSenderConfiguration(transportsConfiguration,
                                                                                            Constants.HTTP_SCHEME);
@@ -110,7 +110,8 @@ public final class Http2Util {
             HttpConnectorUtil.getTransportProperties(transportsConfiguration), senderConfiguration);
     }
 
-    public static HttpClientConnector getTestHttp1Client(HttpWsConnectorFactory httpWsConnectorFactory) {
+    public static HttpClientConnector getTestHttp1Client(HttpWsConnectorFactory httpWsConnectorFactory)
+            throws Exception {
         TransportsConfiguration transportsConfiguration = new TransportsConfiguration();
         SenderConfiguration h1SenderConfiguration = HttpConnectorUtil.getSenderConfiguration(transportsConfiguration,
                                                                                              Constants.HTTP_SCHEME);
@@ -127,7 +128,7 @@ public final class Http2Util {
     }
 
     public static HttpClientConnector getHttp2Client(HttpWsConnectorFactory connectorFactory, boolean priorOn,
-                                               int socketIdleTimeout) {
+                                               int socketIdleTimeout) throws Exception {
         TransportsConfiguration transportsConfiguration = new TransportsConfiguration();
         SenderConfiguration senderConfiguration = HttpConnectorUtil.getSenderConfiguration(transportsConfiguration,
                                                                                            Constants.HTTP_SCHEME);

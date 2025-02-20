@@ -59,7 +59,7 @@ public class ClientContinue100ResponseTimeoutTestCase {
     private DefaultHttpConnectorListener listener;
 
     @BeforeClass
-    public void setup() throws InterruptedException {
+    public void setup() throws Exception {
         givenNoResponseServer();
         givenChunkingNeverClient();
     }
@@ -84,7 +84,7 @@ public class ClientContinue100ResponseTimeoutTestCase {
         }
     }
 
-    private void givenChunkingNeverClient() {
+    private void givenChunkingNeverClient() throws Exception {
         httpWsConnectorFactory = new DefaultHttpWsConnectorFactory();
         SenderConfiguration senderConfiguration = new SenderConfiguration();
         senderConfiguration.setChunkingConfig(ChunkConfig.NEVER);

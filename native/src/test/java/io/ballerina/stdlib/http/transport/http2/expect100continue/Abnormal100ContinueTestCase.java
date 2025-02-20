@@ -52,7 +52,7 @@ public class Abnormal100ContinueTestCase {
     private HttpServer http2Server;
 
     @BeforeClass
-    public void setup() throws InterruptedException {
+    public void setup() throws Exception {
         connectorFactory = new DefaultHttpWsConnectorFactory();
         h2PriorOnClient = getHttp2Client(connectorFactory, true, 3000);
         http2Server = TestUtil.startHTTPServer(TestUtil.HTTP_SERVER_PORT, new Abnormal100ContinueServerInitializer());

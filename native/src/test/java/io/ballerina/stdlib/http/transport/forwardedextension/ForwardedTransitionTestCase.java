@@ -34,7 +34,7 @@ import static org.testng.AssertJUnit.assertNull;
  */
 public class ForwardedTransitionTestCase extends ForwardedClientTemplate {
     @BeforeClass
-    public void setUp() {
+    public void setUp() throws Exception {
         senderConfiguration.setForwardedExtensionConfig(ForwardedExtensionConfig.TRANSITION);
         super.setUp();
     }

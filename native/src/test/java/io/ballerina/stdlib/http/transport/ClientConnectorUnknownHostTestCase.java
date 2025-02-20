@@ -52,7 +52,7 @@ public class ClientConnectorUnknownHostTestCase {
     private HttpWsConnectorFactory connectorFactory;
 
     @BeforeClass
-    public void setup() {
+    public void setup() throws Exception {
         connectorFactory = new DefaultHttpWsConnectorFactory();
         SenderConfiguration senderConfiguration = new SenderConfiguration();
         httpClientConnector = connectorFactory.createHttpClientConnector(new HashMap<>(), senderConfiguration);

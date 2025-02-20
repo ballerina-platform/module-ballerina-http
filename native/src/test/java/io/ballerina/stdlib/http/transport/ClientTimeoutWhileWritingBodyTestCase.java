@@ -61,7 +61,7 @@ public class ClientTimeoutWhileWritingBodyTestCase {
     private HttpWsConnectorFactory connectorFactory;
 
     @BeforeClass
-    public void setup() {
+    public void setup() throws Exception {
         httpServer = TestUtil.startHTTPServer(TestUtil.HTTPS_SERVER_PORT, new DumbServerInitializer());
 
         connectorFactory = new DefaultHttpWsConnectorFactory();

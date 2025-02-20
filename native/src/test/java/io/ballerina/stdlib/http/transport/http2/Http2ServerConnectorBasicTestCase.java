@@ -55,7 +55,7 @@ public class Http2ServerConnectorBasicTestCase {
     private HttpWsConnectorFactory connectorFactory;
 
     @BeforeClass
-    public void setup() throws InterruptedException {
+    public void setup() throws Exception {
         connectorFactory = new DefaultHttpWsConnectorFactory();
         ListenerConfiguration listenerConfiguration = new ListenerConfiguration();
         listenerConfiguration.setPort(TestUtil.HTTP_SERVER_PORT);

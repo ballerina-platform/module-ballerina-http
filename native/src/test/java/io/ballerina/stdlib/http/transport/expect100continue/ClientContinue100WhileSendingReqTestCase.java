@@ -65,7 +65,7 @@ public class ClientContinue100WhileSendingReqTestCase {
     private DefaultHttpConnectorListener listener;
 
     @BeforeClass
-    public void setup() throws InterruptedException {
+    public void setup() throws Exception {
         givenServerWithLate100Response();
         givenNormalClient();
     }
@@ -90,7 +90,7 @@ public class ClientContinue100WhileSendingReqTestCase {
         }
     }
 
-    private void givenNormalClient() {
+    private void givenNormalClient() throws Exception {
         httpWsConnectorFactory = new DefaultHttpWsConnectorFactory();
         SenderConfiguration senderConfiguration = new SenderConfiguration();
         senderConfiguration.setSocketIdleTimeout(10000);

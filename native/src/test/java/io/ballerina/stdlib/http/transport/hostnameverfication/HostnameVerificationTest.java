@@ -91,7 +91,7 @@ public class HostnameVerificationTest {
      */
     @Test(dataProvider = "configurations")
     public void testHostNameVerification(String keyStoreFilePath, String keyStorePassword, String trustStoreFilePath,
-            String trustStorePassword, boolean hasException, int serverPort) throws InterruptedException {
+            String trustStorePassword, boolean hasException, int serverPort) throws Exception {
 
         factory = new DefaultHttpWsConnectorFactory();
         serverConnector = factory.createServerConnector(TestUtil.getDefaultServerBootstrapConfig(),

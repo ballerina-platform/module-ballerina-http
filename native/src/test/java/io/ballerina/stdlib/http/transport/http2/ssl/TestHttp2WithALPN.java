@@ -51,7 +51,7 @@ public class TestHttp2WithALPN {
     private HttpWsConnectorFactory connectorFactory;
 
     @BeforeClass
-    public void setup() throws InterruptedException {
+    public void setup() throws Exception {
 
         HttpWsConnectorFactory factory = new DefaultHttpWsConnectorFactory();
         serverConnector = factory

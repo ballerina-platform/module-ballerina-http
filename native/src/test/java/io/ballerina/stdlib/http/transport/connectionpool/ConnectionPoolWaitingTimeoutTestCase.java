@@ -38,7 +38,7 @@ public class ConnectionPoolWaitingTimeoutTestCase {
     private static final int MAX_WAIT_TIME_FOR_CONNECTION_POOL = 1000;
 
     @BeforeClass
-    public void setup() {
+    public void setup() throws Exception {
         httpServer = TestUtil.startHTTPServer(TestUtil.HTTP_SERVER_PORT, new SendChannelIDServerInitializer(5000));
 
         connectorFactory = new DefaultHttpWsConnectorFactory();

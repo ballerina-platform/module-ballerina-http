@@ -48,7 +48,7 @@ public class Http2ForwardedTestUtil {
     protected ServerConnector serverConnector;
     protected SenderConfiguration senderConfiguration;
 
-    public void setUp(SenderConfiguration senderConfiguration) throws InterruptedException {
+    public void setUp(SenderConfiguration senderConfiguration) throws Exception {
         this.senderConfiguration = senderConfiguration;
         ListenerConfiguration listenerConfiguration = new ListenerConfiguration();
         listenerConfiguration.setPort(TestUtil.HTTP_SERVER_PORT);

@@ -59,7 +59,7 @@ public class RemoteChannelCloseWithSSLError {
     private HttpWsConnectorFactory connectorFactory;
 
     @BeforeClass
-    public void setup() throws InterruptedException {
+    public void setup() throws Exception {
         connectorFactory = new DefaultHttpWsConnectorFactory();
         serverConnector = connectorFactory
                 .createServerConnector(TestUtil.getDefaultServerBootstrapConfig(), getH2ListenerConfigs());

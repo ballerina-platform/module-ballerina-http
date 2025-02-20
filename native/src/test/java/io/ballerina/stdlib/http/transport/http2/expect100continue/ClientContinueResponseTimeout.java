@@ -62,7 +62,7 @@ public class ClientContinueResponseTimeout {
     private HttpWsConnectorFactory httpWsConnectorFactory;
 
     @BeforeClass
-    public void setup() throws InterruptedException {
+    public void setup() throws Exception {
         httpWsConnectorFactory = new DefaultHttpWsConnectorFactory();
         givenAHttpServerThatDoesNotSendAnyResponse();
         givenANormal100ContinueClient();
@@ -103,7 +103,7 @@ public class ClientContinueResponseTimeout {
         future.sync();
     }
 
-    private void givenANormal100ContinueClient() {
+    private void givenANormal100ContinueClient() throws Exception {
         SenderConfiguration senderConfiguration = Continue100Util.getSenderConfigs();
         senderConfiguration.setSocketIdleTimeout(3000);
         httpClientConnector = httpWsConnectorFactory.createHttpClientConnector(new HashMap<>(), senderConfiguration);

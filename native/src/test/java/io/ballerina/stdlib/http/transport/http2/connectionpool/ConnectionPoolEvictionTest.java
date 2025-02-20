@@ -92,7 +92,7 @@ public class ConnectionPoolEvictionTest {
     }
 
     @Test
-    public void testConnectionEvictionWithUpgrade() throws InterruptedException {
+    public void testConnectionEvictionWithUpgrade() throws Exception {
         TransportsConfiguration transportsConfiguration = new TransportsConfiguration();
         SenderConfiguration senderConfiguration = HttpConnectorUtil.getSenderConfiguration(transportsConfiguration,
                 Constants.HTTP_SCHEME);
@@ -113,7 +113,7 @@ public class ConnectionPoolEvictionTest {
     }
 
     @Test
-    public void testConnectionEvictionWithPriorKnowledge() throws InterruptedException {
+    public void testConnectionEvictionWithPriorKnowledge() throws Exception {
         TransportsConfiguration transportsConfiguration = new TransportsConfiguration();
         SenderConfiguration senderConfiguration = HttpConnectorUtil.getSenderConfiguration(transportsConfiguration,
                 Constants.HTTP_SCHEME);

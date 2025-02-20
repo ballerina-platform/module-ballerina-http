@@ -65,7 +65,7 @@ public class ServerConnectorTimeoutWhileSendingBodyTestCase {
     }
 
     @BeforeClass
-    private void setUp() {
+    private void setUp() throws Exception {
         listenerConfiguration.setPort(TestUtil.SERVER_CONNECTOR_PORT);
         listenerConfiguration.setServerHeader(TestUtil.TEST_SERVER);
         listenerConfiguration.setSocketIdleTimeout(3000);

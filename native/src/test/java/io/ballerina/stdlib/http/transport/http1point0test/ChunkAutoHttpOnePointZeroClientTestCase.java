@@ -34,7 +34,7 @@ import static org.testng.AssertJUnit.assertEquals;
 public class ChunkAutoHttpOnePointZeroClientTestCase extends ChunkClientTemplate {
 
     @BeforeClass
-    public void setUp() {
+    public void setUp() throws Exception {
         senderConfiguration.setChunkingConfig(ChunkConfig.AUTO);
         senderConfiguration.setHttpVersion("1.0");
         super.setUp();

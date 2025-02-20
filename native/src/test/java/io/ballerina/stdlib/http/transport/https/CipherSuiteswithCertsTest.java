@@ -83,7 +83,7 @@ public class CipherSuiteswithCertsTest {
      */
     @Test(dataProvider = "ciphers")
     public void setup(String clientCiphers, String serverCiphers, boolean hasException, int serverPort)
-            throws InterruptedException {
+            throws Exception {
 
         Parameter paramClientCiphers = new Parameter("ciphers", clientCiphers);
         clientParams.add(paramClientCiphers);

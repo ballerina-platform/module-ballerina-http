@@ -49,7 +49,7 @@ public class WebSocketPassThroughServerConnectorListener implements WebSocketCon
     private final HttpWsConnectorFactory connectorFactory = new DefaultHttpWsConnectorFactory();
 
     @Override
-    public void onHandshake(WebSocketHandshaker webSocketHandshaker) {
+    public void onHandshake(WebSocketHandshaker webSocketHandshaker) throws Exception {
         String remoteUrl = String.format("ws://%s:%d/%s", "localhost",
                                          TestUtil.WEBSOCKET_REMOTE_SERVER_PORT, "websocket");
         WebSocketClientConnectorConfig configuration = new WebSocketClientConnectorConfig(remoteUrl);

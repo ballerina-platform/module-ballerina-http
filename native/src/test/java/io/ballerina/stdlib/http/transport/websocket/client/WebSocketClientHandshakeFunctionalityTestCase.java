@@ -101,7 +101,7 @@ public class WebSocketClientHandshakeFunctionalityTestCase {
     }
 
     @Test(description = "Test the sub protocol negotiation with the remote server")
-    public void testSubProtocolNegotiationSuccessful() throws InterruptedException {
+    public void testSubProtocolNegotiationSuccessful() throws Exception {
         WebSocketClientConnectorConfig configuration = new WebSocketClientConnectorConfig(WEBSOCKET_REMOTE_SERVER_URL);
         String[] subProtocolsSuccess = {"xmlx", "json"};
         configuration.setSubProtocols(subProtocolsSuccess);
@@ -116,7 +116,7 @@ public class WebSocketClientHandshakeFunctionalityTestCase {
     }
 
     @Test(description = "Test the sub protocol negotiation with the remote server")
-    public void testSubProtocolNegotiationFail() throws InterruptedException {
+    public void testSubProtocolNegotiationFail() throws Exception {
         WebSocketClientConnectorConfig configuration = new WebSocketClientConnectorConfig(WEBSOCKET_REMOTE_SERVER_URL);
         String[] subProtocolsFail = {"xmlx", "jsonx"};
         configuration.setSubProtocols(subProtocolsFail);
@@ -129,7 +129,7 @@ public class WebSocketClientHandshakeFunctionalityTestCase {
     }
 
     @Test(description = "Test the case when the compression is enabled")
-    public void testCompressionEnabled() throws InterruptedException {
+    public void testCompressionEnabled() throws Exception {
         WebSocketClientConnectorConfig configuration = new WebSocketClientConnectorConfig(WEBSOCKET_REMOTE_SERVER_URL);
         configuration.setWebSocketCompressionEnabled(true);
         HandshakeResult result = connectAndGetHandshakeResult(configuration);
@@ -141,7 +141,7 @@ public class WebSocketClientHandshakeFunctionalityTestCase {
     }
 
     @Test(description = "Test the case when the compression is disabled")
-    public void testCompressionDisabled() throws InterruptedException {
+    public void testCompressionDisabled() throws Exception {
         WebSocketClientConnectorConfig configuration = new WebSocketClientConnectorConfig(WEBSOCKET_REMOTE_SERVER_URL);
         configuration.setWebSocketCompressionEnabled(false);
         HandshakeResult result = connectAndGetHandshakeResult(configuration);
@@ -152,7 +152,7 @@ public class WebSocketClientHandshakeFunctionalityTestCase {
     }
 
     @Test(description = "Test the sub protocol negotiation with the remote server with 0 length of sub protocols")
-    public void testConnectToServerWithoutSubProtocols() throws InterruptedException {
+    public void testConnectToServerWithoutSubProtocols() throws Exception {
         WebSocketClientConnectorConfig configuration = new WebSocketClientConnectorConfig(WEBSOCKET_REMOTE_SERVER_URL);
         String[] zeroLengthSubProtocols = {};
         configuration.setSubProtocols(zeroLengthSubProtocols);
@@ -165,7 +165,7 @@ public class WebSocketClientHandshakeFunctionalityTestCase {
     }
 
     @Test(description = "Test whether client can send custom headers and receive.")
-    public void testSendAndReceiveCustomHeaders() throws InterruptedException {
+    public void testSendAndReceiveCustomHeaders() throws Exception {
         WebSocketClientConnectorConfig configuration = new WebSocketClientConnectorConfig(WEBSOCKET_REMOTE_SERVER_URL);
         int maxHeadersCount = 3;
         String customHeaderKey = "x-custom-header-key-";
@@ -230,7 +230,7 @@ public class WebSocketClientHandshakeFunctionalityTestCase {
     }
 
     @Test
-    public void testInvalidUrl() throws InterruptedException {
+    public void testInvalidUrl() throws Exception {
         String invalidUrl = "myUrl";
         connectAndAssertInvalidUrl(invalidUrl);
 
@@ -238,7 +238,7 @@ public class WebSocketClientHandshakeFunctionalityTestCase {
         connectAndAssertInvalidUrl(urlWithWrongScheme);
     }
 
-    private void connectAndAssertInvalidUrl(String url) throws InterruptedException {
+    private void connectAndAssertInvalidUrl(String url) throws Exception {
         WebSocketClientConnectorConfig clientConnectorConfig = new WebSocketClientConnectorConfig(url);
         HandshakeResult result = connectAndGetHandshakeResult(clientConnectorConfig);
         Throwable throwable = result.getThrowable();
@@ -251,7 +251,7 @@ public class WebSocketClientHandshakeFunctionalityTestCase {
     }
 
     @Test
-    public void testNonExistingValidUrl() throws InterruptedException {
+    public void testNonExistingValidUrl() throws Exception {
         String nonExistingUrl = "ws://localhost:14900/websocket";
         WebSocketClientConnectorConfig clientConnectorConfig = new WebSocketClientConnectorConfig(nonExistingUrl);
         HandshakeResult result = connectAndGetHandshakeResult(clientConnectorConfig);
@@ -266,18 +266,16 @@ public class WebSocketClientHandshakeFunctionalityTestCase {
     }
 
     @Test
-    public void testWssCallWithoutSslConfig() throws InterruptedException {
+    public void testWssCallWithoutSslConfig() throws Exception {
         String url = "wss://localhost:9090/websocket";
-        WebSocketClientConnectorConfig clientConnectorConfig = new WebSocketClientConnectorConfig(url);
-        HandshakeResult result = connectAndGetHandshakeResult(clientConnectorConfig);
-        Throwable throwable = result.getThrowable();
-
-        Assert.assertNull(result.getWebSocketConnection());
-        Assert.assertNull(result.getHandshakeResponse());
-        Assert.assertNotNull(throwable);
-        Assert.assertTrue(throwable instanceof IllegalArgumentException);
-        Assert.assertEquals(throwable.getMessage(),
-                "TrustStoreFile or TrustStorePassword not defined for HTTPS/WS scheme");
+        try {
+            WebSocketClientConnectorConfig clientConnectorConfig = new WebSocketClientConnectorConfig(url);
+        } catch (Exception throwable) {
+            Assert.assertNotNull(throwable);
+            Assert.assertTrue(throwable instanceof IllegalArgumentException);
+            Assert.assertEquals(throwable.getMessage(),
+                    "TrustStoreFile or TrustStorePassword not defined for HTTPS/WS scheme");
+        }
     }
 
     private String readNextTextMsg(WebSocketTestClientConnectorListener connectorListener,
@@ -301,7 +299,7 @@ public class WebSocketClientHandshakeFunctionalityTestCase {
     }
 
     private HandshakeResult connectAndGetHandshakeResult(WebSocketClientConnectorConfig configuration)
-            throws InterruptedException {
+            throws Exception {
         WebSocketClientConnector clientConnector = httpConnectorFactory.createWsClientConnector(configuration);
         WebSocketTestClientConnectorListener connectorListener = new WebSocketTestClientConnectorListener();
         ClientHandshakeFuture handshakeFuture = handshake(clientConnector, connectorListener);

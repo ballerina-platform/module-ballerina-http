@@ -94,7 +94,7 @@ public class H2ConnectionPoolWithUpgrade {
     }
 
     @Test
-    public void testH2CUpgradeWithPool() {
+    public void testH2CUpgradeWithPool() throws Exception {
         //Since we have only two eventloops, upstream will have two different pools.
         HttpClientConnector client1 = getTestHttp2Client(httpWsConnectorFactory, false); //Upstream uses eventloop1 pool
         String response1 = getResponse(client1);

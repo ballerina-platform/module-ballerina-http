@@ -34,7 +34,7 @@ import static org.testng.AssertJUnit.assertEquals;
  */
 public class Http2ForwardedEnableTestCase extends Http2ForwardedTestUtil {
     @BeforeClass
-    public void setUp() throws InterruptedException {
+    public void setUp() throws Exception {
         super.setUp(Http2Util.getForwardSenderConfigs(ForwardedExtensionConfig.ENABLE, true));
     }
 

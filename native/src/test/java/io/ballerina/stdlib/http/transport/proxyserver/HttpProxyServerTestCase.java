@@ -54,7 +54,7 @@ public class HttpProxyServerTestCase {
     private String testValue = "Test";
 
     @BeforeClass
-    public void setup() throws InterruptedException {
+    public void setup() throws Exception {
         proxy = startClientAndProxy(TestUtil.SERVER_PORT2);
 
         ByteBuffer byteBuffer = ByteBuffer.wrap(testValue.getBytes(Charset.forName("UTF-8")));

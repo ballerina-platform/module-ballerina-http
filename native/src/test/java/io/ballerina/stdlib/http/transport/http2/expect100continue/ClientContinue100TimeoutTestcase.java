@@ -63,7 +63,7 @@ public class ClientContinue100TimeoutTestcase {
     private DefaultHttpConnectorListener listener;
 
     @BeforeClass
-    public void setup() throws InterruptedException {
+    public void setup() throws Exception {
         givenNoResponseServer();
         givenA100ContinueClient();
     }
@@ -95,7 +95,7 @@ public class ClientContinue100TimeoutTestcase {
         serverConnectorFuture.sync();
     }
 
-    private void givenA100ContinueClient() {
+    private void givenA100ContinueClient() throws Exception {
         connectorFactory = new DefaultHttpWsConnectorFactory();
         httpClientConnector = connectorFactory
                 .createHttpClientConnector(new HashMap<>(), Continue100Util.getSenderConfigs());

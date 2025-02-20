@@ -56,12 +56,12 @@ public class Http2ServerAbruptClosureInALPNScenarioTest {
     private int numOfConnections = 0;
 
     @BeforeClass
-    public void setup() throws InterruptedException {
+    public void setup() throws Exception {
         runTcpServer(TestUtil.HTTP_SERVER_PORT);
         h2ClientWithUpgrade = setupHttp2UpgradeClient();
     }
 
-    public HttpClientConnector setupHttp2UpgradeClient() {
+    public HttpClientConnector setupHttp2UpgradeClient() throws Exception {
         HttpWsConnectorFactory connectorFactory = new DefaultHttpWsConnectorFactory();
         SenderConfiguration senderConfiguration = Http2Util.getSenderConfigs(Constants.HTTP_2_0);
         senderConfiguration.setForceHttp2(false);

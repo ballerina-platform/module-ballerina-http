@@ -59,7 +59,7 @@ public class Http2PseudoHeadersTest {
     private HttpWsConnectorFactory connectorFactory;
 
     @BeforeClass
-    public void setup() {
+    public void setup() throws Exception {
         http2HttpServer = TestUtil.startHTTPServer(TestUtil.HTTP_SERVER_PORT,
                 new Http2PseudoHeaderServerInitializer(HTTP_SCHEME));
         http2HttpsServer = TestUtil.startHttpsServer(TestUtil.HTTPS_SERVER_PORT,

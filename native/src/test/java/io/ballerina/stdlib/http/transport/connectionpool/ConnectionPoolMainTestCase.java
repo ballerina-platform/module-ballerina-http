@@ -49,7 +49,7 @@ public class ConnectionPoolMainTestCase {
     private HttpWsConnectorFactory connectorFactory;
 
     @BeforeClass
-    public void setup() {
+    public void setup() throws Exception {
         httpServer = TestUtil.startHTTPServer(TestUtil.HTTP_SERVER_PORT, new SendChannelIDServerInitializer(5000));
 
         connectorFactory = new DefaultHttpWsConnectorFactory();

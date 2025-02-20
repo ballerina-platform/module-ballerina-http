@@ -58,7 +58,7 @@ public class ServerCloseWhileWritingBodyTestCase {
     private HttpWsConnectorFactory connectorFactory;
 
     @BeforeClass
-    public void setup() {
+    public void setup() throws Exception {
         httpServer = TestUtil.startHTTPServer(TestUtil.HTTPS_SERVER_PORT, new CloseWithoutRespondingInitializer());
 
         connectorFactory = new DefaultHttpWsConnectorFactory();

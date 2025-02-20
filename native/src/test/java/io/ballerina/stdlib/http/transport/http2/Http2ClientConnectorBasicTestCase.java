@@ -52,7 +52,7 @@ public class Http2ClientConnectorBasicTestCase {
     private HttpWsConnectorFactory connectorFactory;
 
     @BeforeClass
-    public void setup() {
+    public void setup() throws Exception {
         http2Server = TestUtil.startHTTPServer(TestUtil.HTTP_SERVER_PORT, new Http2EchoServerInitializer());
         connectorFactory = new DefaultHttpWsConnectorFactory();
 

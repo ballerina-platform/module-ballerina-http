@@ -49,7 +49,7 @@ public class HttpsProxyServerTestCase {
     private ClientAndProxy proxy;
 
     @BeforeClass
-    public void setup() throws InterruptedException {
+    public void setup() throws Exception {
         //Start proxy server.
         proxy = startClientAndProxy(TestUtil.SERVER_PORT2);
         ProxyServerUtil.setUpClientAndServerConnectors(getListenerConfiguration(), HTTPS_SCHEME);

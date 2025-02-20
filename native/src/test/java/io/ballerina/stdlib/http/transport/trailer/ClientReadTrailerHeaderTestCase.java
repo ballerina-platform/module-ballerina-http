@@ -63,7 +63,7 @@ public class ClientReadTrailerHeaderTestCase extends TrailerHeaderTestTemplate {
     private HttpClientConnector clientConnector;
 
     @BeforeClass
-    public void setup() {
+    public void setup() throws Exception {
         ListenerConfiguration listenerConfiguration = new ListenerConfiguration();
         listenerConfiguration.setPort(TestUtil.SERVER_CONNECTOR_PORT);
         listenerConfiguration.setChunkConfig(ChunkConfig.ALWAYS);

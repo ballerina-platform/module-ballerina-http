@@ -49,7 +49,7 @@ public class MutualSSLwithCertsTest {
     private ServerConnector connector;
 
     @BeforeClass
-    public void setup() throws InterruptedException {
+    public void setup() throws Exception {
 
         factory = new DefaultHttpWsConnectorFactory();
 

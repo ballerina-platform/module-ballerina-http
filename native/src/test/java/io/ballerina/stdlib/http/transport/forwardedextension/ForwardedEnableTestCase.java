@@ -33,7 +33,7 @@ import static org.testng.AssertJUnit.assertEquals;
  */
 public class ForwardedEnableTestCase extends ForwardedClientTemplate {
     @BeforeClass
-    public void setUp() {
+    public void setUp() throws Exception {
         senderConfiguration.setForwardedExtensionConfig(ForwardedExtensionConfig.ENABLE);
         super.setUp();
     }

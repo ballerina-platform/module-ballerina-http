@@ -47,7 +47,7 @@ public class ConnectionPoolEvictionTestCase {
     private HttpWsConnectorFactory connectorFactory;
 
     @BeforeClass
-    public void setup() {
+    public void setup() throws Exception {
         httpServer = TestUtil.startHTTPServer(TestUtil.HTTP_SERVER_PORT, new SendChannelIDServerInitializer(0));
 
         connectorFactory = new DefaultHttpWsConnectorFactory();

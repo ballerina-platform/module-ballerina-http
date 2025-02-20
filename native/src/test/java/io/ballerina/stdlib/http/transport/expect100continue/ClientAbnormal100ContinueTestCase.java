@@ -53,7 +53,7 @@ public class ClientAbnormal100ContinueTestCase {
     private String responseContent = "Test Message";
 
     @BeforeClass
-    public void setup() {
+    public void setup() throws Exception {
         givenAbnormal100ContinueServer();
         givenNormalHttpClient();
     }
@@ -73,7 +73,7 @@ public class ClientAbnormal100ContinueTestCase {
         TestUtil.cleanUp(new ArrayList<>(), httpServer, connectorFactory);
     }
 
-    private void givenNormalHttpClient() {
+    private void givenNormalHttpClient() throws Exception {
         connectorFactory = new DefaultHttpWsConnectorFactory();
         SenderConfiguration senderConfiguration = new SenderConfiguration();
         httpClientConnector = connectorFactory.createHttpClientConnector(new HashMap<>(), senderConfiguration);
