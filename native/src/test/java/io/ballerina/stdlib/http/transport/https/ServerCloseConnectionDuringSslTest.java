@@ -57,7 +57,7 @@ public class ServerCloseConnectionDuringSslTest {
     private DefaultHttpConnectorListener listener;
 
     @BeforeClass
-    public void setup() {
+    public void setup() throws Exception {
         givenServerThatClosesConnection();
         givenANormalHttpsClient();
     }
@@ -115,7 +115,7 @@ public class ServerCloseConnectionDuringSslTest {
         return senderConfiguration;
     }
 
-    private void givenANormalHttpsClient() {
+    private void givenANormalHttpsClient() throws Exception {
         factory = new DefaultHttpWsConnectorFactory();
         httpClientConnector = factory.createHttpClientConnector(new HashMap<>(), getSenderConfigs());
     }

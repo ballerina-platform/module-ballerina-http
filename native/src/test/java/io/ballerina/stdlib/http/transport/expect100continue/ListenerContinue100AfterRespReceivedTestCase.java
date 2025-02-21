@@ -67,7 +67,7 @@ public class ListenerContinue100AfterRespReceivedTestCase {
     private DefaultHttpConnectorListener listener;
 
     @BeforeClass
-    public void setup() throws InterruptedException {
+    public void setup() throws Exception {
         httpWsConnectorFactory = new DefaultHttpWsConnectorFactory();
         givenServerWithVeryLate100Response();
         givenNormalClient();
@@ -104,7 +104,7 @@ public class ListenerContinue100AfterRespReceivedTestCase {
         serverConnectorFuture.sync();
     }
 
-    private void givenNormalClient() {
+    private void givenNormalClient() throws Exception {
         SenderConfiguration senderConfiguration = new SenderConfiguration();
         senderConfiguration.setChunkingConfig(ChunkConfig.NEVER);
         senderConfiguration.setSocketIdleTimeout(15000);

@@ -50,7 +50,7 @@ public class Http2TcpServerRSTStreamFrameWhenReadingBodyForSingleStreamTest {
     private ServerSocket serverSocket;
 
     @BeforeClass
-    public void setup() throws InterruptedException {
+    public void setup() throws Exception {
         runTcpServer(TestUtil.HTTP_SERVER_PORT);
         h2ClientWithPriorKnowledge = FrameLevelTestUtils.setupHttp2PriorKnowledgeClient();
     }

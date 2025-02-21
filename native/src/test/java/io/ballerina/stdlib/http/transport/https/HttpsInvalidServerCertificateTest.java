@@ -56,7 +56,7 @@ public class HttpsInvalidServerCertificateTest {
     private String testValue = "Test Message";
 
     @BeforeClass
-    public void setup() {
+    public void setup() throws Exception {
         httpsServer = TestUtil.startHttpsServer(TestUtil.HTTPS_SERVER_PORT,
                                                 new MockServerInitializer(testValue, TEXT_PLAIN, 200));
 

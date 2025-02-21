@@ -67,7 +67,7 @@ public class Http2WithHttp2ResetContent {
     private EchoStreamingMessageListener echoStreamingMessageListener;
 
     @BeforeClass
-    public void setup() throws InterruptedException {
+    public void setup() throws Exception {
         connectorFactory = new DefaultHttpWsConnectorFactory();
         ListenerConfiguration listenerConfiguration = new ListenerConfiguration();
         listenerConfiguration.setPort(HTTP_SERVER_PORT);

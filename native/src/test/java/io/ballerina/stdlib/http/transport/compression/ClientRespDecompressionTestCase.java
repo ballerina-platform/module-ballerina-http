@@ -67,7 +67,7 @@ public class ClientRespDecompressionTestCase {
     }
 
     @BeforeClass
-    public void setUp() {
+    public void setUp() throws Exception {
         latch = new CountDownLatch(1);
         HttpWsConnectorFactory httpWsConnectorFactory = new DefaultHttpWsConnectorFactory();
 

@@ -33,7 +33,7 @@ import static org.testng.AssertJUnit.assertNull;
  */
 public class ForwardedDefaultTestCase extends ForwardedClientTemplate {
     @BeforeClass
-    public void setUp() {
+    public void setUp() throws Exception {
         super.setUp();
     }
 

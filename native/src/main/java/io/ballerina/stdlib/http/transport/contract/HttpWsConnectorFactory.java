@@ -50,7 +50,7 @@ public interface HttpWsConnectorFactory {
      * @return HttpClientConnector.
      */
     HttpClientConnector createHttpClientConnector(Map<String, Object> transportProperties,
-            SenderConfiguration senderConfiguration);
+            SenderConfiguration senderConfiguration) throws Exception;
 
     /**
      * Creates a client connector with a given connection manager.
@@ -61,7 +61,7 @@ public interface HttpWsConnectorFactory {
      * @return the HttpClientConnector
      */
     HttpClientConnector createHttpClientConnector(Map<String, Object> transportProperties,
-        SenderConfiguration senderConfiguration, ConnectionManager connectionManager);
+        SenderConfiguration senderConfiguration, ConnectionManager connectionManager) throws Exception;
 
     /**
      * This method is used to get WebSocket client connector.
@@ -69,7 +69,8 @@ public interface HttpWsConnectorFactory {
      * @param clientConnectorConfig Properties to create a client connector.
      * @return WebSocketClientConnector.
      */
-    WebSocketClientConnector createWsClientConnector(WebSocketClientConnectorConfig clientConnectorConfig);
+    WebSocketClientConnector createWsClientConnector(WebSocketClientConnectorConfig clientConnectorConfig)
+            throws Exception;
 
     /**
      * Shutdown all the server channels and the accepted channels. It also shutdown all the eventloop groups.

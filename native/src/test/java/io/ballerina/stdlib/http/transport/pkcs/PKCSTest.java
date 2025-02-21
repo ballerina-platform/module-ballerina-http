@@ -49,7 +49,7 @@ public class PKCSTest {
     private ServerConnector serverConnector;
 
     @BeforeClass
-    public void setup() throws InterruptedException {
+    public void setup() throws Exception {
         httpConnectorFactory = new DefaultHttpWsConnectorFactory();
 
         ListenerConfiguration listenerConfiguration = getListenerConfiguration();

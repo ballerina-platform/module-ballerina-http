@@ -65,7 +65,7 @@ public class ClientContinue100ChunkingTestCase {
     private HttpWsConnectorFactory httpWsConnectorFactory;
 
     @BeforeClass
-    public void setup() throws InterruptedException {
+    public void setup() throws Exception {
         httpWsConnectorFactory = new DefaultHttpWsConnectorFactory();
         givenNormalHttpServer();
         givenChunkingAlwaysClient();
@@ -133,7 +133,7 @@ public class ClientContinue100ChunkingTestCase {
         serverConnectorFuture.sync();
     }
 
-    private void givenChunkingAlwaysClient() {
+    private void givenChunkingAlwaysClient() throws Exception {
         SenderConfiguration senderConfiguration = new SenderConfiguration();
         senderConfiguration.setChunkingConfig(ChunkConfig.ALWAYS);
         httpClientConnector = httpWsConnectorFactory.createHttpClientConnector(new HashMap<>(), senderConfiguration);

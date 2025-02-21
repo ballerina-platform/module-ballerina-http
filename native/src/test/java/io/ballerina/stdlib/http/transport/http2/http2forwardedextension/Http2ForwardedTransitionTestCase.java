@@ -36,7 +36,7 @@ import static org.testng.AssertJUnit.assertNull;
 public class Http2ForwardedTransitionTestCase extends Http2ForwardedTestUtil {
 
     @BeforeClass
-    public void setUp() throws InterruptedException {
+    public void setUp() throws Exception {
         super.setUp(Http2Util.getForwardSenderConfigs(ForwardedExtensionConfig.TRANSITION, true));
     }
 

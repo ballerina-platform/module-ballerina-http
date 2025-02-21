@@ -52,7 +52,7 @@ public class Http2TcpServerGoAway100ContinueScenarioTest {
     private ServerSocket serverSocket;
 
     @BeforeMethod
-    public void setup(Method method) throws InterruptedException {
+    public void setup(Method method) throws Exception {
         h2ClientWithPriorKnowledge = FrameLevelTestUtils.setupHttp2PriorKnowledgeClient();
     }
 

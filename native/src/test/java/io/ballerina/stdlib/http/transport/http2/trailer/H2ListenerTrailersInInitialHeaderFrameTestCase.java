@@ -58,7 +58,7 @@ public class H2ListenerTrailersInInitialHeaderFrameTestCase extends TrailerHeade
     private SendHeadersWithoutDataFrameInitializer initializer;
 
     @BeforeClass
-    public void setup() {
+    public void setup() throws Exception {
         initializer = new SendHeadersWithoutDataFrameInitializer();
         http2Server = TestUtil.startHTTPServer(TestUtil.HTTP_SERVER_PORT, initializer);
 

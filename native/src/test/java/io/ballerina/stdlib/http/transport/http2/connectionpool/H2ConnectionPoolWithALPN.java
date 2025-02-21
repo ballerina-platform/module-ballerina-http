@@ -84,7 +84,7 @@ public class H2ConnectionPoolWithALPN {
     }
 
     @Test
-    public void testH2ConnectionPool() {
+    public void testH2ConnectionPool() throws Exception {
         //Since we have only two eventloops, upstream will have two different pools.
         HttpClientConnector client1 = getTestClient(); //Upstream uses eventloop1 pool
         String response1 = getResponse(client1);
@@ -114,7 +114,7 @@ public class H2ConnectionPoolWithALPN {
      *
      * @return HttpClientConnector
      */
-    private HttpClientConnector getTestClient() {
+    private HttpClientConnector getTestClient() throws Exception {
         TransportsConfiguration transportsConfiguration = new TransportsConfiguration();
         return httpWsConnectorFactory.createHttpClientConnector(
             HttpConnectorUtil.getTransportProperties(transportsConfiguration),

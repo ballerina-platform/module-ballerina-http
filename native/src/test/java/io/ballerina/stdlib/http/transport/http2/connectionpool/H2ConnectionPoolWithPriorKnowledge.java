@@ -94,7 +94,7 @@ public class H2ConnectionPoolWithPriorKnowledge {
     }
 
     @Test
-    public void testPriorKnowledgeWithPool() {
+    public void testPriorKnowledgeWithPool() throws Exception {
         //Since we have only two eventloops, upstream will have two different pools.
         HttpClientConnector client1 = getTestHttp2Client(httpWsConnectorFactory, true); //Upstream uses eventloop1 pool
         String response1 = getResponse(client1);

@@ -41,7 +41,7 @@ public class DefaultWebSocketConnectorFuture implements WebSocketConnectorFuture
     }
 
     @Override
-    public void notifyWebSocketListener(WebSocketHandshaker webSocketHandshaker) throws WebSocketConnectorException {
+    public void notifyWebSocketListener(WebSocketHandshaker webSocketHandshaker) throws Exception {
         checkConnectorState();
         wsConnectorListener.onHandshake(webSocketHandshaker);
     }

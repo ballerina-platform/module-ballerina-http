@@ -58,7 +58,7 @@ public class Http2ChannelCloseBeforeConnectionEvictionAfterTcpServerGoAwayScenar
     private ServerSocket serverSocket;
 
     public HttpClientConnector setupHttp2PriorKnowledgeClient(long minIdleTimeInStaleState,
-                                                              long timeBetweenStaleEviction) {
+                                                              long timeBetweenStaleEviction) throws Exception {
         HttpWsConnectorFactory connectorFactory = new DefaultHttpWsConnectorFactory();
         PoolConfiguration poolConfiguration = new PoolConfiguration();
         poolConfiguration.setMinIdleTimeInStaleState(minIdleTimeInStaleState);
@@ -86,7 +86,7 @@ public class Http2ChannelCloseBeforeConnectionEvictionAfterTcpServerGoAwayScenar
 
             String errorMsg1 = getDecoderErrorMessage(msgListener1);
             assertEquals(errorMsg1, Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_BODY);
-        } catch (InterruptedException | IOException e) {
+        } catch (Exception e) {
             LOGGER.error("Exception occurred");
             fail();
         }

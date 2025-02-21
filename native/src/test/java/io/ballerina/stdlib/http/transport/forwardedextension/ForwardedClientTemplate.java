@@ -54,7 +54,7 @@ public class ForwardedClientTemplate {
         senderConfiguration = new SenderConfiguration();
     }
 
-    public void setUp() {
+    public void setUp() throws Exception {
         httpServer = TestUtil.startHTTPServer(TestUtil.HTTP_SERVER_PORT, new EchoServerInitializer());
         HttpWsConnectorFactory httpWsConnectorFactory = new DefaultHttpWsConnectorFactory();
         clientConnector = httpWsConnectorFactory.createHttpClientConnector(new HashMap<>(), senderConfiguration);

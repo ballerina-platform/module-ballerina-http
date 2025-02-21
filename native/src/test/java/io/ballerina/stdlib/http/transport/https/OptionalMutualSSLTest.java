@@ -51,7 +51,7 @@ public class OptionalMutualSSLTest {
     private ServerConnector connector;
 
     @BeforeClass
-    public void setup() throws InterruptedException {
+    public void setup() throws Exception {
         factory = new DefaultHttpWsConnectorFactory();
 
         ListenerConfiguration listenerConfiguration = getListenerConfiguration();

@@ -34,7 +34,7 @@ import org.testng.annotations.Test;
 public class ChunkAlwaysHttpOnePointZeroClientTestCase extends ChunkClientTemplate {
 
     @BeforeClass
-    public void setUp() {
+    public void setUp() throws Exception {
         senderConfiguration.setChunkingConfig(ChunkConfig.ALWAYS);
         senderConfiguration.setHttpVersion("1.0");
         super.setUp();

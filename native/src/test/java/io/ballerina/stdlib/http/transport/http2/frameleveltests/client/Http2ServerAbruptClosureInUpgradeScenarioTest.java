@@ -57,12 +57,12 @@ public class Http2ServerAbruptClosureInUpgradeScenarioTest {
     private int numOfConnections = 0;
 
     @BeforeClass
-    public void setup() throws InterruptedException {
+    public void setup() throws Exception {
         runTcpServer(TestUtil.HTTP_SERVER_PORT);
         h2ClientWithUpgrade = setupHttp2UpgradeClient();
     }
 
-    public HttpClientConnector setupHttp2UpgradeClient() {
+    public HttpClientConnector setupHttp2UpgradeClient() throws Exception {
         HttpWsConnectorFactory connectorFactory = new DefaultHttpWsConnectorFactory();
         TransportsConfiguration transportsConfiguration = new TransportsConfiguration();
         SenderConfiguration senderConfiguration = new SenderConfiguration();

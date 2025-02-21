@@ -84,7 +84,7 @@ public final class ProxyServerUtil {
     }
 
     static void setUpClientAndServerConnectors(ListenerConfiguration listenerConfiguration, String scheme)
-            throws InterruptedException {
+            throws Exception {
 
         ProxyServerConfiguration proxyServerConfiguration = null;
         try {

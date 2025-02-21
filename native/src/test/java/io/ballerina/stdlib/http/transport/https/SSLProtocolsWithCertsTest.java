@@ -83,7 +83,7 @@ public class SSLProtocolsWithCertsTest {
      */
     @Test(dataProvider = "protocols")
     public void setup(String clientProtocol, String serverProtocol, boolean hasException, int serverPort)
-            throws InterruptedException {
+            throws Exception {
 
         Parameter clientprotocols = new Parameter("sslEnabledProtocols", clientProtocol);
         clientParams.add(clientprotocols);

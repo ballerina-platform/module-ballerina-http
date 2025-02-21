@@ -30,7 +30,7 @@ public interface WebSocketConnectorListener {
      *
      * @param webSocketHandshaker {@link WebSocketHandshaker} to initialize connection.
      */
-    void onHandshake(WebSocketHandshaker webSocketHandshaker);
+    void onHandshake(WebSocketHandshaker webSocketHandshaker) throws Exception;
 
     /**
      * Trigger incoming WebSocket text messages.

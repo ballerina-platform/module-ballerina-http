@@ -63,7 +63,7 @@ public class Http2ConnectionEvictionAfterTcpServerGoAwayScenarioTest {
     private int numOfConnections = 0;
 
     public HttpClientConnector setupHttp2PriorKnowledgeClient(long minIdleTimeInStaleState,
-                                                              long timeBetweenStaleEviction) {
+                                                              long timeBetweenStaleEviction) throws Exception {
         HttpWsConnectorFactory connectorFactory = new DefaultHttpWsConnectorFactory();
         PoolConfiguration poolConfiguration = new PoolConfiguration();
         poolConfiguration.setMinIdleTimeInStaleState(minIdleTimeInStaleState);
@@ -104,7 +104,7 @@ public class Http2ConnectionEvictionAfterTcpServerGoAwayScenarioTest {
             assertEqualsNoOrder(List.of(responseVal1, responseVal2), List.of(
                     FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_03, FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_05));
             assertEquals(responseVal3, FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_04);
-        } catch (InterruptedException | IOException e) {
+        } catch (Exception e) {
             LOGGER.error("Exception occurred");
             fail();
         }
@@ -133,7 +133,7 @@ public class Http2ConnectionEvictionAfterTcpServerGoAwayScenarioTest {
                     List.of(Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE,
                             Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_BODY));
             assertEquals(getResponseMessage(msgListener3), FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_04);
-        } catch (InterruptedException | IOException e) {
+        } catch (Exception e) {
             LOGGER.error("Exception occurred");
             fail();
         }

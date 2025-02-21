@@ -148,7 +148,7 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
 
     @Override
     public HttpClientConnector createHttpClientConnector(Map<String, Object> transportProperties,
-                                                         SenderConfiguration senderConfiguration) {
+                                                         SenderConfiguration senderConfiguration) throws Exception {
         BootstrapConfiguration bootstrapConfig = new BootstrapConfiguration(senderConfiguration);
         ConnectionManager connectionManager = new ConnectionManager(senderConfiguration.getPoolConfiguration());
         int configHashCode = Util.getIntProperty(transportProperties, HttpConstants.CLIENT_CONFIG_HASH_CODE, 0);
@@ -159,7 +159,7 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
     @Override
     public HttpClientConnector createHttpClientConnector(Map<String, Object> transportProperties,
                                                          SenderConfiguration senderConfiguration,
-                                                         ConnectionManager connectionManager) {
+                                                         ConnectionManager connectionManager) throws Exception {
         BootstrapConfiguration bootstrapConfig = new BootstrapConfiguration(senderConfiguration);
         int configHashCode = Util.getIntProperty(transportProperties, HttpConstants.CLIENT_CONFIG_HASH_CODE, 0);
         return new DefaultHttpClientConnector(connectionManager, senderConfiguration, bootstrapConfig, clientGroup,
@@ -167,7 +167,8 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
     }
 
     @Override
-    public WebSocketClientConnector createWsClientConnector(WebSocketClientConnectorConfig clientConnectorConfig) {
+    public WebSocketClientConnector createWsClientConnector(WebSocketClientConnectorConfig clientConnectorConfig)
+            throws Exception {
         return new DefaultWebSocketClientConnector(clientConnectorConfig, clientGroup);
     }
 

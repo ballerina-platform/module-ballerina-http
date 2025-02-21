@@ -57,7 +57,7 @@ public class ClientConnectorClosureAfterRequestReadTestCase {
     private HttpWsConnectorFactory connectorFactory = new DefaultHttpWsConnectorFactory();
 
     @BeforeClass
-    public void setup() {
+    public void setup() throws Exception {
         httpServer = TestUtil.startHTTPServer(TestUtil.HTTP_SERVER_PORT, new BadEchoServerInitializer());
 
         TransportsConfiguration transportsConfiguration = new TransportsConfiguration();
