@@ -79,7 +79,7 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "http"
-version = "2.13.2"
+version = "2.13.3"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "auth"},
@@ -113,7 +113,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "http_security_tests"
-version = "2.13.2"
+version = "2.13.3"
 dependencies = [
 	{org = "ballerina", name = "auth"},
 	{org = "ballerina", name = "http"},
@@ -131,7 +131,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "http_test_common"
-version = "2.13.2"
+version = "2.13.3"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "http"},
