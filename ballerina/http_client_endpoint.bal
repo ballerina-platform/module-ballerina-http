@@ -59,6 +59,42 @@ public client isolated class Client {
         return;
     }
 
+    # The client resource function to send HTTP GET requests to HTTP endpoints.
+    #
+    # + path - Request path
+    # + headers - The entity headers
+    # + targetType - HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding
+    # + params - The query parameters
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    isolated resource function get [PathParamType ...path](map<string|string[]>? headers = (), TargetType targetType = <>,
+            *QueryParams params) returns targetType|ClientError = @java:Method {
+        'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
+        name: "getResource"
+    } external;
+
+    # The `Client.get()` function can be used to send HTTP GET requests to HTTP endpoints.
+    #
+    # + path - Request path
+    # + headers - The entity headers
+    # + targetType - HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    remote isolated function get(string path, map<string|string[]>? headers = (), TargetType targetType = <>)
+            returns targetType|ClientError = @java:Method {
+        'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction"
+    } external;
+
+    private isolated function processGet(string path, map<string|string[]>? headers, TargetType targetType)
+            returns Response|stream<SseEvent, error?>|anydata|ClientError {
+        Request req = buildRequestWithHeaders(headers);
+        Response|ClientError response = self.httpClient->get(path, message = req);
+        if observabilityEnabled && response is Response {
+            addObservabilityInformation(path, HTTP_GET, response.statusCode, self.url);
+        }
+        return processResponse(response, targetType, self.requireValidation, self.requireLaxDataBinding);
+    }
+
     # The client resource function to send HTTP POST requests to HTTP endpoints.
     #
     # + path - Request path
@@ -143,48 +179,6 @@ public client isolated class Client {
         return processResponse(response, targetType, self.requireValidation, self.requireLaxDataBinding);
     }
 
-    # The client resource function to send HTTP PATCH requests to HTTP endpoints.
-    #
-    # + path - Request path
-    # + message - An HTTP outbound request or any allowed payload
-    # + headers - The entity headers
-    # + mediaType - The MIME type header of the request entity
-    # + targetType - HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding
-    # + params - The query parameters
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    isolated resource function patch [PathParamType ...path](RequestMessage message, map<string|string[]>? headers = (),
-            string? mediaType = (), TargetType targetType = <>, *QueryParams params) returns targetType|ClientError = @java:Method {
-        'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
-        name: "patchResource"
-    } external;
-
-    # The `Client.patch()` function can be used to send HTTP PATCH requests to HTTP endpoints.
-    #
-    # + path - Resource path
-    # + message - An HTTP outbound request or any allowed payload
-    # + mediaType - The MIME type header of the request entity
-    # + headers - The entity headers
-    # + targetType - HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote isolated function patch(string path, RequestMessage message, map<string|string[]>? headers = (),
-            string? mediaType = (), TargetType targetType = <>)
-            returns targetType|ClientError = @java:Method {
-        'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction"
-    } external;
-
-    private isolated function processPatch(string path, RequestMessage message, TargetType targetType,
-            string? mediaType, map<string|string[]>? headers) returns Response|stream<SseEvent, error?>|anydata|ClientError {
-        Request req = check buildRequest(message, mediaType);
-        populateOptions(req, mediaType, headers);
-        Response|ClientError response = self.httpClient->patch(path, req);
-        if observabilityEnabled && response is Response {
-            addObservabilityInformation(path, HTTP_PATCH, response.statusCode, self.url);
-        }
-        return processResponse(response, targetType, self.requireValidation, self.requireLaxDataBinding);
-    }
-
     # The client resource function to send HTTP DELETE requests to HTTP endpoints.
     #
     # + path - Request path
@@ -227,6 +221,48 @@ public client isolated class Client {
         return processResponse(response, targetType, self.requireValidation, self.requireLaxDataBinding);
     }
 
+    # The client resource function to send HTTP PATCH requests to HTTP endpoints.
+    #
+    # + path - Request path
+    # + message - An HTTP outbound request or any allowed payload
+    # + headers - The entity headers
+    # + mediaType - The MIME type header of the request entity
+    # + targetType - HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding
+    # + params - The query parameters
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    isolated resource function patch [PathParamType ...path](RequestMessage message, map<string|string[]>? headers = (),
+            string? mediaType = (), TargetType targetType = <>, *QueryParams params) returns targetType|ClientError = @java:Method {
+        'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
+        name: "patchResource"
+    } external;
+
+    # The `Client.patch()` function can be used to send HTTP PATCH requests to HTTP endpoints.
+    #
+    # + path - Resource path
+    # + message - An HTTP outbound request or any allowed payload
+    # + mediaType - The MIME type header of the request entity
+    # + headers - The entity headers
+    # + targetType - HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding
+    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
+    #            establish the communication with the upstream server or a data binding failure
+    remote isolated function patch(string path, RequestMessage message, map<string|string[]>? headers = (),
+            string? mediaType = (), TargetType targetType = <>)
+            returns targetType|ClientError = @java:Method {
+        'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction"
+    } external;
+
+    private isolated function processPatch(string path, RequestMessage message, TargetType targetType,
+            string? mediaType, map<string|string[]>? headers) returns Response|stream<SseEvent, error?>|anydata|ClientError {
+        Request req = check buildRequest(message, mediaType);
+        populateOptions(req, mediaType, headers);
+        Response|ClientError response = self.httpClient->patch(path, req);
+        if observabilityEnabled && response is Response {
+            addObservabilityInformation(path, HTTP_PATCH, response.statusCode, self.url);
+        }
+        return processResponse(response, targetType, self.requireValidation, self.requireLaxDataBinding);
+    }
+
     # The client resource function to send HTTP HEAD requests to HTTP endpoints.
     #
     # + path - Request path
@@ -251,42 +287,6 @@ public client isolated class Client {
             addObservabilityInformation(path, HTTP_HEAD, response.statusCode, self.url);
         }
         return response;
-    }
-    
-    # The client resource function to send HTTP GET requests to HTTP endpoints.
-    #
-    # + path - Request path
-    # + headers - The entity headers
-    # + targetType - HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding
-    # + params - The query parameters
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    isolated resource function get [PathParamType ...path](map<string|string[]>? headers = (), TargetType targetType = <>,
-            *QueryParams params) returns targetType|ClientError = @java:Method {
-        'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction",
-        name: "getResource"
-    } external;
-
-    # The `Client.get()` function can be used to send HTTP GET requests to HTTP endpoints.
-    #
-    # + path - Request path
-    # + headers - The entity headers
-    # + targetType - HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding
-    # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
-    #            establish the communication with the upstream server or a data binding failure
-    remote isolated function get(string path, map<string|string[]>? headers = (), TargetType targetType = <>)
-            returns targetType|ClientError = @java:Method {
-        'class: "io.ballerina.stdlib.http.api.client.actions.HttpClientAction"
-    } external;
-
-    private isolated function processGet(string path, map<string|string[]>? headers, TargetType targetType)
-            returns Response|stream<SseEvent, error?>|anydata|ClientError {
-        Request req = buildRequestWithHeaders(headers);
-        Response|ClientError response = self.httpClient->get(path, message = req);
-        if observabilityEnabled && response is Response {
-            addObservabilityInformation(path, HTTP_GET, response.statusCode, self.url);
-        }
-        return processResponse(response, targetType, self.requireValidation, self.requireLaxDataBinding);
     }
 
     # The client resource function to send HTTP OPTIONS requests to HTTP endpoints.
