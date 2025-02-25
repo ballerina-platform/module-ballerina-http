@@ -51,7 +51,7 @@ public class TestHttp2WithALPN {
     private HttpWsConnectorFactory connectorFactory;
 
     @BeforeClass
-    public void setup() throws InterruptedException {
+    public void setup() throws Exception {
 
         HttpWsConnectorFactory factory = new DefaultHttpWsConnectorFactory();
         serverConnector = factory
@@ -62,9 +62,9 @@ public class TestHttp2WithALPN {
 
         connectorFactory = new DefaultHttpWsConnectorFactory();
         http2ClientConnector = connectorFactory
-            .createHttpClientConnector(new HashMap<>(), getSenderConfigs(HTTP_2_0));
+            .createHttpsClientConnector(new HashMap<>(), getSenderConfigs(HTTP_2_0));
         http1ClientConnector = connectorFactory
-            .createHttpClientConnector(new HashMap<>(), getSenderConfigs(String.valueOf(HTTP_1_1)));
+            .createHttpsClientConnector(new HashMap<>(), getSenderConfigs(String.valueOf(HTTP_1_1)));
     }
 
     /**

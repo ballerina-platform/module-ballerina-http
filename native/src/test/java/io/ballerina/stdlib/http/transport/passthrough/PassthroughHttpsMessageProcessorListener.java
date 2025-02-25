@@ -69,10 +69,10 @@ public class PassthroughHttpsMessageProcessorListener implements HttpConnectorLi
             try {
                 if (shareConnectionPool && connectionManager != null) {
                     clientConnector = httpWsConnectorFactory
-                        .createHttpClientConnector(new HashMap<>(), senderConfiguration, connectionManager);
+                        .createHttpsClientConnector(new HashMap<>(), senderConfiguration, connectionManager);
                 } else {
                     clientConnector = httpWsConnectorFactory
-                        .createHttpClientConnector(new HashMap<>(), senderConfiguration);
+                        .createHttpsClientConnector(new HashMap<>(), senderConfiguration);
                 }
                 HttpResponseFuture future = clientConnector.send(outboundRequest);
                 future.setHttpConnectorListener(new HttpConnectorListener() {

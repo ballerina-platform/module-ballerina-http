@@ -91,7 +91,7 @@ public class WebSocketSSLHandshakeSuccessfulTestCase {
     @Test
     public void testClientConnectionWithSSL() throws Throwable {
         WebSocketClientConnector webSocketClientConnector =
-                httpConnectorFactory.createWsClientConnector(getWebSocketClientConnectorConfigWithSSL());
+                httpConnectorFactory.createWsClientConnectorWithSSL(getWebSocketClientConnectorConfigWithSSL());
         CountDownLatch countDownLatch = new CountDownLatch(1);
         AtomicReference<WebSocketConnection> webSocketConnectionAtomicReference = new AtomicReference<>();
         AtomicReference<Throwable> throwableAtomicReference = new AtomicReference<>();

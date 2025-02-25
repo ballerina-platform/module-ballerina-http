@@ -83,7 +83,7 @@ public class CipherSuiteswithCertsTest {
      */
     @Test(dataProvider = "ciphers")
     public void setup(String clientCiphers, String serverCiphers, boolean hasException, int serverPort)
-            throws InterruptedException {
+            throws Exception {
 
         Parameter paramClientCiphers = new Parameter("ciphers", clientCiphers);
         clientParams.add(paramClientCiphers);
@@ -101,7 +101,7 @@ public class CipherSuiteswithCertsTest {
         future.setHttpConnectorListener(new EchoMessageListener());
         future.sync();
 
-        httpClientConnector = factory.createHttpClientConnector(new HashMap<>(), getSenderConfigs());
+        httpClientConnector = factory.createHttpsClientConnector(new HashMap<>(), getSenderConfigs());
 
         testCiphersuitesWithCertsAndKeys(hasException, serverPort);
         serverConnector.stop();

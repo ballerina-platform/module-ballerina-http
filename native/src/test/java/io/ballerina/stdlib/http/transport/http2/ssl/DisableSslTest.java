@@ -49,7 +49,7 @@ public class DisableSslTest {
     private HttpWsConnectorFactory connectorFactory;
 
     @BeforeClass
-    public void setup() throws InterruptedException {
+    public void setup() throws Exception {
 
         HttpWsConnectorFactory factory = new DefaultHttpWsConnectorFactory();
         serverConnector = factory
@@ -60,7 +60,7 @@ public class DisableSslTest {
 
         connectorFactory = new DefaultHttpWsConnectorFactory();
         http2ClientConnector = connectorFactory
-                .createHttpClientConnector(new HashMap<>(), getSenderConfigs());
+                .createHttpsClientConnector(new HashMap<>(), getSenderConfigs());
     }
 
     public static SenderConfiguration getSenderConfigs() {
