@@ -49,7 +49,7 @@ public class PKCSTest {
     private ServerConnector serverConnector;
 
     @BeforeClass
-    public void setup() throws InterruptedException {
+    public void setup() throws Exception {
         httpConnectorFactory = new DefaultHttpWsConnectorFactory();
 
         ListenerConfiguration listenerConfiguration = getListenerConfiguration();
@@ -59,7 +59,7 @@ public class PKCSTest {
         future.setHttpConnectorListener(new EchoMessageListener());
         future.sync();
 
-        httpClientConnector = httpConnectorFactory.createHttpClientConnector(new HashMap<>(), getSenderConfigs());
+        httpClientConnector = httpConnectorFactory.createHttpsClientConnector(new HashMap<>(), getSenderConfigs());
     }
 
     private ListenerConfiguration getListenerConfiguration() {

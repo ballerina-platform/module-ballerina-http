@@ -151,7 +151,7 @@ public class CreateSimpleHttpClient {
             }
 
             HttpClientConnector httpClientConnector = HttpUtil.createHttpWsConnectionFactory()
-                    .createHttpClientConnector(properties, senderConfiguration, poolManager);
+                    .createHttpsClientConnector(properties, senderConfiguration, poolManager);
             httpClient.addNativeData(HttpConstants.CLIENT, httpClientConnector);
             httpClient.addNativeData(HttpConstants.CLIENT_ENDPOINT_SERVICE_URI, urlString);
             httpClient.addNativeData(HttpConstants.CLIENT_ENDPOINT_CONFIG, clientEndpointConfig);

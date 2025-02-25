@@ -85,7 +85,7 @@ public class SSLProtocolsTest {
      */
     @Test(dataProvider = "protocols")
     public void setup(String clientProtocol, String serverProtocol, boolean hasException, int serverPort)
-            throws InterruptedException {
+            throws Exception {
 
         Parameter clientprotocols = new Parameter("sslEnabledProtocols", clientProtocol);
         clientParams = new ArrayList<>();
@@ -104,7 +104,7 @@ public class SSLProtocolsTest {
         future.setHttpConnectorListener(new EchoMessageListener());
         future.sync();
 
-        httpClientConnector = httpWsConnectorFactory.createHttpClientConnector(new HashMap<>(), getSenderConfigs());
+        httpClientConnector = httpWsConnectorFactory.createHttpsClientConnector(new HashMap<>(), getSenderConfigs());
 
         testSSLProtocols(hasException, serverPort);
         serverConnector.stop();
