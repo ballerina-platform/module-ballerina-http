@@ -93,4 +93,11 @@ public interface HttpClientConnector {
      * @return returns the status of the asynchronous push response fetch action
      */
     HttpResponseFuture getPushResponse(Http2PushPromise pushPromise);
+
+    /**
+     * Initialize the SSL context.
+     *
+     * @throws Exception if an error occurs while initializing the SSL context.
+     */
+    void initializeSSLContext() throws Exception;
 }

@@ -50,7 +50,18 @@ public interface HttpWsConnectorFactory {
      * @return HttpClientConnector.
      */
     HttpClientConnector createHttpClientConnector(Map<String, Object> transportProperties,
-            SenderConfiguration senderConfiguration);
+                                                  SenderConfiguration senderConfiguration);
+
+    /**
+     * This method can be used to get http client connectors with SSL context initialized.
+     *
+     * @param transportProperties configTargetHandler stuff like global timeout, number of outbound connections, etc.
+     * @param senderConfiguration contains SSL configuration and endpoint details.
+     * @throws Exception if the connector creation fails.
+     * @return HttpClientConnector.
+     */
+    HttpClientConnector createHttpsClientConnector(Map<String, Object> transportProperties,
+                                                   SenderConfiguration senderConfiguration) throws Exception;
 
     /**
      * Creates a client connector with a given connection manager.
@@ -61,7 +72,22 @@ public interface HttpWsConnectorFactory {
      * @return the HttpClientConnector
      */
     HttpClientConnector createHttpClientConnector(Map<String, Object> transportProperties,
-        SenderConfiguration senderConfiguration, ConnectionManager connectionManager);
+                                                  SenderConfiguration senderConfiguration,
+                                                  ConnectionManager connectionManager);
+
+
+    /**
+     * Creates a client connector with a given connection manager and SSL context.
+     *
+     * @param transportProperties Represents the configurations related to HTTP client
+     * @param senderConfiguration Represents the configurations related to client channel creation
+     * @param connectionManager   Manages the client pool
+     * @throws Exception if the connector creation fails.
+     * @return the HttpClientConnector
+     */
+    HttpClientConnector createHttpsClientConnector(Map<String, Object> transportProperties,
+                                                   SenderConfiguration senderConfiguration,
+                                                   ConnectionManager connectionManager) throws Exception;
 
     /**
      * This method is used to get WebSocket client connector.
@@ -70,6 +96,16 @@ public interface HttpWsConnectorFactory {
      * @return WebSocketClientConnector.
      */
     WebSocketClientConnector createWsClientConnector(WebSocketClientConnectorConfig clientConnectorConfig);
+
+    /**
+     * This method is used to get WebSocket client connector with SSL context initialized.
+     *
+     * @param clientConnectorConfig Properties to create a client connector.
+     * @throws Exception if the connector creation fails.
+     * @return WebSocketClientConnector.
+     */
+    WebSocketClientConnector createWsClientConnectorWithSSL(WebSocketClientConnectorConfig clientConnectorConfig)
+            throws Exception;
 
     /**
      * Shutdown all the server channels and the accepted channels. It also shutdown all the eventloop groups.

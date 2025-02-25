@@ -20,6 +20,7 @@ package io.ballerina.stdlib.http.transport.contract.config;
 
 import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
 import io.ballerina.stdlib.http.transport.contractimpl.common.ssl.SSLConfig;
+import io.netty.handler.ssl.SslContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -168,6 +169,10 @@ public class SslConfiguration {
 
     public void setSslHandshakeTimeOut(long handshakeTimeOut) {
         sslConfig.setHandshakeTimeOut(handshakeTimeOut);
+    }
+
+    public void setSslContext(SslContext sslContext) {
+        sslConfig.setSslContext(sslContext);
     }
 
     public void disableSsl() {

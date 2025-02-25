@@ -51,7 +51,7 @@ public class Http2AlpnWithCertsTest {
     private HttpWsConnectorFactory connectorFactory;
 
     @BeforeClass
-    public void setup() throws InterruptedException {
+    public void setup() throws Exception {
 
         HttpWsConnectorFactory factory = new DefaultHttpWsConnectorFactory();
         serverConnector = factory
@@ -61,7 +61,7 @@ public class Http2AlpnWithCertsTest {
         future.sync();
 
         connectorFactory = new DefaultHttpWsConnectorFactory();
-        httpClientConnector = connectorFactory.createHttpClientConnector(new HashMap<>(), getSenderConfigs());
+        httpClientConnector = connectorFactory.createHttpsClientConnector(new HashMap<>(), getSenderConfigs());
     }
 
     @Test

@@ -87,7 +87,7 @@ public class CipherSuitesTest {
      */
     @Test(dataProvider = "ciphers")
     public void setup(String clientCiphers, String serverCiphers, boolean hasException, int serverPort)
-            throws InterruptedException {
+            throws Exception {
 
         Parameter paramClientCiphers = new Parameter("ciphers", clientCiphers);
         clientParams = new ArrayList<>();
@@ -104,7 +104,7 @@ public class CipherSuitesTest {
         future.setHttpConnectorListener(new EchoMessageListener());
         future.sync();
 
-        httpClientConnector = factory.createHttpClientConnector(new HashMap<>(), getSenderConfigs());
+        httpClientConnector = factory.createHttpsClientConnector(new HashMap<>(), getSenderConfigs());
 
         testCiphersuites(hasException, serverPort);
         serverConnector.stop();

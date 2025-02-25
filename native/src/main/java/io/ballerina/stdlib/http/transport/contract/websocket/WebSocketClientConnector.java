@@ -30,4 +30,11 @@ public interface WebSocketClientConnector {
      * @return ClientHandshakeFuture for the newly created connection.
      */
     ClientHandshakeFuture connect();
+
+    /**
+     * Initialize the SSL context.
+     *
+     * @throws Exception if an error occurs while initializing the SSL context.
+     */
+    void initializeSSLContext() throws Exception;
 }

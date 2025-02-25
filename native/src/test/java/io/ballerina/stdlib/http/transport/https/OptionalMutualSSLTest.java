@@ -51,7 +51,7 @@ public class OptionalMutualSSLTest {
     private ServerConnector connector;
 
     @BeforeClass
-    public void setup() throws InterruptedException {
+    public void setup() throws Exception {
         factory = new DefaultHttpWsConnectorFactory();
 
         ListenerConfiguration listenerConfiguration = getListenerConfiguration();
@@ -62,7 +62,7 @@ public class OptionalMutualSSLTest {
         future.setHttpConnectorListener(new EchoMessageListener());
         future.sync();
 
-        httpClientConnector = factory.createHttpClientConnector(new HashMap<>(), getSenderConfigs());
+        httpClientConnector = factory.createHttpsClientConnector(new HashMap<>(), getSenderConfigs());
     }
 
     private ListenerConfiguration getListenerConfiguration() {

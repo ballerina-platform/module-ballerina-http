@@ -56,7 +56,7 @@ public class HttpsInvalidServerCertificateTest {
     private String testValue = "Test Message";
 
     @BeforeClass
-    public void setup() {
+    public void setup() throws Exception {
         httpsServer = TestUtil.startHttpsServer(TestUtil.HTTPS_SERVER_PORT,
                                                 new MockServerInitializer(testValue, TEXT_PLAIN, 200));
 
@@ -68,7 +68,7 @@ public class HttpsInvalidServerCertificateTest {
         senderConfiguration.setHostNameVerificationEnabled(false);
         senderConfiguration.setScheme(HTTPS_SCHEME);
         connectorFactory = new DefaultHttpWsConnectorFactory();
-        httpClientConnector = connectorFactory.createHttpClientConnector(new HashMap<>(), senderConfiguration);
+        httpClientConnector = connectorFactory.createHttpsClientConnector(new HashMap<>(), senderConfiguration);
     }
 
     @Test

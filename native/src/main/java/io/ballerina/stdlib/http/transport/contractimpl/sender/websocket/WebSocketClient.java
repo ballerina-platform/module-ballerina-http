@@ -137,6 +137,9 @@ public class WebSocketClient {
                     @Override
                     protected void initChannel(SocketChannel socketChannel) throws Exception {
                         if (sslConfig != null) {
+                            if (!sslConfig.hasSslCtxInitialized()) {
+                                sslConfig.initializeSSLContext(false);
+                            }
                             SSLEngine sslEngine = Util
                                     .configureHttpPipelineForSSL(socketChannel, host, port, sslConfig);
                             socketChannel.pipeline().addLast(Constants.SSL_COMPLETION_HANDLER,
