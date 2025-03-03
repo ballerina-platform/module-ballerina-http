@@ -7,6 +7,10 @@ on:
                 description: Module timestamped version
                 required: false
                 default: ''
+            lang_version:
+                description: Ballerina language version
+                required: false
+                default: ''
             target_branch:
                 description: Target branch of the dependent module
                 required: false
@@ -83,12 +87,20 @@ jobs:
                   fi
                   echo HTTPVERSION=$HTTP_VERSION
                   sed -i "s/stdlibHttpVersion=\(.*\)/stdlibHttpVersion=$HTTP_VERSION/g" gradle.properties
+
+            - name: Change Ballerina lang version
+              if: ${{ inputs.lang_version != ''}}
+              run: |
+                  echo LANGVERSION=${{ inputs.lang_version }}
+                  sed -i "s/ballerinaLangVersion=\(.*\)/ballerinaLangVersion=$LANGVERSION/g" gradle.properties
+                  
             - name: Build with Gradle
               env:
                   packageUser: ${{ github.actor }}
                   packagePAT: ${{ secrets.GITHUB_TOKEN }}
               run: |
                   ./gradlew clean build
+                  
     build-ballerinax-modules:
         if: inputs.ballerinax_modules != ''
         name: Build Ballerina Extended Module
@@ -151,6 +163,13 @@ jobs:
                   fi
                   echo HTTPVERSION=$HTTP_VERSION
                   sed -i "s/stdlibHttpVersion=\(.*\)/stdlibHttpVersion=$HTTP_VERSION/g" gradle.properties
+
+            - name: Change Ballerina lang version
+              if: ${{ inputs.lang_version != ''}}
+              run: |
+                  echo LANGVERSION=${{ inputs.lang_version }}
+                  sed -i "s/ballerinaLangVersion=\(.*\)/ballerinaLangVersion=$LANGVERSION/g" gradle.properties
+                  
             - name: Build with Gradle
               env:
                   packageUser: ${{ github.actor }}
