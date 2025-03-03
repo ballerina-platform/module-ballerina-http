@@ -91,8 +91,9 @@ jobs:
             - name: Change Ballerina lang version
               if: ${{ inputs.lang_version != ''}}
               run: |
-                  echo LANGVERSION=${{ inputs.lang_version }}
-                  sed -i "s/ballerinaLangVersion=\(.*\)/ballerinaLangVersion=$LANGVERSION/g" gradle.properties
+                  LANG_VERSION==${{ inputs.lang_version }}
+                  echo LANGVERSION=$LANG_VERSION
+                  sed -i "s/ballerinaLangVersion=\(.*\)/ballerinaLangVersion=$LANG_VERSION/g" gradle.properties
                   
             - name: Build with Gradle
               env:
@@ -167,8 +168,9 @@ jobs:
             - name: Change Ballerina lang version
               if: ${{ inputs.lang_version != ''}}
               run: |
-                  echo LANGVERSION=${{ inputs.lang_version }}
-                  sed -i "s/ballerinaLangVersion=\(.*\)/ballerinaLangVersion=$LANGVERSION/g" gradle.properties
+                  LANG_VERSION==${{ inputs.lang_version }}
+                  echo LANGVERSION=$LANG_VERSION
+                  sed -i "s/ballerinaLangVersion=\(.*\)/ballerinaLangVersion=$LANG_VERSION/g" gradle.properties
                   
             - name: Build with Gradle
               env:
