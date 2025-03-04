@@ -63,3 +63,6 @@ const int reuseRequestTestPort = 9528;
 const int connectionNativeTestPort = 9014;
 const int http2ClientContinueTestPort = 9630;
 const int headerParamBindingTestPort = 9631;
+
+const int tls12Port = 9249;
+const int tls13Port = 9250;

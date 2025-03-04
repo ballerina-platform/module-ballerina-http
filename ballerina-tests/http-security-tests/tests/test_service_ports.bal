@@ -22,3 +22,6 @@ const int http2SslGeneralPort = 9107;
 
 const int http2SniListenerPort = 9207;
 const int http1SniListenerPort = 9208;
+
+const int tls12Port = 9249;
+const int tls13Port = 9250;
