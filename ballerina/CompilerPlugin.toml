@@ -6,4 +6,4 @@ class = "io.ballerina.stdlib.http.compiler.HttpCompilerPlugin"
 path = "../compiler-plugin/build/libs/http-compiler-plugin-2.14.0-SNAPSHOT.jar"
 
 [[dependency]]
-path = "../compiler-plugin/build/libs/ballerina-to-openapi-2.2.0.jar"
+path = "../compiler-plugin/build/libs/ballerina-to-openapi-2.3.0-20250224-194640-caaef29.jar"
