@@ -122,29 +122,29 @@ path = "./lib/bcpkix-jdk18on-1.78.jar"
 [[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-tcnative-boringssl-static"
-version = "2.0.66.Final"
-path = "./lib/netty-tcnative-boringssl-static-2.0.66.Final.jar"
+version = "2.0.70.Final"
+path = "./lib/netty-tcnative-boringssl-static-2.0.70.Final.jar"
 
 [[platform.java21.dependency]]
-path = "./lib/netty-tcnative-boringssl-static-2.0.66.Final-windows-x86_64.jar"
+path = "./lib/netty-tcnative-boringssl-static-2.0.70.Final-windows-x86_64.jar"
 
 [[platform.java21.dependency]]
-path = "./lib/netty-tcnative-boringssl-static-2.0.66.Final-linux-aarch_64.jar"
+path = "./lib/netty-tcnative-boringssl-static-2.0.70.Final-linux-aarch_64.jar"
 
 [[platform.java21.dependency]]
-path = "./lib/netty-tcnative-boringssl-static-2.0.66.Final-linux-x86_64.jar"
+path = "./lib/netty-tcnative-boringssl-static-2.0.70.Final-linux-x86_64.jar"
 
 [[platform.java21.dependency]]
-path = "./lib/netty-tcnative-boringssl-static-2.0.66.Final-osx-aarch_64.jar"
+path = "./lib/netty-tcnative-boringssl-static-2.0.70.Final-osx-aarch_64.jar"
 
 [[platform.java21.dependency]]
-path = "./lib/netty-tcnative-boringssl-static-2.0.66.Final-osx-x86_64.jar"
+path = "./lib/netty-tcnative-boringssl-static-2.0.70.Final-osx-x86_64.jar"
 
 [[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-tcnative-classes"
-version = "2.0.66.Final"
-path = "./lib/netty-tcnative-classes-2.0.66.Final.jar"
+version = "2.0.70.Final"
+path = "./lib/netty-tcnative-classes-2.0.70.Final.jar"
 
 [[platform.java21.dependency]]
 groupId = "org.jvnet.mimepull"
