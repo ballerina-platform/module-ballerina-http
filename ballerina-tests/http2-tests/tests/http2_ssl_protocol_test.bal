@@ -1,6 +1,6 @@
-// Copyright (c) 2019 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+// Copyright (c) 2025 WSO2 LLC. (http://www.wso2.org).
 //
-// WSO2 Inc. licenses this file to you under the Apache License,
+// WSO2 LLC. licenses this file to you under the Apache License,
 // Version 2.0 (the "License"); you may not use this file except
 // in compliance with the License.
 // You may obtain a copy of the License at
@@ -20,7 +20,6 @@ import ballerina/test;
 import ballerina/http_test_common as common;
 
 http:ListenerConfiguration sslProtocol12ServiceConfig = {
-    httpVersion: http:HTTP_1_1,
     secureSocket: {
         key: {
             path: common:KEYSTORE_PATH,
@@ -43,7 +42,6 @@ service /protocol on sslProtocol12Listener {
 }
 
 http:ListenerConfiguration sslProtocol13ServiceConfig = {
-    httpVersion: http:HTTP_1_1,
     secureSocket: {
         key: {
             path: common:KEYSTORE_PATH,
@@ -79,7 +77,7 @@ public function testTLS12() returns error? {
         name: http:TLS,
         versions: ["TLSv1.2"]
     };
-    http:Client clientEP = check new (string `https://localhost:${tls12Port}`, secureSocket = sslConfig, httpVersion = http:HTTP_1_1);
+    http:Client clientEP = check new (string `https://localhost:${tls12Port}`, secureSocket = sslConfig);
     string resp = check clientEP->/protocol/protocolResource;
     test:assertEquals(resp, "Hello, World!");
 }
@@ -91,7 +89,7 @@ public function testTLS13() returns error? {
         name: http:TLS,
         versions: ["TLSv1.3"]
     };
-    http:Client clientEP = check new (string `https://localhost:${tls13Port}`, secureSocket = sslConfig, httpVersion = http:HTTP_1_1);
+    http:Client clientEP = check new (string `https://localhost:${tls13Port}`, secureSocket = sslConfig);
     string resp = check clientEP->/protocol/protocolResource;
     test:assertEquals(resp, "Hello, World!");
 }
@@ -103,12 +101,12 @@ public function testSslProtocol() returns error? {
         name: http:TLS,
         versions: ["TLSv1.2", "TLSv1.3"]
     };
-    http:Client clientEP = check new (string `https://localhost:${tls13Port}`, secureSocket = sslConfig, httpVersion = http:HTTP_1_1);
+    http:Client clientEP = check new (string `https://localhost:${tls13Port}`, secureSocket = sslConfig);
     string resp = check clientEP->/protocol/protocolResource;
     test:assertEquals(resp, "Hello, World!");
 
     sslConfig.protocol.versions = ["TLSv1.3", "TLSv1.2"];
-    clientEP = check new (string `https://localhost:${tls12Port}`, secureSocket = sslConfig, httpVersion = http:HTTP_1_1);
+    clientEP = check new (string `https://localhost:${tls12Port}`, secureSocket = sslConfig);
     resp = check clientEP->/protocol/protocolResource;
     test:assertEquals(resp, "Hello, World!");
 }
@@ -120,7 +118,7 @@ public function testSslProtocolConflict() returns error? {
         name: http:TLS,
         versions: ["TLSv1.2"]
     };
-    http:Client clientEP = check new (string `https://localhost:${tls13Port}`, secureSocket = sslConfig, httpVersion = http:HTTP_1_1);
+    http:Client clientEP = check new (string `https://localhost:${tls13Port}`, secureSocket = sslConfig);
     http:Response|error resp = clientEP->/protocol/protocolResource;
     if resp is http:Response {
         test:assertFail(msg = "Found unexpected output: Expected an error");
@@ -129,7 +127,7 @@ public function testSslProtocolConflict() returns error? {
     }
 
     sslConfig.protocol.versions = ["TLSv1.3"];
-    clientEP = check new (string `https://localhost:${tls12Port}`, secureSocket = sslConfig, httpVersion = http:HTTP_1_1);
+    clientEP = check new (string `https://localhost:${tls12Port}`, secureSocket = sslConfig);
     resp = clientEP->/protocol/protocolResource;
     if resp is http:Response {
         test:assertFail(msg = "Found unexpected output: Expected an error");
