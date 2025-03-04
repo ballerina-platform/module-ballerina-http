@@ -11,6 +11,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - [Move SSL context creation to the client initialization](https://github.com/ballerina-platform/ballerina-library/issues/1798)
 
+### Fixed
+
+- [Add TLSv1.3 supported cipher suites to the default configuration](https://github.com/ballerina-platform/ballerina-library/issues/7658)
+
 ## [2.13.3] - 2025-02-20
 
 ### Added

@@ -29,7 +29,8 @@ on:
             - 2201.7.x
             - 2201.8.x
             - 2201.9.x
-            - java21
+            - 2201.10.x
+            - 2201.11.x
         types: [opened, synchronize, reopened, labeled, unlabeled]
 
 concurrency:
