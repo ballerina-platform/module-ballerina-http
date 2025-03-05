@@ -23,6 +23,16 @@ import ballerina/jballerina.java;
 import ballerina/log;
 import ballerina/data.jsondata;
 
+# Defines a status code response record type
+public type StatusCodeRecord record {|
+    # The status code
+    int status;
+    # The headers of the response
+    map<string|int|boolean|string[]|int[]|boolean[]> headers?;
+    # The response body
+    anydata body?;
+|};
+
 # Represents an HTTP response.
 #
 # + statusCode - The response status code
@@ -583,6 +593,18 @@ public class Response {
             }
         }
         return cookiesInResponse;
+    }
+
+    # Gets the status code response record from the response.
+    #
+    # + return - The status code response record
+    public isolated function getStatusCodeRecord() returns StatusCodeRecord|error {
+        StatusCodeResponse res = check externProcessResponseNew(self, StatusCodeResponse, false, false);
+        return {
+            status: res.status.code,
+            headers: res.headers,
+            body: res?.body
+        };
     }
 
     isolated function buildStatusCodeResponse(typedesc<anydata>? payloadType, typedesc<StatusCodeResponse> statusCodeResType,
