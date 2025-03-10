@@ -11,13 +11,3 @@ scopes=["read"]
 [[ballerina.auth.users]]
 username="eve"
 password="123"
-
-[ballerina.http]
-defaultListenerPort = 8080
-
-[ballerina.http.defaultListenerConfig]
-httpVersion = "1.1"
-
-[ballerina.http.defaultListenerConfig.secureSocket.key]
-path = "../resources/certsandkeys/ballerinaKeystore.p12"
-password = "ballerina"
