@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Move SSL context creation to the client initialization](https://github.com/ballerina-platform/ballerina-library/issues/1798)
 - [Update netty tcnative version](https://github.com/ballerina-platform/ballerina-library/issues/7650)
 - [Supporting X25519MLKEM768 key encapsulation for TLS 1.3](https://github.com/ballerina-platform/ballerina-library/issues/7650)
+- [Update bouncy castle version to `1.80`](https://github.com/ballerina-platform/ballerina-library/issues/7683)
 
 ### Fixed
 
