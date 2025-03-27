@@ -21,35 +21,33 @@ import ballerina/time;
 // Returns the cookie object from the string value of the "Set-Cookie" header.
 isolated function parseSetCookieHeader(string cookieStringValue) returns Cookie {
     string cookieValue = cookieStringValue;
-    string[] result = re`;\s`.split(cookieValue);
+    string[] result = re`;`.split(cookieValue).'map(n => n.trim());
     string[] nameValuePair = re`=`.split(result[0]);
     string cookieName = nameValuePair[0];
     string cookieVal = nameValuePair[1];
     CookieOptions options = {};
     foreach var item in result {
         nameValuePair = re`=`.split(item);
-        match nameValuePair[0] {
-            DOMAIN_ATTRIBUTE => {
-                options.domain = nameValuePair[1];
+        if nameValuePair[0].equalsIgnoreCaseAscii(DOMAIN_ATTRIBUTE) {
+            options.domain = nameValuePair[1];
+        }
+        if nameValuePair[0].equalsIgnoreCaseAscii(PATH_ATTRIBUTE) {
+            options.path = nameValuePair[1];
+        }
+        if nameValuePair[0].equalsIgnoreCaseAscii(MAX_AGE_ATTRIBUTE) {
+            int|error age = ints:fromString(nameValuePair[1]);
+            if age is int {
+                options.maxAge = age;
             }
-            PATH_ATTRIBUTE => {
-                options.path = nameValuePair[1];
-            }
-            MAX_AGE_ATTRIBUTE => {
-                int|error age = ints:fromString(nameValuePair[1]);
-                if age is int {
-                    options.maxAge = age;
-                }
-            }
-            EXPIRES_ATTRIBUTE => {
-                options.expires = nameValuePair[1];
-            }
-            SECURE_ATTRIBUTE => {
-                options.secure = true;
-            }
-            HTTP_ONLY_ATTRIBUTE => {
-                options.httpOnly = true;
-            }
+        }
+        if nameValuePair[0].equalsIgnoreCaseAscii(EXPIRES_ATTRIBUTE) {
+            options.expires = nameValuePair[1];
+        }
+        if nameValuePair[0].equalsIgnoreCaseAscii(SECURE_ATTRIBUTE) {
+            options.secure = true;
+        }
+        if nameValuePair[0].equalsIgnoreCaseAscii(HTTP_ONLY_ATTRIBUTE) {
+            options.httpOnly = true;
         }
     }
     Cookie cookie = new (cookieName, cookieVal, options);
