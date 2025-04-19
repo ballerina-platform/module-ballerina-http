@@ -10,7 +10,7 @@ distribution-version = "2201.8.0"
 [[package]]
 org = "ballerina"
 name = "http_test_common"
-version = "2.10.21"
+version = "2.10.22"
 dependencies = [
 	{org = "ballerina", name = "lang.string"},
 	{org = "ballerina", name = "mime"},
