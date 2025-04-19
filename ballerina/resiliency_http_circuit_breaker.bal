@@ -141,7 +141,7 @@ client isolated class CircuitBreakerClient {
             return error GenericClientError("Circuit breaker 'timeWindow' value should be greater" +
                 " than the 'bucketSize' value.");
         }
-        self.url = url;
+        self.url = getURLWithScheme(url, httpClient);
         self.circuitBreakerInferredConfig = circuitBreakerInferredConfig.cloneReadOnly();
         self.httpClient = httpClient;
         self.circuitHealth = circuitHealth.clone();

@@ -43,7 +43,7 @@ client isolated class CookieClient {
     # + return - The `client` or an `http:ClientError` if the initialization failed
     isolated function init(string url, CookieConfig cookieConfig, HttpClient httpClient,
             CookieStore? cookieStore) returns ClientError? {
-        self.url = url;
+        self.url = getURLWithScheme(url, httpClient);
         CookieInferredConfig cookieInferredConfig = {
             enabled: cookieConfig.enabled,
             maxCookiesPerDomain: cookieConfig.maxCookiesPerDomain,
