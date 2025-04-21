@@ -16,6 +16,7 @@
 
 import ballerina/log;
 import ballerina/time;
+import ballerina/lang.regexp;
 
 # Represents the cookie store.
 #
@@ -47,7 +48,7 @@ public isolated class CookieStore {
             return error CookieHandlingError("Number of total cookies for the domain: " + domain + " in the cookie store can not exceed the maximum amount per domain");
         }
 
-        string path  = requestPath;
+        string path  = getReqPath(url, requestPath);
         int? index = requestPath.indexOf("?");
         if index is int {
             path = requestPath.substring(0, index);
@@ -114,7 +115,7 @@ public isolated class CookieStore {
     public isolated function getCookies(string url, string requestPath) returns Cookie[] {
         Cookie[] cookiesToReturn = [];
         string domain = getDomain(url);
-        string path  = requestPath;
+        string path  = getReqPath(url, requestPath);
         int? index = requestPath.indexOf("?");
         if index is int {
             path = requestPath.substring(0,index);
@@ -382,19 +383,30 @@ const string URL_TYPE_2 = "http://www.";
 const string URL_TYPE_3 = "http://";
 const string URL_TYPE_4 = "https://";
 
+final regexp:RegExp SLASH_REGEX = re `/`;
+
 // Extracts domain name from the request URL.
 isolated function getDomain(string url) returns string {
     string domain = url;
     if url.startsWith(URL_TYPE_1) {
-        domain = url.substring(URL_TYPE_1.length(), url.length());
+        domain = SLASH_REGEX.split(url.substring(URL_TYPE_1.length(), url.length()))[0];
     } else if url.startsWith(URL_TYPE_2) {
-        domain = url.substring(URL_TYPE_2.length(), url.length());
+        domain = SLASH_REGEX.split(url.substring(URL_TYPE_2.length(), url.length()))[0];
     } else if url.startsWith(URL_TYPE_3) {
-        domain = url.substring(URL_TYPE_3.length(), url.length());
+        domain = SLASH_REGEX.split(url.substring(URL_TYPE_3.length(), url.length()))[0];
     } else if url.startsWith(URL_TYPE_4) {
-        domain = url.substring(URL_TYPE_4.length(), url.length());
+        domain = SLASH_REGEX.split(url.substring(URL_TYPE_4.length(), url.length()))[0];
     }
     return domain.toLowerAscii();
+}
+
+// Construct the request path from client url and the path from client method invocation.
+isolated function getReqPath(string url, string path) returns string {
+    regexp:Groups? groups = re `^(?:https?://)?[^/]+(/.*)?$`.findGroups(url);
+    if groups is () || groups.length() == 1 || groups[1] is () {
+        return path;
+    }
+    return (<regexp:Span>groups[1]).substring() + path;
 }
 
 

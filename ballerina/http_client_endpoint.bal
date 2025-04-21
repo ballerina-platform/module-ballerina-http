@@ -44,7 +44,6 @@ public client isolated class Client {
     # + config - The configurations to be used when initializing the `client`
     # + return - The `client` or an `http:ClientError` if the initialization failed
     public isolated function init(string url, *ClientConfiguration config) returns ClientError? {
-        self.url = url;
         var cookieConfigVal = config.cookieConfig;
         if cookieConfigVal is CookieConfig {
             if cookieConfigVal.enabled {
@@ -52,6 +51,7 @@ public client isolated class Client {
             }
         }
         self.httpClient = check initialize(url, config, self.cookieStore);
+        self.url = getURLWithScheme(url, self.httpClient);
         self.requireValidation = config.validation;
         return;
     }
@@ -706,4 +706,9 @@ isolated function createResponseError(int statusCode, string reasonPhrase, map<s
     } else {
         return error RemoteServerError(reasonPhrase, statusCode = statusCode, headers = headers, body = body);
     }
+}
+
+// Add proper scheme to the URL if it is not present.
+isolated function getURLWithScheme(string url, HttpClient httpClient) returns string {
+    return isAbsolute(url) ? url : (httpClient is HttpSecureClient ? HTTPS_SCHEME + url : HTTP_SCHEME + url);
 }

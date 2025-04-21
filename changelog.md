@@ -4,6 +4,13 @@ This file contains all the notable changes done to the Ballerina HTTP package th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- [Fix cookie path resolution logic](https://github.com/ballerina-platform/ballerina-library/issues/6788)
+- [Fix inconsistencies in the `Set-Cookie` parser method](https://github.com/ballerina-platform/ballerina-library/issues/7807)
+
 ## [2.10.21] - 2025-03-05
 
 ### Fixed
