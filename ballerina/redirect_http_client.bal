@@ -59,7 +59,7 @@ client isolated class RedirectClient {
     # + return - The `client` or an `http:ClientError` if the initialization failed
     isolated function init(string url, ClientConfiguration config, FollowRedirects redirectConfig, HttpClient httpClient)
             returns ClientError? {
-        self.url = url;
+        self.url = getURLWithScheme(url, httpClient);
         RedirectInferredConfig redirectInferredConfig = {
             httpVersion: config.httpVersion,
             http1Settings: config.http1Settings,
