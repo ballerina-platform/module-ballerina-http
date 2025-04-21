@@ -43,7 +43,7 @@ const int statusCodeErrorUseCasePort = 9089;
 const int statusCodeErrorPort = 9092;
 
 const int identicalCookiePort = 9093;
-const int setCookieParserPort = 9094;
+const int setCookieParserPort = 9099;
 
 const int cookieTestPort1 = 9253;
 const int cookieTestPort2 = 9254;
