@@ -81,7 +81,7 @@ public type CommonClientConfiguration record {|
     decimal timeout = 30;
     # The choice of setting `Forwarded`/`X-Forwarded-For` header, when acting as a proxy
     string forwarded = "disable";
-    # Configurations associated with Redirection
+    # HTTP redirect handling configurations (with 3xx status codes)
     FollowRedirects? followRedirects = ();
     # Configurations associated with the request connection pool
     PoolConfiguration? poolConfig = ();
@@ -91,7 +91,7 @@ public type CommonClientConfiguration record {|
     Compression compression = COMPRESSION_AUTO;
     # Client authentication options (Basic, Bearer token, OAuth, etc.)
     ClientAuthConfig? auth = ();
-    # Configurations for automatic failure handling
+    # Circuit breaker configurations to prevent cascading failures
     CircuitBreakerConfig? circuitBreaker = ();
     # Automatic retry settings for failed requests
     RetryConfig? retryConfig = ();
