@@ -29,7 +29,7 @@ public type TargetService record {|
 # The following fields are inherited from the other configuration records in addition to the `Client`-specific
 # configs.
 #
-# + secureSocket - SSL/TLS-related options
+# + secureSocket - SSL/TLS security settings for HTTPS connections
 public type ClientConfiguration record {|
     *CommonClientConfiguration;
     ClientSecureSocket? secureSocket = ();
