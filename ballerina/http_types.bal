@@ -77,13 +77,13 @@ public type CommonClientConfiguration record {|
     ClientHttp1Settings http1Settings = {};
     # HTTP/2 specific settings
     ClientHttp2Settings http2Settings = {};
-    # Maximum time to wait for a response (in seconds) before timing out the request
+    # Maximum time(in seconds) to wait for a response before the request times out
     decimal timeout = 30;
-    # The choice of setting `forwarded`/`x-forwarded` header, when acting as a proxy
+    # The choice of setting `Forwarded`/`X-Forwarded-For` header, when acting as a proxy
     string forwarded = "disable";
     # Configurations associated with Redirection
     FollowRedirects? followRedirects = ();
-    # Configurations associated with connection pooling for requests
+    # Configurations associated with the request connection pool
     PoolConfiguration? poolConfig = ();
     # HTTP response caching related configurations
     CacheConfig cache = {};
@@ -101,14 +101,14 @@ public type CommonClientConfiguration record {|
     ResponseLimitConfigs responseLimits = {};
     # Proxy server settings if requests need to go through a proxy
     ProxyConfig? proxy = ();
-    # Enable automatic payload validation of request/response data against constraints. Enabled by default
+    # Enable automatic payload validation for request/response data against constraints
     boolean validation = true;
     # Low-level socket settings (timeouts, buffer sizes, etc.)
     ClientSocketConfig socketConfig = {};
-    # Enables relaxed data binding on the client side (disabled by default).
+    # Enable relaxed data binding on the client side.
     # When enabled:
     # - `null` values in JSON are allowed to be mapped to optional fields
-    # - missing fields in JSON are allowed to be mapped as `Nil` values
+    # - missing fields in JSON are allowed to be mapped as `null` values
     boolean laxDataBinding = false;
 |};
 
