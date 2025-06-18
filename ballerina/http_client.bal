@@ -31,7 +31,7 @@ client isolated class HttpClient {
         return createSimpleHttpClient(self, globalHttpClientConnPool, url, options, options.toString());
     }
 
-    # The `HttpClient.post()` function can be used to send HTTP POST requests to HTTP endpoints.
+    # Create new data or submit information to an HTTP endpoint.
     #
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
@@ -40,7 +40,7 @@ client isolated class HttpClient {
         return externExecuteClientAction(self, path, <Request>message, HTTP_POST);
     }
 
-    # The `HttpClient.head()` function can be used to send HTTP HEAD requests to HTTP endpoints.
+    # Get metadata about a resource without downloading the content. Can be used to check if a resource exists or get headers.
     #
     # + path - Resource path
     # + message - An optional HTTP outbound request or any allowed payload
@@ -49,7 +49,7 @@ client isolated class HttpClient {
         return externExecuteClientAction(self, path, <Request>message, HTTP_HEAD);
     }
 
-    # The `HttpClient.put()` function can be used to send HTTP PUT requests to HTTP endpoints.
+    # Update or replace existing data at an HTTP endpoint. Can be used to modify complete resources in web APIs.
     #
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
@@ -58,7 +58,7 @@ client isolated class HttpClient {
         return externExecuteClientAction(self, path, <Request>message, HTTP_PUT);
     }
 
-    # Invokes an HTTP call with the specified HTTP verb.
+    # Send a request using any HTTP method. Can be used to invoke custom or less common HTTP verbs.
     #
     # + httpVerb - HTTP verb value
     # + path - Resource path
@@ -69,7 +69,7 @@ client isolated class HttpClient {
         return externExecute(self, httpVerb, path, <Request>message);
     }
 
-    # The `HttpClient.patch()` function can be used to send HTTP PATCH requests to HTTP endpoints.
+    # Partially update existing data at an HTTP endpoint. Can be used to modify specific fields of a resource.
     #
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
@@ -78,7 +78,7 @@ client isolated class HttpClient {
         return externExecuteClientAction(self, path, <Request>message, HTTP_PATCH);
     }
 
-    # The `HttpClient.delete()` function can be used to send HTTP DELETE requests to HTTP endpoints.
+    # Remove data from an HTTP endpoint.
     #
     # + path - Resource path
     # + message - An optional HTTP outbound request or any allowed payload
@@ -87,7 +87,7 @@ client isolated class HttpClient {
         return externExecuteClientAction(self, path, <Request>message, HTTP_DELETE);
     }
 
-    # The `HttpClient.get()` function can be used to send HTTP GET requests to HTTP endpoints.
+    # Retrieve data from an HTTP endpoint.
     #
     # + path - Request path
     # + message - An optional HTTP outbound request or any allowed payload
@@ -96,7 +96,7 @@ client isolated class HttpClient {
         return externExecuteClientAction(self, path, <Request>message, HTTP_GET);
     }
 
-    # The `HttpClient.options()` function can be used to send HTTP OPTIONS requests to HTTP endpoints.
+    # Check what HTTP methods are supported by an endpoint. Can be used to discover API capabilities.
     #
     # + path - Request path
     # + message - An optional HTTP outbound request or any allowed payload
@@ -105,7 +105,7 @@ client isolated class HttpClient {
         return externExecuteClientAction(self, path, <Request>message, HTTP_OPTIONS);
     }
 
-    # The `HttpClient.forward()` function can be used to invoke an HTTP call with inbound request's HTTP verb
+    # Forward an incoming request to another endpoint using the same HTTP method. Can be used in proxy or gateway scenarios.
     #
     # + path - Request path
     # + request - An HTTP inbound request message
@@ -114,9 +114,7 @@ client isolated class HttpClient {
         return externForward(self, path, request);
     }
 
-    # Submits an HTTP request to a service with the specified HTTP verb.
-    # The `HttpClient->submit()` function does not give out an `http:Response` as the result.
-    # Rather, it returns an `http:HttpFuture` which can be used to do further interactions with the endpoint.
+    # Send an asynchronous HTTP request that doesn't wait for the response immediately. Can be used for non-blocking operations.
     #
     # + httpVerb - The HTTP verb value. The HTTP verb is case-sensitive. Use the `http:Method` type to specify the
     #              the standard HTTP methods.
@@ -127,7 +125,8 @@ client isolated class HttpClient {
         return externSubmit(self, httpVerb, path, <Request>message);
     }
 
-    # Retrieves the `http:Response` for a previously-submitted request.
+    # Get the response from a previously submitted asynchronous request. Can be used after calling `submit()` action to
+    # retrieve the actual response.
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:Response` message or else an `http:ClientError` if the invocation fails
@@ -135,7 +134,7 @@ client isolated class HttpClient {
         return externGetResponse(self, httpFuture);
     }
 
-    # Checks whether an `http:PushPromise` exists for a previously-submitted request.
+    # Check if the server has sent a push promise for additional resources. Can be used with HTTP/2 server push functionality.
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - A `boolean`, which represents whether an `http:PushPromise` exists
@@ -143,7 +142,7 @@ client isolated class HttpClient {
         return externHasPromise(self, httpFuture);
     }
 
-    # Retrieves the next available `http:PushPromise` for a previously-submitted request.
+    # Get the next server push promise that contains information about additional resources the server wants to send.
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:PushPromise` message or else an `http:ClientError` if the invocation fails
@@ -151,7 +150,7 @@ client isolated class HttpClient {
         return externGetNextPromise(self, httpFuture);
     }
 
-    # Retrieves the promised server push `http:Response` message.
+    # Get the actual response data from a server push promise. Can be used to receive resources that the server proactively sends.
     #
     # + promise - The related `http:PushPromise`
     # + return - A promised `http:Response` message or else an `http:ClientError` if the invocation fails
@@ -159,8 +158,7 @@ client isolated class HttpClient {
         return externGetPromisedResponse(self, promise);
     }
 
-    # Rejects an `http:PushPromise`. When an `http:PushPromise` is rejected, there is no chance of fetching a promised
-    # response using the rejected promise.
+    # Reject a server push promise to decline receiving the additional resource.
     #
     # + promise - The Push Promise to be rejected
     remote isolated function rejectPromise(PushPromise promise) {
