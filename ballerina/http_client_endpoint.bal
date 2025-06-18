@@ -73,7 +73,7 @@ public client isolated class Client {
         name: "getResource"
     } external;
 
-    # Retrieve data from an HTTP endpoint.
+    # Retrieve a representation of a specified resource from an HTTP endpoint.
     #
     # + path - Request path
     # + headers - The entity headers
@@ -111,7 +111,7 @@ public client isolated class Client {
         name: "postResource"
     } external;
 
-    # Create new data or submit information to an HTTP endpoint.
+    # Create a new resource or submit data to a resource for processing.
     #
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
@@ -153,7 +153,7 @@ public client isolated class Client {
         name: "putResource"
     } external;
 
-    # Update or replace existing data at an HTTP endpoint. Can be used to modify complete resources in web APIs.
+    # Create a new resource or replace a representation of a specified resource.
     #
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
@@ -195,7 +195,7 @@ public client isolated class Client {
         name: "deleteResource"
     } external;
 
-    # Remove data from an HTTP endpoint.
+    # Remove a specified resource from an HTTP endpoint.
     #
     # + path - Resource path
     # + message - An optional HTTP outbound request message or any allowed payload
@@ -237,7 +237,7 @@ public client isolated class Client {
         name: "patchResource"
     } external;
 
-    # Partially update existing data at an HTTP endpoint. Can be used to modify specific fields of a resource.
+    # Partially update an existing resource in an HTTP endpoint.
     #
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
@@ -275,7 +275,7 @@ public client isolated class Client {
         name: "headResource"
     } external;
 
-    # Get metadata about a resource without downloading the content. Can be used to check if a resource exists or get headers.
+    # Get the metadata of a resource in the form of headers without the body. Often used for testing the resource existence or finding recent modifications.
     #
     # + path - Resource path
     # + headers - The entity headers
@@ -303,7 +303,7 @@ public client isolated class Client {
         name: "optionsResource"
     } external;
 
-    # Check what HTTP methods are supported by an endpoint. Can be used to discover API capabilities.
+    # Get the communication options for a specified resource.
     #
     # + path - Request path
     # + headers - The entity headers
@@ -325,7 +325,7 @@ public client isolated class Client {
         return processResponse(response, targetType, self.requireValidation, self.requireLaxDataBinding);
     }
 
-    # Send a request using any HTTP method. Can be used to invoke custom or less common HTTP verbs.
+    # Send a request using any HTTP method. Can be used to invoke the endpoint with a custom or less common HTTP method.
     #
     # + httpVerb - HTTP verb value
     # + path - Resource path
@@ -374,7 +374,7 @@ public client isolated class Client {
         return processResponse(response, targetType, self.requireValidation, self.requireLaxDataBinding);
     }
 
-    # Send an asynchronous HTTP request that doesn't wait for the response immediately. Can be used for non-blocking operations.
+    # Send an asynchronous HTTP request that does not wait for the response immediately. Can be used for non-blocking operations.
     #
     # + httpVerb - The HTTP verb value. The HTTP verb is case-sensitive. Use the `http:Method` type to specify the
     #              the standard HTTP methods.
@@ -386,8 +386,7 @@ public client isolated class Client {
         return self.httpClient->submit(httpVerb, path, req);
     }
 
-    # Get the response from a previously submitted asynchronous request. Can be used after calling `submit()` action to
-    # retrieve the actual response.
+    # Get the response from a previously submitted asynchronous request. Can be used after calling `submit()` action to retrieve the actual response.
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:Response` message or else an `http: ClientError` if the invocation fails
@@ -401,7 +400,7 @@ public client isolated class Client {
         return response;
     }
 
-    # Check if the server has sent a push promise for additional resources. Can be used with HTTP/2 server push functionality.
+    # Check if the server has sent a push promise for additional resources. Should be used with HTTP/2 server push functionality.
     #
     # + httpFuture - The `http:HttpFuture` relates to a previous asynchronous invocation
     # + return - A `boolean`, which represents whether an `http:PushPromise` exists
