@@ -73,7 +73,7 @@ public client isolated class Client {
         name: "getResource"
     } external;
 
-    # The `Client.get()` function can be used to send HTTP GET requests to HTTP endpoints.
+    # Retrieve data from an HTTP endpoint.
     #
     # + path - Request path
     # + headers - The entity headers
@@ -111,7 +111,7 @@ public client isolated class Client {
         name: "postResource"
     } external;
 
-    # The `Client.post()` function can be used to send HTTP POST requests to HTTP endpoints.
+    # Create new data or submit information to an HTTP endpoint.
     #
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
@@ -153,7 +153,7 @@ public client isolated class Client {
         name: "putResource"
     } external;
 
-    # The `Client.put()` function can be used to send HTTP PUT requests to HTTP endpoints.
+    # Update or replace existing data at an HTTP endpoint. Can be used to modify complete resources in web APIs.
     #
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
@@ -195,7 +195,7 @@ public client isolated class Client {
         name: "deleteResource"
     } external;
 
-    # The `Client.delete()` function can be used to send HTTP DELETE requests to HTTP endpoints.
+    # Remove data from an HTTP endpoint.
     #
     # + path - Resource path
     # + message - An optional HTTP outbound request message or any allowed payload
@@ -237,7 +237,7 @@ public client isolated class Client {
         name: "patchResource"
     } external;
 
-    # The `Client.patch()` function can be used to send HTTP PATCH requests to HTTP endpoints.
+    # Partially update existing data at an HTTP endpoint. Can be used to modify specific fields of a resource.
     #
     # + path - Resource path
     # + message - An HTTP outbound request or any allowed payload
@@ -275,7 +275,7 @@ public client isolated class Client {
         name: "headResource"
     } external;
 
-    # The `Client.head()` function can be used to send HTTP HEAD requests to HTTP endpoints.
+    # Get metadata about a resource without downloading the content. Can be used to check if a resource exists or get headers.
     #
     # + path - Resource path
     # + headers - The entity headers
@@ -303,7 +303,7 @@ public client isolated class Client {
         name: "optionsResource"
     } external;
 
-    # The `Client.options()` function can be used to send HTTP OPTIONS requests to HTTP endpoints.
+    # Check what HTTP methods are supported by an endpoint. Can be used to discover API capabilities.
     #
     # + path - Request path
     # + headers - The entity headers
@@ -325,7 +325,7 @@ public client isolated class Client {
         return processResponse(response, targetType, self.requireValidation, self.requireLaxDataBinding);
     }
 
-    # Invokes an HTTP call with the specified HTTP verb.
+    # Send a request using any HTTP method. Can be used to invoke custom or less common HTTP verbs.
     #
     # + httpVerb - HTTP verb value
     # + path - Resource path
@@ -353,7 +353,7 @@ public client isolated class Client {
         return processResponse(response, targetType, self.requireValidation, self.requireLaxDataBinding);
     }
 
-    # The `Client.forward()` function can be used to invoke an HTTP call with inbound request's HTTP verb
+    # Forward an incoming request to another endpoint using the same HTTP method. Can be used in proxy or gateway scenarios.
     #
     # + path - Request path
     # + request - An HTTP inbound request message
@@ -374,9 +374,7 @@ public client isolated class Client {
         return processResponse(response, targetType, self.requireValidation, self.requireLaxDataBinding);
     }
 
-    # Submits an HTTP request to a service with the specified HTTP verb.
-    # The `Client->submit()` function does not give out a `http:Response` as the result.
-    # Rather it returns an `http:HttpFuture` which can be used to do further interactions with the endpoint.
+    # Send an asynchronous HTTP request that doesn't wait for the response immediately. Can be used for non-blocking operations.
     #
     # + httpVerb - The HTTP verb value. The HTTP verb is case-sensitive. Use the `http:Method` type to specify the
     #              the standard HTTP methods.
@@ -388,7 +386,8 @@ public client isolated class Client {
         return self.httpClient->submit(httpVerb, path, req);
     }
 
-    # This just pass the request to actual network call.
+    # Get the response from a previously submitted asynchronous request. Can be used after calling `submit()` action to
+    # retrieve the actual response.
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:Response` message or else an `http: ClientError` if the invocation fails
@@ -402,7 +401,7 @@ public client isolated class Client {
         return response;
     }
 
-    # This just pass the request to actual network call.
+    # Check if the server has sent a push promise for additional resources. Can be used with HTTP/2 server push functionality.
     #
     # + httpFuture - The `http:HttpFuture` relates to a previous asynchronous invocation
     # + return - A `boolean`, which represents whether an `http:PushPromise` exists
@@ -410,7 +409,7 @@ public client isolated class Client {
         return self.httpClient->hasPromise(httpFuture);
     }
 
-    # This just pass the request to actual network call.
+    # Get the next server push promise that contains information about additional resources the server wants to send.
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:PushPromise` message or else an `http:ClientError` if the invocation fails
@@ -418,7 +417,7 @@ public client isolated class Client {
         return self.httpClient->getNextPromise(httpFuture);
     }
 
-    # Passes the request to an actual network call.
+    # Get the actual response data from a server push promise. Can be used to receive resources that the server proactively sends.
     #
     # + promise - The related `http:PushPromise`
     # + return - A promised `http:Response` message or else an `http:ClientError` if the invocation fails
@@ -430,14 +429,14 @@ public client isolated class Client {
         return response;
     }
 
-    # This just pass the request to actual network call.
+    # Reject a server push promise to decline receiving the additional resource.
     #
     # + promise - The Push Promise to be rejected
     remote isolated function rejectPromise(PushPromise promise) {
         return self.httpClient->rejectPromise(promise);
     }
 
-    # Retrieves the cookie store of the client.
+    # Get the cookie storage associated with this HTTP client. Can be used to access stored cookies for session management.
     #
     # + return - The cookie store related to the client
     public isolated function getCookieStore() returns CookieStore? {
@@ -446,8 +445,8 @@ public client isolated class Client {
         }
     }
 
-    # The circuit breaker client related method to force the circuit into a closed state in which it will allow
-    # requests regardless of the error percentage until the failure threshold exceeds.
+    # Force the circuit breaker to allow all requests through, ignoring current error rates. Can be used to manually
+    # restore service after fixing issues.
     public isolated function circuitBreakerForceClose() {
         do {
             CircuitBreakerClient cbClient = check trap <CircuitBreakerClient>self.httpClient;
@@ -458,8 +457,8 @@ public client isolated class Client {
         }
     }
 
-    # The circuit breaker client related method to force the circuit into a open state in which it will suspend all
-    # requests until `resetTime` interval exceeds.
+    # Force the circuit breaker to block all requests until the reset time expires. Can be used to manually stop
+    # requests during maintenance or known issues.
     public isolated function circuitBreakerForceOpen() {
         do {
             CircuitBreakerClient cbClient = check trap <CircuitBreakerClient>self.httpClient;
@@ -470,7 +469,7 @@ public client isolated class Client {
         }
     }
 
-    # The circuit breaker client related method to provides the `http:CircuitState` of the circuit breaker.
+    # Check the current state of the circuit breaker. Can be used to monitor the health status of your HTTP connections.
     #
     # + return - The current `http:CircuitState` of the circuit breaker
     public isolated function getCircuitBreakerCurrentState() returns CircuitState {
@@ -781,7 +780,7 @@ isolated function validateEventStreamContentType(Response response) returns Clie
     }
 }
 
-isolated function processResponseNew(Response|ClientError response, typedesc<StatusCodeResponse> targetType, boolean requireValidation, 
+isolated function processResponseNew(Response|ClientError response, typedesc<StatusCodeResponse> targetType, boolean requireValidation,
     boolean requireLaxDataBinding) returns StatusCodeResponse|ClientError {
     if response is ClientError {
         return response;
