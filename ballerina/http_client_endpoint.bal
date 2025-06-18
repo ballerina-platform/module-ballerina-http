@@ -63,7 +63,12 @@ public client isolated class Client {
     #
     # + path - Request path
     # + headers - The entity headers
-    # + targetType - HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding
+    # + targetType - Return type for automatic data binding.
+    #                Supported types:
+    #                - Built-in subtypes of `anydata` (`json`, `xml`, `string`, `byte[]`, etc.)
+    #                - Custom types (e.g., `User`, `User[]`, )
+    #                - Full HTTP response with headers and status (`http:Response`)
+    #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
     # + params - The query parameters
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
@@ -77,7 +82,12 @@ public client isolated class Client {
     #
     # + path - Request path
     # + headers - The entity headers
-    # + targetType - HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding
+    # + targetType - Return type for automatic data binding.
+    #                Supported types:
+    #                - Built-in subtypes of `anydata` (`json`, `xml`, `string`, `byte[]`, etc.)
+    #                - Custom types (e.g., `User`, `User[]`, )
+    #                - Full HTTP response with headers and status (`http:Response`)
+    #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function get(string path, map<string|string[]>? headers = (), TargetType targetType = <>)
@@ -101,7 +111,12 @@ public client isolated class Client {
     # + message - An HTTP outbound request or any allowed payload
     # + headers - The entity headers
     # + mediaType - The MIME type header of the request entity
-    # + targetType - HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding
+    # + targetType - Return type for automatic data binding.
+    #                Supported types:
+    #                - Built-in subtypes of `anydata` (`json`, `xml`, `string`, `byte[]`, etc.)
+    #                - Custom types (e.g., `User`, `User[]`, )
+    #                - Full HTTP response with headers and status (`http:Response`)
+    #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
     # + params - The query parameters
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
@@ -117,7 +132,12 @@ public client isolated class Client {
     # + message - An HTTP outbound request or any allowed payload
     # + headers - The entity headers
     # + mediaType - The MIME type header of the request entity
-    # + targetType - HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding
+    # + targetType - Return type for automatic data binding.
+    #                Supported types:
+    #                - Built-in subtypes of `anydata` (`json`, `xml`, `string`, `byte[]`, etc.)
+    #                - Custom types (e.g., `User`, `User[]`, )
+    #                - Full HTTP response with headers and status (`http:Response`)
+    #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function post(string path, RequestMessage message, map<string|string[]>? headers = (),
@@ -143,7 +163,12 @@ public client isolated class Client {
     # + message - An HTTP outbound request or any allowed payload
     # + headers - The entity headers
     # + mediaType - The MIME type header of the request entity
-    # + targetType - HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding
+    # + targetType - Return type for automatic data binding.
+    #                Supported types:
+    #                - Built-in subtypes of `anydata` (`json`, `xml`, `string`, `byte[]`, etc.)
+    #                - Custom types (e.g., `User`, `User[]`, )
+    #                - Full HTTP response with headers and status (`http:Response`)
+    #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
     # + params - The query parameters
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
@@ -159,7 +184,12 @@ public client isolated class Client {
     # + message - An HTTP outbound request or any allowed payload
     # + mediaType - The MIME type header of the request entity
     # + headers - The entity headers
-    # + targetType - HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding
+    # + targetType - Return type for automatic data binding.
+    #                Supported types:
+    #                - Built-in subtypes of `anydata` (`json`, `xml`, `string`, `byte[]`, etc.)
+    #                - Custom types (e.g., `User`, `User[]`, )
+    #                - Full HTTP response with headers and status (`http:Response`)
+    #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function put(string path, RequestMessage message, map<string|string[]>? headers = (),
@@ -185,7 +215,12 @@ public client isolated class Client {
     # + message - An optional HTTP outbound request or any allowed payload
     # + headers - The entity headers
     # + mediaType - The MIME type header of the request entity
-    # + targetType - HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding
+    # + targetType - Return type for automatic data binding.
+    #                Supported types:
+    #                - Built-in subtypes of `anydata` (`json`, `xml`, `string`, `byte[]`, etc.)
+    #                - Custom types (e.g., `User`, `User[]`, )
+    #                - Full HTTP response with headers and status (`http:Response`)
+    #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
     # + params - The query parameters
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
@@ -201,7 +236,12 @@ public client isolated class Client {
     # + message - An optional HTTP outbound request message or any allowed payload
     # + mediaType - The MIME type header of the request entity
     # + headers - The entity headers
-    # + targetType - HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding
+    # + targetType - Return type for automatic data binding.
+    #                Supported types:
+    #                - Built-in subtypes of `anydata` (`json`, `xml`, `string`, `byte[]`, etc.)
+    #                - Custom types (e.g., `User`, `User[]`, )
+    #                - Full HTTP response with headers and status (`http:Response`)
+    #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function delete(string path, RequestMessage message = (),
@@ -227,7 +267,12 @@ public client isolated class Client {
     # + message - An HTTP outbound request or any allowed payload
     # + headers - The entity headers
     # + mediaType - The MIME type header of the request entity
-    # + targetType - HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding
+    # + targetType - Return type for automatic data binding.
+    #                Supported types:
+    #                - Built-in subtypes of `anydata` (`json`, `xml`, `string`, `byte[]`, etc.)
+    #                - Custom types (e.g., `User`, `User[]`, )
+    #                - Full HTTP response with headers and status (`http:Response`)
+    #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
     # + params - The query parameters
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
@@ -243,7 +288,12 @@ public client isolated class Client {
     # + message - An HTTP outbound request or any allowed payload
     # + mediaType - The MIME type header of the request entity
     # + headers - The entity headers
-    # + targetType - HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding
+    # + targetType - Return type for automatic data binding.
+    #                Supported types:
+    #                - Built-in subtypes of `anydata` (`json`, `xml`, `string`, `byte[]`, etc.)
+    #                - Custom types (e.g., `User`, `User[]`, )
+    #                - Full HTTP response with headers and status (`http:Response`)
+    #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function patch(string path, RequestMessage message, map<string|string[]>? headers = (),
@@ -293,7 +343,12 @@ public client isolated class Client {
     #
     # + path - Request path
     # + headers - The entity headers
-    # + targetType - HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding
+    # + targetType - Return type for automatic data binding.
+    #                Supported types:
+    #                - Built-in subtypes of `anydata` (`json`, `xml`, `string`, `byte[]`, etc.)
+    #                - Custom types (e.g., `User`, `User[]`, )
+    #                - Full HTTP response with headers and status (`http:Response`)
+    #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
     # + params - The query parameters
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
@@ -307,7 +362,12 @@ public client isolated class Client {
     #
     # + path - Request path
     # + headers - The entity headers
-    # + targetType - HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding
+    # + targetType - Return type for automatic data binding.
+    #                Supported types:
+    #                - Built-in subtypes of `anydata` (`json`, `xml`, `string`, `byte[]`, etc.)
+    #                - Custom types (e.g., `User`, `User[]`, )
+    #                - Full HTTP response with headers and status (`http:Response`)
+    #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function options(string path, map<string|string[]>? headers = (), TargetType targetType = <>)
@@ -332,7 +392,12 @@ public client isolated class Client {
     # + message - An HTTP outbound request or any allowed payload
     # + mediaType - The MIME type header of the request entity
     # + headers - The entity headers
-    # + targetType - HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding
+    # + targetType - Return type for automatic data binding.
+    #                Supported types:
+    #                - Built-in subtypes of `anydata` (`json`, `xml`, `string`, `byte[]`, etc.)
+    #                - Custom types (e.g., `User`, `User[]`, )
+    #                - Full HTTP response with headers and status (`http:Response`)
+    #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function execute(string httpVerb, string path, RequestMessage message,
@@ -357,7 +422,12 @@ public client isolated class Client {
     #
     # + path - Request path
     # + request - An HTTP inbound request message
-    # + targetType - HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding
+    # + targetType - Return type for automatic data binding.
+    #                Supported types:
+    #                - Built-in subtypes of `anydata` (`json`, `xml`, `string`, `byte[]`, etc.)
+    #                - Custom types (e.g., `User`, `User[]`, )
+    #                - Full HTTP response with headers and status (`http:Response`)
+    #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
     #            establish the communication with the upstream server or a data binding failure
     remote isolated function forward(string path, Request request, TargetType targetType = <>)
