@@ -71,44 +71,44 @@ type HTTPError record {
 
 # Common client configurations for the next level clients.
 public type CommonClientConfiguration record {|
-    # The HTTP version understood by the client
+    # HTTP protocol version supported by the client
     HttpVersion httpVersion = HTTP_2_0;
-    # Configurations related to HTTP/1.x protocol
+    # HTTP/1.x specific settings
     ClientHttp1Settings http1Settings = {};
-    # Configurations related to HTTP/2 protocol
+    # HTTP/2 specific settings
     ClientHttp2Settings http2Settings = {};
-    # The maximum time to wait (in seconds) for a response before closing the connection
+    # Maximum time(in seconds) to wait for a response before the request times out
     decimal timeout = 30;
-    # The choice of setting `forwarded`/`x-forwarded` header
+    # The choice of setting `Forwarded`/`X-Forwarded-For` header, when acting as a proxy
     string forwarded = "disable";
-    # Configurations associated with Redirection
+    # HTTP redirect handling configurations (with 3xx status codes)
     FollowRedirects? followRedirects = ();
-    # Configurations associated with request pooling
+    # Configurations associated with the request connection pool
     PoolConfiguration? poolConfig = ();
-    # HTTP caching related configurations
+    # HTTP response caching related configurations
     CacheConfig cache = {};
-    # Specifies the way of handling compression (`accept-encoding`) header
+    # Enable request/response compression (using `accept-encoding` header)
     Compression compression = COMPRESSION_AUTO;
-    # Configurations related to client authentication
+    # Client authentication options (Basic, Bearer token, OAuth, etc.)
     ClientAuthConfig? auth = ();
-    # Configurations associated with the behaviour of the Circuit Breaker
+    # Circuit breaker configurations to prevent cascading failures
     CircuitBreakerConfig? circuitBreaker = ();
-    # Configurations associated with retrying
+    # Automatic retry settings for failed requests
     RetryConfig? retryConfig = ();
-    # Configurations associated with cookies
+    # Cookie handling settings for session management
     CookieConfig? cookieConfig = ();
-    # Configurations associated with inbound response size limits
+    # Limits for response size and headers (to prevent memory issues)
     ResponseLimitConfigs responseLimits = {};
-    # Proxy server related options
+    # Proxy server settings if requests need to go through a proxy
     ProxyConfig? proxy = ();
-    # Enables the inbound payload validation functionalty which provided by the constraint package. Enabled by default
+    # Enable automatic payload validation for request/response data against constraints
     boolean validation = true;
-    # Provides settings related to client socket configuration
+    # Low-level socket settings (timeouts, buffer sizes, etc.)
     ClientSocketConfig socketConfig = {};
-    # Enables or disables relaxed data binding on the client side. Disabled by default.
-    # When enabled, the JSON data will be projected to the Ballerina record type and
-    # during the projection, nil values will be considered as optional fields and
-    # absent fields will be considered for nilable types
+    # Enable relaxed data binding on the client side.
+    # When enabled:
+    # - `null` values in JSON are allowed to be mapped to optional fields
+    # - missing fields in JSON are allowed to be mapped as `null` values
     boolean laxDataBinding = false;
 |};
 
