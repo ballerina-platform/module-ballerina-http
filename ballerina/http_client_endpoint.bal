@@ -63,10 +63,10 @@ public client isolated class Client {
     #
     # + path - Request path
     # + headers - The entity headers
-    # + targetType - Return type for automatic data binding.
+    # + targetType - Expected return type (to be used for automatic data binding).
     #                Supported types:
-    #                - Built-in subtypes of `anydata` (`json`, `xml`, `string`, `byte[]`, etc.)
-    #                - Custom types (e.g., `User`, `User[]`, )
+    #                - Built-in subtypes of `anydata` (`string`, byte[], `json|xml`, etc.)
+    #                - Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)
     #                - Full HTTP response with headers and status (`http:Response`)
     #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
     # + params - The query parameters
@@ -82,10 +82,10 @@ public client isolated class Client {
     #
     # + path - Request path
     # + headers - The entity headers
-    # + targetType - Return type for automatic data binding.
+    # + targetType - Expected return type (to be used for automatic data binding).
     #                Supported types:
-    #                - Built-in subtypes of `anydata` (`json`, `xml`, `string`, `byte[]`, etc.)
-    #                - Custom types (e.g., `User`, `User[]`, )
+    #                - Built-in subtypes of `anydata` (`string`, byte[], `json|xml`, etc.)
+    #                - Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)
     #                - Full HTTP response with headers and status (`http:Response`)
     #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -111,10 +111,10 @@ public client isolated class Client {
     # + message - An HTTP outbound request or any allowed payload
     # + headers - The entity headers
     # + mediaType - The MIME type header of the request entity
-    # + targetType - Return type for automatic data binding.
+    # + targetType - Expected return type (to be used for automatic data binding).
     #                Supported types:
-    #                - Built-in subtypes of `anydata` (`json`, `xml`, `string`, `byte[]`, etc.)
-    #                - Custom types (e.g., `User`, `User[]`, )
+    #                - Built-in subtypes of `anydata` (`string`, byte[], `json|xml`, etc.)
+    #                - Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)
     #                - Full HTTP response with headers and status (`http:Response`)
     #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
     # + params - The query parameters
@@ -132,10 +132,10 @@ public client isolated class Client {
     # + message - An HTTP outbound request or any allowed payload
     # + headers - The entity headers
     # + mediaType - The MIME type header of the request entity
-    # + targetType - Return type for automatic data binding.
+    # + targetType - Expected return type (to be used for automatic data binding).
     #                Supported types:
-    #                - Built-in subtypes of `anydata` (`json`, `xml`, `string`, `byte[]`, etc.)
-    #                - Custom types (e.g., `User`, `User[]`, )
+    #                - Built-in subtypes of `anydata` (`string`, byte[], `json|xml`, etc.)
+    #                - Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)
     #                - Full HTTP response with headers and status (`http:Response`)
     #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -163,10 +163,10 @@ public client isolated class Client {
     # + message - An HTTP outbound request or any allowed payload
     # + headers - The entity headers
     # + mediaType - The MIME type header of the request entity
-    # + targetType - Return type for automatic data binding.
+    # + targetType - Expected return type (to be used for automatic data binding).
     #                Supported types:
-    #                - Built-in subtypes of `anydata` (`json`, `xml`, `string`, `byte[]`, etc.)
-    #                - Custom types (e.g., `User`, `User[]`, )
+    #                - Built-in subtypes of `anydata` (`string`, byte[], `json|xml`, etc.)
+    #                - Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)
     #                - Full HTTP response with headers and status (`http:Response`)
     #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
     # + params - The query parameters
@@ -184,10 +184,10 @@ public client isolated class Client {
     # + message - An HTTP outbound request or any allowed payload
     # + mediaType - The MIME type header of the request entity
     # + headers - The entity headers
-    # + targetType - Return type for automatic data binding.
+    # + targetType - Expected return type (to be used for automatic data binding).
     #                Supported types:
-    #                - Built-in subtypes of `anydata` (`json`, `xml`, `string`, `byte[]`, etc.)
-    #                - Custom types (e.g., `User`, `User[]`, )
+    #                - Built-in subtypes of `anydata` (`string`, byte[], `json|xml`, etc.)
+    #                - Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)
     #                - Full HTTP response with headers and status (`http:Response`)
     #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -215,10 +215,10 @@ public client isolated class Client {
     # + message - An optional HTTP outbound request or any allowed payload
     # + headers - The entity headers
     # + mediaType - The MIME type header of the request entity
-    # + targetType - Return type for automatic data binding.
+    # + targetType - Expected return type (to be used for automatic data binding).
     #                Supported types:
-    #                - Built-in subtypes of `anydata` (`json`, `xml`, `string`, `byte[]`, etc.)
-    #                - Custom types (e.g., `User`, `User[]`, )
+    #                - Built-in subtypes of `anydata` (`string`, byte[], `json|xml`, etc.)
+    #                - Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)
     #                - Full HTTP response with headers and status (`http:Response`)
     #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
     # + params - The query parameters
@@ -236,10 +236,10 @@ public client isolated class Client {
     # + message - An optional HTTP outbound request message or any allowed payload
     # + mediaType - The MIME type header of the request entity
     # + headers - The entity headers
-    # + targetType - Return type for automatic data binding.
+    # + targetType - Expected return type (to be used for automatic data binding).
     #                Supported types:
-    #                - Built-in subtypes of `anydata` (`json`, `xml`, `string`, `byte[]`, etc.)
-    #                - Custom types (e.g., `User`, `User[]`, )
+    #                - Built-in subtypes of `anydata` (`string`, byte[], `json|xml`, etc.)
+    #                - Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)
     #                - Full HTTP response with headers and status (`http:Response`)
     #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -267,10 +267,10 @@ public client isolated class Client {
     # + message - An HTTP outbound request or any allowed payload
     # + headers - The entity headers
     # + mediaType - The MIME type header of the request entity
-    # + targetType - Return type for automatic data binding.
+    # + targetType - Expected return type (to be used for automatic data binding).
     #                Supported types:
-    #                - Built-in subtypes of `anydata` (`json`, `xml`, `string`, `byte[]`, etc.)
-    #                - Custom types (e.g., `User`, `User[]`, )
+    #                - Built-in subtypes of `anydata` (`string`, byte[], `json|xml`, etc.)
+    #                - Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)
     #                - Full HTTP response with headers and status (`http:Response`)
     #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
     # + params - The query parameters
@@ -288,10 +288,10 @@ public client isolated class Client {
     # + message - An HTTP outbound request or any allowed payload
     # + mediaType - The MIME type header of the request entity
     # + headers - The entity headers
-    # + targetType - Return type for automatic data binding.
+    # + targetType - Expected return type (to be used for automatic data binding).
     #                Supported types:
-    #                - Built-in subtypes of `anydata` (`json`, `xml`, `string`, `byte[]`, etc.)
-    #                - Custom types (e.g., `User`, `User[]`, )
+    #                - Built-in subtypes of `anydata` (`string`, byte[], `json|xml`, etc.)
+    #                - Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)
     #                - Full HTTP response with headers and status (`http:Response`)
     #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -343,10 +343,10 @@ public client isolated class Client {
     #
     # + path - Request path
     # + headers - The entity headers
-    # + targetType - Return type for automatic data binding.
+    # + targetType - Expected return type (to be used for automatic data binding).
     #                Supported types:
-    #                - Built-in subtypes of `anydata` (`json`, `xml`, `string`, `byte[]`, etc.)
-    #                - Custom types (e.g., `User`, `User[]`, )
+    #                - Built-in subtypes of `anydata` (`string`, byte[], `json|xml`, etc.)
+    #                - Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)
     #                - Full HTTP response with headers and status (`http:Response`)
     #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
     # + params - The query parameters
@@ -362,10 +362,10 @@ public client isolated class Client {
     #
     # + path - Request path
     # + headers - The entity headers
-    # + targetType - Return type for automatic data binding.
+    # + targetType - Expected return type (to be used for automatic data binding).
     #                Supported types:
-    #                - Built-in subtypes of `anydata` (`json`, `xml`, `string`, `byte[]`, etc.)
-    #                - Custom types (e.g., `User`, `User[]`, )
+    #                - Built-in subtypes of `anydata` (`string`, byte[], `json|xml`, etc.)
+    #                - Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)
     #                - Full HTTP response with headers and status (`http:Response`)
     #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -392,10 +392,10 @@ public client isolated class Client {
     # + message - An HTTP outbound request or any allowed payload
     # + mediaType - The MIME type header of the request entity
     # + headers - The entity headers
-    # + targetType - Return type for automatic data binding.
+    # + targetType - Expected return type (to be used for automatic data binding).
     #                Supported types:
-    #                - Built-in subtypes of `anydata` (`json`, `xml`, `string`, `byte[]`, etc.)
-    #                - Custom types (e.g., `User`, `User[]`, )
+    #                - Built-in subtypes of `anydata` (`string`, byte[], `json|xml`, etc.)
+    #                - Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)
     #                - Full HTTP response with headers and status (`http:Response`)
     #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
@@ -422,10 +422,10 @@ public client isolated class Client {
     #
     # + path - Request path
     # + request - An HTTP inbound request message
-    # + targetType - Return type for automatic data binding.
+    # + targetType - Expected return type (to be used for automatic data binding).
     #                Supported types:
-    #                - Built-in subtypes of `anydata` (`json`, `xml`, `string`, `byte[]`, etc.)
-    #                - Custom types (e.g., `User`, `User[]`, )
+    #                - Built-in subtypes of `anydata` (`string`, byte[], `json|xml`, etc.)
+    #                - Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)
     #                - Full HTTP response with headers and status (`http:Response`)
     #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
     # + return - The response or the payload (if the `targetType` is configured) or an `http:ClientError` if failed to
