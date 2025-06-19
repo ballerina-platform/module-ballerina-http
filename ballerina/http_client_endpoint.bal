@@ -65,7 +65,7 @@ public client isolated class Client {
     # + headers - The entity headers
     # + targetType - Expected return type (to be used for automatic data binding).
     #                Supported types:
-    #                - Built-in subtypes of `anydata` (`string`, byte[], `json|xml`, etc.)
+    #                - Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)
     #                - Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)
     #                - Full HTTP response with headers and status (`http:Response`)
     #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
@@ -84,7 +84,7 @@ public client isolated class Client {
     # + headers - The entity headers
     # + targetType - Expected return type (to be used for automatic data binding).
     #                Supported types:
-    #                - Built-in subtypes of `anydata` (`string`, byte[], `json|xml`, etc.)
+    #                - Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)
     #                - Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)
     #                - Full HTTP response with headers and status (`http:Response`)
     #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
@@ -113,7 +113,7 @@ public client isolated class Client {
     # + mediaType - The MIME type header of the request entity
     # + targetType - Expected return type (to be used for automatic data binding).
     #                Supported types:
-    #                - Built-in subtypes of `anydata` (`string`, byte[], `json|xml`, etc.)
+    #                - Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)
     #                - Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)
     #                - Full HTTP response with headers and status (`http:Response`)
     #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
@@ -134,7 +134,7 @@ public client isolated class Client {
     # + mediaType - The MIME type header of the request entity
     # + targetType - Expected return type (to be used for automatic data binding).
     #                Supported types:
-    #                - Built-in subtypes of `anydata` (`string`, byte[], `json|xml`, etc.)
+    #                - Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)
     #                - Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)
     #                - Full HTTP response with headers and status (`http:Response`)
     #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
@@ -165,7 +165,7 @@ public client isolated class Client {
     # + mediaType - The MIME type header of the request entity
     # + targetType - Expected return type (to be used for automatic data binding).
     #                Supported types:
-    #                - Built-in subtypes of `anydata` (`string`, byte[], `json|xml`, etc.)
+    #                - Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)
     #                - Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)
     #                - Full HTTP response with headers and status (`http:Response`)
     #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
@@ -186,7 +186,7 @@ public client isolated class Client {
     # + headers - The entity headers
     # + targetType - Expected return type (to be used for automatic data binding).
     #                Supported types:
-    #                - Built-in subtypes of `anydata` (`string`, byte[], `json|xml`, etc.)
+    #                - Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)
     #                - Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)
     #                - Full HTTP response with headers and status (`http:Response`)
     #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
@@ -217,7 +217,7 @@ public client isolated class Client {
     # + mediaType - The MIME type header of the request entity
     # + targetType - Expected return type (to be used for automatic data binding).
     #                Supported types:
-    #                - Built-in subtypes of `anydata` (`string`, byte[], `json|xml`, etc.)
+    #                - Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)
     #                - Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)
     #                - Full HTTP response with headers and status (`http:Response`)
     #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
@@ -238,7 +238,7 @@ public client isolated class Client {
     # + headers - The entity headers
     # + targetType - Expected return type (to be used for automatic data binding).
     #                Supported types:
-    #                - Built-in subtypes of `anydata` (`string`, byte[], `json|xml`, etc.)
+    #                - Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)
     #                - Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)
     #                - Full HTTP response with headers and status (`http:Response`)
     #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
@@ -269,7 +269,7 @@ public client isolated class Client {
     # + mediaType - The MIME type header of the request entity
     # + targetType - Expected return type (to be used for automatic data binding).
     #                Supported types:
-    #                - Built-in subtypes of `anydata` (`string`, byte[], `json|xml`, etc.)
+    #                - Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)
     #                - Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)
     #                - Full HTTP response with headers and status (`http:Response`)
     #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
@@ -290,7 +290,7 @@ public client isolated class Client {
     # + headers - The entity headers
     # + targetType - Expected return type (to be used for automatic data binding).
     #                Supported types:
-    #                - Built-in subtypes of `anydata` (`string`, byte[], `json|xml`, etc.)
+    #                - Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)
     #                - Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)
     #                - Full HTTP response with headers and status (`http:Response`)
     #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
@@ -345,7 +345,7 @@ public client isolated class Client {
     # + headers - The entity headers
     # + targetType - Expected return type (to be used for automatic data binding).
     #                Supported types:
-    #                - Built-in subtypes of `anydata` (`string`, byte[], `json|xml`, etc.)
+    #                - Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)
     #                - Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)
     #                - Full HTTP response with headers and status (`http:Response`)
     #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
@@ -364,7 +364,7 @@ public client isolated class Client {
     # + headers - The entity headers
     # + targetType - Expected return type (to be used for automatic data binding).
     #                Supported types:
-    #                - Built-in subtypes of `anydata` (`string`, byte[], `json|xml`, etc.)
+    #                - Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)
     #                - Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)
     #                - Full HTTP response with headers and status (`http:Response`)
     #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
@@ -394,7 +394,7 @@ public client isolated class Client {
     # + headers - The entity headers
     # + targetType - Expected return type (to be used for automatic data binding).
     #                Supported types:
-    #                - Built-in subtypes of `anydata` (`string`, byte[], `json|xml`, etc.)
+    #                - Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)
     #                - Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)
     #                - Full HTTP response with headers and status (`http:Response`)
     #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
@@ -424,7 +424,7 @@ public client isolated class Client {
     # + request - An HTTP inbound request message
     # + targetType - Expected return type (to be used for automatic data binding).
     #                Supported types:
-    #                - Built-in subtypes of `anydata` (`string`, byte[], `json|xml`, etc.)
+    #                - Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)
     #                - Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)
     #                - Full HTTP response with headers and status (`http:Response`)
     #                - Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)
