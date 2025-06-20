@@ -19,15 +19,13 @@ import ballerina/mime;
 import ballerina/observe;
 import ballerina/time;
 
-# The HTTP client provides the capability for initiating contact with a remote HTTP service. The API it
-# provides includes the functions for the standard HTTP methods forwarding a received request and sending requests
-# using custom HTTP verbs.
-
+# The HTTP client provides functionality to connect to remote HTTP services and perform requests using standard HTTP methods like GET, POST, PUT, DELETE, etc.
+#
 # + url - Target service url
 # + httpClient - Chain of different HTTP clients which provides the capability for initiating contact with a remote
 #                HTTP service in resilient manner
 # + cookieStore - Stores the cookies of the client
-# + requireValidation - Enables the inbound payload validation functionalty which provided by the constraint package
+# + requireValidation - Enables the inbound payload validation functionality which provided by the constraint package
 # + requireLaxDataBinding - Enables or disables relaxed data binding.
 public client isolated class Client {
     *ClientObject;
