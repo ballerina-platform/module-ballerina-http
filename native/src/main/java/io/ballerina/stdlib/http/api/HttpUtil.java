@@ -76,6 +76,7 @@ import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.PoolC
 import io.ballerina.stdlib.http.transport.message.Http2PushPromise;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.HttpMessageDataStreamer;
+import io.ballerina.stdlib.http.uri.URIUtil;
 import io.ballerina.stdlib.io.utils.IOConstants;
 import io.ballerina.stdlib.io.utils.IOUtils;
 import io.ballerina.stdlib.mime.util.EntityBodyChannel;
@@ -1916,23 +1917,31 @@ public class HttpUtil {
     }
 
     /**
-     * This method will remove the escape character "\" and identifier quote character "'" from a string and encode it.
+     * This method will remove the escape character "\" and identifier quote character "'" from a string.
      * This is used for both basePath and resource path sanitization. When the special chars are present in those
-     * paths, user can escape them in order to get through the compilation phrase. Then listener sanitize and register
-     * paths in both basePath map and resource syntax tree using encoded values as during the dispatching, the path
-     * matches with raw path.
+     * paths, user can escape them in order to get through the compilation phase. Then listener sanitize and register
+     * paths in both basePath map and resource syntax tree using the unescaped values as during the dispatching,
+     * the path matches with encoded raw path.
      *
      * @param segment path segment
      * @return encoded value
      */
-    public static String unescapeAndEncodeValue(String segment) {
+    public static String unescapeValue(String segment) {
         if (segment.length() > 1 && segment.startsWith("'")) {
             segment = segment.substring(1);
         }
         if (!segment.contains("\\")) {
             return segment;
         }
-        return encodeString(segment.replace("\\", ""));
+        return segment.replace("\\", "");
+    }
+
+    public static String unescapeAndEncodeValue(String value) {
+        return encodeString(unescapeValue(value));
+    }
+
+    public static String unescapeAndEncodePath(String path) {
+        return URIUtil.encodePathSegment(unescapeValue(path));
     }
 
     public static String encodeString(String value) {

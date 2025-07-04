@@ -58,7 +58,7 @@ public class Register extends AbstractHttpNativeFunction {
     private static String getBasePath(Object serviceName) {
         if (serviceName instanceof BArray) {
             List<String> strings = Arrays.stream(((BArray) serviceName).getStringArray()).map(
-                    HttpUtil::unescapeAndEncodeValue).collect(Collectors.toList());
+                    HttpUtil::unescapeAndEncodePath).collect(Collectors.toList());
             String basePath = String.join(HttpConstants.SINGLE_SLASH, strings);
             return HttpUtil.sanitizeBasePath(basePath);
         } else if (serviceName instanceof BString) {
@@ -67,8 +67,9 @@ public class Register extends AbstractHttpNativeFunction {
                 path = path.substring(1);
             }
             String[] pathSplits = path.split(HttpConstants.SINGLE_SLASH);
-            List<String> strings = Arrays.stream(pathSplits).map(
-                    HttpUtil::encodeString).collect(Collectors.toList());
+            List<String> strings = Arrays.stream(pathSplits)
+                    .map(HttpUtil::unescapeAndEncodePath)
+                    .collect(Collectors.toList());
             String basePath = String.join(HttpConstants.SINGLE_SLASH, strings);
             return HttpUtil.sanitizeBasePath(basePath);
         } else {

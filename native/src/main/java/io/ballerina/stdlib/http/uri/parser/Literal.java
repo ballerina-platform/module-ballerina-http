@@ -49,37 +49,50 @@ public class Literal<DataType, InboundMsgType> extends Node<DataType, InboundMsg
 
     @Override
     int match(String uriFragment, HttpResourceArguments variables) {
-        if (!token.endsWith("*")) {
-            if (uriFragment.length() < tokenLength) {
-                return -1;
+        int fragLen = uriFragment.length();
+        int tokenLen = token.length();
+        int fragIdx = 0, tokenIdx = 0;
+
+        while (fragIdx < fragLen && tokenIdx < tokenLen) {
+            char fragChar = uriFragment.charAt(fragIdx);
+            char tokenChar = token.charAt(tokenIdx);
+
+            if (tokenChar == '*' && tokenIdx == tokenLen - 1) {
+                return fragLen;
             }
-            for (int i = 0; i < tokenLength; i++) {
-                if (token.charAt(i) != uriFragment.charAt(i)) {
-                    if (token.charAt(i) == '*' && i == token.length() - 1) {
-                        return uriFragment.length();
-                    }
+
+            if (fragChar == tokenChar) {
+                fragIdx++;
+            } else if (fragChar == '%') {
+                if (fragIdx + 2 >= fragLen) {
                     return -1;
                 }
-            }
-            //special case request urls which contains only the root("/") to be dispatched to default resource("/*").
-            if (uriFragment.equals("/") && uriFragment.equals(token) && !this.dataElement.hasData()) {
-                return 0;
-            }
-            return tokenLength;
-        } else {
-            if (uriFragment.length() < tokenLength - 1) {
-                return -1;
-            }
-            for (int i = 0; i < tokenLength - 1; i++) {
-                if (token.charAt(i) != uriFragment.charAt(i)) {
-                    if (i == token.length() - 1) {
-                        return uriFragment.length();
+                try {
+                    int decoded = Integer.parseInt(uriFragment.substring(fragIdx + 1, fragIdx + 3), 16);
+                    if ((char) decoded != tokenChar) {
+                        return -1;
                     }
+                } catch (NumberFormatException e) {
                     return -1;
                 }
+                fragIdx += 3;
+            } else {
+                return -1;
             }
-            return uriFragment.length();
+            tokenIdx++;
         }
+
+        // Handle trailing '*' in token
+        if (tokenIdx == tokenLen - 1 && token.charAt(tokenIdx) == '*') {
+            return fragLen;
+        }
+
+        // Special case for root "/"
+        if (uriFragment.equals("/") && token.equals("/") && !this.dataElement.hasData()) {
+            return 0;
+        }
+
+        return tokenIdx == tokenLen ? fragIdx : -1;
     }
 
     @Override

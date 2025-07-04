@@ -21,6 +21,7 @@ package io.ballerina.stdlib.http.uri.parser;
 import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.api.HttpResourceArguments;
 import io.ballerina.stdlib.http.uri.URITemplateException;
+import io.ballerina.stdlib.http.uri.URIUtil;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -109,7 +110,7 @@ public abstract class Node<DataType, InboundMsgType> {
                     }
                     continue;
                 }
-                if (!subPath.contains(regex)) {
+                if (!URIUtil.containsPathSegment(subPath, regex)) {
                     continue;
                 }
                 isFound = childNode.matchAll(subUriFragment, variables, start + matchLength, inboundMsg,

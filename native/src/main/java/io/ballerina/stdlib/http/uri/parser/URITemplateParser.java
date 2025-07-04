@@ -52,8 +52,17 @@ public class URITemplateParser<DataType, InboundMgsType> {
             this.syntaxTree.getDataElement().setData(resource);
             return syntaxTree;
         }
-        int expressionIndex = 0;
         String[] segments = template.split("/");
+        return parse(segments, resource);
+    }
+
+    public Node<DataType, InboundMgsType> parse(String[] segments, DataType resource)
+            throws URITemplateException, UnsupportedEncodingException {
+        if (segments.length == 0) {
+            this.syntaxTree.getDataElement().setData(resource);
+            return syntaxTree;
+        }
+        int expressionIndex = 0;
         for (int currentElement = 0; currentElement < segments.length; currentElement++) {
             String segment = segments[currentElement];
             boolean expression = false;
