@@ -30,7 +30,7 @@ final http:Client cachingEP1 = check new ("http://localhost:" + cachingTestPort4
 service /cachingProxyService on cachingProxyListener {
 
     resource function get .(http:Caller caller, http:Request req) returns error? {
-        http:Response|error response = cachingEP1->forward("/nocachebackend", req);
+        http:Response|error response = cachingEP1->forward("/nocacheBackend", req);
         if response is http:Response {
             check caller->respond(response);
         } else {

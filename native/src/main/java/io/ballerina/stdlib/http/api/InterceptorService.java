@@ -180,7 +180,7 @@ public class InterceptorService implements Service {
     private static void updateInterceptorResourceTree(InterceptorService httpService,
                                                       InterceptorResource httpInterceptorResource) {
         try {
-            httpService.getUriTemplate().parse(httpInterceptorResource.getPath(), httpInterceptorResource,
+            httpService.getUriTemplate().parse(httpInterceptorResource.getPathSegments(), httpInterceptorResource,
                     new ResourceElementFactory());
         } catch (URITemplateException | UnsupportedEncodingException e) {
             throw new BallerinaConnectorException(e.getMessage());
