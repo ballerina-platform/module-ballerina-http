@@ -40,6 +40,10 @@ service /test\$base\&path on dispatchWithSpecialCharsListener {
     resource function get path\*with\%percentage()returns string {
         return "with percentage";
     }
+
+    resource function get path\$() returns string {
+        return "with dollar";
+    }
 }
 
 @test:Config
@@ -85,6 +89,12 @@ function testPathWithSpecialChars() returns error? {
 
     response = check dispatchWithSpecialCharsClient->get("/test%24base&path/%24path.new");
     test:assertEquals(response, "new");
+
+    response = check dispatchWithSpecialCharsClient->get("/test$base&path/path$");
+    test:assertEquals(response, "with dollar");
+
+    response = check dispatchWithSpecialCharsClient->/["test$base%26path"]/path\%24;
+    test:assertEquals(response, "with dollar");
 }
 
 @test:Config
@@ -138,6 +148,12 @@ function testPathWithSpecialCharsIncludingPercentageNegative() returns error? {
     test:assertEquals(response.statusCode, 404);
 
     response = check dispatchWithSpecialCharsClient->/test\$base\&path/path\*with\%percentage;
+    test:assertEquals(response.statusCode, 404);
+
+    response = check dispatchWithSpecialCharsClient->get("/test%2base&path/path*with/percentage");
+    test:assertEquals(response.statusCode, 404);
+
+    response = check dispatchWithSpecialCharsClient->get("/test%24base&path/path%2");
     test:assertEquals(response.statusCode, 404);
 }
 
