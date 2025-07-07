@@ -81,9 +81,6 @@ public final class URIUtil {
     private enum ComparisonMode { FULL_MATCH, CONTAINS, SUBPATH }
 
     private static int compareSegments(String encoded, String plain, ComparisonMode mode) {
-        if (encoded == null || plain == null) {
-            return -1;
-        }
         int srcIdx = 0, tgtIdx = 0, srcLen = encoded.length(), tgtLen = plain.length();
         while (srcIdx < srcLen && tgtIdx < tgtLen) {
             char srcChar = encoded.charAt(srcIdx);
@@ -158,19 +155,12 @@ public final class URIUtil {
     }
 
     public static List<String> getPathSegments(String path) {
-        if (path == null || path.isEmpty()) {
-            return List.of();
-        }
         return Stream.of(path.split("/"))
                 .filter(segment -> !segment.isEmpty())
                 .toList();
     }
 
     public static boolean isPathMatch(String encodedPath, String plainPath) {
-        if (encodedPath == null || plainPath == null) {
-            return false;
-        }
-
         List<String> encodedSegments = getPathSegments(encodedPath);
         List<String> plainSegments = getPathSegments(plainPath);
 
