@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+
+- [Add support for dispatching URLs with special characters to the associated resource signature with special characters](https://github.com/ballerina-platform/ballerina-library/issues/4154)
+
 ## [2.14.2] - 2025-06-23
 
 ### Fixed

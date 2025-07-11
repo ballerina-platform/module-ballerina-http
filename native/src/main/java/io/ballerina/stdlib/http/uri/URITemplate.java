@@ -62,6 +62,13 @@ public class URITemplate<DataType, InboundMsgType> {
         parser.parse(uriTemplate, resource);
     }
 
+    public void parse(String[] uriSegments, DataType resource,
+                      DataElementFactory<? extends DataElement<DataType, InboundMsgType>>
+                              elementCreator) throws URITemplateException, UnsupportedEncodingException {
+        URITemplateParser<DataType, InboundMsgType> parser = new URITemplateParser<>(syntaxTree, elementCreator);
+        parser.parse(uriSegments, resource);
+    }
+
     private String removeTheFirstAndLastBackSlash(String template) throws URITemplateException {
         String uri = template;
         if ("/".equals(uri)) {

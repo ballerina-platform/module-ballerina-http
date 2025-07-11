@@ -400,7 +400,8 @@ public class HttpService implements Service {
     private static void updateResourceTree(HttpService httpService, List<HttpResource> httpResources,
                                            HttpResource httpResource) {
         try {
-            httpService.getUriTemplate().parse(httpResource.getPath(), httpResource, new ResourceElementFactory());
+            httpService.getUriTemplate().parse(httpResource.getPathSegments(), httpResource,
+                    new ResourceElementFactory());
         } catch (URITemplateException | UnsupportedEncodingException e) {
             throw new BallerinaConnectorException(e.getMessage());
         }
