@@ -21,6 +21,7 @@ import io.ballerina.runtime.api.types.MethodType;
 import io.ballerina.runtime.api.types.ResourceMethodType;
 import io.ballerina.stdlib.http.api.service.signature.ParamHandler;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -37,6 +38,7 @@ public class InterceptorResource implements Resource {
     private MethodType balResource;
     private List<String> methods;
     private String path;
+    private String[] pathSegments;
     private ParamHandler paramHandler;
     private InterceptorService parentService;
     private String wildcardToken;
@@ -111,25 +113,34 @@ public class InterceptorResource implements Resource {
         return path;
     }
 
+    public String[] getPathSegments() {
+        return pathSegments;
+    }
+
     private void validateAndPopulateResourcePath(boolean fromListener) {
         ResourceMethodType resourceFunctionType = getBalResource();
         String[] paths = resourceFunctionType.getResourcePath();
         StringBuilder resourcePath = new StringBuilder();
+        List<String> pathSegmentsList = new ArrayList<>();
         int count = 0;
         for (String segment : paths) {
             resourcePath.append(HttpConstants.SINGLE_SLASH);
             if (HttpConstants.PATH_PARAM_IDENTIFIER.equals(segment)) {
                 String pathSegment = resourceFunctionType.getParamNames()[count++];
-                resourcePath.append(HttpConstants.OPEN_CURL_IDENTIFIER)
-                        .append(pathSegment).append(HttpConstants.CLOSE_CURL_IDENTIFIER);
+                String segmentToAdd = HttpConstants.OPEN_CURL_IDENTIFIER + pathSegment
+                        + HttpConstants.CLOSE_CURL_IDENTIFIER;
+                resourcePath.append(segmentToAdd);
+                pathSegmentsList.add(segmentToAdd);
             } else if (HttpConstants.PATH_REST_PARAM_IDENTIFIER.equals(segment)) {
                 this.wildcardToken = resourceFunctionType.getParamNames()[count++];
                 resourcePath.append(HttpConstants.STAR_IDENTIFIER);
+                pathSegmentsList.add(HttpConstants.STAR_IDENTIFIER);
             } else if (HttpConstants.DOT_IDENTIFIER.equals(segment)) {
                 // default set as "/"
                 break;
             } else {
-                resourcePath.append(HttpUtil.unescapeAndEncodeValue(segment));
+                resourcePath.append(HttpUtil.unescapeValue(segment));
+                pathSegmentsList.add(HttpUtil.unescapeAndEncodePath(segment));
             }
         }
         this.path = resourcePath.toString().replaceAll(HttpConstants.REGEX, SINGLE_SLASH);
@@ -138,6 +149,7 @@ public class InterceptorResource implements Resource {
                     + "resource method with default path([string... path])");
         }
         this.pathParamCount = count;
+        this.pathSegments = pathSegmentsList.toArray(new String[0]);
     }
 
     @Override

@@ -31,26 +31,149 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * Utilities related to URI processing.
  */
-public class URIUtil {
+public final class URIUtil {
 
     public static final String URI_PATH_DELIMITER = "/";
-    public static final char DOT_SEGMENT = '.';
+    private static final BitSet DONT_ENCODE = new BitSet(256);
 
-    public static String getSubPath(String path, String basePath) {
-        if (path.length() == basePath.length()) {
-            return URI_PATH_DELIMITER;
+    static {
+        for (int i = 'a'; i <= 'z'; i++) {
+            DONT_ENCODE.set(i);
+        }
+        for (int i = 'A'; i <= 'Z'; i++) {
+            DONT_ENCODE.set(i);
+        }
+        for (int i = '0'; i <= '9'; i++) {
+            DONT_ENCODE.set(i);
         }
 
-        return path.substring(basePath.length());
+        DONT_ENCODE.set('-');
+        DONT_ENCODE.set('.');
+        DONT_ENCODE.set('_');
+        DONT_ENCODE.set('~');
+
+        DONT_ENCODE.set('!');
+        DONT_ENCODE.set('$');
+        DONT_ENCODE.set('&');
+        DONT_ENCODE.set('\'');
+        DONT_ENCODE.set('(');
+        DONT_ENCODE.set(')');
+        DONT_ENCODE.set('*');
+        DONT_ENCODE.set('+');
+        DONT_ENCODE.set(',');
+        DONT_ENCODE.set(';');
+        DONT_ENCODE.set('=');
+        DONT_ENCODE.set(':');
+        DONT_ENCODE.set('@');
+    }
+
+    private enum ComparisonMode { FULL_MATCH, CONTAINS, SUBPATH }
+
+    private static int compareSegments(String encoded, String plain, ComparisonMode mode) {
+        int srcIdx = 0, tgtIdx = 0, srcLen = encoded.length(), tgtLen = plain.length();
+        while (srcIdx < srcLen && tgtIdx < tgtLen) {
+            char srcChar = encoded.charAt(srcIdx);
+            char tgtChar = plain.charAt(tgtIdx);
+            if (srcChar == tgtChar) {
+                srcIdx++; tgtIdx++;
+            } else if (srcChar == '%') {
+                if (srcIdx + 2 >= srcLen) {
+                    return -1;
+                }
+                try {
+                    int decoded = Integer.parseInt(encoded.substring(srcIdx + 1, srcIdx + 3), 16);
+                    if (decoded != tgtChar) {
+                        return -1;
+                    }
+                } catch (NumberFormatException e) {
+                    return -1;
+                }
+                srcIdx += 3; tgtIdx++;
+            } else {
+                if (mode == ComparisonMode.CONTAINS) {
+                    srcIdx++;
+                } else {
+                    return -1;
+                }
+            }
+        }
+        if (mode == ComparisonMode.FULL_MATCH) {
+            return (srcIdx == srcLen && tgtIdx == tgtLen) ? 1 : -1;
+        } else if (mode == ComparisonMode.CONTAINS) {
+            return (srcIdx == srcLen) ? 1 : -1;
+        } else {
+            return tgtIdx == tgtLen ? srcIdx : -1;
+        }
+    }
+
+    public static boolean isPathSegmentEqual(String encodedSegment, String plainSegment) {
+        return compareSegments(encodedSegment, plainSegment, ComparisonMode.FULL_MATCH) == 1;
+    }
+
+    public static boolean containsPathSegment(String encodedPart, String plainPart) {
+        return compareSegments(encodedPart, plainPart, ComparisonMode.CONTAINS) == 1;
+    }
+
+    public static String getSubPath(String path, String basePath) {
+        int idx = compareSegments(path, basePath, ComparisonMode.SUBPATH);
+        if (idx == -1) {
+            return path;
+        }
+        if (idx < path.length()) {
+            return path.substring(idx);
+        }
+        return URI_PATH_DELIMITER;
+    }
+
+    public static String encodePathSegment(String pathSegment) {
+        StringBuilder encoded = new StringBuilder();
+        byte[] bytes = pathSegment.getBytes(StandardCharsets.UTF_8);
+
+        for (byte b : bytes) {
+            int charValue = b & 0xFF;
+
+            if (DONT_ENCODE.get(charValue) &&
+                    charValue != '/' && charValue != '?' && charValue != '#' && charValue != '%') {
+                encoded.append((char) charValue);
+            } else {
+                encoded.append('%');
+                encoded.append(String.format("%02X", charValue));
+            }
+        }
+        return encoded.toString();
+    }
+
+    public static List<String> getPathSegments(String path) {
+        return Stream.of(path.split("/"))
+                .filter(segment -> !segment.isEmpty())
+                .toList();
+    }
+
+    public static boolean isPathMatch(String encodedPath, String plainPath) {
+        List<String> encodedSegments = getPathSegments(encodedPath);
+        List<String> plainSegments = getPathSegments(plainPath);
+
+        if (encodedSegments.size() < plainSegments.size()) {
+            return false;
+        }
+
+        for (int i = 0; i < plainSegments.size(); i++) {
+            if (!isPathSegmentEqual(encodedSegments.get(i), plainSegments.get(i))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @SuppressWarnings("unchecked")

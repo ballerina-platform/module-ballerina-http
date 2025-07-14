@@ -29,12 +29,12 @@ import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.api.values.BTypedesc;
+import io.ballerina.stdlib.http.uri.URIUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -189,14 +189,7 @@ public class HTTPServicesRegistry {
     public String findTheMostSpecificBasePath(String requestURIPath, Map<String, HttpService> services,
                                               List<String> sortedServiceURIs) {
         for (Object key : sortedServiceURIs) {
-            if (!requestURIPath.toLowerCase(Locale.getDefault()).contains(
-                    key.toString().toLowerCase(Locale.getDefault()))) {
-                continue;
-            }
-            if (requestURIPath.length() <= key.toString().length()) {
-                return key.toString();
-            }
-            if (requestURIPath.startsWith(key.toString().concat("/"))) {
+            if (URIUtil.isPathMatch(requestURIPath, key.toString())) {
                 return key.toString();
             }
         }

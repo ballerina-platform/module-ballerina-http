@@ -97,6 +97,7 @@ public class HttpResource implements Resource {
     private MethodType balResource;
     private List<String> methods;
     private String path;
+    private String[] pathSegments;
     private List<String> consumes;
     private List<String> produces;
     private List<String> producesSubTypes;
@@ -203,29 +204,39 @@ public class HttpResource implements Resource {
         return path;
     }
 
+    public String[] getPathSegments() {
+        return pathSegments;
+    }
+
     private void populateResourcePath() {
         ResourceMethodType resourceFunctionType = getBalResource();
         String[] paths = resourceFunctionType.getResourcePath();
         StringBuilder resourcePath = new StringBuilder();
+        List<String> pathSegmentsList = new ArrayList<>();
         int count = 0;
         for (String segment : paths) {
             resourcePath.append(HttpConstants.SINGLE_SLASH);
             if (HttpConstants.PATH_PARAM_IDENTIFIER.equals(segment)) {
                 String pathSegment = resourceFunctionType.getParamNames()[count++];
-                resourcePath.append(HttpConstants.OPEN_CURL_IDENTIFIER)
-                        .append(pathSegment).append(HttpConstants.CLOSE_CURL_IDENTIFIER);
+                String segmentToAdd = HttpConstants.OPEN_CURL_IDENTIFIER + pathSegment +
+                        HttpConstants.CLOSE_CURL_IDENTIFIER;
+                resourcePath.append(segmentToAdd);
+                pathSegmentsList.add(segmentToAdd);
             } else if (HttpConstants.PATH_REST_PARAM_IDENTIFIER.equals(segment)) {
                 this.wildcardToken = resourceFunctionType.getParamNames()[count++];
                 resourcePath.append(HttpConstants.STAR_IDENTIFIER);
+                pathSegmentsList.add(HttpConstants.STAR_IDENTIFIER);
             } else if (HttpConstants.DOT_IDENTIFIER.equals(segment)) {
                 // default set as "/"
                 break;
             } else {
-                resourcePath.append(HttpUtil.unescapeAndEncodeValue(segment));
+                resourcePath.append(HttpUtil.unescapeValue(segment));
+                pathSegmentsList.add(HttpUtil.unescapeAndEncodePath(segment));
             }
         }
         this.path = resourcePath.toString().replaceAll(HttpConstants.REGEX, SINGLE_SLASH);
         this.pathParamCount = count;
+        this.pathSegments = pathSegmentsList.toArray(new String[0]);
     }
 
     @Override
