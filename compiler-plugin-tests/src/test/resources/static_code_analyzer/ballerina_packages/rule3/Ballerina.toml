@@ -1,0 +1,4 @@
+[package]
+org = "ballerina"
+name = "rule3"
+version = "0.1.0"
