@@ -159,6 +159,7 @@ public class ConnectionManager {
                                            GenericObjectPool trgHlrConnPool,
                                            String trgHlrConnPoolId) throws Exception {
         TargetChannel targetChannel = (TargetChannel) trgHlrConnPool.borrowObject();
+        targetChannel.setPool(trgHlrConnPool);
         if (sourceHandler != null) {
             targetChannel.setCorrelatedSource(sourceHandler);
         } else if (http2SourceHandler != null) {
