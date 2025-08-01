@@ -17,6 +17,7 @@ package io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool;
 
 
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.TargetChannel;
+import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
 import org.apache.commons.pool.PoolableObjectFactory;
 import org.apache.commons.pool.impl.GenericObjectPool;
@@ -58,12 +59,15 @@ public class PoolableTargetChannelFactoryPerSrcHndlr implements PoolableObjectFa
 
     @Override
     public void destroyObject(Object o) throws Exception {
-        if (((TargetChannel) o).getChannel().isActive()) {
+        TargetChannel targetChannel = (TargetChannel) o;
+        Channel nettyChannel = targetChannel.getChannel();
+        if (nettyChannel != null && nettyChannel.isActive()) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Original Channel {} is returned to the pool. ", ((TargetChannel) o).getChannel().id());
+                LOG.debug("Original Channel {} is returned to the pool. ", nettyChannel.id());
             }
             this.genericObjectPool.returnObject(o);
         } else {
+            // HTTP/2 channels go here when the channel is destroyed
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Original Channel is destroyed. ");
             }

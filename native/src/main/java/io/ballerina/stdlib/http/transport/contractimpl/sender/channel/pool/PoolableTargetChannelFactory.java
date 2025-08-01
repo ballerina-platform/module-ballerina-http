@@ -21,6 +21,7 @@ import io.ballerina.stdlib.http.transport.contractimpl.sender.ConnectionAvailabi
 import io.ballerina.stdlib.http.transport.contractimpl.sender.HttpClientChannelInitializer;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.BootstrapConfiguration;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.TargetChannel;
+import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ClientChannel;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -139,13 +140,27 @@ public class PoolableTargetChannelFactory implements PoolableObjectFactory {
 
     @Override
     public void destroyObject(Object o) throws Exception {
-        Channel targetNettyChannel = ((TargetChannel) o).getChannel();
-        if (targetNettyChannel.isOpen()) {
-            targetNettyChannel.close();
-        }
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Destroying channel: {}", targetNettyChannel.id());
+        TargetChannel targetChannel = (TargetChannel) o;
+        Channel http1Channel = targetChannel.getChannel();
+        if (http1Channel != null) {
+            // HTTP/1.1 case
+            if (http1Channel.isOpen()) {
+                http1Channel.close();
+            }
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Destroying channel: {}", http1Channel.id());
+            }
+        } else {
+            // HTTP/2 case
+            Http2ClientChannel http2ClientChannel = targetChannel.getHttp2ClientChannel();
+            if (http2ClientChannel != null && http2ClientChannel.getChannel() != null) {
+                Channel channel = http2ClientChannel.getChannel();
+                if (channel.isOpen()) {
+                    channel.close();
+                }
+            } else {
+                LOG.warn("TargetChannel does not have a valid channel to destroy.");
+            }
         }
     }
 
