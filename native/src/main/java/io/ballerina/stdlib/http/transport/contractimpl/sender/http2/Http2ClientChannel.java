@@ -21,6 +21,7 @@ package io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
+import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.TargetChannel;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -65,9 +66,10 @@ public class Http2ClientChannel {
     private long timeSinceMarkedAsStale = 0;
     private AtomicLong timeSinceMarkedAsIdle = new AtomicLong(0);
     private AtomicBoolean isStale = new AtomicBoolean(false);
+    private TargetChannel targetChannel;
 
     public Http2ClientChannel(Http2ConnectionManager http2ConnectionManager, Http2Connection connection,
-                              HttpRoute httpRoute, Channel channel) {
+                              HttpRoute httpRoute, Channel channel, TargetChannel targetChannel) {
         this.http2ConnectionManager = http2ConnectionManager;
         this.channel = channel;
         this.connection = connection;
@@ -77,6 +79,7 @@ public class Http2ClientChannel {
         dataEventListeners = new HashMap<>();
         inFlightMessages = new ConcurrentHashMap<>();
         promisedMessages = new ConcurrentHashMap<>();
+        this.targetChannel = targetChannel;
     }
 
     /**
@@ -363,5 +366,13 @@ public class Http2ClientChannel {
 
     HttpRoute getHttpRoute() {
         return httpRoute;
+    }
+
+    public void invalidate() {
+        if (targetChannel != null) {
+            targetChannel.invalidate();
+        } else {
+            LOG.warn("Target channel is not set for the Http2ClientChannel: {}", this);
+        }
     }
 }
