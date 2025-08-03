@@ -19,33 +19,27 @@ import ballerina/lang.runtime;
 import ballerina/test;
 import ballerina/http_test_common as common;
 
-listener http:Listener https11BackendListener = new (backend_http11_https_port,
-    httpVersion = http:HTTP_1_1,
-    secureSocket = {
-        'key: {
-            certFile: common:CERT_FILE,
-            'keyFile: common:KEY_FILE
-        }
+listener http:Listener httpsBackendListener = new (backend_https_port, secureSocket = {
+    'key: {
+        certFile: common:CERT_FILE,
+        'keyFile: common:KEY_FILE
     }
-);
+});
 
-listener http:Listener http11BackendListener = new (backend_http11_http_port, httpVersion = http:HTTP_1_1);
+listener http:Listener httpBackendListener = new (backend_http_port);
 
-service /api on https11BackendListener, http11BackendListener {
+service /api on httpsBackendListener, httpBackendListener {
     resource function get path() returns json => {message: "Hello from backend!"};
 }
 
-listener http:Listener passthroughH1Listener = new (http11_https_passthrough_port,
-    httpVersion = http:HTTP_1_1,
-    secureSocket = {
-        'key: {
-            certFile: common:CERT_FILE,
-            'keyFile: common:KEY_FILE
-        }
+listener http:Listener passthroughH2Listener = new (https_passthrough_port, secureSocket = {
+    'key: {
+        certFile: common:CERT_FILE,
+        'keyFile: common:KEY_FILE
     }
-);
+});
 
-listener http:Listener passthroughH1CListener = new (http11_http_passthrough_port, httpVersion = http:HTTP_1_1);
+listener http:Listener passthroughH2CListener = new (http_passthrough_port);
 
 http:PoolConfiguration passthroughPoolConfig = {
     maxActiveConnections: 5,
@@ -56,51 +50,46 @@ http:PoolConfiguration passthroughPoolConfig = {
     timeBetweenEvictionRuns: 2
 };
 
-final http:Client backendH1Client = check new (string `https://localhost:${backend_http11_https_port}/api`, config = {
-    httpVersion: http:HTTP_1_1,
+final http:Client backendH2Client = check new (string `https://localhost:${backend_https_port}/api`, config = {
     poolConfig: passthroughPoolConfig,
     secureSocket: {
         cert: common:CERT_FILE
     }
 });
 
-final http:Client backendH1CClient = check new (string `http://localhost:${backend_http11_http_port}/api`, config = {
-    httpVersion: http:HTTP_1_1,
+final http:Client backendH2CClient = check new (string `http://localhost:${backend_http_port}/api`, config = {
     poolConfig: passthroughPoolConfig
 });
 
-service /passthrough on passthroughH1Listener, passthroughH1CListener {
-    resource function get h1() returns json|error {
-        return backendH1Client->/path;
+service /passthrough on passthroughH2Listener, passthroughH2CListener {
+    resource function get h2() returns json|error {
+        return backendH2Client->/path;
     }
 
-    resource function get h1c() returns json|error {
-        return backendH1CClient->/path;
+    resource function get h2c() returns json|error {
+        return backendH2CClient->/path;
     }
 }
 
-final http:Client passthroughH1TestClient = check new (string `https://localhost:${http11_https_passthrough_port}/passthrough`, config = {
-    httpVersion: http:HTTP_1_1,
+final http:Client passthroughH2TestClient = check new (string `https://localhost:${https_passthrough_port}/passthrough`, config = {
     secureSocket: {
         cert: common:CERT_FILE
     }
 });
 
-final http:Client passthroughH1CTestClient = check new (string `http://localhost:${http11_http_passthrough_port}/passthrough`, config = {
-    httpVersion: http:HTTP_1_1
-});
+final http:Client passthroughH2CTestClient = check new (string `http://localhost:${http_passthrough_port}/passthrough`, config = {});
 
 @test:Config {
-    groups: ["clientConnectionEvictionInPassthrough"]
+    groups: ["http2ClientConnectionEvictionInPassthrough"]
 }
-function testConnectionEvictionInH1PassthroughToH1Backend() returns error? {
+function testConnectionEvictionInH2PassthroughToH2Backend() returns error? {
     foreach int i in 0 ... 4 {
-        json _ = check passthroughH1TestClient->/h1;
+        json _ = check passthroughH2TestClient->/h2;
         // Wait until the connection becomes IDLE and evicted
         runtime:sleep(5);
     }
 
-    json|error response = passthroughH1TestClient->/h1;
+    json|error response = passthroughH2TestClient->/h2;
     if response is error {
         test:assertFail("Expected a successful response, but got an error: " + response.message());
     }
@@ -109,16 +98,16 @@ function testConnectionEvictionInH1PassthroughToH1Backend() returns error? {
 }
 
 @test:Config {
-    groups: ["clientConnectionEvictionInPassthrough"]
+    groups: ["http2ClientConnectionEvictionInPassthrough"]
 }
-function testConnectionEvictionInH1PassthroughToH1CBackend() returns error? {
+function testConnectionEvictionInH2PassthroughToH2CBackend() returns error? {
     foreach int i in 0 ... 4 {
-        json _ = check passthroughH1TestClient->/h1c;
+        json _ = check passthroughH2TestClient->/h2c;
         // Wait until the connection becomes IDLE and evicted
         runtime:sleep(5);
     }
 
-    json|error response = passthroughH1TestClient->/h1c;
+    json|error response = passthroughH2TestClient->/h2c;
     if response is error {
         test:assertFail("Expected a successful response, but got an error: " + response.message());
     }
@@ -127,16 +116,16 @@ function testConnectionEvictionInH1PassthroughToH1CBackend() returns error? {
 }
 
 @test:Config {
-    groups: ["clientConnectionEvictionInPassthrough"]
+    groups: ["http2ClientConnectionEvictionInPassthrough"]
 }
-function testConnectionEvictionInH1CPassthroughToH1Backend() returns error? {
+function testConnectionEvictionInH2CPassthroughToH2Backend() returns error? {
     foreach int i in 0 ... 4 {
-        json _ = check passthroughH1CTestClient->/h1;
+        json _ = check passthroughH2CTestClient->/h2;
         // Wait until the connection becomes IDLE and evicted
         runtime:sleep(5);
     }
 
-    json|error response = passthroughH1CTestClient->/h1;
+    json|error response = passthroughH2CTestClient->/h2;
     if response is error {
         test:assertFail("Expected a successful response, but got an error: " + response.message());
     }
@@ -145,16 +134,16 @@ function testConnectionEvictionInH1CPassthroughToH1Backend() returns error? {
 }
 
 @test:Config {
-    groups: ["clientConnectionEvictionInPassthrough"]
+    groups: ["http2ClientConnectionEvictionInPassthrough"]
 }
-function testConnectionEvictionInH1CPassthroughToH1CBackend() returns error? {
+function testConnectionEvictionInH2CPassthroughToH2CBackend() returns error? {
     foreach int i in 0 ... 4 {
-        json _ = check passthroughH1CTestClient->/h1c;
+        json _ = check passthroughH2CTestClient->/h2c;
         // Wait until the connection becomes IDLE and evicted
         runtime:sleep(5);
     }
 
-    json|error response = passthroughH1CTestClient->/h1c;
+    json|error response = passthroughH2CTestClient->/h2c;
     if response is error {
         test:assertFail("Expected a successful response, but got an error: " + response.message());
     }

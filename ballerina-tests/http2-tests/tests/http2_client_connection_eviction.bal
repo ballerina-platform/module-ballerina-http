@@ -19,19 +19,16 @@ import ballerina/lang.runtime;
 import ballerina/test;
 import ballerina/http_test_common as common;
 
-listener http:Listener https11Listener = new (http11_https_port,
-    httpVersion = http:HTTP_1_1,
-    secureSocket = {
-        'key: {
-            certFile: common:CERT_FILE,
-            'keyFile: common:KEY_FILE
-        }
+listener http:Listener httpsListener = new (https_port, secureSocket = {
+    'key: {
+        certFile: common:CERT_FILE,
+        'keyFile: common:KEY_FILE
     }
-);
+});
 
-listener http:Listener http11Listener = new (http11_http_port, httpVersion = http:HTTP_1_1);
+listener http:Listener httpListener = new (http_port);
 
-service /api on https11Listener, http11Listener {
+service /api on httpsListener, httpListener {
     resource function get path() returns json => {message: "Hello from backend!"};
 
     resource function get delay() returns json {
@@ -49,30 +46,28 @@ http:PoolConfiguration poolConfig = {
     timeBetweenEvictionRuns: 2
 };
 
-final http:Client h1ClientHttps = check new (string`https://localhost:${http11_https_port}/api`, config = {
-    httpVersion: http:HTTP_1_1,
+final http:Client h2ClientHttps = check new (string`https://localhost:${https_port}/api`, config = {
     poolConfig: poolConfig,
     secureSocket: {
         cert: common:CERT_FILE
     }
 });
 
-final http:Client h1cClient = check new (string`http://localhost:${http11_http_port}/api`, config = {
-    httpVersion: http:HTTP_1_1,
+final http:Client h2cClient = check new (string`http://localhost:${http_port}/api`, config = {
     poolConfig: poolConfig
 });
 
 @test:Config {
-    groups: ["clientConnectionEviction"]
+    groups: ["http2ClientConnectionEviction"]
 }
-function testConnectionEvictionInHttpSecureClient() returns error? {
+function testConnectionEvictionInHttp2SecureClient() returns error? {
     foreach int i in 0 ... 4 {
-        json _ = check h1ClientHttps->/path;
+        json _ = check h2ClientHttps->/path;
         // Wait until the connection becomes IDLE and evicted
         runtime:sleep(5);
     }
 
-    json|error response = h1ClientHttps->/path;
+    json|error response = h2ClientHttps->/path;
     if response is error {
         test:assertFail("Expected a successful response, but got an error: " + response.message());
     }
@@ -80,16 +75,16 @@ function testConnectionEvictionInHttpSecureClient() returns error? {
 }
 
 @test:Config {
-    groups: ["clientConnectionEviction"]
+    groups: ["http2ClientConnectionEviction"]
 }
-function testConnectionEvictionInHttpClient() returns error? {
+function testConnectionEvictionInHttp2Client() returns error? {
     foreach int i in 0 ... 4 {
-        json _ = check h1cClient->/path;
+        json _ = check h2cClient->/path;
         // Wait until the connection becomes IDLE and evicted
         runtime:sleep(5);
     }
 
-    json|error response = h1cClient->/path;
+    json|error response = h2cClient->/path;
     if response is error {
         test:assertFail("Expected a successful response, but got an error: " + response.message());
     }
