@@ -38,17 +38,11 @@ const int httpClientHostHeaderTestPort = 9606;
 const int passthroughHostTestPort1 = 9607;
 const int passthroughHostTestPort2 = 9608;
 
-const int https_port = 9620;
-const int http_port = 9621;
 const int http11_https_port = 9622;
 const int http11_http_port = 9623;
 
-const int https_passthrough_port = 9624;
-const int http_passthrough_port = 9625;
 const int http11_https_passthrough_port = 9626;
 const int http11_http_passthrough_port = 9627;
 
-const int backend_https_port = 9628;
-const int backend_http_port = 9629;
 const int backend_http11_https_port = 9630;
-const int backend_http11_http_port = 9631;
+const int backend_http11_http_port = 9632;
