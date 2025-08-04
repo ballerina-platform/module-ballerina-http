@@ -72,10 +72,7 @@ function testConnectionEvictionInHttpSecureClient() returns error? {
         runtime:sleep(5);
     }
 
-    json|error response = h1ClientHttps->/path;
-    if response is error {
-        test:assertFail("Expected a successful response, but got an error: " + response.message());
-    }
+    json response = check h1ClientHttps->/path;
     test:assertEquals(response, {message: "Hello from backend!"});
 }
 
@@ -89,9 +86,6 @@ function testConnectionEvictionInHttpClient() returns error? {
         runtime:sleep(5);
     }
 
-    json|error response = h1cClient->/path;
-    if response is error {
-        test:assertFail("Expected a successful response, but got an error: " + response.message());
-    }
+    json response = check h1cClient->/path;
     test:assertEquals(response, {message: "Hello from backend!"});
 }

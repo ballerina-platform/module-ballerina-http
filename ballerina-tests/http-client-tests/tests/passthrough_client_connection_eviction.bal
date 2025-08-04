@@ -100,11 +100,7 @@ function testConnectionEvictionInH1PassthroughToH1Backend() returns error? {
         runtime:sleep(5);
     }
 
-    json|error response = passthroughH1TestClient->/h1;
-    if response is error {
-        test:assertFail("Expected a successful response, but got an error: " + response.message());
-    }
-
+    json response = check passthroughH1TestClient->/h1;
     test:assertEquals(response, {message: "Hello from backend!"});
 }
 
@@ -118,11 +114,7 @@ function testConnectionEvictionInH1PassthroughToH1CBackend() returns error? {
         runtime:sleep(5);
     }
 
-    json|error response = passthroughH1TestClient->/h1c;
-    if response is error {
-        test:assertFail("Expected a successful response, but got an error: " + response.message());
-    }
-
+    json response = check passthroughH1TestClient->/h1c;
     test:assertEquals(response, {message: "Hello from backend!"});
 }
 
@@ -136,11 +128,7 @@ function testConnectionEvictionInH1CPassthroughToH1Backend() returns error? {
         runtime:sleep(5);
     }
 
-    json|error response = passthroughH1CTestClient->/h1;
-    if response is error {
-        test:assertFail("Expected a successful response, but got an error: " + response.message());
-    }
-
+    json response = check passthroughH1CTestClient->/h1;
     test:assertEquals(response, {message: "Hello from backend!"});
 }
 
@@ -154,10 +142,6 @@ function testConnectionEvictionInH1CPassthroughToH1CBackend() returns error? {
         runtime:sleep(5);
     }
 
-    json|error response = passthroughH1CTestClient->/h1c;
-    if response is error {
-        test:assertFail("Expected a successful response, but got an error: " + response.message());
-    }
-
+    json response = check passthroughH1CTestClient->/h1c;
     test:assertEquals(response, {message: "Hello from backend!"});
 }
