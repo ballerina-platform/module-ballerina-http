@@ -173,14 +173,14 @@ public class TargetChannel {
     }
 
     public void invalidate() {
-        if (pool != null) {
-            try {
-                pool.invalidateObject(this);
-            } catch (Exception e) {
-                LOG.error("Error while invalidating the channel: {}", this, e);
-            }
-        } else {
-            LOG.warn("Pool is not set for the channel: {}", this);
+        if (pool == null) {
+            LOG.warn("Pool is not set for the channel: {}. Cannot invalidate.", this);
+            return;
+        }
+        try {
+            pool.invalidateObject(this);
+        } catch (Exception e) {
+            LOG.error("Error while invalidating the channel: {}", this, e);
         }
     }
 }
