@@ -32,6 +32,7 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import org.apache.commons.pool.impl.GenericObjectPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,6 +60,7 @@ public class TargetChannel {
     private final ChannelFuture channelFuture;
     private final HandlerExecutor handlerExecutor;
     private final ConnectionAvailabilityFuture connectionAvailabilityFuture;
+    private GenericObjectPool pool;
 
     public TargetChannel(HttpClientChannelInitializer httpClientChannelInitializer, ChannelFuture channelFuture,
                          HttpRoute httpRoute, ConnectionAvailabilityFuture connectionAvailabilityFuture) {
@@ -70,7 +72,7 @@ public class TargetChannel {
             http2ClientChannel =
                     new Http2ClientChannel(httpClientChannelInitializer.getHttp2ConnectionManager(),
                                            httpClientChannelInitializer.getConnection(),
-                                           httpRoute, channelFuture.channel());
+                                           httpRoute, channelFuture.channel(), this);
         }
         this.connectionAvailabilityFuture = connectionAvailabilityFuture;
     }
@@ -164,5 +166,21 @@ public class TargetChannel {
 
     public HttpRoute getHttpRoute() {
         return httpRoute;
+    }
+
+    public void setPool(GenericObjectPool pool) {
+        this.pool = pool;
+    }
+
+    public void invalidate() {
+        if (pool == null) {
+            LOG.warn("Pool is not set for the channel: {}. Cannot invalidate.", this);
+            return;
+        }
+        try {
+            pool.invalidateObject(this);
+        } catch (Exception e) {
+            LOG.error("Error while invalidating the channel: {}", this, e);
+        }
     }
 }
