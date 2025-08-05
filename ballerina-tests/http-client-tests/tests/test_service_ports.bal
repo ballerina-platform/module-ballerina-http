@@ -37,3 +37,12 @@ const int http2ClientHostHeaderTestPort = 9605;
 const int httpClientHostHeaderTestPort = 9606;
 const int passthroughHostTestPort1 = 9607;
 const int passthroughHostTestPort2 = 9608;
+
+const int http11_https_port = 9622;
+const int http11_http_port = 9623;
+
+const int http11_https_passthrough_port = 9626;
+const int http11_http_passthrough_port = 9627;
+
+const int backend_http11_https_port = 9630;
+const int backend_http11_http_port = 9632;
