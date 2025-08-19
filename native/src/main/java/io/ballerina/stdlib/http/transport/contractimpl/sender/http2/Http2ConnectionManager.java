@@ -39,9 +39,13 @@ public class Http2ConnectionManager {
 
     private final Http2ChannelPool http2ChannelPool = new Http2ChannelPool();
     private final BlockingQueue<Http2ClientChannel> http2StaleClientChannels = new LinkedBlockingQueue<>();
-    private final BlockingQueue<Http2ClientChannel> http2ClientChannels = new LinkedBlockingQueue<>();
+    private final BlockingQueue<Http2ClientChannel> http2IdleClientChannels = new LinkedBlockingQueue<>();
     private final PoolConfiguration poolConfiguration;
     private final ReentrantLock lock = new ReentrantLock();
+
+    private enum EvictionType {
+        STALE, IDLE
+    }
 
     public Http2ConnectionManager(PoolConfiguration poolConfiguration) {
         this.poolConfiguration = poolConfiguration;
@@ -183,15 +187,15 @@ public class Http2ConnectionManager {
     }
 
     void removeClosedChannelFromIdlePool(Http2ClientChannel http2ClientChannel) {
-        if (!http2ClientChannels.remove(http2ClientChannel)) {
+        if (!http2IdleClientChannels.remove(http2ClientChannel)) {
             logger.warn("Specified channel does not exist in the HTTP2 client channel list.");
         }
     }
 
     void markClientChannelAsIdle(Http2ClientChannel http2ClientChannel) {
         http2ClientChannel.setTimeSinceMarkedAsIdle(System.currentTimeMillis());
-        if (!http2ClientChannels.contains(http2ClientChannel)) {
-            http2ClientChannels.add(http2ClientChannel);
+        if (!http2IdleClientChannels.contains(http2ClientChannel)) {
+            http2IdleClientChannels.add(http2ClientChannel);
         }
     }
 
@@ -203,12 +207,12 @@ public class Http2ConnectionManager {
                 http2StaleClientChannels.forEach(http2ClientChannel -> {
                     if (poolConfiguration.getMinIdleTimeInStaleState() == -1) {
                         if (!http2ClientChannel.hasInFlightMessages()) {
-                            closeChannelAndEvict(http2ClientChannel);
+                            closeChannelAndEvict(http2ClientChannel, EvictionType.STALE);
                         }
                     } else if ((System.currentTimeMillis() - http2ClientChannel.getTimeSinceMarkedAsStale()) >
                             poolConfiguration.getMinIdleTimeInStaleState()) {
                         closeInFlightRequests(http2ClientChannel);
-                        closeChannelAndEvict(http2ClientChannel);
+                        closeChannelAndEvict(http2ClientChannel, EvictionType.STALE);
                     }
                 });
             }
@@ -222,16 +226,16 @@ public class Http2ConnectionManager {
         TimerTask timerTask = new TimerTask() {
             @Override
             public void run() {
-                http2ClientChannels.forEach(http2ClientChannel -> {
+                http2IdleClientChannels.forEach(http2ClientChannel -> {
                     if (poolConfiguration.getMinEvictableIdleTime() == -1) {
                         if (!http2ClientChannel.hasInFlightMessages()) {
-                            closeChannelAndEvict(http2ClientChannel);
+                            closeChannelAndEvict(http2ClientChannel, EvictionType.IDLE);
                         }
                     } else if ((System.currentTimeMillis() - http2ClientChannel.getTimeSinceMarkedAsIdle()) >
                                     poolConfiguration.getMinEvictableIdleTime()) {
                         closeInFlightRequests(http2ClientChannel);
                         removeClientChannel(http2ClientChannel.getHttpRoute(), http2ClientChannel);
-                        closeChannelAndEvict(http2ClientChannel);
+                        closeChannelAndEvict(http2ClientChannel, EvictionType.IDLE);
                     }
                 });
             }
@@ -260,8 +264,12 @@ public class Http2ConnectionManager {
                 httpRoute.getConfigHash();
     }
 
-    private void closeChannelAndEvict(Http2ClientChannel http2ClientChannel) {
-        removeClosedChannelFromIdlePool(http2ClientChannel);
-        http2ClientChannel.getConnection().close(http2ClientChannel.getChannel().newPromise());
+    private void closeChannelAndEvict(Http2ClientChannel http2ClientChannel, EvictionType evictionType) {
+        if (evictionType == EvictionType.STALE) {
+            removeClosedChannelFromStalePool(http2ClientChannel);
+        } else {
+            removeClosedChannelFromIdlePool(http2ClientChannel);
+        }
+        http2ClientChannel.invalidate();
     }
 }
