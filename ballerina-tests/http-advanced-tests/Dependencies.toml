@@ -57,7 +57,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "data.jsondata"
-version = "1.1.0"
+version = "1.1.1"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
@@ -82,7 +82,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "http"
-version = "2.14.3"
+version = "2.14.4"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "auth"},
@@ -116,7 +116,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "http_advanced_tests"
-version = "2.14.3"
+version = "2.14.4"
 dependencies = [
 	{org = "ballerina", name = "crypto"},
 	{org = "ballerina", name = "file"},
@@ -136,7 +136,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "http_test_common"
-version = "2.14.3"
+version = "2.14.4"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "http"},
