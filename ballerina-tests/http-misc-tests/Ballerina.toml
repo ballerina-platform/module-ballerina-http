@@ -1,17 +1,17 @@
 [package]
 org = "ballerina"
 name = "http_misc_tests"
-version = "2.14.3"
+version = "2.15.0"
 
 [[dependency]]
 org = "ballerina"
 name = "http_test_common"
 repository = "local"
-version = "2.14.3"
+version = "2.15.0"
 
 [platform.java21]
 graalvmCompatible = true
 
 [[platform.java21.dependency]]
 scope = "testOnly"
-path = "../../test-utils/build/libs/http-test-utils-2.14.3-SNAPSHOT.jar"
+path = "../../test-utils/build/libs/http-test-utils-2.15.0-SNAPSHOT.jar"
