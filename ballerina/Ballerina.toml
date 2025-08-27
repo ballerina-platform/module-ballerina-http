@@ -1,7 +1,7 @@
 [package]
 org = "ballerina"
 name = "http"
-version = "2.14.3"
+version = "2.15.0"
 authors = ["Ballerina"]
 keywords = ["http", "network", "service", "listener", "client"]
 repository = "https://github.com/ballerina-platform/module-ballerina-http"
@@ -20,8 +20,8 @@ graalvmCompatible = true
 [[platform.java21.dependency]]
 groupId = "io.ballerina.stdlib"
 artifactId = "http-native"
-version = "2.14.3"
-path = "../native/build/libs/http-native-2.14.3-SNAPSHOT.jar"
+version = "2.15.0"
+path = "../native/build/libs/http-native-2.15.0-SNAPSHOT.jar"
 
 [[platform.java21.dependency]]
 groupId = "io.ballerina.stdlib"
