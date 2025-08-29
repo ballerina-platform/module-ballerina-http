@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
+import static io.ballerina.scan.RuleKind.VULNERABILITY;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpRule.AVOID_DEFAULT_RESOURCE_ACCESSOR;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpRule.AVOID_PERMISSIVE_CORS;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpRule.AVOID_TRAVERSING_ATTACKS;
@@ -84,18 +85,18 @@ public class StaticCodeAnalyzerTest {
             Assertions.assertRule(
                     rules,
                     "ballerina/http:1",
-                    "Avoid allowing default resource accessor",
-                    RuleKind.VULNERABILITY);
+                    AVOID_DEFAULT_RESOURCE_ACCESSOR.getDescription(),
+                    VULNERABILITY);
             Assertions.assertRule(
                     rules,
                     "ballerina/http:2",
-                    "Avoid permissive Cross-Origin Resource Sharing",
-                    RuleKind.VULNERABILITY);
+                    AVOID_PERMISSIVE_CORS.getDescription(),
+                    VULNERABILITY);
             Assertions.assertRule(
                     rules,
                     "ballerina/http:3",
-                    "Server-side requests should not be vulnerable to traversing attacks",
-                    RuleKind.VULNERABILITY);
+                    AVOID_TRAVERSING_ATTACKS.getDescription(),
+                    VULNERABILITY);
 
             // validate the issues
             List<Issue> issues = testRunner.getIssues();
