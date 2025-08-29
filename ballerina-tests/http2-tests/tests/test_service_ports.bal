@@ -66,3 +66,12 @@ const int headerParamBindingTestPort = 9631;
 
 const int tls12Port = 9249;
 const int tls13Port = 9250;
+
+const int https_port = 9620;
+const int http_port = 9621;
+
+const int https_passthrough_port = 9624;
+const int http_passthrough_port = 9625;
+
+const int backend_https_port = 9628;
+const int backend_http_port = 9629;
