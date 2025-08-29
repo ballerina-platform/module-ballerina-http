@@ -25,6 +25,7 @@ import io.ballerina.scan.Reporter;
 import java.util.List;
 
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.ANNOTATION;
+import static io.ballerina.compiler.syntax.tree.SyntaxKind.CLIENT_RESOURCE_ACCESS_ACTION;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.CLASS_DEFINITION;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.OBJECT_TYPE_DESC;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.SERVICE_DECLARATION;
@@ -44,5 +45,6 @@ public class HttpStaticCodeAnalyzer extends CodeAnalyzer {
         analysisContext.addSyntaxNodeAnalysisTask(new HttpServiceAnalyzer(reporter),
                 List.of(SERVICE_DECLARATION, OBJECT_TYPE_DESC, CLASS_DEFINITION));
         analysisContext.addSyntaxNodeAnalysisTask(new HttpAnnotationAnalyzer(reporter), ANNOTATION);
+        analysisContext.addSyntaxNodeAnalysisTask(new HttpClientAnalyzer(reporter), CLIENT_RESOURCE_ACCESS_ACTION);
     }
 }

@@ -35,10 +35,12 @@ dependencies {
     checkstyle "com.puppycrawl.tools:checkstyle:${puppycrawlCheckstyleVersion}"
 
     implementation project(':http-compiler-plugin')
-    
+
     testImplementation group: 'org.ballerinalang', name: 'ballerina-lang', version: "${ballerinaLangVersion}"
     testImplementation group: 'org.ballerinalang', name: 'ballerina-tools-api', version: "${ballerinaLangVersion}"
     testImplementation group: 'org.ballerinalang', name: 'ballerina-parser', version: "${ballerinaLangVersion}"
+    testImplementation group: 'io.ballerina.scan', name: 'scan-command', version: "${balScanVersion}"
+    testImplementation group: 'io.ballerina.scan', name: 'scan-command-test-utils', version: "${balScanVersion}"
     testImplementation group: 'org.testng', name: 'testng', version: "${testngVersion}"
     testImplementation group: 'com.google.code.gson', name: 'gson', version: "${gsonVersion}"
 }
@@ -50,7 +52,7 @@ tasks.withType(Checkstyle) {
 checkstyle {
     toolVersion "${project.puppycrawlCheckstyleVersion}"
     configFile rootProject.file("build-config/checkstyle/build/checkstyle.xml")
-    configProperties = ["suppressionFile" : file("${rootDir}/build-config/checkstyle/build/suppressions.xml")]
+    configProperties = ["suppressionFile": file("${rootDir}/build-config/checkstyle/build/suppressions.xml")]
 }
 
 checkstyleTest.dependsOn(":checkstyle:downloadCheckstyleRuleFiles")
@@ -67,7 +69,7 @@ spotbugsTest {
         text.enabled = true
     }
     def excludeFile = file("${project.projectDir}/spotbugs-exclude.xml")
-    if(excludeFile.exists()) {
+    if (excludeFile.exists()) {
         excludeFilter = excludeFile
     }
 }

@@ -8,5 +8,10 @@
     "id": 2,
     "kind": "VULNERABILITY",
     "description": "Avoid permissive Cross-Origin Resource Sharing"
+  },
+  {
+    "id": 3,
+    "kind": "VULNERABILITY",
+    "description": "Server-side requests should not be vulnerable to traversing attacks"
   }
 ]

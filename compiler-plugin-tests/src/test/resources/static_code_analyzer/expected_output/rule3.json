@@ -1,0 +1,122 @@
+[
+  {
+    "location": {
+      "filePath": "function.bal",
+      "startLine": 28,
+      "endLine": 28,
+      "startColumn": 0,
+      "endColumn": 6,
+      "startOffset": 935,
+      "length": 6
+    },
+    "rule": {
+      "id": "ballerina:3",
+      "numericId": 3,
+      "description": "Non isolated public function",
+      "ruleKind": "CODE_SMELL"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule3/function.bal",
+    "filePath": "C:/Users/nureka/Documents/GitHub/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule3/function.bal"
+  },
+  {
+    "location": {
+      "filePath": "function.bal",
+      "startLine": 30,
+      "endLine": 30,
+      "startColumn": 26,
+      "endColumn": 49,
+      "startOffset": 1086,
+      "length": 23
+    },
+    "rule": {
+      "id": "ballerina/http:3",
+      "numericId": 3,
+      "description": "Server-side requests should not be vulnerable to traversing attacks",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule3/function.bal",
+    "filePath": "C:/Users/nureka/Documents/GitHub/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule3/function.bal"
+  },
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 21,
+      "endLine": 21,
+      "startColumn": 30,
+      "endColumn": 53,
+      "startOffset": 886,
+      "length": 23
+    },
+    "rule": {
+      "id": "ballerina/http:3",
+      "numericId": 3,
+      "description": "Server-side requests should not be vulnerable to traversing attacks",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule3/service.bal",
+    "filePath": "C:/Users/nureka/Documents/GitHub/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule3/service.bal"
+  },
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 27,
+      "endLine": 27,
+      "startColumn": 30,
+      "endColumn": 61,
+      "startOffset": 1146,
+      "length": 31
+    },
+    "rule": {
+      "id": "ballerina/http:3",
+      "numericId": 3,
+      "description": "Server-side requests should not be vulnerable to traversing attacks",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule3/service.bal",
+    "filePath": "C:/Users/nureka/Documents/GitHub/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule3/service.bal"
+  },
+  {
+    "location": {
+      "filePath": "service_class.bal",
+      "startLine": 21,
+      "endLine": 21,
+      "startColumn": 30,
+      "endColumn": 53,
+      "startOffset": 880,
+      "length": 23
+    },
+    "rule": {
+      "id": "ballerina/http:3",
+      "numericId": 3,
+      "description": "Server-side requests should not be vulnerable to traversing attacks",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule3/service_class.bal",
+    "filePath": "C:/Users/nureka/Documents/GitHub/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule3/service_class.bal"
+  },
+  {
+    "location": {
+      "filePath": "service_class.bal",
+      "startLine": 27,
+      "endLine": 27,
+      "startColumn": 30,
+      "endColumn": 61,
+      "startOffset": 1140,
+      "length": 31
+    },
+    "rule": {
+      "id": "ballerina/http:3",
+      "numericId": 3,
+      "description": "Server-side requests should not be vulnerable to traversing attacks",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule3/service_class.bal",
+    "filePath": "C:/Users/nureka/Documents/GitHub/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule3/service_class.bal"
+  }
+]
