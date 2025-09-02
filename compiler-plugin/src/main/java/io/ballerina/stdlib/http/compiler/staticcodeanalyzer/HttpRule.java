@@ -28,7 +28,9 @@ import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.RuleFactory.c
  */
 public enum HttpRule {
     AVOID_DEFAULT_RESOURCE_ACCESSOR(createRule(1, "Avoid allowing default resource accessor", VULNERABILITY)),
-    AVOID_PERMISSIVE_CORS(createRule(2, "Avoid permissive Cross-Origin Resource Sharing", VULNERABILITY));
+    AVOID_PERMISSIVE_CORS(createRule(2, "Avoid permissive Cross-Origin Resource Sharing", VULNERABILITY)),
+    AVOID_TRAVERSING_ATTACKS(createRule(3, "Server-side requests should not be vulnerable to traversing attacks",
+            VULNERABILITY));
 
     private final Rule rule;
 
@@ -40,8 +42,8 @@ public enum HttpRule {
         return this.rule.numericId();
     }
 
-    public Rule getRule() {
-        return this.rule;
+    public String getDescription() {
+        return this.rule.description();
     }
 
     @Override
