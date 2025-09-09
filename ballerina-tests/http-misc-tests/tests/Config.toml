@@ -1,3 +1,8 @@
 [http_misc_tests]
 keystore = "../resources/certsandkeys/ballerinaKeystore.p12"
 truststore = "../resources/certsandkeys/ballerinaTruststore.p12"
+
+[[ballerina.auth.users]]
+username="alice"
+password="xxx"
+scopes=["write", "update"]
