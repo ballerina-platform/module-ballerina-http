@@ -47,6 +47,11 @@ public abstract class HttpOASResource extends HttpResource {
     }
 
     @Override
+    public String[] getPathSegments() {
+        return new String[]{getResourceName()};
+    }
+
+    @Override
     public List<String> getMethods() {
         return List.of(HttpConstants.HTTP_METHOD_GET);
     }
