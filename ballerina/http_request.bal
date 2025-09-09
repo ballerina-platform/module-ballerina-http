@@ -45,11 +45,13 @@ public class Request {
 
     private mime:Entity? entity = ();
     private boolean dirtyRequest;
+    private boolean redirected;
     boolean noEntityBody;
 
     public isolated function init() {
         self.dirtyRequest = false;
         self.noEntityBody = false;
+        self.redirected = false;
         self.entity = self.createNewEntity();
     }
 
@@ -437,10 +439,10 @@ public class Request {
     # + contentType - The content type of the payload. This is an optional parameter.
     #                 The `application/json` is the default value
     isolated function setAnydataAsJsonPayload(anydata payload, string? contentType = ()) {
-     mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
-     setJson(entity, jsondata:toJson(payload), self.getContentType(), contentType);
-     self.setEntityAndUpdateContentTypeHeader(entity);
-}
+        mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
+        setJson(entity, jsondata:toJson(payload), self.getContentType(), contentType);
+        self.setEntityAndUpdateContentTypeHeader(entity);
+    }
 
     # Sets an `xml` as the payload. If the content-type header is not set then this method set content-type
     # headers with the default content-type, which is `application/xml`. Any existing content-type can be
@@ -659,6 +661,14 @@ public class Request {
             cookiesInRequest = parseCookieHeader(cookieValue);
         }
         return cookiesInRequest;
+    }
+
+    isolated function isRedirected() returns boolean {
+        return self.redirected;
+    }
+
+    isolated function markAsRedirected() {
+        self.redirected = true;
     }
 }
 
