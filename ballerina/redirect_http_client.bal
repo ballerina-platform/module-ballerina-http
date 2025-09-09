@@ -472,6 +472,7 @@ isolated function getRedirectMethod(HttpOperation httpVerb, Response response) r
 }
 
 isolated function createRedirectRequest(Request request, boolean allowAuthHeaders) returns Request {
+    request.markAsRedirected();
     if allowAuthHeaders {
         return request;
     }

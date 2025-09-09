@@ -22,6 +22,7 @@ client isolated class HttpSecureClient {
 
     private final HttpClient httpClient;
     private final ClientAuthHandler clientAuthHandler;
+    private final boolean allowAuthHeadersInRedirects;
 
     # Gets invoked to initialize the secure `client`. Due to the secure client related configurations provided
     # through the `config` record, the `HttpSecureClient` is initialized.
@@ -29,6 +30,12 @@ client isolated class HttpSecureClient {
     # + config - The configurations to be used when initializing the `client`
     # + return - The `client` or an `http:ClientError` if the initialization failed
     isolated function init(string url, ClientConfiguration config) returns ClientError? {
+        var followRedirects = config.followRedirects;
+        if followRedirects is FollowRedirects && followRedirects.enabled {
+            self.allowAuthHeadersInRedirects = followRedirects.allowAuthHeaders;
+        } else {
+            self.allowAuthHeadersInRedirects = false;
+        }
         self.clientAuthHandler = initClientAuthHandler(config);
         HttpClient|ClientError simpleClient = createClient(url, config);
         if simpleClient is HttpClient {
@@ -46,7 +53,7 @@ client isolated class HttpSecureClient {
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function post(string path, RequestMessage message) returns Response|ClientError {
-        Request req = check enrichRequest(self.clientAuthHandler, <Request>message);
+        Request req = check enrichRequest(self.clientAuthHandler, <Request>message, self.allowAuthHeadersInRedirects);
         return self.httpClient->post(path, req);
     }
 
@@ -57,7 +64,7 @@ client isolated class HttpSecureClient {
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function head( string path, RequestMessage message = ()) returns Response|ClientError {
-        Request req = check enrichRequest(self.clientAuthHandler, <Request>message);
+        Request req = check enrichRequest(self.clientAuthHandler, <Request>message, self.allowAuthHeadersInRedirects);
         return self.httpClient->head(path, message = req);
     }
 
@@ -68,7 +75,7 @@ client isolated class HttpSecureClient {
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function put(string path, RequestMessage message) returns Response|ClientError {
-        Request req = check enrichRequest(self.clientAuthHandler, <Request>message);
+        Request req = check enrichRequest(self.clientAuthHandler, <Request>message, self.allowAuthHeadersInRedirects);
         return self.httpClient->put(path, req);
     }
 
@@ -80,7 +87,7 @@ client isolated class HttpSecureClient {
     # + message - An HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function execute(string httpVerb, string path, RequestMessage message) returns Response|ClientError {
-        Request req = check enrichRequest(self.clientAuthHandler, <Request>message);
+        Request req = check enrichRequest(self.clientAuthHandler, <Request>message, self.allowAuthHeadersInRedirects);
         return self.httpClient->execute(httpVerb, path, req);
     }
 
@@ -91,7 +98,7 @@ client isolated class HttpSecureClient {
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function patch(string path, RequestMessage message) returns Response|ClientError {
-        Request req = check enrichRequest(self.clientAuthHandler, <Request>message);
+        Request req = check enrichRequest(self.clientAuthHandler, <Request>message, self.allowAuthHeadersInRedirects);
         return self.httpClient->patch(path, req);
     }
 
@@ -102,7 +109,7 @@ client isolated class HttpSecureClient {
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function delete(string path, RequestMessage message = ()) returns Response|ClientError {
-        Request req = check enrichRequest(self.clientAuthHandler, <Request>message);
+        Request req = check enrichRequest(self.clientAuthHandler, <Request>message, self.allowAuthHeadersInRedirects);
         return self.httpClient->delete(path, req);
     }
 
@@ -113,7 +120,7 @@ client isolated class HttpSecureClient {
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function get(string path, RequestMessage message = ()) returns Response|ClientError {
-        Request req = check enrichRequest(self.clientAuthHandler, <Request>message);
+        Request req = check enrichRequest(self.clientAuthHandler, <Request>message, self.allowAuthHeadersInRedirects);
         return self.httpClient->get(path, message = req);
     }
 
@@ -124,7 +131,7 @@ client isolated class HttpSecureClient {
     # + message - An optional HTTP outbound request or any allowed payload
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function options(string path, RequestMessage message = ()) returns Response|ClientError {
-        Request req = check enrichRequest(self.clientAuthHandler, <Request>message);
+        Request req = check enrichRequest(self.clientAuthHandler, <Request>message, self.allowAuthHeadersInRedirects);
         return self.httpClient->options(path, message = req);
     }
 
@@ -135,7 +142,7 @@ client isolated class HttpSecureClient {
     # + request - An HTTP inbound request message
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function forward(string path, Request request) returns Response|ClientError {
-        Request req = check enrichRequest(self.clientAuthHandler, request);
+        Request req = check enrichRequest(self.clientAuthHandler, request, self.allowAuthHeadersInRedirects);
         return self.httpClient->forward(path, req);
     }
 
@@ -148,7 +155,7 @@ client isolated class HttpSecureClient {
     # + message - An HTTP outbound request or any allowed payload
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation, or else an `http:ClientError` if the submission fails
     remote isolated function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
-        Request req = check enrichRequest(self.clientAuthHandler, <Request>message);
+        Request req = check enrichRequest(self.clientAuthHandler, <Request>message, self.allowAuthHeadersInRedirects);
         return self.httpClient->submit(httpVerb, path, req);
     }
 
@@ -208,7 +215,11 @@ public isolated function createHttpSecureClient(string url, ClientConfiguration 
 }
 
 // Enriches the request using the relevant client auth handler.
-isolated function enrichRequest(ClientAuthHandler clientAuthHandler, Request req) returns Request|ClientError {
+isolated function enrichRequest(ClientAuthHandler clientAuthHandler, Request req, boolean allowAuthHeadersInRedirects) returns Request|ClientError {
+    if !allowAuthHeadersInRedirects && req.isRedirected() {
+        // Do not enrich the request if it is a redirected request and the config does not allow auth headers in redirects
+        return req;
+    }
     if clientAuthHandler is ClientBasicAuthHandler {
         return clientAuthHandler.enrich(req);
     } else if clientAuthHandler is ClientBearerTokenAuthHandler {
