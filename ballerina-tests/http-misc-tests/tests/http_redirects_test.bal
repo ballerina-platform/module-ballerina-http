@@ -20,9 +20,9 @@ import ballerina/mime;
 import ballerina/test;
 import ballerina/http_test_common as common;
 
-listener http:Listener serviceEndpoint2 = new (9102, httpVersion = http:HTTP_1_1);
+listener http:Listener serviceEndpoint2 = new (redirectTestPort1, httpVersion = http:HTTP_1_1);
 
-listener http:Listener serviceEndpoint3 = new (9103, httpVersion = http:HTTP_1_1);
+listener http:Listener serviceEndpoint3 = new (redirectTestPort2, httpVersion = http:HTTP_1_1);
 
 http:ListenerConfiguration httpsEPConfig = {
     httpVersion: http:HTTP_1_1,
@@ -34,7 +34,7 @@ http:ListenerConfiguration httpsEPConfig = {
     }
 };
 
-listener http:Listener httpsEP = new (9104, httpsEPConfig);
+listener http:Listener httpsEP = new (redirectTestPort3, httpsEPConfig);
 
 http:ClientConfiguration endPoint1Config = {
     httpVersion: http:HTTP_1_1,
@@ -64,11 +64,11 @@ http:ClientConfiguration endPoint5Config = {
     }
 };
 
-final http:Client endPoint1 = check new ("http://localhost:9103", httpVersion = http:HTTP_1_1, followRedirects = {enabled: true, maxCount: 3});
-final http:Client endPoint2 = check new ("http://localhost:9103", endPoint2Config);
-final http:Client endPoint3 = check new ("http://localhost:9102", endPoint3Config);
-final http:Client endPoint4 = check new ("http://localhost:9103", httpVersion = http:HTTP_1_1);
-final http:Client endPoint5 = check new ("https://localhost:9104", endPoint5Config);
+final http:Client endPoint1 = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1, followRedirects = {enabled: true, maxCount: 3});
+final http:Client endPoint2 = check new (string `http://localhost:${redirectTestPort2}`, endPoint2Config);
+final http:Client endPoint3 = check new (string `http://localhost:${redirectTestPort1}`, endPoint3Config);
+final http:Client endPoint4 = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
+final http:Client endPoint5 = check new (string `https://localhost:${redirectTestPort3}`, endPoint5Config);
 
 service /testRedirectService on serviceEndpoint3 {
 
@@ -231,7 +231,7 @@ service /testRedirectService on serviceEndpoint3 {
             httpVersion: http:HTTP_1_1,
             followRedirects: {enabled: true, allowAuthHeaders: true}
         };
-        http:Client endPoint4 = check new ("http://localhost:9103", endPoint4Config);
+        http:Client endPoint4 = check new (string `http://localhost:${redirectTestPort2}`, endPoint4Config);
         http:Request req = new;
         req.setHeader("Proxy-Authorization", "Basic YWxhZGRpbjpvcGVuc2VzYW1l");
         req.setTextPayload("Payload redirected");
@@ -255,7 +255,7 @@ service /testRedirectService on serviceEndpoint3 {
             httpVersion: http:HTTP_1_1,
             followRedirects: {enabled: true, allowAuthHeaders: true}
         };
-        http:Client endPoint4 = check new ("http://localhost:9103", endPoint4Config);
+        http:Client endPoint4 = check new (string `http://localhost:${redirectTestPort2}`, endPoint4Config);
         http:Response|error response = endPoint4->head("/redirect1/handleHead", {"X-Redirect-Action": "HTTP_TEMPORARY_REDIRECT"});
         if response is http:Response {
             var value = response.getHeader("X-Redirect-Details");
@@ -276,7 +276,7 @@ service /testRedirectService on serviceEndpoint3 {
             httpVersion: http:HTTP_1_1,
             followRedirects: {enabled: true, allowAuthHeaders: true}
         };
-        http:Client endPoint4 = check new ("http://localhost:9103", endPoint4Config);
+        http:Client endPoint4 = check new (string `http://localhost:${redirectTestPort2}`, endPoint4Config);
         http:Request req = new;
         req.setHeader("Proxy-Authorization", "Basic YWxhZGRpbjpvcGVuc2VzYW1l");
         req.setTextPayload("Payload redirected");
@@ -300,7 +300,7 @@ service /testRedirectService on serviceEndpoint3 {
             httpVersion: http:HTTP_1_1,
             followRedirects: {enabled: true, allowAuthHeaders: true}
         };
-        http:Client endPoint4 = check new ("http://localhost:9103", endPoint4Config);
+        http:Client endPoint4 = check new (string `http://localhost:${redirectTestPort2}`, endPoint4Config);
         http:Request req = new;
         req.setHeader("Proxy-Authorization", "Basic YWxhZGRpbjpvcGVuc2VzYW1l");
         req.setTextPayload("Payload redirected");
@@ -324,7 +324,7 @@ service /testRedirectService on serviceEndpoint3 {
             httpVersion: http:HTTP_1_1,
             followRedirects: {enabled: true, allowAuthHeaders: true}
         };
-        http:Client endPoint4 = check new ("http://localhost:9103", endPoint4Config);
+        http:Client endPoint4 = check new (string `http://localhost:${redirectTestPort2}`, endPoint4Config);
         http:Request req = new;
         req.setHeader("Proxy-Authorization", "Basic YWxhZGRpbjpvcGVuc2VzYW1l");
         req.setTextPayload("Payload redirected");
@@ -348,7 +348,7 @@ service /testRedirectService on serviceEndpoint3 {
             httpVersion: http:HTTP_1_1,
             followRedirects: {enabled: true, allowAuthHeaders: true}
         };
-        http:Client endPoint4 = check new ("http://localhost:9103", endPoint4Config);
+        http:Client endPoint4 = check new (string `http://localhost:${redirectTestPort2}`, endPoint4Config);
         http:Response|error response = endPoint4->options("/redirect1/handleOptions");
         if response is http:Response {
             var value = response.getHeader("Allow");
@@ -384,7 +384,7 @@ service /testRedirectService on serviceEndpoint3 {
     }
 
     resource function get testMultipart(http:Caller caller, http:Request req) returns error? {
-        http:Client endPoint3 = check new ("http://localhost:9103", httpVersion = http:HTTP_1_1, followRedirects = {enabled: true});
+        http:Client endPoint3 = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1, followRedirects = {enabled: true});
         mime:Entity jsonBodyPart = new;
         jsonBodyPart.setContentDisposition(common:getContentDispositionForFormData("json part"));
         jsonBodyPart.setJson({"name": "wso2"});
@@ -412,7 +412,7 @@ service /redirect1 on serviceEndpoint3 {
 
     resource function get .(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
-        check caller->redirect(res, http:REDIRECT_TEMPORARY_REDIRECT_307, ["http://localhost:9102/redirect2"]);
+        check caller->redirect(res, http:REDIRECT_TEMPORARY_REDIRECT_307, [string `http://localhost:${redirectTestPort1}/redirect2`]);
     }
 
     resource function get round1(http:Caller caller, http:Request req) returns error? {
@@ -437,7 +437,7 @@ service /redirect1 on serviceEndpoint3 {
 
     resource function get round5(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
-        check caller->redirect(res, http:REDIRECT_FOUND_302, ["http://localhost:9102/redirect2"]);
+        check caller->redirect(res, http:REDIRECT_FOUND_302, [string `http://localhost:${redirectTestPort1}/redirect2`]);
     }
 
     resource function get qpWithRelativePath(http:Caller caller, http:Request req) returns error? {
@@ -450,7 +450,7 @@ service /redirect1 on serviceEndpoint3 {
     resource function get qpWithAbsolutePath(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         check caller->redirect(res, http:REDIRECT_TEMPORARY_REDIRECT_307, [
-            "http://localhost:9103/redirect1/processQP?key=value&lang=ballerina"
+            string `http://localhost:${redirectTestPort2}/redirect1/processQP?key=value&lang=ballerina`
         ]);
     }
 
@@ -465,21 +465,21 @@ service /redirect1 on serviceEndpoint3 {
     resource function head handleHead(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         check caller->redirect(res, http:REDIRECT_TEMPORARY_REDIRECT_307, [
-            "http://localhost:9102/redirect2/echo"
+            string `http://localhost:${redirectTestPort1}/redirect2/echo`
         ]);
     }
 
     resource function options handleOptions(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         check caller->redirect(res, http:REDIRECT_TEMPORARY_REDIRECT_307, [
-            "http://localhost:9102/redirect2/echo"
+            string `http://localhost:${redirectTestPort1}/redirect2/echo`
         ]);
     }
 
     resource function 'default handlePost(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         check caller->redirect(res, http:REDIRECT_TEMPORARY_REDIRECT_307, [
-            "http://localhost:9102/redirect2/echo"
+            string `http://localhost:${redirectTestPort1}/redirect2/echo`
         ]);
     }
 }
@@ -555,8 +555,113 @@ service /redirect3 on httpsEP {
     resource function put handlePost(http:Caller caller, http:Request req) returns error? {
         http:Response res = new;
         check caller->redirect(res, http:REDIRECT_PERMANENT_REDIRECT_308, [
-            "http://localhost:9103/redirect1/handlePost"
+            string `http://localhost:${redirectTestPort2}/redirect1/handlePost`
         ]);
+    }
+}
+
+listener http:Listener httpsAuthEP = new (redirectTestPort4, httpsEPConfig);
+
+listener http:Listener externalRedirectedEP = new (redirectTestPort5, httpVersion = http:HTTP_1_1);
+
+@http:ServiceConfig {
+    auth: [
+        {
+            fileUserStoreConfig: {},
+            scopes: ["write", "update"]
+        }
+    ]
+}
+service /api on httpsAuthEP {
+
+    resource function get redirect(boolean 'external = false) returns http:Found {
+        string redirectUrl = 'external ?
+            string `http://localhost:${redirectTestPort5}/api/hello` :
+            string `https://localhost:${redirectTestPort4}/api/hello`;
+        return {
+            headers: {
+                "Location": redirectUrl
+            }
+        };
+    }
+
+    resource function get hello() returns string {
+        return "Hello, World!";
+    }
+}
+
+service /api on externalRedirectedEP {
+
+    resource function get hello(@http:Header string? Authorization) returns string {
+        return Authorization is string ? "Hello, authenticated user!" : "Hello from external service!";
+    }
+}
+
+@test:Config {
+    groups: ["httpRedirect"]
+}
+public function testRedirectWithAllowAuthHeaders() returns error? {
+    http:ClientConfiguration clientConfig = {
+        httpVersion: http:HTTP_1_1,
+        followRedirects: {enabled: true, allowAuthHeaders: true},
+        auth: {
+            username: "alice",
+            password: "xxx"
+        },
+        secureSocket: {
+            cert: {
+                path: common:TRUSTSTORE_PATH,
+                password: "ballerina"
+            }
+        }
+    };
+    http:Client httpClient = check new (string `https://localhost:${redirectTestPort4}/api`, clientConfig);
+    string|error resp = httpClient->/redirect;
+    if resp is string {
+        test:assertEquals(resp, "Hello, World!");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " + resp.message());
+    }
+
+    resp = httpClient->/redirect('external = true);
+    if resp is string {
+        test:assertEquals(resp, "Hello, authenticated user!");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " + resp.message());
+    }
+}
+
+@test:Config {
+    groups: ["httpRedirect"]
+}
+public function testRedirectWithoutAuthHeaders() returns error? {
+    http:ClientConfiguration clientConfig = {
+        httpVersion: http:HTTP_1_1,
+        followRedirects: {enabled: true, allowAuthHeaders: false},
+        auth: {
+            username: "alice",
+            password: "xxx"
+        },
+        secureSocket: {
+            cert: {
+                path: common:TRUSTSTORE_PATH,
+                password: "ballerina"
+            }
+        }
+    };
+    http:Client httpClient = check new (string `https://localhost:${redirectTestPort4}/api`, clientConfig);
+    string|error resp = httpClient->/redirect;
+    if resp is error {
+        test:assertEquals(resp.message(), "Unauthorized");
+    } else {
+        test:assertFail(msg = "Expected an error but found: " + resp);
+    }
+
+    resp = httpClient->/redirect('external = true);
+    if resp is string {
+        test:assertEquals(resp, "Hello from external service!");
+    } else {
+        test:assertFail(msg = "Found unexpected output: " + resp.message());
     }
 }
 
@@ -564,10 +669,10 @@ service /redirect3 on httpsEP {
     groups: ["httpRedirect"]
 }
 public function testHttpRedirects() returns error? {
-    http:Client httpClient = check new ("http://localhost:9103", httpVersion = http:HTTP_1_1);
+    http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/");
     if resp is http:Response {
-        assertRedirectResponse(resp, "http://localhost:9102/redirect2");
+        assertRedirectResponse(resp, string `http://localhost:${redirectTestPort1}/redirect2`);
     } else {
         test:assertFail(msg = "Found unexpected output: " + resp.message());
     }
@@ -577,10 +682,10 @@ public function testHttpRedirects() returns error? {
     groups: ["httpRedirect"]
 }
 public function testMaxRedirect() returns error? {
-    http:Client httpClient = check new ("http://localhost:9103", httpVersion = http:HTTP_1_1);
+    http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/maxRedirect");
     if resp is http:Response {
-        assertRedirectResponse(resp, "/redirect1/round5:http://localhost:9103/redirect1/round4");
+        assertRedirectResponse(resp, string `/redirect1/round5:http://localhost:${redirectTestPort2}/redirect1/round4`);
     } else {
         test:assertFail(msg = "Found unexpected output: " + resp.message());
     }
@@ -590,10 +695,10 @@ public function testMaxRedirect() returns error? {
     groups: ["httpRedirect"]
 }
 public function testCrossDomain() returns error? {
-    http:Client httpClient = check new ("http://localhost:9103", httpVersion = http:HTTP_1_1);
+    http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/noRedirect");
     if resp is http:Response {
-        assertRedirectResponse(resp, "hello world:http://localhost:9102/redirect2");
+        assertRedirectResponse(resp, string `hello world:http://localhost:${redirectTestPort1}/redirect2`);
     } else {
         test:assertFail(msg = "Found unexpected output: " + resp.message());
     }
@@ -603,10 +708,10 @@ public function testCrossDomain() returns error? {
     groups: ["httpRedirect"]
 }
 public function testNoRedirect() returns error? {
-    http:Client httpClient = check new ("http://localhost:9103", httpVersion = http:HTTP_1_1);
+    http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/crossDomain");
     if resp is http:Response {
-        assertRedirectResponse(resp, "hello world:http://localhost:9102/redirect2");
+        assertRedirectResponse(resp, string `hello world:http://localhost:${redirectTestPort1}/redirect2`);
     } else {
         test:assertFail(msg = "Found unexpected output: " + resp.message());
     }
@@ -616,7 +721,7 @@ public function testNoRedirect() returns error? {
     groups: ["httpRedirect"]
 }
 public function testRedirectOff() returns error? {
-    http:Client httpClient = check new ("http://localhost:9103", httpVersion = http:HTTP_1_1);
+    http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/redirectOff");
     if resp is http:Response {
         assertRedirectResponse(resp, "/redirect1/round2:");
@@ -629,10 +734,10 @@ public function testRedirectOff() returns error? {
     groups: ["httpRedirect"]
 }
 public function testQPWithRelativePath() returns error? {
-    http:Client httpClient = check new ("http://localhost:9103", httpVersion = http:HTTP_1_1);
+    http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/qpWithRelativePath");
     if resp is http:Response {
-        assertRedirectResponse(resp, "value:ballerina:http://localhost:9103/redirect1/processQP?key=value&lang=ballerina");
+        assertRedirectResponse(resp, string `value:ballerina:http://localhost:${redirectTestPort2}/redirect1/processQP?key=value&lang=ballerina`);
     } else {
         test:assertFail(msg = "Found unexpected output: " + resp.message());
     }
@@ -642,10 +747,10 @@ public function testQPWithRelativePath() returns error? {
     groups: ["httpRedirect"]
 }
 public function testQPWithAbsolutePath() returns error? {
-    http:Client httpClient = check new ("http://localhost:9103", httpVersion = http:HTTP_1_1);
+    http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/qpWithAbsolutePath");
     if resp is http:Response {
-        assertRedirectResponse(resp, "value:ballerina:http://localhost:9103/redirect1/processQP?key=value&lang=ballerina");
+        assertRedirectResponse(resp, string `value:ballerina:http://localhost:${redirectTestPort2}/redirect1/processQP?key=value&lang=ballerina`);
     } else {
         test:assertFail(msg = "Found unexpected output: " + resp.message());
     }
@@ -655,10 +760,10 @@ public function testQPWithAbsolutePath() returns error? {
     groups: ["httpRedirect"]
 }
 public function testOriginalRequestWithQP() returns error? {
-    http:Client httpClient = check new ("http://localhost:9103", httpVersion = http:HTTP_1_1);
+    http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/originalRequestWithQP");
     if resp is http:Response {
-        assertRedirectResponse(resp, "hello world:http://localhost:9102/redirect2");
+        assertRedirectResponse(resp, string `hello world:http://localhost:${redirectTestPort1}/redirect2`);
     } else {
         test:assertFail(msg = "Found unexpected output: " + resp.message());
     }
@@ -668,10 +773,10 @@ public function testOriginalRequestWithQP() returns error? {
     groups: ["httpRedirect"]
 }
 public function test303Status() returns error? {
-    http:Client httpClient = check new ("http://localhost:9103", httpVersion = http:HTTP_1_1);
+    http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/test303");
     if resp is http:Response {
-        assertRedirectResponse(resp, "hello world:http://localhost:9102/redirect2");
+        assertRedirectResponse(resp, string `hello world:http://localhost:${redirectTestPort1}/redirect2`);
     } else {
         test:assertFail(msg = "Found unexpected output: " + resp.message());
     }
@@ -681,10 +786,10 @@ public function test303Status() returns error? {
     groups: ["httpRedirect"]
 }
 public function testRedirectWithHTTPs() returns error? {
-    http:Client httpClient = check new ("http://localhost:9103", httpVersion = http:HTTP_1_1);
+    http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/httpsRedirect");
     if resp is http:Response {
-        assertRedirectResponse(resp, "HTTPs Result:https://localhost:9104/redirect3/result");
+        assertRedirectResponse(resp, string `HTTPs Result:https://localhost:${redirectTestPort3}/redirect3/result`);
     } else {
         test:assertFail(msg = "Found unexpected output: " + resp.message());
     }
@@ -694,10 +799,10 @@ public function testRedirectWithHTTPs() returns error? {
     groups: ["httpRedirect"]
 }
 public function testRedirectWithPOST() returns error? {
-    http:Client httpClient = check new ("http://localhost:9103", httpVersion = http:HTTP_1_1);
+    http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/doPost");
     if resp is http:Response {
-        assertRedirectResponse(resp, "Received:Payload redirected:Proxy:http://localhost:9102/redirect2/echo");
+        assertRedirectResponse(resp, string `Received:Payload redirected:Proxy:http://localhost:${redirectTestPort1}/redirect2/echo`);
     } else {
         test:assertFail(msg = "Found unexpected output: " + resp.message());
     }
@@ -707,10 +812,10 @@ public function testRedirectWithPOST() returns error? {
     groups: ["httpRedirect"]
 }
 public function testRedirectWithHead() returns error? {
-    http:Client httpClient = check new ("http://localhost:9103", httpVersion = http:HTTP_1_1);
+    http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/doHead");
     if resp is http:Response {
-        assertRedirectResponse(resp, "Received:No Proxy:HTTP_TEMPORARY_REDIRECT:http://localhost:9102/redirect2/echo");
+        assertRedirectResponse(resp, string `Received:No Proxy:HTTP_TEMPORARY_REDIRECT:http://localhost:${redirectTestPort1}/redirect2/echo`);
     } else {
         test:assertFail(msg = "Found unexpected output: " + resp.message());
     }
@@ -720,10 +825,10 @@ public function testRedirectWithHead() returns error? {
     groups: ["httpRedirect"]
 }
 public function testRedirectWithExecute() returns error? {
-    http:Client httpClient = check new ("http://localhost:9103", httpVersion = http:HTTP_1_1);
+    http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/doExecute");
     if resp is http:Response {
-        assertRedirectResponse(resp, "Received:Payload redirected:Proxy:http://localhost:9102/redirect2/echo");
+        assertRedirectResponse(resp, string `Received:Payload redirected:Proxy:http://localhost:${redirectTestPort1}/redirect2/echo`);
     } else {
         test:assertFail(msg = "Found unexpected output: " + resp.message());
     }
@@ -733,10 +838,10 @@ public function testRedirectWithExecute() returns error? {
     groups: ["httpRedirect"]
 }
 public function testRedirectWithPatch() returns error? {
-    http:Client httpClient = check new ("http://localhost:9103", httpVersion = http:HTTP_1_1);
+    http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/doPatch");
     if resp is http:Response {
-        assertRedirectResponse(resp, "Received:Payload redirected:Proxy:http://localhost:9102/redirect2/echo");
+        assertRedirectResponse(resp, string `Received:Payload redirected:Proxy:http://localhost:${redirectTestPort1}/redirect2/echo`);
     } else {
         test:assertFail(msg = "Found unexpected output: " + resp.message());
     }
@@ -746,10 +851,10 @@ public function testRedirectWithPatch() returns error? {
     groups: ["httpRedirect"]
 }
 public function testRedirectWithDelete() returns error? {
-    http:Client httpClient = check new ("http://localhost:9103", httpVersion = http:HTTP_1_1);
+    http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/doDelete");
     if resp is http:Response {
-        assertRedirectResponse(resp, "Received:Payload redirected:Proxy:http://localhost:9102/redirect2/echo");
+        assertRedirectResponse(resp, string `Received:Payload redirected:Proxy:http://localhost:${redirectTestPort1}/redirect2/echo`);
     } else {
         test:assertFail(msg = "Found unexpected output: " + resp.message());
     }
@@ -759,10 +864,10 @@ public function testRedirectWithDelete() returns error? {
     groups: ["httpRedirect"]
 }
 public function testRedirectWithOptions() returns error? {
-    http:Client httpClient = check new ("http://localhost:9103", httpVersion = http:HTTP_1_1);
+    http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/doOptions");
     if resp is http:Response {
-        assertRedirectResponse(resp, "Received:OPTIONS, HEAD:http://localhost:9102/redirect2/echo");
+        assertRedirectResponse(resp, string `Received:OPTIONS, HEAD:http://localhost:${redirectTestPort1}/redirect2/echo`);
     } else {
         test:assertFail(msg = "Found unexpected output: " + resp.message());
     }
@@ -772,10 +877,10 @@ public function testRedirectWithOptions() returns error? {
     groups: ["httpRedirect"]
 }
 public function testWithHTTPs() returns error? {
-    http:Client httpClient = check new ("http://localhost:9103", httpVersion = http:HTTP_1_1);
+    http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/doSecurePut");
     if resp is http:Response {
-        assertRedirectResponse(resp, "Received:Secure payload:No Proxy:http://localhost:9102/redirect2/echo");
+        assertRedirectResponse(resp, string `Received:Secure payload:No Proxy:http://localhost:${redirectTestPort1}/redirect2/echo`);
     } else {
         test:assertFail(msg = "Found unexpected output: " + resp.message());
     }
@@ -785,10 +890,10 @@ public function testWithHTTPs() returns error? {
     groups: ["httpRedirect"]
 }
 public function testMultipartRedirect() returns error? {
-    http:Client httpClient = check new ("http://localhost:9103", httpVersion = http:HTTP_1_1);
+    http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/testMultipart");
     if resp is http:Response {
-        assertRedirectResponse(resp, "{\"name\":\"wso2\"}:http://localhost:9102/redirect2/echo");
+        assertRedirectResponse(resp, string `{"name":"wso2"}:http://localhost:${redirectTestPort1}/redirect2/echo`);
     } else {
         test:assertFail(msg = "Found unexpected output: " + resp.message());
     }
