@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 
 - [Address `CVE-2025-55163` Netty vulnerability](https://github.com/ballerina-platform/ballerina-library/issues/8174)
+- [Prevent auth headers in redirected requests when disallowed](https://github.com/ballerina-platform/ballerina-library/issues/8216)
 
 ## [2.14.3] - 2025-08-04
 
