@@ -52,8 +52,36 @@ public class OpenAPISpecGenerationTest {
         Process process = pb.start();
         try {
             process.waitFor();
-            Path yamlFile = projectDirPath.resolve("target/openapi").resolve("service_openapi.yaml");
-            verifySpecContent(yamlFile);
+            Path actualFile = projectDirPath.resolve("target/openapi").resolve("service_openapi.yaml");
+            Path expectedFile = RESOURCE_DIRECTORY.resolve("../yaml_files").resolve("service_openapi.yaml");
+            verifySpecContent(actualFile, expectedFile);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } finally {
+            deleteDirectories(projectDirPath);
+        }
+    }
+
+    @Test
+    public void testSpecGenerationInComplexServices() throws IOException {
+        Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_42");
+        List<String> buildArgs = new ArrayList<>();
+        String balFile = "bal";
+        if (System.getProperty("os.name").startsWith("Windows")) {
+            balFile = "bal.bat";
+        }
+        buildArgs.add(0, DISTRIBUTION_PATH.resolve("bin").resolve(balFile).toString());
+        buildArgs.add(1, "build");
+        buildArgs.add(2, "--export-openapi");
+        ProcessBuilder pb = new ProcessBuilder(buildArgs);
+        pb.directory(projectDirPath.toFile());
+        Process process = pb.start();
+        try {
+            process.waitFor();
+            Path actualFile = projectDirPath.resolve("target/openapi")
+                    .resolve("api_v1_openapi.yaml");
+            Path expectedFile = RESOURCE_DIRECTORY.resolve("../yaml_files").resolve("complex_openapi.yaml");
+            verifySpecContent(actualFile, expectedFile);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         } finally {
@@ -85,11 +113,10 @@ public class OpenAPISpecGenerationTest {
         }
     }
 
-    private void verifySpecContent(Path yamlFile) throws IOException {
-        Assert.assertTrue(Files.exists(yamlFile), "OpenAPI spec file does not exist: " + yamlFile);
-        String content = Files.readString(yamlFile);
-        Path targetDir = RESOURCE_DIRECTORY.resolve("../yaml_files").resolve("service_openapi.yaml");
-        String expectedContent = Files.readString(targetDir);
+    private void verifySpecContent(Path actualFilePath, Path expectedFilePath) throws IOException {
+        Assert.assertTrue(Files.exists(actualFilePath), "OpenAPI spec file does not exist: " + actualFilePath);
+        String content = Files.readString(actualFilePath);
+        String expectedContent = Files.readString(expectedFilePath);
         Assert.assertEquals(content.replaceAll("\\s+", ""), expectedContent.replaceAll("\\s+", ""),
             "OpenAPI Spec content does not match expected content");
     }
