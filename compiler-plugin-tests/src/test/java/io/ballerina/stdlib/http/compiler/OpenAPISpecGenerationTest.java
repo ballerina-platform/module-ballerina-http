@@ -28,6 +28,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class OpenAPISpecGenerationTest {
@@ -66,6 +67,31 @@ public class OpenAPISpecGenerationTest {
         deleteDirectories(projectDirPath);
     }
 
+    @Test
+    public void testSpecGenerationWithCompilationErrors() throws Exception {
+        Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_43");
+        executeBallerinaCommand(projectDirPath, false);
+        Path yamlFile = projectDirPath.resolve("target/openapi").resolve("service_openapi.yaml");
+        Assert.assertTrue(Files.notExists(yamlFile), "OpenAPI spec file should not be generated: " + yamlFile);
+        deleteDirectories(projectDirPath);
+    }
+
+    @Test
+    public void testSpecGenerationForMultipleServices() throws Exception {
+        Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_44");
+        executeBallerinaCommand(projectDirPath, true);
+        Path openApiDir = projectDirPath.resolve("target/openapi");
+        Assert.assertTrue(Files.exists(openApiDir), "OpenAPI directory should exist");
+        List<Path> yamlFiles;
+        try (Stream<Path> paths = Files.walk(openApiDir)) {
+            yamlFiles = paths.filter(path -> path.toString().endsWith(".yaml"))
+                    .sorted()
+                    .collect(Collectors.toList());
+        }
+        Assert.assertEquals(yamlFiles.size(), 5);
+        deleteDirectories(projectDirPath);
+    }
+
     private void executeBallerinaCommand(Path projectDirPath, boolean exportOpenApi) throws Exception {
         List<String> buildArgs = new ArrayList<>();
         String balFile = "bal";
@@ -90,7 +116,7 @@ public class OpenAPISpecGenerationTest {
         Assert.assertEquals(content.replaceAll("\\s+", ""), expectedContent.replaceAll("\\s+", ""),
             "OpenAPI Spec content does not match expected content");
     }
-    
+
     private void deleteDirectories(Path projectDirPath) throws IOException {
         Path targetDir = projectDirPath.resolve("target");
         if (Files.exists(targetDir)) {
