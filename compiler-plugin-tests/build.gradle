@@ -43,6 +43,7 @@ dependencies {
     testImplementation group: 'io.ballerina.scan', name: 'scan-command-test-utils', version: "${balScanVersion}"
     testImplementation group: 'org.testng', name: 'testng', version: "${testngVersion}"
     testImplementation group: 'com.google.code.gson', name: 'gson', version: "${gsonVersion}"
+    testImplementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: "${jacksonDatabindVersion}"
 }
 
 tasks.withType(Checkstyle) {
