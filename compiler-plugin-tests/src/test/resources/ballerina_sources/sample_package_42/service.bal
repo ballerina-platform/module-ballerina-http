@@ -119,7 +119,7 @@ service /api/v1 on new http:Listener(9090) {
         };
     }
 
-    resource function post users(@http:Payload UserInput userInput) returns User|ErrorResponse {
+    resource function post users(UserInput userInput) returns User|ErrorResponse {
         // Validate input
         if userInput.name.trim() == "" {
             return {
@@ -172,7 +172,7 @@ service /api/v1 on new http:Listener(9090) {
         return newUser;
     }
 
-    resource function post users/bulk(@http:Payload UserInput[] userInputs) returns User[]|ErrorResponse {
+    resource function post users/bulk(UserInput[] userInputs) returns User[]|ErrorResponse {
         if userInputs.length() == 0 {
             return {
                 message: "At least one user must be provided",
@@ -236,7 +236,7 @@ service /api/v1 on new http:Listener(9090) {
         };
     }
 
-    resource function patch users/[string id](@http:Payload UserUpdate userUpdate) returns User|ErrorResponse {
+    resource function patch users/[string id](UserUpdate userUpdate) returns User|ErrorResponse {
         User? existingUser = userStore[id];
         if existingUser is () {
             return {
