@@ -37,61 +37,36 @@ public class OpenAPISpecGenerationTest {
             .toAbsolutePath();
 
     @Test
-    public void testSpecGeneration() throws IOException {
+    public void testSpecGeneration() throws Exception {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_20");
-        List<String> buildArgs = new ArrayList<>();
-        String balFile = "bal";
-        if (System.getProperty("os.name").startsWith("Windows")) {
-            balFile = "bal.bat";
-        }
-        buildArgs.add(0, DISTRIBUTION_PATH.resolve("bin").resolve(balFile).toString());
-        buildArgs.add(1, "build");
-        buildArgs.add(2, "--export-openapi");
-        ProcessBuilder pb = new ProcessBuilder(buildArgs);
-        pb.directory(projectDirPath.toFile());
-        Process process = pb.start();
-        try {
-            process.waitFor();
-            Path actualFile = projectDirPath.resolve("target/openapi").resolve("service_openapi.yaml");
-            Path expectedFile = RESOURCE_DIRECTORY.resolve("../yaml_files").resolve("service_openapi.yaml");
-            verifySpecContent(actualFile, expectedFile);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        } finally {
-            deleteDirectories(projectDirPath);
-        }
+        executeBallerinaCommand(projectDirPath, true);
+        Path actualFile = projectDirPath.resolve("target/openapi").resolve("service_openapi.yaml");
+        Path expectedFile = RESOURCE_DIRECTORY.resolve("../yaml_files").resolve("service_openapi.yaml");
+        verifySpecContent(actualFile, expectedFile);
+        deleteDirectories(projectDirPath);
     }
 
     @Test
-    public void testSpecGenerationInComplexServices() throws IOException {
+    public void testSpecGenerationInComplexServices() throws Exception {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_42");
-        List<String> buildArgs = new ArrayList<>();
-        String balFile = "bal";
-        if (System.getProperty("os.name").startsWith("Windows")) {
-            balFile = "bal.bat";
-        }
-        buildArgs.add(0, DISTRIBUTION_PATH.resolve("bin").resolve(balFile).toString());
-        buildArgs.add(1, "build");
-        buildArgs.add(2, "--export-openapi");
-        ProcessBuilder pb = new ProcessBuilder(buildArgs);
-        pb.directory(projectDirPath.toFile());
-        Process process = pb.start();
-        try {
-            process.waitFor();
-            Path actualFile = projectDirPath.resolve("target/openapi")
-                    .resolve("api_v1_openapi.yaml");
-            Path expectedFile = RESOURCE_DIRECTORY.resolve("../yaml_files").resolve("complex_openapi.yaml");
-            verifySpecContent(actualFile, expectedFile);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        } finally {
-            deleteDirectories(projectDirPath);
-        }
+        executeBallerinaCommand(projectDirPath, true);
+        Path actualFile = projectDirPath.resolve("target/openapi")
+                .resolve("api_v1_openapi.yaml");
+        Path expectedFile = RESOURCE_DIRECTORY.resolve("../yaml_files").resolve("complex_openapi.yaml");
+        verifySpecContent(actualFile, expectedFile);
+        deleteDirectories(projectDirPath);
     }
 
     @Test
-    public void testSpecGenerationWithoutFlag() throws IOException {
+    public void testSpecGenerationWithoutFlag() throws Exception {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_20");
+        executeBallerinaCommand(projectDirPath, false);
+        Path yamlFile = projectDirPath.resolve("target/openapi").resolve("service_openapi.yaml");
+        Assert.assertTrue(Files.notExists(yamlFile), "OpenAPI spec file should not be generated: " + yamlFile);
+        deleteDirectories(projectDirPath);
+    }
+
+    private void executeBallerinaCommand(Path projectDirPath, boolean exportOpenApi) throws Exception {
         List<String> buildArgs = new ArrayList<>();
         String balFile = "bal";
         if (System.getProperty("os.name").startsWith("Windows")) {
@@ -99,18 +74,13 @@ public class OpenAPISpecGenerationTest {
         }
         buildArgs.add(0, DISTRIBUTION_PATH.resolve("bin").resolve(balFile).toString());
         buildArgs.add(1, "build");
+        if (exportOpenApi) {
+            buildArgs.add(2, "--export-openapi");
+        }
         ProcessBuilder pb = new ProcessBuilder(buildArgs);
         pb.directory(projectDirPath.toFile());
         Process process = pb.start();
-        try {
-            process.waitFor();
-            Path yamlFile = projectDirPath.resolve("target/openapi").resolve("service_openapi.yaml");
-            Assert.assertTrue(Files.notExists(yamlFile), "OpenAPI spec file should not be generated: " + yamlFile);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        } finally {
-            deleteDirectories(projectDirPath);
-        }
+        process.waitFor();
     }
 
     private void verifySpecContent(Path actualFilePath, Path expectedFilePath) throws IOException {
