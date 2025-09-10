@@ -37,12 +37,63 @@ public class OpenAPISpecGenerationTest {
     private static final Path DISTRIBUTION_PATH = Paths.get("../", "target", "ballerina-runtime")
             .toAbsolutePath();
 
+
+    @Test
+    public void testSpecGenerationWithSimpleService() throws Exception {
+        Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_45");
+        executeBallerinaCommand(projectDirPath, true);
+        Path actualFile = projectDirPath.resolve("target/openapi").resolve("service_openapi.yaml");
+        Path expectedFile = RESOURCE_DIRECTORY.resolve("../yaml_files").resolve("service_openapi_3.yaml");
+        verifySpecContent(actualFile, expectedFile);
+        deleteDirectories(projectDirPath);
+    }
+
+    @Test
+    public void testSpecGenerationWithInvalidServicePath() throws Exception {
+        Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_46");
+        executeBallerinaCommand(projectDirPath, true);
+        Path openApiDir = projectDirPath.resolve("target/openapi");
+        Assert.assertTrue(Files.notExists(openApiDir));
+        deleteDirectories(projectDirPath);
+    }
+
+    @Test
+    public void testSpecGenerationWithEmptyServicePath() throws Exception {
+        Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_47");
+        executeBallerinaCommand(projectDirPath, true);
+        Path openApiDir = projectDirPath.resolve("target/openapi");
+        Assert.assertTrue(Files.exists(openApiDir), "OpenAPI directory should exist");
+        Path actualFile = projectDirPath.resolve("target/openapi").resolve("service_352312370_openapi.yaml");
+        Path expectedFile = RESOURCE_DIRECTORY.resolve("../yaml_files").resolve("service_openapi_2.yaml");
+        verifySpecContent(actualFile, expectedFile);
+        deleteDirectories(projectDirPath);
+    }
+
+    @Test
+    public void testConstructFileNameWithRegularServicePath() throws Exception {
+        Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_48");
+        executeBallerinaCommand(projectDirPath, true);
+        Path actualFile = projectDirPath.resolve("target/openapi").resolve("userservice_openapi.yaml");
+        Path expectedFile = RESOURCE_DIRECTORY.resolve("../yaml_files").resolve("service_openapi_4.yaml");
+        verifySpecContent(actualFile, expectedFile);
+        deleteDirectories(projectDirPath);
+    }
+
+    @Test
+    public void testSpecGenerationWithInvalidService() throws Exception {
+        Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_49");
+        executeBallerinaCommand(projectDirPath, true);
+        Path openApiDir = projectDirPath.resolve("target/openapi");
+        Assert.assertTrue(Files.notExists(openApiDir), "OpenAPI directory should exist");
+        deleteDirectories(projectDirPath);
+    }
+
     @Test
     public void testSpecGeneration() throws Exception {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_20");
         executeBallerinaCommand(projectDirPath, true);
         Path actualFile = projectDirPath.resolve("target/openapi").resolve("service_openapi.yaml");
-        Path expectedFile = RESOURCE_DIRECTORY.resolve("../yaml_files").resolve("service_openapi.yaml");
+        Path expectedFile = RESOURCE_DIRECTORY.resolve("../yaml_files").resolve("service_openapi_1.yaml");
         verifySpecContent(actualFile, expectedFile);
         deleteDirectories(projectDirPath);
     }

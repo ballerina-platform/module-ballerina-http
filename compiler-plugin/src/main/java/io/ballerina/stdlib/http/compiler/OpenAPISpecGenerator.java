@@ -167,7 +167,6 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
     private void writeOpenAPIYaml(Path outPath, OASResult oasResult, List<Diagnostic> diagnostics) {
         if (oasResult.getYaml().isPresent()) {
             try {
-                // Create openapi directory if not exists in the path. If exists do not throw an error
                 Files.createDirectories(Paths.get(outPath + OAS_PATH_SEPARATOR + OPENAPI));
                 String serviceName = oasResult.getServiceName();
                 String fileName = resolveContractFileName(outPath.resolve(OPENAPI),
