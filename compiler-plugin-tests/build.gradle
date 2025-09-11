@@ -105,6 +105,9 @@ test {
             }
         }
     }
+    jacoco {
+        destinationFile = file("$buildDir/jacoco/test.exec")
+    }
     finalizedBy jacocoTestReport
 }
 

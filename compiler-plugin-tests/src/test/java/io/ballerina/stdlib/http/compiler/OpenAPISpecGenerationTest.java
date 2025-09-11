@@ -28,6 +28,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -143,6 +144,22 @@ public class OpenAPISpecGenerationTest {
         deleteDirectories(projectDirPath);
     }
 
+    public synchronized void addJavaAgents(Map<String, String> envProperties) {
+        String javaOpts = "";
+        String javaOptsKey = "JAVA_OPTS";
+        String jacocoArgLine = "-javaagent:" + DISTRIBUTION_PATH.resolve("bre/lib/jacocoagent.jar")
+                + "=destfile=" + Path.of(System.getProperty("user.dir"), "build/jacoco/test.exec");
+        String agentArgs = jacocoArgLine + " ";
+        if (envProperties.containsKey(javaOptsKey)) {
+            javaOpts = envProperties.get(javaOptsKey);
+        }
+        if (javaOpts.contains("jacoco.agent")) {
+            return;
+        }
+        javaOpts = agentArgs + javaOpts;
+        envProperties.put(javaOptsKey, javaOpts);
+    }
+
     private void executeBallerinaCommand(Path projectDirPath, boolean exportOpenApi) throws Exception {
         List<String> buildArgs = new ArrayList<>();
         String balFile = "bal";
@@ -155,6 +172,7 @@ public class OpenAPISpecGenerationTest {
             buildArgs.add(2, "--export-openapi");
         }
         ProcessBuilder pb = new ProcessBuilder(buildArgs);
+        addJavaAgents(pb.environment());
         pb.directory(projectDirPath.toFile());
         Process process = pb.start();
         process.waitFor();
