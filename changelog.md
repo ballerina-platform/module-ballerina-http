@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Address `CVE-2025-55163` Netty vulnerability](https://github.com/ballerina-platform/ballerina-library/issues/8174)
 - [Prevent auth headers in redirected requests when disallowed](https://github.com/ballerina-platform/ballerina-library/issues/8216)
 - [Address `CVE-2025-58056` and `CVE-2025-58057` security vulnerabilities in Netty](https://github.com/ballerina-platform/ballerina-library/issues/8214)
+- [Migrate compiler plugin task for OpenAPI spec generation from `openapi` tool to the `http` module](https://github.com/ballerina-platform/ballerina-library/issues/8237)
 
 ### Added
 
