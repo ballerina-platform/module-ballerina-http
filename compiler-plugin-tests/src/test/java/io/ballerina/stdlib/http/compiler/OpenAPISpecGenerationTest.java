@@ -144,7 +144,7 @@ public class OpenAPISpecGenerationTest {
         deleteDirectories(projectDirPath);
     }
 
-    public synchronized void addJavaAgents(Map<String, String> envProperties) {
+    public void addJavaAgents(Map<String, String> envProperties) {
         String javaOpts = "";
         String javaOptsKey = "JAVA_OPTS";
         String jacocoArgLine = "-javaagent:" + DISTRIBUTION_PATH.resolve("bre/lib/jacocoagent.jar")
