@@ -40,6 +40,7 @@ public class HttpServiceAnalyzer extends CodeAnalyzer {
     public void init(CodeAnalysisContext codeAnalysisContext) {
         codeAnalysisContext.addSyntaxNodeAnalysisTask(new HttpServiceObjTypeAnalyzer(), SyntaxKind.OBJECT_TYPE_DESC);
         codeAnalysisContext.addSyntaxNodeAnalysisTask(new HttpServiceValidator(), SyntaxKind.SERVICE_DECLARATION);
+        codeAnalysisContext.addSyntaxNodeAnalysisTask(new OpenAPISpecGenerator(), SyntaxKind.SERVICE_DECLARATION);
 
         boolean httpCodeModifierExecuted = (boolean) ctxData.getOrDefault("HTTP_CODE_MODIFIER_EXECUTED", false);
         if (httpCodeModifierExecuted) {
