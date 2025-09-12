@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.compiler.staticcodeanalyzer;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -44,6 +45,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 
 import static io.ballerina.scan.RuleKind.VULNERABILITY;
@@ -171,6 +173,7 @@ public class StaticCodeAnalyzerTest {
                         27, 27, Source.BUILT_IN);
                 break;
             default:
+                Assert.fail("Unhandled rule in validateIssues: " + rule);
                 break;
         }
     }
@@ -207,7 +210,7 @@ public class StaticCodeAnalyzerTest {
             String normalizedJson = mapper.writeValueAsString(node)
                     .replaceAll(":\".*" + MODULE_BALLERINA_HTTP, ":\"" + MODULE_BALLERINA_HTTP);
             return isWindows() ? normalizedJson.replace("/", "\\\\") : normalizedJson;
-        } catch (Exception ignore) {
+        } catch (JsonProcessingException | PatternSyntaxException ignore) {
             return json;
         }
     }
