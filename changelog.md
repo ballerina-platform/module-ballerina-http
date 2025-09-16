@@ -1,4 +1,3 @@
-
 # Change Log
 This file contains all the notable changes done to the Ballerina HTTP package through the releases.
 
@@ -18,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 
 - [Add support for dispatching URLs with special characters to the associated resource signature with special characters](https://github.com/ballerina-platform/ballerina-library/issues/4154)
+- [Implement static analysis rule to analyze server-side requests that are vulnerable to traversing attacks](https://github.com/ballerina-platform/ballerina-library/issues/8175)
 
 ## [2.14.2] - 2025-06-23
 
