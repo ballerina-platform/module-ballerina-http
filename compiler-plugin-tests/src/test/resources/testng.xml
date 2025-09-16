@@ -27,6 +27,7 @@
         </packages>
         <classes>
             <class name="io.ballerina.stdlib.http.compiler.CompilerPluginTest"/>
+            <class name="io.ballerina.stdlib.http.compiler.OpenAPISpecGenerationTest"/>
         </classes>
     </test>
 </suite>
