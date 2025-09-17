@@ -107,30 +107,13 @@ class HttpReturnResponseAnalyzer implements AnalysisTask<SyntaxNodeAnalysisConte
      * @return true if user input is found in the payload, false otherwise
      */
     private boolean hasUserInputInPayload(String varName, ReturnStatementNode returnStatement) {
-        Node parent = returnStatement;
-        while (parent != null) {
-            if (parent instanceof FunctionBodyBlockNode) {
-                break;
-            }
-            parent = parent.parent();
-        }
+        MethodCallExpressionNode methodCallExpression = getMethodCall(varName, returnStatement, SET_PAYLOAD);
 
-        if (parent == null) {
+        if (methodCallExpression == null) {
             return false;
         }
 
-        FunctionBodyBlockNode functionBodyBlockNode = (FunctionBodyBlockNode) parent;
-        for (StatementNode statement : functionBodyBlockNode.statements()) {
-            if (statement instanceof ExpressionStatementNode expressionStatement) {
-                ExpressionNode expression = expressionStatement.expression();
-                if (expression instanceof MethodCallExpressionNode methodCallExpression
-                        && methodCallExpression.expression().toString().trim().equals(varName)
-                        && methodCallExpression.methodName().toString().trim().equals(SET_PAYLOAD)) {
-                    return isUserInput(methodCallExpression.arguments());
-                }
-            }
-        }
-        return false;
+        return isUserInput(methodCallExpression.arguments());
     }
 
     /**
@@ -160,6 +143,24 @@ class HttpReturnResponseAnalyzer implements AnalysisTask<SyntaxNodeAnalysisConte
      * @return true if a vulnerable header is found, false otherwise
      */
     private boolean hasVulnerableHeader(String varName, ReturnStatementNode returnStatement) {
+        MethodCallExpressionNode methodCallExpression = getMethodCall(varName, returnStatement, SET_HEADER);
+
+        if (methodCallExpression == null) {
+            return true;
+        }
+
+        return isContentTypeNotTextOrPlain(methodCallExpression.arguments());
+    }
+
+    /**
+     * Retrieves the MethodCallExpressionNode for the specified variable name within the function body.
+     *
+     * @param varName         the name of the variable holding the Response object
+     * @param returnStatement the ReturnStatementNode containing the Response object
+     * @return the MethodCallExpressionNode if found, null otherwise
+     */
+    private MethodCallExpressionNode getMethodCall(String varName, ReturnStatementNode returnStatement,
+                                                   String methodName) {
         Node parent = returnStatement;
         while (parent != null) {
             if (parent instanceof FunctionBodyBlockNode) {
@@ -169,7 +170,7 @@ class HttpReturnResponseAnalyzer implements AnalysisTask<SyntaxNodeAnalysisConte
         }
 
         if (parent == null) {
-            return false;
+            return null;
         }
 
         FunctionBodyBlockNode functionBodyBlockNode = (FunctionBodyBlockNode) parent;
@@ -177,15 +178,13 @@ class HttpReturnResponseAnalyzer implements AnalysisTask<SyntaxNodeAnalysisConte
             if (statement instanceof ExpressionStatementNode expressionStatement) {
                 ExpressionNode expression = expressionStatement.expression();
                 if (expression instanceof MethodCallExpressionNode methodCallExpression
-                        && methodCallExpression.expression().toString().trim().equals(varName)) {
-                    if (methodCallExpression.methodName().toString().trim().equals(SET_HEADER)) {
-                        return isContentTypeNotTextOrPlain(methodCallExpression.arguments());
-                    }
-                    return true;
+                        && methodCallExpression.expression().toString().trim().equals(varName)
+                        && methodCallExpression.methodName().toString().trim().equals(methodName)) {
+                    return methodCallExpression;
                 }
             }
         }
-        return false;
+        return null;
     }
 
     /**
