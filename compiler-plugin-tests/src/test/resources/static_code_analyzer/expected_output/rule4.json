@@ -1,0 +1,82 @@
+[
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 23,
+      "endLine": 23,
+      "startColumn": 8,
+      "endColumn": 19,
+      "startOffset": 876,
+      "length": 11
+    },
+    "rule": {
+      "id": "ballerina/http:4",
+      "numericId": 4,
+      "description": "Endpoints should not be vulnerable to reflected cross-site scripting (XSS) attacks",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule4/service.bal",
+    "filePath": "/home/nureka/Documents/GitHub/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule4/service.bal"
+  },
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 30,
+      "endLine": 30,
+      "startColumn": 8,
+      "endColumn": 19,
+      "startOffset": 1102,
+      "length": 11
+    },
+    "rule": {
+      "id": "ballerina/http:4",
+      "numericId": 4,
+      "description": "Endpoints should not be vulnerable to reflected cross-site scripting (XSS) attacks",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule4/service.bal",
+    "filePath": "/home/nureka/Documents/GitHub/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule4/service.bal"
+  },
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 36,
+      "endLine": 36,
+      "startColumn": 8,
+      "endColumn": 19,
+      "startOffset": 1277,
+      "length": 11
+    },
+    "rule": {
+      "id": "ballerina/http:4",
+      "numericId": 4,
+      "description": "Endpoints should not be vulnerable to reflected cross-site scripting (XSS) attacks",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule4/service.bal",
+    "filePath": "/home/nureka/Documents/GitHub/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule4/service.bal"
+  },
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 43,
+      "endLine": 43,
+      "startColumn": 8,
+      "endColumn": 19,
+      "startOffset": 1505,
+      "length": 11
+    },
+    "rule": {
+      "id": "ballerina/http:4",
+      "numericId": 4,
+      "description": "Endpoints should not be vulnerable to reflected cross-site scripting (XSS) attacks",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule4/service.bal",
+    "filePath": "/home/nureka/Documents/GitHub/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule4/service.bal"
+  }
+]

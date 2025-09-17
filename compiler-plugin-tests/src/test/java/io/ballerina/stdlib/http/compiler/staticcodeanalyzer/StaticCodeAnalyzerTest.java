@@ -52,6 +52,7 @@ import static io.ballerina.scan.RuleKind.VULNERABILITY;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpRule.AVOID_DEFAULT_RESOURCE_ACCESSOR;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpRule.AVOID_PERMISSIVE_CORS;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpRule.AVOID_TRAVERSING_ATTACKS;
+import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpRule.AVOID_VULNERABLE_XSS_ENDPOINTS;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class StaticCodeAnalyzerTest {
@@ -119,6 +120,11 @@ public class StaticCodeAnalyzerTest {
                 "ballerina/http:3",
                 AVOID_TRAVERSING_ATTACKS.getDescription(),
                 VULNERABILITY);
+        Assertions.assertRule(
+                rules,
+                "ballerina/http:4",
+                AVOID_VULNERABLE_XSS_ENDPOINTS.getDescription(),
+                VULNERABILITY);
     }
 
     private void validateIssues(HttpRule rule, List<Issue> issues) {
@@ -171,6 +177,17 @@ public class StaticCodeAnalyzerTest {
                         21, 21, Source.BUILT_IN);
                 Assertions.assertIssue(issues, 4, "ballerina/http:3", "service_class.bal",
                         27, 27, Source.BUILT_IN);
+                break;
+            case AVOID_VULNERABLE_XSS_ENDPOINTS:
+                Assert.assertEquals(issues.size(), 4);
+                Assertions.assertIssue(issues, 0, "ballerina/http:4", "service.bal",
+                        23, 23, Source.BUILT_IN);
+                Assertions.assertIssue(issues, 1, "ballerina/http:4", "service.bal",
+                        30, 30, Source.BUILT_IN);
+                Assertions.assertIssue(issues, 2, "ballerina/http:4", "service.bal",
+                        36, 36, Source.BUILT_IN);
+                Assertions.assertIssue(issues, 3, "ballerina/http:4", "service.bal",
+                        43, 43, Source.BUILT_IN);
                 break;
             default:
                 Assert.fail("Unhandled rule in validateIssues: " + rule);
