@@ -33,6 +33,7 @@ ext.stdlibOAuth2Version = project.stdlibOAuth2Version
 ext.stdlibCacheVersion = project.stdlibCacheVersion
 ext.stdlibTimeVersion = project.stdlibTimeVersion
 ext.stdlibUrlVersion = project.stdlibUrlVersion
+ext.stdlibUuidVersion = project.stdlibUuidVersion
 ext.stdlibCryptoVersion = project.stdlibCryptoVersion
 ext.stdlibFileVersion = project.stdlibFileVersion
 ext.stdlibOsVersion = project.stdlibOsVersion
@@ -109,6 +110,7 @@ subprojects {
         ballerinaStdLibs "io.ballerina.stdlib:cache-ballerina:${stdlibCacheVersion}"
         ballerinaStdLibs "io.ballerina.stdlib:time-ballerina:${stdlibTimeVersion}"
         ballerinaStdLibs "io.ballerina.stdlib:url-ballerina:${stdlibUrlVersion}"
+        ballerinaStdLibs "io.ballerina.stdlib:uuid-ballerina:${stdlibUuidVersion}"
         ballerinaStdLibs "io.ballerina.stdlib:crypto-ballerina:${stdlibCryptoVersion}"
         ballerinaStdLibs "io.ballerina.stdlib:file-ballerina:${stdlibFileVersion}"
         ballerinaStdLibs "io.ballerina.stdlib:observe-ballerina:${observeVersion}"
