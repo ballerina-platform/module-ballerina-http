@@ -17,6 +17,6 @@
     },
     "source": "BUILT_IN",
     "fileName": "rule4/service.bal",
-    "filePath": "/home/nureka/Documents/GitHub/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule4/service.bal"
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule4/service.bal"
   }
 ]
