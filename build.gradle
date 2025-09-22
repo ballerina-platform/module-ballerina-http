@@ -22,35 +22,6 @@ plugins {
     id "net.researchgate.release" version "${researchgateReleaseVersion}"
 }
 
-ext.ballerinaLangVersion = project.ballerinaLangVersion
-ext.stdlibMimeVersion = project.stdlibMimeVersion
-ext.stdlibIoVersion = project.stdlibIoVersion
-ext.stdlibConstraintVersion = project.stdlibConstraintVersion
-ext.stdlibLogVersion = project.stdlibLogVersion
-ext.stdlibAuthVersion = project.stdlibAuthVersion
-ext.stdlibJwtVersion = project.stdlibJwtVersion
-ext.stdlibOAuth2Version = project.stdlibOAuth2Version
-ext.stdlibCacheVersion = project.stdlibCacheVersion
-ext.stdlibTimeVersion = project.stdlibTimeVersion
-ext.stdlibUrlVersion = project.stdlibUrlVersion
-ext.stdlibUuidVersion = project.stdlibUuidVersion
-ext.stdlibCryptoVersion = project.stdlibCryptoVersion
-ext.stdlibFileVersion = project.stdlibFileVersion
-ext.stdlibOsVersion = project.stdlibOsVersion
-ext.stdlibTaskVersion = project.stdlibTaskVersion
-ext.stdlibDataJsonDataVersion = project.stdlibDataJsonDataVersion
-
-ext.slf4jVersion = project.slf4jVersion
-ext.ballerinaTomlParserVersion = project.ballerinaTomlParserVersion
-ext.puppycrawlCheckstyleVersion = project.puppycrawlCheckstyleVersion
-ext.commonsLang3Version = project.commonsLang3Version
-ext.nettyVersion = project.nettyVersion
-ext.nettyTcnativeVersion = project.nettyTcnativeVersion
-ext.wso2CommonsPoolVersion = project.wso2CommonsPoolVersion
-ext.bouncycastleVersion = project.bouncycastleVersion
-ext.mimepullVersion = project.mimepullVersion
-ext.testngVersion = project.testngVersion
-
 allprojects {
     group = project.group
     version = project.version
