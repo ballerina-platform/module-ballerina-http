@@ -30,9 +30,9 @@ import io.ballerina.compiler.syntax.tree.ImportPrefixNode;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingFieldNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
+import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.ReturnStatementNode;
-import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.StatementNode;
@@ -73,16 +73,35 @@ class HttpRedirectAnalyzer implements AnalysisTask<SyntaxNodeAnalysisContext> {
         if (functionSignature.returnTypeDesc().isEmpty()) {
             return;
         }
-        ReturnTypeDescriptorNode returnTypeDescriptor = functionSignature.returnTypeDesc().get();
-        if (!(returnTypeDescriptor.type() instanceof QualifiedNameReferenceNode qualifiedNameReference)
-                || !httpPrefixes.contains(qualifiedNameReference.modulePrefix().text().trim())
-                || !qualifiedNameReference.identifier().text().equals(TEMPORARY_REDIRECT)) {
-            return;
-        }
-        if (!isUnsecureRedirect(functionSignature)) {
+        Node returnTypeDescriptorType = functionSignature.returnTypeDesc().get().type();
+        if (!(returnTypeDescriptorType instanceof QualifiedNameReferenceNode qualifiedNameReference)
+                || !isTemporaryRedirect(qualifiedNameReference, semanticModel)
+                || !isUnsecureRedirect(functionSignature)) {
             return;
         }
         report(context, AVOID_UNSECURE_REDIRECTIONS.getId());
+    }
+
+    /**
+     * Checks if the qualified name reference corresponds to the TemporaryRedirect type from the http module.
+     *
+     * @param qualifiedNameReference the qualified name reference node
+     * @param semanticModel          the semantic model
+     * @return true if it is a TemporaryRedirect type from the http module, false otherwise
+     */
+    private boolean isTemporaryRedirect(QualifiedNameReferenceNode qualifiedNameReference,
+                                        SemanticModel semanticModel) {
+        Optional<Symbol> symbol = semanticModel.symbol(qualifiedNameReference);
+        if (symbol.isEmpty()) {
+            return false;
+        }
+        if (symbol.get().getName().isEmpty() || symbol.get().getModule().isEmpty()) {
+            return false;
+        }
+        String typeName = symbol.get().getName().get();
+        String moduleName = symbol.get().getModule().get().id().moduleName();
+
+        return TEMPORARY_REDIRECT.equals(typeName) && httpPrefixes.contains(moduleName);
     }
 
     /**
