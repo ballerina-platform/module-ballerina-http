@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - [Fix hanging issue when load testing with relatively larger payload](https://github.com/ballerina-platform/ballerina-library/issues/8271)
 - [Address `CVE-2025-58056` and `CVE-2025-58057` security vulnerabilities in Netty](https://github.com/ballerina-platform/ballerina-library/issues/8214)
+- [Update bouncy castle version to `1.80`](https://github.com/ballerina-platform/ballerina-library/issues/7683)
 
 ## [2.13.7] - 2025-08-07
 
