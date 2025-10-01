@@ -102,6 +102,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -925,8 +926,9 @@ public class Util {
                 return false;
             }
             if (inboundRequestMsg.getHeaders().contains(HttpHeaderNames.CONNECTION)) {
-                return !inboundRequestMsg.getHeaders().get(HttpHeaderNames.CONNECTION)
-                        .equalsIgnoreCase(HttpHeaderValues.CLOSE.toString());
+                String connectionHeader = inboundRequestMsg.getHeaders().get(HttpHeaderNames.CONNECTION);
+                return Objects.isNull(connectionHeader) ||
+                        !connectionHeader.equalsIgnoreCase(HttpHeaderValues.CLOSE.toString());
             }
             return true;
         case ALWAYS:

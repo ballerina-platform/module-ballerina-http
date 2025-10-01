@@ -47,7 +47,6 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * HTTP based representation for HttpCarbonMessage.
@@ -84,8 +83,6 @@ public class HttpCarbonMessage {
     private Integer contentSize = 0;
     private boolean contentReleased = false;
 
-    private final ReentrantLock messageLock = new ReentrantLock();
-
     public HttpCarbonMessage(HttpMessage httpMessage, Listener contentListener) {
         this.httpMessage = httpMessage;
         setBlockingEntityCollector(new BlockingEntityCollector(Constants.ENDPOINT_TIMEOUT));
@@ -108,41 +105,36 @@ public class HttpCarbonMessage {
      *
      * @param httpContent chunks of the payload.
      */
-    public void addHttpContent(HttpContent httpContent) {
-        messageLock.lock();
-        try {
-            contentObservable.notifyAddListener(httpContent);
-            if (messageFuture != null) {
-                if (ioException != null) {
-                    blockingEntityCollector.addHttpContent(new DefaultLastHttpContent());
-                    messageFuture.notifyMessageListener(blockingEntityCollector.getHttpContent());
-                    removeMessageFuture();
-                    throw new RuntimeException(this.getIoException());
-                }
-                blockingEntityCollector.addHttpContent(httpContent);
-                if (messageFuture.isMessageListenerSet()) {
-                    messageFuture.notifyMessageListener(blockingEntityCollector.getHttpContent());
-                    //This should only be called once the message listener is set and the HttpContent is retrieved
-                    // from the blocking entity collector. Calling this before that will raise a race condition in
-                    // passthrough scenario.
-                    contentObservable.notifyGetListener(httpContent);
-                }
-                // We remove the feature as the message has reached it life time. If there is a need
-                // for using the same message again, we need to set the future again and restart
-                // the life-cycle.
-                if (httpContent instanceof LastHttpContent) {
-                    removeMessageFuture();
-                }
-            } else {
-                if (ioException != null) {
-                    blockingEntityCollector.addHttpContent(new DefaultLastHttpContent());
-                    throw new RuntimeException(this.getIoException());
-                } else {
-                    blockingEntityCollector.addHttpContent(httpContent);
-                }
+    public synchronized void addHttpContent(HttpContent httpContent) {
+        contentObservable.notifyAddListener(httpContent);
+        if (messageFuture != null) {
+            if (ioException != null) {
+                blockingEntityCollector.addHttpContent(new DefaultLastHttpContent());
+                messageFuture.notifyMessageListener(blockingEntityCollector.getHttpContent());
+                removeMessageFuture();
+                throw new RuntimeException(this.getIoException());
             }
-        } finally {
-            messageLock.unlock();
+            blockingEntityCollector.addHttpContent(httpContent);
+            if (messageFuture.isMessageListenerSet()) {
+                messageFuture.notifyMessageListener(blockingEntityCollector.getHttpContent());
+                //This should only be called once the message listener is set and the HttpContent is retrieved
+                // from the blocking entity collector. Calling this before that will raise a race condition in
+                // passthrough scenario.
+                contentObservable.notifyGetListener(httpContent);
+            }
+            // We remove the feature as the message has reached it life time. If there is a need
+            // for using the same message again, we need to set the future again and restart
+            // the life-cycle.
+            if (httpContent instanceof LastHttpContent) {
+                removeMessageFuture();
+            }
+        } else {
+            if (ioException != null) {
+                blockingEntityCollector.addHttpContent(new DefaultLastHttpContent());
+                throw new RuntimeException(this.getIoException());
+            } else {
+                blockingEntityCollector.addHttpContent(httpContent);
+            }
         }
     }
 
@@ -160,14 +152,9 @@ public class HttpCarbonMessage {
         return httpContent;
     }
 
-    public MessageFuture getHttpContentAsync() {
-        messageLock.lock();
-        try {
-            this.messageFuture = new MessageFuture(this);
-            return this.messageFuture;
-        } finally {
-            messageLock.unlock();
-        }
+    public synchronized MessageFuture getHttpContentAsync() {
+        this.messageFuture = new MessageFuture(this);
+        return this.messageFuture;
     }
 
     /**
@@ -326,15 +313,10 @@ public class HttpCarbonMessage {
         return properties.get(key);
     }
 
-    public void removeMessageFuture() {
-        messageLock.lock();
-        try {
-            this.messageFuture = null;
-            // To ensure that the carbon message is reusable.
-            passthrough = false;
-        } finally {
-            messageLock.unlock();
-        }
+    public synchronized void removeMessageFuture() {
+        this.messageFuture = null;
+        // To ensure that the carbon message is reusable.
+        passthrough = false;
     }
 
     public Map<String, Object> getProperties() {
@@ -517,11 +499,11 @@ public class HttpCarbonMessage {
         return (HttpResponse) this.httpMessage;
     }
 
-    public IOException getIoException() {
+    public synchronized IOException getIoException() {
         return ioException;
     }
 
-    public void setIoException(IOException ioException) {
+    public synchronized void setIoException(IOException ioException) {
         this.ioException = ioException;
     }
 
@@ -658,34 +640,24 @@ public class HttpCarbonMessage {
      *
      * @return the default implementation of the {@link FullHttpMessageFuture}.
      */
-    public FullHttpMessageFuture getFullHttpCarbonMessage() {
-        messageLock.lock();
-        try {
-            removeInboundContentListener();
-            fullHttpMessageFuture = new DefaultFullHttpMessageFuture(this);
-            return fullHttpMessageFuture;
-        } finally {
-            messageLock.unlock();
-        }
+    public synchronized FullHttpMessageFuture getFullHttpCarbonMessage() {
+        removeInboundContentListener();
+        fullHttpMessageFuture = new DefaultFullHttpMessageFuture(this);
+        return fullHttpMessageFuture;
     }
 
     /**
      * Sets the lastHttpContentArrived flag true upon the last HTTP content arrival and notifies the
      * {@link FullHttpMessageFuture} if available.
      */
-    public void setLastHttpContentArrived() {
-        messageLock.lock();
-        try {
-            this.lastHttpContentArrived = true;
-            if (fullHttpMessageFuture != null) {
-                fullHttpMessageFuture.notifySuccess();
-            }
-        } finally {
-            messageLock.unlock();
+    public synchronized void setLastHttpContentArrived() {
+        this.lastHttpContentArrived = true;
+        if (fullHttpMessageFuture != null) {
+            fullHttpMessageFuture.notifySuccess();
         }
     }
 
-    public boolean isLastHttpContentArrived() {
+    public synchronized boolean isLastHttpContentArrived() {
         return lastHttpContentArrived;
     }
 
@@ -694,14 +666,9 @@ public class HttpCarbonMessage {
      *
      * @param exception of content accumulation
      */
-    public void notifyContentFailure(Exception exception) {
-        messageLock.lock();
-        try {
-            if (fullHttpMessageFuture != null) {
-                fullHttpMessageFuture.notifyFailure(exception);
-            }
-        } finally {
-            messageLock.unlock();
+    public synchronized void notifyContentFailure(Exception exception) {
+        if (fullHttpMessageFuture != null) {
+            fullHttpMessageFuture.notifyFailure(exception);
         }
     }
 
