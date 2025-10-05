@@ -92,16 +92,13 @@ class HttpRedirectAnalyzer implements AnalysisTask<SyntaxNodeAnalysisContext> {
     private boolean isTemporaryRedirect(QualifiedNameReferenceNode qualifiedNameReference,
                                         SemanticModel semanticModel) {
         Optional<Symbol> symbol = semanticModel.symbol(qualifiedNameReference);
-        if (symbol.isEmpty()) {
-            return false;
-        }
-        if (symbol.get().getName().isEmpty() || symbol.get().getModule().isEmpty()) {
-            return false;
-        }
-        String typeName = symbol.get().getName().get();
-        String moduleName = symbol.get().getModule().get().id().moduleName();
+        if (symbol.isPresent() && symbol.get().getName().isPresent() && symbol.get().getModule().isPresent()) {
+            String typeName = symbol.get().getName().get();
+            String moduleName = symbol.get().getModule().get().id().moduleName();
 
-        return TEMPORARY_REDIRECT.equals(typeName) && httpPrefixes.contains(moduleName);
+            return TEMPORARY_REDIRECT.equals(typeName) && httpPrefixes.contains(moduleName);
+        }
+        return false;
     }
 
     /**
@@ -143,8 +140,9 @@ class HttpRedirectAnalyzer implements AnalysisTask<SyntaxNodeAnalysisContext> {
     private boolean isUnsecureHeaderField(MappingConstructorExpressionNode mappingConstructorExpression) {
         for (MappingFieldNode mappingField : mappingConstructorExpression.fields()) {
             if (mappingField instanceof SpecificFieldNode specificField
-                    && specificField.fieldName().toString().trim().equals(HEADERS)) {
-                return isUserControlledLocation(specificField.valueExpr());
+                    && specificField.fieldName().toString().trim().equals(HEADERS)
+                    && specificField.valueExpr().isPresent()) {
+                return isUserControlledLocation(specificField.valueExpr().get());
             }
         }
         return false;
@@ -156,16 +154,13 @@ class HttpRedirectAnalyzer implements AnalysisTask<SyntaxNodeAnalysisContext> {
      * @param expression the expression node of the headers field
      * @return true if it contains a user-controlled location, false otherwise
      */
-    private boolean isUserControlledLocation(Optional<ExpressionNode> expression) {
-        if (expression.isEmpty()) {
-            return false;
-        }
-        ExpressionNode valueExpr = expression.get();
-        if (valueExpr instanceof MappingConstructorExpressionNode mappingConstructorExpression) {
+    private boolean isUserControlledLocation(ExpressionNode expression) {
+        if (expression instanceof MappingConstructorExpressionNode mappingConstructorExpression) {
             for (MappingFieldNode mappingField : mappingConstructorExpression.fields()) {
                 if (mappingField instanceof SpecificFieldNode specificField
-                        && specificField.fieldName().toString().trim().equals("\"" + LOCATION + "\"")) {
-                    return isFunctionArgument(specificField.valueExpr());
+                        && specificField.fieldName().toString().trim().equals("\"" + LOCATION + "\"")
+                        && specificField.valueExpr().isPresent()) {
+                    return isFunctionArgument(specificField.valueExpr().get());
                 }
             }
         }
@@ -178,12 +173,8 @@ class HttpRedirectAnalyzer implements AnalysisTask<SyntaxNodeAnalysisContext> {
      * @param expression the expression node to check
      * @return true if it is a function argument, false otherwise
      */
-    private boolean isFunctionArgument(Optional<ExpressionNode> expression) {
-        if (expression.isEmpty()) {
-            return false;
-        }
-        ExpressionNode valueExpr = expression.get();
-        if (valueExpr instanceof SimpleNameReferenceNode simpleNameReference) {
+    private boolean isFunctionArgument(ExpressionNode expression) {
+        if (expression instanceof SimpleNameReferenceNode simpleNameReference) {
             semanticModel.symbol(simpleNameReference);
             Optional<Symbol> symbol = semanticModel.symbol(simpleNameReference);
             return symbol.isPresent() && symbol.get() instanceof ParameterSymbol;
