@@ -183,7 +183,9 @@ public class StaticCodeAnalyzerTest {
                 break;
             case AVOID_UNSECURE_REDIRECTIONS:
                 index = 0;
-                Assert.assertEquals(issues.size(), 1);
+                Assert.assertEquals(issues.size(), 2);
+                Assertions.assertIssue(issues, index++, "ballerina/http:4", "custom_prefix.bal",
+                        19, 19, Source.BUILT_IN);
                 Assertions.assertIssue(issues, index, "ballerina/http:4", "service.bal",
                         19, 19, Source.BUILT_IN);
                 break;

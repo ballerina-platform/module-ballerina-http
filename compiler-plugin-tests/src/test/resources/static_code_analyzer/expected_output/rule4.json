@@ -1,6 +1,26 @@
 [
   {
     "location": {
+      "filePath": "custom_prefix.bal",
+      "startLine": 19,
+      "endLine": 19,
+      "startColumn": 27,
+      "endColumn": 72,
+      "startOffset": 735,
+      "length": 45
+    },
+    "rule": {
+      "id": "ballerina/http:4",
+      "numericId": 4,
+      "description": "HTTP request redirections should not be open to forging attacks",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule4/custom_prefix.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule4/custom_prefix.bal"
+  },
+  {
+    "location": {
       "filePath": "service.bal",
       "startLine": 19,
       "endLine": 19,
