@@ -52,6 +52,7 @@ import static io.ballerina.scan.RuleKind.VULNERABILITY;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpRule.AVOID_DEFAULT_RESOURCE_ACCESSOR;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpRule.AVOID_PERMISSIVE_CORS;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpRule.AVOID_TRAVERSING_ATTACKS;
+import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpRule.AVOID_UNSECURE_REDIRECTIONS;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class StaticCodeAnalyzerTest {
@@ -119,58 +120,74 @@ public class StaticCodeAnalyzerTest {
                 "ballerina/http:3",
                 AVOID_TRAVERSING_ATTACKS.getDescription(),
                 VULNERABILITY);
+        Assertions.assertRule(
+                rules,
+                "ballerina/http:4",
+                AVOID_UNSECURE_REDIRECTIONS.getDescription(),
+                VULNERABILITY);
     }
 
     private void validateIssues(HttpRule rule, List<Issue> issues) {
         switch (rule) {
             case AVOID_DEFAULT_RESOURCE_ACCESSOR:
+                int index = 0;
                 Assert.assertEquals(issues.size(), 8);
-                Assertions.assertIssue(issues, 0, "ballerina/http:1", "service.bal",
+                Assertions.assertIssue(issues, index++, "ballerina/http:1", "service.bal",
                         19, 19, Source.BUILT_IN);
-                Assertions.assertIssue(issues, 1, "ballerina/http:1", "service.bal",
+                Assertions.assertIssue(issues, index++, "ballerina/http:1", "service.bal",
                         23, 23, Source.BUILT_IN);
-                Assertions.assertIssue(issues, 2, "ballerina/http:1", "service_class.bal",
+                Assertions.assertIssue(issues, index++, "ballerina/http:1", "service_class.bal",
                         21, 21, Source.BUILT_IN);
-                Assertions.assertIssue(issues, 3, "ballerina/http:1", "service_class.bal",
+                Assertions.assertIssue(issues, index++, "ballerina/http:1", "service_class.bal",
                         25, 25, Source.BUILT_IN);
-                Assertions.assertIssue(issues, 4, "ballerina/http:1", "service_object.bal",
+                Assertions.assertIssue(issues, index++, "ballerina/http:1", "service_object.bal",
                         20, 20, Source.BUILT_IN);
-                Assertions.assertIssue(issues, 5, "ballerina/http:1", "service_object.bal",
+                Assertions.assertIssue(issues, index++, "ballerina/http:1", "service_object.bal",
                         21, 21, Source.BUILT_IN);
-                Assertions.assertIssue(issues, 6, "ballerina/http:1", "service_object.bal",
+                Assertions.assertIssue(issues, index++, "ballerina/http:1", "service_object.bal",
                         26, 26, Source.BUILT_IN);
-                Assertions.assertIssue(issues, 7, "ballerina/http:1", "service_object.bal",
+                Assertions.assertIssue(issues, index, "ballerina/http:1", "service_object.bal",
                         27, 27, Source.BUILT_IN);
                 break;
             case AVOID_PERMISSIVE_CORS:
+                index = 0;
                 Assert.assertEquals(issues.size(), 7);
-                Assertions.assertIssue(issues, 0, "ballerina/http:2", "service.bal",
+                Assertions.assertIssue(issues, index++, "ballerina/http:2", "service.bal",
                         20, 20, Source.BUILT_IN);
-                Assertions.assertIssue(issues, 1, "ballerina/http:2", "service.bal",
+                Assertions.assertIssue(issues, index++, "ballerina/http:2", "service.bal",
                         27, 27, Source.BUILT_IN);
-                Assertions.assertIssue(issues, 2, "ballerina/http:2", "service_class.bal",
+                Assertions.assertIssue(issues, index++, "ballerina/http:2", "service_class.bal",
                         23, 23, Source.BUILT_IN);
-                Assertions.assertIssue(issues, 3, "ballerina/http:2", "service_object.bal",
+                Assertions.assertIssue(issues, index++, "ballerina/http:2", "service_object.bal",
                         20, 20, Source.BUILT_IN);
-                Assertions.assertIssue(issues, 4, "ballerina/http:2", "service_object.bal",
+                Assertions.assertIssue(issues, index++, "ballerina/http:2", "service_object.bal",
                         28, 28, Source.BUILT_IN);
-                Assertions.assertIssue(issues, 5, "ballerina/http:2", "service_object.bal",
+                Assertions.assertIssue(issues, index++, "ballerina/http:2", "service_object.bal",
                         36, 36, Source.BUILT_IN);
-                Assertions.assertIssue(issues, 6, "ballerina/http:2", "service_object.bal",
+                Assertions.assertIssue(issues, index, "ballerina/http:2", "service_object.bal",
                         44, 44, Source.BUILT_IN);
                 break;
             case AVOID_TRAVERSING_ATTACKS:
+                index = 0;
                 Assert.assertEquals(issues.size(), 5);
-                Assertions.assertIssue(issues, 0, "ballerina/http:3", "function.bal",
+                Assertions.assertIssue(issues, index++, "ballerina/http:3", "function.bal",
                         30, 30, Source.BUILT_IN);
-                Assertions.assertIssue(issues, 1, "ballerina/http:3", "service.bal",
+                Assertions.assertIssue(issues, index++, "ballerina/http:3", "service.bal",
                         21, 21, Source.BUILT_IN);
-                Assertions.assertIssue(issues, 2, "ballerina/http:3", "service.bal",
+                Assertions.assertIssue(issues, index++, "ballerina/http:3", "service.bal",
                         27, 27, Source.BUILT_IN);
-                Assertions.assertIssue(issues, 3, "ballerina/http:3", "service_class.bal",
+                Assertions.assertIssue(issues, index++, "ballerina/http:3", "service_class.bal",
                         21, 21, Source.BUILT_IN);
-                Assertions.assertIssue(issues, 4, "ballerina/http:3", "service_class.bal",
+                Assertions.assertIssue(issues, index, "ballerina/http:3", "service_class.bal",
                         27, 27, Source.BUILT_IN);
+                break;
+            case AVOID_UNSECURE_REDIRECTIONS:
+                index = 0;
+                Assert.assertEquals(issues.size(), 2);
+                Assertions.assertIssue(issues, index++, "ballerina/http:4", "custom_prefix.bal",
+                        19, 19, Source.BUILT_IN);
+                Assertions.assertIssue(issues, index, "ballerina/http:4", "service.bal",
+                        19, 19, Source.BUILT_IN);
                 break;
             default:
                 Assert.fail("Unhandled rule in validateIssues: " + rule);
