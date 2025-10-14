@@ -26,14 +26,21 @@ import java.util.Optional;
 
 import static io.ballerina.stdlib.http.compiler.Constants.DEFAULT;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpRule.AVOID_DEFAULT_RESOURCE_ACCESSOR;
+import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.unescapeIdentifier;
 
+/**
+ * Rule to avoid using 'default' as the resource accessor method name in HTTP services.
+ *
+ * @since 2.13.0
+ */
 public class AvoidDefaultResourceAccessorRule implements HttpResourceRule {
 
     @Override
     public void analyze(HttpResourceRuleContext context) {
         Optional<String> resourceMethodOptional = context.resourceMethodSymbol().getName();
 
-        if (resourceMethodOptional.isPresent() && DEFAULT.equalsIgnoreCase(resourceMethodOptional.get())) {
+        if (resourceMethodOptional.isPresent() &&
+                DEFAULT.equalsIgnoreCase(unescapeIdentifier(resourceMethodOptional.get()))) {
             Location accessorLocation = context.resourceFunction().functionName().location();
             context.reporter().reportIssue(context.document(), accessorLocation, getRuleId());
         }

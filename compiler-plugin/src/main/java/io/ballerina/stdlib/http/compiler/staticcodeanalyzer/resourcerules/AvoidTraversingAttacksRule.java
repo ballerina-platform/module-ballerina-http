@@ -29,13 +29,21 @@ import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpResourceRuleCont
 import java.util.List;
 import java.util.Optional;
 
-import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpAnalysisUtils.getUsedParamName;
+import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getUsedParamName;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpRule.AVOID_TRAVERSING_ATTACKS;
 
+/**
+ * Rule to avoid traversing attacks in HTTP services where the resource level raw parameters are used in the
+ * client request path.
+ *
+ * @since 2.15.0
+ */
 public class AvoidTraversingAttacksRule implements HttpResourceRule {
 
     @Override
     public void analyze(HttpResourceRuleContext context) {
+        // Considering only resource method type invocations. For remote method invocations, the entire URL is an
+        // argument, so skipping that analysis.
         List<ClientResourceAccessActionNode> clientResourceActionNodes = context.functionBodyExpressions().stream()
                 .filter(exprNodeInfo -> exprNodeInfo.expression() instanceof ClientResourceAccessActionNode)
                 .map(exprNodeInfo -> (ClientResourceAccessActionNode) exprNodeInfo.expression())
@@ -61,16 +69,17 @@ public class AvoidTraversingAttacksRule implements HttpResourceRule {
         SeparatedNodeList<Node> resourceAccessPaths = clientResourceActionNode.resourceAccessPath();
 
         for (Node resourceAccessPath : resourceAccessPaths) {
-            if (resourceAccessPath instanceof ComputedResourceAccessSegmentNode computedResourceAccessSegment) {
-                ExpressionNode expression = computedResourceAccessSegment.expression();
-                Optional<String> usedParamName = getUsedParamName(expression);
-                if (usedParamName.isPresent() && context.resourceParamNames().contains(usedParamName.get())) {
-                    context.reporter().reportIssue(
+            if (!(resourceAccessPath instanceof ComputedResourceAccessSegmentNode computedResourceAccessSegment)) {
+                continue;
+            }
+            ExpressionNode expression = computedResourceAccessSegment.expression();
+            Optional<String> usedParamName = getUsedParamName(expression);
+            if (usedParamName.isPresent() && context.resourceParamNames().contains(usedParamName.get())) {
+                context.reporter().reportIssue(
                         context.document(),
                         computedResourceAccessSegment.location(),
                         getRuleId()
-                    );
-                }
+                );
             }
         }
     }

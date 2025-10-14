@@ -21,7 +21,9 @@ package io.ballerina.stdlib.http.compiler.staticcodeanalyzer.resourcerules;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
+import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
+import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.syntax.tree.BasicLiteralNode;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
@@ -30,9 +32,9 @@ import io.ballerina.compiler.syntax.tree.MappingFieldNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
-import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpAnalysisUtils;
 import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpResourceRule;
 import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpResourceRuleContext;
+import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils;
 
 import java.util.Map;
 import java.util.Optional;
@@ -41,10 +43,16 @@ import static io.ballerina.compiler.syntax.tree.SyntaxKind.SPECIFIC_FIELD;
 import static io.ballerina.stdlib.http.compiler.Constants.BALLERINA;
 import static io.ballerina.stdlib.http.compiler.Constants.EMPTY;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
-import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpAnalysisUtils.getUsedParamName;
-import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpAnalysisUtils.unescapeIdentifier;
+import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getUsedParamName;
+import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.unescapeIdentifier;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpRule.AVOID_UNSECURE_REDIRECTIONS;
 
+/**
+ * Rule to avoid unsecure redirections in HTTP services where the resource level raw parameters are used in the
+ * "Location" header of redirection responses. Here, we only consider status code responses.
+ *
+ * @since 2.15.0
+ */
 public class AvoidUnsecureRedirectionsRule implements HttpResourceRule {
 
     public static final String REDIRECT_STATUS_CODE_RESPONSE_TYPE = "RedirectStatusCodeResponses";
@@ -55,12 +63,15 @@ public class AvoidUnsecureRedirectionsRule implements HttpResourceRule {
 
     @Override
     public void analyze(HttpResourceRuleContext context) {
+        // Only considering the return statements which can send a redirect status code response type
         context.functionBodyExpressions().stream()
-                .filter(HttpAnalysisUtils.ExpressionNodeInfo::returnExpr)
+                .filter(HttpStaticAnalysisUtils.ExpressionNodeInfo::returnExpr)
                 .forEach(exprNodeInfo -> {
                     if (!(exprNodeInfo.expression() instanceof MappingConstructorExpressionNode mappingExpression)) {
                         return;
                     }
+                    // TODO: Here we do not validate whether the mapping expression is actually a redirect
+                    // status code response. We should ideally validate that too.
                     analyzeRedirectResponse(mappingExpression, context);
                 });
     }
@@ -73,9 +84,13 @@ public class AvoidUnsecureRedirectionsRule implements HttpResourceRule {
     @Override
     public boolean isApplicable(HttpResourceRuleContext context) {
         if (this.redirectResponseType == null) {
+            // This is more like caching for each service level analysis
+            // Once initialized the redirectResponseType should not be null
             initializeRedirectResponseType(context.semanticModel());
         }
 
+        // This rule is only applicable if there are parameters that could be used maliciously,
+        // there's a function body to analyze, and the return type is or includes atleast one redirect response type
         return !context.resourceParamNames().isEmpty() && context.functionReturnType().isPresent() &&
                 !context.functionBodyExpressions().isEmpty() && this.redirectResponseType != null &&
                 hasRedirectResponseType(context.functionReturnType().get(), this.redirectResponseType);
@@ -95,6 +110,17 @@ public class AvoidUnsecureRedirectionsRule implements HttpResourceRule {
         }
     }
 
+    /** 
+     * Check if the given field name node matches the expected field name.
+     * Currently supports,
+     * - IdentifierToken
+     * - BasicLiteralNode (string literals)
+     *
+     * @param fieldNameNode      The field name node to check.
+     * @param expectedFieldName  The expected field name.
+     * @param ignoreCase         Whether to ignore case when comparing.
+     * @return true if the field name matches, false otherwise.
+     */
     private boolean matchesFieldName(Node fieldNameNode, String expectedFieldName, boolean ignoreCase) {
         if (fieldNameNode instanceof IdentifierToken identifierToken) {
             String fieldName = unescapeIdentifier(identifierToken.text());
@@ -103,6 +129,7 @@ public class AvoidUnsecureRedirectionsRule implements HttpResourceRule {
 
         if (fieldNameNode instanceof BasicLiteralNode basicLiteralNode) {
             String fieldName = basicLiteralNode.literalToken().text();
+            // Removing the additional quotes from the string literal
             fieldName = fieldName.substring(1, fieldName.length() - 1);
             return ignoreCase ? fieldName.equalsIgnoreCase(expectedFieldName) : fieldName.equals(expectedFieldName);
         }
@@ -110,8 +137,7 @@ public class AvoidUnsecureRedirectionsRule implements HttpResourceRule {
         return false;
     }
 
-    private boolean hasRedirectResponseType(io.ballerina.compiler.api.symbols.TypeSymbol returnTypeSymbol,
-                                            io.ballerina.compiler.api.symbols.TypeSymbol redirectResponseType) {
+    private boolean hasRedirectResponseType(TypeSymbol returnTypeSymbol, TypeSymbol redirectResponseType) {
         if (redirectResponseType == null) {
             return false;
         }
@@ -120,11 +146,13 @@ public class AvoidUnsecureRedirectionsRule implements HttpResourceRule {
             return true;
         }
 
-        if (returnTypeSymbol instanceof io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol referenceTypeSymbol) {
+        if (returnTypeSymbol instanceof TypeReferenceTypeSymbol referenceTypeSymbol) {
             return hasRedirectResponseType(referenceTypeSymbol.typeDescriptor(), redirectResponseType);
         }
 
-        if (returnTypeSymbol instanceof io.ballerina.compiler.api.symbols.UnionTypeSymbol unionTypeSymbol) {
+        // If the type is a union type which contains types other than redirect response types, we need to check
+        // each member type of the union type.
+        if (returnTypeSymbol instanceof UnionTypeSymbol unionTypeSymbol) {
             return unionTypeSymbol.memberTypeDescriptors().stream()
                     .anyMatch(memberType -> hasRedirectResponseType(memberType, redirectResponseType));
         }

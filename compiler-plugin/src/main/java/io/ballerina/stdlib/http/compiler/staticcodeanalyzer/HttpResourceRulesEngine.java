@@ -25,6 +25,11 @@ import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.resourcerules.AvoidU
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Engine to manage and execute HTTP resource related static code analysis rules.
+ *
+ * @since 2.15.0
+ */
 public class HttpResourceRulesEngine {
 
     private final List<HttpResourceRule> rules;
@@ -52,5 +57,6 @@ public class HttpResourceRulesEngine {
         addRule(new AvoidDefaultResourceAccessorRule());
         addRule(new AvoidTraversingAttacksRule());
         addRule(new AvoidUnsecureRedirectionsRule());
+        // Add more default rules here as needed
     }
 }

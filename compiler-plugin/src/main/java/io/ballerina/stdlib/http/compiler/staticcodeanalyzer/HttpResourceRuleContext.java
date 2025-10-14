@@ -28,10 +28,22 @@ import io.ballerina.stdlib.http.compiler.ResourceFunction;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Context information required to analyze HTTp resource related static code analysis rules.
+ * @param reporter - Static code analysis reporter
+ * @param document - Ballerina document
+ * @param semanticModel - Semantic model of the document
+ * @param resourceFunction - HTTP resource function
+ * @param resourceMethodSymbol - Resource method symbol of the resource function
+ * @param resourceParamNames - List of resource anydata typed parameter names including path parameters
+ * @param functionReturnType - Return type of the resource function
+ * @param functionBodyExpressions - List of expression nodes in the function body with additional info
+ *
+ * @since 2.15.0
+ */
 public record HttpResourceRuleContext(Reporter reporter, Document document, SemanticModel semanticModel,
                                       ResourceFunction resourceFunction, ResourceMethodSymbol resourceMethodSymbol,
-                                      List<String> resourceParamNames,
-                                      List<HttpAnalysisUtils.ExpressionNodeInfo> functionBodyExpressions,
-                                      Optional<TypeSymbol> functionReturnType) {
+                                      List<String> resourceParamNames, Optional<TypeSymbol> functionReturnType,
+                                      List<HttpStaticAnalysisUtils.ExpressionNodeInfo> functionBodyExpressions) {
 }
 

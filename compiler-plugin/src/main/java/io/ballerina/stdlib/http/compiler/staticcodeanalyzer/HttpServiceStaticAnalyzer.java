@@ -47,15 +47,20 @@ import java.util.Optional;
 
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.RESOURCE_ACCESSOR_DECLARATION;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.RESOURCE_ACCESSOR_DEFINITION;
-import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpAnalysisUtils.getHttpService;
-import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpAnalysisUtils.unescapeIdentifier;
+import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getHttpService;
+import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.unescapeIdentifier;
 
-class HttpServiceAnalyzer implements AnalysisTask<SyntaxNodeAnalysisContext> {
+/**
+ * Analyzer to analyze HTTP service resource functions.
+ *
+ * @since 2.13.0
+ */
+class HttpServiceStaticAnalyzer implements AnalysisTask<SyntaxNodeAnalysisContext> {
 
     private final Reporter reporter;
     private final HttpResourceRulesEngine rulesEngine;
 
-    public HttpServiceAnalyzer(Reporter reporter) {
+    public HttpServiceStaticAnalyzer(Reporter reporter) {
         this.reporter = reporter;
         this.rulesEngine = new HttpResourceRulesEngine();
     }
@@ -94,10 +99,8 @@ class HttpServiceAnalyzer implements AnalysisTask<SyntaxNodeAnalysisContext> {
             return;
         }
 
-        HttpResourceRuleContext context = createRuleContext(
-            resourceFunction, resourceMethodSymbol, document, semanticModel
-        );
-
+        HttpResourceRuleContext context = createRuleContext(resourceFunction, resourceMethodSymbol, document,
+                semanticModel);
         rulesEngine.executeRules(context);
     }
 
@@ -135,8 +138,8 @@ class HttpServiceAnalyzer implements AnalysisTask<SyntaxNodeAnalysisContext> {
             resourceFunction,
             resourceMethodSymbol,
             resourceParamNames,
-            functionBody.map(HttpAnalysisUtils::extractExpressions).orElseGet(List::of),
-            functionReturnType
+            functionReturnType,
+            functionBody.map(HttpStaticAnalysisUtils::extractExpressions).orElseGet(List::of)
         );
     }
 
