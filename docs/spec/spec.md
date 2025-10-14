@@ -143,6 +143,11 @@ The conforming implementation of the specification is released and included in t
 10. [Protocol-upgrade](#10-protocol-upgrade)
     * 10.1. [HTTP2](#101-http2)
         * 10.1.1. [Push promise and promise response](#1011-push-promise-and-promise-response)
+11. [Static Code Rules](#11-static-code-rules)
+    * 11.1. [Avoid allowing default resource accessor](#111-avoid-allowing-default-resource-accessor)
+    * 11.2. [void permissive Cross-Origin Resource Sharing](#112-avoid-permissive-cross-origin-resource-sharing)
+    * 11.3. [Server-side requests should not be vulnerable to traversing attacks](#113-server-side-requests-should-not-be-vulnerable-to-traversing-attacks)
+    * 11.4. [HTTP request redirections should not be open to forging attacks](#114-http-request-redirections-should-not-be-open-to-forging-attacks)
 
 ## 1. Overview
 Ballerina language provides first-class support for writing network-oriented programs. The HTTP standard library uses these language constructs and creates the programming model to produce and consume HTTP APIs.
@@ -3331,3 +3336,217 @@ Push Promise and Promise response are the only application level new semantics w
 
 Other protocol changes such as streams, messages, frames, request prioritization, flow control, header compression, 
 etc. are all lower level changes that can be handled by the HTTP listener seamlessly from the user.
+
+## 11. Static Code Rules
+
+The following static code rules are applied to the HTTP module.
+
+| Id               | Kind          | Description                                                         |
+|------------------|---------------|---------------------------------------------------------------------|
+| ballerina/http:1 | VULNERABILITY | Avoid allowing default resource accessor                            |
+| ballerina/http:2 | VULNERABILITY | Avoid permissive Cross-Origin Resource Sharing                      |
+| ballerina/http:3 | VULNERABILITY | Server-side requests should not be vulnerable to traversing attacks |
+| ballerina/http:4 | VULNERABILITY | HTTP request redirections should not be open to forging attacks     |
+
+### 11.1. Avoid allowing default resource accessor
+
+HTTP methods are categorized as either **safe** or **unsafe** based on their intended purpose:
+
+- **Safe HTTP methods** (GET, HEAD, OPTIONS) are designed for read-only operations that should not modify server state
+- **Unsafe HTTP methods** (POST, PUT, DELETE) are intended for operations that change application state
+
+**Security Risk:**
+
+Using a default resource accessor allows the resource to handle any HTTP method, including both safe and unsafe operations. This creates significant security vulnerabilities, particularly with Cross-Site Request Forgery (CSRF) attacks, since CSRF protections typically only guard unsafe HTTP methods.
+
+**Best Practice:**
+
+Explicitly define the authorized HTTP methods for each resource and ensure safe HTTP methods are only used for read-only operations.
+
+**Non-compliant code:**
+
+```ballerina
+service / on new http:Listener(9090) {
+
+    // Default resource accessor is used
+    resource function default users(string id) returns string {
+        ...
+    }
+}
+```
+
+**Compliant code:**
+
+```ballerina
+service / on new http:Listener(9090) {
+
+    // Use explicit HTTP method
+    resource function get users(string id) returns string {
+        ...
+    }
+}
+```
+
+### 11.2. Avoid permissive Cross-Origin Resource Sharing
+
+**What is CORS:**
+
+Cross-Origin Resource Sharing (CORS) is a mechanism that allows restricted resources on a web page to be requested from another domain outside the domain from which the resource originated.
+
+**Security Risk:**
+
+A permissive CORS configuration that allows any origin (`*`) to access server resources can lead to security vulnerabilities, including:
+
+- Cross-Site Request Forgery (CSRF) attacks
+- Unauthorized data access from malicious websites
+- Exposure of sensitive information to untrusted domains
+
+**Best Practice:**
+
+Avoid using wildcard (`*`) in the `allowOrigins` configuration of CORS. Instead, explicitly define specific origins that are authorized to access the resources.
+
+**Non-compliant code:**
+
+```ballerina
+@http:ServiceConfig {
+    cors: {
+        // Wildcard origin is used
+        allowOrigins: ["*"]
+    }
+}
+service /api/v1 on new http:Listener(9090) {
+    ...
+}
+```
+
+**Compliant code:**
+
+```ballerina
+@http:ServiceConfig {
+    cors: {
+        // Specific origins are defined
+        allowOrigins: ["https://example.com", "https://another-example.com"]
+    }
+}
+service /api/v1 on new http:Listener(9090) {
+    ...
+}
+```
+
+### 11.3. Server-side requests should not be vulnerable to traversing attacks
+
+**What is SSRF:**
+
+Server-Side Request Forgery (SSRF) is a vulnerability that allows attackers to induce the server-side application to make requests to an unintended location. When applications accept user input that influences server-side HTTP requests without proper validation or sanitization, attackers can manipulate these requests.
+
+**Security Risks:**
+
+SSRF attacks can enable attackers to:
+
+- Access internal services behind firewalls
+- Scan internal networks for vulnerabilities
+- Interact with metadata services in cloud environments
+- Perform denial-of-service attacks
+- Leverage server privileges to access restricted resources
+
+SSRF attacks are particularly dangerous in cloud environments where metadata services can expose sensitive information such as credentials and configuration data.
+
+**Common Attack Patterns:**
+
+- Manipulating URL parameters to reach internal IPs (e.g., `127.0.0.1`, `192.168.x.x`)
+- Using alternate encoding schemes to bypass filters (e.g., decimal IPs, hex encoding)
+- Abusing URL redirects to reach internal resources
+- Using DNS rebinding to bypass hostname-based restrictions
+- Exploiting non-HTTP URL schemes like `file://`, `gopher://`, or `dict://`
+
+**Best Practice:**
+
+Avoid using user input directly in server-side HTTP requests. Instead, validate and sanitize all user inputs to ensure they conform to expected formats and values before using them in any server-side operations.
+
+**Non-compliant code:**
+
+```ballerina
+service /api/v1 on new http:Listener(8080) {
+
+    resource function get users(string id) returns http:Response|error {
+        http:Client userClient = check new ("http://example.com");
+        // User input is used directly in the URL
+        return userClient->/users/[id];
+    }
+}
+```
+
+**Compliant code:**
+
+```ballerina
+service /api/v1 on new http:Listener(8080) {
+
+    resource function get users(string id) returns http:Response|error {
+        // Validate the user input
+        string validatedId = check getValidatedId(id);
+        http:Client userClient = check new ("http://example.com");
+        return userClient->/users/[validatedId];
+    }
+}
+```
+
+### 11.4. HTTP request redirections should not be open to forging attacks
+
+**What are Open Redirects:**
+
+Open redirects occur when an application accepts user-controlled input that specifies a URL to which the user will be redirected. When these redirects are implemented without proper validation, attackers can craft redirection URLs to malicious sites.
+
+**Security Risks:**
+
+These vulnerabilities can lead to several security threats:
+
+- **Phishing attacks:** Users are redirected to malicious sites that impersonate legitimate services
+- **Credential theft:** Redirects to sites designed to steal authentication information
+- **Malware distribution:** Redirects to malicious downloads
+- **Security control bypass:** Leveraging user trust in the original domain
+- **Cross-site scripting (XSS):** Through `javascript:` URI schemes in some browsers
+
+**Common Vulnerable Patterns:**
+
+- Directly using user-supplied URLs in Location headers
+- Insufficient validation of redirect destinations
+- Allowing protocol-relative URLs that can lead to unexpected destinations
+- Validating only prefixes of redirect URLs, which can be bypassed
+- Relying on blocklists instead of allowlists for URL validation
+
+**Best Practice:**
+
+Avoid using user input directly in redirection URLs. Instead, validate and sanitize all user inputs to ensure they conform to expected formats and values before using them in redirect operations.
+
+**Non-compliant code:**
+
+```ballerina
+service /api/v1 on new http:Listener(8080) {
+
+    resource function get redirect(string location) returns http:TemporaryRedirect {
+        return {
+            headers: {
+                // User input is used directly in the Location header
+                "Location": location
+            }
+        };
+    }
+}
+```
+
+**Compliant code:**
+
+```ballerina
+service /api/v1 on new http:Listener(8080) {
+
+    resource function get redirect(string location) returns http:TemporaryRedirect|error {
+        // Validate the user input
+        string validatedLocation = check getValidatedLocation(location);
+        return {
+            headers: {
+                "Location": validatedLocation
+            }
+        };
+    }
+}
+```
