@@ -145,7 +145,7 @@ The conforming implementation of the specification is released and included in t
         * 10.1.1. [Push promise and promise response](#1011-push-promise-and-promise-response)
 11. [Static Code Rules](#11-static-code-rules)
     * 11.1. [Avoid allowing default resource accessor](#111-avoid-allowing-default-resource-accessor)
-    * 11.2. [void permissive Cross-Origin Resource Sharing](#112-avoid-permissive-cross-origin-resource-sharing)
+    * 11.2. [Avoid permissive Cross-Origin Resource Sharing](#112-avoid-permissive-cross-origin-resource-sharing)
     * 11.3. [Server-side requests should not be vulnerable to traversing attacks](#113-server-side-requests-should-not-be-vulnerable-to-traversing-attacks)
     * 11.4. [HTTP request redirections should not be open to forging attacks](#114-http-request-redirections-should-not-be-open-to-forging-attacks)
 

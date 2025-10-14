@@ -110,7 +110,7 @@ public class AvoidUnsecureRedirectionsRule implements HttpResourceRule {
         }
     }
 
-    /** 
+    /**
      * Check if the given field name node matches the expected field name.
      * Currently supports,
      * - IdentifierToken

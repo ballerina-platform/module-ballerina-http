@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Context information required to analyze HTTp resource related static code analysis rules.
+ * Context information required to analyze HTTP resource related static code analysis rules.
  * @param reporter - Static code analysis reporter
  * @param document - Ballerina document
  * @param semanticModel - Semantic model of the document

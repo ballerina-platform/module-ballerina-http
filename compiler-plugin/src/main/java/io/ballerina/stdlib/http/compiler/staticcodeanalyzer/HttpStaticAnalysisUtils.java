@@ -183,6 +183,7 @@ public final class HttpStaticAnalysisUtils {
             case WhileStatementNode whileStatementNode ->
                     addExpressions(whileStatementNode.whileBody().statements(), expressions);
             default -> {
+                // Other statement types are not handled currently
             }
         }
     }
