@@ -18,7 +18,6 @@
 
 package io.ballerina.stdlib.http.compiler.staticcodeanalyzer.resourcerules;
 
-import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpResourceRule;
 import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpResourceRuleContext;
 import io.ballerina.tools.diagnostics.Location;
 

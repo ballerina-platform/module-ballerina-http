@@ -21,6 +21,7 @@ package io.ballerina.stdlib.http.compiler.staticcodeanalyzer;
 import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.resourcerules.AvoidDefaultResourceAccessorRule;
 import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.resourcerules.AvoidTraversingAttacksRule;
 import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.resourcerules.AvoidUnsecureRedirectionsRule;
+import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.resourcerules.HttpResourceRule;
 
 import java.util.ArrayList;
 import java.util.List;

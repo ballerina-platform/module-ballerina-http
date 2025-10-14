@@ -44,6 +44,6 @@ import java.util.Optional;
 public record HttpResourceRuleContext(Reporter reporter, Document document, SemanticModel semanticModel,
                                       ResourceFunction resourceFunction, ResourceMethodSymbol resourceMethodSymbol,
                                       List<String> resourceParamNames, Optional<TypeSymbol> functionReturnType,
-                                      List<HttpStaticAnalysisUtils.ExpressionNodeInfo> functionBodyExpressions) {
+                                      List<ExpressionNodeInfo> functionBodyExpressions) {
 }
 

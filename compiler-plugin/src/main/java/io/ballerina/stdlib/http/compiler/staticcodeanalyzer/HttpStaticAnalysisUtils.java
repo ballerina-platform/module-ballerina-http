@@ -41,6 +41,7 @@ import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.StatementNode;
 import io.ballerina.compiler.syntax.tree.TypeCastExpressionNode;
+import io.ballerina.compiler.syntax.tree.TypeCastParamNode;
 import io.ballerina.compiler.syntax.tree.VariableDeclarationNode;
 import io.ballerina.compiler.syntax.tree.WhileStatementNode;
 import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
@@ -91,19 +92,6 @@ public final class HttpStaticAnalysisUtils {
     }
 
     /**
-     * A record to hold an expression node and a flag indicating if the expression is part of a return statement.
-     *
-     * @param expression The expression node
-     * @param returnExpr True if the expression is part of a return statement, false otherwise
-     */
-    public record ExpressionNodeInfo(ExpressionNode expression, boolean returnExpr) {
-
-        public ExpressionNodeInfo(ExpressionNode expression) {
-            this(expression, false);
-        }
-    }
-
-    /**
      * Extract all expression nodes from the given function body.
      *
      * @param functionBody The function body node
@@ -112,7 +100,7 @@ public final class HttpStaticAnalysisUtils {
     public static List<ExpressionNodeInfo> extractExpressions(FunctionBodyNode functionBody) {
         switch (functionBody) {
             case ExpressionFunctionBodyNode expressionFunctionBodyNode -> {
-                ExpressionNode expressionNode = getEffectiveExpression(expressionFunctionBodyNode.expression());
+                ExpressionNode expressionNode = expressionFunctionBodyNode.expression();
                 // If the function body is an expression, then that is the returnType
                 return List.of(new ExpressionNodeInfo(expressionNode, true));
             }
@@ -157,13 +145,11 @@ public final class HttpStaticAnalysisUtils {
     private static void addExpression(List<ExpressionNodeInfo> expressions, Node statement) {
         switch (statement) {
             case ReturnStatementNode returnStatementNode -> returnStatementNode.expression()
-                    .map(HttpStaticAnalysisUtils::getEffectiveExpression)
                     .ifPresent(expr -> expressions.add(new ExpressionNodeInfo(expr, true)));
             case AssignmentStatementNode assignmentNode -> expressions
-                    .add(new ExpressionNodeInfo(getEffectiveExpression(assignmentNode.expression())));
+                    .add(new ExpressionNodeInfo(assignmentNode.expression()));
             case VariableDeclarationNode variableDeclarationNode ->
                 variableDeclarationNode.initializer()
-                    .map(HttpStaticAnalysisUtils::getEffectiveExpression)
                     .ifPresent(expr -> expressions.add(new ExpressionNodeInfo(expr)));
             case MatchStatementNode matchStatementNode -> matchStatementNode.matchClauses()
                     .forEach(matchClause ->
@@ -203,6 +189,20 @@ public final class HttpStaticAnalysisUtils {
             case TypeCastExpressionNode castExpressionNode -> castExpressionNode.expression();
             default -> expressionNode;
         };
+    }
+
+    /**
+     * If the given expression node is a TypeCastExpressionNode, return the casting type node.
+     *
+     * @param expressionNode The expression node to analyze
+     * @return Optional containing the casting type node if present, empty otherwise
+     */
+    public static Optional<Node> getCastingType(ExpressionNode expressionNode) {
+        if (expressionNode instanceof TypeCastExpressionNode typeCastExpressionNode) {
+            TypeCastParamNode typeCastParamNode = typeCastExpressionNode.typeCastParam();
+            return typeCastParamNode.type();
+        }
+        return Optional.empty();
     }
 
     /**

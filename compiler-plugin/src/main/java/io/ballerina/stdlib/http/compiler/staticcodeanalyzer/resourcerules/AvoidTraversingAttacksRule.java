@@ -23,7 +23,6 @@ import io.ballerina.compiler.syntax.tree.ComputedResourceAccessSegmentNode;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
-import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpResourceRule;
 import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpResourceRuleContext;
 
 import java.util.List;

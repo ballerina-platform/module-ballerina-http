@@ -32,9 +32,8 @@ import io.ballerina.compiler.syntax.tree.MappingFieldNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
-import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpResourceRule;
+import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.ExpressionNodeInfo;
 import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpResourceRuleContext;
-import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils;
 
 import java.util.Map;
 import java.util.Optional;
@@ -65,13 +64,12 @@ public class AvoidUnsecureRedirectionsRule implements HttpResourceRule {
     public void analyze(HttpResourceRuleContext context) {
         // Only considering the return statements which can send a redirect status code response type
         context.functionBodyExpressions().stream()
-                .filter(HttpStaticAnalysisUtils.ExpressionNodeInfo::returnExpr)
+                .filter(expressionNodeInfo -> expressionNodeInfo.returnExpr() &&
+                        isRedirectResponseValue(context.semanticModel(), expressionNodeInfo))
                 .forEach(exprNodeInfo -> {
                     if (!(exprNodeInfo.expression() instanceof MappingConstructorExpressionNode mappingExpression)) {
                         return;
                     }
-                    // TODO: Here we do not validate whether the mapping expression is actually a redirect
-                    // status code response. We should ideally validate that too.
                     analyzeRedirectResponse(mappingExpression, context);
                 });
     }
@@ -112,7 +110,7 @@ public class AvoidUnsecureRedirectionsRule implements HttpResourceRule {
 
     /**
      * Check if the given field name node matches the expected field name.
-     * Currently supports,
+     * Currently, supports,
      * - IdentifierToken
      * - BasicLiteralNode (string literals)
      *
@@ -137,6 +135,21 @@ public class AvoidUnsecureRedirectionsRule implements HttpResourceRule {
         return false;
     }
 
+    private boolean isRedirectResponseValue(SemanticModel semanticModel, ExpressionNodeInfo expressionNodeInfo) {
+        if (expressionNodeInfo.castingType().isEmpty()) {
+            // If there is no casting, then it should be a redirect response since compiler resolves this as a
+            // valid type when the return type contains a redirect response type.
+            return true;
+        }
+        Node node = expressionNodeInfo.castingType().get();
+        Optional<Symbol> symbol = semanticModel.symbol(node);
+        if (symbol.isEmpty() || !(symbol.get() instanceof TypeSymbol returnTypeSymbol)) {
+            // Unable to resolve the symbol, so we cannot confirm if it's a redirect response type.
+            return false;
+        }
+        return returnTypeSymbol.subtypeOf(this.redirectResponseType);
+    }
+
     private boolean hasRedirectResponseType(TypeSymbol returnTypeSymbol, TypeSymbol redirectResponseType) {
         if (redirectResponseType == null) {
             return false;
@@ -154,7 +167,7 @@ public class AvoidUnsecureRedirectionsRule implements HttpResourceRule {
         // each member type of the union type.
         if (returnTypeSymbol instanceof UnionTypeSymbol unionTypeSymbol) {
             return unionTypeSymbol.memberTypeDescriptors().stream()
-                    .anyMatch(memberType -> hasRedirectResponseType(memberType, redirectResponseType));
+                    .anyMatch(memberType -> hasRedirectResponseType(memberType, this.redirectResponseType));
         }
 
         return false;

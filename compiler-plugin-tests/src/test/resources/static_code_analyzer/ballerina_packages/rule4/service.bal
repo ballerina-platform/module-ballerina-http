@@ -83,10 +83,18 @@ service / on new http:Listener(8080) {
         }
     };
 
-    resource function post negative(@http:Header string location) returns http:TemporaryRedirect {
+    resource function post negative1(@http:Header string location) returns http:TemporaryRedirect {
         return {
             headers: {
                 "Location": "location"
+            }
+        };
+    }
+
+    resource function post negative2(Payload payload\-param) returns json|http:TemporaryRedirect {
+        return <json>{
+            headers: {
+                "Location": payload\-param.location
             }
         };
     }

@@ -132,7 +132,7 @@
         <Bug pattern="EI_EXPOSE_REP2"/>
     </Match>
     <Match>
-        <Class name="io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils$ExpressionNodeInfo"/>
+        <Class name="io.ballerina.stdlib.http.compiler.staticcodeanalyzer.ExpressionNodeInfo"/>
         <Method name="expression"/>
         <Bug pattern="EI_EXPOSE_REP"/>
     </Match>
@@ -142,7 +142,7 @@
         <Bug pattern="EI_EXPOSE_REP"/>
     </Match>
     <Match>
-        <Class name="io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils$ExpressionNodeInfo"/>
+        <Class name="io.ballerina.stdlib.http.compiler.staticcodeanalyzer.ExpressionNodeInfo"/>
         <Field name="expression"/>
         <Bug pattern="EI_EXPOSE_REP2"/>
     </Match>

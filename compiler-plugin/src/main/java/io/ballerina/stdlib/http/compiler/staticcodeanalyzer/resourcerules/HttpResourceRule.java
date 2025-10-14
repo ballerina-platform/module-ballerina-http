@@ -16,7 +16,9 @@
  * under the License.
  */
 
-package io.ballerina.stdlib.http.compiler.staticcodeanalyzer;
+package io.ballerina.stdlib.http.compiler.staticcodeanalyzer.resourcerules;
+
+import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpResourceRuleContext;
 
 /**
  * Interface to be implemented by all HTTP resource related static code analysis rules.
