@@ -17,6 +17,7 @@
 import ballerina/http;
 
 service class ExampleService {
+    *http:Service;
     resource function get .(string path) returns string|error {
         http:Client userClient = check new ("http://example.com");
         json response = check userClient->/api/[path];

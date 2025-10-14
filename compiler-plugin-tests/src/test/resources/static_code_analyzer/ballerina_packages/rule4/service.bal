@@ -16,11 +16,77 @@
 
 import ballerina/http;
 
+type Payload record {
+    string location;
+};
+
+type RedirectResponse http:MovedPermanently|http:TemporaryRedirect|json;
+
 service / on new http:Listener(8080) {
     resource function get .(string location) returns http:TemporaryRedirect {
         return {
             headers: {
                 "Location": location
+            }
+        };
+    }
+
+    resource function post .(Payload payload) returns json|http:TemporaryRedirect {
+        return <http:TemporaryRedirect>{
+            headers: {
+                "Location": payload.location
+            }
+        };
+    }
+
+    resource function patch .(Payload payload\-param) returns json|http:TemporaryRedirect {
+        return <http:TemporaryRedirect>{
+            headers: {
+                "Location": payload\-param.location
+            }
+        };
+    }
+
+    resource function put .(Payload 'payload) returns json|http:MovedPermanently {
+        return <http:MovedPermanently>{
+            headers: {
+                "Location": payload["location"]
+            }
+        };
+    }
+
+    resource function custom .(string 'type, string location = "location") returns RedirectResponse {
+        match 'type {
+            "moved" => {
+                return <http:MovedPermanently>{
+                    headers: {
+                        "Location": location
+                    }
+                };
+            }
+            "temporary" => {
+                return <http:TemporaryRedirect>{
+                    headers: {
+                        "Location": location
+                    }
+                };
+            }
+            _ => {
+                return {message: "Invalid type"};
+            }
+        }
+    }
+
+    resource function put12 .(Payload 'payload) returns json|http:MovedPermanently => <http:MovedPermanently>{
+        headers: {
+            "Location": payload["location"]
+        }
+    };
+
+    resource function post negative(@http:Header string location) returns http:TemporaryRedirect {
+        return {
+            headers: {
+                "Location": "location"
             }
         };
     }
