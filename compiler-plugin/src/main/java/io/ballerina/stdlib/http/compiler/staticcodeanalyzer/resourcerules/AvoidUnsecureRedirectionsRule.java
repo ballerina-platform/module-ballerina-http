@@ -97,15 +97,15 @@ public class AvoidUnsecureRedirectionsRule implements HttpResourceRule {
     private void initializeRedirectResponseType(SemanticModel semanticModel) {
         Optional<Map<String, Symbol>> httpTypes = semanticModel.types().typesInModule(BALLERINA, HTTP, EMPTY);
         if (httpTypes.isEmpty() || !httpTypes.get().containsKey(REDIRECT_STATUS_CODE_RESPONSE_TYPE)) {
+            // Will not reach here
             return;
         }
 
         Symbol symbol = httpTypes.get().get(REDIRECT_STATUS_CODE_RESPONSE_TYPE);
         if (symbol instanceof TypeDefinitionSymbol typeDefinitionSymbol) {
             this.redirectResponseType = typeDefinitionSymbol.typeDescriptor();
-        } else if (symbol instanceof TypeSymbol typeSymbol) {
-            this.redirectResponseType = typeSymbol;
         }
+        // Will not reach here
     }
 
     /**
@@ -176,6 +176,7 @@ public class AvoidUnsecureRedirectionsRule implements HttpResourceRule {
     private void analyzeRedirectResponse(MappingConstructorExpressionNode mappingExpression,
                                          HttpResourceRuleContext context) {
         for (MappingFieldNode field : mappingExpression.fields()) {
+            // Only supporting specific field name nodes. Computed and spread fields are not supported.
             if (!field.kind().equals(SPECIFIC_FIELD)) {
                 continue;
             }
@@ -185,6 +186,7 @@ public class AvoidUnsecureRedirectionsRule implements HttpResourceRule {
                 continue;
             }
 
+            // Expression can be empty if the provided variable's name matches the field name
             Optional<ExpressionNode> valueExpr = ((SpecificFieldNode) field).valueExpr();
             if (valueExpr.isEmpty() || !(valueExpr.get() instanceof MappingConstructorExpressionNode headersMap)) {
                 return;

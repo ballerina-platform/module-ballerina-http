@@ -22,9 +22,23 @@ type Payload record {
 
 type RedirectResponse http:MovedPermanently|http:TemporaryRedirect|json;
 
+type TemporaryRedirect record {|
+    *http:TemporaryRedirect;
+    string body;
+|};
+
 service / on new http:Listener(8080) {
-    resource function get .(string location) returns http:TemporaryRedirect {
+    resource function get path/[string location]() returns http:TemporaryRedirect {
         return {
+            headers: {
+                "Location": location
+            }
+        };
+    }
+
+    resource function get path(string location) returns TemporaryRedirect {
+        return {
+            body: "Redirection",
             headers: {
                 "Location": location
             }
@@ -77,13 +91,14 @@ service / on new http:Listener(8080) {
         }
     }
 
-    resource function put12 .(Payload 'payload) returns json|http:MovedPermanently => <http:MovedPermanently>{
+    resource function head .(Payload 'payload) returns json|http:MovedPermanently => <http:MovedPermanently>{
         headers: {
             "Location": payload["location"]
         }
     };
 
     resource function post negative1(@http:Header string location) returns http:TemporaryRedirect {
+        string _ = location;
         return {
             headers: {
                 "Location": "location"
@@ -95,6 +110,76 @@ service / on new http:Listener(8080) {
         return <json>{
             headers: {
                 "Location": payload\-param.location
+            }
+        };
+    }
+
+    resource function post negative3(Payload payload) {
+    }
+
+    resource function post negative4() {
+        string _ = "location";
+    }
+
+    resource function post negative5() returns http:TemporaryRedirect? {
+    }
+
+    resource function post negative6(@http:Header string location) returns http:TemporaryRedirect {
+        http:TemporaryRedirect res = {
+            headers: {
+                "Location": location
+            }
+        };
+        return res;
+    }
+
+    resource function post negative7(@http:Header string location) returns http:TemporaryRedirect {
+        map<string> headers = {
+            "Location": location
+        };
+        return {
+            headers: headers
+        };
+    }
+
+    resource function get negative8(string location) returns TemporaryRedirect {
+        string HEADERS = "headers";
+        return {
+            body: "Redirection",
+            [HEADERS]: {
+                "Location": location
+            }
+        };
+    }
+
+    resource function get negative9(string location) returns TemporaryRedirect {
+        TemporaryRedirect res = {
+            body: "Redirection",
+            headers: {
+                Location: location
+            }
+        };
+        return {
+            ...res
+        };
+    }
+
+    resource function get negative10(string location) returns TemporaryRedirect {
+        map<string> headers = {
+            "Location": location
+        };
+        return {
+            body: "Redirection",
+            headers
+        };
+    }
+
+    resource function get negative11(string location) returns TemporaryRedirect {
+        string loc = location;
+        return {
+            body: "Redirection",
+            headers: {
+                "Location": loc
             }
         };
     }

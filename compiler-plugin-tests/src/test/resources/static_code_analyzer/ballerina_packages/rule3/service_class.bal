@@ -30,3 +30,18 @@ service class ExampleService {
         return response.toJsonString();
     }
 }
+
+// Negative test - Service class is not a HTTP service
+service class ExampleRawService {
+    resource function get .(string path) returns string|error {
+        http:Client userClient = check new ("http://example.com");
+        json response = check userClient->/api/[path];
+        return response.toJsonString();
+    }
+
+    resource function post .(record {|string path;|} payload) returns string|error {
+        http:Client userClient = check new ("http://example.com");
+        json response = check userClient->/api/[payload.path];
+        return response.toJsonString();
+    }
+}

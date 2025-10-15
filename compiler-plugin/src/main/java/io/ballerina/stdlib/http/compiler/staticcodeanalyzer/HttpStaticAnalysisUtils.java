@@ -19,9 +19,11 @@
 package io.ballerina.stdlib.http.compiler.staticcodeanalyzer;
 
 import io.ballerina.compiler.syntax.tree.AssignmentStatementNode;
+import io.ballerina.compiler.syntax.tree.BlockStatementNode;
 import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.DoStatementNode;
+import io.ballerina.compiler.syntax.tree.ElseBlockNode;
 import io.ballerina.compiler.syntax.tree.ExpressionFunctionBodyNode;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FieldAccessExpressionNode;
@@ -87,6 +89,7 @@ public final class HttpStaticAnalysisUtils {
                         .getServiceClassDefinitionNode(context);
                 yield serviceClassDefinitionNode == null ? null : new HttpServiceClass(serviceClassDefinitionNode);
             }
+            // Will not reach here since we invoke this method only for applicable node kinds
             default -> null;
         };
     }
@@ -111,6 +114,8 @@ public final class HttpStaticAnalysisUtils {
             }
             default -> {
                 // Other type is the external function body which does not have a body to analyze
+                // Will not reach here since external resource functions are not supported
+                // for services yet
                 return List.of();
             }
         }
@@ -124,9 +129,10 @@ public final class HttpStaticAnalysisUtils {
 
     /**
      * Recursively extract expressions from various statement nodes.
-     * At compiler level there is no abstraction for block statements, hence we need to handle each statement type
-     * separately.
+     * At the compiler level there is no abstraction for all block statements, hence we need to handle each
+     * statement type separately.
      * Currently supported direct expressions are:
+     * - BlockStatementNode - analyze inner statements recursively
      * - ReturnStatementNode
      * - AssignmentStatementNode - analyze the right-hand side expression
      * - VariableDeclarationNode - analyze the initializer expression
@@ -136,6 +142,7 @@ public final class HttpStaticAnalysisUtils {
      * - OnFailClauseNode
      * - LockStatementNode
      * - IfElseStatementNode
+     * - ElseBlockNode
      * - ForEachStatementNode
      * - WhileStatementNode
      *
@@ -144,6 +151,8 @@ public final class HttpStaticAnalysisUtils {
      */
     private static void addExpression(List<ExpressionNodeInfo> expressions, Node statement) {
         switch (statement) {
+            case BlockStatementNode blockStatementNode ->
+                    addExpressions(blockStatementNode.statements(), expressions);
             case ReturnStatementNode returnStatementNode -> returnStatementNode.expression()
                     .ifPresent(expr -> expressions.add(new ExpressionNodeInfo(expr, true)));
             case AssignmentStatementNode assignmentNode -> expressions
@@ -154,8 +163,10 @@ public final class HttpStaticAnalysisUtils {
             case MatchStatementNode matchStatementNode -> matchStatementNode.matchClauses()
                     .forEach(matchClause ->
                             addExpressions(matchClause.blockStatement().statements(), expressions));
-            case DoStatementNode doStatementNode ->
+            case DoStatementNode doStatementNode -> {
                     addExpressions(doStatementNode.blockStatement().statements(), expressions);
+                    doStatementNode.onFailClause().ifPresent(value -> addExpression(expressions, value));
+            }
             case OnFailClauseNode onFailClauseNode ->
                     addExpressions(onFailClauseNode.blockStatement().statements(), expressions);
             case LockStatementNode lockStatementNode ->
@@ -164,6 +175,8 @@ public final class HttpStaticAnalysisUtils {
                 addExpressions(ifElseStatementNode.ifBody().statements(), expressions);
                 ifElseStatementNode.elseBody().ifPresent(value -> addExpression(expressions, value));
             }
+            case ElseBlockNode elseBlockNode ->
+                    addExpression(expressions, elseBlockNode.elseBody());
             case ForEachStatementNode forEachStatementNode ->
                     addExpressions(forEachStatementNode.blockStatement().statements(), expressions);
             case WhileStatementNode whileStatementNode ->

@@ -15,6 +15,9 @@
 // under the License.
 
 import ballerina/http;
+import ballerina/io;
+
+final http:Client clientEp = check new ("http://example.com");
 
 service on new http:Listener(8080) {
     resource function get .(string path) returns string|error {
@@ -27,5 +30,36 @@ service on new http:Listener(8080) {
         http:Client userClient = check new ("http://example.com");
         json response = check userClient->/api/[payload.path];
         return response.toJsonString();
+    }
+
+    resource function post blocks/[string path](string location, boolean condition) returns http:Response|json|error {
+        do {
+            if condition {
+                boolean b = true;
+                while b {
+                    http:Response _ = check clientEp->/api/[location];
+                    b = false;
+                }
+                foreach int a in 1...4 {
+                    http:Response res = new;
+                    res = check clientEp->/api/[path];
+                    io:println(res);
+                }
+                lock {
+                    json response = check clientEp->/api/[location];
+                    return response;
+                }
+            } else {
+                http:Response res = check clientEp->/api/[location];
+                if condition {
+                    res = check clientEp->/api/[location];
+                    return res;
+                }
+            }
+            _ = check clientEp->/api/[condition]/[location](targetType = http:Response);
+            return;
+        } on fail {
+            return clientEp->/api/[path];
+        }
     }
 }
