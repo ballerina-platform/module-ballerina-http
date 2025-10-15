@@ -3516,7 +3516,6 @@ service /api/v1 on new http:Listener(8080) {
 #### 11.3.4. Additional Resources
 
 - OWASP - [Top 10 2021 Category A10 - Server-Side Request Forgery (SSRF)](https://owasp.org/Top10/A10_2021-Server-Side_Request_Forgery_%28SSRF%29/)
-  Forgery (SSRF)</a> </li>
 - OWASP - [Top 10 2017 Category A5 - Broken Access Control](https://owasp.org/www-project-top-ten/2017/A5_2017-Broken_Access_Control)
 - CWE - [CWE-20 - Improper Input Validation](https://cwe.mitre.org/data/definitions/20)
 - CWE - [CWE-918 - Server-Side Request Forgery (SSRF)](https://cwe.mitre.org/data/definitions/918)
