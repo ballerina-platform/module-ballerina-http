@@ -89,8 +89,11 @@ public final class HttpStaticAnalysisUtils {
                         .getServiceClassDefinitionNode(context);
                 yield serviceClassDefinitionNode == null ? null : new HttpServiceClass(serviceClassDefinitionNode);
             }
-            // Will not reach here since we invoke this method only for applicable node kinds
-            default -> null;
+            default -> {
+                String errorMessage = String.format("Unexpected node kind: %s. Expected SERVICE_DECLARATION, " +
+                        "OBJECT_TYPE_DESC or CLASS_DEFINITION.", context.node().kind());
+                throw new IllegalStateException(errorMessage);
+            }
         };
     }
 
@@ -102,22 +105,19 @@ public final class HttpStaticAnalysisUtils {
      */
     public static List<ExpressionNodeInfo> extractExpressions(FunctionBodyNode functionBody) {
         switch (functionBody) {
-            case ExpressionFunctionBodyNode expressionFunctionBodyNode -> {
+            case ExpressionFunctionBodyNode expressionFunctionBodyNode:
                 ExpressionNode expressionNode = expressionFunctionBodyNode.expression();
                 // If the function body is an expression, then that is the returnType
                 return List.of(new ExpressionNodeInfo(expressionNode, true));
-            }
-            case FunctionBodyBlockNode functionBodyBlockNode -> {
+            case FunctionBodyBlockNode functionBodyBlockNode:
                 List<ExpressionNodeInfo> expressions = new ArrayList<>();
                 addExpressions(functionBodyBlockNode.statements(), expressions);
                 return expressions;
-            }
-            default -> {
+            default:
                 // Other type is the external function body which does not have a body to analyze
                 // Will not reach here since external resource functions are not supported
                 // for services yet
                 return List.of();
-            }
         }
     }
 
