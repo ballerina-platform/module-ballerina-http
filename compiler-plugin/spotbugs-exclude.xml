@@ -91,4 +91,64 @@
         <Field name="ctxData"/>
         <Bug pattern="EI_EXPOSE_REP2"/>
     </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpResourceRuleContext"/>
+        <Method name="resourceParamNames"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Record name="io.ballerina.stdlib.http.compiler.staticcodeanalyzer.models.HttpServiceClass"/>
+        <Method name="classDefinitionNode"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Record name="io.ballerina.stdlib.http.compiler.staticcodeanalyzer.models.HttpServiceDeclaration"/>
+        <Method name="serviceDeclarationNode"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Record name="io.ballerina.stdlib.http.compiler.staticcodeanalyzer.models.HttpServiceObjectType"/>
+        <Method name="objectTypeDescriptorNode"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpResourceRuleContext"/>
+        <Field name="resourceParamNames"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Record name="io.ballerina.stdlib.http.compiler.staticcodeanalyzer.models.HttpServiceClass"/>
+        <Field name="classDefinitionNode"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Record name="io.ballerina.stdlib.http.compiler.staticcodeanalyzer.models.HttpServiceDeclaration"/>
+        <Field name="serviceDeclarationNode"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Record name="io.ballerina.stdlib.http.compiler.staticcodeanalyzer.models.HttpServiceObjectType"/>
+        <Field name="objectTypeDescriptorNode"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.compiler.staticcodeanalyzer.ExpressionNodeInfo"/>
+        <Method name="expression"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpResourceRuleContext"/>
+        <Method name="functionBodyExpressions"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.compiler.staticcodeanalyzer.ExpressionNodeInfo"/>
+        <Field name="expression"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpResourceRuleContext"/>
+        <Field name="functionBodyExpressions"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
 </FindBugsFilter>

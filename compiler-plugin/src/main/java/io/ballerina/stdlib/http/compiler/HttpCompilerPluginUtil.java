@@ -35,7 +35,6 @@ import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
-import io.ballerina.compiler.syntax.tree.MethodDeclarationNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.ObjectTypeDescriptorNode;
@@ -51,7 +50,6 @@ import io.ballerina.tools.diagnostics.DiagnosticProperty;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 import io.ballerina.tools.diagnostics.Location;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -62,8 +60,6 @@ import static io.ballerina.compiler.api.symbols.SymbolKind.TYPE_DEFINITION;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.ANNOTATION;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.AT_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.CLASS_DEFINITION;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.RESOURCE_ACCESSOR_DECLARATION;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.RESOURCE_ACCESSOR_DEFINITION;
 import static io.ballerina.stdlib.http.compiler.Constants.ANYDATA;
 import static io.ballerina.stdlib.http.compiler.Constants.ARRAY_OF_MAP_OF_ANYDATA;
 import static io.ballerina.stdlib.http.compiler.Constants.BALLERINA;
@@ -74,7 +70,6 @@ import static io.ballerina.stdlib.http.compiler.Constants.CALLER_OBJ_NAME;
 import static io.ballerina.stdlib.http.compiler.Constants.COLON;
 import static io.ballerina.stdlib.http.compiler.Constants.DECIMAL;
 import static io.ballerina.stdlib.http.compiler.Constants.DECIMAL_ARRAY;
-import static io.ballerina.stdlib.http.compiler.Constants.DEFAULT;
 import static io.ballerina.stdlib.http.compiler.Constants.EMPTY;
 import static io.ballerina.stdlib.http.compiler.Constants.ERROR;
 import static io.ballerina.stdlib.http.compiler.Constants.FLOAT;
@@ -440,22 +435,6 @@ public final class HttpCompilerPluginUtil {
             return false;
         }
         return serviceObjTypeDef.typeDescriptor().subtypeOf(serviceTypeDef.typeDescriptor());
-    }
-
-    public static List<ResourceFunction> getResourceMethodWithDefaultAccessor(NodeList<Node> members) {
-        List<ResourceFunction> resourceFunctions = new ArrayList<>();
-        for (Node member : members) {
-            if (member.kind() != RESOURCE_ACCESSOR_DEFINITION && member.kind() != RESOURCE_ACCESSOR_DECLARATION) {
-                continue;
-            }
-            ResourceFunction resourceFunction = member.kind() == RESOURCE_ACCESSOR_DEFINITION
-                    ? new ResourceFunctionDefinition((FunctionDefinitionNode) member)
-                    : new ResourceFunctionDeclaration((MethodDeclarationNode) member);
-            if (DEFAULT.equalsIgnoreCase(resourceFunction.functionName().text().trim())) {
-                resourceFunctions.add(resourceFunction);
-            }
-        }
-        return resourceFunctions;
     }
 
     public static Document getDocument(SyntaxNodeAnalysisContext context) {

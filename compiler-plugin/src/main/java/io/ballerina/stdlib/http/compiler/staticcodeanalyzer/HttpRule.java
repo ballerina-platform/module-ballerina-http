@@ -30,6 +30,8 @@ public enum HttpRule {
     AVOID_DEFAULT_RESOURCE_ACCESSOR(createRule(1, "Avoid allowing default resource accessor", VULNERABILITY)),
     AVOID_PERMISSIVE_CORS(createRule(2, "Avoid permissive Cross-Origin Resource Sharing", VULNERABILITY)),
     AVOID_TRAVERSING_ATTACKS(createRule(3, "Server-side requests should not be vulnerable to traversing attacks",
+            VULNERABILITY)),
+    AVOID_UNSECURE_REDIRECTIONS(createRule(4, "HTTP request redirections should not be open to forging attacks",
             VULNERABILITY));
 
     private final Rule rule;

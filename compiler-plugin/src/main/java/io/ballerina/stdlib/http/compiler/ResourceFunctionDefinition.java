@@ -19,6 +19,7 @@ package io.ballerina.stdlib.http.compiler;
 
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.syntax.tree.FunctionBodyNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
@@ -86,5 +87,9 @@ public class ResourceFunctionDefinition implements ResourceFunction {
 
     public int getResourceIdentifierCode() {
         return hashCode;
+    }
+
+    public Optional<FunctionBodyNode> getFunctionBody() {
+        return Optional.of(functionDefinitionNode.functionBody());
     }
 }

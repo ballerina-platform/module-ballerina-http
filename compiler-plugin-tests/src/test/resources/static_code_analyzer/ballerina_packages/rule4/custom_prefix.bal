@@ -1,4 +1,4 @@
-// Copyright (c) 2025 WSO2 LLC. (http://www.wso2.org)
+// Copyright (c) 2025 WSO2 LLC. (http://www.wso2.com)
 //
 // WSO2 LLC. licenses this file to you under the Apache License,
 // Version 2.0 (the "License"); you may not use this file except
@@ -14,20 +14,14 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/http;
-import ballerina/io;
+import ballerina/http as a;
 
-public function main() {
-    string|error result = getData("path/to/resource");
-    if result is string {
-        io:println("Response: ", result);
-    } else {
-        io:println("Error: ", result.message());
+service / on new a:Listener(8080) {
+    resource function get .(string location) returns a:TemporaryRedirect {
+        return {
+            headers: {
+                "Location": location
+            }
+        };
     }
-}
-
-public function getData(string path) returns string|error {
-    http:Client userClient = check new ("http://example.com");
-    json response = check userClient->/api/[path];
-    return response.toString();
 }
