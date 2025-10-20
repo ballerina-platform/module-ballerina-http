@@ -17,7 +17,7 @@
     },
     "source": "BUILT_IN",
     "fileName": "rule1/service.bal",
-    "filePath": "/Users/admin/Desktop/WORKSPACE/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule1/service.bal"
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule1/service.bal"
   },
   {
     "location": {
@@ -37,7 +37,7 @@
     },
     "source": "BUILT_IN",
     "fileName": "rule1/service.bal",
-    "filePath": "/Users/admin/Desktop/WORKSPACE/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule1/service.bal"
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule1/service.bal"
   },
   {
     "location": {
@@ -57,7 +57,7 @@
     },
     "source": "BUILT_IN",
     "fileName": "rule1/service_class.bal",
-    "filePath": "/Users/admin/Desktop/WORKSPACE/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule1/service_class.bal"
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule1/service_class.bal"
   },
   {
     "location": {
@@ -77,7 +77,7 @@
     },
     "source": "BUILT_IN",
     "fileName": "rule1/service_class.bal",
-    "filePath": "/Users/admin/Desktop/WORKSPACE/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule1/service_class.bal"
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule1/service_class.bal"
   },
   {
     "location": {
@@ -97,7 +97,7 @@
     },
     "source": "BUILT_IN",
     "fileName": "rule1/service_object.bal",
-    "filePath": "/Users/admin/Desktop/WORKSPACE/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule1/service_object.bal"
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule1/service_object.bal"
   },
   {
     "location": {
@@ -117,7 +117,7 @@
     },
     "source": "BUILT_IN",
     "fileName": "rule1/service_object.bal",
-    "filePath": "/Users/admin/Desktop/WORKSPACE/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule1/service_object.bal"
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule1/service_object.bal"
   },
   {
     "location": {
@@ -137,7 +137,7 @@
     },
     "source": "BUILT_IN",
     "fileName": "rule1/service_object.bal",
-    "filePath": "/Users/admin/Desktop/WORKSPACE/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule1/service_object.bal"
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule1/service_object.bal"
   },
   {
     "location": {
@@ -157,6 +157,6 @@
     },
     "source": "BUILT_IN",
     "fileName": "rule1/service_object.bal",
-    "filePath": "/Users/admin/Desktop/WORKSPACE/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule1/service_object.bal"
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule1/service_object.bal"
   }
 ]
