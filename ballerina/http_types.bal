@@ -165,3 +165,4 @@ public type SseEvent record {|
 # Dummy types used in the compiler plugin
 type ResourceReturnType Response|StatusCodeResponse|anydata|stream<SseEvent, error?>|stream<SseEvent, error>|error;
 type InterceptorResourceReturnType ResourceReturnType|NextService;
+type RedirectStatusCodeResponses MultipleChoices|MovedPermanently|Found|SeeOther|NotModified|UseProxy|TemporaryRedirect|PermanentRedirect;

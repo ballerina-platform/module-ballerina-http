@@ -36,13 +36,18 @@ import java.util.regex.Pattern;
 
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpRule.AVOID_PERMISSIVE_CORS;
 
-class HttpAnnotationAnalyzer implements AnalysisTask<SyntaxNodeAnalysisContext> {
+/**
+ * Analyzer to validate static rules related to HTTP annotations.
+ *
+ * @since 2.15.0
+ */
+class HttpAnnotationStaticAnalyzer implements AnalysisTask<SyntaxNodeAnalysisContext> {
     private final Reporter reporter;
     private static final String CORS_FIELD_NAME = "cors";
     private static final String ALLOW_ORIGINS_FIELD_NAME = "allowOrigins";
     public static final Pattern WILDCARD_ORIGIN = Pattern.compile("\"(\s*)\\*(\s*)\"");
 
-    public HttpAnnotationAnalyzer(Reporter reporter) {
+    public HttpAnnotationStaticAnalyzer(Reporter reporter) {
         this.reporter = reporter;
     }
 

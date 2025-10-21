@@ -16,21 +16,16 @@
  * under the License.
  */
 
-package io.ballerina.stdlib.http.compiler.staticcodeanalyzer;
+package io.ballerina.stdlib.http.compiler.staticcodeanalyzer.models;
 
+import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
-import io.ballerina.compiler.syntax.tree.ObjectTypeDescriptorNode;
 
-class HttpHttpServiceObjectType implements HttpService {
-    private final ObjectTypeDescriptorNode objectTypeDescriptorNode;
-
-    public HttpHttpServiceObjectType(ObjectTypeDescriptorNode objectTypeDescriptorNode) {
-        this.objectTypeDescriptorNode = objectTypeDescriptorNode;
-    }
+public record HttpServiceClass(ClassDefinitionNode classDefinitionNode) implements HttpService {
 
     @Override
     public NodeList<Node> members() {
-        return this.objectTypeDescriptorNode.members();
+        return this.classDefinitionNode.members();
     }
 }

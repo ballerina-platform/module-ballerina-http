@@ -1,4 +1,4 @@
-// Copyright (c) 2025 WSO2 LLC. (http://www.wso2.com).
+// Copyright (c) 2025 WSO2 LLC. (http://www.wso2.com)
 //
 // WSO2 LLC. licenses this file to you under the Apache License,
 // Version 2.0 (the "License"); you may not use this file except
@@ -14,13 +14,14 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/http;
+import ballerina/http as a;
 
-listener http:Listener defaultListener = http:getDefaultListener();
-
-service /api/v1 on defaultListener {
-
-    resource function get greeting() returns string {
-        return "Hello, World from service 1!";
+service / on new a:Listener(8080) {
+    resource function get .(string location) returns a:TemporaryRedirect {
+        return {
+            headers: {
+                "Location": location
+            }
+        };
     }
 }

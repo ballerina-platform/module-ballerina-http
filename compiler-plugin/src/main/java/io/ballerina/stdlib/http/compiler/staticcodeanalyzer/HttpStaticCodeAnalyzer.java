@@ -41,8 +41,8 @@ public class HttpStaticCodeAnalyzer extends CodeAnalyzer {
 
     @Override
     public void init(CodeAnalysisContext analysisContext) {
-        analysisContext.addSyntaxNodeAnalysisTask(new HttpServiceAnalyzer(reporter),
+        analysisContext.addSyntaxNodeAnalysisTask(new HttpServiceStaticAnalyzer(reporter),
                 List.of(SERVICE_DECLARATION, OBJECT_TYPE_DESC, CLASS_DEFINITION));
-        analysisContext.addSyntaxNodeAnalysisTask(new HttpAnnotationAnalyzer(reporter), ANNOTATION);
+        analysisContext.addSyntaxNodeAnalysisTask(new HttpAnnotationStaticAnalyzer(reporter), ANNOTATION);
     }
 }
