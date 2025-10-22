@@ -1,0 +1,10 @@
+[databaseConfig]
+database = "petclinic"
+username = "petclinic"
+password = "petclinic"
+host = "localhost"
+port = 5432
+
+[serverConfig]
+host = "localhost"
+port = 9966
