@@ -27,3 +27,10 @@ type MyContract service object {
     resource function default .() returns string;
     resource function default greet() returns string;
 };
+
+// Negative test - Service object type is not part of HTTP service
+type RawServiceContract service object {
+    resource function default .() returns string;
+    resource function default greet() returns string;
+};
+

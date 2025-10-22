@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/http;
+import ballerina/graphql;
 
 service on new http:Listener(8080) {
     resource function default .() returns string? {
@@ -25,3 +26,11 @@ service on new http:Listener(8080) {
         return;
     }
 };
+
+// Negative test - Service is not a HTTP service
+service /graphql on new graphql:Listener(9090) {
+
+    resource function get greeting() returns string {
+        return "Hello, World";
+    }
+}
