@@ -4,7 +4,3 @@ port = 5432
 user = "petclinic"
 password = "petclinic"
 database = "petclinic"
-
-[serverConfig]
-host = "localhost"
-port = 9966

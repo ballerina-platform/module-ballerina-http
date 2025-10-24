@@ -1,8 +1,15 @@
 [package]
-org = "petclinic"
-name = "petclinic_api"
-version = "1.0.0"
+org = "ballerina"
+name = "petclinic"
+version = "0.1.0"
 distribution = "2201.12.9"
 
 [build-options]
 observabilityIncluded = true
+
+[[platform.java21.dependency]]
+groupId = "io.ballerina.stdlib"
+artifactId = "persist.sql-native"
+version = "1.6.0"
+
+

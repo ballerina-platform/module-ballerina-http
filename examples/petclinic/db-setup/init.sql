@@ -7,23 +7,6 @@
 -- Connect to petclinic database and run the following:
 
 -- Create tables
-CREATE TABLE IF NOT EXISTS roles (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(80) NOT NULL UNIQUE
-);
-
-CREATE TABLE IF NOT EXISTS users (
-    id SERIAL PRIMARY KEY,
-    username VARCHAR(80) NOT NULL UNIQUE,
-    password VARCHAR(80),
-    enabled BOOLEAN DEFAULT true
-);
-
-CREATE TABLE IF NOT EXISTS user_roles (
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    role_id INTEGER REFERENCES roles(id) ON DELETE CASCADE,
-    PRIMARY KEY (user_id, role_id)
-);
 
 CREATE TABLE IF NOT EXISTS specialties (
     id SERIAL PRIMARY KEY,
@@ -42,7 +25,7 @@ CREATE TABLE IF NOT EXISTS vet_specialties (
     PRIMARY KEY (vet_id, specialty_id)
 );
 
-CREATE TABLE IF NOT EXISTS pet_types (
+CREATE TABLE IF NOT EXISTS types (
     id SERIAL PRIMARY KEY,
     name VARCHAR(80) NOT NULL UNIQUE
 );
@@ -60,7 +43,7 @@ CREATE TABLE IF NOT EXISTS pets (
     id SERIAL PRIMARY KEY,
     name VARCHAR(30) NOT NULL,
     birth_date DATE NOT NULL,
-    type_id INTEGER REFERENCES pet_types(id),
+    type_id INTEGER REFERENCES types(id),
     owner_id INTEGER REFERENCES owners(id) ON DELETE CASCADE
 );
 
@@ -72,10 +55,6 @@ CREATE TABLE IF NOT EXISTS visits (
 );
 
 -- Insert sample data
-INSERT INTO roles (name) VALUES 
-    ('admin'), 
-    ('user') 
-ON CONFLICT (name) DO NOTHING;
 
 INSERT INTO specialties (name) VALUES 
     ('radiology'), 
@@ -86,7 +65,7 @@ INSERT INTO specialties (name) VALUES
     ('ophthalmology')
 ON CONFLICT (name) DO NOTHING;
 
-INSERT INTO pet_types (name) VALUES 
+INSERT INTO types (name) VALUES 
     ('cat'), 
     ('dog'), 
     ('bird'), 
@@ -172,8 +151,6 @@ CREATE INDEX IF NOT EXISTS idx_pets_owner_id ON pets(owner_id);
 CREATE INDEX IF NOT EXISTS idx_visits_pet_id ON visits(pet_id);
 CREATE INDEX IF NOT EXISTS idx_vet_specialties_vet_id ON vet_specialties(vet_id);
 CREATE INDEX IF NOT EXISTS idx_vet_specialties_specialty_id ON vet_specialties(specialty_id);
-CREATE INDEX IF NOT EXISTS idx_user_roles_user_id ON user_roles(user_id);
-CREATE INDEX IF NOT EXISTS idx_user_roles_role_id ON user_roles(role_id);
 CREATE INDEX IF NOT EXISTS idx_owners_last_name ON owners(last_name);
 
 COMMIT;
