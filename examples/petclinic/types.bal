@@ -1,10 +1,5 @@
 import ballerina/http;
 
-public type ServerConfig record {
-    string host;
-    int port;
-};
-
 public type OwnerCreated record {|
     *http:Created;
 |};
@@ -35,4 +30,14 @@ public type SpecialtyCreated record {|
 
 public type TypeCreated record {|
     *http:Created;
+|};
+
+type ErrorResponse record {|
+    string message;
+    string 'error?;
+|};
+
+type InternalServerError record {|
+    *http:InternalServerError;
+    ErrorResponse body;
 |};

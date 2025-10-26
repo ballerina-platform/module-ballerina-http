@@ -1,9 +1,8 @@
-import ballerina/io;
 import ballerina/http;
+import ballerina/io;
 import ballerina/test;
 
 http:Client testClient = check new ("http://localhost:9090");
-configurable int port = ?; 
 configurable string host = ?;
 configurable string user = ?;
 configurable string database = ?;
