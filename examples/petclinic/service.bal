@@ -37,7 +37,7 @@ service /petclinic/api on new http:Listener(port) {
 
         db:Owner[]|error owners = from db:Owner owner in ownersStream
             select owner;
-        
+
         if owners is error {
             log:printError("Failed to retrieve owners", owners);
             return <InternalServerError>{
@@ -201,7 +201,7 @@ service /petclinic/api on new http:Listener(port) {
         stream<db:Pet, persist:Error?> petsStream = self.dbClient->/pets.get();
         db:Pet[]|error pets = from db:Pet pet in petsStream
             select pet;
-        
+
         if pets is error {
             log:printError("Failed to retrieve pets", pets);
             return <InternalServerError>{
@@ -316,7 +316,7 @@ service /petclinic/api on new http:Listener(port) {
         stream<db:Vet, persist:Error?> vetsStream = self.dbClient->/vets();
         db:Vet[]|error vets = from db:Vet vet in vetsStream
             select vet;
-        
+
         if vets is error {
             log:printError("Failed to retrieve vets", vets);
             return <InternalServerError>{
@@ -400,7 +400,7 @@ service /petclinic/api on new http:Listener(port) {
         stream<db:Specialty, persist:Error?> specialtyStream = self.dbClient->/specialties();
         db:Specialty[]|error specialties = from db:Specialty specialty in specialtyStream
             select specialty;
-        
+
         if specialties is error {
             log:printError("Failed to retrieve specialties", specialties);
             return <InternalServerError>{
@@ -504,7 +504,7 @@ service /petclinic/api on new http:Listener(port) {
 
         db:VetSpecialty[]|error vetSpecialties = from db:VetSpecialty vs in vetSpecialtyStream
             select vs;
-        
+
         if vetSpecialties is error {
             log:printError("Failed to retrieve vet specialties", vetSpecialties);
             return <InternalServerError>{
@@ -554,7 +554,7 @@ service /petclinic/api on new http:Listener(port) {
         stream<db:Type, persist:Error?> petTypesStream = self.dbClient->/types();
         db:Type[]|error petTypes = from db:Type pet_type in petTypesStream
             select pet_type;
-        
+
         if petTypes is error {
             log:printError("Failed to retrieve pet types", petTypes);
             return <InternalServerError>{
