@@ -83,6 +83,51 @@ public class ExternRequest {
         }
     }
 
+    public static void setQueryParams(BObject requestObj, BMap<BString, Object> queryParams) {
+        try {
+            HttpCarbonMessage httpCarbonMessage = (HttpCarbonMessage) requestObj
+                    .getNativeData(HttpConstants.TRANSPORT_MESSAGE);
+            
+            // Build the query string from the map
+            String queryString = buildQueryString(queryParams);
+            
+            // Set the query string in the carbon message
+            httpCarbonMessage.setProperty(HttpConstants.RAW_QUERY_STR, queryString);
+            
+            // Update the cached query params map
+            requestObj.addNativeData(QUERY_PARAM_MAP, queryParams);
+        } catch (Exception e) {
+            throw HttpUtil.createHttpError("error while setting query params: " + e.getMessage(),
+                                           HttpErrorType.GENERIC_CLIENT_ERROR);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static String buildQueryString(BMap<BString, Object> queryParams) {
+        if (queryParams == null || queryParams.size() == 0) {
+            return "";
+        }
+
+        StringBuilder queryString = new StringBuilder();
+        for (BString key : queryParams.getKeys()) {
+            Object value = queryParams.get(key);
+            if (value instanceof io.ballerina.runtime.api.values.BArray) {
+                io.ballerina.runtime.api.values.BArray arrayValue = 
+                    (io.ballerina.runtime.api.values.BArray) value;
+                for (int i = 0; i < arrayValue.size(); i++) {
+                    if (queryString.length() > 0) {
+                        queryString.append("&");
+                    }
+                    String encodedKey = URIUtil.encodePathSegment(key.getValue());
+                    String valueStr = arrayValue.get(i).toString();
+                    String encodedValue = URIUtil.encodePathSegment(valueStr);
+                    queryString.append(encodedKey).append("=").append(encodedValue);
+                }
+            }
+        }
+        return queryString.toString();
+    }
+
     public static BMap<BString, Object> getMatrixParams(BObject requestObj, BString path) {
         HttpCarbonMessage httpCarbonMessage = HttpUtil.getCarbonMsg(requestObj, null);
         return URIUtil.getMatrixParamsMap(path.getValue(), httpCarbonMessage);

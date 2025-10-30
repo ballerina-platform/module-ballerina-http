@@ -83,6 +83,13 @@ public class Request {
         return externGetQueryParams(self);
     }
 
+    # Sets the query parameters of the request. This method replaces any existing query parameters.
+    #
+    # + queryParams - A map of query parameters where each key maps to an array of string values
+    public isolated function setQueryParams(map<string[]> queryParams) {
+        externSetQueryParams(self, queryParams);
+    }
+
     # Gets the query param value associated with the given key.
     #
     # + key - Represents the query param key
@@ -704,6 +711,13 @@ isolated function externGetQueryParams(Request request) returns map<string[]> =
     'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternRequest",
     name: "getQueryParams"
 } external;
+
+isolated function externSetQueryParams(Request request, map<string[]> queryParams) =
+@java:Method {
+    'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternRequest",
+    name: "setQueryParams"
+} external;
+
 
 isolated function externGetMatrixParams(Request request, string path) returns map<any> =
 @java:Method {
