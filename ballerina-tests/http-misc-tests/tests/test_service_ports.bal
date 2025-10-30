@@ -90,4 +90,3 @@ const httpServerFieldTestPort1 = 9513;
 const httpStatusCodeTestPort = 9520;
 const readonlyQueryTestPort = 9607;
 const resourceReturnTestPort = 9554;
-const setQueryParamsTestPort = 9638;
