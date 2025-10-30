@@ -92,11 +92,9 @@ Edit `Config.toml` to match your database configuration:
 database = "petclinic"
 username = "petclinic"
 password = "petclinic"
-host = "localhost"
 port = 5432
-
-[serverConfig]
 host = "localhost"
+
 port = 9966
 ```
 
@@ -118,18 +116,27 @@ The API will be available at: `http://localhost:9966/petclinic/api`
 ## Project Structure
 
 ```
-petclinic-ballerina/
-├── Ballerina.toml          # Project configuration and dependencies
-├── Cloud.toml              # Cloud/Docker configuration
-├── Config.toml             # Application configuration 
-├── README.md               # This file
-├── dao.bal                 # Data access object layer
-├── db-setup                
-│   ├── docker-compose.yml  # docker compose file for postgres service
-│   └── init.sql            # db schema and sample data for the app
-├── openapi.json            # OpenAPI spec of spring petclinic
-├── service.bal             # REST API service endpoints
-└── types.bal               # Data types and schemas
+petclinic/
+├── Ballerina.toml
+├── Config.toml
+├── README.md
+├── db-setup
+│   ├── docker-compose.yml
+│   └── init.sql
+├── modules
+│   └── db
+│       ├── persist_client.bal
+│       ├── persist_db_config.bal
+│       ├── persist_types.bal
+│       └── script.sql
+├── persist
+│   └── model.bal
+├── service.bal
+├── tests
+│   ├── Config.toml
+│   └── service_test.bal
+├── types.bal
+└── utils.bal
 ```
 
 ## Error Handling
@@ -169,9 +176,6 @@ curl -X POST http://localhost:9966/petclinic/api/owners \
 curl -X GET http://localhost:9966/petclinic/api/owners/1
 ```
 
-### Using Postman
-Import the OpenAPI specification to generate a Postman collection with all endpoints.
-
 ## Logging
 
 The application uses Ballerina's built-in logging framework. Logs include:
@@ -187,10 +191,6 @@ The application uses Ballerina's built-in logging framework. Logs include:
 3. Make your changes
 4. Add tests if applicable
 5. Submit a pull request
-
-## License
-
-This project is licensed under the Apache License 2.0 - see the original Spring Pet Clinic project for details.
 
 ## Acknowledgments
 

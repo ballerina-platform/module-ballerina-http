@@ -4,3 +4,5 @@ port = 5432
 user = "petclinic"
 password = "petclinic"
 database = "petclinic"
+
+testPort = 9966
