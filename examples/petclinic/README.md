@@ -65,7 +65,7 @@ A complete REST API implementation of the Spring Pet Clinic application using Ba
 
 ### 1. Install Ballerina
 
-Refer [Install Ballerina]()
+Refer [Install Ballerina](https://ballerina.io/downloads/)
 
 ### 2. Clone this repository
 
