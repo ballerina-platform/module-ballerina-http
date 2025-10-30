@@ -57,7 +57,7 @@ A complete REST API implementation of the Spring Pet Clinic application using Ba
 
 ## Prerequisites
 
-- **Ballerina Swan Lake** (2201.8.5 or later)
+- **Ballerina Swan Lake** (2201.12.0 or later)
 - **PostgreSQL** (12 or later)
 - **Java** (21 or later) - Required by Ballerina
 
