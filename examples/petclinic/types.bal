@@ -13,12 +13,12 @@ public type ProblemDetails record {|
 
 public type CreatedResponse record {|
     *http:Created;
-    record {| int id; |} body;
+    record {|int id;|} body;
 |};
 
 public type CreatedArrayResponse record {|
     *http:Created;
-    record {| int[][] ids; |} body;
+    record {|int[][] ids;|} body;
 |};
 
 public type BadRequestProblem record {|

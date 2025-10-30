@@ -23,11 +23,11 @@ public isolated function createBadRequestProblem(string detail, json? validation
         instance,
         timestamp: time:utcNow()
     };
-    
+
     if validationErrors is json {
         problemDetails["validationErrors"] = validationErrors;
     }
-    
+
     return {
         body: problemDetails
     };
@@ -55,11 +55,11 @@ public isolated function createInternalServerErrorProblem(string detail, string?
         instance,
         timestamp: time:utcNow()
     };
-    
+
     if errorMessage is string {
         problemDetails["errorDetail"] = errorMessage;
     }
-    
+
     return {
         body: problemDetails
     };

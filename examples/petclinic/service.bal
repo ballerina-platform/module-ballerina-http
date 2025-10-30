@@ -7,7 +7,6 @@ import ballerina/sql;
 
 configurable int port = 9966;
 
-
 @http:ServiceConfig {
     cors: {
         allowOrigins: ["*"],
@@ -28,9 +27,9 @@ service /petclinic/api on new http:Listener(port) {
     isolated resource function get owners(string? lastName = ()) returns db:Owner[]|InternalServerErrorProblem {
         do {
             sql:ParameterizedQuery whereClause =
-            lastName is string
-            ? `last_name = ${lastName}`
-            : ``;
+                lastName is string
+                ? `last_name = ${lastName}`
+                : ``;
             stream<db:Owner, persist:Error?> ownersStream = self.dbClient->/owners.get(whereClause = whereClause);
 
             db:Owner[] owners = check from db:Owner owner in ownersStream
@@ -72,7 +71,7 @@ service /petclinic/api on new http:Listener(port) {
         } on fail error e {
             if e is persist:NotFoundError {
                 log:printDebug(string `Owner not found with ID: ${ownerId}`);
-                
+
                 return createNotFoundProblem(string `Owner with ID ${ownerId} not found`, OWNER_NOT_FOUND_TYPE, string `/owners/${ownerId}`);
             }
             log:printError("Failed to retrieve owner", 'error = e, ownerId = ownerId);
@@ -88,8 +87,8 @@ service /petclinic/api on new http:Listener(port) {
         } on fail error e {
             if e is persist:NotFoundError {
                 log:printDebug(string `Owner not found for update with ID: ${ownerId}`);
-                return createNotFoundProblem(string `Owner with ID ${ownerId} not found`, OWNER_NOT_FOUND_TYPE, 
-                    string `/owners/${ownerId}`);
+                return createNotFoundProblem(string `Owner with ID ${ownerId} not found`, OWNER_NOT_FOUND_TYPE,
+                        string `/owners/${ownerId}`);
             }
             log:printError("Failed to update owner", 'error = e, ownerId = ownerId);
             return createInternalServerErrorProblem(string `Failed to update owner with ID ${ownerId}`, e.message());
@@ -104,9 +103,9 @@ service /petclinic/api on new http:Listener(port) {
         } on fail error e {
             if e is persist:NotFoundError {
                 log:printDebug(string `Owner not found for deletion with ID: ${ownerId}`);
-                return createNotFoundProblem(string `Owner with ID ${ownerId} not found`, OWNER_NOT_FOUND_TYPE, 
-                    string `/owners/${ownerId}`);
-            } 
+                return createNotFoundProblem(string `Owner with ID ${ownerId} not found`, OWNER_NOT_FOUND_TYPE,
+                        string `/owners/${ownerId}`);
+            }
             log:printError("Failed to delete owner", 'error = e, ownerId = ownerId);
             return createInternalServerErrorProblem(string `Failed to delete owner with ID ${ownerId}`, e.message());
         }
@@ -131,8 +130,8 @@ service /petclinic/api on new http:Listener(port) {
         } on fail error e {
             if e is persist:NotFoundError {
                 log:printDebug(string `Owner not found with ID: ${ownerId}`);
-                return createNotFoundProblem(string `Owner with ID ${ownerId} not found`, OWNER_NOT_FOUND_TYPE, 
-                    string `/owners/${ownerId}`);
+                return createNotFoundProblem(string `Owner with ID ${ownerId} not found`, OWNER_NOT_FOUND_TYPE,
+                        string `/owners/${ownerId}`);
             }
             log:printError("Failed to create pet", 'error = e, ownerId = ownerId, pet = pet);
             return createInternalServerErrorProblem(string `Failed to create pet for owner ${ownerId}`, e.message());
@@ -145,8 +144,8 @@ service /petclinic/api on new http:Listener(port) {
             db:Pet pet = check self.dbClient->/pets/[petId]();
 
             if pet.ownerId != ownerId {
-                return createConflictProblem(string `Pet ${petId} does not belong to owner ${ownerId}`, 
-                    string `/owners/${ownerId}/pets/${petId}`);
+                return createConflictProblem(string `Pet ${petId} does not belong to owner ${ownerId}`,
+                        string `/owners/${ownerId}/pets/${petId}`);
             }
 
             // Validate that the visit's petId matches the path parameter
@@ -163,8 +162,8 @@ service /petclinic/api on new http:Listener(port) {
         } on fail error e {
             if e is persist:NotFoundError {
                 log:printDebug(string `Pet not found with ID: ${petId}`);
-                return createNotFoundProblem(string `Pet with ID ${petId} not found`, PET_NOT_FOUND_TYPE, 
-                    string `/pets/${petId}`);
+                return createNotFoundProblem(string `Pet with ID ${petId} not found`, PET_NOT_FOUND_TYPE,
+                        string `/pets/${petId}`);
             }
             log:printError("Failed to create visit", 'error = e, ownerId = ownerId, petId = petId, visit = visit);
             return createInternalServerErrorProblem(string `Failed to create visit for pet ${petId}`, e.message());
@@ -194,8 +193,8 @@ service /petclinic/api on new http:Listener(port) {
         } on fail error e {
             if e is persist:NotFoundError {
                 log:printDebug(string `Pet not found with ID: ${petId}`);
-                return createNotFoundProblem(string `Pet with ID ${petId} not found`, PET_NOT_FOUND_TYPE, 
-                    string `/pets/${petId}`);
+                return createNotFoundProblem(string `Pet with ID ${petId} not found`, PET_NOT_FOUND_TYPE,
+                        string `/pets/${petId}`);
             }
             log:printError("Failed to retrieve pet", 'error = e, petId = petId);
             return createInternalServerErrorProblem(string `Failed to retrieve pet with ID ${petId}`, e.message());
@@ -210,8 +209,8 @@ service /petclinic/api on new http:Listener(port) {
         } on fail error e {
             if e is persist:NotFoundError {
                 log:printDebug(string `Pet not found for update with ID: ${petId}`);
-                return createNotFoundProblem(string `Pet with ID ${petId} not found`, PET_NOT_FOUND_TYPE, 
-                    string `/pets/${petId}`);
+                return createNotFoundProblem(string `Pet with ID ${petId} not found`, PET_NOT_FOUND_TYPE,
+                        string `/pets/${petId}`);
             }
             log:printError("Failed to update pet", 'error = e, petId = petId);
             return createInternalServerErrorProblem(string `Failed to update pet with ID ${petId}`, e.message());
@@ -225,10 +224,10 @@ service /petclinic/api on new http:Listener(port) {
             return http:NO_CONTENT;
         } on fail error e {
             if e is persist:NotFoundError {
-            log:printDebug(string `Pet not found for deletion with ID: ${petId}`);
-            return createNotFoundProblem(string `Pet with ID ${petId} not found`, PET_NOT_FOUND_TYPE, 
-                string `/pets/${petId}`);
-        } 
+                log:printDebug(string `Pet not found for deletion with ID: ${petId}`);
+                return createNotFoundProblem(string `Pet with ID ${petId} not found`, PET_NOT_FOUND_TYPE,
+                        string `/pets/${petId}`);
+            }
             log:printError("Failed to delete pet", 'error = e, petId = petId);
             return createInternalServerErrorProblem(string `Failed to delete pet with ID ${petId}`, e.message());
         }
@@ -240,11 +239,11 @@ service /petclinic/api on new http:Listener(port) {
             log:printDebug(string `Retrieved visit with ID: ${visitId}`);
             return visit;
         } on fail error e {
-            if  e is persist:NotFoundError {
-            log:printDebug(string `Visit not found with ID: ${visitId}`);
-            return createNotFoundProblem(string `Visit with ID ${visitId} not found`, VISIT_NOT_FOUND_TYPE, 
-                string `/visits/${visitId}`);
-        }
+            if e is persist:NotFoundError {
+                log:printDebug(string `Visit not found with ID: ${visitId}`);
+                return createNotFoundProblem(string `Visit with ID ${visitId} not found`, VISIT_NOT_FOUND_TYPE,
+                        string `/visits/${visitId}`);
+            }
             log:printError("Failed to retrieve visit", 'error = e, visitId = visitId);
             return createInternalServerErrorProblem(string `Failed to retrieve visit with ID ${visitId}`, e.message());
         }
@@ -256,11 +255,11 @@ service /petclinic/api on new http:Listener(port) {
             log:printInfo(string `Updated visit with ID: ${visitId}`);
             return updatedVisit;
         } on fail error e {
-            if  e is persist:NotFoundError {
-            log:printDebug(string `Visit not found for update with ID: ${visitId}`);
-            return createNotFoundProblem(string `Visit with ID ${visitId} not found`, VISIT_NOT_FOUND_TYPE, 
-                string `/visits/${visitId}`);
-        }
+            if e is persist:NotFoundError {
+                log:printDebug(string `Visit not found for update with ID: ${visitId}`);
+                return createNotFoundProblem(string `Visit with ID ${visitId} not found`, VISIT_NOT_FOUND_TYPE,
+                        string `/visits/${visitId}`);
+            }
             log:printError("Failed to update visit", 'error = e, visitId = visitId);
             return createInternalServerErrorProblem(string `Failed to update visit with ID ${visitId}`, e.message());
         }
@@ -273,10 +272,10 @@ service /petclinic/api on new http:Listener(port) {
             return http:NO_CONTENT;
         } on fail error e {
             if e is persist:NotFoundError {
-            log:printDebug(string `Visit not found for deletion with ID: ${visitId}`);
-            return createNotFoundProblem(string `Visit with ID ${visitId} not found`, VISIT_NOT_FOUND_TYPE, 
-                string `/visits/${visitId}`);
-        }
+                log:printDebug(string `Visit not found for deletion with ID: ${visitId}`);
+                return createNotFoundProblem(string `Visit with ID ${visitId} not found`, VISIT_NOT_FOUND_TYPE,
+                        string `/visits/${visitId}`);
+            }
             log:printError("Failed to delete visit", 'error = e, visitId = visitId);
             return createInternalServerErrorProblem(string `Failed to delete visit with ID ${visitId}`, e.message());
         }
@@ -325,11 +324,11 @@ service /petclinic/api on new http:Listener(port) {
             log:printDebug(string `Retrieved vet with ID: ${vetId}`);
             return vet;
         } on fail error e {
-            if  e is persist:NotFoundError {
-            log:printDebug(string `Vet not found with ID: ${vetId}`);
-            return createNotFoundProblem(string `Vet with ID ${vetId} not found`, VET_NOT_FOUND_TYPE, 
-                string `/vets/${vetId}`);
-        }
+            if e is persist:NotFoundError {
+                log:printDebug(string `Vet not found with ID: ${vetId}`);
+                return createNotFoundProblem(string `Vet with ID ${vetId} not found`, VET_NOT_FOUND_TYPE,
+                        string `/vets/${vetId}`);
+            }
             log:printError("Failed to retrieve vet", 'error = e, vetId = vetId);
             return createInternalServerErrorProblem(string `Failed to retrieve vet with ID ${vetId}`, e.message());
         }
@@ -342,10 +341,10 @@ service /petclinic/api on new http:Listener(port) {
             return updatedVet;
         } on fail error e {
             if e is persist:NotFoundError {
-            log:printDebug(string `Vet not found for update with ID: ${vetId}`);
-            return createNotFoundProblem(string `Vet with ID ${vetId} not found`, VET_NOT_FOUND_TYPE, 
-                string `/vets/${vetId}`);
-        } 
+                log:printDebug(string `Vet not found for update with ID: ${vetId}`);
+                return createNotFoundProblem(string `Vet with ID ${vetId} not found`, VET_NOT_FOUND_TYPE,
+                        string `/vets/${vetId}`);
+            }
             log:printError("Failed to update vet", 'error = e, vetId = vetId);
             return createInternalServerErrorProblem(string `Failed to update vet with ID ${vetId}`, e.message());
         }
@@ -358,10 +357,10 @@ service /petclinic/api on new http:Listener(port) {
             return http:NO_CONTENT;
         } on fail error e {
             if e is persist:NotFoundError {
-            log:printDebug(string `Vet not found for deletion with ID: ${vetId}`);
-            return createNotFoundProblem(string `Vet with ID ${vetId} not found`, VET_NOT_FOUND_TYPE, 
-                string `/vets/${vetId}`);
-        }
+                log:printDebug(string `Vet not found for deletion with ID: ${vetId}`);
+                return createNotFoundProblem(string `Vet with ID ${vetId} not found`, VET_NOT_FOUND_TYPE,
+                        string `/vets/${vetId}`);
+            }
             log:printError("Failed to delete vet", 'error = e, vetId = vetId);
             return createInternalServerErrorProblem(string `Failed to delete vet with ID ${vetId}`, e.message());
         }
@@ -409,10 +408,10 @@ service /petclinic/api on new http:Listener(port) {
             return specialty;
         } on fail error e {
             if e is persist:NotFoundError {
-            log:printDebug(string `Specialty not found with ID: ${specialtyId}`);
-            return createNotFoundProblem(string `Specialty with ID ${specialtyId} not found`, SPECIALTY_NOT_FOUND_TYPE, 
-                string `/specialties/${specialtyId}`);
-        }
+                log:printDebug(string `Specialty not found with ID: ${specialtyId}`);
+                return createNotFoundProblem(string `Specialty with ID ${specialtyId} not found`, SPECIALTY_NOT_FOUND_TYPE,
+                        string `/specialties/${specialtyId}`);
+            }
             log:printError("Failed to retrieve specialty", 'error = e, specialtyId = specialtyId);
             return createInternalServerErrorProblem(string `Failed to retrieve specialty with ID ${specialtyId}`, e.message());
         }
@@ -424,11 +423,11 @@ service /petclinic/api on new http:Listener(port) {
             log:printInfo(string `Updated specialty with ID: ${specialtyId}`);
             return updatedSpecialty;
         } on fail error e {
-            if e is persist:NotFoundError{
-            log:printDebug(string `Specialty not found for update with ID: ${specialtyId}`);
-            return createNotFoundProblem(string `Specialty with ID ${specialtyId} not found`, SPECIALTY_NOT_FOUND_TYPE, 
-                string `/specialties/${specialtyId}`);
-        }
+            if e is persist:NotFoundError {
+                log:printDebug(string `Specialty not found for update with ID: ${specialtyId}`);
+                return createNotFoundProblem(string `Specialty with ID ${specialtyId} not found`, SPECIALTY_NOT_FOUND_TYPE,
+                        string `/specialties/${specialtyId}`);
+            }
             log:printError("Failed to update specialty", 'error = e, specialtyId = specialtyId);
             return createInternalServerErrorProblem(string `Failed to update specialty with ID ${specialtyId}`, e.message());
         }
@@ -441,10 +440,10 @@ service /petclinic/api on new http:Listener(port) {
             return http:NO_CONTENT;
         } on fail error e {
             if e is persist:NotFoundError {
-            log:printDebug(string `Specialty not found for deletion with ID: ${specialtyId}`);
-            return createNotFoundProblem(string `Specialty with ID ${specialtyId} not found`, SPECIALTY_NOT_FOUND_TYPE, 
-                string `/specialties/${specialtyId}`);
-        }
+                log:printDebug(string `Specialty not found for deletion with ID: ${specialtyId}`);
+                return createNotFoundProblem(string `Specialty with ID ${specialtyId} not found`, SPECIALTY_NOT_FOUND_TYPE,
+                        string `/specialties/${specialtyId}`);
+            }
             log:printError("Failed to delete specialty", 'error = e, specialtyId = specialtyId);
             return createInternalServerErrorProblem(string `Failed to delete specialty with ID ${specialtyId}`, e.message());
         }
@@ -458,7 +457,7 @@ service /petclinic/api on new http:Listener(port) {
             db:VetWithRelations _ = check self.dbClient->/vets/[vetId]();
 
             sql:ParameterizedQuery whereClause = `vet_id = ${vetId}`;
-            stream<db:VetSpecialty, persist:Error?> vetSpecialtyStream = 
+            stream<db:VetSpecialty, persist:Error?> vetSpecialtyStream =
                 self.dbClient->/vetspecialties.get(whereClause = whereClause);
 
             db:VetSpecialty[] vetSpecialties = check from db:VetSpecialty vs in vetSpecialtyStream
@@ -468,10 +467,10 @@ service /petclinic/api on new http:Listener(port) {
             return vetSpecialties;
         } on fail error e {
             if e is persist:NotFoundError {
-            log:printDebug(string `Vet not found with ID: ${vetId}`);
-            return createNotFoundProblem(string `Vet with ID ${vetId} not found`, VET_NOT_FOUND_TYPE, 
-                string `/vets/${vetId}`);
-        }
+                log:printDebug(string `Vet not found with ID: ${vetId}`);
+                return createNotFoundProblem(string `Vet with ID ${vetId} not found`, VET_NOT_FOUND_TYPE,
+                        string `/vets/${vetId}`);
+            }
             log:printError("Failed to retrieve vet specialties", 'error = e, vetId = vetId);
             return createInternalServerErrorProblem(string `Failed to retrieve specialties for vet ${vetId}`, e.message());
         }
@@ -490,10 +489,10 @@ service /petclinic/api on new http:Listener(port) {
                 body: {ids: result}
             };
         } on fail error e {
-            if e is persist:NotFoundError{
-            log:printDebug("Vet or specialty not found for vet specialty assignment", vetSpecialty = vetSpecialty);
-            return createNotFoundProblem("Vet or specialty not found", "/problems/not-found");
-        } 
+            if e is persist:NotFoundError {
+                log:printDebug("Vet or specialty not found for vet specialty assignment", vetSpecialty = vetSpecialty);
+                return createNotFoundProblem("Vet or specialty not found", "/problems/not-found");
+            }
             log:printError("Failed to create vet specialty", 'error = e, vetSpecialty = vetSpecialty);
             return createInternalServerErrorProblem("Failed to assign specialty to vet", e.message());
         }
@@ -506,10 +505,10 @@ service /petclinic/api on new http:Listener(port) {
             return http:NO_CONTENT;
         } on fail error e {
             if e is persist:NotFoundError {
-            log:printDebug(string `Vet specialty not found for vet ${vetId} and specialty ${specialtyId}`);
-            return createNotFoundProblem(string `Specialty ${specialtyId} not assigned to vet ${vetId}`, 
-                "/problems/not-found", string `/vetspecialties/${vetId}/${specialtyId}`);
-        }
+                log:printDebug(string `Vet specialty not found for vet ${vetId} and specialty ${specialtyId}`);
+                return createNotFoundProblem(string `Specialty ${specialtyId} not assigned to vet ${vetId}`,
+                        "/problems/not-found", string `/vetspecialties/${vetId}/${specialtyId}`);
+            }
             log:printError("Failed to delete vet specialty", 'error = e, vetId = vetId, specialtyId = specialtyId);
             return createInternalServerErrorProblem(string `Failed to remove specialty ${specialtyId} from vet ${vetId}`, e.message());
         }
@@ -558,10 +557,10 @@ service /petclinic/api on new http:Listener(port) {
             return petType;
         } on fail error e {
             if e is persist:NotFoundError {
-            log:printDebug(string `Pet type not found with ID: ${petTypeId}`);
-            return createNotFoundProblem(string `Pet type with ID ${petTypeId} not found`, PET_TYPE_NOT_FOUND_TYPE, 
-                string `/pettypes/${petTypeId}`);
-        }
+                log:printDebug(string `Pet type not found with ID: ${petTypeId}`);
+                return createNotFoundProblem(string `Pet type with ID ${petTypeId} not found`, PET_TYPE_NOT_FOUND_TYPE,
+                        string `/pettypes/${petTypeId}`);
+            }
             log:printError("Failed to retrieve pet type", 'error = e, petTypeId = petTypeId);
             return createInternalServerErrorProblem(string `Failed to retrieve pet type with ID ${petTypeId}`, e.message());
         }
@@ -574,10 +573,10 @@ service /petclinic/api on new http:Listener(port) {
             return updatedPetType;
         } on fail error e {
             if e is persist:NotFoundError {
-            log:printDebug(string `Pet type not found for update with ID: ${petTypeId}`);
-            return createNotFoundProblem(string `Pet type with ID ${petTypeId} not found`, PET_TYPE_NOT_FOUND_TYPE, 
-                string `/pettypes/${petTypeId}`);
-        }
+                log:printDebug(string `Pet type not found for update with ID: ${petTypeId}`);
+                return createNotFoundProblem(string `Pet type with ID ${petTypeId} not found`, PET_TYPE_NOT_FOUND_TYPE,
+                        string `/pettypes/${petTypeId}`);
+            }
             log:printError("Failed to update pet type", 'error = e, petTypeId = petTypeId);
             return createInternalServerErrorProblem(string `Failed to update pet type with ID ${petTypeId}`, e.message());
         }
@@ -590,10 +589,10 @@ service /petclinic/api on new http:Listener(port) {
             return http:NO_CONTENT;
         } on fail error e {
             if e is persist:NotFoundError {
-            log:printDebug(string `Pet type not found for deletion with ID: ${petTypeId}`);
-            return createNotFoundProblem(string `Pet type with ID ${petTypeId} not found`, PET_TYPE_NOT_FOUND_TYPE, 
-                string `/pettypes/${petTypeId}`);
-        }
+                log:printDebug(string `Pet type not found for deletion with ID: ${petTypeId}`);
+                return createNotFoundProblem(string `Pet type with ID ${petTypeId} not found`, PET_TYPE_NOT_FOUND_TYPE,
+                        string `/pettypes/${petTypeId}`);
+            }
             log:printError("Failed to delete pet type", 'error = e, petTypeId = petTypeId);
             return createInternalServerErrorProblem(string `Failed to delete pet type with ID ${petTypeId}`, e.message());
         }

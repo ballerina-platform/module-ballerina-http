@@ -1,6 +1,7 @@
+import petclinic.db;
+
 import ballerina/http;
 import ballerina/test;
-import petclinic.db;
 
 configurable int testPort = 9966;
 final http:Client testClient = check new ("http://localhost:" + testPort.toString());
