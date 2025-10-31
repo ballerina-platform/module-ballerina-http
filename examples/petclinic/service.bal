@@ -453,6 +453,8 @@ service /petclinic/api on new http:Listener(port) {
 
     isolated resource function get vetspecialties/[int vetId]() returns db:VetSpecialty[]|NotFoundProblem|InternalServerErrorProblem {
         do {
+            db:Vet _ = check self.dbClient->/vets/[vetId]();
+
             sql:ParameterizedQuery whereClause = `vet_id = ${vetId}`;
             stream<db:VetSpecialty, persist:Error?> vetSpecialtyStream =
                 self.dbClient->/vetspecialties(whereClause = whereClause);
@@ -475,6 +477,9 @@ service /petclinic/api on new http:Listener(port) {
 
     isolated resource function post vetspecialties(db:VetSpecialtyInsert vetSpecialty) returns CreatedArrayResponse|NotFoundProblem|InternalServerErrorProblem {
         do {
+            db:Vet _ = check self.dbClient->/vets/[vetSpecialty.vetId]();
+            db:Specialty _ = check self.dbClient->/specialties/[vetSpecialty.specialtyId]();
+
             int[][] result = check self.dbClient->/vetspecialties.post([vetSpecialty]);
             return <CreatedArrayResponse>{
                 body: {ids: result}
