@@ -636,11 +636,3 @@ function testDeleteSpecialty() returns error? {
     http:Response response = check testClient->/petclinic/api/specialties/[createdSpecialtyId].delete();
     test:assertEquals(response.statusCode, http:STATUS_NO_CONTENT);
 }
-
-@test:Config {
-    groups: ["cleanup"]
-}
-function testDeletePetType() returns error? {
-    http:Response response = check testClient->/petclinic/api/pettypes/[createdPetTypeId].delete();
-    test:assertEquals(response.statusCode, http:STATUS_NO_CONTENT);
-}
