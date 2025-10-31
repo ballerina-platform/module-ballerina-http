@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Stock Monitor - SSE Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin-right: 10px;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .status.connected {
+            background: #4caf50;
+            color: white;
+        }
+
+        .status.disconnected {
+            background: #f44336;
+            color: white;
+        }
+
+        .market-summary {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .summary-item {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .summary-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .summary-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .stocks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .stock-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s;
+        }
+
+        .stock-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stock-card.updating {
+            animation: pulse 0.5s;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .stock-symbol {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stock-name {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .stock-price {
+            font-size: 36px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .stock-change {
+            font-size: 18px;
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+
+        .stock-change.positive {
+            background: #e8f5e9;
+            color: #4caf50;
+        }
+
+        .stock-change.negative {
+            background: #ffebee;
+            color: #f44336;
+        }
+
+        .stock-timestamp {
+            font-size: 11px;
+            color: #999;
+            margin-top: 10px;
+        }
+
+        .event-log {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .event-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .event-item:last-child {
+            border-bottom: none;
+        }
+
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📈 Real-Time Stock Monitor</h1>
+            <p class="subtitle">Server-Sent Events (SSE) Demo with Ballerina HTTP Module</p>
+        </header>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="symbols">Select Stocks to Monitor:</label>
+                <input type="text" id="symbols" placeholder="e.g., AAPL,GOOGL,MSFT or leave empty for all">
+            </div>
+            <button id="connectBtn" onclick="connect()">Connect</button>
+            <button id="disconnectBtn" onclick="disconnect()" disabled>Disconnect</button>
+            <span id="status" class="status disconnected">Disconnected</span>
+        </div>
+
+        <div class="market-summary" id="marketSummary" style="display: none;">
+            <h2>Market Summary</h2>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="summary-label">Total Market Value</div>
+                    <div class="summary-value" id="totalValue">$0</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Average Price</div>
+                    <div class="summary-value" id="avgPrice">$0</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Market Change</div>
+                    <div class="summary-value" id="marketChange">0%</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Active Stocks</div>
+                    <div class="summary-value" id="activeStocks">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="stocks-grid" id="stocksGrid"></div>
+
+        <div class="event-log">
+            <h3>Event Log</h3>
+            <div id="eventLog"></div>
+        </div>
+    </div>
+
+    <script>
+        let stockEventSource = null;
+        let marketEventSource = null;
+        const stocksMap = new Map();
+
+        function connect() {
+            const symbols = document.getElementById('symbols').value.trim();
+            const url = symbols ? `/stock-monitor/prices?symbols=${encodeURIComponent(symbols)}` : '/stock-monitor/prices';
+
+            // Connect to stock prices SSE
+            stockEventSource = new EventSource(url);
+
+            stockEventSource.addEventListener('stock-update', (event) => {
+                const stocks = JSON.parse(event.data);
+                updateStocks(stocks);
+                logEvent(`Stock update received (Event ID: ${event.lastEventId})`);
+            });
+
+            stockEventSource.addEventListener('open', () => {
+                updateStatus(true);
+                logEvent('Connected to stock price stream');
+            });
+
+            stockEventSource.addEventListener('error', (error) => {
+                console.error('SSE Error:', error);
+                logEvent('Connection error occurred', true);
+                if (stockEventSource.readyState === EventSource.CLOSED) {
+                    updateStatus(false);
+                    logEvent('Connection closed', true);
+                }
+            });
+
+            // Connect to market summary SSE
+            marketEventSource = new EventSource('/stock-monitor/market-summary');
+
+            marketEventSource.addEventListener('market-summary', (event) => {
+                const summary = JSON.parse(event.data);
+                updateMarketSummary(summary);
+                logEvent(`Market summary updated (Event ID: ${event.lastEventId})`);
+            });
+
+            document.getElementById('marketSummary').style.display = 'block';
+            document.getElementById('connectBtn').disabled = true;
+            document.getElementById('disconnectBtn').disabled = false;
+        }
+
+        function disconnect() {
+            if (stockEventSource) {
+                stockEventSource.close();
+                stockEventSource = null;
+            }
+            if (marketEventSource) {
+                marketEventSource.close();
+                marketEventSource = null;
+            }
+            updateStatus(false);
+            logEvent('Disconnected from streams');
+            document.getElementById('connectBtn').disabled = false;
+            document.getElementById('disconnectBtn').disabled = true;
+        }
+
+        function updateStocks(stocks) {
+            const grid = document.getElementById('stocksGrid');
+            
+            for (const [symbol, stock] of Object.entries(stocks)) {
+                let card = stocksMap.get(symbol);
+                
+                if (!card) {
+                    card = createStockCard(stock);
+                    stocksMap.set(symbol, card);
+                    grid.appendChild(card);
+                } else {
+                    updateStockCard(card, stock);
+                }
+            }
+        }
+
+        function createStockCard(stock) {
+            const card = document.createElement('div');
+            card.className = 'stock-card';
+            card.innerHTML = `
+                <div class="stock-symbol">${stock.symbol}</div>
+                <div class="stock-name">${stock.name}</div>
+                <div class="stock-price">$<span class="price-value">${stock.price.toFixed(2)}</span></div>
+                <div class="stock-change ${stock.changePercent >= 0 ? 'positive' : 'negative'}">
+                    ${stock.changePercent >= 0 ? '▲' : '▼'} <span class="change-value">${Math.abs(stock.changePercent).toFixed(2)}%</span>
+                </div>
+                <div class="stock-timestamp">${stock.timestamp}</div>
+            `;
+            return card;
+        }
+
+        function updateStockCard(card, stock) {
+            card.classList.add('updating');
+            setTimeout(() => card.classList.remove('updating'), 500);
+
+            card.querySelector('.price-value').textContent = stock.price.toFixed(2);
+            
+            const changeElement = card.querySelector('.stock-change');
+            changeElement.className = `stock-change ${stock.changePercent >= 0 ? 'positive' : 'negative'}`;
+            changeElement.innerHTML = `${stock.changePercent >= 0 ? '▲' : '▼'} <span class="change-value">${Math.abs(stock.changePercent).toFixed(2)}%</span>`;
+            
+            card.querySelector('.stock-timestamp').textContent = stock.timestamp;
+        }
+
+        function updateMarketSummary(summary) {
+            document.getElementById('totalValue').textContent = `$${summary.totalMarketValue.toFixed(2)}`;
+            document.getElementById('avgPrice').textContent = `$${summary.averagePrice.toFixed(2)}`;
+            
+            const changeElement = document.getElementById('marketChange');
+            changeElement.textContent = `${summary.marketChangePercent >= 0 ? '+' : ''}${summary.marketChangePercent.toFixed(2)}%`;
+            changeElement.style.color = summary.marketChangePercent >= 0 ? '#4caf50' : '#f44336';
+            
+            document.getElementById('activeStocks').textContent = summary.activeStocks;
+        }
+
+        function updateStatus(connected) {
+            const status = document.getElementById('status');
+            status.className = `status ${connected ? 'connected' : 'disconnected'}`;
+            status.textContent = connected ? 'Connected' : 'Disconnected';
+        }
+
+        function logEvent(message, isError = false) {
+            const log = document.getElementById('eventLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const item = document.createElement('div');
+            item.className = 'event-item';
+            if (isError) {
+                item.style.color = '#f44336';
+            }
+            item.textContent = `[${timestamp}] ${message}`;
+            log.insertBefore(item, log.firstChild);
+            
+            // Keep only last 50 events
+            while (log.children.length > 50) {
+                log.removeChild(log.lastChild);
+            }
+        }
+
+        // Clean up on page unload
+        window.addEventListener('beforeunload', () => {
+            disconnect();
+        });
+    </script>
+</body>
+</html>
