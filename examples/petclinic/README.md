@@ -102,7 +102,7 @@ port = 9966
 
 ```bash
 # Navigate to project directory
-cd petclinic-ballerina
+cd petclinic
 
 # Build the project
 bal build
