@@ -1,6 +1,6 @@
 [package]
-org = "ballerina"
-name = "sse_counter"
+org = "abhi"
+name = "stock_monitor"
 version = "0.1.0"
 distribution = "2201.12.9"
 
