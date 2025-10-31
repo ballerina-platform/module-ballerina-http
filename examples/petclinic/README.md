@@ -145,12 +145,15 @@ The API returns standardized error responses following the Problem Details RFC 7
 
 ```json
 {
-  "type": "http://localhost:9966/petclinic/api",
-  "title": "Not Found",
-  "status": 404,
-  "detail": "Owner not found",
-  "timestamp": "2024-01-01T12:00:00Z",
-  "schemaValidationErrors": []
+	"type": "/problems/owner-not-found",
+	"title": "Not Found",
+	"status": 404,
+	"detail": "Owner with ID 32 not found",
+	"instance": "/owners/32",
+	"timestamp": [
+		1761879766,
+		0.724522263
+	]
 }
 ```
 
