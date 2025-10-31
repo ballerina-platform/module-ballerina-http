@@ -1,3 +1,8 @@
+# Simple Counter - Server-Sent Events in Ballerina
+
+This is a simple example that demonstrates how to use Server-Sent Events (SSE) in the Ballerina programming language.
+The server continuously sends incrementing counter values to connected clients in real-time using SSE.
+
 ### How to Run:
 
 ```bash
