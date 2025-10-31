@@ -1,0 +1,28 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:18.0
+    container_name: petclinic-postgres
+    environment:
+      - POSTGRES_DB=petclinic
+      - POSTGRES_USER=petclinic
+      - POSTGRES_PASSWORD=petclinic
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - petclinic-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U petclinic -d petclinic"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  postgres_data:
+
+networks:
+  petclinic-network:
+    driver: bridge
