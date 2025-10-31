@@ -24,7 +24,7 @@ public isolated function createBadRequestProblem(string detail, json? validation
         timestamp: time:utcNow()
     };
 
-    if validationErrors is json {
+    if validationErrors !is () {
         problemDetails["validationErrors"] = validationErrors;
     }
 

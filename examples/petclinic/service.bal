@@ -53,7 +53,7 @@ service /petclinic/api on new http:Listener(port) {
 
             int[] result = check self.dbClient->/owners.post([owner]);
 
-            log:printInfo(string `Created owner with ID: ${result[0]}`);
+            log:printDebug("Created owner with ID: ", id = result[0]);
             return <CreatedResponse>{
                 body: {id: result[0]}
             };
@@ -66,11 +66,11 @@ service /petclinic/api on new http:Listener(port) {
     isolated resource function get owners/[int ownerId]() returns db:Owner|NotFoundProblem|InternalServerErrorProblem {
         do {
             db:Owner owner = check self.dbClient->/owners/[ownerId]();
-            log:printDebug(string `Retrieved owner with ID: ${ownerId}`);
+            log:printDebug("Retrieved owner with ID:", id = ownerId);
             return owner;
         } on fail error e {
             if e is persist:NotFoundError {
-                log:printDebug(string `Owner not found with ID: ${ownerId}`);
+                log:printDebug("Owner not found with ID:", id = ownerId);
 
                 return createNotFoundProblem(string `Owner with ID ${ownerId} not found`, OWNER_NOT_FOUND_TYPE, string `/owners/${ownerId}`);
             }
@@ -82,11 +82,12 @@ service /petclinic/api on new http:Listener(port) {
     isolated resource function put owners/[int ownerId](db:OwnerUpdate owner) returns db:Owner|NotFoundProblem|InternalServerErrorProblem {
         do {
             db:Owner updatedOwner = check self.dbClient->/owners/[ownerId].put(owner);
-            log:printInfo(string `Updated owner with ID: ${ownerId}`);
+            log:printDebug("Updated owner with ID:", id = ownerId);
             return updatedOwner;
         } on fail error e {
             if e is persist:NotFoundError {
-                log:printDebug(string `Owner not found for update with ID: ${ownerId}`);
+                log:printDebug("Owner not found for update with ID:", id = ownerId);
+
                 return createNotFoundProblem(string `Owner with ID ${ownerId} not found`, OWNER_NOT_FOUND_TYPE,
                         string `/owners/${ownerId}`);
             }
@@ -98,11 +99,13 @@ service /petclinic/api on new http:Listener(port) {
     isolated resource function delete owners/[int ownerId]() returns http:NoContent|NotFoundProblem|InternalServerErrorProblem {
         do {
             _ = check self.dbClient->/owners/[ownerId].delete();
-            log:printInfo(string `Deleted owner with ID: ${ownerId}`);
+            log:printDebug("Deleted owner with ID:", id = ownerId);
+
             return http:NO_CONTENT;
         } on fail error e {
             if e is persist:NotFoundError {
-                log:printDebug(string `Owner not found for deletion with ID: ${ownerId}`);
+                log:printDebug("Owner not found for deletion with ID:", id = ownerId);
+
                 return createNotFoundProblem(string `Owner with ID ${ownerId} not found`, OWNER_NOT_FOUND_TYPE,
                         string `/owners/${ownerId}`);
             }
@@ -123,13 +126,14 @@ service /petclinic/api on new http:Listener(port) {
 
             int[] result = check self.dbClient->/pets.post([pet]);
 
-            log:printInfo(string `Created pet with ID: ${result[0]} for owner ${ownerId}`);
+            log:printDebug(string `Created pet with ID: ${result[0]} for owner ${ownerId}`);
             return <CreatedResponse>{
                 body: {id: result[0]}
             };
         } on fail error e {
             if e is persist:NotFoundError {
-                log:printDebug(string `Owner not found with ID: ${ownerId}`);
+                log:printDebug("Owner not found with ID:", id = ownerId);
+
                 return createNotFoundProblem(string `Owner with ID ${ownerId} not found`, OWNER_NOT_FOUND_TYPE,
                         string `/owners/${ownerId}`);
             }
@@ -155,13 +159,14 @@ service /petclinic/api on new http:Listener(port) {
 
             int[] result = check self.dbClient->/visits.post([visit]);
 
-            log:printInfo(string `Created visit with ID: ${result[0]} for pet ${petId}`);
+            log:printDebug(string `Created visit with ID: ${result[0]} for pet ${petId}`);
             return <CreatedResponse>{
                 body: {id: result[0]}
             };
         } on fail error e {
             if e is persist:NotFoundError {
-                log:printDebug(string `Pet not found with ID: ${petId}`);
+                log:printDebug("Pet not found with ID:", id = petId);
+
                 return createNotFoundProblem(string `Pet with ID ${petId} not found`, PET_NOT_FOUND_TYPE,
                         string `/pets/${petId}`);
             }
@@ -188,11 +193,13 @@ service /petclinic/api on new http:Listener(port) {
     isolated resource function get pets/[int petId]() returns db:Pet|NotFoundProblem|InternalServerErrorProblem {
         do {
             db:Pet pet = check self.dbClient->/pets/[petId]();
-            log:printDebug(string `Retrieved pet with ID: ${petId}`);
+
+            log:printDebug("Retrieved pet with ID:", id = petId);
             return pet;
         } on fail error e {
             if e is persist:NotFoundError {
-                log:printDebug(string `Pet not found with ID: ${petId}`);
+                log:printDebug("Pet not found with ID:", id = petId);
+
                 return createNotFoundProblem(string `Pet with ID ${petId} not found`, PET_NOT_FOUND_TYPE,
                         string `/pets/${petId}`);
             }
@@ -204,11 +211,11 @@ service /petclinic/api on new http:Listener(port) {
     isolated resource function put pets/[int petId](db:PetUpdate pet) returns db:Pet|NotFoundProblem|InternalServerErrorProblem {
         do {
             db:Pet updatedPet = check self.dbClient->/pets/[petId].put(pet);
-            log:printInfo(string `Updated pet with ID: ${petId}`);
+            log:printDebug("Updated pet with ID:", id = petId);
             return updatedPet;
         } on fail error e {
             if e is persist:NotFoundError {
-                log:printDebug(string `Pet not found for update with ID: ${petId}`);
+                log:printDebug("Pet not found with ID:", id = petId);
                 return createNotFoundProblem(string `Pet with ID ${petId} not found`, PET_NOT_FOUND_TYPE,
                         string `/pets/${petId}`);
             }
@@ -220,11 +227,11 @@ service /petclinic/api on new http:Listener(port) {
     isolated resource function delete pets/[int petId]() returns http:NoContent|NotFoundProblem|InternalServerErrorProblem {
         do {
             _ = check self.dbClient->/pets/[petId].delete();
-            log:printInfo(string `Deleted pet with ID: ${petId}`);
+            log:printDebug("Deleted pet with ID:", id = petId);
             return http:NO_CONTENT;
         } on fail error e {
             if e is persist:NotFoundError {
-                log:printDebug(string `Pet not found for deletion with ID: ${petId}`);
+                log:printDebug("Pet not found with ID:", id = petId);
                 return createNotFoundProblem(string `Pet with ID ${petId} not found`, PET_NOT_FOUND_TYPE,
                         string `/pets/${petId}`);
             }
@@ -236,11 +243,12 @@ service /petclinic/api on new http:Listener(port) {
     isolated resource function get visits/[int visitId]() returns db:Visit|NotFoundProblem|InternalServerErrorProblem {
         do {
             db:Visit visit = check self.dbClient->/visits/[visitId]();
-            log:printDebug(string `Retrieved visit with ID: ${visitId}`);
+            log:printDebug("Retrieved visit with ID:", id = visitId);
             return visit;
         } on fail error e {
             if e is persist:NotFoundError {
-                log:printDebug(string `Visit not found with ID: ${visitId}`);
+                log:printDebug("Visit not found with ID:", id = visitId);
+
                 return createNotFoundProblem(string `Visit with ID ${visitId} not found`, VISIT_NOT_FOUND_TYPE,
                         string `/visits/${visitId}`);
             }
@@ -252,11 +260,11 @@ service /petclinic/api on new http:Listener(port) {
     isolated resource function put visits/[int visitId](db:VisitUpdate visit) returns db:Visit|NotFoundProblem|InternalServerErrorProblem {
         do {
             db:Visit updatedVisit = check self.dbClient->/visits/[visitId].put(visit);
-            log:printInfo(string `Updated visit with ID: ${visitId}`);
+            log:printDebug("Updated visit with ID:", id = visitId);
             return updatedVisit;
         } on fail error e {
             if e is persist:NotFoundError {
-                log:printDebug(string `Visit not found for update with ID: ${visitId}`);
+                log:printDebug("Visit not found with ID:", id = visitId);
                 return createNotFoundProblem(string `Visit with ID ${visitId} not found`, VISIT_NOT_FOUND_TYPE,
                         string `/visits/${visitId}`);
             }
@@ -268,11 +276,12 @@ service /petclinic/api on new http:Listener(port) {
     isolated resource function delete visits/[int visitId]() returns http:NoContent|NotFoundProblem|InternalServerErrorProblem {
         do {
             _ = check self.dbClient->/visits/[visitId].delete();
-            log:printInfo(string `Deleted visit with ID: ${visitId}`);
+            log:printDebug("Deleted visit with ID:", id = visitId);
             return http:NO_CONTENT;
         } on fail error e {
             if e is persist:NotFoundError {
-                log:printDebug(string `Visit not found for deletion with ID: ${visitId}`);
+                log:printDebug("Visit not found for deletion with ID:", id = visitId);
+
                 return createNotFoundProblem(string `Visit with ID ${visitId} not found`, VISIT_NOT_FOUND_TYPE,
                         string `/visits/${visitId}`);
             }
@@ -308,7 +317,7 @@ service /petclinic/api on new http:Listener(port) {
 
             int[] result = check self.dbClient->/vets.post([vet]);
 
-            log:printInfo(string `Created vet with ID: ${result[0]}`);
+            log:printDebug("Created vet with ID:", id = result[0]);
             return <CreatedResponse>{
                 body: {id: result[0]}
             };
@@ -321,11 +330,12 @@ service /petclinic/api on new http:Listener(port) {
     isolated resource function get vets/[int vetId]() returns db:Vet|NotFoundProblem|InternalServerErrorProblem {
         do {
             db:Vet vet = check self.dbClient->/vets/[vetId]();
-            log:printDebug(string `Retrieved vet with ID: ${vetId}`);
+            log:printDebug("Created vet with ID:", id = vetId);
             return vet;
         } on fail error e {
             if e is persist:NotFoundError {
-                log:printDebug(string `Vet not found with ID: ${vetId}`);
+                log:printDebug("Vet not found with ID:", id = vetId);
+
                 return createNotFoundProblem(string `Vet with ID ${vetId} not found`, VET_NOT_FOUND_TYPE,
                         string `/vets/${vetId}`);
             }
@@ -337,11 +347,12 @@ service /petclinic/api on new http:Listener(port) {
     isolated resource function put vets/[int vetId](db:VetUpdate vet) returns db:Vet|NotFoundProblem|InternalServerErrorProblem {
         do {
             db:Vet updatedVet = check self.dbClient->/vets/[vetId].put(vet);
-            log:printInfo(string `Updated vet with ID: ${vetId}`);
+            log:printDebug("Updated vet with ID:", id = vetId);
             return updatedVet;
         } on fail error e {
             if e is persist:NotFoundError {
-                log:printDebug(string `Vet not found for update with ID: ${vetId}`);
+                log:printDebug("Vet not found for update with ID:", id = vetId);
+
                 return createNotFoundProblem(string `Vet with ID ${vetId} not found`, VET_NOT_FOUND_TYPE,
                         string `/vets/${vetId}`);
             }
@@ -353,11 +364,11 @@ service /petclinic/api on new http:Listener(port) {
     isolated resource function delete vets/[int vetId]() returns http:NoContent|NotFoundProblem|InternalServerErrorProblem {
         do {
             _ = check self.dbClient->/vets/[vetId].delete();
-            log:printInfo(string `Deleted vet with ID: ${vetId}`);
+            log:printDebug(string `Deleted vet with ID: ${vetId}`);
             return http:NO_CONTENT;
         } on fail error e {
             if e is persist:NotFoundError {
-                log:printDebug(string `Vet not found for deletion with ID: ${vetId}`);
+                log:printDebug("Vet not found for deletion with ID:", id = vetId);
                 return createNotFoundProblem(string `Vet with ID ${vetId} not found`, VET_NOT_FOUND_TYPE,
                         string `/vets/${vetId}`);
             }
@@ -391,7 +402,7 @@ service /petclinic/api on new http:Listener(port) {
 
             int[] result = check self.dbClient->/specialties.post([specialty]);
 
-            log:printInfo(string `Created specialty with ID: ${result[0]}`);
+            log:printDebug("Created specialty with ID:", id = result[0]);
             return <CreatedResponse>{
                 body: {id: result[0]}
             };
@@ -404,11 +415,13 @@ service /petclinic/api on new http:Listener(port) {
     isolated resource function get specialties/[int specialtyId]() returns db:Specialty|NotFoundProblem|InternalServerErrorProblem {
         do {
             db:Specialty specialty = check self.dbClient->/specialties/[specialtyId]();
-            log:printDebug(string `Retrieved specialty with ID: ${specialtyId}`);
+            log:printDebug("Retrieved specialty with ID:", id = specialtyId);
+
             return specialty;
         } on fail error e {
             if e is persist:NotFoundError {
-                log:printDebug(string `Specialty not found with ID: ${specialtyId}`);
+                log:printDebug("Specialty not found with ID:", id = specialtyId);
+
                 return createNotFoundProblem(string `Specialty with ID ${specialtyId} not found`, SPECIALTY_NOT_FOUND_TYPE,
                         string `/specialties/${specialtyId}`);
             }
@@ -420,11 +433,12 @@ service /petclinic/api on new http:Listener(port) {
     isolated resource function put specialties/[int specialtyId](db:SpecialtyUpdate specialty) returns db:Specialty|NotFoundProblem|InternalServerErrorProblem {
         do {
             db:Specialty updatedSpecialty = check self.dbClient->/specialties/[specialtyId].put(specialty);
-            log:printInfo(string `Updated specialty with ID: ${specialtyId}`);
+            log:printDebug("Updated specialty with ID:", id = specialtyId);
             return updatedSpecialty;
         } on fail error e {
             if e is persist:NotFoundError {
-                log:printDebug(string `Specialty not found for update with ID: ${specialtyId}`);
+                log:printDebug("Specialty not found for update with ID:", id = specialtyId);
+
                 return createNotFoundProblem(string `Specialty with ID ${specialtyId} not found`, SPECIALTY_NOT_FOUND_TYPE,
                         string `/specialties/${specialtyId}`);
             }
@@ -436,11 +450,11 @@ service /petclinic/api on new http:Listener(port) {
     isolated resource function delete specialties/[int specialtyId]() returns http:NoContent|NotFoundProblem|InternalServerErrorProblem {
         do {
             _ = check self.dbClient->/specialties/[specialtyId].delete();
-            log:printInfo(string `Deleted specialty with ID: ${specialtyId}`);
+            log:printDebug("Deleted specialty with ID:", id = specialtyId);
             return http:NO_CONTENT;
         } on fail error e {
             if e is persist:NotFoundError {
-                log:printDebug(string `Specialty not found for deletion with ID: ${specialtyId}`);
+                log:printDebug("Specialty not found for deletion with ID:", id = specialtyId);
                 return createNotFoundProblem(string `Specialty with ID ${specialtyId} not found`, SPECIALTY_NOT_FOUND_TYPE,
                         string `/specialties/${specialtyId}`);
             }
@@ -466,7 +480,7 @@ service /petclinic/api on new http:Listener(port) {
             return vetSpecialties;
         } on fail error e {
             if e is persist:NotFoundError {
-                log:printDebug(string `Vet not found with ID: ${vetId}`);
+                log:printDebug("Vet not found with ID:", id = vetId);
                 return createNotFoundProblem(string `Vet with ID ${vetId} not found`, VET_NOT_FOUND_TYPE,
                         string `/vets/${vetId}`);
             }
@@ -497,7 +511,7 @@ service /petclinic/api on new http:Listener(port) {
     isolated resource function delete vetspecialties/[int vetId]/[int specialtyId]() returns http:NoContent|NotFoundProblem|InternalServerErrorProblem {
         do {
             _ = check self.dbClient->/vetspecialties/[vetId]/[specialtyId].delete();
-            log:printInfo(string `Removed specialty ${specialtyId} from vet ${vetId}`);
+            log:printDebug(string `Removed specialty ${specialtyId} from vet ${vetId}`);
             return http:NO_CONTENT;
         } on fail error e {
             if e is persist:NotFoundError {
@@ -536,7 +550,7 @@ service /petclinic/api on new http:Listener(port) {
 
             int[] result = check self.dbClient->/types.post([petType]);
 
-            log:printInfo(string `Created pet type with ID: ${result[0]}`);
+            log:printDebug("Created pet type with ID:", id = result[0]);
             return <CreatedResponse>{
                 body: {id: result[0]}
             };
@@ -549,11 +563,12 @@ service /petclinic/api on new http:Listener(port) {
     isolated resource function get pettypes/[int petTypeId]() returns db:Type|NotFoundProblem|InternalServerErrorProblem {
         do {
             db:Type petType = check self.dbClient->/types/[petTypeId]();
-            log:printDebug(string `Retrieved pet type with ID: ${petTypeId}`);
+            log:printDebug("Retrieved pet type with ID:", id = petTypeId);
             return petType;
         } on fail error e {
             if e is persist:NotFoundError {
-                log:printDebug(string `Pet type not found with ID: ${petTypeId}`);
+                log:printDebug("Pet type not found with ID:", id = petTypeId);
+
                 return createNotFoundProblem(string `Pet type with ID ${petTypeId} not found`, PET_TYPE_NOT_FOUND_TYPE,
                         string `/pettypes/${petTypeId}`);
             }
@@ -565,11 +580,13 @@ service /petclinic/api on new http:Listener(port) {
     isolated resource function put pettypes/[int petTypeId](db:TypeUpdate petType) returns db:Type|NotFoundProblem|InternalServerErrorProblem {
         do {
             db:Type updatedPetType = check self.dbClient->/types/[petTypeId].put(petType);
-            log:printInfo(string `Updated pet type with ID: ${petTypeId}`);
+            log:printDebug("Updated pet type with ID:", id = petTypeId);
+
             return updatedPetType;
         } on fail error e {
             if e is persist:NotFoundError {
-                log:printDebug(string `Pet type not found for update with ID: ${petTypeId}`);
+                log:printDebug("Pet type not found for update with ID:", id = petTypeId);
+
                 return createNotFoundProblem(string `Pet type with ID ${petTypeId} not found`, PET_TYPE_NOT_FOUND_TYPE,
                         string `/pettypes/${petTypeId}`);
             }
@@ -581,11 +598,11 @@ service /petclinic/api on new http:Listener(port) {
     isolated resource function delete pettypes/[int petTypeId]() returns http:NoContent|NotFoundProblem|InternalServerErrorProblem {
         do {
             _ = check self.dbClient->/types/[petTypeId].delete();
-            log:printInfo(string `Deleted pet type with ID: ${petTypeId}`);
+            log:printDebug("Deleted pet type with ID:", id = petTypeId);
             return http:NO_CONTENT;
         } on fail error e {
             if e is persist:NotFoundError {
-                log:printDebug(string `Pet type not found for deletion with ID: ${petTypeId}`);
+                log:printDebug("Pet type not found for deletion with ID:", id = petTypeId);
                 return createNotFoundProblem(string `Pet type with ID ${petTypeId} not found`, PET_TYPE_NOT_FOUND_TYPE,
                         string `/pettypes/${petTypeId}`);
             }

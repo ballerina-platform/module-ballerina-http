@@ -41,12 +41,12 @@ public type InternalServerErrorProblem record {|
     ProblemDetails body;
 |};
 
-const string OWNER_NOT_FOUND_TYPE = "/problems/owner-not-found";
-const string PET_NOT_FOUND_TYPE = "/problems/pet-not-found";
-const string VISIT_NOT_FOUND_TYPE = "/problems/visit-not-found";
-const string VET_NOT_FOUND_TYPE = "/problems/vet-not-found";
-const string SPECIALTY_NOT_FOUND_TYPE = "/problems/specialty-not-found";
-const string PET_TYPE_NOT_FOUND_TYPE = "/problems/pet-type-not-found";
-const string VALIDATION_ERROR_TYPE = "/problems/validation-error";
-const string CONFLICT_ERROR_TYPE = "/problems/conflict";
-const string DATABASE_ERROR_TYPE = "/problems/database-error";
+const OWNER_NOT_FOUND_TYPE = "/problems/owner-not-found";
+const PET_NOT_FOUND_TYPE = "/problems/pet-not-found";
+const VISIT_NOT_FOUND_TYPE = "/problems/visit-not-found";
+const VET_NOT_FOUND_TYPE = "/problems/vet-not-found";
+const SPECIALTY_NOT_FOUND_TYPE = "/problems/specialty-not-found";
+const PET_TYPE_NOT_FOUND_TYPE = "/problems/pet-type-not-found";
+const VALIDATION_ERROR_TYPE = "/problems/validation-error";
+const CONFLICT_ERROR_TYPE = "/problems/conflict";
+const DATABASE_ERROR_TYPE = "/problems/database-error";

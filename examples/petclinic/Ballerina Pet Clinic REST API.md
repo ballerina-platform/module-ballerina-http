@@ -88,12 +88,12 @@ docker compose up
 Edit `Config.toml` to match your database configuration:
 
 ```toml
-[databaseConfig]
-database = "petclinic"
-username = "petclinic"
-password = "petclinic"
-port = 5432
+[petclinic.db]
 host = "localhost"
+port = 5432
+user = "petclinic"
+password = "petclinic"
+database = "petclinic"
 
 port = 9966
 ```
@@ -103,9 +103,6 @@ port = 9966
 ```bash
 # Navigate to project directory
 cd petclinic
-
-# Build the project
-bal build
 
 # Run the application
 bal run
