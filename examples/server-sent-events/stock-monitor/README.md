@@ -106,8 +106,6 @@ http://localhost:9090/stock-monitor
 3. **View Updates**: Watch real-time stock price updates and market summary
 4. **Disconnect**: Click "Disconnect" to stop the stream
 
-### Using Test Scripts\r\n\r\n**Windows (PowerShell)**:\r\n```powershell\r\n.\test-sse.ps1\r\n```\r\n\r\n**Linux/macOS (Bash)**:\r\n```bash\r\nchmod +x test-sse.sh\r\n./test-sse.sh\r\n```\r\n\r\n### Using curl to Test SSE Endpoints
-
 #### Stock Prices Stream (All Stocks)
 ```bash
 curl -N http://localhost:9090/stock-monitor/prices

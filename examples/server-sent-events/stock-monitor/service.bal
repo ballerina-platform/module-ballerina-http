@@ -43,7 +43,7 @@ listener http:Listener stockListener = new (9090);
 service /stock\-monitor on stockListener {
 
     // Serve the HTML client
-    resource function get .() returns http:Response|http:InternalServerError {
+    isolated resource function get .() returns http:Response|http:InternalServerError {
         http:Response response = new;
         string|io:Error htmlContent = io:fileReadString("client.html");
         if htmlContent is io:Error {
@@ -58,7 +58,7 @@ service /stock\-monitor on stockListener {
 
     // SSE endpoint - streams real-time stock prices
     // Returns a stream of SseEvent objects
-    resource function get prices(string? symbols) returns stream<http:SseEvent, error?>|http:BadRequest {
+    isolated resource function get prices(string? symbols) returns stream<http:SseEvent, error?>|http:BadRequest {
         log:printInfo("New SSE connection established");
         
         // Parse requested symbols or use all stocks
@@ -81,13 +81,13 @@ service /stock\-monitor on stockListener {
     }
 
     // SSE endpoint - streams market summary statistics
-    resource function get market\-summary() returns stream<http:SseEvent, error?> {
+    isolated resource function get market\-summary() returns stream<http:SseEvent, error?> {
         log:printInfo("Market summary SSE connection established");
         return createMarketSummaryStream();
     }
 
     // REST endpoint - get current prices for all stocks
-    resource function get current\-prices() returns map<Stock> {
+    isolated resource function get current\-prices() returns map<Stock> {
         map<Stock> currentStocks = {};
         // Get snapshot of prices outside lock to avoid restricted variable usage
         map<decimal> pricesSnapshot;
@@ -101,20 +101,20 @@ service /stock\-monitor on stockListener {
     }
 
     // REST endpoint - get available stock symbols
-    resource function get symbols() returns map<string> {
+    isolated resource function get symbols() returns map<string> {
         return STOCKS;
     }
 }
 
 // Creates a stream of SSE events for stock prices
-function createStockPriceStream(string[] symbols) returns stream<http:SseEvent, error?> {
+isolated function createStockPriceStream(string[] symbols) returns stream<http:SseEvent, error?> {
     // Create a stream that generates events every 2 seconds
     stream<http:SseEvent, error?> eventStream = new (new StockPriceGenerator(symbols));
     return eventStream;
 }
 
 // Creates a stream of SSE events for market summary
-function createMarketSummaryStream() returns stream<http:SseEvent, error?> {
+isolated function createMarketSummaryStream() returns stream<http:SseEvent, error?> {
     stream<http:SseEvent, error?> eventStream = new (new MarketSummaryGenerator());
     return eventStream;
 }
@@ -125,14 +125,14 @@ class StockPriceGenerator {
     private int eventCount = 0;
     private final int maxEvents = 1000; // Limit to prevent infinite streams in tests
 
-    function init(string[] symbols) {
+    isolated function init(string[] symbols) {
         self.symbols = symbols;
     }
 
     public isolated function next() returns record {|http:SseEvent value;|}|error? {
         if self.eventCount >= self.maxEvents {
             log:printInfo("Reached maximum event count, closing stream");
-            return (); // End the stream
+            return; // End the stream
         }
 
         // Wait for 2 seconds between updates
@@ -254,7 +254,7 @@ isolated function getCurrentTimestamp() returns string {
 }
 
 // Helper function to parse comma-separated symbols
-function parseSymbols(string symbolsStr) returns string[] {
+isolated function parseSymbols(string symbolsStr) returns string[] {
     string[] symbols = [];
     string[] parts = re `,`.split(symbolsStr);
     foreach string part in parts {
