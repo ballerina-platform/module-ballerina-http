@@ -70,6 +70,7 @@ import static io.ballerina.openapi.service.mapper.utils.CodegenUtils.resolveCont
 import static io.ballerina.openapi.service.mapper.utils.CodegenUtils.writeFile;
 import static io.ballerina.openapi.service.mapper.utils.MapperCommonUtils.containErrors;
 import static io.ballerina.openapi.service.mapper.utils.MapperCommonUtils.getNormalizedFileName;
+import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.getServiceDeclarationNode;
 
 public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisContext> {
     private static boolean isErrorPrinted = false;
@@ -84,6 +85,11 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
 
     @Override
     public void perform(SyntaxNodeAnalysisContext context) {
+        ServiceDeclarationNode serviceNode = getServiceDeclarationNode(context);
+        if (serviceNode == null) {
+            return;
+        }
+
         ModuleId moduleId = context.moduleId();
         DocumentId documentId = context.documentId();
         Module currentModule = context.currentPackage() != null ? context.currentPackage().module(moduleId) : null;
@@ -118,7 +124,6 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
         Path outPath = project.targetDir();
         Optional<Path> path = currentPackage.project().documentPath(context.documentId());
         Path inputPath = path.orElse(null);
-        ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) context.node();
         Map<Integer, String> services = new HashMap<>();
         List<Diagnostic> diagnostics = new ArrayList<>();
 
