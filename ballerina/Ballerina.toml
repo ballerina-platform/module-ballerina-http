@@ -21,13 +21,13 @@ graalvmCompatible = true
 groupId = "io.ballerina.stdlib"
 artifactId = "http-native"
 version = "2.15.2"
-path = "../native/build/libs/http-native-2.15.2-SNAPSHOT.jar"
+path = "../native/build/libs/http-native-2.15.2.jar"
 
 [[platform.java21.dependency]]
 groupId = "io.ballerina.stdlib"
 artifactId = "mime-native"
 version = "2.12.1"
-path = "./lib/mime-native-2.12.1-20251120-093500-b886b69.jar"
+path = "./lib/mime-native-2.12.1.jar"
 
 [[platform.java21.dependency]]
 groupId = "io.ballerina.stdlib"
