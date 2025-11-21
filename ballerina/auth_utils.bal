@@ -48,14 +48,22 @@ isolated function buildCompleteErrorMessage(error err) returns string {
 // Extract the credential from `http:Request`, `http:Headers` or `string` header.
 isolated function extractCredential(Request|Headers|string data) returns string|ListenerAuthError {
     if data is string {
-        return re`\s`.split(data)[1];
+        string[] parts = re`\s`.split(data);
+        if parts.length() < 2 {
+            return prepareListenerAuthError("Invalid authorization header format.");
+        }
+        return parts[1];
     } else {
         object {
             public isolated function getHeader(string headerName) returns string|HeaderNotFoundError;
         } headers = data;
         var header = headers.getHeader(AUTH_HEADER);
         if header is string {
-            return re`\s`.split(header)[1];
+            string[] parts = re`\s`.split(header);
+            if parts.length() < 2 {
+                return prepareListenerAuthError("Invalid authorization header format.");
+            }
+            return parts[1];
         } else {
             return prepareListenerAuthError("Authorization header not available.", header);
         }
@@ -64,7 +72,11 @@ isolated function extractCredential(Request|Headers|string data) returns string|
 
 // Extract the scheme from `string` header.
 isolated function extractScheme(string header) returns string {
-    return re`\s`.split(header)[0];
+    string[] parts = re`\s`.split(header);
+    if parts.length() == 0 {
+        return "";
+    }
+    return parts[0];
 }
 
 // Match the expectedScopes with actualScopes and return if there is a match.
