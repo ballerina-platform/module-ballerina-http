@@ -33,6 +33,34 @@ public isolated class ListenerFileUserStoreBasicAuthHandler {
     # + data - The `http:Request` instance or `http:Headers` instance or `string` Authorization header
     # + return - The `auth:UserDetails` instance or else `Unauthorized` type in case of an error
     public isolated function authenticate(Request|Headers|string data) returns auth:UserDetails|Unauthorized {
+        // First validate the scheme
+        string header;
+        if data is string {
+            header = data;
+        } else {
+            object {
+                public isolated function getHeader(string headerName) returns string|HeaderNotFoundError;
+            } headers = data;
+            var headerResult = headers.getHeader(AUTH_HEADER);
+            if headerResult is string {
+                header = headerResult;
+            } else {
+                Unauthorized unauthorized = {
+                    body: "Authorization header not available."
+                };
+                return unauthorized;
+            }
+        }
+        
+        // Validate that this is a Basic auth header
+        string scheme = extractScheme(header);
+        if scheme != AUTH_SCHEME_BASIC {
+            Unauthorized unauthorized = {
+                body: "Invalid authentication scheme. Expected 'Basic', but found '" + scheme + "'."
+            };
+            return unauthorized;
+        }
+        
         string|ListenerAuthError credential = extractCredential(data);
         if credential is string {
             auth:UserDetails|auth:Error details = self.provider.authenticate(credential);
