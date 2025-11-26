@@ -45,25 +45,24 @@ isolated function buildCompleteErrorMessage(error err) returns string {
     return message;
 }
 
+// Parse the credential from authorization header value.
+isolated function parseCredentialFromHeader(string header) returns string|ListenerAuthError {
+    string[] parts = re`\s`.split(header);
+    if parts.length() < 2 {
+        return prepareListenerAuthError("Invalid authorization header format.");
+    }
+    return parts[1];
+}
+
 // Extract the credential from `http:Request`, `http:Headers` or `string` header.
 isolated function extractCredential(Request|Headers|string data) returns string|ListenerAuthError {
     if data is string {
-        string[] parts = re`\s`.split(data);
-        if parts.length() < 2 {
-            return prepareListenerAuthError("Invalid authorization header format.");
-        }
-        return parts[1];
+        return parseCredentialFromHeader(data);
     } else {
-        object {
-            public isolated function getHeader(string headerName) returns string|HeaderNotFoundError;
-        } headers = data;
+        HeaderProvider headers = data;
         var header = headers.getHeader(AUTH_HEADER);
         if header is string {
-            string[] parts = re`\s`.split(header);
-            if parts.length() < 2 {
-                return prepareListenerAuthError("Invalid authorization header format.");
-            }
-            return parts[1];
+            return parseCredentialFromHeader(header);
         } else {
             return prepareListenerAuthError("Authorization header not available.", header);
         }

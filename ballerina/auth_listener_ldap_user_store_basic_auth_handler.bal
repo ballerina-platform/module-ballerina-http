@@ -38,9 +38,7 @@ public isolated client class ListenerLdapUserStoreBasicAuthHandler {
         if data is string {
             header = data;
         } else {
-            object {
-                public isolated function getHeader(string headerName) returns string|HeaderNotFoundError;
-            } headers = data;
+            HeaderProvider headers = data;
             var headerResult = headers.getHeader(AUTH_HEADER);
             if headerResult is string {
                 header = headerResult;
