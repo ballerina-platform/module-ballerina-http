@@ -39,7 +39,7 @@ public isolated class ListenerFileUserStoreBasicAuthHandler {
             header = data;
         } else {
             HeaderProvider headers = data;
-            var headerResult = headers.getHeader(AUTH_HEADER);
+            string|HeaderNotFoundError headerResult = headers.getHeader(AUTH_HEADER);
             if headerResult is string {
                 header = headerResult;
             } else {
