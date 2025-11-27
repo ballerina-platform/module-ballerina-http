@@ -53,10 +53,9 @@ public isolated class ListenerFileUserStoreBasicAuthHandler {
         // Validate that this is a Basic auth header
         string scheme = extractScheme(header);
         if scheme != AUTH_SCHEME_BASIC {
-            Unauthorized unauthorized = {
+            return {
                 body: "Invalid authentication scheme. Expected 'Basic', but found '" + scheme + "'."
             };
-            return unauthorized;
         }
         
         string|ListenerAuthError credential = extractCredential(data);
