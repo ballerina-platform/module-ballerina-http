@@ -78,6 +78,24 @@ isolated function extractScheme(string header) returns string {
     return parts[0];
 }
 
+// Extract the authorization header from `http:Request`, `http:Headers` or `string` header.
+function extractAuthorizationHeader(Request|Headers|string data) returns string|Unauthorized {
+    if data is string {
+        return data;
+    } else {
+        HeaderProvider headers = data;
+        string|HeaderNotFoundError headerResult = headers.getHeader(AUTH_HEADER);
+        if headerResult is string {
+            return headerResult;
+        } else {
+            return {
+                body: "Authorization header not available."
+            };
+        }
+    }
+}
+
+
 // Match the expectedScopes with actualScopes and return if there is a match.
 isolated function matchScopes(string|string[] actualScopes, string|string[] expectedScopes) returns boolean {
     if expectedScopes is string {
