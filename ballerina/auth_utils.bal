@@ -79,7 +79,7 @@ isolated function extractScheme(string header) returns string {
 }
 
 // Extract the authorization header from `http:Request`, `http:Headers` or `string` header.
-function extractAuthorizationHeader(Request|Headers|string data) returns string|Unauthorized {
+isolated function extractAuthorizationHeader(Request|Headers|string data) returns string|Unauthorized {
     if data is string {
         return data;
     } else {
