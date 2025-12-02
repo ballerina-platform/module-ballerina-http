@@ -95,7 +95,6 @@ isolated function extractAuthorizationHeader(Request|Headers|string data) return
     }
 }
 
-
 // Match the expectedScopes with actualScopes and return if there is a match.
 isolated function matchScopes(string|string[] actualScopes, string|string[] expectedScopes) returns boolean {
     if expectedScopes is string {
