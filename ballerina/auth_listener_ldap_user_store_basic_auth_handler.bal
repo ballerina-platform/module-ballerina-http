@@ -33,6 +33,20 @@ public isolated client class ListenerLdapUserStoreBasicAuthHandler {
     # + data - The `http:Request` instance or `http:Headers` instance or `string` Authorization header
     # + return - The `auth:UserDetails` instance or else `Unauthorized` type in case of an error
     remote isolated function authenticate(Request|Headers|string data) returns auth:UserDetails|Unauthorized {
+        string|Unauthorized header = extractAuthorizationHeader(data);
+        if header is Unauthorized {
+            return header;
+        }
+
+        // Validate that this is a Basic auth header
+        string scheme = extractScheme(header);
+        if scheme != AUTH_SCHEME_BASIC {
+            Unauthorized unauthorized = {
+                body: "Invalid authentication scheme. Expected 'Basic', but found '" + scheme + "'."
+            };
+            return unauthorized;
+        }
+
         string|ListenerAuthError credential = extractCredential(data);
         if credential is string {
             auth:UserDetails|auth:Error details = self.provider.authenticate(credential);

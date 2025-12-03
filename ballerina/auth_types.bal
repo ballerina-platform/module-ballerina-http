@@ -99,6 +99,11 @@ public type ClientAuthConfig CredentialsConfig|BearerTokenConfig|JwtIssuerConfig
 // Defines the client authentication handlers.
 type ClientAuthHandler ClientBasicAuthHandler|ClientBearerTokenAuthHandler|ClientSelfSignedJwtAuthHandler|ClientOAuth2Handler;
 
+# Represents an object that provides header access functionality.
+type HeaderProvider object {
+    public isolated function getHeader(string headerName) returns string|HeaderNotFoundError;
+};
+
 # Represents the auth annotation for file user store configurations with scopes.
 #
 # + fileUserStoreConfig - File user store configurations for Basic Auth authentication
