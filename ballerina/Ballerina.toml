@@ -38,56 +38,56 @@ path = "./lib/constraint-native-1.7.0.jar"
 [[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-common"
-version = "4.1.126.Final"
-path = "./lib/netty-common-4.1.126.Final.jar"
+version = "4.1.129.Final"
+path = "./lib/netty-common-4.1.129.Final.jar"
 
 [[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-buffer"
-version = "4.1.126.Final"
-path = "./lib/netty-buffer-4.1.126.Final.jar"
+version = "4.1.129.Final"
+path = "./lib/netty-buffer-4.1.129.Final.jar"
 
 [[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-transport"
-version = "4.1.126.Final"
-path = "./lib/netty-transport-4.1.126.Final.jar"
+version = "4.1.129.Final"
+path = "./lib/netty-transport-4.1.129.Final.jar"
 
 [[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-resolver"
-version = "4.1.126.Final"
-path = "./lib/netty-resolver-4.1.126.Final.jar"
+version = "4.1.129.Final"
+path = "./lib/netty-resolver-4.1.129.Final.jar"
 
 [[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-handler"
-version = "4.1.126.Final"
-path = "./lib/netty-handler-4.1.126.Final.jar"
+version = "4.1.129.Final"
+path = "./lib/netty-handler-4.1.129.Final.jar"
 
 [[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-codec-http"
-version = "4.1.126.Final"
-path = "./lib/netty-codec-http-4.1.126.Final.jar"
+version = "4.1.129.Final"
+path = "./lib/netty-codec-http-4.1.129.Final.jar"
 
 [[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-codec"
-version = "4.1.126.Final"
-path = "./lib/netty-codec-4.1.126.Final.jar"
+version = "4.1.129.Final"
+path = "./lib/netty-codec-4.1.129.Final.jar"
 
 [[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-handler-proxy"
-version = "4.1.126.Final"
-path = "./lib/netty-handler-proxy-4.1.126.Final.jar"
+version = "4.1.129.Final"
+path = "./lib/netty-handler-proxy-4.1.129.Final.jar"
 
 [[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-codec-http2"
-version = "4.1.126.Final"
-path = "./lib/netty-codec-http2-4.1.126.Final.jar"
+version = "4.1.129.Final"
+path = "./lib/netty-codec-http2-4.1.129.Final.jar"
 
 [[platform.java21.dependency]]
 groupId = "commons-pool.wso2"
@@ -98,8 +98,8 @@ path = "./lib/commons-pool-1.5.6.wso2v1.jar"
 [[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-transport-native-unix-common"
-version = "4.1.126.Final"
-path = "./lib/netty-transport-native-unix-common-4.1.126.Final.jar"
+version = "4.1.129.Final"
+path = "./lib/netty-transport-native-unix-common-4.1.129.Final.jar"
 
 [[platform.java21.dependency]]
 groupId = "org.bouncycastle"
@@ -155,8 +155,8 @@ path = "./lib/mimepull-1.9.11.jar"
 [[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-codec-socks"
-version = "4.1.126.Final"
-path = "./lib/netty-codec-socks-4.1.126.Final.jar"
+version = "4.1.129.Final"
+path = "./lib/netty-codec-socks-4.1.129.Final.jar"
 
 [[platform.java21.dependency]]
 groupId = "org.jboss.marshalling"
@@ -165,10 +165,10 @@ version = "2.0.5.Final"
 path = "./lib/jboss-marshalling-2.0.5.Final.jar"
 
 [[platform.java21.dependency]]
-groupId = "net.jpountz.lz4"
-artifactId = "lz4"
-version = "1.3.0"
-path = "./lib/lz4-1.3.0.jar"
+groupId = "at.yawk.lz4"
+artifactId = "lz4-java"
+version = "1.10.2"
+path = "./lib/lz4-java-1.10.2.jar"
 
 [[platform.java21.dependency]]
 groupId = "com.google.protobufl"
