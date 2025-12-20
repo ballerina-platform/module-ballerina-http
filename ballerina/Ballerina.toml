@@ -44,8 +44,8 @@ path = "./lib/netty-common-4.1.129.Final.jar"
 [[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-buffer"
-version = "4.1.129.Final"
-path = "./lib/netty-buffer-4.1.129.Final.jar"
+version = "4.1.127"
+path = "./lib/netty-buffer-4.1.127.jar"
 
 [[platform.java21.dependency]]
 groupId = "io.netty"
