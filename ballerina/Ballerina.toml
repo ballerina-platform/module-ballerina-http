@@ -68,8 +68,8 @@ path = "./lib/netty-handler-4.1.128.Final.jar"
 [[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-codec-http"
-version = "4.1.128.Final"
-path = "./lib/netty-codec-http-4.1.128.Final.jar"
+version = "4.1.129.Final"
+path = "./lib/netty-codec-http-4.1.129.Final.jar"
 
 [[platform.java21.dependency]]
 groupId = "io.netty"
