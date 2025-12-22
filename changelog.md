@@ -5,6 +5,12 @@ This file contains all the notable changes done to the Ballerina HTTP package th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to 
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.14.9] - 2025-12-22
+
+### Fixed
+
+- [Address `CVE-2025-67735`, `CVE-2025-12183` and `CVE-2025-66566` security vulnerabilities](https://github.com/ballerina-platform/ballerina-library/issues/8538)
+
 ## [2.14.8] - 2025-11-20
 
 ## Fixed
