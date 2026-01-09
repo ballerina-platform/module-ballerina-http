@@ -71,9 +71,6 @@ artifactId = "netty-codec-http"
 version = "4.1.130.Final"
 path = "./lib/netty-codec-http-4.1.130.Final.jar"
 
-#4.1.129.Final
-
-
 [[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-codec"
