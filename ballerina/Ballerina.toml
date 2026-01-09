@@ -21,7 +21,7 @@ graalvmCompatible = true
 groupId = "io.ballerina.stdlib"
 artifactId = "http-native"
 version = "2.14.9"
-path = "../native/build/libs/http-native-2.14.9-SNAPSHOT.jar"
+path = "../native/build/libs/http-native-2.14.9.jar"
 
 [[platform.java21.dependency]]
 groupId = "io.ballerina.stdlib"
@@ -70,9 +70,6 @@ groupId = "io.netty"
 artifactId = "netty-codec-http"
 version = "4.1.130.Final"
 path = "./lib/netty-codec-http-4.1.130.Final.jar"
-
-#4.1.129.Final
-
 
 [[platform.java21.dependency]]
 groupId = "io.netty"
