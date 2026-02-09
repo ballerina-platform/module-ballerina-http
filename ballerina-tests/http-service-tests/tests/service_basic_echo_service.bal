@@ -179,6 +179,17 @@ function testServiceDispatching() {
 }
 
 @test:Config {}
+function testServiceDispatchingWithNoMatchingPathAndAuthorizationHeader() returns error? {
+    http:Response|error response = stClient->get("/echo/message/test", {"Authorization": "Bearer test"});
+    if response is http:Response {
+        check common:assertJsonErrorPayload(check response.getJsonPayload(), "no matching resource found for path",
+                "Not Found", 404, "/echo/message/test", "GET");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
+@test:Config {}
 function testMostSpecificBasePathIdentificationWithDuplicatedPath() returns error? {
     http:Response|error response = stClient->get("/echo/message/echo/message");
     if response is http:Response {
