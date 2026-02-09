@@ -1639,7 +1639,10 @@ public class HttpUtil {
                 System.exit(1);
             }
         };
-        runtime.invokeMethodAsyncSequentially(serviceEndpoint, CREATE_INTERCEPTORS_FUNCTION_NAME, null, null,
+        // The createInterceptors function is isolated. Therefore, it is safe to call
+        // the method asynchronously and concurrently. Calling sequentially might block the entire
+        // strand group
+        runtime.invokeMethodAsyncConcurrently(serviceEndpoint, CREATE_INTERCEPTORS_FUNCTION_NAME, null, null,
                 interceptorCallback, null, PredefinedTypes.TYPE_ANY, null, true);
         try {
             latch.await();
