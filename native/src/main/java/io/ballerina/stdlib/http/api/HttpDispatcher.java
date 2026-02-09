@@ -494,7 +494,10 @@ public class HttpDispatcher {
         if (splitValues.length != 2) {
             return null;
         }
-        runtime.invokeMethodAsyncSequentially(
+        // The JWT Decoder class is isolated and the method is isolated. Hence, it is safe to call
+        // the method asynchronously and concurrently. Calling sequentially might block the entire
+        // strand group
+        runtime.invokeMethodAsyncConcurrently(
                 ValueCreator.createObjectValue(ModuleUtils.getHttpPackage(), JWT_DECODER_CLASS_NAME),
                 JWT_DECODE_METHOD_NAME,
                 null,
