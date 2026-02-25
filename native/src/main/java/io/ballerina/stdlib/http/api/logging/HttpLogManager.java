@@ -18,19 +18,23 @@
 
 package io.ballerina.stdlib.http.api.logging;
 
+import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.http.api.logging.accesslog.HttpAccessLogConfig;
+import io.ballerina.stdlib.http.api.logging.accesslog.HttpRollingFileHandler;
 import io.ballerina.stdlib.http.api.logging.formatters.HttpAccessLogFormatter;
 import io.ballerina.stdlib.http.api.logging.formatters.HttpTraceLogFormatter;
 import io.ballerina.stdlib.http.api.logging.formatters.JsonLogFormatter;
+import io.ballerina.stdlib.http.api.logging.util.RotationPolicy;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
+import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
@@ -39,7 +43,6 @@ import java.util.logging.SocketHandler;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_ACCESS_LOG;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_ACCESS_LOG_ENABLED;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_LOG_ATTRIBUTES;
-import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_LOG_CONSOLE;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_LOG_FILE_PATH;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_LOG_FORMAT;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_LOG_FORMAT_FLAT;
@@ -48,6 +51,7 @@ import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_TRACE_LOG;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_TRACE_LOG_ENABLED;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_TRACE_LOG_HOST;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_TRACE_LOG_PORT;
+import static io.ballerina.stdlib.http.api.logging.util.RotationPolicy.BOTH;
 
 /**
  * Java util logging manager for ballerina which overrides the readConfiguration method to replace placeholders
@@ -56,6 +60,16 @@ import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_TRACE_LOG_PORT;
  * @since 0.8.0
  */
 public class HttpLogManager extends LogManager {
+
+    static final BString HTTP_LOG_CONSOLE  = StringUtils.fromString("console");
+    static final BString HTTP_LOG_ROTATION = StringUtils.fromString("rotation");
+
+    // Rotation config keys
+    static final BString ROTATION_POLICY = StringUtils.fromString("policy");
+    static final BString ROTATION_MAX_FILE_SIZE = StringUtils.fromString("maxFileSize");
+    static final BString ROTATION_MAX_AGE = StringUtils.fromString("maxAge");
+    static final BString ROTATION_MAX_BACKUP_FILES = StringUtils.fromString("maxBackupFiles");
+
 
     static {
         // loads logging.properties from the classpath
@@ -157,7 +171,13 @@ public class HttpLogManager extends LogManager {
         BString filePath = accessLogConfig.getStringValue(HTTP_LOG_FILE_PATH);
         if (filePath != null && !filePath.getValue().trim().isEmpty()) {
             try {
-                FileHandler fileHandler = new FileHandler(filePath.getValue(), true);
+                Handler fileHandler;
+                BMap rotationMap = accessLogConfig.getMapValue(HTTP_LOG_ROTATION);
+                if (rotationMap != null) {
+                    fileHandler = createRollingHandler(filePath.getValue(), rotationMap);
+                } else {
+                    fileHandler = new FileHandler(filePath.getValue(), true);
+                }
                 fileHandler.setFormatter(new HttpAccessLogFormatter());
                 fileHandler.setLevel(Level.INFO);
                 httpAccessLogger.addHandler(fileHandler);
@@ -184,6 +204,62 @@ public class HttpLogManager extends LogManager {
         if (accessLogsEnabled) {
             System.setProperty(HTTP_ACCESS_LOG_ENABLED, "true");
             stdErr.println("ballerina: " + protocol + " access log enabled");
+        }
+    }
+
+    /**
+     * Creates a HttpRollingFileHandler with config parsed from BMap.
+     */
+    private Handler createRollingHandler(String path, BMap<BString, Object> rotationConfig) throws IOException {
+        // Parse rotation config
+        String policyStr = String.valueOf(rotationConfig.getStringValue(ROTATION_POLICY));
+        long maxSize = rotationConfig.getIntValue(ROTATION_MAX_FILE_SIZE);
+        long maxAge = rotationConfig.getIntValue(ROTATION_MAX_AGE);
+        int maxBackup = rotationConfig.getIntValue(ROTATION_MAX_BACKUP_FILES).intValue();
+
+        RotationPolicy policy;
+        try {
+            policy = RotationPolicy.valueOf(policyStr.toUpperCase(java.util.Locale.ENGLISH));
+        } catch (IllegalArgumentException e) {
+            // Unknown policy string — fallback to BOTH
+            policy = BOTH;
+        }
+        validateRotationConfig(path, policy, maxSize, maxAge, maxBackup);
+        return new HttpRollingFileHandler(path, policy, maxSize, maxAge, maxBackup, true);
+    }
+
+    /**
+     * Validates the rotation configuration parameters.
+     *
+     * @param policy         rotation policy string — SIZE_BASED, TIME_BASED, or BOTH
+     * @param maxFileSize    must be > 0 when policy is SIZE_BASED or BOTH
+     * @param maxAgeSeconds  must be > 0 when policy is TIME_BASED or BOTH
+     * @param maxBackupFiles must be >= 1
+     *
+     * @throws IllegalArgumentException if any parameter is invalid
+     */
+    private static void validateRotationConfig(String filePath, RotationPolicy policy, long maxFileSize,
+                                               long maxAgeSeconds,
+                                               int maxBackupFiles) {
+        // Todo: Format errors similar to Ballerina errors
+        if (filePath == null || filePath.trim().isEmpty()) {
+            throw new RuntimeException("Log file path must not be null or empty");
+        }
+        if ((policy == RotationPolicy.SIZE_BASED || policy == RotationPolicy.BOTH)
+                && maxFileSize <= 0) {
+            throw new RuntimeException("Invalid rotation configuration: maxFileSize must be positive," +
+                    "got: " + maxFileSize);
+        }
+
+        if ((policy == RotationPolicy.TIME_BASED || policy == RotationPolicy.BOTH)
+                && maxAgeSeconds <= 0) {
+            throw new RuntimeException("Invalid rotation configuration: maxAge must be positive," +
+                    "got: " + maxAgeSeconds);
+        }
+
+        if (maxBackupFiles < 0) {
+            throw new RuntimeException("Invalid rotation configuration: maxBackupFiles cannot be negative, " +
+                    "got: " + maxBackupFiles);
         }
     }
 }
