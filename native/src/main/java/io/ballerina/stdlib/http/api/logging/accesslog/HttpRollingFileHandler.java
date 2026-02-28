@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.api.logging.accesslog;
 
+import io.ballerina.stdlib.http.api.logging.util.CountingOutputStream;
 import io.ballerina.stdlib.http.api.logging.util.RotationPolicy;
 
 import java.io.File;
@@ -34,7 +35,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.ErrorManager;
 import java.util.logging.Level;
@@ -49,38 +49,32 @@ import static io.ballerina.stdlib.http.api.logging.util.RotationPolicy.BOTH;
  *   - publish(), flush(), close() base implementations
  *   - Formatter integration
  *   - Encoding support
+ *
+ * @since 2.16.0
  */
 public class HttpRollingFileHandler extends StreamHandler {
 
-    private static final DateTimeFormatter TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
-
+    private static final DateTimeFormatter TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmssSSS");
     private final String filePath;
     private final RotationPolicy policy;
-    private final long maxFileSize;           // bytes; 0 = unlimited
-    private final long maxAgeSeconds;         // seconds; 0 = unlimited
+    private final long maxFileSize; // bytes;
+    private final long maxAgeSeconds;
     private final int maxBackupFiles;
-    private final boolean append;
-
-    /**
-     * Single reentrant lock serializes all publish(), rotate(), and close()
-     * operations. StreamHandler.publish() is not thread-safe on its own —
-     * concurrent writings to the underlying OutputStream interleave and corrupt
-     * log records. A simple lock is correct and sufficient here; a
-     * ReadWriteLock would buy nothing since writes cannot proceed concurrently
-     * on a single shared OutputStream.
-     */
     private final ReentrantLock lock = new ReentrantLock();
-
     private volatile long fileOpenTime;
-    private final AtomicLong currentFileSize = new AtomicLong(0);
-
     private FileChannel lockChannel;
     private FileLock fileLock;
+    private CountingOutputStream countingStream;
 
     /**
      * Creates a new HttpRollingFileHandler with UTF-8 encoding.
-     * Delegates to the encoding-aware constructor with null encoding (→ UTF-8).
-     * No overridable method is called in this constructor body.
+     *
+     * @param filePath       the log file path
+     * @param policy         rotation policy (SIZE_BASED, TIME_BASED, or BOTH)
+     * @param maxFileSize    max file size in bytes for rotation
+     * @param maxAgeSeconds  max age in seconds for rotation
+     * @param maxBackupFiles max number of backup files to keep (0 to keep none)
+     * @param append         whether to append to an existing file or overwrite
      */
     public HttpRollingFileHandler(String filePath,
                                   RotationPolicy policy,
@@ -93,11 +87,14 @@ public class HttpRollingFileHandler extends StreamHandler {
 
     /**
      * Creates a new HttpRollingFileHandler with an explicit encoding.
-     * Encoding is accepted as a plain parameter so no overridable
-     * getEncoding() call is needed inside the constructor body —
-     * suppresses SpotBugs MC_OVERRIDABLE_METHOD_CALL_IN_CONSTRUCTOR.
      *
-     * @param encoding  charset name e.g. "UTF-8", "ISO-8859-1"; null → UTF-8
+     * @param filePath       the log file path
+     * @param policy         rotation policy (SIZE_BASED, TIME_BASED, or BOTH)
+     * @param maxFileSize    max file size in bytes for rotation
+     * @param maxAgeSeconds  max age in seconds for rotation
+     * @param maxBackupFiles max number of backup files to keep (0 to keep none)
+     * @param append         whether to append to an existing file or overwrite
+     * @param encoding       character encoding for the log file (defaults to UTF-8 if null or empty)
      */
     public HttpRollingFileHandler(String filePath,
                                   RotationPolicy policy,
@@ -107,27 +104,21 @@ public class HttpRollingFileHandler extends StreamHandler {
                                   boolean append,
                                   String encoding) throws IOException {
         super();
-
         this.filePath = filePath;
         this.policy = policy != null ? policy : BOTH;
         this.maxFileSize = maxFileSize;
         this.maxAgeSeconds = maxAgeSeconds;
         this.maxBackupFiles = maxBackupFiles;
-        this.append = append;
 
         Charset charset = resolveEncoding(encoding);
         setEncoding(charset.name());
-
         setLevel(Level.ALL);
-        openFile();
+        openFile(append);
     }
 
     /**
      * Publishes a log record to the file.
-     * Lock is acquired for the entire publish operation — rotation check,
-     * rotate if needed, and write are all sequential under the same lock.
-     * This prevents log record interleaving on the shared OutputStream
-     * that StreamHandler writes to.
+     * Checks if rotation is needed before writing, and updates the current file size after writing.
      */
     @Override
     public void publish(LogRecord record) {
@@ -136,14 +127,9 @@ public class HttpRollingFileHandler extends StreamHandler {
             if (shouldRotate()) {
                 rotate();
             }
-
             // Delegate actual formatting and writing to StreamHandler
             super.publish(record);
             flush();
-
-            String formatted = getFormatter() != null ? getFormatter().format(record) : record.getMessage();
-            // Update size counter after writing
-            currentFileSize.addAndGet(formatted.getBytes(getEncoding()).length);
         } catch (IOException e) {
             reportError("Log rotation failed", e, ErrorManager.GENERIC_FAILURE);
         } finally {
@@ -174,27 +160,20 @@ public class HttpRollingFileHandler extends StreamHandler {
     }
 
     private boolean isSizeThresholdReached() {
-        return maxFileSize > 0 && currentFileSize.get() >= maxFileSize;
+        return countingStream != null && countingStream.getByteCount() >= maxFileSize;
     }
 
     private boolean isTimeThresholdReached() {
-        if (maxAgeSeconds <= 0) {
-            return false;
-        }
         return (System.currentTimeMillis() - fileOpenTime) / 1000 >= maxAgeSeconds;
     }
 
     /**
-     * Rotation sequence — must be called under lock:
-     *   1. Flush and close current stream (via StreamHandler.close())
-     *   2. Release file lock
-     *   3. Rename the current file with timestamp suffix
-     *   4. Delete the oldest backups beyond maxBackupFiles
-     *   5. Open the new file and re-set the OutputStream on StreamHandler
+     * Performs rotation of the log file.
      */
     private void rotate() throws IOException {
         // 1. Flush and close the current stream
-        super.close();
+        flush();
+        countingStream.close();
         releaseFileLock();
 
         // 2. Rename it with timestamp
@@ -212,15 +191,14 @@ public class HttpRollingFileHandler extends StreamHandler {
         cleanOldBackups(baseName, extension);
 
         // 4. Open fresh file
-        openFile();
+        openFile(false);
     }
 
     /**
      * Opens the log file, acquires the file lock, and sets the OutputStream
-     * on the parent StreamHandler. StreamHandler then wraps the stream with
-     * an OutputStreamWriter using the configured encoding.
+     * on the parent StreamHandler.
      */
-    private void openFile() throws IOException {
+    private void openFile(boolean append) throws IOException {
         File file = new File(filePath);
 
         File parent = file.getParentFile();
@@ -231,12 +209,11 @@ public class HttpRollingFileHandler extends StreamHandler {
         }
         acquireFileLock();
 
-        // Set the OutputStream on StreamHandler — it wraps this with an
-        // OutputStreamWriter using the encoding set in the constructor
+        // Set the OutputStream on StreamHandler
         FileOutputStream fos = new FileOutputStream(file, append);
-        setOutputStream(fos);
+        countingStream = new CountingOutputStream(fos, append ? file.length() : 0);
+        setOutputStream(countingStream);
 
-        currentFileSize.set(file.length());
         fileOpenTime = System.currentTimeMillis();
     }
 

@@ -1,0 +1,15 @@
+[package]
+org = "ballerina"
+name = "integration_tests"
+version = "@toml.version@"
+
+[[platform.java21.dependency]]
+groupId = "io.ballerina.stdlib"
+artifactId = "http-test-utils"
+scope = "testOnly"
+path = "../test-utils/build/libs/http-test-utils-@project.version@.jar"
+
+[[platform.java21.dependency]]
+groupId = "io.ballerina.stdlib"
+artifactId = "io-native"
+path = "./lib/io-native-@io.native.version@.jar"

@@ -1,0 +1,9 @@
+[ballerina.http.accessLogConfig]
+format = "flat"
+attributes = ["ip", "date_time", "request", "status", "response_body_size", "http_referrer", "http_user_agent"]
+path = "./build/tmp/output/combined-policy-access.log"
+
+[ballerina.http.accessLogConfig.rotation]
+policy = "BOTH"  # Both size and time conditions
+maxFileSize = 100
+maxAge = 12  # 12 seconds

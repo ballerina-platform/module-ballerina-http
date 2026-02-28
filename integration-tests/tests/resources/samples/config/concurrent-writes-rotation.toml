@@ -1,0 +1,9 @@
+[ballerina.http.accessLogConfig]
+format = "flat"
+attributes = ["ip", "date_time", "request", "status", "response_body_size", "http_referrer", "http_user_agent"]
+path = "./build/tmp/output/concurrent-writes-access.log"
+
+[ballerina.http.accessLogConfig.rotation]
+policy = "SIZE_BASED"
+maxFileSize = 500
+maxBackupFiles = 6

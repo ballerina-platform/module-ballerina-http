@@ -237,7 +237,9 @@ build.dependsOn deleteDependencyTomlFiles
 build.finalizedBy ":http-ballerina-tests:build"
 test.dependsOn ":${packageName}-native:build"
 test.dependsOn ":${packageName}-compiler-plugin:build"
+test.dependsOn ":${packageName}-test-utils:build"
 test.finalizedBy ":http-ballerina-tests:build"
+test.finalizedBy ":http-integration-tests:build"
 
 publishToMavenLocal.dependsOn build
 publish.dependsOn build

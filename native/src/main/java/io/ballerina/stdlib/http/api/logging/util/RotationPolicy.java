@@ -1,5 +1,3 @@
-package io.ballerina.stdlib.http.api.logging.util;
-
 /*
  * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com) All Rights Reserved.
  *
@@ -18,11 +16,13 @@ package io.ballerina.stdlib.http.api.logging.util;
  * under the License.
  */
 
+package io.ballerina.stdlib.http.api.logging.util;
+
 /**
  * Log file rotation policy.
  *
+ * @since 2.16.0
  */
-
 public enum RotationPolicy {
     /**
      * Rotate when the file size exceeds maxFileSize bytes.

@@ -1,0 +1,158 @@
+// Copyright (c) 2026 WSO2 LLC. (http://www.wso2.com) All Rights Reserved.
+//
+// WSO2 LLC. licenses this file to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file except
+// in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
+import org.apache.tools.ant.taskdefs.condition.Os
+
+apply plugin: 'java'
+
+description = 'Ballerina - HTTP Integration Tests'
+
+def ballerinaTomlFilePlaceHolder = new File("${project.rootDir}/build-config/resources/BallerinaIntegrationTest.toml")
+def ballerinaConfigFile = new File("$project.projectDir/Ballerina.toml")
+def tomlVersion = stripBallerinaExtensionVersion("${project.version}")
+def configTOMLFile = new File("$project.projectDir/tests/Config.toml")
+def tempDir = File.createTempDir()
+def tmpDir = "build/tmp";
+def ballerinaDist = "${project.rootDir}/target/ballerina-runtime"
+def distributionBinPath =  "${ballerinaDist}/bin"
+def originalConfigTOMLFile = configTOMLFile.text
+def graalvmFlag = ""
+
+def stripBallerinaExtensionVersion(String extVersion) {
+    if (extVersion.matches(project.ext.timestampedVersionRegex)) {
+        def splitVersion = extVersion.split('-');
+        if (splitVersion.length > 3) {
+            def strippedValues = splitVersion[0..-4]
+            return strippedValues.join('-')
+        } else {
+            return extVersion
+        }
+    } else {
+        return extVersion.replace("${project.ext.snapshotVersion}", "")
+    }
+}
+
+configurations {
+    jbalTools
+    externalJars
+}
+
+dependencies {
+    externalJars (group: 'io.ballerina.stdlib', name: 'io-native', version: "${stdlibIoVersion}") {
+        transitive = false
+    }
+    implementation project(":http-native")
+}
+
+clean {
+    delete "$project.projectDir/target"
+}
+
+task copyToLib(type: Copy) {
+    into "$project.projectDir/lib"
+    from configurations.externalJars
+}
+
+task updateTomlVerions {
+    doLast {
+        def stdlibNativeIoVersion = project.stdlibIoVersion
+        def newConfig = ballerinaTomlFilePlaceHolder.text.replace("@project.version@", project.version)
+        newConfig = newConfig.replace("@toml.version@", tomlVersion)
+        newConfig = newConfig.replace("@io.native.version@", stdlibNativeIoVersion)
+        ballerinaConfigFile.text = newConfig
+    }
+}
+
+task revertTomlFile {
+    doLast {
+        configTOMLFile.text = originalConfigTOMLFile
+    }
+}
+
+def setExecPath(configTOMLFile, distributionBinPath) {
+    def distributionPath
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        distributionPath = (distributionBinPath + "/bal.bat").replace("/", "\\")
+        distributionPath = distributionPath.replace("\\", "\\\\")
+    } else {
+        distributionPath = distributionBinPath + "/bal"
+    }
+    configTOMLFile.text = configTOMLFile.text.replace("@exec.path@", distributionPath)
+}
+
+def setTempDirPath(configTOMLFile, tempDirPath) {
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        tempDirPath = tempDirPath.toString().replace("\\", "\\\\")
+    }
+    configTOMLFile.text = configTOMLFile.text.replace("@temp.path@", tempDirPath)
+}
+
+task copyTestResources(type: Copy) {
+    into tempDir
+    into("service") {
+        from "tests/resources/samples/service"
+    }
+}
+
+//task copyTestOutputResources(type: Copy) {
+//    // Always re-copy so that APPEND-mode output files start from a known initial state
+//    // on every test run, even without a clean build.
+//    outputs.upToDateWhen { false }
+//    doFirst {
+//        delete "${project.projectDir}/build/tmp/output"
+//    }
+//    into tmpDir
+//    into("output") {
+//        from "tests/resources/samples/file-write-output/output"
+//    }
+//    dependsOn ':http-integration-tests:jar'
+//}
+
+task ballerinaIntegrationTests {
+    inputs.dir file(project.projectDir)
+    dependsOn(compileTestJava)
+    dependsOn(processTestResources)
+    dependsOn(copyToLib)
+    dependsOn(copyTestResources)
+    dependsOn(":http-integration-tests:jar")
+    dependsOn(":http-ballerina:build")
+    dependsOn(updateTomlVerions)
+    finalizedBy(revertTomlFile)
+
+    if (project.hasProperty('balGraalVMTest')) {
+        graalvmFlag = '--graalvm'
+    }
+    doLast {
+        setExecPath(configTOMLFile, distributionBinPath)
+        setTempDirPath(configTOMLFile, "$tempDir")
+        exec {
+            workingDir project.projectDir
+            environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
+            if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                environment.remove("JAVA_TOOL_OPTIONS")
+                commandLine 'cmd', '/c', "$distributionBinPath/bal.bat test ${graalvmFlag} --offline && exit %%ERRORLEVEL%%"
+            } else {
+                commandLine 'sh', '-c', "$distributionBinPath/bal test ${graalvmFlag} --offline --code-coverage"
+            }
+        }
+    }
+}
+
+ballerinaIntegrationTests.dependsOn updateTomlVerions
+ballerinaIntegrationTests.dependsOn compileJava
+ballerinaIntegrationTests.dependsOn processResources
+test.dependsOn ballerinaIntegrationTests
+build.dependsOn test
