@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Counter SSE Client</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .controls {
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            margin-right: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .connect {
+            background: #4CAF50;
+            color: white;
+        }
+        .disconnect {
+            background: #f44336;
+            color: white;
+        }
+        .status {
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .connected {
+            background: #d4edda;
+            color: #155724;
+        }
+        .disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        #events {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 5px;
+            min-height: 200px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+        }
+        .event {
+            padding: 10px;
+            margin-bottom: 10px;
+            background: white;
+            border-left: 4px solid #2196F3;
+            border-radius: 3px;
+        }
+        .event-type {
+            color: #2196F3;
+            font-weight: bold;
+        }
+        .event-id {
+            color: #666;
+            font-size: 12px;
+        }
+        .event-data {
+            margin-top: 5px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Counter SSE Client Example</h1>
+        
+        <div class="controls">
+            <button class="connect" onclick="connect()">Connect</button>
+            <button class="disconnect" onclick="disconnect()">Disconnect</button>
+            <button onclick="clearEvents()">Clear Events</button>
+        </div>
+        
+        <div id="status" class="status disconnected">Disconnected</div>
+        
+        <h3>Events Received:</h3>
+        <div id="events"></div>
+    </div>
+
+    <script>
+        let eventSource = null;
+
+        function connect() {
+            if (eventSource) {
+                disconnect();
+            }
+
+            // Create EventSource connection
+            eventSource = new EventSource('http://localhost:8080/counter/events');
+
+            // Connection opened
+            eventSource.addEventListener('open', () => {
+                updateStatus(true, 'Connected');
+                console.log('SSE connection established');
+            });
+
+            // Listen for custom "counter" events
+            eventSource.addEventListener('counter', (event) => {
+                addEvent('counter', event.data, event.lastEventId);
+            });
+
+            // Listen for default message events (fallback)
+            eventSource.addEventListener('message', (event) => {
+                addEvent('message', event.data, event.lastEventId);
+            });
+
+            // Handle errors
+            eventSource.addEventListener('error', (event) => {
+                console.error('SSE error:', event);
+                
+                if (eventSource.readyState === EventSource.CLOSED) {
+                    updateStatus(false, 'Connection closed - Stream ended');
+                    eventSource = null;
+                } else {
+                    updateStatus(false, 'Connection error - Retrying...');
+                }
+            });
+        }
+
+        function disconnect() {
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+                updateStatus(false, 'Disconnected');
+                console.log('SSE connection closed');
+            }
+        }
+
+        function updateStatus(connected, message) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = connected ? 'status connected' : 'status disconnected';
+        }
+
+        function addEvent(type, data, id) {
+            const eventsDiv = document.getElementById('events');
+            const eventDiv = document.createElement('div');
+            eventDiv.className = 'event';
+            
+            const timestamp = new Date().toLocaleTimeString();
+            
+            eventDiv.innerHTML = `
+                <div class="event-type">Event Type: ${type}</div>
+                <div class="event-id">Event ID: ${id || 'N/A'} | Time: ${timestamp}</div>
+                <div class="event-data">${data}</div>
+            `;
+            
+            eventsDiv.insertBefore(eventDiv, eventsDiv.firstChild);
+            
+            console.log(`Event received - Type: ${type}, ID: ${id}, Data: ${data}`);
+        }
+
+        function clearEvents() {
+            document.getElementById('events').innerHTML = '';
+        }
+
+        // Auto-connect on page load
+        window.addEventListener('load', () => {
+            setTimeout(connect, 1000);
+        });
+
+        // Clean up on page unload
+        window.addEventListener('beforeunload', disconnect);
+    </script>
+</body>
+</html>

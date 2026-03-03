@@ -116,9 +116,7 @@ function testGetXmlPayloadReturnParserError() returns error? {
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:TEXT_PLAIN);
-        common:assertTrueTextPayloadWithMutipleOptions(response.getTextPayload(),
-                "Error occurred while extracting xml data from entity: error(\"failed to create xml",
-                "Error occurred while extracting xml data from entity: error(\"failed to parse xml");
+        test:assertEquals(response.getTextPayload(), "Error occurred while extracting xml data from entity");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

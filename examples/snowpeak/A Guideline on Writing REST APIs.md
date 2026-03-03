@@ -29,8 +29,7 @@ Disclaimer: Please note that some nitty gritty details of the API have been inte
 
 A link relation is a string attached to a hypermedia control, which describes the state transition that will occur if the client follows the link. Relation semantics basically explains why you should follow a particular link. 
 
-Note that *edit* and *payment* are [IANA registered relations](https://www.iana.
-org/assignments/link-relations/link-relations.xhtml)
+Note that *edit* and *payment* are [IANA registered relations](https://www.iana.org/assignments/link-relations/link-relations.xhtml)
 
 ## HTTP Idioms
 Before solving the challenge, it is expected that as a REST API user, you would understand the basic HTTP verbs such as GET, POST, PUT, DELETE, PATCH and HTTP response status codes such as 200 (OK), 201 (Created), 401 (Conflict), etc. 

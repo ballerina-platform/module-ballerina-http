@@ -211,8 +211,7 @@ public class ExternHttpDataSourceBuilder extends MimeDataSourceBuilder {
                     }
                     updateDataSourceAndNotify(balFuture, entity, dataSource);
                 } catch (Exception e) {
-                    createErrorAndNotify(balFuture, "Error occurred while extracting " +
-                            sourceType.toString().toLowerCase(Locale.ENGLISH) + " data from entity: " + getErrorMsg(e));
+                    notifyError(balFuture, e, sourceType.toString().toLowerCase(Locale.ENGLISH));
                 } finally {
                     try {
                         inputStream.close();

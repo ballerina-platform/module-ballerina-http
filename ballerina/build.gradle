@@ -138,7 +138,7 @@ dependencies {
     externalJars(group: 'io.netty', name: 'netty-codec-socks', version: "${nettyVersion}") {
         transitive = false
     }
-    externalJars(group: 'net.jpountz.lz4', name: 'lz4', version: "${lz4Version}") {
+    externalJars(group: 'at.yawk.lz4', name: 'lz4-java', version: "${lz4Version}") {
         transitive = false
     }
     externalJars(group: 'org.jboss.marshalling', name: 'jboss-marshalling', version: "${marshallingVersion}") {

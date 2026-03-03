@@ -165,10 +165,10 @@ version = "@marshalling.version@"
 path = "./lib/jboss-marshalling-@marshalling.version@.jar"
 
 [[platform.java21.dependency]]
-groupId = "net.jpountz.lz4"
-artifactId = "lz4"
+groupId = "at.yawk.lz4"
+artifactId = "lz4-java"
 version = "@lz4.version@"
-path = "./lib/lz4-@lz4.version@.jar"
+path = "./lib/lz4-java-@lz4.version@.jar"
 
 [[platform.java21.dependency]]
 groupId = "com.google.protobufl"

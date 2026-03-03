@@ -111,6 +111,57 @@ isolated function testListenerFileUserStoreBasicAuthHandlerAuthnFailure() {
     }
 }
 
+@test:Config {}
+isolated function testListenerFileUserStoreBasicAuthHandlerMalformedHeadersFailure() {
+    http:ListenerFileUserStoreBasicAuthHandler handler = new;
+    
+    // Test case 1: Authorization header without scheme prefix (original issue)
+    string malformedAuthToken = "invalidtokenstring";
+    auth:UserDetails|http:Unauthorized authn1 = handler.authenticate(malformedAuthToken);
+    if authn1 is http:Unauthorized {
+        string errMsg = authn1?.body == () ? "" : authn1?.body.toString();
+        test:assertTrue(errMsg.includes("Invalid authentication scheme"),
+                        "Should return scheme validation error for malformed header");
+    } else {
+        test:assertFail("Should return Unauthorized for malformed authorization header");
+    }
+    
+    // Test case 2: Basic auth header with missing credentials
+    string incompleteBasicAuth = "Basic";
+    auth:UserDetails|http:Unauthorized authn2 = handler.authenticate(incompleteBasicAuth);
+    if authn2 is http:Unauthorized {
+        string bodyStr = authn2?.body.toString();
+        test:assertTrue(bodyStr.includes("Invalid authorization header format"), 
+                        "Should return format validation error for incomplete Basic auth");
+    } else {
+        test:assertFail("Should return Unauthorized for incomplete Basic auth header");
+    }
+    
+    // Test case 3: Empty authorization header
+    string emptyAuth = "";
+    auth:UserDetails|http:Unauthorized authn3 = handler.authenticate(emptyAuth);
+    if authn3 is http:Unauthorized {
+        string bodyStr = authn3?.body.toString();
+        test:assertTrue(bodyStr.includes("Invalid authentication scheme"), 
+                        "Should return scheme validation error for empty header");
+    } else {
+        test:assertFail("Should return Unauthorized for empty authorization header");
+    }
+    
+    // Test case 4: Wrong authentication scheme
+    string bearerAuth = "Bearer sometoken123";
+    auth:UserDetails|http:Unauthorized authn4 = handler.authenticate(bearerAuth);
+    if authn4 is http:Unauthorized {
+        string bodyStr = authn4?.body.toString();
+        test:assertTrue(bodyStr.includes("Invalid authentication scheme"), 
+                        "Should return scheme validation error for Bearer token");
+        test:assertTrue(bodyStr.includes("Expected 'Basic'"), 
+                        "Should indicate expected Basic scheme");
+    } else {
+        test:assertFail("Should return Unauthorized for Bearer token with Basic auth handler");
+    }
+}
+
 @test:Config {
     groups: ["ldap", "disabledOnWindows"]
 }
@@ -266,6 +317,69 @@ isolated function testListenerLdapUserStoreBasicAuthHandlerAuthnFailure() {
     auth:UserDetails|http:Unauthorized authn3 = handler->authenticate(request);
     if authn3 is http:Unauthorized {
         test:assertEquals(authn3?.body, "Authorization header not available.");
+    }
+}
+
+@test:Config {
+    groups: ["ldap", "disabledOnWindows"]
+}
+isolated function testListenerLdapUserStoreBasicAuthHandlerMalformedHeadersFailure() {
+    http:LdapUserStoreConfig config = {
+        domainName: "avix.lk",
+        connectionUrl: "ldap://localhost:389",
+        connectionName: "cn=admin,dc=avix,dc=lk",
+        connectionPassword: "avix123",
+        userSearchBase: "ou=Users,dc=avix,dc=lk",
+        userEntryObjectClass: "inetOrgPerson",
+        userNameAttribute: "uid",
+        userNameSearchFilter: "(&(objectClass=inetOrgPerson)(uid=?))",
+        userNameListFilter: "(objectClass=inetOrgPerson)",
+        groupSearchBase: ["ou=Groups,dc=avix,dc=lk"],
+        groupEntryObjectClass: "groupOfNames",
+        groupNameAttribute: "cn",
+        groupNameSearchFilter: "(&(objectClass=groupOfNames)(cn=?))",
+        groupNameListFilter: "(objectClass=groupOfNames)",
+        membershipAttribute: "member",
+        userRolesCacheEnabled: true,
+        connectionPoolingEnabled: false,
+        connectionTimeout: 5,
+        readTimeout: 60
+    };
+    http:ListenerLdapUserStoreBasicAuthHandler handler = new(config);
+    
+    // Test case 1: Authorization header without scheme prefix (original issue)
+    string malformedAuthToken = "invalidtokenstring";
+    auth:UserDetails|http:Unauthorized authn1 = handler->authenticate(malformedAuthToken);
+    if authn1 is http:Unauthorized {
+        string bodyStr = authn1?.body.toString();
+        test:assertTrue(bodyStr.includes("Invalid authentication scheme"), 
+                        "Should return scheme validation error for malformed header");
+    } else {
+        test:assertFail("Should return Unauthorized for malformed authorization header");
+    }
+    
+    // Test case 2: Basic auth header with missing credentials
+    string incompleteBasicAuth = "Basic";
+    auth:UserDetails|http:Unauthorized authn2 = handler->authenticate(incompleteBasicAuth);
+    if authn2 is http:Unauthorized {
+        string bodyStr = authn2?.body.toString();
+        test:assertTrue(bodyStr.includes("Invalid authorization header format"), 
+                        "Should return format validation error for incomplete Basic auth");
+    } else {
+        test:assertFail("Should return Unauthorized for incomplete Basic auth header");
+    }
+    
+    // Test case 3: Wrong authentication scheme
+    string bearerAuth = "Bearer sometoken123";
+    auth:UserDetails|http:Unauthorized authn3 = handler->authenticate(bearerAuth);
+    if authn3 is http:Unauthorized {
+        string bodyStr = authn3?.body.toString();
+        test:assertTrue(bodyStr.includes("Invalid authentication scheme"), 
+                        "Should return scheme validation error for Bearer token");
+        test:assertTrue(bodyStr.includes("Expected 'Basic'"), 
+                        "Should indicate expected Basic scheme");
+    } else {
+        test:assertFail("Should return Unauthorized for Bearer token with Basic auth handler");
     }
 }
 
