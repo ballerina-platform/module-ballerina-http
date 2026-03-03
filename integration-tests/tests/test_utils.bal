@@ -96,8 +96,8 @@ isolated function createDirectory(string path) returns error? = @java:Method {
     'class: "io.ballerina.stdlib.http.testutils.nativeimpl.TestFileUtils"
 } external;
 
-function exec(@untainted string command, @untainted map<string> env = {},
-                     @untainted string? dir = (), @untainted string... args) returns Process|error = @java:Method {
+function exec(string command, map<string> env = {},
+              string? dir = (), string... args) returns Process|error = @java:Method {
     'class: "io.ballerina.stdlib.http.testutils.nativeimpl.Exec"
 } external;
 

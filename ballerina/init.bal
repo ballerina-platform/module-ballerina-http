@@ -32,7 +32,7 @@ isolated function validateRotationConfig(RotationConfig config, string? path) re
     int maxAge = config.maxAge;
     int maxBackupFiles = config.maxBackupFiles;
     if path is () {
-        return error Error("Rotation configuration is invalid: 'rotation' field is only applicable when 'path' is specified for file logging.");
+        return error Error("Invalid rotation configuration: 'rotation' field is only applicable when 'path' is specified for file logging.");
     }
     // Validate parameters based on policy
     if (policy == log:SIZE_BASED || policy == log:BOTH) && maxFileSize <= 0 {

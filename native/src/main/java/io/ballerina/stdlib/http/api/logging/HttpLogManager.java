@@ -68,7 +68,6 @@ public class HttpLogManager extends LogManager {
     static final BString ROTATION_MAX_AGE = StringUtils.fromString("maxAge");
     static final BString ROTATION_MAX_BACKUP_FILES = StringUtils.fromString("maxBackupFiles");
 
-
     static {
         // loads logging.properties from the classpath
         try (InputStream is = HttpLogManager.class.getClassLoader().
@@ -221,6 +220,6 @@ public class HttpLogManager extends LogManager {
         long maxAge = rotationConfig.getIntValue(ROTATION_MAX_AGE);
         int maxBackup = rotationConfig.getIntValue(ROTATION_MAX_BACKUP_FILES).intValue();
         RotationPolicy rotationPolicy = RotationPolicy.valueOf(policyStr.toUpperCase(java.util.Locale.ENGLISH));
-        return new HttpRollingFileHandler(path, rotationPolicy, maxSize, maxAge, maxBackup, true);
+        return new HttpRollingFileHandler(path, rotationPolicy, maxSize, maxAge, maxBackup, true, "UTF-8");
     }
 }

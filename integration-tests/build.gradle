@@ -25,7 +25,6 @@ def ballerinaConfigFile = new File("$project.projectDir/Ballerina.toml")
 def tomlVersion = stripBallerinaExtensionVersion("${project.version}")
 def configTOMLFile = new File("$project.projectDir/tests/Config.toml")
 def tempDir = File.createTempDir()
-def tmpDir = "build/tmp";
 def ballerinaDist = "${project.rootDir}/target/ballerina-runtime"
 def distributionBinPath =  "${ballerinaDist}/bin"
 def originalConfigTOMLFile = configTOMLFile.text
@@ -59,6 +58,7 @@ dependencies {
 
 clean {
     delete "$project.projectDir/target"
+    delete "$project.projectDir/lib"
 }
 
 task copyToLib(type: Copy) {
@@ -106,20 +106,6 @@ task copyTestResources(type: Copy) {
         from "tests/resources/samples/service"
     }
 }
-
-//task copyTestOutputResources(type: Copy) {
-//    // Always re-copy so that APPEND-mode output files start from a known initial state
-//    // on every test run, even without a clean build.
-//    outputs.upToDateWhen { false }
-//    doFirst {
-//        delete "${project.projectDir}/build/tmp/output"
-//    }
-//    into tmpDir
-//    into("output") {
-//        from "tests/resources/samples/file-write-output/output"
-//    }
-//    dependsOn ':http-integration-tests:jar'
-//}
 
 task ballerinaIntegrationTests {
     inputs.dir file(project.projectDir)

@@ -67,25 +67,6 @@ public class HttpRollingFileHandler extends StreamHandler {
     private CountingOutputStream countingStream;
 
     /**
-     * Creates a new HttpRollingFileHandler with UTF-8 encoding.
-     *
-     * @param filePath       the log file path
-     * @param policy         rotation policy (SIZE_BASED, TIME_BASED, or BOTH)
-     * @param maxFileSize    max file size in bytes for rotation
-     * @param maxAgeSeconds  max age in seconds for rotation
-     * @param maxBackupFiles max number of backup files to keep (0 to keep none)
-     * @param append         whether to append to an existing file or overwrite
-     */
-    public HttpRollingFileHandler(String filePath,
-                                  RotationPolicy policy,
-                                  long maxFileSize,
-                                  long maxAgeSeconds,
-                                  int maxBackupFiles,
-                                  boolean append) throws IOException {
-        this(filePath, policy, maxFileSize, maxAgeSeconds, maxBackupFiles, append, null);
-    }
-
-    /**
      * Creates a new HttpRollingFileHandler with an explicit encoding.
      *
      * @param filePath       the log file path
@@ -96,13 +77,8 @@ public class HttpRollingFileHandler extends StreamHandler {
      * @param append         whether to append to an existing file or overwrite
      * @param encoding       character encoding for the log file (defaults to UTF-8 if null or empty)
      */
-    public HttpRollingFileHandler(String filePath,
-                                  RotationPolicy policy,
-                                  long maxFileSize,
-                                  long maxAgeSeconds,
-                                  int maxBackupFiles,
-                                  boolean append,
-                                  String encoding) throws IOException {
+    public HttpRollingFileHandler(String filePath, RotationPolicy policy, long maxFileSize, long maxAgeSeconds,
+                                  int maxBackupFiles, boolean append, String encoding) throws IOException {
         super();
         this.filePath = filePath;
         this.policy = policy != null ? policy : BOTH;
@@ -149,22 +125,6 @@ public class HttpRollingFileHandler extends StreamHandler {
         } finally {
             lock.unlock();
         }
-    }
-
-    private boolean shouldRotate() {
-        return switch (policy) {
-            case SIZE_BASED -> isSizeThresholdReached();
-            case TIME_BASED -> isTimeThresholdReached();
-            case BOTH -> isSizeThresholdReached() || isTimeThresholdReached();
-        };
-    }
-
-    private boolean isSizeThresholdReached() {
-        return countingStream != null && countingStream.getByteCount() >= maxFileSize;
-    }
-
-    private boolean isTimeThresholdReached() {
-        return (System.currentTimeMillis() - fileOpenTime) / 1000 >= maxAgeSeconds;
     }
 
     /**
@@ -217,6 +177,22 @@ public class HttpRollingFileHandler extends StreamHandler {
         fileOpenTime = System.currentTimeMillis();
     }
 
+    private boolean shouldRotate() {
+        return switch (policy) {
+            case SIZE_BASED -> isSizeThresholdReached();
+            case TIME_BASED -> isTimeThresholdReached();
+            case BOTH -> isSizeThresholdReached() || isTimeThresholdReached();
+        };
+    }
+
+    private boolean isSizeThresholdReached() {
+        return countingStream != null && countingStream.getByteCount() >= maxFileSize;
+    }
+
+    private boolean isTimeThresholdReached() {
+        return (System.currentTimeMillis() - fileOpenTime) / 1000 >= maxAgeSeconds;
+    }
+
     private void acquireFileLock() throws IOException {
         File lockFile = new File(filePath + ".lck");
         FileOutputStream lockStream;
@@ -267,7 +243,7 @@ public class HttpRollingFileHandler extends StreamHandler {
     private void cleanOldBackups(String baseName, String extension) {
         File dir = new File(filePath).getAbsoluteFile().getParentFile();
         if (dir == null) {
-            dir = new File(".");
+            return;
         }
 
         final String prefix = new File(baseName).getName() + "-";
