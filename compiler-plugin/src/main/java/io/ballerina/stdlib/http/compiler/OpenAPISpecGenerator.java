@@ -50,9 +50,14 @@ import io.ballerina.tools.diagnostics.Location;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextRange;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.servers.Server;
+import io.swagger.v3.oas.models.servers.ServerVariables;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -76,6 +81,9 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
     private static boolean isErrorPrinted = false;
     private static final String OAS_PATH_SEPARATOR = "/";
     private static final String OPENAPI = "openapi";
+    private static final String ENDPOINT = "endpoint";
+    private static final String ENDPOINT_SUFFIX = "_endpoint";
+    private static final String ARTIFACT = "artifact";
 
     private static final String UNDERSCORE = "_";
 
@@ -104,7 +112,7 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
         Package currentPackage = context.currentPackage();
         Project project = currentPackage.project();
         BuildOptions buildOptions = project.buildOptions();
-        if (!buildOptions.exportOpenAPI()) {
+        if (!buildOptions.exportOpenAPI() && !buildOptions.exportEndpoints()) {
             return;
         }
         boolean hasErrors = context.compilation().diagnosticResult()
@@ -140,7 +148,22 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
                         .setOpenApiFileName(services.get(serviceSymbol.get().hashCode()))
                         .setBallerinaFilePath(inputPath).setProject(project);
                 OASResult oasResult = ServiceToOpenAPIMapper.generateOAS(builder.build());
-                oasResult.setServiceName(constructFileName(syntaxTree, services, serviceSymbol.get()));
+
+                if (buildOptions.exportEndpoints()) {
+                    oasResult.setServiceName(constructFileName(
+                            syntaxTree,
+                            services,
+                            true,
+                            serviceSymbol.get()));
+
+                    writeEndpointYaml(outPath, oasResult, diagnostics, service.absoluteResourcePath());
+                }
+                oasResult.setServiceName(constructFileName(
+                        syntaxTree,
+                        services,
+                        false,
+                        serviceSymbol.get()));
+
                 writeOpenAPIYaml(outPath, oasResult, diagnostics);
             }
         }
@@ -158,25 +181,51 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
      * @param services   service map for maintain the file name with updated name
      * @param serviceSymbol symbol for taking the hash code of services
      */
-    private String constructFileName(SyntaxTree syntaxTree, Map<Integer, String> services, Symbol serviceSymbol) {
+    private String constructFileName(SyntaxTree syntaxTree, Map<Integer, String> services,
+                                     boolean isExportEndpoints, Symbol serviceSymbol) {
         String fileName = getNormalizedFileName(services.get(serviceSymbol.hashCode()));
         String balFileName = syntaxTree.filePath().replaceAll(SLASH, UNDERSCORE).split("\\.")[0];
-        if (fileName.equals(SLASH)) {
+        if (fileName.equals(SLASH) && isExportEndpoints) {
+            return balFileName + ENDPOINT_SUFFIX + YAML_EXTENSION;
+        } else if (fileName.equals(SLASH)) {
             return balFileName + OPENAPI_SUFFIX + YAML_EXTENSION;
         } else if (fileName.contains(HYPHEN) && fileName.split(HYPHEN)[0].equals(SLASH) || fileName.isBlank()) {
             return balFileName + UNDERSCORE + serviceSymbol.hashCode() + OPENAPI_SUFFIX + YAML_EXTENSION;
+        } else if (isExportEndpoints) {
+            return fileName + ENDPOINT_SUFFIX + YAML_EXTENSION;
         }
         return fileName + OPENAPI_SUFFIX + YAML_EXTENSION;
+    }
+
+    private void writeEndpointYaml(Path outPath, OASResult oasResult,
+                                   List<Diagnostic> diagnostics, String serviceBasePath) {
+        if (oasResult.getYaml().isPresent()) {
+            try {
+                Files.createDirectories(Paths.get(outPath + OAS_PATH_SEPARATOR + ARTIFACT));
+                String serviceName = oasResult.getServiceName();
+                String fileName = resolveContractFileName(outPath.resolve(ARTIFACT),
+                        serviceName, false);
+                List<Server> servers = oasResult.getOpenAPI().map(OpenAPI::getServers).orElse(new ArrayList<>());
+                String endpointYaml = getEndpointYamlContent(servers, serviceBasePath);
+                writeFile(outPath.resolve(ARTIFACT + OAS_PATH_SEPARATOR + fileName), endpointYaml);
+
+            } catch (IOException e) {
+                ExceptionDiagnostic diagnostic = new ExceptionDiagnostic(DiagnosticMessages.OAS_CONVERTOR_108,
+                        e.toString());
+                diagnostics.add(getDiagnostics(diagnostic));
+            }
+        }
+
     }
 
     private void writeOpenAPIYaml(Path outPath, OASResult oasResult, List<Diagnostic> diagnostics) {
         if (oasResult.getYaml().isPresent()) {
             try {
-                Files.createDirectories(Paths.get(outPath + OAS_PATH_SEPARATOR + OPENAPI));
+                Files.createDirectories(Paths.get(outPath + OAS_PATH_SEPARATOR + ARTIFACT));
                 String serviceName = oasResult.getServiceName();
-                String fileName = resolveContractFileName(outPath.resolve(OPENAPI),
+                String fileName = resolveContractFileName(outPath.resolve(ARTIFACT),
                         serviceName, false);
-                writeFile(outPath.resolve(OPENAPI + OAS_PATH_SEPARATOR + fileName), oasResult.getYaml().get());
+                writeFile(outPath.resolve(ARTIFACT + OAS_PATH_SEPARATOR + fileName), oasResult.getYaml().get());
             } catch (IOException e) {
                 ExceptionDiagnostic diagnostic = new ExceptionDiagnostic(DiagnosticMessages.OAS_CONVERTOR_108,
                         e.toString());
@@ -213,6 +262,61 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
                 }
             }
         }
+    }
+
+    public static Endpoint getEndpointYaml(Server server, String serviceBasePath) {
+        ServerVariables vars = server != null ? server.getVariables() : null;
+
+        String port = "";
+        String type = "http";
+        if (vars != null && vars.get("port") != null && vars.get("port").getDefault() != null) {
+            port = vars.get("port").getDefault();
+        }
+        if (server != null && server.getUrl() != null && !server.getUrl().isBlank()) {
+            try {
+                URI serverUri = new URI(server.getUrl().replace("{port}", "80"));
+                if (serverUri.getScheme() != null && !serverUri.getScheme().isBlank()) {
+                    type = serverUri.getScheme();
+                }
+                if (port.isBlank() && serverUri.getPort() > 0) {
+                    port = String.valueOf(serverUri.getPort());
+                }
+            } catch (URISyntaxException ignored) {
+                // Ignore malformed URLs and keep defaults.
+            }
+        }
+        String basePath = serviceBasePath;
+
+        Endpoint ep = new Endpoint(port, basePath, type);
+        return ep;
+    }
+
+    private static String getEndpointYamlContent(List<Server> servers, String serviceBasePath) {
+        StringBuilder yamlBuilder = new StringBuilder();
+        yamlBuilder.append("endpoints:\n");
+
+        if (servers == null || servers.isEmpty()) {
+            Endpoint endpoint = new Endpoint("", serviceBasePath, "http");
+            appendEndpoint(yamlBuilder, endpoint);
+            return yamlBuilder.toString();
+        }
+
+        for (Server server : servers) {
+            Endpoint endpoint = getEndpointYaml(server, serviceBasePath);
+            appendEndpoint(yamlBuilder, endpoint);
+        }
+        return yamlBuilder.toString();
+    }
+
+    private static void appendEndpoint(StringBuilder yamlBuilder, Endpoint endpoint) {
+        yamlBuilder.append("  - type: ").append(escapeYaml(endpoint.getType())).append("\n");
+        yamlBuilder.append("    port: ").append(escapeYaml(endpoint.getPort())).append("\n");
+        yamlBuilder.append("    basePath: ").append(escapeYaml(endpoint.getBasePath())).append("\n");
+    }
+
+    private static String escapeYaml(String value) {
+        String sanitized = value == null ? "" : value;
+        return "\"" + sanitized.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
     }
 
     public static Diagnostic getDiagnostics(OpenAPIMapperDiagnostic diagnostic) {
