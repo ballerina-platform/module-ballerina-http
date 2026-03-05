@@ -41,6 +41,9 @@ dependencies {
 
     implementation group: 'io.ballerina.scan', name: 'scan-command', version: "${balScanVersion}"
 
+    compileOnly "com.fasterxml.jackson.core:jackson-databind:2.17.0"
+    compileOnly "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.17.0"
+
     externalJars group: 'io.ballerina.openapi', name: 'ballerina-to-openapi', version: "${ballerinaToOpenApiVersion}"
 }
 
