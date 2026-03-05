@@ -18,11 +18,15 @@
 
 package io.ballerina.stdlib.http.compiler;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ServiceDeclarationSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
@@ -56,6 +60,7 @@ import io.swagger.v3.oas.models.servers.ServerVariables;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -148,6 +153,12 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
                         .setOpenApiFileName(services.get(serviceSymbol.get().hashCode()))
                         .setBallerinaFilePath(inputPath).setProject(project);
                 OASResult oasResult = ServiceToOpenAPIMapper.generateOAS(builder.build());
+                StringBuilder serviceBasePath = new StringBuilder();
+                NodeList<Node> resourcePathNode = serviceNode.absoluteResourcePath();
+
+                for (Node identifierNode : resourcePathNode) {
+                    serviceBasePath.append(identifierNode.toString().replace("\"", "").trim());
+                }
 
                 if (buildOptions.exportEndpoints()) {
                     oasResult.setServiceName(constructFileName(
@@ -156,7 +167,7 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
                             true,
                             serviceSymbol.get()));
 
-                    writeEndpointYaml(outPath, oasResult, diagnostics, service.absoluteResourcePath());
+                    writeEndpointYaml(outPath, oasResult, diagnostics, serviceBasePath.toString());
                 }
                 oasResult.setServiceName(constructFileName(
                         syntaxTree,
@@ -197,26 +208,6 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
         return fileName + OPENAPI_SUFFIX + YAML_EXTENSION;
     }
 
-    private void writeEndpointYaml(Path outPath, OASResult oasResult,
-                                   List<Diagnostic> diagnostics, String serviceBasePath) {
-        if (oasResult.getYaml().isPresent()) {
-            try {
-                Files.createDirectories(Paths.get(outPath + OAS_PATH_SEPARATOR + ARTIFACT));
-                String serviceName = oasResult.getServiceName();
-                String fileName = resolveContractFileName(outPath.resolve(ARTIFACT),
-                        serviceName, false);
-                List<Server> servers = oasResult.getOpenAPI().map(OpenAPI::getServers).orElse(new ArrayList<>());
-                String endpointYaml = getEndpointYamlContent(servers, serviceBasePath);
-                writeFile(outPath.resolve(ARTIFACT + OAS_PATH_SEPARATOR + fileName), endpointYaml);
-
-            } catch (IOException e) {
-                ExceptionDiagnostic diagnostic = new ExceptionDiagnostic(DiagnosticMessages.OAS_CONVERTOR_108,
-                        e.toString());
-                diagnostics.add(getDiagnostics(diagnostic));
-            }
-        }
-
-    }
 
     private void writeOpenAPIYaml(Path outPath, OASResult oasResult, List<Diagnostic> diagnostics) {
         if (oasResult.getYaml().isPresent()) {
@@ -264,7 +255,7 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
         }
     }
 
-    public static Endpoint getEndpointYaml(Server server, String serviceBasePath) {
+    public static Endpoint getEndpointYamlContent(Server server, String serviceBasePath, String schemaFile) {
         ServerVariables vars = server != null ? server.getVariables() : null;
 
         String port = "";
@@ -287,36 +278,60 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
         }
         String basePath = serviceBasePath;
 
-        Endpoint ep = new Endpoint(port, basePath, type);
+        Endpoint ep = new Endpoint(port, basePath, type, schemaFile);
         return ep;
     }
 
-    private static String getEndpointYamlContent(List<Server> servers, String serviceBasePath) {
-        StringBuilder yamlBuilder = new StringBuilder();
-        yamlBuilder.append("endpoints:\n");
+    private static void writeEndpointYaml(Path outPath, OASResult oasResult,
+                                          List<Diagnostic> diagnostics, String serviceBasePath) {
 
-        if (servers == null || servers.isEmpty()) {
-            Endpoint endpoint = new Endpoint("", serviceBasePath, "http");
-            appendEndpoint(yamlBuilder, endpoint);
-            return yamlBuilder.toString();
+        try {
+            Files.createDirectories(Paths.get(outPath + OAS_PATH_SEPARATOR + ARTIFACT));
+            String serviceName = oasResult.getServiceName();
+            String fileName = resolveContractFileName(outPath.resolve(ARTIFACT),
+                    serviceName, false);
+            List<Server> servers = oasResult.getOpenAPI().map(OpenAPI::getServers).orElse(new ArrayList<>());
+            Path path = outPath.resolve(ARTIFACT + OAS_PATH_SEPARATOR + fileName);
+            if (servers == null || servers.isEmpty()) {
+                Endpoint endpoint = new Endpoint("", serviceBasePath, "http", fileName);
+                EndpointWrapper wrapper = new EndpointWrapper(endpoint);
+                YAMLFactory yamlFactory = YAMLFactory.builder()
+                        .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
+                        .build();
+
+                ObjectMapper mapper = new ObjectMapper(yamlFactory);
+                mapper.findAndRegisterModules();
+
+                try (Writer writer = Files.newBufferedWriter(path)) {
+                    mapper.writeValue(writer, wrapper);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            } else {
+                for (Server server : servers) {
+                Endpoint endpoint = getEndpointYamlContent(server, serviceBasePath, fileName);
+                EndpointWrapper wrapper = new EndpointWrapper(endpoint);
+                YAMLFactory yamlFactory = YAMLFactory.builder()
+                        .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
+                        .build();
+
+                ObjectMapper mapper = new ObjectMapper(yamlFactory);
+                mapper.findAndRegisterModules();
+
+                try (Writer writer = Files.newBufferedWriter(path)) {
+                    mapper.writeValue(writer, wrapper);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            }
+
+        } catch (IOException e) {
+            ExceptionDiagnostic diagnostic = new ExceptionDiagnostic(DiagnosticMessages.OAS_CONVERTOR_108,
+                    e.toString());
+            diagnostics.add(getDiagnostics(diagnostic));
         }
 
-        for (Server server : servers) {
-            Endpoint endpoint = getEndpointYaml(server, serviceBasePath);
-            appendEndpoint(yamlBuilder, endpoint);
-        }
-        return yamlBuilder.toString();
-    }
-
-    private static void appendEndpoint(StringBuilder yamlBuilder, Endpoint endpoint) {
-        yamlBuilder.append("  - type: ").append(escapeYaml(endpoint.getType())).append("\n");
-        yamlBuilder.append("    port: ").append(escapeYaml(endpoint.getPort())).append("\n");
-        yamlBuilder.append("    basePath: ").append(escapeYaml(endpoint.getBasePath())).append("\n");
-    }
-
-    private static String escapeYaml(String value) {
-        String sanitized = value == null ? "" : value;
-        return "\"" + sanitized.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
     }
 
     public static Diagnostic getDiagnostics(OpenAPIMapperDiagnostic diagnostic) {
