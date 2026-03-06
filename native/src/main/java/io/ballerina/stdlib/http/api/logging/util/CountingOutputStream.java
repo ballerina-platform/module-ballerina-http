@@ -18,37 +18,48 @@
 
 package io.ballerina.stdlib.http.api.logging.util;
 
+import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * An OutputStream wrapper that counts the number of bytes written to it.
  *
  * @since 2.16.0
  */
-public class CountingOutputStream extends OutputStream {
+public class CountingOutputStream extends FilterOutputStream {
 
-    final OutputStream outputStream;
-    private long byteCount;
+    private final AtomicLong byteCount;
 
-    public CountingOutputStream(OutputStream out, long len) throws IOException {
-        this.outputStream = out;
-        this.byteCount = len;
+    public CountingOutputStream(OutputStream out, long initialCount) {
+        super(out);
+        this.byteCount = new AtomicLong(initialCount);
     }
 
     @Override
     public void write(int b) throws IOException {
-        this.outputStream.write(b);
-        byteCount++;
+        out.write(b);
+        byteCount.incrementAndGet();
     }
 
     @Override
     public void write(byte[] b, int off, int len) throws IOException {
-        this.outputStream.write(b, off, len);
-        byteCount += len;
+        out.write(b, off, len);
+        byteCount.addAndGet(len);
+    }
+
+    @Override
+    public void write(byte[] b) throws IOException {
+        out.write(b);
+        byteCount.addAndGet(b.length);
     }
 
     public long getByteCount() {
-        return byteCount;
+        return byteCount.get();
+    }
+
+    public void resetByteCount(long value) {
+        byteCount.set(value);
     }
 }

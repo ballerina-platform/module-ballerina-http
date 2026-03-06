@@ -112,6 +112,7 @@ The conforming implementation of the specification is released and included in t
       * 8.2.2. [Error types](#822-error-types)
       * 8.2.3. [Trace log](#823-trace-log)
       * 8.2.4. [Access log](#824-access-log)
+        * 8.2.4.1 [Access log rotation](#8241-access-log-rotation)
       * 8.2.5. [Panic inside resource](#825-panic-inside-resource)
 9. [Security](#9-security)
     * 9.1. [Authentication and Authorization](#91-authentication-and-authorization)
@@ -2804,10 +2805,10 @@ Rotation using both size and time (default policy):
 path = "./logs/http-access.log"
 
 [ballerina.http.accessLogConfig.rotation]
-policy: "BOTH",
-maxFileSize: 52428800,   # 50MB
-maxAge: 86400,           # 24 hours
-maxBackupFiles: 30       # One month of backups
+policy = "BOTH"
+maxFileSize = 52428800    # 50MB
+maxAge = 86400            # 24 hours
+maxBackupFiles = 30       # One month of backups
 ```
 
 When rotation occurs:

@@ -6,4 +6,4 @@ path = "./build/tmp/output/combined-policy-access.log"
 [ballerina.http.accessLogConfig.rotation]
 policy = "BOTH"  # Both size and time conditions
 maxFileSize = 100
-maxAge = 12  # 12 seconds
+maxAge = 2  # 12 seconds

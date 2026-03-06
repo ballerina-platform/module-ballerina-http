@@ -26,13 +26,37 @@ import io.ballerina.runtime.api.values.BObject;
  *
  * @since 2.16.0
  */
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
 public class Stop {
+
+    private static final int TIMEOUT_SECONDS = 5;
 
     public static Object stop(BObject objVal) {
         Process process = OSUtils.processFromObject(objVal);
-        process.descendants().forEach(ProcessHandle::destroy);
-        process.toHandle().destroy();
-        return process.isAlive();
+
+        if (!process.isAlive()) {
+            return true;
+        }
+
+        List<ProcessHandle> descendants = process.descendants()
+                .collect(Collectors.toList());
+        descendants.forEach(ProcessHandle::destroy);
+        process.destroy();
+        try {
+            boolean terminated = process.waitFor(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            if (!terminated) {
+                descendants.forEach(ProcessHandle::destroyForcibly);
+                process.destroyForcibly();
+                process.waitFor(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            descendants.forEach(ProcessHandle::destroyForcibly);
+            process.destroyForcibly();
+        }
+        return !process.isAlive();
     }
 }
-

@@ -39,7 +39,7 @@ public type TraceLogAdvancedConfiguration record {|
 # + format - The format of access logs to be printed (either `flat` or `json`)
 # + attributes - The list of attributes of access logs to be printed
 # + path - Optional file path to store access logs
-# + rotation - field description
+# + rotation - Optional log rotation configuration for file destinations
 public type AccessLogConfiguration record {|
     boolean console = false;
     string format = "flat";

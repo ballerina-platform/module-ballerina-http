@@ -87,7 +87,10 @@ public class TestFileUtils {
             }
 
             File[] files = dir.listFiles();
-            if (files == null || files.length == 0) {
+            if (files == null) {
+                return createError("Failed to list files in directory: " + path.getValue());
+            }
+            if (files.length == 0) {
                 return StringUtils.fromString("[]");
             }
 

@@ -168,13 +168,20 @@ public class HttpRollingFileHandler extends StreamHandler {
             }
         }
         acquireFileLock();
-
-        // Set the OutputStream on StreamHandler
-        FileOutputStream fos = new FileOutputStream(file, append);
-        countingStream = new CountingOutputStream(fos, append ? file.length() : 0);
-        setOutputStream(countingStream);
-
-        fileOpenTime = System.currentTimeMillis();
+        try {
+            FileOutputStream fos = new FileOutputStream(file, append); // scoped inside try
+            countingStream = new CountingOutputStream(fos, append ? file.length() : 0);
+            setOutputStream(countingStream);
+            fileOpenTime = System.currentTimeMillis();
+        } catch (IOException e) {
+            if (countingStream != null) {
+                try {
+                    countingStream.close();
+                } catch (IOException ignored) { }
+            }
+            releaseFileLock();
+            throw e;
+        }
     }
 
     private boolean shouldRotate() {
@@ -229,11 +236,6 @@ public class HttpRollingFileHandler extends StreamHandler {
             if (lockChannel != null) {
                 lockChannel.close();
                 lockChannel = null;
-                File lockFile = new File(filePath + ".lck");
-                if (lockFile.exists() && !lockFile.delete()) {
-                    reportError("Failed to delete lock file: " + lockFile.getAbsolutePath(),
-                            null, ErrorManager.CLOSE_FAILURE);
-                }
             }
         } catch (IOException e) {
             reportError("Failed to release file lock", e, ErrorManager.CLOSE_FAILURE);
@@ -271,12 +273,19 @@ public class HttpRollingFileHandler extends StreamHandler {
     }
 
     private static String stripFileExtension(String path) {
-        int dotIndex = path.lastIndexOf('.');
-        return dotIndex != -1 ? path.substring(0, dotIndex) : path;
+        File file = new File(path);
+        String name = file.getName();
+        int dotIndex = name.lastIndexOf('.');
+        if (dotIndex <= 0) {  // no extension or hidden file like ".access"
+            return path;
+        }
+        String parent = file.getParent();
+        return (parent != null ? parent + File.separator : "") + name.substring(0, dotIndex);
     }
 
     private static String getFileExtension(String path) {
-        int dotIndex = path.lastIndexOf('.');
-        return dotIndex != -1 ? path.substring(dotIndex) : ".log";
+        String name = new File(path).getName();
+        int dotIndex = name.lastIndexOf('.');
+        return dotIndex > 0 ? name.substring(dotIndex) : "";
     }
 }

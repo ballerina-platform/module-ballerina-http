@@ -49,7 +49,7 @@ function testSizeBasedAccessLogRotation() returns error? {
 
     // Execute the test Ballerina program that generates logs and triggers rotation
     Process result = check exec(bal_exec_path, {BAL_CONFIG_FILES: configFile}, (), "run", string `${temp_dir_path}/service`);
-    runtime:sleep(10); // wait to up the service
+    runtime:sleep(15); // wait to up the service
 
     http:Client 'client = check new("http://localhost:9797");
     foreach int i in 0...9 {
@@ -65,7 +65,7 @@ function testSizeBasedAccessLogRotation() returns error? {
     test:assertTrue(fileExists(logFile), "Main log file should exist");
     int rotatedFileCount = check countRotatedFiles(SIZE_BASED_PREFIX);
     test:assertTrue(rotatedFileCount > 0, "Should have created rotated backup files");
-    test:assertTrue(rotatedFileCount <= 4, "Should respect maxBackupFiles setting (3)");
+    test:assertTrue(rotatedFileCount <= 4, "Should respect maxBackupFiles setting (4)");
 
     // Verify log file content
     string content = check io:fileReadString(logFile);
@@ -81,7 +81,7 @@ function testTimeBasedAccessLogRotation() returns error? {
     string logFile = "./build/tmp/output/time-based-access.log";
     string configFile = "tests/resources/samples/config/time-based-rotation.toml";
     Process result = check exec(bal_exec_path, {BAL_CONFIG_FILES: configFile}, (), "run", string `${temp_dir_path}/service`);
-    runtime:sleep(10); // Wait to up the service
+    runtime:sleep(15); // Wait to up the service
 
     http:Client 'client = check new("http://localhost:9797");
     foreach int i in 0...9 {
@@ -113,7 +113,7 @@ function testCombinedPolicyRotation() returns error? {
     string logFile = "./build/tmp/output/combined-policy-access.log";
     string configFile = "tests/resources/samples/config/combined-policy-rotation.toml";
     Process result = check exec(bal_exec_path, {BAL_CONFIG_FILES: configFile}, (), "run", string `${temp_dir_path}/service`);
-    runtime:sleep(10); // Wait to up the service
+    runtime:sleep(15); // Wait to up the service
 
     http:Client 'client = check new("http://localhost:9797");
     foreach int i in 0...9 {
@@ -127,7 +127,7 @@ function testCombinedPolicyRotation() returns error? {
     test:assertTrue(rotatedFileCountAfterSize > 0, "Should have rotated when size limit reached");
 
     // Wait for time interval and generate minimal logs
-    runtime:sleep(10);
+    runtime:sleep(5);
     record {}[] _= check 'client->get("/albums");
     runtime:sleep(1);
 
@@ -151,7 +151,7 @@ function testConcurrentWrites() returns error? {
     string logFile = "./build/tmp/output/concurrent-writes-access.log";
     string configFile = "tests/resources/samples/config/concurrent-writes-rotation.toml";
     Process result = check exec(bal_exec_path, {BAL_CONFIG_FILES: configFile}, (), "run", string `${temp_dir_path}/service`);
-    runtime:sleep(10);
+    runtime:sleep(15);
 
     http:Client client1 = check new("http://localhost:9797");
     http:Client client2 = check new("http://localhost:9797");
