@@ -18,13 +18,16 @@
 
 package io.ballerina.stdlib.http.api.logging;
 
+import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.http.api.logging.accesslog.HttpAccessLogConfig;
+import io.ballerina.stdlib.http.api.logging.accesslog.HttpRollingFileHandler;
 import io.ballerina.stdlib.http.api.logging.formatters.HttpAccessLogFormatter;
 import io.ballerina.stdlib.http.api.logging.formatters.HttpTraceLogFormatter;
 import io.ballerina.stdlib.http.api.logging.formatters.JsonLogFormatter;
+import io.ballerina.stdlib.http.api.logging.util.RotationPolicy;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,7 +42,6 @@ import java.util.logging.SocketHandler;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_ACCESS_LOG;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_ACCESS_LOG_ENABLED;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_LOG_ATTRIBUTES;
-import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_LOG_CONSOLE;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_LOG_FILE_PATH;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_LOG_FORMAT;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_LOG_FORMAT_FLAT;
@@ -56,6 +58,15 @@ import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_TRACE_LOG_PORT;
  * @since 0.8.0
  */
 public class HttpLogManager extends LogManager {
+
+    static final BString HTTP_LOG_CONSOLE  = StringUtils.fromString("console");
+    static final BString HTTP_LOG_ROTATION = StringUtils.fromString("rotation");
+
+    // Rotation config keys
+    static final BString ROTATION_POLICY = StringUtils.fromString("policy");
+    static final BString ROTATION_MAX_FILE_SIZE = StringUtils.fromString("maxFileSize");
+    static final BString ROTATION_MAX_AGE = StringUtils.fromString("maxAge");
+    static final BString ROTATION_MAX_BACKUP_FILES = StringUtils.fromString("maxBackupFiles");
 
     static {
         // loads logging.properties from the classpath
@@ -155,7 +166,19 @@ public class HttpLogManager extends LogManager {
         }
 
         BString filePath = accessLogConfig.getStringValue(HTTP_LOG_FILE_PATH);
-        if (filePath != null && !filePath.getValue().trim().isEmpty()) {
+        BMap rotationMap = accessLogConfig.getMapValue(HTTP_LOG_ROTATION);
+        if (rotationMap != null) { // filePath is already validated in Ballerina init method
+            try {
+                HttpRollingFileHandler fileHandler = createRollingHandler(filePath.getValue(), rotationMap);
+                fileHandler.setFormatter(new HttpAccessLogFormatter());
+                fileHandler.setLevel(Level.INFO);
+                httpAccessLogger.addHandler(fileHandler);
+                httpAccessLogger.setLevel(Level.INFO);
+                accessLogsEnabled = true;
+            } catch (IOException e) {
+                throw new RuntimeException("failed to setup HTTP access log file: " + filePath.getValue(), e);
+            }
+        } else if (filePath != null && !filePath.getValue().trim().isEmpty()) {
             try {
                 FileHandler fileHandler = new FileHandler(filePath.getValue(), true);
                 fileHandler.setFormatter(new HttpAccessLogFormatter());
@@ -185,5 +208,18 @@ public class HttpLogManager extends LogManager {
             System.setProperty(HTTP_ACCESS_LOG_ENABLED, "true");
             stdErr.println("ballerina: " + protocol + " access log enabled");
         }
+    }
+
+    /**
+     * Creates a HttpRollingFileHandler with config parsed from BMap.
+     */
+    private HttpRollingFileHandler createRollingHandler(String path, BMap<BString, Object> rotationConfig)
+            throws IOException {
+        String policyStr = String.valueOf(rotationConfig.getStringValue(ROTATION_POLICY));
+        long maxSize = rotationConfig.getIntValue(ROTATION_MAX_FILE_SIZE);
+        long maxAge = rotationConfig.getIntValue(ROTATION_MAX_AGE);
+        int maxBackup = rotationConfig.getIntValue(ROTATION_MAX_BACKUP_FILES).intValue();
+        RotationPolicy rotationPolicy = RotationPolicy.valueOf(policyStr.toUpperCase(java.util.Locale.ENGLISH));
+        return new HttpRollingFileHandler(path, rotationPolicy, maxSize, maxAge, maxBackup, true, "UTF-8");
     }
 }

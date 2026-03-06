@@ -50,3 +50,6 @@ Ballerina.lock
 velocity.log*
 
 compiler-plugin-tests/**/target
+
+# integration-tests related ignores
+integration-tests/lib

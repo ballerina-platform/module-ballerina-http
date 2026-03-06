@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/jballerina.java;
+import ballerina/log;
 
 // TODO: Remove this once the command line argument support is given for configurable record
 configurable boolean traceLogConsole = false;
@@ -38,11 +39,18 @@ public type TraceLogAdvancedConfiguration record {|
 # + format - The format of access logs to be printed (either `flat` or `json`)
 # + attributes - The list of attributes of access logs to be printed
 # + path - Optional file path to store access logs
+# + rotation - Optional log rotation configuration for file destinations
 public type AccessLogConfiguration record {|
     boolean console = false;
     string format = "flat";
     string[] attributes?;
     string path?;
+    RotationConfig rotation?;
+|};
+
+# Log rotation configuration for file destinations.
+public type RotationConfig record {|
+    *log:RotationConfig;
 |};
 
 configurable TraceLogAdvancedConfiguration traceLogAdvancedConfig = {};
