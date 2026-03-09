@@ -654,7 +654,14 @@ isolated function createRetryClient(string url, ClientConfiguration configuratio
         };
         var httpCookieClient = createCookieClient(url, configuration, cookieStore);
         if httpCookieClient is HttpClient {
-            return new RetryClient(url, configuration, retryInferredConfig, httpCookieClient);
+            var retryClient = new RetryClient(url, configuration, retryInferredConfig, httpCookieClient);
+            if retryClient !is HttpClient {
+                return retryClient;
+            }
+            if retryConfig.resetOnExhaust {
+                return new ResettableRetryClient(url, configuration, retryClient);
+            }
+            return retryClient;
         }
         return httpCookieClient;
     }

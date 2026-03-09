@@ -81,6 +81,8 @@ public type RetryConfig record {|
     float backOffFactor = 0.0;
     decimal maxWaitInterval = 0;
     int[] statusCodes = [];
+    // todo: add the doc comment
+    boolean resetOnExhaust = false;
 |};
 
 # Provides configurations for facilitating secure communication with a remote HTTP endpoint.
