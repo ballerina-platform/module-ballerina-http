@@ -40,6 +40,7 @@ import java.util.logging.ErrorManager;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.StreamHandler;
+import java.util.regex.Pattern;
 
 import static io.ballerina.stdlib.http.api.logging.util.RotationPolicy.BOTH;
 
@@ -122,6 +123,11 @@ public class HttpRollingFileHandler extends StreamHandler {
         try {
             super.close();
             releaseFileLock();
+            File lockFile = new File(filePath + ".lck");
+            if (lockFile.exists() && !lockFile.delete()) {
+                reportError("Failed to delete lock file: " + lockFile.getAbsolutePath(),
+                        null, ErrorManager.CLOSE_FAILURE);
+            }
         } finally {
             lock.unlock();
         }
@@ -132,9 +138,8 @@ public class HttpRollingFileHandler extends StreamHandler {
      */
     private void rotate() throws IOException {
         // 1. Flush and close the current stream
-        flush();
-        countingStream.close();
-        releaseFileLock();
+        super.close();
+        countingStream = null;
 
         // 2. Rename it with timestamp
         String timestamp = LocalDateTime.now().format(TIMESTAMP_FORMAT);
@@ -142,16 +147,22 @@ public class HttpRollingFileHandler extends StreamHandler {
         String extension = getFileExtension(filePath);
         String rotatedPath = baseName + "-" + timestamp + extension;
 
-        File current = new File(filePath);
-        if (current.exists()) {
-            Files.move(current.toPath(), Paths.get(rotatedPath), StandardCopyOption.REPLACE_EXISTING);
+        try {
+            File current = new File(filePath);
+            if (current.exists()) {
+                Files.move(current.toPath(), Paths.get(rotatedPath), StandardCopyOption.REPLACE_EXISTING);
+            }
+
+            // 3. Clean up old backups
+            cleanOldBackups(baseName, extension);
+
+            // 4. Open fresh file
+            openLogFile(false);
+        } catch (IOException e) {
+            // Setting Level.OFF ensures the broken state is explicit and no records are lost silently.
+            setLevel(Level.OFF);
+            throw e;
         }
-
-        // 3. Clean up old backups
-        cleanOldBackups(baseName, extension);
-
-        // 4. Open fresh file
-        openFile(false);
     }
 
     /**
@@ -168,6 +179,11 @@ public class HttpRollingFileHandler extends StreamHandler {
             }
         }
         acquireFileLock();
+        openLogFile(append);
+    }
+
+    private void openLogFile(boolean append) throws IOException {
+        File file = new File(filePath);
         try {
             FileOutputStream fos = new FileOutputStream(file, append); // scoped inside try
             countingStream = new CountingOutputStream(fos, append ? file.length() : 0);
@@ -197,7 +213,7 @@ public class HttpRollingFileHandler extends StreamHandler {
     }
 
     private boolean isTimeThresholdReached() {
-        return (System.currentTimeMillis() - fileOpenTime) / 1000 >= maxAgeSeconds;
+        return countingStream != null && (System.currentTimeMillis() - fileOpenTime) / 1000 >= maxAgeSeconds;
     }
 
     private void acquireFileLock() throws IOException {
@@ -206,11 +222,11 @@ public class HttpRollingFileHandler extends StreamHandler {
         try {
             lockStream = new FileOutputStream(lockFile);
         } catch (IOException e) {
-            throw new IOException("Failed to open lock file: " + lockFile.getAbsolutePath(), e);
+            throw new IOException("Failed to open log file. Check the path: " + filePath, e);
         }
         try {
             lockChannel = lockStream.getChannel();
-            fileLock    = lockChannel.tryLock();
+            fileLock = lockChannel.tryLock();
             if (fileLock == null) {
                 lockChannel.close();
                 lockChannel = null;
@@ -249,8 +265,17 @@ public class HttpRollingFileHandler extends StreamHandler {
         }
 
         final String prefix = new File(baseName).getName() + "-";
-        File[] backups = dir.listFiles(f -> f.isFile()
-                                && f.getName().startsWith(prefix) && f.getName().endsWith(extension));
+        File[] backups = dir.listFiles(f -> {
+            if (!f.isFile() || !f.getName().startsWith(prefix)) {
+                return false;
+            }
+            String remainder = f.getName().substring(prefix.length());
+            if (extension.isEmpty()) {
+                return remainder.matches("\\d{8}-\\d{9}");
+            }
+            return remainder.matches("\\d{8}-\\d{9}" + Pattern.quote(extension));
+        });
+
         if (backups == null || backups.length <= maxBackupFiles) {
             return;
         }

@@ -45,18 +45,13 @@ public type AccessLogConfiguration record {|
     string format = "flat";
     string[] attributes?;
     string path?;
-    RotationConfig rotation?;
-|};
-
-# Log rotation configuration for file destinations.
-public type RotationConfig record {|
-    *log:RotationConfig;
+    log:RotationConfig rotation?;
 |};
 
 configurable TraceLogAdvancedConfiguration traceLogAdvancedConfig = {};
 configurable AccessLogConfiguration accessLogConfig = {};
 
-isolated function initializeHttpLogs(boolean traceLogConsole, TraceLogAdvancedConfiguration traceLogAdvancedConfig,
-AccessLogConfiguration accessLogConfig, string protocol = "HTTP") returns handle = @java:Constructor {
+isolated function getInstance(boolean traceLogConsole, TraceLogAdvancedConfiguration traceLogAdvancedConfig,
+AccessLogConfiguration accessLogConfig, string protocol = "HTTP") returns handle|error = @java:Method {
     'class: "io.ballerina.stdlib.http.api.logging.HttpLogManager"
 } external;

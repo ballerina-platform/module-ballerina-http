@@ -14,26 +14,38 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/file;
 import ballerina/jballerina.java;
 import ballerina/log;
 
 function init() returns error? {
     setModule();
-    RotationConfig? rotationConfig = accessLogConfig.rotation;
-    if rotationConfig is RotationConfig {
+    log:RotationConfig? rotationConfig = accessLogConfig.rotation;
+    if rotationConfig is log:RotationConfig {
         check validateRotationConfig(rotationConfig, accessLogConfig.path);
     }
-    _ = initializeHttpLogs(traceLogConsole, traceLogAdvancedConfig, accessLogConfig);
+    _ = check getInstance(traceLogConsole, traceLogAdvancedConfig, accessLogConfig);
 }
 
-isolated function validateRotationConfig(RotationConfig config, string? path) returns Error? {
+isolated function validateRotationConfig(log:RotationConfig config, string? path) returns Error? {
     log:RotationPolicy policy = config.policy;
     int maxFileSize = config.maxFileSize;
     int maxAge = config.maxAge;
     int maxBackupFiles = config.maxBackupFiles;
-    if path is () {
-        return error Error("Invalid rotation configuration: 'rotation' field is only applicable when 'path' is specified for file logging.");
+    if path is () || path.trim().length() == 0 {
+        return error Error("Invalid configuration: 'rotation' requires a valid 'path' for file logging.");
     }
+    string|error fileName = file:basename(path);
+    // Ensure the basename is not empty
+    if fileName is error {
+        return error Error("Invalid path: " + fileName.message());
+    }
+    // Ensure the basename is not empty
+    boolean|file:Error isDirectory = file:test(fileName, file:IS_DIR);
+    if fileName.trim().length() == 0 || isDirectory is true {
+        return error Error("Path must include a file name, not just a directory.");
+    }
+
     // Validate parameters based on policy
     if (policy == log:SIZE_BASED || policy == log:BOTH) && maxFileSize <= 0 {
         return error Error(string `Invalid rotation configuration: maxFileSize must be positive, got: ${maxFileSize}`);

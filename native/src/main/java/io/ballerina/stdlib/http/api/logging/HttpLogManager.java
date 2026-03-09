@@ -22,6 +22,7 @@ import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
+import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.api.logging.accesslog.HttpAccessLogConfig;
 import io.ballerina.stdlib.http.api.logging.accesslog.HttpRollingFileHandler;
 import io.ballerina.stdlib.http.api.logging.formatters.HttpAccessLogFormatter;
@@ -82,12 +83,27 @@ public class HttpLogManager extends LogManager {
     protected Logger httpAccessLogger;
     private String protocol;
 
-    public HttpLogManager(boolean traceLogConsole, BMap traceLogAdvancedConfig, BMap accessLogConfig,
-                          BString protocol) {
+    private HttpLogManager(boolean traceLogConsole, BMap traceLogAdvancedConfig,
+                           BMap accessLogConfig, BString protocol) throws IOException {
         this.protocol = protocol.getValue();
         this.setHttpTraceLogHandler(traceLogConsole, traceLogAdvancedConfig);
         this.setHttpAccessLogHandler(accessLogConfig);
         HttpAccessLogConfig.getInstance().initializeHttpAccessLogConfig(accessLogConfig);
+    }
+
+    /**
+     * Factory method that creates an HttpLogManager.
+     *
+     * @return the new HttpLogManager instance, or a BError if
+     *         initialization failed (e.g., the access-log file could not be opened).
+     */
+    public static Object getInstance(boolean traceLogConsole, BMap traceLogAdvancedConfig,
+                                     BMap accessLogConfig, BString protocol) {
+        try {
+            return new HttpLogManager(traceLogConsole, traceLogAdvancedConfig, accessLogConfig, protocol);
+        } catch (IOException e) {
+            return HttpUtil.getError(e);
+        }
     }
 
     /**
@@ -147,7 +163,7 @@ public class HttpLogManager extends LogManager {
     /**
      * Initializes the HTTP access logger.
      */
-    public void setHttpAccessLogHandler(BMap accessLogConfig) {
+    public void setHttpAccessLogHandler(BMap accessLogConfig) throws IOException {
         if (httpAccessLogger == null) {
             // keep a reference to prevent this logger from being garbage collected
             httpAccessLogger = Logger.getLogger(HTTP_ACCESS_LOG);
@@ -176,7 +192,7 @@ public class HttpLogManager extends LogManager {
                 httpAccessLogger.setLevel(Level.INFO);
                 accessLogsEnabled = true;
             } catch (IOException e) {
-                throw new RuntimeException("failed to setup HTTP access log file: " + filePath.getValue(), e);
+                throw new IOException("Failed to setup HTTP access log file handler: " + e.getMessage(), e);
             }
         } else if (filePath != null && !filePath.getValue().trim().isEmpty()) {
             try {
@@ -187,7 +203,7 @@ public class HttpLogManager extends LogManager {
                 httpAccessLogger.setLevel(Level.INFO);
                 accessLogsEnabled = true;
             } catch (IOException e) {
-                throw new RuntimeException("failed to setup HTTP access log file: " + filePath.getValue(), e);
+                throw new IOException("Failed to setup HTTP access log file handler: " + e.getMessage(), e);
             }
         }
 
@@ -222,4 +238,5 @@ public class HttpLogManager extends LogManager {
         RotationPolicy rotationPolicy = RotationPolicy.valueOf(policyStr.toUpperCase(java.util.Locale.ENGLISH));
         return new HttpRollingFileHandler(path, rotationPolicy, maxSize, maxAge, maxBackup, true, "UTF-8");
     }
+
 }

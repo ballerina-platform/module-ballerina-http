@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.api.logging;
 
+import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.http.api.TestUtils;
@@ -77,7 +78,7 @@ public class HttpLogManagerTest {
         when(accessLogConfig.getBooleanValue(HTTP_LOG_CONSOLE)).thenReturn(false);
         when(accessLogConfig.getStringValue(HTTP_LOG_FILE_PATH)).thenReturn(accessFilePath);
 
-        HttpLogManager httpLogManager = new HttpLogManager(false, traceLogAdvancedConfig,
+        HttpLogManager httpLogManager = (HttpLogManager) HttpLogManager.getInstance(false, traceLogAdvancedConfig,
                 accessLogConfig, HTTP_LOGGING_PROTOCOL);
         Handler[] handlers = httpLogManager.httpTraceLogger.getHandlers();
         Assert.assertTrue(handlers.length > 0);
@@ -106,7 +107,7 @@ public class HttpLogManagerTest {
         when(accessLogConfig.getBooleanValue(HTTP_LOG_CONSOLE)).thenReturn(false);
         when(accessLogConfig.getStringValue(HTTP_LOG_FILE_PATH)).thenReturn(accessFilePath);
 
-        HttpLogManager httpLogManager = new HttpLogManager(true, traceLogAdvancedConfig,
+        HttpLogManager httpLogManager = (HttpLogManager) HttpLogManager.getInstance(true, traceLogAdvancedConfig,
                 accessLogConfig, HTTP_LOGGING_PROTOCOL);
         Handler[] handlers = httpLogManager.httpTraceLogger.getHandlers();
         Assert.assertTrue(handlers.length > 0);
@@ -135,7 +136,7 @@ public class HttpLogManagerTest {
         when(accessLogConfig.getBooleanValue(HTTP_LOG_CONSOLE)).thenReturn(false);
         when(accessLogConfig.getStringValue(HTTP_LOG_FILE_PATH)).thenReturn(accessFilePath);
 
-        HttpLogManager httpLogManager = new HttpLogManager(true, traceLogAdvancedConfig,
+        HttpLogManager httpLogManager = (HttpLogManager) HttpLogManager.getInstance(true, traceLogAdvancedConfig,
                 accessLogConfig, HTTP_LOGGING_PROTOCOL);
         Handler[] handlers = httpLogManager.httpTraceLogger.getHandlers();
         Assert.assertTrue(handlers.length > 0);
@@ -165,7 +166,7 @@ public class HttpLogManagerTest {
         when(accessLogConfig.getBooleanValue(HTTP_LOG_CONSOLE)).thenReturn(false);
         when(accessLogConfig.getStringValue(HTTP_LOG_FILE_PATH)).thenReturn(accessFilePath);
 
-        HttpLogManager httpLogManager = new HttpLogManager(false, traceLogAdvancedConfig,
+        HttpLogManager httpLogManager = (HttpLogManager) HttpLogManager.getInstance(false, traceLogAdvancedConfig,
                 accessLogConfig, HTTP_LOGGING_PROTOCOL);
         Handler[] handlers = httpLogManager.httpTraceLogger.getHandlers();
         Assert.assertTrue(handlers.length > 0);
@@ -195,7 +196,7 @@ public class HttpLogManagerTest {
         when(accessLogConfig.getBooleanValue(HTTP_LOG_CONSOLE)).thenReturn(false);
         when(accessLogConfig.getStringValue(HTTP_LOG_FILE_PATH)).thenReturn(accessFilePath);
 
-        HttpLogManager httpLogManager = new HttpLogManager(false, traceLogAdvancedConfig,
+        HttpLogManager httpLogManager = (HttpLogManager) HttpLogManager.getInstance(false, traceLogAdvancedConfig,
                 accessLogConfig, HTTP_LOGGING_PROTOCOL);
         Handler[] handlers = httpLogManager.httpTraceLogger.getHandlers();
         Assert.assertTrue(handlers.length > 0);
@@ -225,7 +226,7 @@ public class HttpLogManagerTest {
         when(accessLogConfig.getBooleanValue(HTTP_LOG_CONSOLE)).thenReturn(true);
         when(accessLogConfig.getStringValue(HTTP_LOG_FILE_PATH)).thenReturn(accessFilePath);
 
-        HttpLogManager httpLogManager = new HttpLogManager(false, traceLogAdvancedConfig,
+        HttpLogManager httpLogManager = (HttpLogManager) HttpLogManager.getInstance(false, traceLogAdvancedConfig,
                 accessLogConfig, HTTP_LOGGING_PROTOCOL);
         Assert.assertEquals(httpLogManager.httpAccessLogger.getLevel(), Level.INFO);
         Handler[] handlers = httpLogManager.httpAccessLogger.getHandlers();
@@ -256,7 +257,7 @@ public class HttpLogManagerTest {
         when(accessLogConfig.getBooleanValue(HTTP_LOG_CONSOLE)).thenReturn(false);
         when(accessLogConfig.getStringValue(HTTP_LOG_FILE_PATH)).thenReturn(accessFilePath);
 
-        HttpLogManager httpLogManager = new HttpLogManager(false, traceLogAdvancedConfig,
+        HttpLogManager httpLogManager = (HttpLogManager) HttpLogManager.getInstance(false, traceLogAdvancedConfig,
                 accessLogConfig, HTTP_LOGGING_PROTOCOL);
         Assert.assertEquals(httpLogManager.httpAccessLogger.getLevel(), Level.INFO);
         Handler[] handlers = httpLogManager.httpAccessLogger.getHandlers();
@@ -288,7 +289,7 @@ public class HttpLogManagerTest {
         when(accessLogConfig.getBooleanValue(HTTP_LOG_CONSOLE)).thenReturn(false);
         when(accessLogConfig.getStringValue(HTTP_LOG_FILE_PATH)).thenReturn(accessFilePath);
 
-        HttpLogManager httpLogManager = new HttpLogManager(false, traceLogAdvancedConfig,
+        HttpLogManager httpLogManager = (HttpLogManager) HttpLogManager.getInstance(false, traceLogAdvancedConfig,
                 accessLogConfig, HTTP_LOGGING_PROTOCOL);
     }
 
@@ -312,11 +313,11 @@ public class HttpLogManagerTest {
         when(accessLogConfig.getBooleanValue(HTTP_LOG_CONSOLE)).thenReturn(false);
         when(accessLogConfig.getStringValue(HTTP_LOG_FILE_PATH)).thenReturn(accessFilePath);
 
-        HttpLogManager httpLogManager = new HttpLogManager(false, traceLogAdvancedConfig,
+        HttpLogManager httpLogManager = (HttpLogManager) HttpLogManager.getInstance(false, traceLogAdvancedConfig,
                 accessLogConfig, HTTP_LOGGING_PROTOCOL);
     }
 
-    @Test (expectedExceptions = RuntimeException.class,
+    @Test (expectedExceptions = BError.class,
             expectedExceptionsMessageRegExp = "failed to setup HTTP access log file: /test/logTestFile.txt")
     public void testHttpLogManagerWithInvalidAccessLogPath() {
         BMap traceLogAdvancedConfig = mock(BMap.class);
@@ -337,7 +338,7 @@ public class HttpLogManagerTest {
         when(accessLogConfig.getBooleanValue(HTTP_LOG_CONSOLE)).thenReturn(false);
         when(accessLogConfig.getStringValue(HTTP_LOG_FILE_PATH)).thenReturn(accessFilePath);
 
-        HttpLogManager httpLogManager = new HttpLogManager(false, traceLogAdvancedConfig,
+        HttpLogManager httpLogManager = (HttpLogManager) HttpLogManager.getInstance(false, traceLogAdvancedConfig,
                 accessLogConfig, HTTP_LOGGING_PROTOCOL);
     }
 

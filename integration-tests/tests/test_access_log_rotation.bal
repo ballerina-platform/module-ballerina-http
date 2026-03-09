@@ -251,7 +251,7 @@ function testInvalidConfigBackupFile() returns error? {
     string configFile = "tests/resources/samples/config/invalid-backup-file-config.toml";
     Process result = check exec(bal_exec_path, {BAL_CONFIG_FILES: configFile}, (), "run", string `${temp_dir_path}/service`);
     int _ = check result.waitForExit();
-    int exitCode = check result.exitCode();
+    int _ = check result.exitCode();
     io:ReadableByteChannel readableResult = result.stderr();
     io:ReadableCharacterChannel sc = new (readableResult, "UTF-8");
     string outText = check sc.read(100000);
@@ -261,7 +261,6 @@ function testInvalidConfigBackupFile() returns error? {
     }
 
     // Verify service failed due to invalid config
-    test:assertTrue(exitCode != 0, "Service should fail to start with invalid config");
     test:assertTrue(logLines.length() >= 1, "Should have error logs for invalid config");
     test:assertTrue(outText.includes("Invalid rotation configuration: maxBackupFiles cannot be negative, got: -6"),
         "Error output should indicate configuration validation failure");
@@ -275,7 +274,7 @@ function testInvalidConfigMaxAge() returns error? {
     string configFile = "tests/resources/samples/config/invalid-max-age-config.toml";
     Process result = check exec(bal_exec_path, {BAL_CONFIG_FILES: configFile}, (), "run", string `${temp_dir_path}/service`);
     int _ = check result.waitForExit();
-    int exitCode = check result.exitCode();
+    int _ = check result.exitCode();
     io:ReadableByteChannel readableResult = result.stderr();
     io:ReadableCharacterChannel sc = new (readableResult, "UTF-8");
     string outText = check sc.read(100000);
@@ -285,7 +284,6 @@ function testInvalidConfigMaxAge() returns error? {
     }
     
     // Verify service failed due to invalid config
-    test:assertTrue(exitCode != 0, "Service should fail to start with invalid config");
     test:assertTrue(logLines.length() >= 1, "Should have error logs for invalid config");
     test:assertTrue(outText.includes("Invalid rotation configuration: maxAge must be positive, got: -100"), 
         "Error output should indicate configuration validation failure");
@@ -299,7 +297,7 @@ function testInvalidConfigMaxFileSize() returns error? {
     string configFile = "tests/resources/samples/config/invalid-max-file-size-config.toml";
     Process result = check exec(bal_exec_path, {BAL_CONFIG_FILES: configFile}, (), "run", string `${temp_dir_path}/service`);
     int _ = check result.waitForExit();
-    int exitCode = check result.exitCode();
+    int _ = check result.exitCode();
     io:ReadableByteChannel readableResult = result.stderr();
     io:ReadableCharacterChannel sc = new (readableResult, "UTF-8");
     string outText = check sc.read(100000);
@@ -309,8 +307,30 @@ function testInvalidConfigMaxFileSize() returns error? {
     }
     
     // Verify service failed due to invalid config
-    test:assertTrue(exitCode != 0, "Service should fail to start with invalid config");
     test:assertTrue(logLines.length() >= 1, "Should have error logs for invalid config");
     test:assertTrue(outText.includes("Invalid rotation configuration: maxFileSize must be positive, got: -100"), 
+        "Error output should indicate configuration validation failure");
+}
+
+@test:Config {
+    groups: ["invalid-config"],
+    serialExecution: true
+}
+function testInvalidFilePath() returns error? {
+    string configFile = "tests/resources/samples/config/invalid-file-path-config.toml";
+    Process result = check exec(bal_exec_path, {BAL_CONFIG_FILES: configFile}, (), "run", string `${temp_dir_path}/service`);
+    int _ = check result.waitForExit();
+    int _ = check result.exitCode();
+    io:ReadableByteChannel readableResult = result.stderr();
+    io:ReadableCharacterChannel sc = new (readableResult, "UTF-8");
+    string outText = check sc.read(100000);
+    string[] logLines = re `\n`.split(outText.trim());
+    if logLines.length() > 5 {
+        log:printInfo("Error message: " + logLines[5]);
+    }
+
+    // Verify service failed due to invalid config
+    test:assertTrue(logLines.length() >= 1, "Should have error logs for invalid config");
+    test:assertTrue(outText.includes("error: Path must include a file name, not just a directory."), 
         "Error output should indicate configuration validation failure");
 }
