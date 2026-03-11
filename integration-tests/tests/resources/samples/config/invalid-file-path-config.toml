@@ -1,8 +1,10 @@
 [ballerina.http.accessLogConfig]
 format = "flat"
 attributes = ["ip", "date_time", "request", "status", "response_body_size", "http_referrer", "http_user_agent"]
+
+[ballerina.http.accessLogConfig.file]
 path = "./" # Invalid file path for access log
 
-[ballerina.http.accessLogConfig.rotation]
+[ballerina.http.accessLogConfig.file.rotation]
 policy = "SIZE_BASED"
 maxBackupFiles = 6

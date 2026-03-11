@@ -18,7 +18,6 @@
 
 package io.ballerina.stdlib.http.api.logging;
 
-import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.http.api.TestUtils;
@@ -317,9 +316,9 @@ public class HttpLogManagerTest {
                 accessLogConfig, HTTP_LOGGING_PROTOCOL);
     }
 
-    @Test (expectedExceptions = BError.class,
+    @Test (expectedExceptions = IOException.class,
             expectedExceptionsMessageRegExp = "failed to setup HTTP access log file: /test/logTestFile.txt")
-    public void testHttpLogManagerWithInvalidAccessLogPath() {
+    public void testHttpLogManagerWithInvalidAccessLogPath() throws IOException {
         BMap traceLogAdvancedConfig = mock(BMap.class);
         when(traceLogAdvancedConfig.getBooleanValue(HTTP_LOG_CONSOLE)).thenReturn(false);
         BString traceFilePath = mock(BString.class);
@@ -338,7 +337,8 @@ public class HttpLogManagerTest {
         when(accessLogConfig.getBooleanValue(HTTP_LOG_CONSOLE)).thenReturn(false);
         when(accessLogConfig.getStringValue(HTTP_LOG_FILE_PATH)).thenReturn(accessFilePath);
 
-        HttpLogManager httpLogManager = (HttpLogManager) HttpLogManager.getInstance(false, traceLogAdvancedConfig,
+
+        HttpLogManager httpLogManager = new HttpLogManager(false, traceLogAdvancedConfig,
                 accessLogConfig, HTTP_LOGGING_PROTOCOL);
     }
 

@@ -1,9 +1,11 @@
 [ballerina.http.accessLogConfig]
 format = "flat"
-attributes = ["ip", "date_time", "request", "status", "response_body_size", "http_referrer", "http_user_agent"] 
+attributes = ["ip", "date_time", "request", "status", "response_body_size", "http_referrer", "http_user_agent"]
+
+[ballerina.http.accessLogConfig.file]
 path = "./build/tmp/output/zero-backup-access.log"
 
-[ballerina.http.accessLogConfig.rotation]
+[ballerina.http.accessLogConfig.file.rotation]
 policy = "BOTH"
 maxAge = 3 # 3 seconds
 maxBackupFiles = 0

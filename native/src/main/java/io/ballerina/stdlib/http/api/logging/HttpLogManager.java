@@ -43,6 +43,7 @@ import java.util.logging.SocketHandler;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_ACCESS_LOG;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_ACCESS_LOG_ENABLED;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_LOG_ATTRIBUTES;
+import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_LOG_FILE_CONFIG;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_LOG_FILE_PATH;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_LOG_FORMAT;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_LOG_FORMAT_FLAT;
@@ -83,8 +84,8 @@ public class HttpLogManager extends LogManager {
     protected Logger httpAccessLogger;
     private String protocol;
 
-    private HttpLogManager(boolean traceLogConsole, BMap traceLogAdvancedConfig,
-                           BMap accessLogConfig, BString protocol) throws IOException {
+    HttpLogManager(boolean traceLogConsole, BMap traceLogAdvancedConfig,
+                   BMap accessLogConfig, BString protocol) throws IOException {
         this.protocol = protocol.getValue();
         this.setHttpTraceLogHandler(traceLogConsole, traceLogAdvancedConfig);
         this.setHttpAccessLogHandler(accessLogConfig);
@@ -181,20 +182,25 @@ public class HttpLogManager extends LogManager {
             accessLogsEnabled = true;
         }
 
+        BMap fileConfig = accessLogConfig.getMapValue(HTTP_LOG_FILE_CONFIG);
         BString filePath = accessLogConfig.getStringValue(HTTP_LOG_FILE_PATH);
-        BMap rotationMap = accessLogConfig.getMapValue(HTTP_LOG_ROTATION);
-        if (rotationMap != null) { // filePath is already validated in Ballerina init method
-            try {
-                HttpRollingFileHandler fileHandler = createRollingHandler(filePath.getValue(), rotationMap);
-                fileHandler.setFormatter(new HttpAccessLogFormatter());
-                fileHandler.setLevel(Level.INFO);
-                httpAccessLogger.addHandler(fileHandler);
-                httpAccessLogger.setLevel(Level.INFO);
-                accessLogsEnabled = true;
-            } catch (IOException e) {
-                throw new IOException("Failed to setup HTTP access log file handler: " + e.getMessage(), e);
+        if (fileConfig != null) {
+            filePath = fileConfig.getStringValue(HTTP_LOG_FILE_PATH);
+            BMap rotationConfig = fileConfig.getMapValue(HTTP_LOG_ROTATION);
+            if (rotationConfig != null) {
+                try {
+                    HttpRollingFileHandler fileHandler = createRollingHandler(
+                            filePath.getValue(), rotationConfig);
+                    fileHandler.setFormatter(new HttpAccessLogFormatter());
+                    fileHandler.setLevel(Level.INFO);
+                    httpAccessLogger.addHandler(fileHandler);
+                    httpAccessLogger.setLevel(Level.INFO);
+                    accessLogsEnabled = true;
+                } catch (IOException e) {
+                    throw new IOException("Failed to setup HTTP access log file handler: " + e.getMessage(), e);
+                }
             }
-        } else if (filePath != null && !filePath.getValue().trim().isEmpty()) {
+        } else if (filePath != null) {
             try {
                 FileHandler fileHandler = new FileHandler(filePath.getValue(), true);
                 fileHandler.setFormatter(new HttpAccessLogFormatter());
