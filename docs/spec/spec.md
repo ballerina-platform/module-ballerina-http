@@ -2705,16 +2705,19 @@ and can select the format and specific attributes to log.
 [ballerina.http.accessLogConfig]
 # Enable printing access logs in console
 console = true              # Default is false
-# Specify the file path to save the access logs
-path = "testAccessLog.txt"  # Optional, omit to disable file logging
 # Select the format of the access logs
 format = "json"             # Options: "flat", "json"; Default is "flat". Omit to stick to the default.
 # Specify which attributes to log. Omit to stick to the default set.
 attributes = ["ip", "date_time", "request", "status", "response_body_size", "http_referrer", "http_user_agent"]
 # Default attributes: ip, date_time, request, status, response_body_size, http_referrer, http_user_agent
 
+# Enable access log file destination
+[ballerina.http.accessLogConfig.file]
+# The file path to store access logs
+path = "./logs/access.log"
+
 # Enable access logs rotation
-[ballerina.http.accessLogConfig.rotation]
+[ballerina.http.accessLogConfig.file.rotation]
 # The rotation policy to use (SIZE_BASED, TIME_BASED, or BOTH). Default is BOTH
 policy = "SIZE_BASED"      # Default: BOTH
 # Maximum file size in bytes before rotation occurs (applies to SIZE_BASED and BOTH policies)
@@ -2777,10 +2780,10 @@ Configuration parameters:
 Example configuration for size-based rotation:
 
 ```toml
-[ballerina.http.accessLogConfig]
+[ballerina.http.accessLogConfig.file]
 path = "./logs/http-access.log"
 
-[ballerina.http.accessLogConfig.rotation]
+[ballerina.http.accessLogConfig.file.rotation]
 policy = "SIZE_BASED"
 maxFileSize = 52428800    # 50MB
 maxBackupFiles = 30
@@ -2789,10 +2792,10 @@ maxBackupFiles = 30
 Time-based rotation example:
 
 ```toml
-[ballerina.http.accessLogConfig]
+[ballerina.http.accessLogConfig.file]
 path = "./logs/http-access.log"
 
-[ballerina.http.accessLogConfig.rotation]
+[ballerina.http.accessLogConfig.file.rotation]
 policy = "TIME_BASED"
 maxAge = 86400        # Rotate daily
 maxBackupFiles = 7    # Keep one week of access
@@ -2801,10 +2804,10 @@ maxBackupFiles = 7    # Keep one week of access
 Rotation using both size and time (default policy):
 
 ```toml
-[ballerina.http.accessLogConfig]
+[ballerina.http.accessLogConfig.file]
 path = "./logs/http-access.log"
 
-[ballerina.http.accessLogConfig.rotation]
+[ballerina.http.accessLogConfig.file.rotation]
 policy = "BOTH"
 maxFileSize = 52428800    # 50MB
 maxAge = 86400            # 24 hours

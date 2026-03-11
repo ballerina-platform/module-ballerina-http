@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- [Fix typo in protobuf groupId](https://github.com/ballerina-platform/ballerina-library/issues/8704)
+
 ### Added
 
 - [Add support for access log rotation ](https://github.com/ballerina-platform/ballerina-library/issues/8667)

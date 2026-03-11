@@ -20,8 +20,8 @@ import ballerina/log;
 
 function init() returns error? {
     setModule();
-    FileConfig? fileConfig = accessLogConfig.file;
-    if fileConfig is FileConfig {
+    LogFileConfig? fileConfig = accessLogConfig.file;
+    if fileConfig is LogFileConfig {
         check validateFilePath(fileConfig.path);
         if fileConfig.rotation is log:RotationConfig {
             check validateRotationConfig(<log:RotationConfig>fileConfig.rotation);

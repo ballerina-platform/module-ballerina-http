@@ -38,7 +38,7 @@ public type TraceLogAdvancedConfiguration record {|
 # + console - Boolean value to enable or disable console access logs
 # + format - The format of access logs to be printed (either `flat` or `json`)
 # + attributes - The list of attributes of access logs to be printed
-# + path - Optional file path to store access logs. This will be deprecated in favor of the `file` configuration.
+# + path - Optional file path to store access logs. This is deprecated in favor of the `file` configuration.
 #   Recommended to use `file` configuration for file logging.
 # + file - Optional log file configuration for file destinations
 public type AccessLogConfiguration record {|
@@ -46,14 +46,14 @@ public type AccessLogConfiguration record {|
     string format = "flat";
     string[] attributes?;
     string path?;
-    FileConfig file?;
+    LogFileConfig file?;
 |};
 
 # Represents HTTP access log file configuration.
 #
 # + path - The file path to store access logs
 # + rotation - The log rotation configuration for file destinations
-public type FileConfig record {|
+public type LogFileConfig record {|
     string path;
     log:RotationConfig rotation?;
 |};
