@@ -36,8 +36,8 @@ function cleanLogFiles() returns error? {
                 f.name.startsWith(COMBINED_POLICY_ACCESS_PREFIX) ||
                 f.name.startsWith(COMBINED_POLICY_TRACE_PREFIX) ||
                 f.name.startsWith(CONCURRENT_WRITES_PREFIX) ||
-                f.name.startsWith(ZERO_BACKUP_ACCESS_PREFIX)) ||
-                f.name.startsWith(ZERO_BACKUP_UTIL_PREFIX)
+                f.name.startsWith(ZERO_BACKUP_ACCESS_PREFIX) ||
+                f.name.startsWith(ZERO_BACKUP_UTIL_PREFIX))
                  && f.name.endsWith(FILE_EXT) {
                 _ = check removeFile(f.absPath, false);
             }

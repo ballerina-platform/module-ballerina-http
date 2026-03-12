@@ -2739,10 +2739,10 @@ Configuration parameters:
 Example configuration for size-based rotation:
 
 ```toml
-[ballerina.http.traceLogAdvancecdConfig.file]
+[ballerina.http.traceLogAdvancedConfig.file]
 path = "./logs/http-trace.log"
 
-[ballerina.http.traceLogAdvancecdConfig.file.rotation]
+[ballerina.http.traceLogAdvancedConfig.file.rotation]
 policy = "SIZE_BASED"
 maxFileSize = 52428800    # 50MB
 maxBackupFiles = 30
@@ -2751,10 +2751,10 @@ maxBackupFiles = 30
 Time-based rotation example:
 
 ```toml
-[ballerina.http.traceLogAdvancecdConfig.file]
+[ballerina.http.traceLogAdvancedConfig.file]
 path = "./logs/http-trace.log"
 
-[ballerina.http.traceLogAdvancecdConfig.file.rotation]
+[ballerina.http.traceLogAdvancedConfig.file.rotation]
 policy = "TIME_BASED"
 maxAge = 86400        # Rotate daily
 maxBackupFiles = 7    # Keep one week of trace
@@ -2763,10 +2763,10 @@ maxBackupFiles = 7    # Keep one week of trace
 Rotation using both size and time (default policy):
 
 ```toml
-[ballerina.http.traceLogAdvancecdConfig.file]
+[ballerina.http.traceLogAdvancedConfig.file]
 path = "./logs/http-trace.log"
 
-[ballerina.http.traceLogAdvancecdConfig.file.rotation]
+[ballerina.http.traceLogAdvancedConfig.file.rotation]
 policy = "BOTH"
 maxFileSize = 52428800    # 50MB
 maxAge = 86400            # 24 hours
