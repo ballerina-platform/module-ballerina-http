@@ -110,7 +110,7 @@ public class HttpLogManager extends LogManager {
     /**
      * Initializes the HTTP trace logger.
      */
-    public void setHttpTraceLogHandler(boolean traceLogConsole, BMap traceLogAdvancedConfig) {
+    public void setHttpTraceLogHandler(boolean traceLogConsole, BMap traceLogAdvancedConfig) throws IOException {
         if (httpTraceLogger == null) {
             // keep a reference to prevent this logger from being garbage collected
             httpTraceLogger = Logger.getLogger(HTTP_TRACE_LOG);
@@ -127,16 +127,34 @@ public class HttpLogManager extends LogManager {
             traceLogsEnabled = true;
         }
 
-        BString logFilePath = traceLogAdvancedConfig.getStringValue(HTTP_LOG_FILE_PATH);
-        if (logFilePath != null && !logFilePath.getValue().trim().isEmpty()) {
+        BMap fileConfig = traceLogAdvancedConfig.getMapValue(HTTP_LOG_FILE_CONFIG);
+        BString filePath = traceLogAdvancedConfig.getStringValue(HTTP_LOG_FILE_PATH);
+        BMap rotationConfig = null;
+        if (fileConfig != null) {
+            filePath = fileConfig.getStringValue(HTTP_LOG_FILE_PATH);
+            rotationConfig = fileConfig.getMapValue(HTTP_LOG_ROTATION);
+            if (rotationConfig != null) {
+                try {
+                    HttpRollingFileHandler fileHandler = createRollingHandler(
+                        filePath.getValue(), rotationConfig);
+                    fileHandler.setFormatter(new HttpTraceLogFormatter());
+                    fileHandler.setLevel(Level.FINEST);
+                    httpTraceLogger.addHandler(fileHandler);
+                    traceLogsEnabled = true;
+                } catch (IOException e) {
+                    throw new IOException("Failed to setup HTTP trace log file handler: " + e.getMessage(), e);
+                }
+            }
+        }
+        if (filePath != null && rotationConfig == null) {
             try {
-                FileHandler fileHandler = new FileHandler(logFilePath.getValue(), true);
+                FileHandler fileHandler = new FileHandler(filePath.getValue(), true);
                 fileHandler.setFormatter(new HttpTraceLogFormatter());
                 fileHandler.setLevel(Level.FINEST);
                 httpTraceLogger.addHandler(fileHandler);
                 traceLogsEnabled = true;
             } catch (IOException e) {
-                throw new RuntimeException("failed to setup HTTP trace log file: " + logFilePath.getValue(), e);
+                throw new IOException("Failed to setup HTTP trace log file handler: " + e.getMessage(), e);
             }
         }
 
@@ -150,7 +168,7 @@ public class HttpLogManager extends LogManager {
                 httpTraceLogger.addHandler(socketHandler);
                 traceLogsEnabled = true;
             } catch (IOException e) {
-                throw new RuntimeException("failed to connect to " + host.getValue() + ":" + port.intValue(), e);
+                throw new IOException("Failed to connect to " + host.getValue() + ":" + port.intValue(), e);
             }
         }
 
@@ -184,9 +202,10 @@ public class HttpLogManager extends LogManager {
 
         BMap fileConfig = accessLogConfig.getMapValue(HTTP_LOG_FILE_CONFIG);
         BString filePath = accessLogConfig.getStringValue(HTTP_LOG_FILE_PATH);
+        BMap rotationConfig = null;
         if (fileConfig != null) {
             filePath = fileConfig.getStringValue(HTTP_LOG_FILE_PATH);
-            BMap rotationConfig = fileConfig.getMapValue(HTTP_LOG_ROTATION);
+            rotationConfig = fileConfig.getMapValue(HTTP_LOG_ROTATION);
             if (rotationConfig != null) {
                 try {
                     HttpRollingFileHandler fileHandler = createRollingHandler(
@@ -200,7 +219,8 @@ public class HttpLogManager extends LogManager {
                     throw new IOException("Failed to setup HTTP access log file handler: " + e.getMessage(), e);
                 }
             }
-        } else if (filePath != null) {
+        }
+        if (filePath != null && rotationConfig == null) {
             try {
                 FileHandler fileHandler = new FileHandler(filePath.getValue(), true);
                 fileHandler.setFormatter(new HttpAccessLogFormatter());

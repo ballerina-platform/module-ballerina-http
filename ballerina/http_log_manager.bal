@@ -23,14 +23,17 @@ configurable boolean traceLogConsole = false;
 # Represents HTTP trace log configuration.
 #
 # + console - Boolean value to enable or disable console trace logs
-# + path - Optional file path to store trace logs
+# + path - Optional file path to store trace logs. This is deprecated in favor of the `file` configuration.
+#   Recommended to use `file` configuration for file logging.
 # + host - Optional socket hostname to publish the trace logs
 # + port - Optional socket port to publish the trace logs
+# + file - Optional log file configuration for file destinations
 public type TraceLogAdvancedConfiguration record {|
     boolean console = false;
     string path?;
     string host?;
     int port?;
+    LogFileConfig file?;
 |};
 
 # Represents HTTP access log configuration.

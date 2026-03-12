@@ -20,16 +20,27 @@ import ballerina/log;
 
 function init() returns error? {
     setModule();
-    LogFileConfig? fileConfig = accessLogConfig.file;
-    if fileConfig is LogFileConfig {
-        check validateFilePath(fileConfig.path);
-        if fileConfig.rotation is log:RotationConfig {
-            check validateRotationConfig(<log:RotationConfig>fileConfig.rotation);
-        }
+    LogFileConfig? traceFileConfig = traceLogAdvancedConfig.file;
+    if traceFileConfig is LogFileConfig {
+        check validateLogFileConfig(traceFileConfig);
+    } else if traceLogAdvancedConfig.path is string {
+        check validateFilePath(<string>traceLogAdvancedConfig.path);
+    }
+
+    LogFileConfig? accessFileConfig = accessLogConfig.file;
+    if accessFileConfig is LogFileConfig {
+        check validateLogFileConfig(accessFileConfig);
     } else if accessLogConfig.path is string {
         check validateFilePath(<string>accessLogConfig.path);
     }
     _ = check getInstance(traceLogConsole, traceLogAdvancedConfig, accessLogConfig);
+}
+
+isolated function validateLogFileConfig(LogFileConfig config) returns Error? {
+    check validateFilePath(config.path);
+    if config.rotation is log:RotationConfig {
+        check validateRotationConfig(<log:RotationConfig>config.rotation);
+    }
 }
 
 isolated function validateRotationConfig(log:RotationConfig config) returns Error? {
