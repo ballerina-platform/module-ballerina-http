@@ -30,6 +30,7 @@ configurable boolean traceLogConsole = false;
 # + file - Optional log file configuration for file destinations
 public type TraceLogAdvancedConfiguration record {|
     boolean console = false;
+    @deprecated
     string path?;
     string host?;
     int port?;
@@ -48,6 +49,7 @@ public type AccessLogConfiguration record {|
     boolean console = false;
     string format = "flat";
     string[] attributes?;
+    @deprecated
     string path?;
     LogFileConfig file?;
 |};

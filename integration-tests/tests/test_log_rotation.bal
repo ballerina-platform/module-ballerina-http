@@ -241,7 +241,6 @@ function testZeroMaxBackupFiles() returns error? {
     
     // Verify no backup files are kept (maxBackupFiles=0)
     int rotatedFileCount = check countRotatedFiles(ZERO_BACKUP_ACCESS_PREFIX);
-    log:printInfo(string `Rotated file count: ${rotatedFileCount}`);
     test:assertTrue(rotatedFileCount == 0, "Should only have main file when maxBackupFiles=0");
 }
 
@@ -269,7 +268,6 @@ function testZeroMaxBackupFilesWithUtilHandler() returns error? {
     
     // Verify no backup files are kept (maxBackupFiles=0)
     int rotatedFileCount = check countRotatedFiles(ZERO_BACKUP_UTIL_PREFIX);
-    log:printInfo(string `Rotated file count: ${rotatedFileCount}`);
     test:assertTrue(rotatedFileCount == 0, "Should only have main file when using util handler");
 }
 
@@ -364,6 +362,19 @@ function testInvalidFilePath() returns error? {
     test:assertTrue(logLines.length() >= 1, "Should have error logs for invalid config");
     test:assertTrue(outText.includes("error: Path must include a file name, not just a directory."), 
         "Error output should indicate configuration validation failure");
+
+    readableResult = result.stdout();
+    sc = new (readableResult, "UTF-8");
+    outText = check sc.read(100000);
+    logLines = re `\n`.split(outText.trim());
+    if logLines.length() >= 1 {
+        log:printInfo("Warning message: " + logLines[0]);
+    }
+
+    // Verify warning is printed for conflicting config
+    test:assertTrue(logLines.length() >= 1, "Should have warning logs for conflicting config");
+    test:assertTrue(outText.includes("WARNING: Conflicting configuration detected: 'file' and deprecated 'path' are configured. The 'file' configuration will be used."),
+        "Warning output should indicate conflicting configuration");
 }
 
 // Trace log rotation with combined policies: Verify that both size-based and time-based rotation work together as expected

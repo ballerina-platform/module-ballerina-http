@@ -17,23 +17,25 @@
 import ballerina/file;
 import ballerina/jballerina.java;
 import ballerina/log;
+import ballerina/io;
 
 function init() returns error? {
     setModule();
     LogFileConfig? traceFileConfig = traceLogAdvancedConfig.file;
-    if traceFileConfig is LogFileConfig {
-        check validateLogFileConfig(traceFileConfig);
-    } else if traceLogAdvancedConfig.path is string {
-        check validateFilePath(<string>traceLogAdvancedConfig.path);
-    }
-
-    LogFileConfig? accessFileConfig = accessLogConfig.file;
-    if accessFileConfig is LogFileConfig {
-        check validateLogFileConfig(accessFileConfig);
-    } else if accessLogConfig.path is string {
-        check validateFilePath(<string>accessLogConfig.path);
-    }
+    check validateFileOrPath(traceFileConfig, traceLogAdvancedConfig.path);
+    check validateFileOrPath(accessLogConfig.file, accessLogConfig.path);
     _ = check getInstance(traceLogConsole, traceLogAdvancedConfig, accessLogConfig);
+}
+
+isolated function validateFileOrPath(LogFileConfig? fileConfig, string? path) returns Error? {
+    if fileConfig is LogFileConfig {
+        if path is string {
+            io:fprintln(io:stdout, "WARNING: Conflicting configuration detected: 'file' and deprecated 'path' are configured. The 'file' configuration will be used.");
+        }
+        check validateLogFileConfig(fileConfig);
+    } else if path is string {
+        check validateFilePath(path);
+    }
 }
 
 isolated function validateLogFileConfig(LogFileConfig config) returns Error? {
