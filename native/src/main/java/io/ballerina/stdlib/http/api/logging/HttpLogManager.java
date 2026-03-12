@@ -18,13 +18,17 @@
 
 package io.ballerina.stdlib.http.api.logging;
 
+import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
+import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.api.logging.accesslog.HttpAccessLogConfig;
+import io.ballerina.stdlib.http.api.logging.accesslog.HttpRollingFileHandler;
 import io.ballerina.stdlib.http.api.logging.formatters.HttpAccessLogFormatter;
 import io.ballerina.stdlib.http.api.logging.formatters.HttpTraceLogFormatter;
 import io.ballerina.stdlib.http.api.logging.formatters.JsonLogFormatter;
+import io.ballerina.stdlib.http.api.logging.util.RotationPolicy;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,7 +43,7 @@ import java.util.logging.SocketHandler;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_ACCESS_LOG;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_ACCESS_LOG_ENABLED;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_LOG_ATTRIBUTES;
-import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_LOG_CONSOLE;
+import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_LOG_FILE_CONFIG;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_LOG_FILE_PATH;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_LOG_FORMAT;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_LOG_FORMAT_FLAT;
@@ -57,6 +61,15 @@ import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_TRACE_LOG_PORT;
  */
 public class HttpLogManager extends LogManager {
 
+    static final BString HTTP_LOG_CONSOLE  = StringUtils.fromString("console");
+    static final BString HTTP_LOG_ROTATION = StringUtils.fromString("rotation");
+
+    // Rotation config keys
+    static final BString ROTATION_POLICY = StringUtils.fromString("policy");
+    static final BString ROTATION_MAX_FILE_SIZE = StringUtils.fromString("maxFileSize");
+    static final BString ROTATION_MAX_AGE = StringUtils.fromString("maxAge");
+    static final BString ROTATION_MAX_BACKUP_FILES = StringUtils.fromString("maxBackupFiles");
+
     static {
         // loads logging.properties from the classpath
         try (InputStream is = HttpLogManager.class.getClassLoader().
@@ -71,12 +84,27 @@ public class HttpLogManager extends LogManager {
     protected Logger httpAccessLogger;
     private String protocol;
 
-    public HttpLogManager(boolean traceLogConsole, BMap traceLogAdvancedConfig, BMap accessLogConfig,
-                          BString protocol) {
+    HttpLogManager(boolean traceLogConsole, BMap traceLogAdvancedConfig,
+                   BMap accessLogConfig, BString protocol) throws IOException {
         this.protocol = protocol.getValue();
         this.setHttpTraceLogHandler(traceLogConsole, traceLogAdvancedConfig);
         this.setHttpAccessLogHandler(accessLogConfig);
         HttpAccessLogConfig.getInstance().initializeHttpAccessLogConfig(accessLogConfig);
+    }
+
+    /**
+     * Factory method that creates an HttpLogManager.
+     *
+     * @return the new HttpLogManager instance, or a BError if
+     *         initialization failed (e.g., the access-log file could not be opened).
+     */
+    public static Object getInstance(boolean traceLogConsole, BMap traceLogAdvancedConfig,
+                                     BMap accessLogConfig, BString protocol) {
+        try {
+            return new HttpLogManager(traceLogConsole, traceLogAdvancedConfig, accessLogConfig, protocol);
+        } catch (IOException e) {
+            return HttpUtil.getError(e);
+        }
     }
 
     /**
@@ -136,7 +164,7 @@ public class HttpLogManager extends LogManager {
     /**
      * Initializes the HTTP access logger.
      */
-    public void setHttpAccessLogHandler(BMap accessLogConfig) {
+    public void setHttpAccessLogHandler(BMap accessLogConfig) throws IOException {
         if (httpAccessLogger == null) {
             // keep a reference to prevent this logger from being garbage collected
             httpAccessLogger = Logger.getLogger(HTTP_ACCESS_LOG);
@@ -154,8 +182,25 @@ public class HttpLogManager extends LogManager {
             accessLogsEnabled = true;
         }
 
+        BMap fileConfig = accessLogConfig.getMapValue(HTTP_LOG_FILE_CONFIG);
         BString filePath = accessLogConfig.getStringValue(HTTP_LOG_FILE_PATH);
-        if (filePath != null && !filePath.getValue().trim().isEmpty()) {
+        if (fileConfig != null) {
+            filePath = fileConfig.getStringValue(HTTP_LOG_FILE_PATH);
+            BMap rotationConfig = fileConfig.getMapValue(HTTP_LOG_ROTATION);
+            if (rotationConfig != null) {
+                try {
+                    HttpRollingFileHandler fileHandler = createRollingHandler(
+                            filePath.getValue(), rotationConfig);
+                    fileHandler.setFormatter(new HttpAccessLogFormatter());
+                    fileHandler.setLevel(Level.INFO);
+                    httpAccessLogger.addHandler(fileHandler);
+                    httpAccessLogger.setLevel(Level.INFO);
+                    accessLogsEnabled = true;
+                } catch (IOException e) {
+                    throw new IOException("Failed to setup HTTP access log file handler: " + e.getMessage(), e);
+                }
+            }
+        } else if (filePath != null) {
             try {
                 FileHandler fileHandler = new FileHandler(filePath.getValue(), true);
                 fileHandler.setFormatter(new HttpAccessLogFormatter());
@@ -164,7 +209,7 @@ public class HttpLogManager extends LogManager {
                 httpAccessLogger.setLevel(Level.INFO);
                 accessLogsEnabled = true;
             } catch (IOException e) {
-                throw new RuntimeException("failed to setup HTTP access log file: " + filePath.getValue(), e);
+                throw new IOException("Failed to setup HTTP access log file handler: " + e.getMessage(), e);
             }
         }
 
@@ -186,4 +231,18 @@ public class HttpLogManager extends LogManager {
             stdErr.println("ballerina: " + protocol + " access log enabled");
         }
     }
+
+    /**
+     * Creates a HttpRollingFileHandler with config parsed from BMap.
+     */
+    private HttpRollingFileHandler createRollingHandler(String path, BMap<BString, Object> rotationConfig)
+            throws IOException {
+        String policyStr = String.valueOf(rotationConfig.getStringValue(ROTATION_POLICY));
+        long maxSize = rotationConfig.getIntValue(ROTATION_MAX_FILE_SIZE);
+        long maxAge = rotationConfig.getIntValue(ROTATION_MAX_AGE);
+        int maxBackup = rotationConfig.getIntValue(ROTATION_MAX_BACKUP_FILES).intValue();
+        RotationPolicy rotationPolicy = RotationPolicy.valueOf(policyStr.toUpperCase(java.util.Locale.ENGLISH));
+        return new HttpRollingFileHandler(path, rotationPolicy, maxSize, maxAge, maxBackup, true, "UTF-8");
+    }
+
 }

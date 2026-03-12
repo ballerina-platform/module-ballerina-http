@@ -21,6 +21,7 @@ include ':http-compiler-plugin'
 include ':http-ballerina-tests'
 include ':http-compiler-plugin-tests'
 include ':http-test-utils'
+include ':http-integration-tests'
 
 project(':checkstyle').projectDir = file("build-config${File.separator}checkstyle")
 project(':http-native').projectDir = file('native')
@@ -29,6 +30,7 @@ project(':http-ballerina').projectDir = file('ballerina')
 project(':http-compiler-plugin').projectDir = file('compiler-plugin')
 project(':http-ballerina-tests').projectDir = file('ballerina-tests')
 project(':http-compiler-plugin-tests').projectDir = file('compiler-plugin-tests')
+project(':http-integration-tests').projectDir = file('integration-tests')
 
 gradleEnterprise {
     buildScan {

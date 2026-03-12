@@ -59,7 +59,7 @@ public class HttpLogManagerTest {
     }
 
     @Test
-    public void testHttpLogManagerWithTraceLogConsole1() {
+    public void testHttpLogManagerWithTraceLogConsole1() throws IOException {
         BMap traceLogAdvancedConfig = mock(BMap.class);
         when(traceLogAdvancedConfig.getBooleanValue(HTTP_LOG_CONSOLE)).thenReturn(true);
         BString traceFilePath = mock(BString.class);
@@ -75,7 +75,6 @@ public class HttpLogManagerTest {
 
         BMap accessLogConfig = mock(BMap.class);
         when(accessLogConfig.getBooleanValue(HTTP_LOG_CONSOLE)).thenReturn(false);
-        when(accessLogConfig.getStringValue(HTTP_LOG_FILE_PATH)).thenReturn(accessFilePath);
 
         HttpLogManager httpLogManager = new HttpLogManager(false, traceLogAdvancedConfig,
                 accessLogConfig, HTTP_LOGGING_PROTOCOL);
@@ -88,7 +87,7 @@ public class HttpLogManagerTest {
     }
 
     @Test
-    public void testHttpLogManagerWithTraceLogConsole2() {
+    public void testHttpLogManagerWithTraceLogConsole2() throws IOException {
         BMap traceLogAdvancedConfig = mock(BMap.class);
         when(traceLogAdvancedConfig.getBooleanValue(HTTP_LOG_CONSOLE)).thenReturn(false);
         BString traceFilePath = mock(BString.class);
@@ -104,7 +103,6 @@ public class HttpLogManagerTest {
 
         BMap accessLogConfig = mock(BMap.class);
         when(accessLogConfig.getBooleanValue(HTTP_LOG_CONSOLE)).thenReturn(false);
-        when(accessLogConfig.getStringValue(HTTP_LOG_FILE_PATH)).thenReturn(accessFilePath);
 
         HttpLogManager httpLogManager = new HttpLogManager(true, traceLogAdvancedConfig,
                 accessLogConfig, HTTP_LOGGING_PROTOCOL);
@@ -117,7 +115,7 @@ public class HttpLogManagerTest {
     }
 
     @Test
-    public void testHttpLogManagerWithTraceLogConsole3() {
+    public void testHttpLogManagerWithTraceLogConsole3() throws IOException {
         BMap traceLogAdvancedConfig = mock(BMap.class);
         when(traceLogAdvancedConfig.getBooleanValue(HTTP_LOG_CONSOLE)).thenReturn(true);
         BString traceFilePath = mock(BString.class);
@@ -133,7 +131,6 @@ public class HttpLogManagerTest {
 
         BMap accessLogConfig = mock(BMap.class);
         when(accessLogConfig.getBooleanValue(HTTP_LOG_CONSOLE)).thenReturn(false);
-        when(accessLogConfig.getStringValue(HTTP_LOG_FILE_PATH)).thenReturn(accessFilePath);
 
         HttpLogManager httpLogManager = new HttpLogManager(true, traceLogAdvancedConfig,
                 accessLogConfig, HTTP_LOGGING_PROTOCOL);
@@ -146,7 +143,7 @@ public class HttpLogManagerTest {
     }
 
     @Test
-    public void testHttpLogManagerWithTraceLogFile() {
+    public void testHttpLogManagerWithTraceLogFile() throws IOException {
         BMap traceLogAdvancedConfig = mock(BMap.class);
         when(traceLogAdvancedConfig.getBooleanValue(HTTP_LOG_CONSOLE)).thenReturn(false);
         BString traceFilePath = mock(BString.class);
@@ -163,7 +160,6 @@ public class HttpLogManagerTest {
 
         BMap accessLogConfig = mock(BMap.class);
         when(accessLogConfig.getBooleanValue(HTTP_LOG_CONSOLE)).thenReturn(false);
-        when(accessLogConfig.getStringValue(HTTP_LOG_FILE_PATH)).thenReturn(accessFilePath);
 
         HttpLogManager httpLogManager = new HttpLogManager(false, traceLogAdvancedConfig,
                 accessLogConfig, HTTP_LOGGING_PROTOCOL);
@@ -193,7 +189,6 @@ public class HttpLogManagerTest {
 
         BMap accessLogConfig = mock(BMap.class);
         when(accessLogConfig.getBooleanValue(HTTP_LOG_CONSOLE)).thenReturn(false);
-        when(accessLogConfig.getStringValue(HTTP_LOG_FILE_PATH)).thenReturn(accessFilePath);
 
         HttpLogManager httpLogManager = new HttpLogManager(false, traceLogAdvancedConfig,
                 accessLogConfig, HTTP_LOGGING_PROTOCOL);
@@ -207,7 +202,7 @@ public class HttpLogManagerTest {
     }
 
     @Test
-    public void testHttpLogManagerWithAccessLogConsole() {
+    public void testHttpLogManagerWithAccessLogConsole() throws IOException {
         BMap traceLogAdvancedConfig = mock(BMap.class);
         when(traceLogAdvancedConfig.getBooleanValue(HTTP_LOG_CONSOLE)).thenReturn(false);
         BString traceFilePath = mock(BString.class);
@@ -223,7 +218,6 @@ public class HttpLogManagerTest {
 
         BMap accessLogConfig = mock(BMap.class);
         when(accessLogConfig.getBooleanValue(HTTP_LOG_CONSOLE)).thenReturn(true);
-        when(accessLogConfig.getStringValue(HTTP_LOG_FILE_PATH)).thenReturn(accessFilePath);
 
         HttpLogManager httpLogManager = new HttpLogManager(false, traceLogAdvancedConfig,
                 accessLogConfig, HTTP_LOGGING_PROTOCOL);
@@ -237,7 +231,7 @@ public class HttpLogManagerTest {
     }
 
     @Test
-    public void testHttpLogManagerWithAccessLogFile() {
+    public void testHttpLogManagerWithAccessLogFile() throws IOException {
         BMap traceLogAdvancedConfig = mock(BMap.class);
         when(traceLogAdvancedConfig.getBooleanValue(HTTP_LOG_CONSOLE)).thenReturn(false);
         BString traceFilePath = mock(BString.class);
@@ -269,7 +263,7 @@ public class HttpLogManagerTest {
 
     @Test (expectedExceptions = RuntimeException.class,
             expectedExceptionsMessageRegExp = "failed to setup HTTP trace log file: /test/logTestFile.txt")
-    public void testHttpLogManagerWithInvalidTraceLogFilePath() {
+    public void testHttpLogManagerWithInvalidTraceLogFilePath() throws IOException {
         BMap traceLogAdvancedConfig = mock(BMap.class);
         when(traceLogAdvancedConfig.getBooleanValue(HTTP_LOG_CONSOLE)).thenReturn(false);
         BString traceFilePath = mock(BString.class);
@@ -294,7 +288,7 @@ public class HttpLogManagerTest {
 
     @Test (expectedExceptions = RuntimeException.class,
             expectedExceptionsMessageRegExp = "failed to connect to testHost:8080")
-    public void testHttpLogManagerWithNonExistingSocket() {
+    public void testHttpLogManagerWithNonExistingSocket() throws IOException {
         BMap traceLogAdvancedConfig = mock(BMap.class);
         when(traceLogAdvancedConfig.getBooleanValue(HTTP_LOG_CONSOLE)).thenReturn(false);
         BString traceFilePath = mock(BString.class);
@@ -316,9 +310,9 @@ public class HttpLogManagerTest {
                 accessLogConfig, HTTP_LOGGING_PROTOCOL);
     }
 
-    @Test (expectedExceptions = RuntimeException.class,
-            expectedExceptionsMessageRegExp = "failed to setup HTTP access log file: /test/logTestFile.txt")
-    public void testHttpLogManagerWithInvalidAccessLogPath() {
+    @Test (expectedExceptions = IOException.class,
+            expectedExceptionsMessageRegExp = "Failed to setup HTTP access log file handler: .*")
+    public void testHttpLogManagerWithInvalidAccessLogPath() throws IOException {
         BMap traceLogAdvancedConfig = mock(BMap.class);
         when(traceLogAdvancedConfig.getBooleanValue(HTTP_LOG_CONSOLE)).thenReturn(false);
         BString traceFilePath = mock(BString.class);
@@ -336,6 +330,7 @@ public class HttpLogManagerTest {
         BMap accessLogConfig = mock(BMap.class);
         when(accessLogConfig.getBooleanValue(HTTP_LOG_CONSOLE)).thenReturn(false);
         when(accessLogConfig.getStringValue(HTTP_LOG_FILE_PATH)).thenReturn(accessFilePath);
+
 
         HttpLogManager httpLogManager = new HttpLogManager(false, traceLogAdvancedConfig,
                 accessLogConfig, HTTP_LOGGING_PROTOCOL);
