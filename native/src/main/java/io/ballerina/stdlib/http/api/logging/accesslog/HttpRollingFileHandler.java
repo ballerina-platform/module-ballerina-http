@@ -58,7 +58,7 @@ public class HttpRollingFileHandler extends StreamHandler {
     private static final DateTimeFormatter TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmssSSS");
     private final String filePath;
     private final RotationPolicy policy;
-    private final long maxFileSize; // bytes;
+    private final long maxFileSize;
     private final long maxAgeSeconds;
     private final int maxBackupFiles;
     private final ReentrantLock lock = new ReentrantLock();
@@ -173,10 +173,8 @@ public class HttpRollingFileHandler extends StreamHandler {
         File file = new File(filePath);
 
         File parent = file.getParentFile();
-        if (parent != null && !parent.exists()) {
-            if (!parent.mkdirs()) {
-                throw new IOException("Failed to create log directory: " + parent.getAbsolutePath());
-            }
+        if (parent != null && !parent.exists() && !parent.mkdirs()) {
+            throw new IOException("Failed to create log directory: " + parent.getAbsolutePath());
         }
         acquireFileLock();
         openLogFile(append);

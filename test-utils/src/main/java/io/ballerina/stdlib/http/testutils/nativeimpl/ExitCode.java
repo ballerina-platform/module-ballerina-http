@@ -28,6 +28,8 @@ import io.ballerina.runtime.api.values.BObject;
  */
 public class ExitCode {
 
+    private ExitCode() {}
+
     public static Object exitCode(BObject objVal) {
         Process process = OSUtils.processFromObject(objVal);
         try {

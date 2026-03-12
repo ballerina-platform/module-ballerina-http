@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Added
 
+- [Add support for trace log rotation ](https://github.com/ballerina-platform/ballerina-library/issues/8710)
 - [Add support for access log rotation ](https://github.com/ballerina-platform/ballerina-library/issues/8667)
 
 ## [2.15.3] - 2026-01-09
