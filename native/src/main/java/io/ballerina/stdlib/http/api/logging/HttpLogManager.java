@@ -171,7 +171,7 @@ public class HttpLogManager extends LogManager {
 
     private boolean setupConsoleLogging(BMap accessLogConfig) {
         Boolean consoleEnabled = accessLogConfig.getBooleanValue(HTTP_LOG_CONSOLE);
-        if (!consoleEnabled) {
+        if (Boolean.FALSE.equals(consoleEnabled)) {
             return false;
         }
         ConsoleHandler handler = new ConsoleHandler();
