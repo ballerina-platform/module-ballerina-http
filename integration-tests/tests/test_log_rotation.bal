@@ -23,9 +23,11 @@ import ballerina/test;
 const LOG_DIR = "./build/tmp/output";
 const TIME_BASED_PREFIX = "time-based-access";
 const SIZE_BASED_PREFIX = "size-based-access";
-const COMBINED_POLICY_PREFIX = "combined-policy";
+const COMBINED_POLICY_ACCESS_PREFIX = "combined-policy-access";
+const COMBINED_POLICY_TRACE_PREFIX = "combined-policy-trace";
 const CONCURRENT_WRITES_PREFIX = "concurrent-writes";
-const ZERO_BACKUP_PREFIX = "zero-backup";
+const ZERO_BACKUP_ACCESS_PREFIX = "zero-backup-access";
+const ZERO_BACKUP_UTIL_PREFIX = "zero-backup-util";
 const FILE_EXT = ".log";
 
 @test:BeforeSuite
@@ -123,7 +125,7 @@ function testCombinedPolicyRotation() returns error? {
     runtime:sleep(1); // Wait for the service to complete requests
 
     // Verify size-based rotation occurred first
-    int rotatedFileCountAfterSize = check countRotatedFiles(COMBINED_POLICY_PREFIX);
+    int rotatedFileCountAfterSize = check countRotatedFiles(COMBINED_POLICY_ACCESS_PREFIX);
     test:assertTrue(rotatedFileCountAfterSize > 0, "Should have rotated when size limit reached");
 
     // Wait for time interval and generate minimal logs
@@ -137,7 +139,7 @@ function testCombinedPolicyRotation() returns error? {
     test:assertTrue(hasTerminated, "Process should be stopped successfully");
 
     // Verify time-based rotation also works
-    int rotatedFileCountAfterTime = check countRotatedFiles(COMBINED_POLICY_PREFIX);
+    int rotatedFileCountAfterTime = check countRotatedFiles(COMBINED_POLICY_ACCESS_PREFIX);
     test:assertTrue(rotatedFileCountAfterTime >= rotatedFileCountAfterSize, 
         "Should maintain or increase backup files after time interval");
 
@@ -238,8 +240,35 @@ function testZeroMaxBackupFiles() returns error? {
     test:assertTrue(fileExists(logFile), "Main log file should exist");
     
     // Verify no backup files are kept (maxBackupFiles=0)
-    int rotatedFileCount = check countRotatedFiles(ZERO_BACKUP_PREFIX);
-    test:assertTrue(rotatedFileCount == 1, "Should only have main file when maxBackupFiles=0");
+    int rotatedFileCount = check countRotatedFiles(ZERO_BACKUP_ACCESS_PREFIX);
+    test:assertTrue(rotatedFileCount == 0, "Should only have main file when maxBackupFiles=0");
+}
+
+// Zero backup files: Verify log file with util file handler
+@test:Config {
+    serialExecution: true
+}
+function testZeroMaxBackupFilesWithUtilHandler() returns error? {
+    string logFile = "./build/tmp/output/zero-backup-util.log";
+    string configFile = "tests/resources/samples/config/zero-backup-util-rotation.toml";
+    Process result = check exec(bal_exec_path, {BAL_CONFIG_FILES: configFile}, (), "run", string `${temp_dir_path}/service`);
+    runtime:sleep(10);
+
+    http:Client 'client = check new("http://localhost:9797");
+    foreach int i in 0...10 {
+        record {}[] _= check 'client->get("/albums");
+        runtime:sleep(1);
+    }
+    runtime:sleep(1);
+
+    boolean hasTerminated = result.stop();
+    runtime:sleep(1);
+    test:assertTrue(hasTerminated, "Process should be stopped successfully");
+    test:assertTrue(fileExists(logFile), "Main log file should exist");
+    
+    // Verify no backup files are kept (maxBackupFiles=0)
+    int rotatedFileCount = check countRotatedFiles(ZERO_BACKUP_UTIL_PREFIX);
+    test:assertTrue(rotatedFileCount == 0, "Should only have main file when using util handler");
 }
 
 // Invalid config: Test behavior with invalid rotation configuration values
@@ -333,4 +362,56 @@ function testInvalidFilePath() returns error? {
     test:assertTrue(logLines.length() >= 1, "Should have error logs for invalid config");
     test:assertTrue(outText.includes("error: Path must include a file name, not just a directory."), 
         "Error output should indicate configuration validation failure");
+
+    readableResult = result.stdout();
+    sc = new (readableResult, "UTF-8");
+    outText = check sc.read(100000);
+    logLines = re `\n`.split(outText.trim());
+    if logLines.length() >= 1 {
+        log:printInfo("Warning message: " + logLines[0]);
+    }
+
+    // Verify warning is printed for conflicting config
+    test:assertTrue(logLines.length() >= 1, "Should have warning logs for conflicting config");
+    test:assertTrue(outText.includes("WARNING: Conflicting configuration detected: 'file' and deprecated 'path' are configured. The 'file' configuration will be used."),
+        "Warning output should indicate conflicting configuration");
+}
+
+// Trace log rotation with combined policies: Verify that both size-based and time-based rotation work together as expected
+@test:Config {
+    serialExecution: true
+}
+function testCombinedPolicyRotationWithTraceLog() returns error? {
+    string logFile = "./build/tmp/output/combined-policy-trace.log";
+    string configFile = "tests/resources/samples/config/combined-policy-rotation-with-trace-log.toml";
+    Process result = check exec(bal_exec_path, {BAL_CONFIG_FILES: configFile}, (), "run", string `${temp_dir_path}/service`);
+    runtime:sleep(15); // Wait to up the service
+
+    http:Client 'client = check new("http://localhost:9797");
+    foreach int i in 0...9 {
+        record {}[] _= check 'client->get("/albums");
+        runtime:sleep(1);
+    }
+    runtime:sleep(1); // Wait for the service to complete requests
+
+    // Verify size-based rotation occurred first
+    int rotatedFileCountAfterSize = check countRotatedFiles(COMBINED_POLICY_TRACE_PREFIX);
+    test:assertTrue(rotatedFileCountAfterSize > 0, "Should have rotated when size limit reached");
+
+    // Wait for time interval and generate minimal logs
+    runtime:sleep(5);
+    record {}[] _= check 'client->get("/albums");
+    runtime:sleep(1);
+
+    // Stop the process
+    boolean hasTerminated = result.stop();
+    runtime:sleep(1);
+    test:assertTrue(hasTerminated, "Process should be stopped successfully");
+
+    // Verify time-based rotation also works
+    int rotatedFileCountAfterTime = check countRotatedFiles(COMBINED_POLICY_TRACE_PREFIX);
+    test:assertTrue(rotatedFileCountAfterTime >= rotatedFileCountAfterSize, 
+        "Should maintain or increase backup files after time interval");
+
+    test:assertTrue(fileExists(logFile), "Main log file should exist");
 }

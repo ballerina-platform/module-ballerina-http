@@ -38,6 +38,8 @@ import static io.ballerina.stdlib.http.testutils.nativeimpl.OSConstants.PROCESS_
  */
 public class OSUtils {
 
+    private OSUtils() {}
+
     private static final BString UNKNOWN_MESSAGE = StringUtils.fromString("Unknown Error");
 
     /**

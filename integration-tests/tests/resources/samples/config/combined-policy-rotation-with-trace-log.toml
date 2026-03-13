@@ -1,0 +1,10 @@
+[ballerina.http.traceLogAdvancedConfig]
+console = false
+
+[ballerina.http.traceLogAdvancedConfig.file]
+path = "./build/tmp/output/combined-policy-trace.log"
+
+[ballerina.http.traceLogAdvancedConfig.file.rotation]
+policy = "BOTH"  # Both size and time conditions
+maxFileSize = 100
+maxAge = 2  # 2 seconds

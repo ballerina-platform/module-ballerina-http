@@ -32,6 +32,8 @@ import java.util.stream.Collectors;
 
 public class Stop {
 
+    private Stop() {}
+
     private static final int TIMEOUT_SECONDS = 5;
 
     public static Object stop(BObject objVal) {

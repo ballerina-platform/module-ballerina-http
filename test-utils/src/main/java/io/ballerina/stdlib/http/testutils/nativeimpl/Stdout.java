@@ -19,24 +19,25 @@
 package io.ballerina.stdlib.http.testutils.nativeimpl;
 
 import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.stdlib.io.channels.AbstractNativeChannel;
+import io.ballerina.stdlib.io.channels.BlobChannel;
+import io.ballerina.stdlib.io.channels.BlobIOChannel;
 
+import java.io.InputStream;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 
 /**
- * External function for exitCode.
+ * External function for Process.stdout.
  *
  * @since 2.16.0
  */
-public class ExitCode {
+public class Stdout extends AbstractNativeChannel {
 
-    private ExitCode() {}
-
-    public static Object exitCode(BObject objVal) {
+    public static BObject stdout(BObject objVal) {
         Process process = OSUtils.processFromObject(objVal);
-        try {
-            return process.exitValue();
-        } catch (java.lang.IllegalThreadStateException e) {
-            return OSUtils.getBallerinaError(OSConstants.PROCESS_EXEC_ERROR, e);
-        }
+        InputStream in = process.getInputStream();
+        ReadableByteChannel readableByteChannel = Channels.newChannel(in);
+        return createChannel(new BlobIOChannel(new BlobChannel(readableByteChannel)));
     }
 }
-

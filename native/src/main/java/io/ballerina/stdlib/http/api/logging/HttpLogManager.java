@@ -35,6 +35,7 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
+import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
@@ -110,7 +111,7 @@ public class HttpLogManager extends LogManager {
     /**
      * Initializes the HTTP trace logger.
      */
-    public void setHttpTraceLogHandler(boolean traceLogConsole, BMap traceLogAdvancedConfig) {
+    public void setHttpTraceLogHandler(boolean traceLogConsole, BMap traceLogAdvancedConfig) throws IOException {
         if (httpTraceLogger == null) {
             // keep a reference to prevent this logger from being garbage collected
             httpTraceLogger = Logger.getLogger(HTTP_TRACE_LOG);
@@ -118,41 +119,9 @@ public class HttpLogManager extends LogManager {
         PrintStream stdErr = System.err;
         boolean traceLogsEnabled = false;
 
-        Boolean consoleLogEnabled = traceLogAdvancedConfig.getBooleanValue(HTTP_LOG_CONSOLE);
-        if (traceLogConsole || consoleLogEnabled) {
-            ConsoleHandler consoleHandler = new ConsoleHandler();
-            consoleHandler.setFormatter(new HttpTraceLogFormatter());
-            consoleHandler.setLevel(Level.FINEST);
-            httpTraceLogger.addHandler(consoleHandler);
-            traceLogsEnabled = true;
-        }
-
-        BString logFilePath = traceLogAdvancedConfig.getStringValue(HTTP_LOG_FILE_PATH);
-        if (logFilePath != null && !logFilePath.getValue().trim().isEmpty()) {
-            try {
-                FileHandler fileHandler = new FileHandler(logFilePath.getValue(), true);
-                fileHandler.setFormatter(new HttpTraceLogFormatter());
-                fileHandler.setLevel(Level.FINEST);
-                httpTraceLogger.addHandler(fileHandler);
-                traceLogsEnabled = true;
-            } catch (IOException e) {
-                throw new RuntimeException("failed to setup HTTP trace log file: " + logFilePath.getValue(), e);
-            }
-        }
-
-        BString host = traceLogAdvancedConfig.getStringValue(HTTP_TRACE_LOG_HOST);
-        Long port = traceLogAdvancedConfig.getIntValue(HTTP_TRACE_LOG_PORT);
-        if ((host != null && !host.getValue().trim().isEmpty()) && (port != null && port != 0)) {
-            try {
-                SocketHandler socketHandler = new SocketHandler(host.getValue(), port.intValue());
-                socketHandler.setFormatter(new JsonLogFormatter());
-                socketHandler.setLevel(Level.FINEST);
-                httpTraceLogger.addHandler(socketHandler);
-                traceLogsEnabled = true;
-            } catch (IOException e) {
-                throw new RuntimeException("failed to connect to " + host.getValue() + ":" + port.intValue(), e);
-            }
-        }
+        traceLogsEnabled |= setupTraceConsoleLogging(traceLogConsole, traceLogAdvancedConfig);
+        traceLogsEnabled |= setupTraceFileLogging(traceLogAdvancedConfig);
+        traceLogsEnabled |= setupTraceSocketLogging(traceLogAdvancedConfig);
 
         if (traceLogsEnabled) {
             httpTraceLogger.setLevel(Level.FINEST);
@@ -172,54 +141,9 @@ public class HttpLogManager extends LogManager {
         PrintStream stdErr = System.err;
         boolean accessLogsEnabled = false;
 
-        Boolean consoleLogEnabled = accessLogConfig.getBooleanValue(HTTP_LOG_CONSOLE);
-        if (consoleLogEnabled) {
-            ConsoleHandler consoleHandler = new ConsoleHandler();
-            consoleHandler.setFormatter(new HttpAccessLogFormatter());
-            consoleHandler.setLevel(Level.INFO);
-            httpAccessLogger.addHandler(consoleHandler);
-            httpAccessLogger.setLevel(Level.INFO);
-            accessLogsEnabled = true;
-        }
-
-        BMap fileConfig = accessLogConfig.getMapValue(HTTP_LOG_FILE_CONFIG);
-        BString filePath = accessLogConfig.getStringValue(HTTP_LOG_FILE_PATH);
-        if (fileConfig != null) {
-            filePath = fileConfig.getStringValue(HTTP_LOG_FILE_PATH);
-            BMap rotationConfig = fileConfig.getMapValue(HTTP_LOG_ROTATION);
-            if (rotationConfig != null) {
-                try {
-                    HttpRollingFileHandler fileHandler = createRollingHandler(
-                            filePath.getValue(), rotationConfig);
-                    fileHandler.setFormatter(new HttpAccessLogFormatter());
-                    fileHandler.setLevel(Level.INFO);
-                    httpAccessLogger.addHandler(fileHandler);
-                    httpAccessLogger.setLevel(Level.INFO);
-                    accessLogsEnabled = true;
-                } catch (IOException e) {
-                    throw new IOException("Failed to setup HTTP access log file handler: " + e.getMessage(), e);
-                }
-            }
-        } else if (filePath != null) {
-            try {
-                FileHandler fileHandler = new FileHandler(filePath.getValue(), true);
-                fileHandler.setFormatter(new HttpAccessLogFormatter());
-                fileHandler.setLevel(Level.INFO);
-                httpAccessLogger.addHandler(fileHandler);
-                httpAccessLogger.setLevel(Level.INFO);
-                accessLogsEnabled = true;
-            } catch (IOException e) {
-                throw new IOException("Failed to setup HTTP access log file handler: " + e.getMessage(), e);
-            }
-        }
-
-        BString logFormat = accessLogConfig.getStringValue(HTTP_LOG_FORMAT);
-        if (logFormat != null &&
-                !(logFormat.getValue().equals(HTTP_LOG_FORMAT_JSON) ||
-                        logFormat.getValue().equals(HTTP_LOG_FORMAT_FLAT))) {
-            stdErr.println("WARNING: Unsupported log format '" + logFormat.getValue() +
-                    "'. Defaulting to 'flat' format.");
-        }
+        accessLogsEnabled |= setupConsoleLogging(accessLogConfig);
+        accessLogsEnabled |= setupFileLogging(accessLogConfig);
+        validateLogFormat(accessLogConfig, stdErr);
 
         BArray logAttributes = accessLogConfig.getArrayValue(HTTP_LOG_ATTRIBUTES);
         if (logAttributes != null && logAttributes.getLength() == 0) {
@@ -245,4 +169,112 @@ public class HttpLogManager extends LogManager {
         return new HttpRollingFileHandler(path, rotationPolicy, maxSize, maxAge, maxBackup, true, "UTF-8");
     }
 
+    private boolean setupConsoleLogging(BMap accessLogConfig) {
+        Boolean consoleEnabled = accessLogConfig.getBooleanValue(HTTP_LOG_CONSOLE);
+        if (Boolean.FALSE.equals(consoleEnabled)) {
+            return false;
+        }
+        ConsoleHandler handler = new ConsoleHandler();
+        configureHandler(handler);
+        return true;
+    }
+
+    private boolean setupFileLogging(BMap accessLogConfig) throws IOException {
+        BMap fileConfig = accessLogConfig.getMapValue(HTTP_LOG_FILE_CONFIG);
+        BString filePath = accessLogConfig.getStringValue(HTTP_LOG_FILE_PATH);
+        BMap rotationConfig = null;
+        if (fileConfig != null) {
+            filePath = fileConfig.getStringValue(HTTP_LOG_FILE_PATH);
+            rotationConfig = fileConfig.getMapValue(HTTP_LOG_ROTATION);
+        }
+        if (filePath == null) {
+            return false;
+        }
+        try {
+            Handler handler = (rotationConfig != null)
+                    ? createRollingHandler(filePath.getValue(), rotationConfig)
+                    : new FileHandler(filePath.getValue(), true);
+
+            configureHandler(handler);
+            return true;
+        } catch (IOException e) {
+            throw new IOException("Failed to setup HTTP access log file handler: " + e.getMessage(), e);
+        }
+    }
+
+    private void configureHandler(Handler handler) {
+        handler.setFormatter(new HttpAccessLogFormatter());
+        handler.setLevel(Level.INFO);
+        httpAccessLogger.addHandler(handler);
+        httpAccessLogger.setLevel(Level.INFO);
+    }
+
+    private void validateLogFormat(BMap accessLogConfig, PrintStream stdErr) {
+        BString logFormat = accessLogConfig.getStringValue(HTTP_LOG_FORMAT);
+        if (logFormat != null &&
+                !(HTTP_LOG_FORMAT_JSON.equals(logFormat.getValue()) ||
+                        HTTP_LOG_FORMAT_FLAT.equals(logFormat.getValue()))) {
+
+            stdErr.println("WARNING: Unsupported log format '" + logFormat.getValue()
+                    + "'. Defaulting to 'flat' format.");
+        }
+    }
+
+    private boolean setupTraceSocketLogging(BMap config) throws IOException {
+        BString host = config.getStringValue(HTTP_TRACE_LOG_HOST);
+        Long port = config.getIntValue(HTTP_TRACE_LOG_PORT);
+
+        if (host == null || host.getValue().trim().isEmpty() || port == null || port == 0) {
+            return false;
+        }
+        try {
+            SocketHandler socketHandler = new SocketHandler(host.getValue(), port.intValue());
+            socketHandler.setFormatter(new JsonLogFormatter());
+            socketHandler.setLevel(Level.FINEST);
+            httpTraceLogger.addHandler(socketHandler);
+            return true;
+        } catch (IOException | IllegalArgumentException e) {
+            throw new IOException("Failed to connect to " + host.getValue() + ":" + port.intValue(), e);
+        }
+    }
+
+    private boolean setupTraceFileLogging(BMap config) throws IOException {
+        BMap fileConfig = config.getMapValue(HTTP_LOG_FILE_CONFIG);
+        BString filePath = config.getStringValue(HTTP_LOG_FILE_PATH);
+        BMap rotationConfig = null;
+
+        if (fileConfig != null) {
+            filePath = fileConfig.getStringValue(HTTP_LOG_FILE_PATH);
+            rotationConfig = fileConfig.getMapValue(HTTP_LOG_ROTATION);
+        }
+        if (filePath == null) {
+            return false;
+        }
+        try {
+            Handler handler = (rotationConfig != null)
+                    ? createRollingHandler(filePath.getValue(), rotationConfig)
+                    : new FileHandler(filePath.getValue(), true);
+
+            configureTraceHandler(handler);
+            return true;
+        } catch (IOException e) {
+            throw new IOException("Failed to setup HTTP trace log file handler: " + e.getMessage(), e);
+        }
+    }
+
+    private boolean setupTraceConsoleLogging(boolean traceLogConsole, BMap config) {
+        Boolean consoleEnabled = config.getBooleanValue(HTTP_LOG_CONSOLE);
+        if (!(traceLogConsole || Boolean.TRUE.equals(consoleEnabled))) {
+            return false;
+        }
+        ConsoleHandler consoleHandler = new ConsoleHandler();
+        configureTraceHandler(consoleHandler);
+        return true;
+    }
+
+    private void configureTraceHandler(Handler handler) {
+        handler.setFormatter(new HttpTraceLogFormatter());
+        handler.setLevel(Level.FINEST);
+        httpTraceLogger.addHandler(handler);
+    }
 }

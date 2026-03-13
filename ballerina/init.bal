@@ -17,19 +17,32 @@
 import ballerina/file;
 import ballerina/jballerina.java;
 import ballerina/log;
+import ballerina/io;
 
 function init() returns error? {
     setModule();
-    LogFileConfig? fileConfig = accessLogConfig.file;
-    if fileConfig is LogFileConfig {
-        check validateFilePath(fileConfig.path);
-        if fileConfig.rotation is log:RotationConfig {
-            check validateRotationConfig(<log:RotationConfig>fileConfig.rotation);
-        }
-    } else if accessLogConfig.path is string {
-        check validateFilePath(<string>accessLogConfig.path);
-    }
+    LogFileConfig? traceFileConfig = traceLogAdvancedConfig.file;
+    check validateFileOrPath(traceFileConfig, traceLogAdvancedConfig.path);
+    check validateFileOrPath(accessLogConfig.file, accessLogConfig.path);
     _ = check getInstance(traceLogConsole, traceLogAdvancedConfig, accessLogConfig);
+}
+
+isolated function validateFileOrPath(LogFileConfig? fileConfig, string? path) returns Error? {
+    if fileConfig is LogFileConfig {
+        if path is string {
+            io:fprintln(io:stdout, "WARNING: Conflicting configuration detected: 'file' and deprecated 'path' are configured. The 'file' configuration will be used.");
+        }
+        check validateLogFileConfig(fileConfig);
+    } else if path is string {
+        check validateFilePath(path);
+    }
+}
+
+isolated function validateLogFileConfig(LogFileConfig config) returns Error? {
+    check validateFilePath(config.path);
+    if config.rotation is log:RotationConfig {
+        check validateRotationConfig(<log:RotationConfig>config.rotation);
+    }
 }
 
 isolated function validateRotationConfig(log:RotationConfig config) returns Error? {
@@ -56,13 +69,17 @@ isolated function validateFilePath(string path) returns Error? {
     if path.trim().length() == 0 {
         return error Error("Invalid configuration: 'rotation' requires a valid 'path' for file logging.");
     }
-    string|error fileName = file:basename(path);
+    string normalizedPath = path.trim();
+    boolean|file:Error isDirectory = file:test(normalizedPath, file:IS_DIR);
+    if isDirectory is file:Error {
+        return error Error("Invalid path: " + isDirectory.message());
+    }
+    string|error fileName = file:basename(normalizedPath);
     // Ensure the basename is not empty
     if fileName is error {
         return error Error("Invalid path: " + fileName.message());
     }
     // Ensure the basename is not empty
-    boolean|file:Error isDirectory = file:test(fileName, file:IS_DIR);
     if fileName.trim().length() == 0 || isDirectory is true {
         return error Error("Path must include a file name, not just a directory.");
     }

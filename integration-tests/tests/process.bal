@@ -55,6 +55,16 @@ public class Process {
         return nativeStderr(self);
     }
 
+    # Provides a channel (to read from), which is made available as the 'standard out' of the process.
+    # ```ballerina
+    # io:ReadableByteChannel input = process.stdout();
+    # ```
+    #
+    # + return - The `io:ReadableByteChannel`, which represents the process's 'standard out'
+    public isolated function stdout() returns io:ReadableByteChannel {
+        return nativeStdout(self);
+    }
+
     # Stops the process
     # ```ballerina
     # boolean hasTerminated = process.stop();
@@ -85,4 +95,9 @@ isolated function nativeStop(Process process) returns boolean = @java:Method {
 isolated function nativeStderr(Process process) returns io:ReadableByteChannel = @java:Method {
     name: "stderr",
     'class: "io.ballerina.stdlib.http.testutils.nativeimpl.Stderr"
+} external;
+
+isolated function nativeStdout(Process process) returns io:ReadableByteChannel = @java:Method {
+    name: "stdout",
+    'class: "io.ballerina.stdlib.http.testutils.nativeimpl.Stdout"
 } external;
