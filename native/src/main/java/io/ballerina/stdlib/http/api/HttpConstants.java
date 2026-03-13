@@ -338,6 +338,7 @@ public final class HttpConstants {
     public static final BString HTTP_TRACE_LOG_HOST = StringUtils.fromString("host");
     public static final BString HTTP_TRACE_LOG_PORT = StringUtils.fromString("port");
     public static final BString HTTP_LOGGING_PROTOCOL = StringUtils.fromString("HTTP");
+    public static final BString HTTP_LOG_FILE_CONFIG = StringUtils.fromString("file");
 
     // AccessLog fiend names
     public static final String ATTRIBUTE_IP = "ip";

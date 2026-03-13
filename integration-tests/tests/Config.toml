@@ -1,0 +1,3 @@
+[integration_tests]
+bal_exec_path = "@exec.path@"
+temp_dir_path = "@temp.path@"
