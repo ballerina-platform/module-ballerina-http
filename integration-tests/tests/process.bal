@@ -60,7 +60,7 @@ public class Process {
     # io:ReadableByteChannel input = process.stdout();
     # ```
     #
-    # + return - The `io:ReadableByteChannel`, which represents the process's 'standard error'
+    # + return - The `io:ReadableByteChannel`, which represents the process's 'standard out'
     public isolated function stdout() returns io:ReadableByteChannel {
         return nativeStdout(self);
     }

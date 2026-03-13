@@ -233,8 +233,7 @@ public class HttpLogManager extends LogManager {
             socketHandler.setLevel(Level.FINEST);
             httpTraceLogger.addHandler(socketHandler);
             return true;
-
-        } catch (IOException e) {
+        } catch (IOException | IllegalArgumentException e) {
             throw new IOException("Failed to connect to " + host.getValue() + ":" + port.intValue(), e);
         }
     }

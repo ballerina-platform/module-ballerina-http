@@ -69,13 +69,17 @@ isolated function validateFilePath(string path) returns Error? {
     if path.trim().length() == 0 {
         return error Error("Invalid configuration: 'rotation' requires a valid 'path' for file logging.");
     }
-    string|error fileName = file:basename(path);
+    string normalizedPath = path.trim();
+    boolean|file:Error isDirectory = file:test(normalizedPath, file:IS_DIR);
+    if isDirectory is file:Error {
+        return error Error("Invalid path: " + isDirectory.message());
+    }
+    string|error fileName = file:basename(normalizedPath);
     // Ensure the basename is not empty
     if fileName is error {
         return error Error("Invalid path: " + fileName.message());
     }
     // Ensure the basename is not empty
-    boolean|file:Error isDirectory = file:test(fileName, file:IS_DIR);
     if fileName.trim().length() == 0 || isDirectory is true {
         return error Error("Path must include a file name, not just a directory.");
     }

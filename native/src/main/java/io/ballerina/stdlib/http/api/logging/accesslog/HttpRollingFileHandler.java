@@ -173,8 +173,12 @@ public class HttpRollingFileHandler extends StreamHandler {
         File file = new File(filePath);
 
         File parent = file.getParentFile();
-        if (parent != null && !parent.exists() && !parent.mkdirs()) {
-            throw new IOException("Failed to create log directory: " + parent.getAbsolutePath());
+        if (parent != null && !parent.exists()) {
+            try {
+                Files.createDirectories(parent.toPath());
+            } catch (IOException e) {
+                throw new IOException("Failed to create log directory: " + e.getMessage(), e);
+            }
         }
         acquireFileLock();
         openLogFile(append);
