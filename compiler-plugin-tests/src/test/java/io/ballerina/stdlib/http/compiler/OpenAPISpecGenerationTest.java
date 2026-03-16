@@ -144,6 +144,16 @@ public class OpenAPISpecGenerationTest {
         deleteDirectories(projectDirPath);
     }
 
+    @Test
+    public void testEndpointYamlGeneration() throws Exception {
+        Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_20");
+        executeBallerinaCommand(projectDirPath, false, true);
+        Path actualFile = projectDirPath.resolve("target/endpoint").resolve("serviceendpoint.yaml");
+        Path expectedFile = RESOURCE_DIRECTORY.resolve("../yaml_files").resolve("service_endpoint_1.yaml");
+        verifySpecContent(actualFile, expectedFile);
+        deleteDirectories(projectDirPath);
+    }
+
     public void addJavaAgents(Map<String, String> envProperties) {
         String javaOpts = "";
         String javaOptsKey = "JAVA_OPTS";
@@ -161,6 +171,11 @@ public class OpenAPISpecGenerationTest {
     }
 
     private void executeBallerinaCommand(Path projectDirPath, boolean exportOpenApi) throws Exception {
+        executeBallerinaCommand(projectDirPath, exportOpenApi, false);
+    }
+
+    private void executeBallerinaCommand(Path projectDirPath, boolean exportOpenApi,
+                                         boolean exportEndpoints) throws Exception {
         List<String> buildArgs = new ArrayList<>();
         String balFile = "bal";
         if (System.getProperty("os.name").startsWith("Windows")) {
@@ -170,6 +185,9 @@ public class OpenAPISpecGenerationTest {
         buildArgs.add(1, "build");
         if (exportOpenApi) {
             buildArgs.add(2, "--export-openapi");
+        }
+        if (exportEndpoints) {
+            buildArgs.add(2, "--export-endpoints");
         }
         ProcessBuilder pb = new ProcessBuilder(buildArgs);
         addJavaAgents(pb.environment());

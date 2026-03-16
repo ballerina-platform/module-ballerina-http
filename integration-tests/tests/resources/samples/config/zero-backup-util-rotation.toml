@@ -1,0 +1,6 @@
+[ballerina.http.accessLogConfig]
+format = "flat"
+attributes = ["ip", "date_time", "request", "status", "response_body_size", "http_referrer", "http_user_agent"]
+
+[ballerina.http.accessLogConfig.file]
+path = "./build/tmp/output/zero-backup-util.log"

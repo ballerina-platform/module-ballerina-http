@@ -25,4 +25,6 @@ module io.ballerina.stdlib.http.testutils {
     requires io.ballerina.runtime;
     requires io.netty.transport;
     requires io.ballerina.stdlib.http;
+    requires io.ballerina.stdlib.io;
+    exports io.ballerina.stdlib.http.testutils.nativeimpl;
 }

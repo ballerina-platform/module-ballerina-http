@@ -14,11 +14,75 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/file;
 import ballerina/jballerina.java;
+import ballerina/log;
+import ballerina/io;
 
-function init() {
+function init() returns error? {
     setModule();
-    _ = initializeHttpLogs(traceLogConsole, traceLogAdvancedConfig, accessLogConfig);
+    LogFileConfig? traceFileConfig = traceLogAdvancedConfig.file;
+    check validateFileOrPath(traceFileConfig, traceLogAdvancedConfig.path);
+    check validateFileOrPath(accessLogConfig.file, accessLogConfig.path);
+    _ = check getInstance(traceLogConsole, traceLogAdvancedConfig, accessLogConfig);
+}
+
+isolated function validateFileOrPath(LogFileConfig? fileConfig, string? path) returns Error? {
+    if fileConfig is LogFileConfig {
+        if path is string {
+            io:fprintln(io:stdout, "WARNING: Conflicting configuration detected: 'file' and deprecated 'path' are configured. The 'file' configuration will be used.");
+        }
+        check validateLogFileConfig(fileConfig);
+    } else if path is string {
+        check validateFilePath(path);
+    }
+}
+
+isolated function validateLogFileConfig(LogFileConfig config) returns Error? {
+    check validateFilePath(config.path);
+    if config.rotation is log:RotationConfig {
+        check validateRotationConfig(<log:RotationConfig>config.rotation);
+    }
+}
+
+isolated function validateRotationConfig(log:RotationConfig config) returns Error? {
+    log:RotationPolicy policy = config.policy;
+    int maxFileSize = config.maxFileSize;
+    int maxAge = config.maxAge;
+    int maxBackupFiles = config.maxBackupFiles;
+
+    // Validate parameters based on policy
+    if (policy == log:SIZE_BASED || policy == log:BOTH) && maxFileSize <= 0 {
+        return error Error(string `Invalid rotation configuration: maxFileSize must be positive, got: ${maxFileSize}`);
+    }
+
+    if (policy == log:TIME_BASED || policy == log:BOTH) && maxAge <= 0 {
+        return error Error(string `Invalid rotation configuration: maxAge must be positive, got: ${maxAge}`);
+    }
+
+    if maxBackupFiles < 0 {
+        return error Error(string `Invalid rotation configuration: maxBackupFiles cannot be negative, got: ${maxBackupFiles}`);
+    }
+}
+
+isolated function validateFilePath(string path) returns Error? {
+    if path.trim().length() == 0 {
+        return error Error("Invalid configuration: 'rotation' requires a valid 'path' for file logging.");
+    }
+    string normalizedPath = path.trim();
+    boolean|file:Error isDirectory = file:test(normalizedPath, file:IS_DIR);
+    if isDirectory is file:Error {
+        return error Error("Invalid path: " + isDirectory.message());
+    }
+    string|error fileName = file:basename(normalizedPath);
+    // Ensure the basename is not empty
+    if fileName is error {
+        return error Error("Invalid path: " + fileName.message());
+    }
+    // Ensure the basename is not empty
+    if fileName.trim().length() == 0 || isDirectory is true {
+        return error Error("Path must include a file name, not just a directory.");
+    }
 }
 
 function setModule() = @java:Method {

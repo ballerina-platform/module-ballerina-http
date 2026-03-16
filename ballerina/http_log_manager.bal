@@ -15,40 +15,58 @@
 // under the License.
 
 import ballerina/jballerina.java;
+import ballerina/log;
 
 // TODO: Remove this once the command line argument support is given for configurable record
 configurable boolean traceLogConsole = false;
 
 # Represents HTTP trace log configuration.
-#
-# + console - Boolean value to enable or disable console trace logs
-# + path - Optional file path to store trace logs
-# + host - Optional socket hostname to publish the trace logs
-# + port - Optional socket port to publish the trace logs
 public type TraceLogAdvancedConfiguration record {|
+    # Enable or disable console trace logs
     boolean console = false;
+    # File path to store trace logs
+    # # Deprecated
+    # This field is deprecated. Use the file configuration instead.
+    @deprecated
     string path?;
+    # Socket hostname to publish the trace logs
     string host?;
+    # Socket port to publish the trace logs
     int port?;
+    # Log file configuration to store trace logs
+    LogFileConfig file?;
 |};
 
 # Represents HTTP access log configuration.
-#
-# + console - Boolean value to enable or disable console access logs
-# + format - The format of access logs to be printed (either `flat` or `json`)
-# + attributes - The list of attributes of access logs to be printed
-# + path - Optional file path to store access logs
 public type AccessLogConfiguration record {|
+    # Enable or disable console access logs
     boolean console = false;
+    # The format of access logs to be printed (either `flat` or `json`)
     string format = "flat";
+    # The list of attributes of access logs to be printed
     string[] attributes?;
+    # File path to store access logs
+    # # Deprecated
+    # This field is deprecated. Use the file configuration instead.
+    @deprecated
     string path?;
+    # Log file configuration to store access logs
+    LogFileConfig file?;
+|};
+
+# Represents HTTP access log file configuration.
+#
+# + path - The file path to store access logs
+# + rotation - The log rotation configuration for file destinations
+public type LogFileConfig record {|
+    string path;
+    log:RotationConfig rotation?;
 |};
 
 configurable TraceLogAdvancedConfiguration traceLogAdvancedConfig = {};
 configurable AccessLogConfiguration accessLogConfig = {};
 
-isolated function initializeHttpLogs(boolean traceLogConsole, TraceLogAdvancedConfiguration traceLogAdvancedConfig,
-AccessLogConfiguration accessLogConfig, string protocol = "HTTP") returns handle = @java:Constructor {
+isolated function getInstance(boolean traceLogConsole, TraceLogAdvancedConfiguration traceLogAdvancedConfig,
+AccessLogConfiguration accessLogConfig, string protocol = "HTTP") returns handle|error = @java:Method {
     'class: "io.ballerina.stdlib.http.api.logging.HttpLogManager"
 } external;

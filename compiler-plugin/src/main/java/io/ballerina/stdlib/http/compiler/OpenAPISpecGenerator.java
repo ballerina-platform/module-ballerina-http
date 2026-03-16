@@ -89,7 +89,6 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
     private static final String ENDPOINT = "endpoint";
     private static final String ENDPOINT_SUFFIX = "_endpoint";
     private static final String ARTIFACT = "artifact";
-
     private static final String UNDERSCORE = "_";
 
     static void setIsWarningPrinted() {
