@@ -24,4 +24,6 @@ module io.ballerina.stdlib.http.compiler {
     requires io.swagger.v3.oas.models;
     requires io.ballerina.openapi.service;
     requires io.ballerina.scan;
+    requires com.fasterxml.jackson.dataformat.yaml;
+    requires com.fasterxml.jackson.databind;
 }
