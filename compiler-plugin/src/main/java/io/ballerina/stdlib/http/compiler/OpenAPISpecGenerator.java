@@ -115,10 +115,19 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
         SyntaxTree syntaxTree = context.syntaxTree();
         Package currentPackage = context.currentPackage();
         Project project = currentPackage.project();
+
         BuildOptions buildOptions = project.buildOptions();
-        if (!buildOptions.exportOpenAPI() && !buildOptions.exportEndpoints()) {
-            return;
-        }
+        boolean isExportEndpoints = false;
+        
+        // Ensure backward compatibility with older ballerina-lang versions
+        try {
+            isExportEndpoints = buildOptions.exportEndpoints();
+            boolean isExportOpenAPI = buildOptions.exportOpenAPI();
+            if (!isExportOpenAPI && !isExportEndpoints) {
+                return;
+            }
+        } catch (Throwable e) { }
+
         boolean hasErrors = context.compilation().diagnosticResult()
                 .diagnostics().stream()
                 .anyMatch(d -> DiagnosticSeverity.ERROR.equals(d.diagnosticInfo().severity()));
@@ -159,7 +168,7 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
                     serviceBasePath.append(identifierNode.toString().replace("\"", "").trim());
                 }
 
-                if (buildOptions.exportEndpoints()) {
+                if (isExportEndpoints) {
                     oasResult.setServiceName(constructFileName(
                             syntaxTree,
                             services,
@@ -168,6 +177,7 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
 
                     writeEndpointYaml(outPath, oasResult, diagnostics, serviceBasePath.toString());
                 }
+
                 oasResult.setServiceName(constructFileName(
                         syntaxTree,
                         services,
