@@ -720,3 +720,101 @@ function testListenerOAuth2HandlerAuthnFailure() {
         test:assertEquals(auth2?.body, "Authorization header not available.");
     }
 }
+
+@test:Config {}
+isolated function testListenerFileUserStoreBasicAuthHandlerAllScopesMatchSuccess() {
+    http:ListenerFileUserStoreBasicAuthHandler handler = new;
+    string basicAuthToken = "YWxpY2U6eHh4";
+    string headerValue = http:AUTH_SCHEME_BASIC + " " + basicAuthToken;
+    auth:UserDetails|http:Unauthorized authn = handler.authenticate(headerValue);
+    if authn is auth:UserDetails {
+        test:assertEquals(authn?.scopes, ["write", "update"]);
+    } else {
+        test:assertFail("Test Failed!");
+    }
+
+    http:Forbidden? authz = handler.authorize(<auth:UserDetails>authn, ["write", "update"]);
+    if authz is http:Forbidden {
+        test:assertFail("Test Failed! All required scopes are present but authorization failed.");
+    }
+}
+
+@test:Config {}
+isolated function testListenerFileUserStoreBasicAuthHandlerPartialScopeMatchFailure() {
+    http:ListenerFileUserStoreBasicAuthHandler handler = new;
+    string basicAuthToken = "YWxpY2U6eHh4";
+    string headerValue = http:AUTH_SCHEME_BASIC + " " + basicAuthToken;
+    auth:UserDetails|http:Unauthorized authn = handler.authenticate(headerValue);
+    if authn is auth:UserDetails {
+        test:assertEquals(authn?.scopes, ["write", "update"]);
+    } else {
+        test:assertFail("Test Failed!");
+    }
+
+    http:Forbidden? authz = handler.authorize(<auth:UserDetails>authn, ["write", "admin"]);
+    if authz is () {
+        test:assertFail("Test Failed! Expected authorization failure when a required scope is missing.");
+    }
+}
+
+@test:Config {}
+isolated function testListenerJwtAuthHandlerMultipleScopesSubsetSuccess() {
+    http:JwtValidatorConfig config = {
+        issuer: "wso2",
+        audience: "ballerina",
+        signatureConfig: {
+            trustStoreConfig: {
+                trustStore: {
+                    path: TRUSTSTORE_PATH,
+                    password: "ballerina"
+                },
+                certAlias: "ballerina"
+            }
+        },
+        scopeKey: "scp"
+    };
+    http:ListenerJwtAuthHandler handler = new(config);
+    string headerValue = http:AUTH_SCHEME_BEARER + " " + JWT1_1;
+    jwt:Payload|http:Unauthorized authn = handler.authenticate(headerValue);
+    if authn is jwt:Payload {
+        test:assertEquals(authn["scp"], "read write update");
+    } else {
+        test:assertFail("Test Failed!");
+    }
+
+    http:Forbidden? authz = handler.authorize(<jwt:Payload>authn, ["write", "update"]);
+    if authz is http:Forbidden {
+        test:assertFail("Test Failed! All required scopes are present but authorization failed.");
+    }
+}
+
+@test:Config {}
+isolated function testListenerJwtAuthHandlerSingleActualScopeMultipleExpectedFailure() {
+    http:JwtValidatorConfig config = {
+        issuer: "wso2",
+        audience: "ballerina",
+        signatureConfig: {
+            trustStoreConfig: {
+                trustStore: {
+                    path: TRUSTSTORE_PATH,
+                    password: "ballerina"
+                },
+                certAlias: "ballerina"
+            }
+        },
+        scopeKey: "scp"
+    };
+    http:ListenerJwtAuthHandler handler = new(config);
+    string headerValue = http:AUTH_SCHEME_BEARER + " " + JWT1;
+    jwt:Payload|http:Unauthorized authn = handler.authenticate(headerValue);
+    if authn is jwt:Payload {
+        test:assertEquals(authn["scp"], "write");
+    } else {
+        test:assertFail("Test Failed!");
+    }
+
+    http:Forbidden? authz = handler.authorize(<jwt:Payload>authn, ["write", "update"]);
+    if authz is () {
+        test:assertFail("Test Failed! Expected authorization failure when a required scope is missing.");
+    }
+}
