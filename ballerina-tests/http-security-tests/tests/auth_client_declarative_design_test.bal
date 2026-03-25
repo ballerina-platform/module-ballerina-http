@@ -42,7 +42,7 @@ final http:Client declarativeClientEP = check new("https://localhost:" + secured
         audience: ["ballerina"],
         jwtId: "100078234ba23",
         keyId: "NTAxZmMxNDMyZDg3MTU1ZGM0MzEzODJhZWI4NDNlZDU1OGFkNjFiMQ",
-        customClaims: { "scp": "write" },
+        customClaims: { "scp": "write update" },
         signatureConfig: {
             config: {
                 keyStore: {

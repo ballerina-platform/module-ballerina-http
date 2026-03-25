@@ -75,9 +75,6 @@ service /imperative on authListener {
 
 @test:Config {}
 function testImperativeAuthSuccess() {
-    assertSuccess(sendBearerTokenRequest("/imperative/foo", JWT1));
-    assertSuccess(sendBearerTokenRequest("/imperative/bar", JWT1));
-    assertSuccess(sendBearerTokenRequest("/imperative/baz", JWT1));
     assertSuccess(sendBearerTokenRequest("/imperative/foo", JWT1_1));
     assertSuccess(sendBearerTokenRequest("/imperative/bar", JWT1_1));
     assertSuccess(sendBearerTokenRequest("/imperative/baz", JWT1_1));
@@ -88,6 +85,9 @@ function testImperativeAuthSuccess() {
 
 @test:Config {}
 function testImperativeAuthzFailure() {
+    assertForbidden(sendBearerTokenRequest("/imperative/foo", JWT1));
+    assertForbidden(sendBearerTokenRequest("/imperative/bar", JWT1));
+    assertForbidden(sendBearerTokenRequest("/imperative/baz", JWT1));
     assertForbidden(sendBearerTokenRequest("/imperative/foo", JWT2));
     assertForbidden(sendBearerTokenRequest("/imperative/bar", JWT2));
     assertForbidden(sendBearerTokenRequest("/imperative/baz", JWT2));
