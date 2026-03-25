@@ -95,7 +95,7 @@ isolated function extractAuthorizationHeader(Request|Headers|string data) return
     }
 }
 
-// Match the expectedScopes with actualScopes and return if there is a match.
+// Match the expectedScopes with actualScopes and return if expectedScopes is a subset of actualScopes.
 isolated function matchScopes(string|string[] actualScopes, string|string[] expectedScopes) returns boolean {
     if expectedScopes is string {
         if actualScopes is string {
@@ -110,18 +110,29 @@ isolated function matchScopes(string|string[] actualScopes, string|string[] expe
     } else {
         if actualScopes is string {
             foreach string expectedScope in expectedScopes {
-                if actualScopes == expectedScope {
-                    return true;
+                if actualScopes != expectedScope {
+                    log:printDebug("Failed to match the scopes. Expected '" + expectedScopes.toString() +
+                                   "', but found '" + actualScopes.toString() + "'");
+                    return false;
                 }
             }
+            return true;
         } else {
-            foreach string actualScope in actualScopes {
-                foreach string expectedScope in expectedScopes {
+            foreach string expectedScope in expectedScopes {
+                boolean found = false;
+                foreach string actualScope in actualScopes {
                     if actualScope == expectedScope {
-                        return true;
+                        found = true;
+                        break;
                     }
                 }
+                if !found {
+                    log:printDebug("Failed to match the scopes. Expected '" + expectedScopes.toString() +
+                                   "', but found '" + actualScopes.toString() + "'");
+                    return false;
+                }
             }
+            return true;
         }
     }
     log:printDebug("Failed to match the scopes. Expected '" + expectedScopes.toString() + "', but found '" +

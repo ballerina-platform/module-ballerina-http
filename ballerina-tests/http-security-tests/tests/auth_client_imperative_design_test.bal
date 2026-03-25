@@ -46,7 +46,7 @@ final http:Client imperativeClientEP = check new("https://localhost:" + securedL
 @test:Config {}
 function testImperativeEnrichRequest() returns error? {
     http:BearerTokenConfig config = {
-        token: JWT1
+        token: JWT1_1
     };
     http:ClientBearerTokenAuthHandler handler = new(config);
     http:Request request = createDummyRequest();
@@ -58,7 +58,7 @@ function testImperativeEnrichRequest() returns error? {
 @test:Config {}
 function testImperativeEnrichHeaders() returns error? {
     http:BearerTokenConfig config = {
-        token: JWT1
+        token: JWT1_1
     };
     http:ClientBearerTokenAuthHandler handler = new(config);
     map<string|string[]> headers = {};
@@ -72,7 +72,7 @@ function testImperativeEnrichHeaders() returns error? {
 @test:Config {}
 function testImperativeGetSecurityHeaders() returns error? {
     http:BearerTokenConfig config = {
-        token: JWT1
+        token: JWT1_1
     };
     http:ClientBearerTokenAuthHandler handler = new(config);
     map<string|string[]> result = check handler.getSecurityHeaders();
