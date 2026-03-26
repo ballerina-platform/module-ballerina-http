@@ -26,4 +26,6 @@ module io.ballerina.stdlib.http.compiler {
     requires io.ballerina.scan;
     requires com.fasterxml.jackson.dataformat.yaml;
     requires com.fasterxml.jackson.databind;
+    requires java.logging;
+    requires io.ballerina.runtime;
 }

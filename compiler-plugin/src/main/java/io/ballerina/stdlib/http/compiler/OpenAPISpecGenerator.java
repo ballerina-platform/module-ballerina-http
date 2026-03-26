@@ -18,9 +18,6 @@
 
 package io.ballerina.stdlib.http.compiler;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ServiceDeclarationSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
@@ -46,6 +43,7 @@ import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.plugins.AnalysisTask;
 import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
+import io.ballerina.stdlib.http.compiler.endpointyaml.generator.EndpointYamlGenerator;
 import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.diagnostics.DiagnosticFactory;
 import io.ballerina.tools.diagnostics.DiagnosticInfo;
@@ -54,15 +52,9 @@ import io.ballerina.tools.diagnostics.Location;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextRange;
-import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.servers.Server;
-import io.swagger.v3.oas.models.servers.ServerVariables;
 
 import java.io.IOException;
 import java.io.PrintStream;
-import java.io.Writer;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -118,15 +110,20 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
 
         BuildOptions buildOptions = project.buildOptions();
         boolean isExportEndpoints = false;
-        
+
         // Ensure backward compatibility with older ballerina-lang versions
         try {
             isExportEndpoints = buildOptions.exportEndpoints();
-            boolean isExportOpenAPI = buildOptions.exportOpenAPI();
-            if (!isExportOpenAPI && !isExportEndpoints) {
+            if (!isExportEndpoints) {
                 return;
             }
-        } catch (Throwable e) { }
+        } catch (Throwable e) {
+            System.out.println(e.getMessage());
+        }
+
+        if (!buildOptions.exportOpenAPI() && !isExportEndpoints) {
+            return;
+        }
 
         boolean hasErrors = context.compilation().diagnosticResult()
                 .diagnostics().stream()
@@ -161,22 +158,6 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
                         .setOpenApiFileName(services.get(serviceSymbol.get().hashCode()))
                         .setBallerinaFilePath(inputPath).setProject(project);
                 OASResult oasResult = ServiceToOpenAPIMapper.generateOAS(builder.build());
-                StringBuilder serviceBasePath = new StringBuilder();
-                NodeList<Node> resourcePathNode = serviceNode.absoluteResourcePath();
-
-                for (Node identifierNode : resourcePathNode) {
-                    serviceBasePath.append(identifierNode.toString().replace("\"", "").trim());
-                }
-
-                if (isExportEndpoints) {
-                    oasResult.setServiceName(constructFileName(
-                            syntaxTree,
-                            services,
-                            true,
-                            serviceSymbol.get()));
-
-                    writeEndpointYaml(outPath, oasResult, diagnostics, serviceBasePath.toString());
-                }
 
                 oasResult.setServiceName(constructFileName(
                         syntaxTree,
@@ -185,6 +166,12 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
                         serviceSymbol.get()));
 
                 writeOpenAPIYaml(outPath, oasResult, diagnostics);
+
+                if (buildOptions.exportEndpoints()){
+                    EndpointYamlGenerator endpointYamlGeneratorHttp = new EndpointYamlGenerator(serviceNode, context);
+                    endpointYamlGeneratorHttp.setSchemaExtension("_openapi.yaml");
+                    endpointYamlGeneratorHttp.writeEndpointYaml();
+                }
             }
         }
         if (!diagnostics.isEmpty()) {
@@ -264,84 +251,6 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
         }
     }
 
-    public static Endpoint getEndpointYamlContent(Server server, String serviceBasePath, String schemaFile) {
-        ServerVariables vars = server != null ? server.getVariables() : null;
-
-        String port = "";
-        String type = "http";
-        if (vars != null && vars.get("port") != null && vars.get("port").getDefault() != null) {
-            port = vars.get("port").getDefault();
-        }
-        if (server != null && server.getUrl() != null && !server.getUrl().isBlank()) {
-            try {
-                URI serverUri = new URI(server.getUrl().replace("{port}", "80"));
-                if (serverUri.getScheme() != null && !serverUri.getScheme().isBlank()) {
-                    type = serverUri.getScheme();
-                }
-                if (port.isBlank() && serverUri.getPort() > 0) {
-                    port = String.valueOf(serverUri.getPort());
-                }
-            } catch (URISyntaxException ignored) {
-                // Ignore malformed URLs and keep defaults.
-            }
-        }
-        String basePath = serviceBasePath;
-
-        Endpoint ep = new Endpoint(port, basePath, type, schemaFile);
-        return ep;
-    }
-
-    private static void writeEndpointYaml(Path outPath, OASResult oasResult,
-                                          List<Diagnostic> diagnostics, String serviceBasePath) {
-
-        try {
-            Files.createDirectories(Paths.get(outPath + OAS_PATH_SEPARATOR + ARTIFACT));
-            String serviceName = oasResult.getServiceName();
-            String fileName = resolveContractFileName(outPath.resolve(ARTIFACT),
-                    serviceName, false);
-            List<Server> servers = oasResult.getOpenAPI().map(OpenAPI::getServers).orElse(new ArrayList<>());
-            Path path = outPath.resolve(ARTIFACT + OAS_PATH_SEPARATOR + fileName);
-            if (servers == null || servers.isEmpty()) {
-                Endpoint endpoint = new Endpoint("", serviceBasePath, "http", fileName);
-                EndpointWrapper wrapper = new EndpointWrapper(endpoint);
-                YAMLFactory yamlFactory = YAMLFactory.builder()
-                        .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
-                        .build();
-
-                ObjectMapper mapper = new ObjectMapper(yamlFactory);
-                mapper.findAndRegisterModules();
-
-                try (Writer writer = Files.newBufferedWriter(path)) {
-                    mapper.writeValue(writer, wrapper);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            } else {
-                for (Server server : servers) {
-                Endpoint endpoint = getEndpointYamlContent(server, serviceBasePath, fileName);
-                EndpointWrapper wrapper = new EndpointWrapper(endpoint);
-                YAMLFactory yamlFactory = YAMLFactory.builder()
-                        .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
-                        .build();
-
-                ObjectMapper mapper = new ObjectMapper(yamlFactory);
-                mapper.findAndRegisterModules();
-
-                try (Writer writer = Files.newBufferedWriter(path)) {
-                    mapper.writeValue(writer, wrapper);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            }
-
-        } catch (IOException e) {
-            ExceptionDiagnostic diagnostic = new ExceptionDiagnostic(DiagnosticMessages.OAS_CONVERTOR_108,
-                    e.toString());
-            diagnostics.add(getDiagnostics(diagnostic));
-        }
-
-    }
 
     public static Diagnostic getDiagnostics(OpenAPIMapperDiagnostic diagnostic) {
         DiagnosticInfo diagnosticInfo = new DiagnosticInfo(diagnostic.getCode(), diagnostic.getMessage(),
