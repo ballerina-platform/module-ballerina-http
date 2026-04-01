@@ -17,7 +17,6 @@ import io.ballerina.compiler.syntax.tree.ListenerDeclarationNode;
 import io.ballerina.compiler.syntax.tree.NamedArgumentNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeParser;
-import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.ParenthesizedArgList;
 import io.ballerina.compiler.syntax.tree.PositionalArgumentNode;
 import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
@@ -34,14 +33,17 @@ import io.ballerina.tools.diagnostics.DiagnosticInfo;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
-import static io.ballerina.stdlib.http.compiler.endpointyaml.generator.FileNameGeneratorUtil.resolveContractFileName;
-
+import static io.ballerina.openapi.service.mapper.utils.CodegenUtils.resolveContractFileName;
 
 public class EndpointYamlGenerator {
     private final ServiceDeclarationNode node;
@@ -53,11 +55,16 @@ public class EndpointYamlGenerator {
     private Map<String, ModuleMemberVisitor> moduleVisitors = new LinkedHashMap<>();
     final PackageMemberVisitor packageMemberVisitor = new PackageMemberVisitor();
     private final FileNameGeneratorUtil fileNameGeneratorUtil;
+    private final PrintStream outStream = System.out;
 
     private static final String ARTIFACT = "artifact";
+    private static final String REST = "REST";
+    private static final String TARGET = "target";
     private static final String YAML_EXTENSTION = ".yaml";
+    private static final String OPENAPI_SUFFIX = "_openapi";
+    private static final String ENDPOINT_SUFFIX = "_endpoint";
     private String schemaExtension = "";
-    private String type = "";
+    private String type;
 
     private record ListenerInfo(Optional<ParenthesizedArgList> argList, String type) {
     }
@@ -88,24 +95,21 @@ public class EndpointYamlGenerator {
     }
 
     private void ensureModuleVisited(String moduleName) {
-        if (!packageMemberVisitor.isModuleVisited(moduleName)) {
-            moduleVisitors = packageMemberVisitor.createModuleVisitor(moduleName, context.semanticModel());
-            ModuleMemberVisitor moduleMemberVisitor = moduleVisitors.get(moduleName);
-            packageMemberVisitor.setModuleVisitors(moduleVisitors);
+        moduleVisitors = packageMemberVisitor.createModuleVisitor(moduleName, context.semanticModel());
+        ModuleMemberVisitor moduleMemberVisitor = moduleVisitors.get(moduleName);
+        packageMemberVisitor.setModuleVisitors(moduleVisitors);
 
-            context.currentPackage()
-                    .module(context.moduleId())
-                    .documentIds()
-                    .forEach(docId -> {
-                        SyntaxTree tree = context.currentPackage()
-                                .module(context.moduleId())
-                                .document(docId)
-                                .syntaxTree();
-                        tree.rootNode().accept(moduleMemberVisitor);
-                    });
+        context.currentPackage()
+                .module(context.moduleId())
+                .documentIds()
+                .forEach(docId -> {
+                    SyntaxTree tree = context.currentPackage()
+                            .module(context.moduleId())
+                            .document(docId)
+                            .syntaxTree();
+                    tree.rootNode().accept(moduleMemberVisitor);
+                });
 
-            packageMemberVisitor.markModuleVisited(moduleName);
-        }
     }
 
     private ListenerInfo resolveListenerInfo(String moduleName) {
@@ -119,17 +123,11 @@ public class EndpointYamlGenerator {
                 ExplicitNewExpressionNode explicit = (ExplicitNewExpressionNode) expr;
                 argList = Optional.ofNullable(explicit.parenthesizedArgList());
                 this.type = extractTypeFromExplicitNew();
-                continue;
-            }
-
-            if (expr.kind().equals(SyntaxKind.IMPLICIT_NEW_EXPRESSION)) {
+            } else if (expr.kind().equals(SyntaxKind.IMPLICIT_NEW_EXPRESSION)) {
                 ImplicitNewExpressionNode implicit = (ImplicitNewExpressionNode) expr;
                 argList = implicit.parenthesizedArgList();
                 this.type = extractTypeFromSymbol(semanticModel, expr);
-                continue;
-            }
-
-            if (isNameReference(expr)) {
+            } else if (isNameReference(expr)) {
                 ListenerResolution resolution = resolveNamedListener(expr, moduleName, semanticModel);
                 argList = resolution.argList();
                 this.type = resolution.type();
@@ -240,13 +238,12 @@ public class EndpointYamlGenerator {
     private void resolvePortFromNamedArgs(SeparatedNodeList<FunctionArgumentNode> arguments, int startIndex) {
         for (int i = startIndex; i < arguments.size(); i++) {
             FunctionArgumentNode arg = arguments.get(i);
-            if (arg instanceof NamedArgumentNode namedArg) {
-                if (namedArg.argumentName().toString().trim().equals("port")) {
-                    String portValue = getPortValue(namedArg.expression(), context.semanticModel(), context)
+            if (arg instanceof NamedArgumentNode namedArg &&
+                    namedArg.argumentName().toString().trim().equals("port")) {
+                String portValue = getPortValue(namedArg.expression(), context.semanticModel(), context)
                             .orElse(null);
-                    if (portValue != null) {
-                        port = Integer.parseInt(portValue);
-                    }
+                if (portValue != null) {
+                    port = Integer.parseInt(portValue);
                 }
             }
         }
@@ -261,41 +258,40 @@ public class EndpointYamlGenerator {
     }
 
     private String normalizeType(String rawType) {
-        return switch (rawType) {
-            case "http", "https" -> "REST";
-            case "graphql" -> "GraphQL";
-            case "grpc" -> "GRPC";
-            default -> rawType;
-        };
+        if (rawType.equals("http") || rawType.equals("https")) {
+            return REST;
+        } else {
+            return rawType;
+        }
     }
 
-    public void writeEndpointYaml() {
+    public void writeEndpointYaml() throws IOException {
         Endpoint ep = getEndpoint();
         Path outPath = resolveOutputPath();
         String fileName = buildEndpointFileName(outPath);
-        Path path = outPath.resolve(ARTIFACT + "/" + fileName + YAML_EXTENSTION);
+        Path path = Paths.get(TARGET, ARTIFACT, fileName + YAML_EXTENSTION).toAbsolutePath();
         writeYaml(path, new EndpointWrapper(ep));
     }
 
-    private Path resolveOutputPath() {
+    private Path resolveOutputPath() throws IOException {
         Package currentPackage = this.context.currentPackage();
         Project project = currentPackage.project();
         Path outPath = project.targetDir();
 
         try {
-            Files.createDirectories(Paths.get(outPath + "/" + ARTIFACT));
+            Files.createDirectories(Paths.get(String.valueOf(outPath), ARTIFACT));
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            outStream.println(e.getMessage());
         }
         return outPath;
     }
 
     private String buildEndpointFileName(Path outPath) {
         String base;
-        if (this.type.equals("REST")){
-            base = schemaFileName.split("\\.")[0].replace("_openapi", "_endpoint");
+        if (this.type.equals(REST)) {
+            base = schemaFileName.split("\\.")[0].replace(OPENAPI_SUFFIX, ENDPOINT_SUFFIX);
         } else {
-            base = schemaFileName.split("\\.")[0]+ "_endpoint";
+            base = schemaFileName.split("\\.")[0] + ENDPOINT_SUFFIX;
         }
         return resolveContractFileName(outPath.resolve(ARTIFACT), base, false);
     }
@@ -310,7 +306,7 @@ public class EndpointYamlGenerator {
         try (Writer writer = Files.newBufferedWriter(path)) {
             mapper.writeValue(writer, wrapper);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            outStream.println(e.getMessage());
         }
     }
 
@@ -319,7 +315,7 @@ public class EndpointYamlGenerator {
         return getPortValue(expression, false, semanticModel, context);
     }
 
-    private Optional<String> getPortValue(ExpressionNode expression, boolean parentIsConfigurable,
+    private Optional<String> getPortValue(ExpressionNode expression, boolean isConfigurablePort,
                                           SemanticModel semanticModel, SyntaxNodeAnalysisContext context) {
         if (expression.kind().equals(SyntaxKind.NUMERIC_LITERAL)) {
             return resolveNumericLiteral(expression);
@@ -327,7 +323,7 @@ public class EndpointYamlGenerator {
         if (!isNameReference(expression)) {
             return Optional.empty();
         }
-        return resolvePortFromVariable(expression, semanticModel, context);
+        return resolvePortFromVariable(expression, semanticModel, context, isConfigurablePort);
     }
 
     private Optional<String> resolveNumericLiteral(ExpressionNode expression) {
@@ -337,7 +333,7 @@ public class EndpointYamlGenerator {
 
     private Optional<String> resolvePortFromVariable(ExpressionNode expression,
                                                      SemanticModel semanticModel,
-                                                     SyntaxNodeAnalysisContext context) {
+                                                     SyntaxNodeAnalysisContext context, boolean isConfigurablePort) {
         String moduleName = getModuleName(semanticModel, expression);
         String portVariableName = extractVariableName(expression);
 
@@ -348,15 +344,15 @@ public class EndpointYamlGenerator {
             return Optional.empty();
         }
 
-        ModuleMemberVisitor.VariableDeclaredValue var = varOpt.get();
-        String portValueSource = String.valueOf(var.value());
+        ModuleMemberVisitor.VariableDeclaredValue varVal = varOpt.get();
+        String portValueSource = String.valueOf(varVal.value());
         ExpressionNode portExpr = portValueSource.isEmpty() ? null : NodeParser.parseExpression(portValueSource);
 
         if (portExpr == null || portExpr.isMissing()) {
             return Optional.empty();
         }
 
-        return resolvePortExpression(portExpr, var.isConfigurable(), semanticModel, context);
+        return resolvePortExpression(portExpr, varVal.isConfigurable(), isConfigurablePort, semanticModel, context);
     }
 
     private String extractVariableName(ExpressionNode expression) {
@@ -367,11 +363,15 @@ public class EndpointYamlGenerator {
     }
 
     private Optional<String> resolvePortExpression(ExpressionNode portExpr, boolean isConfigurable,
+                                                   boolean isConfigurablePort,
                                                    SemanticModel semanticModel,
                                                    SyntaxNodeAnalysisContext context) {
         if (portExpr.kind().equals(SyntaxKind.REQUIRED_EXPRESSION)) {
             reportMissingPortConfigDiagnostic(context);
             return Optional.empty();
+        }
+        if (isConfigurable || isConfigurablePort) {
+            reportDefualtPortConfigDiagnostic(context);
         }
         if (portExpr.kind().equals(SyntaxKind.NUMERIC_LITERAL)) {
             return resolveNumericLiteral(portExpr);
@@ -389,6 +389,16 @@ public class EndpointYamlGenerator {
         context.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, context.node().location()));
     }
 
+    private void reportDefualtPortConfigDiagnostic(SyntaxNodeAnalysisContext context) {
+        DiagnosticInfo diagnosticInfo = new DiagnosticInfo(
+                "PORT_CONFIGURATION_BEING_NULL",
+                "The server port is defined as a configurable. Hence," +
+                        "using the default value to generate the server information",
+                DiagnosticSeverity.WARNING
+        );
+        context.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, context.node().location()));
+    }
+
 
     public void setSchemaExtension(String schemaExtension) {
         this.schemaExtension = schemaExtension;
@@ -396,7 +406,7 @@ public class EndpointYamlGenerator {
 
     public static String unescapeIdentifier(String parameterName) {
         String unescapedParamName = IdentifierUtils.unescapeBallerina(parameterName);
-        return unescapedParamName.replaceAll("\\\\", "").replaceAll("'", "");
+        return unescapedParamName.replace("\\\\", "").replace("'", "");
     }
 
     public static String getModuleName(SemanticModel semanticModel, Node node) {

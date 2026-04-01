@@ -25,12 +25,6 @@ public class PackageMemberVisitor extends NodeVisitor {
 
     private Map<String, ModuleMemberVisitor> moduleVisitors = new LinkedHashMap<>();
 
-    public boolean isModuleVisited(String moduleName) {
-        return false;
-    };
-
-    public void markModuleVisited(String moduleName){};
-
     public void setModuleVisitors(Map<String, ModuleMemberVisitor> moduleVisitors) {
         this.moduleVisitors = new LinkedHashMap<>(moduleVisitors);
     }

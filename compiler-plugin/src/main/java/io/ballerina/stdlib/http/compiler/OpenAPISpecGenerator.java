@@ -21,11 +21,7 @@ package io.ballerina.stdlib.http.compiler;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ServiceDeclarationSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
-import io.ballerina.compiler.syntax.tree.ModulePartNode;
-import io.ballerina.compiler.syntax.tree.Node;
-import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
-import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.openapi.service.mapper.ServiceToOpenAPIMapper;
 import io.ballerina.openapi.service.mapper.diagnostic.DiagnosticMessages;
@@ -73,15 +69,15 @@ import static io.ballerina.openapi.service.mapper.utils.CodegenUtils.writeFile;
 import static io.ballerina.openapi.service.mapper.utils.MapperCommonUtils.containErrors;
 import static io.ballerina.openapi.service.mapper.utils.MapperCommonUtils.getNormalizedFileName;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.getServiceDeclarationNode;
+import static io.ballerina.stdlib.http.compiler.endpointyaml.generator.FileNameGeneratorUtil.extractServiceNodes;
 
 public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisContext> {
     private static boolean isErrorPrinted = false;
     private static final String OAS_PATH_SEPARATOR = "/";
-    private static final String OPENAPI = "openapi";
-    private static final String ENDPOINT = "endpoint";
-    private static final String ENDPOINT_SUFFIX = "_endpoint";
+    private static final String OPENAPI = "_openapi";
     private static final String ARTIFACT = "artifact";
     private static final String UNDERSCORE = "_";
+    private PrintStream outStream = System.out;
 
     static void setIsWarningPrinted() {
         OpenAPISpecGenerator.isErrorPrinted = true;
@@ -107,7 +103,6 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
         SyntaxTree syntaxTree = context.syntaxTree();
         Package currentPackage = context.currentPackage();
         Project project = currentPackage.project();
-
         BuildOptions buildOptions = project.buildOptions();
         boolean isExportEndpoints = false;
 
@@ -118,7 +113,7 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
                 return;
             }
         } catch (Throwable e) {
-            System.out.println(e.getMessage());
+            outStream.println(e.getMessage());
         }
 
         if (!buildOptions.exportOpenAPI() && !isExportEndpoints) {
@@ -132,7 +127,6 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
         if (hasErrors) {
             if (!isErrorPrinted) {
                 setIsWarningPrinted();
-                PrintStream outStream = System.out;
                 outStream.println("openapi contract generation is skipped because of the following compilation " +
                         "error(s) in the ballerina package:");
             }
@@ -162,21 +156,33 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
                 oasResult.setServiceName(constructFileName(
                         syntaxTree,
                         services,
-                        false,
                         serviceSymbol.get()));
 
                 writeOpenAPIYaml(outPath, oasResult, diagnostics);
-
-                if (buildOptions.exportEndpoints()){
-                    EndpointYamlGenerator endpointYamlGeneratorHttp = new EndpointYamlGenerator(serviceNode, context);
-                    endpointYamlGeneratorHttp.setSchemaExtension("_openapi.yaml");
-                    endpointYamlGeneratorHttp.writeEndpointYaml();
+                try {
+                    exportEndpointYaml(serviceNode, context, isExportEndpoints);
+                } catch (IOException e) {
+                    outStream.println(e.getMessage());
                 }
+
             }
         }
         if (!diagnostics.isEmpty()) {
             for (Diagnostic diagnostic : diagnostics) {
                 context.reportDiagnostic(diagnostic);
+            }
+        }
+    }
+
+    private void exportEndpointYaml(ServiceDeclarationNode serviceNode, SyntaxNodeAnalysisContext context,
+                                    boolean isExportEndpoints) throws IOException {
+        if (isExportEndpoints) {
+            EndpointYamlGenerator endpointYamlGeneratorHttp = new EndpointYamlGenerator(serviceNode, context);
+            endpointYamlGeneratorHttp.setSchemaExtension(OPENAPI + YAML_EXTENSION);
+            try {
+                endpointYamlGeneratorHttp.writeEndpointYaml();
+            } catch (IOException e) {
+                outStream.println(e.getMessage());
             }
         }
     }
@@ -189,17 +195,13 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
      * @param serviceSymbol symbol for taking the hash code of services
      */
     private String constructFileName(SyntaxTree syntaxTree, Map<Integer, String> services,
-                                     boolean isExportEndpoints, Symbol serviceSymbol) {
+                                     Symbol serviceSymbol) {
         String fileName = getNormalizedFileName(services.get(serviceSymbol.hashCode()));
         String balFileName = syntaxTree.filePath().replaceAll(SLASH, UNDERSCORE).split("\\.")[0];
-        if (fileName.equals(SLASH) && isExportEndpoints) {
-            return balFileName + ENDPOINT_SUFFIX + YAML_EXTENSION;
-        } else if (fileName.equals(SLASH)) {
+        if (fileName.equals(SLASH)) {
             return balFileName + OPENAPI_SUFFIX + YAML_EXTENSION;
         } else if (fileName.contains(HYPHEN) && fileName.split(HYPHEN)[0].equals(SLASH) || fileName.isBlank()) {
             return balFileName + UNDERSCORE + serviceSymbol.hashCode() + OPENAPI_SUFFIX + YAML_EXTENSION;
-        } else if (isExportEndpoints) {
-            return fileName + ENDPOINT_SUFFIX + YAML_EXTENSION;
         }
         return fileName + OPENAPI_SUFFIX + YAML_EXTENSION;
     }
@@ -229,27 +231,27 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
     /**
      * Filter all the end points and service nodes for avoiding the generated file name conflicts.
      */
-    private static void extractServiceNodes(ModulePartNode modulePartNode, Map<Integer, String> services,
-                                            SemanticModel semanticModel) {
-        List<String> allServices = new ArrayList<>();
-        for (Node node : modulePartNode.members()) {
-            SyntaxKind syntaxKind = node.kind();
-            if (syntaxKind.equals(SyntaxKind.SERVICE_DECLARATION)) {
-                ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) node;
-                Optional<Symbol> serviceSymbol = semanticModel.symbol(serviceNode);
-                if (serviceSymbol.isPresent() && serviceSymbol.get() instanceof ServiceDeclarationSymbol) {
-                    String service = (new ServiceDeclaration(serviceNode, semanticModel)).absoluteResourcePath();
-                    String updateServiceName = service;
-                    if (allServices.contains(service)) {
-                        updateServiceName = service + HYPHEN + serviceSymbol.get().hashCode();
-                    } else {
-                        allServices.add(service);
-                    }
-                    services.put(serviceSymbol.get().hashCode(), updateServiceName);
-                }
-            }
-        }
-    }
+//    private static void extractServiceNodes(ModulePartNode modulePartNode, Map<Integer, String> services,
+//                                            SemanticModel semanticModel) {
+//        List<String> allServices = new ArrayList<>();
+//        for (Node node : modulePartNode.members()) {
+//            SyntaxKind syntaxKind = node.kind();
+//            if (syntaxKind.equals(SyntaxKind.SERVICE_DECLARATION)) {
+//                ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) node;
+//                Optional<Symbol> serviceSymbol = semanticModel.symbol(serviceNode);
+//                if (serviceSymbol.isPresent() && serviceSymbol.get() instanceof ServiceDeclarationSymbol) {
+//                    String service = (new ServiceDeclaration(serviceNode, semanticModel)).absoluteResourcePath();
+//                    String updateServiceName = service;
+//                    if (allServices.contains(service)) {
+//                        updateServiceName = service + HYPHEN + serviceSymbol.get().hashCode();
+//                    } else {
+//                        allServices.add(service);
+//                    }
+//                    services.put(serviceSymbol.get().hashCode(), updateServiceName);
+//                }
+//            }
+//        }
+//    }
 
 
     public static Diagnostic getDiagnostics(OpenAPIMapperDiagnostic diagnostic) {
