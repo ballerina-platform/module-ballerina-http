@@ -77,7 +77,7 @@ public class ServiceArtifactsExtractor implements AnalysisTask<SyntaxNodeAnalysi
     private static final String OPENAPI = "_openapi";
     private static final String ARTIFACT = "artifact";
     private static final String UNDERSCORE = "_";
-    private final PrintStream outStream = System.out;
+    private static final PrintStream outStream = System.out;
 
     static void setIsWarningPrinted() {
         ServiceArtifactsExtractor.isErrorPrinted = true;
@@ -150,11 +150,7 @@ public class ServiceArtifactsExtractor implements AnalysisTask<SyntaxNodeAnalysi
                     serviceSymbol.get()));
 
             writeOpenAPIYaml(outPath, oasResult, diagnostics);
-            try {
-                exportEndpointYaml(serviceNode, context, oasResult);
-            } catch (IOException e) {
-                outStream.println(e);
-            }
+            exportEndpointYaml(serviceNode, context, oasResult);
         }
         if (!diagnostics.isEmpty()) {
             for (Diagnostic diagnostic : diagnostics) {
@@ -164,7 +160,7 @@ public class ServiceArtifactsExtractor implements AnalysisTask<SyntaxNodeAnalysi
     }
 
     private void exportEndpointYaml(ServiceDeclarationNode serviceNode, SyntaxNodeAnalysisContext context,
-                                    OASResult oasResult) throws IOException {
+                                    OASResult oasResult) {
         List<Server> servers = oasResult.getOpenAPI().get().getServers();
         if (servers == null || servers.isEmpty()) {
             return;

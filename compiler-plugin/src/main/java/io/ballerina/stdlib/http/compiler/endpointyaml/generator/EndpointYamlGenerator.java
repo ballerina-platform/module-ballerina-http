@@ -9,7 +9,6 @@ import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
-import io.ballerina.runtime.api.utils.IdentifierUtils;
 import io.ballerina.tools.diagnostics.DiagnosticFactory;
 import io.ballerina.tools.diagnostics.DiagnosticInfo;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
@@ -41,7 +40,7 @@ public class EndpointYamlGenerator {
     private static final String PORT = "port";
 
     private String schemaExtension = "";
-    private int port = 0;
+    private int portVal = 0;
 
     private String type;
     private final Server server;
@@ -66,13 +65,13 @@ public class EndpointYamlGenerator {
         String defualtPort = vars.get(PORT).getDefault();
 
         if (!defualtPort.isEmpty()) {
-            this.port = Integer.parseInt(defualtPort);
+            this.portVal = Integer.parseInt(defualtPort);
         } else {
             reportMissingPortConfigDiagnostic(context);
         }
 
         this.schemaFileName = this.schemaFileName + schemaExtension;
-        return new Endpoint(this.port, basePath, this.type, this.schemaFileName);
+        return new Endpoint(this.portVal, basePath, this.type, this.schemaFileName);
     }
 
     public void writeEndpointYaml() throws IOException {
@@ -141,11 +140,6 @@ public class EndpointYamlGenerator {
 
     public void setSchemaExtension(String schemaExtension) {
         this.schemaExtension = schemaExtension;
-    }
-
-    public static String unescapeIdentifier(String parameterName) {
-        String unescapedParamName = IdentifierUtils.unescapeBallerina(parameterName);
-        return unescapedParamName.replace("\\\\", "").replace("'", "");
     }
 
 }
