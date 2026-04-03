@@ -31,6 +31,7 @@ import io.ballerina.openapi.service.mapper.model.OASGenerationMetaInfo;
 import io.ballerina.openapi.service.mapper.model.OASResult;
 import io.ballerina.openapi.service.mapper.model.ServiceDeclaration;
 import io.ballerina.openapi.service.mapper.model.ServiceNode;
+import io.ballerina.openapi.service.mapper.utils.MapperCommonUtils;
 import io.ballerina.projects.BuildOptions;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
@@ -44,9 +45,6 @@ import io.ballerina.tools.diagnostics.DiagnosticFactory;
 import io.ballerina.tools.diagnostics.DiagnosticInfo;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 import io.ballerina.tools.diagnostics.Location;
-import io.ballerina.tools.text.LinePosition;
-import io.ballerina.tools.text.LineRange;
-import io.ballerina.tools.text.TextRange;
 import io.swagger.v3.oas.models.servers.Server;
 
 import java.io.IOException;
@@ -77,7 +75,7 @@ public class ServiceArtifactsExtractor implements AnalysisTask<SyntaxNodeAnalysi
     private static final String OPENAPI = "_openapi";
     private static final String ARTIFACT = "artifact";
     private static final String UNDERSCORE = "_";
-    private static final PrintStream outStream = System.out;
+    private final PrintStream outStream = System.out;
 
     static void setIsWarningPrinted() {
         ServiceArtifactsExtractor.isErrorPrinted = true;
@@ -89,7 +87,6 @@ public class ServiceArtifactsExtractor implements AnalysisTask<SyntaxNodeAnalysi
         if (serviceNode == null) {
             return;
         }
-
         ModuleId moduleId = context.moduleId();
         DocumentId documentId = context.documentId();
         Module currentModule = context.currentPackage() != null ? context.currentPackage().module(moduleId) : null;
@@ -99,25 +96,47 @@ public class ServiceArtifactsExtractor implements AnalysisTask<SyntaxNodeAnalysi
                 currentModule.testDocumentIds().contains(documentId)) {
             return;
         }
+        List<Diagnostic> diagnostics = new ArrayList<>();
         SemanticModel semanticModel = context.semanticModel();
-        SyntaxTree syntaxTree = context.syntaxTree();
         Package currentPackage = context.currentPackage();
         Project project = currentPackage.project();
         BuildOptions buildOptions = project.buildOptions();
-        boolean isExportEndpoints = false;
 
-        // Ensure backward compatibility with older ballerina-lang versions
-        try {
-            isExportEndpoints = buildOptions.exportEndpoints();
-        } catch (Throwable e) {
-            outStream.println("The ballerina version is not supported for --export-endpoints" +
-                    " build option. Try using ballerina 2201.13.3 or above.");
-        }
-
-        if (!isExportEndpoints) {
+        if (!isExportEndpoints(buildOptions)) {
             return;
         }
 
+        checkCompilationErrors(context);
+        if (containErrors(semanticModel.diagnostics())) {
+            diagnostics.addAll(semanticModel.diagnostics());
+        } else {
+            exportServiceArtifact(context, semanticModel, serviceNode, project, diagnostics);
+        }
+
+        printDiagnostics(context, diagnostics);
+    }
+
+    private void exportServiceArtifact(SyntaxNodeAnalysisContext context, SemanticModel semanticModel,
+                                       ServiceDeclarationNode serviceNode, Project project,
+                                       List<Diagnostic> diagnostics) {
+        SyntaxTree syntaxTree = context.syntaxTree();
+        Path outPath = project.targetDir();
+        Map<Integer, String> services = new HashMap<>();
+        Optional<Symbol> serviceSymbol = semanticModel.symbol(serviceNode);
+        if (serviceSymbol.isEmpty() || !(serviceSymbol.get() instanceof ServiceDeclarationSymbol)) {
+            return;
+        }
+        OASResult oasResult = getOASResult(context, services, semanticModel, serviceNode, serviceSymbol);
+        oasResult.setServiceName(constructFileName(
+                syntaxTree,
+                services,
+                serviceSymbol.get()));
+
+        writeOpenAPIYaml(outPath, oasResult, diagnostics);
+        exportEndpointYaml(serviceNode, context, oasResult);
+    }
+
+    private void checkCompilationErrors(SyntaxNodeAnalysisContext context) {
         boolean hasErrors = context.compilation().diagnosticResult()
                 .diagnostics().stream()
                 .anyMatch(d -> DiagnosticSeverity.ERROR.equals(d.diagnosticInfo().severity()));
@@ -128,35 +147,27 @@ public class ServiceArtifactsExtractor implements AnalysisTask<SyntaxNodeAnalysi
                 outStream.println("openapi contract generation is skipped because of the following compilation " +
                         "error(s) in the ballerina package:");
             }
-            return;
         }
+    }
 
-        Path outPath = project.targetDir();
-
-        Map<Integer, String> services = new HashMap<>();
-        List<Diagnostic> diagnostics = new ArrayList<>();
-
-        if (containErrors(semanticModel.diagnostics())) {
-            diagnostics.addAll(semanticModel.diagnostics());
-        } else {
-            Optional<Symbol> serviceSymbol = semanticModel.symbol(serviceNode);
-            if (serviceSymbol.isEmpty() || !(serviceSymbol.get() instanceof ServiceDeclarationSymbol)) {
-                return;
-            }
-            OASResult oasResult = getOASResult(context, services, semanticModel, serviceNode, serviceSymbol);
-            oasResult.setServiceName(constructFileName(
-                    syntaxTree,
-                    services,
-                    serviceSymbol.get()));
-
-            writeOpenAPIYaml(outPath, oasResult, diagnostics);
-            exportEndpointYaml(serviceNode, context, oasResult);
-        }
+    private void printDiagnostics(SyntaxNodeAnalysisContext context, List<Diagnostic> diagnostics) {
         if (!diagnostics.isEmpty()) {
             for (Diagnostic diagnostic : diagnostics) {
                 context.reportDiagnostic(diagnostic);
             }
         }
+    }
+
+    private boolean isExportEndpoints(BuildOptions buildOptions) {
+        boolean isExportEndpoints = false;
+        // Ensure backward compatibility with older ballerina-lang versions
+        try {
+            isExportEndpoints = buildOptions.exportEndpoints();
+        } catch (Throwable e) {
+            outStream.println("The ballerina version is not supported for --export-endpoints" +
+                    " build option. Try using ballerina 2201.13.3 or above.");
+        }
+        return isExportEndpoints;
     }
 
     private void exportEndpointYaml(ServiceDeclarationNode serviceNode, SyntaxNodeAnalysisContext context,
@@ -235,20 +246,8 @@ public class ServiceArtifactsExtractor implements AnalysisTask<SyntaxNodeAnalysi
     public static Diagnostic getDiagnostics(OpenAPIMapperDiagnostic diagnostic) {
         DiagnosticInfo diagnosticInfo = new DiagnosticInfo(diagnostic.getCode(), diagnostic.getMessage(),
                 diagnostic.getDiagnosticSeverity());
-        Location location = diagnostic.getLocation().orElse(new NullLocation());
+        Location location = diagnostic.getLocation().orElse(new MapperCommonUtils.NullLocation());
         return DiagnosticFactory.createDiagnostic(diagnosticInfo, location);
     }
 
-    private static class NullLocation implements Location {
-        @Override
-        public LineRange lineRange() {
-            LinePosition from = LinePosition.from(0, 0);
-            return LineRange.from("", from, from);
-        }
-
-        @Override
-        public TextRange textRange() {
-            return TextRange.from(0, 0);
-        }
-    }
 }
