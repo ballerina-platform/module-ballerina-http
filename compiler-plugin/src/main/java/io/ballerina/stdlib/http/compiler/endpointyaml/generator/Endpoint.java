@@ -19,12 +19,12 @@
 package io.ballerina.stdlib.http.compiler.endpointyaml.generator;
 
 public class Endpoint {
-    private final String port;
+    private final int port;
     private final String basePath;
     private final String type;
     private final String schemaPath;
 
-    Endpoint(String port, String basePath, String type, String schemaPath) {
+    Endpoint(int port, String basePath, String type, String schemaPath) {
         this.port = port;
         this.basePath = basePath;
         this.type = type;
@@ -39,7 +39,7 @@ public class Endpoint {
         return type;
     }
 
-    public String getPort() {
+    public int getPort() {
         return port;
     }
 

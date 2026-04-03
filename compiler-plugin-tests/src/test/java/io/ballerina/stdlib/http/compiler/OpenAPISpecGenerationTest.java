@@ -171,7 +171,6 @@ public class OpenAPISpecGenerationTest {
         if (exportOpenApi) {
             buildArgs.add(2, "--export-openapi");
         }
-
         ProcessBuilder pb = new ProcessBuilder(buildArgs);
         addJavaAgents(pb.environment());
         pb.directory(projectDirPath.toFile());
