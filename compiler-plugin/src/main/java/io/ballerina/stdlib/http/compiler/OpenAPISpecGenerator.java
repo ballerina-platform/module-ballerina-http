@@ -63,14 +63,11 @@ import java.util.Map;
 import java.util.Optional;
 
 import static io.ballerina.openapi.service.mapper.Constants.HYPHEN;
-import static io.ballerina.openapi.service.mapper.Constants.OPENAPI_SUFFIX;
-import static io.ballerina.openapi.service.mapper.Constants.SLASH;
-import static io.ballerina.openapi.service.mapper.Constants.YAML_EXTENSION;
 import static io.ballerina.openapi.service.mapper.utils.CodegenUtils.resolveContractFileName;
 import static io.ballerina.openapi.service.mapper.utils.CodegenUtils.writeFile;
 import static io.ballerina.openapi.service.mapper.utils.MapperCommonUtils.containErrors;
-import static io.ballerina.openapi.service.mapper.utils.MapperCommonUtils.getNormalizedFileName;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.getServiceDeclarationNode;
+import static io.ballerina.stdlib.http.compiler.endpointyaml.generator.FileNameGeneratorUtil.constructFileName;
 
 public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisContext> {
     private static boolean isErrorPrinted = false;
@@ -86,6 +83,7 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
     @Override
     public void perform(SyntaxNodeAnalysisContext context) {
         ServiceDeclarationNode serviceNode = getServiceDeclarationNode(context);
+
         if (serviceNode == null) {
             return;
         }
@@ -99,17 +97,21 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
                 currentModule.testDocumentIds().contains(documentId)) {
             return;
         }
+
         SemanticModel semanticModel = context.semanticModel();
         SyntaxTree syntaxTree = context.syntaxTree();
         Package currentPackage = context.currentPackage();
         Project project = currentPackage.project();
         BuildOptions buildOptions = project.buildOptions();
+
         if (!buildOptions.exportOpenAPI()) {
             return;
         }
+
         boolean hasErrors = context.compilation().diagnosticResult()
                 .diagnostics().stream()
                 .anyMatch(d -> DiagnosticSeverity.ERROR.equals(d.diagnosticInfo().severity()));
+
 
         if (hasErrors) {
             if (!isErrorPrinted) {
@@ -131,6 +133,7 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
             diagnostics.addAll(semanticModel.diagnostics());
         } else {
             Optional<Symbol> serviceSymbol = semanticModel.symbol(serviceNode);
+
             if (serviceSymbol.isPresent() && serviceSymbol.get() instanceof ServiceDeclarationSymbol) {
                 extractServiceNodes(syntaxTree.rootNode(), services, semanticModel);
                 OASGenerationMetaInfo.OASGenerationMetaInfoBuilder builder =
@@ -149,24 +152,6 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
                 context.reportDiagnostic(diagnostic);
             }
         }
-    }
-
-    /**
-     * This util function is to construct the generated file name.
-     *
-     * @param syntaxTree syntax tree for check the multiple services
-     * @param services   service map for maintain the file name with updated name
-     * @param serviceSymbol symbol for taking the hash code of services
-     */
-    private String constructFileName(SyntaxTree syntaxTree, Map<Integer, String> services, Symbol serviceSymbol) {
-        String fileName = getNormalizedFileName(services.get(serviceSymbol.hashCode()));
-        String balFileName = syntaxTree.filePath().replaceAll(SLASH, UNDERSCORE).split("\\.")[0];
-        if (fileName.equals(SLASH)) {
-            return balFileName + OPENAPI_SUFFIX + YAML_EXTENSION;
-        } else if (fileName.contains(HYPHEN) && fileName.split(HYPHEN)[0].equals(SLASH) || fileName.isBlank()) {
-            return balFileName + UNDERSCORE + serviceSymbol.hashCode() + OPENAPI_SUFFIX + YAML_EXTENSION;
-        }
-        return fileName + OPENAPI_SUFFIX + YAML_EXTENSION;
     }
 
     private void writeOpenAPIYaml(Path outPath, OASResult oasResult, List<Diagnostic> diagnostics) {
