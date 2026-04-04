@@ -37,6 +37,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static io.ballerina.openapi.service.mapper.Constants.HYPHEN;
+import static io.ballerina.openapi.service.mapper.Constants.OPENAPI_SUFFIX;
+import static io.ballerina.openapi.service.mapper.Constants.SLASH;
+import static io.ballerina.openapi.service.mapper.Constants.YAML_EXTENSION;
+import static io.ballerina.openapi.service.mapper.utils.MapperCommonUtils.getNormalizedFileName;
+
 public class FileNameGeneratorUtil {
 
     private static final String SLASH = "/";
@@ -71,7 +77,7 @@ public class FileNameGeneratorUtil {
             return balFileName + extension;
         }
 
-        return constructFileName(syntaxTree, services, serviceSymbol.get());
+        return constructEndpointFileName(syntaxTree, services, serviceSymbol.get());
     }
 
     public static void extractServiceNodes(ModulePartNode modulePartNode, Map<Integer, String> services,
@@ -105,7 +111,7 @@ public class FileNameGeneratorUtil {
         }
     }
 
-    private String constructFileName(SyntaxTree syntaxTree, Map<Integer, String> services,
+    private String constructEndpointFileName(SyntaxTree syntaxTree, Map<Integer, String> services,
                                      Symbol serviceSymbol) {
         String serviceName = services.get(serviceSymbol.hashCode());
         String fileName = serviceName == null ? "" : getNormalizedFileName(serviceName);
@@ -116,6 +122,26 @@ public class FileNameGeneratorUtil {
             return balFileName + UNDERSCORE + serviceSymbol.hashCode() + extension;
         }
         return fileName + extension;
+    }
+
+    /**
+     * This util function is to construct the generated file name.
+     *
+     * @param syntaxTree syntax tree for check the multiple services
+     * @param services   service map for maintain the file name with updated name
+     * @param serviceSymbol symbol for taking the hash code of services
+     */
+
+    public static String constructFileName(SyntaxTree syntaxTree, Map<Integer, String> services,
+                                     Symbol serviceSymbol) {
+        String fileName = getNormalizedFileName(services.get(serviceSymbol.hashCode()));
+        String balFileName = syntaxTree.filePath().replaceAll(SLASH, UNDERSCORE).split("\\.")[0];
+        if (fileName.equals(SLASH)) {
+            return balFileName + OPENAPI_SUFFIX + YAML_EXTENSION;
+        } else if (fileName.contains(HYPHEN) && fileName.split(HYPHEN)[0].equals(SLASH) || fileName.isBlank()) {
+            return balFileName + UNDERSCORE + serviceSymbol.hashCode() + OPENAPI_SUFFIX + YAML_EXTENSION;
+        }
+        return fileName + OPENAPI_SUFFIX + YAML_EXTENSION;
     }
 
     private String getServiceBasePath(ServiceDeclarationNode serviceNode) {
