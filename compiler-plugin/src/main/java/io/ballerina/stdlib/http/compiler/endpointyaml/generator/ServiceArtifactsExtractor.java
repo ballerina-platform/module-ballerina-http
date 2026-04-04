@@ -71,8 +71,7 @@ public class ServiceArtifactsExtractor implements AnalysisTask<SyntaxNodeAnalysi
     private static final String OAS_PATH_SEPARATOR = "/";
     private static final String OPENAPI = "_openapi";
     private static final String ARTIFACT = "artifact";
-    private static final String UNDERSCORE = "_";
-    private final PrintStream outStream = System.out;
+    private static final PrintStream outStream = System.out;
 
     static void setIsWarningPrinted() {
         ServiceArtifactsExtractor.isErrorPrinted = true;
@@ -138,12 +137,11 @@ public class ServiceArtifactsExtractor implements AnalysisTask<SyntaxNodeAnalysi
                 .diagnostics().stream()
                 .anyMatch(d -> DiagnosticSeverity.ERROR.equals(d.diagnosticInfo().severity()));
 
-        if (hasErrors) {
-            if (!isErrorPrinted) {
-                setIsWarningPrinted();
-                outStream.println("openapi contract generation is skipped because of the following compilation " +
-                        "error(s) in the ballerina package:");
-            }
+        if (hasErrors && !isErrorPrinted) {
+            setIsWarningPrinted();
+            outStream.println("openapi contract generation is skipped because of the following compilation " +
+                    "error(s) in the ballerina package:");
+
         }
     }
 
