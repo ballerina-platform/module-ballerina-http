@@ -76,7 +76,7 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "http"
-version = "2.16.0"
+version = "2.16.1"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "auth"},
@@ -110,7 +110,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "integration_tests"
-version = "2.16.0"
+version = "2.16.1"
 dependencies = [
 	{org = "ballerina", name = "http"},
 	{org = "ballerina", name = "io"},
