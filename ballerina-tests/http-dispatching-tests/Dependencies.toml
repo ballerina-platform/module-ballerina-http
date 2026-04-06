@@ -47,7 +47,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "crypto"
-version = "2.10.1"
+version = "2.9.3"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
