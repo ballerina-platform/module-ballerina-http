@@ -78,13 +78,16 @@ task updateTomlVerions {
 
 task commitTomlFiles {
     doLast {
-        def files = "${project.projectDir}/Ballerina.toml ${project.projectDir}/Dependencies.toml "
+        def files = [
+            "${project.projectDir}/Ballerina.toml",
+            "${project.projectDir}/Dependencies.toml"
+        ]
         project.exec {
             ignoreExitValue true
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                commandLine 'cmd', '/c', "git commit -m \"[Automated] Update the native jar versions\" ${files}"
+                commandLine(['cmd', '/c', 'git', 'commit', '-m', '[Automated] Update the native jar versions'] + files)
             } else {
-                commandLine 'sh', '-c', "git commit -m '[Automated] Update the native jar versions' ${files}"
+                commandLine(['git', 'commit', '-m', '[Automated] Update the native jar versions'] + files)
             }
         }
     }
