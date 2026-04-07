@@ -76,6 +76,23 @@ task updateTomlVerions {
     }
 }
 
+task commitTomlFiles {
+    doLast {
+        def files = [
+            "${project.projectDir}/Ballerina.toml",
+            "${project.projectDir}/Dependencies.toml"
+        ]
+        project.exec {
+            ignoreExitValue true
+            if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                commandLine(['cmd', '/c', 'git', 'commit', '-m', '[Automated] Update the native jar versions'] + files)
+            } else {
+                commandLine(['git', 'commit', '-m', '[Automated] Update the native jar versions'] + files)
+            }
+        }
+    }
+}
+
 task revertTomlFile {
     doLast {
         configTOMLFile.text = originalConfigTOMLFile
@@ -117,6 +134,7 @@ task ballerinaIntegrationTests {
     dependsOn(":http-ballerina:build")
     dependsOn(updateTomlVerions)
     finalizedBy(revertTomlFile)
+    finalizedBy(commitTomlFiles)
 
     if (project.hasProperty('balGraalVMTest')) {
         graalvmFlag = '--graalvm'
