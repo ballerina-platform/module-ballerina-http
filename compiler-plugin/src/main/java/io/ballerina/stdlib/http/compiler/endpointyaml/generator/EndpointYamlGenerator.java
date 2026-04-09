@@ -128,7 +128,7 @@ public class EndpointYamlGenerator {
         return resolveContractFileName(outPath.resolve(ARTIFACT), base, false);
     }
 
-    private void writeYaml(Path path, EndpointWrapper wrapper) {
+    private void writeYaml(Path path, EndpointWrapper wrapper) throws IOException {
         YAMLFactory yamlFactory = YAMLFactory.builder()
                 .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
                 .build();
@@ -138,8 +138,7 @@ public class EndpointYamlGenerator {
         try (Writer writer = Files.newBufferedWriter(path)) {
             mapper.writeValue(writer, wrapper);
         } catch (IOException e) {
-            outStream.println("Failed to write to " + path + "\n");
-            e.printStackTrace(outStream);
+            throw new IOException("Failed to write endpoint yaml to " + path, e);
         }
     }
 
