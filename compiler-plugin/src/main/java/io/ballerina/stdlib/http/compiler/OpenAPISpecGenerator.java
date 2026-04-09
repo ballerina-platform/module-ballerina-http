@@ -76,7 +76,6 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
     private static boolean isErrorPrinted = false;
     private static final String OAS_PATH_SEPARATOR = "/";
     private static final String OPENAPI = "openapi";
-
     private static final String UNDERSCORE = "_";
 
     static void setIsWarningPrinted() {
@@ -86,7 +85,6 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
     @Override
     public void perform(SyntaxNodeAnalysisContext context) {
         ServiceDeclarationNode serviceNode = getServiceDeclarationNode(context);
-
         if (serviceNode == null) {
             return;
         }
@@ -100,7 +98,6 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
                 currentModule.testDocumentIds().contains(documentId)) {
             return;
         }
-
         SemanticModel semanticModel = context.semanticModel();
         SyntaxTree syntaxTree = context.syntaxTree();
         Package currentPackage = context.currentPackage();
@@ -114,7 +111,6 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
         boolean hasErrors = context.compilation().diagnosticResult()
                 .diagnostics().stream()
                 .anyMatch(d -> DiagnosticSeverity.ERROR.equals(d.diagnosticInfo().severity()));
-
 
         if (hasErrors) {
             if (!isErrorPrinted) {
@@ -136,7 +132,6 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
             diagnostics.addAll(semanticModel.diagnostics());
         } else {
             Optional<Symbol> serviceSymbol = semanticModel.symbol(serviceNode);
-
             if (serviceSymbol.isPresent() && serviceSymbol.get() instanceof ServiceDeclarationSymbol) {
                 extractServiceNodes(syntaxTree.rootNode(), services, semanticModel);
                 OASGenerationMetaInfo.OASGenerationMetaInfoBuilder builder =
@@ -156,6 +151,27 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
             }
         }
     }
+
+    /**
+     * This util function is to construct the generated file name.
+     *
+     * @param syntaxTree syntax tree for check the multiple services
+     * @param services   service map for maintain the file name with updated name
+     * @param serviceSymbol symbol for taking the hash code of services
+     */
+
+    public static String constructFileName(SyntaxTree syntaxTree, Map<Integer, String> services,
+                                           Symbol serviceSymbol) {
+        String fileName = getNormalizedFileName(services.get(serviceSymbol.hashCode()));
+        String balFileName = syntaxTree.filePath().replaceAll(SLASH, UNDERSCORE).split("\\.")[0];
+        if (fileName.equals(SLASH)) {
+            return balFileName + OPENAPI_SUFFIX + YAML_EXTENSION;
+        } else if (fileName.contains(HYPHEN) && fileName.split(HYPHEN)[0].equals(SLASH) || fileName.isBlank()) {
+            return balFileName + UNDERSCORE + serviceSymbol.hashCode() + OPENAPI_SUFFIX + YAML_EXTENSION;
+        }
+        return fileName + OPENAPI_SUFFIX + YAML_EXTENSION;
+    }
+
 
     private void writeOpenAPIYaml(Path outPath, OASResult oasResult, List<Diagnostic> diagnostics) {
         if (oasResult.getYaml().isPresent()) {
@@ -182,7 +198,7 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
      * Filter all the end points and service nodes for avoiding the generated file name conflicts.
      */
     private static void extractServiceNodes(ModulePartNode modulePartNode, Map<Integer, String> services,
-                                            SemanticModel semanticModel) {
+                                           SemanticModel semanticModel) {
         List<String> allServices = new ArrayList<>();
         for (Node node : modulePartNode.members()) {
             SyntaxKind syntaxKind = node.kind();
@@ -203,25 +219,6 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
         }
     }
 
-    /**
-     * This util function is to construct the generated file name.
-     *
-     * @param syntaxTree syntax tree for check the multiple services
-     * @param services   service map for maintain the file name with updated name
-     * @param serviceSymbol symbol for taking the hash code of services
-     */
-
-    public static String constructFileName(SyntaxTree syntaxTree, Map<Integer, String> services,
-                                           Symbol serviceSymbol) {
-        String fileName = getNormalizedFileName(services.get(serviceSymbol.hashCode()));
-        String balFileName = syntaxTree.filePath().replaceAll(SLASH, UNDERSCORE).split("\\.")[0];
-        if (fileName.equals(SLASH)) {
-            return balFileName + OPENAPI_SUFFIX + YAML_EXTENSION;
-        } else if (fileName.contains(HYPHEN) && fileName.split(HYPHEN)[0].equals(SLASH) || fileName.isBlank()) {
-            return balFileName + UNDERSCORE + serviceSymbol.hashCode() + OPENAPI_SUFFIX + YAML_EXTENSION;
-        }
-        return fileName + OPENAPI_SUFFIX + YAML_EXTENSION;
-    }
 
     public static Diagnostic getDiagnostics(OpenAPIMapperDiagnostic diagnostic) {
         DiagnosticInfo diagnosticInfo = new DiagnosticInfo(diagnostic.getCode(), diagnostic.getMessage(),

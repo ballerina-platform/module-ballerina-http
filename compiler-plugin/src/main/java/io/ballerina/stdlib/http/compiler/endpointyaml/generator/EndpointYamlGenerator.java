@@ -56,7 +56,6 @@ public class EndpointYamlGenerator {
     private static final String ENDPOINT_SUFFIX = "_endpoint";
     private static final String PORT = "port";
 
-    private String schemaExtension = "";
     private int portVal = 0;
 
     private final Server server;
@@ -73,14 +72,14 @@ public class EndpointYamlGenerator {
                 .variables(server.getVariables())
                 .extensions(server.getExtensions()) : null;
 
-        FileNameGeneratorUtil fileNameGeneratorUtil = new FileNameGeneratorUtil(context, this.schemaExtension);
+        FileNameGeneratorUtil fileNameGeneratorUtil = new FileNameGeneratorUtil(context);
         this.schemaFileName = fileNameGeneratorUtil.getFileName();
     }
 
     public Endpoint getEndpoint() {
         if (server == null) {
             reportMissingPortConfigDiagnostic(context);
-            return new Endpoint(this.portVal, getBasePath(), REST, this.schemaFileName + schemaExtension);
+            return new Endpoint(this.portVal, getBasePath(), REST, this.schemaFileName);
         }
         ServerVariables vars = server.getVariables();
         String basePath = getBasePath();
@@ -88,11 +87,14 @@ public class EndpointYamlGenerator {
         String defaultPort = portVar != null ? portVar.getDefault() : null;
 
        if (defaultPort != null && !defaultPort.isEmpty()) {
-           this.portVal = Integer.parseInt(defaultPort);
+           try {
+               this.portVal = Integer.parseInt(defaultPort);
+           } catch (NumberFormatException ex) {
+               outStream.println("Assign a integer value for port.");
+           }
        } else {
             reportMissingPortConfigDiagnostic(context);
        }
-        this.schemaFileName = this.schemaFileName + schemaExtension;
         return new Endpoint(this.portVal, basePath, REST, this.schemaFileName);
     }
 
@@ -149,10 +151,6 @@ public class EndpointYamlGenerator {
                 DiagnosticSeverity.ERROR
         );
         context.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, context.node().location()));
-    }
-
-    public void setSchemaExtension(String schemaExtension) {
-        this.schemaExtension = schemaExtension;
     }
 
 }

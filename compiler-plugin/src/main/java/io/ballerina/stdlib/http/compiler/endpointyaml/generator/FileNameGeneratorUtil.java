@@ -35,6 +35,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static io.ballerina.openapi.service.mapper.Constants.OPENAPI_SUFFIX;
+import static io.ballerina.openapi.service.mapper.Constants.YAML_EXTENSION;
 import static io.ballerina.openapi.service.mapper.utils.MapperCommonUtils.getNormalizedFileName;
 
 /*
@@ -45,21 +47,20 @@ public class FileNameGeneratorUtil {
     private static final String SLASH = "/";
     private static final String UNDERSCORE = "_";
     private static final String HYPHEN = "-";
-    private final String extension;
+    private static final String extension = OPENAPI_SUFFIX + YAML_EXTENSION;
     private final Map<Integer, String> services = new HashMap<>();
 
     private final SyntaxNodeAnalysisContext context;
 
-    public FileNameGeneratorUtil(SyntaxNodeAnalysisContext context, String schemaExtension) {
+    public FileNameGeneratorUtil(SyntaxNodeAnalysisContext context) {
         this.context = context;
-        this.extension = schemaExtension;
     }
 
     public String getFileName() {
-        SyntaxTree syntaxTree = context.syntaxTree();
-        SemanticModel semanticModel = context.semanticModel();
+        SyntaxTree syntaxTree = this.context.syntaxTree();
+        SemanticModel semanticModel = this.context.semanticModel();
         extractServiceNodes(syntaxTree.rootNode(), this.services, semanticModel);
-        if (!(context.node() instanceof ServiceDeclarationNode node)) {
+        if (!(this.context.node() instanceof ServiceDeclarationNode node)) {
             String balFileName = syntaxTree.filePath().replaceAll(SLASH, UNDERSCORE).split("\\.")[0];
             return balFileName + extension;
         }
@@ -128,15 +129,5 @@ public class FileNameGeneratorUtil {
         }
         return basePath.toString();
     }
-
-//    public static String getNormalizedFileName(String fileName) {
-//        String[] splitNames = fileName.split("[^a-zA-Z0-9]");
-//        if (splitNames.length > 0) {
-//            return Arrays.stream(splitNames)
-//                    .filter(namePart -> !namePart.isBlank())
-//                    .collect(Collectors.joining(UNDERSCORE));
-//        }
-//        return fileName;
-//    }
 
 }

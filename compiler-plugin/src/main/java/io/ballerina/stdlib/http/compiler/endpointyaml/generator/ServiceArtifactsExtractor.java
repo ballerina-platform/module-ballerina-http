@@ -58,7 +58,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static io.ballerina.openapi.service.mapper.Constants.YAML_EXTENSION;
 import static io.ballerina.openapi.service.mapper.utils.CodegenUtils.resolveContractFileName;
 import static io.ballerina.openapi.service.mapper.utils.CodegenUtils.writeFile;
 import static io.ballerina.openapi.service.mapper.utils.MapperCommonUtils.containErrors;
@@ -72,7 +71,6 @@ import static io.ballerina.stdlib.http.compiler.endpointyaml.generator.FileNameG
 public class ServiceArtifactsExtractor implements AnalysisTask<SyntaxNodeAnalysisContext> {
     private static boolean isErrorPrinted = false;
     private static final String OAS_PATH_SEPARATOR = "/";
-    private static final String OPENAPI = "_openapi";
     private static final String ARTIFACT = "artifact";
     private static final PrintStream outStream = System.out;
 
@@ -181,7 +179,6 @@ public class ServiceArtifactsExtractor implements AnalysisTask<SyntaxNodeAnalysi
         for (Server server: servers) {
             EndpointYamlGenerator endpointYamlGeneratorHttp =
                     new EndpointYamlGenerator(serviceNode, context, server);
-            endpointYamlGeneratorHttp.setSchemaExtension(OPENAPI + YAML_EXTENSION);
             try {
                 endpointYamlGeneratorHttp.writeEndpointYaml();
             } catch (IOException e) {
