@@ -63,9 +63,12 @@ import static io.ballerina.openapi.service.mapper.utils.CodegenUtils.resolveCont
 import static io.ballerina.openapi.service.mapper.utils.CodegenUtils.writeFile;
 import static io.ballerina.openapi.service.mapper.utils.MapperCommonUtils.containErrors;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.getServiceDeclarationNode;
-import static io.ballerina.stdlib.http.compiler.endpointyaml.generator.FileNameGeneratorUtil.constructFileName;
+import static io.ballerina.stdlib.http.compiler.OpenAPISpecGenerator.constructFileName;
 import static io.ballerina.stdlib.http.compiler.endpointyaml.generator.FileNameGeneratorUtil.extractServiceNodes;
 
+/*
+ * Generates the .yaml file with endpoint details and OpenAPI specification of HTTP service.
+ */
 public class ServiceArtifactsExtractor implements AnalysisTask<SyntaxNodeAnalysisContext> {
     private static boolean isErrorPrinted = false;
     private static final String OAS_PATH_SEPARATOR = "/";
@@ -129,7 +132,7 @@ public class ServiceArtifactsExtractor implements AnalysisTask<SyntaxNodeAnalysi
                 serviceSymbol.get()));
 
         writeOpenAPIYaml(outPath, oasResult, diagnostics);
-        exportEndpointYaml(serviceNode, context, oasResult);
+        exportEndpointYaml(serviceNode, context, oasResult, diagnostics);
     }
 
     private void checkCompilationErrors(SyntaxNodeAnalysisContext context) {
@@ -158,7 +161,7 @@ public class ServiceArtifactsExtractor implements AnalysisTask<SyntaxNodeAnalysi
         // Ensure backward compatibility with older ballerina-lang versions
         try {
             isExportEndpoints = buildOptions.exportEndpoints();
-        } catch (Throwable e) {
+        } catch (NoSuchMethodError e) {
             outStream.println("The ballerina version is not supported for --export-endpoints" +
                     " build option. Try using ballerina 2201.13.3 or above.");
         }
@@ -166,7 +169,10 @@ public class ServiceArtifactsExtractor implements AnalysisTask<SyntaxNodeAnalysi
     }
 
     private void exportEndpointYaml(ServiceDeclarationNode serviceNode, SyntaxNodeAnalysisContext context,
-                                    OASResult oasResult) {
+                                    OASResult oasResult, List<Diagnostic> diagnostics) {
+        if (oasResult.getOpenAPI().isEmpty()) {
+            return;
+        }
         List<Server> servers = oasResult.getOpenAPI().get().getServers();
         if (servers == null || servers.isEmpty()) {
             return;
@@ -179,7 +185,8 @@ public class ServiceArtifactsExtractor implements AnalysisTask<SyntaxNodeAnalysi
             try {
                 endpointYamlGeneratorHttp.writeEndpointYaml();
             } catch (IOException e) {
-                outStream.println(e);
+                diagnostics.add(getDiagnostics(
+                     new ExceptionDiagnostic(DiagnosticMessages.OAS_CONVERTOR_108, e.toString())));
             }
         }
 

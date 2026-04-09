@@ -51,7 +51,6 @@ public class EndpointYamlGenerator {
 
     private static final String ARTIFACT = "artifact";
     private static final String REST = "REST";
-    private static final String TARGET = "target";
     private static final String YAML_EXTENSION = ".yaml";
     private static final String OPENAPI_SUFFIX = "_openapi";
     private static final String ENDPOINT_SUFFIX = "_endpoint";
@@ -60,9 +59,11 @@ public class EndpointYamlGenerator {
     private String schemaExtension = "";
     private int portVal = 0;
 
-    private String type;
     private final Server server;
 
+    /*
+     * Generates the .yaml file with endpoint details of HTTP service
+     */
     public EndpointYamlGenerator(ServiceDeclarationNode node, SyntaxNodeAnalysisContext context, Server server) {
         this.node = node;
         this.context = context;
@@ -77,26 +78,29 @@ public class EndpointYamlGenerator {
     }
 
     public Endpoint getEndpoint() {
-        ServerVariables vars = server.getVariables();
-        this.type = REST;
-        String basePath = getBasePath();
-        String defualtPort = vars.get(PORT).getDefault();
-
-        if (!defualtPort.isEmpty()) {
-            this.portVal = Integer.parseInt(defualtPort);
-        } else {
+        if (server == null) {
             reportMissingPortConfigDiagnostic(context);
+            return new Endpoint(this.portVal, getBasePath(), REST, this.schemaFileName + schemaExtension);
         }
+        ServerVariables vars = server.getVariables();
+        String basePath = getBasePath();
+        var portVar = vars != null ? vars.get(PORT) : null;
+        String defaultPort = portVar != null ? portVar.getDefault() : null;
 
+       if (defaultPort != null && !defaultPort.isEmpty()) {
+           this.portVal = Integer.parseInt(defaultPort);
+       } else {
+            reportMissingPortConfigDiagnostic(context);
+       }
         this.schemaFileName = this.schemaFileName + schemaExtension;
-        return new Endpoint(this.portVal, basePath, this.type, this.schemaFileName);
+        return new Endpoint(this.portVal, basePath, REST, this.schemaFileName);
     }
 
     public void writeEndpointYaml() throws IOException {
         Endpoint ep = getEndpoint();
         Path outPath = resolveOutputPath();
         String fileName = buildEndpointFileName(outPath);
-        Path path = Paths.get(TARGET, ARTIFACT, fileName + YAML_EXTENSION).toAbsolutePath();
+        Path path = outPath.resolve(ARTIFACT).resolve(fileName + YAML_EXTENSION);
         writeYaml(path, new EndpointWrapper(ep));
     }
 
@@ -109,26 +113,16 @@ public class EndpointYamlGenerator {
         return serviceBasePath.toString();
     }
 
-    private Path resolveOutputPath() {
+    private Path resolveOutputPath() throws IOException {
         Package currentPackage = this.context.currentPackage();
         Project project = currentPackage.project();
         Path outPath = project.targetDir();
-
-        try {
-            Files.createDirectories(Paths.get(String.valueOf(outPath), ARTIFACT));
-        } catch (IOException e) {
-            outStream.println(e);
-        }
+        Files.createDirectories(Paths.get(String.valueOf(outPath), ARTIFACT));
         return outPath;
     }
 
     private String buildEndpointFileName(Path outPath) {
-        String base;
-        if (REST.equals(this.type)) {
-            base = schemaFileName.split("\\.")[0].replace(OPENAPI_SUFFIX, ENDPOINT_SUFFIX);
-        } else {
-            base = schemaFileName.split("\\.")[0] + ENDPOINT_SUFFIX;
-        }
+        String base = schemaFileName.split("\\.")[0].replace(OPENAPI_SUFFIX, ENDPOINT_SUFFIX);
         return resolveContractFileName(outPath.resolve(ARTIFACT), base, false);
     }
 
@@ -142,7 +136,8 @@ public class EndpointYamlGenerator {
         try (Writer writer = Files.newBufferedWriter(path)) {
             mapper.writeValue(writer, wrapper);
         } catch (IOException e) {
-            outStream.println(e);
+            outStream.println("Failed to write to " + path + "\n");
+            e.printStackTrace(outStream);
         }
     }
 

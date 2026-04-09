@@ -18,6 +18,9 @@
 
 package io.ballerina.stdlib.http.compiler.endpointyaml.generator;
 
+/*
+ * Represents the wrapper class to serialize the endpoint object
+ */
 public class EndpointWrapper {
     private final Endpoint endpoint;
 

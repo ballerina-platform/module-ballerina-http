@@ -18,6 +18,9 @@
 
 package io.ballerina.stdlib.http.compiler.endpointyaml.generator;
 
+/*
+ * Represents the basic structure containing endpoint details of the HTTP service
+ */
 public class Endpoint {
     private final int port;
     private final String basePath;
