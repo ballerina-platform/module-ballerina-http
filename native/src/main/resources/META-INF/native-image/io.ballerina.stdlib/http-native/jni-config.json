@@ -119,6 +119,9 @@
         "name": "io.netty.internal.tcnative.SSL"
     },
     {
+        "name": "io.netty.internal.tcnative.SSLCredential"
+    },
+    {
         "name": "io.netty.internal.tcnative.SSLContext"
     },
     {
