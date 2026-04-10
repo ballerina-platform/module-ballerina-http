@@ -60,8 +60,8 @@ public class FileNameGeneratorUtil {
         SyntaxTree syntaxTree = this.context.syntaxTree();
         SemanticModel semanticModel = this.context.semanticModel();
         extractServiceNodes(syntaxTree.rootNode(), this.services, semanticModel);
+        String balFileName = syntaxTree.filePath().replaceAll(SLASH, UNDERSCORE).split("\\.")[0];
         if (!(this.context.node() instanceof ServiceDeclarationNode node)) {
-            String balFileName = syntaxTree.filePath().replaceAll(SLASH, UNDERSCORE).split("\\.")[0];
             return balFileName + extension;
         }
 
@@ -69,9 +69,8 @@ public class FileNameGeneratorUtil {
         if (serviceSymbol.isEmpty()) {
             String basePathName = getServiceBasePath(node);
             if (!basePathName.isBlank()) {
-                return getNormalizedFileName(basePathName) + extension;
+                return balFileName + UNDERSCORE + getNormalizedFileName(basePathName) + extension;
             }
-            String balFileName = syntaxTree.filePath().replaceAll(SLASH, UNDERSCORE).split("\\.")[0];
             return balFileName + extension;
         }
 
@@ -117,7 +116,7 @@ public class FileNameGeneratorUtil {
         } else if ((fileName.contains(HYPHEN) && fileName.split(HYPHEN)[0].equals(SLASH)) || fileName.isBlank()) {
             return balFileName + UNDERSCORE + serviceSymbol.hashCode() + extension;
         }
-        return fileName + extension;
+        return balFileName + UNDERSCORE + fileName + extension;
     }
 
 

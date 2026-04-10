@@ -58,7 +58,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static io.ballerina.openapi.service.mapper.utils.CodegenUtils.resolveContractFileName;
 import static io.ballerina.openapi.service.mapper.utils.CodegenUtils.writeFile;
 import static io.ballerina.openapi.service.mapper.utils.MapperCommonUtils.containErrors;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.getServiceDeclarationNode;
@@ -129,7 +128,7 @@ public class ServiceArtifactsExtractor implements AnalysisTask<SyntaxNodeAnalysi
                 services,
                 serviceSymbol.get()));
 
-        writeOpenAPIYaml(outPath, oasResult, diagnostics);
+        writeOpenAPIYaml(outPath, context, oasResult, diagnostics);
         exportEndpointYaml(serviceNode, context, oasResult, diagnostics);
     }
 
@@ -207,13 +206,13 @@ public class ServiceArtifactsExtractor implements AnalysisTask<SyntaxNodeAnalysi
         return ServiceToOpenAPIMapper.generateOAS(builder.build());
     }
 
-    private void writeOpenAPIYaml(Path outPath, OASResult oasResult, List<Diagnostic> diagnostics) {
+    private void writeOpenAPIYaml(Path outPath, SyntaxNodeAnalysisContext context, OASResult oasResult,
+                                  List<Diagnostic> diagnostics) {
         if (oasResult.getYaml().isPresent()) {
             try {
                 Files.createDirectories(Paths.get(outPath + OAS_PATH_SEPARATOR + ARTIFACT));
-                String serviceName = oasResult.getServiceName();
-                String fileName = resolveContractFileName(outPath.resolve(ARTIFACT),
-                        serviceName, false);
+                FileNameGeneratorUtil fileNameGen = new FileNameGeneratorUtil(context);
+                String fileName = fileNameGen.getFileName();
                 writeFile(outPath.resolve(ARTIFACT + OAS_PATH_SEPARATOR + fileName), oasResult.getYaml().get());
             } catch (IOException e) {
                 ExceptionDiagnostic diagnostic = new ExceptionDiagnostic(DiagnosticMessages.OAS_CONVERTOR_108,

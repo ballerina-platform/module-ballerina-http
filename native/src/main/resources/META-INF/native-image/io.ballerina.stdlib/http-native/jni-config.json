@@ -122,6 +122,9 @@
         "name": "io.netty.internal.tcnative.SSLContext"
     },
     {
+        "name": "io.netty.internal.tcnative.SSLCredential"
+    },
+    {
         "name": "io.netty.internal.tcnative.SSLPrivateKeyMethodDecryptTask",
         "methods": [
             {
