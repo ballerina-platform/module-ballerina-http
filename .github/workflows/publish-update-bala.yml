@@ -1,0 +1,83 @@
+name: Publish update bala
+
+on:
+  workflow_dispatch:
+    inputs:
+      update_version:
+        description: Four-part update artifact version (for example 2.16.0.1)
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  packages: read
+
+jobs:
+  publish-update-bala:
+    name: Build and publish update bala
+    if: ${{ github.repository_owner == 'ballerina-platform' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Validate update version
+        id: versions
+        shell: bash
+        run: |
+          UPDATE_VERSION='${{ inputs.update_version }}'
+          if [[ ! "$UPDATE_VERSION" =~ ^([0-9]+\.[0-9]+\.[0-9]+)\.([0-9]+)$ ]]; then
+            echo "Expected update_version in X.Y.Z.N format, found: $UPDATE_VERSION" >&2
+            exit 1
+          fi
+          BASE_VERSION="${BASH_REMATCH[1]}"
+          echo "update_version=$UPDATE_VERSION" >> "$GITHUB_OUTPUT"
+          echo "base_version=$BASE_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Set package version
+        shell: bash
+        run: |
+          perl -0pi -e 's/^version=.*/version=${{ steps.versions.outputs.base_version }}/m' gradle.properties
+
+      - name: Build bala
+        env:
+          packageUser: ${{ github.actor }}
+          packagePAT: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew clean build -x test --no-daemon
+
+      - name: Prepare update bala artifact
+        id: artifact
+        shell: bash
+        run: |
+          mkdir -p release-artifacts
+          ORIGINAL_BALA=$(find "$GITHUB_WORKSPACE" -path '*/target/bala/*.bala' | head -n 1)
+          if [[ -z "$ORIGINAL_BALA" ]]; then
+            echo "Generated bala file was not found" >&2
+            exit 1
+          fi
+          FILE_NAME=$(basename "$ORIGINAL_BALA")
+          UPDATE_FILE_NAME=${FILE_NAME/${{ steps.versions.outputs.base_version }}.bala/${{ steps.versions.outputs.update_version }}.bala}
+          if [[ "$UPDATE_FILE_NAME" == "$FILE_NAME" ]]; then
+            UPDATE_FILE_NAME="ballerina-http-any-${{ steps.versions.outputs.update_version }}.bala"
+          fi
+          cp "$ORIGINAL_BALA" "release-artifacts/$UPDATE_FILE_NAME"
+          echo "artifact_path=release-artifacts/$UPDATE_FILE_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.versions.outputs.update_version }}
+          name: ${{ steps.versions.outputs.update_version }}
+          files: ${{ steps.artifact.outputs.artifact_path }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
