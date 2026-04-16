@@ -5,7 +5,7 @@
 
 [ballerina]
 dependencies-toml-version = "2"
-distribution-version = "2201.13.0"
+distribution-version = "2201.13.3-20260327-220300-069aa52f"
 
 [[package]]
 org = "ballerina"
@@ -116,7 +116,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "http_client_tests"
-version = "2.16.1"
+version = "2.17.0"
 dependencies = [
 	{org = "ballerina", name = "constraint"},
 	{org = "ballerina", name = "data.jsondata"},
@@ -136,7 +136,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "http_test_common"
-version = "2.16.1"
+version = "2.17.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "http"},
