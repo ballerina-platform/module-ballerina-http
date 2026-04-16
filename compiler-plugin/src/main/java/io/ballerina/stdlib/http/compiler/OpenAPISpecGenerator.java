@@ -76,6 +76,7 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
     private static boolean isErrorPrinted = false;
     private static final String OAS_PATH_SEPARATOR = "/";
     private static final String OPENAPI = "openapi";
+
     private static final String UNDERSCORE = "_";
 
     static void setIsWarningPrinted() {
@@ -103,11 +104,9 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
         Package currentPackage = context.currentPackage();
         Project project = currentPackage.project();
         BuildOptions buildOptions = project.buildOptions();
-
         if (!buildOptions.exportOpenAPI()) {
             return;
         }
-
         boolean hasErrors = context.compilation().diagnosticResult()
                 .diagnostics().stream()
                 .anyMatch(d -> DiagnosticSeverity.ERROR.equals(d.diagnosticInfo().severity()));
@@ -159,9 +158,7 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
      * @param services   service map for maintain the file name with updated name
      * @param serviceSymbol symbol for taking the hash code of services
      */
-
-    public static String constructFileName(SyntaxTree syntaxTree, Map<Integer, String> services,
-                                           Symbol serviceSymbol) {
+    public static String constructFileName(SyntaxTree syntaxTree, Map<Integer, String> services, Symbol serviceSymbol) {
         String fileName = getNormalizedFileName(services.get(serviceSymbol.hashCode()));
         String balFileName = syntaxTree.filePath().replaceAll(SLASH, UNDERSCORE).split("\\.")[0];
         if (fileName.equals(SLASH)) {
@@ -171,7 +168,6 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
         }
         return fileName + OPENAPI_SUFFIX + YAML_EXTENSION;
     }
-
 
     private void writeOpenAPIYaml(Path outPath, OASResult oasResult, List<Diagnostic> diagnostics) {
         if (oasResult.getYaml().isPresent()) {
@@ -198,7 +194,7 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
      * Filter all the end points and service nodes for avoiding the generated file name conflicts.
      */
     private static void extractServiceNodes(ModulePartNode modulePartNode, Map<Integer, String> services,
-                                           SemanticModel semanticModel) {
+                                            SemanticModel semanticModel) {
         List<String> allServices = new ArrayList<>();
         for (Node node : modulePartNode.members()) {
             SyntaxKind syntaxKind = node.kind();
@@ -218,7 +214,6 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
             }
         }
     }
-
 
     public static Diagnostic getDiagnostics(OpenAPIMapperDiagnostic diagnostic) {
         DiagnosticInfo diagnosticInfo = new DiagnosticInfo(diagnostic.getCode(), diagnostic.getMessage(),
