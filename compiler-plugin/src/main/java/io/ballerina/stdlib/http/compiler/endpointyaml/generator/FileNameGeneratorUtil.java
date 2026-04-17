@@ -87,12 +87,7 @@ public class FileNameGeneratorUtil {
                     !(serviceSymbol.get() instanceof ServiceDeclarationSymbol)) {
                 continue;
             }
-            StringBuilder basePath = new StringBuilder();
-            NodeList<Node> resourcePathNode = ((ServiceDeclarationNode) node).absoluteResourcePath();
-            for (Node identifierNode : resourcePathNode) {
-                basePath.append(identifierNode.toString().replace("\"", "").trim());
-            }
-            String service = basePath.toString();
+            String service = getServiceBasePath(serviceNode);
             String updateServiceName = service;
             if (allServices.contains(service)) {
                 updateServiceName = service + HYPHEN + serviceSymbol.get().hashCode();
@@ -125,7 +120,7 @@ public class FileNameGeneratorUtil {
     }
 
 
-    private String getServiceBasePath(ServiceDeclarationNode serviceNode) {
+    private static String getServiceBasePath(ServiceDeclarationNode serviceNode) {
         StringBuilder basePath = new StringBuilder();
         NodeList<Node> resourcePathNode = serviceNode.absoluteResourcePath();
         for (Node identifierNode : resourcePathNode) {
