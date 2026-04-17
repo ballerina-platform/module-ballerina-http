@@ -40,21 +40,21 @@ paths:
                 oneOf:
                   - type: array
                     items:
-                      $ref: '#/components/schemas/User'
-                  - $ref: '#/components/schemas/ErrorResponse'
+                      $ref: "#/components/schemas/User"
+                  - $ref: "#/components/schemas/ErrorResponse"
         "400":
           description: BadRequest
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorPayload'
+                $ref: "#/components/schemas/ErrorPayload"
     post:
       operationId: postUsers
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserInput'
+              $ref: "#/components/schemas/UserInput"
         required: true
       responses:
         "201":
@@ -63,14 +63,14 @@ paths:
             application/json:
               schema:
                 oneOf:
-                  - $ref: '#/components/schemas/User'
-                  - $ref: '#/components/schemas/ErrorResponse'
+                  - $ref: "#/components/schemas/User"
+                  - $ref: "#/components/schemas/ErrorResponse"
         "400":
           description: BadRequest
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorPayload'
+                $ref: "#/components/schemas/ErrorPayload"
     delete:
       operationId: deleteUsers
       parameters:
@@ -86,14 +86,14 @@ paths:
             application/json:
               schema:
                 oneOf:
-                  - $ref: '#/components/schemas/SuccessResponse'
-                  - $ref: '#/components/schemas/ErrorResponse'
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - $ref: "#/components/schemas/ErrorResponse"
         "400":
           description: BadRequest
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorPayload'
+                $ref: "#/components/schemas/ErrorPayload"
   /users/{id}:
     get:
       operationId: getUsersId
@@ -110,14 +110,14 @@ paths:
             application/json:
               schema:
                 oneOf:
-                  - $ref: '#/components/schemas/User'
-                  - $ref: '#/components/schemas/ErrorResponse'
+                  - $ref: "#/components/schemas/User"
+                  - $ref: "#/components/schemas/ErrorResponse"
         "400":
           description: BadRequest
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorPayload'
+                $ref: "#/components/schemas/ErrorPayload"
     delete:
       operationId: deleteUsersId
       parameters:
@@ -133,14 +133,14 @@ paths:
             application/json:
               schema:
                 oneOf:
-                  - $ref: '#/components/schemas/SuccessResponse'
-                  - $ref: '#/components/schemas/ErrorResponse'
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - $ref: "#/components/schemas/ErrorResponse"
         "400":
           description: BadRequest
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorPayload'
+                $ref: "#/components/schemas/ErrorPayload"
     patch:
       operationId: patchUsersId
       parameters:
@@ -153,7 +153,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserUpdate'
+              $ref: "#/components/schemas/UserUpdate"
         required: true
       responses:
         "200":
@@ -162,14 +162,14 @@ paths:
             application/json:
               schema:
                 oneOf:
-                  - $ref: '#/components/schemas/User'
-                  - $ref: '#/components/schemas/ErrorResponse'
+                  - $ref: "#/components/schemas/User"
+                  - $ref: "#/components/schemas/ErrorResponse"
         "400":
           description: BadRequest
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorPayload'
+                $ref: "#/components/schemas/ErrorPayload"
   /health:
     get:
       operationId: getHealth
@@ -179,7 +179,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessResponse'
+                $ref: "#/components/schemas/SuccessResponse"
   /stats:
     get:
       operationId: getStats
@@ -189,7 +189,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessResponse'
+                $ref: "#/components/schemas/SuccessResponse"
   /users/bulk:
     post:
       operationId: postUsersBulk
@@ -199,7 +199,7 @@ paths:
             schema:
               type: array
               items:
-                $ref: '#/components/schemas/UserInput'
+                $ref: "#/components/schemas/UserInput"
         required: true
       responses:
         "201":
@@ -210,14 +210,14 @@ paths:
                 oneOf:
                   - type: array
                     items:
-                      $ref: '#/components/schemas/User'
-                  - $ref: '#/components/schemas/ErrorResponse'
+                      $ref: "#/components/schemas/User"
+                  - $ref: "#/components/schemas/ErrorResponse"
         "400":
           description: BadRequest
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorPayload'
+                $ref: "#/components/schemas/ErrorPayload"
   /users/department/{oldDept}/{newDept}:
     patch:
       operationId: patchUsersDepartmentOlddeptNewdept
@@ -239,14 +239,14 @@ paths:
             application/json:
               schema:
                 oneOf:
-                  - $ref: '#/components/schemas/SuccessResponse'
-                  - $ref: '#/components/schemas/ErrorResponse'
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - $ref: "#/components/schemas/ErrorResponse"
         "400":
           description: BadRequest
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorPayload'
+                $ref: "#/components/schemas/ErrorPayload"
   /callerInf:
     get:
       operationId: getCallerinf
@@ -257,7 +257,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Caller'
+                $ref: "#/components/schemas/Caller"
       responses:
         "200":
           description: Ok
@@ -270,7 +270,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorPayload'
+                $ref: "#/components/schemas/ErrorPayload"
   /callerErr1:
     get:
       operationId: getCallererr1
@@ -292,7 +292,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorPayload'
+                $ref: "#/components/schemas/ErrorPayload"
   /callerErr2:
     post:
       operationId: postCallererr2
@@ -300,7 +300,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Caller'
+              $ref: "#/components/schemas/Caller"
         required: true
       responses:
         "201":
@@ -314,7 +314,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorPayload'
+                $ref: "#/components/schemas/ErrorPayload"
   /callerErr3:
     get:
       operationId: getCallererr3
@@ -325,7 +325,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Caller'
+                $ref: "#/components/schemas/Caller"
       responses:
         "200":
           description: Ok
@@ -338,7 +338,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorPayload'
+                $ref: "#/components/schemas/ErrorPayload"
 components:
   schemas:
     Caller:
