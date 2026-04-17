@@ -47,7 +47,7 @@ public class FileNameGeneratorUtil {
     private static final String SLASH = "/";
     private static final String UNDERSCORE = "_";
     private static final String HYPHEN = "-";
-    private static final String extension = OPENAPI_SUFFIX + YAML_EXTENSION;
+    private static final String EXTENSION = OPENAPI_SUFFIX + YAML_EXTENSION;
     private final Map<Integer, String> services = new HashMap<>();
 
     private final SyntaxNodeAnalysisContext context;
@@ -62,16 +62,13 @@ public class FileNameGeneratorUtil {
         extractServiceNodes(syntaxTree.rootNode(), this.services, semanticModel);
         String balFileName = syntaxTree.filePath().replaceAll(SLASH, UNDERSCORE).split("\\.")[0];
         if (!(this.context.node() instanceof ServiceDeclarationNode node)) {
-            return balFileName + extension;
+            return balFileName + EXTENSION;
         }
 
         Optional<Symbol> serviceSymbol = semanticModel.symbol(node);
         if (serviceSymbol.isEmpty()) {
             String basePathName = getServiceBasePath(node);
-            if (!basePathName.isBlank()) {
-                return balFileName + UNDERSCORE + getNormalizedFileName(basePathName) + extension;
-            }
-            return balFileName + extension;
+            return constructEndpointFileName(balFileName, basePathName, EXTENSION, "");
         }
 
         return constructEndpointFileName(syntaxTree, services, serviceSymbol.get());
@@ -109,12 +106,20 @@ public class FileNameGeneratorUtil {
     private String constructEndpointFileName(SyntaxTree syntaxTree, Map<Integer, String> services,
                                      Symbol serviceSymbol) {
         String serviceName = services.get(serviceSymbol.hashCode());
-        String fileName = serviceName == null ? "" : getNormalizedFileName(serviceName);
         String balFileName = syntaxTree.filePath().replaceAll(SLASH, UNDERSCORE).split("\\.")[0];
+        return constructEndpointFileName(balFileName, serviceName, EXTENSION, String.valueOf(serviceSymbol.hashCode()));
+    }
+
+    private String constructEndpointFileName(String balFileName, String basePathName, String extension,
+                                             String fallbackSuffix) {
+        String fileName = basePathName == null ? "" : getNormalizedFileName(basePathName);
         if (fileName.equals(SLASH)) {
             return balFileName + extension;
         } else if ((fileName.contains(HYPHEN) && fileName.split(HYPHEN)[0].equals(SLASH)) || fileName.isBlank()) {
-            return balFileName + UNDERSCORE + serviceSymbol.hashCode() + extension;
+            if (fallbackSuffix == null || fallbackSuffix.isBlank()) {
+                return balFileName + extension;
+            }
+            return balFileName + UNDERSCORE + fallbackSuffix + extension;
         }
         return balFileName + UNDERSCORE + fileName + extension;
     }

@@ -51,7 +51,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -83,9 +82,13 @@ public class ServiceArtifactsExtractor implements AnalysisTask<SyntaxNodeAnalysi
         if (serviceNode == null) {
             return;
         }
+        Package currentPackage = context.currentPackage();
+        if (currentPackage == null) {
+            return;
+        }
         ModuleId moduleId = context.moduleId();
         DocumentId documentId = context.documentId();
-        Module currentModule = context.currentPackage() != null ? context.currentPackage().module(moduleId) : null;
+        Module currentModule = moduleId != null ? currentPackage.module(moduleId) : null;
 
         if (moduleId != null && documentId != null && currentModule != null &&
                 currentModule.testDocumentIds() != null &&
@@ -94,7 +97,6 @@ public class ServiceArtifactsExtractor implements AnalysisTask<SyntaxNodeAnalysi
         }
         List<Diagnostic> diagnostics = new ArrayList<>();
         SemanticModel semanticModel = context.semanticModel();
-        Package currentPackage = context.currentPackage();
         Project project = currentPackage.project();
         BuildOptions buildOptions = project.buildOptions();
 
@@ -210,10 +212,10 @@ public class ServiceArtifactsExtractor implements AnalysisTask<SyntaxNodeAnalysi
                                   List<Diagnostic> diagnostics) {
         if (oasResult.getYaml().isPresent()) {
             try {
-                Files.createDirectories(Paths.get(outPath + OAS_PATH_SEPARATOR + ARTIFACT));
+                Files.createDirectories(outPath.resolve(ARTIFACT));
                 FileNameGeneratorUtil fileNameGen = new FileNameGeneratorUtil(context);
                 String fileName = fileNameGen.getFileName();
-                writeFile(outPath.resolve(ARTIFACT + OAS_PATH_SEPARATOR + fileName), oasResult.getYaml().get());
+                writeFile(outPath.resolve(ARTIFACT).resolve(fileName), oasResult.getYaml().get());
             } catch (IOException e) {
                 ExceptionDiagnostic diagnostic = new ExceptionDiagnostic(DiagnosticMessages.OAS_CONVERTOR_108,
                         e.toString());
