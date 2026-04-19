@@ -42,7 +42,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 public class ServiceArtifactsExtractionTest {
@@ -56,15 +56,18 @@ public class ServiceArtifactsExtractionTest {
     @Test
     public void testServiceArtifactGenerationWithSimpleService() throws Exception {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_20");
-        executeBallerinaCommand(projectDirPath, true);
+        try {
+            executeBallerinaCommand(projectDirPath, true);
 
-        Path artifactDir = projectDirPath.resolve("target").resolve(ARTIFACT_DIR);
-        Assert.assertTrue(Files.exists(artifactDir), "Artifact directory should exist");
-        Assert.assertTrue(Files.exists(artifactDir.resolve("service_openapi.yaml")),
-                "OpenAPI artifact file should be generated");
-        Assert.assertTrue(Files.exists(artifactDir.resolve("service_endpoint.yaml")),
-                "Endpoint artifact file should be generated");
-        deleteDirectories(projectDirPath);
+            Path artifactDir = projectDirPath.resolve("target").resolve(ARTIFACT_DIR);
+            Assert.assertTrue(Files.exists(artifactDir), "Artifact directory should exist");
+            Assert.assertTrue(Files.exists(artifactDir.resolve("service_openapi.yaml")),
+                    "OpenAPI artifact file should be generated");
+            Assert.assertTrue(Files.exists(artifactDir.resolve("service_endpoint.yaml")),
+                    "Endpoint artifact file should be generated");
+        } finally {
+            deleteDirectories(projectDirPath);
+        }
     }
 
     @Test
@@ -99,9 +102,7 @@ public class ServiceArtifactsExtractionTest {
 
         List<Path> yamlFiles;
         try (Stream<Path> paths = Files.walk(artifactDir)) {
-            yamlFiles = paths.filter(path -> path.toString().endsWith(".yaml"))
-                    .sorted()
-                    .collect(Collectors.toList());
+            yamlFiles = paths.filter(path -> path.toString().endsWith(".yaml")).sorted().toList();
         }
 
         Assert.assertEquals(yamlFiles.size(), 10,
@@ -178,12 +179,11 @@ public class ServiceArtifactsExtractionTest {
         try (Stream<Path> paths = Files.walk(artifactDir)) {
             endpointFiles = paths
                     .map(this::safeFileName)
-                    .filter(fileName -> fileName.endsWith("_endpoint.yaml"))
-                    .collect(Collectors.toList());
+                    .filter(fileName -> fileName.endsWith("_endpoint.yaml")).toList();
         }
 
         Assert.assertEquals(endpointFiles.size(), 1, "Expected exactly one endpoint YAML file");
-        Assert.assertTrue(endpointFiles.get(0).matches("service_[0-9]+_endpoint\\.yaml"),
+        Assert.assertTrue(endpointFiles.getFirst().matches("service_[0-9]+_endpoint\\.yaml"),
                 "Endpoint YAML file should use fallback hash-based naming for empty service path");
 
         deleteDirectories(projectDirPath);
@@ -232,10 +232,14 @@ public class ServiceArtifactsExtractionTest {
             buildArgs.add(2, "--export-endpoints");
         }
 
-        ProcessBuilder pb = new ProcessBuilder(buildArgs);
+        ProcessBuilder pb = new ProcessBuilder(buildArgs)
+                .redirectErrorStream(true)
+                .redirectOutput(ProcessBuilder.Redirect.INHERIT);
         pb.directory(projectDirPath.toFile());
         Process process = pb.start();
-        process.waitFor();
+        boolean completed = process.waitFor(2, TimeUnit.MINUTES);
+        Assert.assertTrue(completed, "bal build timed out after 2 minutes");
+        Assert.assertEquals(process.exitValue(), 0, "bal build exited with unexpected code");
     }
 
     private static void verifyYamlContent(Path actualYaml, Path expectedYaml) throws IOException {

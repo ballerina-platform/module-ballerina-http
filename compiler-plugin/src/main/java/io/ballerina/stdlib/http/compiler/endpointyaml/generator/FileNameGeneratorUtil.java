@@ -60,7 +60,9 @@ public class FileNameGeneratorUtil {
         SyntaxTree syntaxTree = this.context.syntaxTree();
         SemanticModel semanticModel = this.context.semanticModel();
         extractServiceNodes(syntaxTree.rootNode(), this.services, semanticModel);
-        String balFileName = syntaxTree.filePath().replaceAll(SLASH, UNDERSCORE).split("\\.")[0];
+        String filePath = syntaxTree.filePath().replace(SLASH, UNDERSCORE);
+        String balFileName = filePath.endsWith(".bal")
+                ? filePath.substring(0, filePath.length() - ".bal".length()) : filePath;
         if (!(this.context.node() instanceof ServiceDeclarationNode node)) {
             return balFileName + EXTENSION;
         }
@@ -101,7 +103,9 @@ public class FileNameGeneratorUtil {
     private String constructEndpointFileName(SyntaxTree syntaxTree, Map<Integer, String> services,
                                      Symbol serviceSymbol) {
         String serviceName = services.get(serviceSymbol.hashCode());
-        String balFileName = syntaxTree.filePath().replaceAll(SLASH, UNDERSCORE).split("\\.")[0];
+        String filePath = syntaxTree.filePath().replace(SLASH, UNDERSCORE);
+        String balFileName = filePath.endsWith(".bal")
+                ? filePath.substring(0, filePath.length() - ".bal".length()) : filePath;
         return constructEndpointFileName(balFileName, serviceName, EXTENSION, String.valueOf(serviceSymbol.hashCode()));
     }
 
