@@ -158,7 +158,7 @@ public class OpenAPISpecGenerator implements AnalysisTask<SyntaxNodeAnalysisCont
      * @param services   service map for maintain the file name with updated name
      * @param serviceSymbol symbol for taking the hash code of services
      */
-    private String constructFileName(SyntaxTree syntaxTree, Map<Integer, String> services, Symbol serviceSymbol) {
+    public static String constructFileName(SyntaxTree syntaxTree, Map<Integer, String> services, Symbol serviceSymbol) {
         String fileName = getNormalizedFileName(services.get(serviceSymbol.hashCode()));
         String balFileName = syntaxTree.filePath().replaceAll(SLASH, UNDERSCORE).split("\\.")[0];
         if (fileName.equals(SLASH)) {
