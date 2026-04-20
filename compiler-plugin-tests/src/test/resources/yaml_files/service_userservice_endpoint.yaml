@@ -1,0 +1,5 @@
+endpoint:
+  port: 8080
+  basePath: "/userservice"
+  type: "REST"
+  schemaPath: "service_userservice_openapi.yaml"
