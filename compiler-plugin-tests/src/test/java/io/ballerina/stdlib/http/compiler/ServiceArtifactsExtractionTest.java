@@ -19,8 +19,17 @@
 package io.ballerina.stdlib.http.compiler;
 
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
+import io.ballerina.openapi.service.mapper.ServiceToOpenAPIMapper;
+import io.ballerina.openapi.service.mapper.diagnostic.DiagnosticMessages;
+import io.ballerina.openapi.service.mapper.diagnostic.ExceptionDiagnostic;
+import io.ballerina.openapi.service.mapper.model.OASGenerationMetaInfo;
+import io.ballerina.openapi.service.mapper.model.OASResult;
+import io.ballerina.openapi.service.mapper.model.ServiceDeclaration;
+import io.ballerina.openapi.service.mapper.model.ServiceNode;
 import io.ballerina.projects.BuildOptions;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
@@ -38,6 +47,7 @@ import io.ballerina.stdlib.http.compiler.endpointyaml.generator.EndpointYamlGene
 import io.ballerina.stdlib.http.compiler.endpointyaml.generator.FileNameGeneratorUtil;
 import io.ballerina.stdlib.http.compiler.endpointyaml.generator.ServiceArtifactsExtractor;
 import io.ballerina.tools.diagnostics.Diagnostic;
+import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.servers.ServerVariable;
 import io.swagger.v3.oas.models.servers.ServerVariables;
@@ -56,6 +66,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
@@ -403,6 +414,337 @@ public class ServiceArtifactsExtractionTest {
         }
     }
 
+    @Test
+    public void testGeneratedOpenAPIYamlContent() throws Exception {
+        Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_20");
+        try {
+            executeBallerinaCommand(projectDirPath, true);
+
+            Path openAPIFile = projectDirPath.resolve("target")
+                    .resolve(ARTIFACT_DIR).resolve("service_openapi.yaml");
+            Assert.assertTrue(Files.exists(openAPIFile), "OpenAPI artifact file should exist");
+
+            String content = Files.readString(openAPIFile);
+            Assert.assertTrue(content.contains("openapi:"),
+                    "Generated YAML should contain an 'openapi' version key");
+            Assert.assertTrue(content.contains("info:"),
+                    "Generated YAML should contain an 'info' block");
+            Assert.assertTrue(content.contains("paths:"),
+                    "Generated YAML should contain a 'paths' block");
+        } finally {
+            deleteDirectories(projectDirPath);
+        }
+    }
+
+    @Test
+    public void testUniqueFileNamesForServicesWithSameBasePath() throws Exception {
+        Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_48");
+        try {
+            executeBallerinaCommand(projectDirPath, true);
+
+            Path artifactDir = projectDirPath.resolve("target").resolve(ARTIFACT_DIR);
+            Assert.assertTrue(Files.exists(artifactDir), "Artifact directory should exist");
+
+            List<Path> openAPIFiles;
+            try (Stream<Path> paths = Files.walk(artifactDir)) {
+                openAPIFiles = paths
+                        .filter(p -> safeFileName(p).contains("_openapi"))
+                        .toList();
+            }
+
+            long uniqueCount = openAPIFiles.stream()
+                    .map(this::safeFileName)
+                    .distinct()
+                    .count();
+            Assert.assertEquals(uniqueCount, openAPIFiles.size(),
+                    "Every generated OpenAPI YAML must have a distinct file name");
+        } finally {
+            deleteDirectories(projectDirPath);
+        }
+    }
+
+    @Test
+    public void testServiceArtifactGenerationWithSemanticErrors() throws Exception {
+        Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_49");
+        try {
+            executeBallerinaCommand(projectDirPath, true);
+
+            Path artifactDir = projectDirPath.resolve("target").resolve(ARTIFACT_DIR);
+            Assert.assertTrue(Files.notExists(artifactDir),
+                    "Artifact directory should not be generated when semantic errors are present");
+        } finally {
+            deleteDirectories(projectDirPath);
+        }
+    }
+
+    @Test
+    public void testArtifactDirectoryLocationIsCorrect() throws Exception {
+        Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_20");
+        try {
+            executeBallerinaCommand(projectDirPath, true);
+
+            Path expectedArtifactDir = projectDirPath.resolve("target").resolve(ARTIFACT_DIR);
+            Assert.assertTrue(Files.isDirectory(expectedArtifactDir),
+                    "Artifacts should be written to target/artifact/");
+        } finally {
+            deleteDirectories(projectDirPath);
+        }
+    }
+
+    @Test
+    public void testAllGeneratedYamlFilesAreNonEmpty() throws Exception {
+        Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_44");
+        try {
+            executeBallerinaCommand(projectDirPath, true);
+
+            Path artifactDir = projectDirPath.resolve("target").resolve(ARTIFACT_DIR);
+            Assert.assertTrue(Files.exists(artifactDir), "Artifact directory should exist");
+
+            try (Stream<Path> paths = Files.walk(artifactDir)) {
+                paths.filter(p -> p.toString().endsWith(".yaml"))
+                        .forEach(yamlFile -> {
+                            try {
+                                Assert.assertTrue(Files.size(yamlFile) > 0,
+                                        "YAML file should not be empty: " + safeFileName(yamlFile));
+                            } catch (IOException e) {
+                                Assert.fail("Could not read file size for: " + safeFileName(yamlFile), e);
+                            }
+                        });
+            }
+        } finally {
+            deleteDirectories(projectDirPath);
+        }
+    }
+
+    @Test
+    public void testServiceArtifactGenerationWithOASMapperWarnings() throws Exception {
+        Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_50");
+        try {
+            executeBallerinaCommand(projectDirPath, true);
+
+            Path artifactDir = projectDirPath.resolve("target").resolve(ARTIFACT_DIR);
+            Assert.assertTrue(Files.exists(artifactDir),
+                    "Artifact directory should exist even when OAS mapper emits warnings");
+
+            List<Path> openAPIFiles;
+            try (Stream<Path> paths = Files.walk(artifactDir)) {
+                openAPIFiles = paths
+                        .filter(p -> safeFileName(p).contains("_openapi"))
+                        .toList();
+            }
+            Assert.assertFalse(openAPIFiles.isEmpty(),
+                    "OpenAPI YAML should be generated even when mapper warnings are present");
+        } finally {
+            deleteDirectories(projectDirPath);
+        }
+    }
+
+    @Test
+    public void testEndpointYamlSkippedWhenNoServersDefined() throws Exception {
+        Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_51");
+        try {
+            executeBallerinaCommand(projectDirPath, true);
+
+            Path artifactDir = projectDirPath.resolve("target").resolve(ARTIFACT_DIR);
+            Assert.assertTrue(Files.exists(artifactDir),
+                    "Artifact directory should exist even when no server is declared");
+
+            List<Path> endpointFiles;
+            try (Stream<Path> paths = Files.walk(artifactDir)) {
+                endpointFiles = paths
+                        .filter(p -> safeFileName(p).contains("_endpoint"))
+                        .toList();
+            }
+            Assert.assertTrue(endpointFiles.isEmpty(),
+                    "No endpoint YAML should be generated when the service has no server definitions");
+        } finally {
+            deleteDirectories(projectDirPath);
+        }
+    }
+
+    @Test
+    public void testIOExceptionHandling() throws Exception {
+        Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_20");
+        BuildProject project = loadProject(projectDirPath, true);
+        TestContextData contextData = getTestContextData(project);
+        SyntaxNodeAnalysisContext context = createSyntaxNodeAnalysisContext(contextData, new ArrayList<>());
+        OASResult oasResult = buildOASResult(contextData);
+        ServiceArtifactsExtractor extractor = new ServiceArtifactsExtractor();
+
+        try {
+            Path invalidOutPath = projectDirPath.resolve("target").resolve("invalid-out-path");
+            Files.createDirectories(projectDirPath.resolve("target"));
+            Files.writeString(invalidOutPath, "not-a-directory");
+
+            List<Diagnostic> writeOpenAPIDiagnostics = new ArrayList<>();
+            Method writeOpenAPIYaml = ServiceArtifactsExtractor.class.getDeclaredMethod(
+                    "writeOpenAPIYaml",
+                    Path.class,
+                    SyntaxNodeAnalysisContext.class,
+                    OASResult.class,
+                    List.class);
+            writeOpenAPIYaml.setAccessible(true);
+            writeOpenAPIYaml.invoke(extractor,
+                invalidOutPath, context, oasResult, writeOpenAPIDiagnostics);
+
+            assertErrorDiagnosticAdded(writeOpenAPIDiagnostics, "writeOpenAPIYaml");
+        } finally {
+            deleteDirectories(projectDirPath);
+        }
+    }
+
+    @Test
+    public void testDiagnosticPrinting() throws Exception {
+        Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_51");
+        BuildProject project = loadProject(projectDirPath, true);
+        TestContextData contextData = getTestContextData(project);
+        List<Diagnostic> reportedDiagnostics = new ArrayList<>();
+        SyntaxNodeAnalysisContext context = createSyntaxNodeAnalysisContext(contextData, reportedDiagnostics);
+        ServiceArtifactsExtractor extractor = new ServiceArtifactsExtractor();
+
+        try {
+            Method printDiagnostics = ServiceArtifactsExtractor.class.getDeclaredMethod(
+                "printDiagnostics",
+                SyntaxNodeAnalysisContext.class,
+                List.class);
+            printDiagnostics.setAccessible(true);
+
+            ExceptionDiagnostic mapperDiagnostic = new ExceptionDiagnostic(
+                    DiagnosticMessages.OAS_CONVERTOR_108, "test io error");
+            Assert.assertTrue(mapperDiagnostic.getLocation().isEmpty(),
+                    "ExceptionDiagnostic must have no location to exercise the NullLocation fallback");
+
+            Diagnostic result = ServiceArtifactsExtractor.getDiagnostics(mapperDiagnostic);
+                List<Diagnostic> diagnostics = new ArrayList<>();
+                diagnostics.add(result);
+                printDiagnostics.invoke(extractor, context, diagnostics);
+
+                Assert.assertEquals(reportedDiagnostics.size(), diagnostics.size(),
+                    "All collected diagnostics must be reported via context.reportDiagnostic");
+
+            Assert.assertNotNull(result,
+                    "getDiagnostics must return a non-null Diagnostic even when location is absent");
+            Assert.assertEquals(result.diagnosticInfo().code(), mapperDiagnostic.getCode(),
+                    "getDiagnostics must preserve the diagnostic code");
+            Assert.assertEquals(result.diagnosticInfo().messageFormat(), mapperDiagnostic.getMessage(),
+                    "getDiagnostics must preserve the diagnostic message");
+            Assert.assertEquals(result.diagnosticInfo().severity(), mapperDiagnostic.getDiagnosticSeverity(),
+                    "getDiagnostics must preserve the diagnostic severity");
+
+        } finally {
+            deleteDirectories(projectDirPath);
+        }
+    }
+
+    @Test
+    public void testFileNameGeneratorForNonServiceNode() {
+    Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_20");
+    BuildProject project = loadProject(projectDirPath, false);
+    TestContextData contextData = getTestContextData(project);
+
+    SyntaxNodeAnalysisContext context = createSyntaxNodeAnalysisContext(
+        contextData,
+        new ArrayList<>(),
+        contextData.syntaxTree.rootNode(),
+        contextData.semanticModel);
+    FileNameGeneratorUtil fileNameGeneratorUtil = new FileNameGeneratorUtil(context);
+
+    String filePath = contextData.syntaxTree.filePath().replace("/", "_");
+    String balFileName = filePath.endsWith(".bal")
+        ? filePath.substring(0, filePath.length() - ".bal".length())
+        : filePath;
+    Assert.assertEquals(fileNameGeneratorUtil.getFileName(), balFileName + "_openapi.yaml");
+    }
+
+    @Test
+    public void testFileNameGeneratorWhenServiceSymbolUnavailable() {
+        Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_48");
+        BuildProject project = loadProject(projectDirPath, false);
+        TestContextData contextData = getTestContextData(project);
+
+        SemanticModel semanticModelWithMissingServiceSymbol = (SemanticModel) Proxy.newProxyInstance(
+            SemanticModel.class.getClassLoader(),
+            new Class[]{SemanticModel.class},
+            (proxy, method, args) -> {
+                if ("symbol".equals(method.getName())
+                    && args != null
+                    && args.length == 1
+                    && args[0] instanceof ServiceDeclarationNode) {
+                return Optional.empty();
+                }
+                return method.invoke(contextData.semanticModel, args);
+            });
+
+        SyntaxNodeAnalysisContext context = createSyntaxNodeAnalysisContext(
+            contextData,
+            new ArrayList<>(),
+            contextData.serviceNode,
+            semanticModelWithMissingServiceSymbol);
+        FileNameGeneratorUtil fileNameGeneratorUtil = new FileNameGeneratorUtil(context);
+
+        String filePath = contextData.syntaxTree.filePath().replace("/", "_");
+        String balFileName = filePath.endsWith(".bal")
+            ? filePath.substring(0, filePath.length() - ".bal".length())
+            : filePath;
+        Assert.assertEquals(fileNameGeneratorUtil.getFileName(), balFileName + "_userservice_openapi.yaml");
+    }
+
+    @Test
+    public void testConstructEndpointFileName() throws Exception {
+        Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_48");
+        BuildProject project = loadProject(projectDirPath, false);
+        TestContextData contextData = getTestContextData(project);
+        SyntaxNodeAnalysisContext context = createSyntaxNodeAnalysisContext(contextData, new ArrayList<>());
+        FileNameGeneratorUtil fileNameGeneratorUtil = new FileNameGeneratorUtil(context);
+
+        Map<Integer, String> services = new HashMap<>();
+        FileNameGeneratorUtil.extractServiceNodes(
+            contextData.syntaxTree.rootNode(), services, contextData.semanticModel);
+        Optional<Symbol> symbol = contextData.semanticModel.symbol(contextData.serviceNode);
+        Assert.assertTrue(symbol.isPresent(), "Service symbol should be available for this test case");
+
+        Method constructEndpointFileNameWithSyntaxTree = FileNameGeneratorUtil.class.getDeclaredMethod(
+            "constructEndpointFileName",
+            SyntaxTree.class,
+            Map.class,
+            Symbol.class);
+        constructEndpointFileNameWithSyntaxTree.setAccessible(true);
+
+        String delegatedFileName = (String) constructEndpointFileNameWithSyntaxTree.invoke(
+            fileNameGeneratorUtil,
+            contextData.syntaxTree,
+            services,
+            symbol.get());
+
+        Assert.assertEquals(delegatedFileName, fileNameGeneratorUtil.getFileName(),
+            "SyntaxTree overload should delegate to the shared endpoint file-name construction logic");
+    }
+
+    private OASResult buildOASResult(TestContextData contextData) {
+        Map<Integer, String> services = new HashMap<>();
+        FileNameGeneratorUtil.extractServiceNodes(
+                contextData.syntaxTree.rootNode(), services, contextData.semanticModel);
+        Optional<Symbol> serviceSymbol = contextData.semanticModel.symbol(contextData.serviceNode);
+        OASGenerationMetaInfo.OASGenerationMetaInfoBuilder builder =
+                new OASGenerationMetaInfo.OASGenerationMetaInfoBuilder();
+        ServiceNode serviceNode = new ServiceDeclaration(contextData.serviceNode, contextData.semanticModel);
+        builder.setServiceNode(serviceNode)
+                .setSemanticModel(contextData.semanticModel)
+                .setOpenApiFileName(serviceSymbol.map(s -> services.get(s.hashCode())).orElse(null))
+                .setBallerinaFilePath(null)
+                .setProject(contextData.currentPackage.project());
+        return ServiceToOpenAPIMapper.generateOAS(builder.build());
+    }
+
+    private void assertErrorDiagnosticAdded(List<Diagnostic> diagnostics, String caller) {
+        Assert.assertFalse(diagnostics.isEmpty(),
+                caller + ": IOException must be caught and added as a diagnostic");
+        Assert.assertTrue(
+                diagnostics.stream().anyMatch(
+                        d -> d.diagnosticInfo().severity() == DiagnosticSeverity.ERROR),
+                caller + ": caught IOException must produce an ERROR severity diagnostic");
+    }
+
     private String safeFileName(Path path) {
         Path fileName = path == null ? null : path.getFileName();
         return Objects.toString(fileName, "");
@@ -445,13 +787,20 @@ public class ServiceArtifactsExtractionTest {
 
     private SyntaxNodeAnalysisContext createSyntaxNodeAnalysisContext(TestContextData data,
                                                                       List<Diagnostic> reportedDiagnostics) {
+        return createSyntaxNodeAnalysisContext(data, reportedDiagnostics, data.serviceNode, data.semanticModel);
+    }
+
+    private SyntaxNodeAnalysisContext createSyntaxNodeAnalysisContext(TestContextData data,
+                                                                      List<Diagnostic> reportedDiagnostics,
+                                                                      Node node,
+                                                                      SemanticModel semanticModel) {
         return (SyntaxNodeAnalysisContext) Proxy.newProxyInstance(
                 SyntaxNodeAnalysisContext.class.getClassLoader(),
                 new Class[]{SyntaxNodeAnalysisContext.class},
                 (proxy, method, args) -> switch (method.getName()) {
-                    case "node" -> data.serviceNode;
+                    case "node" -> node;
                     case "syntaxTree" -> data.syntaxTree;
-                    case "semanticModel" -> data.semanticModel;
+                    case "semanticModel" -> semanticModel;
                     case "currentPackage" -> data.currentPackage;
                     case "documentId" -> data.documentId;
                     case "moduleId" -> data.documentId.moduleId();
@@ -547,177 +896,4 @@ public class ServiceArtifactsExtractionTest {
         }
     }
 
-    @Test
-    public void testGeneratedOpenAPIYamlContent() throws Exception {
-        Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_20");
-        try {
-            executeBallerinaCommand(projectDirPath, true);
-
-            Path openAPIFile = projectDirPath.resolve("target")
-                    .resolve(ARTIFACT_DIR).resolve("service_openapi.yaml");
-            Assert.assertTrue(Files.exists(openAPIFile), "OpenAPI artifact file should exist");
-
-            String content = Files.readString(openAPIFile);
-            Assert.assertTrue(content.contains("openapi:"),
-                    "Generated YAML should contain an 'openapi' version key");
-            Assert.assertTrue(content.contains("info:"),
-                    "Generated YAML should contain an 'info' block");
-            Assert.assertTrue(content.contains("paths:"),
-                    "Generated YAML should contain a 'paths' block");
-        } finally {
-            deleteDirectories(projectDirPath);
-        }
-    }
-
-//    @Test
-//    public void testServiceArtifactGenerationWithCustomBasePath() throws Exception {
-//        Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_47");
-//        try {
-//            executeBallerinaCommand(projectDirPath, true);
-//            Path artifactDir = projectDirPath.resolve("target").resolve(ARTIFACT_DIR);
-//            Assert.assertTrue(Files.exists(artifactDir),
-//                    "Artifact directory should exist for a service with a custom base path");
-//
-//            List<Path> openAPIFiles;
-//            try (Stream<Path> paths = Files.walk(artifactDir)) {
-//                openAPIFiles = paths
-//                        .filter(p -> safeFileName(p).contains("_openapi"))
-//                        .toList();
-//            }
-//            Assert.assertFalse(openAPIFiles.isEmpty(), "At least one OpenAPI YAML should be generated");
-//
-//            String content = Files.readString(openAPIFiles.get(0));
-//            Assert.assertTrue(content.contains("/api/v1") || content.contains("basePath"),
-//                    "OpenAPI YAML should reflect the custom base path");
-//        } finally {
-//            deleteDirectories(projectDirPath);
-//        }
-//    }
-
-    @Test
-    public void testUniqueFileNamesForServicesWithSameBasePath() throws Exception {
-        Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_48");
-        try {
-            executeBallerinaCommand(projectDirPath, true);
-
-            Path artifactDir = projectDirPath.resolve("target").resolve(ARTIFACT_DIR);
-            Assert.assertTrue(Files.exists(artifactDir), "Artifact directory should exist");
-
-            List<Path> openAPIFiles;
-            try (Stream<Path> paths = Files.walk(artifactDir)) {
-                openAPIFiles = paths
-                        .filter(p -> safeFileName(p).contains("_openapi"))
-                        .toList();
-            }
-
-            long uniqueCount = openAPIFiles.stream()
-                    .map(this::safeFileName)
-                    .distinct()
-                    .count();
-            Assert.assertEquals(uniqueCount, openAPIFiles.size(),
-                    "Every generated OpenAPI YAML must have a distinct file name");
-        } finally {
-            deleteDirectories(projectDirPath);
-        }
-    }
-
-    @Test
-    public void testServiceArtifactGenerationWithSemanticErrors() throws Exception {
-        Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_49");
-        try {
-            executeBallerinaCommand(projectDirPath, true);
-
-            Path artifactDir = projectDirPath.resolve("target").resolve(ARTIFACT_DIR);
-            Assert.assertTrue(Files.notExists(artifactDir),
-                    "Artifact directory should not be generated when semantic errors are present");
-        } finally {
-            deleteDirectories(projectDirPath);
-        }
-    }
-
-    @Test
-    public void testArtifactDirectoryLocationIsCorrect() throws Exception {
-        Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_20");
-        try {
-            executeBallerinaCommand(projectDirPath, true);
-
-            Path expectedArtifactDir = projectDirPath.resolve("target").resolve(ARTIFACT_DIR);
-            Assert.assertTrue(Files.isDirectory(expectedArtifactDir),
-                    "Artifacts should be written to target/artifact/");
-        } finally {
-            deleteDirectories(projectDirPath);
-        }
-    }
-
-    @Test
-    public void testAllGeneratedYamlFilesAreNonEmpty() throws Exception {
-        Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_44");
-        try {
-            executeBallerinaCommand(projectDirPath, true);
-
-            Path artifactDir = projectDirPath.resolve("target").resolve(ARTIFACT_DIR);
-            Assert.assertTrue(Files.exists(artifactDir), "Artifact directory should exist");
-
-            try (Stream<Path> paths = Files.walk(artifactDir)) {
-                paths.filter(p -> p.toString().endsWith(".yaml"))
-                        .forEach(yamlFile -> {
-                            try {
-                                Assert.assertTrue(Files.size(yamlFile) > 0,
-                                        "YAML file should not be empty: " + safeFileName(yamlFile));
-                            } catch (IOException e) {
-                                Assert.fail("Could not read file size for: " + safeFileName(yamlFile), e);
-                            }
-                        });
-            }
-        } finally {
-            deleteDirectories(projectDirPath);
-        }
-    }
-
-    @Test
-    public void testServiceArtifactGenerationWithOASMapperWarnings() throws Exception {
-        Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_50");
-        try {
-            executeBallerinaCommand(projectDirPath, true);
-
-            Path artifactDir = projectDirPath.resolve("target").resolve(ARTIFACT_DIR);
-            // Artifacts should still be present despite mapper warnings
-            Assert.assertTrue(Files.exists(artifactDir),
-                    "Artifact directory should exist even when OAS mapper emits warnings");
-
-            List<Path> openAPIFiles;
-            try (Stream<Path> paths = Files.walk(artifactDir)) {
-                openAPIFiles = paths
-                        .filter(p -> safeFileName(p).contains("_openapi"))
-                        .toList();
-            }
-            Assert.assertFalse(openAPIFiles.isEmpty(),
-                    "OpenAPI YAML should be generated even when mapper warnings are present");
-        } finally {
-            deleteDirectories(projectDirPath);
-        }
-    }
-
-    @Test
-    public void testEndpointYamlSkippedWhenNoServersDefined() throws Exception {
-        Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_51");
-        try {
-            executeBallerinaCommand(projectDirPath, true);
-
-            Path artifactDir = projectDirPath.resolve("target").resolve(ARTIFACT_DIR);
-            Assert.assertTrue(Files.exists(artifactDir),
-                    "Artifact directory should exist even when no server is declared");
-
-            List<Path> endpointFiles;
-            try (Stream<Path> paths = Files.walk(artifactDir)) {
-                endpointFiles = paths
-                        .filter(p -> safeFileName(p).contains("_endpoint"))
-                        .toList();
-            }
-            Assert.assertTrue(endpointFiles.isEmpty(),
-                    "No endpoint YAML should be generated when the service has no server definitions");
-        } finally {
-            deleteDirectories(projectDirPath);
-        }
-    }
 }

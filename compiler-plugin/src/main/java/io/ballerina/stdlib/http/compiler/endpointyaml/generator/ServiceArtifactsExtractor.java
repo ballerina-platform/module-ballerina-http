@@ -68,7 +68,6 @@ import static io.ballerina.stdlib.http.compiler.endpointyaml.generator.FileNameG
  */
 public class ServiceArtifactsExtractor implements AnalysisTask<SyntaxNodeAnalysisContext> {
     private static boolean isErrorPrinted = false;
-    private static final String OAS_PATH_SEPARATOR = "/";
     private static final String ARTIFACT = "artifact";
     private static final PrintStream outStream = System.out;
 

@@ -45,6 +45,7 @@ dependencies {
     testImplementation group: 'com.google.code.gson', name: 'gson', version: "${gsonVersion}"
     testImplementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: "${jacksonDatabindVersion}"
     testImplementation group: 'io.swagger.core.v3', name: 'swagger-models', version: "${swaggerCoreVersion}"
+    testImplementation group: 'io.ballerina.openapi', name: 'ballerina-to-openapi', version: "${ballerinaToOpenApiVersion}"
 }
 
 tasks.withType(Checkstyle) {
