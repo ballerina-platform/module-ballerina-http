@@ -52,6 +52,7 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.EXPECTED_SEQUENCE_NUMBER;
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_BEFORE_INITIATING_INBOUND_REQUEST;
@@ -290,6 +291,9 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
 
         if (ctx.channel().attr(Constants.PIPELINING_EXECUTOR).get() == null) {
             ctx.channel().attr(Constants.PIPELINING_EXECUTOR).set(pipeliningGroup);
+        }
+        if (ctx.channel().attr(Constants.PIPELINE_LOCK).get() == null) {
+            ctx.channel().attr(Constants.PIPELINE_LOCK).set(new ReentrantLock());
         }
     }
 
