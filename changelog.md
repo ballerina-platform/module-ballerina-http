@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 
 - [Fix Virtual Thread Pinning Due to Synchronized Block](https://github.com/ballerina-platform/ballerina-library/issues/8772)
+- [Address `CVE-2026-5588` Vulnerability](https://github.com/ballerina-platform/ballerina-library/issues/8774)
 
 ## [2.16.1] - 2026-04-07
 
