@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Queue;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static io.ballerina.stdlib.http.api.HttpUtil.sendOutboundResponse;
 
@@ -79,7 +80,9 @@ public class PipeliningHandler {
                                                             PipelinedResponse pipelinedResponse) {
         HttpResponseFuture responseFuture = null;
 
-        synchronized (sourceContext.channel().attr(Constants.RESPONSE_QUEUE).get()) {
+        ReentrantLock pipelineLock = sourceContext.channel().attr(Constants.PIPELINE_LOCK).get();
+        pipelineLock.lock();
+        try {
             Queue<PipelinedResponse> responseQueue = sourceContext.channel().attr(Constants.RESPONSE_QUEUE).get();
             if (thresholdReached(sourceContext, responseQueue)) {
                 return null;
@@ -112,6 +115,8 @@ public class PipeliningHandler {
                 }
             }
             return responseFuture;
+        } finally {
+            pipelineLock.unlock();
         }
     }
 
