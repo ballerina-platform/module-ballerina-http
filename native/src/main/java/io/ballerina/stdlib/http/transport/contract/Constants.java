@@ -22,6 +22,7 @@ import io.netty.util.AttributeKey;
 import io.netty.util.concurrent.EventExecutorGroup;
 
 import java.util.Queue;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Common Constants used by gate way.
@@ -283,6 +284,7 @@ public final class Constants {
             .valueOf("MAX_RESPONSES_ALLOWED_TO_BE_QUEUED");
     public static final AttributeKey<Queue> RESPONSE_QUEUE = AttributeKey.valueOf("RESPONSE_QUEUE");
     public static final AttributeKey<Long> NEXT_SEQUENCE_NUMBER = AttributeKey.valueOf("NEXT_SEQUENCE_NUMBER");
+    public static final AttributeKey<ReentrantLock> PIPELINE_LOCK = AttributeKey.valueOf("PIPELINE_LOCK");
     public static final AttributeKey<EventExecutorGroup> PIPELINING_EXECUTOR = AttributeKey
             .valueOf("PIPELINING_EXECUTOR");
 

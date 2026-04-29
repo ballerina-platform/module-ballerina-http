@@ -47,6 +47,7 @@ import java.nio.channels.ClosedChannelException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_HEAD_METHOD;
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY;
@@ -245,7 +246,9 @@ public class SendingEntityBody implements ListenerState {
         if (outboundResponseMsg.isPipeliningEnabled() && Constants.HTTP_1_1_VERSION.equalsIgnoreCase
                 (httpVersion)) {
             Queue responseQueue;
-            synchronized (sourceContext.channel().attr(Constants.RESPONSE_QUEUE).get()) {
+            ReentrantLock pipelineLock = sourceContext.channel().attr(Constants.PIPELINE_LOCK).get();
+            pipelineLock.lock();
+            try {
                 responseQueue = sourceContext.channel().attr(Constants.RESPONSE_QUEUE).get();
                 Long nextSequenceNumber = sourceContext.channel().attr(Constants.NEXT_SEQUENCE_NUMBER).get();
                 //IMPORTANT:Next sequence number should never be incremented for interim 100 continue response
@@ -257,6 +260,8 @@ public class SendingEntityBody implements ListenerState {
                     LOG.debug("Current sequence id of the response : {}", outboundResponseMsg.getSequenceId());
                     LOG.debug("Updated next sequence id to : {}", nextSequenceNumber);
                 }
+            } finally {
+                pipelineLock.unlock();
             }
             if (!responseQueue.isEmpty()) {
                 if (LOG.isDebugEnabled()) {
