@@ -1,13 +1,13 @@
 [package]
 org = "ballerina"
 name = "http"
-version = "2.16.2"
+version = "2.17.0"
 authors = ["Ballerina"]
 keywords = ["http", "network", "service", "listener", "client"]
 repository = "https://github.com/ballerina-platform/module-ballerina-http"
 icon = "icon.png"
 license = ["Apache-2.0"]
-distribution = "2201.13.0"
+distribution = "2201.13.3"
 
 [[package.modules]]
 name = "http.httpscerr"
@@ -20,8 +20,8 @@ graalvmCompatible = true
 [[platform.java21.dependency]]
 groupId = "io.ballerina.stdlib"
 artifactId = "http-native"
-version = "2.16.2"
-path = "../native/build/libs/http-native-2.16.2-SNAPSHOT.jar"
+version = "2.17.0"
+path = "../native/build/libs/http-native-2.17.0-SNAPSHOT.jar"
 
 [[platform.java21.dependency]]
 groupId = "io.ballerina.stdlib"

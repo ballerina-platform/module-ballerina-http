@@ -5,7 +5,7 @@
 
 [ballerina]
 dependencies-toml-version = "2"
-distribution-version = "2201.13.0"
+distribution-version = "2201.13.3"
 
 [[package]]
 org = "ballerina"
@@ -76,7 +76,7 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "http"
-version = "2.16.1"
+version = "2.16.2"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "auth"},
@@ -110,7 +110,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "http_interceptor_tests"
-version = "2.16.1"
+version = "2.17.0"
 dependencies = [
 	{org = "ballerina", name = "http"},
 	{org = "ballerina", name = "http_test_common"},
@@ -126,7 +126,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "http_test_common"
-version = "2.16.1"
+version = "2.17.0"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "http"},
