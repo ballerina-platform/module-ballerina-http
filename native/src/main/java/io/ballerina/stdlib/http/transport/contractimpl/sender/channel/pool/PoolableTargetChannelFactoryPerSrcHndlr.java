@@ -16,6 +16,7 @@
 package io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool;
 
 
+import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.TargetChannel;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
@@ -61,13 +62,16 @@ public class PoolableTargetChannelFactoryPerSrcHndlr implements PoolableObjectFa
     public void destroyObject(Object o) throws Exception {
         TargetChannel targetChannel = (TargetChannel) o;
         Channel nettyChannel = targetChannel.getChannel();
-        if (nettyChannel != null && nettyChannel.isActive()) {
+        if (nettyChannel != null && nettyChannel.isActive()
+                && nettyChannel.pipeline().get(Constants.HTTP_CLIENT_CODEC) != null) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Original Channel {} is returned to the pool. ", nettyChannel.id());
             }
             this.genericObjectPool.returnObject(o);
         } else {
-            // HTTP/2 channels go here when the channel is destroyed
+            // HTTP/2 channels (H2/TLS and h2c upgrade) go here when the channel is destroyed.
+            // For h2c, the pipeline's HttpClientCodec is removed after upgrade, so the channel
+            // cannot be reused for a new upgrade handshake and must be invalidated.
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Original Channel is destroyed. ");
             }
