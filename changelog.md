@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 
 - [Fix h2c connection eviction returning upgraded channel to pool](https://github.com/ballerina-platform/ballerina-library/issues/8780)
+- [Address `CVE-2026-42583`, `CVE-2026-42584`, `CVE-2026-42587`, `CVE-2026-41417`, `CVE-2026-42580`, `CVE-2026-42581`, `CVE-2026-42585`, `CVE-2026-42587` and `CVE-2026-42578` Netty vulnerabilities](https://github.com/ballerina-platform/ballerina-library/issues/8785)
+- [Address `CVE-2026-5588` Vulnerability](https://github.com/ballerina-platform/ballerina-library/issues/8774)
 
 ## [2.14.9] - 2026-01-09
 
