@@ -1,0 +1,5 @@
+endpoint:
+  port: 8080
+  basePath: "/"
+  type: "REST"
+  schemaPath: "service_openapi.yaml"
