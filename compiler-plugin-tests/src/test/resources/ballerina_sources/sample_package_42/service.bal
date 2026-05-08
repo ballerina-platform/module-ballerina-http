@@ -53,10 +53,6 @@ type SuccessResponse record {|
     json data?;
 |};
 
-type Caller record {|
-    int id;
-|};
-
 map<User> userStore = {};
 
 service /api/v1 on new http:Listener(9090) {
@@ -313,19 +309,7 @@ service /api/v1 on new http:Listener(9090) {
         return "done";
     }
 
-    resource function get callerInf(@http:CallerInfo Caller abc) returns string {
-        return "Caller ID: " + abc.id.toString();
-    }
-
-    resource function get callerErr1(@http:CallerInfo string abc) returns string {
-        return "Invalid caller info type";
-    }
-
-    resource function post callerErr2(@http:CallerInfo @http:Payload Caller abc) returns string {
-        return "Invalid annotation combination";
-    }
-
-    resource function get callerErr3(@http:CallerInfo Caller abc) returns string {
-        return "Caller test: " + abc.id.toString();
+    resource function get callerInf(@http:CallerInfo http:Caller abc) returns error? {
+        return;
     }
 }

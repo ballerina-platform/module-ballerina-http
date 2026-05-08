@@ -19,6 +19,7 @@
 package io.ballerina.stdlib.http.compiler;
 
 import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -37,7 +38,17 @@ public class OpenAPISpecGenerationTest {
             .toAbsolutePath();
     private static final Path DISTRIBUTION_PATH = Paths.get("../", "target", "ballerina-runtime")
             .toAbsolutePath();
+    private static final String[] OPENAPI_SAMPLE_PACKAGES = {
+            "sample_package_20", "sample_package_42", "sample_package_43", "sample_package_44",
+            "sample_package_45", "sample_package_46", "sample_package_47", "sample_package_48", "sample_package_49"
+    };
 
+    @AfterMethod(alwaysRun = true)
+    public void cleanOpenApiSampleTargets() throws IOException {
+        for (String pkg : OPENAPI_SAMPLE_PACKAGES) {
+            deleteDirectories(RESOURCE_DIRECTORY.resolve(pkg));
+        }
+    }
 
     @Test
     public void testSpecGenerationWithSimpleService() throws Exception {
@@ -46,7 +57,6 @@ public class OpenAPISpecGenerationTest {
         Path actualFile = projectDirPath.resolve("target/openapi").resolve("service_openapi.yaml");
         Path expectedFile = RESOURCE_DIRECTORY.resolve("../yaml_files").resolve("service_openapi_3.yaml");
         verifySpecContent(actualFile, expectedFile);
-        deleteDirectories(projectDirPath);
     }
 
     @Test
@@ -55,7 +65,6 @@ public class OpenAPISpecGenerationTest {
         executeBallerinaCommand(projectDirPath, true);
         Path openApiDir = projectDirPath.resolve("target/openapi");
         Assert.assertTrue(Files.notExists(openApiDir));
-        deleteDirectories(projectDirPath);
     }
 
     @Test
@@ -67,7 +76,6 @@ public class OpenAPISpecGenerationTest {
         Path actualFile = projectDirPath.resolve("target/openapi").resolve("service_352312370_openapi.yaml");
         Path expectedFile = RESOURCE_DIRECTORY.resolve("../yaml_files").resolve("service_openapi_2.yaml");
         verifySpecContent(actualFile, expectedFile);
-        deleteDirectories(projectDirPath);
     }
 
     @Test
@@ -77,7 +85,6 @@ public class OpenAPISpecGenerationTest {
         Path actualFile = projectDirPath.resolve("target/openapi").resolve("userservice_openapi.yaml");
         Path expectedFile = RESOURCE_DIRECTORY.resolve("../yaml_files").resolve("service_openapi_4.yaml");
         verifySpecContent(actualFile, expectedFile);
-        deleteDirectories(projectDirPath);
     }
 
     @Test
@@ -85,8 +92,7 @@ public class OpenAPISpecGenerationTest {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_49");
         executeBallerinaCommand(projectDirPath, true);
         Path openApiDir = projectDirPath.resolve("target/openapi");
-        Assert.assertTrue(Files.notExists(openApiDir), "OpenAPI directory should exist");
-        deleteDirectories(projectDirPath);
+        Assert.assertTrue(Files.notExists(openApiDir), "OpenAPI directory should not exist");
     }
 
     @Test
@@ -96,7 +102,6 @@ public class OpenAPISpecGenerationTest {
         Path actualFile = projectDirPath.resolve("target/openapi").resolve("service_openapi.yaml");
         Path expectedFile = RESOURCE_DIRECTORY.resolve("../yaml_files").resolve("service_openapi_1.yaml");
         verifySpecContent(actualFile, expectedFile);
-        deleteDirectories(projectDirPath);
     }
 
     @Test
@@ -107,7 +112,6 @@ public class OpenAPISpecGenerationTest {
                 .resolve("api_v1_openapi.yaml");
         Path expectedFile = RESOURCE_DIRECTORY.resolve("../yaml_files").resolve("complex_openapi.yaml");
         verifySpecContent(actualFile, expectedFile);
-        deleteDirectories(projectDirPath);
     }
 
     @Test
@@ -116,7 +120,6 @@ public class OpenAPISpecGenerationTest {
         executeBallerinaCommand(projectDirPath, false);
         Path yamlFile = projectDirPath.resolve("target/openapi").resolve("service_openapi.yaml");
         Assert.assertTrue(Files.notExists(yamlFile), "OpenAPI spec file should not be generated: " + yamlFile);
-        deleteDirectories(projectDirPath);
     }
 
     @Test
@@ -125,7 +128,6 @@ public class OpenAPISpecGenerationTest {
         executeBallerinaCommand(projectDirPath, false);
         Path yamlFile = projectDirPath.resolve("target/openapi").resolve("service_openapi.yaml");
         Assert.assertTrue(Files.notExists(yamlFile), "OpenAPI spec file should not be generated: " + yamlFile);
-        deleteDirectories(projectDirPath);
     }
 
     @Test
@@ -141,7 +143,6 @@ public class OpenAPISpecGenerationTest {
                     .collect(Collectors.toList());
         }
         Assert.assertEquals(yamlFiles.size(), 5);
-        deleteDirectories(projectDirPath);
     }
 
     public void addJavaAgents(Map<String, String> envProperties) {
