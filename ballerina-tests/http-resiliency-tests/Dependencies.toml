@@ -76,7 +76,7 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "http"
-version = "2.16.2"
+version = "2.16.3"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "auth"},
