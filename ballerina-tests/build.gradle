@@ -21,6 +21,12 @@ plugins {
 apply plugin: 'java'
 
 import org.apache.tools.ant.taskdefs.condition.Os
+import org.gradle.process.ExecOperations
+import javax.inject.Inject
+
+abstract class BallerinaTestsExecHelper {
+    @Inject abstract ExecOperations getExecOperations()
+}
 
 description = 'Ballerina - HTTP/WS Ballerina Tests'
 
@@ -98,13 +104,14 @@ task updateTomlVersions {
 }
 
 task commitTomlFiles {
+    def execHelper = project.objects.newInstance(BallerinaTestsExecHelper)
     doLast {
         def files = "${testCommonPackage}/Ballerina.toml ${testCommonPackage}/Dependencies.toml "
         testPackages.each{ testPackage ->
             files += "${testPackage}/Ballerina.toml ${testPackage}/Dependencies.toml "
         }
 
-        project.exec {
+        execHelper.execOperations.exec {
             ignoreExitValue true
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
                 commandLine 'cmd', '/c', "git commit -m \"[Automated] Update the native jar versions\" ${files}"

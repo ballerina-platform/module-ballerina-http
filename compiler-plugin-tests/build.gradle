@@ -25,7 +25,7 @@ plugins {
 
 jacoco {
     toolVersion = "${jacocoVersion}"
-    reportsDirectory = file("$project.buildDir/reports/jacoco")
+    reportsDirectory = layout.buildDirectory.dir("reports/jacoco")
 }
 
 description = 'Ballerina - HTTP Compiler Plugin Tests'
@@ -66,10 +66,10 @@ spotbugsTest {
     def SpotBugsEffort = classLoader.findLoadedClass("com.github.spotbugs.snom.Effort")
     effort = SpotBugsEffort.MAX
     reportLevel = SpotBugsConfidence.LOW
-    reportsDir = file("$project.buildDir/reports/spotbugs")
+    reportsDir = layout.buildDirectory.dir("reports/spotbugs").get().asFile
     reports {
-        html.enabled true
-        text.enabled = true
+        html.required = true
+        text.required = true
     }
     def excludeFile = file("${project.projectDir}/spotbugs-exclude.xml")
     if (excludeFile.exists()) {
@@ -111,7 +111,7 @@ test {
         }
     }
     jacoco {
-        destinationFile = file("$buildDir/jacoco/test.exec")
+        destinationFile = layout.buildDirectory.file("jacoco/test.exec").get().asFile
     }
     finalizedBy jacocoTestReport
 }
