@@ -76,7 +76,7 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "http"
-version = "2.16.2"
+version = "2.16.3"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "auth"},
@@ -344,7 +344,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "time"
-version = "2.8.0"
+version = "2.8.1"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
