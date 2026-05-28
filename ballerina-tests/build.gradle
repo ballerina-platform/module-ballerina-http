@@ -177,7 +177,7 @@ task publishTestCommonPackageToLocal {
     dependsOn(updateTomlVersions)
     doLast {
         if (!skipTests) {
-            exec {
+            project.exec {
                 workingDir "${project.projectDir}/${testCommonPackage}"
                 if (Os.isFamily(Os.FAMILY_WINDOWS)) {
                     commandLine 'cmd', '/c', "${distributionBinPath}/bal.bat pack && exit  %%ERRORLEVEL%%"
@@ -185,7 +185,7 @@ task publishTestCommonPackageToLocal {
                     commandLine 'sh', '-c', "${distributionBinPath}/bal pack"
                 }
             }
-            exec {
+            project.exec {
                 workingDir "${project.projectDir}/${testCommonPackage}"
                 if (Os.isFamily(Os.FAMILY_WINDOWS)) {
                     commandLine 'cmd', '/c', "${distributionBinPath}/bal.bat push --repository=local" +
@@ -214,7 +214,7 @@ task ballerinaTest {
     doLast {
         testPackages.each { testPackage ->
             if (!skipTests) {
-                exec {
+                project.exec {
                     workingDir "${project.projectDir}/${testPackage}"
                     environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
                     if (Os.isFamily(Os.FAMILY_WINDOWS)) {
@@ -227,7 +227,7 @@ task ballerinaTest {
                     }
                 }
                 if (project.hasProperty('balGraalVMTest')) {
-                    exec {
+                    project.exec {
                         workingDir "${project.projectDir}/${testPackage}"
                         environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
                         if (Os.isFamily(Os.FAMILY_WINDOWS)) {
@@ -261,13 +261,13 @@ task startLdapServer() {
         // for Windows OS.
         if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
             def stdOut = new ByteArrayOutputStream()
-            exec {
+            project.exec {
                 commandLine 'sh', '-c', "docker ps --filter name=openldap-server"
                 standardOutput = stdOut
             }
             if (!stdOut.toString().contains("openldap-server")) {
                 println "Starting LDAP server."
-                exec {
+                project.exec {
                     commandLine 'sh', '-c', "docker compose -f $project.projectDir/resources/openldap/compose.yml up -d"
                     standardOutput = stdOut
                 }
@@ -287,13 +287,13 @@ task stopLdapServer() {
         // in Windows OS.
         if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
             def stdOut = new ByteArrayOutputStream()
-            exec {
+            project.exec {
                 commandLine 'sh', '-c', "docker ps --filter name=openldap-server"
                 standardOutput = stdOut
             }
             if (stdOut.toString().contains("openldap-server")) {
                 println "Stopping LDAP server."
-                exec {
+                project.exec {
                     commandLine 'sh', '-c', "docker stop openldap-server"
                     standardOutput = stdOut
                 }
