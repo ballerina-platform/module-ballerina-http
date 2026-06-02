@@ -175,9 +175,10 @@ task initializeVariables {
 task publishTestCommonPackageToLocal {
     dependsOn(":${packageName}-${packageOrg}:build")
     dependsOn(updateTomlVersions)
+    def execHelper = project.objects.newInstance(BallerinaTestsExecHelper)
     doLast {
         if (!skipTests) {
-            project.exec {
+            execHelper.execOperations.exec {
                 workingDir "${project.projectDir}/${testCommonPackage}"
                 if (Os.isFamily(Os.FAMILY_WINDOWS)) {
                     commandLine 'cmd', '/c', "${distributionBinPath}/bal.bat pack && exit  %%ERRORLEVEL%%"
@@ -185,7 +186,7 @@ task publishTestCommonPackageToLocal {
                     commandLine 'sh', '-c', "${distributionBinPath}/bal pack"
                 }
             }
-            project.exec {
+            execHelper.execOperations.exec {
                 workingDir "${project.projectDir}/${testCommonPackage}"
                 if (Os.isFamily(Os.FAMILY_WINDOWS)) {
                     commandLine 'cmd', '/c', "${distributionBinPath}/bal.bat push --repository=local" +
@@ -210,11 +211,12 @@ task ballerinaTest {
     dependsOn(compileTestJava)
     dependsOn(processTestResources)
     finalizedBy(commitTomlFiles)
+    def execHelper = project.objects.newInstance(BallerinaTestsExecHelper)
 
     doLast {
         testPackages.each { testPackage ->
             if (!skipTests) {
-                project.exec {
+                execHelper.execOperations.exec {
                     workingDir "${project.projectDir}/${testPackage}"
                     environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
                     if (Os.isFamily(Os.FAMILY_WINDOWS)) {
@@ -227,7 +229,7 @@ task ballerinaTest {
                     }
                 }
                 if (project.hasProperty('balGraalVMTest')) {
-                    project.exec {
+                    execHelper.execOperations.exec {
                         workingDir "${project.projectDir}/${testPackage}"
                         environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
                         if (Os.isFamily(Os.FAMILY_WINDOWS)) {
@@ -256,18 +258,19 @@ publishing {
 }
 
 task startLdapServer() {
+    def execHelper = project.objects.newInstance(BallerinaTestsExecHelper)
     doLast {
         // This check is added to prevent starting the server in Windows OS, since the Docker image does not support
         // for Windows OS.
         if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
             def stdOut = new ByteArrayOutputStream()
-            project.exec {
+            execHelper.execOperations.exec {
                 commandLine 'sh', '-c', "docker ps --filter name=openldap-server"
                 standardOutput = stdOut
             }
             if (!stdOut.toString().contains("openldap-server")) {
                 println "Starting LDAP server."
-                project.exec {
+                execHelper.execOperations.exec {
                     commandLine 'sh', '-c', "docker compose -f $project.projectDir/resources/openldap/compose.yml up -d"
                     standardOutput = stdOut
                 }
@@ -282,18 +285,19 @@ task startLdapServer() {
 }
 
 task stopLdapServer() {
+    def execHelper = project.objects.newInstance(BallerinaTestsExecHelper)
     doLast {
         // This check is added to prevent trying to stop the server in Windows OS, since the Docker image not started
         // in Windows OS.
         if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
             def stdOut = new ByteArrayOutputStream()
-            project.exec {
+            execHelper.execOperations.exec {
                 commandLine 'sh', '-c', "docker ps --filter name=openldap-server"
                 standardOutput = stdOut
             }
             if (stdOut.toString().contains("openldap-server")) {
                 println "Stopping LDAP server."
-                project.exec {
+                execHelper.execOperations.exec {
                     commandLine 'sh', '-c', "docker stop openldap-server"
                     standardOutput = stdOut
                 }
