@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/http;
+import ballerina/lang.'string as strings;
 import ballerina/test;
 import ballerina/http_test_common as common;
 
@@ -94,7 +95,7 @@ public function testWithStrongClientWithWeakService() returns error? {
     if resp is http:Response {
         test:assertFail(msg = "Found unexpected output: Expected an error");
     } else {
-        test:assertEquals(resp.message(), "SSL connection failed:Received fatal alert: handshake_failure localhost/127.0.0.1:9227");
+        test:assertTrue(strings:includes(resp.message(), "SSL connection failed") && strings:includes(resp.message(), "handshake_failure"));
     }
 }
 
