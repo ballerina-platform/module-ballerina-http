@@ -146,10 +146,11 @@ task ballerinaIntegrationTests {
     if (project.hasProperty('balGraalVMTest')) {
         graalvmFlag = '--graalvm'
     }
+    def execHelper = project.objects.newInstance(IntegrationTestsExecHelper)
     doLast {
         setExecPath(configTOMLFile, distributionBinPath)
         setTempDirPath(configTOMLFile, "$tempDir")
-        exec {
+        execHelper.execOperations.exec {
             workingDir project.projectDir
             environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
