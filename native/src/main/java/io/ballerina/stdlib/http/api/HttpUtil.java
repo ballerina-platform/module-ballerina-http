@@ -106,6 +106,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -1266,7 +1268,7 @@ public class HttpUtil {
     }
 
     public static void populateSenderConfigurations(SenderConfiguration senderConfiguration,
-            BMap<BString, Object> clientEndpointConfig, String scheme) {
+            BMap<BString, Object> clientEndpointConfig, String scheme, String targetHost) {
         ProxyServerConfiguration proxyServerConfiguration;
         BMap<BString, Object> secureSocket = (BMap<BString, Object>) clientEndpointConfig
                 .getMapValue(HttpConstants.ENDPOINT_CONFIG_SECURESOCKET);
@@ -1308,6 +1310,11 @@ public class HttpUtil {
                 proxyServerConfiguration.setProxyPassword(proxyPassword);
             }
             senderConfiguration.setProxyServerConfiguration(proxyServerConfiguration);
+        } else {
+            proxyServerConfiguration = resolveProxyFromEnv(scheme, targetHost);
+            if (proxyServerConfiguration != null) {
+                senderConfiguration.setProxyServerConfiguration(proxyServerConfiguration);
+            }
         }
         double timeout = ((BDecimal) clientEndpointConfig.get(HttpConstants.CLIENT_EP_ENDPOINT_TIMEOUT)).floatValue();
         if (timeout < 0) {
@@ -1320,6 +1327,96 @@ public class HttpUtil {
         }
         String forwardedExtension = clientEndpointConfig.getStringValue(HttpConstants.CLIENT_EP_FORWARDED).getValue();
         senderConfiguration.setForwardedExtensionConfig(HttpUtil.getForwardedExtensionConfig(forwardedExtension));
+    }
+
+    static ProxyServerConfiguration resolveProxyFromEnv(String scheme, String targetHost) {
+        if (targetHost == null || targetHost.isEmpty()) {
+            return null;
+        }
+        String proxyEnv = null;
+        if (HttpConstants.PROTOCOL_HTTPS.equalsIgnoreCase(scheme)) {
+            proxyEnv = System.getenv("HTTPS_PROXY");
+            if (proxyEnv == null) {
+                proxyEnv = System.getenv("https_proxy");
+            }
+        } else if (HttpConstants.PROTOCOL_HTTP.equalsIgnoreCase(scheme)) {
+            proxyEnv = System.getenv("HTTP_PROXY");
+            if (proxyEnv == null) {
+                proxyEnv = System.getenv("http_proxy");
+            }
+        }
+
+        if (proxyEnv == null || proxyEnv.trim().isEmpty()) {
+            return null;
+        }
+
+        String noProxyEnv = System.getenv("NO_PROXY");
+        if (noProxyEnv == null) {
+            noProxyEnv = System.getenv("no_proxy");
+        }
+
+        if (noProxyEnv != null && !noProxyEnv.trim().isEmpty()) {
+            if (shouldBypassProxy(targetHost, noProxyEnv)) {
+                return null;
+            }
+        }
+
+        return parseProxyUrl(proxyEnv);
+    }
+
+    static boolean shouldBypassProxy(String targetHost, String noProxyEnv) {
+        String host = targetHost.trim().toLowerCase(Locale.getDefault());
+        String[] bypassList = noProxyEnv.split(",");
+        for (String bypass : bypassList) {
+            bypass = bypass.trim().toLowerCase(Locale.getDefault());
+            if (bypass.isEmpty()) {
+                continue;
+            }
+            if ("*".equals(bypass)) {
+                return true;
+            }
+            if (bypass.startsWith(".")) {
+                if (host.endsWith(bypass) || host.equals(bypass.substring(1))) {
+                    return true;
+                }
+            } else {
+                if (host.equals(bypass) || host.endsWith("." + bypass)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    static ProxyServerConfiguration parseProxyUrl(String proxyUrl) {
+        try {
+            String urlString = proxyUrl.trim();
+            if (!urlString.contains("://")) {
+                urlString = "http://" + urlString;
+            }
+            URL url = new URL(urlString);
+            String host = url.getHost();
+            int port = url.getPort();
+            if (port == -1) {
+                port = HttpConstants.PROTOCOL_HTTPS.equalsIgnoreCase(url.getProtocol()) ? 443 : 80;
+            }
+
+            ProxyServerConfiguration config = new ProxyServerConfiguration(host, port);
+
+            String userInfo = url.getUserInfo();
+            if (userInfo != null && !userInfo.isEmpty()) {
+                String[] parts = userInfo.split(":", 2);
+                String username = parts[0];
+                config.setProxyUsername(username);
+                if (parts.length > 1) {
+                    String password = parts[1];
+                    config.setProxyPassword(password);
+                }
+            }
+            return config;
+        } catch (MalformedURLException | UnknownHostException e) {
+            throw new BallerinaConnectorException("Invalid proxy URL: " + proxyUrl, e);
+        }
     }
 
     public static ConnectionManager getConnectionManager(BMap poolStruct) {
