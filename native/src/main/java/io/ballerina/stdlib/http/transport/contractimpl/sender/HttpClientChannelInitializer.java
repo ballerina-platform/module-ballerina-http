@@ -51,6 +51,8 @@ import io.netty.handler.codec.http2.Http2ConnectionHandler;
 import io.netty.handler.codec.http2.Http2ConnectionHandlerBuilder;
 import io.netty.handler.codec.http2.Http2FrameListener;
 import io.netty.handler.proxy.HttpProxyHandler;
+import io.netty.handler.proxy.Socks4ProxyHandler;
+import io.netty.handler.proxy.Socks5ProxyHandler;
 import io.netty.handler.ssl.ApplicationProtocolNames;
 import io.netty.handler.ssl.ApplicationProtocolNegotiationHandler;
 import io.netty.handler.ssl.ReferenceCountedOpenSslContext;
@@ -176,19 +178,49 @@ public class HttpClientChannelInitializer extends ChannelInitializer<SocketChann
         ctx.close();
     }
 
-    // Use netty proxy handler only if scheme is https
+    // Configures the proxy handler in the pipeline based on the configured proxy protocol.
+    // For HTTP proxies, the netty proxy handler is used only if the scheme is https (sslConfig != null).
+    // For SOCKS4/SOCKS5 proxies, the handler is added regardless of sslConfig.
     private void configureProxyServer(ChannelPipeline clientPipeline) {
-        if (proxyServerConfiguration != null && sslConfig != null) {
-            if (proxyServerConfiguration.getProxyUsername() != null
-                    && proxyServerConfiguration.getProxyPassword() != null) {
-                clientPipeline.addLast(Constants.PROXY_HANDLER,
-                        new HttpProxyHandler(proxyServerConfiguration.getInetSocketAddress(),
-                                proxyServerConfiguration.getProxyUsername(),
-                                proxyServerConfiguration.getProxyPassword()));
-            } else {
-                clientPipeline.addLast(Constants.PROXY_HANDLER,
-                        new HttpProxyHandler(proxyServerConfiguration.getInetSocketAddress()));
-            }
+        if (proxyServerConfiguration == null) {
+            return;
+        }
+        String username = proxyServerConfiguration.getProxyUsername();
+        String password = proxyServerConfiguration.getProxyPassword();
+        switch (proxyServerConfiguration.getProxyProtocol()) {
+            case SOCKS5:
+                if (username != null && !username.isEmpty() && password != null && !password.isEmpty()) {
+                    clientPipeline.addLast(Constants.PROXY_HANDLER,
+                            new Socks5ProxyHandler(proxyServerConfiguration.getInetSocketAddress(), username,
+                                    password));
+                } else {
+                    clientPipeline.addLast(Constants.PROXY_HANDLER,
+                            new Socks5ProxyHandler(proxyServerConfiguration.getInetSocketAddress()));
+                }
+                break;
+            case SOCKS4:
+                if (username != null && !username.isEmpty()) {
+                    clientPipeline.addLast(Constants.PROXY_HANDLER,
+                            new Socks4ProxyHandler(proxyServerConfiguration.getInetSocketAddress(), username));
+                } else {
+                    clientPipeline.addLast(Constants.PROXY_HANDLER,
+                            new Socks4ProxyHandler(proxyServerConfiguration.getInetSocketAddress()));
+                }
+                break;
+            case HTTP:
+            default:
+                // Use netty proxy handler only if scheme is https
+                if (sslConfig != null) {
+                    if (username != null && password != null) {
+                        clientPipeline.addLast(Constants.PROXY_HANDLER,
+                                new HttpProxyHandler(proxyServerConfiguration.getInetSocketAddress(), username,
+                                        password));
+                    } else {
+                        clientPipeline.addLast(Constants.PROXY_HANDLER,
+                                new HttpProxyHandler(proxyServerConfiguration.getInetSocketAddress()));
+                    }
+                }
+                break;
         }
     }
 
