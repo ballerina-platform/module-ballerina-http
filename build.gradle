@@ -27,6 +27,9 @@ allprojects {
     version = project.version
 
     apply plugin: 'jacoco'
+jacoco {
+    toolVersion = jacocoVersion
+}
     apply plugin: 'maven-publish'
 
     repositories {
