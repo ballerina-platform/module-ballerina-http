@@ -49,6 +49,7 @@ public class Http2WithPriorKnowledgeHandler extends ChannelInboundHandlerAdapter
     private ChannelGroup listenerChannels;
     private long maxHeaderListSize;
     private int initialWindowSize;
+    private int maxConcurrentStreams;
 
     public Http2WithPriorKnowledgeHandler(String interfaceId, String serverName,
                                           ServerConnectorFuture serverConnectorFuture,
@@ -56,7 +57,8 @@ public class Http2WithPriorKnowledgeHandler extends ChannelInboundHandlerAdapter
                                           ChannelGroup allChannels,
                                           ChannelGroup listenerChannels,
                                           long maxHeaderListSize,
-                                          int initialWindowSize) {
+                                          int initialWindowSize,
+                                          int maxConcurrentStreams) {
         this.interfaceId = interfaceId;
         this.serverName = serverName;
         this.serverConnectorFuture = serverConnectorFuture;
@@ -65,6 +67,7 @@ public class Http2WithPriorKnowledgeHandler extends ChannelInboundHandlerAdapter
         this.listenerChannels = listenerChannels;
         this.maxHeaderListSize = maxHeaderListSize;
         this.initialWindowSize = initialWindowSize;
+        this.maxConcurrentStreams = maxConcurrentStreams;
     }
 
     @Override
@@ -83,7 +86,8 @@ public class Http2WithPriorKnowledgeHandler extends ChannelInboundHandlerAdapter
                         Constants.HTTP2_SOURCE_CONNECTION_HANDLER,
                         new Http2SourceConnectionHandlerBuilder(
                                 interfaceId, serverConnectorFuture, serverName, serverChannelInitializer,
-                                allChannels, listenerChannels, maxHeaderListSize, initialWindowSize).build());
+                                allChannels, listenerChannels, maxHeaderListSize, initialWindowSize,
+                                maxConcurrentStreams).build());
                 safelyRemoveHandlers(pipeline, Constants.HTTP2_UPGRADE_HANDLER,
                         Constants.HTTP_COMPRESSOR, Constants.HTTP_TRACE_LOG_HANDLER);
             }

@@ -54,7 +54,8 @@ public final class Http2SourceConnectionHandlerBuilder
                                                ChannelGroup allChannels,
                                                ChannelGroup listenerChannels,
                                                long maxHeaderListSize,
-                                               int initialWindowSize) {
+                                               int initialWindowSize,
+                                               int maxConcurrentStreams) {
         this.interfaceId = interfaceId;
         this.serverConnectorFuture = serverConnectorFuture;
         this.serverName = serverName;
@@ -63,6 +64,7 @@ public final class Http2SourceConnectionHandlerBuilder
         this.listenerChannels = listenerChannels;
         this.initialSettings().maxHeaderListSize(maxHeaderListSize);
         this.initialSettings().initialWindowSize(initialWindowSize);
+        this.initialSettings().maxConcurrentStreams(maxConcurrentStreams);
     }
 
     @Override
