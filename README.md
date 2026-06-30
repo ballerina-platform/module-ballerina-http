@@ -128,12 +128,6 @@ starting the Ballerina service:
 For example, to allow up to 500 concurrent streams per connection:
 
 ```
-java -Dhttp.http2.maxConcurrentStreams=500 -jar my-service.jar
-```
-
-Or when using `bal run`:
-
-```
 JAVA_OPTS="-Dhttp.http2.maxConcurrentStreams=500" bal run
 ```
 
