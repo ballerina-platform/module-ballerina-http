@@ -18,7 +18,6 @@
 
 package io.ballerina.stdlib.http.transport.http2;
 
-import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.transport.contentaware.listeners.EchoMessageListener;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
@@ -96,16 +95,16 @@ public class Http2MaxConcurrentStreamsTestCase {
                 "Server must advertise maxConcurrentStreams=100 by default to bound concurrent stream creation");
     }
 
-    @Test(description = "System property http.http2.maxConcurrentStreams must override the default limit, "
-            + "allowing operators to restore old behaviour or set a custom bound")
-    public void testSystemPropertyOverridesMaxConcurrentStreams() throws Exception {
+    @Test(description = "ListenerConfiguration.http2MaxConcurrentStreams must override the default limit per listener, "
+            + "allowing per-listener tuning of concurrent stream capacity")
+    public void testListenerConfigOverridesMaxConcurrentStreams() throws Exception {
         int customLimit = 50;
-        System.setProperty(HttpConstants.HTTP2_MAX_CONCURRENT_STREAMS, String.valueOf(customLimit));
         HttpWsConnectorFactory factory = new DefaultHttpWsConnectorFactory();
         ListenerConfiguration config = new ListenerConfiguration();
         config.setPort(TestUtil.SERVER_PORT2);
         config.setScheme(Constants.HTTP_SCHEME);
         config.setVersion(Constants.HTTP_2_0);
+        config.setHttp2MaxConcurrentStreams(customLimit);
         ServerConnector connector = factory.createServerConnector(
                 TestUtil.getDefaultServerBootstrapConfig(), config);
         ServerConnectorFuture future = connector.start();
@@ -116,14 +115,13 @@ public class Http2MaxConcurrentStreamsTestCase {
             assertNotNull(maxConcurrentStreams,
                     "maxConcurrentStreams must be present in server SETTINGS frame");
             assertEquals((long) maxConcurrentStreams, customLimit,
-                    "System property must override the default maxConcurrentStreams value");
+                    "ListenerConfiguration must override the default maxConcurrentStreams value");
         } finally {
-            System.clearProperty(HttpConstants.HTTP2_MAX_CONCURRENT_STREAMS);
             connector.stop();
             try {
                 factory.shutdown();
             } catch (InterruptedException e) {
-                LOG.warn("Interrupted while shutting down factory for system property test");
+                LOG.warn("Interrupted while shutting down factory for listener config test");
             }
         }
     }
