@@ -116,5 +116,4 @@ listener http:Listener h2Listener = new (9090, {
 });
 ```
 
-Set to `-1` to allow unlimited streams (not recommended for public-facing services). When not set, the listener
-defaults to 100.
+When not set, the listener defaults to 100.

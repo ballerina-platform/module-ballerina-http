@@ -1587,7 +1587,7 @@ public class HttpUtil {
         Object listenerMaxActiveStreams = endpointConfig.get(ENDPOINT_CONFIG_HTTP2_MAX_ACTIVE_STREAMS);
         if (listenerMaxActiveStreams != null) {
             long value = ((Long) listenerMaxActiveStreams).longValue();
-            listenerConfiguration.setHttp2MaxConcurrentStreams(value == -1 ? Integer.MAX_VALUE : (int) value);
+            listenerConfiguration.setHttp2MaxConcurrentStreams((int) value);
         }
 
         double minIdleTimeInStaleState =
