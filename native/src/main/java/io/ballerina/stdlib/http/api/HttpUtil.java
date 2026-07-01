@@ -134,6 +134,7 @@ import static io.ballerina.stdlib.http.api.HttpConstants.ANN_CONFIG_ATTR_COMPRES
 import static io.ballerina.stdlib.http.api.HttpConstants.ANN_CONFIG_ATTR_SSL_ENABLED_PROTOCOLS;
 import static io.ballerina.stdlib.http.api.HttpConstants.CREATE_INTERCEPTORS_FUNCTION_NAME;
 import static io.ballerina.stdlib.http.api.HttpConstants.ENDPOINT_CONFIG_HTTP2_INITIAL_WINDOW_SIZE;
+import static io.ballerina.stdlib.http.api.HttpConstants.ENDPOINT_CONFIG_HTTP2_MAX_ACTIVE_STREAMS;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_HEADERS;
 import static io.ballerina.stdlib.http.api.HttpConstants.RESOLVED_REQUESTED_URI;
 import static io.ballerina.stdlib.http.api.HttpConstants.RESPONSE_CACHE_CONTROL;
@@ -1593,7 +1594,13 @@ public class HttpUtil {
         listenerConfiguration.setPipeliningEnabled(true); //Pipelining is enabled all the time
         listenerConfiguration.setHttp2InitialWindowSize(endpointConfig
                 .getIntValue(ENDPOINT_CONFIG_HTTP2_INITIAL_WINDOW_SIZE).intValue());
-        listenerConfiguration.setHttp2MaxActiveStreams(getGlobalHttp2MaxActiveStreams());
+        Object listenerMaxActiveStreams = endpointConfig.get(ENDPOINT_CONFIG_HTTP2_MAX_ACTIVE_STREAMS);
+        if (listenerMaxActiveStreams == null) {
+            listenerConfiguration.setHttp2MaxActiveStreams(getGlobalHttp2MaxActiveStreams());
+        } else {
+            long value = ((Long) listenerMaxActiveStreams).longValue();
+            listenerConfiguration.setHttp2MaxActiveStreams(value == -1 ? Integer.MAX_VALUE : (int) value);
+        }
 
         double minIdleTimeInStaleState =
                 ((BDecimal) endpointConfig.get(HttpConstants.ENDPOINT_CONFIG_IDLE_TIME_STALE_STATE)).floatValue();
