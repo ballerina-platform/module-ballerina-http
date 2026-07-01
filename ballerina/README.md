@@ -108,17 +108,3 @@ with other widely-used HTTP/2 server implementations such as Nginx and Envoy.
 When a client reaches this limit on a connection, it will automatically open an additional connection rather than
 stalling, so normal traffic is unaffected for typical workloads.
 
-The server-side stream limit is derived from the `maxActiveStreamsPerConnection` configurable, which also controls
-how many parallel streams the HTTP client opens per connection. Set it in `Config.toml`:
-
-```toml
-[ballerina.http]
-maxActiveStreamsPerConnection = 500
-```
-
-To disable the limit and restore unlimited behaviour (not recommended for public-facing services):
-
-```toml
-[ballerina.http]
-maxActiveStreamsPerConnection = -1
-```
