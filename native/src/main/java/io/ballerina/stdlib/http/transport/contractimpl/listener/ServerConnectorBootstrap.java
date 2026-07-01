@@ -201,7 +201,6 @@ public class ServerConnectorBootstrap {
         httpServerChannelInitializer.setHttp2InitialWindowSize(http2InitialWindowSize);
     }
 
-
     public void setTimeBetweenStaleEviction(long timeBetweenStaleEviction) {
         httpServerChannelInitializer.setTimeBetweenStaleEviction(timeBetweenStaleEviction);
     }
