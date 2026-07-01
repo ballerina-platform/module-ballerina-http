@@ -91,7 +91,7 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
         if (Constants.HTTP_2_0.equals(listenerConfig.getVersion())) {
             serverConnectorBootstrap.setHttp2Enabled(true);
             serverConnectorBootstrap.setHttp2InitialWindowSize(listenerConfig.getHttp2InitialWindowSize());
-serverConnectorBootstrap.setMinIdleTimeInStaleState(listenerConfig.getMinIdleTimeInStaleState());
+          serverConnectorBootstrap.setMinIdleTimeInStaleState(listenerConfig.getMinIdleTimeInStaleState());
             serverConnectorBootstrap.setTimeBetweenStaleEviction(listenerConfig.getTimeBetweenStaleEviction());
         }
         serverConnectorBootstrap.addHttpTraceLogHandler(listenerConfig.isHttpTraceLogEnabled());
