@@ -69,7 +69,7 @@ public class Http2MaxConcurrentStreamsTestCase {
         listenerConfiguration.setPort(port);
         listenerConfiguration.setScheme(Constants.HTTP_SCHEME);
         listenerConfiguration.setVersion(Constants.HTTP_2_0);
-        listenerConfiguration.setHttp2MaxActiveStreams(maxActiveStreams);
+        listenerConfiguration.setHttp2MaxConcurrentStreams(maxActiveStreams);
         serverConnector = connectorFactory.createServerConnector(
                 TestUtil.getDefaultServerBootstrapConfig(), listenerConfiguration);
         ServerConnectorFuture future = serverConnector.start();
