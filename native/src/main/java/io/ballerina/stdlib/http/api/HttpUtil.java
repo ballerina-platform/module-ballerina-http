@@ -1585,7 +1585,7 @@ public class HttpUtil {
         listenerConfiguration.setHttp2InitialWindowSize(endpointConfig
                 .getIntValue(ENDPOINT_CONFIG_HTTP2_INITIAL_WINDOW_SIZE).intValue());
         listenerConfiguration.setHttp2MaxConcurrentStreams(
-                (int) endpointConfig.getIntValue(ENDPOINT_CONFIG_HTTP2_MAX_ACTIVE_STREAMS));
+                endpointConfig.getIntValue(ENDPOINT_CONFIG_HTTP2_MAX_ACTIVE_STREAMS).intValue());
 
         double minIdleTimeInStaleState =
                 ((BDecimal) endpointConfig.get(HttpConstants.ENDPOINT_CONFIG_IDLE_TIME_STALE_STATE)).floatValue();
