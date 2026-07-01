@@ -64,6 +64,7 @@ public class ListenerConfiguration extends SslConfiguration {
     private boolean socketReuse;
     private boolean socketKeepAlive;
     private int http2InitialWindowSize = 65535;
+    private int http2MaxActiveStreams = 100;
     private long minIdleTimeInStaleState = 3000000;
     private long timeBetweenStaleEviction = 30000;
 
@@ -283,6 +284,14 @@ public class ListenerConfiguration extends SslConfiguration {
 
     public void setHttp2InitialWindowSize(int http2InitialWindowSize) {
         this.http2InitialWindowSize = http2InitialWindowSize;
+    }
+
+    public int getHttp2MaxActiveStreams() {
+        return http2MaxActiveStreams;
+    }
+
+    public void setHttp2MaxActiveStreams(int http2MaxActiveStreams) {
+        this.http2MaxActiveStreams = http2MaxActiveStreams;
     }
 
     public void setTimeBetweenStaleEviction(long timeBetweenStaleEviction) {

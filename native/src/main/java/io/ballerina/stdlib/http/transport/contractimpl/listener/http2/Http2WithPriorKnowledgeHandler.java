@@ -49,7 +49,7 @@ public class Http2WithPriorKnowledgeHandler extends ChannelInboundHandlerAdapter
     private ChannelGroup listenerChannels;
     private long maxHeaderListSize;
     private int initialWindowSize;
-    private int maxConcurrentStreams;
+    private int maxActiveStreams;
 
     public Http2WithPriorKnowledgeHandler(String interfaceId, String serverName,
                                           ServerConnectorFuture serverConnectorFuture,
@@ -58,7 +58,7 @@ public class Http2WithPriorKnowledgeHandler extends ChannelInboundHandlerAdapter
                                           ChannelGroup listenerChannels,
                                           long maxHeaderListSize,
                                           int initialWindowSize,
-                                          int maxConcurrentStreams) {
+                                          int maxActiveStreams) {
         this.interfaceId = interfaceId;
         this.serverName = serverName;
         this.serverConnectorFuture = serverConnectorFuture;
@@ -67,7 +67,7 @@ public class Http2WithPriorKnowledgeHandler extends ChannelInboundHandlerAdapter
         this.listenerChannels = listenerChannels;
         this.maxHeaderListSize = maxHeaderListSize;
         this.initialWindowSize = initialWindowSize;
-        this.maxConcurrentStreams = maxConcurrentStreams;
+        this.maxActiveStreams = maxActiveStreams;
     }
 
     @Override
@@ -87,7 +87,7 @@ public class Http2WithPriorKnowledgeHandler extends ChannelInboundHandlerAdapter
                         new Http2SourceConnectionHandlerBuilder(
                                 interfaceId, serverConnectorFuture, serverName, serverChannelInitializer,
                                 allChannels, listenerChannels, maxHeaderListSize, initialWindowSize,
-                                maxConcurrentStreams).build());
+                                maxActiveStreams).build());
                 safelyRemoveHandlers(pipeline, Constants.HTTP2_UPGRADE_HANDLER,
                         Constants.HTTP_COMPRESSOR, Constants.HTTP_TRACE_LOG_HANDLER);
             }

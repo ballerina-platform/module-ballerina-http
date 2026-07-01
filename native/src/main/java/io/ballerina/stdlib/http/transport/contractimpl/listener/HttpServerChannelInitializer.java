@@ -79,7 +79,6 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.SSL;
 import static io.ballerina.stdlib.http.transport.contract.Constants.TRACE_LOG_DOWNSTREAM;
 import static io.ballerina.stdlib.http.transport.contract.Constants.URI_HEADER_LENGTH_VALIDATION_HANDLER;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.setSslHandshakeTimeOut;
-import static io.ballerina.stdlib.http.api.HttpConstants.HTTP2_MAX_CONCURRENT_STREAMS;
 
 /**
  * A class that responsible for build server side channels.
@@ -114,7 +113,7 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
     private EventExecutorGroup pipeliningGroup;
     private boolean webSocketCompressionEnabled;
     private int http2InitialWindowSize;
-    private final int http2MaxConcurrentStreams = Integer.getInteger(HTTP2_MAX_CONCURRENT_STREAMS, 100);
+    private int http2MaxActiveStreams = 100;
     private long minIdleTimeInStaleState;
     private long timeBetweenStaleEviction;
     private final BlockingQueue<Http2SourceHandler> http2StaleSourceHandlers = new LinkedBlockingQueue<>();
@@ -263,7 +262,7 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
         // Add handler to handle http2 requests without an upgrade
         pipeline.addLast(new Http2WithPriorKnowledgeHandler(
                 interfaceId, serverName, serverConnectorFuture, this, allChannels, listenerChannels,
-                reqSizeValidationConfig.getMaxHeaderSize(), http2InitialWindowSize, http2MaxConcurrentStreams));
+                reqSizeValidationConfig.getMaxHeaderSize(), http2InitialWindowSize, http2MaxActiveStreams));
         // Add http2 upgrade decoder and upgrade handler
         final HttpServerCodec sourceCodec = new HttpServerCodec(reqSizeValidationConfig.getMaxInitialLineLength(),
                                                                 reqSizeValidationConfig.getMaxHeaderSize(),
@@ -283,7 +282,7 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
                         new Http2SourceConnectionHandlerBuilder(
                                 interfaceId, serverConnectorFuture, serverName, this,
                                 this.allChannels, this.listenerChannels, reqSizeValidationConfig.getMaxHeaderSize(),
-                                this.http2InitialWindowSize, this.http2MaxConcurrentStreams).build());
+                                this.http2InitialWindowSize, this.http2MaxActiveStreams).build());
             } else {
                 return null;
             }
@@ -355,6 +354,10 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
 
     void setHttp2InitialWindowSize(int http2InitialWindowSize) {
         this.http2InitialWindowSize = http2InitialWindowSize;
+    }
+
+    void setHttp2MaxActiveStreams(int http2MaxActiveStreams) {
+        this.http2MaxActiveStreams = http2MaxActiveStreams;
     }
 
     void setTimeBetweenStaleEviction(long timeBetweenStaleEviction) {
@@ -449,7 +452,7 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
                         new Http2SourceConnectionHandlerBuilder(
                                 interfaceId, serverConnectorFuture, serverName, channelInitializer,
                                 allChannels, listenerChannels, reqSizeValidationConfig.getMaxHeaderSize(),
-                                http2InitialWindowSize, http2MaxConcurrentStreams).build());
+                                http2InitialWindowSize, http2MaxActiveStreams).build());
             } else if (ApplicationProtocolNames.HTTP_1_1.equals(protocol)) {
                 // handles pipeline for HTTP/1.x requests after SSL handshake
                 configureHttpPipeline(ctx.pipeline(), Constants.HTTP_SCHEME);
