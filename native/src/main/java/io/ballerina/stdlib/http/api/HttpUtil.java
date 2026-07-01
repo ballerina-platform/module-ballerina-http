@@ -209,8 +209,6 @@ public class HttpUtil {
     private static final String[] DEFAULT_NAMED_GROUPS = { "X25519MLKEM768", "x25519", "secp256r1",
             "secp384r1", "secp521r1" };
 
-    private static volatile int globalHttp2MaxActiveStreams = 100;
-
     /**
      * Set new entity to in/out request/response struct.
      *
@@ -1340,14 +1338,6 @@ public class HttpUtil {
         return poolManager;
     }
 
-    public static void setGlobalHttp2MaxActiveStreams(int maxActiveStreams) {
-        globalHttp2MaxActiveStreams = maxActiveStreams;
-    }
-
-    public static int getGlobalHttp2MaxActiveStreams() {
-        return globalHttp2MaxActiveStreams;
-    }
-
     public static void populatePoolingConfig(BMap poolRecord, PoolConfiguration poolConfiguration) {
         long maxActiveConnections = poolRecord.getIntValue(HttpConstants.CONNECTION_POOLING_MAX_ACTIVE_CONNECTIONS);
         poolConfiguration.setMaxActivePerPool(
@@ -1595,9 +1585,7 @@ public class HttpUtil {
         listenerConfiguration.setHttp2InitialWindowSize(endpointConfig
                 .getIntValue(ENDPOINT_CONFIG_HTTP2_INITIAL_WINDOW_SIZE).intValue());
         Object listenerMaxActiveStreams = endpointConfig.get(ENDPOINT_CONFIG_HTTP2_MAX_ACTIVE_STREAMS);
-        if (listenerMaxActiveStreams == null) {
-            listenerConfiguration.setHttp2MaxActiveStreams(getGlobalHttp2MaxActiveStreams());
-        } else {
+        if (listenerMaxActiveStreams != null) {
             long value = ((Long) listenerMaxActiveStreams).longValue();
             listenerConfiguration.setHttp2MaxActiveStreams(value == -1 ? Integer.MAX_VALUE : (int) value);
         }
