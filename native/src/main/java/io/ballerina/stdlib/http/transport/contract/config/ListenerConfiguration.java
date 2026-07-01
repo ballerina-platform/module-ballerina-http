@@ -64,7 +64,7 @@ public class ListenerConfiguration extends SslConfiguration {
     private boolean socketReuse;
     private boolean socketKeepAlive;
     private int http2InitialWindowSize = 65535;
-    private int http2MaxActiveStreams = 100;
+    private int http2MaxActiveStreams;
     private long minIdleTimeInStaleState = 3000000;
     private long timeBetweenStaleEviction = 30000;
 

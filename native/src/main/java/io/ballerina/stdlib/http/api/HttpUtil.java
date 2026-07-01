@@ -1584,11 +1584,8 @@ public class HttpUtil {
         listenerConfiguration.setPipeliningEnabled(true); //Pipelining is enabled all the time
         listenerConfiguration.setHttp2InitialWindowSize(endpointConfig
                 .getIntValue(ENDPOINT_CONFIG_HTTP2_INITIAL_WINDOW_SIZE).intValue());
-        Object listenerMaxActiveStreams = endpointConfig.get(ENDPOINT_CONFIG_HTTP2_MAX_ACTIVE_STREAMS);
-        if (listenerMaxActiveStreams != null) {
-            long value = ((Long) listenerMaxActiveStreams).longValue();
-            listenerConfiguration.setHttp2MaxConcurrentStreams((int) value);
-        }
+        listenerConfiguration.setHttp2MaxConcurrentStreams(
+                (int) endpointConfig.getIntValue(ENDPOINT_CONFIG_HTTP2_MAX_ACTIVE_STREAMS));
 
         double minIdleTimeInStaleState =
                 ((BDecimal) endpointConfig.get(HttpConstants.ENDPOINT_CONFIG_IDLE_TIME_STALE_STATE)).floatValue();
