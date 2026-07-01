@@ -108,24 +108,17 @@ with other widely-used HTTP/2 server implementations such as Nginx and Envoy.
 When a client reaches this limit on a connection, it will automatically open an additional connection rather than
 stalling, so normal traffic is unaffected for typical workloads.
 
-The limit can be configured per listener using the `http2MaxConcurrentStreams` field in `ListenerConfiguration`:
+The server-side stream limit is derived from the `maxActiveStreamsPerConnection` configurable, which also controls
+how many parallel streams the HTTP client opens per connection. Set it in `Config.toml`:
 
-```ballerina
-listener http:Listener secureHelloWorldEp = new (9090, {
-    http2MaxConcurrentStreams: 500
-});
+```toml
+[ballerina.http]
+maxActiveStreamsPerConnection = 500
 ```
 
-Alternatively, you can override the default globally for all listeners using the following JVM system property:
+To disable the limit and restore unlimited behaviour (not recommended for public-facing services):
 
+```toml
+[ballerina.http]
+maxActiveStreamsPerConnection = -1
 ```
--Dhttp.http2.maxConcurrentStreams=<value>
-```
-
-For example:
-
-```
-JAVA_OPTS="-Dhttp.http2.maxConcurrentStreams=500" bal run
-```
-
-> **Note:** The per-listener `http2MaxConcurrentStreams` configuration takes precedence over the system property.

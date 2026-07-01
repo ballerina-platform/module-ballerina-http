@@ -148,9 +148,6 @@ public type Local record {|
 # + gracefulStopTimeout - Grace period of time in seconds for listener gracefulStop
 # + socketConfig - Provides settings related to server socket configuration
 # + http2InitialWindowSize - Configuration to change the initial window size in HTTP/2
-# + http2MaxConcurrentStreams - Maximum number of concurrent HTTP/2 streams allowed per connection. Limits the
-#                               number of active streams a single client connection can open simultaneously,
-#                               preventing unbounded stream creation and heap exhaustion. Default is 100
 # + minIdleTimeInStaleState - Minimum time in seconds for a connection to be kept open which has received a GOAWAY.
 #                             This only applies for HTTP/2. Default value is 5 minutes. If the value is set to -1,
 #                             the connection will be closed after all in-flight streams are completed
@@ -167,7 +164,6 @@ public type ListenerConfiguration record {|
     decimal gracefulStopTimeout = DEFAULT_GRACEFULSTOP_TIMEOUT;
     ServerSocketConfig socketConfig = {};
     int http2InitialWindowSize = 65535;
-    int http2MaxConcurrentStreams = 100;
     decimal minIdleTimeInStaleState = 300;
     decimal timeBetweenStaleEviction = 30;
 |};

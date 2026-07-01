@@ -201,8 +201,8 @@ public class ServerConnectorBootstrap {
         httpServerChannelInitializer.setHttp2InitialWindowSize(http2InitialWindowSize);
     }
 
-    public void setHttp2MaxConcurrentStreams(int http2MaxConcurrentStreams) {
-        httpServerChannelInitializer.setHttp2MaxConcurrentStreams(http2MaxConcurrentStreams);
+    public void setHttp2MaxConcurrentStreams(int http2MaxActiveStreams) {
+        httpServerChannelInitializer.setHttp2MaxConcurrentStreams(http2MaxActiveStreams);
     }
 
     public void setTimeBetweenStaleEviction(long timeBetweenStaleEviction) {
