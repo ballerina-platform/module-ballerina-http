@@ -64,7 +64,7 @@ public final class Http2SourceConnectionHandlerBuilder
         this.listenerChannels = listenerChannels;
         this.initialSettings().maxHeaderListSize(maxHeaderListSize);
         this.initialSettings().initialWindowSize(initialWindowSize);
-        this.initialSettings().maxActiveStreams(maxActiveStreams);
+        this.initialSettings().maxConcurrentStreams(maxActiveStreams);
     }
 
     @Override
