@@ -19,7 +19,6 @@
 package io.ballerina.stdlib.http.api.client.endpoint;
 
 import io.ballerina.runtime.api.values.BMap;
-import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.ConnectionManager;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.PoolConfiguration;
 
@@ -35,7 +34,6 @@ public class InitGlobalPool {
     public static void initGlobalPool(BMap globalPoolConfig) {
         PoolConfiguration globalPool = new PoolConfiguration();
         populatePoolingConfig(globalPoolConfig, globalPool);
-        HttpUtil.setGlobalHttp2MaxActiveStreams(globalPool.getHttp2MaxActiveStreamsPerConnection());
         ConnectionManager connectionManager = new ConnectionManager(globalPool);
         globalPoolConfig.addNativeData(CONNECTION_MANAGER, connectionManager);
     }
