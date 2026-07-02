@@ -97,3 +97,14 @@ built-in support for basic authentication, JWT authentication, and OAuth2 authen
 
 In addition to that, supports both the HTTP/1.1 and HTTP2 protocols and connection keep-alive, content 
 chunking, HTTP caching, data compression/decompression, payload binding, and authorization can be highlighted as the features of a `Service`.
+
+#### HTTP/2 Stream Concurrency
+
+Each HTTP/2 connection can carry multiple requests simultaneously using independent streams. To prevent a single
+connection from opening an unbounded number of streams and exhausting server memory, the listener enforces a limit
+of **100 concurrent streams per connection** by default. This is the value recommended by RFC 7540 and consistent
+with other widely-used HTTP/2 server implementations such as Nginx and Envoy.
+
+When a client reaches this limit on a connection, it will automatically open an additional connection rather than
+stalling, so normal traffic is unaffected for typical workloads.
+
