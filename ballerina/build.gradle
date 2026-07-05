@@ -42,6 +42,7 @@ def ballerinaTomlFilePlaceHolder = new File("${project.rootDir}/build-config/res
 def compilerPluginTomlFilePlaceHolder = new File("${project.rootDir}/build-config/resources/CompilerPlugin.toml")
 def ballerinaTomlFile = new File("$project.projectDir/Ballerina.toml")
 def compilerPluginTomlFile = new File("$project.projectDir/CompilerPlugin.toml")
+def dependenciesTomlFile = new File("$project.projectDir/Dependencies.toml")
 
 def stripBallerinaExtensionVersion(String extVersion) {
     if (extVersion.matches(project.ext.timestampedVersionRegex)) {
@@ -149,6 +150,41 @@ dependencies {
     }
 }
 
+// bal pack resolves these transitive Ballerina packages non-deterministically across
+// environments (see https://github.com/ballerina-platform/ballerina-lang/issues/44423) and has
+// twice rewritten Dependencies.toml to versions that are unresolvable on other CI runners.
+// captureLockedDependencyVersions/restoreLockedDependencyVersions pin them back to whatever
+// was already committed, regardless of what bal pack re-resolves them to.
+def pinnedTransitiveDependencies = ["io", "mime", "observe", "os", "task", "time", "url"]
+
+task captureLockedDependencyVersions {
+    doLast {
+        project.ext.lockedDependencyVersions = [:]
+        if (dependenciesTomlFile.exists()) {
+            def text = dependenciesTomlFile.text
+            pinnedTransitiveDependencies.each { pkg ->
+                def matcher = text =~ /(?m)name = "${pkg}"\nversion = "([^"]+)"/
+                if (matcher.find()) {
+                    project.ext.lockedDependencyVersions[pkg] = matcher.group(1)
+                }
+            }
+        }
+    }
+}
+
+task restoreLockedDependencyVersions {
+    doLast {
+        def locked = project.ext.has('lockedDependencyVersions') ? project.ext.lockedDependencyVersions : [:]
+        if (dependenciesTomlFile.exists() && !locked.isEmpty()) {
+            def text = dependenciesTomlFile.text
+            locked.each { pkg, version ->
+                text = text.replaceAll(/(?m)(name = "${pkg}"\nversion = ")[^"]+(")/, "\$1${version}\$2")
+            }
+            dependenciesTomlFile.text = text
+        }
+    }
+}
+
 task updateTomlFiles {
     doLast {
         def stdlibDependentMimeNativeVersion = project.stdlibMimeVersion
@@ -228,6 +264,9 @@ task deleteDependencyTomlFiles {
 }
 
 updateTomlFiles.dependsOn copyStdlibs
+updateTomlFiles.dependsOn captureLockedDependencyVersions
+captureLockedDependencyVersions.mustRunAfter copyStdlibs
+commitTomlFiles.dependsOn restoreLockedDependencyVersions
 
 build.dependsOn "generatePomFileForMavenPublication"
 build.dependsOn ":${packageName}-native:build"
