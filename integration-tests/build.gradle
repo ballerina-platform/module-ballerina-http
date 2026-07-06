@@ -184,7 +184,7 @@ task ballerinaIntegrationTests {
             environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
                 environment.remove("JAVA_TOOL_OPTIONS")
-                commandLine 'cmd', '/c', "$distributionBinPath/bal.bat test ${graalvmFlag} --offline && exit %%ERRORLEVEL%%"
+                commandLine 'cmd', '/c', "$distributionBinPath/bal.bat test ${graalvmFlag} --offline --disable-groups disabledOnWindows && exit %%ERRORLEVEL%%"
             } else {
                 commandLine 'sh', '-c', "$distributionBinPath/bal test ${graalvmFlag} --offline --code-coverage"
             }

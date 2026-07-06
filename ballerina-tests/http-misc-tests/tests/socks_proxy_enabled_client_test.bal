@@ -33,7 +33,9 @@ const string SOCKS_BACKEND_URL = "http://backend:5678";
 const string SOCKS_BACKEND_RESPONSE = "Backend server sent the response";
 
 // SOCKS5 client routed through the SOCKS proxy to the backend -> expect a successful response.
-@test:Config {}
+@test:Config {
+    groups: ["disabledOnWindows"]
+}
 public function testSocks5Client() returns error? {
     http:Client clientEP = check new (SOCKS_BACKEND_URL, {
         proxy: {

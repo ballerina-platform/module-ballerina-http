@@ -27,7 +27,9 @@ const int SOCKS5_PROXY_PORT = 9913;
 const string SOCKS_BACKEND_URL = "http://backend:5678";
 const string SOCKS_BACKEND_RESPONSE = "Response from backend through SOCKS proxy";
 
-@test:Config {}
+@test:Config {
+    groups: ["disabledOnWindows"]
+}
 function testSocks5ProxyOverHttp() returns error? {
     http:Client clientEP = check new (SOCKS_BACKEND_URL, {
         proxy: {
