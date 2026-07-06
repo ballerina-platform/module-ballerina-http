@@ -18,14 +18,10 @@
 
 package io.ballerina.stdlib.http.compiler.endpointyaml.generator;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
-import io.ballerina.projects.Package;
-import io.ballerina.projects.Project;
+import io.ballerina.projects.plugins.EndpointArtifact;
 import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
 import io.ballerina.tools.diagnostics.DiagnosticFactory;
 import io.ballerina.tools.diagnostics.DiagnosticInfo;
@@ -33,14 +29,7 @@ import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.servers.ServerVariables;
 
-import java.io.IOException;
 import java.io.PrintStream;
-import java.io.Writer;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
-import static io.ballerina.openapi.service.mapper.utils.CodegenUtils.resolveContractFileName;
 
 public class EndpointYamlGenerator {
     private final ServiceDeclarationNode node;
@@ -49,19 +38,16 @@ public class EndpointYamlGenerator {
 
     private static final PrintStream outStream = System.out;
 
-    private static final String ARTIFACT = "artifact";
     private static final String REST = "REST";
-    private static final String YAML_EXTENSION = ".yaml";
     private static final String OPENAPI_SUFFIX = "_openapi";
-    private static final String ENDPOINT_SUFFIX = "_endpoint";
     private static final String PORT = "port";
 
     private int portVal = 0;
 
     private final Server server;
 
-    /*
-     * Generates the .yaml file with endpoint details of HTTP service
+    /**
+     * Adds endpoint details of HTTP service to the build context.
      */
     public EndpointYamlGenerator(ServiceDeclarationNode node, SyntaxNodeAnalysisContext context, Server server) {
         this.node = node;
@@ -98,12 +84,10 @@ public class EndpointYamlGenerator {
         return new Endpoint(this.portVal, basePath, REST, this.schemaFileName);
     }
 
-    public void writeEndpointYaml() throws IOException {
+    public void addEndpointArtifact() {
         Endpoint ep = getEndpoint();
-        Path outPath = resolveOutputPath();
-        String fileName = buildEndpointFileName(outPath);
-        Path path = outPath.resolve(ARTIFACT).resolve(fileName + YAML_EXTENSION);
-        writeYaml(path, new EndpointWrapper(ep));
+        context.addEndpointArtifact(new EndpointArtifact(getEndpointName(), ep.getPort(), ep.getBasePath(),
+                ep.getType(), ep.getSchemaPath()));
     }
 
     private String getBasePath() {
@@ -115,31 +99,8 @@ public class EndpointYamlGenerator {
         return serviceBasePath.toString();
     }
 
-    private Path resolveOutputPath() throws IOException {
-        Package currentPackage = this.context.currentPackage();
-        Project project = currentPackage.project();
-        Path outPath = project.targetDir();
-        Files.createDirectories(Paths.get(String.valueOf(outPath), ARTIFACT));
-        return outPath;
-    }
-
-    private String buildEndpointFileName(Path outPath) {
-        String base = schemaFileName.split("\\.")[0].replace(OPENAPI_SUFFIX, ENDPOINT_SUFFIX);
-        return resolveContractFileName(outPath.resolve(ARTIFACT), base, false);
-    }
-
-    private void writeYaml(Path path, EndpointWrapper wrapper) throws IOException {
-        YAMLFactory yamlFactory = YAMLFactory.builder()
-                .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
-                .build();
-        ObjectMapper mapper = new ObjectMapper(yamlFactory);
-        mapper.findAndRegisterModules();
-
-        try (Writer writer = Files.newBufferedWriter(path)) {
-            mapper.writeValue(writer, wrapper);
-        } catch (IOException e) {
-            throw new IOException("Failed to write endpoint yaml to " + path, e);
-        }
+    private String getEndpointName() {
+        return schemaFileName.split("\\.")[0].replace(OPENAPI_SUFFIX, "");
     }
 
     private static void reportMissingPortConfigDiagnostic(SyntaxNodeAnalysisContext context) {
