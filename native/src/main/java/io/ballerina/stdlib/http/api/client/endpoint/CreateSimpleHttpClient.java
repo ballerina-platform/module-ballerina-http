@@ -130,7 +130,7 @@ public class CreateSimpleHttpClient {
                                                        responseLimits.getIntValue(HttpConstants.MAX_ENTITY_BODY_SIZE),
                                                        senderConfiguration.getMsgSizeValidationConfig());
             try {
-                populateSenderConfigurations(senderConfiguration, clientEndpointConfig, scheme);
+                populateSenderConfigurations(senderConfiguration, clientEndpointConfig, scheme, url.getHost());
             } catch (RuntimeException e) {
                 return HttpUtil.createHttpError(e.getMessage(), HttpErrorType.GENERIC_CLIENT_ERROR);
             }
