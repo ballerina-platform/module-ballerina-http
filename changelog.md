@@ -4,6 +4,14 @@ This file contains all the notable changes done to the Ballerina HTTP package th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to 
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [2.16.4] - 2026-07-02
+
+### Fixed
+
+- [[CVE-2026-47244, CVE-2026-48043, CVE-2026-50560] Upgrade netty-codec-http2 to 4.1.135.Final and configure HTTP/2 max concurrent streams](https://github.com/ballerina-platform/ballerina-library/issues/8833)
+
 ## [2.16.3] - 2026-05-11
 
 ### Fixed
