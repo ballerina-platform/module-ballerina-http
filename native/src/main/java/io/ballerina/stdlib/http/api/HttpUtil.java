@@ -1339,7 +1339,7 @@ public class HttpUtil {
             proxyProtocolEnum = ProxyServerConfiguration.ProxyProtocol.HTTP;
         }
         if (proxyProtocolEnum == ProxyServerConfiguration.ProxyProtocol.SOCKS4 && !proxyPassword.isEmpty()) {
-            throw new BallerinaConnectorException("configuring a password is not supported for a SOCKS4 proxy");
+            log.warn("SOCKS4 does not support password authentication; the configured password will be ignored.");
         }
         return proxyProtocolEnum;
     }

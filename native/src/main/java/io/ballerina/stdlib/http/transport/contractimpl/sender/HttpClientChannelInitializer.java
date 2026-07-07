@@ -185,42 +185,55 @@ public class HttpClientChannelInitializer extends ChannelInitializer<SocketChann
         if (proxyServerConfiguration == null) {
             return;
         }
-        String username = proxyServerConfiguration.getProxyUsername();
-        String password = proxyServerConfiguration.getProxyPassword();
         switch (proxyServerConfiguration.getProxyProtocol()) {
             case SOCKS5:
-                if (username != null && !username.isEmpty() && password != null && !password.isEmpty()) {
-                    clientPipeline.addLast(Constants.PROXY_HANDLER,
-                            new Socks5ProxyHandler(proxyServerConfiguration.getInetSocketAddress(), username,
-                                    password));
-                } else {
-                    clientPipeline.addLast(Constants.PROXY_HANDLER,
-                            new Socks5ProxyHandler(proxyServerConfiguration.getInetSocketAddress()));
-                }
+                addSocks5ProxyHandler(clientPipeline);
                 break;
             case SOCKS4:
-                if (username != null && !username.isEmpty()) {
-                    clientPipeline.addLast(Constants.PROXY_HANDLER,
-                            new Socks4ProxyHandler(proxyServerConfiguration.getInetSocketAddress(), username));
-                } else {
-                    clientPipeline.addLast(Constants.PROXY_HANDLER,
-                            new Socks4ProxyHandler(proxyServerConfiguration.getInetSocketAddress()));
-                }
+                addSocks4ProxyHandler(clientPipeline);
                 break;
             case HTTP:
             default:
-                // Use netty proxy handler only if scheme is https
-                if (sslConfig != null) {
-                    if (username != null && password != null) {
-                        clientPipeline.addLast(Constants.PROXY_HANDLER,
-                                new HttpProxyHandler(proxyServerConfiguration.getInetSocketAddress(), username,
-                                        password));
-                    } else {
-                        clientPipeline.addLast(Constants.PROXY_HANDLER,
-                                new HttpProxyHandler(proxyServerConfiguration.getInetSocketAddress()));
-                    }
-                }
+                addHttpProxyHandler(clientPipeline);
                 break;
+        }
+    }
+
+    private void addSocks5ProxyHandler(ChannelPipeline clientPipeline) {
+        String username = proxyServerConfiguration.getProxyUsername();
+        String password = proxyServerConfiguration.getProxyPassword();
+        if (username != null && !username.isEmpty() && password != null && !password.isEmpty()) {
+            clientPipeline.addLast(Constants.PROXY_HANDLER,
+                    new Socks5ProxyHandler(proxyServerConfiguration.getInetSocketAddress(), username, password));
+        } else {
+            clientPipeline.addLast(Constants.PROXY_HANDLER,
+                    new Socks5ProxyHandler(proxyServerConfiguration.getInetSocketAddress()));
+        }
+    }
+
+    private void addSocks4ProxyHandler(ChannelPipeline clientPipeline) {
+        String username = proxyServerConfiguration.getProxyUsername();
+        if (username != null && !username.isEmpty()) {
+            clientPipeline.addLast(Constants.PROXY_HANDLER,
+                    new Socks4ProxyHandler(proxyServerConfiguration.getInetSocketAddress(), username));
+        } else {
+            clientPipeline.addLast(Constants.PROXY_HANDLER,
+                    new Socks4ProxyHandler(proxyServerConfiguration.getInetSocketAddress()));
+        }
+    }
+
+    private void addHttpProxyHandler(ChannelPipeline clientPipeline) {
+        if (sslConfig == null) {
+            return;
+        }
+        String username = proxyServerConfiguration.getProxyUsername();
+        String password = proxyServerConfiguration.getProxyPassword();
+        if (username != null && password != null) {
+            clientPipeline.addLast(Constants.PROXY_HANDLER,
+                    new HttpProxyHandler(proxyServerConfiguration.getInetSocketAddress(), username, password));
+        } else {
+            clientPipeline.addLast(Constants.PROXY_HANDLER,
+                    new HttpProxyHandler(proxyServerConfiguration.getInetSocketAddress()));
         }
     }
 

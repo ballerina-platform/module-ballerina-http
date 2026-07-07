@@ -1449,7 +1449,7 @@ public type ProxyConfig record {|
 
 - `http:HTTP` (default) — a standard HTTP proxy. Existing behaviour is unchanged.
 - `http:SOCKS4` — a SOCKS version 4 proxy. SOCKS4 does not support password authentication; the optional `userName`
-  is sent as the SOCKS4 user id, and configuring a `password` results in a configuration error. DNS resolution of the
+  is sent as the SOCKS4 user id, and any configured `password` is ignored with a warning. DNS resolution of the
   target host is performed on the client side.
 - `http:SOCKS5` — a SOCKS version 5 proxy. Supports `userName`/`password` authentication, and DNS resolution of the
   target host is performed remotely on the proxy side.
