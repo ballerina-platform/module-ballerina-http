@@ -48,11 +48,12 @@ public function testSocks5Client() returns error? {
     test:assertEquals(response.trim(), SOCKS_BACKEND_RESPONSE);
 }
 
-// Negative test: SOCKS4 with a password set must fail at client init with a configuration error.
-// This requires no proxy server — the error is raised while populating the sender configuration.
+// SOCKS4 does not support password authentication. Setting a password is not a configuration
+// error — the password is ignored with a warning log. This test verifies that client creation
+// succeeds and no error is returned when a password is provided with SOCKS4.
 @test:Config {}
-public function testSocks4ClientWithPasswordFails() {
-    http:Client|error clientEP = new (SOCKS_BACKEND_URL, {
+public function testSocks4ClientIgnoresPassword() returns error? {
+    http:Client _ = check new (SOCKS_BACKEND_URL, {
         proxy: {
             host: "localhost",
             port: socksProxyServerTestPort,
@@ -61,10 +62,4 @@ public function testSocks4ClientWithPasswordFails() {
             protocol: http:SOCKS4
         }
     });
-    if clientEP is error {
-        test:assertEquals(clientEP.message(),
-                "configuring a password is not supported for a SOCKS4 proxy");
-    } else {
-        test:assertFail(msg = "Expected a configuration error for SOCKS4 with a password");
-    }
 }
