@@ -19,6 +19,7 @@
 package io.ballerina.stdlib.http.transport.proxyserver;
 
 import io.ballerina.stdlib.http.transport.contentaware.listeners.EchoMessageListener;
+import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contract.HttpWsConnectorFactory;
@@ -85,10 +86,54 @@ public final class ProxyServerUtil {
 
     static void setUpClientAndServerConnectors(ListenerConfiguration listenerConfiguration, String scheme)
             throws InterruptedException {
+        setUpClientAndServerConnectors(listenerConfiguration, scheme,
+                ProxyServerConfiguration.ProxyProtocol.HTTP, null, null);
+    }
+
+    /**
+     * Sets up the backend server connector and an HTTP client connector that routes through a proxy speaking the
+     * given protocol. The proxy is always assumed to listen on {@link TestUtil#SERVER_PORT2}.
+     *
+     * @param listenerConfiguration backend listener configuration
+     * @param scheme                {@code http://} or {@code https://}
+     * @param proxyProtocol         the proxy protocol (HTTP, SOCKS4 or SOCKS5)
+     * @param username              proxy username/userId, or {@code null} for no auth
+     * @param password              proxy password (SOCKS5/HTTP), or {@code null}
+     */
+    static void setUpClientAndServerConnectors(ListenerConfiguration listenerConfiguration, String scheme,
+                                               ProxyServerConfiguration.ProxyProtocol proxyProtocol,
+                                               String username, String password)
+            throws InterruptedException {
+        setUpClientAndServerConnectors(listenerConfiguration, scheme, proxyProtocol, username, password,
+                String.valueOf(Constants.HTTP_1_1));
+    }
+
+    /**
+     * Sets up the backend server connector and an HTTP client connector that routes through a proxy speaking the
+     * given protocol, negotiating the given HTTP version.
+     *
+     * @param listenerConfiguration backend listener configuration
+     * @param scheme                {@code http://} or {@code https://}
+     * @param proxyProtocol         the proxy protocol (HTTP, SOCKS4 or SOCKS5)
+     * @param username              proxy username/userId, or {@code null} for no auth
+     * @param password              proxy password (SOCKS5/HTTP), or {@code null}
+     * @param httpVersion           the HTTP version to use (e.g. {@code "1.1"} or {@code "2.0"})
+     */
+    static void setUpClientAndServerConnectors(ListenerConfiguration listenerConfiguration, String scheme,
+                                               ProxyServerConfiguration.ProxyProtocol proxyProtocol,
+                                               String username, String password, String httpVersion)
+            throws InterruptedException {
 
         ProxyServerConfiguration proxyServerConfiguration = null;
         try {
             proxyServerConfiguration = new ProxyServerConfiguration("localhost", TestUtil.SERVER_PORT2);
+            proxyServerConfiguration.setProxyProtocol(proxyProtocol);
+            if (username != null) {
+                proxyServerConfiguration.setProxyUsername(username);
+            }
+            if (password != null) {
+                proxyServerConfiguration.setProxyPassword(password);
+            }
         } catch (UnknownHostException e) {
             TestUtil.handleException("Failed to resolve host", e);
         }
@@ -96,7 +141,7 @@ public final class ProxyServerUtil {
         TransportsConfiguration transportsConfiguration = new TransportsConfiguration();
         Set<SenderConfiguration> senderConfig = transportsConfiguration.getSenderConfigurations();
         ProxyServerConfiguration finalProxyServerConfiguration = proxyServerConfiguration;
-        setSenderConfigs(senderConfig, finalProxyServerConfiguration, scheme);
+        setSenderConfigs(senderConfig, finalProxyServerConfiguration, scheme, httpVersion);
         httpWsConnectorFactory = new DefaultHttpWsConnectorFactory();
 
         serverConnector = httpWsConnectorFactory
@@ -120,12 +165,19 @@ public final class ProxyServerUtil {
     }
 
     private static void setSenderConfigs(Set<SenderConfiguration> senderConfig,
-                                         ProxyServerConfiguration finalProxyServerConfiguration, String scheme) {
+                                         ProxyServerConfiguration finalProxyServerConfiguration, String scheme,
+                                         String httpVersion) {
         senderConfig.forEach(config -> {
             if (scheme.equals(HTTPS_SCHEME)) {
                 config.setTrustStoreFile(TestUtil.getAbsolutePath(TestUtil.KEY_STORE_FILE_PATH));
                 config.setTrustStorePass(TestUtil.KEY_STORE_PASSWORD);
                 config.setScheme(HTTPS_SCHEME);
+            }
+            config.setHttpVersion(httpVersion);
+            if (Constants.HTTP_2_0.equals(httpVersion) && !scheme.equals(HTTPS_SCHEME)) {
+                // Over plaintext, use HTTP/2 prior knowledge (no upgrade) so the request is sent directly as
+                // HTTP/2 through the SOCKS tunnel. Over TLS the version is negotiated via ALPN.
+                config.setForceHttp2(true);
             }
             config.setProxyServerConfiguration(finalProxyServerConfiguration);
         });

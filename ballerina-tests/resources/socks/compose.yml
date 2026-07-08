@@ -1,0 +1,19 @@
+services:
+    # Backend HTTP service the SOCKS-proxied client ultimately reaches. It is reached only
+    # through the proxy (SOCKS5 remote DNS resolves the `backend` service name on the proxy
+    # side), so it does not need a published port.
+    backend:
+        image: hashicorp/http-echo
+        container_name: socks-backend-server
+        command: ["-text=Backend server sent the response", "-listen=:5678"]
+
+    socks_proxy:
+        image: vimagick/dante
+        container_name: socks-proxy-server
+        volumes:
+            - ./sockd.conf:/etc/dante/sockd.conf:ro
+        ports:
+            - 1080:1080
+        depends_on:
+            - backend
+        restart: on-failure
