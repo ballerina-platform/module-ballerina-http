@@ -1426,6 +1426,46 @@ runtime failures.
 final http:Client relaxedClientEP = check new ("http://localhost:9090", laxDataBinding = true);
 ```
 
+##### 2.4.1.11 Proxy
+
+The client can route its outbound requests through a proxy server configured via the top-level `proxy` field
+(`ProxyConfig`). The `protocol` field selects the proxy protocol:
+
+```ballerina
+public enum ProxyProtocol {
+    HTTP,
+    SOCKS4,
+    SOCKS5
+}
+
+public type ProxyConfig record {|
+    string host = "";
+    int port = 0;
+    string userName = "";
+    string password = "";
+    ProxyProtocol protocol = HTTP;
+|};
+```
+
+- `http:HTTP` (default) — a standard HTTP proxy. Existing behaviour is unchanged.
+- `http:SOCKS4` — a SOCKS version 4 proxy. SOCKS4 does not support password authentication; the optional `userName`
+  is sent as the SOCKS4 user id, and any configured `password` is ignored with a warning. DNS resolution of the
+  target host is performed on the client side.
+- `http:SOCKS5` — a SOCKS version 5 proxy. Supports `userName`/`password` authentication, and DNS resolution of the
+  target host is performed remotely on the proxy side.
+
+SOCKS proxies are supported for both plaintext (`http://`) and TLS (`https://`) targets over HTTP/1.1 and HTTP/2.
+
+```ballerina
+http:Client clientEP = check new ("https://api.example.com",
+    proxy = {
+        host: "localhost",
+        port: 1080,
+        protocol: http:SOCKS5
+    }
+);
+```
+
 ##### 2.4.2. Client action
 
 The HTTP client contains separate remote method representing each HTTP method such as `get`, `put`, `post`,
