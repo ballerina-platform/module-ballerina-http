@@ -24,7 +24,7 @@ The conforming implementation of the specification is released and included in t
         * 2.1.1. [Automatically starting the service](#211-automatically-starting-the-service)
         * 2.1.2. [Programmatically starting the service](#212-programmatically-starting-the-service)
         * 2.1.3. [Default listener](#213-default-listener)
-        * 2.1.4. [HTTP2 stream concurrency](#214-http2-stream-concurrency)
+        * 2.1.4. [HTTP/2 stream concurrency](#214-http2-stream-concurrency)
     * 2.2. [Service](#22-service)
         * 2.2.1. [Service type](#221-service-type)
         * 2.2.2. [Service-base-path](#222-service-base-path)
@@ -256,7 +256,7 @@ path = "resources/certs/ballerinaKeystore.p12"
 password = "ballerina"
 ```
 
-#### 2.1.4. HTTP2 stream concurrency
+#### 2.1.4. HTTP/2 stream concurrency
 
 Each HTTP/2 connection can carry multiple requests concurrently over independent streams. The listener limits the
 number of concurrent streams a single connection can open, advertised to clients via the `SETTINGS_MAX_CONCURRENT_STREAMS`
