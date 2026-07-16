@@ -34,7 +34,6 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Method;
-import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.CountDownLatch;
@@ -54,12 +53,12 @@ public class Http2TcpServerGoAway100ContinueScenarioTest {
 
     @BeforeMethod
     public void setup(Method method) throws InterruptedException {
-        runTcpServer(TestUtil.HTTP_SERVER_PORT);
         h2ClientWithPriorKnowledge = FrameLevelTestUtils.setupHttp2PriorKnowledgeClient();
     }
 
     @Test
     private void testGoAwayFor100ContinueForASingleStream() {
+        runTcpServer(TestUtil.HTTP_SERVER_PORT);
         try {
             CountDownLatch latch = new CountDownLatch(1);
             HttpCarbonMessage httpsPostReq = TestUtil.
@@ -79,9 +78,7 @@ public class Http2TcpServerGoAway100ContinueScenarioTest {
     private void runTcpServer(int port) {
         new Thread(() -> {
             try {
-                serverSocket = new ServerSocket();
-                serverSocket.setReuseAddress(true);
-                serverSocket.bind(new InetSocketAddress(port));
+                serverSocket = new ServerSocket(port);
                 LOGGER.info("HTTP/2 TCP Server listening on port " + port);
                 Socket clientSocket = serverSocket.accept();
                 LOGGER.info("Accepted connection from: " + clientSocket.getInetAddress());

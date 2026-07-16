@@ -55,7 +55,7 @@ public final class Http2Util {
     public static final String HTTP2_RESPONSE_PAYLOAD = "Final Response";
 
     public static ListenerConfiguration getH2ListenerConfigs() {
-        Parameter paramServerCiphers = new Parameter("ciphers", "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256");
+        Parameter paramServerCiphers = new Parameter("ciphers", "TLS_RSA_WITH_AES_128_CBC_SHA");
         List<Parameter> serverParams = new ArrayList<>(1);
         serverParams.add(paramServerCiphers);
         ListenerConfiguration listenerConfiguration = new ListenerConfiguration();
@@ -70,7 +70,7 @@ public final class Http2Util {
     }
 
     public static SenderConfiguration getSenderConfigs(String httpVersion) {
-        Parameter paramClientCiphers = new Parameter("ciphers", "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256");
+        Parameter paramClientCiphers = new Parameter("ciphers", "TLS_RSA_WITH_AES_128_CBC_SHA");
         List<Parameter> clientParams = new ArrayList<>(1);
         clientParams.add(paramClientCiphers);
         SenderConfiguration senderConfiguration = new SenderConfiguration();

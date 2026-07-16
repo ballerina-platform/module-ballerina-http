@@ -84,12 +84,8 @@ public class Http2ChannelCloseBeforeConnectionEvictionAfterTcpServerGoAwayScenar
             // Waiting more than the minIdleTimeInStaleState to trigger a connectionEviction try
             Thread.sleep(8000);
 
-            // On Windows/Java 25 the socket may close before headers are decoded, routing the error through
-            // onError() instead of onMessage(); getHttpResponseMessage() is null in that case.
-            if (msgListener1.getHttpResponseMessage() != null) {
-                String errorMsg1 = getDecoderErrorMessage(msgListener1);
-                assertEquals(errorMsg1, Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_BODY);
-            }
+            String errorMsg1 = getDecoderErrorMessage(msgListener1);
+            assertEquals(errorMsg1, Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_BODY);
         } catch (InterruptedException | IOException e) {
             LOGGER.error("Exception occurred");
             fail();
