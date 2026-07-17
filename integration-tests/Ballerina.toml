@@ -3,13 +3,13 @@ org = "ballerina"
 name = "integration_tests"
 version = "2.17.0"
 
-[[platform.java21.dependency]]
+[[platform.java25.dependency]]
 groupId = "io.ballerina.stdlib"
 artifactId = "http-test-utils"
 scope = "testOnly"
 path = "../test-utils/build/libs/http-test-utils-2.17.0-SNAPSHOT.jar"
 
-[[platform.java21.dependency]]
+[[platform.java25.dependency]]
 groupId = "io.ballerina.stdlib"
 artifactId = "io-native"
 path = "./lib/io-native-1.8.1.jar"

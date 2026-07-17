@@ -21,6 +21,12 @@ plugins {
 apply plugin: 'java'
 
 import org.apache.tools.ant.taskdefs.condition.Os
+import org.gradle.process.ExecOperations
+import javax.inject.Inject
+
+abstract class BallerinaTestsExecHelper {
+    @Inject abstract ExecOperations getExecOperations()
+}
 
 description = 'Ballerina - HTTP/WS Ballerina Tests'
 
@@ -98,13 +104,14 @@ task updateTomlVersions {
 }
 
 task commitTomlFiles {
+    def execHelper = project.objects.newInstance(BallerinaTestsExecHelper)
     doLast {
         def files = "${testCommonPackage}/Ballerina.toml ${testCommonPackage}/Dependencies.toml "
         testPackages.each{ testPackage ->
             files += "${testPackage}/Ballerina.toml ${testPackage}/Dependencies.toml "
         }
 
-        project.exec {
+        execHelper.execOperations.exec {
             ignoreExitValue true
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
                 commandLine 'cmd', '/c', "git commit -m \"[Automated] Update the native jar versions\" ${files}"
@@ -168,9 +175,10 @@ task initializeVariables {
 task publishTestCommonPackageToLocal {
     dependsOn(":${packageName}-${packageOrg}:build")
     dependsOn(updateTomlVersions)
+    def execHelper = project.objects.newInstance(BallerinaTestsExecHelper)
     doLast {
         if (!skipTests) {
-            exec {
+            execHelper.execOperations.exec {
                 workingDir "${project.projectDir}/${testCommonPackage}"
                 if (Os.isFamily(Os.FAMILY_WINDOWS)) {
                     commandLine 'cmd', '/c', "${distributionBinPath}/bal.bat pack && exit  %%ERRORLEVEL%%"
@@ -178,7 +186,7 @@ task publishTestCommonPackageToLocal {
                     commandLine 'sh', '-c', "${distributionBinPath}/bal pack"
                 }
             }
-            exec {
+            execHelper.execOperations.exec {
                 workingDir "${project.projectDir}/${testCommonPackage}"
                 if (Os.isFamily(Os.FAMILY_WINDOWS)) {
                     commandLine 'cmd', '/c', "${distributionBinPath}/bal.bat push --repository=local" +
@@ -203,11 +211,12 @@ task ballerinaTest {
     dependsOn(compileTestJava)
     dependsOn(processTestResources)
     finalizedBy(commitTomlFiles)
+    def execHelper = project.objects.newInstance(BallerinaTestsExecHelper)
 
     doLast {
         testPackages.each { testPackage ->
             if (!skipTests) {
-                exec {
+                execHelper.execOperations.exec {
                     workingDir "${project.projectDir}/${testPackage}"
                     environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
                     if (Os.isFamily(Os.FAMILY_WINDOWS)) {
@@ -220,7 +229,7 @@ task ballerinaTest {
                     }
                 }
                 if (project.hasProperty('balGraalVMTest')) {
-                    exec {
+                    execHelper.execOperations.exec {
                         workingDir "${project.projectDir}/${testPackage}"
                         environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
                         if (Os.isFamily(Os.FAMILY_WINDOWS)) {
@@ -249,18 +258,19 @@ publishing {
 }
 
 task startLdapServer() {
+    def execHelper = project.objects.newInstance(BallerinaTestsExecHelper)
     doLast {
         // This check is added to prevent starting the server in Windows OS, since the Docker image does not support
         // for Windows OS.
         if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
             def stdOut = new ByteArrayOutputStream()
-            exec {
+            execHelper.execOperations.exec {
                 commandLine 'sh', '-c', "docker ps --filter name=openldap-server"
                 standardOutput = stdOut
             }
             if (!stdOut.toString().contains("openldap-server")) {
                 println "Starting LDAP server."
-                exec {
+                execHelper.execOperations.exec {
                     commandLine 'sh', '-c', "docker compose -f $project.projectDir/resources/openldap/compose.yml up -d"
                     standardOutput = stdOut
                 }
@@ -275,18 +285,19 @@ task startLdapServer() {
 }
 
 task stopLdapServer() {
+    def execHelper = project.objects.newInstance(BallerinaTestsExecHelper)
     doLast {
         // This check is added to prevent trying to stop the server in Windows OS, since the Docker image not started
         // in Windows OS.
         if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
             def stdOut = new ByteArrayOutputStream()
-            exec {
+            execHelper.execOperations.exec {
                 commandLine 'sh', '-c', "docker ps --filter name=openldap-server"
                 standardOutput = stdOut
             }
             if (stdOut.toString().contains("openldap-server")) {
                 println "Stopping LDAP server."
-                exec {
+                execHelper.execOperations.exec {
                     commandLine 'sh', '-c', "docker stop openldap-server"
                     standardOutput = stdOut
                 }
@@ -301,17 +312,18 @@ task stopLdapServer() {
 }
 
 task startSocksServer() {
+    def execHelper = project.objects.newInstance(BallerinaTestsExecHelper)
     doLast {
         // Docker is not reliably available on Windows CI runners.
         if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
             def stdOut = new ByteArrayOutputStream()
-            exec {
+            execHelper.execOperations.exec {
                 commandLine 'sh', '-c', "docker ps --filter name=socks-proxy-server"
                 standardOutput = stdOut
             }
             if (!stdOut.toString().contains("socks-proxy-server")) {
                 println "Starting SOCKS proxy server."
-                exec {
+                execHelper.execOperations.exec {
                     commandLine 'sh', '-c', "docker compose -f $project.projectDir/resources/socks/compose.yml up -d"
                     standardOutput = stdOut
                 }
@@ -326,16 +338,17 @@ task startSocksServer() {
 }
 
 task stopSocksServer() {
+    def execHelper = project.objects.newInstance(BallerinaTestsExecHelper)
     doLast {
         if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
             def stdOut = new ByteArrayOutputStream()
-            exec {
+            execHelper.execOperations.exec {
                 commandLine 'sh', '-c', "docker ps --filter name=socks-proxy-server"
                 standardOutput = stdOut
             }
             if (stdOut.toString().contains("socks-proxy-server")) {
                 println "Stopping SOCKS proxy server."
-                exec {
+                execHelper.execOperations.exec {
                     commandLine 'sh', '-c', "docker compose -f $project.projectDir/resources/socks/compose.yml down"
                     standardOutput = stdOut
                 }

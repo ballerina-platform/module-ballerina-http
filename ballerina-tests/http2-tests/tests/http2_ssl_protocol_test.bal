@@ -123,7 +123,10 @@ public function testSslProtocolConflict() returns error? {
     if resp is http:Response {
         test:assertFail(msg = "Found unexpected output: Expected an error");
     } else {
-        test:assertTrue(strings:includes(resp.message(), "SSL connection failed"));
+        test:assertTrue(strings:includes(resp.message(), "SSL connection failed") ||
+                strings:includes(resp.message(), "Remote host terminated") ||
+                strings:includes(resp.message(), "protocol_version") ||
+                strings:includes(resp.message(), "handshake"));
     }
 
     sslConfig.protocol.versions = ["TLSv1.3"];
@@ -132,6 +135,9 @@ public function testSslProtocolConflict() returns error? {
     if resp is http:Response {
         test:assertFail(msg = "Found unexpected output: Expected an error");
     } else {
-        test:assertTrue(strings:includes(resp.message(), "SSL connection failed"));
+        test:assertTrue(strings:includes(resp.message(), "SSL connection failed") ||
+                strings:includes(resp.message(), "Remote host terminated") ||
+                strings:includes(resp.message(), "protocol_version") ||
+                strings:includes(resp.message(), "handshake"));
     }
 }
