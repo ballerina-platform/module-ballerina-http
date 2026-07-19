@@ -73,7 +73,7 @@ public class CipherSuitesTest {
                 // false = expecting no errors.
                 { "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256", "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256", false,
                         TestUtil.SERVER_CONNECTOR_PORT },
-                { "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256",
+                { "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA, TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256",
                         "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", true, TestUtil.HTTPS_SERVER_PORT } };
     }
 
