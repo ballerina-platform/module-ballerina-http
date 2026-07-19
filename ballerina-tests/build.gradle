@@ -312,17 +312,18 @@ task stopLdapServer() {
 }
 
 task startSocksServer() {
+    def execHelper = project.objects.newInstance(BallerinaTestsExecHelper)
     doLast {
         // Docker is not reliably available on Windows CI runners.
         if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
             def stdOut = new ByteArrayOutputStream()
-            exec {
+            execHelper.execOperations.exec {
                 commandLine 'sh', '-c', "docker ps --filter name=socks-proxy-server"
                 standardOutput = stdOut
             }
             if (!stdOut.toString().contains("socks-proxy-server")) {
                 println "Starting SOCKS proxy server."
-                exec {
+                execHelper.execOperations.exec {
                     commandLine 'sh', '-c', "docker compose -f $project.projectDir/resources/socks/compose.yml up -d"
                     standardOutput = stdOut
                 }
@@ -337,16 +338,17 @@ task startSocksServer() {
 }
 
 task stopSocksServer() {
+    def execHelper = project.objects.newInstance(BallerinaTestsExecHelper)
     doLast {
         if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
             def stdOut = new ByteArrayOutputStream()
-            exec {
+            execHelper.execOperations.exec {
                 commandLine 'sh', '-c', "docker ps --filter name=socks-proxy-server"
                 standardOutput = stdOut
             }
             if (stdOut.toString().contains("socks-proxy-server")) {
                 println "Stopping SOCKS proxy server."
-                exec {
+                execHelper.execOperations.exec {
                     commandLine 'sh', '-c', "docker compose -f $project.projectDir/resources/socks/compose.yml down"
                     standardOutput = stdOut
                 }
