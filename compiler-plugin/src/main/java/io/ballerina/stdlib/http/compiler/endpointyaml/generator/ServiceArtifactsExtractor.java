@@ -179,12 +179,7 @@ public class ServiceArtifactsExtractor implements AnalysisTask<SyntaxNodeAnalysi
         for (Server server: servers) {
             EndpointYamlGenerator endpointYamlGeneratorHttp =
                     new EndpointYamlGenerator(serviceNode, context, server);
-            try {
-                endpointYamlGeneratorHttp.writeEndpointYaml();
-            } catch (IOException e) {
-                diagnostics.add(getDiagnostics(
-                     new ExceptionDiagnostic(DiagnosticMessages.OAS_CONVERTOR_108, e.toString())));
-            }
+            endpointYamlGeneratorHttp.addEndpointArtifact();
         }
 
     }

@@ -86,19 +86,18 @@ public class ServiceArtifactsExtractionTest {
         try {
             executeBallerinaCommand(projectDirPath, true);
 
-            Path endpointYaml = projectDirPath.resolve("target")
+            Path endpointsYaml = projectDirPath.resolve("target")
                     .resolve(ARTIFACT_DIR)
-                    .resolve("service_endpoint.yaml");
+                    .resolve("endpoints.yaml");
             Path openAPIYaml = projectDirPath.resolve("target")
                     .resolve(ARTIFACT_DIR)
                     .resolve("service_openapi.yaml");
-            Assert.assertTrue(Files.exists(endpointYaml), "Endpoint YAML should be generated");
+            Assert.assertTrue(Files.exists(endpointsYaml), "Endpoints YAML should be generated");
             Assert.assertTrue(Files.exists(openAPIYaml), "OpenAPI YAML should be generated");
 
-            Path expectedEndpointFile = RESOURCE_DIRECTORY.resolve("../yaml_files").resolve("service_endpoint.yaml");
             Path expectedOpenAPIFile = RESOURCE_DIRECTORY.resolve("../yaml_files").resolve("service_openapi_1.yaml");
 
-            verifyYamlContent(endpointYaml, expectedEndpointFile);
+            Assert.assertTrue(Files.readString(endpointsYaml).contains("schemaPath: \"service_openapi.yaml\""));
             verifyYamlContent(openAPIYaml, expectedOpenAPIFile);
         } finally {
             deleteDirectories(projectDirPath);
@@ -147,16 +146,16 @@ public class ServiceArtifactsExtractionTest {
                 yamlFiles = paths.filter(path -> path.toString().endsWith(".yaml")).sorted().toList();
             }
 
-            Assert.assertEquals(yamlFiles.size(), 10,
-                    "Expected openapi and endpoint artifacts for all services");
+            Assert.assertEquals(yamlFiles.size(), 6,
+                    "Expected OpenAPI artifacts for all services and one endpoint artifact");
             Assert.assertEquals(yamlFiles.stream()
                     .map(this::safeFileName)
                     .filter(fileName -> fileName.contains("_openapi"))
                     .count(), 5L, "Expected 5 OpenAPI artifact files");
             Assert.assertEquals(yamlFiles.stream()
                     .map(this::safeFileName)
-                    .filter(fileName -> fileName.contains("_endpoint"))
-                    .count(), 5L, "Expected 5 endpoint artifact files");
+                    .filter("endpoints.yaml"::equals)
+                    .count(), 1L, "Expected one endpoint artifact file");
 
         } finally {
             deleteDirectories(projectDirPath);
@@ -168,22 +167,21 @@ public class ServiceArtifactsExtractionTest {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_48");
         try {
             executeBallerinaCommand(projectDirPath, true);
-            Path endpointYaml = projectDirPath.resolve("target")
+            Path endpointsYaml = projectDirPath.resolve("target")
                     .resolve(ARTIFACT_DIR)
-                    .resolve("service_userservice_endpoint.yaml");
+                    .resolve("endpoints.yaml");
             Path openAPIYaml = projectDirPath.resolve("target")
                     .resolve(ARTIFACT_DIR)
                     .resolve("service_userservice_openapi.yaml");
-            Assert.assertTrue(Files.exists(endpointYaml),
-                    "Endpoint YAML for regular base path should be generated");
+            Assert.assertTrue(Files.exists(endpointsYaml),
+                    "Endpoints YAML for regular base path should be generated");
             Assert.assertTrue(Files.exists(openAPIYaml),
                     "OpenAPI YAML for regular base path should be generated");
 
-            Path expectedEndpointFile = RESOURCE_DIRECTORY.resolve("../yaml_files")
-                    .resolve("service_userservice_endpoint.yaml");
             Path expectedOpenAPIFile = RESOURCE_DIRECTORY.resolve("../yaml_files")
                     .resolve("service_userservice_openapi.yaml");
-            verifyYamlContent(endpointYaml, expectedEndpointFile);
+            Assert.assertTrue(Files.readString(endpointsYaml)
+                    .contains("schemaPath: \"service_userservice_openapi.yaml\""));
             verifyYamlContent(openAPIYaml, expectedOpenAPIFile);
         } finally {
             deleteDirectories(projectDirPath);
@@ -209,8 +207,8 @@ public class ServiceArtifactsExtractionTest {
         try {
             executeBallerinaCommand(projectDirPath, true);
             Path artifactDir = projectDirPath.resolve("target").resolve(ARTIFACT_DIR);
-            Path endpointYaml = artifactDir.resolve("service_endpoint.yaml");
-            assertEndpointPort(endpointYaml, 8080);
+            Path endpointsYaml = artifactDir.resolve("endpoints.yaml");
+            assertEndpointPort(endpointsYaml, 8080);
         } finally {
             deleteDirectories(projectDirPath);
         }
@@ -226,16 +224,8 @@ public class ServiceArtifactsExtractionTest {
             Path artifactDir = projectDirPath.resolve("target").resolve(ARTIFACT_DIR);
             Assert.assertTrue(Files.exists(artifactDir), "Artifact directory should exist");
 
-            List<String> endpointFiles;
-            try (Stream<Path> paths = Files.walk(artifactDir)) {
-                endpointFiles = paths
-                        .map(this::safeFileName)
-                        .filter(fileName -> fileName.endsWith("_endpoint.yaml")).toList();
-            }
-
-            Assert.assertEquals(endpointFiles.size(), 1, "Expected exactly one endpoint YAML file");
-            Assert.assertTrue(endpointFiles.getFirst().matches("service_[0-9]+_endpoint\\.yaml"),
-                    "Endpoint YAML file should use fallback hash-based naming for empty service path");
+            Assert.assertTrue(Files.exists(artifactDir.resolve("endpoints.yaml")),
+                    "Expected consolidated endpoints YAML file");
 
         } finally {
             deleteDirectories(projectDirPath);
@@ -272,7 +262,7 @@ public class ServiceArtifactsExtractionTest {
             Assert.assertTrue(Files.exists(artifactDir), "Artifact directory should exist");
             Assert.assertTrue(Files.exists(artifactDir.resolve("service_openapi.yaml")),
                     "OpenAPI artifact file should be generated");
-            Assert.assertTrue(Files.exists(artifactDir.resolve("service_endpoint.yaml")),
+            Assert.assertTrue(Files.exists(artifactDir.resolve("endpoints.yaml")),
                     "Endpoint artifact file should be generated");
         } finally {
             deleteDirectories(projectDirPath);
@@ -306,7 +296,7 @@ public class ServiceArtifactsExtractionTest {
 
         EndpointYamlGenerator generator = new EndpointYamlGenerator(contextData.serviceNode, context, server);
         Endpoint endpoint = generator.getEndpoint();
-        generator.writeEndpointYaml();
+        generator.addEndpointArtifact();
 
         Assert.assertEquals(endpoint.getPort(), 0,
                 "Endpoint port should fallback to 0 when no port variable default is provided");
@@ -333,7 +323,7 @@ public class ServiceArtifactsExtractionTest {
 
         EndpointYamlGenerator generator = new EndpointYamlGenerator(contextData.serviceNode, context, server);
         Endpoint endpoint = generator.getEndpoint();
-        generator.writeEndpointYaml();
+        generator.addEndpointArtifact();
 
         Assert.assertEquals(endpoint.getPort(), 0,
                 "Endpoint port should remain default when server variable is non-numeric");
@@ -369,12 +359,11 @@ public class ServiceArtifactsExtractionTest {
                 diagnostics);
 
         Path artifactDir = projectDirPath.resolve("target").resolve(ARTIFACT_DIR);
-        Path endpointYaml = artifactDir.resolve("service_endpoint.yaml");
         Path openapiYaml = artifactDir.resolve("service_openapi.yaml");
         Assert.assertTrue(Files.exists(artifactDir),
                 "exportServiceArtifact must create target/artifact/");
 
-        Assert.assertTrue(Files.exists(endpointYaml));
+        Assert.assertEquals(project.endpointArtifacts().size(), 1);
         Assert.assertTrue(Files.exists(openapiYaml));
         deleteDirectories(projectDirPath);
     }
@@ -812,6 +801,7 @@ public class ServiceArtifactsExtractionTest {
                         }
                         yield null;
                     }
+                    case "addEndpointArtifact" -> null;
                     default -> throw new UnsupportedOperationException("Unsupported context method: " +
                             method.getName());
                 });
