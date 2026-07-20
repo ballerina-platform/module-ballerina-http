@@ -15,6 +15,12 @@
 // under the License.
 
 import org.apache.tools.ant.taskdefs.condition.Os
+import org.gradle.process.ExecOperations
+import javax.inject.Inject
+
+abstract class IntegrationTestsExecHelper {
+    @Inject abstract ExecOperations getExecOperations()
+}
 
 apply plugin: 'java'
 
@@ -77,12 +83,13 @@ task updateTomlVerions {
 }
 
 task commitTomlFiles {
+    def execHelper = project.objects.newInstance(IntegrationTestsExecHelper)
     doLast {
         def files = [
             "${project.projectDir}/Ballerina.toml",
             "${project.projectDir}/Dependencies.toml"
         ]
-        project.exec {
+        execHelper.execOperations.exec {
             ignoreExitValue true
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
                 commandLine(['cmd', '/c', 'git', 'commit', '-m', '[Automated] Update the native jar versions'] + files)
@@ -125,16 +132,17 @@ task copyTestResources(type: Copy) {
 }
 
 task startSocksServer() {
+    def execHelper = project.objects.newInstance(IntegrationTestsExecHelper)
     doLast {
         if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
             def stdOut = new ByteArrayOutputStream()
-            exec {
+            execHelper.execOperations.exec {
                 commandLine 'sh', '-c', "docker ps --filter name=socks-it-proxy-server"
                 standardOutput = stdOut
             }
             if (!stdOut.toString().contains("socks-it-proxy-server")) {
                 println "Starting SOCKS proxy server."
-                exec {
+                execHelper.execOperations.exec {
                     commandLine 'sh', '-c', "docker compose -f $project.projectDir/tests/resources/socks/compose.yml up -d"
                     standardOutput = stdOut
                 }
@@ -149,10 +157,11 @@ task startSocksServer() {
 }
 
 task stopSocksServer() {
+    def execHelper = project.objects.newInstance(IntegrationTestsExecHelper)
     doLast {
         if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
             def stdOut = new ByteArrayOutputStream()
-            exec {
+            execHelper.execOperations.exec {
                 commandLine 'sh', '-c', "docker compose -f $project.projectDir/tests/resources/socks/compose.yml down"
                 standardOutput = stdOut
             }
@@ -176,10 +185,11 @@ task ballerinaIntegrationTests {
     if (project.hasProperty('balGraalVMTest')) {
         graalvmFlag = '--graalvm'
     }
+    def execHelper = project.objects.newInstance(IntegrationTestsExecHelper)
     doLast {
         setExecPath(configTOMLFile, distributionBinPath)
         setTempDirPath(configTOMLFile, "$tempDir")
-        exec {
+        execHelper.execOperations.exec {
             workingDir project.projectDir
             environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
