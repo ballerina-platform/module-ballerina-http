@@ -132,16 +132,17 @@ task copyTestResources(type: Copy) {
 }
 
 task startSocksServer() {
+    def execHelper = project.objects.newInstance(IntegrationTestsExecHelper)
     doLast {
         if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
             def stdOut = new ByteArrayOutputStream()
-            exec {
+            execHelper.execOperations.exec {
                 commandLine 'sh', '-c', "docker ps --filter name=socks-it-proxy-server"
                 standardOutput = stdOut
             }
             if (!stdOut.toString().contains("socks-it-proxy-server")) {
                 println "Starting SOCKS proxy server."
-                exec {
+                execHelper.execOperations.exec {
                     commandLine 'sh', '-c', "docker compose -f $project.projectDir/tests/resources/socks/compose.yml up -d"
                     standardOutput = stdOut
                 }
@@ -156,10 +157,11 @@ task startSocksServer() {
 }
 
 task stopSocksServer() {
+    def execHelper = project.objects.newInstance(IntegrationTestsExecHelper)
     doLast {
         if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
             def stdOut = new ByteArrayOutputStream()
-            exec {
+            execHelper.execOperations.exec {
                 commandLine 'sh', '-c', "docker compose -f $project.projectDir/tests/resources/socks/compose.yml down"
                 standardOutput = stdOut
             }
