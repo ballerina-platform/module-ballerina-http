@@ -105,7 +105,8 @@ Also, The `listener` can be configured to authenticate and authorize the inbound
 built-in support for basic authentication, JWT authentication, and OAuth2 authentication.
 
 In addition to that, supports both the HTTP/1.1 and HTTP2 protocols and connection keep-alive, content
-chunking, HTTP caching, data compression/decompression, payload binding, and authorization can be highlighted as the features of a `Service`.
+chunking, HTTP caching, data compression/decompression, payload binding, HTTP/2 stream concurrency limiting, and
+authorization can be highlighted as the features of a `Service`.
 
 ## Issues and projects 
 
