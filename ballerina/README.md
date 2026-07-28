@@ -110,3 +110,120 @@ built-in support for basic authentication, JWT authentication, and OAuth2 authen
 In addition to that, supports both the HTTP/1.1 and HTTP2 protocols and connection keep-alive, content 
 chunking, HTTP caching, data compression/decompression, payload binding, HTTP/2 stream concurrency limiting, and
 authorization can be highlighted as the features of a `Service`.
+
+## Writing HTTP services
+
+When authoring an HTTP service, keep the following conventions in mind:
+
+- An HTTP service always needs an `http:Listener` attached to it. Declare the listener at the module level as a variable and reference it in the service declaration (for example, `listener http:Listener ep = check new (8080);`).
+- A service may contain only resource functions.
+- Path parameters are declared in the resource function path (for example, `resource function get v1/user/[int userId]/profile()`).
+- Resource function parameters carry the query parameters, headers, and body:
+    - **Body** - annotate with `@http:Payload`. The annotation is optional when there is a single parameter and its type is a record.
+    - **Query parameters** - annotate with `@http:Query`.
+    - **Headers** - annotate with `@http:Header`.
+- Prefer a concrete type (any `anydata` such as a `string`, `json`, or record) as the resource return type.
+
+```ballerina
+import ballerina/http;
+
+listener http:Listener ep = check new (8080);
+
+type Person record {
+    string name;
+    int age;
+};
+
+service /v1 on ep {
+
+    // Prefer types as the return type; can be any anydata such as string, json, or record.
+    resource function get foo() returns Person|error {
+        return {name: "John", age: 30};
+    }
+
+    // Query parameters
+    resource function get bar(@http:Query string id) returns Person|error {
+        return {name: "John", age: 30};
+    }
+
+    // Path parameters
+    resource function get customers/[int id]/accounts() returns Person|error {
+        return {name: "John", age: 30};
+    }
+
+    // Body with data binding and header parameters
+    resource function post customers/[int id]/accounts(@http:Payload Person account, @http:Header string customHeader) returns Person|error {
+        return account;
+    }
+}
+```
+
+## Writing HTTP clients
+
+- Always declare clients at the module level as `final` variables.
+- Use direct data binding to bind the response to a type whenever possible.
+- Use the `http:Response` type as the return type only when you need to access the headers or status code of the response.
+
+```ballerina
+import ballerina/http;
+
+// Always declare clients at the module level as final variables.
+final http:Client cl = check new ("http://localhost:9090");
+
+type Person record {
+    string name;
+    int age;
+};
+
+public function main() returns error? {
+    // If only the body of the response is needed, use direct data binding.
+    Person p = check cl->get("/foo/bar");
+
+    // If the full response is needed, use http:Response.
+    http:Response res = check cl->get("/foo/bar");
+    json payload = check res.getJsonPayload();
+    Person p1 = check payload.cloneWithType();
+
+    // Get a specific header.
+    string contentTypeHeader = check res.getHeader("Content-Type");
+
+    // Get the status code.
+    int statusCode = res.statusCode;
+
+    // Send a request with query params and headers (both optional).
+    Person p3 = check cl->get("/foo/bar?queryParam1=value&queryParam2=val2", headers = {
+        "x-Custom-Header": "custom-value"
+    });
+}
+```
+
+## Writing tests for HTTP services
+
+When writing tests for an HTTP service, the following conventions keep the suite consistent and readable. Refer to the `ballerina/test` module for the core test framework.
+
+**Test file structure**
+
+- Start with the necessary imports, including `ballerina/http`, `ballerina/test`, and anything else required.
+- Define an HTTP client at the module level named `clientEp`.
+- Organize tests logically: create, read, update, delete.
+- Add helper functions only when they improve readability, and reuse existing types from the codebase rather than redefining them.
+
+**Test functions**
+
+- Write at least one test case for every resource function.
+- Each test function should return `error?` and use the `check` keyword for error propagation.
+- Use the client resource-access syntax that mirrors the resource being tested:
+    - GET - `Book book = check clientEp->/books/[isbn]();` for `resource function get books/[string isbn]()`.
+    - POST - `Book book = check clientEp->/books.post(newBook);` for `resource function post books(@http:Payload Book newBook)`.
+    - PUT - `Book book = check clientEp->/books/[isbn].put(updatedBook, name = "BookName");`.
+    - DELETE - `clientEp->/books.delete(isbn = value);`.
+    - PATCH - `clientEp->/books/[isbn].patch(payload, name = value);`.
+- For non-annotated resource parameters, records are treated as body parameters and other types as query parameters.
+- For negative test cases, cover the scenarios explicitly handled in the service rather than theoretical edge cases.
+
+**Response handling**
+
+- Use direct data binding for positive test cases.
+- For negative test cases, use `http:Response` variables and assert the status codes.
+- Always assign responses to variables with specific types.
+
