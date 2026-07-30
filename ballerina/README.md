@@ -116,7 +116,7 @@ authorization can be highlighted as the features of a `Service`.
 When authoring an HTTP service, keep the following conventions in mind:
 
 - An HTTP service always needs an `http:Listener` attached to it. Declare the listener at the module level as a variable and reference it in the service declaration (for example, `listener http:Listener ep = check new (8080);`).
-- A service may contain only resource functions.
+- Resource functions define the network entry points of the service. `remote` functions are not allowed in an HTTP service, but other methods — such as `init` and private helper functions for reusable logic — are permitted.
 - Path parameters are declared in the resource function path (for example, `resource function get v1/user/[int userId]/profile()`).
 - Resource function parameters carry the query parameters, headers, and body:
     - **Body** - annotate with `@http:Payload`. The annotation is optional when there is a single parameter and its type is a record.
@@ -204,7 +204,7 @@ When writing tests for an HTTP service, the following conventions keep the suite
 **Test file structure**
 
 - Start with the necessary imports, including `ballerina/http`, `ballerina/test`, and anything else required.
-- Define an HTTP client at the module level named `clientEp`.
+- Define an HTTP client at the module level named `clientEp`, declared `final` as in the client guidance above.
 - Organize tests logically: create, read, update, delete.
 - Add helper functions only when they improve readability, and reuse existing types from the codebase rather than redefining them.
 
@@ -216,8 +216,8 @@ When writing tests for an HTTP service, the following conventions keep the suite
     - GET - `Book book = check clientEp->/books/[isbn]();` for `resource function get books/[string isbn]()`.
     - POST - `Book book = check clientEp->/books.post(newBook);` for `resource function post books(@http:Payload Book newBook)`.
     - PUT - `Book book = check clientEp->/books/[isbn].put(updatedBook, name = "BookName");`.
-    - DELETE - `clientEp->/books.delete(isbn = value);`.
-    - PATCH - `clientEp->/books/[isbn].patch(payload, name = value);`.
+    - DELETE - `string result = check clientEp->/books.delete(isbn = value);` for `resource function delete books(@http:Query string isbn) returns string|error`.
+    - PATCH - `Book book = check clientEp->/books/[isbn].patch(updatedBook, name = "BookName");`.
 - For non-annotated resource parameters, records are treated as body parameters and other types as query parameters.
 - For negative test cases, cover the scenarios explicitly handled in the service rather than theoretical edge cases.
 
