@@ -60,16 +60,25 @@ import java.util.Optional;
 import static io.ballerina.openapi.service.mapper.utils.CodegenUtils.writeFile;
 import static io.ballerina.openapi.service.mapper.utils.MapperCommonUtils.containErrors;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.getServiceDeclarationNode;
+import static io.ballerina.stdlib.http.compiler.Constants.HTTP_EXPORTED_ENDPOINTS;
 import static io.ballerina.stdlib.http.compiler.OpenAPISpecGenerator.constructFileName;
 import static io.ballerina.stdlib.http.compiler.endpointyaml.generator.FileNameGeneratorUtil.extractServiceNodes;
 
 /*
- * Generates the .yaml file with endpoint details and OpenAPI specification of HTTP service.
+ * Generates the .yaml file with OpenAPI specification of an HTTP service and collects its endpoint details
+ * into the shared, package-wide list that {@link ServiceArtifactsLifecycleListener} later writes out as a
+ * single consolidated endpoints.yaml once code generation completes.
  */
 public class ServiceArtifactsExtractor implements AnalysisTask<SyntaxNodeAnalysisContext> {
     private static boolean isErrorPrinted = false;
     private static final String ARTIFACT = "artifact";
     private static final PrintStream outStream = System.out;
+
+    private final Map<String, Object> ctxData;
+
+    public ServiceArtifactsExtractor(Map<String, Object> ctxData) {
+        this.ctxData = ctxData;
+    }
 
     static void setIsWarningPrinted() {
         ServiceArtifactsExtractor.isErrorPrinted = true;
@@ -129,8 +138,9 @@ public class ServiceArtifactsExtractor implements AnalysisTask<SyntaxNodeAnalysi
                 services,
                 serviceSymbol.get()));
 
-        writeOpenAPIYaml(outPath, context, oasResult, diagnostics);
-        exportEndpointYaml(serviceNode, context, oasResult, diagnostics);
+        String fileName = new FileNameGeneratorUtil(syntaxTree, semanticModel, serviceNode).getFileName();
+        writeOpenAPIYaml(outPath, fileName, oasResult, diagnostics);
+        collectEndpoints(serviceNode, fileName, oasResult, diagnostics);
     }
 
     private void checkCompilationErrors(SyntaxNodeAnalysisContext context) {
@@ -166,8 +176,9 @@ public class ServiceArtifactsExtractor implements AnalysisTask<SyntaxNodeAnalysi
         return isExportEndpoints;
     }
 
-    private void exportEndpointYaml(ServiceDeclarationNode serviceNode, SyntaxNodeAnalysisContext context,
-                                    OASResult oasResult, List<Diagnostic> diagnostics) {
+    @SuppressWarnings("unchecked")
+    private void collectEndpoints(ServiceDeclarationNode serviceNode, String schemaFileName, OASResult oasResult,
+                                  List<Diagnostic> diagnostics) {
         if (oasResult.getOpenAPI().isEmpty()) {
             return;
         }
@@ -175,18 +186,12 @@ public class ServiceArtifactsExtractor implements AnalysisTask<SyntaxNodeAnalysi
         if (servers == null || servers.isEmpty()) {
             return;
         }
-
-        for (Server server: servers) {
-            EndpointYamlGenerator endpointYamlGeneratorHttp =
-                    new EndpointYamlGenerator(serviceNode, context, server);
-            try {
-                endpointYamlGeneratorHttp.writeEndpointYaml();
-            } catch (IOException e) {
-                diagnostics.add(getDiagnostics(
-                     new ExceptionDiagnostic(DiagnosticMessages.OAS_CONVERTOR_108, e.toString())));
-            }
+        List<Endpoint> collectedEndpoints = (List<Endpoint>) ctxData.get(HTTP_EXPORTED_ENDPOINTS);
+        for (Server server : servers) {
+            EndpointYamlGenerator endpointYamlGenerator =
+                    new EndpointYamlGenerator(serviceNode, server, schemaFileName);
+            collectedEndpoints.add(endpointYamlGenerator.getEndpoint(diagnostics));
         }
-
     }
 
     private OASResult getOASResult(SyntaxNodeAnalysisContext context, Map<Integer, String> services,
@@ -207,13 +212,10 @@ public class ServiceArtifactsExtractor implements AnalysisTask<SyntaxNodeAnalysi
         return ServiceToOpenAPIMapper.generateOAS(builder.build());
     }
 
-    private void writeOpenAPIYaml(Path outPath, SyntaxNodeAnalysisContext context, OASResult oasResult,
-                                  List<Diagnostic> diagnostics) {
+    private void writeOpenAPIYaml(Path outPath, String fileName, OASResult oasResult, List<Diagnostic> diagnostics) {
         if (oasResult.getYaml().isPresent()) {
             try {
                 Files.createDirectories(outPath.resolve(ARTIFACT));
-                FileNameGeneratorUtil fileNameGen = new FileNameGeneratorUtil(context);
-                String fileName = fileNameGen.getFileName();
                 writeFile(outPath.resolve(ARTIFACT).resolve(fileName), oasResult.getYaml().get());
             } catch (IOException e) {
                 ExceptionDiagnostic diagnostic = new ExceptionDiagnostic(DiagnosticMessages.OAS_CONVERTOR_108,
