@@ -63,6 +63,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -79,6 +80,7 @@ public class ServiceArtifactsExtractionTest {
     private static final Path DISTRIBUTION_PATH = Paths.get("../", "target", "ballerina-runtime")
             .toAbsolutePath();
     private static final String ARTIFACT_DIR = "artifact";
+    private static final String ENDPOINTS_FILE_NAME = "endpoints.yaml";
 
     @Test
     public void testServiceArtifactGenerationWithSimpleService() throws Exception {
@@ -86,19 +88,20 @@ public class ServiceArtifactsExtractionTest {
         try {
             executeBallerinaCommand(projectDirPath, true);
 
-            Path endpointYaml = projectDirPath.resolve("target")
+            Path endpointsYaml = projectDirPath.resolve("target")
                     .resolve(ARTIFACT_DIR)
-                    .resolve("service_endpoint.yaml");
+                    .resolve(ENDPOINTS_FILE_NAME);
             Path openAPIYaml = projectDirPath.resolve("target")
                     .resolve(ARTIFACT_DIR)
                     .resolve("service_openapi.yaml");
-            Assert.assertTrue(Files.exists(endpointYaml), "Endpoint YAML should be generated");
+            Assert.assertTrue(Files.exists(endpointsYaml), "Endpoints YAML should be generated");
             Assert.assertTrue(Files.exists(openAPIYaml), "OpenAPI YAML should be generated");
 
-            Path expectedEndpointFile = RESOURCE_DIRECTORY.resolve("../yaml_files").resolve("service_endpoint.yaml");
+            Path expectedEndpointsFile = RESOURCE_DIRECTORY.resolve("../yaml_files")
+                    .resolve("endpoints_simple_service.yaml");
             Path expectedOpenAPIFile = RESOURCE_DIRECTORY.resolve("../yaml_files").resolve("service_openapi_1.yaml");
 
-            verifyYamlContent(endpointYaml, expectedEndpointFile);
+            verifyYamlContent(endpointsYaml, expectedEndpointsFile);
             verifyYamlContent(openAPIYaml, expectedOpenAPIFile);
         } finally {
             deleteDirectories(projectDirPath);
@@ -147,16 +150,15 @@ public class ServiceArtifactsExtractionTest {
                 yamlFiles = paths.filter(path -> path.toString().endsWith(".yaml")).sorted().toList();
             }
 
-            Assert.assertEquals(yamlFiles.size(), 10,
-                    "Expected openapi and endpoint artifacts for all services");
             Assert.assertEquals(yamlFiles.stream()
                     .map(this::safeFileName)
                     .filter(fileName -> fileName.contains("_openapi"))
                     .count(), 5L, "Expected 5 OpenAPI artifact files");
-            Assert.assertEquals(yamlFiles.stream()
-                    .map(this::safeFileName)
-                    .filter(fileName -> fileName.contains("_endpoint"))
-                    .count(), 5L, "Expected 5 endpoint artifact files");
+
+            Path endpointsYaml = artifactDir.resolve(ENDPOINTS_FILE_NAME);
+            Assert.assertTrue(Files.exists(endpointsYaml), "Consolidated endpoints YAML should be generated");
+            Assert.assertEquals(countOccurrences(endpointsYaml, "schemaPath:"), 5,
+                    "Expected endpoints.yaml to contain an entry for every service");
 
         } finally {
             deleteDirectories(projectDirPath);
@@ -168,22 +170,22 @@ public class ServiceArtifactsExtractionTest {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_48");
         try {
             executeBallerinaCommand(projectDirPath, true);
-            Path endpointYaml = projectDirPath.resolve("target")
+            Path endpointsYaml = projectDirPath.resolve("target")
                     .resolve(ARTIFACT_DIR)
-                    .resolve("service_userservice_endpoint.yaml");
+                    .resolve(ENDPOINTS_FILE_NAME);
             Path openAPIYaml = projectDirPath.resolve("target")
                     .resolve(ARTIFACT_DIR)
                     .resolve("service_userservice_openapi.yaml");
-            Assert.assertTrue(Files.exists(endpointYaml),
-                    "Endpoint YAML for regular base path should be generated");
+            Assert.assertTrue(Files.exists(endpointsYaml),
+                    "Endpoints YAML for regular base path should be generated");
             Assert.assertTrue(Files.exists(openAPIYaml),
                     "OpenAPI YAML for regular base path should be generated");
 
-            Path expectedEndpointFile = RESOURCE_DIRECTORY.resolve("../yaml_files")
-                    .resolve("service_userservice_endpoint.yaml");
+            Path expectedEndpointsFile = RESOURCE_DIRECTORY.resolve("../yaml_files")
+                    .resolve("endpoints_userservice.yaml");
             Path expectedOpenAPIFile = RESOURCE_DIRECTORY.resolve("../yaml_files")
                     .resolve("service_userservice_openapi.yaml");
-            verifyYamlContent(endpointYaml, expectedEndpointFile);
+            verifyYamlContent(endpointsYaml, expectedEndpointsFile);
             verifyYamlContent(openAPIYaml, expectedOpenAPIFile);
         } finally {
             deleteDirectories(projectDirPath);
@@ -196,8 +198,9 @@ public class ServiceArtifactsExtractionTest {
         try {
             executeBallerinaCommand(projectDirPath, true);
             Path artifactDir = projectDirPath.resolve("target").resolve(ARTIFACT_DIR);
-            Path endpointYaml = artifactDir.resolve("service_endpoint.yaml");
-            Assert.assertFalse(Files.exists(endpointYaml));
+            Path endpointsYaml = artifactDir.resolve(ENDPOINTS_FILE_NAME);
+            Assert.assertFalse(Files.exists(endpointsYaml),
+                    "No endpoints YAML should be generated when the service has no resolvable server details");
         } finally {
             deleteDirectories(projectDirPath);
         }
@@ -209,8 +212,8 @@ public class ServiceArtifactsExtractionTest {
         try {
             executeBallerinaCommand(projectDirPath, true);
             Path artifactDir = projectDirPath.resolve("target").resolve(ARTIFACT_DIR);
-            Path endpointYaml = artifactDir.resolve("service_endpoint.yaml");
-            assertEndpointPort(endpointYaml, 8080);
+            Path endpointsYaml = artifactDir.resolve(ENDPOINTS_FILE_NAME);
+            assertEndpointPort(endpointsYaml, 8080);
         } finally {
             deleteDirectories(projectDirPath);
         }
@@ -226,16 +229,15 @@ public class ServiceArtifactsExtractionTest {
             Path artifactDir = projectDirPath.resolve("target").resolve(ARTIFACT_DIR);
             Assert.assertTrue(Files.exists(artifactDir), "Artifact directory should exist");
 
-            List<String> endpointFiles;
-            try (Stream<Path> paths = Files.walk(artifactDir)) {
-                endpointFiles = paths
-                        .map(this::safeFileName)
-                        .filter(fileName -> fileName.endsWith("_endpoint.yaml")).toList();
-            }
+            Path endpointsYaml = artifactDir.resolve(ENDPOINTS_FILE_NAME);
+            Assert.assertTrue(Files.exists(endpointsYaml), "Endpoints YAML should be generated");
+            Assert.assertEquals(countOccurrences(endpointsYaml, "schemaPath:"), 1,
+                    "Expected exactly one endpoint entry");
 
-            Assert.assertEquals(endpointFiles.size(), 1, "Expected exactly one endpoint YAML file");
-            Assert.assertTrue(endpointFiles.getFirst().matches("service_[0-9]+_endpoint\\.yaml"),
-                    "Endpoint YAML file should use fallback hash-based naming for empty service path");
+            String content = Files.readString(endpointsYaml);
+            Assert.assertTrue(content.contains("schemaPath: \"service_")
+                            && content.matches("(?s).*schemaPath: \"service_[0-9]+_openapi\\.yaml\".*"),
+                    "schemaPath should use fallback hash-based naming for empty service path");
 
         } finally {
             deleteDirectories(projectDirPath);
@@ -272,8 +274,8 @@ public class ServiceArtifactsExtractionTest {
             Assert.assertTrue(Files.exists(artifactDir), "Artifact directory should exist");
             Assert.assertTrue(Files.exists(artifactDir.resolve("service_openapi.yaml")),
                     "OpenAPI artifact file should be generated");
-            Assert.assertTrue(Files.exists(artifactDir.resolve("service_endpoint.yaml")),
-                    "Endpoint artifact file should be generated");
+            Assert.assertTrue(Files.exists(artifactDir.resolve(ENDPOINTS_FILE_NAME)),
+                    "Endpoints artifact file should be generated");
         } finally {
             deleteDirectories(projectDirPath);
         }
@@ -293,35 +295,35 @@ public class ServiceArtifactsExtractionTest {
     }
 
     @Test
-    public void testEndpointYamlGeneratorWithMissingPortVariableReportsDiagnostic() throws IOException {
+    public void testEndpointYamlGeneratorWithMissingPortVariableReportsDiagnostic() {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_48");
         BuildProject project = loadProject(projectDirPath, false);
         TestContextData contextData = getTestContextData(project);
-        List<Diagnostic> reportedDiagnostics = new ArrayList<>();
-        SyntaxNodeAnalysisContext context = createSyntaxNodeAnalysisContext(contextData, reportedDiagnostics);
+        String schemaFileName = new FileNameGeneratorUtil(
+                contextData.syntaxTree, contextData.semanticModel, contextData.serviceNode).getFileName();
 
         Server server = new Server();
         server.setUrl("http://localhost:{port}");
         server.setVariables(new ServerVariables());
 
-        EndpointYamlGenerator generator = new EndpointYamlGenerator(contextData.serviceNode, context, server);
-        Endpoint endpoint = generator.getEndpoint();
-        generator.writeEndpointYaml();
+        EndpointYamlGenerator generator = new EndpointYamlGenerator(contextData.serviceNode, server, schemaFileName);
+        List<Diagnostic> diagnostics = new ArrayList<>();
+        Endpoint endpoint = generator.getEndpoint(diagnostics);
 
         Assert.assertEquals(endpoint.getPort(), 0,
                 "Endpoint port should fallback to 0 when no port variable default is provided");
         Assert.assertEquals(endpoint.getBasePath(), "/userservice");
-        Assert.assertTrue(reportedDiagnostics.stream().anyMatch(d -> "PORT_CONFIGURATION_BEING_NULL"
+        Assert.assertTrue(diagnostics.stream().anyMatch(d -> "PORT_CONFIGURATION_BEING_NULL"
                 .equals(d.diagnosticInfo().code())), "Expected missing port diagnostic");
     }
 
     @Test
-    public void testEndpointYamlGeneratorWithInvalidPortValue() throws IOException {
+    public void testEndpointYamlGeneratorWithInvalidPortValue() {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_48");
         BuildProject project = loadProject(projectDirPath, false);
         TestContextData contextData = getTestContextData(project);
-        List<Diagnostic> reportedDiagnostics = new ArrayList<>();
-        SyntaxNodeAnalysisContext context = createSyntaxNodeAnalysisContext(contextData, reportedDiagnostics);
+        String schemaFileName = new FileNameGeneratorUtil(
+                contextData.syntaxTree, contextData.semanticModel, contextData.serviceNode).getFileName();
 
         ServerVariables variables = new ServerVariables();
         ServerVariable port = new ServerVariable();
@@ -331,15 +333,15 @@ public class ServiceArtifactsExtractionTest {
         server.setUrl("http://localhost:{port}");
         server.setVariables(variables);
 
-        EndpointYamlGenerator generator = new EndpointYamlGenerator(contextData.serviceNode, context, server);
-        Endpoint endpoint = generator.getEndpoint();
-        generator.writeEndpointYaml();
+        EndpointYamlGenerator generator = new EndpointYamlGenerator(contextData.serviceNode, server, schemaFileName);
+        List<Diagnostic> diagnostics = new ArrayList<>();
+        Endpoint endpoint = generator.getEndpoint(diagnostics);
 
         Assert.assertEquals(endpoint.getPort(), 0,
                 "Endpoint port should remain default when server variable is non-numeric");
         Assert.assertEquals(endpoint.getBasePath(), "/userservice");
         Assert.assertTrue(endpoint.getSchemaPath().endsWith("_openapi.yaml"));
-        Assert.assertTrue(reportedDiagnostics.isEmpty(),
+        Assert.assertTrue(diagnostics.isEmpty(),
                 "Invalid port format should not report a missing-port diagnostic");
     }
 
@@ -348,8 +350,8 @@ public class ServiceArtifactsExtractionTest {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_20");
         BuildProject project = loadProject(projectDirPath, false);
         TestContextData contextData = getTestContextData(project);
-        List<Diagnostic> reportedDiagnostics = new ArrayList<>();
-        SyntaxNodeAnalysisContext context = createSyntaxNodeAnalysisContext(contextData, reportedDiagnostics);
+        Map<String, Object> ctxData = newCtxData();
+        SyntaxNodeAnalysisContext context = createSyntaxNodeAnalysisContext(contextData, new ArrayList<>());
 
         List<Diagnostic> diagnostics = new ArrayList<>();
         Method exportServiceArtifact = ServiceArtifactsExtractor.class.getDeclaredMethod(
@@ -361,7 +363,7 @@ public class ServiceArtifactsExtractionTest {
                 List.class);
         exportServiceArtifact.setAccessible(true);
         exportServiceArtifact.invoke(
-                new ServiceArtifactsExtractor(),
+                new ServiceArtifactsExtractor(ctxData),
                 context,
                 contextData.semanticModel,
                 contextData.serviceNode,
@@ -369,13 +371,13 @@ public class ServiceArtifactsExtractionTest {
                 diagnostics);
 
         Path artifactDir = projectDirPath.resolve("target").resolve(ARTIFACT_DIR);
-        Path endpointYaml = artifactDir.resolve("service_endpoint.yaml");
         Path openapiYaml = artifactDir.resolve("service_openapi.yaml");
         Assert.assertTrue(Files.exists(artifactDir),
                 "exportServiceArtifact must create target/artifact/");
-
-        Assert.assertTrue(Files.exists(endpointYaml));
         Assert.assertTrue(Files.exists(openapiYaml));
+        List<Endpoint> endpoints = collectedEndpoints(ctxData);
+        Assert.assertEquals(endpoints.size(), 1, "exportServiceArtifact must collect the service's endpoint");
+        Assert.assertEquals(endpoints.get(0).getBasePath(), "/");
         deleteDirectories(projectDirPath);
     }
 
@@ -388,7 +390,7 @@ public class ServiceArtifactsExtractionTest {
         SyntaxNodeAnalysisContext errorContext = createSyntaxNodeAnalysisContext(
                 errorContextData, errorReportedDiagnostics);
 
-        new ServiceArtifactsExtractor().perform(errorContext);
+        new ServiceArtifactsExtractor(newCtxData()).perform(errorContext);
 
         Assert.assertFalse(errorReportedDiagnostics.isEmpty());
         Assert.assertTrue(Files.notExists(errorProjectDirPath.resolve("target").resolve(ARTIFACT_DIR)),
@@ -405,7 +407,7 @@ public class ServiceArtifactsExtractionTest {
             SyntaxNodeAnalysisContext cleanContext = createSyntaxNodeAnalysisContext(
                     cleanContextData, cleanReportedDiagnostics);
 
-            new ServiceArtifactsExtractor().perform(cleanContext);
+            new ServiceArtifactsExtractor(newCtxData()).perform(cleanContext);
 
             Path artifactDir = cleanProjectDirPath.resolve("target").resolve(ARTIFACT_DIR);
             Assert.assertTrue(Files.exists(artifactDir));
@@ -550,14 +552,9 @@ public class ServiceArtifactsExtractionTest {
             Assert.assertTrue(Files.exists(artifactDir),
                     "Artifact directory should exist even when no server is declared");
 
-            List<Path> endpointFiles;
-            try (Stream<Path> paths = Files.walk(artifactDir)) {
-                endpointFiles = paths
-                        .filter(p -> safeFileName(p).contains("_endpoint"))
-                        .toList();
-            }
-            Assert.assertTrue(endpointFiles.isEmpty(),
-                    "No endpoint YAML should be generated when the service has no server definitions");
+            Path endpointsYaml = artifactDir.resolve(ENDPOINTS_FILE_NAME);
+            Assert.assertFalse(Files.exists(endpointsYaml),
+                    "No endpoints YAML should be generated when the service has no server definitions");
         } finally {
             deleteDirectories(projectDirPath);
         }
@@ -568,9 +565,8 @@ public class ServiceArtifactsExtractionTest {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_20");
         BuildProject project = loadProject(projectDirPath, true);
         TestContextData contextData = getTestContextData(project);
-        SyntaxNodeAnalysisContext context = createSyntaxNodeAnalysisContext(contextData, new ArrayList<>());
         OASResult oasResult = buildOASResult(contextData);
-        ServiceArtifactsExtractor extractor = new ServiceArtifactsExtractor();
+        ServiceArtifactsExtractor extractor = new ServiceArtifactsExtractor(newCtxData());
 
         try {
             Path invalidOutPath = projectDirPath.resolve("target").resolve("invalid-out-path");
@@ -581,12 +577,12 @@ public class ServiceArtifactsExtractionTest {
             Method writeOpenAPIYaml = ServiceArtifactsExtractor.class.getDeclaredMethod(
                     "writeOpenAPIYaml",
                     Path.class,
-                    SyntaxNodeAnalysisContext.class,
+                    String.class,
                     OASResult.class,
                     List.class);
             writeOpenAPIYaml.setAccessible(true);
             writeOpenAPIYaml.invoke(extractor,
-                    invalidOutPath, context, oasResult, writeOpenAPIDiagnostics);
+                    invalidOutPath, "service_openapi.yaml", oasResult, writeOpenAPIDiagnostics);
 
             assertErrorDiagnosticAdded(writeOpenAPIDiagnostics, "writeOpenAPIYaml");
         } finally {
@@ -601,7 +597,7 @@ public class ServiceArtifactsExtractionTest {
         TestContextData contextData = getTestContextData(project);
         List<Diagnostic> reportedDiagnostics = new ArrayList<>();
         SyntaxNodeAnalysisContext context = createSyntaxNodeAnalysisContext(contextData, reportedDiagnostics);
-        ServiceArtifactsExtractor extractor = new ServiceArtifactsExtractor();
+        ServiceArtifactsExtractor extractor = new ServiceArtifactsExtractor(newCtxData());
 
         try {
             Method printDiagnostics = ServiceArtifactsExtractor.class.getDeclaredMethod(
@@ -643,12 +639,8 @@ public class ServiceArtifactsExtractionTest {
         BuildProject project = loadProject(projectDirPath, false);
         TestContextData contextData = getTestContextData(project);
 
-        SyntaxNodeAnalysisContext context = createSyntaxNodeAnalysisContext(
-                contextData,
-                new ArrayList<>(),
-                contextData.syntaxTree.rootNode(),
-                contextData.semanticModel);
-        FileNameGeneratorUtil fileNameGeneratorUtil = new FileNameGeneratorUtil(context);
+        FileNameGeneratorUtil fileNameGeneratorUtil = new FileNameGeneratorUtil(
+                contextData.syntaxTree, contextData.semanticModel, null);
 
         String filePath = contextData.syntaxTree.filePath().replace("/", "_");
         String balFileName = filePath.endsWith(".bal")
@@ -676,12 +668,8 @@ public class ServiceArtifactsExtractionTest {
                     return method.invoke(contextData.semanticModel, args);
                 });
 
-        SyntaxNodeAnalysisContext context = createSyntaxNodeAnalysisContext(
-                contextData,
-                new ArrayList<>(),
-                contextData.serviceNode,
-                semanticModelWithMissingServiceSymbol);
-        FileNameGeneratorUtil fileNameGeneratorUtil = new FileNameGeneratorUtil(context);
+        FileNameGeneratorUtil fileNameGeneratorUtil = new FileNameGeneratorUtil(
+                contextData.syntaxTree, semanticModelWithMissingServiceSymbol, contextData.serviceNode);
 
         String filePath = contextData.syntaxTree.filePath().replace("/", "_");
         String balFileName = filePath.endsWith(".bal")
@@ -695,8 +683,8 @@ public class ServiceArtifactsExtractionTest {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_48");
         BuildProject project = loadProject(projectDirPath, false);
         TestContextData contextData = getTestContextData(project);
-        SyntaxNodeAnalysisContext context = createSyntaxNodeAnalysisContext(contextData, new ArrayList<>());
-        FileNameGeneratorUtil fileNameGeneratorUtil = new FileNameGeneratorUtil(context);
+        FileNameGeneratorUtil fileNameGeneratorUtil = new FileNameGeneratorUtil(
+                contextData.syntaxTree, contextData.semanticModel, contextData.serviceNode);
 
         Map<Integer, String> services = new HashMap<>();
         FileNameGeneratorUtil.extractServiceNodes(
@@ -751,6 +739,12 @@ public class ServiceArtifactsExtractionTest {
         return Objects.toString(fileName, "");
     }
 
+    private long countOccurrences(Path file, String needle) throws IOException {
+        try (Stream<String> lines = Files.lines(file)) {
+            return lines.filter(line -> line.contains(needle)).count();
+        }
+    }
+
     private static ProjectEnvironmentBuilder getEnvironmentBuilder() {
         Environment environment = EnvironmentBuilder.getBuilder().setBallerinaHome(DISTRIBUTION_PATH).build();
         return ProjectEnvironmentBuilder.getBuilder(environment);
@@ -787,21 +781,14 @@ public class ServiceArtifactsExtractionTest {
     }
 
     private SyntaxNodeAnalysisContext createSyntaxNodeAnalysisContext(TestContextData data,
-                                                                      List<Diagnostic> reportedDiagnostics) {
-        return createSyntaxNodeAnalysisContext(data, reportedDiagnostics, data.serviceNode, data.semanticModel);
-    }
-
-    private SyntaxNodeAnalysisContext createSyntaxNodeAnalysisContext(TestContextData data,
-                                                                      List<Diagnostic> reportedDiagnostics,
-                                                                      Node node,
-                                                                      SemanticModel semanticModel) {
+                                                                       List<Diagnostic> reportedDiagnostics) {
         return (SyntaxNodeAnalysisContext) Proxy.newProxyInstance(
                 SyntaxNodeAnalysisContext.class.getClassLoader(),
                 new Class[]{SyntaxNodeAnalysisContext.class},
                 (proxy, method, args) -> switch (method.getName()) {
-                    case "node" -> node;
+                    case "node" -> data.serviceNode;
                     case "syntaxTree" -> data.syntaxTree;
-                    case "semanticModel" -> semanticModel;
+                    case "semanticModel" -> data.semanticModel;
                     case "currentPackage" -> data.currentPackage;
                     case "documentId" -> data.documentId;
                     case "moduleId" -> data.documentId.moduleId();
@@ -817,16 +804,27 @@ public class ServiceArtifactsExtractionTest {
                 });
     }
 
+    private Map<String, Object> newCtxData() {
+        Map<String, Object> ctxData = new HashMap<>();
+        ctxData.put(Constants.HTTP_EXPORTED_ENDPOINTS, Collections.synchronizedList(new ArrayList<Endpoint>()));
+        return ctxData;
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Endpoint> collectedEndpoints(Map<String, Object> ctxData) {
+        return (List<Endpoint>) ctxData.get(Constants.HTTP_EXPORTED_ENDPOINTS);
+    }
+
     private static class TestContextData {
         private final Package currentPackage;
         private final SyntaxTree syntaxTree;
         private final SemanticModel semanticModel;
-        private final io.ballerina.compiler.syntax.tree.ServiceDeclarationNode serviceNode;
+        private final ServiceDeclarationNode serviceNode;
         private final DocumentId documentId;
         private final PackageCompilation compilation;
 
         private TestContextData(Package currentPackage, SyntaxTree syntaxTree, SemanticModel semanticModel,
-                                io.ballerina.compiler.syntax.tree.ServiceDeclarationNode serviceNode,
+                                ServiceDeclarationNode serviceNode,
                                 DocumentId documentId, PackageCompilation compilation) {
             this.currentPackage = currentPackage;
             this.syntaxTree = syntaxTree;
@@ -858,14 +856,14 @@ public class ServiceArtifactsExtractionTest {
         Assert.assertTrue(completed, "bal build timed out after 2 minutes");
     }
 
-    public static void assertEndpointPort(Path endpointYaml, int expectedPort) throws IOException {
-        try (Stream<String> lines = Files.lines(endpointYaml)) {
+    public static void assertEndpointPort(Path endpointsYaml, int expectedPort) throws IOException {
+        try (Stream<String> lines = Files.lines(endpointsYaml)) {
             String portLine = lines.map(String::trim)
                     .filter(line -> line.startsWith("port:"))
                     .findFirst()
-                    .orElseThrow(() -> new AssertionError("No port field found in: " + endpointYaml));
+                    .orElseThrow(() -> new AssertionError("No port field found in: " + endpointsYaml));
             int actualPort = Integer.parseInt(portLine.substring("port:".length()).trim());
-            Assert.assertEquals(actualPort, expectedPort, "Unexpected endpoint port in " + endpointYaml);
+            Assert.assertEquals(actualPort, expectedPort, "Unexpected endpoint port in " + endpointsYaml);
         }
     }
 
