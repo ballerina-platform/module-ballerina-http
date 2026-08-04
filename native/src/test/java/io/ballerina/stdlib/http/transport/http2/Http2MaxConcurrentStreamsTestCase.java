@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com) All Rights Reserved.
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -51,9 +51,10 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
 /**
- * Tests that the HTTP/2 server advertises {@code SETTINGS_MAX_CONCURRENT_STREAMS=100} in the
- * initial SETTINGS frame. The fixed limit of 100 prevents unbounded stream
- * creation and heap exhaustion.
+ * Tests that the HTTP/2 server advertises the configured {@code SETTINGS_MAX_CONCURRENT_STREAMS}
+ * value (CVE-2026-47244). A finite limit (default 100, sourced from maxActiveStreamsPerConnection)
+ * prevents unbounded stream creation; the unlimited case (Integer.MAX_VALUE) preserves legacy
+ * behaviour for deployments that configured {@code maxActiveStreamsPerConnection = -1}.
  */
 public class Http2MaxConcurrentStreamsTestCase {
 
@@ -62,12 +63,13 @@ public class Http2MaxConcurrentStreamsTestCase {
     private ServerConnector serverConnector;
     private HttpWsConnectorFactory connectorFactory;
 
-    private void startServer(int port) throws InterruptedException {
+    private void startServer(int port, int maxActiveStreams) throws InterruptedException {
         connectorFactory = new DefaultHttpWsConnectorFactory();
         ListenerConfiguration listenerConfiguration = new ListenerConfiguration();
         listenerConfiguration.setPort(port);
         listenerConfiguration.setScheme(Constants.HTTP_SCHEME);
         listenerConfiguration.setVersion(Constants.HTTP_2_0);
+        listenerConfiguration.setHttp2MaxConcurrentStreams(maxActiveStreams);
         serverConnector = connectorFactory.createServerConnector(
                 TestUtil.getDefaultServerBootstrapConfig(), listenerConfiguration);
         ServerConnectorFuture future = serverConnector.start();
@@ -75,13 +77,24 @@ public class Http2MaxConcurrentStreamsTestCase {
         future.sync();
     }
 
-    @Test(description = "Server must advertise 100 concurrent streams in the initial SETTINGS frame")
-    public void testServerAdvertisesDefaultMaxConcurrentStreams() throws Exception {
-        startServer(TestUtil.HTTP_SERVER_PORT);
+    @Test(description = "Server must advertise the configured finite limit in the initial SETTINGS frame "
+            + "(CVE-2026-47244: prevents unbounded stream creation and heap exhaustion)")
+    public void testServerAdvertisesConfiguredMaxConcurrentStreams() throws Exception {
+        startServer(TestUtil.HTTP_SERVER_PORT, 100);
         Long maxConcurrentStreams = captureMaxConcurrentStreamsFromSettings(TestUtil.HTTP_SERVER_PORT);
         assertNotNull(maxConcurrentStreams, "maxConcurrentStreams must be present in server SETTINGS frame");
         assertEquals((long) maxConcurrentStreams, 100L,
-                "Server must advertise SETTINGS_MAX_CONCURRENT_STREAMS=100 by default");
+                "Server must advertise the configured SETTINGS_MAX_CONCURRENT_STREAMS");
+    }
+
+    @Test(description = "Unlimited (Integer.MAX_VALUE) advertises an effectively unbounded limit, "
+            + "overriding Netty's default of 100 to preserve legacy behaviour")
+    public void testServerAdvertisesUnlimitedMaxConcurrentStreams() throws Exception {
+        startServer(TestUtil.SERVER_PORT2, Integer.MAX_VALUE);
+        Long maxConcurrentStreams = captureMaxConcurrentStreamsFromSettings(TestUtil.SERVER_PORT2);
+        assertNotNull(maxConcurrentStreams, "maxConcurrentStreams must be present in server SETTINGS frame");
+        assertEquals((long) maxConcurrentStreams, (long) Integer.MAX_VALUE,
+                "Server must advertise an effectively unbounded limit when configured as unlimited");
     }
 
     @AfterMethod
