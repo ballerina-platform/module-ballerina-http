@@ -27,7 +27,6 @@ import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
-import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,20 +49,22 @@ public class FileNameGeneratorUtil {
     private static final String EXTENSION = OPENAPI_SUFFIX + YAML_EXTENSION;
     private final Map<Integer, String> services = new HashMap<>();
 
-    private final SyntaxNodeAnalysisContext context;
+    private final SyntaxTree syntaxTree;
+    private final SemanticModel semanticModel;
+    private final ServiceDeclarationNode node;
 
-    public FileNameGeneratorUtil(SyntaxNodeAnalysisContext context) {
-        this.context = context;
+    public FileNameGeneratorUtil(SyntaxTree syntaxTree, SemanticModel semanticModel, ServiceDeclarationNode node) {
+        this.syntaxTree = syntaxTree;
+        this.semanticModel = semanticModel;
+        this.node = node;
     }
 
     public String getFileName() {
-        SyntaxTree syntaxTree = this.context.syntaxTree();
-        SemanticModel semanticModel = this.context.semanticModel();
         extractServiceNodes(syntaxTree.rootNode(), this.services, semanticModel);
         String filePath = syntaxTree.filePath().replace(SLASH, UNDERSCORE);
         String balFileName = filePath.endsWith(".bal")
                 ? filePath.substring(0, filePath.length() - ".bal".length()) : filePath;
-        if (!(this.context.node() instanceof ServiceDeclarationNode node)) {
+        if (node == null) {
             return balFileName + EXTENSION;
         }
 

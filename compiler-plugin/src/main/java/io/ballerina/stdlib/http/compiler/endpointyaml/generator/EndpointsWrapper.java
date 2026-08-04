@@ -18,17 +18,19 @@
 
 package io.ballerina.stdlib.http.compiler.endpointyaml.generator;
 
-/*
- * Represents the wrapper class to serialize the endpoint object
- */
-public class EndpointWrapper {
-    private final Endpoint endpoint;
+import java.util.List;
 
-    public EndpointWrapper(Endpoint endpoint) {
-        this.endpoint = endpoint;
+/*
+ * Represents the wrapper class to serialize the consolidated list of endpoints
+ */
+public class EndpointsWrapper {
+    private final List<Endpoint> endpoints;
+
+    public EndpointsWrapper(List<Endpoint> endpoints) {
+        this.endpoints = List.copyOf(endpoints);
     }
 
-    public Endpoint getEndpoint() {
-        return endpoint;
+    public List<Endpoint> getEndpoints() {
+        return endpoints;
     }
 }
