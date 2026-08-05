@@ -178,7 +178,6 @@ public type ListenerConfiguration record {|
     string? server = ();
     RequestLimitConfigs requestLimits = {};
     int http2InitialWindowSize = 65535;
-    int http2MaxActiveStreams = 100;
     decimal minIdleTimeInStaleState = 300;
     decimal timeBetweenStaleEviction = 30;
 |};
@@ -259,15 +258,9 @@ password = "ballerina"
 #### 2.1.4. HTTP/2 stream concurrency
 
 Each HTTP/2 connection can carry multiple requests concurrently over independent streams. The listener limits the
-number of concurrent streams a single connection can open, advertised to clients via the `SETTINGS_MAX_CONCURRENT_STREAMS`
-parameter, using the `http2MaxActiveStreams` field of the `ListenerConfiguration`. This defaults to `100`, the value
-recommended by [RFC 7540 Section 6.5.2](https://www.rfc-editor.org/rfc/rfc7540#section-6.5.2).
-
-```ballerina
-listener http:Listener h2Listener = new (9090, {
-    http2MaxActiveStreams: 500
-});
-```
+number of concurrent streams a single connection can open to `100`, advertised to clients via the
+`SETTINGS_MAX_CONCURRENT_STREAMS` parameter. This is the value recommended by
+[RFC 7540 Section 6.5.2](https://www.rfc-editor.org/rfc/rfc7540#section-6.5.2).
 
 A client that reaches this limit on a connection opens an additional connection rather than stalling.
 
