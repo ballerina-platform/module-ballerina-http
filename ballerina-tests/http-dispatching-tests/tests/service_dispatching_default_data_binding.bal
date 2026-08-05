@@ -137,9 +137,7 @@ function testSingleStructuredTypeRef() returns error? {
     test:assertEquals(p, {id: 234});
 }
 
-@test:Config {
-    groups: ["disabledOnWindows"]
-}
+@test:Config {}
 function testSingleStructuredArray() returns error? {
     DDPerson[] p = check defaultDBClient->post("/default/singleStructuredArray", [{id: 234}, {id: 345}]);
     test:assertEquals(p, [{id: 234}, {id: 345}]);
