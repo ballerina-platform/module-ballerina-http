@@ -43,7 +43,6 @@ public class DefaultWebSocketConnection implements WebSocketConnection {
     private WebSocketMessageQueueHandler webSocketMessageQueueHandler;
     private WebSocketFrameType continuationFrameType;
     private boolean closeFrameSent;
-    private int closeInitiatedStatusCode;
     private String id;
     private String negotiatedSubProtocol;
     private static final Logger LOG = LoggerFactory.getLogger(DefaultWebSocketConnection.class);
@@ -186,11 +185,9 @@ public class DefaultWebSocketConnection implements WebSocketConnection {
 
     private ChannelFuture initiateConnectionClosure(CloseWebSocketFrame closeWebSocketFrame) {
         handleCloseFrameSent();
-        closeInitiatedStatusCode = closeWebSocketFrame.statusCode();
-        closeInitiatedStatusCode = closeInitiatedStatusCode == -1 ? 1005 : closeInitiatedStatusCode;
         ChannelPromise closePromise = ctx.newPromise();
+        frameHandler.setClosePromise(closePromise);
         ctx.writeAndFlush(closeWebSocketFrame).addListener(future -> {
-            frameHandler.setClosePromise(closePromise);
             Throwable cause = future.cause();
             if (!future.isSuccess() && cause != null) {
                 ctx.close().addListener(closeFuture -> closePromise.setFailure(cause));
@@ -261,9 +258,6 @@ public class DefaultWebSocketConnection implements WebSocketConnection {
             throw new IllegalStateException("Close frame already sent. Cannot send close frame again.");
         }
         closeFrameSent = true;
-    }
-    int getCloseInitiatedStatusCode() {
-        return this.closeInitiatedStatusCode;
     }
 
     public void removeReadIdleStateHandler() {

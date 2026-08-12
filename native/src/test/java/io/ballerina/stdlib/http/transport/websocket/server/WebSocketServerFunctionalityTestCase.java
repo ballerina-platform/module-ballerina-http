@@ -188,32 +188,20 @@ public class WebSocketServerFunctionalityTestCase {
         return client;
     }
 
-    @Test(description = "As per spec typically the remote endpoint should echo back the same status code " +
-            "sent by this endpoint. This tests the error for not receiving the same status code.")
+    @Test(description = "Per RFC 6455 5.5.1, a close completes successfully even if the remote endpoint's "
+            + "close frame carries a different status code.")
     public void testSendAndReceiveDifferentStatusCode() throws InterruptedException, URISyntaxException {
         WebSocketTestClient client = commandServerInitiatedClosure();
         CloseWebSocketFrame closeFrame = client.getReceivedCloseFrame();
 
-        // Assert the pre conditions after receiving a close frame from the server and
-        // before client echoing the close frame.
         Assert.assertNotNull(closeFrame);
         Assert.assertEquals(closeFrame.statusCode(), 1001);
         Assert.assertEquals(closeFrame.reasonText(),  "Going away");
         Assert.assertFalse(serverConnectorListener.getCloseFuture().isDone());
 
         acknowledgeServerClosure(client, closeFrame.statusCode() + 1);
-        Throwable cause = serverConnectorListener.getCloseFuture().cause();
 
-        // Assert the post conditions after receiving a close frame from the server and
-        // after client echoing the close frame.
-        Assert.assertTrue(serverConnectorListener.getCloseFuture().isDone());
-        Assert.assertFalse(serverConnectorListener.getCloseFuture().isSuccess());
-        Assert.assertNotNull(cause);
-        Assert.assertTrue(cause instanceof IllegalStateException);
-        Assert.assertEquals(cause.getMessage(),
-                            String.format("Expected status code %d but found %d in echoed close frame from remote " +
-                                                  "endpoint",
-                                          closeFrame.statusCode(), closeFrame.statusCode() + 1));
+        Assert.assertTrue(serverConnectorListener.getCloseFuture().isSuccess());
         closeFrame.release();
     }
 
