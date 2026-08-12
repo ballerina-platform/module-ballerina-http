@@ -223,13 +223,6 @@ public class WebSocketInboundFrameHandler extends ChannelInboundHandlerAdapter {
             setupCommonProperties(webSocketCloseMessage);
             connectorFuture.notifyWebSocketListener((WebSocketCloseMessage) webSocketCloseMessage);
         } else {
-            if (webSocketConnection.getCloseInitiatedStatusCode() != statusCode) {
-                String errMsg = String.format(
-                        "Expected status code %d but found %d in echoed close frame from remote endpoint",
-                        webSocketConnection.getCloseInitiatedStatusCode(), statusCode);
-                closePromise.setFailure(new IllegalStateException(errMsg));
-                return;
-            }
             closePromise.setSuccess();
         }
         closeWebSocketFrame.release();
