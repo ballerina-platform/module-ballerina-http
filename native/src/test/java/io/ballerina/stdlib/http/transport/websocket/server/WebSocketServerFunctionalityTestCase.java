@@ -220,6 +220,10 @@ public class WebSocketServerFunctionalityTestCase {
         methodDoneLatch.await(WEBSOCKET_TEST_IDLE_TIMEOUT, SECONDS);
 
         Assert.assertTrue(serverConnectorListener.getCloseFuture().isSuccess());
+        CloseWebSocketFrame closeFrame = client.getReceivedCloseFrame();
+        Assert.assertNotNull(closeFrame);
+        Assert.assertEquals(closeFrame.statusCode(), defaultStatusCode);
+        closeFrame.release();
     }
 
     @Test(description = "Test finish closure from server side")
