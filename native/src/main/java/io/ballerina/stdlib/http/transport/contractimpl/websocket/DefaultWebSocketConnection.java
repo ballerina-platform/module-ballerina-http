@@ -190,7 +190,7 @@ public class DefaultWebSocketConnection implements WebSocketConnection {
         ctx.writeAndFlush(closeWebSocketFrame).addListener(future -> {
             Throwable cause = future.cause();
             if (!future.isSuccess() && cause != null) {
-                ctx.close().addListener(closeFuture -> closePromise.setFailure(cause));
+                ctx.close().addListener(closeFuture -> closePromise.tryFailure(cause));
             }
         });
         return closePromise;

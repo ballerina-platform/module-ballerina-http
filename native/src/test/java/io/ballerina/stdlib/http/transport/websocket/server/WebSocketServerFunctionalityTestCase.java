@@ -205,6 +205,23 @@ public class WebSocketServerFunctionalityTestCase {
         closeFrame.release();
     }
 
+    @Test(description = "Simultaneous close with independently-initiated codes on both ends")
+    public void testSimultaneousCloseFromBothEndpoints() throws InterruptedException, URISyntaxException {
+        CountDownLatch serverLatch = new CountDownLatch(1);
+        serverConnectorListener.setReturnFutureLatch(serverLatch);
+        CountDownLatch methodDoneLatch = new CountDownLatch(1);
+        serverConnectorListener.setMethodDoneLatch(methodDoneLatch);
+        WebSocketTestClient client = new WebSocketTestClient();
+        client.handshake();
+
+        client.sendText("send-and-wait");
+        serverLatch.await(WEBSOCKET_TEST_IDLE_TIMEOUT, SECONDS);
+        client.sendCloseFrame(1000, null);
+        methodDoneLatch.await(WEBSOCKET_TEST_IDLE_TIMEOUT, SECONDS);
+
+        Assert.assertTrue(serverConnectorListener.getCloseFuture().isSuccess());
+    }
+
     @Test(description = "Test finish closure from server side")
     public void testFinishClosure() throws URISyntaxException, InterruptedException {
         WebSocketTestClient client = new WebSocketTestClient();
