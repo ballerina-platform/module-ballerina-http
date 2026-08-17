@@ -68,6 +68,7 @@ import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http2.Http2Connection;
 import io.netty.handler.codec.http2.Http2Exception;
+import io.netty.handler.codec.http2.Http2FlowController;
 import io.netty.handler.codec.http2.Http2Headers;
 import io.netty.handler.codec.http2.Http2Stream;
 import io.netty.handler.codec.http2.HttpConversionUtil;
@@ -1184,20 +1185,26 @@ public class Util {
     }
 
     /**
-     * Checks whether the peer is unable to send anything further on the given stream because the local inbound
-     * flow control window has been exhausted by content the application has not consumed yet.
+     * Checks whether a stream is quiet because of HTTP/2 flow control rather than because the peer has
+     * stalled. Neither direction of such quietness may be counted towards the idle timeout.
      *
-     * <p>{@link io.ballerina.stdlib.http.transport.message.Http2InboundContentListener} only returns window
-     * space to the peer as the application drains the message, so a consumer that is slower than the idle
-     * timeout leaves the peer with a zero window. The stream then looks idle even though the peer has more of
-     * the message to send and would send it the moment the window reopened. That inactivity is caused by the
-     * application rather than by a stalled peer, so it must not be counted towards the idle timeout.
+     * <p>Inbound: {@link io.ballerina.stdlib.http.transport.message.Http2InboundContentListener} only returns
+     * window space to the peer as the application drains the message, so a consumer that is slower than the
+     * idle timeout leaves the peer with a zero window. The peer has more of the message to send and would send
+     * it the moment the window reopened.
+     *
+     * <p>Outbound: when the peer is the slow consumer, its window closes and our own message sits queued in
+     * the remote flow controller waiting to go out. No frames are written while that lasts, so the stream
+     * looks idle even though we have data ready and the peer is the one holding it up.
+     *
+     * <p>In both cases the inactivity is caused by an application rather than by an unresponsive peer, so
+     * resetting the stream would truncate a message that is still being transferred perfectly normally.
      *
      * @param connection the HTTP/2 connection the stream belongs to
      * @param streamId   the stream to inspect
-     * @return true if the peer is blocked by our own inbound flow control window
+     * @return true if the stream is held up by flow control in either direction
      */
-    public static boolean isInboundWindowExhausted(Http2Connection connection, int streamId) {
+    public static boolean isStreamBlockedByFlowControl(Http2Connection connection, int streamId) {
         if (connection == null) {
             return false;
         }
@@ -1206,9 +1213,18 @@ public class Util {
             return false;
         }
         try {
-            return connection.local().flowController().windowSize(stream) <= 0;
+            // The peer cannot send: we have not consumed what it already delivered. Either window can be the
+            // binding one, so both have to be inspected - the connection window is shared by every stream and
+            // is just as capable of holding the peer back as the stream's own window.
+            Http2FlowController localFlowController = connection.local().flowController();
+            if (localFlowController.windowSize(stream) <= 0
+                    || localFlowController.windowSize(connection.connectionStream()) <= 0) {
+                return true;
+            }
+            // We cannot send: our message is queued because the peer has not opened its window.
+            return connection.remote().flowController().hasFlowControlled(stream);
         } catch (RuntimeException e) {
-            LOG.debug("Could not read the inbound window size of stream {}", streamId, e);
+            LOG.debug("Could not read the flow control state of stream {}", streamId, e);
             return false;
         }
     }

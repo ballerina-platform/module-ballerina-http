@@ -34,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -42,7 +43,7 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_WHILE_READING_INBOUND_RESPONSE_BODY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_WHILE_READING_PUSH_RESPONSE_BODY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_BODY;
-import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.isInboundWindowExhausted;
+import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.isStreamBlockedByFlowControl;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.schedule;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.ticksInNanos;
 
@@ -57,6 +58,8 @@ public class Http2ClientTimeoutHandler implements Http2DataEventListener {
     private long idleTimeNanos;
     private Http2ClientChannel http2ClientChannel;
     private Map<Integer, ScheduledFuture<?>> timerTasks;
+    // Streams whose previous timeout check found them held up by flow control.
+    private final Set<Integer> recentlyFlowControlBlocked = ConcurrentHashMap.newKeySet();
 
     public Http2ClientTimeoutHandler(long idleTimeMills, Http2ClientChannel http2ClientChannel) {
         this.idleTimeNanos = Math.max(TimeUnit.MILLISECONDS.toNanos(idleTimeMills), MIN_TIMEOUT_NANOS);
@@ -126,6 +129,7 @@ public class Http2ClientTimeoutHandler implements Http2DataEventListener {
 
     @Override
     public void onStreamClose(int streamId) {
+        recentlyFlowControlBlocked.remove(streamId);
         ScheduledFuture timerTask = timerTasks.get(streamId);
         if (timerTask != null) {
             timerTask.cancel(false);
@@ -137,6 +141,7 @@ public class Http2ClientTimeoutHandler implements Http2DataEventListener {
     public void destroy() {
         timerTasks.forEach((streamId, task) -> task.cancel(false));
         timerTasks.clear();
+        recentlyFlowControlBlocked.clear();
     }
 
     private void updateLastReadTime(int streamId, boolean endOfStream) {
@@ -190,12 +195,7 @@ public class Http2ClientTimeoutHandler implements Http2DataEventListener {
 
         private void runTimeOutLogic(OutboundMsgHolder msgHolder, boolean primary) {
             long nextDelay = getNextDelay(msgHolder);
-            if (nextDelay <= 0 && isInboundWindowExhausted(http2ClientChannel.getConnection(), streamId)) {
-                // Nothing has been read, but that is because the peer is not allowed to send: the application
-                // has not consumed the content already delivered, so the inbound window is exhausted. The
-                // inactivity is ours, not the peer's, so restart the countdown instead of failing the stream.
-                // Refreshing the timestamp also gives the peer a full period to respond once the window
-                // reopens, rather than timing it out immediately on a stale reading.
+            if (nextDelay <= 0 && isFlowControlStall()) {
                 msgHolder.setLastReadWriteTime(ticksInNanos());
                 timerTasks.put(streamId, schedule(ctx, this, idleTimeNanos));
                 return;
@@ -273,6 +273,29 @@ public class Http2ClientTimeoutHandler implements Http2DataEventListener {
 
         private long getNextDelay(OutboundMsgHolder msgHolder) {
             return idleTimeNanos - (ticksInNanos() - msgHolder.getLastReadWriteTime());
+        }
+
+        /**
+         * Decides whether the silence on this stream is down to HTTP/2 flow control rather than an
+         * unresponsive peer.
+         *
+         * <p>A stream that is blocked right now is obviously not the peer's fault. A stream that was blocked
+         * as recently as the previous check is not either: the window has only just reopened and the peer has
+         * not yet had a full idle period in which to respond. Without that second case a stream is failed
+         * whenever the timer happens to land in the moment between the application consuming and the peer's
+         * next frame arriving, which is a race a slow consumer hits regularly.
+         *
+         * <p>The grace is deliberately limited to a single extra period, so a peer that really has gone away
+         * after the window reopened is still timed out rather than waited on indefinitely.
+         *
+         * @return true if the countdown should be restarted instead of failing the stream
+         */
+        private boolean isFlowControlStall() {
+            if (isStreamBlockedByFlowControl(http2ClientChannel.getConnection(), streamId)) {
+                recentlyFlowControlBlocked.add(streamId);
+                return true;
+            }
+            return recentlyFlowControlBlocked.remove(streamId);
         }
     }
 

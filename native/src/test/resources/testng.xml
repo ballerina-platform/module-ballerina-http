@@ -143,6 +143,7 @@
             <class name="io.ballerina.stdlib.http.transport.http2.servertimeout.TimeoutDuringRequestReceive"/>
             <class name="io.ballerina.stdlib.http.transport.http2.servertimeout.TimeoutAfterRequestReceived"/>
             <class name="io.ballerina.stdlib.http.transport.http2.servertimeout.Http2SlowInboundRequestBodyConsumerTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.servertimeout.Http2SlowOutboundResponseWriteTestCase"/>
             <class name="io.ballerina.stdlib.http.transport.http2.http2forwardedextension.Http2ForwardedDefaultTestCase"/>
             <class name="io.ballerina.stdlib.http.transport.http2.http2forwardedextension.Http2ForwardedEnableTestCase"/>
             <class name="io.ballerina.stdlib.http.transport.http2.http2forwardedextension.Http2ForwardedTransitionTestCase"/>
