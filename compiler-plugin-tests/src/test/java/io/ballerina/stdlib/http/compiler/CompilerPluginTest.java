@@ -523,6 +523,17 @@ public class CompilerPluginTest {
     }
 
     @Test
+    public void testIsolatedInterceptorServiceClass() {
+        Package currentPackage = loadPackage("sample_package_52");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.errorCount(), 3);
+        assertError(diagnosticResult, 0, "RequestInterceptor must have a resource method", HTTP_132);
+        assertError(diagnosticResult, 1, "RequestInterceptor must have a resource method", HTTP_132);
+        assertError(diagnosticResult, 2, "RequestInterceptor must have a resource method", HTTP_132);
+        }
+
+    @Test
     public void testReadonlyReturnTypes() {
         Package currentPackage = loadPackage("sample_package_20");
         PackageCompilation compilation = currentPackage.getCompilation();
