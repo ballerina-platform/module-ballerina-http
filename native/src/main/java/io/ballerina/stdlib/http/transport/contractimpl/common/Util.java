@@ -66,8 +66,10 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.LastHttpContent;
+import io.netty.handler.codec.http2.Http2Connection;
 import io.netty.handler.codec.http2.Http2Exception;
 import io.netty.handler.codec.http2.Http2Headers;
+import io.netty.handler.codec.http2.Http2Stream;
 import io.netty.handler.codec.http2.HttpConversionUtil;
 import io.netty.handler.ssl.ApplicationProtocolConfig;
 import io.netty.handler.ssl.ApplicationProtocolNames;
@@ -1179,5 +1181,35 @@ public class Util {
         String[] protocols = {HTTP_1_1};
         sslParams.setApplicationProtocols(protocols);
         sslEngine.setSSLParameters(sslParams);
+    }
+
+    /**
+     * Checks whether the peer is unable to send anything further on the given stream because the local inbound
+     * flow control window has been exhausted by content the application has not consumed yet.
+     *
+     * <p>{@link io.ballerina.stdlib.http.transport.message.Http2InboundContentListener} only returns window
+     * space to the peer as the application drains the message, so a consumer that is slower than the idle
+     * timeout leaves the peer with a zero window. The stream then looks idle even though the peer has more of
+     * the message to send and would send it the moment the window reopened. That inactivity is caused by the
+     * application rather than by a stalled peer, so it must not be counted towards the idle timeout.
+     *
+     * @param connection the HTTP/2 connection the stream belongs to
+     * @param streamId   the stream to inspect
+     * @return true if the peer is blocked by our own inbound flow control window
+     */
+    public static boolean isInboundWindowExhausted(Http2Connection connection, int streamId) {
+        if (connection == null) {
+            return false;
+        }
+        Http2Stream stream = connection.stream(streamId);
+        if (stream == null) {
+            return false;
+        }
+        try {
+            return connection.local().flowController().windowSize(stream) <= 0;
+        } catch (RuntimeException e) {
+            LOG.debug("Could not read the inbound window size of stream {}", streamId, e);
+            return false;
+        }
     }
 }

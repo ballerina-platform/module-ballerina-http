@@ -22,6 +22,7 @@ import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2DataEventListener;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.http2.Http2Connection;
 import io.netty.handler.codec.http2.Http2Error;
 import io.netty.handler.codec.http2.Http2Exception;
 import io.netty.handler.codec.http2.Http2Headers;
@@ -33,6 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.isInboundWindowExhausted;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.schedule;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.ticksInNanos;
 
@@ -47,12 +49,14 @@ public class Http2ServerTimeoutHandler implements Http2DataEventListener {
     private Http2ServerChannel http2ServerChannel;
     private Map<Integer, ScheduledFuture<?>> timerTasks;
     private ServerConnectorFuture serverConnectorFuture;
+    private Http2Connection connection;
 
     Http2ServerTimeoutHandler(long idleTimeMills, Http2ServerChannel serverChannel,
-                              ServerConnectorFuture serverConnectorFuture) {
+                              ServerConnectorFuture serverConnectorFuture, Http2Connection connection) {
         this.idleTimeNanos = Math.max(TimeUnit.MILLISECONDS.toNanos(idleTimeMills), MIN_TIMEOUT_NANOS);
         this.http2ServerChannel = serverChannel;
         this.serverConnectorFuture = serverConnectorFuture;
+        this.connection = connection;
         timerTasks = new ConcurrentHashMap<>();
     }
 
@@ -139,6 +143,16 @@ public class Http2ServerTimeoutHandler implements Http2DataEventListener {
 
         private void runTimeOutLogic(InboundMessageHolder msgHolder) {
             long nextDelay = getNextDelay(msgHolder);
+            if (nextDelay <= 0 && isInboundWindowExhausted(connection, streamId)) {
+                // Nothing has been read, but that is because the peer is not allowed to send: the service has
+                // not consumed the request content already delivered, so the inbound window is exhausted. The
+                // inactivity is ours, not the peer's, so restart the countdown instead of failing the stream.
+                // Refreshing the timestamp also gives the peer a full period to send once the window reopens,
+                // rather than timing it out immediately on a stale reading.
+                msgHolder.setLastReadWriteTime(ticksInNanos());
+                timerTasks.put(streamId, schedule(ctx, this, idleTimeNanos));
+                return;
+            }
             if (nextDelay <= 0) {
                 handleTimeout(msgHolder);
                 closeStream(msgHolder, streamId, ctx);

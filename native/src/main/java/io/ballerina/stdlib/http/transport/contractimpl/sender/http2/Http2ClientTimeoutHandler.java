@@ -42,6 +42,7 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_WHILE_READING_INBOUND_RESPONSE_BODY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_WHILE_READING_PUSH_RESPONSE_BODY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_BODY;
+import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.isInboundWindowExhausted;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.schedule;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.ticksInNanos;
 
@@ -189,6 +190,16 @@ public class Http2ClientTimeoutHandler implements Http2DataEventListener {
 
         private void runTimeOutLogic(OutboundMsgHolder msgHolder, boolean primary) {
             long nextDelay = getNextDelay(msgHolder);
+            if (nextDelay <= 0 && isInboundWindowExhausted(http2ClientChannel.getConnection(), streamId)) {
+                // Nothing has been read, but that is because the peer is not allowed to send: the application
+                // has not consumed the content already delivered, so the inbound window is exhausted. The
+                // inactivity is ours, not the peer's, so restart the countdown instead of failing the stream.
+                // Refreshing the timestamp also gives the peer a full period to respond once the window
+                // reopens, rather than timing it out immediately on a stale reading.
+                msgHolder.setLastReadWriteTime(ticksInNanos());
+                timerTasks.put(streamId, schedule(ctx, this, idleTimeNanos));
+                return;
+            }
             if (nextDelay <= 0) {
                 if (!expectContinue) {
                     closeStream(streamId, ctx);
