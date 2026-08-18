@@ -68,8 +68,8 @@ import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http2.Http2Connection;
 import io.netty.handler.codec.http2.Http2Exception;
-import io.netty.handler.codec.http2.Http2FlowController;
 import io.netty.handler.codec.http2.Http2Headers;
+import io.netty.handler.codec.http2.Http2LocalFlowController;
 import io.netty.handler.codec.http2.Http2Stream;
 import io.netty.handler.codec.http2.HttpConversionUtil;
 import io.netty.handler.ssl.ApplicationProtocolConfig;
@@ -150,6 +150,25 @@ public class Util {
     private static final Logger LOG = LoggerFactory.getLogger(Util.class);
     public static final String HTTP_1_1 = "http/1.1";
     private static final float EPSILON = 0.00001f;
+
+    /**
+     * How long a transfer may sit completely still because of application back-pressure before the idle
+     * timeout is allowed to run after all, in seconds.
+     *
+     * <p>Silence caused by our own back-pressure is not the peer's fault and must not fail an otherwise
+     * healthy transfer, but excusing it without limit would mean a connection or stream could never be
+     * reclaimed: a hung application never reopens the inbound window, and a peer that has simply stopped
+     * reading never reopens the outbound one. Any progress at all - a byte consumed, a frame read or written -
+     * restarts this span, so it only bites a transfer that has made no progress whatsoever for its whole
+     * duration.
+     *
+     * <p>Overridden from Ballerina by the {@code maxBackPressureStallTime} configurable. A negative value
+     * excuses back-pressure indefinitely; zero excuses none of it.
+     */
+    public static final double DEFAULT_MAX_BACK_PRESSURE_STALL_TIME = 300;
+
+    private static volatile long maxBackPressureStallTimeNanos =
+            (long) (DEFAULT_MAX_BACK_PRESSURE_STALL_TIME * 1_000_000_000L);
 
     private static String getStringValue(HttpCarbonMessage msg, String key, String defaultValue) {
         String value = (String) msg.getProperty(key);
@@ -1213,12 +1232,17 @@ public class Util {
             return false;
         }
         try {
-            // The peer cannot send: we have not consumed what it already delivered. Either window can be the
-            // binding one, so both have to be inspected - the connection window is shared by every stream and
-            // is just as capable of holding the peer back as the stream's own window.
-            Http2FlowController localFlowController = connection.local().flowController();
-            if (localFlowController.windowSize(stream) <= 0
-                    || localFlowController.windowSize(connection.connectionStream()) <= 0) {
+            Http2LocalFlowController localFlowController = connection.local().flowController();
+            // The peer cannot send on this stream: we have not consumed what it already delivered.
+            if (localFlowController.windowSize(stream) <= 0) {
+                return true;
+            }
+            // The connection window is shared by every stream and can hold the peer back just as a stream's
+            // own window can, but it is exhausted by whichever streams are sitting on unconsumed content.
+            // A stream holding none of it is waiting for something the window does not gate - response
+            // headers, say - so it must keep being timed out even while a sibling has the window shut.
+            if (localFlowController.unconsumedBytes(stream) > 0
+                    && localFlowController.windowSize(connection.connectionStream()) <= 0) {
                 return true;
             }
             // We cannot send: our message is queued because the peer has not opened its window.
@@ -1227,5 +1251,32 @@ public class Util {
             LOG.debug("Could not read the flow control state of stream {}", streamId, e);
             return false;
         }
+    }
+    /**
+     * Sets how long a transfer may sit still because of application back-pressure before the idle timeout is
+     * allowed to run. Called once during module initialisation from the Ballerina layer.
+     *
+     * @param seconds the span in seconds; negative excuses back-pressure indefinitely, zero excuses none
+     */
+    public static void setMaxBackPressureStallTime(double seconds) {
+        maxBackPressureStallTimeNanos = seconds < 0 ? -1L : (long) (seconds * 1_000_000_000L);
+    }
+
+    /**
+     * Whether a back-pressure stall that began at the given time is still within its allowance, and so should
+     * be excused for one more idle period rather than failing the transfer.
+     *
+     * @param stallStartTimeNanos when the stall was first observed, from {@link #ticksInNanos()}
+     * @return true if the stall should still be excused
+     */
+    public static boolean isWithinBackPressureStallLimit(long stallStartTimeNanos) {
+        long limitNanos = maxBackPressureStallTimeNanos;
+        if (limitNanos < 0) {
+            return true;
+        }
+        if (limitNanos == 0) {
+            return false;
+        }
+        return ticksInNanos() - stallStartTimeNanos < limitNanos;
     }
 }

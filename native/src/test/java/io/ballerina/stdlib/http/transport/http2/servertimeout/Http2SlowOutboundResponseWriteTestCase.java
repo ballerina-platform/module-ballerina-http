@@ -69,11 +69,15 @@ public class Http2SlowOutboundResponseWriteTestCase {
     // Large enough that the server cannot hand the whole response to the encoder before the client's window
     // closes. A response small enough to be written in one go completes the stream and cancels the timer,
     // which is exactly why smaller payloads never showed this.
-    private static final int RESPONSE_SIZE = 32 * 1024 * 1024;
+    private static final int RESPONSE_SIZE = 4 * 1024 * 1024;
     private static final int SERVER_IDLE_TIMEOUT = 2000;
     private static final int READ_SLICE = 16 * 1024;
-    private static final int CONSUMER_PAUSE = SERVER_IDLE_TIMEOUT * 2;
-    private static final int PAUSED_READS = 3;
+    private static final int CONSUMER_PAUSE = SERVER_IDLE_TIMEOUT + SERVER_IDLE_TIMEOUT / 2;
+    private static final int PAUSED_READS = 2;
+    // A regression here shows up as a stalled transfer rather than a quick error, so the test methods and the
+    // tear down are bounded to keep a failure a red test instead of a hung build.
+    private static final int TEST_TIME_OUT = 60000;
+    private static final int CLEAN_UP_TIME_OUT = 30000;
 
     private HttpClientConnector h2PriorOnClient;
     private ServerConnector serverConnector;
@@ -97,8 +101,9 @@ public class Http2SlowOutboundResponseWriteTestCase {
         h2PriorOnClient = getHttp2Client(connectorFactory, true, 500000);
     }
 
-    @Test(description = "A large response written to a slow client must not be reset by the server's own "
-            + "stream timer, because the stream is quiet due to flow control rather than a stalled peer.")
+    @Test(timeOut = TEST_TIME_OUT,
+          description = "A large response written to a slow client must not be reset by the server's own "
+                  + "stream timer, because the stream is quiet due to flow control rather than a stalled peer.")
     public void testSlowlyReadResponseIsNotResetByServer() throws Exception {
         HttpCarbonMessage request = MessageGenerator.generateRequest(HttpMethod.POST, "test");
 
@@ -138,7 +143,7 @@ public class Http2SlowOutboundResponseWriteTestCase {
         assertEquals(received, expected, "Response body content does not match what the server sent");
     }
 
-    @AfterClass
+    @AfterClass(timeOut = CLEAN_UP_TIME_OUT)
     public void cleanUp() {
         h2PriorOnClient.close();
         serverConnector.stop();

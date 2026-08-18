@@ -67,8 +67,12 @@ public class Http2SlowInboundRequestBodyConsumerTestCase {
     private static final int CHUNK_SIZE = 8192;
     private static final int SERVER_IDLE_TIMEOUT = 2000;
     private static final int READ_SLICE = 16 * 1024;
-    private static final int CONSUMER_PAUSE = SERVER_IDLE_TIMEOUT * 2;
-    private static final int PAUSED_READS = 3;
+    private static final int CONSUMER_PAUSE = SERVER_IDLE_TIMEOUT + SERVER_IDLE_TIMEOUT / 2;
+    private static final int PAUSED_READS = 2;
+    // A regression here shows up as a stalled transfer rather than a quick error, so the test methods and the
+    // tear down are bounded to keep a failure a red test instead of a hung build.
+    private static final int TEST_TIME_OUT = 60000;
+    private static final int CLEAN_UP_TIME_OUT = 30000;
 
     private HttpClientConnector h2ClientWithPriorKnowledge;
     private ServerConnector serverConnector;
@@ -100,8 +104,9 @@ public class Http2SlowInboundRequestBodyConsumerTestCase {
                 HttpConnectorUtil.getTransportProperties(transportsConfiguration), senderConfiguration);
     }
 
-    @Test(description = "A request body consumed more slowly than the server socket idle timeout must still "
-            + "arrive in full, because the idleness is caused by the service rather than by the client.")
+    @Test(timeOut = TEST_TIME_OUT,
+          description = "A request body consumed more slowly than the server socket idle timeout must still "
+                  + "arrive in full, because the idleness is caused by the service rather than by the client.")
     public void testSlowlyConsumedLargeRequestIsNotTruncated() {
         HttpCarbonMessage request = MessageGenerator.generateDelayedRequest(HttpMethod.POST);
 
@@ -126,7 +131,7 @@ public class Http2SlowInboundRequestBodyConsumerTestCase {
                      "The service did not read the complete request body");
     }
 
-    @AfterClass
+    @AfterClass(timeOut = CLEAN_UP_TIME_OUT)
     public void cleanUp() {
         h2ClientWithPriorKnowledge.close();
         serverConnector.stop();

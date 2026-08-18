@@ -28,7 +28,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BooleanSupplier;
 
+import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.isWithinBackPressureStallLimit;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.ticksInNanos;
 
 /**
@@ -44,15 +47,22 @@ import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.ticksI
  *
  * <p>This handler therefore fires an {@link IdleStateEvent} only when the transport is genuinely waiting on
  * the peer: reads must not be suspended, and a full idle period must have elapsed since the reads were last
- * resumed. The read suspension is signalled by the inbound content listener via
- * {@link #suspendInboundReads(Channel)} and {@link #resumeInboundReads(Channel)}.
+ * resumed. The inbound content listener supplies the suspension state through
+ * {@link #trackInboundReads(Channel, BooleanSupplier)} and reports progress through
+ * {@link #inboundReadsResumed(Channel)}.
+ *
+ * <p>Two consequences are worth knowing about. Firstly, because the peer is given a fresh period after every
+ * resumption, a timeout can take up to twice the configured value to fire once a message body has started to
+ * arrive. Secondly, the reprieve is not unlimited: an application that consumes nothing at all for the span
+ * permitted by the {@code maxBackPressureStallTime} configurable is treated as hung and the connection is
+ * timed out, so a stuck listener cannot pin a connection forever.
  */
 public class BackPressureAwareIdleStateHandler extends IdleStateHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(BackPressureAwareIdleStateHandler.class);
 
     private static final AttributeKey<InboundReadState> INBOUND_READ_STATE =
-            AttributeKey.valueOf("inboundReadState");
+            AttributeKey.valueOf(BackPressureAwareIdleStateHandler.class, "inboundReadState");
 
     private final long idleTimeoutNanos;
 
@@ -62,23 +72,36 @@ public class BackPressureAwareIdleStateHandler extends IdleStateHandler {
     }
 
     /**
-     * Records that the transport has deliberately stopped pulling data off the socket because the application
-     * has not consumed what is already queued. The idle timeout does not run while a channel is in this state.
+     * Registers where this channel's inbound read suspension can be read from. The check is evaluated when a
+     * timeout is about to be raised rather than cached as a flag, so it cannot go stale against the queue it
+     * describes.
      *
-     * @param channel the channel whose inbound reads are suspended
+     * @param channel      the channel whose inbound reads are throttled on demand
+     * @param readSuspended tells whether the transport has currently stopped pulling data off the socket
      */
-    public static void suspendInboundReads(Channel channel) {
-        getOrCreateState(channel).suspend();
+    public static void trackInboundReads(Channel channel, BooleanSupplier readSuspended) {
+        getOrCreateState(channel).track(readSuspended);
     }
 
     /**
-     * Records that the transport has started pulling data off the socket again. This also restarts the idle
-     * countdown, so that the peer is given a full idle period to respond after every resumption.
+     * Stops consulting a previously registered check, because the message it belonged to is over or its
+     * listener has been detached. The channel is treated as never suspended from here on.
      *
-     * @param channel the channel whose inbound reads have resumed
+     * @param channel the channel to stop tracking
      */
-    public static void resumeInboundReads(Channel channel) {
-        getOrCreateState(channel).resume();
+    public static void untrackInboundReads(Channel channel) {
+        getOrCreateState(channel).reset();
+    }
+
+    /**
+     * Records that the application has made progress, either by draining queued content or by the transport
+     * asking the socket for more. This restarts the idle countdown, so that the peer is given a full idle
+     * period to respond after every resumption, and clears any accumulated reprieve.
+     *
+     * @param channel the channel whose inbound reads have progressed
+     */
+    public static void inboundReadsResumed(Channel channel) {
+        getOrCreateState(channel).resumed();
     }
 
     private static InboundReadState getOrCreateState(Channel channel) {
@@ -94,28 +117,34 @@ public class BackPressureAwareIdleStateHandler extends IdleStateHandler {
 
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
-        // A pooled channel can be handed over with a stale suspension from the previous message, so every
-        // message this handler is installed for starts with a clean idle countdown.
-        resumeInboundReads(ctx.channel());
+        // A pooled channel can be handed over carrying the state of the previous message, so every message
+        // this handler is installed for starts with a clean idle countdown. This deliberately runs before
+        // the superclass initialises its own timers: the resume time must not be later than the baseline
+        // IdleStateHandler measures from, otherwise the very first timeout would be swallowed.
+        getOrCreateState(ctx.channel()).reset();
         super.handlerAdded(ctx);
     }
 
     @Override
     protected void channelIdle(ChannelHandlerContext ctx, IdleStateEvent evt) throws Exception {
         InboundReadState state = ctx.channel().attr(INBOUND_READ_STATE).get();
-        if (state != null) {
-            if (state.isReadSuspended()) {
-                LOG.debug("Idle timeout not triggered on {}, inbound reads are suspended by application "
-                        + "back-pressure", ctx.channel().id());
+        if (state != null && isCausedByBackPressure(state)) {
+            if (isWithinBackPressureStallLimit(state.recordStall())) {
+                LOG.debug("Idle timeout not triggered on {}, inbound reads are held up by application "
+                                  + "back-pressure", ctx.channel().id());
                 return;
             }
-            if (ticksInNanos() - state.getLastResumeTimeNanos() < idleTimeoutNanos) {
-                LOG.debug("Idle timeout not triggered on {}, inbound reads resumed less than an idle period ago",
-                        ctx.channel().id());
-                return;
-            }
+            // The stall start is deliberately left standing: until the application makes some progress, every
+            // further period should time out too rather than earn a fresh allowance.
+            LOG.debug("Idle timeout triggered on {}, inbound reads have been held up by application "
+                              + "back-pressure past the permitted stall time without any progress",
+                      ctx.channel().id());
         }
         super.channelIdle(ctx, evt);
+    }
+
+    private boolean isCausedByBackPressure(InboundReadState state) {
+        return state.isReadSuspended() || ticksInNanos() - state.getLastResumeTimeNanos() < idleTimeoutNanos;
     }
 
     /**
@@ -123,24 +152,43 @@ public class BackPressureAwareIdleStateHandler extends IdleStateHandler {
      */
     private static final class InboundReadState {
 
-        private volatile boolean readSuspended;
+        private volatile BooleanSupplier readSuspended;
         private volatile long lastResumeTimeNanos = ticksInNanos();
+        private final AtomicLong stallStartTimeNanos = new AtomicLong();
 
-        void suspend() {
-            readSuspended = true;
+        void track(BooleanSupplier suspensionCheck) {
+            readSuspended = suspensionCheck;
         }
 
-        void resume() {
+        void resumed() {
             lastResumeTimeNanos = ticksInNanos();
-            readSuspended = false;
+            stallStartTimeNanos.set(0);
+        }
+
+        void reset() {
+            readSuspended = null;
+            resumed();
         }
 
         boolean isReadSuspended() {
-            return readSuspended;
+            BooleanSupplier suspensionCheck = readSuspended;
+            return suspensionCheck != null && suspensionCheck.getAsBoolean();
         }
 
         long getLastResumeTimeNanos() {
             return lastResumeTimeNanos;
+        }
+
+        /**
+         * Marks the channel as stalled if it was not already, and reports when the stall began.
+         *
+         * @return the time the current stall started, from {@link Util#ticksInNanos()}
+         */
+        long recordStall() {
+            long now = ticksInNanos();
+            // compareAndSet keeps the original start time once a stall is under way, so the allowance covers
+            // the whole stall rather than restarting on every check.
+            return stallStartTimeNanos.compareAndSet(0, now) ? now : stallStartTimeNanos.get();
         }
     }
 }

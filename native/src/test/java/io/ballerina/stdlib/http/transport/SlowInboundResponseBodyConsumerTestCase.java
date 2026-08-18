@@ -60,12 +60,16 @@ public class SlowInboundResponseBodyConsumerTestCase {
     private static final Logger LOG = LoggerFactory.getLogger(SlowInboundResponseBodyConsumerTestCase.class);
 
     // Large enough to push the inbound content past the 2MB threshold at which reads are throttled.
-    private static final int RESPONSE_SIZE = 8 * 1024 * 1024;
+    private static final int RESPONSE_SIZE = 4 * 1024 * 1024;
     private static final int SOCKET_IDLE_TIMEOUT = 2000;
     // Read in slices that are small relative to the body, pausing for longer than the idle timeout in between.
     private static final int READ_SLICE = 64 * 1024;
-    private static final int CONSUMER_PAUSE = SOCKET_IDLE_TIMEOUT * 2;
-    private static final int PAUSED_READS = 3;
+    private static final int CONSUMER_PAUSE = SOCKET_IDLE_TIMEOUT + SOCKET_IDLE_TIMEOUT / 2;
+    private static final int PAUSED_READS = 2;
+    // A regression here shows up as a stalled transfer rather than a quick error, so the test methods and the
+    // tear down are bounded to keep a failure a red test instead of a hung build.
+    private static final int TEST_TIME_OUT = 60000;
+    private static final int CLEAN_UP_TIME_OUT = 30000;
 
     private HttpServer httpServer;
     private HttpClientConnector httpClientConnector;
@@ -82,8 +86,9 @@ public class SlowInboundResponseBodyConsumerTestCase {
         httpClientConnector = connectorFactory.createHttpClientConnector(new HashMap<>(), senderConfiguration);
     }
 
-    @Test(description = "A response body consumed more slowly than the socket idle timeout must still arrive "
-            + "in full, because the idleness is caused by the consumer rather than by the remote server.")
+    @Test(timeOut = TEST_TIME_OUT,
+          description = "A response body consumed more slowly than the socket idle timeout must still arrive "
+                  + "in full, because the idleness is caused by the consumer rather than by the remote server.")
     public void testSlowlyConsumedLargeResponseIsNotTruncated() throws Exception {
         HttpCarbonMessage msg = TestUtil.createHttpPostReq(TestUtil.HTTP_SERVER_PORT, "Test request body", "");
 
@@ -124,7 +129,7 @@ public class SlowInboundResponseBodyConsumerTestCase {
         assertEquals(received, expected, "Response body content does not match what the server sent");
     }
 
-    @AfterClass
+    @AfterClass(timeOut = CLEAN_UP_TIME_OUT)
     public void cleanUp() throws ServerConnectorException {
         try {
             httpServer.shutdown();

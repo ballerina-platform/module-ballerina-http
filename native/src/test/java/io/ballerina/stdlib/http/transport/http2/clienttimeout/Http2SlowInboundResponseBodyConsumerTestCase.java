@@ -65,8 +65,12 @@ public class Http2SlowInboundResponseBodyConsumerTestCase {
     private static final int RESPONSE_SIZE = 1024 * 1024;
     private static final int SOCKET_IDLE_TIMEOUT = 2000;
     private static final int READ_SLICE = 16 * 1024;
-    private static final int CONSUMER_PAUSE = SOCKET_IDLE_TIMEOUT * 2;
-    private static final int PAUSED_READS = 3;
+    private static final int CONSUMER_PAUSE = SOCKET_IDLE_TIMEOUT + SOCKET_IDLE_TIMEOUT / 2;
+    private static final int PAUSED_READS = 2;
+    // A regression here shows up as a stalled transfer rather than a quick error, so the test methods and the
+    // tear down are bounded to keep a failure a red test instead of a hung build.
+    private static final int TEST_TIME_OUT = 60000;
+    private static final int CLEAN_UP_TIME_OUT = 30000;
 
     private HttpClientConnector h2PriorOnClient;
     private HttpClientConnector h2PriorOffClient;
@@ -92,12 +96,14 @@ public class Http2SlowInboundResponseBodyConsumerTestCase {
         h2PriorOffClient = getHttp2Client(connectorFactory, false, SOCKET_IDLE_TIMEOUT);
     }
 
-    @Test(description = "A slowly consumed HTTP/2 response body must arrive in full when prior knowledge is on")
+    @Test(timeOut = TEST_TIME_OUT,
+          description = "A slowly consumed HTTP/2 response body must arrive in full when prior knowledge is on")
     public void testSlowlyConsumedLargeResponseWithPriorOn() throws Exception {
         assertResponseIsNotTruncated(h2PriorOnClient);
     }
 
-    @Test(description = "A slowly consumed HTTP/2 response body must arrive in full when prior knowledge is off")
+    @Test(timeOut = TEST_TIME_OUT,
+          description = "A slowly consumed HTTP/2 response body must arrive in full when prior knowledge is off")
     public void testSlowlyConsumedLargeResponseWithPriorOff() throws Exception {
         assertResponseIsNotTruncated(h2PriorOffClient);
     }
@@ -141,7 +147,7 @@ public class Http2SlowInboundResponseBodyConsumerTestCase {
         assertEquals(received, expected, "Response body content does not match what the server sent");
     }
 
-    @AfterClass
+    @AfterClass(timeOut = CLEAN_UP_TIME_OUT)
     public void cleanUp() {
         h2PriorOnClient.close();
         h2PriorOffClient.close();

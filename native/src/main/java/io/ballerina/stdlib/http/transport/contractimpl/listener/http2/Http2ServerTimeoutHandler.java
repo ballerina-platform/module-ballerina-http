@@ -19,6 +19,7 @@
 package io.ballerina.stdlib.http.transport.contractimpl.listener.http2;
 
 import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
+import io.ballerina.stdlib.http.transport.contractimpl.common.FlowControlStallTracker;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2DataEventListener;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -30,12 +31,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.isStreamBlockedByFlowControl;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.schedule;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.ticksInNanos;
 
@@ -50,16 +49,14 @@ public class Http2ServerTimeoutHandler implements Http2DataEventListener {
     private Http2ServerChannel http2ServerChannel;
     private Map<Integer, ScheduledFuture<?>> timerTasks;
     private ServerConnectorFuture serverConnectorFuture;
-    private Http2Connection connection;
-    // Streams whose previous timeout check found them held up by flow control.
-    private final Set<Integer> recentlyFlowControlBlocked = ConcurrentHashMap.newKeySet();
+    private final FlowControlStallTracker flowControlStallTracker;
 
     Http2ServerTimeoutHandler(long idleTimeMills, Http2ServerChannel serverChannel,
                               ServerConnectorFuture serverConnectorFuture, Http2Connection connection) {
         this.idleTimeNanos = Math.max(TimeUnit.MILLISECONDS.toNanos(idleTimeMills), MIN_TIMEOUT_NANOS);
         this.http2ServerChannel = serverChannel;
         this.serverConnectorFuture = serverConnectorFuture;
-        this.connection = connection;
+        this.flowControlStallTracker = new FlowControlStallTracker(() -> connection);
         timerTasks = new ConcurrentHashMap<>();
     }
 
@@ -111,7 +108,7 @@ public class Http2ServerTimeoutHandler implements Http2DataEventListener {
 
     @Override
     public void onStreamClose(int streamId) {
-        recentlyFlowControlBlocked.remove(streamId);
+        flowControlStallTracker.remove(streamId);
         ScheduledFuture timerTask = timerTasks.get(streamId);
         if (timerTask != null) {
             if (LOG.isDebugEnabled()) {
@@ -126,7 +123,7 @@ public class Http2ServerTimeoutHandler implements Http2DataEventListener {
     public void destroy() {
         timerTasks.forEach((streamId, task) -> task.cancel(false));
         timerTasks.clear();
-        recentlyFlowControlBlocked.clear();
+        flowControlStallTracker.clear();
     }
 
     private class IdleTimeoutTask implements Runnable {
@@ -148,45 +145,23 @@ public class Http2ServerTimeoutHandler implements Http2DataEventListener {
 
         private void runTimeOutLogic(InboundMessageHolder msgHolder) {
             long nextDelay = getNextDelay(msgHolder);
-            if (nextDelay <= 0 && isFlowControlStall()) {
+            if (nextDelay > 0) {
+                // Read or write occurred before the timeout - set a new timeout with shorter delay.
+                flowControlStallTracker.recordProgress(streamId);
+                timerTasks.put(streamId, schedule(ctx, this, nextDelay));
+                return;
+            }
+            if (flowControlStallTracker.isStalledByFlowControl(streamId)) {
                 msgHolder.setLastReadWriteTime(ticksInNanos());
                 timerTasks.put(streamId, schedule(ctx, this, idleTimeNanos));
                 return;
             }
-            if (nextDelay <= 0) {
-                handleTimeout(msgHolder);
-                closeStream(msgHolder, streamId, ctx);
-            } else {
-                // Read or write occurred before the timeout - set a new timeout with shorter delay.
-                timerTasks.put(streamId, schedule(ctx, this, nextDelay));
-            }
+            handleTimeout(msgHolder);
+            closeStream(msgHolder, streamId, ctx);
         }
 
         private long getNextDelay(InboundMessageHolder msgHolder) {
             return idleTimeNanos - (ticksInNanos() - msgHolder.getLastReadWriteTime());
-        }
-
-        /**
-         * Decides whether the silence on this stream is down to HTTP/2 flow control rather than an
-         * unresponsive peer.
-         *
-         * <p>A stream that is blocked right now is obviously not the peer's fault. A stream that was blocked
-         * as recently as the previous check is not either: the window has only just reopened and the peer has
-         * not yet had a full idle period in which to act. Without that second case a stream is failed whenever
-         * the timer happens to land in the moment between the window opening and the next frame moving, which
-         * is a race a slow peer hits regularly.
-         *
-         * <p>The grace is deliberately limited to a single extra period, so a peer that really has gone away
-         * after the window reopened is still timed out rather than waited on indefinitely.
-         *
-         * @return true if the countdown should be restarted instead of failing the stream
-         */
-        private boolean isFlowControlStall() {
-            if (isStreamBlockedByFlowControl(connection, streamId)) {
-                recentlyFlowControlBlocked.add(streamId);
-                return true;
-            }
-            return recentlyFlowControlBlocked.remove(streamId);
         }
 
         private void handleTimeout(InboundMessageHolder msgHolder) {
