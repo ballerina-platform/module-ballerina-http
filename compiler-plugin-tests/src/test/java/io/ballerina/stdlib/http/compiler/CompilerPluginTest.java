@@ -531,7 +531,7 @@ public class CompilerPluginTest {
         assertError(diagnosticResult, 0, "RequestInterceptor must have a resource method", HTTP_132);
         assertError(diagnosticResult, 1, "RequestInterceptor must have a resource method", HTTP_132);
         assertError(diagnosticResult, 2, "RequestInterceptor must have a resource method", HTTP_132);
-        }
+    }
 
     @Test
     public void testReadonlyReturnTypes() {
