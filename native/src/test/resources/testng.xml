@@ -242,6 +242,10 @@
             <class name="io.ballerina.stdlib.http.api.HttpServiceTest"/>
             <class name="io.ballerina.stdlib.http.api.logging.HttpLogManagerTest"/>
             <class name="io.ballerina.stdlib.http.api.logging.util.LogUtilTest"/>
+            <class name="io.ballerina.stdlib.http.api.logging.util.CountingOutputStreamTest"/>
+            <class name="io.ballerina.stdlib.http.uri.parser.URITemplateParserTest"/>
+            <class name="io.ballerina.stdlib.http.api.logging.accesslog.HttpRollingFileHandlerTest"/>
+            <class name="io.ballerina.stdlib.http.api.logging.accesslog.HttpAccessLogFormatterTest"/>
         </classes>
     </test>
 </suite>
