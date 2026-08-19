@@ -102,7 +102,7 @@ public class HttpRollingFileHandlerTest {
         }
     }
 
-    @Test(description = "A published record lands in the log file, and the lock file is created alongside it")
+    @Test(description = "A published record lands in the log file")
     public void testPublishWritesToFile() throws IOException {
         HttpRollingFileHandler fileHandler = handler("access.log", RotationPolicy.SIZE_BASED, 1024L, 3600L, 5,
                                                      false, null);
@@ -124,8 +124,13 @@ public class HttpRollingFileHandlerTest {
     public void testCloseRemovesLockFile() throws IOException {
         HttpRollingFileHandler fileHandler = handler("access.log", RotationPolicy.BOTH, 1024L, 3600L, 5, false, null);
         Path lockFile = tempDir.resolve("access.log.lck");
-        assertTrue(Files.exists(lockFile), "Lock file was not created while the handler was open");
-        fileHandler.close();
+        try {
+            assertTrue(Files.exists(lockFile), "Lock file was not created while the handler was open");
+        } finally {
+            // Closed even when the assertion above fails, so a failure cannot leave the lock held and break
+            // the tear down for every later test.
+            fileHandler.close();
+        }
         assertFalse(Files.exists(lockFile), "Lock file was not removed on close");
     }
 

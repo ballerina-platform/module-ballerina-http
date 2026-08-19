@@ -94,8 +94,10 @@ public class HttpAccessLogFormatterTest {
         assertTrue(formatted.contains("2048"), "Response body size is missing");
         assertTrue(formatted.contains("\"http://example.com/index.html\""), "Quoted referrer is missing");
         assertTrue(formatted.contains("\"test-agent/1.0\""), "Quoted user agent is missing");
-        // The date_time attribute is bracketed in the flat format.
-        assertTrue(formatted.contains("[15/Jan/2026:"), "Bracketed date time is missing: " + formatted);
+        // The date_time attribute is bracketed in the flat format. The month abbreviation comes from the
+        // default locale, so only the locale independent structure is asserted here.
+        assertTrue(formatted.matches(".*\\[15/\\S+/2026:\\d{2}:\\d{2}:\\d{2}\\.\\d{3} [+-]\\d{4}].*"),
+                   "Bracketed date time is missing or malformed: " + formatted);
         // Not a default attribute, so it must not appear.
         assertFalse(formatted.contains("203.0.113.7"), "x_forwarded_for is not a default attribute");
     }

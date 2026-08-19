@@ -176,6 +176,8 @@ public class URITemplateParserTest {
         assertEquals(matching.getMap().get("orderId").get(0), "42", "Parameter was not bound");
         assertNull(match("/orders/12345", new HttpResourceArguments()),
                    "A value longer than the prefix must not match");
+        assertNull(match("/orders/4", new HttpResourceArguments()),
+                   "A value shorter than the prefix must not match either");
     }
 
     @Test(description = "The parser rejects a template that opens a second expression before closing the first")
@@ -217,6 +219,7 @@ public class URITemplateParserTest {
     public void testWildcardSegmentMatchesRemainder() throws Exception {
         parse("/files/*", "files");
         assertEquals(match("/files/a"), "files", "Wildcard did not match a single trailing segment");
+        assertEquals(match("/files/a/b/c"), "files", "Wildcard did not match a multi segment remainder");
     }
 
     @Test(description = "Parsing pre-split segments takes the same route as parsing a template string")
