@@ -85,7 +85,10 @@ public class Http2ClientTimeoutHandler implements Http2DataEventListener {
     }
 
     public void createTimerTask(ChannelHandlerContext ctx, int streamId, long timeOut, boolean expectContinue) {
-        this.idleTimeNanos = timeOut;
+        // timeOut arrives in milliseconds, so it has to be converted before it is held in a field the rest of
+        // this class reads as nanoseconds - getNextDelay compares it against ticksInNanos() and the flow
+        // control recheck caps its delay against it.
+        this.idleTimeNanos = TimeUnit.MILLISECONDS.toNanos(timeOut);
         timerTasks.put(streamId, schedule(ctx, new IdleTimeoutTask(ctx, streamId, expectContinue),
                 TimeUnit.MILLISECONDS.toNanos(timeOut)));
     }
