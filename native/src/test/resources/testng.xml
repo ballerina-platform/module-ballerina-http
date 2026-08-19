@@ -62,6 +62,7 @@
             <class name="io.ballerina.stdlib.http.transport.ClientTimeoutWhileWritingBodyTestCase" />
             <class name="io.ballerina.stdlib.http.transport.ClientTimeoutWhileReadingBodyTestCase" />
             <class name="io.ballerina.stdlib.http.transport.SlowInboundResponseBodyConsumerTestCase" />
+            <class name="io.ballerina.stdlib.http.transport.BackPressureStallLimitTestCase" />
             <class name="io.ballerina.stdlib.http.transport.ServerCloseWhileReadingBodyTestCase" />
             <class name="io.ballerina.stdlib.http.transport.ServerCloseWhileWritingBodyTestCase" />
             <class name="io.ballerina.stdlib.http.transport.ClientConnectorConnectionRefusedTestCase" />

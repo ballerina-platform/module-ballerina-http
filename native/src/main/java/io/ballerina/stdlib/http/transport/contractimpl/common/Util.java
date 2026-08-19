@@ -1279,4 +1279,20 @@ public class Util {
         }
         return ticksInNanos() - stallStartTimeNanos < limitNanos;
     }
+
+    /**
+     * How much of the {@code maxBackPressureStallTime} allowance is left for a stall that began at the given
+     * time. Lets a caller that rechecks itself on a timer - rather than waiting for the next fixed idle period -
+     * schedule that recheck no later than when the allowance actually runs out.
+     *
+     * @param stallStartTimeNanos when the stall was first observed, from {@link #ticksInNanos()}
+     * @return the remaining allowance in nanoseconds, or a negative value if the allowance is unlimited
+     */
+    public static long remainingBackPressureStallNanos(long stallStartTimeNanos) {
+        long limitNanos = maxBackPressureStallTimeNanos;
+        if (limitNanos < 0) {
+            return -1L;
+        }
+        return Math.max(0L, limitNanos - (ticksInNanos() - stallStartTimeNanos));
+    }
 }

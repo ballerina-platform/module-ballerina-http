@@ -153,7 +153,8 @@ public class Http2ServerTimeoutHandler implements Http2DataEventListener {
             }
             if (flowControlStallTracker.isStalledByFlowControl(streamId)) {
                 msgHolder.setLastReadWriteTime(ticksInNanos());
-                timerTasks.put(streamId, schedule(ctx, this, idleTimeNanos));
+                long recheckDelay = flowControlStallTracker.nextRecheckDelayNanos(streamId, idleTimeNanos);
+                timerTasks.put(streamId, schedule(ctx, this, recheckDelay));
                 return;
             }
             handleTimeout(msgHolder);

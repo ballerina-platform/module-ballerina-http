@@ -27,11 +27,14 @@ import io.netty.util.AttributeKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
 
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.isWithinBackPressureStallLimit;
+import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.remainingBackPressureStallNanos;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.ticksInNanos;
 
 /**
@@ -60,6 +63,7 @@ import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.ticksI
 public class BackPressureAwareIdleStateHandler extends IdleStateHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(BackPressureAwareIdleStateHandler.class);
+    private static final long MIN_RECHECK_NANOS = TimeUnit.MILLISECONDS.toNanos(1);
 
     private static final AttributeKey<InboundReadState> INBOUND_READ_STATE =
             AttributeKey.valueOf(BackPressureAwareIdleStateHandler.class, "inboundReadState");
@@ -129,7 +133,13 @@ public class BackPressureAwareIdleStateHandler extends IdleStateHandler {
     protected void channelIdle(ChannelHandlerContext ctx, IdleStateEvent evt) throws Exception {
         InboundReadState state = ctx.channel().attr(INBOUND_READ_STATE).get();
         if (state != null && isCausedByBackPressure(state)) {
-            if (isWithinBackPressureStallLimit(state.recordStall())) {
+            long stallStart = state.recordStall();
+            if (isWithinBackPressureStallLimit(stallStart)) {
+                // Netty only rechecks once per idleTimeoutNanos, which is too coarse whenever
+                // maxBackPressureStallTime is configured shorter than that. Schedule an extra, cancellable
+                // recheck timed to the remaining allowance so a short cap does not have to wait for the next
+                // socket idle interval.
+                scheduleStallLimitRecheck(ctx, evt, state, stallStart);
                 LOG.debug("Idle timeout not triggered on {}, inbound reads are held up by application "
                                   + "back-pressure", ctx.channel().id());
                 return;
@@ -141,6 +151,26 @@ public class BackPressureAwareIdleStateHandler extends IdleStateHandler {
                       ctx.channel().id());
         }
         super.channelIdle(ctx, evt);
+    }
+
+    private void scheduleStallLimitRecheck(ChannelHandlerContext ctx, IdleStateEvent evt, InboundReadState state,
+                                           long stallStart) {
+        state.cancelStallLimitRecheck();
+        long remaining = remainingBackPressureStallNanos(stallStart);
+        if (remaining < 0 || remaining >= idleTimeoutNanos) {
+            // Netty's own schedule will recheck no later than this anyway.
+            return;
+        }
+        long delay = Math.max(remaining, MIN_RECHECK_NANOS);
+        state.setStallLimitRecheckTask(ctx.channel().eventLoop().schedule(() -> {
+            if (!ctx.isRemoved()) {
+                try {
+                    channelIdle(ctx, evt);
+                } catch (Exception e) {
+                    LOG.debug("Error while re-checking the back-pressure stall limit on {}", ctx.channel().id(), e);
+                }
+            }
+        }, delay, TimeUnit.NANOSECONDS));
     }
 
     private boolean isCausedByBackPressure(InboundReadState state) {
@@ -155,6 +185,7 @@ public class BackPressureAwareIdleStateHandler extends IdleStateHandler {
         private volatile BooleanSupplier readSuspended;
         private volatile long lastResumeTimeNanos = ticksInNanos();
         private final AtomicLong stallStartTimeNanos = new AtomicLong();
+        private final AtomicReference<ScheduledFuture<?>> stallLimitRecheckTask = new AtomicReference<>();
 
         void track(BooleanSupplier suspensionCheck) {
             readSuspended = suspensionCheck;
@@ -163,11 +194,26 @@ public class BackPressureAwareIdleStateHandler extends IdleStateHandler {
         void resumed() {
             lastResumeTimeNanos = ticksInNanos();
             stallStartTimeNanos.set(0);
+            cancelStallLimitRecheck();
         }
 
         void reset() {
             readSuspended = null;
             resumed();
+        }
+
+        void setStallLimitRecheckTask(ScheduledFuture<?> task) {
+            ScheduledFuture<?> previous = stallLimitRecheckTask.getAndSet(task);
+            if (previous != null) {
+                previous.cancel(false);
+            }
+        }
+
+        void cancelStallLimitRecheck() {
+            ScheduledFuture<?> task = stallLimitRecheckTask.getAndSet(null);
+            if (task != null) {
+                task.cancel(false);
+            }
         }
 
         boolean isReadSuspended() {

@@ -24,10 +24,12 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.isStreamBlockedByFlowControl;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.isWithinBackPressureStallLimit;
+import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.remainingBackPressureStallNanos;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.ticksInNanos;
 
 /**
@@ -52,6 +54,7 @@ import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.ticksI
 public class FlowControlStallTracker {
 
     private static final Logger LOG = LoggerFactory.getLogger(FlowControlStallTracker.class);
+    private static final long MIN_RECHECK_NANOS = TimeUnit.MILLISECONDS.toNanos(1);
 
     private final Supplier<Http2Connection> connectionSupplier;
     // Streams whose recent timeout checks found them held up by flow control, and when that started.
@@ -77,8 +80,12 @@ public class FlowControlStallTracker {
             return false;
         }
         if (isStreamBlockedByFlowControl(connectionSupplier.get(), streamId)) {
-            stallStartTimes.putIfAbsent(streamId, ticksInNanos());
-            return true;
+            // Reuse the existing start time if one is already on record, otherwise this is the first time this
+            // stream has been seen stalled - which must still be checked against the limit straight away, so
+            // that a zero (or otherwise already-elapsed) allowance is not excused for one free period.
+            long startTime = stallStartTime != null ? stallStartTime
+                    : stallStartTimes.merge(streamId, ticksInNanos(), (existing, fresh) -> existing);
+            return isWithinBackPressureStallLimit(startTime);
         }
         if (stallStartTime != null) {
             // The window has only just reopened; give the peer one full period to act before failing it.
@@ -86,6 +93,27 @@ public class FlowControlStallTracker {
             return true;
         }
         return false;
+    }
+
+    /**
+     * How long to wait before rechecking a stream that is currently being excused for flow control, so that a
+     * {@code maxBackPressureStallTime} shorter than the stream's own idle timeout is honoured instead of
+     * always waiting a full idle period between checks.
+     *
+     * @param streamId      the stream currently excused by flow control
+     * @param idleTimeNanos the stream's own idle timeout, used when no shorter cap applies
+     * @return the delay, in nanoseconds, before the next recheck should run
+     */
+    public long nextRecheckDelayNanos(int streamId, long idleTimeNanos) {
+        Long stallStartTime = stallStartTimes.get(streamId);
+        if (stallStartTime == null) {
+            return idleTimeNanos;
+        }
+        long remaining = remainingBackPressureStallNanos(stallStartTime);
+        if (remaining < 0) {
+            return idleTimeNanos;
+        }
+        return Math.min(idleTimeNanos, Math.max(remaining, MIN_RECHECK_NANOS));
     }
 
     /**
