@@ -29,6 +29,8 @@ def ballerinaDist = "${project.rootDir}/target/ballerina-runtime"
 def distributionBinPath =  "${ballerinaDist}/bin"
 def originalConfigTOMLFile = configTOMLFile.text
 def graalvmFlag = ""
+def testCoverageParam = "--code-coverage --coverage-format=xml " +
+        "--includes=io.ballerina.stdlib.http.*:ballerina.http*"
 
 def stripBallerinaExtensionVersion(String extVersion) {
     if (extVersion.matches(project.ext.timestampedVersionRegex)) {
@@ -149,7 +151,7 @@ task ballerinaIntegrationTests {
                 environment.remove("JAVA_TOOL_OPTIONS")
                 commandLine 'cmd', '/c', "$distributionBinPath/bal.bat test ${graalvmFlag} --offline && exit %%ERRORLEVEL%%"
             } else {
-                commandLine 'sh', '-c', "$distributionBinPath/bal test ${graalvmFlag} --offline --code-coverage"
+                commandLine 'sh', '-c', "$distributionBinPath/bal test ${graalvmFlag} --offline ${testCoverageParam}"
             }
         }
     }
