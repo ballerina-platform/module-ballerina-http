@@ -69,7 +69,10 @@ public class Http2ClientBackPressureStallLimitTestCase {
     // A regression here is a permanently stalled read rather than a quick error, so the test method is bounded
     // to keep a failure a red test instead of a hung build.
     private static final int TEST_TIME_OUT = 60000;
-    private static final int CLEAN_UP_TIME_OUT = 30000;
+    // Tearing down a connection whose stream was just reset with a large amount of still-buffered outbound
+    // data can take noticeably longer on some platforms (observed on Windows CI) than on others, so this is
+    // generous rather than tight.
+    private static final int CLEAN_UP_TIME_OUT = 60000;
 
     private HttpClientConnector h2Client;
     private ServerConnector serverConnector;
