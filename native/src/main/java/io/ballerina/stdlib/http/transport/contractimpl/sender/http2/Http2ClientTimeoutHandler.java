@@ -204,7 +204,10 @@ public class Http2ClientTimeoutHandler implements Http2DataEventListener {
                 return;
             }
             if (flowControlStallTracker.isStalledByFlowControl(streamId)) {
-                msgHolder.setLastReadWriteTime(ticksInNanos());
+                // lastReadWriteTime is deliberately left untouched here: bumping it would make the next
+                // firing's getNextDelay() see less than idleTimeNanos elapsed and misread this recheck itself
+                // as genuine read/write activity, calling recordProgress() and letting a permanently stalled
+                // stream renew its excuse forever instead of ever hitting maxBackPressureStallTime.
                 long recheckDelay = flowControlStallTracker.nextRecheckDelayNanos(streamId, idleTimeNanos);
                 timerTasks.put(streamId, schedule(ctx, this, recheckDelay));
                 return;
