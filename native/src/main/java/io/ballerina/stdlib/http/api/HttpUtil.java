@@ -1296,11 +1296,15 @@ public class HttpUtil {
             int proxyPort = proxy.getIntValue(HttpConstants.PROXY_PORT).intValue();
             String proxyUserName = proxy.getStringValue(HttpConstants.PROXY_USERNAME).getValue();
             String proxyPassword = proxy.getStringValue(HttpConstants.PROXY_PASSWORD).getValue();
+            BString proxyProtocolValue = proxy.getStringValue(HttpConstants.PROXY_PROTOCOL);
+            ProxyServerConfiguration.ProxyProtocol proxyProtocolEnum =
+                    getProxyProtocol(proxyProtocolValue, proxyPassword);
             try {
                 proxyServerConfiguration = new ProxyServerConfiguration(proxyHost, proxyPort);
             } catch (UnknownHostException e) {
                 throw new BallerinaConnectorException("Failed to resolve host: " + proxyHost, e);
             }
+            proxyServerConfiguration.setProxyProtocol(proxyProtocolEnum);
             if (!proxyUserName.isEmpty()) {
                 proxyServerConfiguration.setProxyUsername(proxyUserName);
             }
@@ -1320,6 +1324,24 @@ public class HttpUtil {
         }
         String forwardedExtension = clientEndpointConfig.getStringValue(HttpConstants.CLIENT_EP_FORWARDED).getValue();
         senderConfiguration.setForwardedExtensionConfig(HttpUtil.getForwardedExtensionConfig(forwardedExtension));
+    }
+
+    private static ProxyServerConfiguration.ProxyProtocol getProxyProtocol(BString proxyProtocolValue,
+                                                                           String proxyPassword) {
+        String proxyProtocol = proxyProtocolValue != null ? proxyProtocolValue.getValue()
+                : HttpConstants.PROXY_PROTOCOL_HTTP;
+        ProxyServerConfiguration.ProxyProtocol proxyProtocolEnum;
+        if (HttpConstants.PROXY_PROTOCOL_SOCKS4.equals(proxyProtocol)) {
+            proxyProtocolEnum = ProxyServerConfiguration.ProxyProtocol.SOCKS4;
+        } else if (HttpConstants.PROXY_PROTOCOL_SOCKS5.equals(proxyProtocol)) {
+            proxyProtocolEnum = ProxyServerConfiguration.ProxyProtocol.SOCKS5;
+        } else {
+            proxyProtocolEnum = ProxyServerConfiguration.ProxyProtocol.HTTP;
+        }
+        if (proxyProtocolEnum == ProxyServerConfiguration.ProxyProtocol.SOCKS4 && !proxyPassword.isEmpty()) {
+            log.warn("SOCKS4 does not support password authentication; the configured password will be ignored.");
+        }
+        return proxyProtocolEnum;
     }
 
     public static ConnectionManager getConnectionManager(BMap poolStruct) {

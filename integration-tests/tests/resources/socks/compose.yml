@@ -1,0 +1,18 @@
+services:
+    # Backend HTTP service reached only through the proxy. SOCKS5 remote DNS resolves the
+    # `backend` service name on the proxy side, so it needs no published port.
+    backend:
+        image: hashicorp/http-echo
+        container_name: socks-it-backend-server
+        command: ["-text=Response from backend through SOCKS proxy", "-listen=:5678"]
+
+    socks_proxy:
+        image: vimagick/dante
+        container_name: socks-it-proxy-server
+        volumes:
+            - ./sockd.conf:/etc/dante/sockd.conf:ro
+        ports:
+            - 9913:9913
+        depends_on:
+            - backend
+        restart: on-failure

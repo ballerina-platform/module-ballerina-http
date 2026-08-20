@@ -25,6 +25,7 @@ import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contract.config.ChunkConfig;
 import io.ballerina.stdlib.http.transport.contract.config.ForwardedExtensionConfig;
+import io.ballerina.stdlib.http.transport.contract.config.ProxyServerConfiguration;
 import io.ballerina.stdlib.http.transport.contract.config.SenderConfiguration;
 import io.ballerina.stdlib.http.transport.contract.exceptions.ClientConnectorException;
 import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
@@ -248,7 +249,11 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
                         prepareTargetChannelForHttp(channelFuture);
                         if ((protocol.equalsIgnoreCase(Constants.HTTP1_CLEARTEXT_PROTOCOL) ||
                                 protocol.equalsIgnoreCase(Constants.HTTP1_TLS_PROTOCOL)) &&
-                                senderConfiguration.getProxyServerConfiguration() != null) {
+                                senderConfiguration.getProxyServerConfiguration() != null &&
+                                senderConfiguration.getProxyServerConfiguration().getProxyProtocol()
+                                        == ProxyServerConfiguration.ProxyProtocol.HTTP) {
+                            // Only set the absolute-form URI flag for HTTP proxies. SOCKS proxies tunnel
+                            // transparently, so the request line must remain in origin-form.
                             httpOutboundRequest.setProperty(Constants.IS_PROXY_ENABLED, true);
                         }
                         targetChannel.writeContent(httpOutboundRequest);

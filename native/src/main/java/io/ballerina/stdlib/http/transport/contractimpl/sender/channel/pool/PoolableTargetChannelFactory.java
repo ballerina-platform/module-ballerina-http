@@ -15,6 +15,7 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool;
 
+import io.ballerina.stdlib.http.transport.contract.config.ProxyServerConfiguration;
 import io.ballerina.stdlib.http.transport.contract.config.SenderConfiguration;
 import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.ConnectionAvailabilityFuture;
@@ -27,6 +28,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.resolver.NoopAddressResolverGroup;
 import org.apache.commons.pool.PoolableObjectFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,13 +100,23 @@ public class PoolableTargetChannelFactory implements PoolableObjectFactory {
         // Connect to proxy server if proxy is enabled
         ChannelFuture channelFuture;
         InetSocketAddress socketAddress;
-        if (senderConfiguration.getProxyServerConfiguration() != null && senderConfiguration.getScheme()
-                .equals(HTTP_SCHEME)) {
+        ProxyServerConfiguration proxyServerConfiguration = senderConfiguration.getProxyServerConfiguration();
+        if (proxyServerConfiguration != null
+                && proxyServerConfiguration.getProxyProtocol() == ProxyServerConfiguration.ProxyProtocol.HTTP
+                && senderConfiguration.getScheme().equals(HTTP_SCHEME)) {
+            // HTTP proxy: connect directly to the proxy host:port.
             socketAddress = new InetSocketAddress(
-                    senderConfiguration.getProxyServerConfiguration().getProxyHost(),
-                    senderConfiguration.getProxyServerConfiguration().getProxyPort()
+                    proxyServerConfiguration.getProxyHost(),
+                    proxyServerConfiguration.getProxyPort()
             );
+        } else if (proxyServerConfiguration != null
+                && proxyServerConfiguration.getProxyProtocol() == ProxyServerConfiguration.ProxyProtocol.SOCKS5) {
+            // SOCKS5 proxy: connect to the destination, but keep it unresolved so DNS is performed remotely
+            // (by the proxy). The Netty SOCKS handler tunnels to the proxy itself.
+            socketAddress = InetSocketAddress.createUnresolved(httpRoute.getHost(), httpRoute.getPort());
+            clientBootstrap.resolver(NoopAddressResolverGroup.INSTANCE);
         } else {
+            // Non-proxy and SOCKS4 proxy: connect to the (locally resolved) destination.
             socketAddress = new InetSocketAddress(httpRoute.getHost(), httpRoute.getPort());
         }
         remoteAddress = socketAddress.toString();

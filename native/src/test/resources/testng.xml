@@ -57,6 +57,9 @@
 <!--Issue https://github.com/ballerina-platform/ballerina-standard-library/issues/317#issuecomment-816583427-->
 <!--            <class name="io.ballerina.stdlib.http.transport.proxyserver.HttpsProxyServerTestCase" />-->
             <class name="io.ballerina.stdlib.http.transport.proxyserver.HttpProxyServerTestCase" />
+            <class name="io.ballerina.stdlib.http.transport.proxyserver.Socks5ProxyServerTestCase" />
+            <class name="io.ballerina.stdlib.http.transport.proxyserver.Socks4ProxyServerTestCase" />
+            <class name="io.ballerina.stdlib.http.transport.proxyserver.SocksConnectionPoolTestCase" />
 
             <class name="io.ballerina.stdlib.http.transport.ClientConnectorTimeoutTestCase" />
             <class name="io.ballerina.stdlib.http.transport.ClientTimeoutWhileWritingBodyTestCase" />

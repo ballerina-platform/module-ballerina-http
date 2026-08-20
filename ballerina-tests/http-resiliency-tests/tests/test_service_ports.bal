@@ -19,6 +19,8 @@ const int retryFunctionTestPort2 = 9539;
 
 const int cBClientWithoutStatusCodesTestPort1 = 9569;
 const int cBClientWithoutStatusCodesTestPort2 = 9570;
+// A local port with no listener, used to trigger a fast, deterministic connection failure.
+const int unreachableBackendPort = 9789;
 
 const int foClientWithoutStatusCodeTestPort1 = 9571;
 const int foClientWithoutStatusCodeTestPort2 = 9572;
