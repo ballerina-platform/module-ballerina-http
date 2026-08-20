@@ -24,6 +24,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
+import java.nio.channels.OverlappingFileLockException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -319,10 +320,10 @@ public class HttpRollingFileHandlerTest {
     public void testConcurrentHandlerIsRejectedByTheFileLock() throws IOException {
         HttpRollingFileHandler first = handler("access.log", RotationPolicy.BOTH, 1024L, 3600L, 5, false, null);
         try {
-            // Within a single JVM the overlapping lock is reported by FileChannel as an unchecked
-            // OverlappingFileLockException rather than the IOException the handler raises for a lock held by
-            // another process, so this only asserts that the second handler is refused.
-            assertThrows(Exception.class,
+            // Within a single JVM, FileChannel.tryLock() reports an overlapping lock held by the same JVM as
+            // this unchecked exception, distinct from the IOException the handler raises when the lock is held
+            // by another process.
+            assertThrows(OverlappingFileLockException.class,
                          () -> handler("access.log", RotationPolicy.BOTH, 1024L, 3600L, 5, false, null));
         } finally {
             first.close();

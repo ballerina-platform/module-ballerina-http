@@ -100,10 +100,13 @@ public class URITemplateParserTest {
         assertNull(match("/orders"), "A prefix of the template must not resolve");
     }
 
-    @Test(description = "A trailing slash in the template is ignored, so both forms of the URI resolve")
+    @Test(description = "A trailing slash in the template is ignored at parse time, but the matcher does not "
+            + "apply the same normalisation to an incoming request")
     public void testTrailingSlashInTemplate() throws Exception {
         parse("/orders/", "orders");
         assertEquals(match("/orders"), "orders", "Template with a trailing slash did not match the bare path");
+        assertNull(match("/orders/"),
+                   "A request with a trailing slash is matched literally, not normalised like the template was");
     }
 
     @Test(description = "A path parameter is bound to the segment it matched")
@@ -208,6 +211,7 @@ public class URITemplateParserTest {
     @Test(description = "A zero or negative prefix modifier is rejected")
     public void testInvalidPrefixModifierIsRejected() {
         assertThrows(URITemplateException.class, () -> parse("/orders/{orderId:0}", "bad"));
+        assertThrows(URITemplateException.class, () -> parse("/orders/{orderId:-1}", "bad"));
     }
 
     @Test(description = "A template starting with a wildcard is rejected outright")
