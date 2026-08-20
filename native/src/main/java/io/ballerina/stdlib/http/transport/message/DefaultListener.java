@@ -55,9 +55,8 @@ public class DefaultListener implements Listener {
             return;
         }
         if (Util.isLastHttpContent(httpContent)) {
-            // The peer has sent the complete message, so the channel is restored to its default read
-            // behaviour irrespective of how much content is still queued up for the application. Leaving it
-            // throttled here would hand a pooled connection back with its reads suspended.
+            // Restore default read behaviour regardless of how much content is still queued, so a pooled
+            // connection is not handed back with its reads suspended.
             Channel channel = this.ctx.channel();
             readCompleted = true;
             this.ctx = null;
@@ -67,9 +66,7 @@ public class DefaultListener implements Listener {
             BackPressureAwareIdleStateHandler.inboundReadsResumed(this.ctx.channel());
             this.ctx.channel().read();
         }
-        // Otherwise the transport stops pulling from the socket until the application drains what is already
-        // queued. The peer is not at fault for that inactivity, and isReadSuspended() is what tells the idle
-        // timeout so.
+        // Otherwise reads stay suspended until the application drains what is already queued.
     }
 
     @Override
@@ -99,13 +96,8 @@ public class DefaultListener implements Listener {
         }
     }
 
-    /**
-     * Whether the transport has stopped pulling data off the socket because the application has not consumed
-     * what is already queued. Derived from the queue itself rather than latched into a flag, so that the
-     * event loop adding content and the application thread draining it cannot leave the two disagreeing.
-     *
-     * @return true if inbound reads are currently throttled by the application
-     */
+    // Derived from the queue itself rather than a latched flag, so the event loop adding content and the
+    // application thread draining it cannot leave the two disagreeing.
     private boolean isReadSuspended() {
         return !readCompleted && cumulativeByteQuantity.get() >= MAXIMUM_BYTE_SIZE;
     }

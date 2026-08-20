@@ -28,11 +28,8 @@ import org.slf4j.LoggerFactory;
 import java.io.InputStream;
 
 /**
- * Consumes the inbound request body deliberately slowly, pausing for longer than the server socket idle
- * timeout, and then responds with the number of bytes it managed to read.
- *
- * <p>The response payload is the byte count on success, or {@code error: <message>} if reading the body
- * failed, so a test can tell a complete read apart from a stream that was cut short.
+ * Consumes the inbound request body deliberately slowly, then responds with the byte count on success or
+ * {@code error: <message>} if reading failed, so a test can tell a complete read from a cut-short stream.
  */
 public class Http2SlowRequestBodyConsumerListener implements HttpConnectorListener {
 

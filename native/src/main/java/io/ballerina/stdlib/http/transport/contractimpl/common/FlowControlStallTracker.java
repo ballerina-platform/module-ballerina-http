@@ -33,23 +33,11 @@ import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.remain
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.ticksInNanos;
 
 /**
- * Decides, on behalf of the HTTP/2 stream timeout handlers, whether the silence on a stream is down to flow
- * control rather than an unresponsive peer.
- *
- * <p>Both the client and the server ask the same question of their own connection, so the bookkeeping lives
- * here rather than twice over in the two timeout handlers.
- *
- * <p>A stream that is blocked right now is not the peer's fault. Neither is a stream that was blocked as
- * recently as the previous check: the window has only just reopened and the peer has not yet had a full idle
- * period in which to act. Without that second case a stream is failed whenever the timer happens to land in
- * the moment between the window opening and the next frame moving, which is a race a slow peer hits
- * regularly.
- *
- * <p>The reprieve is capped by the {@code maxBackPressureStallTime} configurable. The inbound case would
- * recover on its own, since it is our own application that reopens the window, but the outbound case would
- * not: a peer that has stopped reading never reopens our window, and without a cap it could pin a stream and
- * the response queued behind it indefinitely. Any progress on the stream restarts the span through
- * {@link #recordProgress(int)}, so a transfer that is merely slow never approaches the cap.
+ * Decides, on behalf of both HTTP/2 stream timeout handlers, whether the silence on a stream is down to flow
+ * control rather than an unresponsive peer. Also excuses one extra check after the window has just reopened,
+ * so a timer landing in that race does not fail a stream a slow peer would otherwise still complete, and caps
+ * the whole reprieve at {@code maxBackPressureStallTime} so a peer that never reopens the window cannot pin a
+ * stream forever.
  */
 public class FlowControlStallTracker {
 
@@ -64,25 +52,19 @@ public class FlowControlStallTracker {
         this.connectionSupplier = connectionSupplier;
     }
 
-    /**
-     * Whether the countdown on this stream should be restarted instead of the stream being failed.
-     *
-     * @param streamId the stream whose idle period has just elapsed
-     * @return true if the silence is explained by flow control and the cap has not been reached
-     */
+    // True if the silence on streamId is explained by flow control and the maxBackPressureStallTime cap has
+    // not been reached, i.e. the caller's timeout should be excused rather than failing the stream.
     public boolean isStalledByFlowControl(int streamId) {
         Long stallStartTime = stallStartTimes.get(streamId);
         if (stallStartTime != null && !isWithinBackPressureStallLimit(stallStartTime)) {
-            // The start time is deliberately left standing: until something actually moves on this stream,
-            // every further period should time out rather than earn a fresh allowance.
+            // Left standing: until something actually moves, every further period should time out too.
             LOG.debug("Stream {} has been held up by flow control past the permitted stall time without any "
                               + "progress, letting the idle timeout run", streamId);
             return false;
         }
         if (isStreamBlockedByFlowControl(connectionSupplier.get(), streamId)) {
-            // Reuse the existing start time if one is already on record, otherwise this is the first time this
-            // stream has been seen stalled - which must still be checked against the limit straight away, so
-            // that a zero (or otherwise already-elapsed) allowance is not excused for one free period.
+            // First time seen stalled: still check against the limit immediately, so a zero (or already
+            // elapsed) allowance is not excused for one free period.
             long startTime = stallStartTime != null ? stallStartTime
                     : stallStartTimes.merge(streamId, ticksInNanos(), (existing, fresh) -> existing);
             return isWithinBackPressureStallLimit(startTime);
@@ -95,15 +77,8 @@ public class FlowControlStallTracker {
         return false;
     }
 
-    /**
-     * How long to wait before rechecking a stream that is currently being excused for flow control, so that a
-     * {@code maxBackPressureStallTime} shorter than the stream's own idle timeout is honoured instead of
-     * always waiting a full idle period between checks.
-     *
-     * @param streamId      the stream currently excused by flow control
-     * @param idleTimeNanos the stream's own idle timeout, used when no shorter cap applies
-     * @return the delay, in nanoseconds, before the next recheck should run
-     */
+    // Delay before rechecking a stream currently excused for flow control: idleTimeNanos, unless
+    // maxBackPressureStallTime is shorter, so a short cap does not have to wait a full idle period.
     public long nextRecheckDelayNanos(int streamId, long idleTimeNanos) {
         Long stallStartTime = stallStartTimes.get(streamId);
         if (stallStartTime == null) {
@@ -116,27 +91,14 @@ public class FlowControlStallTracker {
         return Math.min(idleTimeNanos, Math.max(remaining, MIN_RECHECK_NANOS));
     }
 
-    /**
-     * Records that the stream has moved since the last check, which restarts its permitted stall time.
-     *
-     * @param streamId the stream that has made progress
-     */
     public void recordProgress(int streamId) {
         stallStartTimes.remove(streamId);
     }
 
-    /**
-     * Forgets a stream that is no longer being timed.
-     *
-     * @param streamId the stream to forget
-     */
     public void remove(int streamId) {
         stallStartTimes.remove(streamId);
     }
 
-    /**
-     * Forgets every stream, for when the owning connection goes away.
-     */
     public void clear() {
         stallStartTimes.clear();
     }

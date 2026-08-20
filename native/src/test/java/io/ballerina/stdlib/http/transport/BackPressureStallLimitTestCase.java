@@ -46,15 +46,9 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
 /**
- * Verifies that {@code maxBackPressureStallTime} is checked on its own schedule rather than only being noticed
- * the next time the full socket idle timeout happens to elapse.
- *
- * <p>The socket idle timeout here is deliberately larger than the configured stall cap. Netty's own idle
- * detection only rechecks once per socket idle timeout, so without a faster recheck of its own, a stall that
- * outlasts the cap but not twice the idle timeout would go unnoticed until that second period elapsed - close
- * to {@code SOCKET_IDLE_TIMEOUT * 2} - instead of close to {@code SOCKET_IDLE_TIMEOUT + cap}. The deadline
- * asserted below sits in between those two, so it fails if the faster recheck regresses back to Netty's own
- * coarser cadence.
+ * Verifies that {@code maxBackPressureStallTime} is checked on its own schedule - close to
+ * {@code SOCKET_IDLE_TIMEOUT + cap} - rather than only on Netty's own coarser once-per-idle-timeout cadence,
+ * which would let a stall run close to {@code SOCKET_IDLE_TIMEOUT * 2} before being noticed.
  */
 public class BackPressureStallLimitTestCase {
 
@@ -122,9 +116,8 @@ public class BackPressureStallLimitTestCase {
                        CONSUMER_PAUSE, MAX_BACK_PRESSURE_STALL_SECONDS);
             Thread.sleep(CONSUMER_PAUSE);
 
-            // Only content queued before the socket reads were suspended (capped well under RESPONSE_SIZE) can
-            // still be drained here without blocking; once that is exhausted, the next read blocks until the
-            // connection is reclaimed, either as a decode failure or as a plain end of stream.
+            // Only content queued before reads were suspended can be drained without blocking; after that
+            // the next read blocks until the connection is reclaimed.
             try {
                 while (totalRead < RESPONSE_SIZE) {
                     int toRead = Math.min(READ_SLICE, RESPONSE_SIZE - totalRead);

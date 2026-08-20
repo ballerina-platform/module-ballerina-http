@@ -85,9 +85,7 @@ public class Http2ClientTimeoutHandler implements Http2DataEventListener {
     }
 
     public void createTimerTask(ChannelHandlerContext ctx, int streamId, long timeOut, boolean expectContinue) {
-        // timeOut arrives in milliseconds, so it has to be converted before it is held in a field the rest of
-        // this class reads as nanoseconds - getNextDelay compares it against ticksInNanos() and the flow
-        // control recheck caps its delay against it.
+        // timeOut is in milliseconds; idleTimeNanos is read as nanoseconds everywhere else in this class.
         this.idleTimeNanos = TimeUnit.MILLISECONDS.toNanos(timeOut);
         timerTasks.put(streamId, schedule(ctx, new IdleTimeoutTask(ctx, streamId, expectContinue),
                 TimeUnit.MILLISECONDS.toNanos(timeOut)));
@@ -204,10 +202,9 @@ public class Http2ClientTimeoutHandler implements Http2DataEventListener {
                 return;
             }
             if (flowControlStallTracker.isStalledByFlowControl(streamId)) {
-                // lastReadWriteTime is deliberately left untouched here: bumping it would make the next
-                // firing's getNextDelay() see less than idleTimeNanos elapsed and misread this recheck itself
-                // as genuine read/write activity, calling recordProgress() and letting a permanently stalled
-                // stream renew its excuse forever instead of ever hitting maxBackPressureStallTime.
+                // lastReadWriteTime is left untouched: bumping it would make the next getNextDelay() see
+                // real progress and call recordProgress(), letting a permanently stalled stream renew its
+                // excuse forever instead of ever hitting maxBackPressureStallTime.
                 long recheckDelay = flowControlStallTracker.nextRecheckDelayNanos(streamId, idleTimeNanos);
                 timerTasks.put(streamId, schedule(ctx, this, recheckDelay));
                 return;

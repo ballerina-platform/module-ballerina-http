@@ -50,14 +50,8 @@ import static org.testng.Assert.assertTrue;
 
 /**
  * Verifies that {@code maxBackPressureStallTime} is a genuine ceiling on an HTTP/2 stream that is permanently
- * stalled by flow control, not just one that is slow and eventually resumes.
- *
- * <p>A regression here is a real one: the per-stream recheck this cap relies on synthetically bumped the
- * stream's last-read-write time, and the very next recheck - scheduled sooner than the socket idle timeout -
- * would then look like genuine read/write activity had occurred, clearing the stall tracking and letting the
- * excuse renew forever. A consumer that resumes reading eventually (as in
- * {@link Http2SlowInboundResponseBodyConsumerTestCase}) never exposed this, because real progress clears the
- * tracking anyway; only a consumer that never reads again does.
+ * stalled by flow control, not just one that is slow and eventually resumes like
+ * {@link Http2SlowInboundResponseBodyConsumerTestCase}.
  */
 public class Http2ClientBackPressureStallLimitTestCase {
 
@@ -68,9 +62,8 @@ public class Http2ClientBackPressureStallLimitTestCase {
     private static final int SOCKET_IDLE_TIMEOUT = 2000;
     private static final double MAX_BACK_PRESSURE_STALL_SECONDS = 0.4;
     private static final int READ_SLICE = 16 * 1024;
-    // Past SOCKET_IDLE_TIMEOUT + (MAX_BACK_PRESSURE_STALL_SECONDS * 1000) = 2400ms, so the cap should already
-    // have been enforced by the time the consumer checks back in, but well short of what a bypassed cap would
-    // need (the stream would simply never be reclaimed at all).
+    // Past SOCKET_IDLE_TIMEOUT + (MAX_BACK_PRESSURE_STALL_SECONDS * 1000) = 2400ms, well short of what a
+    // bypassed cap would need (the stream would never be reclaimed at all).
     private static final int CONSUMER_PAUSE = 2600;
     private static final long RECLAIM_DEADLINE_MILLIS = 3200;
     // A regression here is a permanently stalled read rather than a quick error, so the test method is bounded
@@ -128,18 +121,14 @@ public class Http2ClientBackPressureStallLimitTestCase {
             totalRead += firstRead;
             stallStartMillis = System.currentTimeMillis();
 
-            // Deliberately not read again until the pause has elapsed: HTTP/2 credits the flow control window
-            // back to the peer as soon as content is consumed, so a further read here - even one that only
-            // drains what is already buffered - would reopen the window and let the transfer continue,
-            // masking the very stall the cap is meant to bound.
+            // Deliberately not read again until the pause has elapsed: any read here reopens the window
+            // and lets the transfer continue, masking the very stall the cap is meant to bound.
             LOG.debug("Stalling the consumer for {}ms, well past the {}s back-pressure stall cap",
                        CONSUMER_PAUSE, MAX_BACK_PRESSURE_STALL_SECONDS);
             Thread.sleep(CONSUMER_PAUSE);
 
-            // Only content queued before the stall began (bounded by the flow control window, well under
-            // RESPONSE_SIZE) can still be drained here; once that runs out, the stream must already have been
-            // reclaimed and reset independently of any read of ours, either failing outright or ending the
-            // stream once the queued content is exhausted.
+            // Only content queued before the stall began can still be drained here; once that runs out
+            // the stream must already have been reclaimed and reset independently of any read of ours.
             try {
                 while (totalRead < RESPONSE_SIZE) {
                     int toRead = Math.min(READ_SLICE, RESPONSE_SIZE - totalRead);

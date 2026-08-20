@@ -50,25 +50,16 @@ import static org.testng.Assert.assertTrue;
 
 /**
  * Verifies that an HTTP/2 server writing a large response to a slow client is not timed out by its own stream
- * timer.
- *
- * <p>This is the outbound counterpart of the inbound flow control cases. When the client is the slow consumer
- * its window closes, and the response the server has already produced sits queued in the remote flow
- * controller waiting to go out. No frames are written while that lasts, so the stream looks idle to the server
- * even though it has data ready and the client is the one holding it up. Acting on that apparent idleness made
- * the server send RST_STREAM, which the client surfaced as a prematurely closed response stream.
- *
- * <p>Note that the server idle timeout must be short here and the client timeout long: the reverse
- * arrangement, used by the inbound tests, keeps the server timer out of the picture entirely and cannot catch
- * this.
+ * timer: a closed client window leaves the response queued in the remote flow controller, which must not be
+ * mistaken for an idle stream. The server idle timeout is deliberately short and the client's long, the
+ * reverse of the inbound tests, so the server timer is the one under test.
  */
 public class Http2SlowOutboundResponseWriteTestCase {
 
     private static final Logger LOG = LoggerFactory.getLogger(Http2SlowOutboundResponseWriteTestCase.class);
 
     // Large enough that the server cannot hand the whole response to the encoder before the client's window
-    // closes. A response small enough to be written in one go completes the stream and cancels the timer,
-    // which is exactly why smaller payloads never showed this.
+    // closes; a response small enough to write in one go completes the stream and cancels the timer.
     private static final int RESPONSE_SIZE = 4 * 1024 * 1024;
     private static final int SERVER_IDLE_TIMEOUT = 2000;
     private static final int READ_SLICE = 16 * 1024;

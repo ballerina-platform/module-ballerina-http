@@ -55,12 +55,6 @@ public class LargeResponseServerInitializer extends HttpServerInitializer {
         channel.pipeline().addLast("handler", new LargeResponseServerHandler());
     }
 
-    /**
-     * Builds the deterministic body this initializer serves, so a test can assert on the received content.
-     *
-     * @param size the length of the body in bytes
-     * @return the body content
-     */
     public static byte[] buildExpectedPayload(int size) {
         byte[] payload = new byte[size];
         for (int i = 0; i < size; i++) {

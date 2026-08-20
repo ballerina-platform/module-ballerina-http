@@ -29,13 +29,7 @@ public class ExternBackPressureConfig {
     private ExternBackPressureConfig() {
     }
 
-    /**
-     * Sets how long a transfer may sit still because of application back-pressure before the idle timeout is
-     * allowed to run.
-     *
-     * @param maxBackPressureStallTime the span in seconds; negative excuses back-pressure indefinitely, zero
-     *                                 excuses none of it
-     */
+    // maxBackPressureStallTime in seconds; negative excuses back-pressure indefinitely, zero excuses none.
     public static void setMaxBackPressureStallTime(BDecimal maxBackPressureStallTime) {
         Util.setMaxBackPressureStallTime(maxBackPressureStallTime.floatValue());
     }

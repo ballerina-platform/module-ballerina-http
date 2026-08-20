@@ -49,14 +49,9 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
 /**
- * Verifies that an HTTP/2 service which consumes a large inbound request body slowly is not timed out.
- *
- * <p>This is the inbound request counterpart of
+ * Verifies that an HTTP/2 service which consumes a large inbound request body slowly is not timed out - the
+ * request-side counterpart of
  * {@link io.ballerina.stdlib.http.transport.http2.clienttimeout.Http2SlowInboundResponseBodyConsumerTestCase}.
- * The service only returns inbound flow control window space to the client as it drains the request, so a
- * service that is slower than the server socket idle timeout leaves the client with a zero window. Nothing
- * then arrives on the stream, and the per stream timer would otherwise conclude that the client had stalled
- * and answer with a 408 instead of letting the request complete.
  */
 public class Http2SlowInboundRequestBodyConsumerTestCase {
 

@@ -49,13 +49,9 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
 /**
- * Verifies that an HTTP/2 client which consumes a large inbound response body slowly is not timed out.
- *
- * <p>On HTTP/2 the back-pressure is applied through the inbound flow control window rather than through
- * autoRead: {@code Http2InboundContentListener} only replenishes the window as the application consumes, so a
- * slow consumer causes the peer to stop sending. No data then arrives, and the per stream idle timer would
- * otherwise conclude that the peer has stalled and fail the response. The window defaults to 64KB, so this
- * kicks in far sooner than the HTTP/1.1 equivalent.
+ * Verifies that an HTTP/2 client which consumes a large inbound response body slowly is not timed out: a slow
+ * consumer closes the (default 64KB) inbound flow control window, and that must not be mistaken for a stalled
+ * peer.
  */
 public class Http2SlowInboundResponseBodyConsumerTestCase {
 

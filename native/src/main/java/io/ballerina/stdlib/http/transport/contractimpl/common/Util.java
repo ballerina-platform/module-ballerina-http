@@ -151,20 +151,8 @@ public class Util {
     public static final String HTTP_1_1 = "http/1.1";
     private static final float EPSILON = 0.00001f;
 
-    /**
-     * How long a transfer may sit completely still because of application back-pressure before the idle
-     * timeout is allowed to run after all, in seconds.
-     *
-     * <p>Silence caused by our own back-pressure is not the peer's fault and must not fail an otherwise
-     * healthy transfer, but excusing it without limit would mean a connection or stream could never be
-     * reclaimed: a hung application never reopens the inbound window, and a peer that has simply stopped
-     * reading never reopens the outbound one. Any progress at all - a byte consumed, a frame read or written -
-     * restarts this span, so it only bites a transfer that has made no progress whatsoever for its whole
-     * duration.
-     *
-     * <p>Overridden from Ballerina by the {@code maxBackPressureStallTime} configurable. A negative value
-     * excuses back-pressure indefinitely; zero excuses none of it.
-     */
+    // Default for the maxBackPressureStallTime configurable, in seconds; negative excuses back-pressure
+    // indefinitely, zero excuses none of it.
     public static final double DEFAULT_MAX_BACK_PRESSURE_STALL_TIME = 300;
 
     private static volatile long maxBackPressureStallTimeNanos =
@@ -1203,26 +1191,8 @@ public class Util {
         sslEngine.setSSLParameters(sslParams);
     }
 
-    /**
-     * Checks whether a stream is quiet because of HTTP/2 flow control rather than because the peer has
-     * stalled. Neither direction of such quietness may be counted towards the idle timeout.
-     *
-     * <p>Inbound: {@link io.ballerina.stdlib.http.transport.message.Http2InboundContentListener} only returns
-     * window space to the peer as the application drains the message, so a consumer that is slower than the
-     * idle timeout leaves the peer with a zero window. The peer has more of the message to send and would send
-     * it the moment the window reopened.
-     *
-     * <p>Outbound: when the peer is the slow consumer, its window closes and our own message sits queued in
-     * the remote flow controller waiting to go out. No frames are written while that lasts, so the stream
-     * looks idle even though we have data ready and the peer is the one holding it up.
-     *
-     * <p>In both cases the inactivity is caused by an application rather than by an unresponsive peer, so
-     * resetting the stream would truncate a message that is still being transferred perfectly normally.
-     *
-     * @param connection the HTTP/2 connection the stream belongs to
-     * @param streamId   the stream to inspect
-     * @return true if the stream is held up by flow control in either direction
-     */
+    // True if the stream is quiet because of HTTP/2 flow control - our inbound window closed on an unconsumed
+    // message, or our outbound message queued waiting on the peer's window - rather than an unresponsive peer.
     public static boolean isStreamBlockedByFlowControl(Http2Connection connection, int streamId) {
         if (connection == null) {
             return false;
@@ -1233,14 +1203,11 @@ public class Util {
         }
         try {
             Http2LocalFlowController localFlowController = connection.local().flowController();
-            // The peer cannot send on this stream: we have not consumed what it already delivered.
+            // The peer cannot send: we have not consumed what it already delivered.
             if (localFlowController.windowSize(stream) <= 0) {
                 return true;
             }
-            // The connection window is shared by every stream and can hold the peer back just as a stream's
-            // own window can, but it is exhausted by whichever streams are sitting on unconsumed content.
-            // A stream holding none of it is waiting for something the window does not gate - response
-            // headers, say - so it must keep being timed out even while a sibling has the window shut.
+            // The shared connection window is exhausted by unconsumed content on this or a sibling stream.
             if (localFlowController.unconsumedBytes(stream) > 0
                     && localFlowController.windowSize(connection.connectionStream()) <= 0) {
                 return true;
@@ -1252,23 +1219,14 @@ public class Util {
             return false;
         }
     }
-    /**
-     * Sets how long a transfer may sit still because of application back-pressure before the idle timeout is
-     * allowed to run. Called once during module initialisation from the Ballerina layer.
-     *
-     * @param seconds the span in seconds; negative excuses back-pressure indefinitely, zero excuses none
-     */
+
+    // Sets the maxBackPressureStallTime allowance, in seconds. Called once during module initialisation.
     public static void setMaxBackPressureStallTime(double seconds) {
         maxBackPressureStallTimeNanos = seconds < 0 ? -1L : (long) (seconds * 1_000_000_000L);
     }
 
-    /**
-     * Whether a back-pressure stall that began at the given time is still within its allowance, and so should
-     * be excused for one more idle period rather than failing the transfer.
-     *
-     * @param stallStartTimeNanos when the stall was first observed, from {@link #ticksInNanos()}
-     * @return true if the stall should still be excused
-     */
+    // True if a back-pressure stall that began at stallStartTimeNanos (from ticksInNanos()) is still within
+    // its maxBackPressureStallTime allowance.
     public static boolean isWithinBackPressureStallLimit(long stallStartTimeNanos) {
         long limitNanos = maxBackPressureStallTimeNanos;
         if (limitNanos < 0) {
@@ -1280,14 +1238,9 @@ public class Util {
         return ticksInNanos() - stallStartTimeNanos < limitNanos;
     }
 
-    /**
-     * How much of the {@code maxBackPressureStallTime} allowance is left for a stall that began at the given
-     * time. Lets a caller that rechecks itself on a timer - rather than waiting for the next fixed idle period -
-     * schedule that recheck no later than when the allowance actually runs out.
-     *
-     * @param stallStartTimeNanos when the stall was first observed, from {@link #ticksInNanos()}
-     * @return the remaining allowance in nanoseconds, or a negative value if the allowance is unlimited
-     */
+    // Remaining maxBackPressureStallTime allowance in nanoseconds for a stall that began at stallStartTimeNanos,
+    // or negative if the allowance is unlimited. Lets a caller reschedule its own recheck for exactly when the
+    // allowance runs out instead of waiting for the next fixed idle period.
     public static long remainingBackPressureStallNanos(long stallStartTimeNanos) {
         long limitNanos = maxBackPressureStallTimeNanos;
         if (limitNanos < 0) {

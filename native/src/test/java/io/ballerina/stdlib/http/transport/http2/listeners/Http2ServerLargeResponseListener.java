@@ -48,12 +48,6 @@ public class Http2ServerLargeResponseListener implements HttpConnectorListener {
         this.responseSize = responseSize;
     }
 
-    /**
-     * Builds the deterministic body this listener serves, so a test can assert on the received content.
-     *
-     * @param size the length of the body in bytes
-     * @return the body content
-     */
     public static byte[] buildExpectedPayload(int size) {
         byte[] payload = new byte[size];
         for (int i = 0; i < size; i++) {

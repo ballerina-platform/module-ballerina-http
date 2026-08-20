@@ -47,13 +47,7 @@ import static org.testng.Assert.assertTrue;
 
 /**
  * Verifies that a client which consumes a large inbound response body slowly is not disconnected by the socket
- * idle timeout.
- *
- * <p>Inbound bodies are pulled off the socket on demand, so once enough content is queued up for the
- * application the transport stops asking the socket for more data until the application catches up. That
- * inactivity is caused by the application, not by the peer, and must therefore not be counted as an idle
- * connection - otherwise a large streamed response is torn down halfway through whenever the consumer is
- * slower than the configured timeout.
+ * idle timeout: reads paused waiting on the application must not be counted as an idle connection.
  */
 public class SlowInboundResponseBodyConsumerTestCase {
 

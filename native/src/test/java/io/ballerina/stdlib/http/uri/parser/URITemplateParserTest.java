@@ -32,10 +32,8 @@ import static org.testng.Assert.assertThrows;
 
 /**
  * Unit tests for the URI template parser and the node tree it builds, driven end to end: a template is parsed
- * into the tree and then real URIs are matched against it.
- *
- * <p>The production tree stores a resource per leaf, so these tests store a {@link String} name instead and
- * assert which name a URI resolves to, along with the path parameters that were bound on the way.
+ * into the tree and real URIs are matched against it, asserting which {@link String} resource name each
+ * resolves to and the path parameters bound along the way.
  */
 public class URITemplateParserTest {
 
