@@ -18,7 +18,10 @@
 
 package io.ballerina.stdlib.http.compiler;
 
+import io.ballerina.projects.CodeModifierResult;
 import io.ballerina.projects.DiagnosticResult;
+import io.ballerina.projects.DocumentId;
+import io.ballerina.projects.Module;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.ProjectEnvironmentBuilder;
@@ -755,8 +758,25 @@ public class CompilerPluginTest {
     @Test
     public void testCodeModifierWithServiceClassesPayloadAnnotation() {
         Package currentPackage = loadPackage("sample_package_36");
-        DiagnosticResult modifierDiagnosticResult = currentPackage.runCodeGenAndModifyPlugins();
-        Assert.assertEquals(modifierDiagnosticResult.errorCount(), 0);
+        CodeModifierResult modifierResult = currentPackage.runCodeModifierPlugins();
+
+        Assert.assertEquals(modifierResult.reportedDiagnostics().errorCount(), 0);
+
+        Package modifiedPackage = modifierResult.updatedPackage()
+                .orElseThrow(() -> new AssertionError("Expected the code modifier to return an updated package"));
+
+        Module module = modifiedPackage.getDefaultModule();
+        DocumentId documentId = module.documentIds().iterator().next();
+        String modifiedSource = module.document(documentId)
+                .syntaxTree()
+                .toSourceCode();
+
+        Assert.assertTrue(modifiedSource.contains(
+                        "resource function post foo(@http:Payload map<json> p)"),
+                "Expected @http:Payload to be added in the service class");
+        Assert.assertTrue(modifiedSource.contains(
+                        "resource function post bar(@http:Payload map<json> q)"),
+                "Expected @http:Payload to be added in the isolated service class");
     }
 
     @Test
