@@ -54,13 +54,17 @@ public class Http2ClientTimeoutHandler implements Http2DataEventListener {
     private static final Logger LOG = LoggerFactory.getLogger(Http2ClientTimeoutHandler.class);
     private static final long MIN_TIMEOUT_NANOS = TimeUnit.MILLISECONDS.toNanos(1);
 
-    private long idleTimeNanos;
+    // Only the default budget for streams that never call createTimerTask (e.g. Expect: 100-continue), which
+    // carry their own timeout instead. Each IdleTimeoutTask keeps its own copy so that one stream's timeout
+    // (e.g. a 100-continue wait) cannot corrupt the budget every other stream multiplexed on this connection
+    // reads its idle delay against.
+    private final long defaultIdleTimeNanos;
     private Http2ClientChannel http2ClientChannel;
     private Map<Integer, ScheduledFuture<?>> timerTasks;
     private final FlowControlStallTracker flowControlStallTracker;
 
     public Http2ClientTimeoutHandler(long idleTimeMills, Http2ClientChannel http2ClientChannel) {
-        this.idleTimeNanos = Math.max(TimeUnit.MILLISECONDS.toNanos(idleTimeMills), MIN_TIMEOUT_NANOS);
+        this.defaultIdleTimeNanos = Math.max(TimeUnit.MILLISECONDS.toNanos(idleTimeMills), MIN_TIMEOUT_NANOS);
         this.http2ClientChannel = http2ClientChannel;
         this.flowControlStallTracker = new FlowControlStallTracker(http2ClientChannel::getConnection);
         timerTasks = new ConcurrentHashMap<>();
@@ -79,16 +83,17 @@ public class Http2ClientTimeoutHandler implements Http2DataEventListener {
     private void setTimerTask(ChannelHandlerContext ctx, int streamId, OutboundMsgHolder outboundMsgHolder) {
         if (outboundMsgHolder != null) {
             outboundMsgHolder.setLastReadWriteTime(ticksInNanos());
-            timerTasks.put(streamId,
-                           schedule(ctx, new IdleTimeoutTask(ctx, streamId, false), idleTimeNanos));
+            timerTasks.put(streamId, schedule(
+                    ctx, new IdleTimeoutTask(ctx, streamId, false, defaultIdleTimeNanos), defaultIdleTimeNanos));
         }
     }
 
     public void createTimerTask(ChannelHandlerContext ctx, int streamId, long timeOut, boolean expectContinue) {
-        // timeOut is in milliseconds; idleTimeNanos is read as nanoseconds everywhere else in this class.
-        this.idleTimeNanos = TimeUnit.MILLISECONDS.toNanos(timeOut);
-        timerTasks.put(streamId, schedule(ctx, new IdleTimeoutTask(ctx, streamId, expectContinue),
-                TimeUnit.MILLISECONDS.toNanos(timeOut)));
+        // timeOut is in milliseconds; idle times are kept in nanoseconds everywhere else in this class.
+        long idleTimeNanos = TimeUnit.MILLISECONDS.toNanos(timeOut);
+        timerTasks.put(streamId,
+                       schedule(ctx, new IdleTimeoutTask(ctx, streamId, expectContinue, idleTimeNanos),
+                                idleTimeNanos));
     }
 
     @Override
@@ -174,11 +179,15 @@ public class Http2ClientTimeoutHandler implements Http2DataEventListener {
         private ChannelHandlerContext ctx;
         private int streamId;
         private boolean expectContinue;
+        // Captured per task rather than read off the handler, so this stream's budget cannot be overwritten
+        // by another stream on the same connection creating its own timer task (e.g. Expect: 100-continue).
+        private final long idleTimeNanos;
 
-        IdleTimeoutTask(ChannelHandlerContext ctx, int streamId, boolean expectContinue) {
+        IdleTimeoutTask(ChannelHandlerContext ctx, int streamId, boolean expectContinue, long idleTimeNanos) {
             this.ctx = ctx;
             this.streamId = streamId;
             this.expectContinue = expectContinue;
+            this.idleTimeNanos = idleTimeNanos;
         }
 
         @Override

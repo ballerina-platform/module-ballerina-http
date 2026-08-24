@@ -1045,7 +1045,8 @@ public class Util {
             backpressureHandler.getBackPressureObservable().setListener(
                 new Http2PassthroughBackPressureListener((Http2InboundContentListener) inboundListener));
         } else if (inboundListener instanceof DefaultListener && ctx != null) {
-            backpressureHandler.getBackPressureObservable().setListener(new PassthroughBackPressureListener(ctx));
+            backpressureHandler.getBackPressureObservable().setListener(
+                new PassthroughBackPressureListener(ctx, (DefaultListener) inboundListener));
         }
     }
 

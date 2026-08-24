@@ -36,6 +36,10 @@ public class DefaultListener implements Listener {
     private volatile ChannelHandlerContext ctx;
     private volatile boolean readCompleted = false;
     private boolean first = true;
+    // Set by a PassthroughBackPressureListener when the downstream leg this response (or request) is being
+    // relayed to goes unwritable. That listener suspends reads on this channel the same way onAdd's own cap
+    // does, so the idle timeout must treat it as back-pressure too, not just the internal queue cap below.
+    private volatile boolean downstreamBackPressured = false;
 
     public DefaultListener(ChannelHandlerContext ctx) {
         this.ctx = ctx;
@@ -99,6 +103,27 @@ public class DefaultListener implements Listener {
     // Derived from the queue itself rather than a latched flag, so the event loop adding content and the
     // application thread draining it cannot leave the two disagreeing.
     private boolean isReadSuspended() {
-        return !readCompleted && cumulativeByteQuantity.get() >= MAXIMUM_BYTE_SIZE;
+        return !readCompleted && (cumulativeByteQuantity.get() >= MAXIMUM_BYTE_SIZE || downstreamBackPressured);
+    }
+
+    /**
+     * Called by a {@link PassthroughBackPressureListener} when the downstream leg this message is being
+     * relayed to has gone unwritable and reads on this channel have been suspended as a result.
+     */
+    public void onDownstreamUnwritable() {
+        downstreamBackPressured = true;
+    }
+
+    /**
+     * Called by a {@link PassthroughBackPressureListener} when the downstream leg this message is being
+     * relayed to has become writable again. Restarts the idle countdown the same way resuming reads for the
+     * internal queue cap does, since the peer was excused from it for the same reason.
+     */
+    public void onDownstreamWritable() {
+        downstreamBackPressured = false;
+        ChannelHandlerContext currentCtx = this.ctx;
+        if (currentCtx != null) {
+            BackPressureAwareIdleStateHandler.inboundReadsResumed(currentCtx.channel());
+        }
     }
 }
