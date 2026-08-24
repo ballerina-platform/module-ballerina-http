@@ -67,8 +67,11 @@ public class BackPressureAwareIdleStateHandler extends IdleStateHandler {
         getOrCreateState(channel).track(owner, readSuspended);
     }
 
-    public static void untrackInboundReads(Channel channel) {
-        getOrCreateState(channel).reset();
+    // Ignored, like inboundReadsResumed, if owner is no longer the one currently being tracked: untracking is
+    // the more destructive of the two, since clearing readSuspended for a message that has since started being
+    // tracked in its place would leave that message's back-pressure invisible to the idle timeout.
+    public static void untrackInboundReads(Channel channel, Object owner) {
+        getOrCreateState(channel).reset(owner);
     }
 
     // Restarts the idle countdown and clears any accumulated stall allowance. Ignored if owner is no longer
@@ -148,7 +151,13 @@ public class BackPressureAwareIdleStateHandler extends IdleStateHandler {
     }
 
     private boolean isCausedByBackPressure(InboundReadState state) {
-        return state.isReadSuspended() || ticksInNanos() - state.getLastRawReadTimeNanos() < idleTimeoutNanos;
+        if (state.isReadSuspended()) {
+            return true;
+        }
+        // Only while a message is actually being tracked. On a connection no application back-pressure has
+        // been applied to, a channelReadComplete that carried no decoded message - a partial chunk, a partial
+        // TLS record, a read that returned nothing - must not excuse a timeout that is otherwise due.
+        return state.isTracking() && ticksInNanos() - state.getLastProgressTimeNanos() < idleTimeoutNanos;
     }
 
     // Per channel view of whether the transport is currently asking the socket for inbound data.
@@ -158,12 +167,23 @@ public class BackPressureAwareIdleStateHandler extends IdleStateHandler {
         private volatile BooleanSupplier readSuspended;
         // Updated only from channelReadComplete, in step with the superclass's own idle baseline - see there.
         private volatile long lastRawReadTimeNanos = ticksInNanos();
+        // When the transport last started, or went back to, asking the peer for data. Kept alongside the raw
+        // read time because reads resuming after a long suspension leave that one stale by definition: the
+        // peer has to be given a full period to answer the read that has only just been issued to it.
+        private volatile long lastResumeTimeNanos = ticksInNanos();
         private final AtomicLong stallStartTimeNanos = new AtomicLong();
         private final AtomicReference<ScheduledFuture<?>> stallLimitRecheckTask = new AtomicReference<>();
 
         void track(Object newOwner, BooleanSupplier suspensionCheck) {
             owner = newOwner;
             readSuspended = suspensionCheck;
+            // A newly tracked message starts on a clean stall clock. Whatever the previous one left behind on
+            // this channel - it may have ended without ever untracking - is not this message's to answer for.
+            recordProgress();
+        }
+
+        boolean isTracking() {
+            return owner != null;
         }
 
         void recordRawRead() {
@@ -177,7 +197,15 @@ public class BackPressureAwareIdleStateHandler extends IdleStateHandler {
             if (callerOwner != owner) {
                 return;
             }
-            clearStall();
+            recordProgress();
+        }
+
+        // Guarded the same way resumed() is - see untrackInboundReads.
+        void reset(Object callerOwner) {
+            if (callerOwner != owner) {
+                return;
+            }
+            reset();
         }
 
         void reset() {
@@ -187,10 +215,12 @@ public class BackPressureAwareIdleStateHandler extends IdleStateHandler {
             // handler does, rather than inheriting a possibly stale timestamp from whatever this channel was
             // last used for.
             lastRawReadTimeNanos = ticksInNanos();
-            clearStall();
+            recordProgress();
         }
 
-        private void clearStall() {
+        // Restarts the idle countdown and clears any accumulated stall allowance.
+        private void recordProgress() {
+            lastResumeTimeNanos = ticksInNanos();
             stallStartTimeNanos.set(0);
             cancelStallLimitRecheck();
         }
@@ -214,8 +244,10 @@ public class BackPressureAwareIdleStateHandler extends IdleStateHandler {
             return suspensionCheck != null && suspensionCheck.getAsBoolean();
         }
 
-        long getLastRawReadTimeNanos() {
-            return lastRawReadTimeNanos;
+        // The later of the two, so that neither a peer that has just sent something nor a read that has just
+        // been reissued to it is mistaken for silence.
+        long getLastProgressTimeNanos() {
+            return Math.max(lastRawReadTimeNanos, lastResumeTimeNanos);
         }
 
         // Marks the channel as stalled if it was not already, and returns when the stall began; compareAndSet

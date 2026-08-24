@@ -54,10 +54,10 @@ public class Http2ClientTimeoutHandler implements Http2DataEventListener {
     private static final Logger LOG = LoggerFactory.getLogger(Http2ClientTimeoutHandler.class);
     private static final long MIN_TIMEOUT_NANOS = TimeUnit.MILLISECONDS.toNanos(1);
 
-    // Only the default budget for streams that never call createTimerTask (e.g. Expect: 100-continue), which
-    // carry their own timeout instead. Each IdleTimeoutTask keeps its own copy so that one stream's timeout
-    // (e.g. a 100-continue wait) cannot corrupt the budget every other stream multiplexed on this connection
-    // reads its idle delay against.
+    // Only the budget for streams timed from onStreamInit. A stream that goes through createTimerTask - an
+    // Expect: 100-continue wait, for one - carries its own instead. Each IdleTimeoutTask keeps its own copy so
+    // that one stream's much shorter timeout cannot corrupt the budget every other stream multiplexed on this
+    // connection is judged against.
     private final long defaultIdleTimeNanos;
     private Http2ClientChannel http2ClientChannel;
     private Map<Integer, ScheduledFuture<?>> timerTasks;
@@ -89,8 +89,10 @@ public class Http2ClientTimeoutHandler implements Http2DataEventListener {
     }
 
     public void createTimerTask(ChannelHandlerContext ctx, int streamId, long timeOut, boolean expectContinue) {
-        // timeOut is in milliseconds; idle times are kept in nanoseconds everywhere else in this class.
-        long idleTimeNanos = TimeUnit.MILLISECONDS.toNanos(timeOut);
+        // timeOut is in milliseconds; idle times are kept in nanoseconds everywhere else in this class. Floored
+        // the same way the default is, so a socket idle timeout small enough to divide down to zero (see
+        // WaitingFor100Continue) does not leave the stream with a budget that has expired before it is set.
+        long idleTimeNanos = Math.max(TimeUnit.MILLISECONDS.toNanos(timeOut), MIN_TIMEOUT_NANOS);
         timerTasks.put(streamId,
                        schedule(ctx, new IdleTimeoutTask(ctx, streamId, expectContinue, idleTimeNanos),
                                 idleTimeNanos));

@@ -64,7 +64,7 @@ public class DefaultListener implements Listener {
             Channel channel = this.ctx.channel();
             readCompleted = true;
             this.ctx = null;
-            BackPressureAwareIdleStateHandler.untrackInboundReads(channel);
+            BackPressureAwareIdleStateHandler.untrackInboundReads(channel, this);
             channel.config().setAutoRead(true);
         } else if (count < MAXIMUM_BYTE_SIZE) {
             BackPressureAwareIdleStateHandler.inboundReadsResumed(this.ctx.channel(), this);
@@ -81,8 +81,9 @@ public class DefaultListener implements Listener {
             return;
         }
         // Recorded before the reduced count is published, so that whoever observes the lower count also
-        // observes the refreshed resume time instead of a stale one that could time the peer out early. Guarded
-        // by identity: if this call is delayed past the point where a pooled channel has moved on to tracking a
+        // observes the refreshed progress time instead of a stale one that could time the peer out early: the
+        // read this drain is about to reissue has to be given a full period to be answered. Guarded by
+        // identity: if this call is delayed past the point where a pooled channel has moved on to tracking a
         // new message, it must not resurrect that new message's stall clock.
         BackPressureAwareIdleStateHandler.inboundReadsResumed(currentCtx.channel(), this);
         int count = this.cumulativeByteQuantity.addAndGet(-(httpContent.content().readableBytes()));
@@ -97,7 +98,7 @@ public class DefaultListener implements Listener {
         if (currentCtx != null) {
             // This listener is being detached, so it will never report progress on the channel again and
             // must not be left as the answer to "are the reads suspended".
-            BackPressureAwareIdleStateHandler.untrackInboundReads(currentCtx.channel());
+            BackPressureAwareIdleStateHandler.untrackInboundReads(currentCtx.channel(), this);
             currentCtx.channel().config().setAutoRead(true);
         }
     }
