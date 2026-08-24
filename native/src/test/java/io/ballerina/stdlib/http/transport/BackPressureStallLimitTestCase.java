@@ -143,13 +143,19 @@ public class BackPressureStallLimitTestCase {
                            + "maxBackPressureStallTime cap");
     }
 
-    @AfterClass(timeOut = CLEAN_UP_TIME_OUT)
+    // alwaysRun: setup() applies the shortened stall cap before it can fail (e.g. a port still in TIME_WAIT),
+    // and that global setting must not leak into later test classes even when setup() never finishes.
+    @AfterClass(alwaysRun = true, timeOut = CLEAN_UP_TIME_OUT)
     public void cleanUp() throws ServerConnectorException {
         // Restore the default so this global setting does not leak into other test classes.
         Util.setMaxBackPressureStallTime(Util.DEFAULT_MAX_BACK_PRESSURE_STALL_TIME);
         try {
-            httpServer.shutdown();
-            connectorFactory.shutdown();
+            if (httpServer != null) {
+                httpServer.shutdown();
+            }
+            if (connectorFactory != null) {
+                connectorFactory.shutdown();
+            }
         } catch (InterruptedException e) {
             LOG.error("Failed to shutdown the test server");
         }

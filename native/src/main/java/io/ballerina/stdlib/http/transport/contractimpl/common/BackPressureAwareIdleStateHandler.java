@@ -60,17 +60,21 @@ public class BackPressureAwareIdleStateHandler extends IdleStateHandler {
     }
 
     // readSuspended is polled when a timeout is about to be raised, rather than cached, so it cannot go stale.
-    public static void trackInboundReads(Channel channel, BooleanSupplier readSuspended) {
-        getOrCreateState(channel).track(readSuspended);
+    // owner identifies the caller (e.g. the DefaultListener for the message currently being read) so that a
+    // resumed() call arriving late - after a reused channel has moved on to tracking a different message - can
+    // be told apart from one that still applies and ignored instead of resetting state it no longer owns.
+    public static void trackInboundReads(Channel channel, Object owner, BooleanSupplier readSuspended) {
+        getOrCreateState(channel).track(owner, readSuspended);
     }
 
     public static void untrackInboundReads(Channel channel) {
         getOrCreateState(channel).reset();
     }
 
-    // Restarts the idle countdown and clears any accumulated stall allowance.
-    public static void inboundReadsResumed(Channel channel) {
-        getOrCreateState(channel).resumed();
+    // Restarts the idle countdown and clears any accumulated stall allowance. Ignored if owner is no longer
+    // the one currently being tracked on this channel.
+    public static void inboundReadsResumed(Channel channel, Object owner) {
+        getOrCreateState(channel).resumed(owner);
     }
 
     private static InboundReadState getOrCreateState(Channel channel) {
@@ -91,6 +95,16 @@ public class BackPressureAwareIdleStateHandler extends IdleStateHandler {
         // previous message, so every message this handler is installed for starts with a clean countdown.
         getOrCreateState(ctx.channel()).reset();
         super.handlerAdded(ctx);
+    }
+
+    @Override
+    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+        // Recorded in the same method the superclass uses to update its own idle baseline for this read, so
+        // the two advance together. Deriving this from DefaultListener's later, separate notification instead
+        // would trail Netty's own baseline by however long that read takes to reach it, which could make a
+        // connection that is now genuinely idle still look recently active when the idle check runs.
+        getOrCreateState(ctx.channel()).recordRawRead();
+        super.channelReadComplete(ctx);
     }
 
     @Override
@@ -134,30 +148,51 @@ public class BackPressureAwareIdleStateHandler extends IdleStateHandler {
     }
 
     private boolean isCausedByBackPressure(InboundReadState state) {
-        return state.isReadSuspended() || ticksInNanos() - state.getLastResumeTimeNanos() < idleTimeoutNanos;
+        return state.isReadSuspended() || ticksInNanos() - state.getLastRawReadTimeNanos() < idleTimeoutNanos;
     }
 
     // Per channel view of whether the transport is currently asking the socket for inbound data.
     private static final class InboundReadState {
 
+        private volatile Object owner;
         private volatile BooleanSupplier readSuspended;
-        private volatile long lastResumeTimeNanos = ticksInNanos();
+        // Updated only from channelReadComplete, in step with the superclass's own idle baseline - see there.
+        private volatile long lastRawReadTimeNanos = ticksInNanos();
         private final AtomicLong stallStartTimeNanos = new AtomicLong();
         private final AtomicReference<ScheduledFuture<?>> stallLimitRecheckTask = new AtomicReference<>();
 
-        void track(BooleanSupplier suspensionCheck) {
+        void track(Object newOwner, BooleanSupplier suspensionCheck) {
+            owner = newOwner;
             readSuspended = suspensionCheck;
         }
 
-        void resumed() {
-            lastResumeTimeNanos = ticksInNanos();
-            stallStartTimeNanos.set(0);
-            cancelStallLimitRecheck();
+        void recordRawRead() {
+            lastRawReadTimeNanos = ticksInNanos();
+        }
+
+        // Ignored if callerOwner is not the owner currently being tracked: a message's own progress must not
+        // resurrect stall-clock state that, on a reused channel, already belongs to whatever message has since
+        // started being tracked in its place.
+        void resumed(Object callerOwner) {
+            if (callerOwner != owner) {
+                return;
+            }
+            clearStall();
         }
 
         void reset() {
+            owner = null;
             readSuspended = null;
-            resumed();
+            // A freshly tracked message starts out counted as recently active, the same way a freshly added
+            // handler does, rather than inheriting a possibly stale timestamp from whatever this channel was
+            // last used for.
+            lastRawReadTimeNanos = ticksInNanos();
+            clearStall();
+        }
+
+        private void clearStall() {
+            stallStartTimeNanos.set(0);
+            cancelStallLimitRecheck();
         }
 
         void setStallLimitRecheckTask(ScheduledFuture<?> task) {
@@ -179,8 +214,8 @@ public class BackPressureAwareIdleStateHandler extends IdleStateHandler {
             return suspensionCheck != null && suspensionCheck.getAsBoolean();
         }
 
-        long getLastResumeTimeNanos() {
-            return lastResumeTimeNanos;
+        long getLastRawReadTimeNanos() {
+            return lastRawReadTimeNanos;
         }
 
         // Marks the channel as stalled if it was not already, and returns when the stall began; compareAndSet

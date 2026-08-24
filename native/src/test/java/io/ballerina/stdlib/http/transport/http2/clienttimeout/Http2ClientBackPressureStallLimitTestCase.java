@@ -157,14 +157,22 @@ public class Http2ClientBackPressureStallLimitTestCase {
                            + "matches the test timeout instead, the stall was excused indefinitely");
     }
 
-    @AfterClass(timeOut = CLEAN_UP_TIME_OUT)
+    // alwaysRun: setup() applies the shortened stall cap before it can fail (e.g. a port still in TIME_WAIT),
+    // and that global setting must not leak into later test classes even when setup() never finishes.
+    @AfterClass(alwaysRun = true, timeOut = CLEAN_UP_TIME_OUT)
     public void cleanUp() {
         // Restore the default so this global setting does not leak into other test classes.
         Util.setMaxBackPressureStallTime(Util.DEFAULT_MAX_BACK_PRESSURE_STALL_TIME);
-        h2Client.close();
-        serverConnector.stop();
+        if (h2Client != null) {
+            h2Client.close();
+        }
+        if (serverConnector != null) {
+            serverConnector.stop();
+        }
         try {
-            connectorFactory.shutdown();
+            if (connectorFactory != null) {
+                connectorFactory.shutdown();
+            }
         } catch (InterruptedException e) {
             LOG.warn("Interrupted while waiting for HttpWsFactory to close");
         }

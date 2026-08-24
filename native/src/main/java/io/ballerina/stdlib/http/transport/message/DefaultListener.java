@@ -51,7 +51,7 @@ public class DefaultListener implements Listener {
             this.ctx.channel().config().setAutoRead(false);
             // From here on the socket is only read on demand, so the idle timeout needs to be able to tell
             // whether the transport has deliberately stopped asking the peer for data.
-            BackPressureAwareIdleStateHandler.trackInboundReads(this.ctx.channel(), this::isReadSuspended);
+            BackPressureAwareIdleStateHandler.trackInboundReads(this.ctx.channel(), this, this::isReadSuspended);
             first = false;
         }
         int count = this.cumulativeByteQuantity.addAndGet(httpContent.content().readableBytes());
@@ -67,7 +67,7 @@ public class DefaultListener implements Listener {
             BackPressureAwareIdleStateHandler.untrackInboundReads(channel);
             channel.config().setAutoRead(true);
         } else if (count < MAXIMUM_BYTE_SIZE) {
-            BackPressureAwareIdleStateHandler.inboundReadsResumed(this.ctx.channel());
+            BackPressureAwareIdleStateHandler.inboundReadsResumed(this.ctx.channel(), this);
             this.ctx.channel().read();
         }
         // Otherwise reads stay suspended until the application drains what is already queued.
@@ -81,8 +81,10 @@ public class DefaultListener implements Listener {
             return;
         }
         // Recorded before the reduced count is published, so that whoever observes the lower count also
-        // observes the refreshed resume time instead of a stale one that could time the peer out early.
-        BackPressureAwareIdleStateHandler.inboundReadsResumed(currentCtx.channel());
+        // observes the refreshed resume time instead of a stale one that could time the peer out early. Guarded
+        // by identity: if this call is delayed past the point where a pooled channel has moved on to tracking a
+        // new message, it must not resurrect that new message's stall clock.
+        BackPressureAwareIdleStateHandler.inboundReadsResumed(currentCtx.channel(), this);
         int count = this.cumulativeByteQuantity.addAndGet(-(httpContent.content().readableBytes()));
         if (count < MAXIMUM_BYTE_SIZE && !readCompleted) {
             currentCtx.channel().read();
@@ -123,7 +125,7 @@ public class DefaultListener implements Listener {
         downstreamBackPressured = false;
         ChannelHandlerContext currentCtx = this.ctx;
         if (currentCtx != null) {
-            BackPressureAwareIdleStateHandler.inboundReadsResumed(currentCtx.channel());
+            BackPressureAwareIdleStateHandler.inboundReadsResumed(currentCtx.channel(), this);
         }
     }
 }
