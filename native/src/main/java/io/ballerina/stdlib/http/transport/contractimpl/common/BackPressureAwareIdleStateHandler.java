@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
@@ -152,6 +153,9 @@ public class BackPressureAwareIdleStateHandler extends IdleStateHandler {
 
     private boolean isCausedByBackPressure(InboundReadState state) {
         if (state.isReadSuspended()) {
+            // Remembered so that the resume which ends this suspension - the one this check has just run into
+            // - is the one allowed to restart the countdown. See resumed().
+            state.noteSuspensionSeen();
             return true;
         }
         // Only while a message is actually being tracked. On a connection no application back-pressure has
@@ -167,10 +171,11 @@ public class BackPressureAwareIdleStateHandler extends IdleStateHandler {
         private volatile BooleanSupplier readSuspended;
         // Updated only from channelReadComplete, in step with the superclass's own idle baseline - see there.
         private volatile long lastRawReadTimeNanos = ticksInNanos();
-        // When the transport last started, or went back to, asking the peer for data. Kept alongside the raw
-        // read time because reads resuming after a long suspension leave that one stale by definition: the
-        // peer has to be given a full period to answer the read that has only just been issued to it.
+        // When the transport last went back to asking the peer for data after a suspension the idle check had
+        // run into. Kept alongside the raw read time because such a resume leaves that one stale by
+        // definition: the peer has to be given a full period to answer the read only now being reissued to it.
         private volatile long lastResumeTimeNanos = ticksInNanos();
+        private final AtomicBoolean suspensionSeen = new AtomicBoolean();
         private final AtomicLong stallStartTimeNanos = new AtomicLong();
         private final AtomicReference<ScheduledFuture<?>> stallLimitRecheckTask = new AtomicReference<>();
 
@@ -179,7 +184,13 @@ public class BackPressureAwareIdleStateHandler extends IdleStateHandler {
             readSuspended = suspensionCheck;
             // A newly tracked message starts on a clean stall clock. Whatever the previous one left behind on
             // this channel - it may have ended without ever untracking - is not this message's to answer for.
-            recordProgress();
+            lastResumeTimeNanos = ticksInNanos();
+            suspensionSeen.set(false);
+            clearStall();
+        }
+
+        void noteSuspensionSeen() {
+            suspensionSeen.set(true);
         }
 
         boolean isTracking() {
@@ -197,7 +208,14 @@ public class BackPressureAwareIdleStateHandler extends IdleStateHandler {
             if (callerOwner != owner) {
                 return;
             }
-            recordProgress();
+            // Only the resume that ends a suspension the idle check actually ran into restarts the countdown.
+            // Progress reported while reads were never suspended is already covered by the raw read time,
+            // which, being recorded in the same method the superclass records its own baseline in, can never
+            // run ahead of it and hand a connection nothing is holding up an undeserved reprieve.
+            if (suspensionSeen.compareAndSet(true, false)) {
+                lastResumeTimeNanos = ticksInNanos();
+            }
+            clearStall();
         }
 
         // Guarded the same way resumed() is - see untrackInboundReads.
@@ -215,12 +233,12 @@ public class BackPressureAwareIdleStateHandler extends IdleStateHandler {
             // handler does, rather than inheriting a possibly stale timestamp from whatever this channel was
             // last used for.
             lastRawReadTimeNanos = ticksInNanos();
-            recordProgress();
+            lastResumeTimeNanos = ticksInNanos();
+            suspensionSeen.set(false);
+            clearStall();
         }
 
-        // Restarts the idle countdown and clears any accumulated stall allowance.
-        private void recordProgress() {
-            lastResumeTimeNanos = ticksInNanos();
+        private void clearStall() {
             stallStartTimeNanos.set(0);
             cancelStallLimitRecheck();
         }

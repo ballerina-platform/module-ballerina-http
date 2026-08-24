@@ -179,6 +179,33 @@ public class BackPressureAwareIdleStateHandlerTest {
         }
     }
 
+    @Test(description = "Progress reported by a message whose reads were never suspended must not extend the "
+            + "countdown: with nothing holding the transfer up, a peer that has gone quiet is still due to be "
+            + "timed out on schedule")
+    public void testProgressWithoutASuspensionDoesNotExtendTheCountdown() throws Exception {
+        RecordingHandler recorder = new RecordingHandler();
+        long startNanos = System.nanoTime();
+        EmbeddedChannel channel = new EmbeddedChannel(
+                new BackPressureAwareIdleStateHandler(IDLE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS), recorder);
+        try {
+            Object owner = new Object();
+            // Tracked, but the application keeps up with the message throughout - reads are never suspended.
+            BackPressureAwareIdleStateHandler.trackInboundReads(channel, owner, () -> false);
+
+            // A drain reported just short of the idle check that is already due.
+            pollUntil(channel, startNanos + TimeUnit.MILLISECONDS.toNanos(
+                    IDLE_TIMEOUT_MILLIS - MARGIN_MILLIS));
+            BackPressureAwareIdleStateHandler.inboundReadsResumed(channel, owner);
+
+            pollFor(channel, 2 * MARGIN_MILLIS);
+
+            assertFalse(recorder.events.isEmpty(),
+                        "Idle event was deferred by progress on a transfer nothing was holding up");
+        } finally {
+            channel.finishAndReleaseAll();
+        }
+    }
+
     @Test(description = "A message that ends without ever untracking - an aborted request on a connection "
             + "whose handler is installed once and reused - must not leave its stall clock behind for the next "
             + "message on that channel to be reclaimed against")
