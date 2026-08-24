@@ -236,6 +236,7 @@
             <class name="io.ballerina.stdlib.http.transport.contractimpl.common.FrameLoggerTest"/>
             <class name="io.ballerina.stdlib.http.transport.contractimpl.common.certificatevalidation.cache.CacheControllerTest"/>
             <class name="io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ClientTimeoutHandlerConcurrentStreamTest"/>
+            <class name="io.ballerina.stdlib.http.transport.contractimpl.common.BackPressureAwareIdleStateHandlerTest"/>
             <class name="io.ballerina.stdlib.http.transport.message.PassthroughBackPressureListenerTest"/>
         </classes>
     </test>
