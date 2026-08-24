@@ -76,11 +76,12 @@ public class BackPressureAwareIdleStateHandler extends IdleStateHandler {
     private static InboundReadState getOrCreateState(Channel channel) {
         Attribute<InboundReadState> attribute = channel.attr(INBOUND_READ_STATE);
         InboundReadState state = attribute.get();
-        if (state == null) {
-            InboundReadState newState = new InboundReadState();
-            InboundReadState existingState = attribute.setIfAbsent(newState);
-            state = existingState != null ? existingState : newState;
+        if (state != null) {
+            return state;
         }
+        InboundReadState newState = new InboundReadState();
+        InboundReadState existingState = attribute.setIfAbsent(newState);
+        state = existingState != null ? existingState : newState;
         return state;
     }
 
@@ -121,12 +122,13 @@ public class BackPressureAwareIdleStateHandler extends IdleStateHandler {
         }
         long delay = Math.max(remaining, MIN_RECHECK_NANOS);
         state.setStallLimitRecheckTask(ctx.channel().eventLoop().schedule(() -> {
-            if (!ctx.isRemoved()) {
-                try {
-                    channelIdle(ctx, evt);
-                } catch (Exception e) {
-                    LOG.debug("Error while re-checking the back-pressure stall limit on {}", ctx.channel().id(), e);
-                }
+            if (ctx.isRemoved()) {
+                return;
+            }
+            try {
+                channelIdle(ctx, evt);
+            } catch (Exception e) {
+                LOG.debug("Error while re-checking the back-pressure stall limit on {}", ctx.channel().id(), e);
             }
         }, delay, TimeUnit.NANOSECONDS));
     }
