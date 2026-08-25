@@ -26,8 +26,8 @@ path = "../native/build/libs/http-native-2.17.0-SNAPSHOT.jar"
 [[platform.java21.dependency]]
 groupId = "io.ballerina.stdlib"
 artifactId = "mime-native"
-version = "2.12.1"
-path = "./lib/mime-native-2.12.1.jar"
+version = "2.12.2"
+path = "./lib/mime-native-2.12.2.jar"
 
 [[platform.java21.dependency]]
 groupId = "io.ballerina.stdlib"

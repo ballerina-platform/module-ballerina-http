@@ -157,6 +157,11 @@ publishing {
     }
 }
 
+// The source tree contains non-ASCII literals, so the encoding must not be left to the platform default.
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
 compileJava {
     doFirst {
         options.compilerArgs = [

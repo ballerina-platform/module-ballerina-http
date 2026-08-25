@@ -21,6 +21,7 @@ package io.ballerina.stdlib.http.transport.contractimpl.sender.states;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contract.exceptions.ClientConnectorException;
+import io.ballerina.stdlib.http.transport.contractimpl.common.BackPressureAwareIdleStateHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.SenderReqRespStateManager;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.TargetHandler;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
@@ -65,7 +66,8 @@ public class Sending100Continue implements SenderState {
 
     private void configIdleTimeoutTrigger(int socketIdleTimeout) {
         ChannelPipeline pipeline = senderReqRespStateManager.nettyTargetChannel.pipeline();
-        IdleStateHandler idleStateHandler = new IdleStateHandler(0, 0, socketIdleTimeout, TimeUnit.MILLISECONDS);
+        IdleStateHandler idleStateHandler =
+                new BackPressureAwareIdleStateHandler(socketIdleTimeout, TimeUnit.MILLISECONDS);
         safelyRemoveHandlers(pipeline, Constants.IDLE_STATE_HANDLER);
         if (pipeline.get(Constants.TARGET_HANDLER) == null) {
             pipeline.addLast(Constants.IDLE_STATE_HANDLER, idleStateHandler);
