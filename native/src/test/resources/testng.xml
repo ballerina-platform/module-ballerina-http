@@ -61,6 +61,8 @@
             <class name="io.ballerina.stdlib.http.transport.ClientConnectorTimeoutTestCase" />
             <class name="io.ballerina.stdlib.http.transport.ClientTimeoutWhileWritingBodyTestCase" />
             <class name="io.ballerina.stdlib.http.transport.ClientTimeoutWhileReadingBodyTestCase" />
+            <class name="io.ballerina.stdlib.http.transport.SlowInboundResponseBodyConsumerTestCase" />
+            <class name="io.ballerina.stdlib.http.transport.BackPressureStallLimitTestCase" />
             <class name="io.ballerina.stdlib.http.transport.ServerCloseWhileReadingBodyTestCase" />
             <class name="io.ballerina.stdlib.http.transport.ServerCloseWhileWritingBodyTestCase" />
             <class name="io.ballerina.stdlib.http.transport.ClientConnectorConnectionRefusedTestCase" />
@@ -130,6 +132,8 @@
             <class name="io.ballerina.stdlib.http.transport.http2.clienttimeout.TimeoutAfterRequestWrite"/>
             <class name="io.ballerina.stdlib.http.transport.http2.clienttimeout.TimeoutDuringRequestWrite"/>
             <class name="io.ballerina.stdlib.http.transport.http2.clienttimeout.TimeoutDuringResponseReceive"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.clienttimeout.Http2SlowInboundResponseBodyConsumerTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.clienttimeout.Http2ClientBackPressureStallLimitTestCase"/>
             <class name="io.ballerina.stdlib.http.transport.http2.Http2WithHttp2ResetContent"/>
             <class name="io.ballerina.stdlib.http.transport.http2.Http2WithPriorKnowledgeTestCase"/>
             <class name="io.ballerina.stdlib.http.transport.http2.Http2MaxConcurrentStreamsTestCase"/>
@@ -140,6 +144,8 @@
             <class name="io.ballerina.stdlib.http.transport.http2.TestExhaustedStreamIdForClient"/>
             <class name="io.ballerina.stdlib.http.transport.http2.servertimeout.TimeoutDuringRequestReceive"/>
             <class name="io.ballerina.stdlib.http.transport.http2.servertimeout.TimeoutAfterRequestReceived"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.servertimeout.Http2SlowInboundRequestBodyConsumerTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.servertimeout.Http2SlowOutboundResponseWriteTestCase"/>
             <class name="io.ballerina.stdlib.http.transport.http2.http2forwardedextension.Http2ForwardedDefaultTestCase"/>
             <class name="io.ballerina.stdlib.http.transport.http2.http2forwardedextension.Http2ForwardedEnableTestCase"/>
             <class name="io.ballerina.stdlib.http.transport.http2.http2forwardedextension.Http2ForwardedTransitionTestCase"/>
@@ -229,6 +235,9 @@
             <class name="io.ballerina.stdlib.http.transport.contractimpl.listener.HttpTraceLoggingHandlerTest"/>
             <class name="io.ballerina.stdlib.http.transport.contractimpl.common.FrameLoggerTest"/>
             <class name="io.ballerina.stdlib.http.transport.contractimpl.common.certificatevalidation.cache.CacheControllerTest"/>
+            <class name="io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ClientTimeoutHandlerConcurrentStreamTest"/>
+            <class name="io.ballerina.stdlib.http.transport.contractimpl.common.BackPressureAwareIdleStateHandlerTest"/>
+            <class name="io.ballerina.stdlib.http.transport.message.PassthroughBackPressureListenerTest"/>
         </classes>
     </test>
     <test name="Ballerina Http native Tests" parallel="false">
