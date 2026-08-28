@@ -20,6 +20,7 @@ import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
 import io.ballerina.stdlib.http.transport.contract.config.ChunkConfig;
 import io.ballerina.stdlib.http.transport.contract.config.InboundMsgSizeValidationConfig;
 import io.ballerina.stdlib.http.transport.contract.config.KeepAliveConfig;
+import io.ballerina.stdlib.http.transport.contractimpl.common.BackPressureAwareIdleStateHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.common.BackPressureHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
 import io.ballerina.stdlib.http.transport.contractimpl.common.certificatevalidation.CertificateVerificationException;
@@ -52,7 +53,6 @@ import io.netty.handler.ssl.ReferenceCountedOpenSslEngine;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
-import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.AsciiString;
 import io.netty.util.concurrent.EventExecutorGroup;
 import org.bouncycastle.cert.ocsp.OCSPResp;
@@ -247,7 +247,8 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
                                                  this.pipeliningGroup));
         if (socketIdleTimeout >= 0) {
             serverPipeline.addBefore(Constants.HTTP_SOURCE_HANDLER, Constants.IDLE_STATE_HANDLER,
-                                     new IdleStateHandler(0, 0, socketIdleTimeout, TimeUnit.MILLISECONDS));
+                                     new BackPressureAwareIdleStateHandler(socketIdleTimeout,
+                                                                          TimeUnit.MILLISECONDS));
         }
         serverPipeline.addLast(Constants.HTTP_EXCEPTION_HANDLER, new HttpExceptionHandler());
     }

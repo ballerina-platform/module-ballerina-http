@@ -18,7 +18,9 @@
 
 package io.ballerina.stdlib.http.transport.message;
 
+import io.ballerina.stdlib.http.transport.contractimpl.common.BackPressureAwareIdleStateHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpContent;
 
@@ -30,10 +32,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class DefaultListener implements Listener {
 
     private static final int MAXIMUM_BYTE_SIZE = 2097152; //Maximum threshold of reading bytes(2MB)
-    private AtomicInteger cumulativeByteQuantity = new AtomicInteger(0);
-    private ChannelHandlerContext ctx;
-    private boolean readCompleted = false;
+    private final AtomicInteger cumulativeByteQuantity = new AtomicInteger(0);
+    private volatile ChannelHandlerContext ctx;
+    private volatile boolean readCompleted = false;
     private boolean first = true;
+    // Set by a PassthroughBackPressureListener when the downstream leg this response (or request) is being
+    // relayed to goes unwritable. That listener suspends reads on this channel the same way onAdd's own cap
+    // does, so the idle timeout must treat it as back-pressure too, not just the internal queue cap below.
+    private volatile boolean downstreamBackPressured = false;
 
     public DefaultListener(ChannelHandlerContext ctx) {
         this.ctx = ctx;
@@ -43,32 +49,84 @@ public class DefaultListener implements Listener {
     public void onAdd(HttpContent httpContent) {
         if (first) {
             this.ctx.channel().config().setAutoRead(false);
+            // From here on the socket is only read on demand, so the idle timeout needs to be able to tell
+            // whether the transport has deliberately stopped asking the peer for data.
+            BackPressureAwareIdleStateHandler.trackInboundReads(this.ctx.channel(), this, this::isReadSuspended);
             first = false;
         }
         int count = this.cumulativeByteQuantity.addAndGet(httpContent.content().readableBytes());
-        if (count < MAXIMUM_BYTE_SIZE && !readCompleted) {
-            if (Util.isLastHttpContent(httpContent)) {
-                readCompleted = true;
-                this.ctx.channel().config().setAutoRead(true);
-                this.ctx = null;
-            } else {
-                this.ctx.channel().read();
-            }
+        if (readCompleted) {
+            return;
         }
+        if (Util.isLastHttpContent(httpContent)) {
+            // Restore default read behaviour regardless of how much content is still queued, so a pooled
+            // connection is not handed back with its reads suspended.
+            Channel channel = this.ctx.channel();
+            readCompleted = true;
+            this.ctx = null;
+            BackPressureAwareIdleStateHandler.untrackInboundReads(channel, this);
+            channel.config().setAutoRead(true);
+        } else if (count < MAXIMUM_BYTE_SIZE) {
+            BackPressureAwareIdleStateHandler.inboundReadsResumed(this.ctx.channel(), this);
+            this.ctx.channel().read();
+        }
+        // Otherwise reads stay suspended until the application drains what is already queued.
     }
 
     @Override
     public void onRemove(HttpContent httpContent) {
+        ChannelHandlerContext currentCtx = this.ctx;
+        if (currentCtx == null) {
+            this.cumulativeByteQuantity.addAndGet(-(httpContent.content().readableBytes()));
+            return;
+        }
+        // Recorded before the reduced count is published, so that whoever observes the lower count also
+        // observes the refreshed progress time instead of a stale one that could time the peer out early: the
+        // read this drain is about to reissue has to be given a full period to be answered. Guarded by
+        // identity: if this call is delayed past the point where a pooled channel has moved on to tracking a
+        // new message, it must not resurrect that new message's stall clock.
+        BackPressureAwareIdleStateHandler.inboundReadsResumed(currentCtx.channel(), this);
         int count = this.cumulativeByteQuantity.addAndGet(-(httpContent.content().readableBytes()));
         if (count < MAXIMUM_BYTE_SIZE && !readCompleted) {
-            this.ctx.channel().read();
+            currentCtx.channel().read();
         }
     }
 
     @Override
     public void resumeReadInterest() {
-        if (this.ctx != null) {
-            ctx.channel().config().setAutoRead(true);
+        ChannelHandlerContext currentCtx = this.ctx;
+        if (currentCtx != null) {
+            // This listener is being detached, so it will never report progress on the channel again and
+            // must not be left as the answer to "are the reads suspended".
+            BackPressureAwareIdleStateHandler.untrackInboundReads(currentCtx.channel(), this);
+            currentCtx.channel().config().setAutoRead(true);
+        }
+    }
+
+    // Derived from the queue itself rather than a latched flag, so the event loop adding content and the
+    // application thread draining it cannot leave the two disagreeing.
+    private boolean isReadSuspended() {
+        return !readCompleted && (cumulativeByteQuantity.get() >= MAXIMUM_BYTE_SIZE || downstreamBackPressured);
+    }
+
+    /**
+     * Called by a {@link PassthroughBackPressureListener} when the downstream leg this message is being
+     * relayed to has gone unwritable and reads on this channel have been suspended as a result.
+     */
+    public void onDownstreamUnwritable() {
+        downstreamBackPressured = true;
+    }
+
+    /**
+     * Called by a {@link PassthroughBackPressureListener} when the downstream leg this message is being
+     * relayed to has become writable again. Restarts the idle countdown the same way resuming reads for the
+     * internal queue cap does, since the peer was excused from it for the same reason.
+     */
+    public void onDownstreamWritable() {
+        downstreamBackPressured = false;
+        ChannelHandlerContext currentCtx = this.ctx;
+        if (currentCtx != null) {
+            BackPressureAwareIdleStateHandler.inboundReadsResumed(currentCtx.channel(), this);
         }
     }
 }

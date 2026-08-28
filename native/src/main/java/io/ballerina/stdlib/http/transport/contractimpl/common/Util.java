@@ -66,8 +66,11 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.LastHttpContent;
+import io.netty.handler.codec.http2.Http2Connection;
 import io.netty.handler.codec.http2.Http2Exception;
 import io.netty.handler.codec.http2.Http2Headers;
+import io.netty.handler.codec.http2.Http2LocalFlowController;
+import io.netty.handler.codec.http2.Http2Stream;
 import io.netty.handler.codec.http2.HttpConversionUtil;
 import io.netty.handler.ssl.ApplicationProtocolConfig;
 import io.netty.handler.ssl.ApplicationProtocolNames;
@@ -147,6 +150,13 @@ public class Util {
     private static final Logger LOG = LoggerFactory.getLogger(Util.class);
     public static final String HTTP_1_1 = "http/1.1";
     private static final float EPSILON = 0.00001f;
+
+    // Default for the maxBackPressureStallTime configurable, in seconds; negative excuses back-pressure
+    // indefinitely, zero excuses none of it.
+    public static final double DEFAULT_MAX_BACK_PRESSURE_STALL_TIME = 300;
+
+    private static volatile long maxBackPressureStallTimeNanos =
+            (long) (DEFAULT_MAX_BACK_PRESSURE_STALL_TIME * 1_000_000_000L);
 
     private static String getStringValue(HttpCarbonMessage msg, String key, String defaultValue) {
         String value = (String) msg.getProperty(key);
@@ -1035,7 +1045,8 @@ public class Util {
             backpressureHandler.getBackPressureObservable().setListener(
                 new Http2PassthroughBackPressureListener((Http2InboundContentListener) inboundListener));
         } else if (inboundListener instanceof DefaultListener && ctx != null) {
-            backpressureHandler.getBackPressureObservable().setListener(new PassthroughBackPressureListener(ctx));
+            backpressureHandler.getBackPressureObservable().setListener(
+                new PassthroughBackPressureListener(ctx, (DefaultListener) inboundListener));
         }
     }
 
@@ -1179,5 +1190,63 @@ public class Util {
         String[] protocols = {HTTP_1_1};
         sslParams.setApplicationProtocols(protocols);
         sslEngine.setSSLParameters(sslParams);
+    }
+
+    // True if the stream is quiet because of HTTP/2 flow control - our inbound window closed on an unconsumed
+    // message, or our outbound message queued waiting on the peer's window - rather than an unresponsive peer.
+    public static boolean isStreamBlockedByFlowControl(Http2Connection connection, int streamId) {
+        if (connection == null) {
+            return false;
+        }
+        Http2Stream stream = connection.stream(streamId);
+        if (stream == null) {
+            return false;
+        }
+        try {
+            Http2LocalFlowController localFlowController = connection.local().flowController();
+            // The peer cannot send: we have not consumed what it already delivered.
+            if (localFlowController.windowSize(stream) <= 0) {
+                return true;
+            }
+            // The shared connection window is exhausted by unconsumed content on this or a sibling stream.
+            if (localFlowController.unconsumedBytes(stream) > 0
+                    && localFlowController.windowSize(connection.connectionStream()) <= 0) {
+                return true;
+            }
+            // We cannot send: our message is queued because the peer has not opened its window.
+            return connection.remote().flowController().hasFlowControlled(stream);
+        } catch (RuntimeException e) {
+            LOG.debug("Could not read the flow control state of stream {}", streamId, e);
+            return false;
+        }
+    }
+
+    // Sets the maxBackPressureStallTime allowance, in seconds. Called once during module initialisation.
+    public static void setMaxBackPressureStallTime(double seconds) {
+        maxBackPressureStallTimeNanos = seconds < 0 ? -1L : (long) (seconds * 1_000_000_000L);
+    }
+
+    // True if a back-pressure stall that began at stallStartTimeNanos (from ticksInNanos()) is still within
+    // its maxBackPressureStallTime allowance.
+    public static boolean isWithinBackPressureStallLimit(long stallStartTimeNanos) {
+        long limitNanos = maxBackPressureStallTimeNanos;
+        if (limitNanos < 0) {
+            return true;
+        }
+        if (limitNanos == 0) {
+            return false;
+        }
+        return ticksInNanos() - stallStartTimeNanos < limitNanos;
+    }
+
+    // Remaining maxBackPressureStallTime allowance in nanoseconds for a stall that began at stallStartTimeNanos,
+    // or negative if the allowance is unlimited. Lets a caller reschedule its own recheck for exactly when the
+    // allowance runs out instead of waiting for the next fixed idle period.
+    public static long remainingBackPressureStallNanos(long stallStartTimeNanos) {
+        long limitNanos = maxBackPressureStallTimeNanos;
+        if (limitNanos < 0) {
+            return -1L;
+        }
+        return Math.max(0L, limitNanos - (ticksInNanos() - stallStartTimeNanos));
     }
 }

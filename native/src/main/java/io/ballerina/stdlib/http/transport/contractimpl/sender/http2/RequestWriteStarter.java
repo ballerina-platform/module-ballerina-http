@@ -72,7 +72,8 @@ public class RequestWriteStarter {
                 new Http2PassthroughBackPressureListener((Http2InboundContentListener) inboundListener));
         } else if (inboundListener instanceof DefaultListener) {
             outboundMsgHolder.getBackPressureObservable().setListener(
-                new PassthroughBackPressureListener(outboundMsgHolder.getRequest().getSourceContext()));
+                new PassthroughBackPressureListener(outboundMsgHolder.getRequest().getSourceContext(),
+                                                     (DefaultListener) inboundListener));
         }
     }
 
