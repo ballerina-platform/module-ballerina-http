@@ -1,4 +1,4 @@
-// Copyright (c) 2021 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+// Copyright (c) 2026 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
 //
 // WSO2 Inc. licenses this file to you under the Apache License,
 // Version 2.0 (the "License"); you may not use this file except
@@ -16,12 +16,12 @@
 
 import ballerina/jballerina.java;
 
-function init() {
-    setModule();
-    externSetMaxBackPressureStallTime(maxBackPressureStallTime);
-    _ = initializeHttpLogs(traceLogConsole, traceLogAdvancedConfig, accessLogConfig);
-}
+// Maximum time (in seconds) a message transfer may sit still solely because of application back-pressure
+// (a slow reader or writer) before `timeout` is allowed to apply after all. Negative excuses it indefinitely;
+// zero excuses none of it.
+configurable decimal maxBackPressureStallTime = 300;
 
-function setModule() = @java:Method {
-    'class: "io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils"
+isolated function externSetMaxBackPressureStallTime(decimal maxBackPressureStallTime) = @java:Method {
+    'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternBackPressureConfig",
+    name: "setMaxBackPressureStallTime"
 } external;
