@@ -185,7 +185,9 @@ public final class URIUtil {
             int index = queryParam.indexOf('=');
             if (index == -1) {
                 if (!tempParamMap.containsKey(queryParam)) {
-                    tempParamMap.put(queryParam, null);
+                    List<String> values = new ArrayList<>();
+                    values.add("");
+                    tempParamMap.put(queryParam, values);
                 }
                 continue;
             }
