@@ -213,11 +213,17 @@ public class WebSocketServerFunctionalityTestCase {
         serverConnectorListener.setMethodDoneLatch(methodDoneLatch);
         WebSocketTestClient client = new WebSocketTestClient();
         client.handshake();
+        CountDownLatch clientLatch = new CountDownLatch(1);
+        client.setCountDownLatch(clientLatch);
 
         client.sendText("send-and-wait");
-        serverLatch.await(WEBSOCKET_TEST_IDLE_TIMEOUT, SECONDS);
+        Assert.assertTrue(serverLatch.await(WEBSOCKET_TEST_IDLE_TIMEOUT, SECONDS),
+                "timed out waiting for the server to initiate its own closure");
         client.sendCloseFrame(1000, null);
-        methodDoneLatch.await(WEBSOCKET_TEST_IDLE_TIMEOUT, SECONDS);
+        Assert.assertTrue(methodDoneLatch.await(WEBSOCKET_TEST_IDLE_TIMEOUT, SECONDS),
+                "timed out waiting for the server closure to complete");
+        Assert.assertTrue(clientLatch.await(WEBSOCKET_TEST_IDLE_TIMEOUT, SECONDS),
+                "timed out waiting for the client to receive the server's close frame");
 
         Assert.assertTrue(serverConnectorListener.getCloseFuture().isSuccess());
         CloseWebSocketFrame closeFrame = client.getReceivedCloseFrame();
