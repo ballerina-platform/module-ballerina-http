@@ -299,7 +299,8 @@ public class Http2OutboundRespListener implements HttpConnectorListener {
                 new Http2PassthroughBackPressureListener((Http2InboundContentListener) inboundListener));
         } else if (inboundListener instanceof DefaultListener) {
             writer.getBackPressureObservable().setListener(
-                new PassthroughBackPressureListener(outboundResponseMsg.getTargetContext()));
+                new PassthroughBackPressureListener(outboundResponseMsg.getTargetContext(),
+                                                     (DefaultListener) inboundListener));
         }
     }
 

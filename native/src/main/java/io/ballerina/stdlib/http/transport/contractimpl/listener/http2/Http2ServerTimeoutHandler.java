@@ -19,9 +19,11 @@
 package io.ballerina.stdlib.http.transport.contractimpl.listener.http2;
 
 import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
+import io.ballerina.stdlib.http.transport.contractimpl.common.FlowControlStallTracker;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2DataEventListener;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.http2.Http2Connection;
 import io.netty.handler.codec.http2.Http2Error;
 import io.netty.handler.codec.http2.Http2Exception;
 import io.netty.handler.codec.http2.Http2Headers;
@@ -47,12 +49,14 @@ public class Http2ServerTimeoutHandler implements Http2DataEventListener {
     private Http2ServerChannel http2ServerChannel;
     private Map<Integer, ScheduledFuture<?>> timerTasks;
     private ServerConnectorFuture serverConnectorFuture;
+    private final FlowControlStallTracker flowControlStallTracker;
 
     Http2ServerTimeoutHandler(long idleTimeMills, Http2ServerChannel serverChannel,
-                              ServerConnectorFuture serverConnectorFuture) {
+                              ServerConnectorFuture serverConnectorFuture, Http2Connection connection) {
         this.idleTimeNanos = Math.max(TimeUnit.MILLISECONDS.toNanos(idleTimeMills), MIN_TIMEOUT_NANOS);
         this.http2ServerChannel = serverChannel;
         this.serverConnectorFuture = serverConnectorFuture;
+        this.flowControlStallTracker = new FlowControlStallTracker(() -> connection);
         timerTasks = new ConcurrentHashMap<>();
     }
 
@@ -104,6 +108,7 @@ public class Http2ServerTimeoutHandler implements Http2DataEventListener {
 
     @Override
     public void onStreamClose(int streamId) {
+        flowControlStallTracker.remove(streamId);
         ScheduledFuture timerTask = timerTasks.get(streamId);
         if (timerTask != null) {
             if (LOG.isDebugEnabled()) {
@@ -118,6 +123,7 @@ public class Http2ServerTimeoutHandler implements Http2DataEventListener {
     public void destroy() {
         timerTasks.forEach((streamId, task) -> task.cancel(false));
         timerTasks.clear();
+        flowControlStallTracker.clear();
     }
 
     private class IdleTimeoutTask implements Runnable {
@@ -139,13 +145,22 @@ public class Http2ServerTimeoutHandler implements Http2DataEventListener {
 
         private void runTimeOutLogic(InboundMessageHolder msgHolder) {
             long nextDelay = getNextDelay(msgHolder);
-            if (nextDelay <= 0) {
-                handleTimeout(msgHolder);
-                closeStream(msgHolder, streamId, ctx);
-            } else {
+            if (nextDelay > 0) {
                 // Read or write occurred before the timeout - set a new timeout with shorter delay.
+                flowControlStallTracker.recordProgress(streamId);
                 timerTasks.put(streamId, schedule(ctx, this, nextDelay));
+                return;
             }
+            if (flowControlStallTracker.isStalledByFlowControl(streamId)) {
+                // lastReadWriteTime is left untouched: bumping it would make the next getNextDelay() see real
+                // progress and call recordProgress(), letting a permanently stalled stream renew its excuse
+                // forever instead of ever hitting maxBackPressureStallTime.
+                long recheckDelay = flowControlStallTracker.nextRecheckDelayNanos(streamId, idleTimeNanos);
+                timerTasks.put(streamId, schedule(ctx, this, recheckDelay));
+                return;
+            }
+            handleTimeout(msgHolder);
+            closeStream(msgHolder, streamId, ctx);
         }
 
         private long getNextDelay(InboundMessageHolder msgHolder) {
