@@ -1,8 +1,8 @@
 # Change Log
+
 This file contains all the notable changes done to the Ballerina HTTP package through the releases.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to 
-[Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Address `CVE-2026-42583`, `CVE-2026-42584`, `CVE-2026-42587`, `CVE-2026-41417`, `CVE-2026-42580`, `CVE-2026-42581`, `CVE-2026-42585` and `CVE-2026-42578` Netty vulnerabilities](https://github.com/ballerina-platform/ballerina-library/issues/8785)
 - [Update Netty version to 4.1.136.Final and Netty tcnative version to 2.0.79.Final](https://github.com/ballerina-platform/ballerina-library/issues/8924)
 - [Fix large streamed message being truncated when the application consumes it more slowly than the socket idle timeout](https://github.com/ballerina-platform/ballerina-library/issues/9033)
+- [Update Netty version to 4.1.137.Final and Netty tcnative version to 2.0.83.Final](https://github.com/ballerina-platform/ballerina-library/issues/9093)
 
 ## [2.16.2] - 2026-04-29
 
