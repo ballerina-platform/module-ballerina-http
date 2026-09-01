@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - [Update lz4-java to 1.11.1 to fix CVE-2026-59949](https://github.com/ballerina-platform/ballerina-library/issues/8933)
 - [Fix large streamed message being truncated when the application consumes it more slowly than the socket idle timeout](https://github.com/ballerina-platform/ballerina-library/issues/9033)
+- [Update Netty version to 4.1.137.Final and Netty tcnative version to 2.0.83.Final](https://github.com/ballerina-platform/ballerina-library/issues/9093)
 
 ## [2.16.5] - 2026-07-24
 
