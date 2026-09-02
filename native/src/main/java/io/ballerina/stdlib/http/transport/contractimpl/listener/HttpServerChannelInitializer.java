@@ -20,6 +20,7 @@ import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
 import io.ballerina.stdlib.http.transport.contract.config.ChunkConfig;
 import io.ballerina.stdlib.http.transport.contract.config.InboundMsgSizeValidationConfig;
 import io.ballerina.stdlib.http.transport.contract.config.KeepAliveConfig;
+import io.ballerina.stdlib.http.transport.contractimpl.common.BackPressureAwareIdleStateHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.common.BackPressureHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
 import io.ballerina.stdlib.http.transport.contractimpl.common.certificatevalidation.CertificateVerificationException;
@@ -52,7 +53,6 @@ import io.netty.handler.ssl.ReferenceCountedOpenSslEngine;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
-import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.AsciiString;
 import io.netty.util.concurrent.EventExecutorGroup;
 import org.bouncycastle.cert.ocsp.OCSPResp;
@@ -113,6 +113,7 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
     private EventExecutorGroup pipeliningGroup;
     private boolean webSocketCompressionEnabled;
     private int http2InitialWindowSize;
+    private long gracefulStopTimeout;
     private long minIdleTimeInStaleState;
     private long timeBetweenStaleEviction;
     private final BlockingQueue<Http2SourceHandler> http2StaleSourceHandlers = new LinkedBlockingQueue<>();
@@ -247,7 +248,8 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
                                                  this.pipeliningGroup));
         if (socketIdleTimeout >= 0) {
             serverPipeline.addBefore(Constants.HTTP_SOURCE_HANDLER, Constants.IDLE_STATE_HANDLER,
-                                     new IdleStateHandler(0, 0, socketIdleTimeout, TimeUnit.MILLISECONDS));
+                                     new BackPressureAwareIdleStateHandler(socketIdleTimeout,
+                                                                          TimeUnit.MILLISECONDS));
         }
         serverPipeline.addLast(Constants.HTTP_EXCEPTION_HANDLER, new HttpExceptionHandler());
     }
@@ -261,7 +263,7 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
         // Add handler to handle http2 requests without an upgrade
         pipeline.addLast(new Http2WithPriorKnowledgeHandler(
                 interfaceId, serverName, serverConnectorFuture, this, allChannels, listenerChannels,
-                reqSizeValidationConfig.getMaxHeaderSize(), http2InitialWindowSize));
+                reqSizeValidationConfig.getMaxHeaderSize(), http2InitialWindowSize, gracefulStopTimeout));
         // Add http2 upgrade decoder and upgrade handler
         final HttpServerCodec sourceCodec = new HttpServerCodec(reqSizeValidationConfig.getMaxInitialLineLength(),
                                                                 reqSizeValidationConfig.getMaxHeaderSize(),
@@ -281,7 +283,7 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
                         new Http2SourceConnectionHandlerBuilder(
                                 interfaceId, serverConnectorFuture, serverName, this,
                                 this.allChannels, this.listenerChannels, reqSizeValidationConfig.getMaxHeaderSize(),
-                                this.http2InitialWindowSize).build());
+                                this.http2InitialWindowSize, this.gracefulStopTimeout).build());
             } else {
                 return null;
             }
@@ -353,6 +355,10 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
 
     void setHttp2InitialWindowSize(int http2InitialWindowSize) {
         this.http2InitialWindowSize = http2InitialWindowSize;
+    }
+
+    void setGracefulStopTimeout(long gracefulStopTimeout) {
+        this.gracefulStopTimeout = gracefulStopTimeout;
     }
 
     void setTimeBetweenStaleEviction(long timeBetweenStaleEviction) {
@@ -447,7 +453,7 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
                         new Http2SourceConnectionHandlerBuilder(
                                 interfaceId, serverConnectorFuture, serverName, channelInitializer,
                                 allChannels, listenerChannels, reqSizeValidationConfig.getMaxHeaderSize(),
-                                http2InitialWindowSize).build());
+                                http2InitialWindowSize, gracefulStopTimeout).build());
             } else if (ApplicationProtocolNames.HTTP_1_1.equals(protocol)) {
                 // handles pipeline for HTTP/1.x requests after SSL handshake
                 configureHttpPipeline(ctx.pipeline(), Constants.HTTP_SCHEME);
