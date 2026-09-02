@@ -47,6 +47,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLContext;
 
@@ -66,6 +67,8 @@ public class ServerConnectorBootstrap {
     private ChannelGroup allChannels;
     private final ChannelGroup listenerChannels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
     private int gracefulStopTimeout = 0;
+    // Backstop for a connection whose close never completes, so stopping a listener cannot hang indefinitely.
+    private static final long CONNECTION_CLOSE_TIMEOUT = 5000;
 
     public ServerConnectorBootstrap(ChannelGroup allChannels) {
         serverBootstrap = new ServerBootstrap();
@@ -215,6 +218,7 @@ public class ServerConnectorBootstrap {
 
     public void setGracefulStopTimeout(int gracefulStopTimeout) {
         this.gracefulStopTimeout = gracefulStopTimeout;
+        httpServerChannelInitializer.setGracefulStopTimeout(gracefulStopTimeout);
     }
 
     class HttpServerConnector implements ServerConnector {
@@ -321,14 +325,20 @@ public class ServerConnectorBootstrap {
             if (listenerChannel != null) {
                 try {
                     //Close will stop accepting new connections.
-                    listenerChannel.close().sync();
+                    if (!listenerChannel.close().await(CONNECTION_CLOSE_TIMEOUT, TimeUnit.MILLISECONDS)) {
+                        log.warn("Gave up waiting for the listener socket on {}:{} to close", getHost(), getPort());
+                    }
                     try {
                         Thread.sleep(gracefulStopTimeout);
                     } catch (InterruptedException e) {
                         log.warn("Couldn't complete the graceful time period");
                     }
                     //Close will close existing connections after above grace period.
-                    getListenerChannels().close().sync();
+                    if (!getListenerChannels().close().await(CONNECTION_CLOSE_TIMEOUT, TimeUnit.MILLISECONDS)) {
+                        log.warn("Gave up waiting for {} connection(s) on {}:{} to close, they will be dropped "
+                                         + "when the event loops shut down", getListenerChannels().size(),
+                                 getHost(), getPort());
+                    }
                 } catch (InterruptedException e) {
                     log.error("Failed to shutdown the listener", e);
                 }

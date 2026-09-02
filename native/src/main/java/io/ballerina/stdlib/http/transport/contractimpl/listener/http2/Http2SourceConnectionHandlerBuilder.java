@@ -54,7 +54,8 @@ public final class Http2SourceConnectionHandlerBuilder
                                                ChannelGroup allChannels,
                                                ChannelGroup listenerChannels,
                                                long maxHeaderListSize,
-                                               int initialWindowSize) {
+                                               int initialWindowSize,
+                                               long gracefulStopTimeout) {
         this.interfaceId = interfaceId;
         this.serverConnectorFuture = serverConnectorFuture;
         this.serverName = serverName;
@@ -63,6 +64,8 @@ public final class Http2SourceConnectionHandlerBuilder
         this.listenerChannels = listenerChannels;
         this.initialSettings().maxHeaderListSize(maxHeaderListSize);
         this.initialSettings().initialWindowSize(initialWindowSize);
+        // Otherwise Netty waits out its own 30s default, ignoring the configured stop timeout entirely.
+        this.gracefulShutdownTimeoutMillis(gracefulStopTimeout);
     }
 
     @Override
