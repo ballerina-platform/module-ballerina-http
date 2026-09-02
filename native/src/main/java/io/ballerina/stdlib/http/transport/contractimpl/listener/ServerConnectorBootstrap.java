@@ -325,8 +325,14 @@ public class ServerConnectorBootstrap {
             if (listenerChannel != null) {
                 try {
                     //Close will stop accepting new connections.
-                    if (!listenerChannel.close().await(CONNECTION_CLOSE_TIMEOUT, TimeUnit.MILLISECONDS)) {
+                    ChannelFuture listenerCloseFuture = listenerChannel.close();
+                    if (!listenerCloseFuture.await(CONNECTION_CLOSE_TIMEOUT, TimeUnit.MILLISECONDS)) {
                         log.warn("Gave up waiting for the listener socket on {}:{} to close", getHost(), getPort());
+                    } else if (!listenerCloseFuture.isSuccess()) {
+                        // await(), unlike the sync() this replaced, reports completion rather than success.
+                        log.error("Failed to close the listener socket on {}:{}", getHost(), getPort(),
+                                  listenerCloseFuture.cause());
+                        return false;
                     }
                     try {
                         Thread.sleep(gracefulStopTimeout);
