@@ -44,11 +44,8 @@ import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.EventExecutorGroup;
 import io.netty.util.concurrent.GlobalEventExecutor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLException;
 
@@ -60,16 +57,12 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.PIPELINING_T
  */
 public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
 
-    private static final Logger LOG = LoggerFactory.getLogger(DefaultHttpWsConnectorFactory.class);
-
     private final EventLoopGroup bossGroup;
     private final EventLoopGroup workerGroup;
     private final EventLoopGroup clientGroup;
     private EventExecutorGroup pipeliningGroup;
 
     private final ChannelGroup allChannels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
-    // Backstop for a channel whose close never completes, so shutting the factory down cannot hang indefinitely.
-    private static final long CHANNEL_CLOSE_TIMEOUT = 5000;
 
     public DefaultHttpWsConnectorFactory() {
         int availableProcessors = Runtime.getRuntime().availableProcessors();
@@ -213,10 +206,7 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
 
     @Override
     public void shutdown() throws InterruptedException {
-        if (!allChannels.close().await(CHANNEL_CLOSE_TIMEOUT, TimeUnit.MILLISECONDS)) {
-            LOG.warn("Gave up waiting for {} channel(s) to close, they will be dropped when the event loops "
-                             + "shut down", allChannels.size());
-        }
+        allChannels.close().sync();
         workerGroup.shutdownGracefully().sync();
         bossGroup.shutdownGracefully().sync();
         clientGroup.shutdownGracefully().sync();
