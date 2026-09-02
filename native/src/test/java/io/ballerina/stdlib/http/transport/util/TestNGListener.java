@@ -19,11 +19,15 @@
 
 package io.ballerina.stdlib.http.transport.util;
 
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.ITestResult;
 import org.testng.TestListenerAdapter;
 
 import java.io.PrintStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Test listener for HTTP transport test cases.
@@ -69,5 +73,49 @@ public class TestNGListener extends TestListenerAdapter {
         Throwable e = tr.getThrowable();
         LoggerFactory.getLogger(tr.getTestClass().getRealClass()).error(
                 "Test failed: " + testCase + "-> " + e.getMessage());
+    }
+
+    @Override
+    public void onConfigurationFailure(ITestResult tr) {
+        Logger log = LoggerFactory.getLogger(tr.getTestClass().getRealClass());
+        Throwable e = tr.getThrowable();
+        log.error("Configuration failed: " + tr.getName() + "-> " + (e == null ? "" : e.getMessage()));
+        // A setUp or tearDown that times out leaves no clue as to which thread it was waiting on.
+        log.error(platformThreadDump());
+        log.error(fullThreadDump());
+    }
+
+    // Thread.getAllStackTraces() covers platform threads only, so a service blocked on a virtual thread would
+    // not show up above. jcmd reports both.
+    private static String fullThreadDump() {
+        try {
+            Path out = Files.createTempFile("thread-dump", ".txt");
+            Files.delete(out);
+            Process jcmd = new ProcessBuilder("jcmd", String.valueOf(ProcessHandle.current().pid()),
+                                              "Thread.dump_to_file", "-format=plain", out.toString())
+                    .redirectErrorStream(true).start();
+            if (!jcmd.waitFor(60, TimeUnit.SECONDS)) {
+                jcmd.destroyForcibly();
+                return "jcmd thread dump timed out";
+            }
+            return "Full thread dump including virtual threads:\n" + Files.readString(out);
+        } catch (Exception e) {
+            return "Could not capture a full thread dump: " + e;
+        }
+    }
+
+    private static String platformThreadDump() {
+        StringBuilder dump = new StringBuilder("Platform thread dump at configuration failure:\n");
+        Thread.getAllStackTraces().forEach((thread, frames) -> {
+            dump.append('\n').append('"').append(thread.getName()).append("\" ").append(thread.getState());
+            if (thread.isDaemon()) {
+                dump.append(" daemon");
+            }
+            dump.append('\n');
+            for (StackTraceElement frame : frames) {
+                dump.append("\tat ").append(frame).append('\n');
+            }
+        });
+        return dump.toString();
     }
 }
