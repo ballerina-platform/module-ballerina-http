@@ -85,11 +85,16 @@ public class Http2TcpServerSendGoAwayForAllStreamsScenarioTest {
     }
 
     private void runTcpServer(int port) {
+        try {
+            serverSocket = new ServerSocket(port);
+        } catch (IOException e) {
+            LOGGER.error(e.getMessage());
+            return;
+        }
+        LOGGER.info("HTTP/2 TCP Server listening on port " + port);
         new Thread(() -> {
             try {
-                serverSocket = new ServerSocket(port);
                 int numberOfConnections = 0;
-                LOGGER.info("HTTP/2 TCP Server listening on port " + port);
                 while (numberOfConnections < 6) {
                     Socket clientSocket = serverSocket.accept();
                     LOGGER.info("Accepted connection from: " + clientSocket.getInetAddress());
