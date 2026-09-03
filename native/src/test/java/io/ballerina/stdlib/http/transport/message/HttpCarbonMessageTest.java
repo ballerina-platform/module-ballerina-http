@@ -150,17 +150,19 @@ public class HttpCarbonMessageTest {
         });
 
         Thread writer = new Thread(() -> httpCarbonMessage.addHttpContent(mock(HttpContent.class)));
-        writer.start();
-        assertTrue(writerParked.await(10, TimeUnit.SECONDS), "Content writer never reached the message listener");
-
         Thread failer = new Thread(() -> httpCarbonMessage.setIoException(new IOException("write failed")));
-        failer.start();
-        failer.join(TimeUnit.SECONDS.toMillis(10));
-        boolean blocked = failer.isAlive();
-
-        releaseWriter.countDown();
-        writer.join(TimeUnit.SECONDS.toMillis(10));
-        failer.join(TimeUnit.SECONDS.toMillis(10));
-        assertFalse(blocked, "setIoException blocked behind a content writer parked inside addHttpContent");
+        writer.start();
+        try {
+            assertTrue(writerParked.await(10, TimeUnit.SECONDS),
+                       "Content writer never reached the message listener");
+            failer.start();
+            failer.join(TimeUnit.SECONDS.toMillis(10));
+            assertFalse(failer.isAlive(),
+                        "setIoException blocked behind a content writer parked inside addHttpContent");
+        } finally {
+            releaseWriter.countDown();
+            writer.join(TimeUnit.SECONDS.toMillis(10));
+            failer.join(TimeUnit.SECONDS.toMillis(10));
+        }
     }
 }

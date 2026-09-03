@@ -23,7 +23,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.ITestResult;
 import org.testng.TestListenerAdapter;
+import org.testng.internal.thread.ThreadTimeoutException;
 
+import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -80,16 +82,19 @@ public class TestNGListener extends TestListenerAdapter {
         Logger log = LoggerFactory.getLogger(tr.getTestClass().getRealClass());
         Throwable e = tr.getThrowable();
         log.error("Configuration failed: " + tr.getName() + "-> " + (e == null ? "" : e.getMessage()));
-        // A setUp or tearDown that times out leaves no clue as to which thread it was waiting on.
-        log.error(platformThreadDump());
-        log.error(fullThreadDump());
+        if (e instanceof ThreadTimeoutException) {
+            // A setUp or tearDown that times out leaves no clue as to which thread it was waiting on.
+            log.error(platformThreadDump());
+            log.error(fullThreadDump());
+        }
     }
 
     // Thread.getAllStackTraces() covers platform threads only, so a service blocked on a virtual thread would
     // not show up above. jcmd reports both.
     private static String fullThreadDump() {
+        Path out = null;
         try {
-            Path out = Files.createTempFile("thread-dump", ".txt");
+            out = Files.createTempFile("thread-dump", ".txt");
             Files.delete(out);
             Process jcmd = new ProcessBuilder("jcmd", String.valueOf(ProcessHandle.current().pid()),
                                               "Thread.dump_to_file", "-format=plain", out.toString())
@@ -101,6 +106,19 @@ public class TestNGListener extends TestListenerAdapter {
             return "Full thread dump including virtual threads:\n" + Files.readString(out);
         } catch (Exception e) {
             return "Could not capture a full thread dump: " + e;
+        } finally {
+            deleteQuietly(out);
+        }
+    }
+
+    private static void deleteQuietly(Path path) {
+        if (path == null) {
+            return;
+        }
+        try {
+            Files.deleteIfExists(path);
+        } catch (IOException e) {
+            LoggerFactory.getLogger(TestNGListener.class).debug("Could not delete {}", path, e);
         }
     }
 
