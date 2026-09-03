@@ -47,7 +47,7 @@ public class Http2TcpServerGoAwayWhileReceivingBodyScenarioTest {
     private static final Logger LOGGER =
             LoggerFactory.getLogger(Http2TcpServerGoAwayWhileReceivingBodyScenarioTest.class);
     private HttpClientConnector h2ClientWithPriorKnowledge;
-    private ServerSocket serverSocket;
+    private volatile ServerSocket serverSocket;
 
     @BeforeClass
     public void setup() throws InterruptedException {
@@ -102,6 +102,8 @@ public class Http2TcpServerGoAwayWhileReceivingBodyScenarioTest {
     @AfterMethod
     public void cleanUp() throws IOException {
         h2ClientWithPriorKnowledge.close();
-        serverSocket.close();
+        if (serverSocket != null) {
+            serverSocket.close();
+        }
     }
 }
