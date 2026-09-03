@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Update Netty version to 4.1.136.Final and Netty tcnative version to 2.0.79.Final](https://github.com/ballerina-platform/ballerina-library/issues/8924)
 - [Fix WebSocket close handshake failing on a valid RFC 6455 simultaneous close](https://github.com/ballerina-platform/ballerina-library/issues/9031)
 - [Fix large streamed message being truncated when the application consumes it more slowly than the socket idle timeout](https://github.com/ballerina-platform/ballerina-library/issues/9033)
+- Fix an HTTP/2 server deadlock between a parked response writer and the event loop failing its queued writes
 
 ## [2.16.2] - 2026-04-29
 
