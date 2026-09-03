@@ -147,8 +147,10 @@ public class HttpCarbonMessage {
      */
     public HttpContent getHttpContent() {
         HttpContent httpContent = this.blockingEntityCollector.getHttpContent();
-        this.contentObservable.notifyGetListener(httpContent);
+        // Null once the collector has timed out waiting for content, and the listeners dereference what they
+        // are handed, so there is nothing to report to them in that case.
         if (httpContent != null) {
+            this.contentObservable.notifyGetListener(httpContent);
             this.contentSize += httpContent.content().readableBytes();
         }
         return httpContent;
