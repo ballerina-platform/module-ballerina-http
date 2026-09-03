@@ -69,10 +69,15 @@ public class Http2TcpServerGoAwayWhileReceivingBodyScenarioTest {
     }
 
     private void runTcpServer(int port) {
+        try {
+            serverSocket = new ServerSocket(port);
+        } catch (IOException e) {
+            LOGGER.error(e.getMessage());
+            return;
+        }
+        LOGGER.info("HTTP/2 TCP Server listening on port " + port);
         new Thread(() -> {
             try {
-                serverSocket = new ServerSocket(port);
-                LOGGER.info("HTTP/2 TCP Server listening on port " + port);
                 Socket clientSocket = serverSocket.accept();
                 LOGGER.info("Accepted connection from: " + clientSocket.getInetAddress());
                 try (OutputStream outputStream = clientSocket.getOutputStream()) {
