@@ -1,0 +1,82 @@
+[
+  {
+    "location": {
+      "filePath": "cookie.bal",
+      "startLine": 21,
+      "endLine": 21,
+      "startColumn": 11,
+      "endColumn": 36,
+      "startOffset": 772,
+      "length": 25
+    },
+    "rule": {
+      "id": "ballerina/http:9",
+      "numericId": 9,
+      "description": "Avoid creating cookies without the secure and httpOnly flags",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule9/cookie.bal",
+    "filePath": "/Users/tharmigan/Downloads/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule9/cookie.bal"
+  },
+  {
+    "location": {
+      "filePath": "cookie.bal",
+      "startLine": 26,
+      "endLine": 26,
+      "startColumn": 46,
+      "endColumn": 51,
+      "startOffset": 939,
+      "length": 5
+    },
+    "rule": {
+      "id": "ballerina/http:9",
+      "numericId": 9,
+      "description": "Avoid creating cookies without the secure and httpOnly flags",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule9/cookie.bal",
+    "filePath": "/Users/tharmigan/Downloads/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule9/cookie.bal"
+  },
+  {
+    "location": {
+      "filePath": "cookie.bal",
+      "startLine": 33,
+      "endLine": 33,
+      "startColumn": 18,
+      "endColumn": 23,
+      "startOffset": 1169,
+      "length": 5
+    },
+    "rule": {
+      "id": "ballerina/http:9",
+      "numericId": 9,
+      "description": "Avoid creating cookies without the secure and httpOnly flags",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule9/cookie.bal",
+    "filePath": "/Users/tharmigan/Downloads/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule9/cookie.bal"
+  },
+  {
+    "location": {
+      "filePath": "cookie.bal",
+      "startLine": 39,
+      "endLine": 39,
+      "startColumn": 11,
+      "endColumn": 51,
+      "startOffset": 1327,
+      "length": 40
+    },
+    "rule": {
+      "id": "ballerina/http:9",
+      "numericId": 9,
+      "description": "Avoid creating cookies without the secure and httpOnly flags",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule9/cookie.bal",
+    "filePath": "/Users/tharmigan/Downloads/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule9/cookie.bal"
+  }
+]

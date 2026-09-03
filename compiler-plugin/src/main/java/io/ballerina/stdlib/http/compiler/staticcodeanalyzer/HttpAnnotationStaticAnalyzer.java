@@ -34,7 +34,12 @@ import io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
+import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpRule.AVOID_CREDENTIALED_WILDCARD_CORS;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpRule.AVOID_PERMISSIVE_CORS;
+import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.findSpecificField;
+import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getEffectiveExpression;
+import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getFieldValue;
+import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getListElements;
 
 /**
  * Analyzer to validate static rules related to HTTP annotations.
@@ -45,6 +50,8 @@ class HttpAnnotationStaticAnalyzer implements AnalysisTask<SyntaxNodeAnalysisCon
     private final Reporter reporter;
     private static final String CORS_FIELD_NAME = "cors";
     private static final String ALLOW_ORIGINS_FIELD_NAME = "allowOrigins";
+    private static final String ALLOW_CREDENTIALS_FIELD_NAME = "allowCredentials";
+    private static final String AUTH_FIELD_NAME = "auth";
     public static final Pattern WILDCARD_ORIGIN = Pattern.compile("\"(\s*)\\*(\s*)\"");
 
     public HttpAnnotationStaticAnalyzer(Reporter reporter) {
@@ -62,10 +69,34 @@ class HttpAnnotationStaticAnalyzer implements AnalysisTask<SyntaxNodeAnalysisCon
             return;
         }
         Document document = HttpCompilerPluginUtil.getDocument(context);
-        validateAnnotationValue(annotationValue.get(), document);
+        validateCorsConfig(annotationValue.get(), document);
+        validateAuthConfig(annotationValue.get(), document);
     }
 
-    private void validateAnnotationValue(MappingConstructorExpressionNode annotationValueMap, Document document) {
+    /**
+     * Validate every listener authentication configuration declared on the annotation.
+     * <p>
+     * {@code auth} is a list of provider configurations. A resource may instead give a bare {@code Scopes} record,
+     * which carries a required {@code scopes} field and so has nothing to check.
+     *
+     * @param annotationValueMap the annotation's configuration record
+     * @param document           the document being analyzed
+     */
+    private void validateAuthConfig(MappingConstructorExpressionNode annotationValueMap, Document document) {
+        Optional<ExpressionNode> authField = getFieldValue(annotationValueMap, AUTH_FIELD_NAME);
+        if (authField.isEmpty()) {
+            return;
+        }
+        for (ExpressionNode authConfig : getListElements(authField.get())) {
+            if (getEffectiveExpression(authConfig) instanceof MappingConstructorExpressionNode authConfigMap) {
+                AuthConfigAnalyzer.reportDisabledTlsValidation(authConfigMap, this.reporter, document);
+                AuthConfigAnalyzer.reportUnverifiedJwt(authConfigMap, this.reporter, document);
+                AuthConfigAnalyzer.reportMissingScopes(authConfigMap, this.reporter, document);
+            }
+        }
+    }
+
+    private void validateCorsConfig(MappingConstructorExpressionNode annotationValueMap, Document document) {
         Optional<SpecificFieldNode> corsField = findSpecificField(annotationValueMap, CORS_FIELD_NAME);
         if (corsField.isEmpty() || corsField.get().valueExpr().isEmpty()) {
             return;
@@ -83,13 +114,40 @@ class HttpAnnotationStaticAnalyzer implements AnalysisTask<SyntaxNodeAnalysisCon
         if (allowOriginsValue.kind() != SyntaxKind.LIST_CONSTRUCTOR) {
             return;
         }
-        checkForPermissiveCors((ListConstructorExpressionNode) allowOriginsValue, document);
+        ListConstructorExpressionNode origins = (ListConstructorExpressionNode) allowOriginsValue;
+        checkForPermissiveCors(origins, document);
+        checkForCredentialedWildcardCors(corsMap, origins, document);
     }
 
-    private Optional<SpecificFieldNode> findSpecificField(MappingConstructorExpressionNode mapNode, String fieldName) {
-        return mapNode.fields().stream()
-                .filter(field -> field.kind() == SyntaxKind.SPECIFIC_FIELD).map(field -> (SpecificFieldNode) field)
-                .filter(field -> fieldName.equals(field.fieldName().toSourceCode().trim())).findFirst();
+    /**
+     * Report a wildcard origin that is combined with {@code allowCredentials: true}.
+     * <p>
+     * A wildcard origin on its own exposes only unauthenticated responses. Combined with credentials it allows any
+     * site to issue authenticated cross-origin requests and read the responses, so the two together are materially
+     * more dangerous than either alone. Browsers reject this combination, which means the service is either
+     * relying on a non-browser client or the configuration does not work as its author intended.
+     *
+     * @param corsMap  the {@code cors} configuration record
+     * @param origins  the {@code allowOrigins} list
+     * @param document the document being analyzed
+     */
+    private void checkForCredentialedWildcardCors(MappingConstructorExpressionNode corsMap,
+                                                  ListConstructorExpressionNode origins, Document document) {
+        Optional<SpecificFieldNode> allowCredentials = findSpecificField(corsMap, ALLOW_CREDENTIALS_FIELD_NAME);
+        if (allowCredentials.isEmpty() || allowCredentials.get().valueExpr().isEmpty()) {
+            return;
+        }
+        // Only a literal `true` is actionable. A variable or expression cannot be resolved here, and reporting on
+        // one would be a guess, so those are left alone.
+        if (!Boolean.parseBoolean(allowCredentials.get().valueExpr().get().toSourceCode().trim())) {
+            return;
+        }
+        boolean hasWildcardOrigin = origins.expressions().stream()
+                .anyMatch(exp -> WILDCARD_ORIGIN.matcher(exp.toSourceCode().trim()).find());
+        if (hasWildcardOrigin) {
+            this.reporter.reportIssue(document, allowCredentials.get().location(),
+                    AVOID_CREDENTIALED_WILDCARD_CORS.getId());
+        }
     }
 
     private void checkForPermissiveCors(ListConstructorExpressionNode allowedOrigins, Document document) {

@@ -31,6 +31,7 @@ import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.MethodDeclarationNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
+import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.plugins.AnalysisTask;
 import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
@@ -74,6 +75,12 @@ class HttpServiceStaticAnalyzer implements AnalysisTask<SyntaxNodeAnalysisContex
 
         Document document = HttpCompilerPluginUtil.getDocument(context);
         SemanticModel semanticModel = context.semanticModel();
+
+        // Only a service declaration names the listeners it is attached to; an object type or class definition
+        // carries no listener to check the transport of.
+        if (context.node() instanceof ServiceDeclarationNode serviceDeclaration) {
+            ServiceTransportSecurityAnalyzer.analyze(context, serviceDeclaration, document, this.reporter);
+        }
 
         analyzeServiceMembers(service.members(), document, semanticModel);
     }

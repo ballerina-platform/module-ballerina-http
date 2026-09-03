@@ -1,0 +1,82 @@
+[
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 24,
+      "endLine": 24,
+      "startColumn": 67,
+      "endColumn": 73,
+      "startOffset": 960,
+      "length": 6
+    },
+    "rule": {
+      "id": "ballerina/http:14",
+      "numericId": 14,
+      "description": "Caller redirections should not be open to forging attacks",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule14/service.bal",
+    "filePath": "/Users/tharmigan/Downloads/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule14/service.bal"
+  },
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 30,
+      "endLine": 30,
+      "startColumn": 80,
+      "endColumn": 86,
+      "startOffset": 1234,
+      "length": 6
+    },
+    "rule": {
+      "id": "ballerina/http:14",
+      "numericId": 14,
+      "description": "Caller redirections should not be open to forging attacks",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule14/service.bal",
+    "filePath": "/Users/tharmigan/Downloads/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule14/service.bal"
+  },
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 36,
+      "endLine": 36,
+      "startColumn": 86,
+      "endColumn": 92,
+      "startOffset": 1524,
+      "length": 6
+    },
+    "rule": {
+      "id": "ballerina/http:14",
+      "numericId": 14,
+      "description": "Caller redirections should not be open to forging attacks",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule14/service.bal",
+    "filePath": "/Users/tharmigan/Downloads/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule14/service.bal"
+  },
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 42,
+      "endLine": 42,
+      "startColumn": 90,
+      "endColumn": 96,
+      "startOffset": 1816,
+      "length": 6
+    },
+    "rule": {
+      "id": "ballerina/http:14",
+      "numericId": 14,
+      "description": "Caller redirections should not be open to forging attacks",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule14/service.bal",
+    "filePath": "/Users/tharmigan/Downloads/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule14/service.bal"
+  }
+]

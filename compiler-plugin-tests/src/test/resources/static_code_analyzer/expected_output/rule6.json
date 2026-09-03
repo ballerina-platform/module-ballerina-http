@@ -1,0 +1,82 @@
+[
+  {
+    "location": {
+      "filePath": "client.bal",
+      "startLine": 22,
+      "endLine": 22,
+      "startColumn": 8,
+      "endColumn": 21,
+      "startOffset": 829,
+      "length": 13
+    },
+    "rule": {
+      "id": "ballerina/http:6",
+      "numericId": 6,
+      "description": "Avoid disabling TLS certificate or host name validation",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule6/client.bal",
+    "filePath": "/Users/tharmigan/Downloads/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule6/client.bal"
+  },
+  {
+    "location": {
+      "filePath": "client.bal",
+      "startLine": 30,
+      "endLine": 30,
+      "startColumn": 8,
+      "endColumn": 29,
+      "startOffset": 1088,
+      "length": 21
+    },
+    "rule": {
+      "id": "ballerina/http:6",
+      "numericId": 6,
+      "description": "Avoid disabling TLS certificate or host name validation",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule6/client.bal",
+    "filePath": "/Users/tharmigan/Downloads/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule6/client.bal"
+  },
+  {
+    "location": {
+      "filePath": "client.bal",
+      "startLine": 38,
+      "endLine": 38,
+      "startColumn": 12,
+      "endColumn": 25,
+      "startOffset": 1332,
+      "length": 13
+    },
+    "rule": {
+      "id": "ballerina/http:6",
+      "numericId": 6,
+      "description": "Avoid disabling TLS certificate or host name validation",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule6/client.bal",
+    "filePath": "/Users/tharmigan/Downloads/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule6/client.bal"
+  },
+  {
+    "location": {
+      "filePath": "client.bal",
+      "startLine": 39,
+      "endLine": 39,
+      "startColumn": 12,
+      "endColumn": 33,
+      "startOffset": 1359,
+      "length": 21
+    },
+    "rule": {
+      "id": "ballerina/http:6",
+      "numericId": 6,
+      "description": "Avoid disabling TLS certificate or host name validation",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule6/client.bal",
+    "filePath": "/Users/tharmigan/Downloads/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule6/client.bal"
+  }
+]
