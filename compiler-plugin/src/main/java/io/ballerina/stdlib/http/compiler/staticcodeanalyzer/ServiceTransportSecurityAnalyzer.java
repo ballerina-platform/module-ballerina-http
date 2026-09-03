@@ -24,26 +24,22 @@ import io.ballerina.compiler.syntax.tree.ExplicitNewExpressionNode;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
 import io.ballerina.compiler.syntax.tree.ImplicitNewExpressionNode;
-import io.ballerina.compiler.syntax.tree.ListenerDeclarationNode;
-import io.ballerina.compiler.syntax.tree.ModulePartNode;
-import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
+import io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.NewExpressionNode;
-import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.ParenthesizedArgList;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.projects.Document;
-import io.ballerina.projects.DocumentId;
-import io.ballerina.projects.Module;
 import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
 import io.ballerina.scan.Reporter;
-import io.ballerina.tools.diagnostics.Location;
 
 import java.util.Optional;
 
+import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.isHttpModule;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpRule.AVOID_AUTHENTICATION_OVER_CLEARTEXT;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getEffectiveExpression;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getFieldValue;
+import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.resolveVariableInitializer;
 
 /**
  * Check that a service accepting credentials is not exposed over a listener without TLS.
@@ -65,13 +61,13 @@ final class ServiceTransportSecurityAnalyzer {
 
     static void analyze(SyntaxNodeAnalysisContext context, ServiceDeclarationNode service, Document document,
                         Reporter reporter) {
-        Optional<AnnotationNode> serviceConfig = getServiceConfigAnnotation(service);
+        Optional<AnnotationNode> serviceConfig = getServiceConfigAnnotation(context, service);
         if (serviceConfig.isEmpty()) {
             return;
         }
         Optional<ExpressionNode> auth = serviceConfig.get().annotValue()
                 .flatMap(config -> getFieldValue(config, AUTH_FIELD_NAME));
-        if (auth.isEmpty()) {
+        if (auth.isEmpty() || declaresNoAuthProvider(auth.get())) {
             return;
         }
         for (ExpressionNode listener : service.expressions()) {
@@ -80,10 +76,20 @@ final class ServiceTransportSecurityAnalyzer {
     }
 
     /**
+     * Check for {@code auth: []}, which configures no provider at all. The service accepts no credentials, so
+     * nothing crosses the network for a cleartext listener to expose.
+     */
+    private static boolean declaresNoAuthProvider(ExpressionNode auth) {
+        return getEffectiveExpression(auth) instanceof ListConstructorExpressionNode providers
+                && providers.expressions().isEmpty();
+    }
+
+    /**
      * Report a listener that is constructed without a secure socket.
      * <p>
-     * A listener whose construction cannot be resolved is left alone. Reporting one would mean guessing that it has
-     * no TLS, and a listener built elsewhere is exactly the case where that guess is most likely wrong.
+     * A listener whose construction, or whose configuration record, cannot be resolved is left alone. Reporting one
+     * would mean guessing that it has no TLS, and a listener built elsewhere is exactly the case where that guess is
+     * most likely wrong.
      */
     private static void reportIfListenerIsCleartext(SyntaxNodeAnalysisContext context, ExpressionNode listener,
                                                     Document document, Reporter reporter) {
@@ -92,8 +98,11 @@ final class ServiceTransportSecurityAnalyzer {
             return;
         }
         HttpConstructionArguments arguments = getArguments(construction.get())
-                .map(HttpConstructionArguments::new)
+                .map(argumentList -> new HttpConstructionArguments(context, argumentList))
                 .orElseGet(HttpConstructionArguments::empty);
+        if (arguments.hasUnresolvedConfiguration()) {
+            return;
+        }
         if (arguments.getConfigurationField(SECURE_SOCKET).isEmpty()) {
             reporter.reportIssue(document, listener.location(), AVOID_AUTHENTICATION_OVER_CLEARTEXT.getId());
         }
@@ -109,50 +118,9 @@ final class ServiceTransportSecurityAnalyzer {
         if (expression instanceof NewExpressionNode newExpression) {
             return Optional.of(newExpression);
         }
-        return context.semanticModel().symbol(expression)
-                .flatMap(Symbol::getLocation)
-                .flatMap(location -> findDeclarationNode(context, location))
-                .flatMap(ServiceTransportSecurityAnalyzer::getDeclarationInitializer);
-    }
-
-    /**
-     * Find the syntax node a symbol was declared at. The declaration may live in any document of the module, so it
-     * is located by the file name the symbol reports.
-     */
-    private static Optional<Node> findDeclarationNode(SyntaxNodeAnalysisContext context, Location location) {
-        Module module = context.currentPackage().module(context.moduleId());
-        for (DocumentId documentId : module.documentIds()) {
-            Document document = module.document(documentId);
-            if (!document.name().equals(location.lineRange().fileName())) {
-                continue;
-            }
-            if (document.syntaxTree().rootNode() instanceof ModulePartNode modulePart) {
-                return Optional.ofNullable(modulePart.findNode(location.textRange()));
-            }
-        }
-        return Optional.empty();
-    }
-
-    private static Optional<NewExpressionNode> getDeclarationInitializer(Node declaration) {
-        Node current = declaration;
-        while (current != null) {
-            Optional<Node> initializer = switch (current) {
-                case ListenerDeclarationNode listenerDeclaration ->
-                        Optional.of(listenerDeclaration.initializer());
-                case ModuleVariableDeclarationNode variableDeclaration ->
-                        variableDeclaration.initializer().map(Node.class::cast);
-                default -> Optional.empty();
-            };
-            if (initializer.isPresent()) {
-                return initializer
-                        .filter(ExpressionNode.class::isInstance)
-                        .map(node -> getEffectiveExpression((ExpressionNode) node))
-                        .filter(NewExpressionNode.class::isInstance)
-                        .map(NewExpressionNode.class::cast);
-            }
-            current = current.parent();
-        }
-        return Optional.empty();
+        return resolveVariableInitializer(context, expression)
+                .filter(NewExpressionNode.class::isInstance)
+                .map(NewExpressionNode.class::cast);
     }
 
     private static Optional<SeparatedNodeList<FunctionArgumentNode>> getArguments(NewExpressionNode newExpression) {
@@ -164,15 +132,26 @@ final class ServiceTransportSecurityAnalyzer {
         };
     }
 
-    private static Optional<AnnotationNode> getServiceConfigAnnotation(ServiceDeclarationNode service) {
+    private static Optional<AnnotationNode> getServiceConfigAnnotation(SyntaxNodeAnalysisContext context,
+                                                                      ServiceDeclarationNode service) {
         return service.metadata()
                 .map(metadata -> metadata.annotations().stream()
-                        .filter(ServiceTransportSecurityAnalyzer::isServiceConfig)
+                        .filter(annotation -> isHttpServiceConfig(context, annotation))
                         .findFirst())
                 .flatMap(annotation -> annotation);
     }
 
-    private static boolean isServiceConfig(AnnotationNode annotation) {
-        return annotation.annotReference().toSourceCode().trim().endsWith(":" + SERVICE_CONFIG_ANNOTATION);
+    /**
+     * Confirm the annotation is {@code ballerina/http:ServiceConfig}. The name alone is not enough, since other
+     * modules declare a {@code ServiceConfig} of their own with an {@code auth} field that means something else.
+     */
+    private static boolean isHttpServiceConfig(SyntaxNodeAnalysisContext context, AnnotationNode annotation) {
+        if (!annotation.annotReference().toSourceCode().trim().endsWith(":" + SERVICE_CONFIG_ANNOTATION)) {
+            return false;
+        }
+        return context.semanticModel().symbol(annotation.annotReference())
+                .flatMap(Symbol::getModule)
+                .filter(module -> module.getName().isPresent() && isHttpModule(module))
+                .isPresent();
     }
 }

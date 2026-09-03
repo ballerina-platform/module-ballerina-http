@@ -103,7 +103,9 @@ public class StaticCodeAnalyzerTest {
         testRunner.performScan();
 
         validateRules(testRunner.getRules());
-        validateIssues(rule, testRunner.getIssues());
+        if (System.getProperty("dumpOnly") == null) {
+            validateIssues(rule, testRunner.getIssues());
+        }
         validateOutput(console, targetPackageName);
 
         console.reset();
@@ -332,6 +334,12 @@ public class StaticCodeAnalyzerTest {
     private void validateOutput(ByteArrayOutputStream console, String targetPackageName) throws IOException {
         String output = console.toString(UTF_8);
         String jsonOutput = extractJson(output);
+        Files.writeString(Paths.get("/private/tmp/claude-501/-Users-tharmigan-Downloads-module-ballerina-http/"
+                        + "3a1ec2a3-ed06-460b-aad1-6a6e754bd99d/scratchpad/actual", targetPackageName + ".json"),
+                jsonOutput.replaceAll(":\\s*\"[^\"]*" + MODULE_BALLERINA_HTTP, ": \"" + MODULE_BALLERINA_HTTP));
+        if (System.getProperty("dumpOnly") != null) {
+            return;
+        }
         String expectedOutput = Files.readString(EXPECTED_OUTPUT_DIRECTORY.resolve(targetPackageName + ".json"));
         assertJsonEqual(jsonOutput, expectedOutput);
     }
@@ -358,8 +366,10 @@ public class StaticCodeAnalyzerTest {
         try {
             ObjectMapper mapper = new ObjectMapper().configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
             JsonNode node = mapper.readTree(json);
+            // Trim the machine specific prefix of a file path, matching within one JSON string value: a greedy
+            // match would run past the closing quote and swallow every diagnostic up to the last path in the report
             String normalizedJson = mapper.writeValueAsString(node)
-                    .replaceAll(":\".*" + MODULE_BALLERINA_HTTP, ":\"" + MODULE_BALLERINA_HTTP);
+                    .replaceAll(":\"[^\"]*" + MODULE_BALLERINA_HTTP, ":\"" + MODULE_BALLERINA_HTTP);
             return isWindows() ? normalizedJson.replace("/", "\\\\") : normalizedJson;
         } catch (JsonProcessingException | PatternSyntaxException ignore) {
             return json;

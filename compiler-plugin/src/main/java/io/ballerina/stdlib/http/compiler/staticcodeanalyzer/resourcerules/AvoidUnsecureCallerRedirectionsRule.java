@@ -34,7 +34,7 @@ import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.isHttpMod
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpRule.AVOID_UNSECURE_CALLER_REDIRECTIONS;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getEffectiveExpression;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getListElements;
-import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getUsedParamName;
+import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getUsedParamNames;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.resolveConstructedType;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.unescapeIdentifier;
 
@@ -98,8 +98,7 @@ public class AvoidUnsecureCallerRedirectionsRule implements HttpResourceRule {
             targets.add(locations.get());
         }
         for (ExpressionNode target : targets) {
-            Optional<String> usedParamName = getUsedParamName(target);
-            if (usedParamName.isPresent() && context.resourceParamNames().contains(usedParamName.get())) {
+            if (getUsedParamNames(target).stream().anyMatch(context.resourceParamNames()::contains)) {
                 context.reporter().reportIssue(context.document(), target.location(), getRuleId());
             }
         }

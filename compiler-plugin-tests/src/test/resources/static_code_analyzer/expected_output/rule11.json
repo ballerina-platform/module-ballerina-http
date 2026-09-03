@@ -17,7 +17,7 @@
     },
     "source": "BUILT_IN",
     "fileName": "rule11/service.bal",
-    "filePath": "/Users/tharmigan/Downloads/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule11/service.bal"
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule11/service.bal"
   },
   {
     "location": {
@@ -37,7 +37,7 @@
     },
     "source": "BUILT_IN",
     "fileName": "rule11/service.bal",
-    "filePath": "/Users/tharmigan/Downloads/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule11/service.bal"
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule11/service.bal"
   },
   {
     "location": {
@@ -57,6 +57,6 @@
     },
     "source": "BUILT_IN",
     "fileName": "rule11/service.bal",
-    "filePath": "/Users/tharmigan/Downloads/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule11/service.bal"
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule11/service.bal"
   }
 ]

@@ -17,7 +17,7 @@
     },
     "source": "BUILT_IN",
     "fileName": "rule6/client.bal",
-    "filePath": "/Users/tharmigan/Downloads/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule6/client.bal"
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule6/client.bal"
   },
   {
     "location": {
@@ -37,7 +37,7 @@
     },
     "source": "BUILT_IN",
     "fileName": "rule6/client.bal",
-    "filePath": "/Users/tharmigan/Downloads/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule6/client.bal"
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule6/client.bal"
   },
   {
     "location": {
@@ -57,7 +57,7 @@
     },
     "source": "BUILT_IN",
     "fileName": "rule6/client.bal",
-    "filePath": "/Users/tharmigan/Downloads/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule6/client.bal"
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule6/client.bal"
   },
   {
     "location": {
@@ -77,6 +77,6 @@
     },
     "source": "BUILT_IN",
     "fileName": "rule6/client.bal",
-    "filePath": "/Users/tharmigan/Downloads/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule6/client.bal"
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule6/client.bal"
   }
 ]

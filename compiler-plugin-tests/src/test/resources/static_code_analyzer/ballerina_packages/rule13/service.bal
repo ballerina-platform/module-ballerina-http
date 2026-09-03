@@ -89,3 +89,76 @@ service /public on plainListener {
         return "Hello";
     }
 }
+
+// Negative case - no authentication provider is configured at all
+@http:ServiceConfig {
+    auth: []
+}
+service /noProvider on plainListener {
+    resource function get greet() returns string {
+        return "Hello";
+    }
+}
+
+// Negative case - a ServiceConfig from another module, whose auth is unrelated to HTTP authentication
+@custom:ServiceConfig {
+    auth: ["admin"]
+}
+service /otherAnnotation on plainListener {
+    resource function get greet() returns string {
+        return "Hello";
+    }
+}
+
+// Negative case - the listener configuration is held in a variable that carries TLS
+final http:ListenerConfiguration & readonly declaredConfig = {
+    secureSocket: {
+        key: {
+            certFile: "/path/to/public.crt",
+            keyFile: "/path/to/private.key"
+        }
+    }
+};
+
+listener http:Listener declaredConfigListener = new (9093, declaredConfig);
+
+@http:ServiceConfig {
+    auth: [
+        {
+            signatureConfig: {
+                certFile: "/path/to/public.crt"
+            },
+            issuer: "wso2",
+            audience: "ballerina",
+            scopes: ["admin"]
+        }
+    ]
+}
+service /declaredConfig on declaredConfigListener {
+    resource function get greet() returns string {
+        return "Hello";
+    }
+}
+
+// Negative case - a listener configuration this analysis cannot read is not guessed at
+function getListenerConfig() returns http:ListenerConfiguration => {};
+
+listener http:Listener opaqueConfigListener = new (9094, getListenerConfig());
+
+@http:ServiceConfig {
+    auth: [
+        {
+            signatureConfig: {
+                certFile: "/path/to/public.crt"
+            },
+            issuer: "wso2",
+            audience: "ballerina",
+            scopes: ["admin"]
+        }
+    ]
+}
+service /opaqueConfig on opaqueConfigListener {
+    resource function get greet() returns string {
+        return "Hello";
+    }
+}

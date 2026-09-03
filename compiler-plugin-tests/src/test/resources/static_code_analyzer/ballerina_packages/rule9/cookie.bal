@@ -44,3 +44,18 @@ function partiallyConfiguredCookie() returns http:Cookie {
 function secureCookie() returns http:Cookie {
     return new ("session", "abc123", secure = true, httpOnly = true);
 }
+
+// The options are held in a variable, which is followed to the declaration switching the flag off
+final http:CookieOptions & readonly declaredOptions = {
+    secure: true,
+    httpOnly: false
+};
+
+function cookieFromDeclaredOptions() returns http:Cookie {
+    return new ("session", "abc123", declaredOptions);
+}
+
+// Negative case - options this analysis cannot read are not guessed at
+function cookieFromSuppliedOptions(http:CookieOptions options) returns http:Cookie {
+    return new ("session", "abc123", options);
+}

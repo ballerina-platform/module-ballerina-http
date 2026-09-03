@@ -17,7 +17,7 @@
     },
     "source": "BUILT_IN",
     "fileName": "rule15/listener.bal",
-    "filePath": "/Users/tharmigan/Downloads/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule15/listener.bal"
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule15/listener.bal"
   },
   {
     "location": {
@@ -37,6 +37,6 @@
     },
     "source": "BUILT_IN",
     "fileName": "rule15/listener.bal",
-    "filePath": "/Users/tharmigan/Downloads/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule15/listener.bal"
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule15/listener.bal"
   }
 ]

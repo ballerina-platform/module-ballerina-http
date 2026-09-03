@@ -43,6 +43,18 @@ service /redirects on new http:Listener(9090) {
         check caller->redirect(response, http:REDIRECT_FOUND_302, ["https://example.com", target]);
     }
 
+    // The target is concatenated into a longer URL
+    resource function get concatenatedTarget(http:Caller caller, string target) returns error? {
+        http:Response response = new;
+        check caller->redirect(response, http:REDIRECT_FOUND_302, ["https://example.com/" + target]);
+    }
+
+    // The target is interpolated into a string template
+    resource function get templatedTarget(http:Caller caller, string target) returns error? {
+        http:Response response = new;
+        check caller->redirect(response, http:REDIRECT_FOUND_302, [string `https://example.com/${target}`]);
+    }
+
     // Negative case - a fixed redirect target
     resource function get fixedTarget(http:Caller caller) returns error? {
         http:Response response = new;

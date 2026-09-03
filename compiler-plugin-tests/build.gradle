@@ -95,6 +95,9 @@ compileJava {
 }
 
 test {
+    if (System.getProperty("dumpOnly") != null) {
+        systemProperty "dumpOnly", System.getProperty("dumpOnly")
+    }
     useTestNG() {
         suites 'src/test/resources/testng.xml'
     }

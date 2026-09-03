@@ -57,7 +57,9 @@ public class EnsureSecureCookieConfigurationRule implements HttpConstructionRule
                 context.reporter().reportIssue(context.document(), value.get().location(), getRuleId());
             }
         }
-        if (anyFlagUnset) {
+        // An options record this analysis cannot read may well set the flags, so an absent flag is only a defect
+        // when the whole record is in view
+        if (anyFlagUnset && !context.arguments().hasUnresolvedConfiguration()) {
             context.reporter().reportIssue(context.document(), context.constructionLocation(), getRuleId());
         }
     }
