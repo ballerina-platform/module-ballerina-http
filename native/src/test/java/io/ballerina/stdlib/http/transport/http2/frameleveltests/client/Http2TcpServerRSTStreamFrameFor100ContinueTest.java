@@ -78,8 +78,7 @@ public class Http2TcpServerRSTStreamFrameFor100ContinueTest {
         try {
             serverSocket = new ServerSocket(port);
         } catch (IOException e) {
-            LOGGER.error(e.getMessage());
-            return;
+            throw new IllegalStateException("Could not bind the test server to port " + port, e);
         }
         LOGGER.info("HTTP/2 TCP Server listening on port " + port);
         new Thread(() -> {
