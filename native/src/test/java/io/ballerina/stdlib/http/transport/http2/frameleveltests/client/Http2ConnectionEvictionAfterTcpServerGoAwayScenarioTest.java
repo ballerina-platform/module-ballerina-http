@@ -59,7 +59,7 @@ public class Http2ConnectionEvictionAfterTcpServerGoAwayScenarioTest {
     private static final Logger LOGGER =
             LoggerFactory.getLogger(Http2ConnectionEvictionAfterTcpServerGoAwayScenarioTest.class);
     private HttpClientConnector h2ClientWithPriorKnowledge;
-    private ServerSocket serverSocket;
+    private volatile ServerSocket serverSocket;
     private int numOfConnections = 0;
 
     public HttpClientConnector setupHttp2PriorKnowledgeClient(long minIdleTimeInStaleState,
@@ -144,10 +144,14 @@ public class Http2ConnectionEvictionAfterTcpServerGoAwayScenarioTest {
             serverSocket.close();
         }
         numOfConnections = 0;
+        try {
+            serverSocket = new ServerSocket(port);
+        } catch (IOException e) {
+            throw new IllegalStateException("Could not bind the test server to port " + port, e);
+        }
+        LOGGER.info("HTTP/2 TCP Server listening on port " + port);
         new Thread(() -> {
             try {
-                serverSocket = new ServerSocket(port);
-                LOGGER.info("HTTP/2 TCP Server listening on port " + port);
                 while (numOfConnections < 2) {
                     Socket clientSocket = serverSocket.accept();
                     LOGGER.info("Accepted connection from: " + clientSocket.getInetAddress());
@@ -202,6 +206,8 @@ public class Http2ConnectionEvictionAfterTcpServerGoAwayScenarioTest {
     @AfterClass
     public void cleanUp() throws IOException {
         h2ClientWithPriorKnowledge.close();
-        serverSocket.close();
+        if (serverSocket != null) {
+            serverSocket.close();
+        }
     }
 }
