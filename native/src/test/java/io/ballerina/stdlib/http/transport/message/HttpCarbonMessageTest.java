@@ -28,8 +28,12 @@ import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static org.mockito.Mockito.mock;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 /**
  * A unit test class for Transport module HttpCarbonMessage class functions.
@@ -124,4 +128,39 @@ public class HttpCarbonMessageTest {
         httpCarbonMessage.notifyContentFailure(new Exception());
     }
 
+
+    // A content writer parked inside addHttpContent - the HTTP/2 outbound path blocks there when the peer's
+    // flow control window is shut - used to hold the message monitor, so the event loop failing the queued
+    // writes after an RST_STREAM deadlocked against it and the connection could never be closed.
+    @Test(timeOut = 30000)
+    public void testSetIoExceptionIsNotBlockedByAParkedContentWriter() throws Exception {
+        HttpMessage httpMessage = mock(HttpMessage.class);
+        Listener contentListener = mock(Listener.class);
+        HttpCarbonMessage httpCarbonMessage = new HttpCarbonMessage(httpMessage, 100, contentListener);
+
+        CountDownLatch writerParked = new CountDownLatch(1);
+        CountDownLatch releaseWriter = new CountDownLatch(1);
+        httpCarbonMessage.getHttpContentAsync().setMessageListener(httpContent -> {
+            writerParked.countDown();
+            try {
+                releaseWriter.await();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        });
+
+        Thread writer = new Thread(() -> httpCarbonMessage.addHttpContent(mock(HttpContent.class)));
+        writer.start();
+        assertTrue(writerParked.await(10, TimeUnit.SECONDS), "Content writer never reached the message listener");
+
+        Thread failer = new Thread(() -> httpCarbonMessage.setIoException(new IOException("write failed")));
+        failer.start();
+        failer.join(TimeUnit.SECONDS.toMillis(10));
+        boolean blocked = failer.isAlive();
+
+        releaseWriter.countDown();
+        writer.join(TimeUnit.SECONDS.toMillis(10));
+        failer.join(TimeUnit.SECONDS.toMillis(10));
+        assertFalse(blocked, "setIoException blocked behind a content writer parked inside addHttpContent");
+    }
 }
