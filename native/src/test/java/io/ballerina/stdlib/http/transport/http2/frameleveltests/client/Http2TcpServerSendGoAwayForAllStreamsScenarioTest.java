@@ -48,7 +48,7 @@ public class Http2TcpServerSendGoAwayForAllStreamsScenarioTest {
             LoggerFactory.getLogger(Http2TcpServerSendGoAwayForAllStreamsScenarioTest.class);
 
     private HttpClientConnector h2ClientWithPriorKnowledge;
-    private ServerSocket serverSocket;
+    private volatile ServerSocket serverSocket;
     Semaphore semaphore = new Semaphore(0);
 
     @BeforeClass
@@ -85,11 +85,15 @@ public class Http2TcpServerSendGoAwayForAllStreamsScenarioTest {
     }
 
     private void runTcpServer(int port) {
+        try {
+            serverSocket = new ServerSocket(port);
+        } catch (IOException e) {
+            throw new IllegalStateException("Could not bind the test server to port " + port, e);
+        }
+        LOGGER.info("HTTP/2 TCP Server listening on port " + port);
         new Thread(() -> {
             try {
-                serverSocket = new ServerSocket(port);
                 int numberOfConnections = 0;
-                LOGGER.info("HTTP/2 TCP Server listening on port " + port);
                 while (numberOfConnections < 6) {
                     Socket clientSocket = serverSocket.accept();
                     LOGGER.info("Accepted connection from: " + clientSocket.getInetAddress());
@@ -139,6 +143,8 @@ public class Http2TcpServerSendGoAwayForAllStreamsScenarioTest {
     @AfterMethod
     public void cleanUp() throws IOException {
         h2ClientWithPriorKnowledge.close();
-        serverSocket.close();
+        if (serverSocket != null) {
+            serverSocket.close();
+        }
     }
 }
