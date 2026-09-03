@@ -52,7 +52,7 @@ public class Http2ServerAbruptClosureInALPNScenarioTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Http2ServerAbruptClosureInALPNScenarioTest.class);
     private HttpClientConnector h2ClientWithUpgrade;
-    private ServerSocket serverSocket;
+    private volatile ServerSocket serverSocket;
     private int numOfConnections = 0;
 
     @BeforeClass
@@ -128,6 +128,8 @@ public class Http2ServerAbruptClosureInALPNScenarioTest {
     @AfterClass
     public void cleanUp() throws IOException {
         h2ClientWithUpgrade.close();
-        serverSocket.close();
+        if (serverSocket != null) {
+            serverSocket.close();
+        }
     }
 }

@@ -49,7 +49,7 @@ public class Http2TcpServerGoAway100ContinueScenarioTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Http2TcpServerGoAway100ContinueScenarioTest.class);
     private HttpClientConnector h2ClientWithPriorKnowledge;
-    private ServerSocket serverSocket;
+    private volatile ServerSocket serverSocket;
 
     @BeforeMethod
     public void setup(Method method) throws InterruptedException {
@@ -105,6 +105,8 @@ public class Http2TcpServerGoAway100ContinueScenarioTest {
     @AfterMethod
     public void cleanUp() throws IOException {
         h2ClientWithPriorKnowledge.close();
-        serverSocket.close();
+        if (serverSocket != null) {
+            serverSocket.close();
+        }
     }
 }

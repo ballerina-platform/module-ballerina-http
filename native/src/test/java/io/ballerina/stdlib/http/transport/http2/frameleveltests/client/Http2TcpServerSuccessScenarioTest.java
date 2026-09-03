@@ -45,7 +45,7 @@ public class Http2TcpServerSuccessScenarioTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Http2TcpServerSuccessScenarioTest.class);
     private HttpClientConnector h2ClientWithPriorKnowledge;
-    private ServerSocket serverSocket;
+    private volatile ServerSocket serverSocket;
 
     @BeforeClass
     public void setup() throws InterruptedException {
@@ -98,6 +98,8 @@ public class Http2TcpServerSuccessScenarioTest {
     @AfterMethod
     public void cleanUp() throws IOException {
         h2ClientWithPriorKnowledge.close();
-        serverSocket.close();
+        if (serverSocket != null) {
+            serverSocket.close();
+        }
     }
 }

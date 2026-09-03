@@ -55,7 +55,7 @@ public class Http2ChannelCloseBeforeConnectionEvictionAfterTcpServerGoAwayScenar
     private static final Logger LOGGER =
             LoggerFactory.getLogger(Http2ChannelCloseBeforeConnectionEvictionAfterTcpServerGoAwayScenarioTest.class);
     private HttpClientConnector h2ClientWithPriorKnowledge;
-    private ServerSocket serverSocket;
+    private volatile ServerSocket serverSocket;
 
     public HttpClientConnector setupHttp2PriorKnowledgeClient(long minIdleTimeInStaleState,
                                                               long timeBetweenStaleEviction) {
@@ -129,6 +129,8 @@ public class Http2ChannelCloseBeforeConnectionEvictionAfterTcpServerGoAwayScenar
     @AfterClass
     public void cleanUp() throws IOException {
         h2ClientWithPriorKnowledge.close();
-        serverSocket.close();
+        if (serverSocket != null) {
+            serverSocket.close();
+        }
     }
 }

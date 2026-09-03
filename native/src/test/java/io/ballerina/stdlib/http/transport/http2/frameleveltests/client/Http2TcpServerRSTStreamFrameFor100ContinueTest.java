@@ -48,7 +48,7 @@ public class Http2TcpServerRSTStreamFrameFor100ContinueTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Http2TcpServerRSTStreamFrameFor100ContinueTest.class);
     private HttpClientConnector h2ClientWithPriorKnowledge;
-    private ServerSocket serverSocket;
+    private volatile ServerSocket serverSocket;
 
     @BeforeClass
     public void setup() throws InterruptedException {
@@ -104,6 +104,8 @@ public class Http2TcpServerRSTStreamFrameFor100ContinueTest {
     @AfterMethod
     public void cleanUp() throws IOException {
         h2ClientWithPriorKnowledge.close();
-        serverSocket.close();
+        if (serverSocket != null) {
+            serverSocket.close();
+        }
     }
 }

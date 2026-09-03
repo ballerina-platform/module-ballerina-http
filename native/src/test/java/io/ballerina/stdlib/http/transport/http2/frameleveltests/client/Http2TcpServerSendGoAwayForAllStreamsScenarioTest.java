@@ -48,7 +48,7 @@ public class Http2TcpServerSendGoAwayForAllStreamsScenarioTest {
             LoggerFactory.getLogger(Http2TcpServerSendGoAwayForAllStreamsScenarioTest.class);
 
     private HttpClientConnector h2ClientWithPriorKnowledge;
-    private ServerSocket serverSocket;
+    private volatile ServerSocket serverSocket;
     Semaphore semaphore = new Semaphore(0);
 
     @BeforeClass
@@ -139,6 +139,8 @@ public class Http2TcpServerSendGoAwayForAllStreamsScenarioTest {
     @AfterMethod
     public void cleanUp() throws IOException {
         h2ClientWithPriorKnowledge.close();
-        serverSocket.close();
+        if (serverSocket != null) {
+            serverSocket.close();
+        }
     }
 }

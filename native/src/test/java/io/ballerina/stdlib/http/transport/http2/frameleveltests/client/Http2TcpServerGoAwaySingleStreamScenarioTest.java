@@ -48,7 +48,7 @@ public class Http2TcpServerGoAwaySingleStreamScenarioTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Http2TcpServerGoAwaySingleStreamScenarioTest.class);
     private HttpClientConnector h2ClientWithPriorKnowledge;
-    private ServerSocket serverSocket;
+    private volatile ServerSocket serverSocket;
 
     @BeforeMethod
     public void setup(Method method) throws InterruptedException {
@@ -133,6 +133,8 @@ public class Http2TcpServerGoAwaySingleStreamScenarioTest {
     @AfterMethod
     public void cleanUp() throws IOException {
         h2ClientWithPriorKnowledge.close();
-        serverSocket.close();
+        if (serverSocket != null) {
+            serverSocket.close();
+        }
     }
 }

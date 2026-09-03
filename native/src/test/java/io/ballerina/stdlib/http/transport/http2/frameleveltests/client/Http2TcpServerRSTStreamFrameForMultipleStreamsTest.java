@@ -51,7 +51,7 @@ public class Http2TcpServerRSTStreamFrameForMultipleStreamsTest {
     private HttpClientConnector h2ClientWithPriorKnowledge;
     Semaphore readSemaphore = new Semaphore(0);
     Semaphore writeSemaphore = new Semaphore(0);
-    private ServerSocket serverSocket;
+    private volatile ServerSocket serverSocket;
 
     @BeforeClass
     public void setup() throws InterruptedException {
@@ -132,6 +132,8 @@ public class Http2TcpServerRSTStreamFrameForMultipleStreamsTest {
     @AfterMethod
     public void cleanUp() throws IOException {
         h2ClientWithPriorKnowledge.close();
-        serverSocket.close();
+        if (serverSocket != null) {
+            serverSocket.close();
+        }
     }
 }
