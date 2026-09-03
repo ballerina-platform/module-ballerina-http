@@ -50,6 +50,7 @@ public class Http2WithPriorKnowledgeHandler extends ChannelInboundHandlerAdapter
     private long maxHeaderListSize;
     private int initialWindowSize;
     private int maxActiveStreams;
+    private long gracefulStopTimeout;
 
     public Http2WithPriorKnowledgeHandler(String interfaceId, String serverName,
                                           ServerConnectorFuture serverConnectorFuture,
@@ -58,7 +59,8 @@ public class Http2WithPriorKnowledgeHandler extends ChannelInboundHandlerAdapter
                                           ChannelGroup listenerChannels,
                                           long maxHeaderListSize,
                                           int initialWindowSize,
-                                          int maxActiveStreams) {
+                                          int maxActiveStreams,
+                                          long gracefulStopTimeout) {
         this.interfaceId = interfaceId;
         this.serverName = serverName;
         this.serverConnectorFuture = serverConnectorFuture;
@@ -68,6 +70,7 @@ public class Http2WithPriorKnowledgeHandler extends ChannelInboundHandlerAdapter
         this.maxHeaderListSize = maxHeaderListSize;
         this.initialWindowSize = initialWindowSize;
         this.maxActiveStreams = maxActiveStreams;
+        this.gracefulStopTimeout = gracefulStopTimeout;
     }
 
     @Override
@@ -87,7 +90,7 @@ public class Http2WithPriorKnowledgeHandler extends ChannelInboundHandlerAdapter
                         new Http2SourceConnectionHandlerBuilder(
                                 interfaceId, serverConnectorFuture, serverName, serverChannelInitializer,
                                 allChannels, listenerChannels, maxHeaderListSize, initialWindowSize,
-                                maxActiveStreams).build());
+                                maxActiveStreams, gracefulStopTimeout).build());
                 safelyRemoveHandlers(pipeline, Constants.HTTP2_UPGRADE_HANDLER,
                         Constants.HTTP_COMPRESSOR, Constants.HTTP_TRACE_LOG_HANDLER);
             }
