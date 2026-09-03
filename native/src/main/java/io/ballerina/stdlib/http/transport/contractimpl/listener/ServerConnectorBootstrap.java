@@ -215,6 +215,7 @@ public class ServerConnectorBootstrap {
 
     public void setGracefulStopTimeout(int gracefulStopTimeout) {
         this.gracefulStopTimeout = gracefulStopTimeout;
+        httpServerChannelInitializer.setGracefulStopTimeout(gracefulStopTimeout);
     }
 
     class HttpServerConnector implements ServerConnector {
