@@ -2,11 +2,11 @@
   {
     "location": {
       "filePath": "service.bal",
-      "startLine": 41,
-      "endLine": 41,
+      "startLine": 45,
+      "endLine": 45,
       "startColumn": 26,
       "endColumn": 39,
-      "startOffset": 1246,
+      "startOffset": 1337,
       "length": 13
     },
     "rule": {
@@ -22,11 +22,11 @@
   {
     "location": {
       "filePath": "service.bal",
-      "startLine": 60,
-      "endLine": 60,
+      "startLine": 66,
+      "endLine": 66,
       "startColumn": 27,
       "endColumn": 50,
-      "startOffset": 1667,
+      "startOffset": 1826,
       "length": 23
     },
     "rule": {

@@ -28,11 +28,13 @@ listener http:Listener securedListener = new (9090, secureSocket = {
 @http:ServiceConfig {
     auth: [
         {
-            signatureConfig: {
-                certFile: "/path/to/public.crt"
-            },
-            issuer: "wso2",
-            audience: "ballerina"
+            jwtValidatorConfig: {
+                signatureConfig: {
+                    certFile: "/path/to/public.crt"
+                },
+                issuer: "wso2",
+                audience: "ballerina"
+            }
         }
     ]
 }
@@ -46,8 +48,10 @@ service /noScopes on securedListener {
 @http:ServiceConfig {
     auth: [
         {
-            url: "https://idp.example.com/introspect",
-            tokenTypeHint: "access_token"
+            oauth2IntrospectionConfig: {
+                url: "https://idp.example.com/introspect",
+                tokenTypeHint: "access_token"
+            }
         }
     ]
 }
@@ -61,11 +65,13 @@ service /introspectionNoScopes on securedListener {
 @http:ServiceConfig {
     auth: [
         {
-            signatureConfig: {
-                certFile: "/path/to/public.crt"
+            jwtValidatorConfig: {
+                signatureConfig: {
+                    certFile: "/path/to/public.crt"
+                },
+                issuer: "wso2",
+                audience: "ballerina"
             },
-            issuer: "wso2",
-            audience: "ballerina",
             scopes: ["admin"]
         }
     ]

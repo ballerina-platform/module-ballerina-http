@@ -3,11 +3,11 @@
     "location": {
       "filePath": "service.bal",
       "startLine": 29,
-      "endLine": 35,
+      "endLine": 37,
       "startColumn": 8,
       "endColumn": 9,
       "startOffset": 950,
-      "length": 167
+      "length": 235
     },
     "rule": {
       "id": "ballerina/http:12",
@@ -22,12 +22,12 @@
   {
     "location": {
       "filePath": "service.bal",
-      "startLine": 47,
-      "endLine": 50,
+      "startLine": 49,
+      "endLine": 54,
       "startColumn": 8,
       "endColumn": 9,
-      "startOffset": 1339,
-      "length": 108
+      "startOffset": 1407,
+      "length": 171
     },
     "rule": {
       "id": "ballerina/http:12",

@@ -28,7 +28,6 @@ import io.ballerina.scan.Reporter;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpRule.AVOID_DISABLED_AUTH_PROVIDER_TLS;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpRule.ENSURE_AUTHORIZATION_SCOPES;
@@ -36,6 +35,7 @@ import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpRule.ENSU
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.findSpecificField;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getBooleanLiteralValue;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getEffectiveExpression;
+import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getNestedMapping;
 
 /**
  * Checks that apply to an authentication configuration record, wherever it appears.
@@ -54,16 +54,7 @@ public final class AuthConfigAnalyzer {
     private static final String SIGNATURE_CONFIG = "signatureConfig";
     private static final String ISSUER = "issuer";
     private static final String AUDIENCE = "audience";
-
-    /**
-     * Fields that identify a record as a JWT validator configuration.
-     * <p>
-     * Every listener authentication configuration accepts {@code scopes}, and {@code scopeKey} is shared with the
-     * OAuth2 introspection configuration, so neither identifies a provider. The fields listed here appear on no
-     * other listener authentication configuration.
-     */
-    private static final Set<String> JWT_VALIDATOR_MARKERS = Set.of(ISSUER, AUDIENCE, SIGNATURE_CONFIG, "jwtId",
-            "keyId", "clockSkew", "customClaims", "username");
+    private static final String JWT_VALIDATOR_CONFIG = "jwtValidatorConfig";
 
     /**
      * The deepest nesting at which a secure socket appears inside an authentication configuration. A JWT validator
@@ -149,6 +140,10 @@ public final class AuthConfigAnalyzer {
      * removes a check rather than defaulting to a safe value. With no {@code signatureConfig} the signature is never
      * verified at all, so any self-signed token is accepted; with no {@code issuer} or {@code audience} a token
      * genuinely issued for a different service is accepted here.
+     * <p>
+     * A listener authentication configuration nests its provider under a named field, so the checks apply to the
+     * {@code jwtValidatorConfig} record rather than to the entry that carries it. That field also identifies the
+     * provider outright, since no other listener authentication configuration declares it.
      *
      * @param authConfig the listener authentication configuration record
      * @param reporter   static code analysis reporter
@@ -156,28 +151,16 @@ public final class AuthConfigAnalyzer {
      */
     public static void reportUnverifiedJwt(MappingConstructorExpressionNode authConfig, Reporter reporter,
                                            Document document) {
-        if (!isJwtValidatorConfig(authConfig)) {
+        Optional<MappingConstructorExpressionNode> validatorConfig = getNestedMapping(authConfig,
+                JWT_VALIDATOR_CONFIG);
+        if (validatorConfig.isEmpty()) {
             return;
         }
         for (String field : List.of(SIGNATURE_CONFIG, ISSUER, AUDIENCE)) {
-            if (findSpecificField(authConfig, field).isEmpty()) {
-                reporter.reportIssue(document, authConfig.location(), ENSURE_JWT_VERIFICATION.getId());
+            if (findSpecificField(validatorConfig.get(), field).isEmpty()) {
+                reporter.reportIssue(document, validatorConfig.get().location(), ENSURE_JWT_VERIFICATION.getId());
                 return;
             }
         }
-    }
-
-    /**
-     * Identify a JWT validator configuration by a field that appears on no other listener authentication
-     * configuration. A record carrying only {@code scopes} is indistinguishable from a file user store
-     * configuration, and is left alone rather than guessed at.
-     */
-    private static boolean isJwtValidatorConfig(MappingConstructorExpressionNode authConfig) {
-        return authConfig.fields().stream()
-                .filter(field -> field.kind() == SyntaxKind.SPECIFIC_FIELD)
-                .map(field -> (SpecificFieldNode) field)
-                .anyMatch(field -> JWT_VALIDATOR_MARKERS.stream()
-                        .anyMatch(marker -> HttpStaticAnalysisUtils.matchesFieldName(field.fieldName(), marker,
-                                false)));
     }
 }

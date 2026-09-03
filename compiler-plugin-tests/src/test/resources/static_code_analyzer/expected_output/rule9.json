@@ -78,5 +78,25 @@
     "source": "BUILT_IN",
     "fileName": "rule9/cookie.bal",
     "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule9/cookie.bal"
+  },
+  {
+    "location": {
+      "filePath": "cookie.bal",
+      "startLine": 50,
+      "endLine": 50,
+      "startColumn": 14,
+      "endColumn": 19,
+      "startOffset": 1712,
+      "length": 5
+    },
+    "rule": {
+      "id": "ballerina/http:9",
+      "numericId": 9,
+      "description": "Avoid creating cookies without the secure and httpOnly flags",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule9/cookie.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule9/cookie.bal"
   }
 ]

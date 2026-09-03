@@ -28,8 +28,10 @@ listener http:Listener securedListener = new (9090, secureSocket = {
 @http:ServiceConfig {
     auth: [
         {
-            issuer: "wso2",
-            audience: "ballerina",
+            jwtValidatorConfig: {
+                issuer: "wso2",
+                audience: "ballerina"
+            },
             scopes: ["admin"]
         }
     ]
@@ -44,10 +46,12 @@ service /unverified on securedListener {
 @http:ServiceConfig {
     auth: [
         {
-            signatureConfig: {
-                certFile: "/path/to/public.crt"
+            jwtValidatorConfig: {
+                signatureConfig: {
+                    certFile: "/path/to/public.crt"
+                },
+                audience: "ballerina"
             },
-            audience: "ballerina",
             scopes: ["admin"]
         }
     ]
@@ -62,10 +66,12 @@ service /noIssuer on securedListener {
 @http:ServiceConfig {
     auth: [
         {
-            signatureConfig: {
-                certFile: "/path/to/public.crt"
+            jwtValidatorConfig: {
+                signatureConfig: {
+                    certFile: "/path/to/public.crt"
+                },
+                issuer: "wso2"
             },
-            issuer: "wso2",
             scopes: ["admin"]
         }
     ]
@@ -80,16 +86,33 @@ service /noAudience on securedListener {
 @http:ServiceConfig {
     auth: [
         {
-            signatureConfig: {
-                certFile: "/path/to/public.crt"
+            jwtValidatorConfig: {
+                signatureConfig: {
+                    certFile: "/path/to/public.crt"
+                },
+                issuer: "wso2",
+                audience: "ballerina"
             },
-            issuer: "wso2",
-            audience: "ballerina",
             scopes: ["admin"]
         }
     ]
 }
 service /verified on securedListener {
+    resource function get greet() returns string {
+        return "Hello";
+    }
+}
+
+// Nothing is verified at all, so any self-signed token from any issuer is accepted
+@http:ServiceConfig {
+    auth: [
+        {
+            jwtValidatorConfig: {},
+            scopes: ["admin"]
+        }
+    ]
+}
+service /noVerification on securedListener {
     resource function get greet() returns string {
         return "Hello";
     }
