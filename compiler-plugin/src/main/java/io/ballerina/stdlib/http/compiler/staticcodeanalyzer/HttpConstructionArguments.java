@@ -18,12 +18,14 @@
 
 package io.ballerina.stdlib.http.compiler.staticcodeanalyzer;
 
+import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.NamedArgumentNode;
 import io.ballerina.compiler.syntax.tree.PositionalArgumentNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
+import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -33,6 +35,7 @@ import java.util.Optional;
 
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getEffectiveExpression;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getNestedMapping;
+import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.resolveVariableInitializer;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.unescapeIdentifier;
 
 /**
@@ -54,6 +57,7 @@ public final class HttpConstructionArguments {
     private final List<ExpressionNode> positionalArguments = new ArrayList<>();
     private final Map<String, ExpressionNode> namedArguments = new LinkedHashMap<>();
     private MappingConstructorExpressionNode inlineConfiguration;
+    private boolean configurationUnresolved;
 
     private HttpConstructionArguments() {
     }
@@ -67,15 +71,14 @@ public final class HttpConstructionArguments {
         return new HttpConstructionArguments();
     }
 
-    public HttpConstructionArguments(SeparatedNodeList<FunctionArgumentNode> arguments) {
+    public HttpConstructionArguments(SyntaxNodeAnalysisContext context,
+                                     SeparatedNodeList<FunctionArgumentNode> arguments) {
         for (FunctionArgumentNode argument : arguments) {
             switch (argument) {
                 case PositionalArgumentNode positionalArgument -> {
                     ExpressionNode expression = getEffectiveExpression(positionalArgument.expression());
                     positionalArguments.add(expression);
-                    if (expression instanceof MappingConstructorExpressionNode mappingConstructor) {
-                        inlineConfiguration = mappingConstructor;
-                    }
+                    acceptPositionalConfiguration(context, expression);
                 }
                 case NamedArgumentNode namedArgument -> namedArguments.put(
                         unescapeIdentifier(namedArgument.argumentName().name().text()),
@@ -85,6 +88,42 @@ public final class HttpConstructionArguments {
                 }
             }
         }
+    }
+
+    /**
+     * Record a positional argument that carries the configuration record.
+     * <p>
+     * The record is either written inline or held in a variable, and a variable is followed to the expression it was
+     * declared with. One that cannot be followed leaves the configuration unresolved, so that a rule reporting on an
+     * absent field does not mistake what it cannot see for what is not there.
+     */
+    private void acceptPositionalConfiguration(SyntaxNodeAnalysisContext context, ExpressionNode expression) {
+        if (expression instanceof MappingConstructorExpressionNode mappingConstructor) {
+            inlineConfiguration = mappingConstructor;
+            return;
+        }
+        if (!isConfigurationRecord(context, expression)) {
+            return;
+        }
+        Optional<MappingConstructorExpressionNode> declaredValue = resolveVariableInitializer(context, expression)
+                .filter(MappingConstructorExpressionNode.class::isInstance)
+                .map(MappingConstructorExpressionNode.class::cast);
+        if (declaredValue.isPresent()) {
+            inlineConfiguration = declaredValue.get();
+        } else {
+            configurationUnresolved = true;
+        }
+    }
+
+    /**
+     * Tell the configuration argument from the other positional arguments, such as a listener port or a client URL,
+     * by its type rather than its position, since each constructor places it differently.
+     */
+    private static boolean isConfigurationRecord(SyntaxNodeAnalysisContext context, ExpressionNode expression) {
+        return context.semanticModel().typeOf(expression)
+                .map(HttpStaticAnalysisUtils::resolveEffectiveType)
+                .filter(type -> type.typeKind() == TypeDescKind.RECORD)
+                .isPresent();
     }
 
     /**
@@ -136,6 +175,18 @@ public final class HttpConstructionArguments {
      * @return true if a configuration record or at least one named argument was supplied
      */
     public boolean hasConfiguration() {
-        return inlineConfiguration != null || !namedArguments.isEmpty();
+        return inlineConfiguration != null || !namedArguments.isEmpty() || configurationUnresolved;
+    }
+
+    /**
+     * Check whether a configuration record was supplied in a form this analysis cannot read.
+     * <p>
+     * A rule that reports on an absent field must consult this first: an unreadable record may well set the field,
+     * and reporting it would be a guess.
+     *
+     * @return true if configuration was supplied but could not be resolved
+     */
+    public boolean hasUnresolvedConfiguration() {
+        return configurationUnresolved;
     }
 }

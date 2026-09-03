@@ -66,7 +66,7 @@ class HttpConstructionStaticAnalyzer implements AnalysisTask<SyntaxNodeAnalysisC
         }
 
         HttpConstructionArguments arguments = getArguments(newExpression)
-                .map(HttpConstructionArguments::new)
+                .map(argumentList -> new HttpConstructionArguments(context, argumentList))
                 .orElseGet(HttpConstructionArguments::empty);
         rulesEngine.executeRules(new HttpConstructionRuleContext(reporter,
                 HttpCompilerPluginUtil.getDocument(context), context.semanticModel(), newExpression.location(),

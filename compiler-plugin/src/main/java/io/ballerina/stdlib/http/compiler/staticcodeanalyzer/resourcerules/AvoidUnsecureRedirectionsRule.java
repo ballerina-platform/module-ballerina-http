@@ -40,7 +40,7 @@ import static io.ballerina.compiler.syntax.tree.SyntaxKind.SPECIFIC_FIELD;
 import static io.ballerina.stdlib.http.compiler.Constants.BALLERINA;
 import static io.ballerina.stdlib.http.compiler.Constants.EMPTY;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
-import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getUsedParamName;
+import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getUsedParamNames;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.matchesFieldName;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpRule.AVOID_UNSECURE_REDIRECTIONS;
 
@@ -188,8 +188,7 @@ public class AvoidUnsecureRedirectionsRule implements HttpResourceRule {
 
         if (locationValue.isPresent()) {
             ExpressionNode expression = locationValue.get();
-            Optional<String> usedParamName = getUsedParamName(expression);
-            if (usedParamName.isPresent() && context.resourceParamNames().contains(usedParamName.get())) {
+            if (getUsedParamNames(expression).stream().anyMatch(context.resourceParamNames()::contains)) {
                 context.reporter().reportIssue(
                         context.document(),
                         header.location(),
