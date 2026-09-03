@@ -126,27 +126,31 @@ public interface WebSocketConnection {
     ChannelFuture pong(ByteBuffer data);
 
     /**
-     * Initiates connection closure. {@link ChannelFuture} will complete operation successfully if and only if it
-     * receives back a echoed close WebSocket frame from the remote endpoint with the same status code as was written.
-     * Also {@link ChannelFuture} will not reach operationComplete state until it receives a close WebSocket frame
-     * from the remote endpoint. If user does not need to wait for the echoed back WebSocket frame from the remote
-     * endpoint, user need to handle it separately.
+     * Initiates connection closure. {@link ChannelFuture} will complete operation successfully upon receiving any
+     * close WebSocket frame from the remote endpoint, regardless of whether its status code matches the one that
+     * was sent. Also {@link ChannelFuture} will not reach operationComplete state until it receives a close
+     * WebSocket frame from the remote endpoint. If user does not need to wait for the echoed back WebSocket frame
+     * from the remote endpoint, user need to handle it separately. The future completes exceptionally if sending
+     * the close WebSocket frame itself fails.
      *
      * @param statusCode Status code to indicate the reason of closure
      *                   @see <a href="https://tools.ietf.org/html/rfc6455">WebSocket Protocol</a>
      * @param reason Reason to close the connection
-     * @return Future to represent the completion of asynchronous frame sending
+     * @return Future that completes successfully once the remote endpoint's close WebSocket frame is received, or
+     *         exceptionally if sending the close WebSocket frame fails
      */
     ChannelFuture initiateConnectionClosure(int statusCode, String reason);
 
     /**
-     * Initiates connection closure. {@link ChannelFuture} will complete operation successfully if and only if it
-     * receives back a echoed close WebSocket frame from the remote endpoint with the same status code as was written.
-     * Also {@link ChannelFuture} will not reach operationComplete state until it receives a close WebSocket frame from
-     * the remote endpoint. If user does not need to wait for the echoed back WebSocket frame from the remote endpoint,
-     * user need to handle it separately.
+     * Initiates connection closure. {@link ChannelFuture} will complete operation successfully upon receiving any
+     * close WebSocket frame from the remote endpoint, regardless of whether its status code matches the one that
+     * was sent. Also {@link ChannelFuture} will not reach operationComplete state until it receives a close
+     * WebSocket frame from the remote endpoint. If user does not need to wait for the echoed back WebSocket frame
+     * from the remote endpoint, user need to handle it separately. The future completes exceptionally if sending
+     * the close WebSocket frame itself fails.
      *
-     * @return the future to represent the completion of asynchronous frame sending
+     * @return Future that completes successfully once the remote endpoint's close WebSocket frame is received, or
+     *         exceptionally if sending the close WebSocket frame fails
      */
     ChannelFuture initiateConnectionClosure();
 
