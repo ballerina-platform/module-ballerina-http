@@ -65,7 +65,7 @@ public class WebSocketInboundFrameHandler extends ChannelInboundHandlerAdapter {
     private boolean closeFrameReceived;
     private boolean closeInitialized;
     private DefaultWebSocketConnection webSocketConnection;
-    private ChannelPromise closePromise;
+    private volatile ChannelPromise closePromise;
     private WebSocketFrameType continuationFrameType;
 
     public WebSocketInboundFrameHandler(boolean isServer, boolean secureConnection, String target,
@@ -141,7 +141,7 @@ public class WebSocketInboundFrameHandler extends ChannelInboundHandlerAdapter {
 
         if (closePromise != null && !closeFrameReceived) {
             String errMsg = "Connection is closed by remote endpoint without echoing a close frame";
-            ctx.close().addListener(closeFuture -> closePromise.setFailure(new IllegalStateException(errMsg)));
+            ctx.close().addListener(closeFuture -> closePromise.tryFailure(new IllegalStateException(errMsg)));
         }
         connectorFuture.notifyWebSocketListener(webSocketConnection);
     }
@@ -223,14 +223,7 @@ public class WebSocketInboundFrameHandler extends ChannelInboundHandlerAdapter {
             setupCommonProperties(webSocketCloseMessage);
             connectorFuture.notifyWebSocketListener((WebSocketCloseMessage) webSocketCloseMessage);
         } else {
-            if (webSocketConnection.getCloseInitiatedStatusCode() != statusCode) {
-                String errMsg = String.format(
-                        "Expected status code %d but found %d in echoed close frame from remote endpoint",
-                        webSocketConnection.getCloseInitiatedStatusCode(), statusCode);
-                closePromise.setFailure(new IllegalStateException(errMsg));
-                return;
-            }
-            closePromise.setSuccess();
+            closePromise.trySuccess();
         }
         closeWebSocketFrame.release();
     }
