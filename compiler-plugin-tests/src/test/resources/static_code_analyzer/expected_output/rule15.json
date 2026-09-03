@@ -1,0 +1,42 @@
+[
+  {
+    "location": {
+      "filePath": "listener.bal",
+      "startLine": 22,
+      "endLine": 22,
+      "startColumn": 8,
+      "endColumn": 29,
+      "startOffset": 845,
+      "length": 21
+    },
+    "rule": {
+      "id": "ballerina/http:15",
+      "numericId": 15,
+      "description": "Avoid accepting request bodies of unlimited size",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule15/listener.bal",
+    "filePath": "/Users/tharmigan/Downloads/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule15/listener.bal"
+  },
+  {
+    "location": {
+      "filePath": "listener.bal",
+      "startLine": 31,
+      "endLine": 31,
+      "startColumn": 12,
+      "endColumn": 33,
+      "startOffset": 1091,
+      "length": 21
+    },
+    "rule": {
+      "id": "ballerina/http:15",
+      "numericId": 15,
+      "description": "Avoid accepting request bodies of unlimited size",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule15/listener.bal",
+    "filePath": "/Users/tharmigan/Downloads/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule15/listener.bal"
+  }
+]

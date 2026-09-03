@@ -18,7 +18,13 @@
 
 package io.ballerina.stdlib.http.compiler.staticcodeanalyzer;
 
+import io.ballerina.compiler.api.symbols.IntersectionTypeSymbol;
+import io.ballerina.compiler.api.symbols.TypeDescKind;
+import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
+import io.ballerina.compiler.api.symbols.TypeSymbol;
+import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.syntax.tree.AssignmentStatementNode;
+import io.ballerina.compiler.syntax.tree.BasicLiteralNode;
 import io.ballerina.compiler.syntax.tree.BlockStatementNode;
 import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
@@ -26,13 +32,17 @@ import io.ballerina.compiler.syntax.tree.DoStatementNode;
 import io.ballerina.compiler.syntax.tree.ElseBlockNode;
 import io.ballerina.compiler.syntax.tree.ExpressionFunctionBodyNode;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
+import io.ballerina.compiler.syntax.tree.ExpressionStatementNode;
 import io.ballerina.compiler.syntax.tree.FieldAccessExpressionNode;
 import io.ballerina.compiler.syntax.tree.ForEachStatementNode;
 import io.ballerina.compiler.syntax.tree.FunctionBodyBlockNode;
 import io.ballerina.compiler.syntax.tree.FunctionBodyNode;
+import io.ballerina.compiler.syntax.tree.IdentifierToken;
 import io.ballerina.compiler.syntax.tree.IfElseStatementNode;
 import io.ballerina.compiler.syntax.tree.IndexedExpressionNode;
+import io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.LockStatementNode;
+import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MatchStatementNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
@@ -41,7 +51,9 @@ import io.ballerina.compiler.syntax.tree.OnFailClauseNode;
 import io.ballerina.compiler.syntax.tree.ReturnStatementNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
+import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.StatementNode;
+import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.TypeCastExpressionNode;
 import io.ballerina.compiler.syntax.tree.TypeCastParamNode;
 import io.ballerina.compiler.syntax.tree.VariableDeclarationNode;
@@ -136,6 +148,7 @@ public final class HttpStaticAnalysisUtils {
      * - ReturnStatementNode
      * - AssignmentStatementNode - analyze the right-hand side expression
      * - VariableDeclarationNode - analyze the initializer expression
+     * - ExpressionStatementNode - a call or action invoked for its effect, with its result unused
      * Also supports block statements like:
      * - MatchStatementNode
      * - DoStatementNode
@@ -177,6 +190,8 @@ public final class HttpStaticAnalysisUtils {
             }
             case ElseBlockNode elseBlockNode ->
                     addExpression(expressions, elseBlockNode.elseBody());
+            case ExpressionStatementNode expressionStatementNode -> expressions
+                    .add(new ExpressionNodeInfo(expressionStatementNode.expression()));
             case ForEachStatementNode forEachStatementNode ->
                     addExpressions(forEachStatementNode.blockStatement().statements(), expressions);
             case WhileStatementNode whileStatementNode ->
@@ -249,5 +264,167 @@ public final class HttpStaticAnalysisUtils {
             case IndexedExpressionNode indexedExpr -> getUsedParamName((indexedExpr).containerExpression());
             default -> Optional.empty();
         };
+    }
+
+    /**
+     * Find a specific field by name within a mapping constructor.
+     * <p>
+     * Computed and spread fields cannot be resolved statically and are skipped.
+     *
+     * @param mapNode   the mapping constructor to search
+     * @param fieldName the field name to look for
+     * @return the matching field if present, empty otherwise
+     */
+    public static Optional<SpecificFieldNode> findSpecificField(MappingConstructorExpressionNode mapNode,
+                                                                String fieldName) {
+        return mapNode.fields().stream()
+                .filter(field -> field.kind() == SyntaxKind.SPECIFIC_FIELD)
+                .map(field -> (SpecificFieldNode) field)
+                .filter(field -> matchesFieldName(field.fieldName(), fieldName, false))
+                .findFirst();
+    }
+
+    /**
+     * Check whether the given field name node matches the expected field name.
+     * Handles both plain identifiers and quoted string field names.
+     *
+     * @param fieldNameNode     the field name node to check
+     * @param expectedFieldName the expected field name
+     * @param ignoreCase        whether to compare case-insensitively
+     * @return true if the field name matches, false otherwise
+     */
+    public static boolean matchesFieldName(Node fieldNameNode, String expectedFieldName, boolean ignoreCase) {
+        String fieldName;
+        if (fieldNameNode instanceof IdentifierToken identifierToken) {
+            fieldName = unescapeIdentifier(identifierToken.text());
+        } else if (fieldNameNode instanceof BasicLiteralNode basicLiteralNode) {
+            String literal = basicLiteralNode.literalToken().text();
+            fieldName = literal.substring(1, literal.length() - 1);
+        } else {
+            return false;
+        }
+        return ignoreCase ? fieldName.equalsIgnoreCase(expectedFieldName) : fieldName.equals(expectedFieldName);
+    }
+
+    /**
+     * Get the value expression of a named field within a mapping constructor.
+     *
+     * @param mapNode   the mapping constructor to search
+     * @param fieldName the field name to look for
+     * @return the field value if present, empty otherwise
+     */
+    public static Optional<ExpressionNode> getFieldValue(MappingConstructorExpressionNode mapNode, String fieldName) {
+        return findSpecificField(mapNode, fieldName).flatMap(SpecificFieldNode::valueExpr);
+    }
+
+    /**
+     * Get a named field whose value is itself a mapping constructor.
+     *
+     * @param mapNode   the mapping constructor to search
+     * @param fieldName the field name to look for
+     * @return the nested mapping constructor if present, empty otherwise
+     */
+    public static Optional<MappingConstructorExpressionNode> getNestedMapping(
+            MappingConstructorExpressionNode mapNode, String fieldName) {
+        return getFieldValue(mapNode, fieldName)
+                .map(HttpStaticAnalysisUtils::getEffectiveExpression)
+                .filter(MappingConstructorExpressionNode.class::isInstance)
+                .map(MappingConstructorExpressionNode.class::cast);
+    }
+
+    /**
+     * Get the value of a boolean literal expression.
+     * <p>
+     * Only a literal is actionable. A variable or a computed expression cannot be resolved without data-flow
+     * analysis, and reporting on one would be a guess, so those yield an empty result.
+     *
+     * @param expression the expression to read
+     * @return the literal value if the expression is a boolean literal, empty otherwise
+     */
+    public static Optional<Boolean> getBooleanLiteralValue(ExpressionNode expression) {
+        String source = expression.toSourceCode().trim();
+        if (Boolean.TRUE.toString().equals(source)) {
+            return Optional.of(true);
+        }
+        if (Boolean.FALSE.toString().equals(source)) {
+            return Optional.of(false);
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Get the value of an integer literal expression, including a negated one such as {@code -1}.
+     *
+     * @param expression the expression to read
+     * @return the literal value if the expression is an integer literal, empty otherwise
+     */
+    public static Optional<Long> getIntegerLiteralValue(ExpressionNode expression) {
+        try {
+            return Optional.of(Long.parseLong(expression.toSourceCode().trim()));
+        } catch (NumberFormatException e) {
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Get the value of a string literal expression, with the surrounding quotes removed.
+     *
+     * @param expression the expression to read
+     * @return the literal value if the expression is a string literal, empty otherwise
+     */
+    public static Optional<String> getStringLiteralValue(ExpressionNode expression) {
+        String source = expression.toSourceCode().trim();
+        if (source.length() >= 2 && source.startsWith("\"") && source.endsWith("\"")) {
+            return Optional.of(source.substring(1, source.length() - 1));
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Get the element expressions of a list constructor.
+     *
+     * @param expression the expression to read
+     * @return the list elements, or an empty list if the expression is not a list constructor
+     */
+    public static List<ExpressionNode> getListElements(ExpressionNode expression) {
+        if (!(getEffectiveExpression(expression) instanceof ListConstructorExpressionNode listConstructor)) {
+            return List.of();
+        }
+        return listConstructor.expressions().stream()
+                .filter(ExpressionNode.class::isInstance)
+                .map(ExpressionNode.class::cast)
+                .toList();
+    }
+
+    /**
+     * Resolve the type produced by a constructor expression.
+     * <p>
+     * A {@code new} expression on a type whose {@code init} can fail is typed as a union of the constructed type
+     * and an error, and a {@code readonly &} construction is typed as an intersection. Both are unwrapped here so
+     * callers see the constructed type itself.
+     *
+     * @param typeSymbol the type of the constructor expression
+     * @return the constructed type
+     */
+    public static TypeSymbol resolveConstructedType(TypeSymbol typeSymbol) {
+        TypeSymbol effective = typeSymbol;
+        if (effective instanceof IntersectionTypeSymbol intersectionTypeSymbol) {
+            effective = intersectionTypeSymbol.effectiveTypeDescriptor();
+        }
+        if (effective instanceof UnionTypeSymbol unionTypeSymbol) {
+            List<TypeSymbol> constructedTypes = unionTypeSymbol.memberTypeDescriptors().stream()
+                    .filter(member -> !isErrorType(member))
+                    .toList();
+            if (constructedTypes.size() == 1) {
+                effective = constructedTypes.get(0);
+            }
+        }
+        return effective;
+    }
+
+    private static boolean isErrorType(TypeSymbol typeSymbol) {
+        TypeSymbol effective = typeSymbol instanceof TypeReferenceTypeSymbol typeReferenceTypeSymbol ?
+                typeReferenceTypeSymbol.typeDescriptor() : typeSymbol;
+        return effective.typeKind() == TypeDescKind.ERROR;
     }
 }

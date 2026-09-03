@@ -1,0 +1,62 @@
+[
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 29,
+      "endLine": 33,
+      "startColumn": 8,
+      "endColumn": 9,
+      "startOffset": 950,
+      "length": 104
+    },
+    "rule": {
+      "id": "ballerina/http:11",
+      "numericId": 11,
+      "description": "Avoid accepting JSON Web Tokens without verification",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule11/service.bal",
+    "filePath": "/Users/tharmigan/Downloads/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule11/service.bal"
+  },
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 45,
+      "endLine": 51,
+      "startColumn": 8,
+      "endColumn": 9,
+      "startOffset": 1314,
+      "length": 170
+    },
+    "rule": {
+      "id": "ballerina/http:11",
+      "numericId": 11,
+      "description": "Avoid accepting JSON Web Tokens without verification",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule11/service.bal",
+    "filePath": "/Users/tharmigan/Downloads/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule11/service.bal"
+  },
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 63,
+      "endLine": 69,
+      "startColumn": 8,
+      "endColumn": 9,
+      "startOffset": 1715,
+      "length": 163
+    },
+    "rule": {
+      "id": "ballerina/http:11",
+      "numericId": 11,
+      "description": "Avoid accepting JSON Web Tokens without verification",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule11/service.bal",
+    "filePath": "/Users/tharmigan/Downloads/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule11/service.bal"
+  }
+]

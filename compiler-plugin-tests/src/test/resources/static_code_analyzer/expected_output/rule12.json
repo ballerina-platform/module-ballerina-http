@@ -1,0 +1,42 @@
+[
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 29,
+      "endLine": 35,
+      "startColumn": 8,
+      "endColumn": 9,
+      "startOffset": 950,
+      "length": 167
+    },
+    "rule": {
+      "id": "ballerina/http:12",
+      "numericId": 12,
+      "description": "Avoid authenticating requests without authorizing them",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule12/service.bal",
+    "filePath": "/Users/tharmigan/Downloads/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule12/service.bal"
+  },
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 47,
+      "endLine": 50,
+      "startColumn": 8,
+      "endColumn": 9,
+      "startOffset": 1339,
+      "length": 108
+    },
+    "rule": {
+      "id": "ballerina/http:12",
+      "numericId": 12,
+      "description": "Avoid authenticating requests without authorizing them",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule12/service.bal",
+    "filePath": "/Users/tharmigan/Downloads/module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule12/service.bal"
+  }
+]

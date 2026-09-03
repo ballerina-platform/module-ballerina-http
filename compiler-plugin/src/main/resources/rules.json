@@ -18,5 +18,60 @@
     "id": 4,
     "kind": "VULNERABILITY",
     "description": "HTTP request redirections should not be open to forging attacks"
+  },
+  {
+    "id": 5,
+    "kind": "VULNERABILITY",
+    "description": "Avoid allowing credentials with a wildcard Cross-Origin Resource Sharing origin"
+  },
+  {
+    "id": 6,
+    "kind": "VULNERABILITY",
+    "description": "Avoid disabling TLS certificate or host name validation"
+  },
+  {
+    "id": 7,
+    "kind": "VULNERABILITY",
+    "description": "Avoid using weak TLS protocol versions"
+  },
+  {
+    "id": 8,
+    "kind": "VULNERABILITY",
+    "description": "Avoid forwarding authorization headers across redirects"
+  },
+  {
+    "id": 9,
+    "kind": "VULNERABILITY",
+    "description": "Avoid creating cookies without the secure and httpOnly flags"
+  },
+  {
+    "id": 10,
+    "kind": "VULNERABILITY",
+    "description": "Avoid disabling TLS validation on the authentication provider client"
+  },
+  {
+    "id": 11,
+    "kind": "VULNERABILITY",
+    "description": "Avoid accepting JSON Web Tokens without verification"
+  },
+  {
+    "id": 12,
+    "kind": "VULNERABILITY",
+    "description": "Avoid authenticating requests without authorizing them"
+  },
+  {
+    "id": 13,
+    "kind": "VULNERABILITY",
+    "description": "Avoid accepting credentials over a listener without TLS"
+  },
+  {
+    "id": 14,
+    "kind": "VULNERABILITY",
+    "description": "Caller redirections should not be open to forging attacks"
+  },
+  {
+    "id": 15,
+    "kind": "VULNERABILITY",
+    "description": "Avoid accepting request bodies of unlimited size"
   }
 ]
