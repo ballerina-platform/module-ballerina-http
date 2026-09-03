@@ -2,11 +2,11 @@
   {
     "location": {
       "filePath": "auth_client.bal",
-      "startLine": 26,
-      "endLine": 26,
-      "startColumn": 12,
-      "endColumn": 25,
-      "startOffset": 994,
+      "startLine": 27,
+      "endLine": 27,
+      "startColumn": 16,
+      "endColumn": 29,
+      "startOffset": 1026,
       "length": 13
     },
     "rule": {
@@ -22,11 +22,11 @@
   {
     "location": {
       "filePath": "auth_client.bal",
-      "startLine": 39,
-      "endLine": 39,
-      "startColumn": 16,
-      "endColumn": 29,
-      "startOffset": 1418,
+      "startLine": 42,
+      "endLine": 42,
+      "startColumn": 20,
+      "endColumn": 33,
+      "startOffset": 1500,
       "length": 13
     },
     "rule": {

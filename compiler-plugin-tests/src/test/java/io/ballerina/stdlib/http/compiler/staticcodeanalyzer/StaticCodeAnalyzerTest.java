@@ -103,9 +103,7 @@ public class StaticCodeAnalyzerTest {
         testRunner.performScan();
 
         validateRules(testRunner.getRules());
-        if (System.getProperty("dumpOnly") == null) {
-            validateIssues(rule, testRunner.getIssues());
-        }
+        validateIssues(rule, testRunner.getIssues());
         validateOutput(console, targetPackageName);
 
         console.reset();
@@ -193,7 +191,7 @@ public class StaticCodeAnalyzerTest {
                 break;
             case AVOID_UNSECURE_REDIRECTIONS:
                 index = 0;
-                Assert.assertEquals(issues.size(), 9);
+                Assert.assertEquals(issues.size(), 10);
                 Assertions.assertIssue(issues, index++, "ballerina/http:4", "custom_prefix.bal",
                         22, 22, Source.BUILT_IN);
                 Assertions.assertIssue(issues, index++, "ballerina/http:4", "service.bal",
@@ -210,8 +208,10 @@ public class StaticCodeAnalyzerTest {
                         76, 76, Source.BUILT_IN);
                 Assertions.assertIssue(issues, index++, "ballerina/http:4", "service.bal",
                         83, 83, Source.BUILT_IN);
-                Assertions.assertIssue(issues, index, "ballerina/http:4", "service.bal",
+                Assertions.assertIssue(issues, index++, "ballerina/http:4", "service.bal",
                         95, 95, Source.BUILT_IN);
+                Assertions.assertIssue(issues, index, "ballerina/http:4", "service.bal",
+                        190, 190, Source.BUILT_IN);
                 break;
             case AVOID_CREDENTIALED_WILDCARD_CORS:
                 index = 0;
@@ -261,61 +261,69 @@ public class StaticCodeAnalyzerTest {
                 break;
             case ENSURE_SECURE_COOKIE_CONFIGURATION:
                 index = 0;
-                Assert.assertEquals(issues.size(), 4);
+                Assert.assertEquals(issues.size(), 5);
                 Assertions.assertIssue(issues, index++, "ballerina/http:9", "cookie.bal",
                         21, 21, Source.BUILT_IN);
                 Assertions.assertIssue(issues, index++, "ballerina/http:9", "cookie.bal",
                         26, 26, Source.BUILT_IN);
                 Assertions.assertIssue(issues, index++, "ballerina/http:9", "cookie.bal",
                         33, 33, Source.BUILT_IN);
-                Assertions.assertIssue(issues, index, "ballerina/http:9", "cookie.bal",
+                Assertions.assertIssue(issues, index++, "ballerina/http:9", "cookie.bal",
                         39, 39, Source.BUILT_IN);
+                Assertions.assertIssue(issues, index, "ballerina/http:9", "cookie.bal",
+                        50, 50, Source.BUILT_IN);
                 break;
             case AVOID_DISABLED_AUTH_PROVIDER_TLS:
                 index = 0;
                 Assert.assertEquals(issues.size(), 2);
                 Assertions.assertIssue(issues, index++, "ballerina/http:10", "auth_client.bal",
-                        26, 26, Source.BUILT_IN);
+                        27, 27, Source.BUILT_IN);
                 Assertions.assertIssue(issues, index, "ballerina/http:10", "auth_client.bal",
-                        39, 39, Source.BUILT_IN);
+                        42, 42, Source.BUILT_IN);
                 break;
             case ENSURE_JWT_VERIFICATION:
                 index = 0;
-                Assert.assertEquals(issues.size(), 3);
+                Assert.assertEquals(issues.size(), 4);
                 Assertions.assertIssue(issues, index++, "ballerina/http:11", "service.bal",
-                        29, 33, Source.BUILT_IN);
+                        30, 33, Source.BUILT_IN);
                 Assertions.assertIssue(issues, index++, "ballerina/http:11", "service.bal",
-                        45, 51, Source.BUILT_IN);
+                        48, 53, Source.BUILT_IN);
+                Assertions.assertIssue(issues, index++, "ballerina/http:11", "service.bal",
+                        68, 73, Source.BUILT_IN);
                 Assertions.assertIssue(issues, index, "ballerina/http:11", "service.bal",
-                        63, 69, Source.BUILT_IN);
+                        109, 109, Source.BUILT_IN);
                 break;
             case ENSURE_AUTHORIZATION_SCOPES:
                 index = 0;
                 Assert.assertEquals(issues.size(), 2);
                 Assertions.assertIssue(issues, index++, "ballerina/http:12", "service.bal",
-                        29, 35, Source.BUILT_IN);
+                        29, 37, Source.BUILT_IN);
                 Assertions.assertIssue(issues, index, "ballerina/http:12", "service.bal",
-                        47, 50, Source.BUILT_IN);
+                        49, 54, Source.BUILT_IN);
                 break;
             case AVOID_AUTHENTICATION_OVER_CLEARTEXT:
                 index = 0;
                 Assert.assertEquals(issues.size(), 2);
                 Assertions.assertIssue(issues, index++, "ballerina/http:13", "service.bal",
-                        41, 41, Source.BUILT_IN);
+                        45, 45, Source.BUILT_IN);
                 Assertions.assertIssue(issues, index, "ballerina/http:13", "service.bal",
-                        60, 60, Source.BUILT_IN);
+                        66, 66, Source.BUILT_IN);
                 break;
             case AVOID_UNSECURE_CALLER_REDIRECTIONS:
                 index = 0;
-                Assert.assertEquals(issues.size(), 4);
+                Assert.assertEquals(issues.size(), 6);
                 Assertions.assertIssue(issues, index++, "ballerina/http:14", "service.bal",
                         24, 24, Source.BUILT_IN);
                 Assertions.assertIssue(issues, index++, "ballerina/http:14", "service.bal",
                         30, 30, Source.BUILT_IN);
                 Assertions.assertIssue(issues, index++, "ballerina/http:14", "service.bal",
                         36, 36, Source.BUILT_IN);
-                Assertions.assertIssue(issues, index, "ballerina/http:14", "service.bal",
+                Assertions.assertIssue(issues, index++, "ballerina/http:14", "service.bal",
                         42, 42, Source.BUILT_IN);
+                Assertions.assertIssue(issues, index++, "ballerina/http:14", "service.bal",
+                        48, 48, Source.BUILT_IN);
+                Assertions.assertIssue(issues, index, "ballerina/http:14", "service.bal",
+                        54, 54, Source.BUILT_IN);
                 break;
             case AVOID_UNLIMITED_REQUEST_BODY_SIZE:
                 index = 0;
@@ -334,12 +342,6 @@ public class StaticCodeAnalyzerTest {
     private void validateOutput(ByteArrayOutputStream console, String targetPackageName) throws IOException {
         String output = console.toString(UTF_8);
         String jsonOutput = extractJson(output);
-        Files.writeString(Paths.get("/private/tmp/claude-501/-Users-tharmigan-Downloads-module-ballerina-http/"
-                        + "3a1ec2a3-ed06-460b-aad1-6a6e754bd99d/scratchpad/actual", targetPackageName + ".json"),
-                jsonOutput.replaceAll(":\\s*\"[^\"]*" + MODULE_BALLERINA_HTTP, ": \"" + MODULE_BALLERINA_HTTP));
-        if (System.getProperty("dumpOnly") != null) {
-            return;
-        }
         String expectedOutput = Files.readString(EXPECTED_OUTPUT_DIRECTORY.resolve(targetPackageName + ".json"));
         assertJsonEqual(jsonOutput, expectedOutput);
     }

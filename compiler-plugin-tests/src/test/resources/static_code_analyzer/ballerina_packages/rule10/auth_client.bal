@@ -23,8 +23,10 @@ function disabledTokenEndpointTls() returns http:Client|error {
         tokenUrl: "https://idp.example.com/token",
         clientId: "client-id",
         clientSecret: "client-secret",
-        secureSocket: {
-            disable: true
+        clientConfig: {
+            secureSocket: {
+                disable: true
+            }
         }
     });
 }
@@ -36,8 +38,10 @@ function securedTransportUnsecuredTokenExchange() returns http:Client|error {
             tokenUrl: "https://idp.example.com/token",
             clientId: "client-id",
             clientSecret: "client-secret",
-            secureSocket: {
-                disable: true
+            clientConfig: {
+                secureSocket: {
+                    disable: true
+                }
             }
         },
         secureSocket: {
@@ -52,8 +56,10 @@ function securedTokenEndpoint() returns http:Client|error {
         tokenUrl: "https://idp.example.com/token",
         clientId: "client-id",
         clientSecret: "client-secret",
-        secureSocket: {
-            cert: "/path/to/public.crt"
+        clientConfig: {
+            secureSocket: {
+                cert: "/path/to/public.crt"
+            }
         }
     });
 }

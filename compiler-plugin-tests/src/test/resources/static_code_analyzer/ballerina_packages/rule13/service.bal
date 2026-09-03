@@ -17,6 +17,8 @@
 
 import ballerina/http;
 
+import rule13.custom;
+
 listener http:Listener plainListener = new (9090);
 
 listener http:Listener securedListener = new (9091, secureSocket = {
@@ -30,11 +32,13 @@ listener http:Listener securedListener = new (9091, secureSocket = {
 @http:ServiceConfig {
     auth: [
         {
-            signatureConfig: {
-                certFile: "/path/to/public.crt"
+            jwtValidatorConfig: {
+                signatureConfig: {
+                    certFile: "/path/to/public.crt"
+                },
+                issuer: "wso2",
+                audience: "ballerina"
             },
-            issuer: "wso2",
-            audience: "ballerina",
             scopes: ["admin"]
         }
     ]
@@ -49,11 +53,13 @@ service /namedListener on plainListener {
 @http:ServiceConfig {
     auth: [
         {
-            signatureConfig: {
-                certFile: "/path/to/public.crt"
+            jwtValidatorConfig: {
+                signatureConfig: {
+                    certFile: "/path/to/public.crt"
+                },
+                issuer: "wso2",
+                audience: "ballerina"
             },
-            issuer: "wso2",
-            audience: "ballerina",
             scopes: ["admin"]
         }
     ]
@@ -68,11 +74,13 @@ service /inlineListener on new http:Listener(9092) {
 @http:ServiceConfig {
     auth: [
         {
-            signatureConfig: {
-                certFile: "/path/to/public.crt"
+            jwtValidatorConfig: {
+                signatureConfig: {
+                    certFile: "/path/to/public.crt"
+                },
+                issuer: "wso2",
+                audience: "ballerina"
             },
-            issuer: "wso2",
-            audience: "ballerina",
             scopes: ["admin"]
         }
     ]
@@ -84,7 +92,7 @@ service /secured on securedListener {
 }
 
 // Negative case - a plaintext listener carrying no credentials
-service /public on plainListener {
+service /'public on plainListener {
     resource function get greet() returns string {
         return "Hello";
     }
@@ -125,11 +133,13 @@ listener http:Listener declaredConfigListener = new (9093, declaredConfig);
 @http:ServiceConfig {
     auth: [
         {
-            signatureConfig: {
-                certFile: "/path/to/public.crt"
+            jwtValidatorConfig: {
+                signatureConfig: {
+                    certFile: "/path/to/public.crt"
+                },
+                issuer: "wso2",
+                audience: "ballerina"
             },
-            issuer: "wso2",
-            audience: "ballerina",
             scopes: ["admin"]
         }
     ]
@@ -148,11 +158,13 @@ listener http:Listener opaqueConfigListener = new (9094, getListenerConfig());
 @http:ServiceConfig {
     auth: [
         {
-            signatureConfig: {
-                certFile: "/path/to/public.crt"
+            jwtValidatorConfig: {
+                signatureConfig: {
+                    certFile: "/path/to/public.crt"
+                },
+                issuer: "wso2",
+                audience: "ballerina"
             },
-            issuer: "wso2",
-            audience: "ballerina",
             scopes: ["admin"]
         }
     ]
