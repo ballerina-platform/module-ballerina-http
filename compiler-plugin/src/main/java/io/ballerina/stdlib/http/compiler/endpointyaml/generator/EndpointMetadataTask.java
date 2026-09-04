@@ -18,8 +18,12 @@
 
 package io.ballerina.stdlib.http.compiler.endpointyaml.generator;
 
+import io.ballerina.openapi.service.mapper.utils.MapperCommonUtils;
 import io.ballerina.projects.plugins.CompilerLifecycleEventContext;
 import io.ballerina.projects.plugins.CompilerLifecycleTask;
+import io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil;
+import io.ballerina.stdlib.http.compiler.HttpDiagnostic;
+import io.ballerina.tools.diagnostics.DiagnosticFactory;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -49,23 +53,26 @@ public class EndpointMetadataTask implements CompilerLifecycleTask<CompilerLifec
         if (endpoints == null || endpoints.isEmpty()) {
             return;
         }
-        for (Endpoint endpoint : endpoints) {
-            addEndpointMetadata(context, endpoint);
+        try {
+            for (Endpoint endpoint : endpoints) {
+                addEndpointMetadata(context, endpoint);
+            }
+        } catch (ReflectiveOperationException | SecurityException e) {
+            context.reportDiagnostic(DiagnosticFactory.createDiagnostic(
+                    HttpCompilerPluginUtil.getDiagnosticInfo(HttpDiagnostic.HTTP_WARNING_103),
+                    new MapperCommonUtils.NullLocation()));
         }
     }
 
-    private void addEndpointMetadata(CompilerLifecycleEventContext context, Endpoint endpoint) {
-        try {
-            Class<?> endpointMetaInfoClass = Class.forName(ENDPOINT_META_INFO_CLASS);
-            Constructor<?> constructor = endpointMetaInfoClass.getConstructor(String.class, int.class, String.class,
-                    String.class, String.class);
-            Object endpointMetaInfo = constructor.newInstance(endpoint.getName(), endpoint.getPort(),
-                    endpoint.getBasePath(), endpoint.getType(), endpoint.getSchemaPath());
-            Method method = context.getClass().getMethod(ADD_ENDPOINT_METADATA_METHOD, endpointMetaInfoClass);
-            method.setAccessible(true);
-            method.invoke(context, endpointMetaInfo);
-        } catch (ReflectiveOperationException | SecurityException e) {
-            // Endpoint metadata export is supported only with newer Ballerina lang versions.
-        }
+    private void addEndpointMetadata(CompilerLifecycleEventContext context, Endpoint endpoint)
+            throws ReflectiveOperationException {
+        Class<?> endpointMetaInfoClass = Class.forName(ENDPOINT_META_INFO_CLASS);
+        Constructor<?> constructor = endpointMetaInfoClass.getConstructor(String.class, int.class, String.class,
+                String.class, String.class);
+        Object endpointMetaInfo = constructor.newInstance(endpoint.getName(), endpoint.getPort(),
+                endpoint.getBasePath(), endpoint.getType(), endpoint.getSchemaPath());
+        Method method = context.getClass().getMethod(ADD_ENDPOINT_METADATA_METHOD, endpointMetaInfoClass);
+        method.setAccessible(true);
+        method.invoke(context, endpointMetaInfo);
     }
 }
