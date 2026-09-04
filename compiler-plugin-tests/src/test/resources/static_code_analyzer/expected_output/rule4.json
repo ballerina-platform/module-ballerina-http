@@ -1,13 +1,33 @@
 [
   {
     "location": {
+      "filePath": "service.bal",
+      "startLine": 116,
+      "endLine": 116,
+      "startColumn": 37,
+      "endColumn": 52,
+      "startOffset": 3347,
+      "length": 15
+    },
+    "rule": {
+      "id": "ballerina:2",
+      "numericId": 2,
+      "description": "Unused function parameter",
+      "ruleKind": "CODE_SMELL"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule4/service.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule4/service.bal"
+  },
+  {
+    "location": {
       "filePath": "custom_prefix.bal",
-      "startLine": 19,
-      "endLine": 19,
-      "startColumn": 27,
-      "endColumn": 72,
-      "startOffset": 735,
-      "length": 45
+      "startLine": 22,
+      "endLine": 22,
+      "startColumn": 16,
+      "endColumn": 36,
+      "startOffset": 839,
+      "length": 20
     },
     "rule": {
       "id": "ballerina/http:4",
@@ -22,12 +42,172 @@
   {
     "location": {
       "filePath": "service.bal",
-      "startLine": 19,
-      "endLine": 19,
-      "startColumn": 27,
-      "endColumn": 75,
-      "startOffset": 752,
-      "length": 48
+      "startLine": 33,
+      "endLine": 33,
+      "startColumn": 16,
+      "endColumn": 36,
+      "startOffset": 1051,
+      "length": 20
+    },
+    "rule": {
+      "id": "ballerina/http:4",
+      "numericId": 4,
+      "description": "HTTP request redirections should not be open to forging attacks",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule4/service.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule4/service.bal"
+  },
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 42,
+      "endLine": 42,
+      "startColumn": 16,
+      "endColumn": 36,
+      "startOffset": 1269,
+      "length": 20
+    },
+    "rule": {
+      "id": "ballerina/http:4",
+      "numericId": 4,
+      "description": "HTTP request redirections should not be open to forging attacks",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule4/service.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule4/service.bal"
+  },
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 50,
+      "endLine": 50,
+      "startColumn": 16,
+      "endColumn": 44,
+      "startOffset": 1486,
+      "length": 28
+    },
+    "rule": {
+      "id": "ballerina/http:4",
+      "numericId": 4,
+      "description": "HTTP request redirections should not be open to forging attacks",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule4/service.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule4/service.bal"
+  },
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 58,
+      "endLine": 58,
+      "startColumn": 16,
+      "endColumn": 51,
+      "startOffset": 1719,
+      "length": 35
+    },
+    "rule": {
+      "id": "ballerina/http:4",
+      "numericId": 4,
+      "description": "HTTP request redirections should not be open to forging attacks",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule4/service.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule4/service.bal"
+  },
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 66,
+      "endLine": 66,
+      "startColumn": 16,
+      "endColumn": 47,
+      "startOffset": 1949,
+      "length": 31
+    },
+    "rule": {
+      "id": "ballerina/http:4",
+      "numericId": 4,
+      "description": "HTTP request redirections should not be open to forging attacks",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule4/service.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule4/service.bal"
+  },
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 76,
+      "endLine": 76,
+      "startColumn": 24,
+      "endColumn": 44,
+      "startOffset": 2265,
+      "length": 20
+    },
+    "rule": {
+      "id": "ballerina/http:4",
+      "numericId": 4,
+      "description": "HTTP request redirections should not be open to forging attacks",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule4/service.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule4/service.bal"
+  },
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 83,
+      "endLine": 83,
+      "startColumn": 24,
+      "endColumn": 44,
+      "startOffset": 2474,
+      "length": 20
+    },
+    "rule": {
+      "id": "ballerina/http:4",
+      "numericId": 4,
+      "description": "HTTP request redirections should not be open to forging attacks",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule4/service.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule4/service.bal"
+  },
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 95,
+      "endLine": 95,
+      "startColumn": 12,
+      "endColumn": 43,
+      "startOffset": 2791,
+      "length": 31
+    },
+    "rule": {
+      "id": "ballerina/http:4",
+      "numericId": 4,
+      "description": "HTTP request redirections should not be open to forging attacks",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule4/service.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule4/service.bal"
+  },
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 190,
+      "endLine": 190,
+      "startColumn": 16,
+      "endColumn": 61,
+      "startOffset": 5238,
+      "length": 45
     },
     "rule": {
       "id": "ballerina/http:4",

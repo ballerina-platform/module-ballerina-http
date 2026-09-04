@@ -1,0 +1,42 @@
+[
+  {
+    "location": {
+      "filePath": "redirect.bal",
+      "startLine": 23,
+      "endLine": 23,
+      "startColumn": 8,
+      "endColumn": 30,
+      "startOffset": 892,
+      "length": 22
+    },
+    "rule": {
+      "id": "ballerina/http:8",
+      "numericId": 8,
+      "description": "Avoid forwarding authorization headers across redirects",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule8/redirect.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule8/redirect.bal"
+  },
+  {
+    "location": {
+      "filePath": "redirect.bal",
+      "startLine": 32,
+      "endLine": 32,
+      "startColumn": 12,
+      "endColumn": 34,
+      "startOffset": 1161,
+      "length": 22
+    },
+    "rule": {
+      "id": "ballerina/http:8",
+      "numericId": 8,
+      "description": "Avoid forwarding authorization headers across redirects",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule8/redirect.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule8/redirect.bal"
+  }
+]

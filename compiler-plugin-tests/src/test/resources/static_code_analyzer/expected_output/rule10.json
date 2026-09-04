@@ -1,0 +1,42 @@
+[
+  {
+    "location": {
+      "filePath": "auth_client.bal",
+      "startLine": 27,
+      "endLine": 27,
+      "startColumn": 16,
+      "endColumn": 29,
+      "startOffset": 1026,
+      "length": 13
+    },
+    "rule": {
+      "id": "ballerina/http:10",
+      "numericId": 10,
+      "description": "Avoid disabling TLS validation on the authentication provider client",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule10/auth_client.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule10/auth_client.bal"
+  },
+  {
+    "location": {
+      "filePath": "auth_client.bal",
+      "startLine": 42,
+      "endLine": 42,
+      "startColumn": 20,
+      "endColumn": 33,
+      "startOffset": 1500,
+      "length": 13
+    },
+    "rule": {
+      "id": "ballerina/http:10",
+      "numericId": 10,
+      "description": "Avoid disabling TLS validation on the authentication provider client",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule10/auth_client.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule10/auth_client.bal"
+  }
+]
