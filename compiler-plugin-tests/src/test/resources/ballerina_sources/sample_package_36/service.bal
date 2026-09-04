@@ -35,6 +35,13 @@ service class SClass {
    }
 }
 
+isolated service class IsolatedSClass {
+   *http:Service;
+   resource function post bar(map<json> q) returns string {
+       return "done";
+   }
+}
+
 service class InterceptorService {
     *http:RequestInterceptor;
 
