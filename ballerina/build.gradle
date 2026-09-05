@@ -185,6 +185,13 @@ task updateTomlFiles {
 
         def newCompilerPluginToml = compilerPluginTomlFilePlaceHolder.text.replace("@project.version@", project.version)
         newCompilerPluginToml = newCompilerPluginToml.replace("@ballerinaToOpenApiVersion.version@", ballerinaToOpenApiVersion)
+        newCompilerPluginToml = newCompilerPluginToml.replace("@jacksonDatabindVersion.version@", jacksonDatabindVersion)
+        newCompilerPluginToml = newCompilerPluginToml.replace("@snakeYamlVersion.version@", snakeYamlVersion)
+        newCompilerPluginToml = newCompilerPluginToml.replace("@swaggerCoreVersion.version@", swaggerCoreVersion)
+        newCompilerPluginToml = newCompilerPluginToml.replace("@jakartaXmlBindApiVersion.version@", jakartaXmlBindApiVersion)
+        newCompilerPluginToml = newCompilerPluginToml.replace("@jakartaActivationApiVersion.version@", jakartaActivationApiVersion)
+        newCompilerPluginToml = newCompilerPluginToml.replace("@jakartaValidationApiVersion.version@", jakartaValidationApiVersion)
+        newCompilerPluginToml = newCompilerPluginToml.replace("@swaggerCommonsLang3Version.version@", swaggerCommonsLang3Version)
         compilerPluginTomlFile.text = newCompilerPluginToml
     }
 }

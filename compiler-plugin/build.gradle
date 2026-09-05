@@ -46,6 +46,16 @@ dependencies {
     compileOnly "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jacksonDatabindVersion}"
 
     externalJars group: 'io.ballerina.openapi', name: 'ballerina-to-openapi', version: "${ballerinaToOpenApiVersion}"
+    externalJars group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: "${jacksonDatabindVersion}"
+    externalJars group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: "${jacksonDatabindVersion}"
+    externalJars group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: "${jacksonDatabindVersion}"
+    externalJars(group: 'io.swagger.core.v3', name: 'swagger-core', version: "${swaggerCoreVersion}") {
+        // org.slf4j is already bundled inside ballerina-rt (part of every distribution's bre/lib).
+        // Bundling a second copy here creates a duplicate META-INF/services registration that
+        // makes java.util.ServiceLoader pick an incompatible provider at runtime.
+        exclude group: 'org.slf4j', module: 'slf4j-api'
+    }
+    externalJars group: 'io.swagger.core.v3', name: 'swagger-models', version: "${swaggerCoreVersion}"
 }
 
 def excludePattern = '**/module-info.java'

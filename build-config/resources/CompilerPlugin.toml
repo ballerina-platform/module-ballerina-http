@@ -7,3 +7,45 @@ path = "../compiler-plugin/build/libs/http-compiler-plugin-@project.version@.jar
 
 [[dependency]]
 path = "../compiler-plugin/build/libs/ballerina-to-openapi-@ballerinaToOpenApiVersion.version@.jar"
+
+# Runtime dependencies of ballerina-to-openapi (OpenAPI/endpoint artifact generation).
+# Not bundled inside ballerina-to-openapi's own jar, and not guaranteed to already be on
+# the classpath the plugin gets loaded on - so they are shipped explicitly.
+[[dependency]]
+path = "../compiler-plugin/build/libs/jackson-databind-@jacksonDatabindVersion.version@.jar"
+
+[[dependency]]
+path = "../compiler-plugin/build/libs/jackson-core-@jacksonDatabindVersion.version@.jar"
+
+[[dependency]]
+path = "../compiler-plugin/build/libs/jackson-annotations-@jacksonDatabindVersion.version@.jar"
+
+[[dependency]]
+path = "../compiler-plugin/build/libs/jackson-dataformat-yaml-@jacksonDatabindVersion.version@.jar"
+
+[[dependency]]
+path = "../compiler-plugin/build/libs/jackson-datatype-jsr310-@jacksonDatabindVersion.version@.jar"
+
+[[dependency]]
+path = "../compiler-plugin/build/libs/snakeyaml-@snakeYamlVersion.version@.jar"
+
+[[dependency]]
+path = "../compiler-plugin/build/libs/swagger-core-@swaggerCoreVersion.version@.jar"
+
+[[dependency]]
+path = "../compiler-plugin/build/libs/swagger-annotations-@swaggerCoreVersion.version@.jar"
+
+[[dependency]]
+path = "../compiler-plugin/build/libs/swagger-models-@swaggerCoreVersion.version@.jar"
+
+[[dependency]]
+path = "../compiler-plugin/build/libs/jakarta.xml.bind-api-@jakartaXmlBindApiVersion.version@.jar"
+
+[[dependency]]
+path = "../compiler-plugin/build/libs/jakarta.activation-api-@jakartaActivationApiVersion.version@.jar"
+
+[[dependency]]
+path = "../compiler-plugin/build/libs/jakarta.validation-api-@jakartaValidationApiVersion.version@.jar"
+
+[[dependency]]
+path = "../compiler-plugin/build/libs/commons-lang3-@swaggerCommonsLang3Version.version@.jar"
