@@ -1,0 +1,122 @@
+{
+  "version": "v1.0",
+
+  "listeners": [
+    {
+      "id": "$listener",
+      "doc": "HTTP listener that dispatches each inbound request to the resource method matching its verb and path.",
+      "type": { "name": "Listener" },
+      "services": ["$service"],
+      "multipleServicesAllowed": true,
+      "multipleServicesOfSameTypeAllowed": true
+    }
+  ],
+
+  "serviceTypes": [
+    {
+      "id": "$service",
+      "doc": "An HTTP service. Each resource method is one endpoint, its accessor the HTTP verb and its path the URL path.",
+      "type": { "name": "Service" },
+      "concrete": false,
+      "multipleListenersAllowed": true,
+      "annotations": ["$serviceConfig"],
+      "identifier": { "presence": "required", "form": ["basePath"] },
+      "handlers": {
+        "backedByConcreteType": false,
+        "options": [
+          {
+            "id": "$service.resource",
+            "name": "*",
+            "kind": "resource",
+            "addMode": "many",
+            "doc": "One resource method per HTTP endpoint. The accessor is the HTTP verb and the resource path is the URL path, both are written into the method signature rather than configured here.",
+            "accessor": { "presence": "required", "values": ["get", "post", "put", "delete", "patch", "head", "options", "default"] },
+            "path": { "presence": "required" },
+            "annotations": ["$resourceConfig"],
+            "params": [
+              {
+                "id": "$service.resource.caller",
+                "name": "caller",
+                "doc": "Handle for building and sending the response explicitly, instead of returning a value.",
+                "type": { "name": "Caller" },
+                "presence": "optional",
+                "annotations": ["$callerInfo"]
+              },
+              {
+                "id": "$service.resource.request",
+                "name": "request",
+                "doc": "The raw inbound request, for anything the bound parameters do not expose.",
+                "type": { "name": "Request" },
+                "presence": "optional"
+              },
+              {
+                "id": "$service.resource.headers",
+                "name": "headers",
+                "doc": "Read-only access to the inbound request headers.",
+                "type": { "name": "Headers" },
+                "presence": "optional"
+              },
+              {
+                "id": "$service.resource.payload",
+                "name": "payload",
+                "doc": "The request body, bound to the declared type, see the requestPayload data-binding rule.",
+                "type": { "name": "anydata", "builtin": true },
+                "presence": "optional",
+                "dataBinding": { "typedescs": [{ "constraint": { "name": "anydata", "builtin": true }, "shapes": [{ "form": "bare" }] }] },
+                "annotations": ["$payload"]
+              },
+              {
+                "id": "$service.resource.queryParam",
+                "doc": "One URL query parameter. Repeat the slot once per parameter the resource accepts; the user names each one and the name becomes the query key.",
+                "type": [{ "name": "string", "builtin": true }, { "name": "int", "builtin": true }, { "name": "boolean", "builtin": true }, { "name": "decimal", "builtin": true }, { "name": "float", "builtin": true }],
+                "presence": "optional",
+                "addMode": "many",
+                "annotations": ["$query"]
+              },
+              {
+                "id": "$service.resource.headerParam",
+                "doc": "One request header. Repeat the slot once per header the resource reads; the user names each one, and the Header annotation carries the header name when it differs from the parameter name.",
+                "type": [{ "name": "string", "builtin": true }, { "name": "int", "builtin": true }, { "name": "boolean", "builtin": true }, { "name": "decimal", "builtin": true }, { "name": "float", "builtin": true }],
+                "presence": "optional",
+                "addMode": "many",
+                "annotations": ["$header"]
+              }
+            ],
+            "returns": {
+              "id": "$service.resource.returns",
+              "type": [
+                { "name": "anydata", "builtin": true },
+                { "name": "Response" },
+                { "name": "StatusCodeResponse", "subtypeFamily": true },
+                { "name": "error", "builtin": true }
+              ],
+              "dataBinding": {
+                "typedescs": [
+                  {
+                    "constraint": { "name": "anydata", "builtin": true },
+                    "shapes": [{ "form": "bare" }]
+                  },
+                  {
+                    "constraint": { "name": "anydata", "builtin": true },
+                    "shapes": [{ "form": "included", "envelope": { "name": "StatusCodeResponse", "subtypeFamily": true }, "bindableFields": ["body"] }]
+                  }
+                ]
+              },
+              "annotations": ["$cache"]
+            }
+          }
+        ]
+      }
+    }
+  ],
+
+  "annotations": [
+    { "id": "$serviceConfig", "type": { "name": "ServiceConfig" }, "attachPoint": "service", "presence": "optional" },
+    { "id": "$resourceConfig", "type": { "name": "ResourceConfig" }, "attachPoint": "function", "presence": "optional" },
+    { "id": "$payload", "type": { "name": "Payload" }, "attachPoint": "parameter", "presence": "optional" },
+    { "id": "$callerInfo", "type": { "name": "CallerInfo" }, "attachPoint": "parameter", "presence": "optional" },
+    { "id": "$header", "type": { "name": "Header" }, "attachPoint": "parameter", "presence": "optional" },
+    { "id": "$query", "type": { "name": "Query" }, "attachPoint": "parameter", "presence": "optional" },
+    { "id": "$cache", "type": { "name": "Cache" }, "attachPoint": "return", "presence": "optional" }
+  ]
+}
