@@ -1,6 +1,5 @@
 {
   "version": "v1.0",
-
   "listeners": [
     {
       "id": "$listener",
@@ -11,16 +10,15 @@
       "multipleServicesOfSameTypeAllowed": true
     }
   ],
-
   "serviceTypes": [
     {
       "id": "$service",
-      "doc": "An HTTP service. Each resource method is one endpoint, its accessor the HTTP verb and its path the URL path.",
+      "doc": "An HTTP service attached to a listener. Each resource method's accessor is the HTTP verb and its path the URL path it handles, together identifying one route within the service.",
       "type": { "name": "Service" },
       "concrete": false,
       "multipleListenersAllowed": true,
       "annotations": ["$serviceConfig"],
-      "identifier": { "presence": "required", "form": ["basePath"] },
+      "identifier": { "presence": "optional", "form": ["basePath"] },
       "handlers": {
         "backedByConcreteType": false,
         "options": [
@@ -29,8 +27,8 @@
             "name": "*",
             "kind": "resource",
             "addMode": "many",
-            "doc": "One resource method per HTTP endpoint. The accessor is the HTTP verb and the resource path is the URL path, both are written into the method signature rather than configured here.",
-            "accessor": { "presence": "required", "values": ["get", "post", "put", "delete", "patch", "head", "options", "default"] },
+            "doc": "One resource method per HTTP endpoint. The accessor and path are not separately configurable properties: a generator must render and edit them as part of the function signature itself (resource function <accessor> <path>(...)), not as annotation or config fields.",
+            "accessor": { "presence": "required", "values": ["*"] },
             "path": { "presence": "required" },
             "annotations": ["$resourceConfig"],
             "params": [
@@ -47,6 +45,13 @@
                 "name": "request",
                 "doc": "The raw inbound request, for anything the bound parameters do not expose.",
                 "type": { "name": "Request" },
+                "presence": "optional"
+              },
+              {
+                "id": "$service.resource.requestContext",
+                "name": "ctx",
+                "doc": "Per-request context object used to pass state between interceptor functions and the resource method.",
+                "type": { "name": "RequestContext" },
                 "presence": "optional"
               },
               {
@@ -68,7 +73,20 @@
               {
                 "id": "$service.resource.queryParam",
                 "doc": "One URL query parameter. Repeat the slot once per parameter the resource accepts; the user names each one and the name becomes the query key.",
-                "type": [{ "name": "string", "builtin": true }, { "name": "int", "builtin": true }, { "name": "boolean", "builtin": true }, { "name": "decimal", "builtin": true }, { "name": "float", "builtin": true }],
+                "type": [
+                  { "name": "string", "builtin": true },
+                  { "name": "int", "builtin": true },
+                  { "name": "boolean", "builtin": true },
+                  { "name": "decimal", "builtin": true },
+                  { "name": "float", "builtin": true },
+                  { "shape": "array", "elementType": { "name": "string", "builtin": true } },
+                  { "shape": "array", "elementType": { "name": "int", "builtin": true } },
+                  { "shape": "array", "elementType": { "name": "boolean", "builtin": true } },
+                  { "shape": "array", "elementType": { "name": "decimal", "builtin": true } },
+                  { "shape": "array", "elementType": { "name": "float", "builtin": true } },
+                  { "name": "map", "builtin": true },
+                  { "name": "()", "builtin": true }
+                ],
                 "presence": "optional",
                 "addMode": "many",
                 "annotations": ["$query"]
@@ -76,7 +94,19 @@
               {
                 "id": "$service.resource.headerParam",
                 "doc": "One request header. Repeat the slot once per header the resource reads; the user names each one, and the Header annotation carries the header name when it differs from the parameter name.",
-                "type": [{ "name": "string", "builtin": true }, { "name": "int", "builtin": true }, { "name": "boolean", "builtin": true }, { "name": "decimal", "builtin": true }, { "name": "float", "builtin": true }],
+                "type": [
+                  { "name": "string", "builtin": true },
+                  { "name": "int", "builtin": true },
+                  { "name": "boolean", "builtin": true },
+                  { "name": "decimal", "builtin": true },
+                  { "name": "float", "builtin": true },
+                  { "shape": "array", "elementType": { "name": "string", "builtin": true } },
+                  { "shape": "array", "elementType": { "name": "int", "builtin": true } },
+                  { "shape": "array", "elementType": { "name": "boolean", "builtin": true } },
+                  { "shape": "array", "elementType": { "name": "decimal", "builtin": true } },
+                  { "shape": "array", "elementType": { "name": "float", "builtin": true } },
+                  { "name": "()", "builtin": true }
+                ],
                 "presence": "optional",
                 "addMode": "many",
                 "annotations": ["$header"]
@@ -98,22 +128,34 @@
                   },
                   {
                     "constraint": { "name": "anydata", "builtin": true },
-                    "shapes": [{ "form": "included", "envelope": { "name": "StatusCodeResponse", "subtypeFamily": true }, "bindableFields": ["body"] }]
+                    "shapes": [{ "form": "included", "envelope": { "name": "StatusCodeResponse", "subtypeFamily": true }, "bindableFields": ["body", "headers"] }]
                   }
                 ]
               },
-              "annotations": ["$cache"]
+              "annotations": ["$cache", "$payloadReturn"]
             }
           }
         ]
-      }
+      },
+      "rules": [
+        {
+          "id": "$service.resource.callerReturnConstraint",
+          "rule": "returnType.restrictedByParam",
+          "subjects": [
+            { "kind": "param", "id": "$service.resource.caller", "serviceType": "$service", "role": "trigger" },
+            { "kind": "handler", "id": "$service.resource", "serviceType": "$service", "role": "constrainedReturn" }
+          ],
+          "severity": "error",
+          "message": "When the caller param is declared, the resource must return only error? (or nothing) since the response is sent explicitly via the caller instead of via the return value."
+        }
+      ]
     }
   ],
-
   "annotations": [
     { "id": "$serviceConfig", "type": { "name": "ServiceConfig" }, "attachPoint": "service", "presence": "optional" },
     { "id": "$resourceConfig", "type": { "name": "ResourceConfig" }, "attachPoint": "function", "presence": "optional" },
     { "id": "$payload", "type": { "name": "Payload" }, "attachPoint": "parameter", "presence": "optional" },
+    { "id": "$payloadReturn", "type": { "name": "Payload" }, "attachPoint": "return", "presence": "optional" },
     { "id": "$callerInfo", "type": { "name": "CallerInfo" }, "attachPoint": "parameter", "presence": "optional" },
     { "id": "$header", "type": { "name": "Header" }, "attachPoint": "parameter", "presence": "optional" },
     { "id": "$query", "type": { "name": "Query" }, "attachPoint": "parameter", "presence": "optional" },
