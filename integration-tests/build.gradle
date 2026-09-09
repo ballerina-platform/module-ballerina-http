@@ -29,6 +29,8 @@ def ballerinaDist = "${project.rootDir}/target/ballerina-runtime"
 def distributionBinPath =  "${ballerinaDist}/bin"
 def originalConfigTOMLFile = configTOMLFile.text
 def graalvmFlag = ""
+def testCoverageParam = "--code-coverage --coverage-format=xml " +
+        "--includes=io.ballerina.stdlib.http.*:ballerina.http*"
 
 def stripBallerinaExtensionVersion(String extVersion) {
     if (extVersion.matches(project.ext.timestampedVersionRegex)) {
@@ -124,43 +126,6 @@ task copyTestResources(type: Copy) {
     }
 }
 
-task startSocksServer() {
-    doLast {
-        if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
-            def stdOut = new ByteArrayOutputStream()
-            exec {
-                commandLine 'sh', '-c', "docker ps --filter name=socks-it-proxy-server"
-                standardOutput = stdOut
-            }
-            if (!stdOut.toString().contains("socks-it-proxy-server")) {
-                println "Starting SOCKS proxy server."
-                exec {
-                    commandLine 'sh', '-c', "docker compose -f $project.projectDir/tests/resources/socks/compose.yml up -d"
-                    standardOutput = stdOut
-                }
-                println stdOut.toString()
-                println "Waiting 10s until the SOCKS proxy server gets initiated."
-                sleep(10 * 1000)
-            } else {
-                println "SOCKS proxy server is already started."
-            }
-        }
-    }
-}
-
-task stopSocksServer() {
-    doLast {
-        if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
-            def stdOut = new ByteArrayOutputStream()
-            exec {
-                commandLine 'sh', '-c', "docker compose -f $project.projectDir/tests/resources/socks/compose.yml down"
-                standardOutput = stdOut
-            }
-            println stdOut.toString()
-        }
-    }
-}
-
 task ballerinaIntegrationTests {
     inputs.dir file(project.projectDir)
     dependsOn(compileTestJava)
@@ -184,9 +149,10 @@ task ballerinaIntegrationTests {
             environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
                 environment.remove("JAVA_TOOL_OPTIONS")
-                commandLine 'cmd', '/c', "$distributionBinPath/bal.bat test ${graalvmFlag} --offline --disable-groups disabledOnWindows && exit %%ERRORLEVEL%%"
+                commandLine 'cmd', '/c', "$distributionBinPath/bal.bat test ${graalvmFlag} --offline " +
+                        "${testCoverageParam} && exit %%ERRORLEVEL%%"
             } else {
-                commandLine 'sh', '-c', "$distributionBinPath/bal test ${graalvmFlag} --offline --code-coverage"
+                commandLine 'sh', '-c', "$distributionBinPath/bal test ${graalvmFlag} --offline ${testCoverageParam}"
             }
         }
     }
@@ -195,7 +161,5 @@ task ballerinaIntegrationTests {
 ballerinaIntegrationTests.dependsOn updateTomlVerions
 ballerinaIntegrationTests.dependsOn compileJava
 ballerinaIntegrationTests.dependsOn processResources
-ballerinaIntegrationTests.dependsOn startSocksServer
-ballerinaIntegrationTests.finalizedBy stopSocksServer
 test.dependsOn ballerinaIntegrationTests
 build.dependsOn test

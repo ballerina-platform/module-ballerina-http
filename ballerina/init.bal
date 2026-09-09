@@ -21,6 +21,7 @@ import ballerina/io;
 
 function init() returns error? {
     setModule();
+    externSetMaxBackPressureStallTime(maxBackPressureStallTime);
     LogFileConfig? traceFileConfig = traceLogAdvancedConfig.file;
     check validateFileOrPath(traceFileConfig, traceLogAdvancedConfig.path);
     check validateFileOrPath(accessLogConfig.file, accessLogConfig.path);

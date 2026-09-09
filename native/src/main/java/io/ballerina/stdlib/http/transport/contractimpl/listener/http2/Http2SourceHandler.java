@@ -113,7 +113,7 @@ public final class Http2SourceHandler extends ChannelInboundHandlerAdapter {
                 serverChannelInitializer.getSocketIdleTimeout();
         http2ServerChannel.addDataEventListener(Constants.IDLE_STATE_HANDLER,
                                                 new Http2ServerTimeoutHandler(serverTimeout, http2ServerChannel,
-                                                                              serverConnectorFuture));
+                                                                              serverConnectorFuture, conn));
     }
 
     private void setRemoteFlowController() {

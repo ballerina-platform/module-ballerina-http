@@ -30,14 +30,18 @@ public class PassthroughBackPressureListener implements BackPressureListener {
     private static final Logger LOG = LoggerFactory.getLogger(PassthroughBackPressureListener.class);
 
     private Channel inChannel;
+    private final DefaultListener inboundListener;
 
     /**
      * Sets the incoming and outgoing message channels.
      *
-     * @param inContext  This will be used to block and resume read interest of the incoming channel.
+     * @param inContext      This will be used to block and resume read interest of the incoming channel.
+     * @param inboundListener the listener reading the incoming channel's content, told about the suspension so
+     *                        the idle timeout on that channel does not mistake it for an unresponsive peer.
      */
-    public PassthroughBackPressureListener(ChannelHandlerContext inContext) {
+    public PassthroughBackPressureListener(ChannelHandlerContext inContext, DefaultListener inboundListener) {
         inChannel = inContext.channel();
+        this.inboundListener = inboundListener;
     }
 
     @Override
@@ -46,6 +50,7 @@ public class PassthroughBackPressureListener implements BackPressureListener {
             LOG.debug("Read disabled for inChannel {}", inChannel.id());
         }
         inChannel.config().setAutoRead(false);
+        inboundListener.onDownstreamUnwritable();
     }
 
     @Override
@@ -54,5 +59,6 @@ public class PassthroughBackPressureListener implements BackPressureListener {
             LOG.debug("Read enabled for inChannel {}", inChannel.id());
         }
         inChannel.config().setAutoRead(true);
+        inboundListener.onDownstreamWritable();
     }
 }
