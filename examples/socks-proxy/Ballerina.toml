@@ -1,7 +1,0 @@
-[package]
-org = "socks_proxy"
-name = "client"
-version = "1.0.0"
-
-[build-options]
-observabilityIncluded = true

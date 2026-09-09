@@ -374,8 +374,6 @@ task deleteDependencyTomlFile {
 
 ballerinaTest.finalizedBy stopLdapServer
 ballerinaTest.dependsOn startLdapServer
-ballerinaTest.finalizedBy stopSocksServer
-ballerinaTest.dependsOn startSocksServer
 ballerinaTest.dependsOn deleteDependencyTomlFile
 test.dependsOn ballerinaTest
 build.dependsOn test

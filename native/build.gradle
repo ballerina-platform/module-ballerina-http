@@ -67,7 +67,6 @@ dependencies {
     implementation group: 'jakarta.xml.bind', name: 'jakarta.xml.bind-api', version: "${jakartaXmlBindVersion}"
 
     testImplementation group: 'org.mock-server', name: 'mockserver-netty', version:"${mockserverNettyVersion}"
-    testImplementation group: 'io.netty', name: 'netty-codec-socks', version: "${nettyVersion}"
     testImplementation group: 'com.mashape.unirest', name: 'unirest-java', version:"${unirestVersion}"
 
     testImplementation group: 'org.mockito', name:'mockito-core', version: "${mockitoVersion}"
@@ -156,6 +155,11 @@ publishing {
             }
         }
     }
+}
+
+// The source tree contains non-ASCII literals, so the encoding must not be left to the platform default.
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
 }
 
 compileJava {

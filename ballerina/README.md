@@ -1,6 +1,11 @@
 ## Overview
 
-This module provides APIs for connecting and interacting with HTTP and HTTP2 endpoints. It facilitates two types of network entry points as the `Client` and `Listener`.
+This module provides APIs for connecting to and interacting with HTTP and HTTP2 endpoints, through two types of network entry points: the `Client` and the `Listener`.
+
+## Key Features
+
+- HTTP/HTTP2 Client for consuming remote services
+- HTTP/HTTP2 Listener for exposing services
 
 ### Client
 
@@ -51,18 +56,6 @@ The payload can be retrieved as the return value from the remote function as fol
 ```ballerina
 // Retrieve payload as json.
 json payload = check clientEndpoint->post("/backend/Json", "foo");
-```
-
-#### Proxy
-
-The `Client` can route its requests through a proxy server using the `proxy` configuration. The `protocol` field
-selects the proxy type: `http:HTTP` (default) for a standard HTTP proxy, or `http:SOCKS4`/`http:SOCKS5` for SOCKS
-proxies. SOCKS5 supports username/password authentication and resolves the target host on the proxy side, while
-SOCKS4 supports a user id only (no password) and resolves the target host on the client side.
-
-```ballerina
-http:Client clientEndpoint = check new ("https://api.example.com",
-    proxy = {host: "localhost", port: 1080, protocol: http:SOCKS5});
 ```
 
 ### Listener
