@@ -262,9 +262,11 @@ public class URITemplateParserTest {
     @Test(description = "Test query parameters without assignment operator")
     public void testQueryParamsWithoutAssignment() throws UnsupportedEncodingException {
         BMap<BString, Object> queryParams = ValueCreator.createMapValue();
-        URIUtil.populateQueryParamMap("foo", queryParams);
+        URIUtil.populateQueryParamMap("foo&foo", queryParams);
         assertTrue(queryParams.containsKey(StringUtils.fromString("foo")), "Key 'foo' should be present");
         BArray values = (BArray) queryParams.get(StringUtils.fromString("foo"));
-        assertEquals(values.getString(0), "", "Valueless query param should map to empty string");
+        assertEquals(values.size(), 2, "Should contain two values for repeated key");
+        assertEquals(values.getString(0), "", "First value should be empty string");
+        assertEquals(values.getString(1), "", "Second value should be empty string");
     }
 }
