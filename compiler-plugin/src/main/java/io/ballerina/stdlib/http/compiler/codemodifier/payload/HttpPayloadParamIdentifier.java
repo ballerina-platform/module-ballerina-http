@@ -153,7 +153,7 @@ public class HttpPayloadParamIdentifier extends HttpServiceValidator {
         if (tokens.isEmpty()) {
             return;
         }
-        if (!tokens.stream().allMatch(token -> token.text().equals(Constants.SERVICE_KEYWORD))) {
+        if (tokens.stream().noneMatch(token -> token.text().equals(Constants.SERVICE_KEYWORD))) {
             return;
         }
         NodeList<Node> members = classDefinitionNode.members();

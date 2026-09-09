@@ -63,7 +63,9 @@ public class HttpCarbonMessage {
     private final DefaultHttpResponseFuture httpOutboundRespStatusFuture = new DefaultHttpResponseFuture();
     private final Observable contentObservable = new DefaultObservable();
     private final HttpHeaders httpTrailerHeaders = new DefaultLastHttpContent().trailingHeaders();
-    private IOException ioException;
+    // Read and written from the event loop while a content writer may be parked inside the
+    // synchronized addHttpContent, so these accessors must never contend for that monitor.
+    private volatile IOException ioException;
     public ListenerReqRespStateManager listenerReqRespStateManager;
     private Http2MessageStateContext http2MessageStateContext;
     private FullHttpMessageFuture fullHttpMessageFuture;
@@ -145,8 +147,10 @@ public class HttpCarbonMessage {
      */
     public HttpContent getHttpContent() {
         HttpContent httpContent = this.blockingEntityCollector.getHttpContent();
-        this.contentObservable.notifyGetListener(httpContent);
+        // Null once the collector has timed out waiting for content, and the listeners dereference what they
+        // are handed, so there is nothing to report to them in that case.
         if (httpContent != null) {
+            this.contentObservable.notifyGetListener(httpContent);
             this.contentSize += httpContent.content().readableBytes();
         }
         return httpContent;
@@ -499,11 +503,11 @@ public class HttpCarbonMessage {
         return (HttpResponse) this.httpMessage;
     }
 
-    public synchronized IOException getIoException() {
+    public IOException getIoException() {
         return ioException;
     }
 
-    public synchronized void setIoException(IOException ioException) {
+    public void setIoException(IOException ioException) {
         this.ioException = ioException;
     }
 

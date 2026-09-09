@@ -36,11 +36,16 @@ import io.ballerina.stdlib.http.compiler.codeaction.ChangeReturnTypeWithCallerCo
 import io.ballerina.stdlib.http.compiler.codeaction.ImplementServiceContract;
 import io.ballerina.stdlib.http.compiler.codemodifier.HttpServiceModifier;
 import io.ballerina.stdlib.http.compiler.completion.HttpServiceBodyContextProvider;
+import io.ballerina.stdlib.http.compiler.endpointyaml.generator.Endpoint;
+import io.ballerina.stdlib.http.compiler.endpointyaml.generator.ServiceArtifactsLifecycleListener;
 import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticCodeAnalyzer;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static io.ballerina.stdlib.http.compiler.Constants.HTTP_EXPORTED_ENDPOINTS;
 import static io.ballerina.stdlib.http.compiler.Constants.SCANNER_CONTEXT;
 
 /**
@@ -52,8 +57,10 @@ public class HttpCompilerPlugin extends CompilerPlugin {
     public void init(CompilerPluginContext context) {
         Map<String, Object> ctxData = context.userData();
         ctxData.put("HTTP_CODE_MODIFIER_EXECUTED", false);
+        ctxData.put(HTTP_EXPORTED_ENDPOINTS, Collections.synchronizedList(new ArrayList<Endpoint>()));
         context.addCodeModifier(new HttpServiceModifier(ctxData));
         context.addCodeAnalyzer(new HttpServiceAnalyzer(ctxData));
+        context.addCompilerLifecycleListener(new ServiceArtifactsLifecycleListener(ctxData));
         getCodeActions().forEach(context::addCodeAction);
         getCompletionProviders().forEach(context::addCompletionProvider);
         Object object = context.userData().get(SCANNER_CONTEXT);

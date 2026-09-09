@@ -444,8 +444,6 @@ public final class HttpConstants {
     public static final BString ENDPOINT_CONFIG_GRACEFUL_STOP_TIMEOUT = StringUtils.fromString("gracefulStopTimeout");
     public static final BString ENDPOINT_CONFIG_HTTP2_INITIAL_WINDOW_SIZE = StringUtils
             .fromString("http2InitialWindowSize");
-    public static final BString ENDPOINT_CONFIG_HTTP2_MAX_ACTIVE_STREAMS = StringUtils
-            .fromString("http2MaxActiveStreams");
     public static final BString ENDPOINT_CONFIG_IDLE_TIME_STALE_STATE = StringUtils.fromString(
             "minIdleTimeInStaleState");
     public static final BString ENDPOINT_CONFIG_TIME_BETWEEN_STALE_CHECK_RUNS = StringUtils.fromString(
@@ -571,10 +569,6 @@ public final class HttpConstants {
     public static final BString PROXY_PORT = StringUtils.fromString("port");
     public static final BString PROXY_USERNAME = StringUtils.fromString("userName");
     public static final BString PROXY_PASSWORD = StringUtils.fromString("password");
-    public static final BString PROXY_PROTOCOL = StringUtils.fromString("protocol");
-    public static final String PROXY_PROTOCOL_HTTP = "HTTP";
-    public static final String PROXY_PROTOCOL_SOCKS4 = "SOCKS4";
-    public static final String PROXY_PROTOCOL_SOCKS5 = "SOCKS5";
 
     public static final String HTTP_SERVICE_TYPE = "Service";
     // Filter related

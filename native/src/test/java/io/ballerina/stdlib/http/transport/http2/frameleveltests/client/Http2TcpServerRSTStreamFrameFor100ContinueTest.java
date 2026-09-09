@@ -48,7 +48,7 @@ public class Http2TcpServerRSTStreamFrameFor100ContinueTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Http2TcpServerRSTStreamFrameFor100ContinueTest.class);
     private HttpClientConnector h2ClientWithPriorKnowledge;
-    private ServerSocket serverSocket;
+    private volatile ServerSocket serverSocket;
 
     @BeforeClass
     public void setup() throws InterruptedException {
@@ -75,10 +75,14 @@ public class Http2TcpServerRSTStreamFrameFor100ContinueTest {
     }
 
     private void runTcpServer(int port) {
+        try {
+            serverSocket = new ServerSocket(port);
+        } catch (IOException e) {
+            throw new IllegalStateException("Could not bind the test server to port " + port, e);
+        }
+        LOGGER.info("HTTP/2 TCP Server listening on port " + port);
         new Thread(() -> {
             try {
-                serverSocket = new ServerSocket(port);
-                LOGGER.info("HTTP/2 TCP Server listening on port " + port);
                 Socket clientSocket = serverSocket.accept();
                 LOGGER.info("Accepted connection from: " + clientSocket.getInetAddress());
                 try (OutputStream outputStream = clientSocket.getOutputStream()) {
@@ -104,6 +108,8 @@ public class Http2TcpServerRSTStreamFrameFor100ContinueTest {
     @AfterMethod
     public void cleanUp() throws IOException {
         h2ClientWithPriorKnowledge.close();
-        serverSocket.close();
+        if (serverSocket != null) {
+            serverSocket.close();
+        }
     }
 }

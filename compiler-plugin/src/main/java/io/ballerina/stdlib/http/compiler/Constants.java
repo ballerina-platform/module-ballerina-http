@@ -127,4 +127,5 @@ public final class Constants {
     public static final String UNNECESSARY_CHARS_REGEX = "^'|\"|\\n";
 
     public static final String SCANNER_CONTEXT = "ScannerContext";
+    public static final String HTTP_EXPORTED_ENDPOINTS = "HttpExportedEndpoints";
 }

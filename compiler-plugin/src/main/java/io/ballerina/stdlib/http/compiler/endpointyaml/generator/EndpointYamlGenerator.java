@@ -18,42 +18,29 @@
 
 package io.ballerina.stdlib.http.compiler.endpointyaml.generator;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
-import io.ballerina.projects.Package;
-import io.ballerina.projects.Project;
-import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
+import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.diagnostics.DiagnosticFactory;
 import io.ballerina.tools.diagnostics.DiagnosticInfo;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.servers.ServerVariables;
 
-import java.io.IOException;
 import java.io.PrintStream;
-import java.io.Writer;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.List;
 
-import static io.ballerina.openapi.service.mapper.utils.CodegenUtils.resolveContractFileName;
-
+/*
+ * Computes endpoint details of an HTTP service
+ */
 public class EndpointYamlGenerator {
     private final ServiceDeclarationNode node;
-    private final SyntaxNodeAnalysisContext context;
     private String schemaFileName;
 
     private static final PrintStream outStream = System.out;
 
-    private static final String ARTIFACT = "artifact";
     private static final String REST = "REST";
-    private static final String YAML_EXTENSION = ".yaml";
-    private static final String OPENAPI_SUFFIX = "_openapi";
-    private static final String ENDPOINT_SUFFIX = "_endpoint";
     private static final String PORT = "port";
 
     private int portVal = 0;
@@ -61,49 +48,38 @@ public class EndpointYamlGenerator {
     private final Server server;
 
     /*
-     * Generates the .yaml file with endpoint details of HTTP service
+     * Computes the endpoint details of an HTTP service
      */
-    public EndpointYamlGenerator(ServiceDeclarationNode node, SyntaxNodeAnalysisContext context, Server server) {
+    public EndpointYamlGenerator(ServiceDeclarationNode node, Server server, String schemaFileName) {
         this.node = node;
-        this.context = context;
         this.server = server != null ? new Server()
                 .url(server.getUrl())
                 .description(server.getDescription())
                 .variables(server.getVariables())
                 .extensions(server.getExtensions()) : null;
-
-        FileNameGeneratorUtil fileNameGeneratorUtil = new FileNameGeneratorUtil(context);
-        this.schemaFileName = fileNameGeneratorUtil.getFileName();
+        this.schemaFileName = schemaFileName;
     }
 
-    public Endpoint getEndpoint() {
+    public Endpoint getEndpoint(List<Diagnostic> diagnostics) {
+        String basePath = getBasePath();
         if (server == null) {
-            reportMissingPortConfigDiagnostic(context);
-            return new Endpoint(this.portVal, getBasePath(), REST, this.schemaFileName);
+            diagnostics.add(missingPortConfigDiagnostic());
+            return new Endpoint(basePath, this.portVal, basePath, REST, this.schemaFileName);
         }
         ServerVariables vars = server.getVariables();
-        String basePath = getBasePath();
         var portVar = vars != null ? vars.get(PORT) : null;
         String defaultPort = portVar != null ? portVar.getDefault() : null;
 
-       if (defaultPort != null && !defaultPort.isEmpty()) {
-           try {
-               this.portVal = Integer.parseInt(defaultPort);
-           } catch (NumberFormatException ex) {
-               outStream.println("Assign a integer value for port.");
-           }
-       } else {
-            reportMissingPortConfigDiagnostic(context);
-       }
-        return new Endpoint(this.portVal, basePath, REST, this.schemaFileName);
-    }
-
-    public void writeEndpointYaml() throws IOException {
-        Endpoint ep = getEndpoint();
-        Path outPath = resolveOutputPath();
-        String fileName = buildEndpointFileName(outPath);
-        Path path = outPath.resolve(ARTIFACT).resolve(fileName + YAML_EXTENSION);
-        writeYaml(path, new EndpointWrapper(ep));
+        if (defaultPort != null && !defaultPort.isEmpty()) {
+            try {
+                this.portVal = Integer.parseInt(defaultPort);
+            } catch (NumberFormatException ex) {
+                outStream.println("Assign a integer value for port.");
+            }
+        } else {
+            diagnostics.add(missingPortConfigDiagnostic());
+        }
+        return new Endpoint(basePath, this.portVal, basePath, REST, this.schemaFileName);
     }
 
     private String getBasePath() {
@@ -115,41 +91,14 @@ public class EndpointYamlGenerator {
         return serviceBasePath.toString();
     }
 
-    private Path resolveOutputPath() throws IOException {
-        Package currentPackage = this.context.currentPackage();
-        Project project = currentPackage.project();
-        Path outPath = project.targetDir();
-        Files.createDirectories(Paths.get(String.valueOf(outPath), ARTIFACT));
-        return outPath;
-    }
-
-    private String buildEndpointFileName(Path outPath) {
-        String base = schemaFileName.split("\\.")[0].replace(OPENAPI_SUFFIX, ENDPOINT_SUFFIX);
-        return resolveContractFileName(outPath.resolve(ARTIFACT), base, false);
-    }
-
-    private void writeYaml(Path path, EndpointWrapper wrapper) throws IOException {
-        YAMLFactory yamlFactory = YAMLFactory.builder()
-                .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
-                .build();
-        ObjectMapper mapper = new ObjectMapper(yamlFactory);
-        mapper.findAndRegisterModules();
-
-        try (Writer writer = Files.newBufferedWriter(path)) {
-            mapper.writeValue(writer, wrapper);
-        } catch (IOException e) {
-            throw new IOException("Failed to write endpoint yaml to " + path, e);
-        }
-    }
-
-    private static void reportMissingPortConfigDiagnostic(SyntaxNodeAnalysisContext context) {
+    private Diagnostic missingPortConfigDiagnostic() {
         DiagnosticInfo diagnosticInfo = new DiagnosticInfo(
                 "PORT_CONFIGURATION_BEING_NULL",
                 "The configurable value provided for the port should have a " +
                         "default value to generate the server details",
                 DiagnosticSeverity.ERROR
         );
-        context.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo, context.node().location()));
+        return DiagnosticFactory.createDiagnostic(diagnosticInfo, node.location());
     }
 
 }
