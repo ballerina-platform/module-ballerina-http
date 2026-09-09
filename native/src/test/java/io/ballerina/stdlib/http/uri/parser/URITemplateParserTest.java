@@ -30,6 +30,13 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertThrows;
 
+import io.ballerina.runtime.api.creators.ValueCreator;
+import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.values.BArray;
+import io.ballerina.runtime.api.values.BMap;
+import io.ballerina.runtime.api.values.BString;
+import io.ballerina.stdlib.http.uri.URIUtil;
+import static org.testng.Assert.assertTrue;
 /**
  * Unit tests for the URI template parser and the node tree it builds, driven end to end: a template is parsed
  * into the tree and real URIs are matched against it, asserting which {@link String} resource name each
@@ -250,5 +257,14 @@ public class URITemplateParserTest {
     @Test(description = "An expression that starts with a comma has a zero length name and is rejected")
     public void testZeroLengthVariableReferenceIsRejected() {
         assertThrows(URITemplateException.class, () -> parse("/orders/{,a}", "bad"));
+    }
+
+    @Test(description = "Test query parameters without assignment operator")
+    public void testQueryParamsWithoutAssignment() throws UnsupportedEncodingException {
+        BMap<BString, Object> queryParams = ValueCreator.createMapValue();
+        URIUtil.populateQueryParamMap("foo", queryParams);
+        assertTrue(queryParams.containsKey(StringUtils.fromString("foo")), "Key 'foo' should be present");
+        BArray values = (BArray) queryParams.get(StringUtils.fromString("foo"));
+        assertEquals(values.getString(0), "", "Valueless query param should map to empty string");
     }
 }
