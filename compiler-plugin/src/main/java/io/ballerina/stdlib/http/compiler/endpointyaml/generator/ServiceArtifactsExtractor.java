@@ -66,8 +66,8 @@ import static io.ballerina.stdlib.http.compiler.endpointyaml.generator.FileNameG
 
 /*
  * Generates the .yaml file with OpenAPI specification of an HTTP service and collects its endpoint details
- * into the shared, package-wide list that {@link ServiceArtifactsLifecycleListener} later writes out as a
- * single consolidated endpoints.yaml once code generation completes.
+ * into the shared, package-wide list that {@link ServiceArtifactsLifecycleListener} later publishes to
+ * Ballerina lang once code generation completes.
  */
 public class ServiceArtifactsExtractor implements AnalysisTask<SyntaxNodeAnalysisContext> {
     private static boolean isErrorPrinted = false;
