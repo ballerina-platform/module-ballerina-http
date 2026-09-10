@@ -3,11 +3,12 @@ org = "ballerina"
 name = "http"
 version = "@toml.version@"
 authors = ["Ballerina"]
-keywords = ["http", "network", "service", "listener", "client"]
+keywords = ["http", "network", "service", "listener", "client", "Type/Connector", "Type/Trigger", "Area/Built-in", "Area/Communication", "Name/HTTP"]
 repository = "https://github.com/ballerina-platform/module-ballerina-http"
 icon = "icon.png"
 license = ["Apache-2.0"]
 distribution = "2201.13.3"
+include = ["metadata"]
 
 [[package.modules]]
 name = "http.httpscerr"
