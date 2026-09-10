@@ -9,7 +9,7 @@
  */
 
 plugins {
-    id "com.gradle.enterprise" version "3.13.2"
+    id "com.gradle.develocity" version "3.19.2"
 }
 
 rootProject.name = 'http'
@@ -32,9 +32,9 @@ project(':http-ballerina-tests').projectDir = file('ballerina-tests')
 project(':http-compiler-plugin-tests').projectDir = file('compiler-plugin-tests')
 project(':http-integration-tests').projectDir = file('integration-tests')
 
-gradleEnterprise {
+develocity {
     buildScan {
-        termsOfServiceUrl = 'https://gradle.com/terms-of-service'
-        termsOfServiceAgree = 'yes'
+        termsOfUseUrl = 'https://gradle.com/terms-of-service'
+        termsOfUseAgree = 'yes'
     }
 }
