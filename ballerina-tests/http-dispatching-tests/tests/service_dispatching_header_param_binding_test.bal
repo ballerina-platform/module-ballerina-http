@@ -76,6 +76,11 @@ service /headerparamservice on HeaderBindingEP {
     resource function get q6(@http:Header string? foo) returns string {
         return foo ?: "empty";
     }
+    
+    resource function get q7(@http:Header string foo = "default-foo") returns string {
+        return foo;
+    }
+
 }
 
 public type RateLimitHeaders record {|
@@ -775,4 +780,13 @@ function userAgentHeaderBindingTest() returns error? {
 
     response = check headerBindingClient->get("/headerRecord/userAgentWithRequest", {"user-agent": "slbeta4"});
     common:assertJsonValue(response, "hello", "slbeta4");
+}
+
+@test:Config {}
+function testDefaultableHeaderParam() returns error? {
+    string response = check headerBindingClient->get("/headerparamservice/q7");
+    test:assertEquals(response, "default-foo");
+
+    response = check headerBindingClient->get("/headerparamservice/q7", {"foo": "custom-foo"});
+    test:assertEquals(response, "custom-foo");
 }

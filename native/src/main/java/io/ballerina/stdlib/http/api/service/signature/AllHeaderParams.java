@@ -25,6 +25,7 @@ import io.ballerina.runtime.api.utils.ValueUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
+import io.ballerina.runtime.api.values.BNever;
 import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.api.nativeimpl.ExternUtils;
@@ -92,7 +93,11 @@ public class AllHeaderParams implements Parameter {
             String token = headerParam.getHeaderName();
             List<String> headerValues = httpHeaders.getAll(token);
             if (headerValues.isEmpty()) {
-                if (headerParam.isNilable() && treatNilableAsOptional) {
+                if (headerParam.isDefaultable()) {
+                    headerParam.validateConstraints(headerParam.getOriginalType().getZeroValue());
+                    paramFeed[index] = BNever.getValue();
+                    continue;
+                } else if (headerParam.isNilable() && treatNilableAsOptional) {
                     paramFeed[index] = null;
                     continue;
                 } else {
