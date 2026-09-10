@@ -2,7 +2,7 @@
 
 This module provides APIs for connecting to and interacting with HTTP and HTTP2 endpoints, through two types of network entry points: the `Client` and the `Listener`.
 
-## Key Features
+### Key Features
 
 - HTTP/HTTP2 Client for consuming remote services
 - HTTP/HTTP2 Listener for exposing services
