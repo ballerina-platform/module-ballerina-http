@@ -12,7 +12,7 @@ services:
         volumes:
             - ./sockd.conf:/etc/dante/sockd.conf:ro
         ports:
-            - 9913:9913
+            - 127.0.0.1:9913:9913
         depends_on:
             - backend
         restart: on-failure

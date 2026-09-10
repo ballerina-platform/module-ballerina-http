@@ -126,7 +126,7 @@ public final class EmbeddedSocksServer {
 
     public void stop() {
         if (serverChannel != null) {
-            serverChannel.close();
+            serverChannel.close().syncUninterruptibly();
         }
         if (bossGroup != null) {
             bossGroup.shutdownGracefully();
