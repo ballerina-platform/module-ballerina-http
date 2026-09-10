@@ -300,6 +300,55 @@ task stopLdapServer() {
     }
 }
 
+task startSocksServer() {
+    doLast {
+        // Docker is not reliably available on Windows CI runners.
+        if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
+            def stdOut = new ByteArrayOutputStream()
+            exec {
+                commandLine 'sh', '-c', "docker ps --filter name=socks-proxy-server"
+                standardOutput = stdOut
+            }
+            if (!stdOut.toString().contains("socks-proxy-server")) {
+                println "Starting SOCKS proxy server."
+                exec {
+                    commandLine 'sh', '-c', "docker compose -f $project.projectDir/resources/socks/compose.yml up -d"
+                    standardOutput = stdOut
+                }
+                println stdOut.toString()
+                println "Waiting 10s until the SOCKS proxy server gets initiated."
+                sleep(10 * 1000)
+            } else {
+                println "SOCKS proxy server is already started."
+            }
+        }
+    }
+}
+
+task stopSocksServer() {
+    doLast {
+        if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
+            def stdOut = new ByteArrayOutputStream()
+            exec {
+                commandLine 'sh', '-c', "docker ps --filter name=socks-proxy-server"
+                standardOutput = stdOut
+            }
+            if (stdOut.toString().contains("socks-proxy-server")) {
+                println "Stopping SOCKS proxy server."
+                exec {
+                    commandLine 'sh', '-c', "docker compose -f $project.projectDir/resources/socks/compose.yml down"
+                    standardOutput = stdOut
+                }
+                println stdOut.toString()
+                println "Waiting 5s until the SOCKS proxy server gets stopped."
+                sleep(5 * 1000)
+            } else {
+                println "SOCKS proxy server is not started."
+            }
+        }
+    }
+}
+
 task deleteDependencyTomlFile {
     if (project.hasProperty("deleteDependencies")) {
         delete "${project.projectDir}/${testCommonPackage}/Dependencies.toml"
@@ -312,6 +361,8 @@ task deleteDependencyTomlFile {
 
 ballerinaTest.finalizedBy stopLdapServer
 ballerinaTest.dependsOn startLdapServer
+ballerinaTest.finalizedBy stopSocksServer
+ballerinaTest.dependsOn startSocksServer
 ballerinaTest.dependsOn deleteDependencyTomlFile
 test.dependsOn ballerinaTest
 build.dependsOn test

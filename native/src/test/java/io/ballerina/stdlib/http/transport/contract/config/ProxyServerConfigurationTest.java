@@ -50,6 +50,23 @@ public class ProxyServerConfigurationTest {
         Assert.assertEquals(proxyServerConfiguration.getProxyPassword(), "testPassword");
     }
 
+    @Test
+    public void testGetProxyProtocol() throws UnknownHostException {
+        ProxyServerConfiguration proxyServerConfiguration = new ProxyServerConfiguration("localhost",
+                1234);
+        // Default protocol must be HTTP.
+        Assert.assertEquals(proxyServerConfiguration.getProxyProtocol(),
+                ProxyServerConfiguration.ProxyProtocol.HTTP);
+
+        proxyServerConfiguration.setProxyProtocol(ProxyServerConfiguration.ProxyProtocol.SOCKS4);
+        Assert.assertEquals(proxyServerConfiguration.getProxyProtocol(),
+                ProxyServerConfiguration.ProxyProtocol.SOCKS4);
+
+        proxyServerConfiguration.setProxyProtocol(ProxyServerConfiguration.ProxyProtocol.SOCKS5);
+        Assert.assertEquals(proxyServerConfiguration.getProxyProtocol(),
+                ProxyServerConfiguration.ProxyProtocol.SOCKS5);
+    }
+
     @Test (enabled = false)
     public void testGetInetSocketAddress() throws UnknownHostException {
         ProxyServerConfiguration proxyServerConfiguration = new ProxyServerConfiguration("localhost",

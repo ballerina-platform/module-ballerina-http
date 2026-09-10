@@ -67,6 +67,7 @@ dependencies {
     implementation group: 'jakarta.xml.bind', name: 'jakarta.xml.bind-api', version: "${jakartaXmlBindVersion}"
 
     testImplementation group: 'org.mock-server', name: 'mockserver-netty', version:"${mockserverNettyVersion}"
+    testImplementation group: 'io.netty', name: 'netty-codec-socks', version: "${nettyVersion}"
     testImplementation group: 'com.mashape.unirest', name: 'unirest-java', version:"${unirestVersion}"
 
     testImplementation group: 'org.mockito', name:'mockito-core', version: "${mockitoVersion}"
