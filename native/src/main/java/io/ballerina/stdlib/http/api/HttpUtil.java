@@ -1577,6 +1577,9 @@ public class HttpUtil {
             setServerSocketConfig(serverSocketConfig, listenerConfiguration);
         }
 
+        listenerConfiguration.setHttp2MaxConcurrentStreams(
+                endpointConfig.getIntValue(ENDPOINT_CONFIG_HTTP2_MAX_ACTIVE_STREAMS).intValue());
+
         if (sslConfig != null) {
             return setSslConfig(sslConfig, listenerConfiguration);
         }
@@ -1584,8 +1587,6 @@ public class HttpUtil {
         listenerConfiguration.setPipeliningEnabled(true); //Pipelining is enabled all the time
         listenerConfiguration.setHttp2InitialWindowSize(endpointConfig
                 .getIntValue(ENDPOINT_CONFIG_HTTP2_INITIAL_WINDOW_SIZE).intValue());
-        listenerConfiguration.setHttp2MaxConcurrentStreams(
-                endpointConfig.getIntValue(ENDPOINT_CONFIG_HTTP2_MAX_ACTIVE_STREAMS).intValue());
 
         double minIdleTimeInStaleState =
                 ((BDecimal) endpointConfig.get(HttpConstants.ENDPOINT_CONFIG_IDLE_TIME_STALE_STATE)).floatValue();
