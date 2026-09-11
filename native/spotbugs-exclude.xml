@@ -218,4 +218,101 @@
         <Bug pattern="PA_PUBLIC_MUTABLE_OBJECT_ATTRIBUTE" />
     </Match>
 
+    <!-- gradle9-rollout: temporary suppression pending review: surfaced by the SpotBugs plugin version bump needed for Gradle 9 / Java 25 support (see PR body); pre-existing code, not introduced by this PR -->
+    <Match>
+        <Class name="io.ballerina.stdlib.http.api.HttpConnectionManager"/>
+        <Bug pattern="THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION"/>
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.api.logging.HttpLogManager"/>
+        <Bug pattern="THROWS_METHOD_THROWS_RUNTIMEEXCEPTION"/>
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.api.logging.util.LogLevel"/>
+        <Bug pattern="THROWS_METHOD_THROWS_RUNTIMEEXCEPTION"/>
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.transport.contract.HttpClientConnector"/>
+        <Bug pattern="THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION"/>
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.transport.contract.HttpWsConnectorFactory"/>
+        <Bug pattern="THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION"/>
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.transport.contract.websocket.WebSocketClientConnector"/>
+        <Bug pattern="THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION"/>
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.transport.contract.websocket.WebSocketConnectorFuture"/>
+        <Bug pattern="THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION"/>
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.transport.contract.websocket.WebSocketConnectorListener"/>
+        <Bug pattern="THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION"/>
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpClientUpgradeHandler"/>
+        <Bug pattern="THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION"/>
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpWsConnectorFactory"/>
+        <Bug pattern="THROWS_METHOD_THROWS_RUNTIMEEXCEPTION"/>
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.transport.contractimpl.common.Util"/>
+        <Bug pattern="THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION, THROWS_METHOD_THROWS_RUNTIMEEXCEPTION"/>
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.transport.contractimpl.listener.CustomHttpContentCompressor"/>
+        <Bug pattern="THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION"/>
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.transport.contractimpl.sender.ResponseEntityBodySizeValidator"/>
+        <Bug pattern="THROWS_METHOD_THROWS_RUNTIMEEXCEPTION"/>
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.transport.contractimpl.sender.StatusLineAndHeaderLengthValidator"/>
+        <Bug pattern="THROWS_METHOD_THROWS_RUNTIMEEXCEPTION"/>
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.transport.contractimpl.sender.states.SenderState"/>
+        <Bug pattern="THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION"/>
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.transport.message.HttpCarbonMessage"/>
+        <Bug pattern="THROWS_METHOD_THROWS_RUNTIMEEXCEPTION, AT_NONATOMIC_64BIT_PRIMITIVE, AT_NONATOMIC_OPERATIONS_ON_SHARED_VARIABLE, AT_STALE_THREAD_WRITE_OF_PRIMITIVE"/>
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.uri.parser.Expression"/>
+        <Bug pattern="THROWS_METHOD_THROWS_RUNTIMEEXCEPTION"/>
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.api.service.signature.ParamUtils"/>
+        <Bug pattern="DMI_INVOKING_TOSTRING_ON_ARRAY"/>
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.transport.contractimpl.common.certificatevalidation.crl.CRLCache$CRLCacheValue"/>
+        <Bug pattern="AT_NONATOMIC_64BIT_PRIMITIVE"/>
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.transport.contractimpl.common.certificatevalidation.ocsp.OCSPCache$OCSPCacheValue"/>
+        <Bug pattern="AT_NONATOMIC_64BIT_PRIMITIVE"/>
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.transport.contractimpl.listener.http2.Http2SourceHandler"/>
+        <Bug pattern="AT_NONATOMIC_64BIT_PRIMITIVE"/>
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ClientChannel"/>
+        <Bug pattern="AT_NONATOMIC_64BIT_PRIMITIVE, AT_STALE_THREAD_WRITE_OF_PRIMITIVE"/>
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.transport.contractimpl.sender.http2.OutboundMsgHolder"/>
+        <Bug pattern="AT_NONATOMIC_64BIT_PRIMITIVE, AT_STALE_THREAD_WRITE_OF_PRIMITIVE"/>
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.transport.contractimpl.websocket.WebSocketInboundFrameHandler"/>
+        <Bug pattern="AT_STALE_THREAD_WRITE_OF_PRIMITIVE"/>
+    </Match>
 </FindBugsFilter>

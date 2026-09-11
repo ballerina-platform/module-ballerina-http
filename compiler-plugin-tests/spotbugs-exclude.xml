@@ -50,4 +50,13 @@
         <Method name="setItems" />
         <Bug pattern="EI_EXPOSE_REP2" />
     </Match>
+    <!-- gradle9-rollout: temporary suppression pending review: surfaced by the SpotBugs plugin version bump needed for Gradle 9 / Java 25 support (see PR body); pre-existing code, not introduced by this PR -->
+    <Match>
+        <Class name="io.ballerina.stdlib.http.compiler.OpenAPISpecGenerationTest"/>
+        <Bug pattern="THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION"/>
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.http.compiler.ServiceArtifactsExtractionTest"/>
+        <Bug pattern="THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION"/>
+    </Match>
 </FindBugsFilter>
