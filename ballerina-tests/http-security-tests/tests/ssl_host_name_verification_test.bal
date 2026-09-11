@@ -40,6 +40,16 @@ listener http:Listener http2HostNameVerificationListener = new (http2HostNameVer
     }
 });
 
+listener http:Listener certFileHostNameVerificationListener = new (certFileHostNameVerificationPort, {
+    httpVersion: http:HTTP_1_1,
+    secureSocket: {
+        key: {
+            certFile: common:CERT_FILE,
+            keyFile: common:KEY_FILE
+        }
+    }
+});
+
 service /hostNameVerificationService on hostNameVerificationListener {
     resource function get .() returns string {
         return "Hello from HTTP/1.1!";
@@ -49,6 +59,12 @@ service /hostNameVerificationService on hostNameVerificationListener {
 service /hostNameVerificationService on http2HostNameVerificationListener {
     resource function get .() returns string {
         return "Hello from HTTP/2!";
+    }
+}
+
+service /hostNameVerificationService on certFileHostNameVerificationListener {
+    resource function get .() returns string {
+        return "Hello from the cert file listener!";
     }
 }
 
@@ -80,12 +96,12 @@ public function testHostNameVerificationEnabledWithTrustStore() returns error? {
         }
     });
     string|error response = clientEP->/hostNameVerificationService;
-    test:assertTrue(response is error, msg = "Expected the handshake to fail on a host name mismatch");
+    assertHostNameMismatch(response);
 }
 
 @test:Config {}
 public function testHostNameVerificationDisabledWithCertFile() returns error? {
-    http:Client clientEP = check new (string `https://127.0.0.1:${hostNameVerificationPort}`, {
+    http:Client clientEP = check new (string `https://127.0.0.1:${certFileHostNameVerificationPort}`, {
         httpVersion: http:HTTP_1_1,
         secureSocket: {
             cert: common:CERT_FILE,
@@ -93,19 +109,19 @@ public function testHostNameVerificationDisabledWithCertFile() returns error? {
         }
     });
     string response = check clientEP->/hostNameVerificationService;
-    test:assertEquals(response, "Hello from HTTP/1.1!");
+    test:assertEquals(response, "Hello from the cert file listener!");
 }
 
 @test:Config {}
 public function testHostNameVerificationEnabledWithCertFile() returns error? {
-    http:Client clientEP = check new (string `https://127.0.0.1:${hostNameVerificationPort}`, {
+    http:Client clientEP = check new (string `https://127.0.0.1:${certFileHostNameVerificationPort}`, {
         httpVersion: http:HTTP_1_1,
         secureSocket: {
             cert: common:CERT_FILE
         }
     });
     string|error response = clientEP->/hostNameVerificationService;
-    test:assertTrue(response is error, msg = "Expected the handshake to fail on a host name mismatch");
+    assertHostNameMismatch(response);
 }
 
 @test:Config {}
@@ -134,5 +150,14 @@ public function testHttp2HostNameVerificationEnabled() returns error? {
         }
     });
     string|error response = clientEP->/hostNameVerificationService;
+    assertHostNameMismatch(response);
+}
+
+// A trust-path failure would also satisfy `is error`, so guard against asserting the wrong cause.
+isolated function assertHostNameMismatch(string|error response) {
     test:assertTrue(response is error, msg = "Expected the handshake to fail on a host name mismatch");
+    if response is error {
+        test:assertFalse(response.message().includes("unable to find valid certification path"),
+                msg = string `Expected a host name mismatch, but the chain was not trusted: ${response.message()}`);
+    }
 }

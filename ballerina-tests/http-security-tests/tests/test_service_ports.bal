@@ -28,3 +28,4 @@ const int tls13Port = 9250;
 
 const int hostNameVerificationPort = 9251;
 const int http2HostNameVerificationPort = 9252;
+const int certFileHostNameVerificationPort = 9253;
