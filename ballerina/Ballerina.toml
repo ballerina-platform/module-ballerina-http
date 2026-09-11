@@ -39,56 +39,62 @@ path = "./lib/constraint-native-1.7.0.jar"
 [[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-common"
-version = "4.1.137.Final"
-path = "./lib/netty-common-4.1.137.Final.jar"
+version = "4.2.18.Final"
+path = "./lib/netty-common-4.2.18.Final.jar"
 
 [[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-buffer"
-version = "4.1.137.Final"
-path = "./lib/netty-buffer-4.1.137.Final.jar"
+version = "4.2.18.Final"
+path = "./lib/netty-buffer-4.2.18.Final.jar"
 
 [[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-transport"
-version = "4.1.137.Final"
-path = "./lib/netty-transport-4.1.137.Final.jar"
+version = "4.2.18.Final"
+path = "./lib/netty-transport-4.2.18.Final.jar"
 
 [[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-resolver"
-version = "4.1.137.Final"
-path = "./lib/netty-resolver-4.1.137.Final.jar"
+version = "4.2.18.Final"
+path = "./lib/netty-resolver-4.2.18.Final.jar"
 
 [[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-handler"
-version = "4.1.137.Final"
-path = "./lib/netty-handler-4.1.137.Final.jar"
+version = "4.2.18.Final"
+path = "./lib/netty-handler-4.2.18.Final.jar"
 
 [[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-codec-http"
-version = "4.1.137.Final"
-path = "./lib/netty-codec-http-4.1.137.Final.jar"
+version = "4.2.18.Final"
+path = "./lib/netty-codec-http-4.2.18.Final.jar"
 
 [[platform.java21.dependency]]
 groupId = "io.netty"
-artifactId = "netty-codec"
-version = "4.1.137.Final"
-path = "./lib/netty-codec-4.1.137.Final.jar"
+artifactId = "netty-codec-base"
+version = "4.2.18.Final"
+path = "./lib/netty-codec-base-4.2.18.Final.jar"
+
+[[platform.java21.dependency]]
+groupId = "io.netty"
+artifactId = "netty-codec-compression"
+version = "4.2.18.Final"
+path = "./lib/netty-codec-compression-4.2.18.Final.jar"
 
 [[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-handler-proxy"
-version = "4.1.137.Final"
-path = "./lib/netty-handler-proxy-4.1.137.Final.jar"
+version = "4.2.18.Final"
+path = "./lib/netty-handler-proxy-4.2.18.Final.jar"
 
 [[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-codec-http2"
-version = "4.1.137.Final"
-path = "./lib/netty-codec-http2-4.1.137.Final.jar"
+version = "4.2.18.Final"
+path = "./lib/netty-codec-http2-4.2.18.Final.jar"
 
 [[platform.java21.dependency]]
 groupId = "commons-pool.wso2"
@@ -99,8 +105,26 @@ path = "./lib/commons-pool-1.5.6.wso2v1.jar"
 [[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-transport-native-unix-common"
-version = "4.1.137.Final"
-path = "./lib/netty-transport-native-unix-common-4.1.137.Final.jar"
+version = "4.2.18.Final"
+path = "./lib/netty-transport-native-unix-common-4.2.18.Final.jar"
+
+[[platform.java21.dependency]]
+groupId = "io.netty"
+artifactId = "netty-handler-ssl-ocsp"
+version = "4.2.18.Final"
+path = "./lib/netty-handler-ssl-ocsp-4.2.18.Final.jar"
+
+[[platform.java21.dependency]]
+groupId = "io.netty"
+artifactId = "netty-resolver-dns"
+version = "4.2.18.Final"
+path = "./lib/netty-resolver-dns-4.2.18.Final.jar"
+
+[[platform.java21.dependency]]
+groupId = "io.netty"
+artifactId = "netty-codec-dns"
+version = "4.2.18.Final"
+path = "./lib/netty-codec-dns-4.2.18.Final.jar"
 
 [[platform.java21.dependency]]
 groupId = "org.bouncycastle"
@@ -123,29 +147,29 @@ path = "./lib/bcpkix-jdk18on-1.84.jar"
 [[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-tcnative-boringssl-static"
-version = "2.0.83.Final"
-path = "./lib/netty-tcnative-boringssl-static-2.0.83.Final.jar"
+version = "2.0.84.Final"
+path = "./lib/netty-tcnative-boringssl-static-2.0.84.Final.jar"
 
 [[platform.java21.dependency]]
-path = "./lib/netty-tcnative-boringssl-static-2.0.83.Final-windows-x86_64.jar"
+path = "./lib/netty-tcnative-boringssl-static-2.0.84.Final-windows-x86_64.jar"
 
 [[platform.java21.dependency]]
-path = "./lib/netty-tcnative-boringssl-static-2.0.83.Final-linux-aarch_64.jar"
+path = "./lib/netty-tcnative-boringssl-static-2.0.84.Final-linux-aarch_64.jar"
 
 [[platform.java21.dependency]]
-path = "./lib/netty-tcnative-boringssl-static-2.0.83.Final-linux-x86_64.jar"
+path = "./lib/netty-tcnative-boringssl-static-2.0.84.Final-linux-x86_64.jar"
 
 [[platform.java21.dependency]]
-path = "./lib/netty-tcnative-boringssl-static-2.0.83.Final-osx-aarch_64.jar"
+path = "./lib/netty-tcnative-boringssl-static-2.0.84.Final-osx-aarch_64.jar"
 
 [[platform.java21.dependency]]
-path = "./lib/netty-tcnative-boringssl-static-2.0.83.Final-osx-x86_64.jar"
+path = "./lib/netty-tcnative-boringssl-static-2.0.84.Final-osx-x86_64.jar"
 
 [[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-tcnative-classes"
-version = "2.0.83.Final"
-path = "./lib/netty-tcnative-classes-2.0.83.Final.jar"
+version = "2.0.84.Final"
+path = "./lib/netty-tcnative-classes-2.0.84.Final.jar"
 
 [[platform.java21.dependency]]
 groupId = "org.jvnet.mimepull"
@@ -156,23 +180,11 @@ path = "./lib/mimepull-1.9.11.jar"
 [[platform.java21.dependency]]
 groupId = "io.netty"
 artifactId = "netty-codec-socks"
-version = "4.1.137.Final"
-path = "./lib/netty-codec-socks-4.1.137.Final.jar"
-
-[[platform.java21.dependency]]
-groupId = "org.jboss.marshalling"
-artifactId = "jboss-marshalling"
-version = "2.0.5.Final"
-path = "./lib/jboss-marshalling-2.0.5.Final.jar"
+version = "4.2.18.Final"
+path = "./lib/netty-codec-socks-4.2.18.Final.jar"
 
 [[platform.java21.dependency]]
 groupId = "at.yawk.lz4"
 artifactId = "lz4-java"
 version = "1.11.1"
 path = "./lib/lz4-java-1.11.1.jar"
-
-[[platform.java21.dependency]]
-groupId = "com.google.protobuf"
-artifactId = "protobuf-java"
-version = "3.25.5"
-path = "./lib/protobuf-java-3.25.5.jar"
