@@ -318,7 +318,10 @@ public class SSLHandlerFactory {
     }
 
     private SslContextBuilder clientContextBuilderWithKs(SslProvider sslProvider) {
-        return SslContextBuilder.forClient().sslProvider(sslProvider).keyManager(kmf).trustManager(tmf);
+        SslContextBuilder clientSslContextBuilder = SslContextBuilder.forClient().sslProvider(sslProvider)
+                .keyManager(kmf).trustManager(tmf);
+        setEndpointIdentification(clientSslContextBuilder);
+        return clientSslContextBuilder;
     }
 
     private SslContextBuilder serverContextBuilderWithCerts(SslProvider sslProvider) {
@@ -333,9 +336,11 @@ public class SSLHandlerFactory {
 
     private SslContextBuilder clientContextBuilderWithCerts(SslProvider sslProvider) {
         String keyPassword = sslConfig.getClientKeyPassword();
-        return SslContextBuilder.forClient().sslProvider(sslProvider)
+        SslContextBuilder clientSslContextBuilder = SslContextBuilder.forClient().sslProvider(sslProvider)
                 .keyManager(sslConfig.getClientCertificates(), sslConfig.getClientKeyFile(), keyPassword)
                 .trustManager(sslConfig.getClientTrustCertificates());
+        setEndpointIdentification(clientSslContextBuilder);
+        return clientSslContextBuilder;
     }
 
     public SslContext createHttp2TLSContextForClient(boolean enableOcsp) throws SSLException {
@@ -377,7 +382,10 @@ public class SSLHandlerFactory {
     }
 
     private SslContextBuilder createSslCtxWithSystemDefaults(SslProvider sslProvider) {
-        return SslContextBuilder.forClient().sslProvider(sslProvider).keyManager(kmf);
+        SslContextBuilder clientSslContextBuilder = SslContextBuilder.forClient().sslProvider(sslProvider)
+                .keyManager(kmf);
+        setEndpointIdentification(clientSslContextBuilder);
+        return clientSslContextBuilder;
     }
 
     private void setAlpnConfigs(SslContextBuilder sslContextBuilder) {
@@ -398,6 +406,12 @@ public class SSLHandlerFactory {
 
     private TrustManagerFactory getTrustStoreFactory() {
         return tmf;
+    }
+
+    // Netty 4.2 defaults this to HTTPS, so leaving it unset would silently override a disabled verifyHostName.
+    private void setEndpointIdentification(SslContextBuilder clientSslContextBuilder) {
+        clientSslContextBuilder.endpointIdentificationAlgorithm(
+                sslConfig.isHostNameVerificationEnabled() ? Constants.HTTPS_SCHEME : null);
     }
 
     private void setClientAuth(SslContextBuilder serverSslContextBuilder) {
