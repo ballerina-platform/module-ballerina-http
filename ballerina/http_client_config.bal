@@ -132,17 +132,29 @@ public type FollowRedirects record {|
     boolean allowAuthHeaders = false;
 |};
 
+# Defines the protocol used to communicate with the proxy server.
+public enum ProxyProtocol {
+    # HTTP proxy protocol
+    HTTP,
+    # SOCKS4 proxy protocol
+    SOCKS4,
+    # SOCKS5 proxy protocol
+    SOCKS5
+}
+
 # Proxy server configurations to be used with the HTTP client endpoint.
 #
 # + host - Host name of the proxy server
 # + port - Proxy server port
 # + userName - Proxy server username
-# + password - proxy server password
+# + password - proxy server password. This is ignored for `SOCKS4` proxies, which do not support password authentication
+# + protocol - Protocol used to communicate with the proxy server. Defaults to `HTTP`
 public type ProxyConfig record {|
     string host = "";
     int port = 0;
     string userName = "";
     string password = "";
+    ProxyProtocol protocol = HTTP;
 |};
 
 # Client configuration for cookies.

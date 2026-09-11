@@ -44,6 +44,7 @@ module io.ballerina.stdlib.http {
     requires io.netty.handler.proxy;
     requires io.netty.handler.ssl.ocsp;
     requires io.ballerina.lib.data;
+    requires io.netty.resolver;
     exports io.ballerina.stdlib.http.api;
     exports io.ballerina.stdlib.http.transport.contract.websocket;
     exports io.ballerina.stdlib.http.transport.contract;
