@@ -571,6 +571,10 @@ public final class HttpConstants {
     public static final BString PROXY_PORT = StringUtils.fromString("port");
     public static final BString PROXY_USERNAME = StringUtils.fromString("userName");
     public static final BString PROXY_PASSWORD = StringUtils.fromString("password");
+    public static final BString PROXY_PROTOCOL = StringUtils.fromString("protocol");
+    public static final String PROXY_PROTOCOL_HTTP = "HTTP";
+    public static final String PROXY_PROTOCOL_SOCKS4 = "SOCKS4";
+    public static final String PROXY_PROTOCOL_SOCKS5 = "SOCKS5";
 
     public static final String HTTP_SERVICE_TYPE = "Service";
     // Filter related

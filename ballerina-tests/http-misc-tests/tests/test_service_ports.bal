@@ -21,6 +21,8 @@ const serviceTestPort = 9011;
 const proxyTestPort1 = 9019;
 const proxyTestPort2 = 9020;
 
+const socksProxyServerTestPort = 1080;
+
 const requestLimitsTestPort1 = 9501;
 const requestLimitsTestPort2 = 9502;
 const requestLimitsTestPort3 = 9503;

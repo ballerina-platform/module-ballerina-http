@@ -34,7 +34,18 @@ public class ProxyServerConfiguration {
 
     private String proxyPassword;
 
+    private ProxyProtocol proxyProtocol = ProxyProtocol.HTTP;
+
     private InetSocketAddress inetSocketAddress;
+
+    /**
+     * Supported proxy protocols.
+     */
+    public enum ProxyProtocol {
+        HTTP,
+        SOCKS4,
+        SOCKS5
+    }
 
     public ProxyServerConfiguration(String proxyHost, int proxyPort) throws UnknownHostException {
         this.proxyHost = proxyHost;
@@ -68,5 +79,13 @@ public class ProxyServerConfiguration {
 
     public InetSocketAddress getInetSocketAddress() {
         return inetSocketAddress;
+    }
+
+    public void setProxyProtocol(ProxyProtocol proxyProtocol) {
+        this.proxyProtocol = proxyProtocol;
+    }
+
+    public ProxyProtocol getProxyProtocol() {
+        return proxyProtocol;
     }
 }
