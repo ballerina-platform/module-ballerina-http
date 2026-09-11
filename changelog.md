@@ -4,6 +4,11 @@ This file contains all the notable changes done to the Ballerina HTTP package th
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Add `http2MaxActiveStreams` config field in the listener configuration to control the maximum number of concurrent HTTP/2 streams per connection
+
 ## [2.17.0] - 2026-08-04
 
 ### Changed

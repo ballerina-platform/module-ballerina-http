@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com) All Rights Reserved.
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -69,15 +69,18 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
 /**
- * Tests that the HTTP/2 server advertises {@code SETTINGS_MAX_CONCURRENT_STREAMS=100} in the
- * initial SETTINGS frame on every server-side HTTP/2 connection path: prior-knowledge H2C,
- * H2C upgrade, and TLS with ALPN. The fixed limit of 100 prevents unbounded stream creation
- * and heap exhaustion.
+ * Tests that the HTTP/2 server advertises the configured {@code SETTINGS_MAX_CONCURRENT_STREAMS}
+ * value (CVE-2026-47244) in the initial SETTINGS frame on every server-side HTTP/2 connection path:
+ * prior-knowledge H2C, H2C upgrade, and TLS with ALPN. A finite limit (default 100, sourced from
+ * maxActiveStreamsPerConnection) prevents unbounded stream creation and heap exhaustion; the
+ * unlimited case (Integer.MAX_VALUE) preserves legacy behaviour for deployments that configured
+ * {@code maxActiveStreamsPerConnection = -1}.
  */
 public class Http2MaxConcurrentStreamsTestCase {
 
     private static final Logger LOG = LoggerFactory.getLogger(Http2MaxConcurrentStreamsTestCase.class);
     private static final long DEFAULT_MAX_CONCURRENT_STREAMS = 100L;
+    private static final int CONFIGURED_MAX_CONCURRENT_STREAMS = 500;
 
     private ServerConnector serverConnector;
     private HttpWsConnectorFactory connectorFactory;
@@ -97,6 +100,60 @@ public class Http2MaxConcurrentStreamsTestCase {
         listenerConfiguration.setScheme(Constants.HTTP_SCHEME);
         listenerConfiguration.setVersion(Constants.HTTP_2_0);
         startServer(listenerConfiguration);
+    }
+
+    private void startH2cServer(int port, int maxActiveStreams) throws InterruptedException {
+        ListenerConfiguration listenerConfiguration = new ListenerConfiguration();
+        listenerConfiguration.setPort(port);
+        listenerConfiguration.setScheme(Constants.HTTP_SCHEME);
+        listenerConfiguration.setVersion(Constants.HTTP_2_0);
+        listenerConfiguration.setHttp2MaxConcurrentStreams(maxActiveStreams);
+        startServer(listenerConfiguration);
+    }
+
+    @Test(description = "Server must advertise the configured finite limit in the initial SETTINGS frame "
+            + "on a prior-knowledge H2C connection "
+            + "(CVE-2026-47244: prevents unbounded stream creation and heap exhaustion)")
+    public void testPriorKnowledgeAdvertisesConfiguredMaxConcurrentStreams() throws Exception {
+        startH2cServer(TestUtil.HTTP_SERVER_PORT, CONFIGURED_MAX_CONCURRENT_STREAMS);
+        Long maxConcurrentStreams = captureViaPriorKnowledge(TestUtil.HTTP_SERVER_PORT);
+        assertNotNull(maxConcurrentStreams, "maxConcurrentStreams must be present in server SETTINGS frame");
+        assertEquals((long) maxConcurrentStreams, CONFIGURED_MAX_CONCURRENT_STREAMS,
+                "Server must advertise the configured SETTINGS_MAX_CONCURRENT_STREAMS on prior-knowledge H2C");
+    }
+
+    @Test(description = "Server must advertise the configured finite limit in the initial SETTINGS frame "
+            + "on an H2C upgrade connection "
+            + "(CVE-2026-47244: prevents unbounded stream creation and heap exhaustion)")
+    public void testH2cUpgradeAdvertisesConfiguredMaxConcurrentStreams() throws Exception {
+        startH2cServer(TestUtil.SERVER_PORT2, CONFIGURED_MAX_CONCURRENT_STREAMS);
+        Long maxConcurrentStreams = captureViaH2cUpgrade(TestUtil.SERVER_PORT2);
+        assertNotNull(maxConcurrentStreams, "maxConcurrentStreams must be present in server SETTINGS frame");
+        assertEquals((long) maxConcurrentStreams, CONFIGURED_MAX_CONCURRENT_STREAMS,
+                "Server must advertise the configured SETTINGS_MAX_CONCURRENT_STREAMS on H2C upgrade");
+    }
+
+    @Test(description = "Server must advertise the configured finite limit in the initial SETTINGS frame "
+            + "on a TLS connection negotiated via ALPN "
+            + "(CVE-2026-47244: prevents unbounded stream creation and heap exhaustion)")
+    public void testAlpnAdvertisesConfiguredMaxConcurrentStreams() throws Exception {
+        ListenerConfiguration listenerConfiguration = Http2Util.getH2ListenerConfigs();
+        listenerConfiguration.setHttp2MaxConcurrentStreams(CONFIGURED_MAX_CONCURRENT_STREAMS);
+        startServer(listenerConfiguration);
+        Long maxConcurrentStreams = captureViaAlpn(TestUtil.SERVER_PORT1);
+        assertNotNull(maxConcurrentStreams, "maxConcurrentStreams must be present in server SETTINGS frame");
+        assertEquals((long) maxConcurrentStreams, CONFIGURED_MAX_CONCURRENT_STREAMS,
+                "Server must advertise the configured SETTINGS_MAX_CONCURRENT_STREAMS over TLS+ALPN");
+    }
+
+    @Test(description = "Unlimited (Integer.MAX_VALUE) advertises an effectively unbounded limit, "
+            + "overriding Netty's default of 100 to preserve legacy behaviour")
+    public void testServerAdvertisesUnlimitedMaxConcurrentStreams() throws Exception {
+        startH2cServer(TestUtil.SERVER_PORT2, Integer.MAX_VALUE);
+        Long maxConcurrentStreams = captureViaPriorKnowledge(TestUtil.SERVER_PORT2);
+        assertNotNull(maxConcurrentStreams, "maxConcurrentStreams must be present in server SETTINGS frame");
+        assertEquals((long) maxConcurrentStreams, (long) Integer.MAX_VALUE,
+                "Server must advertise an effectively unbounded limit when configured as unlimited");
     }
 
     @Test(description = "Server must advertise 100 concurrent streams in the initial SETTINGS frame "
