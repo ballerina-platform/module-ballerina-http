@@ -110,6 +110,6 @@ release {
     }
 }
 
-task build {
+tasks.named('build') {
     dependsOn('http-ballerina:build')
 }
