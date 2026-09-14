@@ -25,3 +25,7 @@ const int http1SniListenerPort = 9208;
 
 const int tls12Port = 9249;
 const int tls13Port = 9250;
+
+const int hostNameVerificationPort = 9251;
+const int http2HostNameVerificationPort = 9252;
+const int certFileHostNameVerificationPort = 9253;

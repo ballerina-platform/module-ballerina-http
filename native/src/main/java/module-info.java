@@ -38,9 +38,11 @@ module io.ballerina.stdlib.http {
     requires io.netty.codec.http2;
     requires org.eclipse.osgi;
     requires io.netty.codec;
+    requires io.netty.codec.compression;
     requires io.netty.handler;
     requires commons.pool;
     requires io.netty.handler.proxy;
+    requires io.netty.handler.ssl.ocsp;
     requires io.ballerina.lib.data;
     requires io.netty.resolver;
     exports io.ballerina.stdlib.http.api;

@@ -55,6 +55,8 @@ import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * A minimal embedded Netty SOCKS proxy server used for testing the SOCKS4/SOCKS5 client proxy support.
  *
@@ -67,6 +69,7 @@ import org.slf4j.LoggerFactory;
 public final class EmbeddedSocksServer {
 
     private static final Logger LOG = LoggerFactory.getLogger(EmbeddedSocksServer.class);
+    private static final int SHUTDOWN_TIMEOUT_SECONDS = 5;
 
     /**
      * The SOCKS protocol version this server speaks.
@@ -128,11 +131,13 @@ public final class EmbeddedSocksServer {
         if (serverChannel != null) {
             serverChannel.close().syncUninterruptibly();
         }
+        // Netty 4.2 completes the close promise before the listening socket is released when the owning event
+        // loop is shutting down, so await the shutdown or the next bind on this port fails.
         if (bossGroup != null) {
-            bossGroup.shutdownGracefully();
+            bossGroup.shutdownGracefully(0, SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS).syncUninterruptibly();
         }
         if (workerGroup != null) {
-            workerGroup.shutdownGracefully();
+            workerGroup.shutdownGracefully(0, SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS).syncUninterruptibly();
         }
     }
 
