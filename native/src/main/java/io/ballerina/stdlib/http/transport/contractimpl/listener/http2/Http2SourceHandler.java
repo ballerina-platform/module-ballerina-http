@@ -85,7 +85,7 @@ public final class Http2SourceHandler extends ChannelInboundHandlerAdapter {
     private ChannelGroup allChannels;
     private ChannelGroup listenerChannels;
     private AtomicBoolean isStale = new AtomicBoolean(false);
-    private long timeSinceMarkedAsStale = 0;
+    private volatile long timeSinceMarkedAsStale = 0;
     Http2SourceConnectionHandler sourceConnectionHandler;
 
     Http2SourceHandler(HttpServerChannelInitializer serverChannelInitializer, Http2ConnectionEncoder encoder,
