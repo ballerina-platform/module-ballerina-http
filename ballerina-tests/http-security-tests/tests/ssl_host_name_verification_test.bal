@@ -153,11 +153,50 @@ public function testHttp2HostNameVerificationEnabled() returns error? {
     assertHostNameMismatch(response);
 }
 
-// A trust-path failure would also satisfy `is error`, so guard against asserting the wrong cause.
+// Only a host name verification diagnostic counts as a pass here: a trust-path, protocol or connection
+// failure would also satisfy `is error` but would mean the test never exercised verifyHostName.
+final readonly & string[] HOST_NAME_MISMATCH_HINTS = [
+    "no subject alternative names",
+    "no subject alternative dns name",
+    "no name matching",
+    "hostname verification",
+    "host name verification",
+    "doesn't match",
+    "does not match"
+];
+
+// Netty's OpenSSL engine (the HTTP/2 client path) collapses every handshake rejection into this one line
+// instead of surfacing the peer verification detail the JDK engine reports.
+const string OPENSSL_OPAQUE_HANDSHAKE_FAILURE = "general opensslengine problem";
+
+final readonly & string[] UNRELATED_FAILURE_HINTS = [
+    "unable to find valid certification path",
+    "pkix path",
+    "certificate expired",
+    "certificate chain validation failed",
+    "connection refused",
+    "connection timeout",
+    "could not resolve host",
+    "closed the connection"
+];
+
 isolated function assertHostNameMismatch(string|error response) {
     test:assertTrue(response is error, msg = "Expected the handshake to fail on a host name mismatch");
     if response is error {
-        test:assertFalse(response.message().includes("unable to find valid certification path"),
-                msg = string `Expected a host name mismatch, but the chain was not trusted: ${response.message()}`);
+        string message = response.message().toLowerAscii();
+        foreach string hint in HOST_NAME_MISMATCH_HINTS {
+            if message.includes(hint) {
+                return;
+            }
+        }
+        foreach string hint in UNRELATED_FAILURE_HINTS {
+            if message.includes(hint) {
+                test:assertFail(string `Expected a host name verification failure, but got an unrelated failure: ${response.message()}`);
+            }
+        }
+        if message.includes(OPENSSL_OPAQUE_HANDSHAKE_FAILURE) {
+            return;
+        }
+        test:assertFail(string `Expected a host name verification failure, but got: ${response.message()}`);
     }
 }
