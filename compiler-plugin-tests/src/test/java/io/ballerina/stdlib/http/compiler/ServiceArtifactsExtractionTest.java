@@ -57,6 +57,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.nio.file.Files;
@@ -83,7 +84,7 @@ public class ServiceArtifactsExtractionTest {
     private static final String ENDPOINTS_FILE_NAME = "endpoints.yaml";
 
     @Test
-    public void testServiceArtifactGenerationWithSimpleService() throws Exception {
+    public void testServiceArtifactGenerationWithSimpleService() throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_20");
         try {
             executeBallerinaCommand(projectDirPath, true);
@@ -110,7 +111,7 @@ public class ServiceArtifactsExtractionTest {
     }
 
     @Test
-    public void testServiceArtifactGenerationWithoutFlag() throws Exception {
+    public void testServiceArtifactGenerationWithoutFlag() throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_20");
         try {
             executeBallerinaCommand(projectDirPath, false);
@@ -124,7 +125,7 @@ public class ServiceArtifactsExtractionTest {
     }
 
     @Test
-    public void testServiceArtifactGenerationWithCompilationErrors() throws Exception {
+    public void testServiceArtifactGenerationWithCompilationErrors() throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_43");
         try {
             executeBallerinaCommand(projectDirPath, true);
@@ -137,7 +138,7 @@ public class ServiceArtifactsExtractionTest {
     }
 
     @Test
-    public void testServiceArtifactGenerationForMultipleServices() throws Exception {
+    public void testServiceArtifactGenerationForMultipleServices() throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_44");
         try {
             executeBallerinaCommand(projectDirPath, true);
@@ -166,7 +167,7 @@ public class ServiceArtifactsExtractionTest {
     }
 
     @Test
-    public void testEndpointYamlGenerationWithRegularServicePath() throws Exception {
+    public void testEndpointYamlGenerationWithRegularServicePath() throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_48");
         try {
             executeBallerinaCommand(projectDirPath, true);
@@ -193,7 +194,7 @@ public class ServiceArtifactsExtractionTest {
     }
 
     @Test
-    public void testConfigurablePortWithRequiredValue() throws Exception {
+    public void testConfigurablePortWithRequiredValue() throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_51");
         try {
             executeBallerinaCommand(projectDirPath, true);
@@ -207,7 +208,7 @@ public class ServiceArtifactsExtractionTest {
     }
 
     @Test
-    public void testConfigurablePortWithDefaultValue() throws Exception {
+    public void testConfigurablePortWithDefaultValue() throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_50");
         try {
             executeBallerinaCommand(projectDirPath, true);
@@ -221,7 +222,7 @@ public class ServiceArtifactsExtractionTest {
 
 
     @Test
-    public void testEndpointYamlGenerationWithEmptyServicePath() throws Exception {
+    public void testEndpointYamlGenerationWithEmptyServicePath() throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_47");
         try {
             executeBallerinaCommand(projectDirPath, true);
@@ -266,7 +267,8 @@ public class ServiceArtifactsExtractionTest {
     }
 
     @Test
-    public void testInProcessServiceArtifactGenerationWithExportEndpoints() throws Exception {
+    public void testInProcessServiceArtifactGenerationWithExportEndpoints()
+            throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_20");
         try {
             executeBallerinaCommand(projectDirPath, true);
@@ -282,7 +284,8 @@ public class ServiceArtifactsExtractionTest {
     }
 
     @Test
-    public void testInProcessServiceArtifactGenerationWithoutExportEndpoints() throws Exception {
+    public void testInProcessServiceArtifactGenerationWithoutExportEndpoints()
+            throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_20");
         try {
             executeBallerinaCommand(projectDirPath, false);
@@ -346,7 +349,8 @@ public class ServiceArtifactsExtractionTest {
     }
 
     @Test
-    public void testExportServiceArtifact() throws Exception {
+    public void testExportServiceArtifact()
+            throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, IOException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_20");
         BuildProject project = loadProject(projectDirPath, false);
         TestContextData contextData = getTestContextData(project);
@@ -398,7 +402,7 @@ public class ServiceArtifactsExtractionTest {
     }
 
     @Test
-    public void testPrintDiagnostics() throws Exception {
+    public void testPrintDiagnostics() throws IOException {
         Path cleanProjectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_20");
         try {
             BuildProject cleanProject = loadProject(cleanProjectDirPath, true);
@@ -418,7 +422,7 @@ public class ServiceArtifactsExtractionTest {
     }
 
     @Test
-    public void testGeneratedOpenAPIYamlContent() throws Exception {
+    public void testGeneratedOpenAPIYamlContent() throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_20");
         try {
             executeBallerinaCommand(projectDirPath, true);
@@ -440,7 +444,7 @@ public class ServiceArtifactsExtractionTest {
     }
 
     @Test
-    public void testUniqueFileNamesForServicesWithSameBasePath() throws Exception {
+    public void testUniqueFileNamesForServicesWithSameBasePath() throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_48");
         try {
             executeBallerinaCommand(projectDirPath, true);
@@ -467,7 +471,7 @@ public class ServiceArtifactsExtractionTest {
     }
 
     @Test
-    public void testServiceArtifactGenerationWithSemanticErrors() throws Exception {
+    public void testServiceArtifactGenerationWithSemanticErrors() throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_49");
         try {
             executeBallerinaCommand(projectDirPath, true);
@@ -481,7 +485,7 @@ public class ServiceArtifactsExtractionTest {
     }
 
     @Test
-    public void testArtifactDirectoryLocationIsCorrect() throws Exception {
+    public void testArtifactDirectoryLocationIsCorrect() throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_20");
         try {
             executeBallerinaCommand(projectDirPath, true);
@@ -495,7 +499,7 @@ public class ServiceArtifactsExtractionTest {
     }
 
     @Test
-    public void testAllGeneratedYamlFilesAreNonEmpty() throws Exception {
+    public void testAllGeneratedYamlFilesAreNonEmpty() throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_44");
         try {
             executeBallerinaCommand(projectDirPath, true);
@@ -520,7 +524,7 @@ public class ServiceArtifactsExtractionTest {
     }
 
     @Test
-    public void testServiceArtifactGenerationWithOASMapperWarnings() throws Exception {
+    public void testServiceArtifactGenerationWithOASMapperWarnings() throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_50");
         try {
             executeBallerinaCommand(projectDirPath, true);
@@ -543,7 +547,7 @@ public class ServiceArtifactsExtractionTest {
     }
 
     @Test
-    public void testEndpointYamlSkippedWhenNoServersDefined() throws Exception {
+    public void testEndpointYamlSkippedWhenNoServersDefined() throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_51");
         try {
             executeBallerinaCommand(projectDirPath, true);
@@ -561,7 +565,8 @@ public class ServiceArtifactsExtractionTest {
     }
 
     @Test
-    public void testIOExceptionHandling() throws Exception {
+    public void testIOExceptionHandling()
+            throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, IOException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_20");
         BuildProject project = loadProject(projectDirPath, true);
         TestContextData contextData = getTestContextData(project);
@@ -591,7 +596,8 @@ public class ServiceArtifactsExtractionTest {
     }
 
     @Test
-    public void testDiagnosticPrinting() throws Exception {
+    public void testDiagnosticPrinting()
+            throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, IOException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_51");
         BuildProject project = loadProject(projectDirPath, true);
         TestContextData contextData = getTestContextData(project);
@@ -679,7 +685,8 @@ public class ServiceArtifactsExtractionTest {
     }
 
     @Test
-    public void testConstructEndpointFileName() throws Exception {
+    public void testConstructEndpointFileName()
+            throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_48");
         BuildProject project = loadProject(projectDirPath, false);
         TestContextData contextData = getTestContextData(project);
@@ -835,7 +842,8 @@ public class ServiceArtifactsExtractionTest {
         }
     }
 
-    public static void executeBallerinaCommand(Path projectDirPath, boolean exportEndpoints) throws Exception {
+    public static void executeBallerinaCommand(Path projectDirPath, boolean exportEndpoints)
+            throws IOException, InterruptedException {
         List<String> buildArgs = new ArrayList<>();
         String balFile = "bal";
         if (System.getProperty("os.name").startsWith("Windows")) {

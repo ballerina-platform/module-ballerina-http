@@ -40,7 +40,7 @@ public class OpenAPISpecGenerationTest {
 
 
     @Test
-    public void testSpecGenerationWithSimpleService() throws Exception {
+    public void testSpecGenerationWithSimpleService() throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_45");
         executeBallerinaCommand(projectDirPath, true);
         Path actualFile = projectDirPath.resolve("target/openapi").resolve("service_openapi.yaml");
@@ -50,7 +50,7 @@ public class OpenAPISpecGenerationTest {
     }
 
     @Test
-    public void testSpecGenerationWithInvalidServicePath() throws Exception {
+    public void testSpecGenerationWithInvalidServicePath() throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_46");
         executeBallerinaCommand(projectDirPath, true);
         Path openApiDir = projectDirPath.resolve("target/openapi");
@@ -59,7 +59,7 @@ public class OpenAPISpecGenerationTest {
     }
 
     @Test
-    public void testSpecGenerationWithEmptyServicePath() throws Exception {
+    public void testSpecGenerationWithEmptyServicePath() throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_47");
         executeBallerinaCommand(projectDirPath, true);
         Path openApiDir = projectDirPath.resolve("target/openapi");
@@ -71,7 +71,7 @@ public class OpenAPISpecGenerationTest {
     }
 
     @Test
-    public void testConstructFileNameWithRegularServicePath() throws Exception {
+    public void testConstructFileNameWithRegularServicePath() throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_48");
         executeBallerinaCommand(projectDirPath, true);
         Path actualFile = projectDirPath.resolve("target/openapi").resolve("userservice_openapi.yaml");
@@ -81,7 +81,7 @@ public class OpenAPISpecGenerationTest {
     }
 
     @Test
-    public void testSpecGenerationWithInvalidService() throws Exception {
+    public void testSpecGenerationWithInvalidService() throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_49");
         executeBallerinaCommand(projectDirPath, true);
         Path openApiDir = projectDirPath.resolve("target/openapi");
@@ -90,7 +90,7 @@ public class OpenAPISpecGenerationTest {
     }
 
     @Test
-    public void testSpecGeneration() throws Exception {
+    public void testSpecGeneration() throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_20");
         executeBallerinaCommand(projectDirPath, true);
         Path actualFile = projectDirPath.resolve("target/openapi").resolve("service_openapi.yaml");
@@ -100,7 +100,7 @@ public class OpenAPISpecGenerationTest {
     }
 
     @Test
-    public void testSpecGenerationInComplexServices() throws Exception {
+    public void testSpecGenerationInComplexServices() throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_42");
         executeBallerinaCommand(projectDirPath, true);
         Path actualFile = projectDirPath.resolve("target/openapi")
@@ -111,7 +111,7 @@ public class OpenAPISpecGenerationTest {
     }
 
     @Test
-    public void testSpecGenerationWithoutFlag() throws Exception {
+    public void testSpecGenerationWithoutFlag() throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_20");
         executeBallerinaCommand(projectDirPath, false);
         Path yamlFile = projectDirPath.resolve("target/openapi").resolve("service_openapi.yaml");
@@ -120,7 +120,7 @@ public class OpenAPISpecGenerationTest {
     }
 
     @Test
-    public void testSpecGenerationWithCompilationErrors() throws Exception {
+    public void testSpecGenerationWithCompilationErrors() throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_43");
         executeBallerinaCommand(projectDirPath, false);
         Path yamlFile = projectDirPath.resolve("target/openapi").resolve("service_openapi.yaml");
@@ -129,7 +129,7 @@ public class OpenAPISpecGenerationTest {
     }
 
     @Test
-    public void testSpecGenerationForMultipleServices() throws Exception {
+    public void testSpecGenerationForMultipleServices() throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_44");
         executeBallerinaCommand(projectDirPath, true);
         Path openApiDir = projectDirPath.resolve("target/openapi");
@@ -160,7 +160,8 @@ public class OpenAPISpecGenerationTest {
         envProperties.put(javaOptsKey, javaOpts);
     }
 
-    private void executeBallerinaCommand(Path projectDirPath, boolean exportOpenApi) throws Exception {
+    private void executeBallerinaCommand(Path projectDirPath, boolean exportOpenApi)
+            throws IOException, InterruptedException {
         List<String> buildArgs = new ArrayList<>();
         String balFile = "bal";
         if (System.getProperty("os.name").startsWith("Windows")) {

@@ -29,8 +29,9 @@ public interface WebSocketConnectorListener {
      * server connector.
      *
      * @param webSocketHandshaker {@link WebSocketHandshaker} to initialize connection.
+     * @throws WebSocketConnectorException if any error occurred during the handshake
      */
-    void onHandshake(WebSocketHandshaker webSocketHandshaker) throws Exception;
+    void onHandshake(WebSocketHandshaker webSocketHandshaker) throws WebSocketConnectorException;
 
     /**
      * Trigger incoming WebSocket text messages.

@@ -59,6 +59,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.util.Calendar;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -399,7 +402,8 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
         this.forwardedExtensionConfig = senderConfiguration.getForwardedExtensionConfig();
     }
 
-    public void initializeSSLContext() throws Exception {
+    public void initializeSSLContext() throws IOException, NoSuchAlgorithmException, KeyStoreException,
+            UnrecoverableKeyException {
         if (Objects.nonNull(sslConfig)) {
             sslConfig.initializeSSLContext(http2);
         }
