@@ -133,6 +133,9 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
         if (classDefinitionNode == null) {
             return;
         }
+        if (diagnosticContainsErrors(syntaxNodeAnalysisContext)) {
+            return;
+        }
         validateResources(syntaxNodeAnalysisContext, classDefinitionNode.members());
     }
 
@@ -140,6 +143,9 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
         ObjectConstructorExpressionNode objConstructorNode =
                 getServiceObjectConstructorNode(syntaxNodeAnalysisContext);
         if (objConstructorNode == null) {
+            return;
+        }
+        if (diagnosticContainsErrors(syntaxNodeAnalysisContext)) {
             return;
         }
         validateResources(syntaxNodeAnalysisContext, objConstructorNode.members());
