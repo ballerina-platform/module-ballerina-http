@@ -196,6 +196,7 @@
             <class name="io.ballerina.stdlib.http.transport.https.MutualSSLTestCase"/>
             <class name="io.ballerina.stdlib.http.transport.https.CipherSuitesTest"/>
             <class name="io.ballerina.stdlib.http.transport.hostnameverfication.HostnameVerificationTest"/>
+            <class name="io.ballerina.stdlib.http.transport.hostnameverfication.SystemDefaultsHostnameVerificationTest"/>
             <class name="io.ballerina.stdlib.http.transport.pkcs.PKCSTest"/>
             <class name="io.ballerina.stdlib.http.transport.certificatevalidation.OCSPStaplingTest"/>
             <class name="io.ballerina.stdlib.http.transport.certificatevalidation.OCSPValidationTest"/>

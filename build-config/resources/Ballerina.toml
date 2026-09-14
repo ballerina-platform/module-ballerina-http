@@ -74,9 +74,15 @@ path = "./lib/netty-codec-http-@netty.version@.jar"
 
 [[platform.java21.dependency]]
 groupId = "io.netty"
-artifactId = "netty-codec"
+artifactId = "netty-codec-base"
 version = "@netty.version@"
-path = "./lib/netty-codec-@netty.version@.jar"
+path = "./lib/netty-codec-base-@netty.version@.jar"
+
+[[platform.java21.dependency]]
+groupId = "io.netty"
+artifactId = "netty-codec-compression"
+version = "@netty.version@"
+path = "./lib/netty-codec-compression-@netty.version@.jar"
 
 [[platform.java21.dependency]]
 groupId = "io.netty"
@@ -101,6 +107,24 @@ groupId = "io.netty"
 artifactId = "netty-transport-native-unix-common"
 version = "@netty.version@"
 path = "./lib/netty-transport-native-unix-common-@netty.version@.jar"
+
+[[platform.java21.dependency]]
+groupId = "io.netty"
+artifactId = "netty-handler-ssl-ocsp"
+version = "@netty.version@"
+path = "./lib/netty-handler-ssl-ocsp-@netty.version@.jar"
+
+[[platform.java21.dependency]]
+groupId = "io.netty"
+artifactId = "netty-resolver-dns"
+version = "@netty.version@"
+path = "./lib/netty-resolver-dns-@netty.version@.jar"
+
+[[platform.java21.dependency]]
+groupId = "io.netty"
+artifactId = "netty-codec-dns"
+version = "@netty.version@"
+path = "./lib/netty-codec-dns-@netty.version@.jar"
 
 [[platform.java21.dependency]]
 groupId = "org.bouncycastle"
@@ -160,19 +184,7 @@ version = "@netty.version@"
 path = "./lib/netty-codec-socks-@netty.version@.jar"
 
 [[platform.java21.dependency]]
-groupId = "org.jboss.marshalling"
-artifactId = "jboss-marshalling"
-version = "@marshalling.version@"
-path = "./lib/jboss-marshalling-@marshalling.version@.jar"
-
-[[platform.java21.dependency]]
 groupId = "at.yawk.lz4"
 artifactId = "lz4-java"
 version = "@lz4.version@"
 path = "./lib/lz4-java-@lz4.version@.jar"
-
-[[platform.java21.dependency]]
-groupId = "com.google.protobuf"
-artifactId = "protobuf-java"
-version = "@protobuf.version@"
-path = "./lib/protobuf-java-@protobuf.version@.jar"
