@@ -4,6 +4,15 @@ This file contains all the notable changes done to the Ballerina HTTP package th
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- Update Netty version to 4.2.18.Final and Netty tcnative version to 2.0.84.Final
+- Configure endpoint identification explicitly on client SSL contexts, so `verifyHostName` stays authoritative over Netty 4.2's new host name verification default
+- Replace the `netty-codec` dependency with `netty-codec-base` and `netty-codec-compression`, and add `netty-handler-ssl-ocsp` (with `netty-resolver-dns` and `netty-codec-dns`), following the Netty 4.2 module split
+- Drop the `jboss-marshalling` and `protobuf-java` dependencies, which are no longer reachable now that the marshalling and protobuf codecs ship as separate Netty modules
+
 ## [2.17.0] - 2026-08-04
 
 ### Changed
