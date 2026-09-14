@@ -150,7 +150,20 @@ public function testHttp2HostNameVerificationEnabled() returns error? {
         }
     });
     string|error response = clientEP->/hostNameVerificationService;
-    assertHostNameMismatch(response);
+    assertHostNameMismatchOnOpenSsl(response);
+
+    // Positive control: the only difference is the host name, so the failure above cannot be a trust
+    // path, protocol or connectivity problem.
+    http:Client matchingHostClientEP = check new (string `https://localhost:${http2HostNameVerificationPort}`, {
+        secureSocket: {
+            cert: {
+                path: common:TRUSTSTORE_PATH,
+                password: "ballerina"
+            }
+        }
+    });
+    string matchingHostResponse = check matchingHostClientEP->/hostNameVerificationService;
+    test:assertEquals(matchingHostResponse, "Hello from HTTP/2!");
 }
 
 // Only a host name verification diagnostic counts as a pass here: a trust-path, protocol or connection
@@ -165,10 +178,6 @@ final readonly & string[] HOST_NAME_MISMATCH_HINTS = [
     "does not match"
 ];
 
-// Netty's OpenSSL engine (the HTTP/2 client path) collapses every handshake rejection into this one line
-// instead of surfacing the peer verification detail the JDK engine reports.
-const string OPENSSL_OPAQUE_HANDSHAKE_FAILURE = "general opensslengine problem";
-
 final readonly & string[] UNRELATED_FAILURE_HINTS = [
     "unable to find valid certification path",
     "pkix path",
@@ -179,6 +188,21 @@ final readonly & string[] UNRELATED_FAILURE_HINTS = [
     "could not resolve host",
     "closed the connection"
 ];
+
+// The HTTP/2 client is pinned to the OpenSSL provider, which reports every handshake rejection as the
+// same opaque line, so this only rules out unrelated causes. The paired positive control against the
+// matching host name is what proves endpoint identification did the rejecting.
+isolated function assertHostNameMismatchOnOpenSsl(string|error response) {
+    test:assertTrue(response is error, msg = "Expected the handshake to fail on a host name mismatch");
+    if response is error {
+        string message = response.message().toLowerAscii();
+        foreach string hint in UNRELATED_FAILURE_HINTS {
+            if message.includes(hint) {
+                test:assertFail(string `Expected a host name verification failure, but got an unrelated failure: ${response.message()}`);
+            }
+        }
+    }
+}
 
 isolated function assertHostNameMismatch(string|error response) {
     test:assertTrue(response is error, msg = "Expected the handshake to fail on a host name mismatch");
@@ -193,9 +217,6 @@ isolated function assertHostNameMismatch(string|error response) {
             if message.includes(hint) {
                 test:assertFail(string `Expected a host name verification failure, but got an unrelated failure: ${response.message()}`);
             }
-        }
-        if message.includes(OPENSSL_OPAQUE_HANDSHAKE_FAILURE) {
-            return;
         }
         test:assertFail(string `Expected a host name verification failure, but got: ${response.message()}`);
     }
