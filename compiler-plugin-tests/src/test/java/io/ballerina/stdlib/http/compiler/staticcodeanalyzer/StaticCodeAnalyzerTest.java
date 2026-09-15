@@ -333,6 +333,32 @@ public class StaticCodeAnalyzerTest {
                 Assertions.assertIssue(issues, index, "ballerina/http:15", "listener.bal",
                         31, 31, Source.BUILT_IN);
                 break;
+            case AVOID_CACHING_AUTHENTICATED_RESPONSES:
+                index = 0;
+                Assert.assertEquals(issues.size(), 2);
+                Assertions.assertIssue(issues, index++, "ballerina/http:16", "service.bal",
+                        35, 35, Source.BUILT_IN);
+                Assertions.assertIssue(issues, index, "ballerina/http:16", "service.bal",
+                        40, 40, Source.BUILT_IN);
+                break;
+            case AVOID_SERVER_VERSION_DISCLOSURE:
+                index = 0;
+                Assert.assertEquals(issues.size(), 2);
+                Assertions.assertIssue(issues, index++, "ballerina/http:17", "listener.bal",
+                        18, 18, Source.BUILT_IN);
+                Assertions.assertIssue(issues, index, "ballerina/http:17", "listener.bal",
+                        21, 21, Source.BUILT_IN);
+                break;
+            case AVOID_STALE_AUTHENTICATED_RESPONSES:
+                Assert.assertEquals(issues.size(), 1);
+                Assertions.assertIssue(issues, 0, "ballerina/http:18", "service.bal",
+                        35, 35, Source.BUILT_IN);
+                break;
+            case AVOID_SHARED_CACHE_WITH_CREDENTIALS:
+                Assert.assertEquals(issues.size(), 1);
+                Assertions.assertIssue(issues, 0, "ballerina/http:19", "client.bal",
+                        20, 20, Source.BUILT_IN);
+                break;
             default:
                 Assert.fail("Unhandled rule in validateIssues: " + rule);
                 break;

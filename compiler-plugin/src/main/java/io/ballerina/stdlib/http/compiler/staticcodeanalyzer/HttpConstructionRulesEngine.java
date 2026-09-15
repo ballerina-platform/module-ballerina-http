@@ -21,6 +21,8 @@ package io.ballerina.stdlib.http.compiler.staticcodeanalyzer;
 import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.constructionrules.AvoidDisabledAuthProviderTlsRule;
 import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.constructionrules.AvoidDisabledTlsValidationRule;
 import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.constructionrules.AvoidForwardingCredentialsOnRedirectRule;
+import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.constructionrules.AvoidServerVersionDisclosureRule;
+import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.constructionrules.AvoidSharedCacheWithCredentialsRule;
 import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.constructionrules.AvoidUnlimitedRequestBodySizeRule;
 import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.constructionrules.AvoidWeakTlsProtocolsRule;
 import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.constructionrules.EnsureSecureCookieConfigurationRule;
@@ -64,6 +66,8 @@ public class HttpConstructionRulesEngine {
         addRule(new EnsureSecureCookieConfigurationRule());
         addRule(new AvoidDisabledAuthProviderTlsRule());
         addRule(new AvoidUnlimitedRequestBodySizeRule());
+        addRule(new AvoidServerVersionDisclosureRule());
+        addRule(new AvoidSharedCacheWithCredentialsRule());
         // Add more default rules here as needed
     }
 }

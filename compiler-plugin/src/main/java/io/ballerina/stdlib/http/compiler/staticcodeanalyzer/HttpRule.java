@@ -52,6 +52,15 @@ public enum HttpRule {
     AVOID_UNSECURE_CALLER_REDIRECTIONS(createRule(14,
             "Caller redirections should not be open to forging attacks", VULNERABILITY)),
     AVOID_UNLIMITED_REQUEST_BODY_SIZE(createRule(15, "Avoid accepting request bodies of unlimited size",
+            VULNERABILITY)),
+    AVOID_CACHING_AUTHENTICATED_RESPONSES(createRule(16,
+            "Avoid allowing shared caches to store responses that require authentication", VULNERABILITY)),
+    AVOID_SERVER_VERSION_DISCLOSURE(createRule(17,
+            "Avoid disclosing the server product version in the server response header", VULNERABILITY)),
+    AVOID_STALE_AUTHENTICATED_RESPONSES(createRule(18,
+            "Avoid serving authenticated responses from a cache without revalidation", VULNERABILITY)),
+    AVOID_SHARED_CACHE_WITH_CREDENTIALS(createRule(19,
+            "Avoid sharing a client response cache across callers when credentials are configured",
             VULNERABILITY));
 
     private final Rule rule;

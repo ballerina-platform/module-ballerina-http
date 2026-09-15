@@ -1,0 +1,42 @@
+[
+  {
+    "location": {
+      "filePath": "listener.bal",
+      "startLine": 18,
+      "endLine": 18,
+      "startColumn": 63,
+      "endColumn": 84,
+      "startOffset": 777,
+      "length": 21
+    },
+    "rule": {
+      "id": "ballerina/http:17",
+      "numericId": 17,
+      "description": "Avoid disclosing the server product version in the server response header",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule17/listener.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule17/listener.bal"
+  },
+  {
+    "location": {
+      "filePath": "listener.bal",
+      "startLine": 21,
+      "endLine": 21,
+      "startColumn": 64,
+      "endColumn": 78,
+      "startOffset": 933,
+      "length": 14
+    },
+    "rule": {
+      "id": "ballerina/http:17",
+      "numericId": 17,
+      "description": "Avoid disclosing the server product version in the server response header",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule17/listener.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule17/listener.bal"
+  }
+]
