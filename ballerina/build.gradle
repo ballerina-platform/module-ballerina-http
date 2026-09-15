@@ -92,7 +92,10 @@ dependencies {
     externalJars(group: 'io.netty', name: 'netty-handler', version: "${nettyVersion}") {
         transitive = false
     }
-    externalJars(group: 'io.netty', name: 'netty-codec', version: "${nettyVersion}") {
+    externalJars(group: 'io.netty', name: 'netty-codec-base', version: "${nettyVersion}") {
+        transitive = false
+    }
+    externalJars(group: 'io.netty', name: 'netty-codec-compression', version: "${nettyVersion}") {
         transitive = false
     }
     externalJars(group: 'io.netty', name: 'netty-codec-http', version: "${nettyVersion}") {
@@ -105,6 +108,15 @@ dependencies {
         transitive = false
     }
     externalJars(group: 'io.netty', name: 'netty-transport-native-unix-common', version: "${nettyVersion}") {
+        transitive = false
+    }
+    externalJars(group: 'io.netty', name: 'netty-handler-ssl-ocsp', version: "${nettyVersion}") {
+        transitive = false
+    }
+    externalJars(group: 'io.netty', name: 'netty-resolver-dns', version: "${nettyVersion}") {
+        transitive = false
+    }
+    externalJars(group: 'io.netty', name: 'netty-codec-dns', version: "${nettyVersion}") {
         transitive = false
     }
     externalJars(group: 'commons-pool.wso2', name: 'commons-pool', version: "${wso2CommonsPoolVersion}") {
@@ -141,12 +153,6 @@ dependencies {
     externalJars(group: 'at.yawk.lz4', name: 'lz4-java', version: "${lz4Version}") {
         transitive = false
     }
-    externalJars(group: 'org.jboss.marshalling', name: 'jboss-marshalling', version: "${marshallingVersion}") {
-        transitive = false
-    }
-    externalJars(group: 'com.google.protobuf', name: 'protobuf-java', version: "${protobufVersion}") {
-        transitive = false
-    }
 }
 
 task updateTomlFiles {
@@ -162,8 +168,6 @@ task updateTomlFiles {
         def stdlibDependentMimepullVersion = project.mimepullVersion
         def stdlibDependentTestngVersion = project.testngVersion
         def stdlibDependentLz4Version = project.lz4Version
-        def stdlibDependentMarshallingVersion = project.marshallingVersion
-        def stdlibDependentProtobufVersion = project.protobufVersion
         def ballerinaToOpenApiVersion = project.ballerinaToOpenApiVersion
 
         def newBallerinaToml = ballerinaTomlFilePlaceHolder.text.replace("@project.version@", project.version)
@@ -179,8 +183,6 @@ task updateTomlFiles {
         newBallerinaToml = newBallerinaToml.replace("@mime.version@", stdlibDependentMimeVersion)
         newBallerinaToml = newBallerinaToml.replace("@constraint.version@", stdlibDependentConstraintVersion)
         newBallerinaToml = newBallerinaToml.replace("@lz4.version@", stdlibDependentLz4Version)
-        newBallerinaToml = newBallerinaToml.replace("@marshalling.version@", stdlibDependentMarshallingVersion)
-        newBallerinaToml = newBallerinaToml.replace("@protobuf.version@", stdlibDependentProtobufVersion)
         ballerinaTomlFile.text = newBallerinaToml
 
         def newCompilerPluginToml = compilerPluginTomlFilePlaceHolder.text.replace("@project.version@", project.version)
