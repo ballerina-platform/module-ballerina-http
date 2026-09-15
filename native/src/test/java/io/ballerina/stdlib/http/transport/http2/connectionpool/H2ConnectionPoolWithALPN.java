@@ -49,7 +49,7 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_2_0;
 import static io.ballerina.stdlib.http.transport.util.Http2Util.assertResult;
 import static io.ballerina.stdlib.http.transport.util.Http2Util.getH2ListenerConfigs;
 import static io.ballerina.stdlib.http.transport.util.Http2Util.getSenderConfigs;
-import static io.ballerina.stdlib.http.transport.util.TestUtil.SERVER_PORT1;
+import static io.ballerina.stdlib.http.transport.util.TestUtil.H2_CONNECTION_POOL_ALPN_TEST_PORT;
 import static org.testng.Assert.assertNotNull;
 
 /**
@@ -72,7 +72,8 @@ public class H2ConnectionPoolWithALPN {
 
         httpWsConnectorFactory = new DefaultHttpWsConnectorFactory(1, 2, 2);
         serverConnector = httpWsConnectorFactory
-            .createServerConnector(new ServerBootstrapConfiguration(new HashMap<>()), getH2ListenerConfigs());
+            .createServerConnector(new ServerBootstrapConfiguration(new HashMap<>()),
+                    getH2ListenerConfigs(H2_CONNECTION_POOL_ALPN_TEST_PORT));
         ServerConnectorFuture serverConnectorFuture = serverConnector.start();
         serverConnectorFuture.setHttpConnectorListener(
             new PassthroughHttpsMessageProcessorListener(getSenderConfigs(HTTP_2_0), true));
@@ -123,7 +124,8 @@ public class H2ConnectionPoolWithALPN {
 
     private String getResponse(HttpClientConnector client1) {
         HttpCarbonMessage httpCarbonMessage = MessageGenerator.generateRequest(HttpMethod.GET, null,
-                                                                               SERVER_PORT1, "https://");
+                                                                               H2_CONNECTION_POOL_ALPN_TEST_PORT,
+                                                                               "https://");
         HttpCarbonMessage response = new MessageSender(client1).sendMessage(httpCarbonMessage);
         assertNotNull(response);
         return TestUtil.getStringFromInputStream(new HttpMessageDataStreamer(response).getInputStream());

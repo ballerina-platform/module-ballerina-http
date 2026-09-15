@@ -331,13 +331,13 @@ class Utils {
     }
 
     private static ListenerConfiguration setListenerConfiguration(String keyStore, String keyStorePassword,
-            String type) {
+            String type, int port) {
         List<Parameter> serverParams = new ArrayList<>(1);
         Parameter paramServerCiphers = new Parameter("ciphers", "TLS_RSA_WITH_AES_128_CBC_SHA");
         serverParams.add(paramServerCiphers);
         ListenerConfiguration listenerConfiguration = ListenerConfiguration.getDefault();
         listenerConfiguration.setParameters(serverParams);
-        listenerConfiguration.setPort(TestUtil.SERVER_PORT3);
+        listenerConfiguration.setPort(port);
         listenerConfiguration.setKeyStoreFile(TestUtil.getAbsolutePath(keyStore));
         listenerConfiguration.setKeyStorePass(keyStorePassword);
         listenerConfiguration.setScheme(HTTPS_SCHEME);
@@ -348,10 +348,10 @@ class Utils {
         return listenerConfiguration;
     }
 
-    static void testResponse() {
+    static void testResponse(int port) {
         try {
             String testValue = "Test";
-            HttpCarbonMessage msg = TestUtil.createHttpsPostReq(TestUtil.SERVER_PORT3, testValue, "");
+            HttpCarbonMessage msg = TestUtil.createHttpsPostReq(port, testValue, "");
 
             CountDownLatch latch = new CountDownLatch(1);
             DefaultHttpConnectorListener listener = new DefaultHttpConnectorListener(latch);
@@ -371,14 +371,14 @@ class Utils {
         }
     }
 
-    static void setUp(String type) throws Exception {
+    static void setUp(String type, int port) throws Exception {
         createMockOCSPResponse();
         factory = new DefaultHttpWsConnectorFactory();
 
         String keyStoreFilePath = "/simple-test-config/localcrt.p12";
         String keyStorePassword = "localpwd";
         serverConnector = factory.createServerConnector(TestUtil.getDefaultServerBootstrapConfig(),
-                Utils.setListenerConfiguration(keyStoreFilePath, keyStorePassword, type));
+                Utils.setListenerConfiguration(keyStoreFilePath, keyStorePassword, type, port));
         ServerConnectorFuture future = serverConnector.start();
         future.setHttpConnectorListener(new EchoMessageListener());
         future.sync();

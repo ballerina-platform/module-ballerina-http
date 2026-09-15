@@ -57,7 +57,7 @@ public class HttpsProxyServerTestCase {
 
     private ListenerConfiguration getListenerConfiguration() {
         ListenerConfiguration listenerConfiguration = ListenerConfiguration.getDefault();
-        listenerConfiguration.setPort(TestUtil.SERVER_PORT1);
+        listenerConfiguration.setPort(TestUtil.HTTPS_PROXY_SERVER_TEST_PORT);
         listenerConfiguration.setScheme(HTTPS_SCHEME);
         listenerConfiguration.setKeyStoreFile(TestUtil.getAbsolutePath(TestUtil.KEY_STORE_FILE_PATH));
         String password = "wso2carbon";
@@ -72,10 +72,10 @@ public class HttpsProxyServerTestCase {
             HttpCarbonMessage msg = new HttpCarbonRequest(
                     new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, ""));
             msg.setHttpMethod(HttpMethod.POST.toString());
-            msg.setProperty(HTTP_PORT, TestUtil.SERVER_PORT1);
+            msg.setProperty(HTTP_PORT, TestUtil.HTTPS_PROXY_SERVER_TEST_PORT);
             msg.setProperty(PROTOCOL, HTTPS_SCHEME);
             msg.setProperty(HTTP_HOST, TestUtil.TEST_HOST);
-            msg.setHeader("Host", "localhost:9001");
+            msg.setHeader("Host", "localhost:" + TestUtil.HTTPS_PROXY_SERVER_TEST_PORT);
             msg.addHttpContent(new DefaultLastHttpContent(Unpooled.wrappedBuffer(byteBuffer)));
             ProxyServerUtil.sendRequest(msg, testValue);
     }

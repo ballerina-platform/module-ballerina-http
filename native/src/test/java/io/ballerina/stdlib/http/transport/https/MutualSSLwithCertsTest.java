@@ -65,7 +65,7 @@ public class MutualSSLwithCertsTest {
 
     private ListenerConfiguration getListenerConfiguration() {
         ListenerConfiguration listenerConfiguration = ListenerConfiguration.getDefault();
-        listenerConfiguration.setPort(TestUtil.SERVER_PORT3);
+        listenerConfiguration.setPort(TestUtil.MUTUAL_SSL_WITH_CERTS_TEST_PORT);
         listenerConfiguration.setServerKeyFile(TestUtil.getAbsolutePath(TestUtil.KEY_FILE));
         listenerConfiguration.setServerCertificates(TestUtil.getAbsolutePath(TestUtil.CERT_FILE));
         listenerConfiguration.setServerTrustCertificates(TestUtil.getAbsolutePath(TestUtil.TRUST_CERT_CHAIN));
@@ -90,7 +90,7 @@ public class MutualSSLwithCertsTest {
 
     @Test
     public void mutualSSLwithCertsTest() {
-        TestUtil.testHttpsPost(httpClientConnector, TestUtil.SERVER_PORT3);
+        TestUtil.testHttpsPost(httpClientConnector, TestUtil.MUTUAL_SSL_WITH_CERTS_TEST_PORT);
     }
 
     @AfterClass

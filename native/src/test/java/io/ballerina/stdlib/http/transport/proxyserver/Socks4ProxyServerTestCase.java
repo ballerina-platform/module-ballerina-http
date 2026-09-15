@@ -103,7 +103,7 @@ public class Socks4ProxyServerTestCase {
 
     private ListenerConfiguration getListenerConfiguration(String scheme, String httpVersion) {
         ListenerConfiguration listenerConfiguration = ListenerConfiguration.getDefault();
-        listenerConfiguration.setPort(TestUtil.SERVER_PORT1);
+        listenerConfiguration.setPort(TestUtil.SOCKS4_PROXY_SERVER_TEST_PORT);
         listenerConfiguration.setVersion(httpVersion);
         if (HTTPS_SCHEME.equals(scheme)) {
             listenerConfiguration.setScheme(HTTPS_SCHEME);
@@ -118,10 +118,10 @@ public class Socks4ProxyServerTestCase {
         HttpCarbonMessage msg = new HttpCarbonRequest(
                 new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, ""));
         msg.setHttpMethod(HTTP_POST_METHOD);
-        msg.setProperty(HTTP_PORT, TestUtil.SERVER_PORT1);
+        msg.setProperty(HTTP_PORT, TestUtil.SOCKS4_PROXY_SERVER_TEST_PORT);
         msg.setProperty(PROTOCOL, scheme);
         msg.setProperty(HTTP_HOST, TestUtil.TEST_HOST);
-        msg.setHeader("Host", "localhost:" + TestUtil.SERVER_PORT1);
+        msg.setHeader("Host", "localhost:" + TestUtil.SOCKS4_PROXY_SERVER_TEST_PORT);
         msg.addHttpContent(new DefaultLastHttpContent(Unpooled.wrappedBuffer(byteBuffer)));
         return msg;
     }
