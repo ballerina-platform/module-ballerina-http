@@ -33,6 +33,7 @@ import io.ballerina.stdlib.http.api.logging.util.RotationPolicy;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.io.UncheckedIOException;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
@@ -77,7 +78,7 @@ public class HttpLogManager extends LogManager {
                 getResourceAsStream("logging.properties")) {
             LogManager.getLogManager().readConfiguration(is);
         } catch (IOException e) {
-            throw new RuntimeException("failed to read logging.properties file from the classpath", e);
+            throw new UncheckedIOException("failed to read logging.properties file from the classpath", e);
         }
     }
 
