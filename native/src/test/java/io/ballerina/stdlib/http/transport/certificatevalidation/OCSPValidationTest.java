@@ -19,6 +19,7 @@
 package io.ballerina.stdlib.http.transport.certificatevalidation;
 
 import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorException;
+import io.ballerina.stdlib.http.transport.util.TestUtil;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -30,12 +31,12 @@ public class OCSPValidationTest {
 
     @BeforeClass
     public void setUp() throws Exception {
-        Utils.setUp("OCSPandCRL");
+        Utils.setUp("OCSPandCRL", TestUtil.OCSP_VALIDATION_TEST_PORT);
     }
 
     @Test (description = "Integration test for OCSP validation")
     public void testOcspStapling() {
-        Utils.testResponse();
+        Utils.testResponse(TestUtil.OCSP_VALIDATION_TEST_PORT);
     }
 
     @AfterClass

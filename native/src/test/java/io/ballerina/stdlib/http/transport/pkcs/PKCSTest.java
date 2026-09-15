@@ -64,7 +64,7 @@ public class PKCSTest {
 
     private ListenerConfiguration getListenerConfiguration() {
         ListenerConfiguration listenerConfiguration = ListenerConfiguration.getDefault();
-        listenerConfiguration.setPort(TestUtil.SERVER_PORT3);
+        listenerConfiguration.setPort(TestUtil.PKCS_TEST_PORT);
         //set PKCS12 keystore to ballerina server.
         String keyStoreFile = "/simple-test-config/wso2carbon.p12";
         listenerConfiguration.setKeyStoreFile(TestUtil.getAbsolutePath(keyStoreFile));
@@ -86,7 +86,7 @@ public class PKCSTest {
 
     @Test
     public void testPKCS12() {
-        TestUtil.testHttpsPost(httpClientConnector, TestUtil.SERVER_PORT3);
+        TestUtil.testHttpsPost(httpClientConnector, TestUtil.PKCS_TEST_PORT);
     }
     @AfterClass
     public void cleanUp() throws ServerConnectorException {

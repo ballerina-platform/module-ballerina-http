@@ -54,13 +54,13 @@ public final class Http2Util {
 
     public static final String HTTP2_RESPONSE_PAYLOAD = "Final Response";
 
-    public static ListenerConfiguration getH2ListenerConfigs() {
+    public static ListenerConfiguration getH2ListenerConfigs(int port) {
         Parameter paramServerCiphers = new Parameter("ciphers", "TLS_RSA_WITH_AES_128_CBC_SHA");
         List<Parameter> serverParams = new ArrayList<>(1);
         serverParams.add(paramServerCiphers);
         ListenerConfiguration listenerConfiguration = new ListenerConfiguration();
         listenerConfiguration.setParameters(serverParams);
-        listenerConfiguration.setPort(TestUtil.SERVER_PORT1);
+        listenerConfiguration.setPort(port);
         listenerConfiguration.setScheme(HTTPS_SCHEME);
         listenerConfiguration.setVersion(HTTP_2_0);
         listenerConfiguration.setVerifyClient(OPTIONAL);

@@ -79,7 +79,7 @@ public class ResponseEntityBodySizeValidator extends ChannelInboundHandlerAdapte
     private void releaseContentAndNotifyError() {
         this.fullContent.forEach(ReferenceCounted::release);
         this.fullContent.forEach(httpContent -> this.fullContent.remove(httpContent));
-        throw new RuntimeException("Response max entity body size exceeds: Entity body is larger than "
+        throw new IllegalStateException("Response max entity body size exceeds: Entity body is larger than "
                                            + this.maxEntityBodySize + " bytes. ");
     }
 

@@ -67,7 +67,7 @@ public class MutualSSLTestCase {
 
     private ListenerConfiguration getListenerConfiguration() {
         ListenerConfiguration listenerConfiguration = ListenerConfiguration.getDefault();
-        listenerConfiguration.setPort(TestUtil.SERVER_PORT3);
+        listenerConfiguration.setPort(TestUtil.MUTUAL_SSL_TEST_CASE_PORT);
         String verifyClient = "require";
         listenerConfiguration.setVerifyClient(verifyClient);
         listenerConfiguration.setSslSessionTimeOut(TestUtil.SSL_SESSION_TIMEOUT);
@@ -94,7 +94,7 @@ public class MutualSSLTestCase {
 
     @Test
     public void testHttpsPost() {
-        TestUtil.testHttpsPost(httpClientConnector, TestUtil.SERVER_PORT3);
+        TestUtil.testHttpsPost(httpClientConnector, TestUtil.MUTUAL_SSL_TEST_CASE_PORT);
     }
 
     @AfterClass

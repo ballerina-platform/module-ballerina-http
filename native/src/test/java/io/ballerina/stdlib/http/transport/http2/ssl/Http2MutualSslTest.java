@@ -78,7 +78,7 @@ public class Http2MutualSslTest {
 
     private ListenerConfiguration getH2ListenerConfigs() {
         ListenerConfiguration listenerConfiguration = new ListenerConfiguration();
-        listenerConfiguration.setPort(TestUtil.SERVER_PORT1);
+        listenerConfiguration.setPort(TestUtil.HTTP2_MUTUAL_SSL_TEST_PORT);
         listenerConfiguration.setScheme(HTTPS_SCHEME);
         listenerConfiguration.setVersion(HTTP_2_0);
         listenerConfiguration.setVerifyClient(REQUIRE);
@@ -91,7 +91,7 @@ public class Http2MutualSslTest {
 
     @Test
     public void testHttp2Post() {
-        TestUtil.testHttpsPost(http2ClientConnector, TestUtil.SERVER_PORT1);
+        TestUtil.testHttpsPost(http2ClientConnector, TestUtil.HTTP2_MUTUAL_SSL_TEST_PORT);
     }
 
     @AfterClass

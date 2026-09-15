@@ -51,12 +51,12 @@ public class OCSPStaplingTest {
 
     @BeforeClass
     public void setUp() throws Exception {
-        Utils.setUp("ocspStapling");
+        Utils.setUp("ocspStapling", TestUtil.OCSP_STAPLING_TEST_PORT);
     }
 
     @Test (description = "Tests with ocsp stapling enabled client and a server.")
     public void testOcspStapling() {
-        Utils.testResponse();
+        Utils.testResponse(TestUtil.OCSP_STAPLING_TEST_PORT);
     }
 
     @Test (description = "Tests retrieving AIA locations from the certificate inside the keystore.")

@@ -53,7 +53,8 @@ public class DisableSslTest {
 
         HttpWsConnectorFactory factory = new DefaultHttpWsConnectorFactory();
         serverConnector = factory
-                .createServerConnector(TestUtil.getDefaultServerBootstrapConfig(), getH2ListenerConfigs());
+                .createServerConnector(TestUtil.getDefaultServerBootstrapConfig(),
+                        getH2ListenerConfigs(TestUtil.HTTP2_DISABLE_SSL_TEST_PORT));
         ServerConnectorFuture future = serverConnector.start();
         future.setHttpConnectorListener(new EchoMessageListener());
         future.sync();
@@ -76,7 +77,7 @@ public class DisableSslTest {
      */
     @Test
     public void testHttp2Post() {
-        TestUtil.testHttpsPost(http2ClientConnector, TestUtil.SERVER_PORT1);
+        TestUtil.testHttpsPost(http2ClientConnector, TestUtil.HTTP2_DISABLE_SSL_TEST_PORT);
     }
 
     @AfterClass

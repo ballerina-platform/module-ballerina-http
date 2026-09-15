@@ -45,7 +45,7 @@ import java.util.concurrent.TimeUnit;
 import static io.ballerina.stdlib.http.transport.util.Http2Util.getH2ListenerConfigs;
 import static io.ballerina.stdlib.http.transport.util.Http2Util.getTestHttp2Client;
 import static io.ballerina.stdlib.http.transport.util.TestUtil.HTTP_SCHEME;
-import static io.ballerina.stdlib.http.transport.util.TestUtil.SERVER_PORT1;
+import static io.ballerina.stdlib.http.transport.util.TestUtil.REMOTE_CHANNEL_CLOSE_SSL_ERROR_TEST_PORT;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
@@ -62,7 +62,8 @@ public class RemoteChannelCloseWithSSLError {
     public void setup() throws InterruptedException {
         connectorFactory = new DefaultHttpWsConnectorFactory();
         serverConnector = connectorFactory
-                .createServerConnector(TestUtil.getDefaultServerBootstrapConfig(), getH2ListenerConfigs());
+                .createServerConnector(TestUtil.getDefaultServerBootstrapConfig(),
+                        getH2ListenerConfigs(REMOTE_CHANNEL_CLOSE_SSL_ERROR_TEST_PORT));
         ServerConnectorFuture future = serverConnector.start();
         Http2NoResponseListener http2ServerConnectorListener = new Http2NoResponseListener();
         future.setHttpConnectorListener(http2ServerConnectorListener);
@@ -74,7 +75,8 @@ public class RemoteChannelCloseWithSSLError {
     // is fixed.
     @Test
     public void testRemoteChannelClose() {
-        HttpCarbonMessage request = MessageGenerator.generateRequest(HttpMethod.POST, "test", SERVER_PORT1,
+        HttpCarbonMessage request = MessageGenerator.generateRequest(HttpMethod.POST, "test",
+                                                                     REMOTE_CHANNEL_CLOSE_SSL_ERROR_TEST_PORT,
                                                                      HTTP_SCHEME);
         try {
             CountDownLatch latch = new CountDownLatch(1);

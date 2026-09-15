@@ -79,12 +79,32 @@ public final class TestUtil {
 
     public static final int HTTP_SERVER_PORT = 9000;
     public static final int HTTPS_SERVER_PORT = 9004;
-    public static final int SERVER_PORT1 = 9001;
     public static final int SERVER_PORT2 = 9002;
-    public static final int SERVER_PORT3 = 9003;
     public static final int SERVER_CONNECTOR_PORT = 8490;
     public static final int WEBSOCKET_REMOTE_SERVER_PORT = 9010;
     public static final int WEBSOCKET_HANDSHAKE_TIMEOUT_REMOTE_SERVER_PORT = 9011;
+    // Each of the following ports is dedicated to a single test class so that one class's connector
+    // teardown can never race with another class's startup on the same port.
+    public static final int SSL_PROTOCOLS_TEST_PORT = 9020;
+    public static final int SSL_PROTOCOLS_WITH_CERTS_TEST_PORT = 9021;
+    public static final int SOCKS4_PROXY_SERVER_TEST_PORT = 9022;
+    public static final int HTTP_PROXY_SERVER_TEST_PORT = 9023;
+    public static final int SOCKS5_PROXY_SERVER_TEST_PORT = 9024;
+    public static final int HTTPS_PROXY_SERVER_TEST_PORT = 9025;
+    public static final int HTTP2_ALPN_WITH_CERTS_TEST_PORT = 9026;
+    public static final int HTTP2_MAX_CONCURRENT_STREAMS_ALPN_TEST_PORT = 9027;
+    public static final int HTTP2_WITH_ALPN_TEST_PORT = 9028;
+    public static final int REMOTE_CHANNEL_CLOSE_SSL_ERROR_TEST_PORT = 9029;
+    public static final int HTTP2_DISABLE_SSL_TEST_PORT = 9030;
+    public static final int HTTP2_MUTUAL_SSL_TEST_PORT = 9031;
+    public static final int H2_CONNECTION_POOL_ALPN_TEST_PORT = 9032;
+    public static final int MUTUAL_SSL_TEST_CASE_PORT = 9033;
+    public static final int MUTUAL_SSL_WITH_CERTS_TEST_PORT = 9034;
+    public static final int OPTIONAL_MUTUAL_SSL_TEST_PORT = 9035;
+    public static final int PKCS_TEST_PORT = 9036;
+    public static final int SSL_DISABLED_CLIENT_TEST_PORT = 9037;
+    public static final int OCSP_STAPLING_TEST_PORT = 9038;
+    public static final int OCSP_VALIDATION_TEST_PORT = 9039;
     public static final int WEBSOCKET_TEST_IDLE_TIMEOUT = 30;
     public static final long HTTP2_RESPONSE_TIME_OUT = 30;
     public static final long SSL_HANDSHAKE_TIMEOUT = 20;

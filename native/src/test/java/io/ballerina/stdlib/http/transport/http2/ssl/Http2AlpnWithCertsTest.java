@@ -66,12 +66,12 @@ public class Http2AlpnWithCertsTest {
 
     @Test
     public void testHttp2AlpnWithcerts() {
-        TestUtil.testHttpsPost(httpClientConnector, TestUtil.SERVER_PORT1);
+        TestUtil.testHttpsPost(httpClientConnector, TestUtil.HTTP2_ALPN_WITH_CERTS_TEST_PORT);
     }
 
     private ListenerConfiguration getListenerConfigs() {
         ListenerConfiguration listenerConfiguration = new ListenerConfiguration();
-        listenerConfiguration.setPort(TestUtil.SERVER_PORT1);
+        listenerConfiguration.setPort(TestUtil.HTTP2_ALPN_WITH_CERTS_TEST_PORT);
         listenerConfiguration.setScheme(HTTPS_SCHEME);
         listenerConfiguration.setVersion(HTTP_2_0);
         listenerConfiguration.setSslSessionTimeOut(TestUtil.SSL_SESSION_TIMEOUT);

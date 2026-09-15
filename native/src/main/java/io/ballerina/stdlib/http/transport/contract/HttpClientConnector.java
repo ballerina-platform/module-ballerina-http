@@ -23,6 +23,11 @@ import io.ballerina.stdlib.http.transport.message.Http2PushPromise;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.ResponseHandle;
 
+import java.io.IOException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+
 /**
  * Allows to send outbound messages.
  */
@@ -97,7 +102,11 @@ public interface HttpClientConnector {
     /**
      * Initialize the SSL context.
      *
-     * @throws Exception if an error occurs while initializing the SSL context.
+     * @throws IOException if an error occurs while initializing the SSL context.
+     * @throws NoSuchAlgorithmException if the key manager algorithm is unavailable.
+     * @throws KeyStoreException if the keystore cannot be initialized with the given key.
+     * @throws UnrecoverableKeyException if the key cannot be recovered.
      */
-    void initializeSSLContext() throws Exception;
+    void initializeSSLContext() throws IOException, NoSuchAlgorithmException, KeyStoreException,
+            UnrecoverableKeyException;
 }

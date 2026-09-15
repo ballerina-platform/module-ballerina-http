@@ -46,10 +46,10 @@ public class OutboundMsgHolder {
     private HttpResponseFuture responseFuture;
     private Http2ClientChannel http2ClientChannel;
 
-    private boolean allPromisesReceived = false;
-    private long lastReadWriteTime;
-    private boolean requestWritten;
-    private boolean firstContentWritten;
+    private volatile boolean allPromisesReceived = false;
+    private volatile long lastReadWriteTime;
+    private volatile boolean requestWritten;
+    private volatile boolean firstContentWritten;
     private AtomicBoolean streamWritable = new AtomicBoolean(true);
     private final BackPressureObservable backPressureObservable = new DefaultBackPressureObservable();
 

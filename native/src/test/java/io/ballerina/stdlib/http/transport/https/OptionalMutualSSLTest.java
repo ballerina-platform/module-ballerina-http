@@ -67,7 +67,7 @@ public class OptionalMutualSSLTest {
 
     private ListenerConfiguration getListenerConfiguration() {
         ListenerConfiguration listenerConfiguration = new ListenerConfiguration();
-        listenerConfiguration.setPort(TestUtil.SERVER_PORT3);
+        listenerConfiguration.setPort(TestUtil.OPTIONAL_MUTUAL_SSL_TEST_PORT);
         listenerConfiguration.setVerifyClient(OPTIONAL);
         listenerConfiguration.setTLSStoreType("JKS");
         listenerConfiguration.setTrustStoreFile(TestUtil.getAbsolutePath(TestUtil.TRUST_STORE_FILE_PATH));
@@ -89,7 +89,7 @@ public class OptionalMutualSSLTest {
 
     @Test
     public void testMutualSslOptional() {
-        TestUtil.testHttpsPost(httpClientConnector, TestUtil.SERVER_PORT3);
+        TestUtil.testHttpsPost(httpClientConnector, TestUtil.OPTIONAL_MUTUAL_SSL_TEST_PORT);
     }
 
     @AfterClass

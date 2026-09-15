@@ -20,6 +20,7 @@ package io.ballerina.stdlib.http.transport.contractimpl.common.states;
 
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
+import io.ballerina.stdlib.http.transport.contract.exceptions.ConfigurationException;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.TargetHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.states.SenderState;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
@@ -58,7 +59,7 @@ public class SenderReqRespStateManager {
     }
 
     public void readInboundResponseEntityBody(ChannelHandlerContext ctx, HttpContent httpContent,
-                                              HttpCarbonMessage inboundResponseMsg) throws Exception {
+                                              HttpCarbonMessage inboundResponseMsg) throws ConfigurationException {
         state.readInboundResponseEntityBody(ctx, httpContent, inboundResponseMsg);
     }
 

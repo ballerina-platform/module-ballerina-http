@@ -122,8 +122,8 @@ public class Http2MaxConcurrentStreamsTestCase {
     @Test(description = "Server must advertise 100 concurrent streams in the initial SETTINGS frame "
             + "on a TLS connection negotiated via ALPN")
     public void testAlpnAdvertisesDefaultMaxConcurrentStreams() throws Exception {
-        startServer(Http2Util.getH2ListenerConfigs());
-        Long maxConcurrentStreams = captureViaAlpn(TestUtil.SERVER_PORT1);
+        startServer(Http2Util.getH2ListenerConfigs(TestUtil.HTTP2_MAX_CONCURRENT_STREAMS_ALPN_TEST_PORT));
+        Long maxConcurrentStreams = captureViaAlpn(TestUtil.HTTP2_MAX_CONCURRENT_STREAMS_ALPN_TEST_PORT);
         assertNotNull(maxConcurrentStreams, "maxConcurrentStreams must be present in server SETTINGS frame");
         assertEquals((long) maxConcurrentStreams, DEFAULT_MAX_CONCURRENT_STREAMS,
                 "Server must advertise SETTINGS_MAX_CONCURRENT_STREAMS=100 by default over TLS+ALPN");
@@ -172,7 +172,7 @@ public class Http2MaxConcurrentStreamsTestCase {
                         }
                     });
             Channel channel = bootstrap.connect(TestUtil.TEST_HOST, port).syncUninterruptibly().channel();
-            Long result = maxStreamsFuture.get(5, TimeUnit.SECONDS);
+            Long result = maxStreamsFuture.get(TestUtil.SSL_HANDSHAKE_TIMEOUT, TimeUnit.SECONDS);
             channel.close().syncUninterruptibly();
             return result;
         } finally {
@@ -199,7 +199,7 @@ public class Http2MaxConcurrentStreamsTestCase {
                         }
                     });
             Channel channel = bootstrap.connect(TestUtil.TEST_HOST, port).syncUninterruptibly().channel();
-            Long result = maxStreamsFuture.get(5, TimeUnit.SECONDS);
+            Long result = maxStreamsFuture.get(TestUtil.SSL_HANDSHAKE_TIMEOUT, TimeUnit.SECONDS);
             channel.close().syncUninterruptibly();
             return result;
         } finally {
@@ -242,7 +242,7 @@ public class Http2MaxConcurrentStreamsTestCase {
                         }
                     });
             Channel channel = bootstrap.connect(TestUtil.TEST_HOST, port).syncUninterruptibly().channel();
-            Long result = maxStreamsFuture.get(5, TimeUnit.SECONDS);
+            Long result = maxStreamsFuture.get(TestUtil.SSL_HANDSHAKE_TIMEOUT, TimeUnit.SECONDS);
             channel.close().syncUninterruptibly();
             return result;
         } finally {

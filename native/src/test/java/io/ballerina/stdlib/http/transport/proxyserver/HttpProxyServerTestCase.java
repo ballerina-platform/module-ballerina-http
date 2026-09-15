@@ -59,11 +59,11 @@ public class HttpProxyServerTestCase {
 
         ByteBuffer byteBuffer = ByteBuffer.wrap(testValue.getBytes(Charset.forName("UTF-8")));
         msg = new HttpCarbonMessage(new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, ""));
-        msg.setProperty(HTTP_PORT, TestUtil.SERVER_PORT1);
+        msg.setProperty(HTTP_PORT, TestUtil.HTTP_PROXY_SERVER_TEST_PORT);
         msg.setProperty(PROTOCOL, HTTP_SCHEME);
         msg.setProperty(HTTP_HOST, TestUtil.TEST_HOST);
         msg.setHttpMethod(HTTP_POST_METHOD);
-        msg.setHeader("Host", "localhost:9001");
+        msg.setHeader("Host", "localhost:" + TestUtil.HTTP_PROXY_SERVER_TEST_PORT);
         msg.addHttpContent(new DefaultLastHttpContent(Unpooled.wrappedBuffer(byteBuffer)));
 
         ProxyServerUtil.setUpClientAndServerConnectors(getListenerConfiguration(), HTTP_SCHEME);
@@ -71,7 +71,7 @@ public class HttpProxyServerTestCase {
 
     private ListenerConfiguration getListenerConfiguration() {
         ListenerConfiguration listenerConfiguration = ListenerConfiguration.getDefault();
-        listenerConfiguration.setPort(TestUtil.SERVER_PORT1);
+        listenerConfiguration.setPort(TestUtil.HTTP_PROXY_SERVER_TEST_PORT);
         return listenerConfiguration;
     }
 
@@ -86,7 +86,7 @@ public class HttpProxyServerTestCase {
     public void testHttpProxyRequestUrl() {
         msg.setProperty(IS_PROXY_ENABLED, true);
         HttpRequest request = Util.createHttpRequest(msg);
-        String expectedUri = "http://localhost:9001";
+        String expectedUri = "http://localhost:" + TestUtil.HTTP_PROXY_SERVER_TEST_PORT;
         Assert.assertEquals(request.uri(), expectedUri);
     }
 

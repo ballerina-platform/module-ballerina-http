@@ -64,7 +64,7 @@ public class SslDisabledClientTest {
 
     private ListenerConfiguration getListenerConfiguration() {
         ListenerConfiguration listenerConfiguration = new ListenerConfiguration();
-        listenerConfiguration.setPort(TestUtil.SERVER_PORT3);
+        listenerConfiguration.setPort(TestUtil.SSL_DISABLED_CLIENT_TEST_PORT);
         listenerConfiguration.setKeyStoreFile(TestUtil.getAbsolutePath(TestUtil.KEY_STORE_FILE_PATH));
         listenerConfiguration.setKeyStorePass(TestUtil.KEY_STORE_PASSWORD);
         listenerConfiguration.setScheme(HTTPS_SCHEME);
@@ -80,7 +80,7 @@ public class SslDisabledClientTest {
 
     @Test
     public void testSslDisabledClient() {
-        TestUtil.testHttpsPost(httpClientConnector, TestUtil.SERVER_PORT3);
+        TestUtil.testHttpsPost(httpClientConnector, TestUtil.SSL_DISABLED_CLIENT_TEST_PORT);
     }
 
     @AfterClass
