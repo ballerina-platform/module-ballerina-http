@@ -163,6 +163,10 @@ The conforming implementation of the specification is released and included in t
     * 11.13. [Avoid accepting credentials over a listener without TLS](#1113-avoid-accepting-credentials-over-a-listener-without-tls)
     * 11.14. [Caller redirections should not be open to forging attacks](#1114-caller-redirections-should-not-be-open-to-forging-attacks)
     * 11.15. [Avoid accepting request bodies of unlimited size](#1115-avoid-accepting-request-bodies-of-unlimited-size)
+    * 11.16. [Avoid allowing shared caches to store responses that require authentication](#1116-avoid-allowing-shared-caches-to-store-responses-that-require-authentication)
+    * 11.17. [Avoid disclosing the server product version in the server response header](#1117-avoid-disclosing-the-server-product-version-in-the-server-response-header)
+    * 11.18. [Avoid serving authenticated responses from a cache without revalidation](#1118-avoid-serving-authenticated-responses-from-a-cache-without-revalidation)
+    * 11.19. [Avoid sharing a client response cache across callers when credentials are configured](#1119-avoid-sharing-a-client-response-cache-across-callers-when-credentials-are-configured)
 
 ## 1. Overview
 Ballerina language provides first-class support for writing network-oriented programs. The HTTP standard library uses these language constructs and creates the programming model to produce and consume HTTP APIs.
@@ -3621,6 +3625,10 @@ The following static code rules are applied to the HTTP module.
 | ballerina/http:13 | VULNERABILITY | [Avoid accepting credentials over a listener without TLS](#1113-avoid-accepting-credentials-over-a-listener-without-tls) |
 | ballerina/http:14 | VULNERABILITY | [Caller redirections should not be open to forging attacks](#1114-caller-redirections-should-not-be-open-to-forging-attacks) |
 | ballerina/http:15 | VULNERABILITY | [Avoid accepting request bodies of unlimited size](#1115-avoid-accepting-request-bodies-of-unlimited-size) |
+| ballerina/http:16 | VULNERABILITY | [Avoid allowing shared caches to store responses that require authentication](#1116-avoid-allowing-shared-caches-to-store-responses-that-require-authentication) |
+| ballerina/http:17 | VULNERABILITY | [Avoid disclosing the server product version in the server response header](#1117-avoid-disclosing-the-server-product-version-in-the-server-response-header) |
+| ballerina/http:18 | VULNERABILITY | [Avoid serving authenticated responses from a cache without revalidation](#1118-avoid-serving-authenticated-responses-from-a-cache-without-revalidation) |
+| ballerina/http:19 | VULNERABILITY | [Avoid sharing a client response cache across callers when credentials are configured](#1119-avoid-sharing-a-client-response-cache-across-callers-when-credentials-are-configured) |
 
 ### 11.1. Avoid allowing default resource accessor
 
@@ -4458,3 +4466,205 @@ listener http:Listener httpListener = new (9090, requestLimits = {
 
 - [CWE-770: Allocation of Resources Without Limits or Throttling](https://cwe.mitre.org/data/definitions/770.html)
 - [OWASP Top 10:2025 A06 Insecure Design](https://owasp.org/Top10/2025/A06_2025-Insecure_Design/)
+
+### 11.16. Avoid allowing shared caches to store responses that require authentication
+
+The `@http:Cache` annotation advertises a response as cacheable by shared caches unless told otherwise.
+
+| Property              | Description |
+|-----------------------|-------------|
+| **Rule ID**           | ballerina/http:16 |
+| **Rule Kind**         | Vulnerability |
+| **CWE**               | [CWE-524](https://cwe.mitre.org/data/definitions/524.html), [CWE-525](https://cwe.mitre.org/data/definitions/525.html) |
+| **OWASP Top 10:2025** | [A02 Security Misconfiguration](https://owasp.org/Top10/2025/A02_2025-Security_Misconfiguration/) |
+
+#### 11.16.1. Why this is an issue?
+
+A response produced for one authenticated caller is specific to that caller. The annotation defaults to `must-revalidate, public, max-age=3600`, and `public` is an explicit statement that a proxy, gateway or CDN may store the response and serve it to somebody else.
+
+The rule reports a resource that carries the annotation and requires authentication, unless the response is marked private or excluded from storage. Authentication is recognised where it is declared, on the resource's own `@http:ResourceConfig` or on the service's `@http:ServiceConfig`. A service that enforces authentication imperatively inside the resource body is out of scope, because establishing that from the syntax alone would be guesswork.
+
+The insecure behaviour is the default, which is what makes this easy to introduce by accident.
+
+#### 11.16.2. What is the potential impact?
+
+One user's data is served to another from an intermediary cache, without either request reaching the service.
+
+#### 11.16.3. How can I fix this?
+
+Mark the response private, so only the requesting client's own cache may store it, or decline storage altogether.
+
+**Non-compliant code:**
+
+```ballerina
+@http:ServiceConfig {
+    auth: [{fileUserStoreConfig: {}, scopes: ["admin"]}]
+}
+service /secured on securedListener {
+    resource function get profile() returns @http:Cache {maxAge: 3600} json {
+        return {name: "user"};
+    }
+}
+```
+
+**Compliant code:**
+
+```ballerina
+@http:ServiceConfig {
+    auth: [{fileUserStoreConfig: {}, scopes: ["admin"]}]
+}
+service /secured on securedListener {
+    resource function get profile() returns @http:Cache {maxAge: 3600, isPrivate: true} json {
+        return {name: "user"};
+    }
+}
+```
+
+#### 11.16.4. Additional Resources
+
+- [CWE-524: Use of Cache Containing Sensitive Information](https://cwe.mitre.org/data/definitions/524.html)
+- [CWE-525: Use of Web Browser Cache Containing Sensitive Information](https://cwe.mitre.org/data/definitions/525.html)
+- [OWASP Top 10:2025 A02 Security Misconfiguration](https://owasp.org/Top10/2025/A02_2025-Security_Misconfiguration/)
+- [MDN: Cache-Control](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control)
+
+### 11.17. Avoid disclosing the server product version in the server response header
+
+A `server` response header carrying a product version names the exact release that is running.
+
+| Property              | Description |
+|-----------------------|-------------|
+| **Rule ID**           | ballerina/http:17 |
+| **Rule Kind**         | Vulnerability |
+| **CWE**               | [CWE-200](https://cwe.mitre.org/data/definitions/200.html) |
+| **OWASP Top 10:2025** | [A02 Security Misconfiguration](https://owasp.org/Top10/2025/A02_2025-Security_Misconfiguration/) |
+
+#### 11.17.1. Why this is an issue?
+
+A version in the `server` header tells an attacker which published vulnerabilities to try, and offers a client nothing in return.
+
+Ballerina leaves the header unset by default, so the rule reports only where a value has been configured deliberately. A bare product name is not reported: it discloses far less than a version, and some deployments need it for routing or diagnostics. The rule looks for a version token of the form `1.2` in a string literal, so a value assembled at runtime is not examined.
+
+#### 11.17.2. What is the potential impact?
+
+Reconnaissance is reduced to reading one response header, which narrows an attacker's search to vulnerabilities known to affect that release.
+
+#### 11.17.3. How can I fix this?
+
+Leave the header unset, or use a name that carries no version.
+
+**Non-compliant code:**
+
+```ballerina
+listener http:Listener versionedListener = new (9090, server = "ballerina/2201.13.5");
+```
+
+**Compliant code:**
+
+```ballerina
+listener http:Listener defaultListener = new (9090);
+
+listener http:Listener namedListener = new (9091, server = "gateway");
+```
+
+#### 11.17.4. Additional Resources
+
+- [CWE-200: Exposure of Sensitive Information to an Unauthorized Actor](https://cwe.mitre.org/data/definitions/200.html)
+- [OWASP Top 10:2025 A02 Security Misconfiguration](https://owasp.org/Top10/2025/A02_2025-Security_Misconfiguration/)
+- [OWASP Secure Headers Project](https://owasp.org/www-project-secure-headers/)
+
+### 11.18. Avoid serving authenticated responses from a cache without revalidation
+
+`mustRevalidate: false` removes the check a cache makes before serving a stored copy that has gone stale.
+
+| Property              | Description |
+|-----------------------|-------------|
+| **Rule ID**           | ballerina/http:18 |
+| **Rule Kind**         | Vulnerability |
+| **CWE**               | [CWE-524](https://cwe.mitre.org/data/definitions/524.html) |
+| **OWASP Top 10:2025** | [A01 Broken Access Control](https://owasp.org/Top10/2025/A01_2025-Broken_Access_Control/) |
+
+#### 11.18.1. Why this is an issue?
+
+`mustRevalidate` defaults to `true`, which tells a cache to check back with the service before serving a stale entry. Turning it off on an authenticated endpoint means access revocation stops taking effect promptly: a caller whose account has been disabled, whose session has ended or whose scopes have been reduced keeps receiving the stored response, because nothing goes back to the service to discover that anything changed. The window is `maxAge`, which itself defaults to an hour.
+
+The rule reports an explicit `false` only. Leaving the field out keeps the secure default, and a value that is not a literal cannot be resolved without guessing.
+
+#### 11.18.2. What is the potential impact?
+
+Revoked access continues to work for as long as the cached entry lives.
+
+#### 11.18.3. How can I fix this?
+
+Leave revalidation at its default, or set it explicitly where the intent should be visible in the code.
+
+**Non-compliant code:**
+
+```ballerina
+resource function get profile() returns @http:Cache {isPrivate: true, mustRevalidate: false} json {
+    return {name: "user"};
+}
+```
+
+**Compliant code:**
+
+```ballerina
+resource function get profile() returns @http:Cache {isPrivate: true} json {
+    return {name: "user"};
+}
+```
+
+#### 11.18.4. Additional Resources
+
+- [CWE-524: Use of Cache Containing Sensitive Information](https://cwe.mitre.org/data/definitions/524.html)
+- [OWASP Top 10:2025 A01 Broken Access Control](https://owasp.org/Top10/2025/A01_2025-Broken_Access_Control/)
+- [MDN: Cache-Control must-revalidate](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control#must-revalidate)
+
+### 11.19. Avoid sharing a client response cache across callers when credentials are configured
+
+`cache.isShared: true` on a client that also configures `auth` declares a shared cache for responses fetched with credentials.
+
+| Property              | Description |
+|-----------------------|-------------|
+| **Rule ID**           | ballerina/http:19 |
+| **Rule Kind**         | Vulnerability |
+| **CWE**               | [CWE-524](https://cwe.mitre.org/data/definitions/524.html) |
+| **OWASP Top 10:2025** | [A02 Security Misconfiguration](https://owasp.org/Top10/2025/A02_2025-Security_Misconfiguration/) |
+
+#### 11.19.1. Why this is an issue?
+
+An `http:Client` caches responses by default, and `cache.isShared` declares whether that cache holds responses for a single identity or on behalf of many. Where the client also carries `auth`, every response it stores was fetched with those credentials and belongs to the identity they represent. Declaring the cache shared tells the caching layer it may return those responses in contexts they were not fetched for, and honours directives such as `s-maxage` that are meant for proxies rather than for a caller's own cache.
+
+#### 11.19.2. What is the potential impact?
+
+A response fetched for one identity is returned for another.
+
+#### 11.19.3. How can I fix this?
+
+Keep the cache private to the identity the client authenticates as, which is the default, and reserve a shared cache for clients that send no credentials.
+
+**Non-compliant code:**
+
+```ballerina
+final http:Client securedClient = check new ("https://api.example.com",
+    auth = {username: "admin", password: "secret"},
+    cache = {isShared: true}
+);
+```
+
+**Compliant code:**
+
+```ballerina
+final http:Client securedClient = check new ("https://api.example.com",
+    auth = {username: "admin", password: "secret"}
+);
+
+final http:Client anonymousClient = check new ("https://api.example.com",
+    cache = {isShared: true}
+);
+```
+
+#### 11.19.4. Additional Resources
+
+- [CWE-524: Use of Cache Containing Sensitive Information](https://cwe.mitre.org/data/definitions/524.html)
+- [OWASP Top 10:2025 A02 Security Misconfiguration](https://owasp.org/Top10/2025/A02_2025-Security_Misconfiguration/)
+- [MDN: Private and shared caches](https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching)
