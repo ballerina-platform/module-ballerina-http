@@ -183,4 +183,13 @@ service / on new http:Listener(8080) {
             }
         };
     }
+
+    resource function get concatenated(string location) returns TemporaryRedirect {
+        return {
+            body: "Redirection",
+            headers: {
+                "Location": "https://example.com/" + location
+            }
+        };
+    }
 }

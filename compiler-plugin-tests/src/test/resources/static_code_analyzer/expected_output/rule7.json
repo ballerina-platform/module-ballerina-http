@@ -1,0 +1,82 @@
+[
+  {
+    "location": {
+      "filePath": "protocol.bal",
+      "startLine": 24,
+      "endLine": 24,
+      "startColumn": 18,
+      "endColumn": 26,
+      "startOffset": 904,
+      "length": 8
+    },
+    "rule": {
+      "id": "ballerina/http:7",
+      "numericId": 7,
+      "description": "Avoid using weak TLS protocol versions",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule7/protocol.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule7/protocol.bal"
+  },
+  {
+    "location": {
+      "filePath": "protocol.bal",
+      "startLine": 36,
+      "endLine": 36,
+      "startColumn": 23,
+      "endColumn": 32,
+      "startOffset": 1239,
+      "length": 9
+    },
+    "rule": {
+      "id": "ballerina/http:7",
+      "numericId": 7,
+      "description": "Avoid using weak TLS protocol versions",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule7/protocol.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule7/protocol.bal"
+  },
+  {
+    "location": {
+      "filePath": "protocol.bal",
+      "startLine": 36,
+      "endLine": 36,
+      "startColumn": 34,
+      "endColumn": 43,
+      "startOffset": 1250,
+      "length": 9
+    },
+    "rule": {
+      "id": "ballerina/http:7",
+      "numericId": 7,
+      "description": "Avoid using weak TLS protocol versions",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule7/protocol.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule7/protocol.bal"
+  },
+  {
+    "location": {
+      "filePath": "protocol.bal",
+      "startLine": 50,
+      "endLine": 50,
+      "startColumn": 23,
+      "endColumn": 30,
+      "startOffset": 1625,
+      "length": 7
+    },
+    "rule": {
+      "id": "ballerina/http:7",
+      "numericId": 7,
+      "description": "Avoid using weak TLS protocol versions",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule7/protocol.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule7/protocol.bal"
+  }
+]
