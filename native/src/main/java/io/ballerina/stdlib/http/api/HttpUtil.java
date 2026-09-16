@@ -134,6 +134,7 @@ import static io.ballerina.stdlib.http.api.HttpConstants.ANN_CONFIG_ATTR_COMPRES
 import static io.ballerina.stdlib.http.api.HttpConstants.ANN_CONFIG_ATTR_SSL_ENABLED_PROTOCOLS;
 import static io.ballerina.stdlib.http.api.HttpConstants.CREATE_INTERCEPTORS_FUNCTION_NAME;
 import static io.ballerina.stdlib.http.api.HttpConstants.ENDPOINT_CONFIG_HTTP2_INITIAL_WINDOW_SIZE;
+import static io.ballerina.stdlib.http.api.HttpConstants.ENDPOINT_CONFIG_HTTP2_MAX_ACTIVE_STREAMS;
 import static io.ballerina.stdlib.http.api.HttpConstants.HTTP_HEADERS;
 import static io.ballerina.stdlib.http.api.HttpConstants.RESOLVED_REQUESTED_URI;
 import static io.ballerina.stdlib.http.api.HttpConstants.RESPONSE_CACHE_CONTROL;
@@ -1597,6 +1598,9 @@ public class HttpUtil {
         if (serverSocketConfig != null) {
             setServerSocketConfig(serverSocketConfig, listenerConfiguration);
         }
+
+        listenerConfiguration.setHttp2MaxConcurrentStreams(
+                endpointConfig.getIntValue(ENDPOINT_CONFIG_HTTP2_MAX_ACTIVE_STREAMS).intValue());
 
         if (sslConfig != null) {
             return setSslConfig(sslConfig, listenerConfiguration);

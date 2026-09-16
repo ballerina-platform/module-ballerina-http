@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+- Add `http2MaxActiveStreams` config field in the listener configuration to control the maximum number of concurrent HTTP/2 streams per connection
+
 ### Changed
 
 - Update Netty version to 4.2.18.Final and Netty tcnative version to 2.0.84.Final
