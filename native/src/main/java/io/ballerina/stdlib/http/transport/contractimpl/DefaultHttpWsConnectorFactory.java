@@ -45,6 +45,11 @@ import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.EventExecutorGroup;
 import io.netty.util.concurrent.GlobalEventExecutor;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.util.Map;
 
 import javax.net.ssl.SSLException;
@@ -142,7 +147,7 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
                 }
             }
         } catch (SSLException e) {
-            throw new RuntimeException("Failed to create ssl context from given certs and key", e);
+            throw new UncheckedIOException("Failed to create ssl context from given certs and key", e);
         }
     }
 
@@ -158,7 +163,8 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
 
     @Override
     public HttpClientConnector createHttpsClientConnector(Map<String, Object> transportProperties,
-                                                          SenderConfiguration senderConfiguration) throws Exception {
+                                                          SenderConfiguration senderConfiguration) throws IOException,
+            NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException {
         BootstrapConfiguration bootstrapConfig = new BootstrapConfiguration(senderConfiguration);
         ConnectionManager connectionManager = new ConnectionManager(senderConfiguration.getPoolConfiguration());
         int configHashCode = Util.getIntProperty(transportProperties, HttpConstants.CLIENT_CONFIG_HASH_CODE, 0);
@@ -181,7 +187,8 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
     @Override
     public HttpClientConnector createHttpsClientConnector(Map<String, Object> transportProperties,
                                                          SenderConfiguration senderConfiguration,
-                                                         ConnectionManager connectionManager) throws Exception {
+                                                         ConnectionManager connectionManager) throws IOException,
+            NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException {
         BootstrapConfiguration bootstrapConfig = new BootstrapConfiguration(senderConfiguration);
         int configHashCode = Util.getIntProperty(transportProperties, HttpConstants.CLIENT_CONFIG_HASH_CODE, 0);
         HttpClientConnector httpClientConnector = new DefaultHttpClientConnector(connectionManager,
@@ -197,7 +204,8 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
 
     @Override
     public WebSocketClientConnector createWsClientConnectorWithSSL(
-            WebSocketClientConnectorConfig clientConnectorConfig) throws Exception {
+            WebSocketClientConnectorConfig clientConnectorConfig) throws IOException, NoSuchAlgorithmException,
+            KeyStoreException, UnrecoverableKeyException {
         WebSocketClientConnector webSocketClientConnector = new DefaultWebSocketClientConnector(clientConnectorConfig,
                 clientGroup);
         webSocketClientConnector.initializeSSLContext();
