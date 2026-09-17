@@ -1,0 +1,22 @@
+[
+  {
+    "location": {
+      "filePath": "client.bal",
+      "startLine": 20,
+      "endLine": 20,
+      "startColumn": 13,
+      "endColumn": 27,
+      "startOffset": 879,
+      "length": 14
+    },
+    "rule": {
+      "id": "ballerina/http:19",
+      "numericId": 19,
+      "description": "Avoid sharing a client response cache across callers when credentials are configured",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule19/client.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule19/client.bal"
+  }
+]
