@@ -60,10 +60,10 @@ public class Http2ClientChannel {
     private AtomicBoolean isExhausted = new AtomicBoolean(false);
     // Number of active streams. Need to start from 1 to prevent someone stealing the connection from the creator
     private AtomicInteger activeStreams = new AtomicInteger(1);
-    private int socketIdleTimeout = Constants.ENDPOINT_TIMEOUT;
+    private volatile int socketIdleTimeout = Constants.ENDPOINT_TIMEOUT;
     private Map<String, Http2DataEventListener> dataEventListeners;
     private StreamCloseListener streamCloseListener;
-    private long timeSinceMarkedAsStale = 0;
+    private volatile long timeSinceMarkedAsStale = 0;
     private AtomicLong timeSinceMarkedAsIdle = new AtomicLong(0);
     private AtomicBoolean isStale = new AtomicBoolean(false);
     private TargetChannel targetChannel;
