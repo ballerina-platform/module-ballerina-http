@@ -21,6 +21,7 @@ package io.ballerina.stdlib.http.transport.contractimpl.listener;
 
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
+import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketConnectorException;
 import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
 import io.ballerina.stdlib.http.transport.contractimpl.websocket.message.DefaultWebSocketHandshaker;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonRequest;
@@ -158,7 +159,7 @@ public class WebSocketServerHandshakeHandler extends ChannelInboundHandlerAdapte
          * @param fullHttpRequest {@link HttpRequest} of the request.
          */
         private void handleWebSocketHandshake(FullHttpRequest fullHttpRequest, ChannelHandlerContext ctx)
-                throws Exception {
+                throws WebSocketConnectorException {
             DefaultWebSocketHandshaker webSocketHandshaker =
                     new DefaultWebSocketHandshaker(ctx, serverConnectorFuture, fullHttpRequest);
 

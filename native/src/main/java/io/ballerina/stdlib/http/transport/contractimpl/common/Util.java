@@ -94,6 +94,7 @@ import java.nio.channels.ClosedChannelException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
@@ -445,9 +446,14 @@ public class Util {
      * Creates an insecure ssl engine for clients connecting over HTTP2.
      *
      * @return insecure ssl context
-     * @throws SSLException if any error occurs in the SSL connection
+     * @throws IOException if the keystore cannot be read
+     * @throws NoSuchAlgorithmException if the key manager algorithm is unavailable
+     * @throws KeyStoreException if the keystore cannot be initialized with the given key
+     * @throws UnrecoverableKeyException if the key cannot be recovered
+     * @throws IOException if the SSL context build fails (includes {@link SSLException})
      */
-    public static SslContext createInsecureSslEngineForHttp2(SSLConfig sslConfig) throws Exception {
+    public static SslContext createInsecureSslEngineForHttp2(SSLConfig sslConfig) throws IOException,
+            NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException {
         SslContextBuilder sslContextBuilder;
         if (sslConfig.getKeyStore() != null && sslConfig.getKeyStorePass() != null) {
             KeyStore ks = getKeyStore(sslConfig);
@@ -475,7 +481,8 @@ public class Util {
         return sslContextBuilder.build();
     }
 
-    public static SslContext createInsecureSslEngineForHttp(SSLConfig sslConfig) throws Exception {
+    public static SslContext createInsecureSslEngineForHttp(SSLConfig sslConfig) throws IOException,
+            NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException {
         if (sslConfig.getKeyStore() != null && sslConfig.getKeyStorePass() != null) {
             KeyStore ks = getKeyStore(sslConfig);
             KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
@@ -679,7 +686,7 @@ public class Util {
             String sysPropKey = matcher.group(1);
             String sysPropValue = getSystemVariableValue(sysPropKey, null);
             if (sysPropValue == null || sysPropValue.length() == 0) {
-                throw new RuntimeException("System property " + sysPropKey + " is not specified");
+                throw new IllegalStateException("System property " + sysPropKey + " is not specified");
             }
             // Due to reported bug under CARBON-14746
             sysPropValue = sysPropValue.replace("\\", "\\\\");

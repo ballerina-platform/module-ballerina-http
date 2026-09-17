@@ -43,10 +43,12 @@ import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.LastHttpContent;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * HTTP based representation for HttpCarbonMessage.
@@ -70,20 +72,20 @@ public class HttpCarbonMessage {
     private Http2MessageStateContext http2MessageStateContext;
     private FullHttpMessageFuture fullHttpMessageFuture;
 
-    private long sequenceId; //Keep track of request/response order
+    private volatile long sequenceId; //Keep track of request/response order
     private ChannelHandlerContext sourceContext;
     private ChannelHandlerContext targetContext;
     private HttpPipeliningFuture pipeliningFuture;
-    private boolean keepAlive;
-    private boolean pipeliningEnabled;
-    private boolean passthrough = false;
+    private volatile boolean keepAlive;
+    private volatile boolean pipeliningEnabled;
+    private volatile boolean passthrough = false;
     private boolean lastHttpContentArrived = false;
     private String httpVersion;
     private String httpMethod;
     private String requestUrl;
     private Integer httpStatusCode;
-    private Integer contentSize = 0;
-    private boolean contentReleased = false;
+    private final AtomicInteger contentSize = new AtomicInteger(0);
+    private volatile boolean contentReleased = false;
 
     public HttpCarbonMessage(HttpMessage httpMessage, Listener contentListener) {
         this.httpMessage = httpMessage;
@@ -114,7 +116,7 @@ public class HttpCarbonMessage {
                 blockingEntityCollector.addHttpContent(new DefaultLastHttpContent());
                 messageFuture.notifyMessageListener(blockingEntityCollector.getHttpContent());
                 removeMessageFuture();
-                throw new RuntimeException(this.getIoException());
+                throw new UncheckedIOException(this.getIoException());
             }
             blockingEntityCollector.addHttpContent(httpContent);
             if (messageFuture.isMessageListenerSet()) {
@@ -133,7 +135,7 @@ public class HttpCarbonMessage {
         } else {
             if (ioException != null) {
                 blockingEntityCollector.addHttpContent(new DefaultLastHttpContent());
-                throw new RuntimeException(this.getIoException());
+                throw new UncheckedIOException(this.getIoException());
             } else {
                 blockingEntityCollector.addHttpContent(httpContent);
             }
@@ -151,7 +153,7 @@ public class HttpCarbonMessage {
         // are handed, so there is nothing to report to them in that case.
         if (httpContent != null) {
             this.contentObservable.notifyGetListener(httpContent);
-            this.contentSize += httpContent.content().readableBytes();
+            this.contentSize.addAndGet(httpContent.content().readableBytes());
         }
         return httpContent;
     }
@@ -552,8 +554,8 @@ public class HttpCarbonMessage {
         return pipeliningEnabled;
     }
 
-    public Integer getContentSize() {
-        return contentSize;
+    public int getContentSize() {
+        return contentSize.get();
     }
 
     public void setContentReleased(boolean contentReleased) {
