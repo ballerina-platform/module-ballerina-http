@@ -7,7 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+
 - Add `http2MaxActiveStreams` config field in the listener configuration to control the maximum number of concurrent HTTP/2 streams per connection
+- [Add SOCKS4 and SOCKS5 proxy support for the HTTP client](https://github.com/ballerina-platform/ballerina-library/issues/8810)
 
 ### Changed
 
@@ -22,10 +24,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Changed
 - [[#9132] Updated Keywords and Reformat README for Connector Store Discoverability](https://github.com/ballerina-platform/ballerina-library/issues/9132)
-
-### Added
-
-- [Add SOCKS4 and SOCKS5 proxy support for the HTTP client](https://github.com/ballerina-platform/ballerina-library/issues/8810)
 
 ### Fixed
 
