@@ -1266,6 +1266,7 @@ public type ClientConfiguration record {|
 public type ClientHttp1Settings record {|
     KeepAlive keepAlive = KEEPALIVE_AUTO;
     Chunking chunking = CHUNKING_AUTO;
+    @deprecated
     ProxyConfig? proxy = ();
 |};
 
@@ -1461,9 +1462,11 @@ public type ProxyConfig record {|
     int port = 0;
     string userName = "";
     string password = "";
-    ProxyProtocol protocol = HTTP;
+    ProxyProtocol protocol?;
 |};
 ```
+
+The `protocol` field is optional rather than defaultable. When it is not specified, `HTTP` is used. Keeping it optional means a mapping value that does not carry `protocol` stays assignable to `ProxyConfig`, which preserves the record's subtyping relationship with the pre-SOCKS shape used by generated connectors.
 
 - `http:HTTP` (default) — a standard HTTP proxy. Existing behaviour is unchanged.
 - `http:SOCKS4` — a SOCKS version 4 proxy. SOCKS4 does not support password authentication; the optional `userName`
@@ -1473,6 +1476,8 @@ public type ProxyConfig record {|
   target host is performed remotely on the proxy side.
 
 SOCKS proxies are supported for both plaintext (`http://`) and TLS (`https://`) targets over HTTP/1.1 and HTTP/2.
+
+The `proxy` field of `ClientHttp1Settings` is deprecated and is annotated with `@deprecated`, so referencing it produces a compile time warning. It is honoured only when `httpVersion` is `http:HTTP_1_1`, and only when the top-level `proxy` field is not set; the top-level field always takes precedence.
 
 ```ballerina
 http:Client clientEP = check new ("https://api.example.com",

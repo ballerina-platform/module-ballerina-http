@@ -7,10 +7,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+
 - Add `http2MaxActiveStreams` config field in the listener configuration to control the maximum number of concurrent HTTP/2 streams per connection
+- [Add SOCKS4 and SOCKS5 proxy support for the HTTP client](https://github.com/ballerina-platform/ballerina-library/issues/8810)
 
 ### Changed
 
+- Make the `protocol` field of `http:ProxyConfig` optional instead of defaultable, so that a mapping value without `protocol` remains assignable to `http:ProxyConfig`. This restores the spread operator usage in generated connectors that broke when the field was introduced for SOCKS support
+- Mark the `proxy` field of `http:ClientHttp1Settings` as `@deprecated`, since the top-level `proxy` field supersedes it and applies to all the HTTP versions
 - Update Netty version to 4.2.18.Final and Netty tcnative version to 2.0.84.Final
 - Configure endpoint identification explicitly on client SSL contexts, so `verifyHostName` stays authoritative over Netty 4.2's new host name verification default
 - Replace the `netty-codec` dependency with `netty-codec-base` and `netty-codec-compression`, and add `netty-handler-ssl-ocsp` (with `netty-resolver-dns` and `netty-codec-dns`), following the Netty 4.2 module split
@@ -20,10 +24,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Changed
 - [[#9132] Updated Keywords and Reformat README for Connector Store Discoverability](https://github.com/ballerina-platform/ballerina-library/issues/9132)
-
-### Added
-
-- [Add SOCKS4 and SOCKS5 proxy support for the HTTP client](https://github.com/ballerina-platform/ballerina-library/issues/8810)
 
 ### Fixed
 
