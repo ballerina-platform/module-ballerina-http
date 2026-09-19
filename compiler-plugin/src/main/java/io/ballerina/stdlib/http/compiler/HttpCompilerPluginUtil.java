@@ -37,6 +37,7 @@ import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
+import io.ballerina.compiler.syntax.tree.ObjectConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.ObjectTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
@@ -395,6 +396,29 @@ public final class HttpCompilerPluginUtil {
 
     private static boolean hasServiceKeyWord(ClassDefinitionNode classDefinitionNode) {
         return classDefinitionNode.classTypeQualifiers()
+                .stream().anyMatch(token -> SERVICE_KEYWORD.equals(token.text().trim()));
+    }
+
+    public static ObjectConstructorExpressionNode getServiceObjectConstructorNode(SyntaxNodeAnalysisContext ctx) {
+        if (ctx.node().kind() != SyntaxKind.OBJECT_CONSTRUCTOR) {
+            return null;
+        }
+        ObjectConstructorExpressionNode objConstructorNode = (ObjectConstructorExpressionNode) ctx.node();
+        Optional<Symbol> serviceType = ctx.semanticModel().types()
+                .getTypeByName(BALLERINA, HTTP, EMPTY, HTTP_SERVICE_TYPE);
+        if (!hasServiceKeyWord(objConstructorNode) || serviceType.isEmpty()) {
+            return null;
+        }
+        Optional<TypeSymbol> objType = ctx.semanticModel().typeOf(objConstructorNode);
+        if (objType.isEmpty() || serviceType.get().kind() != TYPE_DEFINITION) {
+            return null;
+        }
+        TypeSymbol serviceTypeSymbol = ((TypeDefinitionSymbol) serviceType.get()).typeDescriptor();
+        return objType.get().subtypeOf(serviceTypeSymbol) ? objConstructorNode : null;
+    }
+
+    private static boolean hasServiceKeyWord(ObjectConstructorExpressionNode objConstructorNode) {
+        return objConstructorNode.objectTypeQualifiers()
                 .stream().anyMatch(token -> SERVICE_KEYWORD.equals(token.text().trim()));
     }
 
