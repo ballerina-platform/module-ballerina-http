@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
 
+import io.ballerina.stdlib.http.transport.message.HttpCarbonResponse;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http2.DelegatingDecompressorFrameListener;
@@ -95,10 +96,14 @@ public class Http2ClientDecompressorFrameListener extends DelegatingDecompressor
             return;
         }
         OutboundMsgHolder outboundMsgHolder = http2ClientChannel.getInFlightMessage(streamId);
-        if (outboundMsgHolder == null || !outboundMsgHolder.claimStreamTermination()) {
+        if (outboundMsgHolder == null) {
+            notifyPushDecodingFailure(http2ClientChannel, streamId, cause);
             return;
         }
-        String errorMessage = CONTENT_DECODING_FAILED + ": " + cause.getMessage();
+        if (!outboundMsgHolder.claimStreamTermination()) {
+            return;
+        }
+        String errorMessage = decodingFailureMessage(cause);
         if (outboundMsgHolder.getResponse() == null) {
             // Headers never made it through, so no response exists to terminate.
             outboundMsgHolder.getResponseFuture().notifyHttpListener(new Exception(errorMessage, cause));
@@ -106,5 +111,27 @@ public class Http2ClientDecompressorFrameListener extends DelegatingDecompressor
             handleIncompleteInboundMessage(outboundMsgHolder.getResponse(), errorMessage);
         }
         LOG.debug("Content decoding failed on stream id: {}", streamId, cause);
+    }
+
+    private void notifyPushDecodingFailure(Http2ClientChannel http2ClientChannel, int streamId, Exception cause) {
+        OutboundMsgHolder promiseHolder = http2ClientChannel.getPromisedMessage(streamId);
+        if (promiseHolder == null) {
+            return;
+        }
+        // The holder belongs to the request that triggered the push, so its termination latch must stay untouched.
+        // Leaving the promised map is what makes this the only notification for the push stream.
+        http2ClientChannel.removePromisedMessage(streamId);
+        String errorMessage = decodingFailureMessage(cause);
+        HttpCarbonResponse pushResponse = promiseHolder.getPushResponse(streamId);
+        if (pushResponse == null) {
+            promiseHolder.getResponseFuture().notifyPushResponse(streamId, new Exception(errorMessage, cause));
+        } else {
+            handleIncompleteInboundMessage(pushResponse, errorMessage);
+        }
+        LOG.debug("Content decoding failed on push stream id: {}", streamId, cause);
+    }
+
+    private static String decodingFailureMessage(Exception cause) {
+        return CONTENT_DECODING_FAILED + ": " + cause.getMessage();
     }
 }
