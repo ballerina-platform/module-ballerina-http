@@ -33,6 +33,7 @@ import io.ballerina.stdlib.http.transport.contractimpl.listener.HttpTraceLogging
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.ConnectionManager;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.ClientFrameListener;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ClientChannel;
+import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ClientDecompressorFrameListener;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ConnectionManager;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2TargetHandler;
 import io.netty.buffer.Unpooled;
@@ -44,7 +45,6 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpContentDecompressor;
 import io.netty.handler.codec.http2.DefaultHttp2Connection;
-import io.netty.handler.codec.http2.DelegatingDecompressorFrameListener;
 import io.netty.handler.codec.http2.Http2ClientUpgradeCodec;
 import io.netty.handler.codec.http2.Http2Connection;
 import io.netty.handler.codec.http2.Http2ConnectionHandler;
@@ -116,7 +116,8 @@ public class HttpClientChannelInitializer extends ChannelInitializer<SocketChann
         }
         connection = new DefaultHttp2Connection(false);
         clientFrameListener = new ClientFrameListener();
-        Http2FrameListener frameListener = new DelegatingDecompressorFrameListener(connection, clientFrameListener);
+        Http2FrameListener frameListener =
+                new Http2ClientDecompressorFrameListener(connection, clientFrameListener);
 
         Http2ConnectionHandlerBuilder connectionHandlerBuilder = new Http2ConnectionHandlerBuilder();
         if (httpTraceLogEnabled) {
@@ -322,7 +323,9 @@ public class HttpClientChannelInitializer extends ChannelInitializer<SocketChann
         Util.safelyRemoveHandlers(pipeline, Constants.HTTP2_EXCEPTION_HANDLER);
         pipeline.addLast(Constants.CONNECTION_HANDLER, http2ConnectionHandler);
         pipeline.addLast(Constants.HTTP2_TARGET_HANDLER, http2TargetHandler);
-        pipeline.addLast(Constants.DECOMPRESSOR_HANDLER, new HttpContentDecompressor());
+        // No decompressor here: HTTP/2 content is decoded inside the connection handler by
+        // Http2ClientDecompressorFrameListener, and Http2TargetHandler consumes every frame it knows without
+        // forwarding the rest, so a decompressor placed after it could never receive a message.
         pipeline.addLast(Constants.HTTP2_EXCEPTION_HANDLER, new Http2ExceptionHandler(http2ConnectionHandler));
     }
 

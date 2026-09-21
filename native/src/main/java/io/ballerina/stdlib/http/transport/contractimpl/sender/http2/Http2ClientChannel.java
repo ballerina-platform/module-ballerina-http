@@ -272,7 +272,7 @@ public class Http2ClientChannel {
             inFlightMessages.values().forEach(outBoundMsgHolder -> {
                 Http2MessageStateContext messageStateContext =
                         outBoundMsgHolder.getRequest().getHttp2MessageStateContext();
-                if (messageStateContext != null) {
+                if (messageStateContext != null && outBoundMsgHolder.claimStreamTermination()) {
                     messageStateContext.getSenderState().handleConnectionClose(outBoundMsgHolder);
                 }
             });
@@ -296,6 +296,10 @@ public class Http2ClientChannel {
 
         @Override
         public void onStreamClosed(Http2Stream stream) {
+            // A completed response removes itself from the in-flight map before the stream closes, so anything still
+            // registered here is a message the peer never finished - typically a stream the codec aborted locally
+            // after a frame error. Terminate it, otherwise the caller waits on a body that can no longer arrive.
+            notifyStreamClosedLocally(stream.id());
             // Channel is no longer exhausted, so we can return it back to the pool
             http2ClientChannel.removeInFlightMessage(stream.id());
             http2ConnectionManager.markClientChannelAsIdle(http2ClientChannel);
@@ -304,6 +308,21 @@ public class Http2ClientChannel {
                     forEach(dataEventListener -> dataEventListener.onStreamClose(stream.id()));
             if (!isStale.get() && isExhausted.getAndSet(false)) {
                 http2ConnectionManager.returnClientChannel(httpRoute, http2ClientChannel);
+            }
+        }
+
+        private void notifyStreamClosedLocally(int streamId) {
+            OutboundMsgHolder outboundMsgHolder = http2ClientChannel.getInFlightMessage(streamId);
+            if (outboundMsgHolder == null) {
+                return;
+            }
+            Http2MessageStateContext messageStateContext =
+                    outboundMsgHolder.getRequest().getHttp2MessageStateContext();
+            if (messageStateContext == null || messageStateContext.getSenderState() == null) {
+                return;
+            }
+            if (outboundMsgHolder.claimStreamTermination()) {
+                messageStateContext.getSenderState().handleStreamClosedLocally(outboundMsgHolder);
             }
         }
 
@@ -321,7 +340,7 @@ public class Http2ClientChannel {
                             dataEventListener -> dataEventListener.onStreamClose(streamId));
                     Http2MessageStateContext messageStateContext =
                             outboundMsgHolder.getRequest().getHttp2MessageStateContext();
-                    if (messageStateContext != null) {
+                    if (messageStateContext != null && outboundMsgHolder.claimStreamTermination()) {
                         messageStateContext.getSenderState().handleServerGoAway(outboundMsgHolder);
                     }
                 }

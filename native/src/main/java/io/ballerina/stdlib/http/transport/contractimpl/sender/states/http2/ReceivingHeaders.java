@@ -20,6 +20,7 @@ package io.ballerina.stdlib.http.transport.contractimpl.sender.states.http2;
 
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.exceptions.EndpointTimeOutException;
+import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorException;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ClientChannel;
@@ -61,7 +62,9 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.POOLED_BYTE_
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_HEADERS;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_SENT_GOAWAY_WHILE_READING_INBOUND_RESPONSE_HEADERS;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_SENT_RST_STREAM_WHILE_READING_INBOUND_RESPONSE_HEADERS;
+import static io.ballerina.stdlib.http.transport.contract.Constants.STREAM_CLOSED_WHILE_READING_INBOUND_RESPONSE_HEADERS;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil.releaseContent;
+import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.resolveEntityWaitTime;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.handleIncompleteInboundMessage;
 import static io.netty.handler.codec.http.HttpHeaderNames.TRAILER;
 
@@ -153,6 +156,19 @@ public class ReceivingHeaders implements SenderState {
     public void handleRstStream(OutboundMsgHolder outboundMsgHolder) {
         handleIncompleteInboundMessage(outboundMsgHolder.getResponse(),
                 REMOTE_SERVER_SENT_RST_STREAM_WHILE_READING_INBOUND_RESPONSE_HEADERS);
+    }
+
+    @Override
+    public void handleStreamClosedLocally(OutboundMsgHolder outboundMsgHolder) {
+        // The response is only set once the header block has been fully read, so before that there is nothing to
+        // terminate other than the future the caller is waiting on.
+        if (outboundMsgHolder.getResponse() == null) {
+            outboundMsgHolder.getResponseFuture().notifyHttpListener(
+                    new ServerConnectorException(STREAM_CLOSED_WHILE_READING_INBOUND_RESPONSE_HEADERS));
+        } else {
+            handleIncompleteInboundMessage(outboundMsgHolder.getResponse(),
+                    STREAM_CLOSED_WHILE_READING_INBOUND_RESPONSE_HEADERS);
+        }
     }
 
     private void onHeadersRead(ChannelHandlerContext ctx, Http2HeadersFrame http2HeadersFrame,
@@ -293,7 +309,8 @@ public class ReceivingHeaders implements SenderState {
                     notifyHttpListener(new Exception("Error while setting http headers", e));
         }
         // Create HTTP Carbon Response
-        HttpCarbonResponse responseCarbonMsg = new HttpCarbonResponse(httpResponse, new Http2InboundContentListener(
+        HttpCarbonResponse responseCarbonMsg = new HttpCarbonResponse(httpResponse,
+            resolveEntityWaitTime(http2ClientChannel.getSocketIdleTimeout()), new Http2InboundContentListener(
             streamId, ctx, http2TargetHandler.getConnection(), INBOUND_RESPONSE));
 
         // Setting properties of the HTTP Carbon Response
