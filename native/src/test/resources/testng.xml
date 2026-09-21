@@ -158,6 +158,7 @@
             <class name="io.ballerina.stdlib.http.transport.http2.clientchannelclose.RemoteChannelCloseWithSSLError"/>
             <class name="io.ballerina.stdlib.http.transport.http2.compression.ResponseBodyCompressionTestCase"/>
             <class name="io.ballerina.stdlib.http.transport.compression.ClientRespDecodingFailureTestCase"/>
+            <class name="io.ballerina.stdlib.http.transport.compression.InboundResponseWaitTimeTestCase"/>
             <class name="io.ballerina.stdlib.http.transport.http2.expect100continue.Abnormal100ContinueTestCase"/>
             <class name="io.ballerina.stdlib.http.transport.http2.expect100continue.ClientContinue100ChunkingTestCase"/>
             <class name="io.ballerina.stdlib.http.transport.http2.expect100continue.Expect100ContinueClientTestCase"/>

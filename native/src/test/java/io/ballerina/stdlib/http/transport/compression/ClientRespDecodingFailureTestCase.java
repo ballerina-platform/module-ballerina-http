@@ -22,9 +22,11 @@ import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
 import io.ballerina.stdlib.http.transport.contract.HttpWsConnectorFactory;
 import io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpWsConnectorFactory;
+import io.ballerina.stdlib.http.transport.message.Http2PushPromise;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonRequest;
 import io.ballerina.stdlib.http.transport.message.HttpMessageDataStreamer;
+import io.ballerina.stdlib.http.transport.message.ResponseHandle;
 import io.ballerina.stdlib.http.transport.util.Http2Util;
 import io.ballerina.stdlib.http.transport.util.TestUtil;
 import io.ballerina.stdlib.http.transport.util.client.http2.MessageSender;
@@ -32,6 +34,7 @@ import io.ballerina.stdlib.http.transport.util.server.HttpServer;
 import io.ballerina.stdlib.http.transport.util.server.initializers.GzipResponseServerInitializer;
 import io.ballerina.stdlib.http.transport.util.server.initializers.http2.gzip.GzipPayloads;
 import io.ballerina.stdlib.http.transport.util.server.initializers.http2.gzip.Http2GzipServerInitializer;
+import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpMethod;
@@ -40,8 +43,11 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -50,7 +56,8 @@ import java.util.concurrent.TimeoutException;
 import static io.ballerina.stdlib.http.transport.util.TestUtil.HTTP_SCHEME;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.fail;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.expectThrows;
 
 /**
  * Tests that a response body which cannot be decoded is reported to the caller rather than leaving the read
@@ -80,50 +87,66 @@ public class ClientRespDecodingFailureTestCase {
 
     @Test(description = "A malformed gzip body over HTTP/2 must surface as an error instead of blocking the read")
     public void testMalformedGzipOverHttp2() {
-        assertReadFails(http2ClientConnector, TestUtil.HTTP_SERVER_PORT, GzipPayloads.PATH_MALFORMED_GZIP);
+        assertReadFails(sendRequest(http2ClientConnector, TestUtil.HTTP_SERVER_PORT, GzipPayloads.PATH_MALFORMED_GZIP));
     }
 
+    @Test(description = "A malformed gzip push response over HTTP/2 must surface as an error instead of blocking")
+    public void testMalformedGzipPushResponseOverHttp2() {
+        MessageSender messageSender = new MessageSender(http2ClientConnector);
+        ResponseHandle handle = messageSender.submitMessage(
+                createRequest(TestUtil.HTTP_SERVER_PORT, GzipPayloads.PATH_PUSH));
+        assertNotNull(handle, "Response handle not found");
+        assertTrue(messageSender.checkPromiseAvailability(handle), "Promise not available");
+        Http2PushPromise promise = messageSender.getNextPromise(handle);
+        assertNotNull(promise, "Promise not received");
+        HttpCarbonMessage pushResponse = messageSender.getPushResponse(promise);
+        assertNotNull(pushResponse, "Push response not received");
+        assertReadFails(pushResponse);
+    }
 
     @Test(description = "A valid gzip body over HTTP/2 is still decoded")
     public void testValidGzipOverHttp2() {
-        assertEquals(readBody(http2ClientConnector, TestUtil.HTTP_SERVER_PORT, "/gzip"),
-                GzipPayloads.DECODED_CONTENT);
+        HttpCarbonMessage response = sendRequest(http2ClientConnector, TestUtil.HTTP_SERVER_PORT, "/gzip");
+        assertEquals(readBody(response), GzipPayloads.DECODED_CONTENT);
     }
 
     @Test(description = "A malformed gzip body over HTTP/1.1 keeps reporting an error")
     public void testMalformedGzipOverHttp1() {
-        assertReadFails(http1ClientConnector, TestUtil.SERVER_CONNECTOR_PORT, GzipPayloads.PATH_MALFORMED_GZIP);
+        assertReadFails(sendRequest(http1ClientConnector, TestUtil.SERVER_CONNECTOR_PORT,
+                GzipPayloads.PATH_MALFORMED_GZIP));
     }
 
-
-    private void assertReadFails(HttpClientConnector clientConnector, int port, String path) {
-        try {
-            String body = readBody(clientConnector, port, path);
-            fail("Expected the body read to fail, but got: " + body);
-        } catch (RuntimeException e) {
-            // The decoding failure reaches the reader as a DecoderException out of the entity input stream.
-            assertNotNull(e.getMessage());
-        }
+    private void assertReadFails(HttpCarbonMessage response) {
+        expectThrows(DecoderException.class, () -> readBody(response));
     }
 
-    private String readBody(HttpClientConnector clientConnector, int port, String path) {
+    private HttpCarbonMessage sendRequest(HttpClientConnector clientConnector, int port, String path) {
         HttpCarbonMessage response = new MessageSender(clientConnector).sendMessage(createRequest(port, path));
         assertNotNull(response, "Expected response not received");
-        InputStream inputStream = new HttpMessageDataStreamer(response).getInputStream();
-        Future<String> read = Executors.newSingleThreadExecutor()
-                .submit(() -> TestUtil.getStringFromInputStream(inputStream));
-        try {
-            return read.get(READ_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-        } catch (TimeoutException e) {
-            read.cancel(true);
-            throw new AssertionError("Reading the response body did not return within " + READ_TIMEOUT_SECONDS
-                    + " seconds", e);
-        } catch (ExecutionException e) {
-            Throwable cause = e.getCause();
-            throw cause instanceof RuntimeException ? (RuntimeException) cause : new RuntimeException(cause);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new AssertionError(e);
+        return response;
+    }
+
+    private String readBody(HttpCarbonMessage response) {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try (InputStream inputStream = new HttpMessageDataStreamer(response).getInputStream()) {
+            Future<String> read = executor.submit(() -> TestUtil.getStringFromInputStream(inputStream));
+            try {
+                return read.get(READ_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            } catch (TimeoutException e) {
+                read.cancel(true);
+                throw new AssertionError("Reading the response body did not return within " + READ_TIMEOUT_SECONDS
+                        + " seconds", e);
+            } catch (ExecutionException e) {
+                Throwable cause = e.getCause();
+                throw cause instanceof RuntimeException ? (RuntimeException) cause : new RuntimeException(cause);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new AssertionError(e);
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        } finally {
+            executor.shutdownNow();
         }
     }
 

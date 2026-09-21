@@ -31,6 +31,8 @@ public final class GzipPayloads {
 
     public static final String PATH_MALFORMED_GZIP = "/badgzip";
 
+    public static final String PATH_PUSH = "/push";
+
     public static final String DECODED_CONTENT = "Hello from a gzip encoded response";
 
     private GzipPayloads() {}
