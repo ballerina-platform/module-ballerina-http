@@ -55,6 +55,25 @@ public class FullHttpMessageContentFailureTestCase {
         assertSame(listener.error.get(), failure);
     }
 
+    @Test(description = "A recorded failure wins over the message also being marked complete, in either order")
+    public void testFailureWinsOverCompletion() {
+        DecoderException failure = new DecoderException("Failed to decode");
+
+        HttpCarbonResponse failedThenCompleted = createResponse();
+        failedThenCompleted.notifyContentFailure(failure);
+        failedThenCompleted.setLastHttpContentArrived();
+        RecordingListener firstListener = new RecordingListener();
+        failedThenCompleted.getFullHttpCarbonMessage().addListener(firstListener);
+        assertSame(firstListener.error.get(), failure);
+
+        HttpCarbonResponse completedThenFailed = createResponse();
+        completedThenFailed.setLastHttpContentArrived();
+        completedThenFailed.notifyContentFailure(failure);
+        RecordingListener secondListener = new RecordingListener();
+        completedThenFailed.getFullHttpCarbonMessage().addListener(secondListener);
+        assertSame(secondListener.error.get(), failure);
+    }
+
     @Test(description = "A failure that arrives after the listener was added is reported as before")
     public void testFailureAfterListenerIsReported() {
         HttpCarbonResponse response = createResponse();
