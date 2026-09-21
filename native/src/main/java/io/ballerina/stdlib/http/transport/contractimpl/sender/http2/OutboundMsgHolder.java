@@ -51,6 +51,7 @@ public class OutboundMsgHolder {
     private boolean requestWritten;
     private boolean firstContentWritten;
     private AtomicBoolean streamWritable = new AtomicBoolean(true);
+    private final AtomicBoolean streamTerminationNotified = new AtomicBoolean(false);
     private final BackPressureObservable backPressureObservable = new DefaultBackPressureObservable();
 
     public OutboundMsgHolder(HttpCarbonMessage httpOutboundRequest) {
@@ -62,6 +63,17 @@ public class OutboundMsgHolder {
 
     public void setHttp2ClientChannel(Http2ClientChannel http2ClientChannel) {
         this.http2ClientChannel = http2ClientChannel;
+    }
+
+    /**
+     * Claims the right to deliver the terminal outcome of this invocation. Several sources can observe a stream
+     * ending abnormally - a received RST_STREAM, a GOAWAY, an idle timeout, a locally aborted stream - and the
+     * caller must only be told once, by whichever of them detected it first.
+     *
+     * @return true if this caller is the one that should notify, false if someone else already has
+     */
+    public boolean claimStreamTermination() {
+        return streamTerminationNotified.compareAndSet(false, true);
     }
 
     /**
