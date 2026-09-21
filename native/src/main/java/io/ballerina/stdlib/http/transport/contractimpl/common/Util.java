@@ -901,12 +901,15 @@ public class Util {
      * @param ctx of the inbound response message
      * @param httpResponseHeaders of the inbound response message
      * @param outboundRequestMsg is the correlated outbound request message
+     * @param socketIdleTimeout the configured client timeout, which also bounds the response body reads
      * @return HttpCarbon message
      */
     public static HttpCarbonMessage createInboundRespCarbonMsg(ChannelHandlerContext ctx,
                                                                HttpResponse httpResponseHeaders,
-                                                               HttpCarbonMessage outboundRequestMsg) {
-        HttpCarbonMessage inboundResponseMsg = new HttpCarbonResponse(httpResponseHeaders, new DefaultListener(ctx));
+                                                               HttpCarbonMessage outboundRequestMsg,
+                                                               int socketIdleTimeout) {
+        HttpCarbonMessage inboundResponseMsg = new HttpCarbonResponse(httpResponseHeaders,
+                resolveEntityWaitTime(socketIdleTimeout), new DefaultListener(ctx));
         inboundResponseMsg.setProperty(Constants.POOLED_BYTE_BUFFER_FACTORY,
                 new PooledDataStreamerFactory(ctx.alloc()));
 
@@ -919,6 +922,17 @@ public class Util {
                 .getProperty(Constants.EXECUTOR_WORKER_POOL));
 
         return inboundResponseMsg;
+    }
+
+    /**
+     * Resolves how long a blocking read on an inbound entity body may wait. The configured client timeout is the
+     * intended bound; the endpoint default only applies when no timeout was configured.
+     *
+     * @param socketIdleTimeout the configured socket idle timeout in milliseconds
+     * @return the wait time to use in milliseconds
+     */
+    public static int resolveEntityWaitTime(int socketIdleTimeout) {
+        return socketIdleTimeout <= 0 ? Constants.ENDPOINT_TIMEOUT : socketIdleTimeout;
     }
 
     /**

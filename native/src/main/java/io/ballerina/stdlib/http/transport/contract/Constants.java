@@ -438,6 +438,21 @@ public final class Constants {
     public static final String REMOTE_SERVER_SENT_RST_STREAM_WHILE_READING_INBOUND_RESPONSE_BODY
             = "Remote host sent RST_STREAM while reading inbound response body";
 
+    // Locally initiated stream closure error scenarios. These occur when the client itself aborts the stream, for
+    // instance when the HTTP/2 codec raises a stream error while decoding an inbound frame.
+    public static final String STREAM_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_HEADERS
+            = "Stream closed while writing outbound request headers";
+    public static final String STREAM_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_BODY
+            = "Stream closed while writing outbound request entity body";
+    public static final String STREAM_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE
+            = "Stream closed before initiating inbound response";
+    public static final String STREAM_CLOSED_WHILE_READING_INBOUND_RESPONSE_HEADERS
+            = "Stream closed while reading inbound response headers";
+    public static final String STREAM_CLOSED_WHILE_READING_INBOUND_RESPONSE_BODY
+            = "Stream closed while reading inbound response body";
+    public static final String CONTENT_DECODING_FAILED
+            = "Failed to decode the inbound response content";
+
     public static final String REMOTE_CLIENT_TO_HOST_CONNECTION_CLOSED
             = "Connection between remote client and host is closed";
     public static final String CLIENT_TO_REMOTE_HOST_CONNECTION_CLOSED

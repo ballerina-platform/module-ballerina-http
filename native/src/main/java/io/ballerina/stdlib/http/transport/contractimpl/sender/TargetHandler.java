@@ -86,7 +86,8 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
                 if (isAbnormal100Response((HttpResponse) msg)) {
                     LOG.warn("Received an unexpected 100-continue response");
                 } else {
-                    inboundResponseMsg = createInboundRespCarbonMsg(ctx, (HttpResponse) msg, outboundRequestMsg);
+                    inboundResponseMsg = createInboundRespCarbonMsg(ctx, (HttpResponse) msg, outboundRequestMsg,
+                            senderReqRespStateManager.socketTimeout);
                     senderReqRespStateManager.readInboundResponseHeaders(this, (HttpResponse) msg);
                 }
             } else {
