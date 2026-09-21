@@ -49,6 +49,7 @@
             <class name="io.ballerina.stdlib.http.transport.passthrough.PassThroughHttpsTestCase"/>
 
             <class name="io.ballerina.stdlib.http.transport.contentaware.EchoServerConnectorListenerTestCase" />
+            <class name="io.ballerina.stdlib.http.transport.contentaware.FullHttpMessageContentFailureTestCase" />
             <class name="io.ballerina.stdlib.http.transport.contentaware.RequestResponseCreationTestCase" />
             <class name="io.ballerina.stdlib.http.transport.contentaware.RequestResponseStreamingTestCase" />
             <class name="io.ballerina.stdlib.http.transport.contentaware.RequestResponseTransformTestCase" />
