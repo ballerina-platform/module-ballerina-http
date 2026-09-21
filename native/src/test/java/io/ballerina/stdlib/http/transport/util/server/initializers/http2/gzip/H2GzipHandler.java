@@ -37,13 +37,16 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static io.ballerina.stdlib.http.transport.util.Http2Util.http1HeadersToHttp2Headers;
+import static io.ballerina.stdlib.http.transport.util.TestUtil.HTTP_SERVER_PORT;
+import static io.ballerina.stdlib.http.transport.util.TestUtil.TEST_HOST;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_ENCODING;
 import static io.netty.handler.codec.http.HttpHeaderValues.GZIP;
+import static io.netty.handler.codec.http.HttpMethod.GET;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 
 /**
- * Responds with a body declared as {@code content-encoding: gzip}, which the requested path decides is valid,
- * malformed or truncated.
+ * Responds with a body declared as {@code content-encoding: gzip}, which the requested path decides is valid or
+ * malformed. A request for {@link GzipPayloads#PATH_PUSH} additionally pushes a malformed response.
  */
 public final class H2GzipHandler extends Http2ConnectionHandler implements Http2FrameListener {
 
@@ -73,12 +76,29 @@ public final class H2GzipHandler extends Http2ConnectionHandler implements Http2
 
     private void sendResponse(ChannelHandlerContext ctx, int streamId) {
         String path = requestedPaths.remove(streamId);
+        boolean push = path != null && path.contains(GzipPayloads.PATH_PUSH);
+        int promisedStreamId = push ? writePushPromise(ctx, streamId) : -1;
+        writeGzipResponse(ctx, streamId, GzipPayloads.payloadFor(path));
+        if (push) {
+            writeGzipResponse(ctx, promisedStreamId, GzipPayloads.malformedGzip());
+        }
+        ctx.flush();
+    }
+
+    private int writePushPromise(ChannelHandlerContext ctx, int streamId) {
+        int promisedStreamId = connection().local().incrementAndGetNextStreamId();
+        Http2Headers promiseHeaders = new DefaultHttp2Headers().method(GET.asciiName())
+                .scheme("http").authority(TEST_HOST + ":" + HTTP_SERVER_PORT)
+                .path(GzipPayloads.PATH_MALFORMED_GZIP);
+        encoder().writePushPromise(ctx, streamId, promisedStreamId, promiseHeaders, 0, ctx.newPromise());
+        return promisedStreamId;
+    }
+
+    private void writeGzipResponse(ChannelHandlerContext ctx, int streamId, byte[] body) {
         Http2Headers headers = new DefaultHttp2Headers().status(OK.codeAsText());
         headers.set(CONTENT_ENCODING, GZIP);
         encoder().writeHeaders(ctx, streamId, headers, 0, false, ctx.newPromise());
-        ByteBuf content = Unpooled.wrappedBuffer(GzipPayloads.payloadFor(path));
-        encoder().writeData(ctx, streamId, content, 0, true, ctx.newPromise());
-        ctx.flush();
+        encoder().writeData(ctx, streamId, Unpooled.wrappedBuffer(body), 0, true, ctx.newPromise());
     }
 
     @Override
