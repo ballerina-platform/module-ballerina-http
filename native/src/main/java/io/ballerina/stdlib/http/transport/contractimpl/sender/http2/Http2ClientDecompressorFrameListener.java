@@ -38,6 +38,11 @@ import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Stat
  * ended, so the pending response body would otherwise be left waiting on content that can no longer arrive.
  * This listener turns a decode failure into an error on the response, matching what the HTTP/1.1 pipeline
  * produces through {@code TargetHandler.exceptionCaught}.
+ * <p>
+ * Only {@link Exception} is intercepted here, which covers everything the codec raises - a stream
+ * {@link Http2Exception} or an unchecked decompression failure. An {@link Error} is left to propagate to
+ * {@code exceptionCaught}, which closes the channel and lets {@code Http2ClientChannel.handleConnectionClose()}
+ * terminate every in-flight message, so nothing is left waiting either way.
  */
 public class Http2ClientDecompressorFrameListener extends DelegatingDecompressorFrameListener {
 
@@ -56,7 +61,7 @@ public class Http2ClientDecompressorFrameListener extends DelegatingDecompressor
                               boolean endStream) throws Http2Exception {
         try {
             super.onHeadersRead(ctx, streamId, headers, padding, endStream);
-        } catch (Throwable cause) {
+        } catch (Exception cause) {
             notifyDecodingFailure(streamId, cause);
             throw cause;
         }
@@ -67,7 +72,7 @@ public class Http2ClientDecompressorFrameListener extends DelegatingDecompressor
                               short weight, boolean exclusive, int padding, boolean endStream) throws Http2Exception {
         try {
             super.onHeadersRead(ctx, streamId, headers, streamDependency, weight, exclusive, padding, endStream);
-        } catch (Throwable cause) {
+        } catch (Exception cause) {
             notifyDecodingFailure(streamId, cause);
             throw cause;
         }
@@ -78,13 +83,13 @@ public class Http2ClientDecompressorFrameListener extends DelegatingDecompressor
                           boolean endOfStream) throws Http2Exception {
         try {
             return super.onDataRead(ctx, streamId, data, padding, endOfStream);
-        } catch (Throwable cause) {
+        } catch (Exception cause) {
             notifyDecodingFailure(streamId, cause);
             throw cause;
         }
     }
 
-    private void notifyDecodingFailure(int streamId, Throwable cause) {
+    private void notifyDecodingFailure(int streamId, Exception cause) {
         Http2ClientChannel http2ClientChannel = clientFrameListener.getHttp2ClientChannel();
         if (http2ClientChannel == null) {
             return;
