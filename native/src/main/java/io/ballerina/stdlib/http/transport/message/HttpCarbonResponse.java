@@ -38,6 +38,11 @@ public class HttpCarbonResponse extends HttpCarbonMessage {
         this.httpResponse = (HttpResponse) this.httpMessage;
     }
 
+    public HttpCarbonResponse(HttpResponse httpResponse, int maxWaitTime, Listener listener) {
+        super(httpResponse, maxWaitTime, listener);
+        this.httpResponse = (HttpResponse) this.httpMessage;
+    }
+
     public void setStatus(HttpResponseStatus httpResponseStatus) {
         this.httpResponse.setStatus(httpResponseStatus);
     }
