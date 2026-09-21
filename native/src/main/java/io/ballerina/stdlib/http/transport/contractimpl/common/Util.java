@@ -150,6 +150,7 @@ public class Util {
 
     private static final Logger LOG = LoggerFactory.getLogger(Util.class);
     public static final String HTTP_1_1 = "http/1.1";
+    public static final int ENTITY_WAIT_GRACE_MILLIS = 5000;
     private static final float EPSILON = 0.00001f;
 
     // Default for the maxBackPressureStallTime configurable, in seconds; negative excuses back-pressure
@@ -932,14 +933,20 @@ public class Util {
     }
 
     /**
-     * Resolves how long a blocking read on an inbound entity body may wait. The configured client timeout is the
-     * intended bound; the endpoint default only applies when no timeout was configured.
+     * Resolves how long a blocking read on an inbound entity body may wait. It trails the configured client timeout
+     * by {@link #ENTITY_WAIT_GRACE_MILLIS}, because the idle timeout handlers end a stalled body at that timeout
+     * with the precise cause, and a read bound that expired first would replace it with a generic one. The bound
+     * therefore only takes effect when no such report ever arrives. The endpoint default applies when no timeout
+     * was configured.
      *
      * @param socketIdleTimeout the configured socket idle timeout in milliseconds
      * @return the wait time to use in milliseconds
      */
     public static int resolveEntityWaitTime(int socketIdleTimeout) {
-        return socketIdleTimeout <= 0 ? Constants.ENDPOINT_TIMEOUT : socketIdleTimeout;
+        if (socketIdleTimeout <= 0) {
+            return Constants.ENDPOINT_TIMEOUT;
+        }
+        return (int) Math.min((long) socketIdleTimeout + ENTITY_WAIT_GRACE_MILLIS, Integer.MAX_VALUE);
     }
 
     /**

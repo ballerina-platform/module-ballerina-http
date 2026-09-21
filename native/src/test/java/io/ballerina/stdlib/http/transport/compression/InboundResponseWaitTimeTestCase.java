@@ -36,9 +36,9 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.expectThrows;
 
 /**
- * Tests that an inbound response body read waits for the configured client timeout instead of the endpoint default.
- * The idle timeout handlers end a stalled body in the same window, so this covers the read bound that remains when
- * a terminal event never reaches the response.
+ * Tests the bound on an inbound response body read, which covers a stalled body when no terminal event ever reaches
+ * the response. The idle timeout handlers end a stalled body at the configured client timeout, so the bound is
+ * resolved to trail it and never preempts their more precise report.
  */
 public class InboundResponseWaitTimeTestCase {
 
@@ -49,7 +49,7 @@ public class InboundResponseWaitTimeTestCase {
     public void testBodyReadIsBoundedByConfiguredWait() {
         HttpCarbonResponse response = new HttpCarbonResponse(
                 new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK),
-                Util.resolveEntityWaitTime(CONFIGURED_WAIT_MILLIS), null);
+                CONFIGURED_WAIT_MILLIS, null);
         InputStream inputStream = new HttpMessageDataStreamer(response).getInputStream();
 
         long start = System.nanoTime();
@@ -63,6 +63,12 @@ public class InboundResponseWaitTimeTestCase {
     public void testNonPositiveTimeoutFallsBackToEndpointTimeout() {
         assertEquals(Util.resolveEntityWaitTime(0), Constants.ENDPOINT_TIMEOUT);
         assertEquals(Util.resolveEntityWaitTime(-1), Constants.ENDPOINT_TIMEOUT);
-        assertEquals(Util.resolveEntityWaitTime(CONFIGURED_WAIT_MILLIS), CONFIGURED_WAIT_MILLIS);
+    }
+
+    @Test(description = "The read bound trails the idle timeout so the idle handlers report a stall first")
+    public void testReadBoundTrailsConfiguredTimeout() {
+        assertEquals(Util.resolveEntityWaitTime(CONFIGURED_WAIT_MILLIS),
+                CONFIGURED_WAIT_MILLIS + Util.ENTITY_WAIT_GRACE_MILLIS);
+        assertEquals(Util.resolveEntityWaitTime(Integer.MAX_VALUE), Integer.MAX_VALUE);
     }
 }
