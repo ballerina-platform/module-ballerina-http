@@ -25,6 +25,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 
 - [Fix an HTTP/2 client response body that cannot be decoded, such as a malformed gzip body, leaving the read blocked or returning an empty payload instead of an error](https://github.com/ballerina-platform/ballerina-library/issues/9191)
+- Report the reason a client response body failed to decode, instead of the channel closure or the stream error that the failure caused, so that the same malformed body reads the same way over HTTP/1.1 and HTTP/2
 
 ## [2.17.0] - 2026-08-04
 
