@@ -131,6 +131,6 @@ public class EntityBodyReceived implements SenderState {
 
     @Override
     public void handleStreamClosedLocally(OutboundMsgHolder outboundMsgHolder) {
-        LOG.debug("handleStreamClosedLocally is not a dependant action of this state");
+        LOG.debug("Stream closed locally after the entity body was already received; no action needed");
     }
 }
