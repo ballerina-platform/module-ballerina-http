@@ -296,19 +296,26 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
     /**
      * Resolves the message for an inbound response that ended before it was complete.
      * <p>
-     * The content decompressor sits ahead of this handler, so a body it cannot decode never reaches the sender
-     * state machine: it surfaces as an exception, the channel is closed, and the state that reports the closure
-     * is whichever one the response had reached. Naming the decode failure here keeps the reported reason tied
-     * to what actually broke, matching what the HTTP/2 path reports for the same response.
+     * A local failure reaches this handler as an exception and is answered by closing the channel, so the
+     * closure the states go on to report is one this client caused rather than one the remote host did. The
+     * default message describes the remote closing, which only holds when no exception preceded it: whenever one
+     * did, reporting it keeps the reason tied to what actually broke. {@code RequestCompleted} already prefers a
+     * stored cause the same way.
+     * <p>
+     * A failed decompression is named rather than passed through, so that a body which cannot be decoded reads
+     * the same whether HTTP/1.1 or HTTP/2 carried it, the latter reaching the caller through a different path.
      *
-     * @param defaultMessage the message describing the closure itself, used when it has no decoding failure behind it
+     * @param defaultMessage the message describing the closure itself, used when nothing was caught before it
      * @return the message to report on the inbound response
      */
     public String resolveInboundResponseFailure(String defaultMessage) {
+        if (cause == null) {
+            return defaultMessage;
+        }
         if (cause instanceof DecompressionException) {
             return CONTENT_DECODING_FAILED + ": " + cause.getMessage();
         }
-        return defaultMessage;
+        return cause.getMessage() != null ? cause.getMessage() : defaultMessage;
     }
 
     public HttpClientChannelInitializer getHttpClientChannelInitializer() {
