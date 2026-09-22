@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -24,7 +24,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http2.DelegatingDecompressorFrameListener;
 import io.netty.handler.codec.http2.Http2Connection;
 import io.netty.handler.codec.http2.Http2Exception;
-import io.netty.handler.codec.http2.Http2Headers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +38,12 @@ import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Stat
  * ended, so the pending response body would otherwise be left waiting on content that can no longer arrive.
  * This listener turns a decode failure into an error on the response, matching what the HTTP/1.1 pipeline
  * produces through {@code TargetHandler.exceptionCaught}.
+ * <p>
+ * Only {@code onDataRead} is overridden: that is the sole place {@code DelegatingDecompressorFrameListener}
+ * actually decompresses bytes, through {@code Http2Decompressor.decompress}. Its {@code onHeadersRead} only
+ * sets up the per-stream decompressor and forwards to the delegate listener, so any exception it throws is
+ * either from that delegate's own header handling or a rejected {@code content-encoding} - neither is a
+ * decoding failure, and wrapping it here would mislabel it as one.
  * <p>
  * Only {@link Exception} is intercepted here, which covers everything the codec raises - a stream
  * {@link Http2Exception} or an unchecked decompression failure. An {@link Error} is left to propagate to
@@ -55,28 +60,6 @@ public class Http2ClientDecompressorFrameListener extends DelegatingDecompressor
                                                 ClientFrameListener clientFrameListener) {
         super(connection, clientFrameListener);
         this.clientFrameListener = clientFrameListener;
-    }
-
-    @Override
-    public void onHeadersRead(ChannelHandlerContext ctx, int streamId, Http2Headers headers, int padding,
-                              boolean endStream) throws Http2Exception {
-        try {
-            super.onHeadersRead(ctx, streamId, headers, padding, endStream);
-        } catch (Exception cause) {
-            notifyDecodingFailure(streamId, cause);
-            throw cause;
-        }
-    }
-
-    @Override
-    public void onHeadersRead(ChannelHandlerContext ctx, int streamId, Http2Headers headers, int streamDependency,
-                              short weight, boolean exclusive, int padding, boolean endStream) throws Http2Exception {
-        try {
-            super.onHeadersRead(ctx, streamId, headers, streamDependency, weight, exclusive, padding, endStream);
-        } catch (Exception cause) {
-            notifyDecodingFailure(streamId, cause);
-            throw cause;
-        }
     }
 
     @Override
