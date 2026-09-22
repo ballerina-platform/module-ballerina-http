@@ -149,6 +149,7 @@ public class Util {
 
     private static final Logger LOG = LoggerFactory.getLogger(Util.class);
     public static final String HTTP_1_1 = "http/1.1";
+    public static final int ENTITY_WAIT_GRACE_MILLIS = 5000;
     private static final float EPSILON = 0.00001f;
 
     // Default for the maxBackPressureStallTime configurable, in seconds; negative excuses back-pressure
@@ -901,12 +902,15 @@ public class Util {
      * @param ctx of the inbound response message
      * @param httpResponseHeaders of the inbound response message
      * @param outboundRequestMsg is the correlated outbound request message
+     * @param socketIdleTimeout the configured client timeout, which also bounds the response body reads
      * @return HttpCarbon message
      */
     public static HttpCarbonMessage createInboundRespCarbonMsg(ChannelHandlerContext ctx,
                                                                HttpResponse httpResponseHeaders,
-                                                               HttpCarbonMessage outboundRequestMsg) {
-        HttpCarbonMessage inboundResponseMsg = new HttpCarbonResponse(httpResponseHeaders, new DefaultListener(ctx));
+                                                               HttpCarbonMessage outboundRequestMsg,
+                                                               int socketIdleTimeout) {
+        HttpCarbonMessage inboundResponseMsg = new HttpCarbonResponse(httpResponseHeaders,
+                resolveEntityWaitTime(socketIdleTimeout), new DefaultListener(ctx));
         inboundResponseMsg.setProperty(Constants.POOLED_BYTE_BUFFER_FACTORY,
                 new PooledDataStreamerFactory(ctx.alloc()));
 
@@ -919,6 +923,23 @@ public class Util {
                 .getProperty(Constants.EXECUTOR_WORKER_POOL));
 
         return inboundResponseMsg;
+    }
+
+    /**
+     * Resolves how long a blocking read on an inbound entity body may wait. It trails the configured client timeout
+     * by {@link #ENTITY_WAIT_GRACE_MILLIS}, because the idle timeout handlers end a stalled body at that timeout
+     * with the precise cause, and a read bound that expired first would replace it with a generic one. The bound
+     * therefore only takes effect when no such report ever arrives. The endpoint default applies when no timeout
+     * was configured.
+     *
+     * @param socketIdleTimeout the configured socket idle timeout in milliseconds
+     * @return the wait time to use in milliseconds
+     */
+    public static int resolveEntityWaitTime(int socketIdleTimeout) {
+        if (socketIdleTimeout <= 0) {
+            return Constants.ENDPOINT_TIMEOUT;
+        }
+        return (int) Math.min((long) socketIdleTimeout + ENTITY_WAIT_GRACE_MILLIS, Integer.MAX_VALUE);
     }
 
     /**

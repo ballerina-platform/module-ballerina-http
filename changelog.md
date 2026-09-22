@@ -4,6 +4,18 @@ This file contains all the notable changes done to the Ballerina HTTP package th
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- Bound the wait for an inbound response body by the configured client `timeout`, with a short grace period, instead of a fixed five minutes
+- An HTTP/2 response that fails before any of its body arrives, for example on a reset or an idle timeout, now results in an error when its payload is read, instead of an empty payload
+
+### Fixed
+
+- [Fix an HTTP/2 client response body that cannot be decoded, such as a malformed gzip body, leaving the read blocked or returning an empty payload instead of an error](https://github.com/ballerina-platform/ballerina-library/issues/9191)
+- Bump Bouncy Castle to 1.85 to fix CVE-2026-8763 and CVE-2026-13506
+
 ## [2.17.0] - 2026-08-04
 
 ### Changed
