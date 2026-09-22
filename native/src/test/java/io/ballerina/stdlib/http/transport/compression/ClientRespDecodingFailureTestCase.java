@@ -69,6 +69,11 @@ public class ClientRespDecodingFailureTestCase {
     // read that is never terminated fails this test instead of passing late.
     private static final int READ_TIMEOUT_SECONDS = 15;
 
+    // Both protocols must report the reason the decoder gave, rather than the stream error or the channel closure
+    // each one wraps it in, so the same malformed body reads the same way whichever protocol carried it.
+    private static final String EXPECTED_FAILURE =
+            Constants.CONTENT_DECODING_FAILED + ": Input is not in the GZIP format";
+
     private HttpWsConnectorFactory connectorFactory;
     private HttpServer http2Server;
     private HttpServer http1Server;
@@ -117,7 +122,8 @@ public class ClientRespDecodingFailureTestCase {
     }
 
     private void assertReadFails(HttpCarbonMessage response) {
-        expectThrows(DecoderException.class, () -> readBody(response));
+        DecoderException error = expectThrows(DecoderException.class, () -> readBody(response));
+        assertEquals(error.getMessage(), EXPECTED_FAILURE);
     }
 
     private HttpCarbonMessage sendRequest(HttpClientConnector clientConnector, int port, String path) {

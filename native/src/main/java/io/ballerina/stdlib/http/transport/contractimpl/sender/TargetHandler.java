@@ -30,6 +30,7 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.socket.ChannelInputShutdownReadComplete;
+import io.netty.handler.codec.compression.DecompressionException;
 import io.netty.handler.codec.http.HttpClientUpgradeHandler;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpResponse;
@@ -44,6 +45,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 
+import static io.ballerina.stdlib.http.transport.contract.Constants.CONTENT_DECODING_FAILED;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.createInboundRespCarbonMsg;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.safelyRemoveHandlers;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil.initHttp2MessageContext;
@@ -289,6 +291,31 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
 
     public Throwable getCause() {
         return cause;
+    }
+
+    /**
+     * Resolves the message for an inbound response that ended before it was complete.
+     * <p>
+     * A local failure reaches this handler as an exception and is answered by closing the channel, so the
+     * closure the states go on to report is one this client caused rather than one the remote host did. The
+     * default message describes the remote closing, which only holds when no exception preceded it: whenever one
+     * did, reporting it keeps the reason tied to what actually broke. {@code RequestCompleted} already prefers a
+     * stored cause the same way.
+     * <p>
+     * A failed decompression is named rather than passed through, so that a body which cannot be decoded reads
+     * the same whether HTTP/1.1 or HTTP/2 carried it, the latter reaching the caller through a different path.
+     *
+     * @param defaultMessage the message describing the closure itself, used when nothing was caught before it
+     * @return the message to report on the inbound response
+     */
+    public String resolveInboundResponseFailure(String defaultMessage) {
+        if (cause == null) {
+            return defaultMessage;
+        }
+        if (cause instanceof DecompressionException) {
+            return CONTENT_DECODING_FAILED + ": " + cause.getMessage();
+        }
+        return cause.getMessage() != null ? cause.getMessage() : defaultMessage;
     }
 
     public HttpClientChannelInitializer getHttpClientChannelInitializer() {
