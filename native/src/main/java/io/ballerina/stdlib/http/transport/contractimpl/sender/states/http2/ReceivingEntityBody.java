@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_BODY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_SENT_GOAWAY_WHILE_READING_INBOUND_RESPONSE_BODY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_SENT_RST_STREAM_WHILE_READING_INBOUND_RESPONSE_BODY;
+import static io.ballerina.stdlib.http.transport.contract.Constants.STREAM_CLOSED_WHILE_READING_INBOUND_RESPONSE_BODY;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil.releaseContent;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.handleIncompleteInboundMessage;
 
@@ -135,6 +136,12 @@ public class ReceivingEntityBody implements SenderState {
     public void handleRstStream(OutboundMsgHolder outboundMsgHolder) {
         handleIncompleteInboundMessage(outboundMsgHolder.getResponse(),
                 REMOTE_SERVER_SENT_RST_STREAM_WHILE_READING_INBOUND_RESPONSE_BODY);
+    }
+
+    @Override
+    public void handleStreamClosedLocally(OutboundMsgHolder outboundMsgHolder) {
+        handleIncompleteInboundMessage(outboundMsgHolder.getResponse(),
+                STREAM_CLOSED_WHILE_READING_INBOUND_RESPONSE_BODY);
     }
 
     private void onDataRead(Http2DataFrame http2DataFrame, OutboundMsgHolder outboundMsgHolder, boolean serverPush,
