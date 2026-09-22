@@ -30,6 +30,7 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.socket.ChannelInputShutdownReadComplete;
+import io.netty.handler.codec.compression.DecompressionException;
 import io.netty.handler.codec.http.HttpClientUpgradeHandler;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpResponse;
@@ -44,6 +45,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 
+import static io.ballerina.stdlib.http.transport.contract.Constants.CONTENT_DECODING_FAILED;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.createInboundRespCarbonMsg;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.safelyRemoveHandlers;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil.initHttp2MessageContext;
@@ -289,6 +291,24 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
 
     public Throwable getCause() {
         return cause;
+    }
+
+    /**
+     * Resolves the message for an inbound response that ended before it was complete.
+     * <p>
+     * The content decompressor sits ahead of this handler, so a body it cannot decode never reaches the sender
+     * state machine: it surfaces as an exception, the channel is closed, and the state that reports the closure
+     * is whichever one the response had reached. Naming the decode failure here keeps the reported reason tied
+     * to what actually broke, matching what the HTTP/2 path reports for the same response.
+     *
+     * @param defaultMessage the message describing the closure itself, used when it has no decoding failure behind it
+     * @return the message to report on the inbound response
+     */
+    public String resolveInboundResponseFailure(String defaultMessage) {
+        if (cause instanceof DecompressionException) {
+            return CONTENT_DECODING_FAILED + ": " + cause.getMessage();
+        }
+        return defaultMessage;
     }
 
     public HttpClientChannelInitializer getHttpClientChannelInitializer() {
