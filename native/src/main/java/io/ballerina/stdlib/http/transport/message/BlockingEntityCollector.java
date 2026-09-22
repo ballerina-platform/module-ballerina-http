@@ -117,7 +117,9 @@ public class BlockingEntityCollector implements EntityCollector {
                 HttpContent httpContent = httpContentQueue.poll(soTimeOut, MILLISECONDS);
                 size += httpContent.content().readableBytes();
                 contentList.add(httpContent);
-                if ((httpContent instanceof LastHttpContent)) {
+                if (httpContent instanceof LastHttpContent || httpContent.decoderResult().isFailure()) {
+                    // A failed decode never delivers a further LastHttpContent, so treat it as terminal too,
+                    // instead of waiting out the full soTimeOut for content that will not arrive.
                     state = EntityBodyState.CONSUMED;
                 }
             }
@@ -146,6 +148,10 @@ public class BlockingEntityCollector implements EntityCollector {
                     throw new IllegalStateException("poll timeout expired");
                 }
                 size += httpContent.content().readableBytes();
+                if (httpContent.decoderResult().isFailure()) {
+                    // A failed body must not look empty, so the read that follows raises the failure instead.
+                    size = Math.max(size, maxSize);
+                }
                 contentList.add(httpContent);
                 if (size >= maxSize) {
                     while (!httpContentQueue.isEmpty()) {
