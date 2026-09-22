@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 
 - [Fix an HTTP/2 client response body that cannot be decoded, such as a malformed gzip body, leaving the read blocked or returning an empty payload instead of an error](https://github.com/ballerina-platform/ballerina-library/issues/9191)
+- Bump Bouncy Castle to 1.85 to fix CVE-2026-8763 and CVE-2026-13506
 
 ## [2.15.8] - 2026-08-04
 
