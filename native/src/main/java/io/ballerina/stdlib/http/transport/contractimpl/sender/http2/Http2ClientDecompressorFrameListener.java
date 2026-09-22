@@ -115,6 +115,12 @@ public class Http2ClientDecompressorFrameListener extends DelegatingDecompressor
     }
 
     private static String decodingFailureMessage(Exception cause) {
-        return CONTENT_DECODING_FAILED + ": " + cause.getMessage();
+        // Netty reports a failed decompression as a stream error whose own message only names the stream it
+        // happened on, leaving the reason that explains the failure as its cause.
+        Throwable reason = cause.getCause();
+        if (reason == null || reason.getMessage() == null) {
+            reason = cause;
+        }
+        return CONTENT_DECODING_FAILED + ": " + reason.getMessage();
     }
 }
