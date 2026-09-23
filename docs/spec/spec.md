@@ -1668,6 +1668,19 @@ string response = check httpClient->/addPerson.post(payload, profession = "chemi
 // string response = check httpClient->post("/addPerson?profession=chemist&id=123", payload);
 ```
 
+Multiple query parameters can also be passed together as an `http:QueryParams` value.
+
+```ballerina
+// Making a GET request
+http:QueryParams queries = {
+   id: 123,
+   profession: "chemist"
+};
+string resp = check httpClient->/date(params = queries);
+// Same as the following :
+// string response = check httpClient->get("/date?id=123&profession=chemist");
+```
+
 * Header parameter
 
 The headers to a resource method can be provided as `map<string|string[]>`.
