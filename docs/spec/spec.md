@@ -1668,7 +1668,19 @@ string response = check httpClient->/addPerson.post(payload, profession = "chemi
 // string response = check httpClient->post("/addPerson?profession=chemist&id=123", payload);
 ```
 
-Multiple query parameters can also be passed together as an `http:QueryParams` value.
+The `http:QueryParams` type represents a collection of query parameters and is defined as follows.
+
+```ballerina
+public type QueryParams record {|
+    never headers?;
+    never targetType?;
+    never message?;
+    never mediaType?;
+    QueryParamType...;
+|};
+```
+
+Multiple query parameters can be passed together using an `http:QueryParams` value, which can then be passed to the resource method using the `params` parameter.
 
 ```ballerina
 // Making a GET request
