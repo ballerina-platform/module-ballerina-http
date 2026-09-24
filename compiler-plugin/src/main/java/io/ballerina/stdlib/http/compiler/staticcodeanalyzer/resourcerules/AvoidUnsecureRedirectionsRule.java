@@ -24,9 +24,7 @@ import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
-import io.ballerina.compiler.syntax.tree.BasicLiteralNode;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
-import io.ballerina.compiler.syntax.tree.IdentifierToken;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingFieldNode;
 import io.ballerina.compiler.syntax.tree.Node;
@@ -42,8 +40,8 @@ import static io.ballerina.compiler.syntax.tree.SyntaxKind.SPECIFIC_FIELD;
 import static io.ballerina.stdlib.http.compiler.Constants.BALLERINA;
 import static io.ballerina.stdlib.http.compiler.Constants.EMPTY;
 import static io.ballerina.stdlib.http.compiler.Constants.HTTP;
-import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getUsedParamName;
-import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.unescapeIdentifier;
+import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getUsedParamNames;
+import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.matchesFieldName;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpRule.AVOID_UNSECURE_REDIRECTIONS;
 
 /**
@@ -106,33 +104,6 @@ public class AvoidUnsecureRedirectionsRule implements HttpResourceRule {
             this.redirectResponseType = typeDefinitionSymbol.typeDescriptor();
         }
         // Will not reach here
-    }
-
-    /**
-     * Check if the given field name node matches the expected field name.
-     * Currently, supports,
-     * - IdentifierToken
-     * - BasicLiteralNode (string literals)
-     *
-     * @param fieldNameNode      The field name node to check.
-     * @param expectedFieldName  The expected field name.
-     * @param ignoreCase         Whether to ignore case when comparing.
-     * @return true if the field name matches, false otherwise.
-     */
-    private boolean matchesFieldName(Node fieldNameNode, String expectedFieldName, boolean ignoreCase) {
-        if (fieldNameNode instanceof IdentifierToken identifierToken) {
-            String fieldName = unescapeIdentifier(identifierToken.text());
-            return ignoreCase ? fieldName.equalsIgnoreCase(expectedFieldName) : fieldName.equals(expectedFieldName);
-        }
-
-        if (fieldNameNode instanceof BasicLiteralNode basicLiteralNode) {
-            String fieldName = basicLiteralNode.literalToken().text();
-            // Removing the additional quotes from the string literal
-            fieldName = fieldName.substring(1, fieldName.length() - 1);
-            return ignoreCase ? fieldName.equalsIgnoreCase(expectedFieldName) : fieldName.equals(expectedFieldName);
-        }
-
-        return false;
     }
 
     private boolean isRedirectResponseValue(SemanticModel semanticModel, ExpressionNodeInfo expressionNodeInfo) {
@@ -217,8 +188,7 @@ public class AvoidUnsecureRedirectionsRule implements HttpResourceRule {
 
         if (locationValue.isPresent()) {
             ExpressionNode expression = locationValue.get();
-            Optional<String> usedParamName = getUsedParamName(expression);
-            if (usedParamName.isPresent() && context.resourceParamNames().contains(usedParamName.get())) {
+            if (getUsedParamNames(expression).stream().anyMatch(context.resourceParamNames()::contains)) {
                 context.reporter().reportIssue(
                         context.document(),
                         header.location(),

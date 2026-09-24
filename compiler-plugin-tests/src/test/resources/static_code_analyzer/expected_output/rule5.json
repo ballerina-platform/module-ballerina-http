@@ -1,0 +1,102 @@
+[
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 21,
+      "endLine": 21,
+      "startColumn": 23,
+      "endColumn": 26,
+      "startOffset": 769,
+      "length": 3
+    },
+    "rule": {
+      "id": "ballerina/http:2",
+      "numericId": 2,
+      "description": "Avoid permissive Cross-Origin Resource Sharing",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule5/service.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule5/service.bal"
+  },
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 22,
+      "endLine": 22,
+      "startColumn": 8,
+      "endColumn": 30,
+      "startOffset": 783,
+      "length": 22
+    },
+    "rule": {
+      "id": "ballerina/http:5",
+      "numericId": 5,
+      "description": "Avoid allowing credentials with a wildcard Cross-Origin Resource Sharing origin",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule5/service.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule5/service.bal"
+  },
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 28,
+      "endLine": 28,
+      "startColumn": 27,
+      "endColumn": 30,
+      "startOffset": 935,
+      "length": 3
+    },
+    "rule": {
+      "id": "ballerina/http:2",
+      "numericId": 2,
+      "description": "Avoid permissive Cross-Origin Resource Sharing",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule5/service.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule5/service.bal"
+  },
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 29,
+      "endLine": 29,
+      "startColumn": 12,
+      "endColumn": 34,
+      "startOffset": 953,
+      "length": 22
+    },
+    "rule": {
+      "id": "ballerina/http:5",
+      "numericId": 5,
+      "description": "Avoid allowing credentials with a wildcard Cross-Origin Resource Sharing origin",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule5/service.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule5/service.bal"
+  },
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 40,
+      "endLine": 40,
+      "startColumn": 23,
+      "endColumn": 26,
+      "startOffset": 1212,
+      "length": 3
+    },
+    "rule": {
+      "id": "ballerina/http:2",
+      "numericId": 2,
+      "description": "Avoid permissive Cross-Origin Resource Sharing",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule5/service.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule5/service.bal"
+  }
+]
