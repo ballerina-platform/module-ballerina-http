@@ -843,13 +843,8 @@ public class Util {
     }
 
     /**
-     * Adds the idle state handler in front of the handler that consumes the inbound message. When an entity body
-     * size validator is engaged, the idle state handler goes in front of it instead, since the validator holds back
-     * every read until the whole message has arrived and would otherwise hide the body's progress from the timer.
-     *
-     * @param pipeline         the channel pipeline
-     * @param consumerName     name of the handler that consumes the inbound message
-     * @param idleStateHandler the idle state handler to add
+     * Adds the idle state handler in front of the consumer, or of the entity body size validator, which holds reads
+     * back until a message is complete.
      */
     public static void addIdleStateHandler(ChannelPipeline pipeline, String consumerName,
                                            IdleStateHandler idleStateHandler) {

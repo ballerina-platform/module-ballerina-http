@@ -72,6 +72,15 @@ function testEntityBodyLimitDoesNotStopIdleTimeoutSeeingProgress() returns error
     test:assertEquals(payload.length(), 1800);
 }
 
+@test:Config {groups: [CHUNKED_RESPONSE_GROUP]}
+function testMalformedResponseFailsTheSameWithEntityBodyLimit() returns error? {
+    http:Client cappedClient = check new ("http://localhost:" + responseLimitsTestPort3.toString(),
+        httpVersion = http:HTTP_1_1, timeout = 1, responseLimits = {maxEntityBodySize: 1024});
+    http:Client uncappedClient = check new ("http://localhost:" + responseLimitsTestPort3.toString(),
+        httpVersion = http:HTTP_1_1, timeout = 1);
+    test:assertEquals(check getOutcome(cappedClient, "/malformed"), check getOutcome(uncappedClient, "/malformed"));
+}
+
 @test:Config {}
 function testEntityBodyLimitAppliesToEachResponseOnReusedConnection() returns error? {
     string first = check entityBodyLimitKeepAliveClient->get("/entityBodyLimit/900");
@@ -87,6 +96,15 @@ function testEntityBodyLimitAppliesToEachRequestOnKeepAliveConnection() returns 
         test:assertEquals(response.statusCode, 201);
         test:assertEquals(check response.getTextPayload(), "600");
     }
+}
+
+function getOutcome(http:Client clientEP, string path) returns string|error {
+    http:Response|error response = clientEP->get(path);
+    if response is error {
+        return response.message();
+    }
+    string|error payload = response.getTextPayload();
+    return response.statusCode.toString() + " " + (payload is error ? payload.message() : payload);
 }
 
 function startChunkedResponseServer(int port) returns error? = @java:Method {

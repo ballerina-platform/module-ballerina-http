@@ -40,6 +40,7 @@ import io.netty.handler.codec.http.QueryStringDecoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -50,14 +51,15 @@ import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 /**
- * A server replying with a chunked body whose chunk sizes and pacing come from the request, so a test can decide
- * how many pieces a client buffers and how long it waits between them, which a Ballerina service cannot control.
- * {@code /chunks/400,400,400?delay=50} sends three 400 byte chunks, each flushed 50 ms after the previous one.
+ * Replies to {@code /chunks/400,400,400?delay=50} with those chunk sizes flushed 50 ms apart, and to
+ * {@code /malformed} with a response the client cannot decode.
  */
 final class ChunkedResponseTestServer {
 
     private static final Logger log = LoggerFactory.getLogger(ChunkedResponseTestServer.class);
 
+    private static final String PATH_MALFORMED = "/malformed";
+    private static final String MALFORMED_RESPONSE = "HTTP/1.1 200 OK\r\nContent-Length: abc\r\n\r\n";
     private static final Map<Integer, RunningServer> SERVERS = new ConcurrentHashMap<>();
 
     private ChunkedResponseTestServer() {}
@@ -94,6 +96,10 @@ final class ChunkedResponseTestServer {
         protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) {
             QueryStringDecoder decoder = new QueryStringDecoder(request.uri());
             String path = decoder.path();
+            if (PATH_MALFORMED.equals(path)) {
+                ctx.writeAndFlush(Unpooled.copiedBuffer(MALFORMED_RESPONSE, StandardCharsets.US_ASCII));
+                return;
+            }
             int[] chunkSizes = Arrays.stream(path.substring(path.lastIndexOf('/') + 1).split(","))
                     .mapToInt(Integer::parseInt).toArray();
             List<String> delay = decoder.parameters().get("delay");

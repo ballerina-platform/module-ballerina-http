@@ -61,6 +61,11 @@ public class ResponseEntityBodySizeValidator extends ChannelInboundHandlerAdapte
             if (isContentLengthInvalid(inboundResponse, maxEntityBodySize)) {
                 throw entityBodyTooLargeError();
             }
+            if (inboundResponse.decoderResult().isFailure()) {
+                // The decoder drops everything after a malformed response, so no body will follow to wait for.
+                super.channelRead(ctx, msg);
+                return;
+            }
             ctx.channel().read();
         } else {
             HttpContent inboundContent = (HttpContent) msg;
@@ -78,6 +83,11 @@ public class ResponseEntityBodySizeValidator extends ChannelInboundHandlerAdapte
                 ctx.channel().read();
             }
         }
+    }
+
+    @Override
+    public void handlerRemoved(ChannelHandlerContext ctx) {
+        releaseBufferedContent();
     }
 
     private IllegalStateException entityBodyTooLargeError() {

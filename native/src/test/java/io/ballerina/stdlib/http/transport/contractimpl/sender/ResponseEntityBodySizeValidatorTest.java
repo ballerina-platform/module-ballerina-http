@@ -22,6 +22,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.embedded.EmbeddedChannel;
+import io.netty.handler.codec.DecoderResult;
 import io.netty.handler.codec.http.DefaultHttpContent;
 import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
@@ -134,6 +135,45 @@ public class ResponseEntityBodySizeValidatorTest {
 
         assertEquals(content.refCnt(), 0, "Content read on an inactive channel was not released");
         assertTrue(recorder.messages.isEmpty(), "Content read on an inactive channel was passed on");
+        channel.finishAndReleaseAll();
+    }
+
+    @Test(description = "A malformed response, which no body follows, is passed on for the target handler to fail")
+    public void testMalformedResponseIsPassedOn() {
+        RecordingHandler recorder = new RecordingHandler();
+        EmbeddedChannel channel = new EmbeddedChannel(new ResponseEntityBodySizeValidator(MAX_ENTITY_BODY_SIZE),
+                                                      recorder);
+        HttpResponse malformed = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+        malformed.setDecoderResult(DecoderResult.failure(new IllegalArgumentException("invalid content length")));
+
+        channel.writeInbound(malformed);
+
+        assertEquals(recorder.messages, List.of(malformed), "The malformed response was held back");
+        channel.finishAndReleaseAll();
+    }
+
+    @Test(description = "Pieces buffered when the connection closes mid-body are released")
+    public void testBufferedContentIsReleasedOnClose() {
+        EmbeddedChannel channel = new EmbeddedChannel(new ResponseEntityBodySizeValidator(MAX_ENTITY_BODY_SIZE));
+        List<HttpContent> pieces = List.of(content(400), content(400));
+
+        channel.writeInbound(chunkedResponse(), pieces.get(0), pieces.get(1));
+        channel.close();
+
+        pieces.forEach(piece -> assertEquals(piece.refCnt(), 0, "Buffered piece was not released"));
+        channel.finishAndReleaseAll();
+    }
+
+    @Test(description = "Pieces buffered when the validator is removed from the pipeline are released")
+    public void testBufferedContentIsReleasedWhenValidatorIsRemoved() {
+        ResponseEntityBodySizeValidator validator = new ResponseEntityBodySizeValidator(MAX_ENTITY_BODY_SIZE);
+        EmbeddedChannel channel = new EmbeddedChannel(validator);
+        HttpContent piece = content(400);
+
+        channel.writeInbound(chunkedResponse(), piece);
+        channel.pipeline().remove(validator);
+
+        assertEquals(piece.refCnt(), 0, "Buffered piece was not released");
         channel.finishAndReleaseAll();
     }
 
