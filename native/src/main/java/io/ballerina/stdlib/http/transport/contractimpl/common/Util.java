@@ -106,6 +106,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ScheduledFuture;
@@ -126,7 +127,6 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_HOST;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_PORT;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_SCHEME;
 import static io.ballerina.stdlib.http.transport.contract.Constants.IS_PROXY_ENABLED;
-import static io.ballerina.stdlib.http.transport.contract.Constants.MAX_ENTITY_BODY_VALIDATION_HANDLER;
 import static io.ballerina.stdlib.http.transport.contract.Constants.MUTUAL_SSL_DISABLED;
 import static io.ballerina.stdlib.http.transport.contract.Constants.MUTUAL_SSL_FAILED;
 import static io.ballerina.stdlib.http.transport.contract.Constants.MUTUAL_SSL_HANDSHAKE_RESULT;
@@ -151,6 +151,8 @@ public class Util {
     }
 
     private static final Logger LOG = LoggerFactory.getLogger(Util.class);
+    private static final List<String> HTTP_CODEC_HANDLER_NAMES = List.of(Constants.HTTP_CLIENT_CODEC,
+            Constants.HTTP_DECODER, Constants.HTTP_SERVER_CODEC);
     public static final String HTTP_1_1 = "http/1.1";
     public static final int ENTITY_WAIT_GRACE_MILLIS = 5000;
     private static final float EPSILON = 0.00001f;
@@ -843,15 +845,19 @@ public class Util {
     }
 
     /**
-     * Adds the idle state handler in front of the consumer, or of the entity body size validator, which holds reads
-     * back until a message is complete.
+     * Adds the idle state handler directly after the HTTP codec, so that no handler holding reads back can hide a
+     * message's progress from it.
      */
     public static void addIdleStateHandler(ChannelPipeline pipeline, String consumerName,
                                            IdleStateHandler idleStateHandler) {
+        for (String codecName : HTTP_CODEC_HANDLER_NAMES) {
+            if (pipeline.get(codecName) != null) {
+                pipeline.addAfter(codecName, Constants.IDLE_STATE_HANDLER, idleStateHandler);
+                return;
+            }
+        }
         if (pipeline.get(consumerName) == null) {
             pipeline.addLast(Constants.IDLE_STATE_HANDLER, idleStateHandler);
-        } else if (pipeline.get(MAX_ENTITY_BODY_VALIDATION_HANDLER) != null) {
-            pipeline.addBefore(MAX_ENTITY_BODY_VALIDATION_HANDLER, Constants.IDLE_STATE_HANDLER, idleStateHandler);
         } else {
             pipeline.addBefore(consumerName, Constants.IDLE_STATE_HANDLER, idleStateHandler);
         }

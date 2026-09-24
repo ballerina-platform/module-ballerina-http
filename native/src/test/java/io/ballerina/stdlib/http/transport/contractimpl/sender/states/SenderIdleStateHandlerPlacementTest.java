@@ -24,6 +24,7 @@ import io.ballerina.stdlib.http.transport.contractimpl.common.states.SenderReqRe
 import io.ballerina.stdlib.http.transport.contractimpl.sender.ResponseEntityBodySizeValidator;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.embedded.EmbeddedChannel;
+import io.netty.handler.codec.http.HttpClientCodec;
 import org.testng.annotations.Test;
 
 import java.util.List;
@@ -31,45 +32,46 @@ import java.util.List;
 import static org.testng.Assert.assertEquals;
 
 /**
- * Verifies that the client states arming the idle timeout place it in front of the response entity body size
- * validator, so that the timer sees each piece of a body the validator is still holding back.
+ * Verifies that the client states arming the idle timeout place it directly after the HTTP codec, so that the timer
+ * sees each piece of a body the response entity body size validator is still holding back.
  */
 public class SenderIdleStateHandlerPlacementTest {
 
     private static final int SOCKET_TIMEOUT_MILLIS = 60000;
 
-    @Test(description = "Sending headers arms the idle timeout in front of the entity body size validator")
-    public void testSendingHeadersPlacesIdleStateHandlerBeforeValidator() {
+    @Test(description = "Sending headers arms the idle timeout directly after the HTTP codec")
+    public void testSendingHeadersPlacesIdleStateHandlerAfterCodec() {
         EmbeddedChannel channel = newClientChannel();
 
         new SendingHeaders(new SenderReqRespStateManager(channel, SOCKET_TIMEOUT_MILLIS), null,
                            Constants.HTTP_1_1_VERSION, ChunkConfig.AUTO, null);
 
-        assertIdleStateHandlerBeforeValidator(channel);
+        assertIdleStateHandlerAfterCodec(channel);
     }
 
-    @Test(description = "Waiting for 100-continue re-arms the idle timeout in front of the entity body size validator")
-    public void testSending100ContinuePlacesIdleStateHandlerBeforeValidator() {
+    @Test(description = "Waiting for 100-continue re-arms the idle timeout directly after the HTTP codec")
+    public void testSending100ContinuePlacesIdleStateHandlerAfterCodec() {
         EmbeddedChannel channel = newClientChannel();
 
         new Sending100Continue(new SenderReqRespStateManager(channel, SOCKET_TIMEOUT_MILLIS), null);
 
-        assertIdleStateHandlerBeforeValidator(channel);
+        assertIdleStateHandlerAfterCodec(channel);
     }
 
     private static EmbeddedChannel newClientChannel() {
         EmbeddedChannel channel = new EmbeddedChannel();
+        channel.pipeline().addLast(Constants.HTTP_CLIENT_CODEC, new HttpClientCodec());
         channel.pipeline().addLast(Constants.MAX_ENTITY_BODY_VALIDATION_HANDLER,
                                    new ResponseEntityBodySizeValidator(1024));
         channel.pipeline().addLast(Constants.TARGET_HANDLER, new ChannelInboundHandlerAdapter());
         return channel;
     }
 
-    private static void assertIdleStateHandlerBeforeValidator(EmbeddedChannel channel) {
+    private static void assertIdleStateHandlerAfterCodec(EmbeddedChannel channel) {
         List<String> names = channel.pipeline().names().stream()
                 .filter(name -> !name.startsWith("DefaultChannelPipeline$")).toList();
-        assertEquals(names, List.of(Constants.IDLE_STATE_HANDLER, Constants.MAX_ENTITY_BODY_VALIDATION_HANDLER,
-                                    Constants.TARGET_HANDLER));
+        assertEquals(names, List.of(Constants.HTTP_CLIENT_CODEC, Constants.IDLE_STATE_HANDLER,
+                                    Constants.MAX_ENTITY_BODY_VALIDATION_HANDLER, Constants.TARGET_HANDLER));
         channel.finishAndReleaseAll();
     }
 }

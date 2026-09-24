@@ -22,6 +22,7 @@ import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.ResponseEntityBodySizeValidator;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.embedded.EmbeddedChannel;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.util.List;
@@ -30,29 +31,35 @@ import java.util.concurrent.TimeUnit;
 import static org.testng.Assert.assertEquals;
 
 /**
- * Verifies where {@link Util#addIdleStateHandler} places the idle state handler, which decides whether it sees the
- * reads of a body an entity body size validator is holding back.
+ * Verifies that {@link Util#addIdleStateHandler} places the idle state handler directly after the HTTP codec, so that
+ * handlers holding reads back, such as the entity body size validators, cannot hide a message's progress from it.
  */
 public class IdleStateHandlerPlacementTest {
 
     private static final String CONSUMER = "consumer";
 
-    @Test(description = "The idle state handler goes in front of an engaged entity body size validator")
-    public void testPlacedBeforeEntityBodySizeValidator() {
+    @DataProvider
+    public Object[][] codecNames() {
+        return new Object[][]{{Constants.HTTP_CLIENT_CODEC}, {Constants.HTTP_DECODER}, {Constants.HTTP_SERVER_CODEC}};
+    }
+
+    @Test(dataProvider = "codecNames", description = "The idle state handler goes directly after the HTTP codec")
+    public void testPlacedAfterCodec(String codecName) {
         EmbeddedChannel channel = new EmbeddedChannel();
+        channel.pipeline().addLast(codecName, new ChannelInboundHandlerAdapter());
         channel.pipeline().addLast(Constants.MAX_ENTITY_BODY_VALIDATION_HANDLER,
                                    new ResponseEntityBodySizeValidator(1024));
         channel.pipeline().addLast(CONSUMER, new ChannelInboundHandlerAdapter());
 
         Util.addIdleStateHandler(channel.pipeline(), CONSUMER, idleStateHandler());
 
-        assertEquals(handlerNames(channel), List.of(Constants.IDLE_STATE_HANDLER,
+        assertEquals(handlerNames(channel), List.of(codecName, Constants.IDLE_STATE_HANDLER,
                                                     Constants.MAX_ENTITY_BODY_VALIDATION_HANDLER, CONSUMER));
         channel.finishAndReleaseAll();
     }
 
-    @Test(description = "Without a validator the idle state handler goes directly in front of the consumer")
-    public void testPlacedBeforeConsumerWithoutValidator() {
+    @Test(description = "Without an HTTP codec the idle state handler goes directly in front of the consumer")
+    public void testPlacedBeforeConsumerWithoutCodec() {
         EmbeddedChannel channel = new EmbeddedChannel();
         channel.pipeline().addLast("other", new ChannelInboundHandlerAdapter());
         channel.pipeline().addLast(CONSUMER, new ChannelInboundHandlerAdapter());
@@ -63,8 +70,8 @@ public class IdleStateHandlerPlacementTest {
         channel.finishAndReleaseAll();
     }
 
-    @Test(description = "Without the consumer in the pipeline the idle state handler is added last")
-    public void testAddedLastWithoutConsumer() {
+    @Test(description = "Without an HTTP codec or the consumer the idle state handler is added last")
+    public void testAddedLastWithoutCodecOrConsumer() {
         EmbeddedChannel channel = new EmbeddedChannel();
         channel.pipeline().addLast("other", new ChannelInboundHandlerAdapter());
 
