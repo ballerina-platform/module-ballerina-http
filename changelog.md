@@ -30,6 +30,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Fix the HTTP client applying `maxEntityBodySize` to the total of all the responses received on a reused connection instead of to each response](https://github.com/ballerina-platform/ballerina-library/issues/9207)
 - [Fix the HTTP listener applying `maxEntityBodySize` to the total of all the requests received on a keep-alive connection instead of to each request](https://github.com/ballerina-platform/ballerina-library/issues/9208)
 - [Fix the idle timeout firing on a message whose body is still arriving when `maxEntityBodySize` is set](https://github.com/ballerina-platform/ballerina-library/issues/9209)
+- Fix a malformed message, or a request with `Expect: 100-continue`, waiting until the idle timeout when `maxEntityBodySize` is set, and the listener closing a request that times out mid-body without a `408` response when the limit is set
 
 ## [2.17.0] - 2026-08-04
 

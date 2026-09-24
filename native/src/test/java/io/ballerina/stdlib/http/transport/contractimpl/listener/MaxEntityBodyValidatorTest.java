@@ -22,6 +22,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.embedded.EmbeddedChannel;
+import io.netty.handler.codec.DecoderResult;
 import io.netty.handler.codec.http.DefaultHttpContent;
 import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
@@ -32,6 +33,7 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.ReferenceCountUtil;
 import org.testng.annotations.Test;
 
@@ -119,6 +121,92 @@ public class MaxEntityBodyValidatorTest {
         channel.finishAndReleaseAll();
     }
 
+    @Test(description = "A malformed request, which no body follows, is passed on as soon as it arrives")
+    public void testMalformedRequestIsPassedOn() {
+        RecordingHandler recorder = new RecordingHandler();
+        EmbeddedChannel channel = newChannel(recorder);
+        HttpRequest malformed = chunkedRequest();
+        malformed.setDecoderResult(DecoderResult.failure(new IllegalArgumentException("invalid header")));
+
+        channel.writeInbound(malformed);
+
+        assertEquals(recorder.messages, List.of(malformed), "The malformed request was held back");
+        channel.finishAndReleaseAll();
+    }
+
+    @Test(description = "A 100-continue request is passed on as it arrives, since its body waits for the service")
+    public void testContinueRequestIsPassedOnAsItArrives() {
+        RecordingHandler recorder = new RecordingHandler();
+        EmbeddedChannel channel = newChannel(recorder);
+        HttpRequest request = continueRequest();
+        HttpContent piece = content(600);
+
+        channel.writeInbound(request);
+        assertEquals(recorder.messages, List.of(request), "The 100-continue request was held back");
+        channel.writeInbound(piece);
+        assertEquals(recorder.messages, List.of(request, piece), "A body piece of the request was held back");
+
+        assertTrue(channel.outboundMessages().isEmpty(), "An under-limit request was rejected");
+        recorder.releaseAll();
+        channel.finishAndReleaseAll();
+    }
+
+    @Test(description = "A 100-continue request whose body crosses the limit is still rejected with 413")
+    public void testContinueRequestCrossingLimitSendsEntityTooLarge() {
+        RecordingHandler recorder = new RecordingHandler();
+        EmbeddedChannel channel = newChannel(recorder);
+        HttpContent crossingPiece = content(600);
+
+        channel.writeInbound(continueRequest(), content(600), crossingPiece);
+
+        HttpResponse response = channel.readOutbound();
+        assertEquals(response.status(), HttpResponseStatus.REQUEST_ENTITY_TOO_LARGE);
+        assertEquals(crossingPiece.refCnt(), 0, "The rejected piece was not released");
+        assertEquals(recorder.messages.size(), 2, "Only the pieces within the limit should have been passed on");
+        recorder.releaseAll();
+        channel.finishAndReleaseAll();
+    }
+
+    @Test(description = "An idle timeout while a request is held hands the request over before the timeout event")
+    public void testIdleTimeoutHandsHeldRequestOver() {
+        RecordingHandler recorder = new RecordingHandler();
+        EmbeddedChannel channel = newChannel(recorder);
+        HttpRequest request = chunkedRequest();
+        HttpContent piece = content(400);
+        HttpContent laterPiece = content(100);
+
+        channel.writeInbound(request, piece);
+        channel.pipeline().fireUserEventTriggered(IdleStateEvent.ALL_IDLE_STATE_EVENT);
+        channel.writeInbound(laterPiece);
+
+        assertEquals(recorder.messages, List.of(request, piece, IdleStateEvent.ALL_IDLE_STATE_EVENT, laterPiece));
+        recorder.releaseAll();
+        channel.finishAndReleaseAll();
+    }
+
+    @Test(description = "An idle timeout with no request held is passed on untouched")
+    public void testIdleTimeoutWithoutHeldRequestIsPassedOn() {
+        RecordingHandler recorder = new RecordingHandler();
+        EmbeddedChannel channel = newChannel(recorder);
+
+        channel.pipeline().fireUserEventTriggered(IdleStateEvent.ALL_IDLE_STATE_EVENT);
+
+        assertEquals(recorder.messages, List.of(IdleStateEvent.ALL_IDLE_STATE_EVENT));
+        channel.finishAndReleaseAll();
+    }
+
+    @Test(description = "Pieces buffered when the connection closes mid-body are released")
+    public void testBufferedContentIsReleasedOnClose() {
+        EmbeddedChannel channel = new EmbeddedChannel(new MaxEntityBodyValidator("test-server", MAX_ENTITY_BODY_SIZE));
+        List<HttpContent> pieces = List.of(content(400), content(400));
+
+        channel.writeInbound(chunkedRequest(), pieces.get(0), pieces.get(1));
+        channel.close();
+
+        pieces.forEach(piece -> assertEquals(piece.refCnt(), 0, "Buffered piece was not released"));
+        channel.finishAndReleaseAll();
+    }
+
     private static EmbeddedChannel newChannel(RecordingHandler recorder) {
         return new EmbeddedChannel(new MaxEntityBodyValidator("test-server", MAX_ENTITY_BODY_SIZE), recorder);
     }
@@ -126,6 +214,12 @@ public class MaxEntityBodyValidatorTest {
     private static HttpRequest chunkedRequest() {
         HttpRequest request = new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, "/");
         request.headers().set(HttpHeaderNames.TRANSFER_ENCODING, "chunked");
+        return request;
+    }
+
+    private static HttpRequest continueRequest() {
+        HttpRequest request = chunkedRequest();
+        request.headers().set(HttpHeaderNames.EXPECT, "100-continue");
         return request;
     }
 
@@ -140,6 +234,11 @@ public class MaxEntityBodyValidatorTest {
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) {
             messages.add(msg);
+        }
+
+        @Override
+        public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
+            messages.add(evt);
         }
 
         void releaseAll() {

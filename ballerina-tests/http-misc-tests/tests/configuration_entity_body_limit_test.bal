@@ -38,6 +38,16 @@ service /entityBodyLimit on entityBodyLimitBackendEP {
     resource function get [int size]() returns string => getStringLengthOf(size);
 }
 
+listener http:Listener entityBodyLimitShortTimeoutEP = new (requestLimitsTestPort8, httpVersion = http:HTTP_1_1,
+    timeout = 1, requestLimits = {maxEntityBodySize: 1000});
+
+listener http:Listener noEntityBodyLimitShortTimeoutEP = new (requestLimitsTestPort9, httpVersion = http:HTTP_1_1,
+    timeout = 1);
+
+service /entityBodyLimit on entityBodyLimitShortTimeoutEP, noEntityBodyLimitShortTimeoutEP {
+    resource function post .(@http:Payload string payload) returns int => payload.length();
+}
+
 service /entityBodyLimit on entityBodyLimitListenerEP {
     resource function post .(@http:Payload string payload) returns int => payload.length();
 }
@@ -98,6 +108,23 @@ function testEntityBodyLimitAppliesToEachRequestOnKeepAliveConnection() returns 
     }
 }
 
+@test:Config {}
+function testIdleTimeoutMidRequestIsAnsweredTheSameWithEntityBodyLimit() returns error? {
+    string partialRequest = "POST /entityBodyLimit HTTP/1.1\r\nHost: localhost\r\nTransfer-Encoding: chunked\r\n\r\n"
+        + "5\r\nhello\r\n";
+    string limited = check sendRawRequest(requestLimitsTestPort8, partialRequest);
+    string unlimited = check sendRawRequest(requestLimitsTestPort9, partialRequest);
+    test:assertEquals(limited, unlimited);
+}
+
+@test:Config {}
+function testMalformedRequestIsAnsweredTheSameWithEntityBodyLimit() returns error? {
+    string malformedRequest = "POST /entityBodyLimit HTTP/1.1\r\nHost: localhost\r\nContent-Length: abc\r\n\r\n";
+    string limited = check sendRawRequest(requestLimitsTestPort8, malformedRequest);
+    string unlimited = check sendRawRequest(requestLimitsTestPort9, malformedRequest);
+    test:assertEquals(limited, unlimited);
+}
+
 function getOutcome(http:Client clientEP, string path) returns string|error {
     http:Response|error response = clientEP->get(path);
     if response is error {
@@ -106,6 +133,10 @@ function getOutcome(http:Client clientEP, string path) returns string|error {
     string|error payload = response.getTextPayload();
     return response.statusCode.toString() + " " + (payload is error ? payload.message() : payload);
 }
+
+function sendRawRequest(int port, string rawRequest) returns string|error = @java:Method {
+    'class: "io.ballerina.stdlib.http.testutils.ExternRawRequestTestUtil"
+} external;
 
 function startChunkedResponseServer(int port) returns error? = @java:Method {
     'class: "io.ballerina.stdlib.http.testutils.ExternChunkedResponseTestUtil"
