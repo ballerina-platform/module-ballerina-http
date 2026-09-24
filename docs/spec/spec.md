@@ -1671,6 +1671,13 @@ string response = check httpClient->/addPerson.post(payload, profession = "chemi
 The `http:QueryParams` type represents a collection of query parameters and is defined as follows.
 
 ```ballerina
+// Defines the possible simple query parameter types.
+public type SimpleQueryParamType boolean|int|float|decimal|string;
+
+// Defines the possible query parameter types.
+public type QueryParamType SimpleQueryParamType[]|SimpleQueryParamType;
+
+// Defines the record type for query parameters.
 public type QueryParams record {|
     never headers?;
     never targetType?;
@@ -1691,6 +1698,16 @@ http:QueryParams queries = {
 string resp = check httpClient->/date(params = queries);
 // Same as the following :
 // string response = check httpClient->get("/date?id=123&profession=chemist");
+```
+
+Query parameters can also be passed inline if the value is structurally compatible with `http:QueryParams`.
+
+```ballerina
+// Passing multiple query parameters as an inline value.
+string resp = check httpClient->/date(params = {
+    id: 123,
+    profession: "chemist"
+});
 ```
 
 * Header parameter
