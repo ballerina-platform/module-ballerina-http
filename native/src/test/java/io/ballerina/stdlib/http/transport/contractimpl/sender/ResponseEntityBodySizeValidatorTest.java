@@ -177,6 +177,21 @@ public class ResponseEntityBodySizeValidatorTest {
         channel.finishAndReleaseAll();
     }
 
+    @Test(description = "A content length that cannot be parsed leaves the body itself to be checked against the limit")
+    public void testUnparsableContentLengthIsNotRejectedOnHeaders() {
+        RecordingHandler recorder = new RecordingHandler();
+        EmbeddedChannel channel = new EmbeddedChannel(new ResponseEntityBodySizeValidator(MAX_ENTITY_BODY_SIZE),
+                                                      recorder);
+        HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+        response.headers().set(HttpHeaderNames.CONTENT_LENGTH, "abc");
+
+        channel.writeInbound(response, content(100), new DefaultLastHttpContent());
+
+        assertEquals(recorder.messages.size(), 3, "The response should have been passed on in full");
+        recorder.releaseAll();
+        channel.finishAndReleaseAll();
+    }
+
     private static HttpResponse chunkedResponse() {
         HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
         response.headers().set(HttpHeaderNames.TRANSFER_ENCODING, "chunked");

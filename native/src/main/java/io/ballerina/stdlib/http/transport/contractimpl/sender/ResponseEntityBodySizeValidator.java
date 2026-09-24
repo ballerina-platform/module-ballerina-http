@@ -18,95 +18,23 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.sender;
 
+import io.ballerina.stdlib.http.transport.contractimpl.common.EntityBodySizeValidator;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.HttpMessage;
-import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.HttpUtil;
-import io.netty.handler.codec.http.LastHttpContent;
-import io.netty.util.ReferenceCountUtil;
-
-import java.util.LinkedList;
 
 /**
  * Responsible for validating response entity body size before sending it to the application. If the validation fails,
  * throws an exception to be handled by the targetHandler for downstream notification through respective response
  * state.
  */
-public class ResponseEntityBodySizeValidator extends ChannelInboundHandlerAdapter {
-
-    private long maxEntityBodySize;
-    private long currentSize;
-    private HttpResponse inboundResponse;
-    private LinkedList<HttpContent> fullContent;
+public class ResponseEntityBodySizeValidator extends EntityBodySizeValidator {
 
     public ResponseEntityBodySizeValidator(long maxEntityBodySize) {
-        this.maxEntityBodySize = maxEntityBodySize;
-        this.fullContent = new LinkedList<>();
+        super(maxEntityBodySize);
     }
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        if (!ctx.channel().isActive()) {
-            ReferenceCountUtil.release(msg);
-            return;
-        }
-        if (msg instanceof HttpResponse) {
-            // The handler lives as long as the connection, so a reused connection must not carry the previous
-            // response's body over into this one's limit.
-            releaseBufferedContent();
-            this.currentSize = 0;
-            inboundResponse = (HttpResponse) msg;
-            if (isContentLengthInvalid(inboundResponse, maxEntityBodySize)) {
-                throw entityBodyTooLargeError();
-            }
-            if (inboundResponse.decoderResult().isFailure()) {
-                // The decoder drops everything after a malformed response, so no body will follow to wait for.
-                super.channelRead(ctx, msg);
-                return;
-            }
-            ctx.channel().read();
-        } else {
-            HttpContent inboundContent = (HttpContent) msg;
-            this.currentSize += inboundContent.content().readableBytes();
-            this.fullContent.add(inboundContent);
-            if (this.currentSize > maxEntityBodySize) {
-                releaseBufferedContent();
-                throw entityBodyTooLargeError();
-            } else if (msg instanceof LastHttpContent) {
-                super.channelRead(ctx, this.inboundResponse);
-                while (!this.fullContent.isEmpty()) {
-                    super.channelRead(ctx, this.fullContent.pop());
-                }
-            } else {
-                ctx.channel().read();
-            }
-        }
-    }
-
-    @Override
-    public void handlerRemoved(ChannelHandlerContext ctx) {
-        releaseBufferedContent();
-    }
-
-    private IllegalStateException entityBodyTooLargeError() {
-        return new IllegalStateException("Response max entity body size exceeds: Entity body is larger than "
+    protected void onLimitExceeded(ChannelHandlerContext ctx) {
+        throw new IllegalStateException("Response max entity body size exceeds: Entity body is larger than "
                                            + this.maxEntityBodySize + " bytes. ");
-    }
-
-    private void releaseBufferedContent() {
-        HttpContent httpContent;
-        while ((httpContent = this.fullContent.poll()) != null) {
-            httpContent.release();
-        }
-    }
-
-    private boolean isContentLengthInvalid(HttpMessage start, long maxContentLength) {
-        try {
-            return HttpUtil.getContentLength(start, -1L) > maxContentLength;
-        } catch (NumberFormatException var4) {
-            return false;
-        }
     }
 }
