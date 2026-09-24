@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_BEFORE_READING_100_CONTINUE_RESPONSE;
+import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.addIdleStateHandler;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.safelyRemoveHandlers;
 
 /**
@@ -70,11 +71,7 @@ public class Sending100Continue implements SenderState {
         IdleStateHandler idleStateHandler =
                 new BackPressureAwareIdleStateHandler(socketIdleTimeout, TimeUnit.MILLISECONDS);
         safelyRemoveHandlers(pipeline, Constants.IDLE_STATE_HANDLER);
-        if (pipeline.get(Constants.TARGET_HANDLER) == null) {
-            pipeline.addLast(Constants.IDLE_STATE_HANDLER, idleStateHandler);
-        } else {
-            pipeline.addBefore(Constants.TARGET_HANDLER, Constants.IDLE_STATE_HANDLER, idleStateHandler);
-        }
+        addIdleStateHandler(pipeline, Constants.TARGET_HANDLER, idleStateHandler);
     }
 
     @Override

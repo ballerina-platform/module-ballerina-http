@@ -27,7 +27,7 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.LastHttpContent;
-import io.netty.util.ReferenceCounted;
+import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,29 +54,34 @@ public class MaxEntityBodyValidator extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        if (ctx.channel().isActive()) {
-            if (msg instanceof HttpRequest) {
-                inboundRequest = (HttpRequest) msg;
-                if (isContentLengthInvalid(inboundRequest, maxEntityBodySize)) {
-                    sendEntityTooLargeResponse(ctx);
+        if (!ctx.channel().isActive()) {
+            ReferenceCountUtil.release(msg);
+            return;
+        }
+        if (msg instanceof HttpRequest) {
+            // The handler lives as long as the connection, so a keep-alive connection must not carry the previous
+            // request's body over into this one's limit.
+            releaseBufferedContent();
+            this.currentSize = 0;
+            inboundRequest = (HttpRequest) msg;
+            if (isContentLengthInvalid(inboundRequest, maxEntityBodySize)) {
+                sendEntityTooLargeResponse(ctx);
+                return;
+            }
+            ctx.channel().read();
+        } else {
+            HttpContent inboundContent = (HttpContent) msg;
+            this.currentSize += inboundContent.content().readableBytes();
+            this.fullContent.add(inboundContent);
+            if (this.currentSize > maxEntityBodySize) {
+                sendEntityTooLargeResponse(ctx);
+            } else if (msg instanceof LastHttpContent) {
+                super.channelRead(ctx, this.inboundRequest);
+                while (!this.fullContent.isEmpty()) {
+                    super.channelRead(ctx, this.fullContent.pop());
                 }
-                ctx.channel().read();
             } else {
-                HttpContent inboundContent = (HttpContent) msg;
-                this.currentSize += inboundContent.content().readableBytes();
-                this.fullContent.add(inboundContent);
-                if (this.currentSize > maxEntityBodySize) {
-                    sendEntityTooLargeResponse(ctx);
-                } else {
-                    if (msg instanceof LastHttpContent) {
-                        super.channelRead(ctx, this.inboundRequest);
-                        while (!this.fullContent.isEmpty()) {
-                            super.channelRead(ctx, this.fullContent.pop());
-                        }
-                    } else {
-                        ctx.channel().read();
-                    }
-                }
+                ctx.channel().read();
             }
         }
     }
@@ -84,11 +89,15 @@ public class MaxEntityBodyValidator extends ChannelInboundHandlerAdapter {
     private void sendEntityTooLargeResponse(ChannelHandlerContext ctx) {
         Util.sendAndCloseNoEntityBodyResp(ctx, HttpResponseStatus.REQUEST_ENTITY_TOO_LARGE,
                 inboundRequest.protocolVersion(), this.serverName);
-
-        this.fullContent.forEach(ReferenceCounted::release);
-        this.fullContent.forEach(httpContent -> this.fullContent.remove(httpContent));
-
+        releaseBufferedContent();
         LOG.warn("Inbound request payload size exceeds the max entity body allowed for a request");
+    }
+
+    private void releaseBufferedContent() {
+        HttpContent httpContent;
+        while ((httpContent = this.fullContent.poll()) != null) {
+            httpContent.release();
+        }
     }
 
     private boolean isContentLengthInvalid(HttpMessage start, long maxContentLength) {

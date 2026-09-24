@@ -81,6 +81,7 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.AsciiString;
 import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
@@ -125,6 +126,7 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_HOST;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_PORT;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_SCHEME;
 import static io.ballerina.stdlib.http.transport.contract.Constants.IS_PROXY_ENABLED;
+import static io.ballerina.stdlib.http.transport.contract.Constants.MAX_ENTITY_BODY_VALIDATION_HANDLER;
 import static io.ballerina.stdlib.http.transport.contract.Constants.MUTUAL_SSL_DISABLED;
 import static io.ballerina.stdlib.http.transport.contract.Constants.MUTUAL_SSL_FAILED;
 import static io.ballerina.stdlib.http.transport.contract.Constants.MUTUAL_SSL_HANDSHAKE_RESULT;
@@ -838,6 +840,26 @@ public class Util {
     public static HttpCarbonMessage createHTTPCarbonMessage(HttpMessage httpMessage, ChannelHandlerContext ctx) {
         Listener contentListener = new DefaultListener(ctx);
         return new HttpCarbonMessage(httpMessage, contentListener);
+    }
+
+    /**
+     * Adds the idle state handler in front of the handler that consumes the inbound message. When an entity body
+     * size validator is engaged, the idle state handler goes in front of it instead, since the validator holds back
+     * every read until the whole message has arrived and would otherwise hide the body's progress from the timer.
+     *
+     * @param pipeline         the channel pipeline
+     * @param consumerName     name of the handler that consumes the inbound message
+     * @param idleStateHandler the idle state handler to add
+     */
+    public static void addIdleStateHandler(ChannelPipeline pipeline, String consumerName,
+                                           IdleStateHandler idleStateHandler) {
+        if (pipeline.get(consumerName) == null) {
+            pipeline.addLast(Constants.IDLE_STATE_HANDLER, idleStateHandler);
+        } else if (pipeline.get(MAX_ENTITY_BODY_VALIDATION_HANDLER) != null) {
+            pipeline.addBefore(MAX_ENTITY_BODY_VALIDATION_HANDLER, Constants.IDLE_STATE_HANDLER, idleStateHandler);
+        } else {
+            pipeline.addBefore(consumerName, Constants.IDLE_STATE_HANDLER, idleStateHandler);
+        }
     }
 
     /**

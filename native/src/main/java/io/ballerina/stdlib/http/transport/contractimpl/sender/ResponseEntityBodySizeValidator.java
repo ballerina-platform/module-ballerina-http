@@ -25,7 +25,7 @@ import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.LastHttpContent;
-import io.netty.util.ReferenceCounted;
+import io.netty.util.ReferenceCountUtil;
 
 import java.util.LinkedList;
 
@@ -48,39 +48,48 @@ public class ResponseEntityBodySizeValidator extends ChannelInboundHandlerAdapte
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        if (ctx.channel().isActive()) {
-            if (msg instanceof HttpResponse) {
-                inboundResponse = (HttpResponse) msg;
-                if (isContentLengthInvalid(inboundResponse, maxEntityBodySize)) {
-                    releaseContentAndNotifyError();
-                    return;
+        if (!ctx.channel().isActive()) {
+            ReferenceCountUtil.release(msg);
+            return;
+        }
+        if (msg instanceof HttpResponse) {
+            // The handler lives as long as the connection, so a reused connection must not carry the previous
+            // response's body over into this one's limit.
+            releaseBufferedContent();
+            this.currentSize = 0;
+            inboundResponse = (HttpResponse) msg;
+            if (isContentLengthInvalid(inboundResponse, maxEntityBodySize)) {
+                throw entityBodyTooLargeError();
+            }
+            ctx.channel().read();
+        } else {
+            HttpContent inboundContent = (HttpContent) msg;
+            this.currentSize += inboundContent.content().readableBytes();
+            this.fullContent.add(inboundContent);
+            if (this.currentSize > maxEntityBodySize) {
+                releaseBufferedContent();
+                throw entityBodyTooLargeError();
+            } else if (msg instanceof LastHttpContent) {
+                super.channelRead(ctx, this.inboundResponse);
+                while (!this.fullContent.isEmpty()) {
+                    super.channelRead(ctx, this.fullContent.pop());
                 }
-                ctx.channel().read();
             } else {
-                HttpContent inboundContent = (HttpContent) msg;
-                this.currentSize += inboundContent.content().readableBytes();
-                this.fullContent.add(inboundContent);
-                if (this.currentSize > maxEntityBodySize) {
-                    releaseContentAndNotifyError();
-                } else {
-                    if (msg instanceof LastHttpContent) {
-                        super.channelRead(ctx, this.inboundResponse);
-                        while (!this.fullContent.isEmpty()) {
-                            super.channelRead(ctx, this.fullContent.pop());
-                        }
-                    } else {
-                        ctx.channel().read();
-                    }
-                }
+                ctx.channel().read();
             }
         }
     }
 
-    private void releaseContentAndNotifyError() {
-        this.fullContent.forEach(ReferenceCounted::release);
-        this.fullContent.forEach(httpContent -> this.fullContent.remove(httpContent));
-        throw new IllegalStateException("Response max entity body size exceeds: Entity body is larger than "
+    private IllegalStateException entityBodyTooLargeError() {
+        return new IllegalStateException("Response max entity body size exceeds: Entity body is larger than "
                                            + this.maxEntityBodySize + " bytes. ");
+    }
+
+    private void releaseBufferedContent() {
+        HttpContent httpContent;
+        while ((httpContent = this.fullContent.poll()) != null) {
+            httpContent.release();
+        }
     }
 
     private boolean isContentLengthInvalid(HttpMessage start, long maxContentLength) {

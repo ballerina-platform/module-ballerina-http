@@ -1,0 +1,149 @@
+/*
+ * Copyright (c) 2026, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+package io.ballerina.stdlib.http.transport.contractimpl.listener;
+
+import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.embedded.EmbeddedChannel;
+import io.netty.handler.codec.http.DefaultHttpContent;
+import io.netty.handler.codec.http.DefaultHttpRequest;
+import io.netty.handler.codec.http.DefaultLastHttpContent;
+import io.netty.handler.codec.http.HttpContent;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpVersion;
+import io.netty.util.ReferenceCountUtil;
+import org.testng.annotations.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+
+/**
+ * Verifies that {@link MaxEntityBodyValidator} applies its limit to each request on its own, so a keep-alive
+ * connection does not turn it into a budget shared by every request sent on it.
+ */
+public class MaxEntityBodyValidatorTest {
+
+    private static final long MAX_ENTITY_BODY_SIZE = 1000;
+
+    @Test(description = "Requests on a keep-alive connection are each checked against the limit on their own")
+    public void testLimitIsNotCarriedOverToNextRequestOnSameConnection() {
+        RecordingHandler recorder = new RecordingHandler();
+        EmbeddedChannel channel = newChannel(recorder);
+
+        for (int i = 0; i < 5; i++) {
+            channel.writeInbound(chunkedRequest(), content(231), new DefaultLastHttpContent());
+        }
+
+        assertEquals(recorder.messages.size(), 15, "Every request should have been passed on in full");
+        assertTrue(channel.outboundMessages().isEmpty(), "An under-limit request was rejected");
+        recorder.releaseAll();
+        channel.finishAndReleaseAll();
+    }
+
+    @Test(description = "Crossing the limit with three or more buffered pieces sends 413 and releases them")
+    public void testOverflowWithManyBufferedPiecesSendsEntityTooLarge() {
+        RecordingHandler recorder = new RecordingHandler();
+        EmbeddedChannel channel = newChannel(recorder);
+        List<HttpContent> pieces = List.of(content(400), content(400), content(400));
+
+        channel.writeInbound(chunkedRequest());
+        pieces.forEach(channel::writeInbound);
+        channel.checkException();
+
+        HttpResponse response = channel.readOutbound();
+        assertEquals(response.status(), HttpResponseStatus.REQUEST_ENTITY_TOO_LARGE);
+        pieces.forEach(piece -> assertEquals(piece.refCnt(), 0, "Buffered piece was not released"));
+        assertTrue(recorder.messages.isEmpty(), "A rejected request reached the source handler");
+        channel.finishAndReleaseAll();
+    }
+
+    @Test(description = "A request declaring a body over the limit is rejected without reading its body")
+    public void testOversizedContentLengthSendsEntityTooLarge() {
+        RecordingHandler recorder = new RecordingHandler();
+        EmbeddedChannel channel = newChannel(recorder);
+        HttpRequest request = new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, "/");
+        request.headers().set(HttpHeaderNames.CONTENT_LENGTH, 1001);
+
+        channel.writeInbound(request);
+
+        HttpResponse response = channel.readOutbound();
+        assertEquals(response.status(), HttpResponseStatus.REQUEST_ENTITY_TOO_LARGE);
+        assertTrue(recorder.messages.isEmpty(), "A rejected request reached the source handler");
+        channel.finishAndReleaseAll();
+    }
+
+    @Test(description = "A message read after the connection went inactive is released rather than leaked")
+    public void testMessageOnInactiveChannelIsReleased() {
+        RecordingHandler recorder = new RecordingHandler();
+        AtomicBoolean active = new AtomicBoolean(true);
+        EmbeddedChannel channel = new EmbeddedChannel(new MaxEntityBodyValidator("test-server", MAX_ENTITY_BODY_SIZE),
+                                                      recorder) {
+            @Override
+            public boolean isActive() {
+                return active.get() && super.isActive();
+            }
+        };
+        HttpContent content = content(100);
+
+        channel.writeInbound(chunkedRequest());
+        active.set(false);
+        channel.writeInbound(content);
+
+        assertEquals(content.refCnt(), 0, "Content read on an inactive channel was not released");
+        assertTrue(recorder.messages.isEmpty(), "Content read on an inactive channel was passed on");
+        channel.finishAndReleaseAll();
+    }
+
+    private static EmbeddedChannel newChannel(RecordingHandler recorder) {
+        return new EmbeddedChannel(new MaxEntityBodyValidator("test-server", MAX_ENTITY_BODY_SIZE), recorder);
+    }
+
+    private static HttpRequest chunkedRequest() {
+        HttpRequest request = new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, "/");
+        request.headers().set(HttpHeaderNames.TRANSFER_ENCODING, "chunked");
+        return request;
+    }
+
+    private static HttpContent content(int size) {
+        return new DefaultHttpContent(Unpooled.wrappedBuffer(new byte[size]));
+    }
+
+    private static final class RecordingHandler extends ChannelInboundHandlerAdapter {
+
+        private final List<Object> messages = new ArrayList<>();
+
+        @Override
+        public void channelRead(ChannelHandlerContext ctx, Object msg) {
+            messages.add(msg);
+        }
+
+        void releaseAll() {
+            messages.forEach(ReferenceCountUtil::release);
+        }
+    }
+}

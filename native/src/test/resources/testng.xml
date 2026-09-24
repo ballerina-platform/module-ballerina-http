@@ -244,6 +244,10 @@
             <class name="io.ballerina.stdlib.http.transport.contractimpl.common.certificatevalidation.cache.CacheControllerTest"/>
             <class name="io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ClientTimeoutHandlerConcurrentStreamTest"/>
             <class name="io.ballerina.stdlib.http.transport.contractimpl.common.BackPressureAwareIdleStateHandlerTest"/>
+            <class name="io.ballerina.stdlib.http.transport.contractimpl.common.IdleStateHandlerPlacementTest"/>
+            <class name="io.ballerina.stdlib.http.transport.contractimpl.sender.ResponseEntityBodySizeValidatorTest"/>
+            <class name="io.ballerina.stdlib.http.transport.contractimpl.listener.MaxEntityBodyValidatorTest"/>
+            <class name="io.ballerina.stdlib.http.transport.contractimpl.sender.states.SenderIdleStateHandlerPlacementTest"/>
             <class name="io.ballerina.stdlib.http.transport.message.PassthroughBackPressureListenerTest"/>
         </classes>
     </test>
