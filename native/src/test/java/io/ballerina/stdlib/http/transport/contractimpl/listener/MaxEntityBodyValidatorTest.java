@@ -216,6 +216,20 @@ public class MaxEntityBodyValidatorTest {
         channel.finishAndReleaseAll();
     }
 
+    @Test(description = "A body crossing the limit while an earlier request is unanswered closes without a 413")
+    public void testCrossingLimitBehindUnansweredRequestClosesWithoutEntityTooLarge() {
+        RecordingHandler recorder = new RecordingHandler();
+        EmbeddedChannel channel = newChannel(recorder);
+
+        channel.writeInbound(chunkedRequest(), content(100), new DefaultLastHttpContent());
+        channel.writeInbound(chunkedRequest(), content(600), content(600));
+
+        assertTrue(channel.outboundMessages().isEmpty(), "A 413 was sent ahead of the earlier request's response");
+        assertFalse(channel.isOpen(), "The connection was left open after the body crossed the limit");
+        recorder.releaseAll();
+        channel.finishAndReleaseAll();
+    }
+
     @Test(description = "An idle timeout while a request is held hands the request over before the timeout event")
     public void testIdleTimeoutHandsHeldRequestOver() {
         RecordingHandler recorder = new RecordingHandler();

@@ -84,8 +84,8 @@ public class MaxEntityBodyValidator extends EntityBodySizeValidator {
     @Override
     protected void onLimitExceeded(ChannelHandlerContext ctx) {
         LOG.warn("Inbound request payload size exceeds the max entity body allowed for a request");
-        if (this.responsesStarted >= this.requestsReceived) {
-            // A 413 after the service's response would be read by the client as the response to its next request.
+        if (this.responsesStarted != this.requestsReceived - 1) {
+            // Unless this is the only request left unanswered, the client would take a 413 for another's response.
             ctx.channel().close();
             return;
         }

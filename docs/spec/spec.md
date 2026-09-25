@@ -298,7 +298,7 @@ When the limit is set, a request is not dispatched to the service until its whol
 - A request whose `Content-Length` header is over the limit gets a `413 - Payload Too Large` response without its body being read.
 - A request whose body goes over the limit as it arrives, such as a chunked request, gets a `413 - Payload Too Large` response.
 
-In both cases the connection is closed after the response. The idle `timeout` of the listener keeps applying while the body arrives, and each part of the body that is read counts as activity. A request that stays idle before its body is complete is answered with a `408 - Request Timeout` response, as it is without the limit.
+In both cases the connection is closed after the response. If an earlier request on the connection has not been answered yet, the connection is closed without the `413 - Payload Too Large` response, which the client would otherwise take as the response to that earlier request. The idle `timeout` of the listener keeps applying while the body arrives, and each part of the body that is read counts as activity. A request that stays idle before its body is complete is answered with a `408 - Request Timeout` response, as it is without the limit.
 
 A request with an `Expect: 100-continue` header and no `Content-Length` over the limit is dispatched as soon as its headers arrive, since the client sends the body only after the service answers. Its body is counted as the service reads it, and the connection is closed once the body goes over the limit. The `413 - Payload Too Large` response is sent only if the service has not already responded to the request.
 
