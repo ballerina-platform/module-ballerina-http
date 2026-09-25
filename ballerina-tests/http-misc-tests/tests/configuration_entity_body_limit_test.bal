@@ -36,6 +36,8 @@ listener http:Listener entityBodyLimitListenerEP = new (requestLimitsTestPort7, 
 
 service /entityBodyLimit on entityBodyLimitBackendEP {
     resource function get [int size]() returns string => getStringLengthOf(size);
+
+    resource function head [int size]() returns string => getStringLengthOf(size);
 }
 
 listener http:Listener entityBodyLimitShortTimeoutEP = new (requestLimitsTestPort8, httpVersion = http:HTTP_1_1,
@@ -109,6 +111,13 @@ function testEntityBodyLimitAppliesToEachResponseOnReusedConnection() returns er
     test:assertEquals(first.length(), 900);
     string second = check entityBodyLimitKeepAliveClient->get("/entityBodyLimit/200");
     test:assertEquals(second.length(), 200);
+}
+
+@test:Config {}
+function testHeadResponseDeclaringBodyOverLimitIsAccepted() returns error? {
+    http:Response response = check entityBodyLimitKeepAliveClient->head("/entityBodyLimit/2048");
+    test:assertEquals(response.statusCode, 200);
+    test:assertEquals(response.getHeader("content-length"), "2048");
 }
 
 @test:Config {}

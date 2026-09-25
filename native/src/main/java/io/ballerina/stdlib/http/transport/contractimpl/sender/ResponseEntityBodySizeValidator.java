@@ -20,6 +20,16 @@ package io.ballerina.stdlib.http.transport.contractimpl.sender;
 
 import io.ballerina.stdlib.http.transport.contractimpl.common.EntityBodySizeValidator;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPromise;
+import io.netty.handler.codec.http.HttpMessage;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpStatusClass;
+
+import java.util.ArrayDeque;
+import java.util.Queue;
 
 /**
  * Responsible for validating response entity body size before sending it to the application. If the validation fails,
@@ -28,8 +38,30 @@ import io.netty.channel.ChannelHandlerContext;
  */
 public class ResponseEntityBodySizeValidator extends EntityBodySizeValidator {
 
+    private final Queue<HttpMethod> requestMethods = new ArrayDeque<>();
+
     public ResponseEntityBodySizeValidator(long maxEntityBodySize) {
         super(maxEntityBodySize);
+    }
+
+    @Override
+    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
+        if (msg instanceof HttpRequest request) {
+            this.requestMethods.add(request.method());
+        }
+        ctx.write(msg, promise);
+    }
+
+    @Override
+    protected boolean mayHaveBody(HttpMessage message) {
+        // Mirrors HttpClientCodec, which decodes these responses without a body whatever their Content-Length.
+        HttpResponseStatus status = ((HttpResponse) message).status();
+        if (status.codeClass() == HttpStatusClass.INFORMATIONAL) {
+            return false;
+        }
+        HttpMethod method = this.requestMethods.poll();
+        return !HttpMethod.HEAD.equals(method) && status.code() != HttpResponseStatus.NO_CONTENT.code()
+                && status.code() != HttpResponseStatus.NOT_MODIFIED.code();
     }
 
     @Override

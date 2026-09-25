@@ -24,14 +24,19 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.handler.codec.DecoderResult;
 import io.netty.handler.codec.http.DefaultHttpContent;
+import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.util.ReferenceCountUtil;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.util.ArrayList;
@@ -116,6 +121,72 @@ public class ResponseEntityBodySizeValidatorTest {
         channel.finishAndReleaseAll();
     }
 
+    @Test(description = "A HEAD response declaring a body over the limit is accepted, since it carries no body")
+    public void testHeadResponseDeclaringOversizedBodyIsPassedOn() {
+        RecordingHandler recorder = new RecordingHandler();
+        EmbeddedChannel channel = new EmbeddedChannel(new ResponseEntityBodySizeValidator(MAX_ENTITY_BODY_SIZE),
+                                                      recorder);
+        HttpResponse response = declaring(HttpResponseStatus.OK, 2048);
+
+        channel.writeOutbound(request(HttpMethod.HEAD));
+        channel.writeInbound(response, LastHttpContent.EMPTY_LAST_CONTENT);
+
+        assertEquals(recorder.messages, List.of(response, LastHttpContent.EMPTY_LAST_CONTENT));
+        channel.finishAndReleaseAll();
+    }
+
+    @DataProvider
+    public Object[][] bodilessStatuses() {
+        return new Object[][]{{HttpResponseStatus.NO_CONTENT}, {HttpResponseStatus.NOT_MODIFIED}};
+    }
+
+    @Test(dataProvider = "bodilessStatuses",
+          description = "A response whose status forbids a body is accepted whatever Content-Length it declares")
+    public void testBodilessStatusDeclaringOversizedBodyIsPassedOn(HttpResponseStatus status) {
+        RecordingHandler recorder = new RecordingHandler();
+        EmbeddedChannel channel = new EmbeddedChannel(new ResponseEntityBodySizeValidator(MAX_ENTITY_BODY_SIZE),
+                                                      recorder);
+        HttpResponse response = declaring(status, 2048);
+
+        channel.writeOutbound(request(HttpMethod.GET));
+        channel.writeInbound(response, LastHttpContent.EMPTY_LAST_CONTENT);
+
+        assertEquals(recorder.messages, List.of(response, LastHttpContent.EMPTY_LAST_CONTENT));
+        channel.finishAndReleaseAll();
+    }
+
+    @Test(description = "An informational response is not paired with a request, so the final one keeps its method")
+    public void testInformationalResponseDoesNotConsumeRequestMethod() {
+        RecordingHandler recorder = new RecordingHandler();
+        EmbeddedChannel channel = new EmbeddedChannel(new ResponseEntityBodySizeValidator(MAX_ENTITY_BODY_SIZE),
+                                                      recorder);
+        HttpResponse informational = declaring(HttpResponseStatus.CONTINUE, 2048);
+        HttpResponse response = declaring(HttpResponseStatus.OK, 2048);
+
+        channel.writeOutbound(request(HttpMethod.HEAD));
+        channel.writeInbound(informational, LastHttpContent.EMPTY_LAST_CONTENT);
+        channel.writeInbound(response, LastHttpContent.EMPTY_LAST_CONTENT);
+
+        assertEquals(recorder.messages, List.of(informational, LastHttpContent.EMPTY_LAST_CONTENT, response,
+                                                LastHttpContent.EMPTY_LAST_CONTENT));
+        channel.finishAndReleaseAll();
+    }
+
+    @Test(description = "Each response is paired with its own request, so one after a HEAD is still checked")
+    public void testResponseAfterHeadResponseIsStillChecked() {
+        RecordingHandler recorder = new RecordingHandler();
+        EmbeddedChannel channel = new EmbeddedChannel(new ResponseEntityBodySizeValidator(MAX_ENTITY_BODY_SIZE),
+                                                      recorder);
+
+        channel.writeOutbound(request(HttpMethod.HEAD), request(HttpMethod.GET));
+        channel.writeInbound(declaring(HttpResponseStatus.OK, 2048), LastHttpContent.EMPTY_LAST_CONTENT);
+        HttpResponse second = declaring(HttpResponseStatus.OK, 2048);
+
+        expectThrows(IllegalStateException.class, () -> channel.writeInbound(second));
+        assertEquals(recorder.messages.size(), 2, "The response to the GET request should have been rejected");
+        channel.finishAndReleaseAll();
+    }
+
     @Test(description = "A message read after the connection went inactive is released rather than leaked")
     public void testMessageOnInactiveChannelIsReleased() {
         RecordingHandler recorder = new RecordingHandler();
@@ -195,6 +266,16 @@ public class ResponseEntityBodySizeValidatorTest {
     private static HttpResponse chunkedResponse() {
         HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
         response.headers().set(HttpHeaderNames.TRANSFER_ENCODING, "chunked");
+        return response;
+    }
+
+    private static HttpRequest request(HttpMethod method) {
+        return new DefaultHttpRequest(HttpVersion.HTTP_1_1, method, "/");
+    }
+
+    private static HttpResponse declaring(HttpResponseStatus status, int contentLength) {
+        HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, status);
+        response.headers().set(HttpHeaderNames.CONTENT_LENGTH, contentLength);
         return response;
     }
 

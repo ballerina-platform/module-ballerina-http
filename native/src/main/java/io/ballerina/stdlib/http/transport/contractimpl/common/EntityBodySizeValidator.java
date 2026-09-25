@@ -59,7 +59,7 @@ public abstract class EntityBodySizeValidator extends ChannelDuplexHandler {
             this.currentMessage = message;
             this.heldMessage = null;
             this.passingThrough = false;
-            if (isContentLengthInvalid(message)) {
+            if (mayHaveBody(message) && isContentLengthInvalid(message)) {
                 rejectMessage(ctx);
                 return;
             }
@@ -103,6 +103,13 @@ public abstract class EntityBodySizeValidator extends ChannelDuplexHandler {
      * Reports a message whose body exceeds the limit. Anything buffered for it has already been released.
      */
     protected abstract void onLimitExceeded(ChannelHandlerContext ctx);
+
+    /**
+     * Whether a message can carry the body its Content-Length declares. Called once for each message.
+     */
+    protected boolean mayHaveBody(HttpMessage message) {
+        return true;
+    }
 
     /**
      * Whether a message must be passed on as it arrives, its body counted as it passes, rather than held.
