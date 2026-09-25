@@ -22,10 +22,12 @@ import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contract.exceptions.EndpointTimeOutException;
 import io.ballerina.stdlib.http.transport.contract.exceptions.ServerConnectorException;
+import io.ballerina.stdlib.http.transport.contractimpl.common.EntityBodySizeValidator;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.SenderReqRespStateManager;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.TargetHandler;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -33,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_BEFORE_INITIATING_INBOUND_RESPONSE;
+import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_WHILE_READING_INBOUND_RESPONSE_BODY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.ILLEGAL_STATE_ERROR;
 
@@ -84,11 +87,19 @@ public class RequestCompleted implements SenderState {
     @Override
     public void handleIdleTimeoutConnectionClosure(TargetHandler targetHandler,
                                                    HttpResponseFuture httpResponseFuture, String channelID) {
-        senderReqRespStateManager.nettyTargetChannel.pipeline().remove(Constants.IDLE_STATE_HANDLER);
+        ChannelPipeline pipeline = senderReqRespStateManager.nettyTargetChannel.pipeline();
+        // A response held back by the body size validator has started arriving, although this state has not seen it.
+        String message = isResponseHeldBack(pipeline) ? IDLE_TIMEOUT_TRIGGERED_WHILE_READING_INBOUND_RESPONSE_BODY
+                : IDLE_TIMEOUT_TRIGGERED_BEFORE_INITIATING_INBOUND_RESPONSE;
+        pipeline.remove(Constants.IDLE_STATE_HANDLER);
         senderReqRespStateManager.nettyTargetChannel.close();
         httpResponseFuture.notifyHttpListener(
-                new EndpointTimeOutException(channelID, IDLE_TIMEOUT_TRIGGERED_BEFORE_INITIATING_INBOUND_RESPONSE,
-                                             HttpResponseStatus.GATEWAY_TIMEOUT.code()));
-        LOG.error("Error in HTTP client: {}", IDLE_TIMEOUT_TRIGGERED_BEFORE_INITIATING_INBOUND_RESPONSE);
+                new EndpointTimeOutException(channelID, message, HttpResponseStatus.GATEWAY_TIMEOUT.code()));
+        LOG.error("Error in HTTP client: {}", message);
+    }
+
+    private static boolean isResponseHeldBack(ChannelPipeline pipeline) {
+        return pipeline.get(Constants.MAX_ENTITY_BODY_VALIDATION_HANDLER) instanceof EntityBodySizeValidator validator
+                && validator.isHoldingMessage();
     }
 }

@@ -3,7 +3,7 @@
 _Owners_: @shafreenAnfar @TharmiganK @ayeshLK @chamil321  
 _Reviewers_: @shafreenAnfar @bhashinee @TharmiganK @ldclakmal  
 _Created_: 2021/12/23  
-_Updated_: 2026/08/18   
+_Updated_: 2026/09/25   
 _Edition_: Swan Lake
 
 
@@ -25,6 +25,7 @@ The conforming implementation of the specification is released and included in t
         * 2.1.2. [Programmatically starting the service](#212-programmatically-starting-the-service)
         * 2.1.3. [Default listener](#213-default-listener)
         * 2.1.4. [HTTP/2 stream concurrency](#214-http2-stream-concurrency)
+        * 2.1.5. [Request limits](#215-request-limits)
     * 2.2. [Service](#22-service)
         * 2.2.1. [Service type](#221-service-type)
         * 2.2.2. [Service-base-path](#222-service-base-path)
@@ -63,6 +64,8 @@ The conforming implementation of the specification is released and included in t
             * 2.4.1.8. [Failover](#2418-failover)
             * 2.4.1.9. [Status code binding client](#2419-status-code-binding-client)
             * 2.4.1.10. [Relaxed data binding client](#24110-relaxed-data-binding-client)
+            * 2.4.1.11. [Proxy](#24111-proxy)
+            * 2.4.1.12. [Response limits](#24112-response-limits)
         * 2.4.2. [Client actions](#242-client-action)
             * 2.4.2.1. [Entity body methods](#2421-entity-body-methods)
             * 2.4.2.2. [Non entity body methods](#2422-non-entity-body-methods)
@@ -271,6 +274,37 @@ listener http:Listener h2Listener = new (9090, {
 ```
 
 A client that reaches this limit on a connection opens an additional connection rather than stalling.
+
+#### 2.1.5. Request limits
+
+The `requestLimits` field of the `ListenerConfiguration` bounds the size of inbound requests.
+
+```ballerina
+public type RequestLimitConfigs record {|
+    int maxUriLength = 4096;
+    int maxHeaderSize = 8192;
+    int maxEntityBodySize = -1;
+|};
+```
+
+- `maxUriLength` - A request line longer than this gets a `414 - URI Too Long` response.
+- `maxHeaderSize` - Request headers larger than this get a `431 - Request Header Fields Too Large` response.
+- `maxEntityBodySize` - The maximum size, in bytes, of the body of each request. The default `-1` means no limit.
+
+`maxEntityBodySize` applies to each request on its own, so the requests sent on a keep-alive connection do not share one budget. It applies to HTTP/1.x requests; HTTP/2 streams are not checked against it.
+
+When the limit is set, a request is not dispatched to the service until its whole body has arrived. A request whose body goes over the limit therefore never reaches the service:
+
+- A request whose `Content-Length` header is over the limit gets a `413 - Payload Too Large` response without its body being read.
+- A request whose body goes over the limit as it arrives, such as a chunked request, gets a `413 - Payload Too Large` response.
+
+In both cases the connection is closed after the response. The idle `timeout` of the listener keeps applying while the body arrives, and each part of the body that is read counts as activity. A request that stays idle before its body is complete is answered with a `408 - Request Timeout` response, as it is without the limit.
+
+A request with an `Expect: 100-continue` header and no `Content-Length` over the limit is dispatched as soon as its headers arrive, since the client sends the body only after the service answers. Its body is counted as the service reads it, and the connection is closed once the body goes over the limit. The `413 - Payload Too Large` response is sent only if the service has not already responded to the request.
+
+```ballerina
+listener http:Listener limitedListener = new (9090, requestLimits = {maxEntityBodySize: 1048576});
+```
 
 ### 2.2. Service
 Service is a collection of resources functions, which are the network entry points of a ballerina program. 
@@ -1487,6 +1521,32 @@ http:Client clientEP = check new ("https://api.example.com",
         protocol: http:SOCKS5
     }
 );
+```
+
+##### 2.4.1.12 Response limits
+
+The `responseLimits` field of the `ClientConfiguration` bounds the size of inbound responses.
+
+```ballerina
+public type ResponseLimitConfigs record {|
+    int maxStatusLineLength = 4096;
+    int maxHeaderSize = 8192;
+    int maxEntityBodySize = -1;
+|};
+```
+
+- `maxStatusLineLength` - A status line longer than this fails the request with an `http:ClientError`.
+- `maxHeaderSize` - Response headers larger than this fail the request with an `http:ClientError`.
+- `maxEntityBodySize` - The maximum size, in bytes, of the body of each response. The default `-1` means no limit.
+
+`maxEntityBodySize` applies to each response on its own, so the responses received on a reused connection do not share one budget. It applies to HTTP/1.x responses; HTTP/2 streams are not checked against it.
+
+When the limit is set, a response is not returned to the caller until its whole body has arrived. A response whose `Content-Length` header is over the limit, or whose body goes over the limit as it arrives, fails the request with an `http:ClientError`, and the connection is closed. A response that cannot carry a body is not checked against its `Content-Length` header: a response to a `HEAD` request and a `1xx`, `204` or `304` response.
+
+The idle `timeout` of the client keeps applying while the body arrives, and each part of the body that is read counts as activity. A response that stays idle before its body is complete fails the request with an `http:IdleTimeoutError`.
+
+```ballerina
+http:Client limitedClient = check new ("http://api.example.com", responseLimits = {maxEntityBodySize: 1048576});
 ```
 
 ##### 2.4.2. Client action

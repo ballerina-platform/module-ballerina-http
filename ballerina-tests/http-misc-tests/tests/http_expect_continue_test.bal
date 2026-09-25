@@ -22,10 +22,12 @@ import ballerina/http;
 
 listener http:Listener expectContinueListenerEP1 = new(expectContinueTestPort1, httpVersion = http:HTTP_1_1);
 listener http:Listener expectContinueListenerEP2 = new(expectContinueTestPort2, httpVersion = http:HTTP_1_1);
+listener http:Listener expectContinueLimitedListenerEP = new(expectContinueTestPort3, httpVersion = http:HTTP_1_1,
+    requestLimits = {maxEntityBodySize: 1048576});
 
 final http:Client expectContinueClient = check new("http://localhost:" + expectContinueTestPort2.toString(), httpVersion = http:HTTP_1_1);
 
-service /'continue on expectContinueListenerEP1 {
+service /'continue on expectContinueListenerEP1, expectContinueLimitedListenerEP {
 
     resource function 'default .(http:Caller caller, http:Request request) {
         if request.expects100Continue() {
@@ -149,6 +151,16 @@ function testMultipartWith100ContinueHeader() {
 @test:Config {}
 function test100ContinuePassthrough() {
     test:assertTrue(externTest100ContinuePassthrough(expectContinueTestPort1));
+}
+
+@test:Config {}
+function test100ContinueWithEntityBodyLimit() {
+    test:assertTrue(externTest100Continue(expectContinueTestPort3));
+}
+
+@test:Config {}
+function test100ContinueNegativeWithEntityBodyLimit() {
+    test:assertTrue(externTest100ContinueNegative(expectContinueTestPort3));
 }
 
 function externTest100Continue(int servicePort) returns boolean = @java:Method {

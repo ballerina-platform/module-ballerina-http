@@ -18,76 +18,55 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.sender;
 
+import io.ballerina.stdlib.http.transport.contractimpl.common.EntityBodySizeValidator;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.handler.codec.http.HttpContent;
+import io.netty.channel.ChannelPromise;
 import io.netty.handler.codec.http.HttpMessage;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.HttpUtil;
-import io.netty.handler.codec.http.LastHttpContent;
-import io.netty.util.ReferenceCounted;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpStatusClass;
 
-import java.util.LinkedList;
+import java.util.ArrayDeque;
+import java.util.Queue;
 
 /**
  * Responsible for validating response entity body size before sending it to the application. If the validation fails,
  * throws an exception to be handled by the targetHandler for downstream notification through respective response
  * state.
  */
-public class ResponseEntityBodySizeValidator extends ChannelInboundHandlerAdapter {
+public class ResponseEntityBodySizeValidator extends EntityBodySizeValidator {
 
-    private long maxEntityBodySize;
-    private long currentSize;
-    private HttpResponse inboundResponse;
-    private LinkedList<HttpContent> fullContent;
+    private final Queue<HttpMethod> requestMethods = new ArrayDeque<>();
 
     public ResponseEntityBodySizeValidator(long maxEntityBodySize) {
-        this.maxEntityBodySize = maxEntityBodySize;
-        this.fullContent = new LinkedList<>();
+        super(maxEntityBodySize);
     }
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        if (ctx.channel().isActive()) {
-            if (msg instanceof HttpResponse) {
-                inboundResponse = (HttpResponse) msg;
-                if (isContentLengthInvalid(inboundResponse, maxEntityBodySize)) {
-                    releaseContentAndNotifyError();
-                    return;
-                }
-                ctx.channel().read();
-            } else {
-                HttpContent inboundContent = (HttpContent) msg;
-                this.currentSize += inboundContent.content().readableBytes();
-                this.fullContent.add(inboundContent);
-                if (this.currentSize > maxEntityBodySize) {
-                    releaseContentAndNotifyError();
-                } else {
-                    if (msg instanceof LastHttpContent) {
-                        super.channelRead(ctx, this.inboundResponse);
-                        while (!this.fullContent.isEmpty()) {
-                            super.channelRead(ctx, this.fullContent.pop());
-                        }
-                    } else {
-                        ctx.channel().read();
-                    }
-                }
-            }
+    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
+        if (msg instanceof HttpRequest request) {
+            this.requestMethods.add(request.method());
         }
+        ctx.write(msg, promise);
     }
 
-    private void releaseContentAndNotifyError() {
-        this.fullContent.forEach(ReferenceCounted::release);
-        this.fullContent.forEach(httpContent -> this.fullContent.remove(httpContent));
-        throw new IllegalStateException("Response max entity body size exceeds: Entity body is larger than "
-                                           + this.maxEntityBodySize + " bytes. ");
-    }
-
-    private boolean isContentLengthInvalid(HttpMessage start, long maxContentLength) {
-        try {
-            return HttpUtil.getContentLength(start, -1L) > maxContentLength;
-        } catch (NumberFormatException var4) {
+    @Override
+    protected boolean mayHaveBody(HttpMessage message) {
+        // Mirrors HttpClientCodec, which decodes these responses without a body whatever their Content-Length.
+        HttpResponseStatus status = ((HttpResponse) message).status();
+        if (status.codeClass() == HttpStatusClass.INFORMATIONAL) {
             return false;
         }
+        HttpMethod method = this.requestMethods.poll();
+        return !HttpMethod.HEAD.equals(method) && status.code() != HttpResponseStatus.NO_CONTENT.code()
+                && status.code() != HttpResponseStatus.NOT_MODIFIED.code();
+    }
+
+    @Override
+    protected void onLimitExceeded(ChannelHandlerContext ctx) {
+        throw new IllegalStateException("Response max entity body size exceeds: Entity body is larger than "
+                                           + this.maxEntityBodySize + " bytes. ");
     }
 }
