@@ -21,9 +21,13 @@ package io.ballerina.stdlib.http.transport.contractimpl.listener;
 import io.ballerina.stdlib.http.transport.contractimpl.common.EntityBodySizeValidator;
 import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPromise;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMessage;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpStatusClass;
 import io.netty.handler.timeout.IdleStateEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,10 +42,28 @@ public class MaxEntityBodyValidator extends EntityBodySizeValidator {
     private static final Logger LOG = LoggerFactory.getLogger(MaxEntityBodyValidator.class);
 
     private final String serverName;
+    private long requestsReceived;
+    private long responsesStarted;
 
     MaxEntityBodyValidator(String serverName, long maxEntityBodySize) {
         super(maxEntityBodySize);
         this.serverName = serverName;
+    }
+
+    @Override
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        if (msg instanceof HttpRequest) {
+            this.requestsReceived++;
+        }
+        super.channelRead(ctx, msg);
+    }
+
+    @Override
+    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
+        if (msg instanceof HttpResponse response && response.status().codeClass() != HttpStatusClass.INFORMATIONAL) {
+            this.responsesStarted++;
+        }
+        ctx.write(msg, promise);
     }
 
     @Override
@@ -61,8 +83,13 @@ public class MaxEntityBodyValidator extends EntityBodySizeValidator {
 
     @Override
     protected void onLimitExceeded(ChannelHandlerContext ctx) {
+        LOG.warn("Inbound request payload size exceeds the max entity body allowed for a request");
+        if (this.responsesStarted >= this.requestsReceived) {
+            // A 413 after the service's response would be read by the client as the response to its next request.
+            ctx.channel().close();
+            return;
+        }
         Util.sendAndCloseNoEntityBodyResp(ctx, HttpResponseStatus.REQUEST_ENTITY_TOO_LARGE,
                                           currentMessage().protocolVersion(), this.serverName);
-        LOG.warn("Inbound request payload size exceeds the max entity body allowed for a request");
     }
 }

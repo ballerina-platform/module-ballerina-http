@@ -23,6 +23,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.handler.codec.DecoderResult;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.DefaultHttpContent;
 import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
@@ -42,6 +43,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 /**
@@ -167,6 +169,53 @@ public class MaxEntityBodyValidatorTest {
         channel.finishAndReleaseAll();
     }
 
+    @Test(description = "A body crossing the limit after the service has responded closes without a late 413")
+    public void testCrossingLimitAfterResponseClosesWithoutEntityTooLarge() {
+        RecordingHandler recorder = new RecordingHandler();
+        EmbeddedChannel channel = newChannel(recorder);
+
+        channel.writeInbound(continueRequest());
+        channel.writeOutbound(response(HttpResponseStatus.OK));
+        channel.writeInbound(content(600), content(600));
+
+        assertEquals(((HttpResponse) channel.readOutbound()).status(), HttpResponseStatus.OK);
+        assertTrue(channel.outboundMessages().isEmpty(), "A 413 was sent after the service's response");
+        assertFalse(channel.isOpen(), "The connection was left open after the body crossed the limit");
+        recorder.releaseAll();
+        channel.finishAndReleaseAll();
+    }
+
+    @Test(description = "A 100 Continue sent by the service does not stop a body crossing the limit getting a 413")
+    public void testCrossingLimitAfterContinueSendsEntityTooLarge() {
+        RecordingHandler recorder = new RecordingHandler();
+        EmbeddedChannel channel = newChannel(recorder);
+
+        channel.writeInbound(continueRequest());
+        channel.writeOutbound(response(HttpResponseStatus.CONTINUE));
+        channel.writeInbound(content(600), content(600));
+
+        assertEquals(((HttpResponse) channel.readOutbound()).status(), HttpResponseStatus.CONTINUE);
+        assertEquals(((HttpResponse) channel.readOutbound()).status(), HttpResponseStatus.REQUEST_ENTITY_TOO_LARGE);
+        recorder.releaseAll();
+        channel.finishAndReleaseAll();
+    }
+
+    @Test(description = "The response to an earlier pipelined request is not taken as a response to the current one")
+    public void testResponseToEarlierRequestDoesNotSuppressEntityTooLarge() {
+        RecordingHandler recorder = new RecordingHandler();
+        EmbeddedChannel channel = newChannel(recorder);
+
+        channel.writeInbound(chunkedRequest(), content(100), new DefaultLastHttpContent());
+        channel.writeInbound(continueRequest());
+        channel.writeOutbound(response(HttpResponseStatus.OK));
+        channel.writeInbound(content(600), content(600));
+
+        assertEquals(((HttpResponse) channel.readOutbound()).status(), HttpResponseStatus.OK);
+        assertEquals(((HttpResponse) channel.readOutbound()).status(), HttpResponseStatus.REQUEST_ENTITY_TOO_LARGE);
+        recorder.releaseAll();
+        channel.finishAndReleaseAll();
+    }
+
     @Test(description = "An idle timeout while a request is held hands the request over before the timeout event")
     public void testIdleTimeoutHandsHeldRequestOver() {
         RecordingHandler recorder = new RecordingHandler();
@@ -221,6 +270,10 @@ public class MaxEntityBodyValidatorTest {
         HttpRequest request = chunkedRequest();
         request.headers().set(HttpHeaderNames.EXPECT, "100-continue");
         return request;
+    }
+
+    private static HttpResponse response(HttpResponseStatus status) {
+        return new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status);
     }
 
     private static HttpContent content(int size) {

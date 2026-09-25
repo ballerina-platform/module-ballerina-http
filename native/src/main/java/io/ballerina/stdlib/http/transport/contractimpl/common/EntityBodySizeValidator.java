@@ -18,8 +18,8 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.common;
 
+import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpUtil;
@@ -32,7 +32,7 @@ import java.util.LinkedList;
  * Holds each inbound message back until its whole body has arrived, so that a body over the limit is rejected before
  * the message reaches the application. Subclasses decide how a rejection is reported.
  */
-public abstract class EntityBodySizeValidator extends ChannelInboundHandlerAdapter {
+public abstract class EntityBodySizeValidator extends ChannelDuplexHandler {
 
     protected final long maxEntityBodySize;
     private final LinkedList<HttpContent> fullContent = new LinkedList<>();
