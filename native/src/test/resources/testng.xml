@@ -248,6 +248,7 @@
             <class name="io.ballerina.stdlib.http.transport.contractimpl.sender.ResponseEntityBodySizeValidatorTest"/>
             <class name="io.ballerina.stdlib.http.transport.contractimpl.listener.MaxEntityBodyValidatorTest"/>
             <class name="io.ballerina.stdlib.http.transport.contractimpl.sender.states.SenderIdleStateHandlerPlacementTest"/>
+            <class name="io.ballerina.stdlib.http.transport.contractimpl.sender.states.RequestCompletedIdleTimeoutTest"/>
             <class name="io.ballerina.stdlib.http.transport.message.PassthroughBackPressureListenerTest"/>
         </classes>
     </test>

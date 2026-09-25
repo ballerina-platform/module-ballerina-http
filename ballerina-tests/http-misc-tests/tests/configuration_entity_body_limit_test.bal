@@ -83,6 +83,18 @@ function testEntityBodyLimitDoesNotStopIdleTimeoutSeeingProgress() returns error
 }
 
 @test:Config {groups: [CHUNKED_RESPONSE_GROUP]}
+function testIdleTimeoutWhileBodyIsHeldIsReportedAsReadingBody() returns error? {
+    http:Client clientEP = check new ("http://localhost:" + responseLimitsTestPort3.toString(),
+        httpVersion = http:HTTP_1_1, timeout = 1, responseLimits = {maxEntityBodySize: 1048576});
+    http:Response|error response = clientEP->get("/chunks/300,300?delay=2000");
+    if response is http:IdleTimeoutError {
+        test:assertEquals(response.message(), "Idle timeout triggered while reading inbound response entity body");
+    } else {
+        test:assertFail("Expected an idle timeout, found: " + (response is error ? response.toString() : "a response"));
+    }
+}
+
+@test:Config {groups: [CHUNKED_RESPONSE_GROUP]}
 function testMalformedResponseFailsTheSameWithEntityBodyLimit() returns error? {
     http:Client cappedClient = check new ("http://localhost:" + responseLimitsTestPort3.toString(),
         httpVersion = http:HTTP_1_1, timeout = 1, responseLimits = {maxEntityBodySize: 1024});

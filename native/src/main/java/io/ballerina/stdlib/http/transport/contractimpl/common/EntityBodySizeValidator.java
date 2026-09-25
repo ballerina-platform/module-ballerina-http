@@ -115,7 +115,7 @@ public abstract class EntityBodySizeValidator extends ChannelInboundHandlerAdapt
         return this.currentMessage;
     }
 
-    protected boolean isHoldingMessage() {
+    public boolean isHoldingMessage() {
         return this.heldMessage != null;
     }
 
