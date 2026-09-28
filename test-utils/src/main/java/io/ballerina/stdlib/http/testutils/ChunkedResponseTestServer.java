@@ -97,7 +97,9 @@ final class ChunkedResponseTestServer {
             QueryStringDecoder decoder = new QueryStringDecoder(request.uri());
             String path = decoder.path();
             if (PATH_MALFORMED.equals(path)) {
-                ctx.writeAndFlush(Unpooled.copiedBuffer(MALFORMED_RESPONSE, StandardCharsets.US_ASCII));
+                // Written below the codec, whose encoder rejects raw bytes in place of a response.
+                ctx.pipeline().firstContext()
+                        .writeAndFlush(Unpooled.copiedBuffer(MALFORMED_RESPONSE, StandardCharsets.US_ASCII));
                 return;
             }
             int[] chunkSizes = Arrays.stream(path.substring(path.lastIndexOf('/') + 1).split(","))

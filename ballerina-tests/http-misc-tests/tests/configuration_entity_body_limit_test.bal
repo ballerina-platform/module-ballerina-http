@@ -102,6 +102,12 @@ function testMalformedResponseFailsTheSameWithEntityBodyLimit() returns error? {
         httpVersion = http:HTTP_1_1, timeout = 1, responseLimits = {maxEntityBodySize: 1024});
     http:Client uncappedClient = check new ("http://localhost:" + responseLimitsTestPort3.toString(),
         httpVersion = http:HTTP_1_1, timeout = 1);
+    http:Response|error response = uncappedClient->get("/malformed");
+    if response !is http:ReadingInboundResponseHeadersError {
+        test:assertFail("Expected the malformed response to fail, found: "
+            + (response is error ? response.toString() : response.statusCode.toString()));
+    }
+    test:assertEquals(response.message(), "Invalid content length");
     test:assertEquals(check getOutcome(cappedClient, "/malformed"), check getOutcome(uncappedClient, "/malformed"));
 }
 
