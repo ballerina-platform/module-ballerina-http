@@ -32,6 +32,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Fix the idle timeout firing on a message whose body is still arriving when `maxEntityBodySize` is set](https://github.com/ballerina-platform/ballerina-library/issues/9209)
 - Fix a malformed message, or a request with `Expect: 100-continue`, waiting until the idle timeout when `maxEntityBodySize` is set, and the listener closing a request that times out mid-body without a `408` response when the limit is set
 - Fix the HTTP client rejecting a response to a `HEAD` request, or a `1xx`, `204` or `304` response, whose `Content-Length` header is over `maxEntityBodySize`, although such a response carries no body
+- Fix the HTTP client waiting forever for a response whose `Content-Length` header is not a number, instead of returning an `http:ReadingInboundResponseHeadersError`
 
 ## [2.17.0] - 2026-08-04
 
