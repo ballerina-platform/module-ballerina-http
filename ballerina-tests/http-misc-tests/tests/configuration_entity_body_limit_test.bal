@@ -16,6 +16,7 @@
 
 import ballerina/http;
 import ballerina/jballerina.java;
+import ballerina/mime;
 import ballerina/test;
 
 const CHUNKED_RESPONSE_GROUP = "chunkedResponseLimit";
@@ -108,6 +109,7 @@ function testMalformedResponseFailsTheSameWithEntityBodyLimit() returns error? {
             + (response is error ? response.toString() : response.statusCode.toString()));
     }
     test:assertEquals(response.message(), "Invalid content length");
+    test:assertTrue(response.cause() is mime:InvalidContentLengthError);
     test:assertEquals(check getOutcome(cappedClient, "/malformed"), check getOutcome(uncappedClient, "/malformed"));
 }
 
