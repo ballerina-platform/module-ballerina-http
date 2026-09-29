@@ -41,9 +41,9 @@ public class StatusLineAndHeaderLengthValidator extends ChannelInboundHandlerAda
             if (cause instanceof TooLongFrameException) {
                 String message = cause.getMessage();
                 if (message.contains(Constants.REQUEST_HEADER_TOO_LARGE)) {
-                    throw new RuntimeException("Response max header size exceeds: " + cause.getMessage());
+                    throw new IllegalStateException("Response max header size exceeds: " + cause.getMessage());
                 } else if (message.contains(Constants.REQUEST_LINE_TOO_LONG)) {
-                    throw new RuntimeException("Response max status line length exceeds: " + cause.getMessage());
+                    throw new IllegalStateException("Response max status line length exceeds: " + cause.getMessage());
                 } else {
                     super.channelRead(ctx, msg);
                 }

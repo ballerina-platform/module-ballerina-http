@@ -39,6 +39,7 @@ import io.ballerina.stdlib.http.api.BallerinaConnectorException;
 import io.ballerina.stdlib.http.api.HttpUtil;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -103,7 +104,7 @@ public class ParamUtils {
                 try {
                     return getBArray(argValueArr, TypeCreator.createArrayType(elementType), elementType);
                 } catch (Exception exp) {
-                    String errorMessage = "error occurred while converting '" + argValueArr +
+                    String errorMessage = "error occurred while converting '" + Arrays.toString(argValueArr) +
                             "' to the target array type";
                     if (exp instanceof BError) {
                         throw ErrorCreator.createError(StringUtils.fromString(errorMessage), exp);

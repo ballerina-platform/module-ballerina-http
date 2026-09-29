@@ -34,7 +34,10 @@ http:ClientConfiguration conf1 = {
 
 final http:Client cbrBackend = check new ("http://localhost:" + cBClientWithoutStatusCodesTestPort1.toString(), conf1);
 final http:Client cbrClient = check new ("http://localhost:" + cBClientWithoutStatusCodesTestPort2.toString(), httpVersion = http:HTTP_1_1);
-final http:Client nonExistingBackend = check new ("https://nuwandiasbanda.com", conf1);
+// Points to a local port with no listener so the connection fails fast and deterministically
+// (connection refused), rather than depending on an external domain whose reachability and
+// failure latency vary by environment and skew the circuit breaker timing.
+final http:Client nonExistingBackend = check new ("http://localhost:" + unreachableBackendPort.toString(), conf1);
 
 service / on new http:Listener(cBClientWithoutStatusCodesTestPort2, httpVersion = http:HTTP_1_1) {
 

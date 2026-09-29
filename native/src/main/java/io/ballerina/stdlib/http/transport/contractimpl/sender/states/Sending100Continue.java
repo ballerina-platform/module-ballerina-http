@@ -21,6 +21,7 @@ package io.ballerina.stdlib.http.transport.contractimpl.sender.states;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contract.exceptions.ClientConnectorException;
+import io.ballerina.stdlib.http.transport.contract.exceptions.ConfigurationException;
 import io.ballerina.stdlib.http.transport.contractimpl.common.BackPressureAwareIdleStateHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.SenderReqRespStateManager;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.TargetHandler;
@@ -113,7 +114,7 @@ public class Sending100Continue implements SenderState {
 
     @Override
     public void readInboundResponseEntityBody(ChannelHandlerContext ctx, HttpContent httpContent,
-                                              HttpCarbonMessage inboundResponseMsg) throws Exception {
+                                              HttpCarbonMessage inboundResponseMsg) throws ConfigurationException {
         senderReqRespStateManager.state = new ReceivingEntityBody(senderReqRespStateManager, targetHandler);
         senderReqRespStateManager.readInboundResponseEntityBody(ctx, httpContent, inboundResponseMsg);
     }

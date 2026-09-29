@@ -172,7 +172,7 @@ public class ConnectionManager {
         return targetChannel;
     }
 
-    public void returnChannel(TargetChannel targetChannel) throws Exception {
+    public void returnChannel(TargetChannel targetChannel) {
         if (targetChannel.getCorrelatedSource() != null) {
             Map<String, GenericObjectPool> objectPoolMap = getTargetPoolMap(targetChannel);
             if (objectPoolMap != null) {
@@ -183,7 +183,7 @@ public class ConnectionManager {
         }
     }
 
-    private void releaseChannelToPool(TargetChannel targetChannel, GenericObjectPool pool) throws Exception {
+    private void releaseChannelToPool(TargetChannel targetChannel, GenericObjectPool pool) {
         try {
             String channelID = targetChannel.getChannel().id().asShortText();
             if (targetChannel.getChannel().isActive() && pool != null) {
@@ -195,7 +195,7 @@ public class ConnectionManager {
                 LOG.debug("Channel {} is inactive hence not returning to connection pool", channelID);
             }
         } catch (Exception e) {
-            throw new Exception("Couldn't return channel to pool", e);
+            throw new IllegalStateException("Couldn't return channel to pool", e);
         }
     }
 

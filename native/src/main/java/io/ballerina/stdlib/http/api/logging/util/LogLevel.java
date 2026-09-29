@@ -42,7 +42,7 @@ public enum LogLevel {
         try {
             level = LogLevel.valueOf(logLevel);
         } catch (IllegalArgumentException e) {
-            throw new RuntimeException("invalid log level: " + logLevel);
+            throw new IllegalArgumentException("invalid log level: " + logLevel, e);
         }
         return level;
     }

@@ -20,6 +20,7 @@ package io.ballerina.stdlib.http.transport.contractimpl.sender.states;
 
 import io.ballerina.stdlib.http.api.logging.accesslog.SenderHttpAccessLogger;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
+import io.ballerina.stdlib.http.transport.contract.exceptions.ConfigurationException;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.SenderReqRespStateManager;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.TargetHandler;
@@ -75,7 +76,7 @@ public class ReceivingEntityBody implements SenderState {
 
     @Override
     public void readInboundResponseEntityBody(ChannelHandlerContext ctx, HttpContent httpContent,
-                                              HttpCarbonMessage inboundResponseMsg) throws Exception {
+                                              HttpCarbonMessage inboundResponseMsg) throws ConfigurationException {
 
         if (httpContent instanceof LastHttpContent) {
             StateUtil.setInboundTrailersToNewMessage(((LastHttpContent) httpContent).trailingHeaders(),
@@ -101,8 +102,8 @@ public class ReceivingEntityBody implements SenderState {
 
     @Override
     public void handleAbruptChannelClosure(TargetHandler targetHandler, HttpResponseFuture httpResponseFuture) {
-        handleIncompleteInboundMessage(targetHandler.getInboundResponseMsg(),
-                                       REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_BODY);
+        handleIncompleteInboundMessage(targetHandler.getInboundResponseMsg(), targetHandler
+                .resolveInboundResponseFailure(REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_BODY));
     }
 
     @Override

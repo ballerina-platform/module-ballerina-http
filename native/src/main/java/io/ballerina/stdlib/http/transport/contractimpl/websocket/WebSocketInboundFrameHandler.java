@@ -61,9 +61,9 @@ public class WebSocketInboundFrameHandler extends ChannelInboundHandlerAdapter {
     private final String negotiatedSubProtocol;
     private final WebSocketConnectorFuture connectorFuture;
     private final WebSocketMessageQueueHandler webSocketMessageQueueHandler;
-    private boolean caughtException;
-    private boolean closeFrameReceived;
-    private boolean closeInitialized;
+    private volatile boolean caughtException;
+    private volatile boolean closeFrameReceived;
+    private volatile boolean closeInitialized;
     private DefaultWebSocketConnection webSocketConnection;
     private volatile ChannelPromise closePromise;
     private WebSocketFrameType continuationFrameType;

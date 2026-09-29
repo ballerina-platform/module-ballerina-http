@@ -26,6 +26,10 @@ import io.ballerina.stdlib.http.transport.contractimpl.common.ssl.SSLConfig;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.websocket.WebSocketClient;
 import io.netty.channel.EventLoopGroup;
 
+import java.io.IOException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.util.Objects;
 
 /**
@@ -48,7 +52,8 @@ public class DefaultWebSocketClientConnector implements WebSocketClientConnector
     }
 
     @Override
-    public void initializeSSLContext() throws Exception {
+    public void initializeSSLContext() throws IOException, NoSuchAlgorithmException, KeyStoreException,
+            UnrecoverableKeyException {
         SSLConfig sslConfig = clientConnectorConfig.getClientSSLConfig();
         if (Objects.nonNull(sslConfig)) {
             sslConfig.initializeSSLContext(false);

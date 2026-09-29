@@ -129,6 +129,13 @@ public class SendingRstFrame implements SenderState {
                 HttpResponseStatus.BAD_GATEWAY.code()));
     }
 
+    @Override
+    public void handleStreamClosedLocally(OutboundMsgHolder outboundMsgHolder) {
+        // This state resets the stream on purpose, so a local closure is the expected outcome and the caller has
+        // already been notified by whoever requested the reset.
+        LOG.debug("Stream closed locally while sending RST_STREAM frame");
+    }
+
     public void resetStream(ChannelHandlerContext ctx) {
         encoder.writeRstStream(ctx, streamId, Http2Error.STREAM_CLOSED.code(), ctx.newPromise());
         try {

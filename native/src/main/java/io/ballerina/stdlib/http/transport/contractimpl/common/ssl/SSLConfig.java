@@ -25,6 +25,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.util.Objects;
 
 /**
@@ -377,7 +381,8 @@ public class SSLConfig {
         return sslHandlerFactory;
     }
 
-    public void initializeSSLContext(boolean http2) throws Exception {
+    public void initializeSSLContext(boolean http2) throws IOException, NoSuchAlgorithmException,
+            KeyStoreException, UnrecoverableKeyException {
         if (http2) {
             initializeSSLContextForHTTP2();
         } else {
@@ -385,7 +390,8 @@ public class SSLConfig {
         }
     }
 
-    private void initializeSSLContextForHTTP() throws Exception {
+    private void initializeSSLContextForHTTP() throws IOException, NoSuchAlgorithmException,
+            KeyStoreException, UnrecoverableKeyException {
         sslHandlerFactory = new SSLHandlerFactory(this);
         if (isOcspStaplingEnabled()) {
             sslHandlerFactory.createSSLContextFromKeystores(false);
@@ -403,7 +409,8 @@ public class SSLConfig {
         }
     }
 
-    private void initializeSSLContextForHTTP2() throws Exception {
+    private void initializeSSLContextForHTTP2() throws IOException, NoSuchAlgorithmException,
+            KeyStoreException, UnrecoverableKeyException {
         sslHandlerFactory = new SSLHandlerFactory(this);
         if (isOcspStaplingEnabled()) {
             referenceCountedOpenSslContext = (ReferenceCountedOpenSslContext) sslHandlerFactory.

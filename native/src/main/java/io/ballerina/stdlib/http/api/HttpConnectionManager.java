@@ -50,12 +50,12 @@ public class HttpConnectionManager {
         return instance;
     }
 
-    public ServerConnector createHttpServerConnector(ListenerConfiguration listenerConfig) throws Exception {
+    public ServerConnector createHttpServerConnector(ListenerConfiguration listenerConfig) {
         String listenerInterface = listenerConfig.getHost() + ":" + listenerConfig.getPort();
         HttpServerConnectorContext httpServerConnectorContext = serverConnectorPool.get(listenerInterface);
         if (httpServerConnectorContext != null) {
             if (checkForConflicts(listenerConfig, httpServerConnectorContext)) {
-                throw new Exception("Conflicting configuration detected for listener " +
+                throw new IllegalStateException("Conflicting configuration detected for listener " +
                         "configuration id " + listenerConfig.getId());
             }
             httpServerConnectorContext.incrementReferenceCount();

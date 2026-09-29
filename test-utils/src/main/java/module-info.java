@@ -20,6 +20,7 @@
 module io.ballerina.stdlib.http.testutils {
     requires io.netty.buffer;
     requires io.netty.codec.http;
+    requires io.netty.codec.http2;
     requires io.netty.common;
     requires org.slf4j;
     requires io.ballerina.runtime;

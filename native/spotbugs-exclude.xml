@@ -218,4 +218,18 @@
         <Bug pattern="PA_PUBLIC_MUTABLE_OBJECT_ATTRIBUTE" />
     </Match>
 
+    <!-- decode() overrides Netty's HttpClientUpgradeHandler.decode(...), which itself declares
+         "throws Exception" in the framework; the override cannot legally narrow that clause. -->
+    <Match>
+        <Class name="io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpClientUpgradeHandler"/>
+        <Bug pattern="THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION"/>
+    </Match>
+
+    <!-- beginEncode()/decode() override Netty's HttpContentEncoder.beginEncode(...) and
+         HttpContentCompressor's decode(...), both of which declare "throws Exception" in the
+         framework; the overrides cannot legally narrow that clause. -->
+    <Match>
+        <Class name="io.ballerina.stdlib.http.transport.contractimpl.listener.CustomHttpContentCompressor"/>
+        <Bug pattern="THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION"/>
+    </Match>
 </FindBugsFilter>
