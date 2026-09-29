@@ -24,8 +24,8 @@ import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.utils.ValueUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BMap;
-import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.api.values.BNever;
+import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.api.nativeimpl.ExternUtils;
@@ -79,6 +79,15 @@ public class AllHeaderParams implements Parameter {
             int index = headerParam.getIndex();
             if (headerParam.isRecord()) {
                 Object parsedHeader = processHeaderRecord(headerParam, httpHeaders, treatNilableAsOptional);
+                if (parsedHeader == null) {
+                    if (headerParam.isDefaultable()) {
+                        paramFeed[index] = BNever.getValue();
+                        continue;
+                    } else if (headerParam.isNilable()) {
+                        paramFeed[index] = null;
+                        continue;
+                    }
+                }
                 Object castedHeader;
                 try {
                     castedHeader = ValueUtils.convert(parsedHeader, headerParam.getOriginalType());
@@ -94,7 +103,6 @@ public class AllHeaderParams implements Parameter {
             List<String> headerValues = httpHeaders.getAll(token);
             if (headerValues.isEmpty()) {
                 if (headerParam.isDefaultable()) {
-                    headerParam.validateConstraints(headerParam.getOriginalType().getZeroValue());
                     paramFeed[index] = BNever.getValue();
                     continue;
                 } else if (headerParam.isNilable() && treatNilableAsOptional) {
@@ -106,7 +114,10 @@ public class AllHeaderParams implements Parameter {
                 }
             }
             if (headerValues.size() == 1 && headerValues.get(0).isEmpty()) {
-                if (headerParam.isNilable()) {
+                if (headerParam.isDefaultable()) {
+                    paramFeed[index] = BNever.getValue();
+                    continue;
+                } else if (headerParam.isNilable()) {
                     paramFeed[index] = null;
                     continue;
                 } else {
@@ -149,7 +160,7 @@ public class AllHeaderParams implements Parameter {
                 if (field.isNilable() && treatNilableAsOptional) {
                     recordValue.put(StringUtils.fromString(key), null);
                     continue;
-                } else if (headerParam.isNilable()) {
+                } else if (headerParam.isDefaultable() || headerParam.isNilable()) {
                     return null;
                 } else {
                     throw HttpUtil.createHttpStatusCodeError(INTERNAL_HEADER_BINDING_LISTENER_ERROR,
@@ -160,7 +171,7 @@ public class AllHeaderParams implements Parameter {
                 if (field.isNilable()) {
                     recordValue.put(StringUtils.fromString(key), null);
                     continue;
-                } else if (headerParam.isNilable()) {
+                } else if (headerParam.isDefaultable() || headerParam.isNilable()) {
                     return null;
                 } else {
                     throw HttpUtil.createHttpStatusCodeError(INTERNAL_HEADER_BINDING_LISTENER_ERROR,
