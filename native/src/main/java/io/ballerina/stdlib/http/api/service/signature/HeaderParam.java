@@ -48,10 +48,14 @@ public class HeaderParam extends SignatureParam {
         super(token);
     }
 
-    public void initHeaderParam(Type originalType, int index, boolean requireConstraintValidation) {
-        init(originalType, index, requireConstraintValidation);
+    public void initHeaderParam(Type originalType, int index, boolean isDefaultable, boolean requireConstraintValidation) {
+        init(originalType, index, isDefaultable, requireConstraintValidation);
         this.nilable = originalType.isNilable();
         populateHeaderParamTypeTag(originalType);
+    }
+
+    public void initHeaderParam(Type originalType, int index, boolean requireConstraintValidation) {
+        initHeaderParam(originalType, index, false, requireConstraintValidation);
     }
 
     private void populateHeaderParamTypeTag(Type type) {
