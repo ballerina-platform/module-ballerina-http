@@ -26,6 +26,7 @@ plugins {
 description = 'Ballerina - HTTP test utils'
 
 dependencies {
+    compileOnly 'org.osgi:org.osgi.annotation.versioning:1.1.2'
     checkstyle project(":checkstyle")
     checkstyle "com.puppycrawl.tools:checkstyle:${puppycrawlCheckstyleVersion}"
 

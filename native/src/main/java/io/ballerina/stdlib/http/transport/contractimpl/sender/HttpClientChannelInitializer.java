@@ -33,6 +33,7 @@ import io.ballerina.stdlib.http.transport.contractimpl.listener.HttpTraceLogging
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.ConnectionManager;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.ClientFrameListener;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ClientChannel;
+import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ClientDecompressorFrameListener;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ConnectionManager;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2TargetHandler;
 import io.netty.buffer.Unpooled;
@@ -44,13 +45,14 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpContentDecompressor;
 import io.netty.handler.codec.http2.DefaultHttp2Connection;
-import io.netty.handler.codec.http2.DelegatingDecompressorFrameListener;
 import io.netty.handler.codec.http2.Http2ClientUpgradeCodec;
 import io.netty.handler.codec.http2.Http2Connection;
 import io.netty.handler.codec.http2.Http2ConnectionHandler;
 import io.netty.handler.codec.http2.Http2ConnectionHandlerBuilder;
 import io.netty.handler.codec.http2.Http2FrameListener;
 import io.netty.handler.proxy.HttpProxyHandler;
+import io.netty.handler.proxy.Socks4ProxyHandler;
+import io.netty.handler.proxy.Socks5ProxyHandler;
 import io.netty.handler.ssl.ApplicationProtocolNames;
 import io.netty.handler.ssl.ApplicationProtocolNegotiationHandler;
 import io.netty.handler.ssl.ReferenceCountedOpenSslContext;
@@ -114,7 +116,8 @@ public class HttpClientChannelInitializer extends ChannelInitializer<SocketChann
         }
         connection = new DefaultHttp2Connection(false);
         clientFrameListener = new ClientFrameListener();
-        Http2FrameListener frameListener = new DelegatingDecompressorFrameListener(connection, clientFrameListener);
+        Http2FrameListener frameListener =
+                new Http2ClientDecompressorFrameListener(connection, clientFrameListener);
 
         Http2ConnectionHandlerBuilder connectionHandlerBuilder = new Http2ConnectionHandlerBuilder();
         if (httpTraceLogEnabled) {
@@ -176,19 +179,62 @@ public class HttpClientChannelInitializer extends ChannelInitializer<SocketChann
         ctx.close();
     }
 
-    // Use netty proxy handler only if scheme is https
+    // Configures the proxy handler in the pipeline based on the configured proxy protocol.
+    // For HTTP proxies, the netty proxy handler is used only if the scheme is https (sslConfig != null).
+    // For SOCKS4/SOCKS5 proxies, the handler is added regardless of sslConfig.
     private void configureProxyServer(ChannelPipeline clientPipeline) {
-        if (proxyServerConfiguration != null && sslConfig != null) {
-            if (proxyServerConfiguration.getProxyUsername() != null
-                    && proxyServerConfiguration.getProxyPassword() != null) {
-                clientPipeline.addLast(Constants.PROXY_HANDLER,
-                        new HttpProxyHandler(proxyServerConfiguration.getInetSocketAddress(),
-                                proxyServerConfiguration.getProxyUsername(),
-                                proxyServerConfiguration.getProxyPassword()));
-            } else {
-                clientPipeline.addLast(Constants.PROXY_HANDLER,
-                        new HttpProxyHandler(proxyServerConfiguration.getInetSocketAddress()));
-            }
+        if (proxyServerConfiguration == null) {
+            return;
+        }
+        switch (proxyServerConfiguration.getProxyProtocol()) {
+            case SOCKS5:
+                addSocks5ProxyHandler(clientPipeline);
+                break;
+            case SOCKS4:
+                addSocks4ProxyHandler(clientPipeline);
+                break;
+            case HTTP:
+            default:
+                addHttpProxyHandler(clientPipeline);
+                break;
+        }
+    }
+
+    private void addSocks5ProxyHandler(ChannelPipeline clientPipeline) {
+        String username = proxyServerConfiguration.getProxyUsername();
+        String password = proxyServerConfiguration.getProxyPassword();
+        if (username != null && !username.isEmpty() && password != null && !password.isEmpty()) {
+            clientPipeline.addLast(Constants.PROXY_HANDLER,
+                    new Socks5ProxyHandler(proxyServerConfiguration.getInetSocketAddress(), username, password));
+        } else {
+            clientPipeline.addLast(Constants.PROXY_HANDLER,
+                    new Socks5ProxyHandler(proxyServerConfiguration.getInetSocketAddress()));
+        }
+    }
+
+    private void addSocks4ProxyHandler(ChannelPipeline clientPipeline) {
+        String username = proxyServerConfiguration.getProxyUsername();
+        if (username != null && !username.isEmpty()) {
+            clientPipeline.addLast(Constants.PROXY_HANDLER,
+                    new Socks4ProxyHandler(proxyServerConfiguration.getInetSocketAddress(), username));
+        } else {
+            clientPipeline.addLast(Constants.PROXY_HANDLER,
+                    new Socks4ProxyHandler(proxyServerConfiguration.getInetSocketAddress()));
+        }
+    }
+
+    private void addHttpProxyHandler(ChannelPipeline clientPipeline) {
+        if (sslConfig == null) {
+            return;
+        }
+        String username = proxyServerConfiguration.getProxyUsername();
+        String password = proxyServerConfiguration.getProxyPassword();
+        if (username != null && password != null) {
+            clientPipeline.addLast(Constants.PROXY_HANDLER,
+                    new HttpProxyHandler(proxyServerConfiguration.getInetSocketAddress(), username, password));
+        } else {
+            clientPipeline.addLast(Constants.PROXY_HANDLER,
+                    new HttpProxyHandler(proxyServerConfiguration.getInetSocketAddress()));
         }
     }
 
@@ -277,7 +323,9 @@ public class HttpClientChannelInitializer extends ChannelInitializer<SocketChann
         Util.safelyRemoveHandlers(pipeline, Constants.HTTP2_EXCEPTION_HANDLER);
         pipeline.addLast(Constants.CONNECTION_HANDLER, http2ConnectionHandler);
         pipeline.addLast(Constants.HTTP2_TARGET_HANDLER, http2TargetHandler);
-        pipeline.addLast(Constants.DECOMPRESSOR_HANDLER, new HttpContentDecompressor());
+        // No decompressor here: HTTP/2 content is decoded inside the connection handler by
+        // Http2ClientDecompressorFrameListener, and Http2TargetHandler consumes every frame it knows without
+        // forwarding the rest, so a decompressor placed after it could never receive a message.
         pipeline.addLast(Constants.HTTP2_EXCEPTION_HANDLER, new Http2ExceptionHandler(http2ConnectionHandler));
     }
 

@@ -221,8 +221,14 @@ public class Http2ClientTimeoutHandler implements Http2DataEventListener {
                 return;
             }
             if (!expectContinue) {
+                if (primary && !msgHolder.claimStreamTermination()) {
+                    // Something else already delivered this stream's terminal outcome.
+                    return;
+                }
                 closeStream(streamId, ctx);
             }
+            // An expired Expect: 100-continue wait is not terminal - the request body is sent anyway - so it
+            // deliberately leaves the termination unclaimed.
             if (primary) {
                 handlePrimaryResponseTimeout(msgHolder);
             } else {

@@ -36,13 +36,16 @@ public type ClientConfiguration record {|
 |};
 
 # Provides settings related to HTTP/1.x protocol.
-#
-# + keepAlive - Specifies whether to reuse a connection for multiple requests
-# + chunking - The chunking behaviour of the request
-# + proxy - Proxy server related options
 public type ClientHttp1Settings record {|
+    # Specifies whether to reuse a connection for multiple requests
     KeepAlive keepAlive = KEEPALIVE_AUTO;
+    # The chunking behaviour of the request
     Chunking chunking = CHUNKING_AUTO;
+    # Proxy server related options
+    # # Deprecated
+    # This field is deprecated and is honoured only for HTTP/1.1. Use the `proxy` field of the client
+    # configuration instead, which applies to all the HTTP versions.
+    @deprecated
     ProxyConfig? proxy = ();
 |};
 
@@ -132,17 +135,29 @@ public type FollowRedirects record {|
     boolean allowAuthHeaders = false;
 |};
 
+# Defines the protocol used to communicate with the proxy server.
+public enum ProxyProtocol {
+    # HTTP proxy protocol
+    HTTP,
+    # SOCKS4 proxy protocol
+    SOCKS4,
+    # SOCKS5 proxy protocol
+    SOCKS5
+}
+
 # Proxy server configurations to be used with the HTTP client endpoint.
 #
 # + host - Host name of the proxy server
 # + port - Proxy server port
 # + userName - Proxy server username
-# + password - proxy server password
+# + password - proxy server password. This is ignored for `SOCKS4` proxies, which do not support password authentication
+# + protocol - Protocol used to communicate with the proxy server. If not specified, `HTTP` is used
 public type ProxyConfig record {|
     string host = "";
     int port = 0;
     string userName = "";
     string password = "";
+    ProxyProtocol protocol?;
 |};
 
 # Client configuration for cookies.

@@ -25,6 +25,7 @@ import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contract.config.ChunkConfig;
 import io.ballerina.stdlib.http.transport.contract.config.ForwardedExtensionConfig;
+import io.ballerina.stdlib.http.transport.contract.config.ProxyServerConfiguration;
 import io.ballerina.stdlib.http.transport.contract.config.SenderConfiguration;
 import io.ballerina.stdlib.http.transport.contract.exceptions.ClientConnectorException;
 import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
@@ -58,6 +59,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.util.Calendar;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -248,7 +252,11 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
                         prepareTargetChannelForHttp(channelFuture);
                         if ((protocol.equalsIgnoreCase(Constants.HTTP1_CLEARTEXT_PROTOCOL) ||
                                 protocol.equalsIgnoreCase(Constants.HTTP1_TLS_PROTOCOL)) &&
-                                senderConfiguration.getProxyServerConfiguration() != null) {
+                                senderConfiguration.getProxyServerConfiguration() != null &&
+                                senderConfiguration.getProxyServerConfiguration().getProxyProtocol()
+                                        == ProxyServerConfiguration.ProxyProtocol.HTTP) {
+                            // Only set the absolute-form URI flag for HTTP proxies. SOCKS proxies tunnel
+                            // transparently, so the request line must remain in origin-form.
                             httpOutboundRequest.setProperty(Constants.IS_PROXY_ENABLED, true);
                         }
                         targetChannel.writeContent(httpOutboundRequest);
@@ -394,7 +402,8 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
         this.forwardedExtensionConfig = senderConfiguration.getForwardedExtensionConfig();
     }
 
-    public void initializeSSLContext() throws Exception {
+    public void initializeSSLContext() throws IOException, NoSuchAlgorithmException, KeyStoreException,
+            UnrecoverableKeyException {
         if (Objects.nonNull(sslConfig)) {
             sslConfig.initializeSSLContext(http2);
         }

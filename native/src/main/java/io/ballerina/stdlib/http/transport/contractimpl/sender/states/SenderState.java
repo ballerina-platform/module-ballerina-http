@@ -19,6 +19,7 @@
 package io.ballerina.stdlib.http.transport.contractimpl.sender.states;
 
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
+import io.ballerina.stdlib.http.transport.contract.exceptions.ConfigurationException;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.TargetHandler;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.netty.channel.ChannelHandlerContext;
@@ -59,10 +60,10 @@ public interface SenderState {
      * @param ctx                the channel handler context
      * @param httpContent        the initial content of the entity body
      * @param inboundResponseMsg {@link HttpCarbonMessage} which represents the inbound message
-     * @throws Exception if an error occurs while reading response
+     * @throws ConfigurationException if an error occurs while reading response
      */
     void readInboundResponseEntityBody(ChannelHandlerContext ctx, HttpContent httpContent,
-                                       HttpCarbonMessage inboundResponseMsg) throws Exception;
+                                       HttpCarbonMessage inboundResponseMsg) throws ConfigurationException;
 
     /**
      * Handle channel closure occurred due to abrupt connection failures.

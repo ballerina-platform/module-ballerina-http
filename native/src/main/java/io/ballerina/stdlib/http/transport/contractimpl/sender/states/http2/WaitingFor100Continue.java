@@ -43,6 +43,7 @@ import java.util.concurrent.ScheduledFuture;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_HEADERS;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_SENT_GOAWAY_WHILE_READING_INBOUND_RESPONSE_HEADERS;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_SENT_RST_STREAM_WHILE_READING_INBOUND_RESPONSE_HEADERS;
+import static io.ballerina.stdlib.http.transport.contract.Constants.STREAM_CLOSED_WHILE_READING_INBOUND_RESPONSE_HEADERS;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.handleIncompleteInboundMessage;
 
 /**
@@ -165,5 +166,11 @@ public class WaitingFor100Continue implements SenderState {
     public void handleRstStream(OutboundMsgHolder outboundMsgHolder) {
         outboundMsgHolder.getResponseFuture().notifyHttpListener(
                 new ServerConnectorException(REMOTE_SERVER_SENT_RST_STREAM_WHILE_READING_INBOUND_RESPONSE_HEADERS));
+    }
+
+    @Override
+    public void handleStreamClosedLocally(OutboundMsgHolder outboundMsgHolder) {
+        outboundMsgHolder.getResponseFuture().notifyHttpListener(
+                new ServerConnectorException(STREAM_CLOSED_WHILE_READING_INBOUND_RESPONSE_HEADERS));
     }
 }

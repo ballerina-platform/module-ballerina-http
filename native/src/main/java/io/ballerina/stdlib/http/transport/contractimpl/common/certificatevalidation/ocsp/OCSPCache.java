@@ -179,7 +179,7 @@ public class OCSPCache implements ManageableCache {
         private OCSPReq request;
         private String serviceUrl;
         private OCSPResp ocspResp;
-        private long timeStamp = System.currentTimeMillis();
+        private volatile long timeStamp = System.currentTimeMillis();
 
         public OCSPCacheValue(OCSPResp ocspResp, BigInteger serialNumber, SingleResp singleResp, OCSPReq request,
                 String serviceUrl) {

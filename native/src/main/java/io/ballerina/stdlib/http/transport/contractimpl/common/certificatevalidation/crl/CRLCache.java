@@ -152,7 +152,7 @@ public class CRLCache implements ManageableCache {
 
         private String crlUrl;
         private X509CRL crl;
-        private long timeStamp = System.currentTimeMillis();
+        private volatile long timeStamp = System.currentTimeMillis();
 
         public CRLCacheValue(String crlUrl, X509CRL crl) {
             this.crlUrl = crlUrl;

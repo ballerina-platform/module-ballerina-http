@@ -66,7 +66,7 @@ public isolated class CookieStore {
         if validated is () {
             return;
         }
-        if !((url.startsWith(HTTP) && validated.httpOnly) || !validated.httpOnly) {
+        if !((url.startsWith(HTTP_PROTOCOL) && validated.httpOnly) || !validated.httpOnly) {
             return;
         }
         lock {
@@ -126,10 +126,10 @@ public isolated class CookieStore {
                 if isExpired(cookie) {
                     continue;
                 }
-                if !((url.startsWith(HTTPS) && cookie.secure) || cookie.secure == false) {
+                if !((url.startsWith(HTTPS_PROTOCOL) && cookie.secure) || cookie.secure == false) {
                     continue;
                 }
-                if !((url.startsWith(HTTP) && cookie.httpOnly) || cookie.httpOnly == false) {
+                if !((url.startsWith(HTTP_PROTOCOL) && cookie.httpOnly) || cookie.httpOnly == false) {
                     continue;
                 }
                 if cookie.hostOnly == true {
@@ -326,7 +326,7 @@ public isolated class CookieStore {
             var identicalCookieDomain = identicalCookie.domain;
             var identicalCookiePath = identicalCookie.path;
             // Removes the old cookie and adds the new session cookie.
-            if ((identicalCookie.httpOnly && url.startsWith(HTTP)) || identicalCookie.httpOnly == false)
+            if ((identicalCookie.httpOnly && url.startsWith(HTTP_PROTOCOL)) || identicalCookie.httpOnly == false)
                 && identicalCookieDomain is string && identicalCookiePath is string {
                 var removeResult = self.removeCookie(identicalCookieName, identicalCookieDomain, identicalCookiePath);
                 if removeResult is error {
@@ -355,7 +355,7 @@ public isolated class CookieStore {
                 return self.removeCookie(identicalCookieName, identicalCookieDomain, identicalCookiePath);
             } else {
                 // Removes the old cookie and adds the new persistent cookie.
-                if ((identicalCookie.httpOnly && url.startsWith(HTTP)) || identicalCookie.httpOnly == false)
+                if ((identicalCookie.httpOnly && url.startsWith(HTTP_PROTOCOL)) || identicalCookie.httpOnly == false)
                     && identicalCookieDomain is string && identicalCookiePath is string {
                     var removeResult = self.removeCookie(identicalCookieName, identicalCookieDomain, identicalCookiePath);
                     if removeResult is error {
@@ -376,8 +376,8 @@ public isolated class CookieStore {
     }
 }
 
-const string HTTP = "http";
-const string HTTPS = "https";
+const string HTTP_PROTOCOL = "http";
+const string HTTPS_PROTOCOL = "https";
 const string URL_TYPE_1 = "https://www.";
 const string URL_TYPE_2 = "http://www.";
 const string URL_TYPE_3 = "http://";

@@ -128,4 +128,9 @@ public class EntityBodyReceived implements SenderState {
     public void handleRstStream(OutboundMsgHolder outboundMsgHolder) {
         LOG.warn("handleRstStream is not a dependant action of this state");
     }
+
+    @Override
+    public void handleStreamClosedLocally(OutboundMsgHolder outboundMsgHolder) {
+        LOG.debug("Stream closed locally after the entity body was already received; no action needed");
+    }
 }

@@ -47,6 +47,7 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_BODY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_SENT_GOAWAY_WHILE_WRITING_OUTBOUND_REQUEST_BODY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_SENT_RST_STREAM_WHILE_WRITING_OUTBOUND_REQUEST_BODY;
+import static io.ballerina.stdlib.http.transport.contract.Constants.STREAM_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_BODY;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil.onPushPromiseRead;
 
 /**
@@ -156,6 +157,14 @@ public class SendingEntityBody implements SenderState {
         outboundMsgHolder.getResponseFuture().notifyHttpListener(new RequestCancelledException(
                 REMOTE_SERVER_SENT_RST_STREAM_WHILE_WRITING_OUTBOUND_REQUEST_BODY,
                 HttpResponseStatus.BAD_GATEWAY.code()));
+    }
+
+    @Override
+    public void handleStreamClosedLocally(OutboundMsgHolder outboundMsgHolder) {
+        outboundMsgHolder.getRequest().setIoException(
+                new IOException(STREAM_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_BODY));
+        outboundMsgHolder.getResponseFuture().notifyHttpListener(new RequestCancelledException(
+                STREAM_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_BODY, HttpResponseStatus.BAD_GATEWAY.code()));
     }
 
     private void writeContent(ChannelHandlerContext ctx, HttpContent msg) throws Http2Exception {

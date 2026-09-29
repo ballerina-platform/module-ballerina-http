@@ -26,6 +26,10 @@ import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketClientConn
 import io.ballerina.stdlib.http.transport.contract.websocket.WebSocketClientConnectorConfig;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.ConnectionManager;
 
+import java.io.IOException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.util.Map;
 
 /**
@@ -57,11 +61,15 @@ public interface HttpWsConnectorFactory {
      *
      * @param transportProperties configTargetHandler stuff like global timeout, number of outbound connections, etc.
      * @param senderConfiguration contains SSL configuration and endpoint details.
-     * @throws Exception if the connector creation fails.
+     * @throws IOException if the connector creation fails.
+     * @throws NoSuchAlgorithmException if the key manager algorithm is unavailable.
+     * @throws KeyStoreException if the keystore cannot be initialized with the given key.
+     * @throws UnrecoverableKeyException if the key cannot be recovered.
      * @return HttpClientConnector.
      */
     HttpClientConnector createHttpsClientConnector(Map<String, Object> transportProperties,
-                                                   SenderConfiguration senderConfiguration) throws Exception;
+                                                   SenderConfiguration senderConfiguration) throws IOException,
+            NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException;
 
     /**
      * Creates a client connector with a given connection manager.
@@ -82,12 +90,16 @@ public interface HttpWsConnectorFactory {
      * @param transportProperties Represents the configurations related to HTTP client
      * @param senderConfiguration Represents the configurations related to client channel creation
      * @param connectionManager   Manages the client pool
-     * @throws Exception if the connector creation fails.
+     * @throws IOException if the connector creation fails.
+     * @throws NoSuchAlgorithmException if the key manager algorithm is unavailable.
+     * @throws KeyStoreException if the keystore cannot be initialized with the given key.
+     * @throws UnrecoverableKeyException if the key cannot be recovered.
      * @return the HttpClientConnector
      */
     HttpClientConnector createHttpsClientConnector(Map<String, Object> transportProperties,
                                                    SenderConfiguration senderConfiguration,
-                                                   ConnectionManager connectionManager) throws Exception;
+                                                   ConnectionManager connectionManager) throws IOException,
+            NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException;
 
     /**
      * This method is used to get WebSocket client connector.
@@ -101,11 +113,14 @@ public interface HttpWsConnectorFactory {
      * This method is used to get WebSocket client connector with SSL context initialized.
      *
      * @param clientConnectorConfig Properties to create a client connector.
-     * @throws Exception if the connector creation fails.
+     * @throws IOException if the connector creation fails.
+     * @throws NoSuchAlgorithmException if the key manager algorithm is unavailable.
+     * @throws KeyStoreException if the keystore cannot be initialized with the given key.
+     * @throws UnrecoverableKeyException if the key cannot be recovered.
      * @return WebSocketClientConnector.
      */
     WebSocketClientConnector createWsClientConnectorWithSSL(WebSocketClientConnectorConfig clientConnectorConfig)
-            throws Exception;
+            throws IOException, NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException;
 
     /**
      * Shutdown all the server channels and the accepted channels. It also shutdown all the eventloop groups.

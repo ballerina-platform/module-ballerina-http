@@ -21,9 +21,9 @@ package io.ballerina.stdlib.http.uri.parser;
 
 import io.ballerina.stdlib.http.uri.URITemplateException;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -76,19 +76,11 @@ public abstract class Expression<DataType, InboundMsgType> extends Node<DataType
     }
 
     protected String encodeValue(String value) {
-        try {
-            return URLEncoder.encode(value, "UTF-8").replaceAll("\\+", "%20");
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException("Error while encoding value: " + value, e);
-        }
+        return URLEncoder.encode(value, StandardCharsets.UTF_8).replaceAll("\\+", "%20");
     }
 
     protected String decodeValue(String value) {
-        try {
-            return URLDecoder.decode(value, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException("Error while encoding value: " + value, e);
-        }
+        return URLDecoder.decode(value, StandardCharsets.UTF_8);
     }
 
     public int getExpressionIndex() {
