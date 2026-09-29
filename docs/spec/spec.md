@@ -1266,6 +1266,7 @@ public type ClientConfiguration record {|
 public type ClientHttp1Settings record {|
     KeepAlive keepAlive = KEEPALIVE_AUTO;
     Chunking chunking = CHUNKING_AUTO;
+    @deprecated
     ProxyConfig? proxy = ();
 |};
 
@@ -1461,9 +1462,11 @@ public type ProxyConfig record {|
     int port = 0;
     string userName = "";
     string password = "";
-    ProxyProtocol protocol = HTTP;
+    ProxyProtocol protocol?;
 |};
 ```
+
+The `protocol` field is optional rather than defaultable. When it is not specified, `HTTP` is used. Keeping it optional means a mapping value that does not carry `protocol` stays assignable to `ProxyConfig`, which preserves the record's subtyping relationship with the pre-SOCKS shape used by generated connectors.
 
 - `http:HTTP` (default) — a standard HTTP proxy. Existing behaviour is unchanged.
 - `http:SOCKS4` — a SOCKS version 4 proxy. SOCKS4 does not support password authentication; the optional `userName`
@@ -1473,6 +1476,8 @@ public type ProxyConfig record {|
   target host is performed remotely on the proxy side.
 
 SOCKS proxies are supported for both plaintext (`http://`) and TLS (`https://`) targets over HTTP/1.1 and HTTP/2.
+
+The `proxy` field of `ClientHttp1Settings` is deprecated and is annotated with `@deprecated`, so referencing it produces a compile time warning. It is honoured only when `httpVersion` is `http:HTTP_1_1`, and only when the top-level `proxy` field is not set; the top-level field always takes precedence.
 
 ```ballerina
 http:Client clientEP = check new ("https://api.example.com",
@@ -1661,6 +1666,48 @@ json payload = {
 string response = check httpClient->/addPerson.post(payload, profession = "chemist", id = 123);
 // Same as the following :
 // string response = check httpClient->post("/addPerson?profession=chemist&id=123", payload);
+```
+
+The `http:QueryParams` type represents a collection of query parameters and is defined as follows.
+
+```ballerina
+// Defines the possible simple query parameter types.
+public type SimpleQueryParamType boolean|int|float|decimal|string;
+
+// Defines the possible query parameter types.
+public type QueryParamType SimpleQueryParamType[]|SimpleQueryParamType;
+
+// Defines the record type for query parameters.
+public type QueryParams record {|
+    never headers?;
+    never targetType?;
+    never message?;
+    never mediaType?;
+    QueryParamType...;
+|};
+```
+
+Multiple query parameters can be passed together using an `http:QueryParams` value, which can then be passed to the resource method using the `params` parameter.
+
+```ballerina
+// Making a GET request
+http:QueryParams queries = {
+   id: 123,
+   profession: "chemist"
+};
+string resp = check httpClient->/date(params = queries);
+// Same as the following :
+// string response = check httpClient->get("/date?id=123&profession=chemist");
+```
+
+Query parameters can also be passed inline if the value is structurally compatible with `http:QueryParams`.
+
+```ballerina
+// Passing multiple query parameters as an inline value.
+string resp = check httpClient->/date(params = {
+    id: 123,
+    profession: "chemist"
+});
 ```
 
 * Header parameter

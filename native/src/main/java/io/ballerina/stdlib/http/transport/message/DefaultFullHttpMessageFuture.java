@@ -35,10 +35,12 @@ public class DefaultFullHttpMessageFuture implements FullHttpMessageFuture {
     public void addListener(FullHttpMessageListener messageListener) {
         synchronized (httpCarbonMessage) {
             this.messageListener = messageListener;
-            if (httpCarbonMessage.isLastHttpContentArrived()) {
-                notifySuccess();
-            } else if (error != null) {
+            // A recorded failure is checked first so that it is never turned into a success by the message also
+            // being marked complete.
+            if (error != null) {
                 notifyFailure(error);
+            } else if (httpCarbonMessage.isLastHttpContentArrived()) {
+                notifySuccess();
             }
         }
     }
