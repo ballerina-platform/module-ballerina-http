@@ -48,6 +48,7 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.HEADER_VAL_1
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_WHILE_WRITING_OUTBOUND_REQUEST_HEADERS;
 import static io.ballerina.stdlib.http.transport.contract.Constants.INBOUND_RESPONSE_ALREADY_RECEIVED;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_HEADERS;
+import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.addIdleStateHandler;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.checkContentLengthAndTransferEncodingHeaderAllowance;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.isLastHttpContent;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.setupChunkedRequest;
@@ -87,11 +88,7 @@ public class SendingHeaders implements SenderState {
         ChannelPipeline pipeline = senderReqRespStateManager.nettyTargetChannel.pipeline();
         IdleStateHandler idleStateHandler =
                 new BackPressureAwareIdleStateHandler(socketIdleTimeout, TimeUnit.MILLISECONDS);
-        if (pipeline.get(Constants.TARGET_HANDLER) == null) {
-            pipeline.addLast(Constants.IDLE_STATE_HANDLER, idleStateHandler);
-        } else {
-            pipeline.addBefore(Constants.TARGET_HANDLER, Constants.IDLE_STATE_HANDLER, idleStateHandler);
-        }
+        addIdleStateHandler(pipeline, Constants.TARGET_HANDLER, idleStateHandler);
     }
 
     @Override
