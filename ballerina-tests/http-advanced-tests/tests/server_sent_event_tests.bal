@@ -72,9 +72,29 @@ class SseEventGenerator2 {
     }
 }
 
+class LargeSseEventGenerator {
+    private boolean emitted = false;
+
+    public isolated function next() returns record {|http:SseEvent value;|}|error? {
+        if self.emitted {
+            return;
+        }
+        self.emitted = true;
+        string data = "";
+        foreach int i in 0 ..< 1024 {
+            data += "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+        }
+        return {value: {data: data}};
+    }
+}
+
 service /sse on http1SseListener {
     resource function 'default [string... paths](http:Request req) returns stream<http:SseEvent, error?> {
         return new (new SseEventGenerator());
+    }
+
+    resource function get large() returns stream<http:SseEvent, error?> {
+        return new (new LargeSseEventGenerator());
     }
 }
 
@@ -123,6 +143,15 @@ function testClientDataBindingForSseEventStream() returns error? {
     stream<http:SseEvent, error?> actualSseEvents = check http1SseClient->/sse;
     stream<http:SseEvent, error?> expectedSseEvents = new (new SseEventGenerator());
     check assertEventStream(actualSseEvents, expectedSseEvents);
+}
+
+@test:Config {}
+function testClientDataBindingForLargeSseEvent() returns error? {
+    stream<http:SseEvent, error?> actualSseEvents = check http1SseClient->/sse/large;
+    record {|http:SseEvent value;|}? valueRecord = check actualSseEvents.next();
+    test:assertEquals(valueRecord?.value.data?.length(), 65536);
+    var nextValue = check actualSseEvents.next();
+    test:assertTrue(nextValue is ());
 }
 
 @test:Config {}
