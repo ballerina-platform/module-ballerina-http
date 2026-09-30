@@ -1470,8 +1470,6 @@ runtime failures.
 final http:Client relaxedClientEP = check new ("http://localhost:9090", laxDataBinding = true);
 ```
 
-<<<<<<< ours
-=======
 ##### 2.4.1.11 Response limits
 
 The `responseLimits` field of the `ClientConfiguration` bounds the size of inbound responses.
@@ -1498,7 +1496,6 @@ The idle `timeout` of the client keeps applying while the body arrives, and each
 http:Client limitedClient = check new ("http://api.example.com", responseLimits = {maxEntityBodySize: 1048576});
 ```
 
->>>>>>> theirs
 ##### 2.4.2. Client action
 
 The HTTP client contains separate remote method representing each HTTP method such as `get`, `put`, `post`,
