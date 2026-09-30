@@ -4,6 +4,18 @@ This file contains all the notable changes done to the Ballerina HTTP package th
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- [Fix the HTTP client reporting a response over `maxEntityBodySize` as the remote host closing the connection when three or more body chunks were buffered](https://github.com/ballerina-platform/ballerina-library/issues/9206)
+- [Fix the HTTP client applying `maxEntityBodySize` to the total of all the responses received on a reused connection instead of to each response](https://github.com/ballerina-platform/ballerina-library/issues/9207)
+- [Fix the HTTP listener applying `maxEntityBodySize` to the total of all the requests received on a keep-alive connection instead of to each request](https://github.com/ballerina-platform/ballerina-library/issues/9208)
+- [Fix the idle timeout firing on a message whose body is still arriving when `maxEntityBodySize` is set](https://github.com/ballerina-platform/ballerina-library/issues/9209)
+- Fix a malformed message, or a request with `Expect: 100-continue`, waiting until the idle timeout when `maxEntityBodySize` is set, and the listener closing a request that times out mid-body without a `408` response when the limit is set
+- Fix the HTTP client rejecting a response to a `HEAD` request, or a `1xx`, `204` or `304` response, whose `Content-Length` header is over `maxEntityBodySize`, although such a response carries no body
+- Fix the HTTP client waiting forever for a response whose `Content-Length` header is not a number, instead of returning an `http:ReadingInboundResponseHeadersError`
+
 ## [2.17.2] - 2026-09-23
 
 ### Changed

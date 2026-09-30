@@ -78,6 +78,7 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.SECURITY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.SSL;
 import static io.ballerina.stdlib.http.transport.contract.Constants.TRACE_LOG_DOWNSTREAM;
 import static io.ballerina.stdlib.http.transport.contract.Constants.URI_HEADER_LENGTH_VALIDATION_HANDLER;
+import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.addIdleStateHandler;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.setSslHandshakeTimeOut;
 
 /**
@@ -248,9 +249,8 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
                                                  this.listenerChannels, this.pipeliningEnabled, this.pipeliningLimit,
                                                  this.pipeliningGroup));
         if (socketIdleTimeout >= 0) {
-            serverPipeline.addBefore(Constants.HTTP_SOURCE_HANDLER, Constants.IDLE_STATE_HANDLER,
-                                     new BackPressureAwareIdleStateHandler(socketIdleTimeout,
-                                                                          TimeUnit.MILLISECONDS));
+            addIdleStateHandler(serverPipeline, Constants.HTTP_SOURCE_HANDLER,
+                                new BackPressureAwareIdleStateHandler(socketIdleTimeout, TimeUnit.MILLISECONDS));
         }
         serverPipeline.addLast(Constants.HTTP_EXCEPTION_HANDLER, new HttpExceptionHandler());
     }

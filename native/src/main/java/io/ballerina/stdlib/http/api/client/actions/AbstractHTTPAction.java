@@ -491,8 +491,7 @@ public abstract class AbstractHTTPAction {
 
         @Override
         public void onMessage(HttpCarbonMessage inboundResponseMessage) {
-            this.dataContext.notifyInboundResponseStatus
-                    (HttpUtil.createResponseStruct(inboundResponseMessage), null);
+            this.dataContext.notifyInboundResponse(inboundResponseMessage);
         }
 
         @Override
