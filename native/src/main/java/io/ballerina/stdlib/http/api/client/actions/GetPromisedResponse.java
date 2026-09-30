@@ -63,8 +63,7 @@ public class GetPromisedResponse extends AbstractHTTPAction {
 
         @Override
         public void onPushResponse(int promisedId, HttpCarbonMessage httpCarbonMessage) {
-            dataContext.notifyInboundResponseStatus(
-                    HttpUtil.createResponseStruct(httpCarbonMessage), null);
+            dataContext.notifyInboundResponse(httpCarbonMessage);
         }
 
         @Override
