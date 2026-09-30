@@ -29,18 +29,18 @@ enum SseFieldName {
     DATA = "data"
 };
 
-# This class is designed to read a stream of data one byte at a time.
-# It specifically handles the scenario where the streaming party sends data 
-# in small increments, potentially one byte at a time. 
-# 
-# The main functionality of this class is to parse the incoming byte stream 
-# and detect consecutive line feed characters. When two consecutive line feeds 
-# ('\n\n' | '\r\r' | '\r\n\r\n') are detected, it signifies the end of an SSE (Server-Sent Event) message, 
-# and a new `SseEvent` record is created to represent this message.
+# This class incrementally parses an incoming byte stream and detects consecutive
+# line feed characters. When two consecutive line feeds ('\n\n' | '\r\r' |
+# '\r\n\r\n') are detected, it signifies the end of an SSE (Server-Sent Event)
+# message, and a new `SseEvent` record is created to represent this message.
+# The stream is buffered while parsing so that fragmented input, including
+# one-byte chunks, is handled without requiring one stream read per byte.
 class BytesToEventStreamGenerator {
     private final stream<byte[], io:Error?> byteStream;
     private boolean isClosed = false;
     private byte[] lookaheadBuffer = [];
+    private byte[] readBuffer = [];
+    private int readBufferIndex = 0;
 
     isolated function init(stream<byte[], io:Error?> byteStream) {
         self.byteStream = byteStream;
@@ -102,14 +102,23 @@ class BytesToEventStreamGenerator {
         return;
     }
 
-    # Reads next byte from the lookahead buffer if data is available, otherwise read from the byte stream
+    # Reads next byte from the lookahead buffer or the buffered stream data.
     # + return - A `byte?` on success, `error` on failure
     private isolated function getNextByte() returns byte|error? {
         if self.lookaheadBuffer.length() > 0 {
             return self.lookaheadBuffer.shift();
         }
-        record {byte[] value;}? nextValue = check self.byteStream.next();
-        return nextValue is () ? () : nextValue.value[0];
+        while self.readBufferIndex >= self.readBuffer.length() {
+            record {byte[] value;}? nextValue = check self.byteStream.next();
+            if nextValue is () {
+                return;
+            }
+            self.readBuffer = nextValue.value;
+            self.readBufferIndex = 0;
+        }
+        byte nextByte = self.readBuffer[self.readBufferIndex];
+        self.readBufferIndex += 1;
+        return nextByte;
     }
 }
 
