@@ -55,6 +55,19 @@ public class DataContext {
         this.correlatedMessage = inboundRequestMsg;
     }
 
+    public void notifyInboundResponse(HttpCarbonMessage inboundResponseMsg) {
+        BObject inboundResponse;
+        try {
+            inboundResponse = HttpUtil.createResponseStruct(inboundResponseMsg);
+        } catch (BError error) {
+            // Thrown on the transport thread, the error would be lost and the caller left waiting for the response.
+            notifyInboundResponseStatus(null, HttpUtil.createHttpError(error.getMessage(),
+                    HttpErrorType.READING_INBOUND_RESPONSE_HEADERS_FAILED, error));
+            return;
+        }
+        notifyInboundResponseStatus(inboundResponse, null);
+    }
+
     public void notifyInboundResponseStatus(BObject inboundResponse, BError httpConnectorError) {
         //Make the request associate with this response consumable again so that it can be reused.
         if (inboundResponse != null) {
