@@ -210,6 +210,23 @@ public class Http2ClientChannel {
         isExhausted.set(true);
     }
 
+    int decrementActiveStreamCount() {
+        return activeStreams.decrementAndGet();
+    }
+
+    /**
+     * Clears the exhausted mark.
+     *
+     * @return whether the channel was marked as exhausted
+     */
+    boolean resetExhausted() {
+        return isExhausted.getAndSet(false);
+    }
+
+    boolean isStale() {
+        return isStale.get();
+    }
+
     /**
      * Adds a listener which listen for HTTP/2 data events.
      *
@@ -303,12 +320,9 @@ public class Http2ClientChannel {
             // Channel is no longer exhausted, so we can return it back to the pool
             http2ClientChannel.removeInFlightMessage(stream.id());
             http2ConnectionManager.markClientChannelAsIdle(http2ClientChannel);
-            activeStreams.decrementAndGet();
             http2ClientChannel.getDataEventListeners().
                     forEach(dataEventListener -> dataEventListener.onStreamClose(stream.id()));
-            if (!isStale.get() && isExhausted.getAndSet(false)) {
-                http2ConnectionManager.returnClientChannel(httpRoute, http2ClientChannel);
-            }
+            http2ConnectionManager.releaseStream(httpRoute, http2ClientChannel);
         }
 
         private void notifyStreamClosedLocally(int streamId) {

@@ -26,6 +26,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - [Fix an HTTP/2 client response body that cannot be decoded, such as a malformed gzip body, leaving the read blocked or returning an empty payload instead of an error](https://github.com/ballerina-platform/ballerina-library/issues/9191)
 - Report the failure that ended a client response early, such as a body that could not be decoded, instead of reporting it as the remote host closing the connection or as the stream error it caused, so that the same malformed body reads the same way over HTTP/1.1 and HTTP/2
+- [Fix HTTP/2 client requests hanging forever once a connection reaches `maxActiveStreamsPerConnection`, and the client opening a new connection for most requests after a connection was exhausted](https://github.com/ballerina-platform/ballerina-library/issues/9233)
 - [Fix the HTTP client reporting a response over `maxEntityBodySize` as the remote host closing the connection when three or more body chunks were buffered](https://github.com/ballerina-platform/ballerina-library/issues/9206)
 - [Fix the HTTP client applying `maxEntityBodySize` to the total of all the responses received on a reused connection instead of to each response](https://github.com/ballerina-platform/ballerina-library/issues/9207)
 - [Fix the HTTP listener applying `maxEntityBodySize` to the total of all the requests received on a keep-alive connection instead of to each request](https://github.com/ballerina-platform/ballerina-library/issues/9208)
