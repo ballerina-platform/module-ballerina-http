@@ -61,8 +61,7 @@ public class GetResponse extends AbstractHTTPAction {
 
         @Override
         public void onMessage(HttpCarbonMessage httpCarbonMessage) {
-            dataContext.notifyInboundResponseStatus(
-                    HttpUtil.createResponseStruct(httpCarbonMessage), null);
+            dataContext.notifyInboundResponse(httpCarbonMessage);
         }
 
         public void onError(Throwable throwable) {
