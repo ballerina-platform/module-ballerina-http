@@ -18,9 +18,15 @@
 
 package io.ballerina.stdlib.http.uri.parser;
 
+import io.ballerina.runtime.api.creators.ValueCreator;
+import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.values.BArray;
+import io.ballerina.runtime.api.values.BMap;
+import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.http.api.HttpResourceArguments;
 import io.ballerina.stdlib.http.uri.URITemplate;
 import io.ballerina.stdlib.http.uri.URITemplateException;
+import io.ballerina.stdlib.http.uri.URIUtil;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -29,13 +35,6 @@ import java.io.UnsupportedEncodingException;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertThrows;
-
-import io.ballerina.runtime.api.creators.ValueCreator;
-import io.ballerina.runtime.api.utils.StringUtils;
-import io.ballerina.runtime.api.values.BArray;
-import io.ballerina.runtime.api.values.BMap;
-import io.ballerina.runtime.api.values.BString;
-import io.ballerina.stdlib.http.uri.URIUtil;
 import static org.testng.Assert.assertTrue;
 /**
  * Unit tests for the URI template parser and the node tree it builds, driven end to end: a template is parsed
