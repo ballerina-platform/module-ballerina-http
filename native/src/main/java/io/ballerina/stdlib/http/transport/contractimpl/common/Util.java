@@ -81,6 +81,7 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.AsciiString;
 import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
@@ -105,6 +106,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ScheduledFuture;
@@ -149,6 +151,8 @@ public class Util {
     }
 
     private static final Logger LOG = LoggerFactory.getLogger(Util.class);
+    private static final List<String> HTTP_CODEC_HANDLER_NAMES = List.of(Constants.HTTP_CLIENT_CODEC,
+            Constants.HTTP_DECODER, Constants.HTTP_SERVER_CODEC);
     public static final String HTTP_1_1 = "http/1.1";
     public static final int ENTITY_WAIT_GRACE_MILLIS = 5000;
     private static final float EPSILON = 0.00001f;
@@ -838,6 +842,25 @@ public class Util {
     public static HttpCarbonMessage createHTTPCarbonMessage(HttpMessage httpMessage, ChannelHandlerContext ctx) {
         Listener contentListener = new DefaultListener(ctx);
         return new HttpCarbonMessage(httpMessage, contentListener);
+    }
+
+    /**
+     * Adds the idle state handler directly after the HTTP codec, so that no handler holding reads back can hide a
+     * message's progress from it.
+     */
+    public static void addIdleStateHandler(ChannelPipeline pipeline, String consumerName,
+                                           IdleStateHandler idleStateHandler) {
+        for (String codecName : HTTP_CODEC_HANDLER_NAMES) {
+            if (pipeline.get(codecName) != null) {
+                pipeline.addAfter(codecName, Constants.IDLE_STATE_HANDLER, idleStateHandler);
+                return;
+            }
+        }
+        if (pipeline.get(consumerName) == null) {
+            pipeline.addLast(Constants.IDLE_STATE_HANDLER, idleStateHandler);
+        } else {
+            pipeline.addBefore(consumerName, Constants.IDLE_STATE_HANDLER, idleStateHandler);
+        }
     }
 
     /**
