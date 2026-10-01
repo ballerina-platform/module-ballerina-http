@@ -49,7 +49,7 @@ public class HeaderParam extends SignatureParam {
         super(token);
     }
 
-    public void initHeaderParam(Type originalType, int index, boolean isDefaultable, 
+    public void initHeaderParam(Type originalType, int index, boolean isDefaultable,
         boolean requireConstraintValidation) {
         init(originalType, index, requireConstraintValidation);
         this.defaultable = isDefaultable;
