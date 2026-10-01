@@ -268,4 +268,29 @@ public class URITemplateParserTest {
         assertEquals(values.getString(0), "", "First value should be empty string");
         assertEquals(values.getString(1), "", "Second value should be empty string");
     }
+
+    @Test(description = "Valueless query parameters retain resource binding semantics")
+    public void testQueryParamsWithoutAssignmentForResourceBinding() throws UnsupportedEncodingException {
+        BString foo = StringUtils.fromString("foo");
+        BMap<BString, Object> queryParams = ValueCreator.createMapValue();
+        URIUtil.populateQueryParamMap("foo", queryParams, false);
+        assertTrue(queryParams.containsKey(foo), "Key 'foo' should be present");
+        assertNull(queryParams.get(foo), "A valueless parameter should have no binding value");
+
+        queryParams = ValueCreator.createMapValue();
+        URIUtil.populateQueryParamMap("foo&foo", queryParams, false);
+        assertNull(queryParams.get(foo), "Repeated valueless parameters should have no binding value");
+
+        queryParams = ValueCreator.createMapValue();
+        URIUtil.populateQueryParamMap("foo&foo=", queryParams, false);
+        BArray values = (BArray) queryParams.get(foo);
+        assertEquals(values.size(), 1, "An explicit empty value should be retained");
+        assertEquals(values.getString(0), "", "An explicit empty value should remain an empty string");
+
+        queryParams = ValueCreator.createMapValue();
+        URIUtil.populateQueryParamMap("foo&foo=value", queryParams, false);
+        values = (BArray) queryParams.get(foo);
+        assertEquals(values.size(), 1, "Valueless repeats should not obscure assigned values");
+        assertEquals(values.getString(0), "value", "The assigned value should be retained");
+    }
 }
