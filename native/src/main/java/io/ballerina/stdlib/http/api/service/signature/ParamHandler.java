@@ -178,7 +178,8 @@ public class ParamHandler {
                         getParamList().add(payloadParam);
                     } else if ((headerParam = headerParams.get(paramName)) != null) {
                         io.ballerina.runtime.api.types.Parameter parameter = resource.getParameters()[index];
-                        headerParam.initHeaderParam(originalParameterTypes[index], index, parameter.isDefault, constraintValidation);
+                        headerParam.initHeaderParam(originalParameterTypes[index], index, 
+                            parameter.isDefault, constraintValidation);
                     } else {
                         createQueryParam(index, resource, originalParameterTypes[index]);
                     }

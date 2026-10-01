@@ -43,13 +43,16 @@ public class HeaderParam extends SignatureParam {
     private String headerName;
     private HeaderRecordParam recordParam;
     private boolean nilable;
+    private boolean defaultable;
 
     HeaderParam(String token) {
         super(token);
     }
 
-    public void initHeaderParam(Type originalType, int index, boolean isDefaultable, boolean requireConstraintValidation) {
-        init(originalType, index, isDefaultable, requireConstraintValidation);
+    public void initHeaderParam(Type originalType, int index, boolean isDefaultable, 
+        boolean requireConstraintValidation) {
+        init(originalType, index, requireConstraintValidation);
+        this.defaultable = isDefaultable;
         this.nilable = originalType.isNilable();
         populateHeaderParamTypeTag(originalType);
     }
@@ -79,6 +82,10 @@ public class HeaderParam extends SignatureParam {
 
     public boolean isNilable() {
         return this.nilable;
+    }
+
+    public boolean isDefaultable() {
+        return defaultable;
     }
 
     public String getHeaderName() {
