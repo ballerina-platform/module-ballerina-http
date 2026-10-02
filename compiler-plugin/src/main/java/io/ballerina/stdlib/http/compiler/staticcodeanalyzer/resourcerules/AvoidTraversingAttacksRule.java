@@ -26,9 +26,8 @@ import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpResourceRuleContext;
 
 import java.util.List;
-import java.util.Optional;
 
-import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getUsedParamName;
+import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getUsedParamNames;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpRule.AVOID_TRAVERSING_ATTACKS;
 
 /**
@@ -72,8 +71,7 @@ public class AvoidTraversingAttacksRule implements HttpResourceRule {
                 continue;
             }
             ExpressionNode expression = computedResourceAccessSegment.expression();
-            Optional<String> usedParamName = getUsedParamName(expression);
-            if (usedParamName.isPresent() && context.resourceParamNames().contains(usedParamName.get())) {
+            if (getUsedParamNames(expression).stream().anyMatch(context.resourceParamNames()::contains)) {
                 context.reporter().reportIssue(
                         context.document(),
                         computedResourceAccessSegment.location(),

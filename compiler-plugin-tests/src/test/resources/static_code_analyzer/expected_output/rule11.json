@@ -1,0 +1,82 @@
+[
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 30,
+      "endLine": 33,
+      "startColumn": 32,
+      "endColumn": 13,
+      "startOffset": 984,
+      "length": 85
+    },
+    "rule": {
+      "id": "ballerina/http:11",
+      "numericId": 11,
+      "description": "Avoid accepting JSON Web Tokens without verification",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule11/service.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule11/service.bal"
+  },
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 48,
+      "endLine": 53,
+      "startColumn": 32,
+      "endColumn": 13,
+      "startOffset": 1404,
+      "length": 159
+    },
+    "rule": {
+      "id": "ballerina/http:11",
+      "numericId": 11,
+      "description": "Avoid accepting JSON Web Tokens without verification",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule11/service.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule11/service.bal"
+  },
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 68,
+      "endLine": 73,
+      "startColumn": 32,
+      "endColumn": 13,
+      "startOffset": 1869,
+      "length": 152
+    },
+    "rule": {
+      "id": "ballerina/http:11",
+      "numericId": 11,
+      "description": "Avoid accepting JSON Web Tokens without verification",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule11/service.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule11/service.bal"
+  },
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 109,
+      "endLine": 109,
+      "startColumn": 32,
+      "endColumn": 34,
+      "startOffset": 2858,
+      "length": 2
+    },
+    "rule": {
+      "id": "ballerina/http:11",
+      "numericId": 11,
+      "description": "Avoid accepting JSON Web Tokens without verification",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule11/service.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule11/service.bal"
+  }
+]

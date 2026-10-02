@@ -18,8 +18,11 @@
 
 package io.ballerina.stdlib.http.compiler.staticcodeanalyzer;
 
+import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.resourcerules.AvoidCachingAuthenticatedResponsesRule;
 import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.resourcerules.AvoidDefaultResourceAccessorRule;
+import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.resourcerules.AvoidStaleAuthenticatedResponsesRule;
 import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.resourcerules.AvoidTraversingAttacksRule;
+import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.resourcerules.AvoidUnsecureCallerRedirectionsRule;
 import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.resourcerules.AvoidUnsecureRedirectionsRule;
 import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.resourcerules.HttpResourceRule;
 
@@ -56,8 +59,11 @@ public class HttpResourceRulesEngine {
 
     private void initializeDefaultRules() {
         addRule(new AvoidDefaultResourceAccessorRule());
+        addRule(new AvoidCachingAuthenticatedResponsesRule());
+        addRule(new AvoidStaleAuthenticatedResponsesRule());
         addRule(new AvoidTraversingAttacksRule());
         addRule(new AvoidUnsecureRedirectionsRule());
+        addRule(new AvoidUnsecureCallerRedirectionsRule());
         // Add more default rules here as needed
     }
 }

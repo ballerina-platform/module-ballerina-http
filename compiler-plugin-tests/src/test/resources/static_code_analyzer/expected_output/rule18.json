@@ -1,0 +1,22 @@
+[
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 35,
+      "endLine": 35,
+      "startColumn": 90,
+      "endColumn": 95,
+      "startOffset": 1172,
+      "length": 5
+    },
+    "rule": {
+      "id": "ballerina/http:18",
+      "numericId": 18,
+      "description": "Avoid serving authenticated responses from a cache without revalidation",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule18/service.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule18/service.bal"
+  }
+]

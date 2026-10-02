@@ -1,0 +1,42 @@
+[
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 35,
+      "endLine": 35,
+      "startColumn": 44,
+      "endColumn": 70,
+      "startOffset": 1120,
+      "length": 26
+    },
+    "rule": {
+      "id": "ballerina/http:16",
+      "numericId": 16,
+      "description": "Avoid allowing shared caches to store responses that require authentication",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule16/service.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule16/service.bal"
+  },
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 40,
+      "endLine": 40,
+      "startColumn": 45,
+      "endColumn": 56,
+      "startOffset": 1312,
+      "length": 11
+    },
+    "rule": {
+      "id": "ballerina/http:16",
+      "numericId": 16,
+      "description": "Avoid allowing shared caches to store responses that require authentication",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule16/service.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule16/service.bal"
+  }
+]
