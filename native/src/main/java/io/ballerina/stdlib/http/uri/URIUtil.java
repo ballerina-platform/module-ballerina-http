@@ -214,10 +214,8 @@ public final class URIUtil {
 
         for (Map.Entry<String, List<String>> entry : tempParamMap.entrySet()) {
             List<String> entryValue = entry.getValue();
-            if (entryValue != null && !entryValue.isEmpty()) {
-                entryValue.removeIf(value -> value == null);
-            }
-            if (entryValue != null && !entryValue.isEmpty()) {
+            entryValue.removeIf(value -> value == null);
+            if (!entryValue.isEmpty()) {
                 queryParamsMap.put(StringUtils.fromString(entry.getKey()),
                         StringUtils.fromStringArray(entryValue.toArray(new String[0])));
             } else {
