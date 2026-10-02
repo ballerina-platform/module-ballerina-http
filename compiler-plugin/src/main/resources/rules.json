@@ -2,21 +2,98 @@
   {
     "id": 1,
     "kind": "VULNERABILITY",
-    "description": "Avoid allowing default resource accessor"
+    "name": "Avoid allowing default resource accessor",
+    "helpUri": "https://ballerina.io/learn/scan-rules/#ballerina-http-1",
+    "severity": "MEDIUM",
+    "description": "A resource is declared with the `default` accessor, so it responds to every HTTP method.",
+    "fullDescription": "A resource declared with the `default` accessor answers every HTTP method, including ones it was never meant to serve, which widens the attack surface and can expose state-changing behaviour to requests that bypass method-based protections. Declare only the accessors the resource is intended to support.",
+    "tags": [
+      "http",
+      "csrf"
+    ],
+    "standards": {
+      "cwe": [
+        352,
+        749
+      ],
+      "owasp": [
+        {
+          "year": 2025,
+          "categories": [1]
+        }
+      ]
+    }
   },
   {
     "id": 2,
     "kind": "VULNERABILITY",
-    "description": "Avoid permissive Cross-Origin Resource Sharing"
+    "name": "Avoid permissive Cross-Origin Resource Sharing",
+    "helpUri": "https://ballerina.io/learn/scan-rules/#ballerina-http-2",
+    "severity": "MEDIUM",
+    "description": "A Cross-Origin Resource Sharing configuration accepts requests from any origin.",
+    "fullDescription": "Allowing any origin lets scripts on arbitrary websites read responses from the service, defeating the browser's same-origin protection for every endpoint that returns data the visiting user can access. Configure the specific origins that are trusted.",
+    "tags": [
+      "http",
+      "cors"
+    ],
+    "standards": {
+      "cwe": [
+        942
+      ],
+      "owasp": [
+        {
+          "year": 2025,
+          "categories": [2]
+        }
+      ]
+    }
   },
   {
     "id": 3,
     "kind": "VULNERABILITY",
-    "description": "Server-side requests should not be vulnerable to traversing attacks"
+    "name": "Server-side requests should not be vulnerable to traversing attacks",
+    "helpUri": "https://ballerina.io/learn/scan-rules/#ballerina-http-3",
+    "severity": "HIGH",
+    "description": "A server-side request is sent to a URL derived from user input.",
+    "fullDescription": "When user-controlled input determines the target of a server-side request, an attacker can direct the service at internal addresses, cloud metadata endpoints, or arbitrary external hosts, using it as a proxy to reach systems that are otherwise unreachable. Validate the target against an allow-list of permitted hosts.",
+    "tags": [
+      "http",
+      "ssrf"
+    ],
+    "standards": {
+      "cwe": [
+        918
+      ],
+      "owasp": [
+        {
+          "year": 2025,
+          "categories": [1]
+        }
+      ]
+    }
   },
   {
     "id": 4,
     "kind": "VULNERABILITY",
-    "description": "HTTP request redirections should not be open to forging attacks"
+    "name": "HTTP request redirections should not be open to forging attacks",
+    "helpUri": "https://ballerina.io/learn/scan-rules/#ballerina-http-4",
+    "severity": "MEDIUM",
+    "description": "A redirect target is derived from user input, allowing redirection to an arbitrary site.",
+    "fullDescription": "When user-controlled input determines a redirect target, an attacker can craft a link on the trusted domain that sends victims to a site under their control, which is widely used for phishing and credential theft. Validate the target against an allow-list, or accept only relative paths.",
+    "tags": [
+      "http",
+      "redirect"
+    ],
+    "standards": {
+      "cwe": [
+        601
+      ],
+      "owasp": [
+        {
+          "year": 2025,
+          "categories": [1]
+        }
+      ]
+    }
   }
 ]

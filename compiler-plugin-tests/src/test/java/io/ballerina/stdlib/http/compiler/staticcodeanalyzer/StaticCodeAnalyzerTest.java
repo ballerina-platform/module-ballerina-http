@@ -42,11 +42,9 @@ import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.PatternSyntaxException;
-import java.util.stream.Collectors;
 
 import static io.ballerina.scan.RuleKind.VULNERABILITY;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpRule.AVOID_DEFAULT_RESOURCE_ACCESSOR;
@@ -67,10 +65,43 @@ public class StaticCodeAnalyzerTest {
 
     @Test
     public void validateRulesJson() throws IOException {
-        String expectedRules = "[" + Arrays.stream(HttpRule.values())
-                .map(HttpRule::toString).collect(Collectors.joining(",")) + "]";
-        String actualRules = Files.readString(JSON_RULES_FILE_PATH);
-        assertJsonEqual(actualRules, expectedRules);
+        JsonNode rulesArray = new ObjectMapper().readTree(Files.readString(JSON_RULES_FILE_PATH));
+        Assert.assertEquals(rulesArray.size(), HttpRule.values().length);
+        for (HttpRule rule : HttpRule.values()) {
+            JsonNode ruleNode = findRuleById(rulesArray, rule.getId());
+            Assert.assertNotNull(ruleNode, "Rule with id " + rule.getId() + " not found in rules.json");
+            Assert.assertEquals(ruleNode.get("kind").asText(), VULNERABILITY.toString());
+            Assert.assertEquals(ruleNode.get("description").asText(), rule.getDescription());
+            validateEnrichedRuleMetadata(ruleNode);
+        }
+    }
+
+    private void validateEnrichedRuleMetadata(JsonNode ruleNode) {
+        assertNonBlankText(ruleNode, "name");
+        assertNonBlankText(ruleNode, "severity");
+        assertNonBlankText(ruleNode, "fullDescription");
+
+        JsonNode tags = ruleNode.get("tags");
+        Assert.assertTrue(tags != null && tags.isArray() && !tags.isEmpty(), "tags should be a non-empty array");
+
+        JsonNode standards = ruleNode.get("standards");
+        Assert.assertTrue(standards != null && standards.isObject() && !standards.isEmpty(),
+                "standards should be a non-empty object");
+    }
+
+    private void assertNonBlankText(JsonNode ruleNode, String field) {
+        JsonNode fieldNode = ruleNode.get(field);
+        Assert.assertTrue(fieldNode != null && fieldNode.isTextual() && !fieldNode.asText().isBlank(),
+                field + " should be a non-blank string");
+    }
+
+    private JsonNode findRuleById(JsonNode rulesArray, int id) {
+        for (JsonNode ruleNode : rulesArray) {
+            if (ruleNode.get("id").asInt() == id) {
+                return ruleNode;
+            }
+        }
+        return null;
     }
 
     @Test
