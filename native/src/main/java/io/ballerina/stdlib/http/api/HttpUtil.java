@@ -878,7 +878,7 @@ public class HttpUtil {
             contentLength = lengthStr != null ? Long.parseLong(lengthStr) : contentLength;
             MimeUtil.setContentLength(entity, contentLength);
         } catch (NumberFormatException e) {
-            throw createHttpError("Invalid content length", HttpErrorType.INVALID_CONTENT_LENGTH);
+            throw MimeUtil.createError(INVALID_CONTENT_LENGTH_ERROR, "Invalid content length");
         }
         requestObj.addNativeData(HTTP_HEADERS, cMsg.getHeaders());
         requestObj.addNativeData(HttpConstants.HTTP_TRAILER_HEADERS, cMsg.getTrailerHeaders());

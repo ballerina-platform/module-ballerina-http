@@ -80,6 +80,7 @@ public class HttpCarbonMessage {
     private volatile boolean pipeliningEnabled;
     private volatile boolean passthrough = false;
     private boolean lastHttpContentArrived = false;
+    private Exception contentFailure;
     private String httpVersion;
     private String httpMethod;
     private String requestUrl;
@@ -649,6 +650,10 @@ public class HttpCarbonMessage {
     public synchronized FullHttpMessageFuture getFullHttpCarbonMessage() {
         removeInboundContentListener();
         fullHttpMessageFuture = new DefaultFullHttpMessageFuture(this);
+        if (contentFailure != null) {
+            // The failure may have arrived before anyone asked for the full message, so replay it to the new future.
+            fullHttpMessageFuture.notifyFailure(contentFailure);
+        }
         return fullHttpMessageFuture;
     }
 
@@ -673,6 +678,7 @@ public class HttpCarbonMessage {
      * @param exception of content accumulation
      */
     public synchronized void notifyContentFailure(Exception exception) {
+        contentFailure = exception;
         if (fullHttpMessageFuture != null) {
             fullHttpMessageFuture.notifyFailure(exception);
         }

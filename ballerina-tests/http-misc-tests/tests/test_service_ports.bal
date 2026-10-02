@@ -29,6 +29,9 @@ const requestLimitsTestPort3 = 9503;
 const requestLimitsTestPort4 = 9504;
 const requestLimitsTestPort5 = 19555;
 const requestLimitsTestPort6 = 9556;
+const requestLimitsTestPort7 = 9555;
+const requestLimitsTestPort8 = 9638;
+const requestLimitsTestPort9 = 9639;
 
 const responseLimitsTestPort1 = 9557;
 const responseLimitsTestPort2 = 9558;
@@ -44,6 +47,7 @@ const echoHttpsServiceTestPort = 9507;
 
 const expectContinueTestPort1 = 9529;
 const expectContinueTestPort2 = 9530;
+const expectContinueTestPort3 = 9640;
 
 const httpHeaderTestPort1 = 9515;
 const httpHeaderTestPort2 = 9516;

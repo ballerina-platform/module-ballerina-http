@@ -81,6 +81,7 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.AsciiString;
 import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
@@ -105,6 +106,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ScheduledFuture;
@@ -149,7 +151,10 @@ public class Util {
     }
 
     private static final Logger LOG = LoggerFactory.getLogger(Util.class);
+    private static final List<String> HTTP_CODEC_HANDLER_NAMES = List.of(Constants.HTTP_CLIENT_CODEC,
+            Constants.HTTP_DECODER, Constants.HTTP_SERVER_CODEC);
     public static final String HTTP_1_1 = "http/1.1";
+    public static final int ENTITY_WAIT_GRACE_MILLIS = 5000;
     private static final float EPSILON = 0.00001f;
 
     // Default for the maxBackPressureStallTime configurable, in seconds; negative excuses back-pressure
@@ -840,6 +845,25 @@ public class Util {
     }
 
     /**
+     * Adds the idle state handler directly after the HTTP codec, so that no handler holding reads back can hide a
+     * message's progress from it.
+     */
+    public static void addIdleStateHandler(ChannelPipeline pipeline, String consumerName,
+                                           IdleStateHandler idleStateHandler) {
+        for (String codecName : HTTP_CODEC_HANDLER_NAMES) {
+            if (pipeline.get(codecName) != null) {
+                pipeline.addAfter(codecName, Constants.IDLE_STATE_HANDLER, idleStateHandler);
+                return;
+            }
+        }
+        if (pipeline.get(consumerName) == null) {
+            pipeline.addLast(Constants.IDLE_STATE_HANDLER, idleStateHandler);
+        } else {
+            pipeline.addBefore(consumerName, Constants.IDLE_STATE_HANDLER, idleStateHandler);
+        }
+    }
+
+    /**
      * Removes handlers from the pipeline if they are present.
      *
      * @param pipeline     the channel pipeline
@@ -908,12 +932,15 @@ public class Util {
      * @param ctx of the inbound response message
      * @param httpResponseHeaders of the inbound response message
      * @param outboundRequestMsg is the correlated outbound request message
+     * @param socketIdleTimeout the configured client timeout, which also bounds the response body reads
      * @return HttpCarbon message
      */
     public static HttpCarbonMessage createInboundRespCarbonMsg(ChannelHandlerContext ctx,
                                                                HttpResponse httpResponseHeaders,
-                                                               HttpCarbonMessage outboundRequestMsg) {
-        HttpCarbonMessage inboundResponseMsg = new HttpCarbonResponse(httpResponseHeaders, new DefaultListener(ctx));
+                                                               HttpCarbonMessage outboundRequestMsg,
+                                                               int socketIdleTimeout) {
+        HttpCarbonMessage inboundResponseMsg = new HttpCarbonResponse(httpResponseHeaders,
+                resolveEntityWaitTime(socketIdleTimeout), new DefaultListener(ctx));
         inboundResponseMsg.setProperty(Constants.POOLED_BYTE_BUFFER_FACTORY,
                 new PooledDataStreamerFactory(ctx.alloc()));
 
@@ -926,6 +953,23 @@ public class Util {
                 .getProperty(Constants.EXECUTOR_WORKER_POOL));
 
         return inboundResponseMsg;
+    }
+
+    /**
+     * Resolves how long a blocking read on an inbound entity body may wait. It trails the configured client timeout
+     * by {@link #ENTITY_WAIT_GRACE_MILLIS}, because the idle timeout handlers end a stalled body at that timeout
+     * with the precise cause, and a read bound that expired first would replace it with a generic one. The bound
+     * therefore only takes effect when no such report ever arrives. The endpoint default applies when no timeout
+     * was configured.
+     *
+     * @param socketIdleTimeout the configured socket idle timeout in milliseconds
+     * @return the wait time to use in milliseconds
+     */
+    public static int resolveEntityWaitTime(int socketIdleTimeout) {
+        if (socketIdleTimeout <= 0) {
+            return Constants.ENDPOINT_TIMEOUT;
+        }
+        return (int) Math.min((long) socketIdleTimeout + ENTITY_WAIT_GRACE_MILLIS, Integer.MAX_VALUE);
     }
 
     /**

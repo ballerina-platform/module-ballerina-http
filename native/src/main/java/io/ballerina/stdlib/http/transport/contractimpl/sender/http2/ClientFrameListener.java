@@ -144,4 +144,13 @@ public class ClientFrameListener extends Http2EventAdapter {
     public void setHttp2ClientChannel(Http2ClientChannel http2ClientChannel) {
         this.http2ClientChannel = http2ClientChannel;
     }
+
+    /**
+     * Gets the {@code Http2ClientChannel} associated with the ClientInboundHandler.
+     *
+     * @return the associated Http2ClientChannel
+     */
+    Http2ClientChannel getHttp2ClientChannel() {
+        return http2ClientChannel;
+    }
 }

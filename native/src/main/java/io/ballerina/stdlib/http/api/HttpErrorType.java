@@ -60,7 +60,6 @@ public enum HttpErrorType {
     HTTP2_CLIENT_ERROR("Http2ClientError"),
     MAXIMUM_WAIT_TIME_EXCEEDED("MaximumWaitTimeExceededError"),
     SSL_ERROR("SslError"),
-    INVALID_CONTENT_LENGTH("InvalidContentLengthError"),
     HEADER_NOT_FOUND_ERROR("HeaderNotFoundError"),
     CLIENT_ERROR("ClientError"),
     PAYLOAD_BINDING_CLIENT_ERROR("PayloadBindingClientError"),

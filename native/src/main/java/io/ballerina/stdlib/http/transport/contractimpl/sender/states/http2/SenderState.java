@@ -113,4 +113,13 @@ public interface SenderState {
      * Handles the Stream close event due to receiving RSTStream frame.
      */
     void handleRstStream(OutboundMsgHolder outboundMsgHolder);
+
+    /**
+     * Handles the Stream close event which was initiated by the client itself, without the response being completed.
+     * The HTTP/2 codec aborts a stream locally when it detects a stream error, for instance a failure while decoding
+     * the inbound content, and such a closure has to terminate the pending message on behalf of the caller.
+     *
+     * @param outboundMsgHolder the outbound message holder
+     */
+    void handleStreamClosedLocally(OutboundMsgHolder outboundMsgHolder);
 }
