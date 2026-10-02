@@ -179,14 +179,19 @@ public final class URIUtil {
     @SuppressWarnings("unchecked")
     public static void populateQueryParamMap(String queryParamString, BMap<BString, Object> queryParamsMap)
             throws UnsupportedEncodingException {
+        populateQueryParamMap(queryParamString, queryParamsMap, true);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void populateQueryParamMap(String queryParamString, BMap<BString, Object> queryParamsMap,
+                                             boolean valuelessAsEmptyString) throws UnsupportedEncodingException {
         Map<String, List<String>> tempParamMap = new HashMap<>();
         String[] queryParamVals = queryParamString.split("&");
         for (String queryParam : queryParamVals) {
             int index = queryParam.indexOf('=');
             if (index == -1) {
-                if (!tempParamMap.containsKey(queryParam)) {
-                    tempParamMap.put(queryParam, null);
-                }
+                List<String> values = tempParamMap.computeIfAbsent(queryParam, k -> new ArrayList<>());
+                values.add(valuelessAsEmptyString ? "" : null);
                 continue;
             }
             String queryParamName = queryParam.substring(0, index).trim();
@@ -209,7 +214,8 @@ public final class URIUtil {
 
         for (Map.Entry<String, List<String>> entry : tempParamMap.entrySet()) {
             List<String> entryValue = entry.getValue();
-            if (entryValue != null) {
+            entryValue.removeIf(value -> value == null);
+            if (!entryValue.isEmpty()) {
                 queryParamsMap.put(StringUtils.fromString(entry.getKey()),
                         StringUtils.fromStringArray(entryValue.toArray(new String[0])));
             } else {
