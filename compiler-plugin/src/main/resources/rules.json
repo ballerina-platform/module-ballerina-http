@@ -31,7 +31,7 @@
     "helpUri": "https://ballerina.io/learn/scan-rules/#ballerina-http-2",
     "severity": "MEDIUM",
     "description": "A Cross-Origin Resource Sharing configuration accepts requests from any origin.",
-    "fullDescription": "Allowing any origin lets scripts on arbitrary websites read responses from the service, defeating the browser's same-origin protection for every endpoint that returns data the visiting user can access. Configure the specific origins that are trusted.",
+    "fullDescription": "Allowing any origin lets scripts on arbitrary websites read responses from the service, defeating the browser's same-origin protection for every endpoint that returns data without requiring credentials. Configure the specific origins that are trusted.",
     "tags": [
       "http",
       "cors"
