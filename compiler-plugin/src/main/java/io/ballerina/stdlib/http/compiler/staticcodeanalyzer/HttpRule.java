@@ -27,12 +27,14 @@ import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.RuleFactory.c
  * Represents static code rules specific to the Ballerina Http package.
  */
 public enum HttpRule {
-    AVOID_DEFAULT_RESOURCE_ACCESSOR(createRule(1, "Avoid allowing default resource accessor", VULNERABILITY)),
-    AVOID_PERMISSIVE_CORS(createRule(2, "Avoid permissive Cross-Origin Resource Sharing", VULNERABILITY)),
-    AVOID_TRAVERSING_ATTACKS(createRule(3, "Server-side requests should not be vulnerable to traversing attacks",
+    AVOID_DEFAULT_RESOURCE_ACCESSOR(createRule(1, "A resource is declared with the `default` accessor, so it " +
+            "responds to every HTTP method.", VULNERABILITY)),
+    AVOID_PERMISSIVE_CORS(createRule(2, "A Cross-Origin Resource Sharing configuration accepts requests from " +
+            "any origin.", VULNERABILITY)),
+    AVOID_TRAVERSING_ATTACKS(createRule(3, "A server-side request is sent to a URL derived from user input.",
             VULNERABILITY)),
-    AVOID_UNSECURE_REDIRECTIONS(createRule(4, "HTTP request redirections should not be open to forging attacks",
-            VULNERABILITY));
+    AVOID_UNSECURE_REDIRECTIONS(createRule(4, "A redirect target is derived from user input, allowing " +
+            "redirection to an arbitrary site.", VULNERABILITY));
 
     private final Rule rule;
 
