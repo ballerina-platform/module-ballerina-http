@@ -12,7 +12,7 @@
     "rule": {
       "id": "ballerina/http:2",
       "numericId": 2,
-      "description": "Avoid permissive Cross-Origin Resource Sharing",
+      "description": "A Cross-Origin Resource Sharing configuration accepts requests from any origin.",
       "ruleKind": "VULNERABILITY"
     },
     "source": "BUILT_IN",
@@ -32,7 +32,7 @@
     "rule": {
       "id": "ballerina/http:2",
       "numericId": 2,
-      "description": "Avoid permissive Cross-Origin Resource Sharing",
+      "description": "A Cross-Origin Resource Sharing configuration accepts requests from any origin.",
       "ruleKind": "VULNERABILITY"
     },
     "source": "BUILT_IN",
@@ -52,7 +52,7 @@
     "rule": {
       "id": "ballerina/http:2",
       "numericId": 2,
-      "description": "Avoid permissive Cross-Origin Resource Sharing",
+      "description": "A Cross-Origin Resource Sharing configuration accepts requests from any origin.",
       "ruleKind": "VULNERABILITY"
     },
     "source": "BUILT_IN",
@@ -72,7 +72,7 @@
     "rule": {
       "id": "ballerina/http:2",
       "numericId": 2,
-      "description": "Avoid permissive Cross-Origin Resource Sharing",
+      "description": "A Cross-Origin Resource Sharing configuration accepts requests from any origin.",
       "ruleKind": "VULNERABILITY"
     },
     "source": "BUILT_IN",
@@ -92,7 +92,7 @@
     "rule": {
       "id": "ballerina/http:2",
       "numericId": 2,
-      "description": "Avoid permissive Cross-Origin Resource Sharing",
+      "description": "A Cross-Origin Resource Sharing configuration accepts requests from any origin.",
       "ruleKind": "VULNERABILITY"
     },
     "source": "BUILT_IN",
@@ -112,7 +112,7 @@
     "rule": {
       "id": "ballerina/http:2",
       "numericId": 2,
-      "description": "Avoid permissive Cross-Origin Resource Sharing",
+      "description": "A Cross-Origin Resource Sharing configuration accepts requests from any origin.",
       "ruleKind": "VULNERABILITY"
     },
     "source": "BUILT_IN",
@@ -132,7 +132,7 @@
     "rule": {
       "id": "ballerina/http:2",
       "numericId": 2,
-      "description": "Avoid permissive Cross-Origin Resource Sharing",
+      "description": "A Cross-Origin Resource Sharing configuration accepts requests from any origin.",
       "ruleKind": "VULNERABILITY"
     },
     "source": "BUILT_IN",

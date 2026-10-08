@@ -32,7 +32,7 @@
     "rule": {
       "id": "ballerina/http:3",
       "numericId": 3,
-      "description": "Server-side requests should not be vulnerable to traversing attacks",
+      "description": "A server-side request is sent to a URL derived from user input.",
       "ruleKind": "VULNERABILITY"
     },
     "source": "BUILT_IN",
@@ -52,7 +52,7 @@
     "rule": {
       "id": "ballerina/http:3",
       "numericId": 3,
-      "description": "Server-side requests should not be vulnerable to traversing attacks",
+      "description": "A server-side request is sent to a URL derived from user input.",
       "ruleKind": "VULNERABILITY"
     },
     "source": "BUILT_IN",
@@ -72,7 +72,7 @@
     "rule": {
       "id": "ballerina/http:3",
       "numericId": 3,
-      "description": "Server-side requests should not be vulnerable to traversing attacks",
+      "description": "A server-side request is sent to a URL derived from user input.",
       "ruleKind": "VULNERABILITY"
     },
     "source": "BUILT_IN",
@@ -92,7 +92,7 @@
     "rule": {
       "id": "ballerina/http:3",
       "numericId": 3,
-      "description": "Server-side requests should not be vulnerable to traversing attacks",
+      "description": "A server-side request is sent to a URL derived from user input.",
       "ruleKind": "VULNERABILITY"
     },
     "source": "BUILT_IN",
@@ -112,7 +112,7 @@
     "rule": {
       "id": "ballerina/http:3",
       "numericId": 3,
-      "description": "Server-side requests should not be vulnerable to traversing attacks",
+      "description": "A server-side request is sent to a URL derived from user input.",
       "ruleKind": "VULNERABILITY"
     },
     "source": "BUILT_IN",
