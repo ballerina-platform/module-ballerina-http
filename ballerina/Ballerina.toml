@@ -186,5 +186,5 @@ path = "./lib/netty-codec-socks-4.2.18.Final.jar"
 [[platform.java25.dependency]]
 groupId = "at.yawk.lz4"
 artifactId = "lz4-java"
-version = "1.11.1"
-path = "./lib/lz4-java-1.11.1.jar"
+version = "1.11.4"
+path = "./lib/lz4-java-1.11.4.jar"
