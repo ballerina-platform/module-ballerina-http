@@ -36,6 +36,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -321,8 +322,20 @@ public class Http2ClientChannel {
             if (messageStateContext == null || messageStateContext.getSenderState() == null) {
                 return;
             }
-            if (outboundMsgHolder.claimStreamTermination()) {
-                messageStateContext.getSenderState().handleStreamClosedLocally(outboundMsgHolder);
+            // When the codec closes the stream because a write failed, it closes the stream first and only then fails
+            // the promise of that write. The listener of the promise tells the caller the actual cause of the failure,
+            // so defer this generic notification to the next event loop iteration to let that listener claim the
+            // termination first. If nothing claims it by then, the generic notification is delivered.
+            Runnable notifyStreamClosed = () -> {
+                if (outboundMsgHolder.claimStreamTermination()) {
+                    messageStateContext.getSenderState().handleStreamClosedLocally(outboundMsgHolder);
+                }
+            };
+            try {
+                channel.eventLoop().execute(notifyStreamClosed);
+            } catch (RejectedExecutionException e) {
+                // The event loop is already shutting down, so there is no pending write to wait for.
+                notifyStreamClosed.run();
             }
         }
 
