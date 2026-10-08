@@ -22,6 +22,7 @@ import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.TargetChannel;
+import io.ballerina.stdlib.http.transport.contractimpl.sender.states.http2.SenderState;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -322,13 +323,13 @@ public class Http2ClientChannel {
             if (messageStateContext == null || messageStateContext.getSenderState() == null) {
                 return;
             }
-            // When the codec closes the stream because a write failed, it closes the stream first and only then fails
-            // the promise of that write. The listener of the promise tells the caller the actual cause of the failure,
-            // so defer this generic notification to the next event loop iteration to let that listener claim the
-            // termination first. If nothing claims it by then, the generic notification is delivered.
+            // Capture the state now, as the write which closed the stream may still move it on before the task runs.
+            SenderState senderState = messageStateContext.getSenderState();
+            // The listener of a failed header write is attached after the write returns, by which time the stream is
+            // already closed. Defer this generic notification so that listener can claim the termination first.
             Runnable notifyStreamClosed = () -> {
                 if (outboundMsgHolder.claimStreamTermination()) {
-                    messageStateContext.getSenderState().handleStreamClosedLocally(outboundMsgHolder);
+                    senderState.handleStreamClosedLocally(outboundMsgHolder);
                 }
             };
             try {

@@ -327,9 +327,7 @@ public final class Http2StateUtil {
         ChannelPromise promise = ctx.newPromise();
         encoder.writeHeaders(ctx, streamId, http2Headers, dependencyId, weight, false, 0, endStream, promise);
         promise.addListener((ChannelFutureListener) channelFuture -> {
-            // Claim the terminal outcome so that the cause of the failed write (for example, the header list size
-            // exceeding the limit of the peer) is what the caller is told, rather than the generic stream closure
-            // notification which is raised when the codec closes the stream after this failure.
+            // Claim the termination so the cause of the failed write wins over the generic stream closure message.
             if (!channelFuture.isSuccess() && outboundMsgHolder.claimStreamTermination()) {
                 outboundMsgHolder.getResponseFuture().notifyHttpListener(channelFuture.cause());
             }
