@@ -327,7 +327,8 @@ public final class Http2StateUtil {
         ChannelPromise promise = ctx.newPromise();
         encoder.writeHeaders(ctx, streamId, http2Headers, dependencyId, weight, false, 0, endStream, promise);
         promise.addListener((ChannelFutureListener) channelFuture -> {
-            if (!channelFuture.isSuccess()) {
+            // Claim the termination so the cause of the failed write wins over the generic stream closure message.
+            if (!channelFuture.isSuccess() && outboundMsgHolder.claimStreamTermination()) {
                 outboundMsgHolder.getResponseFuture().notifyHttpListener(channelFuture.cause());
             }
         });
