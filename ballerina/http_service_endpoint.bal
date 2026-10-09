@@ -147,7 +147,7 @@ public type Local record {|
 # + requestLimits - Configurations associated with inbound request size limits
 # + gracefulStopTimeout - Grace period of time in seconds for listener gracefulStop
 # + socketConfig - Provides settings related to server socket configuration
-# + http2InitialWindowSize - Configuration to change the initial window size in HTTP/2
+# + http2InitialWindowSize - Configuration to change the initial window size of each stream and of the connection in HTTP/2
 # + http2MaxActiveStreams - Maximum concurrent HTTP/2 streams per connection advertised to clients.
 #                          Defaults to 100
 # + minIdleTimeInStaleState - Minimum time in seconds for a connection to be kept open which has received a GOAWAY.
