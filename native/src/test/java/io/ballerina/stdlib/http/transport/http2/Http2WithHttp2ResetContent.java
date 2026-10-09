@@ -49,6 +49,8 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import java.util.concurrent.TimeUnit;
+
 import static io.ballerina.stdlib.http.transport.util.TestUtil.HTTP_SERVER_PORT;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -91,11 +93,16 @@ public class Http2WithHttp2ResetContent {
     }
 
     @Test(description = "Sends a request with reset content such that the stream will be reset")
-    public void testHttp2ResetContent() {
+    public void testHttp2ResetContent() throws InterruptedException {
         HttpCarbonMessage resetMessage = MessageGenerator.getHttp2CarbonMessageWithResetContent(HttpMethod.POST);
-        HttpCarbonMessage resetResponse = new MessageSender(httpClientConnector).sendMessage(resetMessage);
+        Throwable resetError = new MessageSender(httpClientConnector).sendMessageAndExpectError(resetMessage);
 
+        assertEquals(resetError.getMessage(), Constants.STREAM_RESET_WHILE_WRITING_OUTBOUND_REQUEST_BODY);
         assertTrue(resetMessage.getHttp2MessageStateContext().getSenderState() instanceof RequestCompleted);
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
+        while (echoStreamingMessageListener.getReceivedException() == null && System.nanoTime() < deadline) {
+            Thread.sleep(50);
+        }
         assertEquals(echoStreamingMessageListener.getReceivedException().getMessage(),
                 Constants.REMOTE_CLIENT_CLOSED_WHILE_READING_INBOUND_REQUEST_BODY);
     }
