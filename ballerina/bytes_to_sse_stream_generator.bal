@@ -15,7 +15,6 @@
 // under the License.
 
 import ballerina/io;
-import ballerina/lang.regexp;
 import ballerina/log;
 
 const byte LINE_FEED = 10;
@@ -29,18 +28,20 @@ enum SseFieldName {
     DATA = "data"
 };
 
-# This class is designed to read a stream of data one byte at a time.
-# It specifically handles the scenario where the streaming party sends data 
-# in small increments, potentially one byte at a time. 
-# 
-# The main functionality of this class is to parse the incoming byte stream 
-# and detect consecutive line feed characters. When two consecutive line feeds 
-# ('\n\n' | '\r\r' | '\r\n\r\n') are detected, it signifies the end of an SSE (Server-Sent Event) message, 
-# and a new `SseEvent` record is created to represent this message.
+# Turns a byte stream of server-sent events into `SseEvent` records.
+#
+# Each read returns the bytes received so far, in chunks of any size, down to one byte at a time. The chunks are
+# scanned for the end of an event, two consecutive line breaks ('\n\n' | '\r\r' | '\r\n\r\n'), and the bytes
+# of an unfinished event are carried over to the next chunk. An event is decoded only once it is complete, so a
+# multi-byte character split across chunks stays intact.
 class BytesToEventStreamGenerator {
     private final stream<byte[], io:Error?> byteStream;
     private boolean isClosed = false;
-    private byte[] lookaheadBuffer = [];
+    private byte[] pending = [];
+    // Start of the first event in `pending` not yet returned.
+    private int eventStart = 0;
+    // Where to resume looking for the end of that event, so each byte is scanned once.
+    private int scanFrom = 0;
 
     isolated function init(stream<byte[], io:Error?> byteStream) {
         self.byteStream = byteStream;
@@ -48,11 +49,11 @@ class BytesToEventStreamGenerator {
 
     public isolated function next() returns record {|SseEvent value;|}|error? {
         do {
-            string? sseEvent = check self.readUntilDoubleLineBreaks();
+            byte[]? sseEvent = check self.readUntilDoubleLineBreaks();
             if sseEvent is () {
                 return;
             }
-            return {value: check parseSseEvent(sseEvent)};
+            return {value: check parseSseEvent(check string:fromBytes(sseEvent))};
         } on fail error e {
             log:printError("failed to construct SseEvent", e);
             return e;
@@ -64,52 +65,53 @@ class BytesToEventStreamGenerator {
         self.isClosed = true;
     }
 
-    private isolated function readUntilDoubleLineBreaks() returns string|error? {
-        byte[] buffer = [];
-        byte prevByte = 0;
-        byte? currentByte = ();
-        boolean foundCariageReturnWithNewLine = false;
+    private isolated function readUntilDoubleLineBreaks() returns byte[]|error? {
         while !self.isClosed {
-            currentByte = check self.getNextByte();
-            if currentByte is () {
+            int? eventEnd = self.findEventEnd();
+            if eventEnd is int {
+                byte[] sseEvent = self.pending.slice(self.eventStart, eventEnd);
+                self.eventStart = eventEnd;
+                return sseEvent;
+            }
+            record {byte[] value;}? chunk = check self.byteStream.next();
+            if chunk is () {
                 return;
             }
-            if foundCariageReturnWithNewLine && currentByte == CARRIAGE_RETURN {
-                // Lookahead for newline
-                byte? nextByte = check self.getNextByte();
-                if nextByte is () {
-                    return;
-                }
-                if nextByte == LINE_FEED {
-                    buffer.push(currentByte);
-                    buffer.push(nextByte);
-                    return string:fromBytes(buffer);
-                }
-                // Store char in lookahead buffer if not newline
-                self.lookaheadBuffer.push(nextByte);
+            if self.eventStart > 0 {
+                self.pending = self.pending.slice(self.eventStart);
+                self.scanFrom -= self.eventStart;
+                self.eventStart = 0;
             }
-            foundCariageReturnWithNewLine = false;
-            if ((currentByte == LINE_FEED || currentByte == CARRIAGE_RETURN) && prevByte == currentByte) {
-                buffer.push(currentByte);
-                return string:fromBytes(buffer);
-            }
-            if currentByte == LINE_FEED && prevByte == CARRIAGE_RETURN {
-                foundCariageReturnWithNewLine = true;
-            }
-            buffer.push(currentByte);
-            prevByte = currentByte;
+            self.pending.push(...chunk.value);
         }
         return;
     }
 
-    # Reads next byte from the lookahead buffer if data is available, otherwise read from the byte stream
-    # + return - A `byte?` on success, `error` on failure
-    private isolated function getNextByte() returns byte|error? {
-        if self.lookaheadBuffer.length() > 0 {
-            return self.lookaheadBuffer.shift();
+    # Finds the end of the event starting at `eventStart`, looking only at the bytes not scanned before.
+    # + return - The index just past the event's terminating line breaks, or `()` if they have not arrived yet
+    private isolated function findEventEnd() returns int? {
+        byte[] bytes = self.pending;
+        int eventStart = self.eventStart;
+        int length = bytes.length();
+        int i = int:max(self.scanFrom, eventStart);
+        while i < length {
+            byte current = bytes[i];
+            if i > eventStart && (current == LINE_FEED || current == CARRIAGE_RETURN) {
+                byte previous = bytes[i - 1];
+                if previous == current {
+                    self.scanFrom = i + 1;
+                    return i + 1;
+                }
+                if current == LINE_FEED && previous == CARRIAGE_RETURN && i - 3 >= eventStart
+                        && bytes[i - 2] == LINE_FEED && bytes[i - 3] == CARRIAGE_RETURN {
+                    self.scanFrom = i + 1;
+                    return i + 1;
+                }
+            }
+            i += 1;
         }
-        record {byte[] value;}? nextValue = check self.byteStream.next();
-        return nextValue is () ? () : nextValue.value[0];
+        self.scanFrom = length;
+        return;
     }
 }
 
@@ -125,28 +127,23 @@ isolated function parseSseEvent(string event) returns SseEvent|error {
         if line == "" {
             continue;
         }
-        regexp:Groups? groups = re `(.*?):(.*)`.findGroups(line);
-        string filedName = line;
+        string fieldName = line;
         string fieldValue = "";
-        if groups is regexp:Groups && groups.length() == 3 {
-            regexp:Span? filedNameSpan = groups[1];
-            regexp:Span? filedValueSpan = groups[2];
-            if filedNameSpan is () || filedValueSpan is () {
-                continue;
-            }
-            filedName = filedNameSpan.substring().trim();
-            fieldValue = removeLeadingSpace(filedValueSpan.substring());
+        int? colonIndex = line.indexOf(":");
+        if colonIndex is int {
+            fieldName = line.substring(0, colonIndex).trim();
+            fieldValue = removeLeadingSpace(line.substring(colonIndex + 1));
         }
-        if filedName == ID {
+        if fieldName == ID {
             id = fieldValue;
-        } else if filedName == COMMENT {
+        } else if fieldName == COMMENT {
             comment = fieldValue;
-        } else if filedName == RETRY {
+        } else if fieldName == RETRY {
             int|error retryValue = int:fromString(fieldValue);
             'retry = retryValue is error ? () : retryValue;
-        } else if filedName == EVENT {
+        } else if fieldName == EVENT {
             eventName = fieldValue;
-        } else if filedName == DATA {
+        } else if fieldName == DATA {
             if data is () {
                 data = fieldValue;
             } else {

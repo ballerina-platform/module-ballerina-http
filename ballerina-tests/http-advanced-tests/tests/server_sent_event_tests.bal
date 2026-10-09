@@ -29,6 +29,14 @@ final http:Client http2SseClient = check new (string `http://localhost:${http2Ss
 final http:Client sseChunkedClient = check new (string `http://localhost:${sseChunkedServerPort}`,
     httpVersion = http:HTTP_1_1);
 
+const SPLIT_EVENTS = "event: delta\r\ndata: héllo wörld 🎉\r\nid: 1\r\n\r\n: ping\n\ndata: two\r\rretry: 5\n\n";
+final readonly & http:SseEvent[] splitEvents = [
+    {event: "delta", data: "héllo wörld 🎉", id: "1"},
+    {comment: "ping"},
+    {data: "two"},
+    {'retry: 5}
+];
+
 class SseEventGenerator {
     private final int eventCount;
     private boolean completeWithError;
@@ -205,6 +213,53 @@ function testByteStreamReturnsTheBytesAlreadyReceived() returns error? {
     record {|byte[] value;|}? second = check body.next();
     test:assertEquals(second?.value, secondPart.toBytes());
     test:assertEquals(check body.next(), ());
+}
+
+@test:Config {}
+function testSseEventsSplitAtEveryByteOffset() returns error? {
+    byte[] payload = SPLIT_EVENTS.toBytes();
+    foreach int splitAt in 1 ..< payload.length() {
+        http:SseEvent[] events = check readSseEvents(string `/sse/${splitAt}?delay=1`, payload);
+        test:assertEquals(events, splitEvents, string `events split at byte ${splitAt}`);
+    }
+}
+
+@test:Config {}
+function testSseEventsSentOneByteAtATime() returns error? {
+    byte[] payload = SPLIT_EVENTS.toBytes();
+    string[] sizes = from int _ in 0 ..< payload.length() select "1";
+    http:SseEvent[] events = check readSseEvents(string `/sse/${string:'join(",", ...sizes)}`, payload);
+    test:assertEquals(events, splitEvents);
+}
+
+@test:Config {}
+function testSseEventLargerThanTheReadBuffer() returns error? {
+    string largeData = "".padEnd(100000, "x");
+    byte[] payload = string `data: ${largeData}${"\n\n"}data: after${"\n\n"}`.toBytes();
+    http:SseEvent[] events = check readSseEvents("/sse/4096,4096,70000", payload);
+    test:assertEquals(events.length(), 2);
+    test:assertEquals(events[0].data, largeData);
+    test:assertEquals(events[1].data, "after");
+}
+
+@test:Config {}
+function testSseEventIsDeliveredWithoutWaitingForMoreBytes() returns error? {
+    string firstEvent = "data: first\n\n";
+    byte[] payload = string `${firstEvent}data: second${"\n\n"}`.toBytes();
+    decimal startTime = time:monotonicNow();
+    stream<http:SseEvent, error?> events = check sseChunkedClient->post(
+        string `/sse/${firstEvent.length()}?delay=2000`, payload);
+    record {|http:SseEvent value;|}? first = check events.next();
+    decimal elapsed = time:monotonicNow() - startTime;
+    test:assertEquals(first?.value, {data: "first"});
+    test:assertTrue(elapsed < 1d, string `the first event took ${elapsed}s, waiting for bytes sent 2s later`);
+    record {|http:SseEvent value;|}? second = check events.next();
+    test:assertEquals(second?.value, {data: "second"});
+}
+
+function readSseEvents(string path, byte[] payload) returns http:SseEvent[]|error {
+    stream<http:SseEvent, error?> events = check sseChunkedClient->post(path, payload);
+    return from http:SseEvent event in events select event;
 }
 
 function startChunkedResponseServer(int port) returns error? = @java:Method {
