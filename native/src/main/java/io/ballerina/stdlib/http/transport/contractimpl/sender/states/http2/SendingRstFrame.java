@@ -155,6 +155,7 @@ public class SendingRstFrame implements SenderState {
         }
         ctx.flush();
         outboundMsgHolder.setRequestWritten(true);
-        http2MessageStateContext.setSenderState(new RequestCompleted(http2TargetHandler, http2RequestWriter));
+        http2MessageStateContext.setSenderState(
+                RequestCompleted.afterRequestWritten(http2TargetHandler, http2RequestWriter, outboundMsgHolder));
     }
 }

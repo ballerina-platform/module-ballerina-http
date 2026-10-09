@@ -190,7 +190,8 @@ public class SendingEntityBody implements SenderState {
             ctx.flush();
             if (endStream) {
                 outboundMsgHolder.setRequestWritten(true);
-                http2MessageStateContext.setSenderState(new RequestCompleted(http2TargetHandler, http2RequestWriter));
+                http2MessageStateContext.setSenderState(RequestCompleted.afterRequestWritten(
+                        http2TargetHandler, http2RequestWriter, outboundMsgHolder));
             }
         } finally {
             if (release) {
