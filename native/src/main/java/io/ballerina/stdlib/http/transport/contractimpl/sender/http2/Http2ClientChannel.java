@@ -373,7 +373,6 @@ public class Http2ClientChannel {
             http2ClientChannel.inFlightMessages.forEach((streamId, outboundMsgHolder) -> {
                 if (streamId > lastStreamId) {
                     http2ClientChannel.removeInFlightMessage(streamId);
-                    activeStreams.decrementAndGet();
                     http2ClientChannel.getDataEventListeners().forEach(
                             dataEventListener -> dataEventListener.onStreamClose(streamId));
                     Http2MessageStateContext messageStateContext =
