@@ -22,6 +22,7 @@ import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.TargetChannel;
+import io.ballerina.stdlib.http.transport.contractimpl.sender.states.http2.SenderState;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -36,6 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -335,8 +337,20 @@ public class Http2ClientChannel {
             if (messageStateContext == null || messageStateContext.getSenderState() == null) {
                 return;
             }
-            if (outboundMsgHolder.claimStreamTermination()) {
-                messageStateContext.getSenderState().handleStreamClosedLocally(outboundMsgHolder);
+            // Capture the state now, as the write which closed the stream may still move it on before the task runs.
+            SenderState senderState = messageStateContext.getSenderState();
+            // The listener of a failed header write is attached after the write returns, by which time the stream is
+            // already closed. Defer this generic notification so that listener can claim the termination first.
+            Runnable notifyStreamClosed = () -> {
+                if (outboundMsgHolder.claimStreamTermination()) {
+                    senderState.handleStreamClosedLocally(outboundMsgHolder);
+                }
+            };
+            try {
+                channel.eventLoop().execute(notifyStreamClosed);
+            } catch (RejectedExecutionException e) {
+                // The event loop is already shutting down, so there is no pending write to wait for.
+                notifyStreamClosed.run();
             }
         }
 
