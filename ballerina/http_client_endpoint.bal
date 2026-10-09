@@ -833,9 +833,7 @@ isolated function processResponse(Response|ClientError response, TargetType targ
 
 isolated function getSseEventStream(Response response) returns stream<SseEvent, error?>|ClientError {
     check validateEventStreamContentType(response);
-    // The streaming party can decide to send one byte at a time, hence the getByteStream method is called
-    // with an array size of 1.
-    BytesToEventStreamGenerator bytesToEventStreamGenerator = new (check response.getByteStream(1));
+    BytesToEventStreamGenerator bytesToEventStreamGenerator = new (check response.getByteStream());
     stream<SseEvent, error?> eventStream = new (bytesToEventStreamGenerator);
     return eventStream;
 }
