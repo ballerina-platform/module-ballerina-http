@@ -133,6 +133,33 @@ public class Http2ChannelPoolConcurrencyTest {
         }
     }
 
+    @Test(description = "A channel exhausted again while a new connection is opening must not start another one")
+    public void testReExhaustedChannelWaitsForTheConnectionBeingOpened() throws Exception {
+        Http2ConnectionManager connectionManager = newConnectionManager(2, 60000);
+        assertNull(connectionManager.fetchChannel(ROUTE), "The first request should open the connection");
+        Http2ClientChannel firstChannel = newHttp2ClientChannel(connectionManager);
+        connectionManager.addHttp2ClientChannel(ROUTE, firstChannel);
+        Http2Stream firstStream = openStream(firstChannel);
+        assertSame(connectionManager.fetchChannel(ROUTE), firstChannel, "The channel should take one more");
+        openStream(firstChannel);
+
+        assertNull(connectionManager.fetchChannel(ROUTE), "The next request should open a second connection");
+        firstStream.close();
+        assertSame(connectionManager.fetchChannel(ROUTE), firstChannel, "The released stream should be reused");
+
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            Future<Http2ClientChannel> waitingRequest = executor.submit(() -> connectionManager.fetchChannel(ROUTE));
+            assertStillWaiting(waitingRequest);
+
+            Http2ClientChannel secondChannel = newHttp2ClientChannel(connectionManager);
+            connectionManager.addHttp2ClientChannel(ROUTE, secondChannel);
+            assertSame(waitingRequest.get(5, TimeUnit.SECONDS), secondChannel);
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
     @Test(description = "An exhausted channel that is closed must not return to the pool when its streams close")
     public void testClosedExhaustedChannelIsNotReturnedToThePool() throws Exception {
         Http2ConnectionManager connectionManager = newConnectionManager(2, 60000);

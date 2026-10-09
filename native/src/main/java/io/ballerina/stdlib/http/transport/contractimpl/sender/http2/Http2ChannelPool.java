@@ -53,7 +53,7 @@ class Http2ChannelPool {
      */
     static class PerRouteConnectionPool {
 
-        // Guarded by lock, as are newChannelInitializer and newChannelInitialized
+        // Guarded by lock, as are newChannelInitializer, newChannelInitialized and newChannelPending
         private final Deque<Http2ClientChannel> http2ClientChannels = new ArrayDeque<>();
         // Maximum number of allowed active streams
         private final int maxActiveStreams;
@@ -62,6 +62,8 @@ class Http2ChannelPool {
         private boolean newChannelInitializer = true;
         // Whether callers that find no usable channel can open a connection instead of waiting for one
         private boolean newChannelInitialized = false;
+        // Whether a caller is opening a connection that has not been added or failed yet
+        private boolean newChannelPending = false;
         private final ReentrantLock lock = new ReentrantLock();
         private final Condition channelAvailable = lock.newCondition();
 
@@ -89,6 +91,7 @@ class Http2ChannelPool {
                     }
                     if (newChannelInitializer) {
                         newChannelInitializer = false;
+                        newChannelPending = true;
                         return null;
                     }
                     if (newChannelInitialized) {
@@ -142,10 +145,11 @@ class Http2ChannelPool {
             awaitNewChannelIfEmpty();
         }
 
-        // With no channel left, the next caller opens a connection and the rest wait for it
+        // With no channel left, the next caller opens a connection and the rest wait for it. When a connection is
+        // already being opened, everyone waits for that one instead of opening another.
         private void awaitNewChannelIfEmpty() {
             if (http2ClientChannels.isEmpty()) {
-                newChannelInitializer = true;
+                newChannelInitializer = !newChannelPending;
                 newChannelInitialized = false;
             }
         }
@@ -154,6 +158,7 @@ class Http2ChannelPool {
             lock.lock();
             try {
                 http2ClientChannels.add(http2ClientChannel);
+                newChannelPending = false;
                 signalChannelAvailable();
             } finally {
                 lock.unlock();
@@ -184,6 +189,7 @@ class Http2ChannelPool {
         void releaseWaitingRequests() {
             lock.lock();
             try {
+                newChannelPending = false;
                 signalChannelAvailable();
             } finally {
                 lock.unlock();
