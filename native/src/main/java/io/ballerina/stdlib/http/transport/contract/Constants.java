@@ -446,6 +446,8 @@ public final class Constants {
             = "Stream closed while writing outbound request headers";
     public static final String STREAM_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_BODY
             = "Stream closed while writing outbound request entity body";
+    public static final String STREAM_RESET_WHILE_WRITING_OUTBOUND_REQUEST_BODY
+            = "Stream reset because the outbound request entity body could not be completed";
     public static final String STREAM_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE
             = "Stream closed before initiating inbound response";
     public static final String STREAM_CLOSED_WHILE_READING_INBOUND_RESPONSE_HEADERS
