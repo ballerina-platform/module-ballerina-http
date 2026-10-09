@@ -54,8 +54,9 @@ public class Exec {
         }
         try {
             // Output goes to files so the child never blocks on a full pipe that nobody is reading.
-            Path stdoutFile = Files.createTempFile("http-test-exec-", ".out");
-            Path stderrFile = Files.createTempFile("http-test-exec-", ".err");
+            Path outputDir = Files.createDirectories(Path.of("target", "exec-output"));
+            Path stdoutFile = Files.createTempFile(outputDir, "exec-", ".out");
+            Path stderrFile = Files.createTempFile(outputDir, "exec-", ".err");
             stdoutFile.toFile().deleteOnExit();
             stderrFile.toFile().deleteOnExit();
             pb.redirectOutput(stdoutFile.toFile());
