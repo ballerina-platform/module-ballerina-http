@@ -21,9 +21,13 @@ package io.ballerina.stdlib.http.transport.message;
 import io.ballerina.stdlib.http.transport.contractimpl.common.BackPressureAwareIdleStateHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.DefaultEventLoopGroup;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.embedded.EmbeddedChannel;
+import io.netty.channel.local.LocalChannel;
 import io.netty.handler.codec.http.DefaultHttpContent;
 import io.netty.handler.timeout.IdleStateEvent;
 import org.testng.annotations.AfterMethod;
@@ -31,6 +35,7 @@ import org.testng.annotations.Test;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static org.testng.Assert.assertFalse;
@@ -95,6 +100,62 @@ public class PassthroughBackPressureListenerTest {
 
             assertFalse(recorder.events.isEmpty(),
                         "Expected the idle event to fire when the suspension isn't tracked");
+        } finally {
+            channel.finishAndReleaseAll();
+        }
+    }
+
+    @Test(description = "A pause requested off the inbound event loop is applied on it, never from the caller")
+    public void testReadInterestIsChangedOnlyOnTheInboundEventLoop() throws Exception {
+        EventLoopGroup group = new DefaultEventLoopGroup(1);
+        try {
+            Channel channel = new LocalChannel();
+            channel.pipeline().addLast(new ChannelInboundHandlerAdapter());
+            group.register(channel).sync();
+            ChannelHandlerContext ctx = channel.pipeline().firstContext();
+            PassthroughBackPressureListener listener =
+                    new PassthroughBackPressureListener(ctx, new DefaultListener(ctx));
+
+            CountDownLatch releaseEventLoop = new CountDownLatch(1);
+            channel.eventLoop().execute(() -> {
+                try {
+                    releaseEventLoop.await();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            });
+            boolean autoReadBeforeTheLoopRuns;
+            try {
+                listener.onUnWritable();
+                autoReadBeforeTheLoopRuns = channel.config().isAutoRead();
+            } finally {
+                releaseEventLoop.countDown();
+            }
+            assertTrue(autoReadBeforeTheLoopRuns, "Read interest was changed from outside the event loop");
+            channel.eventLoop().submit(() -> { }).sync();
+            assertFalse(channel.config().isAutoRead());
+
+            listener.onWritable();
+            channel.eventLoop().submit(() -> { }).sync();
+            assertTrue(channel.config().isAutoRead());
+        } finally {
+            group.shutdownGracefully(0, 1, TimeUnit.SECONDS).sync();
+        }
+    }
+
+    @Test(description = "A writable event without a pause leaves reads suspended by something else alone")
+    public void testWritableWithoutPauseDoesNotResumeReads() {
+        ChannelInboundHandlerAdapter handler = new ChannelInboundHandlerAdapter();
+        EmbeddedChannel channel = new EmbeddedChannel(handler);
+        try {
+            ChannelHandlerContext ctx = channel.pipeline().context(handler);
+            PassthroughBackPressureListener listener =
+                    new PassthroughBackPressureListener(ctx, new DefaultListener(ctx));
+            channel.config().setAutoRead(false);
+
+            listener.onWritable();
+
+            assertFalse(channel.config().isAutoRead());
         } finally {
             channel.finishAndReleaseAll();
         }
