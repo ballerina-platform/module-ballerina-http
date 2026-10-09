@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -172,11 +173,17 @@ public class OpenAPISpecGenerationTest {
         if (exportOpenApi) {
             buildArgs.add(2, "--export-openapi");
         }
-        ProcessBuilder pb = new ProcessBuilder(buildArgs);
+        ProcessBuilder pb = new ProcessBuilder(buildArgs)
+                .redirectErrorStream(true)
+                .redirectOutput(ProcessBuilder.Redirect.INHERIT);
         addJavaAgents(pb.environment());
         pb.directory(projectDirPath.toFile());
         Process process = pb.start();
-        process.waitFor();
+        boolean completed = process.waitFor(2, TimeUnit.MINUTES);
+        if (!completed) {
+            process.destroyForcibly();
+        }
+        Assert.assertTrue(completed, "bal build timed out after 2 minutes");
     }
 
     private void verifySpecContent(Path actualFilePath, Path expectedFilePath) throws IOException {
