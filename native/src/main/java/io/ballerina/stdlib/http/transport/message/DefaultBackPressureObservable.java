@@ -18,12 +18,15 @@
 
 package io.ballerina.stdlib.http.transport.message;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 /**
  * Default implementation of the {@link BackPressureObservable}.
  */
 public class DefaultBackPressureObservable implements BackPressureObservable {
 
-    private BackPressureListener listener;
+    private volatile BackPressureListener listener;
+    private final AtomicBoolean unWritable = new AtomicBoolean();
 
     @Override
     public void setListener(BackPressureListener listener) {
@@ -31,24 +34,37 @@ public class DefaultBackPressureObservable implements BackPressureObservable {
     }
 
     @Override
-    public void removeListener() {
+    public synchronized void removeListener() {
         if (listener != null) {
+            unWritable.set(false);
             listener.onWritable();
             listener = null;
         }
     }
 
+    // Not synchronized: DefaultBackPressureListener blocks the writer here until notifyWritable() releases it, and
+    // that call takes this monitor. Callers whose listener does not block hold the monitor around the check instead.
     @Override
     public void notifyUnWritable() {
         if (listener != null) {
+            unWritable.set(true);
             listener.onUnWritable();
         }
     }
 
     @Override
-    public void notifyWritable() {
+    public synchronized void notifyWritable() {
         if (listener != null) {
+            unWritable.set(false);
             listener.onWritable();
+        }
+    }
+
+    @Override
+    public synchronized void notifyWritableIfUnWritable() {
+        BackPressureListener currentListener = listener;
+        if (currentListener != null && unWritable.compareAndSet(true, false)) {
+            currentListener.onWritable();
         }
     }
 

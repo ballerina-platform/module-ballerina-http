@@ -45,6 +45,12 @@ public interface BackPressureObservable {
     void notifyWritable();
 
     /**
+     * Release throttling if the last notification was {@link #notifyUnWritable()}. Used once the writer can no
+     * longer report writability, so a pause it started is not left in place.
+     */
+    void notifyWritableIfUnWritable();
+
+    /**
      * Get the registered listener.
      *
      * @return backpressure listener

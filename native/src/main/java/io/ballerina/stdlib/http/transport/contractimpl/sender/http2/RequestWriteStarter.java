@@ -19,6 +19,7 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
 
+import io.ballerina.stdlib.http.transport.message.BackPressureObservable;
 import io.ballerina.stdlib.http.transport.message.DefaultBackPressureListener;
 import io.ballerina.stdlib.http.transport.message.DefaultListener;
 import io.ballerina.stdlib.http.transport.message.Http2InboundContentListener;
@@ -36,6 +37,7 @@ public class RequestWriteStarter {
 
     private final OutboundMsgHolder outboundMsgHolder;
     private final Http2ClientChannel http2ClientChannel;
+    private boolean writerBlocksWhenUnwritable;
 
     public RequestWriteStarter(OutboundMsgHolder outboundMsgHolder, Http2ClientChannel http2ClientChannel) {
         this.outboundMsgHolder = outboundMsgHolder;
@@ -58,6 +60,7 @@ public class RequestWriteStarter {
         if (outboundMsgHolder.getRequest().isPassthrough()) {
             setPassthroughBackOffListener();
         } else {
+            writerBlocksWhenUnwritable = true;
             outboundMsgHolder.getBackPressureObservable().setListener(new DefaultBackPressureListener());
         }
     }
@@ -78,11 +81,26 @@ public class RequestWriteStarter {
     }
 
     private void checkStreamUnwritability() {
+        BackPressureObservable backPressureObservable = outboundMsgHolder.getBackPressureObservable();
+        if (writerBlocksWhenUnwritable) {
+            // The default listener blocks this thread until a writability change releases it, so it must not hold
+            // the lock that change takes. Its semaphore keeps a release that runs before the block.
+            pauseIfUnwritable(backPressureObservable);
+            return;
+        }
+        // Checked under the lock a writability change takes to update the flag and resume, so a stale check on this
+        // thread cannot pause after that resume has already run.
+        synchronized (backPressureObservable) {
+            pauseIfUnwritable(backPressureObservable);
+        }
+    }
+
+    private void pauseIfUnwritable(BackPressureObservable backPressureObservable) {
         if (!outboundMsgHolder.isStreamWritable()) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("In thread {}. Stream is not writable.", Thread.currentThread().getName());
             }
-            outboundMsgHolder.getBackPressureObservable().notifyUnWritable();
+            backPressureObservable.notifyUnWritable();
         }
     }
 }

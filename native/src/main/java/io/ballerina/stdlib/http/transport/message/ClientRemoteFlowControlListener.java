@@ -53,14 +53,19 @@ public final class ClientRemoteFlowControlListener implements Http2RemoteFlowCon
                 LOG.debug("In thread {}. Stream {} is writable. State {} ", Thread.currentThread().getName(),
                           stream.id(), stream.state());
             }
-            outboundMsgHolder.setStreamWritable(true);
-            outboundMsgHolder.getBackPressureObservable().notifyWritable();
+            BackPressureObservable backPressureObservable = outboundMsgHolder.getBackPressureObservable();
+            synchronized (backPressureObservable) {
+                outboundMsgHolder.setStreamWritable(true);
+                backPressureObservable.notifyWritable();
+            }
         } else {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("In thread {}. Stream {} is not writable. State {} ", Thread.currentThread().getName(),
                           stream.id(), stream.state());
             }
-            outboundMsgHolder.setStreamWritable(false);
+            synchronized (outboundMsgHolder.getBackPressureObservable()) {
+                outboundMsgHolder.setStreamWritable(false);
+            }
         }
     }
 }

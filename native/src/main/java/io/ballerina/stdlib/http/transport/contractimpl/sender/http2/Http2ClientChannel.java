@@ -23,6 +23,7 @@ import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.TargetChannel;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.states.http2.SenderState;
+import io.ballerina.stdlib.http.transport.message.BackPressureObservable;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -164,7 +165,16 @@ public class Http2ClientChannel {
         if (LOG.isDebugEnabled()) {
             LOG.debug("In flight message for stream id: {} removed from channel: {}", streamId, this);
         }
-        inFlightMessages.remove(streamId);
+        OutboundMsgHolder outboundMsgHolder = inFlightMessages.remove(streamId);
+        if (outboundMsgHolder != null) {
+            // A finished stream never reports writability again, so lift any read suspension it caused upstream,
+            // and stop a request chunk still on its way from suspending reads again.
+            BackPressureObservable backPressureObservable = outboundMsgHolder.getBackPressureObservable();
+            synchronized (backPressureObservable) {
+                outboundMsgHolder.setStreamWritable(true);
+                backPressureObservable.notifyWritableIfUnWritable();
+            }
+        }
     }
 
     /**
