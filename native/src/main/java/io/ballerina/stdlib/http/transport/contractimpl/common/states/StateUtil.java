@@ -46,6 +46,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.channels.ClosedChannelException;
 import java.util.ArrayList;
 import java.util.List;
@@ -108,7 +109,12 @@ public class StateUtil {
         DecoderException exception = new DecoderException(errorMessage);
         lastHttpContent.setDecoderResult(DecoderResult.failure(exception));
         if (inboundRequestMsg != null) {
-            inboundRequestMsg.addHttpContent(lastHttpContent);
+            try {
+                inboundRequestMsg.addHttpContent(lastHttpContent);
+            } catch (UncheckedIOException e) {
+                // The body already failed with an I/O error, which rejects further content; the failure still counts.
+                LOG.debug("Inbound message already failed: {}", e.getMessage());
+            }
             inboundRequestMsg.notifyContentFailure(exception);
         }
         LOG.warn(errorMessage);

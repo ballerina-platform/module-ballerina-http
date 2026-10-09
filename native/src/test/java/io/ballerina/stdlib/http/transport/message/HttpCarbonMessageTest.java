@@ -18,7 +18,11 @@
 
 package io.ballerina.stdlib.http.transport.message;
 
+import io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil;
 import io.netty.buffer.ByteBuf;
+import io.netty.handler.codec.DecoderException;
+import io.netty.handler.codec.http.DefaultHttpContent;
+import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpRequest;
@@ -28,9 +32,12 @@ import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
+import static io.netty.buffer.Unpooled.EMPTY_BUFFER;
 import static org.mockito.Mockito.mock;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -164,5 +171,89 @@ public class HttpCarbonMessageTest {
             writer.join(TimeUnit.SECONDS.toMillis(10));
             failer.join(TimeUnit.SECONDS.toMillis(10));
         }
+    }
+
+    // In passthrough the outbound writer takes each request chunk off the collector, so the response must only
+    // wait for the request body to finish arriving, not for a LastHttpContent the collector will never hold.
+    @Test(timeOut = 30000)
+    public void testReleaseWaitsForABodyOwnedByAMessageListenerToArrive() throws Exception {
+        assertReleaseWaitsUntil(message -> {
+            message.addHttpContent(new DefaultLastHttpContent(EMPTY_BUFFER));
+            message.setLastHttpContentArrived();
+        });
+    }
+
+    @Test(timeOut = 30000)
+    public void testReleaseOfABodyOwnedByAMessageListenerEndsOnContentFailure() throws Exception {
+        assertReleaseWaitsUntil(message -> message.notifyContentFailure(new DecoderException("client closed")));
+    }
+
+    // An I/O error rejects any further content, for example after the backend reset a forwarded request, so the
+    // body can no longer arrive and the release must not wait for it.
+    @Test(timeOut = 30000)
+    public void testReleaseOfABodyOwnedByAMessageListenerEndsOnIoException() throws Exception {
+        assertReleaseWaitsUntil(message -> message.setIoException(new IOException("backend reset the stream")));
+    }
+
+    // The HTTP client clears the I/O error of every request it sends, including a forwarded inbound request whose
+    // body is still arriving, so clearing it must not end the wait.
+    @Test(timeOut = 30000)
+    public void testReleaseStillWaitsAfterTheIoExceptionIsCleared() throws Exception {
+        assertReleaseWaitsUntil(message -> message.setIoException(null), message -> {
+            message.addHttpContent(new DefaultLastHttpContent(EMPTY_BUFFER));
+            message.setLastHttpContentArrived();
+        });
+    }
+
+    @Test
+    public void testIncompleteInboundMessageIsRecordedAfterAnIoException() throws Exception {
+        HttpCarbonMessage httpCarbonMessage = new HttpCarbonMessage(mock(HttpRequest.class),
+                                                                    (int) TimeUnit.MINUTES.toMillis(1),
+                                                                    mock(Listener.class));
+        httpCarbonMessage.setIoException(new IOException("backend reset the stream"));
+
+        StateUtil.handleIncompleteInboundMessage(httpCarbonMessage, "client idle");
+
+        CompletableFuture<Exception> failure = new CompletableFuture<>();
+        httpCarbonMessage.getFullHttpCarbonMessage().addListener(new FullHttpMessageListener() {
+            @Override
+            public void onComplete(HttpCarbonMessage message) {
+                failure.complete(null);
+            }
+
+            @Override
+            public void onError(Exception error) {
+                failure.complete(error);
+            }
+        });
+        Exception recorded = failure.get(5, TimeUnit.SECONDS);
+        assertTrue(recorded != null && "client idle".equals(recorded.getMessage()),
+                   "The incomplete body was not recorded as a failure: " + recorded);
+    }
+
+    private static void assertReleaseWaitsUntil(Consumer<HttpCarbonMessage> endOfBody) throws Exception {
+        assertReleaseWaitsUntil(message -> { }, endOfBody);
+    }
+
+    private static void assertReleaseWaitsUntil(Consumer<HttpCarbonMessage> beforeRelease,
+                                                Consumer<HttpCarbonMessage> endOfBody) throws Exception {
+        HttpCarbonMessage httpCarbonMessage = new HttpCarbonMessage(mock(HttpRequest.class),
+                                                                    (int) TimeUnit.MINUTES.toMillis(1),
+                                                                    mock(Listener.class));
+        httpCarbonMessage.getHttpContentAsync().setMessageListener(HttpContent::release);
+        httpCarbonMessage.addHttpContent(new DefaultHttpContent(EMPTY_BUFFER));
+        beforeRelease.accept(httpCarbonMessage);
+
+        CountDownLatch released = new CountDownLatch(1);
+        Thread releaser = new Thread(() -> {
+            httpCarbonMessage.waitAndReleaseAllEntities();
+            released.countDown();
+        });
+        releaser.start();
+        assertFalse(released.await(500, TimeUnit.MILLISECONDS), "Released before the body finished arriving");
+
+        endOfBody.accept(httpCarbonMessage);
+        assertTrue(released.await(5, TimeUnit.SECONDS), "Still waiting after the body finished arriving");
+        assertTrue(httpCarbonMessage.isContentReleased());
     }
 }
