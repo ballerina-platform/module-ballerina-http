@@ -31,6 +31,8 @@ public class PassthroughBackPressureListener implements BackPressureListener {
 
     private Channel inChannel;
     private final DefaultListener inboundListener;
+    // Guarded by the observable that notifies this listener; read on the inbound event loop.
+    private volatile boolean suspended;
 
     /**
      * Sets the incoming and outgoing message channels.
@@ -49,8 +51,10 @@ public class PassthroughBackPressureListener implements BackPressureListener {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Read disabled for inChannel {}", inChannel.id());
         }
-        inChannel.config().setAutoRead(false);
-        inboundListener.onDownstreamUnwritable();
+        if (!suspended) {
+            suspended = true;
+            applyReadInterest();
+        }
     }
 
     @Override
@@ -58,7 +62,30 @@ public class PassthroughBackPressureListener implements BackPressureListener {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Read enabled for inChannel {}", inChannel.id());
         }
-        inChannel.config().setAutoRead(true);
-        inboundListener.onDownstreamWritable();
+        if (suspended) {
+            suspended = false;
+            applyReadInterest();
+        }
+    }
+
+    // autoRead is only changed on the inbound event loop: setAutoRead(false) from another thread defers clearing the
+    // read interest to a task, which can run after a resume and leave reads disarmed with autoRead still true. The
+    // task applies the latest decision, so the order in which such tasks run does not matter.
+    private void applyReadInterest() {
+        if (inChannel.eventLoop().inEventLoop()) {
+            applyReadInterestNow();
+        } else {
+            inChannel.eventLoop().execute(this::applyReadInterestNow);
+        }
+    }
+
+    private void applyReadInterestNow() {
+        boolean suspend = suspended;
+        inChannel.config().setAutoRead(!suspend);
+        if (suspend) {
+            inboundListener.onDownstreamUnwritable();
+        } else {
+            inboundListener.onDownstreamWritable();
+        }
     }
 }

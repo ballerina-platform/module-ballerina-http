@@ -22,11 +22,12 @@ import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -52,97 +53,163 @@ class Http2ChannelPool {
      */
     static class PerRouteConnectionPool {
 
-        private final BlockingQueue<Http2ClientChannel> http2ClientChannels = new LinkedBlockingQueue<>();
+        // Guarded by lock, as are newChannelInitializer, newChannelInitialized and newChannelPending
+        private final Deque<Http2ClientChannel> http2ClientChannels = new ArrayDeque<>();
         // Maximum number of allowed active streams
         private final int maxActiveStreams;
-        private CountDownLatch newChannelInitializerLatch = new CountDownLatch(1);
+        private final long maxWaitTimeNanos;
+        // Whether the next caller that finds no usable channel should open the new connection
         private boolean newChannelInitializer = true;
+        // Whether callers that find no usable channel can open a connection instead of waiting for one
+        private boolean newChannelInitialized = false;
+        // Whether a caller is opening a connection that has not been added or failed yet
+        private boolean newChannelPending = false;
         private final ReentrantLock lock = new ReentrantLock();
+        private final Condition channelAvailable = lock.newCondition();
 
-        PerRouteConnectionPool(int maxActiveStreams) {
+        PerRouteConnectionPool(int maxActiveStreams, long maxWaitTimeMillis) {
             this.maxActiveStreams = maxActiveStreams;
+            this.maxWaitTimeNanos = TimeUnit.MILLISECONDS.toNanos(maxWaitTimeMillis);
         }
 
         /**
-         * Fetches an active {@code TargetChannel} from the pool. The first thread will add the channel to the pool. It
-         * is handled using a CountDownLatch. Subsequent threads will reuse the channel. Once the maxActiveStreams
-         * reaches in the channel, a new channel will be added to handle the excess requests. At that point also new
-         * channel addition happens through a synchronized manner to avoid multiple channels getting added to the pool.
+         * Fetches an active {@code TargetChannel} from the pool and reserves a stream on it. When no channel can take
+         * another stream, a single caller gets {@code null} and opens the new connection, while the rest wait until
+         * it is added to the pool. A caller that waits longer than a positive pool wait time gets {@code null} and
+         * opens its own connection, so a connection attempt that never reports back cannot stall the route.
          *
-         * @return active TargetChannel
+         * @return active TargetChannel, or {@code null} if the caller should open a new connection
          */
-         Http2ClientChannel fetchTargetChannel() {
-            waitTillNewChannelInitialized();
-            if (!http2ClientChannels.isEmpty()) {
-                Http2ClientChannel http2ClientChannel = http2ClientChannels.peek();
-                if (http2ClientChannel == null) {  // if channel is not active, forget it and fetch next one
-                    return fetchTargetChannel();
-                }
-                Channel channel = http2ClientChannel.getChannel();
-                if (channel == null) {  // if channel is not active, forget it and fetch next one
-                    removeChannel(http2ClientChannel);
-                    return fetchTargetChannel();
-                }
-                // increment and get active stream count
-                int activeStreamCount = http2ClientChannel.incrementActiveStreamCount();
-
-                if (activeStreamCount < maxActiveStreams) {  // safe to fetch the Target Channel
-                    return http2ClientChannel;
-                } else if (activeStreamCount == maxActiveStreams) {  // no more streams except this one can be opened
-                    http2ClientChannel.markAsExhausted();
-                    removeChannel(http2ClientChannel);
-                    // When the stream count reaches maxActiveStreams, a new channel will be added only if the
-                    // channel queue is empty. This process is synchronized as transport thread can return channels
-                    // after being reset. If such channel is returned before the new CountDownLatch, the subsequent
-                    // ballerina thread will not take http1.1 thread as the channels queue is not empty. In such cases,
-                    // threads wait on the countdown latch cannot be released until another thread is returned. Hence
-                    // synchronized on a lock
-                    if (http2ClientChannels.isEmpty()) {
-                        lock.lock();
-                        try {
-                            newChannelInitializer = true;
-                            newChannelInitializerLatch = new CountDownLatch(1);
-                        } finally {
-                            lock.unlock();
-                        }
+        Http2ClientChannel fetchTargetChannel() {
+            lock.lock();
+            try {
+                long remainingNanos = maxWaitTimeNanos;
+                while (true) {
+                    Http2ClientChannel http2ClientChannel = reserveStream();
+                    if (http2ClientChannel != null) {
+                        return http2ClientChannel;
                     }
-                    return http2ClientChannel;
-                } else {
-                    removeChannel(http2ClientChannel);
-                    return fetchTargetChannel();    // fetch the next one from the queue
+                    if (newChannelInitializer) {
+                        newChannelInitializer = false;
+                        newChannelPending = true;
+                        return null;
+                    }
+                    if (newChannelInitialized) {
+                        return null;
+                    }
+                    if (maxWaitTimeNanos <= 0) {  // a non-positive wait time means wait without a limit
+                        channelAvailable.await();
+                        continue;
+                    }
+                    if (remainingNanos <= 0) {
+                        LOG.warn("Timed out waiting for a new HTTP/2 connection, opening another connection");
+                        return null;
+                    }
+                    remainingNanos = channelAvailable.awaitNanos(remainingNanos);
                 }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                LOG.warn("Interrupted before adding the target channel");
+                return null;
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        private Http2ClientChannel reserveStream() {
+            Http2ClientChannel http2ClientChannel;
+            while ((http2ClientChannel = http2ClientChannels.peek()) != null) {
+                Channel channel = http2ClientChannel.getChannel();
+                if (channel == null || !channel.isActive()) {  // if channel is not active, forget it
+                    removeHead();
+                    continue;
+                }
+                int activeStreamCount = http2ClientChannel.incrementActiveStreamCount();
+                if (activeStreamCount < maxActiveStreams) {
+                    return http2ClientChannel;
+                }
+                if (activeStreamCount == maxActiveStreams) {  // no more streams except this one can be opened
+                    http2ClientChannel.markAsExhausted();
+                    removeHead();
+                    return http2ClientChannel;
+                }
+                http2ClientChannel.decrementActiveStreamCount();
+                http2ClientChannel.markAsExhausted();
+                removeHead();
             }
             return null;
         }
 
-        void addChannel(Http2ClientChannel http2ClientChannel) {
-            http2ClientChannels.add(http2ClientChannel);
-            releaseCountdown();
+        private void removeHead() {
+            http2ClientChannels.poll();
+            awaitNewChannelIfEmpty();
         }
 
-        void releaseCountdown() {
+        // With no channel left, the next caller opens a connection and the rest wait for it. When a connection is
+        // already being opened, everyone waits for that one instead of opening another.
+        private void awaitNewChannelIfEmpty() {
+            if (http2ClientChannels.isEmpty()) {
+                newChannelInitializer = !newChannelPending;
+                newChannelInitialized = false;
+            }
+        }
+
+        void addChannel(Http2ClientChannel http2ClientChannel) {
             lock.lock();
             try {
-                newChannelInitializerLatch.countDown();
+                http2ClientChannels.add(http2ClientChannel);
+                newChannelPending = false;
+                signalChannelAvailable();
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        /**
+         * Releases a stream reserved on the given channel, and returns the channel to the pool if it was taken out
+         * for being exhausted. Done under the pool lock so that it cannot interleave with a caller exhausting it.
+         *
+         * @param http2ClientChannel the channel the stream belonged to
+         */
+        void releaseStream(Http2ClientChannel http2ClientChannel) {
+            lock.lock();
+            try {
+                http2ClientChannel.decrementActiveStreamCount();
+                Channel channel = http2ClientChannel.getChannel();
+                if (!http2ClientChannel.isStale() && http2ClientChannel.resetExhausted() && channel != null
+                        && channel.isActive()) {
+                    http2ClientChannels.add(http2ClientChannel);
+                    signalChannelAvailable();
+                }
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        void releaseWaitingRequests() {
+            lock.lock();
+            try {
+                newChannelPending = false;
+                signalChannelAvailable();
             } finally {
                 lock.unlock();
             }
         }
 
         void removeChannel(Http2ClientChannel http2ClientChannel) {
-            http2ClientChannels.remove(http2ClientChannel);
+            lock.lock();
+            try {
+                if (http2ClientChannels.remove(http2ClientChannel)) {
+                    awaitNewChannelIfEmpty();
+                }
+            } finally {
+                lock.unlock();
+            }
         }
 
-        private void waitTillNewChannelInitialized() {
-            try {
-                if (newChannelInitializer) {
-                    newChannelInitializer = false;
-                } else {
-                    newChannelInitializerLatch.await();
-                }
-            } catch (InterruptedException e) {
-                LOG.warn("Interrupted before adding the target channel");
-            }
+        private void signalChannelAvailable() {
+            newChannelInitialized = true;
+            channelAvailable.signalAll();
         }
     }
 }

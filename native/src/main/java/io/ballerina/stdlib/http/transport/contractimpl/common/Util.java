@@ -1243,6 +1243,28 @@ public class Util {
         sslEngine.setSSLParameters(sslParams);
     }
 
+    /**
+     * Raises the connection-level receive window to the given size. SETTINGS_INITIAL_WINDOW_SIZE only applies to
+     * streams, and the connection window stays at 65,535 bytes until it is raised with a WINDOW_UPDATE on stream 0,
+     * which must not be sent before the connection preface. Must run on the channel's event loop.
+     *
+     * @param connection the HTTP/2 connection
+     * @param windowSize the receive window to give the whole connection
+     * @return true if a WINDOW_UPDATE was written and needs to be flushed
+     * @throws Http2Exception if the window cannot be updated
+     */
+    public static boolean expandConnectionWindow(Http2Connection connection, int windowSize) throws Http2Exception {
+        Http2Stream connectionStream = connection.connectionStream();
+        Http2LocalFlowController localFlowController = connection.local().flowController();
+        int delta = windowSize - localFlowController.initialWindowSize(connectionStream);
+        if (delta <= 0) {
+            return false;
+        }
+        // Raises the window the connection is refilled to as well, not only the credit available right now.
+        localFlowController.incrementWindowSize(connectionStream, delta);
+        return true;
+    }
+
     // True if the stream is quiet because of HTTP/2 flow control - our inbound window closed on an unconsumed
     // message, or our outbound message queued waiting on the peer's window - rather than an unresponsive peer.
     public static boolean isStreamBlockedByFlowControl(Http2Connection connection, int streamId) {

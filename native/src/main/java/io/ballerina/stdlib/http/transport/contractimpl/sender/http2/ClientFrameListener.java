@@ -26,6 +26,7 @@ import io.ballerina.stdlib.http.transport.message.Http2PushPromise;
 import io.ballerina.stdlib.http.transport.message.Http2Reset;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.http2.Http2Connection;
 import io.netty.handler.codec.http2.Http2Error;
 import io.netty.handler.codec.http2.Http2EventAdapter;
 import io.netty.handler.codec.http2.Http2Exception;
@@ -46,7 +47,18 @@ public class ClientFrameListener extends Http2EventAdapter {
 
     private static final Logger LOG = LoggerFactory.getLogger(ClientFrameListener.class);
 
+    private final Http2Connection connection;
+    private final int connectionWindowSize;
     private Http2ClientChannel http2ClientChannel;
+
+    /**
+     * @param connection           the HTTP/2 connection this listener reads frames for
+     * @param connectionWindowSize the receive window to give the whole connection, matching the stream window
+     */
+    public ClientFrameListener(Http2Connection connection, int connectionWindowSize) {
+        this.connection = connection;
+        this.connectionWindowSize = connectionWindowSize;
+    }
 
     @Override
     public int onDataRead(ChannelHandlerContext ctx, int streamId, ByteBuf data, int padding, boolean endOfStream) {
@@ -93,6 +105,10 @@ public class ClientFrameListener extends Http2EventAdapter {
     public void onSettingsRead(ChannelHandlerContext ctx, Http2Settings settings)
             throws Http2Exception {
         LOG.debug("Http2FrameListenAdapter.onSettingRead()");
+        // The peer's SETTINGS can only arrive after our preface has been sent, so the WINDOW_UPDATE may follow.
+        if (Util.expandConnectionWindow(connection, connectionWindowSize)) {
+            ctx.flush();
+        }
         ctx.fireChannelRead(settings);
         super.onSettingsRead(ctx, settings);
     }

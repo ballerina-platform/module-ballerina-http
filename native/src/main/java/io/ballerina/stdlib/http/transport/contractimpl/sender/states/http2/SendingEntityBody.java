@@ -85,13 +85,19 @@ public class SendingEntityBody implements SenderState {
     @Override
     public void writeOutboundRequestBody(ChannelHandlerContext ctx, HttpContent httpContent,
                                          Http2MessageStateContext http2MessageStateContext) throws Http2Exception {
-        if (httpContent instanceof Http2ResetContent) {
+        if (httpContent instanceof Http2ResetContent || isAbortedRequestBody(httpContent)) {
             http2MessageStateContext.setSenderState(new SendingRstFrame(http2TargetHandler, http2RequestWriter));
             http2MessageStateContext.getSenderState()
                     .writeOutboundRequestBody(ctx, httpContent, http2MessageStateContext);
         } else {
             writeContent(ctx, httpContent);
         }
+    }
+
+    // An inbound body that failed part-way, for example when the client disconnected mid-upload, ends with a failed
+    // LastHttpContent. Ending the stream with it would hand the backend a truncated request as if it were complete.
+    static boolean isAbortedRequestBody(HttpContent httpContent) {
+        return httpContent instanceof LastHttpContent && httpContent.decoderResult().isFailure();
     }
 
     @Override
@@ -184,7 +190,8 @@ public class SendingEntityBody implements SenderState {
             ctx.flush();
             if (endStream) {
                 outboundMsgHolder.setRequestWritten(true);
-                http2MessageStateContext.setSenderState(new RequestCompleted(http2TargetHandler, http2RequestWriter));
+                http2MessageStateContext.setSenderState(RequestCompleted.afterRequestWritten(
+                        http2TargetHandler, http2RequestWriter, outboundMsgHolder));
             }
         } finally {
             if (release) {

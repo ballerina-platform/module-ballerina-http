@@ -19,6 +19,9 @@
 package io.ballerina.stdlib.http.transport.message;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.handler.codec.DecoderException;
+import io.netty.handler.codec.http.DefaultHttpContent;
+import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpRequest;
@@ -30,7 +33,9 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
+import static io.netty.buffer.Unpooled.EMPTY_BUFFER;
 import static org.mockito.Mockito.mock;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -164,5 +169,40 @@ public class HttpCarbonMessageTest {
             writer.join(TimeUnit.SECONDS.toMillis(10));
             failer.join(TimeUnit.SECONDS.toMillis(10));
         }
+    }
+
+    // In passthrough the outbound writer takes each request chunk off the collector, so the response must only
+    // wait for the request body to finish arriving, not for a LastHttpContent the collector will never hold.
+    @Test(timeOut = 30000)
+    public void testReleaseWaitsForABodyOwnedByAMessageListenerToArrive() throws Exception {
+        assertReleaseWaitsUntil(message -> {
+            message.addHttpContent(new DefaultLastHttpContent(EMPTY_BUFFER));
+            message.setLastHttpContentArrived();
+        });
+    }
+
+    @Test(timeOut = 30000)
+    public void testReleaseOfABodyOwnedByAMessageListenerEndsOnContentFailure() throws Exception {
+        assertReleaseWaitsUntil(message -> message.notifyContentFailure(new DecoderException("client closed")));
+    }
+
+    private static void assertReleaseWaitsUntil(Consumer<HttpCarbonMessage> endOfBody) throws Exception {
+        HttpCarbonMessage httpCarbonMessage = new HttpCarbonMessage(mock(HttpRequest.class),
+                                                                    (int) TimeUnit.MINUTES.toMillis(1),
+                                                                    mock(Listener.class));
+        httpCarbonMessage.getHttpContentAsync().setMessageListener(HttpContent::release);
+        httpCarbonMessage.addHttpContent(new DefaultHttpContent(EMPTY_BUFFER));
+
+        CountDownLatch released = new CountDownLatch(1);
+        Thread releaser = new Thread(() -> {
+            httpCarbonMessage.waitAndReleaseAllEntities();
+            released.countDown();
+        });
+        releaser.start();
+        assertFalse(released.await(500, TimeUnit.MILLISECONDS), "Released before the body finished arriving");
+
+        endOfBody.accept(httpCarbonMessage);
+        assertTrue(released.await(5, TimeUnit.SECONDS), "Still waiting after the body finished arriving");
+        assertTrue(httpCarbonMessage.isContentReleased());
     }
 }

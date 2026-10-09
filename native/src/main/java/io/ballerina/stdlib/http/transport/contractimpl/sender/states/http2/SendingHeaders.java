@@ -170,7 +170,8 @@ public class SendingHeaders implements SenderState {
         http2RequestWriter.setStreamId(streamId);
         HttpRequest httpRequest = Util.createHttpRequest(httpOutboundRequest);
 
-        if (msg instanceof LastHttpContent && msg.content().capacity() == 0) {
+        if (msg instanceof LastHttpContent && msg.content().capacity() == 0
+                && !SendingEntityBody.isAbortedRequestBody(msg)) {
             endStream = true;
         }
         // Write Headers

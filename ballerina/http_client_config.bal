@@ -65,7 +65,7 @@ public type ResponseLimitConfigs record {|
 # Provides settings related to HTTP/2 protocol.
 #
 # + http2PriorKnowledge - Configuration to enable HTTP/2 prior knowledge
-# + http2InitialWindowSize - Configuration to change the initial window size
+# + http2InitialWindowSize - Configuration to change the initial window size of each stream and of the connection
 public type ClientHttp2Settings record {|
     boolean http2PriorKnowledge = false;
     int http2InitialWindowSize = 65535;

@@ -19,12 +19,16 @@
 package io.ballerina.stdlib.http.api.nativeimpl;
 
 import io.ballerina.runtime.api.Environment;
+import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.transport.message.FullHttpMessageListener;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.HttpMessageDataStreamer;
+import io.ballerina.stdlib.io.channels.base.Channel;
+import io.ballerina.stdlib.io.utils.IOConstants;
+import io.ballerina.stdlib.io.utils.IOUtils;
 import io.ballerina.stdlib.mime.nativeimpl.MimeDataSourceBuilder;
 import io.ballerina.stdlib.mime.nativeimpl.MimeEntityBody;
 import io.ballerina.stdlib.mime.util.EntityBodyChannel;
@@ -36,6 +40,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -178,6 +183,43 @@ public class ExternHttpDataSourceBuilder extends MimeDataSourceBuilder {
                         new EntityBodyChannel(httpMessageDataStreamer.getInputStream())));
             }
         }
+    }
+
+    /**
+     * Reads the next part of an entity body for a byte stream. Unlike mime's byte stream, which keeps reading until
+     * it has {@code arraySize} bytes, this returns as soon as some bytes are available, so a streamed body is handed
+     * on as it arrives.
+     *
+     * @param env       the Ballerina environment
+     * @param entityObj the entity whose body is read
+     * @param arraySize the maximum number of bytes to return
+     * @return the bytes read, nil at the end of the body, or an error
+     */
+    public static Object readByteStreamEntry(Environment env, BObject entityObj, long arraySize) {
+        if (arraySize <= 0) {
+            return IOUtils.createError(IOConstants.ErrorCode.GenericError,
+                                       "The array size of a byte stream must be positive, but was " + arraySize);
+        }
+        return env.yieldAndRun(() -> {
+            try {
+                Channel byteChannel = EntityBodyHandler.getByteChannel(entityObj);
+                if (byteChannel == null) {
+                    return null;
+                }
+                byte[] buffer = new byte[(int) arraySize];
+                int bytesRead = byteChannel.getInputStream().read(buffer, 0, buffer.length);
+                if (bytesRead == -1) {
+                    EntityBodyHandler.closeByteChannel(byteChannel);
+                    entityObj.addNativeData(ENTITY_BYTE_CHANNEL, null);
+                    return null;
+                }
+                return ValueCreator.createArrayValue(
+                        bytesRead == buffer.length ? buffer : Arrays.copyOf(buffer, bytesRead));
+            } catch (Exception e) {
+                return IOUtils.createError(IOConstants.ErrorCode.GenericError,
+                                           "Error occurred while reading stream: " + e.getMessage());
+            }
+        });
     }
 
     public static void constructNonBlockingDataSource(CompletableFuture<Object> balFuture, BObject entity,

@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.util.Objects;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.InflaterInputStream;
 
@@ -71,38 +72,84 @@ public class HttpMessageDataStreamer {
      */
     protected class ByteBufferInputStream extends InputStream {
 
-        private int count;
         private boolean chunkFinished = true;
-        private int limit;
         private ByteBuffer byteBuffer;
         private HttpContent httpContent;
         private int referenceCount = 0;
 
         @Override
         public int read() {
-            if ((httpContent instanceof LastHttpContent) && chunkFinished) {
+            if (!awaitData()) {
                 return -1;
-            } else if (chunkFinished) {
-                httpContent = httpCarbonMessage.getHttpContent();
-                referenceCount++;
-                validateHttpContent();
-                byteBuffer = httpContent.content().nioBuffer();
-                count = 0;
-                limit = byteBuffer.limit();
-                if (limit == 0) {
-                    return -1;
-                }
-                chunkFinished = false;
             }
-            count++;
-            if (count == limit) {
-                int value = byteBuffer.get() & 0xff;
+            int value = byteBuffer.get() & 0xff;
+            releaseIfDrained();
+            return value;
+        }
+
+        /**
+         * Blocks only until some content is available, then returns what is already received, up to {@code len}
+         * bytes, instead of waiting for {@code len} bytes. A streamed body is then delivered as it arrives.
+         */
+        @Override
+        public int read(byte[] b, int off, int len) {
+            Objects.checkFromIndexSize(off, len, b.length);
+            if (len == 0) {
+                return 0;
+            }
+            if (!awaitData()) {
+                return -1;
+            }
+            int total = 0;
+            while (true) {
+                if (!chunkFinished) {
+                    int bytesToCopy = Math.min(len - total, byteBuffer.remaining());
+                    byteBuffer.get(b, off + total, bytesToCopy);
+                    total += bytesToCopy;
+                    releaseIfDrained();
+                }
+                if (total == len || httpContent instanceof LastHttpContent || httpCarbonMessage.isEmpty()) {
+                    return total;
+                }
+                loadNextChunk();
+            }
+        }
+
+        @Override
+        public int available() {
+            return chunkFinished ? 0 : byteBuffer.remaining();
+        }
+
+        /**
+         * Blocks until a chunk with unread bytes is available, skipping empty ones.
+         *
+         * @return false once the body has ended
+         */
+        private boolean awaitData() {
+            while (chunkFinished) {
+                if (httpContent instanceof LastHttpContent) {
+                    return false;
+                }
+                loadNextChunk();
+            }
+            return true;
+        }
+
+        private void loadNextChunk() {
+            releaseHttpContent();
+            httpContent = httpCarbonMessage.getHttpContent();
+            referenceCount++;
+            validateHttpContent();
+            byteBuffer = httpContent.content().nioBuffer();
+            chunkFinished = !byteBuffer.hasRemaining();
+        }
+
+        private void releaseIfDrained() {
+            if (!byteBuffer.hasRemaining()) {
                 chunkFinished = true;
                 byteBuffer = null;
                 releaseHttpContent();
-                return value;
             }
-            return byteBuffer.get() & 0xff;
         }
 
         private void validateHttpContent() {
@@ -115,6 +162,7 @@ public class HttpMessageDataStreamer {
 
         @Override
         public void close() throws IOException {
+            chunkFinished = true;
             byteBuffer = null;
             releaseHttpContent();    //fix memory leak issue in error path
             super.close();
@@ -268,10 +316,23 @@ public class HttpMessageDataStreamer {
             // accept-encoding request header
             httpCarbonMessage.removeHeader(HttpHeaderNames.CONTENT_ENCODING.toString());
             try {
+                InputStream source = createInputStreamIfNull();
+                // These streams report a byte available until the end, which makes channel readers wait to fill
+                // their buffer. Report only what can be read without waiting for more of the body.
                 if (contentEncodingHeader.equalsIgnoreCase(Constants.ENCODING_GZIP)) {
-                    return new GZIPInputStream(createInputStreamIfNull());
+                    return new GZIPInputStream(source) {
+                        @Override
+                        public int available() throws IOException {
+                            return Math.min(super.available(), source.available());
+                        }
+                    };
                 } else if (contentEncodingHeader.equalsIgnoreCase(Constants.ENCODING_DEFLATE)) {
-                    return new InflaterInputStream(createInputStreamIfNull());
+                    return new InflaterInputStream(source) {
+                        @Override
+                        public int available() throws IOException {
+                            return Math.min(super.available(), source.available());
+                        }
+                    };
                 } else if (!contentEncodingHeader.equalsIgnoreCase(Constants.HTTP_TRANSFER_ENCODING_IDENTITY)) {
                     LOG.warn("Unknown Content-Encoding: {}", contentEncodingHeader);
                 }

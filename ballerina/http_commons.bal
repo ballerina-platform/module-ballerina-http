@@ -446,6 +446,59 @@ isolated function externPopulateInputStream(mime:Entity entity) = @java:Method {
     name: "populateInputStream"
 } external;
 
+// Each array holds the bytes already received, up to `arraySize`, so a slowly streamed body is handed on as it
+// arrives. mime's own byte stream waits for `arraySize` bytes (ballerina-library#9283).
+isolated function getEntityByteStream(mime:Entity entity, int arraySize) returns stream<byte[], io:Error?>|mime:Error {
+    externPopulateInputStream(entity);
+    stream<byte[], io:Error?>|mime:Error? byteStream = externGetMimeByteStream(entity);
+    if byteStream is () {
+        return new stream<byte[], io:Error?>(new EntityByteStream(entity, arraySize));
+    }
+    return byteStream;
+}
+
+class EntityByteStream {
+    private final mime:Entity entity;
+    private final int arraySize;
+    private boolean isClosed = false;
+
+    isolated function init(mime:Entity entity, int arraySize) {
+        self.entity = entity;
+        self.arraySize = arraySize;
+    }
+
+    public isolated function next() returns record {|byte[] value;|}|io:Error? {
+        byte[]|io:Error? bytes = externReadByteStreamEntry(self.entity, self.arraySize);
+        return bytes is byte[] ? {value: bytes} : bytes;
+    }
+
+    public isolated function close() returns io:Error? {
+        if !self.isClosed {
+            check externCloseMimeByteStream(self.entity);
+            self.isClosed = true;
+        }
+    }
+}
+
+// Gives a byte stream already set on the entity, an error if the body cannot be streamed, or nil when the body
+// is read through the entity's byte channel.
+isolated function externGetMimeByteStream(mime:Entity entity) returns stream<byte[], io:Error?>|mime:Error? =
+@java:Method {
+    'class: "io.ballerina.stdlib.mime.nativeimpl.MimeEntityBody",
+    name: "getByteStream"
+} external;
+
+isolated function externReadByteStreamEntry(mime:Entity entity, int arraySize) returns byte[]|io:Error? =
+@java:Method {
+    'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternHttpDataSourceBuilder",
+    name: "readByteStreamEntry"
+} external;
+
+isolated function externCloseMimeByteStream(mime:Entity entity) returns io:Error? = @java:Method {
+    'class: "io.ballerina.stdlib.mime.nativeimpl.MimeEntityBody",
+    name: "closeInputByteStream"
+} external;
+
 // Returns utc value from a given string and pattern.
 isolated function utcFromString(string input, string pattern) returns time:Utc|error = @java:Method {
     'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternFormatter"

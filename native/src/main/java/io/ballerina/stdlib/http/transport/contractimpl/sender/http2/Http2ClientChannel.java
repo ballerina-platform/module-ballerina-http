@@ -23,6 +23,7 @@ import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.TargetChannel;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.states.http2.SenderState;
+import io.ballerina.stdlib.http.transport.message.BackPressureObservable;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -164,7 +165,16 @@ public class Http2ClientChannel {
         if (LOG.isDebugEnabled()) {
             LOG.debug("In flight message for stream id: {} removed from channel: {}", streamId, this);
         }
-        inFlightMessages.remove(streamId);
+        OutboundMsgHolder outboundMsgHolder = inFlightMessages.remove(streamId);
+        if (outboundMsgHolder != null) {
+            // A finished stream never reports writability again, so lift any read suspension it caused upstream,
+            // and stop a request chunk still on its way from suspending reads again.
+            BackPressureObservable backPressureObservable = outboundMsgHolder.getBackPressureObservable();
+            synchronized (backPressureObservable) {
+                outboundMsgHolder.setStreamWritable(true);
+                backPressureObservable.notifyWritableIfUnWritable();
+            }
+        }
     }
 
     /**
@@ -210,6 +220,23 @@ public class Http2ClientChannel {
      */
     void markAsExhausted() {
         isExhausted.set(true);
+    }
+
+    int decrementActiveStreamCount() {
+        return activeStreams.decrementAndGet();
+    }
+
+    /**
+     * Clears the exhausted mark.
+     *
+     * @return whether the channel was marked as exhausted
+     */
+    boolean resetExhausted() {
+        return isExhausted.getAndSet(false);
+    }
+
+    boolean isStale() {
+        return isStale.get();
     }
 
     /**
@@ -305,12 +332,9 @@ public class Http2ClientChannel {
             // Channel is no longer exhausted, so we can return it back to the pool
             http2ClientChannel.removeInFlightMessage(stream.id());
             http2ConnectionManager.markClientChannelAsIdle(http2ClientChannel);
-            activeStreams.decrementAndGet();
             http2ClientChannel.getDataEventListeners().
                     forEach(dataEventListener -> dataEventListener.onStreamClose(stream.id()));
-            if (!isStale.get() && isExhausted.getAndSet(false)) {
-                http2ConnectionManager.returnClientChannel(httpRoute, http2ClientChannel);
-            }
+            http2ConnectionManager.releaseStream(httpRoute, http2ClientChannel);
         }
 
         private void notifyStreamClosedLocally(int streamId) {
@@ -349,7 +373,6 @@ public class Http2ClientChannel {
             http2ClientChannel.inFlightMessages.forEach((streamId, outboundMsgHolder) -> {
                 if (streamId > lastStreamId) {
                     http2ClientChannel.removeInFlightMessage(streamId);
-                    activeStreams.decrementAndGet();
                     http2ClientChannel.getDataEventListeners().forEach(
                             dataEventListener -> dataEventListener.onStreamClose(streamId));
                     Http2MessageStateContext messageStateContext =

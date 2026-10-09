@@ -124,7 +124,7 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
         if (!idleTimeoutTriggered) {
             targetChannel.senderReqRespStateManager.handleAbruptChannelClosure(this, httpResponseFuture);
         }
-        releasePerRoutePoolLatchOnFailure();
+        releaseWaitingRequestsOnFailure();
         connectionManager.invalidateTargetChannel(targetChannel);
 
         if (handlerExecutor != null) {
@@ -151,7 +151,7 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
             if (HttpClientUpgradeHandler.UpgradeEvent.UPGRADE_SUCCESSFUL.name().equals(upgradeEvent.name())) {
                 executePostUpgradeActions(ctx);
             } else if (HttpClientUpgradeHandler.UpgradeEvent.UPGRADE_REJECTED.name().equals(upgradeEvent.name())) {
-                releasePerRoutePoolLatchOnFailure();
+                releaseWaitingRequestsOnFailure();
             }
             ctx.fireUserEventTriggered(evt);
         } else {
@@ -174,7 +174,7 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
             // When closing the channel, if it is already closed it will trigger this event. So we can ignore this.
             LOG.debug("Input side of the connection is already shutdown");
         } else {
-            releasePerRoutePoolLatchOnFailure();
+            releaseWaitingRequestsOnFailure();
             LOG.warn("Unexpected user event {} triggered", evt);
         }
     }
@@ -216,11 +216,11 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
-    private void releasePerRoutePoolLatchOnFailure() {
+    private void releaseWaitingRequestsOnFailure() {
         // When SSL completion event is received via UserEventTriggered method, this method can be called before
         // assigning value to connectionManager. Hence the null check
         if (Objects.nonNull(connectionManager)) {
-            connectionManager.getHttp2ConnectionManager().releasePerRoutePoolLatch(targetChannel.getHttpRoute());
+            connectionManager.getHttp2ConnectionManager().releaseWaitingRequests(targetChannel.getHttpRoute());
         }
     }
 
