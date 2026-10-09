@@ -23,6 +23,7 @@ import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.TargetChannel;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.states.http2.SenderState;
+import io.ballerina.stdlib.http.transport.message.BackPressureObservable;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -53,6 +54,8 @@ public class Http2ClientChannel {
 
     private ConcurrentHashMap<Integer, OutboundMsgHolder> inFlightMessages;
     private ConcurrentHashMap<Integer, OutboundMsgHolder> promisedMessages;
+    // Requests whose response has ended while their body is still being sent, kept under flow control until then
+    private final ConcurrentHashMap<Integer, OutboundMsgHolder> requestsStillSending = new ConcurrentHashMap<>();
     private Channel channel;
     private Http2Connection connection;
     private ChannelFuture channelFuture;
@@ -156,6 +159,39 @@ public class Http2ClientChannel {
     }
 
     /**
+     * Gets the message whose request is sent on a particular stream, including one whose response has already ended.
+     *
+     * @param streamId stream id
+     * @return the message sending its request on the stream
+     */
+    public OutboundMsgHolder getMessageSendingRequest(int streamId) {
+        OutboundMsgHolder outboundMsgHolder = inFlightMessages.get(streamId);
+        return outboundMsgHolder != null ? outboundMsgHolder : requestsStillSending.get(streamId);
+    }
+
+    /**
+     * Removes an in-flight message whose response has ended. If its request is still being sent, the stream's
+     * writability keeps pausing it until the stream closes.
+     *
+     * @param streamId stream id
+     */
+    public void removeRespondedMessage(int streamId) {
+        Http2Stream stream = connection.stream(streamId);
+        if (stream == null || !stream.state().localSideOpen()) {
+            removeInFlightMessage(streamId);
+            return;
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Responded message for stream id: {} is still sending its request on channel: {}", streamId,
+                      this);
+        }
+        OutboundMsgHolder outboundMsgHolder = inFlightMessages.remove(streamId);
+        if (outboundMsgHolder != null) {
+            requestsStillSending.put(streamId, outboundMsgHolder);
+        }
+    }
+
+    /**
      * Removes a in-flight message.
      *
      * @param streamId stream id
@@ -164,7 +200,20 @@ public class Http2ClientChannel {
         if (LOG.isDebugEnabled()) {
             LOG.debug("In flight message for stream id: {} removed from channel: {}", streamId, this);
         }
-        inFlightMessages.remove(streamId);
+        OutboundMsgHolder outboundMsgHolder = inFlightMessages.remove(streamId);
+        OutboundMsgHolder requestStillSending = requestsStillSending.remove(streamId);
+        if (outboundMsgHolder == null) {
+            outboundMsgHolder = requestStillSending;
+        }
+        if (outboundMsgHolder != null) {
+            // A finished stream never reports writability again, so lift any read suspension it caused upstream,
+            // and stop a request chunk still on its way from suspending reads again.
+            BackPressureObservable backPressureObservable = outboundMsgHolder.getBackPressureObservable();
+            synchronized (backPressureObservable) {
+                outboundMsgHolder.setStreamWritable(true);
+                backPressureObservable.notifyWritableIfUnWritable();
+            }
+        }
     }
 
     /**
@@ -276,9 +325,12 @@ public class Http2ClientChannel {
             }
             outboundMsgHolder.getBackPressureObservable().removeListener();
         });
+        requestsStillSending.values().forEach(
+                outboundMsgHolder -> outboundMsgHolder.getBackPressureObservable().removeListener());
         handleConnectionClose();
         this.connection.removeListener(streamCloseListener);
         inFlightMessages.clear();
+        requestsStillSending.clear();
         promisedMessages.clear();
         removeFromConnectionPool();
     }
