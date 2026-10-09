@@ -304,15 +304,15 @@ public class Response {
     # Gets the response payload as  a stream of byte[], except in the case of multiparts. To retrieve multiparts, use
     # `Response.getBodyParts()`.
     #
-    # + arraySize - A defaultable parameter to state the size of the byte array. Default size is 8KB
+    # + arraySize - A defaultable parameter to state the maximum size of each byte array. Each array holds the
+    #               bytes already received, up to this size. Default size is 8KB
     # + return - A byte stream from which the message payload can be read or `http:ClientError` in case of errors
     public isolated function getByteStream(int arraySize = 8192) returns stream<byte[], io:Error?>|ClientError {
         var result = self.getEntityWithBodyAndWithoutHeaders();
         if result is error {
             return result;
         } else {
-            externPopulateInputStream(result);
-            var byteStream = result.getByteStream(arraySize);
+            var byteStream = getEntityByteStream(result, arraySize);
             if byteStream is mime:Error {
                 string message = "Error occurred while retrieving the byte stream from the response";
                 return error GenericClientError(message, byteStream);

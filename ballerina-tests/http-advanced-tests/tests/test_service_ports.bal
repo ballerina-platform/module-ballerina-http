@@ -50,6 +50,7 @@ const int cookieTestPort2 = 9254;
 
 const int http1SsePort = 9094;
 const int http2SsePort = 9095;
+const int sseChunkedServerPort = 9496;
 
 const int serviceContractTestPort = 9096;
 
