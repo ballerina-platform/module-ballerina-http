@@ -48,20 +48,27 @@ class Http2ChannelPool {
         return perRouteConnectionPools;
     }
 
+    private enum NewChannelState {
+        // The next caller opens a connection and the rest wait for it
+        NEEDS_OPENER,
+        // A caller is opening a connection that has not been added or failed yet, so the rest wait for it
+        OPENING,
+        // The last connection attempt did not produce an HTTP/2 connection, so each caller opens its own
+        OPEN_FREELY
+    }
+
     /**
      * Entity which holds the pool of connections for a given http route.
      */
     static class PerRouteConnectionPool {
 
-        // Guarded by lock, as are newChannelInitializer and newChannelInitialized
+        // Guarded by lock, as is newChannelState
         private final Deque<Http2ClientChannel> http2ClientChannels = new ArrayDeque<>();
         // Maximum number of allowed active streams
         private final int maxActiveStreams;
         private final long maxWaitTimeNanos;
-        // Whether the next caller that finds no usable channel should open the new connection
-        private boolean newChannelInitializer = true;
-        // Whether callers that find no usable channel can open a connection instead of waiting for one
-        private boolean newChannelInitialized = false;
+        // What a caller that finds no usable channel does
+        private NewChannelState newChannelState = NewChannelState.NEEDS_OPENER;
         private final ReentrantLock lock = new ReentrantLock();
         private final Condition channelAvailable = lock.newCondition();
 
@@ -87,11 +94,11 @@ class Http2ChannelPool {
                     if (http2ClientChannel != null) {
                         return http2ClientChannel;
                     }
-                    if (newChannelInitializer) {
-                        newChannelInitializer = false;
+                    if (newChannelState == NewChannelState.NEEDS_OPENER) {
+                        newChannelState = NewChannelState.OPENING;
                         return null;
                     }
-                    if (newChannelInitialized) {
+                    if (newChannelState == NewChannelState.OPEN_FREELY) {
                         return null;
                     }
                     if (maxWaitTimeNanos <= 0) {  // a non-positive wait time means wait without a limit
@@ -142,11 +149,11 @@ class Http2ChannelPool {
             awaitNewChannelIfEmpty();
         }
 
-        // With no channel left, the next caller opens a connection and the rest wait for it
+        // With no channel left, the next caller opens a connection and the rest wait for it. When a connection is
+        // already being opened, everyone waits for that one instead of opening another.
         private void awaitNewChannelIfEmpty() {
-            if (http2ClientChannels.isEmpty()) {
-                newChannelInitializer = true;
-                newChannelInitialized = false;
+            if (http2ClientChannels.isEmpty() && newChannelState != NewChannelState.OPENING) {
+                newChannelState = NewChannelState.NEEDS_OPENER;
             }
         }
 
@@ -154,7 +161,8 @@ class Http2ChannelPool {
             lock.lock();
             try {
                 http2ClientChannels.add(http2ClientChannel);
-                signalChannelAvailable();
+                newChannelState = NewChannelState.NEEDS_OPENER;
+                channelAvailable.signalAll();
             } finally {
                 lock.unlock();
             }
@@ -174,7 +182,7 @@ class Http2ChannelPool {
                 if (!http2ClientChannel.isStale() && http2ClientChannel.resetExhausted() && channel != null
                         && channel.isActive()) {
                     http2ClientChannels.add(http2ClientChannel);
-                    signalChannelAvailable();
+                    channelAvailable.signalAll();
                 }
             } finally {
                 lock.unlock();
@@ -184,7 +192,9 @@ class Http2ChannelPool {
         void releaseWaitingRequests() {
             lock.lock();
             try {
-                signalChannelAvailable();
+                // No HTTP/2 connection is coming, so each waiting caller opens its own
+                newChannelState = NewChannelState.OPEN_FREELY;
+                channelAvailable.signalAll();
             } finally {
                 lock.unlock();
             }
@@ -199,11 +209,6 @@ class Http2ChannelPool {
             } finally {
                 lock.unlock();
             }
-        }
-
-        private void signalChannelAvailable() {
-            newChannelInitialized = true;
-            channelAvailable.signalAll();
         }
     }
 }
