@@ -27,6 +27,8 @@ public class OSConstants {
     static final String PROCESS_TYPE = "Process";
 
     static final String PROCESS_FIELD = "ProcessField";
+    static final String STDOUT_FILE_FIELD = "StdoutFileField";
+    static final String STDERR_FILE_FIELD = "StderrFileField";
 
     public static final String PROCESS_EXEC_ERROR = "ProcessExecError";
 

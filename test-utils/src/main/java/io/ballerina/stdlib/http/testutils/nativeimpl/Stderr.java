@@ -35,8 +35,7 @@ import java.nio.channels.ReadableByteChannel;
 public class Stderr extends AbstractNativeChannel {
 
     public static BObject stderr(BObject objVal) {
-        Process process = OSUtils.processFromObject(objVal);
-        InputStream in = process.getErrorStream();
+        InputStream in = OSUtils.openOutputFile(objVal, OSConstants.STDERR_FILE_FIELD);
         ReadableByteChannel readableByteChannel = Channels.newChannel(in);        
         return createChannel(new BlobIOChannel(new BlobChannel(readableByteChannel)));
     }

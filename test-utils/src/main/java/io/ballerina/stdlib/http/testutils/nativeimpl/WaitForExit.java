@@ -18,7 +18,10 @@
 
 package io.ballerina.stdlib.http.testutils.nativeimpl;
 
+import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BObject;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * External function for Process.waitForExit.
@@ -29,11 +32,20 @@ public class WaitForExit {
 
     private WaitForExit() {}
 
+    private static final int TIMEOUT_MINUTES = 5;
+
     public static Object waitForExit(BObject objVal) {
         Process process = OSUtils.processFromObject(objVal);
         try {
-            return process.waitFor();
+            if (!process.waitFor(TIMEOUT_MINUTES, TimeUnit.MINUTES)) {
+                Stop.terminate(process);
+                return OSUtils.getBallerinaError(OSConstants.PROCESS_EXEC_ERROR,
+                        StringUtils.fromString("Process did not exit within " + TIMEOUT_MINUTES + " minutes"));
+            }
+            return process.exitValue();
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            Stop.terminate(process);
             return OSUtils.getBallerinaError(OSConstants.PROCESS_EXEC_ERROR, e);
         }
     }

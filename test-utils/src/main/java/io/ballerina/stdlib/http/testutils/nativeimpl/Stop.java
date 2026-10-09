@@ -37,8 +37,10 @@ public class Stop {
     private static final int TIMEOUT_SECONDS = 5;
 
     public static Object stop(BObject objVal) {
-        Process process = OSUtils.processFromObject(objVal);
+        return terminate(OSUtils.processFromObject(objVal));
+    }
 
+    static boolean terminate(Process process) {
         if (!process.isAlive()) {
             return true;
         }

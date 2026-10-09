@@ -35,8 +35,7 @@ import java.nio.channels.ReadableByteChannel;
 public class Stdout extends AbstractNativeChannel {
 
     public static BObject stdout(BObject objVal) {
-        Process process = OSUtils.processFromObject(objVal);
-        InputStream in = process.getInputStream();
+        InputStream in = OSUtils.openOutputFile(objVal, OSConstants.STDOUT_FILE_FIELD);
         ReadableByteChannel readableByteChannel = Channels.newChannel(in);
         return createChannel(new BlobIOChannel(new BlobChannel(readableByteChannel)));
     }

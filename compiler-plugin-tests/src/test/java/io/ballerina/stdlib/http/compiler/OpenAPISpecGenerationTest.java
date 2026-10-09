@@ -43,7 +43,7 @@ public class OpenAPISpecGenerationTest {
     @Test
     public void testSpecGenerationWithSimpleService() throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_45");
-        executeBallerinaCommand(projectDirPath, true);
+        Assert.assertEquals(executeBallerinaCommand(projectDirPath, true), 0, "bal build failed");
         Path actualFile = projectDirPath.resolve("target/openapi").resolve("service_openapi.yaml");
         Path expectedFile = RESOURCE_DIRECTORY.resolve("../yaml_files").resolve("service_openapi_3.yaml");
         verifySpecContent(actualFile, expectedFile);
@@ -62,7 +62,7 @@ public class OpenAPISpecGenerationTest {
     @Test
     public void testSpecGenerationWithEmptyServicePath() throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_47");
-        executeBallerinaCommand(projectDirPath, true);
+        Assert.assertEquals(executeBallerinaCommand(projectDirPath, true), 0, "bal build failed");
         Path openApiDir = projectDirPath.resolve("target/openapi");
         Assert.assertTrue(Files.exists(openApiDir), "OpenAPI directory should exist");
         Path actualFile = projectDirPath.resolve("target/openapi").resolve("service_352312370_openapi.yaml");
@@ -74,7 +74,7 @@ public class OpenAPISpecGenerationTest {
     @Test
     public void testConstructFileNameWithRegularServicePath() throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_48");
-        executeBallerinaCommand(projectDirPath, true);
+        Assert.assertEquals(executeBallerinaCommand(projectDirPath, true), 0, "bal build failed");
         Path actualFile = projectDirPath.resolve("target/openapi").resolve("userservice_openapi.yaml");
         Path expectedFile = RESOURCE_DIRECTORY.resolve("../yaml_files").resolve("service_openapi_4.yaml");
         verifySpecContent(actualFile, expectedFile);
@@ -93,7 +93,7 @@ public class OpenAPISpecGenerationTest {
     @Test
     public void testSpecGeneration() throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_20");
-        executeBallerinaCommand(projectDirPath, true);
+        Assert.assertEquals(executeBallerinaCommand(projectDirPath, true), 0, "bal build failed");
         Path actualFile = projectDirPath.resolve("target/openapi").resolve("service_openapi.yaml");
         Path expectedFile = RESOURCE_DIRECTORY.resolve("../yaml_files").resolve("service_openapi_1.yaml");
         verifySpecContent(actualFile, expectedFile);
@@ -103,7 +103,7 @@ public class OpenAPISpecGenerationTest {
     @Test
     public void testSpecGenerationInComplexServices() throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_42");
-        executeBallerinaCommand(projectDirPath, true);
+        Assert.assertEquals(executeBallerinaCommand(projectDirPath, true), 0, "bal build failed");
         Path actualFile = projectDirPath.resolve("target/openapi")
                 .resolve("api_v1_openapi.yaml");
         Path expectedFile = RESOURCE_DIRECTORY.resolve("../yaml_files").resolve("complex_openapi.yaml");
@@ -114,7 +114,7 @@ public class OpenAPISpecGenerationTest {
     @Test
     public void testSpecGenerationWithoutFlag() throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_20");
-        executeBallerinaCommand(projectDirPath, false);
+        Assert.assertEquals(executeBallerinaCommand(projectDirPath, false), 0, "bal build failed");
         Path yamlFile = projectDirPath.resolve("target/openapi").resolve("service_openapi.yaml");
         Assert.assertTrue(Files.notExists(yamlFile), "OpenAPI spec file should not be generated: " + yamlFile);
         deleteDirectories(projectDirPath);
@@ -132,7 +132,7 @@ public class OpenAPISpecGenerationTest {
     @Test
     public void testSpecGenerationForMultipleServices() throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_44");
-        executeBallerinaCommand(projectDirPath, true);
+        Assert.assertEquals(executeBallerinaCommand(projectDirPath, true), 0, "bal build failed");
         Path openApiDir = projectDirPath.resolve("target/openapi");
         Assert.assertTrue(Files.exists(openApiDir), "OpenAPI directory should exist");
         List<Path> yamlFiles;
@@ -161,7 +161,7 @@ public class OpenAPISpecGenerationTest {
         envProperties.put(javaOptsKey, javaOpts);
     }
 
-    private void executeBallerinaCommand(Path projectDirPath, boolean exportOpenApi)
+    private int executeBallerinaCommand(Path projectDirPath, boolean exportOpenApi)
             throws IOException, InterruptedException {
         List<String> buildArgs = new ArrayList<>();
         String balFile = "bal";
@@ -179,11 +179,17 @@ public class OpenAPISpecGenerationTest {
         addJavaAgents(pb.environment());
         pb.directory(projectDirPath.toFile());
         Process process = pb.start();
-        boolean completed = process.waitFor(2, TimeUnit.MINUTES);
-        if (!completed) {
-            process.destroyForcibly();
+        try {
+            if (!process.waitFor(2, TimeUnit.MINUTES)) {
+                Assert.fail("bal build timed out after 2 minutes");
+            }
+            return process.exitValue();
+        } finally {
+            if (process.isAlive()) {
+                process.descendants().forEach(ProcessHandle::destroyForcibly);
+                process.destroyForcibly().waitFor();
+            }
         }
-        Assert.assertTrue(completed, "bal build timed out after 2 minutes");
     }
 
     private void verifySpecContent(Path actualFilePath, Path expectedFilePath) throws IOException {

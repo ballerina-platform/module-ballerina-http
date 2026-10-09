@@ -26,10 +26,15 @@ import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import static io.ballerina.stdlib.http.testutils.nativeimpl.ModuleUtils.getModule;
 import static io.ballerina.stdlib.http.testutils.nativeimpl.OSConstants.PROCESS_FIELD;
 import static io.ballerina.stdlib.http.testutils.nativeimpl.OSConstants.PROCESS_TYPE;
+import static io.ballerina.stdlib.http.testutils.nativeimpl.OSConstants.STDERR_FILE_FIELD;
+import static io.ballerina.stdlib.http.testutils.nativeimpl.OSConstants.STDOUT_FILE_FIELD;
 
 /**
  * Utility class for operating system related functions.
@@ -70,10 +75,20 @@ public class OSUtils {
         return ErrorCreator.createDistinctError(typeId, getModule(), message);
     }
 
-    public static BObject getProcessObject(Process process) throws IOException {
+    public static BObject getProcessObject(Process process, Path stdoutFile, Path stderrFile) throws IOException {
         BObject obj = (BObject) ValueCreator.createObjectValue(getModule(), PROCESS_TYPE);
         obj.addNativeData(PROCESS_FIELD, process);
+        obj.addNativeData(STDOUT_FILE_FIELD, stdoutFile);
+        obj.addNativeData(STDERR_FILE_FIELD, stderrFile);
         return obj;
+    }
+
+    public static InputStream openOutputFile(BObject objVal, String fileField) {
+        try {
+            return Files.newInputStream((Path) objVal.getNativeData(fileField));
+        } catch (IOException e) {
+            throw getBallerinaError(OSConstants.PROCESS_EXEC_ERROR, e);
+        }
     }
 
     public static Process processFromObject(BObject objVal) {

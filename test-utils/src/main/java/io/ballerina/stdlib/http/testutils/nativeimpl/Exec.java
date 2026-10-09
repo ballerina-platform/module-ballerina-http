@@ -23,6 +23,8 @@ import io.ballerina.runtime.api.values.BString;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -51,7 +53,14 @@ public class Exec {
             env.entrySet().forEach(entry -> pbEnv.put(entry.getKey().getValue(), entry.getValue().getValue()));
         }
         try {
-            return OSUtils.getProcessObject(pb.start());
+            // Output goes to files so the child never blocks on a full pipe that nobody is reading.
+            Path stdoutFile = Files.createTempFile("http-test-exec-", ".out");
+            Path stderrFile = Files.createTempFile("http-test-exec-", ".err");
+            stdoutFile.toFile().deleteOnExit();
+            stderrFile.toFile().deleteOnExit();
+            pb.redirectOutput(stdoutFile.toFile());
+            pb.redirectError(stderrFile.toFile());
+            return OSUtils.getProcessObject(pb.start(), stdoutFile, stderrFile);
         } catch (IOException e) {
             return OSUtils.getBallerinaError(OSConstants.PROCESS_EXEC_ERROR, e);
         }
