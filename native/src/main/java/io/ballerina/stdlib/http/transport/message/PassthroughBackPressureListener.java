@@ -26,13 +26,11 @@ import org.slf4j.LoggerFactory;
 /**
  * Implementation of the {@link BackPressureListener} for the passthrough scenario.
  */
-public class PassthroughBackPressureListener implements BackPressureListener {
+public class PassthroughBackPressureListener extends InboundSuspendingBackPressureListener {
     private static final Logger LOG = LoggerFactory.getLogger(PassthroughBackPressureListener.class);
 
     private Channel inChannel;
     private final DefaultListener inboundListener;
-    // Guarded by the observable that notifies this listener; read on the inbound event loop.
-    private volatile boolean suspended;
 
     /**
      * Sets the incoming and outgoing message channels.
@@ -46,40 +44,22 @@ public class PassthroughBackPressureListener implements BackPressureListener {
         this.inboundListener = inboundListener;
     }
 
-    @Override
-    public void onUnWritable() {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Read disabled for inChannel {}", inChannel.id());
-        }
-        if (!suspended) {
-            suspended = true;
-            applyReadInterest();
-        }
-    }
-
-    @Override
-    public void onWritable() {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Read enabled for inChannel {}", inChannel.id());
-        }
-        if (suspended) {
-            suspended = false;
-            applyReadInterest();
-        }
-    }
-
     // Changed only on the inbound event loop: setAutoRead(false) from another thread clears the read interest in a
     // later task, which could run after a resume. Each task applies the latest decision, so their order is irrelevant.
-    private void applyReadInterest() {
+    @Override
+    protected void applySuspension() {
         if (inChannel.eventLoop().inEventLoop()) {
-            applyReadInterestNow();
+            applyReadInterest();
         } else {
-            inChannel.eventLoop().execute(this::applyReadInterestNow);
+            inChannel.eventLoop().execute(this::applyReadInterest);
         }
     }
 
-    private void applyReadInterestNow() {
-        boolean suspend = suspended;
+    private void applyReadInterest() {
+        boolean suspend = isSuspended();
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Read {} for inChannel {}", suspend ? "disabled" : "enabled", inChannel.id());
+        }
         inChannel.config().setAutoRead(!suspend);
         if (suspend) {
             inboundListener.onDownstreamUnwritable();

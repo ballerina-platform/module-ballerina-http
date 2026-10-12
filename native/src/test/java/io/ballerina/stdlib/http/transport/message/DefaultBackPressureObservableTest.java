@@ -23,7 +23,10 @@ import org.testng.annotations.Test;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertThrows;
 
 /**
@@ -58,5 +61,37 @@ public class DefaultBackPressureObservableTest {
 
         observable.notifyWritableIfUnWritable();
         CompletableFuture.runAsync(observable::notifyUnWritable).get(5, TimeUnit.SECONDS);
+    }
+
+    // A writability change updates the flag and resumes under the observable's monitor. A writer that read the flag
+    // before that update must not pause after the resume, or nothing would resume it again.
+    @Test(timeOut = 30000)
+    public void testCheckWaitsForAWritabilityChangeInProgress() throws Exception {
+        DefaultBackPressureObservable observable = new DefaultBackPressureObservable();
+        AtomicInteger pauses = new AtomicInteger();
+        observable.setListener(new BackPressureListener() {
+            @Override
+            public void onUnWritable() {
+                pauses.incrementAndGet();
+            }
+
+            @Override
+            public void onWritable() {
+                // Resuming is not counted; only a pause after the stream became writable would be wrong.
+            }
+        });
+        AtomicBoolean streamWritable = new AtomicBoolean(false);
+
+        CompletableFuture<Void> check;
+        synchronized (observable) {
+            check = CompletableFuture.runAsync(
+                    () -> observable.notifyUnWritableIfStreamUnwritable(streamWritable::get));
+            assertThrows(TimeoutException.class, () -> check.get(200, TimeUnit.MILLISECONDS));
+            streamWritable.set(true);
+            observable.notifyWritable();
+        }
+        check.get(5, TimeUnit.SECONDS);
+
+        assertEquals(pauses.get(), 0, "The writer paused after the stream had become writable");
     }
 }

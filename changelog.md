@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Fix the HTTP/2 client and listener never raising the connection-level receive window, so `http2InitialWindowSize` could not lift throughput above one 64 KB window per round trip on a connection](https://github.com/ballerina-platform/ballerina-library/issues/9242)
 - [Fix `getByteStream(arraySize)` waiting for `arraySize` bytes before returning, which delayed and batched streamed responses such as server-sent events](https://github.com/ballerina-platform/ballerina-library/issues/9267)
 - [Fix the SSE client reading events far slower than the same payload as a plain response, by reading the body in chunks instead of one byte at a time and parsing fields without regular expressions](https://github.com/ballerina-platform/ballerina-library/issues/9245)
+- [Fix an HTTP/2 listener's passthrough response leaving reads on the backend connection suspended after the response stream finished, or after a writability check raced with a resume](https://github.com/ballerina-platform/ballerina-library/issues/9290)
 
 ## [2.18.1] - 2026-10-16
 

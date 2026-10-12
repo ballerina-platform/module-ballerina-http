@@ -18,12 +18,18 @@
 
 package io.ballerina.stdlib.http.transport.message;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BooleanSupplier;
 
 /**
  * Default implementation of the {@link BackPressureObservable}.
  */
 public class DefaultBackPressureObservable implements BackPressureObservable {
+
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultBackPressureObservable.class);
 
     private volatile BackPressureListener listener;
     private final AtomicBoolean unWritable = new AtomicBoolean();
@@ -52,6 +58,33 @@ public class DefaultBackPressureObservable implements BackPressureObservable {
         }
     }
 
+    /**
+     * A listener that does not block is checked under this monitor, which a writability change takes to update the
+     * flag and resume, so a stale check cannot pause after that resume has run. A listener that blocks the writer
+     * until it is resumed is checked without the monitor; DefaultBackPressureListener's semaphore keeps an earlier
+     * release.
+     */
+    @Override
+    public void notifyUnWritableIfStreamUnwritable(BooleanSupplier streamWritable) {
+        BackPressureListener currentListener = listener;
+        if (currentListener != null && currentListener.blocksWriter()) {
+            pauseIfStreamUnwritable(streamWritable);
+            return;
+        }
+        synchronized (this) {
+            pauseIfStreamUnwritable(streamWritable);
+        }
+    }
+
+    private void pauseIfStreamUnwritable(BooleanSupplier streamWritable) {
+        if (!streamWritable.getAsBoolean()) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("In thread {}. Stream is not writable.", Thread.currentThread().getName());
+            }
+            notifyUnWritable();
+        }
+    }
+
     @Override
     public synchronized void notifyWritable() {
         if (listener != null) {
@@ -68,6 +101,20 @@ public class DefaultBackPressureObservable implements BackPressureObservable {
         if (currentListener != null && (unWritable.compareAndSet(true, false) || currentListener.blocksWriter())) {
             currentListener.onWritable();
         }
+    }
+
+    @Override
+    public synchronized void streamWritabilityChanged(StreamWritability stream, boolean writable) {
+        stream.setStreamWritable(writable);
+        if (writable) {
+            notifyWritable();
+        }
+    }
+
+    @Override
+    public synchronized void streamFinished(StreamWritability stream) {
+        stream.setStreamWritable(true);
+        notifyWritableIfUnWritable();
     }
 
     @Override
