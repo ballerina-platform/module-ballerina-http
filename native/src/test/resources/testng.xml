@@ -257,6 +257,8 @@
             <class name="io.ballerina.stdlib.http.transport.contractimpl.sender.states.RequestCompletedIdleTimeoutTest"/>
             <class name="io.ballerina.stdlib.http.transport.message.PassthroughBackPressureListenerTest"/>
             <class name="io.ballerina.stdlib.http.transport.message.DefaultBackPressureObservableTest"/>
+            <class name="io.ballerina.stdlib.http.transport.message.Http2PassthroughBackPressureListenerTest"/>
+            <class name="io.ballerina.stdlib.http.transport.contractimpl.Http2ResponseBackPressureTest"/>
         </classes>
     </test>
     <test name="Ballerina Http native Tests" parallel="false">
