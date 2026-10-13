@@ -259,6 +259,7 @@
             <class name="io.ballerina.stdlib.http.transport.message.DefaultBackPressureObservableTest"/>
             <class name="io.ballerina.stdlib.http.transport.message.Http2PassthroughBackPressureListenerTest"/>
             <class name="io.ballerina.stdlib.http.transport.contractimpl.Http2ResponseBackPressureTest"/>
+            <class name="io.ballerina.stdlib.http.transport.contractimpl.common.Http1BackPressureCheckTest"/>
         </classes>
     </test>
     <test name="Ballerina Http native Tests" parallel="false">
