@@ -960,4 +960,21 @@ public class CompilerPluginTest {
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.errorCount(), 0);
     }
+
+    @Test
+    public void testAmbiguousPayloadParamInServiceClassAndObject() {
+        Package currentPackage = loadPackage("sample_package_53");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.errorCount(), 3);
+        assertErrorPosition(diagnosticResult, 0, "(25:50,25:52)");
+        assertTrue(diagnosticResult, 0, "ambiguous types for parameter 'p1' and 'p2'. Use " +
+                "annotations to avoid ambiguity", HTTP_151);
+        assertErrorPosition(diagnosticResult, 1, "(33:50,33:52)");
+        assertTrue(diagnosticResult, 1, "ambiguous types for parameter 'p1' and 'p2'. Use " +
+                "annotations to avoid ambiguity", HTTP_151);
+        assertErrorPosition(diagnosticResult, 2, "(40:50,40:52)");
+        assertTrue(diagnosticResult, 2, "ambiguous types for parameter 'p1' and 'p2'. Use " +
+                "annotations to avoid ambiguity", HTTP_151);
+    }
 }
