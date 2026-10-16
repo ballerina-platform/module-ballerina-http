@@ -209,6 +209,7 @@ public class HttpMessageDataStreamer {
                     dataHolder = getBuffer();
                     dataHolder.writeByte((byte) b);
                 } catch (RuntimeException ex) {
+                    dataHolder = null;
                     throw new EncoderException(httpCarbonMessage.getIoException());
                 }
             }
@@ -251,12 +252,16 @@ public class HttpMessageDataStreamer {
         public void write(int b) {
             // Buffer the data until a double line feed (indicating the end of an event)
             // or until CONTENT_BUFFER_SIZE is reached.
+            if (this.dataHolder == null) {
+                this.dataHolder = getBuffer();
+            }
             if (hasDoubleLineFeed(b))  {
                 try {
                     writeByte(b);
                     httpCarbonMessage.addHttpContent(new DefaultHttpContent(this.dataHolder));
                     this.dataHolder = getBuffer();
                 } catch (RuntimeException ex) {
+                    this.dataHolder = null;
                     throw new EncoderException(httpCarbonMessage.getIoException());
                 }
             } else if (this.dataHolder.writableBytes() != 0) {
@@ -267,6 +272,7 @@ public class HttpMessageDataStreamer {
                     this.dataHolder = getBuffer();
                     writeByte(b);
                 } catch (RuntimeException ex) {
+                    this.dataHolder = null;
                     throw new EncoderException(httpCarbonMessage.getIoException());
                 }
             }

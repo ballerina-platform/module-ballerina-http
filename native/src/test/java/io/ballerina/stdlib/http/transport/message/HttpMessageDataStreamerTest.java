@@ -23,6 +23,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.DecoderResult;
+import io.netty.handler.codec.EncoderException;
 import io.netty.handler.codec.http.DefaultHttpContent;
 import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
@@ -227,6 +228,18 @@ public class HttpMessageDataStreamerTest {
         buffer.clear();
         Assert.assertEquals("second".length(), channel.read(buffer));
         Assert.assertEquals("second", new String(buffer.array(), 0, buffer.position(), StandardCharsets.UTF_8));
+    }
+
+    @Test
+    public void testEventStreamKeepsWritingIntoAFreshBufferAfterARejectedEvent() throws IOException {
+        HttpCarbonMessage message = newResponse(1000);
+        message.setHeader(HttpHeaderNames.CONTENT_TYPE.toString(), "text/event-stream");
+        message.setIoException(new IOException("client closed the connection"));
+        OutputStream outputStream = new HttpMessageDataStreamer(message).getOutputStream();
+
+        outputStream.write("data: a\n".getBytes(StandardCharsets.UTF_8));
+        assertThrows(EncoderException.class, () -> outputStream.write('\n'));
+        outputStream.write('d');
     }
 
     private static HttpCarbonMessage newResponse(int maxWaitTimeMillis) {

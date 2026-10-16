@@ -95,7 +95,6 @@ public class ReceivingEntityBody implements ListenerState {
                             = new EntityBodyReceived(listenerReqRespStateManager, sourceHandler, httpVersion);
                 }
             } catch (RuntimeException ex) {
-                httpContent.release();
                 inboundRequestMsg.notifyContentFailure(ex);
                 LOG.warn("Response already received before completing the inbound request {}", ex.getMessage());
             }

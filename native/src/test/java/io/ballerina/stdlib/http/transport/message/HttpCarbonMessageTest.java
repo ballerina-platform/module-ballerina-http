@@ -20,6 +20,7 @@ package io.ballerina.stdlib.http.transport.message;
 
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.http.DefaultHttpContent;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
@@ -27,11 +28,16 @@ import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.LastHttpContent;
 import org.junit.Assert;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -41,6 +47,7 @@ import static io.netty.buffer.Unpooled.EMPTY_BUFFER;
 import static org.mockito.Mockito.mock;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.expectThrows;
 
 /**
  * A unit test class for Transport module HttpCarbonMessage class functions.
@@ -124,6 +131,41 @@ public class HttpCarbonMessageTest {
         httpCarbonMessage.getHttpContentAsync();
         httpCarbonMessage.setIoException(new IOException());
         httpCarbonMessage.addHttpContent(httpContent);
+    }
+
+    @Test
+    public void testContentRejectedAfterAnIoExceptionIsReleased() {
+        HttpCarbonMessage listenedMessage = new HttpCarbonMessage(mock(HttpResponse.class), 100,
+                                                                  mock(Listener.class));
+        List<HttpContent> delivered = new ArrayList<>();
+        listenedMessage.getHttpContentAsync().setMessageListener(delivered::add);
+        assertReleasedOnRejection(listenedMessage);
+        assertTrue(delivered.size() == 1 && delivered.get(0) instanceof LastHttpContent,
+                   "The listener was not told that the body ended: " + delivered);
+
+        assertReleasedOnRejection(new HttpCarbonMessage(mock(HttpResponse.class), 100, mock(Listener.class)));
+    }
+
+    @Test
+    public void testQueuedContentIsKeptWhenContentIsRejectedBeforeAListenerIsSet() {
+        HttpCarbonMessage httpCarbonMessage = new HttpCarbonMessage(mock(HttpResponse.class), 100,
+                                                                    mock(Listener.class));
+        httpCarbonMessage.getHttpContentAsync();
+        HttpContent queued = new DefaultHttpContent(Unpooled.copiedBuffer("queued", StandardCharsets.UTF_8));
+        httpCarbonMessage.addHttpContent(queued);
+
+        assertReleasedOnRejection(httpCarbonMessage);
+
+        Assert.assertSame(queued, httpCarbonMessage.getHttpContent());
+        assertTrue(httpCarbonMessage.getHttpContent() instanceof LastHttpContent);
+        queued.release();
+    }
+
+    private static void assertReleasedOnRejection(HttpCarbonMessage httpCarbonMessage) {
+        httpCarbonMessage.setIoException(new IOException("client closed the connection"));
+        HttpContent rejected = new DefaultHttpContent(Unpooled.copiedBuffer("rejected", StandardCharsets.UTF_8));
+        expectThrows(UncheckedIOException.class, () -> httpCarbonMessage.addHttpContent(rejected));
+        Assert.assertEquals(0, rejected.refCnt());
     }
 
     @Test
