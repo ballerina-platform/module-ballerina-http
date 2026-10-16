@@ -68,7 +68,7 @@ public class HttpCarbonMessage {
     private final Map<String, Object> properties =
             new HashMap<>(Constants.HTTP_CARBON_MESSAGE_PROPERTIES_MAP_DEFAULT_SIZE);
 
-    private MessageFuture messageFuture;
+    private volatile MessageFuture messageFuture;
     private final ServerConnectorFuture httpOutboundRespFuture = new HttpWsServerConnectorFuture();
     private final DefaultHttpResponseFuture httpOutboundRespStatusFuture = new DefaultHttpResponseFuture();
     private final Observable contentObservable = new DefaultObservable();
@@ -507,8 +507,10 @@ public class HttpCarbonMessage {
         setContentReleased(true);
     }
 
-    private synchronized boolean isBodyOwnedByMessageListener() {
-        return messageFuture != null && messageFuture.isMessageListenerSet();
+    // Not synchronized: a content writer parked by back pressure can hold this message's monitor.
+    private boolean isBodyOwnedByMessageListener() {
+        MessageFuture future = messageFuture;
+        return future != null && future.isMessageListenerSet();
     }
 
     /**

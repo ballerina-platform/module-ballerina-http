@@ -215,6 +215,39 @@ public class HttpCarbonMessageTest {
         }
     }
 
+    @Test(timeOut = 30000)
+    public void testReleaseIsNotBlockedByAParkedContentWriter() throws Exception {
+        HttpCarbonMessage httpCarbonMessage = new HttpCarbonMessage(mock(HttpMessage.class), 100,
+                                                                    mock(Listener.class));
+        CountDownLatch writerParked = new CountDownLatch(1);
+        CountDownLatch releaseWriter = new CountDownLatch(1);
+        httpCarbonMessage.getHttpContentAsync().setMessageListener(httpContent -> {
+            writerParked.countDown();
+            try {
+                releaseWriter.await();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        });
+
+        Thread writer = new Thread(() -> httpCarbonMessage.addHttpContent(mock(HttpContent.class)));
+        Thread releaser = new Thread(httpCarbonMessage::waitAndReleaseAllEntities);
+        writer.start();
+        try {
+            assertTrue(writerParked.await(10, TimeUnit.SECONDS),
+                       "Content writer never reached the message listener");
+            httpCarbonMessage.setIoException(new IOException("write failed"));
+            releaser.start();
+            releaser.join(TimeUnit.SECONDS.toMillis(10));
+            assertFalse(releaser.isAlive(),
+                        "waitAndReleaseAllEntities blocked behind a content writer parked inside addHttpContent");
+        } finally {
+            releaseWriter.countDown();
+            writer.join(TimeUnit.SECONDS.toMillis(10));
+            releaser.join(TimeUnit.SECONDS.toMillis(10));
+        }
+    }
+
     // In passthrough the outbound writer takes each request chunk off the collector, so the response must only
     // wait for the request body to finish arriving, not for a LastHttpContent the collector will never hold.
     @Test(timeOut = 30000)
