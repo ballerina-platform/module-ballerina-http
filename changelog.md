@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Fixed
 
-- Update lz4-java to 1.11.4 to fix CVE-2026-106451
+- [Update lz4-java to 1.11.4 to fix CVE-2026-106451](https://github.com/ballerina-platform/ballerina-library/issues/9316)
 
 ## [2.16.9] - 2026-09-30
 
