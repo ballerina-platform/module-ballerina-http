@@ -27,14 +27,14 @@ path = "../native/build/libs/http-native-2.17.4.jar"
 [[platform.java21.dependency]]
 groupId = "io.ballerina.stdlib"
 artifactId = "mime-native"
-version = "2.12.2"
-path = "./lib/mime-native-2.12.2.jar"
+version = "2.12.4"
+path = "./lib/mime-native-2.12.4.jar"
 
 [[platform.java21.dependency]]
 groupId = "io.ballerina.stdlib"
 artifactId = "constraint-native"
-version = "1.7.0"
-path = "./lib/constraint-native-1.7.0.jar"
+version = "1.7.2"
+path = "./lib/constraint-native-1.7.2.jar"
 
 [[platform.java21.dependency]]
 groupId = "io.netty"
