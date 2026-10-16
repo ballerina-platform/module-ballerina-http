@@ -24,6 +24,7 @@ import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.OutboundMsgH
 import io.ballerina.stdlib.http.transport.message.Http2DataFrame;
 import io.ballerina.stdlib.http.transport.message.Http2HeadersFrame;
 import io.ballerina.stdlib.http.transport.message.Http2PushPromise;
+import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpContent;
@@ -72,7 +73,10 @@ public class EntityBodyReceived implements SenderState {
         // http2RequestWriter can be null in http upgrade path. If http2RequestWriter is null, we don't need to send
         // the content to server.
         if (http2RequestWriter != null && outboundMsgHolder != null) {
-            outboundMsgHolder.getRequest().setIoException(new IOException(INBOUND_RESPONSE_ALREADY_RECEIVED));
+            HttpCarbonMessage request = outboundMsgHolder.getRequest();
+            if (request.getIoException() == null) {
+                request.setIoException(new IOException(INBOUND_RESPONSE_ALREADY_RECEIVED));
+            }
             http2MessageStateContext.setSenderState(new SendingEntityBody(http2TargetHandler, http2RequestWriter));
             http2MessageStateContext.getSenderState().writeOutboundRequestBody(ctx, new DefaultLastHttpContent(),
                     http2MessageStateContext);

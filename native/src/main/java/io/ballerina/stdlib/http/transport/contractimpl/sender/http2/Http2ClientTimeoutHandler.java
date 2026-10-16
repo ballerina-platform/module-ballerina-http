@@ -31,9 +31,11 @@ import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http2.Http2Error;
 import io.netty.handler.codec.http2.Http2Exception;
 import io.netty.handler.codec.http2.Http2Headers;
+import io.netty.handler.codec.http2.Http2Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
@@ -42,6 +44,7 @@ import java.util.concurrent.TimeUnit;
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_BEFORE_INITIATING_PUSH_RESPONSE;
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_WHILE_READING_INBOUND_RESPONSE_BODY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_WHILE_READING_PUSH_RESPONSE_BODY;
+import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_WHILE_WRITING_OUTBOUND_REQUEST_BODY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_BODY;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.schedule;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.ticksInNanos;
@@ -159,13 +162,20 @@ public class Http2ClientTimeoutHandler implements Http2DataEventListener {
         if (outboundMsgHolder != null) {
             outboundMsgHolder.setLastReadWriteTime(ticksInNanos());
         }
-        if (endOfStream) {
+        // A request still being sent keeps its timer until the stream closes, so a peer that stops reading it is
+        // still timed out.
+        if (endOfStream && !isLocalSideOpen(streamId)) {
             onStreamClose(streamId);
         }
     }
 
+    private boolean isLocalSideOpen(int streamId) {
+        Http2Stream stream = http2ClientChannel.getConnection().stream(streamId);
+        return stream != null && stream.state().localSideOpen();
+    }
+
     private void updateLastWriteTime(int streamId) {
-        OutboundMsgHolder msgHolder = http2ClientChannel.getInFlightMessage(streamId);
+        OutboundMsgHolder msgHolder = http2ClientChannel.getMessageSendingRequest(streamId);
         if (msgHolder != null) {
             msgHolder.setLastReadWriteTime(ticksInNanos());
         } else {
@@ -201,16 +211,32 @@ public class Http2ClientTimeoutHandler implements Http2DataEventListener {
                 runTimeOutLogic(msgHolder, true);
             } else if (promiseHolder != null) {
                 runTimeOutLogic(promiseHolder, false);
+            } else {
+                OutboundMsgHolder requestStillSending = http2ClientChannel.getMessageSendingRequest(streamId);
+                if (requestStillSending != null) {
+                    runRequestStillSendingTimeOutLogic(requestStillSending);
+                }
             }
         }
 
-        private void runTimeOutLogic(OutboundMsgHolder msgHolder, boolean primary) {
+        // The response has already been delivered, so only the request is failed and the stream reset.
+        private void runRequestStillSendingTimeOutLogic(OutboundMsgHolder msgHolder) {
+            if (rescheduleIfNotTimedOut(msgHolder)) {
+                return;
+            }
+            msgHolder.getRequest().setIoException(
+                    new IOException(IDLE_TIMEOUT_TRIGGERED_WHILE_WRITING_OUTBOUND_REQUEST_BODY));
+            closeStream(streamId, ctx);
+            LOG.warn(IDLE_TIMEOUT_TRIGGERED_WHILE_WRITING_OUTBOUND_REQUEST_BODY);
+        }
+
+        private boolean rescheduleIfNotTimedOut(OutboundMsgHolder msgHolder) {
             long nextDelay = getNextDelay(msgHolder);
             if (nextDelay > 0) {
                 // Write occurred before the timeout - set a new timeout with shorter delay.
                 flowControlStallTracker.recordProgress(streamId);
                 timerTasks.put(streamId, schedule(ctx, this, nextDelay));
-                return;
+                return true;
             }
             if (flowControlStallTracker.isStalledByFlowControl(streamId)) {
                 // lastReadWriteTime is left untouched: bumping it would make the next getNextDelay() see
@@ -218,6 +244,13 @@ public class Http2ClientTimeoutHandler implements Http2DataEventListener {
                 // excuse forever instead of ever hitting maxBackPressureStallTime.
                 long recheckDelay = flowControlStallTracker.nextRecheckDelayNanos(streamId, idleTimeNanos);
                 timerTasks.put(streamId, schedule(ctx, this, recheckDelay));
+                return true;
+            }
+            return false;
+        }
+
+        private void runTimeOutLogic(OutboundMsgHolder msgHolder, boolean primary) {
+            if (rescheduleIfNotTimedOut(msgHolder)) {
                 return;
             }
             if (!expectContinue) {
