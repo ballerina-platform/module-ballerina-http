@@ -148,6 +148,7 @@ public class HttpCarbonMessage {
             // the life-cycle.
             if (httpContent instanceof LastHttpContent) {
                 removeMessageFuture();
+                notifyBodyEnded();
             }
         } else {
             if (ioException != null) {

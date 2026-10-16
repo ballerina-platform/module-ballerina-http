@@ -258,6 +258,12 @@ public class HttpCarbonMessageTest {
         });
     }
 
+    // An outbound body is never marked as arrived, so its end is the LastHttpContent passing to the listener.
+    @Test(timeOut = 30000)
+    public void testReleaseOfABodyOwnedByAMessageListenerEndsWithItsLastContent() throws Exception {
+        assertReleaseWaitsUntil(message -> message.addHttpContent(new DefaultLastHttpContent()));
+    }
+
     @Test(timeOut = 30000)
     public void testReleaseOfABodyOwnedByAMessageListenerEndsOnContentFailure() throws Exception {
         assertReleaseWaitsUntil(message -> message.notifyContentFailure(new DecoderException("client closed")));
