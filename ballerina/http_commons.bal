@@ -477,7 +477,7 @@ class EntityByteStream {
 
     public isolated function close() returns io:Error? {
         if !self.isClosed {
-            check externCloseMimeByteStream(self.entity);
+            check externCloseByteStream(self.entity);
             self.isClosed = true;
         }
     }
@@ -497,9 +497,9 @@ isolated function externReadByteStreamEntry(mime:Entity entity, int arraySize) r
     name: "readByteStreamEntry"
 } external;
 
-isolated function externCloseMimeByteStream(mime:Entity entity) returns io:Error? = @java:Method {
-    'class: "io.ballerina.stdlib.mime.nativeimpl.MimeEntityBody",
-    name: "closeInputByteStream"
+isolated function externCloseByteStream(mime:Entity entity) returns io:Error? = @java:Method {
+    'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternHttpDataSourceBuilder",
+    name: "closeByteStream"
 } external;
 
 // Returns utc value from a given string and pattern.

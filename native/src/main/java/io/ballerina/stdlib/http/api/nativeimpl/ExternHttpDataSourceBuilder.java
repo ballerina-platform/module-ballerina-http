@@ -237,6 +237,11 @@ public class ExternHttpDataSourceBuilder extends MimeDataSourceBuilder {
         return buffer;
     }
 
+    public static Object closeByteStream(BObject entityObj) {
+        entityObj.addNativeData(BYTE_STREAM_READ_BUFFER, null);
+        return MimeEntityBody.closeInputByteStream(entityObj);
+    }
+
     private static void closeByteStreamEntry(BObject entityObj, Channel byteChannel) {
         EntityBodyHandler.closeByteChannel(byteChannel);
         entityObj.addNativeData(ENTITY_BYTE_CHANNEL, null);
