@@ -4,6 +4,12 @@ This file contains all the notable changes done to the Ballerina HTTP package th
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- [Update lz4-java to 1.11.4 to fix CVE-2026-106451](https://github.com/ballerina-platform/ballerina-library/issues/9316)
+
 ## [2.17.3] - 2026-09-30
 
 ### Fixed

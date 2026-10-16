@@ -168,8 +168,8 @@ path = "./lib/jboss-marshalling-2.0.5.Final.jar"
 [[platform.java21.dependency]]
 groupId = "at.yawk.lz4"
 artifactId = "lz4-java"
-version = "1.11.1"
-path = "./lib/lz4-java-1.11.1.jar"
+version = "1.11.4"
+path = "./lib/lz4-java-1.11.4.jar"
 
 [[platform.java21.dependency]]
 groupId = "com.google.protobuf"
