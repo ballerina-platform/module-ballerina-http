@@ -118,7 +118,8 @@ public class HttpCarbonMessage {
     }
 
     /**
-     * Add http content to HttpCarbonMessage.
+     * Add http content to HttpCarbonMessage. The message takes ownership of the content and releases it if the
+     * content is rejected because of an earlier I/O error.
      *
      * @param httpContent chunks of the payload.
      */
@@ -126,8 +127,11 @@ public class HttpCarbonMessage {
         contentObservable.notifyAddListener(httpContent);
         if (messageFuture != null) {
             if (ioException != null) {
+                httpContent.release();
                 blockingEntityCollector.addHttpContent(new DefaultLastHttpContent());
-                messageFuture.notifyMessageListener(blockingEntityCollector.getHttpContent());
+                if (messageFuture.isMessageListenerSet()) {
+                    messageFuture.notifyMessageListener(blockingEntityCollector.getHttpContent());
+                }
                 removeMessageFuture();
                 throw new UncheckedIOException(this.getIoException());
             }
@@ -147,6 +151,7 @@ public class HttpCarbonMessage {
             }
         } else {
             if (ioException != null) {
+                httpContent.release();
                 blockingEntityCollector.addHttpContent(new DefaultLastHttpContent());
                 throw new UncheckedIOException(this.getIoException());
             } else {
