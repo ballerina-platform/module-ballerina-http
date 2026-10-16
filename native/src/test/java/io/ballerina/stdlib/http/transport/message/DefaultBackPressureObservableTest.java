@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertThrows;
 
 /**
@@ -51,6 +52,28 @@ public class DefaultBackPressureObservableTest {
         });
         resume.get(5, TimeUnit.SECONDS);
         blockedWriter.get(5, TimeUnit.SECONDS);
+    }
+
+    @Test
+    public void testReplacingAPausedListenerResumesIt() {
+        DefaultBackPressureObservable observable = new DefaultBackPressureObservable();
+        AtomicBoolean previousPaused = new AtomicBoolean();
+        observable.setListener(new BackPressureListener() {
+            @Override
+            public void onUnWritable() {
+                previousPaused.set(true);
+            }
+
+            @Override
+            public void onWritable() {
+                previousPaused.set(false);
+            }
+        });
+        observable.notifyUnWritable();
+
+        observable.setListener(new DefaultBackPressureListener());
+
+        assertFalse(previousPaused.get(), "The replaced listener was left paused");
     }
 
     // The writer checks writability without the monitor, so the stream can finish before it blocks.

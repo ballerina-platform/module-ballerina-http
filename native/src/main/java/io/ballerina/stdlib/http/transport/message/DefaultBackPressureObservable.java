@@ -34,8 +34,14 @@ public class DefaultBackPressureObservable implements BackPressureObservable {
     private volatile BackPressureListener listener;
     private final AtomicBoolean unWritable = new AtomicBoolean();
 
+    // A paused listener being replaced belongs to a finished message, such as the previous request on a keep-alive
+    // connection, so it is resumed rather than left with its inbound channel suspended.
     @Override
-    public void setListener(BackPressureListener listener) {
+    public synchronized void setListener(BackPressureListener listener) {
+        BackPressureListener previous = this.listener;
+        if (previous != null && previous != listener && unWritable.getAndSet(false)) {
+            previous.onWritable();
+        }
         this.listener = listener;
     }
 
@@ -52,9 +58,10 @@ public class DefaultBackPressureObservable implements BackPressureObservable {
     // call takes this monitor. Callers whose listener does not block hold the monitor around the check instead.
     @Override
     public void notifyUnWritable() {
-        if (listener != null) {
+        BackPressureListener currentListener = listener;
+        if (currentListener != null) {
             unWritable.set(true);
-            listener.onUnWritable();
+            currentListener.onUnWritable();
         }
     }
 
@@ -118,7 +125,7 @@ public class DefaultBackPressureObservable implements BackPressureObservable {
     }
 
     @Override
-    public BackPressureListener getListener() {
+    public synchronized BackPressureListener getListener() {
         return listener;
     }
 }
