@@ -90,8 +90,10 @@ public class ReceivingEntityBody implements SenderState {
             }
             senderReqRespStateManager.state = new EntityBodyReceived(senderReqRespStateManager);
 
-            if (!isKeepAlive(targetHandler.getKeepAliveConfig(),
-                    targetHandler.getOutboundRequestMsg(), inboundResponseMsg)) {
+            HttpCarbonMessage outboundRequestMsg = targetHandler.getOutboundRequestMsg();
+            // A request whose body was cut short by an early response leaves the connection mid-message.
+            if (outboundRequestMsg.getIoException() != null
+                    || !isKeepAlive(targetHandler.getKeepAliveConfig(), outboundRequestMsg, inboundResponseMsg)) {
                 targetHandler.closeChannel(ctx);
             }
             targetHandler.getConnectionManager().returnChannel(targetHandler.getTargetChannel());

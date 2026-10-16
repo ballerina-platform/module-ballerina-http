@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Implementation of the {@link BackPressureListener} for the passthrough scenario.
  */
-public class PassthroughBackPressureListener implements BackPressureListener {
+public class PassthroughBackPressureListener extends InboundSuspendingBackPressureListener {
     private static final Logger LOG = LoggerFactory.getLogger(PassthroughBackPressureListener.class);
 
     private Channel inChannel;
@@ -44,21 +44,27 @@ public class PassthroughBackPressureListener implements BackPressureListener {
         this.inboundListener = inboundListener;
     }
 
+    // Changed only on the inbound event loop: setAutoRead(false) from another thread clears the read interest in a
+    // later task, which could run after a resume. Each task applies the latest decision, so their order is irrelevant.
     @Override
-    public void onUnWritable() {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Read disabled for inChannel {}", inChannel.id());
+    protected void applySuspension() {
+        if (inChannel.eventLoop().inEventLoop()) {
+            applyReadInterest();
+        } else {
+            inChannel.eventLoop().execute(this::applyReadInterest);
         }
-        inChannel.config().setAutoRead(false);
-        inboundListener.onDownstreamUnwritable();
     }
 
-    @Override
-    public void onWritable() {
+    private void applyReadInterest() {
+        boolean suspend = isSuspended();
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Read enabled for inChannel {}", inChannel.id());
+            LOG.debug("Read {} for inChannel {}", suspend ? "disabled" : "enabled", inChannel.id());
         }
-        inChannel.config().setAutoRead(true);
-        inboundListener.onDownstreamWritable();
+        inChannel.config().setAutoRead(!suspend);
+        if (suspend) {
+            inboundListener.onDownstreamUnwritable();
+        } else {
+            inboundListener.onDownstreamWritable();
+        }
     }
 }

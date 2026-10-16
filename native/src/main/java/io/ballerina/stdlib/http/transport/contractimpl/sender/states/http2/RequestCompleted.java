@@ -61,6 +61,19 @@ public class RequestCompleted implements SenderState {
         this.http2ClientChannel = http2TargetHandler.getHttp2ClientChannel();
     }
 
+    /**
+     * Gives the state for a stream whose request has just been fully written. When the response has already started,
+     * the stream keeps handling its body, so that a later reset or connection closure still terminates it.
+     */
+    static SenderState afterRequestWritten(Http2TargetHandler http2TargetHandler,
+                                           Http2TargetHandler.Http2RequestWriter http2RequestWriter,
+                                           OutboundMsgHolder outboundMsgHolder) {
+        if (outboundMsgHolder.getResponse() != null) {
+            return new ReceivingEntityBody(http2TargetHandler, http2RequestWriter);
+        }
+        return new RequestCompleted(http2TargetHandler, http2RequestWriter);
+    }
+
     @Override
     public void writeOutboundRequestHeaders(ChannelHandlerContext ctx, HttpContent httpContent) {
         LOG.warn("writeOutboundRequestHeaders is not a dependant action of this state");

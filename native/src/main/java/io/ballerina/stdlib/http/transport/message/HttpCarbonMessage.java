@@ -41,6 +41,8 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.LastHttpContent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -48,15 +50,21 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 /**
  * HTTP based representation for HttpCarbonMessage.
  */
 public class HttpCarbonMessage {
 
+    private static final Logger LOG = LoggerFactory.getLogger(HttpCarbonMessage.class);
+
     protected HttpMessage httpMessage;
     private EntityCollector blockingEntityCollector;
+    private int entityWaitTime = Constants.ENDPOINT_TIMEOUT;
     private final Map<String, Object> properties =
             new HashMap<>(Constants.HTTP_CARBON_MESSAGE_PROPERTIES_MAP_DEFAULT_SIZE);
 
@@ -81,6 +89,9 @@ public class HttpCarbonMessage {
     private volatile boolean passthrough = false;
     private boolean lastHttpContentArrived = false;
     private Exception contentFailure;
+    // Opened once the body has arrived, failed or been rejected. Not this message's monitor, which a parked content
+    // writer can hold.
+    private final CountDownLatch bodyEnded = new CountDownLatch(1);
     private String httpVersion;
     private String httpMethod;
     private String requestUrl;
@@ -97,6 +108,7 @@ public class HttpCarbonMessage {
     public HttpCarbonMessage(HttpMessage httpMessage, int maxWaitTime, Listener contentListener) {
         this.httpMessage = httpMessage;
         setBlockingEntityCollector(new BlockingEntityCollector(maxWaitTime));
+        this.entityWaitTime = maxWaitTime;
         this.contentObservable.setListener(contentListener);
     }
 
@@ -106,7 +118,8 @@ public class HttpCarbonMessage {
     }
 
     /**
-     * Add http content to HttpCarbonMessage.
+     * Add http content to HttpCarbonMessage. The message takes ownership of the content and releases it if the
+     * content is rejected because of an earlier I/O error.
      *
      * @param httpContent chunks of the payload.
      */
@@ -114,8 +127,11 @@ public class HttpCarbonMessage {
         contentObservable.notifyAddListener(httpContent);
         if (messageFuture != null) {
             if (ioException != null) {
+                httpContent.release();
                 blockingEntityCollector.addHttpContent(new DefaultLastHttpContent());
-                messageFuture.notifyMessageListener(blockingEntityCollector.getHttpContent());
+                if (messageFuture.isMessageListenerSet()) {
+                    messageFuture.notifyMessageListener(blockingEntityCollector.getHttpContent());
+                }
                 removeMessageFuture();
                 throw new UncheckedIOException(this.getIoException());
             }
@@ -135,6 +151,7 @@ public class HttpCarbonMessage {
             }
         } else {
             if (ioException != null) {
+                httpContent.release();
                 blockingEntityCollector.addHttpContent(new DefaultLastHttpContent());
                 throw new UncheckedIOException(this.getIoException());
             } else {
@@ -482,8 +499,35 @@ public class HttpCarbonMessage {
      * Before a set a new set of payload, we need remove the existing ones.
      */
     public void waitAndReleaseAllEntities() {
-        blockingEntityCollector.waitAndReleaseAllEntities();
+        if (isBodyOwnedByMessageListener()) {
+            waitForBodyToEnd();
+        } else {
+            blockingEntityCollector.waitAndReleaseAllEntities();
+        }
         setContentReleased(true);
+    }
+
+    private synchronized boolean isBodyOwnedByMessageListener() {
+        return messageFuture != null && messageFuture.isMessageListenerSet();
+    }
+
+    /**
+     * A message listener, such as a passthrough writer, takes each chunk off the entity collector as it arrives, so
+     * waiting on the collector would only time out. Wait instead for the body to finish arriving, to fail, or to be
+     * rejected by an I/O error, after which no more of it can be delivered.
+     */
+    private void waitForBodyToEnd() {
+        try {
+            if (!bodyEnded.await(entityWaitTime, MILLISECONDS)) {
+                LOG.warn("Timed out waiting for the inbound message body to be received");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    private void notifyBodyEnded() {
+        bodyEnded.countDown();
     }
 
     public EntityCollector getBlockingEntityCollector() {
@@ -512,6 +556,9 @@ public class HttpCarbonMessage {
 
     public void setIoException(IOException ioException) {
         this.ioException = ioException;
+        if (ioException != null) {
+            notifyBodyEnded();
+        }
     }
 
     public Http2MessageStateContext getHttp2MessageStateContext() {
@@ -663,6 +710,7 @@ public class HttpCarbonMessage {
      */
     public synchronized void setLastHttpContentArrived() {
         this.lastHttpContentArrived = true;
+        notifyBodyEnded();
         if (fullHttpMessageFuture != null) {
             fullHttpMessageFuture.notifySuccess();
         }
@@ -679,6 +727,7 @@ public class HttpCarbonMessage {
      */
     public synchronized void notifyContentFailure(Exception exception) {
         contentFailure = exception;
+        notifyBodyEnded();
         if (fullHttpMessageFuture != null) {
             fullHttpMessageFuture.notifyFailure(exception);
         }

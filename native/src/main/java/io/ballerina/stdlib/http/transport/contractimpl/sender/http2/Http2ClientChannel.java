@@ -53,6 +53,8 @@ public class Http2ClientChannel {
 
     private ConcurrentHashMap<Integer, OutboundMsgHolder> inFlightMessages;
     private ConcurrentHashMap<Integer, OutboundMsgHolder> promisedMessages;
+    // Requests whose response has ended while their body is still being sent, kept under flow control until then
+    private final ConcurrentHashMap<Integer, OutboundMsgHolder> requestsStillSending = new ConcurrentHashMap<>();
     private Channel channel;
     private Http2Connection connection;
     private ChannelFuture channelFuture;
@@ -156,6 +158,39 @@ public class Http2ClientChannel {
     }
 
     /**
+     * Gets the message whose request is sent on a particular stream, including one whose response has already ended.
+     *
+     * @param streamId stream id
+     * @return the message sending its request on the stream
+     */
+    public OutboundMsgHolder getMessageSendingRequest(int streamId) {
+        OutboundMsgHolder outboundMsgHolder = inFlightMessages.get(streamId);
+        return outboundMsgHolder != null ? outboundMsgHolder : requestsStillSending.get(streamId);
+    }
+
+    /**
+     * Removes an in-flight message whose response has ended. If its request is still being sent, the stream's
+     * writability keeps pausing it until the stream closes.
+     *
+     * @param streamId stream id
+     */
+    public void removeRespondedMessage(int streamId) {
+        Http2Stream stream = connection.stream(streamId);
+        if (stream == null || !stream.state().localSideOpen()) {
+            removeInFlightMessage(streamId);
+            return;
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Responded message for stream id: {} is still sending its request on channel: {}", streamId,
+                      this);
+        }
+        OutboundMsgHolder outboundMsgHolder = inFlightMessages.remove(streamId);
+        if (outboundMsgHolder != null) {
+            requestsStillSending.put(streamId, outboundMsgHolder);
+        }
+    }
+
+    /**
      * Removes a in-flight message.
      *
      * @param streamId stream id
@@ -164,7 +199,14 @@ public class Http2ClientChannel {
         if (LOG.isDebugEnabled()) {
             LOG.debug("In flight message for stream id: {} removed from channel: {}", streamId, this);
         }
-        inFlightMessages.remove(streamId);
+        OutboundMsgHolder outboundMsgHolder = inFlightMessages.remove(streamId);
+        OutboundMsgHolder requestStillSending = requestsStillSending.remove(streamId);
+        if (outboundMsgHolder == null) {
+            outboundMsgHolder = requestStillSending;
+        }
+        if (outboundMsgHolder != null) {
+            outboundMsgHolder.getBackPressureObservable().streamFinished(outboundMsgHolder);
+        }
     }
 
     /**
@@ -210,6 +252,23 @@ public class Http2ClientChannel {
      */
     void markAsExhausted() {
         isExhausted.set(true);
+    }
+
+    int decrementActiveStreamCount() {
+        return activeStreams.decrementAndGet();
+    }
+
+    /**
+     * Clears the exhausted mark.
+     *
+     * @return whether the channel was marked as exhausted
+     */
+    boolean resetExhausted() {
+        return isExhausted.getAndSet(false);
+    }
+
+    boolean isStale() {
+        return isStale.get();
     }
 
     /**
@@ -259,9 +318,12 @@ public class Http2ClientChannel {
             }
             outboundMsgHolder.getBackPressureObservable().removeListener();
         });
+        requestsStillSending.values().forEach(
+                outboundMsgHolder -> outboundMsgHolder.getBackPressureObservable().removeListener());
         handleConnectionClose();
         this.connection.removeListener(streamCloseListener);
         inFlightMessages.clear();
+        requestsStillSending.clear();
         promisedMessages.clear();
         removeFromConnectionPool();
     }
@@ -305,12 +367,9 @@ public class Http2ClientChannel {
             // Channel is no longer exhausted, so we can return it back to the pool
             http2ClientChannel.removeInFlightMessage(stream.id());
             http2ConnectionManager.markClientChannelAsIdle(http2ClientChannel);
-            activeStreams.decrementAndGet();
             http2ClientChannel.getDataEventListeners().
                     forEach(dataEventListener -> dataEventListener.onStreamClose(stream.id()));
-            if (!isStale.get() && isExhausted.getAndSet(false)) {
-                http2ConnectionManager.returnClientChannel(httpRoute, http2ClientChannel);
-            }
+            http2ConnectionManager.releaseStream(httpRoute, http2ClientChannel);
         }
 
         private void notifyStreamClosedLocally(int streamId) {
@@ -349,7 +408,6 @@ public class Http2ClientChannel {
             http2ClientChannel.inFlightMessages.forEach((streamId, outboundMsgHolder) -> {
                 if (streamId > lastStreamId) {
                     http2ClientChannel.removeInFlightMessage(streamId);
-                    activeStreams.decrementAndGet();
                     http2ClientChannel.getDataEventListeners().forEach(
                             dataEventListener -> dataEventListener.onStreamClose(streamId));
                     Http2MessageStateContext messageStateContext =

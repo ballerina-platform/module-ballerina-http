@@ -28,12 +28,14 @@ import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.OutboundMsgH
 import io.ballerina.stdlib.http.transport.message.Http2DataFrame;
 import io.ballerina.stdlib.http.transport.message.Http2HeadersFrame;
 import io.ballerina.stdlib.http.transport.message.Http2PushPromise;
+import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http2.Http2ConnectionEncoder;
 import io.netty.handler.codec.http2.Http2Error;
 import io.netty.handler.codec.http2.Http2Exception;
+import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +43,8 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_SENDING_RST_STREAM;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_SENT_GOAWAY_WHILE_SENDING_RST_STREAM;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_SENT_RST_STREAM_WHILE_SENDING_RST_STREAM;
+import static io.ballerina.stdlib.http.transport.contract.Constants.STREAM_RESET_WHILE_WRITING_OUTBOUND_REQUEST_BODY;
+import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.handleIncompleteInboundMessage;
 
 /**
  * A state to reset the stream in the middle of communication.
@@ -76,6 +80,7 @@ public class SendingRstFrame implements SenderState {
     @Override
     public void writeOutboundRequestBody(ChannelHandlerContext ctx, HttpContent httpContent,
                                          Http2MessageStateContext http2MessageStateContext) throws Http2Exception {
+        ReferenceCountUtil.release(httpContent);
         resetStream(ctx);
     }
 
@@ -131,13 +136,18 @@ public class SendingRstFrame implements SenderState {
 
     @Override
     public void handleStreamClosedLocally(OutboundMsgHolder outboundMsgHolder) {
-        // This state resets the stream on purpose, so a local closure is the expected outcome and the caller has
-        // already been notified by whoever requested the reset.
-        LOG.debug("Stream closed locally while sending RST_STREAM frame");
+        // The reset ends the exchange, so fail whichever part of it the caller is still waiting on.
+        HttpCarbonMessage response = outboundMsgHolder.getResponse();
+        if (response != null) {
+            handleIncompleteInboundMessage(response, STREAM_RESET_WHILE_WRITING_OUTBOUND_REQUEST_BODY);
+        } else {
+            outboundMsgHolder.getResponseFuture().notifyHttpListener(new RequestCancelledException(
+                    STREAM_RESET_WHILE_WRITING_OUTBOUND_REQUEST_BODY, HttpResponseStatus.BAD_GATEWAY.code()));
+        }
     }
 
     public void resetStream(ChannelHandlerContext ctx) {
-        encoder.writeRstStream(ctx, streamId, Http2Error.STREAM_CLOSED.code(), ctx.newPromise());
+        encoder.writeRstStream(ctx, streamId, Http2Error.CANCEL.code(), ctx.newPromise());
         try {
             encoder.flowController().writePendingBytes();
         } catch (Http2Exception e) {
@@ -145,6 +155,7 @@ public class SendingRstFrame implements SenderState {
         }
         ctx.flush();
         outboundMsgHolder.setRequestWritten(true);
-        http2MessageStateContext.setSenderState(new RequestCompleted(http2TargetHandler, http2RequestWriter));
+        http2MessageStateContext.setSenderState(
+                RequestCompleted.afterRequestWritten(http2TargetHandler, http2RequestWriter, outboundMsgHolder));
     }
 }

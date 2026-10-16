@@ -210,9 +210,7 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
             }
 
             // Look for the connection from http connection manager
-            TargetChannel targetChannel = connectionManager.borrowTargetChannel(route, srcHandler, http2SourceHandler,
-                                                                                senderConfiguration,
-                                                                                bootstrapConfig, clientEventGroup);
+            TargetChannel targetChannel = borrowTargetChannel(route, srcHandler, http2SourceHandler);
             Http2ClientChannel freshHttp2ClientChannel = targetChannel.getHttp2ClientChannel();
             outboundMsgHolder.setHttp2ClientChannel(freshHttp2ClientChannel);
             httpResponseFuture = outboundMsgHolder.getResponseFuture();
@@ -245,7 +243,7 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
                         // Response for the upgrade request will arrive in stream 1,
                         // so use 1 as the stream id.
                         if (protocol.equalsIgnoreCase(Constants.HTTP1_TLS_PROTOCOL)) {
-                            connectionManager.getHttp2ConnectionManager().releasePerRoutePoolLatch(targetChannel
+                            connectionManager.getHttp2ConnectionManager().releaseWaitingRequests(targetChannel
                                     .getHttpRoute());
                             http2 = false;
                         }
@@ -334,7 +332,7 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
                     httpResponseFuture.notifyHttpListener(cause);
                     httpOutboundRequest
                             .setIoException(new IOException(REMOTE_SERVER_CLOSED_BEFORE_INITIATING_OUTBOUND_REQUEST));
-                    connectionManager.getHttp2ConnectionManager().releasePerRoutePoolLatch(route);
+                    connectionManager.getHttp2ConnectionManager().releaseWaitingRequests(route);
                 }
             });
         } catch (NoSuchElementException failedCause) {
@@ -346,6 +344,20 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
             return notifyListenerAndGetErrorResponseFuture(failedCause);
         }
         return httpResponseFuture;
+    }
+
+    private TargetChannel borrowTargetChannel(HttpRoute route, SourceHandler srcHandler,
+                                              Http2SourceHandler http2SourceHandler) throws Exception {
+        try {
+            return connectionManager.borrowTargetChannel(route, srcHandler, http2SourceHandler, senderConfiguration,
+                                                         bootstrapConfig, clientEventGroup);
+        } catch (Exception e) {
+            if (http2) {
+                // No connection will report back, so release the requests waiting for this one
+                http2ConnectionManager.releaseWaitingRequests(route);
+            }
+            throw e;
+        }
     }
 
     private void setHttp2ForwardedExtension(OutboundMsgHolder outboundMsgHolder) {

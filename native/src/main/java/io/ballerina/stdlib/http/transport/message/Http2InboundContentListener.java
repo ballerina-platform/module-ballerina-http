@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BooleanSupplier;
 
 /**
  * Represents the HTTP/2 inbound content listener.
@@ -109,6 +110,28 @@ public class Http2InboundContentListener implements Listener {
             consumeOutstandingBytes();
             appConsumeRequired = false;
         });
+    }
+
+    /**
+     * Stops or resumes byte consumption on the inbound channel's event loop, as the latest decision says. A resume
+     * queued from another thread could otherwise run after a later stop and undo it.
+     *
+     * @param suspended reports whether consumption should currently be stopped, read when the change is applied
+     */
+    void applyByteConsumption(BooleanSupplier suspended) {
+        Runnable apply = () -> {
+            if (suspended.getAsBoolean()) {
+                stopByteConsumption();
+            } else {
+                resumeByteConsumption();
+            }
+        };
+        EventLoop eventLoop = channelHandlerContext.channel().eventLoop();
+        if (eventLoop.inEventLoop()) {
+            apply.run();
+        } else {
+            eventLoop.execute(apply);
+        }
     }
 
     void stopByteConsumption() {
