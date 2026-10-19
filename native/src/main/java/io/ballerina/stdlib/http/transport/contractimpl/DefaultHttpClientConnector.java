@@ -41,6 +41,7 @@ import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.Conne
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ClientChannel;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ClientTimeoutHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ConnectionManager;
+import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.NewConnectionAttempt;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.OutboundMsgHolder;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.RequestWriteStarter;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.states.SendingHeaders;
@@ -195,9 +196,11 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
              */
             final HttpRoute route = getTargetRoute(senderConfiguration.getScheme(), httpOutboundRequest,
                                                    this.configHashCode);
+            NewConnectionAttempt newConnectionAttempt = new NewConnectionAttempt();
             if (http2) {
                 // See whether an already upgraded HTTP/2 connection is available
-                Http2ClientChannel activeHttp2ClientChannel = http2ConnectionManager.fetchChannel(route);
+                Http2ClientChannel activeHttp2ClientChannel = http2ConnectionManager.fetchChannel(route,
+                                                                                                  newConnectionAttempt);
 
                 if (activeHttp2ClientChannel != null) {
                     outboundMsgHolder.setHttp2ClientChannel(activeHttp2ClientChannel);
@@ -210,7 +213,10 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
             }
 
             // Look for the connection from http connection manager
-            TargetChannel targetChannel = borrowTargetChannel(route, srcHandler, http2SourceHandler);
+            TargetChannel targetChannel = borrowTargetChannel(route, srcHandler, http2SourceHandler,
+                                                              newConnectionAttempt);
+            targetChannel.setNewConnectionAttempt(newConnectionAttempt.isOpener() ? newConnectionAttempt : null,
+                                                  http2ConnectionManager);
             Http2ClientChannel freshHttp2ClientChannel = targetChannel.getHttp2ClientChannel();
             outboundMsgHolder.setHttp2ClientChannel(freshHttp2ClientChannel);
             httpResponseFuture = outboundMsgHolder.getResponseFuture();
@@ -243,8 +249,7 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
                         // Response for the upgrade request will arrive in stream 1,
                         // so use 1 as the stream id.
                         if (protocol.equalsIgnoreCase(Constants.HTTP1_TLS_PROTOCOL)) {
-                            connectionManager.getHttp2ConnectionManager().releaseWaitingRequests(targetChannel
-                                    .getHttpRoute());
+                            targetChannel.releaseRequestsWaitingForHttp2();
                             http2 = false;
                         }
                         prepareTargetChannelForHttp(channelFuture);
@@ -332,7 +337,7 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
                     httpResponseFuture.notifyHttpListener(cause);
                     httpOutboundRequest
                             .setIoException(new IOException(REMOTE_SERVER_CLOSED_BEFORE_INITIATING_OUTBOUND_REQUEST));
-                    connectionManager.getHttp2ConnectionManager().releaseWaitingRequests(route);
+                    targetChannel.releaseRequestsWaitingForHttp2();
                 }
             });
         } catch (NoSuchElementException failedCause) {
@@ -347,15 +352,14 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
     }
 
     private TargetChannel borrowTargetChannel(HttpRoute route, SourceHandler srcHandler,
-                                              Http2SourceHandler http2SourceHandler) throws Exception {
+                                              Http2SourceHandler http2SourceHandler,
+                                              NewConnectionAttempt newConnectionAttempt) throws Exception {
         try {
             return connectionManager.borrowTargetChannel(route, srcHandler, http2SourceHandler, senderConfiguration,
                                                          bootstrapConfig, clientEventGroup);
         } catch (Exception e) {
-            if (http2) {
-                // No connection will report back, so release the requests waiting for this one
-                http2ConnectionManager.releaseWaitingRequests(route);
-            }
+            // No connection will report back, so release the requests waiting for this one
+            http2ConnectionManager.releaseWaitingRequests(route, newConnectionAttempt);
             throw e;
         }
     }

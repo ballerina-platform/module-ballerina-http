@@ -84,13 +84,14 @@ public class Http2ConnectionManager {
      * Release the requests waiting for a new connection on the route. If the connection attempt fails or the upgrade
      * is rejected, no channel is added to the pool, so the waiting requests are released to proceed on their own.
      *
-     * @param httpRoute  the route key
+     * @param httpRoute the route key
+     * @param attempt   the failed attempt; requests are released only if they are waiting for it
      */
-    public void releaseWaitingRequests(HttpRoute httpRoute) {
+    public void releaseWaitingRequests(HttpRoute httpRoute, NewConnectionAttempt attempt) {
         String key = generateKey(httpRoute);
         Http2ChannelPool.PerRouteConnectionPool perRouteConnectionPool = this.http2ChannelPool.fetchPerRoutePool(key);
         if (perRouteConnectionPool != null) {
-            perRouteConnectionPool.releaseWaitingRequests();
+            perRouteConnectionPool.releaseWaitingRequests(attempt);
         }
     }
 
@@ -140,9 +141,22 @@ public class Http2ConnectionManager {
      * @return Http2ClientChannel
      */
     public Http2ClientChannel fetchChannel(HttpRoute httpRoute) {
+        return fetchChannel(httpRoute, new NewConnectionAttempt());
+    }
+
+    /**
+     * Borrow an HTTP/2 client channel. If none is returned and the caller is to open the route's new connection, the
+     * attempt is marked as the opener, and its failure must be reported through
+     * {@link #releaseWaitingRequests(HttpRoute, NewConnectionAttempt)}.
+     *
+     * @param httpRoute the http route
+     * @param attempt   the caller's attempt to get a connection
+     * @return Http2ClientChannel
+     */
+    public Http2ClientChannel fetchChannel(HttpRoute httpRoute, NewConnectionAttempt attempt) {
         Http2ChannelPool.PerRouteConnectionPool perRouteConnectionPool;
         perRouteConnectionPool = getOrCreatePerRoutePool(this.http2ChannelPool, generateKey(httpRoute));
-        return perRouteConnectionPool.fetchTargetChannel();
+        return perRouteConnectionPool.fetchTargetChannel(attempt);
     }
 
     /**

@@ -69,6 +69,8 @@ class Http2ChannelPool {
         private final long maxWaitTimeNanos;
         // What a caller that finds no usable channel does
         private NewChannelState newChannelState = NewChannelState.NEEDS_OPENER;
+        // The attempt the waiting callers wait for while OPENING; only its failure releases them
+        private NewConnectionAttempt openingAttempt;
         private final ReentrantLock lock = new ReentrantLock();
         private final Condition channelAvailable = lock.newCondition();
 
@@ -83,9 +85,10 @@ class Http2ChannelPool {
          * it is added to the pool. A caller that waits longer than a positive pool wait time gets {@code null} and
          * opens its own connection, so a connection attempt that never reports back cannot stall the route.
          *
+         * @param attempt the caller's attempt, marked as the opener if the caller is to open the new connection
          * @return active TargetChannel, or {@code null} if the caller should open a new connection
          */
-        Http2ClientChannel fetchTargetChannel() {
+        Http2ClientChannel fetchTargetChannel(NewConnectionAttempt attempt) {
             lock.lock();
             try {
                 long remainingNanos = maxWaitTimeNanos;
@@ -96,6 +99,8 @@ class Http2ChannelPool {
                     }
                     if (newChannelState == NewChannelState.NEEDS_OPENER) {
                         newChannelState = NewChannelState.OPENING;
+                        openingAttempt = attempt;
+                        attempt.markAsOpener();
                         return null;
                     }
                     if (newChannelState == NewChannelState.OPEN_FREELY) {
@@ -162,6 +167,7 @@ class Http2ChannelPool {
             try {
                 http2ClientChannels.add(http2ClientChannel);
                 newChannelState = NewChannelState.NEEDS_OPENER;
+                openingAttempt = null;
                 channelAvailable.signalAll();
             } finally {
                 lock.unlock();
@@ -189,9 +195,13 @@ class Http2ChannelPool {
             }
         }
 
-        void releaseWaitingRequests() {
+        void releaseWaitingRequests(NewConnectionAttempt attempt) {
             lock.lock();
             try {
+                if (attempt == null || attempt != openingAttempt) {
+                    return;
+                }
+                openingAttempt = null;
                 // No HTTP/2 connection is coming, so each waiting caller opens its own
                 newChannelState = NewChannelState.OPEN_FREELY;
                 channelAvailable.signalAll();

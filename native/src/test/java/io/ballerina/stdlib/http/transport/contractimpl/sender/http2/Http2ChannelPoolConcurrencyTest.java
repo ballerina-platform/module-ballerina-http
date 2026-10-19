@@ -36,6 +36,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
@@ -175,6 +176,31 @@ public class Http2ChannelPoolConcurrencyTest {
         firstStream.close();
 
         assertNull(connectionManager.fetchChannel(ROUTE), "A closed channel must not be handed out");
+    }
+
+    @Test(description = "Only the failure of the attempt opening the connection releases the requests waiting for it")
+    public void testUnrelatedFailureDoesNotReleaseWaitingRequests() throws Exception {
+        Http2ConnectionManager connectionManager = newConnectionManager(2, -1);
+        NewConnectionAttempt opener = new NewConnectionAttempt();
+        assertNull(connectionManager.fetchChannel(ROUTE, opener), "The first request should open the connection");
+        assertTrue(opener.isOpener());
+
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            NewConnectionAttempt waiter = new NewConnectionAttempt();
+            Future<Http2ClientChannel> waitingRequest = executor.submit(() -> connectionManager.fetchChannel(ROUTE,
+                                                                                                            waiter));
+            assertStillWaiting(waitingRequest);
+
+            connectionManager.releaseWaitingRequests(ROUTE, new NewConnectionAttempt());
+            assertStillWaiting(waitingRequest);
+
+            connectionManager.releaseWaitingRequests(ROUTE, opener);
+            assertNull(waitingRequest.get(5, TimeUnit.SECONDS), "The released request should open its own connection");
+            assertFalse(waiter.isOpener());
+        } finally {
+            executor.shutdownNow();
+        }
     }
 
     @Test(description = "A closed server-pushed stream must not free a slot it never reserved")

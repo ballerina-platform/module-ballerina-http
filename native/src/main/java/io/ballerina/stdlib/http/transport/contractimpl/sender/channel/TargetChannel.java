@@ -25,6 +25,8 @@ import io.ballerina.stdlib.http.transport.contractimpl.sender.HttpClientChannelI
 import io.ballerina.stdlib.http.transport.contractimpl.sender.TargetHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.ConnectionManager;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ClientChannel;
+import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ConnectionManager;
+import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.NewConnectionAttempt;
 import io.ballerina.stdlib.http.transport.internal.HandlerExecutor;
 import io.ballerina.stdlib.http.transport.internal.HttpTransportContextHolder;
 import io.ballerina.stdlib.http.transport.message.BackPressureObservable;
@@ -48,7 +50,7 @@ public class TargetChannel {
     public SenderReqRespStateManager senderReqRespStateManager;
     public String trgHlrConnPoolId;
 
-    private boolean requestHeaderWritten = false;
+    private volatile boolean requestHeaderWritten = false;
     private Channel channel;
     private HttpClientChannelInitializer httpClientChannelInitializer;
     private ChannelInboundHandlerAdapter correlatedSource;
@@ -61,6 +63,11 @@ public class TargetChannel {
     private final HandlerExecutor handlerExecutor;
     private final ConnectionAvailabilityFuture connectionAvailabilityFuture;
     private GenericObjectPool pool;
+    // The route's new HTTP/2 connection this channel is opening, if any, and whether it can no longer become one.
+    // Each side writes its own field before reading the other's, so whichever runs second releases the waiters.
+    private volatile Http2ConnectionManager http2ConnectionManager;
+    private volatile NewConnectionAttempt newConnectionAttempt;
+    private volatile boolean notBecomingHttp2;
 
     public TargetChannel(HttpClientChannelInitializer httpClientChannelInitializer, ChannelFuture channelFuture,
                          HttpRoute httpRoute, ConnectionAvailabilityFuture connectionAvailabilityFuture) {
@@ -150,6 +157,34 @@ public class TargetChannel {
 
     public Http2ClientChannel getHttp2ClientChannel() {
         return http2ClientChannel;
+    }
+
+    /**
+     * Records the route's new HTTP/2 connection attempt this channel is serving, or {@code null} if the requests
+     * waiting for a new connection are not waiting for this channel. If the channel already failed to become an HTTP/2
+     * connection, the waiting requests are released at once.
+     *
+     * @param attempt                the attempt, or {@code null}
+     * @param http2ConnectionManager the manager holding the route's pool
+     */
+    public void setNewConnectionAttempt(NewConnectionAttempt attempt, Http2ConnectionManager http2ConnectionManager) {
+        this.http2ConnectionManager = http2ConnectionManager;
+        this.newConnectionAttempt = attempt;
+        if (notBecomingHttp2) {
+            releaseRequestsWaitingForHttp2();
+        }
+    }
+
+    /**
+     * Marks this channel as one that will not become an HTTP/2 connection, releasing the requests waiting for it if
+     * it was opened as the route's new HTTP/2 connection.
+     */
+    public void releaseRequestsWaitingForHttp2() {
+        notBecomingHttp2 = true;
+        NewConnectionAttempt attempt = newConnectionAttempt;
+        if (attempt != null) {
+            http2ConnectionManager.releaseWaitingRequests(httpRoute, attempt);
+        }
     }
 
     public ConnectionAvailabilityFuture getConnectionReadyFuture() {
