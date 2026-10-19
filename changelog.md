@@ -18,6 +18,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Fix the SSE client reading events far slower than the same payload as a plain response, by reading the body in chunks instead of one byte at a time and parsing fields without regular expressions](https://github.com/ballerina-platform/ballerina-library/issues/9245)
 - [Fix a passthrough service leaking the backend's response buffers when its caller disconnects before the response body has been fully written](https://github.com/ballerina-platform/ballerina-library/issues/9317)
 - [Fix the HTTP/1.1 client reusing a connection left in the middle of a request when the backend responds before the request body is fully sent, which failed the next request on that connection](https://github.com/ballerina-platform/ballerina-library/issues/9318)
+- [Fix the HTTP/1.1 client sending a request whose body failed part-way, such as an aborted upload in passthrough, as a complete but truncated request instead of closing the connection](https://github.com/ballerina-platform/ballerina-library/issues/9243)
+- [Fix the HTTP/2 client letting a connection take more streams than `maxActiveStreamsPerConnection` after the server pushed responses on it, and releasing all the requests waiting for a new connection when an unrelated connection attempt on the route failed](https://github.com/ballerina-platform/ballerina-library/issues/9233)
+- [Fix the SSE client merging or holding back events that end with a mix of line breaks, such as `\n\r\n`, and dropping the line breaks between the `data` lines of an event](https://github.com/ballerina-platform/ballerina-library/issues/9245)
 - Return an error from `getByteStream(arraySize)` for a non-positive `arraySize`, instead of an endless stream of empty arrays or a failure on the first read
 
 ## [2.18.1] - 2026-10-16
