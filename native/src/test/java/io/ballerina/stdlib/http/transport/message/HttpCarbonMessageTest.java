@@ -44,6 +44,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static io.netty.buffer.Unpooled.EMPTY_BUFFER;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -159,6 +161,27 @@ public class HttpCarbonMessageTest {
         Assert.assertSame(queued, httpCarbonMessage.getHttpContent());
         assertTrue(httpCarbonMessage.getHttpContent() instanceof LastHttpContent);
         queued.release();
+    }
+
+    @Test
+    public void testContentRejectedAfterAnIoExceptionIsReportedAsRemoved() {
+        assertReportedAsRemovedOnRejection(true);
+        assertReportedAsRemovedOnRejection(false);
+    }
+
+    private static void assertReportedAsRemovedOnRejection(boolean withMessageListener) {
+        Listener contentListener = mock(Listener.class);
+        List<Integer> removedBytes = new ArrayList<>();
+        doAnswer(invocation -> removedBytes.add(invocation.<HttpContent>getArgument(0).content().readableBytes()))
+                .when(contentListener).onRemove(any());
+        HttpCarbonMessage httpCarbonMessage = new HttpCarbonMessage(mock(HttpResponse.class), 100, contentListener);
+        if (withMessageListener) {
+            httpCarbonMessage.getHttpContentAsync().setMessageListener(content -> { });
+        }
+
+        assertReleasedOnRejection(httpCarbonMessage);
+
+        Assert.assertEquals(List.of("rejected".length()), removedBytes);
     }
 
     private static void assertReleasedOnRejection(HttpCarbonMessage httpCarbonMessage) {

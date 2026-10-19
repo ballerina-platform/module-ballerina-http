@@ -127,6 +127,7 @@ public class HttpCarbonMessage {
         contentObservable.notifyAddListener(httpContent);
         if (messageFuture != null) {
             if (ioException != null) {
+                contentObservable.notifyGetListener(httpContent);
                 httpContent.release();
                 blockingEntityCollector.addHttpContent(new DefaultLastHttpContent());
                 if (messageFuture.isMessageListenerSet()) {
@@ -152,6 +153,7 @@ public class HttpCarbonMessage {
             }
         } else {
             if (ioException != null) {
+                contentObservable.notifyGetListener(httpContent);
                 httpContent.release();
                 blockingEntityCollector.addHttpContent(new DefaultLastHttpContent());
                 throw new UncheckedIOException(this.getIoException());
