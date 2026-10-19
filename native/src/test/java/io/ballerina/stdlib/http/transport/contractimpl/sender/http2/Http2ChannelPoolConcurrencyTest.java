@@ -177,6 +177,23 @@ public class Http2ChannelPoolConcurrencyTest {
         assertNull(connectionManager.fetchChannel(ROUTE), "A closed channel must not be handed out");
     }
 
+    @Test(description = "A closed server-pushed stream must not free a slot it never reserved")
+    public void testClosedPushStreamDoesNotFreeASlot() throws Exception {
+        Http2ConnectionManager connectionManager = newConnectionManager(2, 60000);
+        assertNull(connectionManager.fetchChannel(ROUTE), "The first request should open the connection");
+        Http2ClientChannel http2ClientChannel = newHttp2ClientChannel(connectionManager);
+        connectionManager.addHttp2ClientChannel(ROUTE, http2ClientChannel);
+        Http2Stream openerStream = openStream(http2ClientChannel);
+
+        Http2Connection connection = http2ClientChannel.getConnection();
+        Http2Stream pushStream =
+                connection.remote().reservePushStream(connection.remote().incrementAndGetNextStreamId(), openerStream);
+        pushStream.open(false).close();
+
+        assertSame(connectionManager.fetchChannel(ROUTE), http2ClientChannel, "The channel should take one more");
+        assertNull(connectionManager.fetchChannel(ROUTE), "The channel was full, but handed out a third stream");
+    }
+
     private static void assertStillWaiting(Future<Http2ClientChannel> request) throws Exception {
         try {
             Http2ClientChannel http2ClientChannel = request.get(300, TimeUnit.MILLISECONDS);

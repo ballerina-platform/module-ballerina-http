@@ -364,12 +364,15 @@ public class Http2ClientChannel {
             // registered here is a message the peer never finished - typically a stream the codec aborted locally
             // after a frame error. Terminate it, otherwise the caller waits on a body that can no longer arrive.
             notifyStreamClosedLocally(stream.id());
-            // Channel is no longer exhausted, so we can return it back to the pool
             http2ClientChannel.removeInFlightMessage(stream.id());
-            http2ConnectionManager.markClientChannelAsIdle(http2ClientChannel);
             http2ClientChannel.getDataEventListeners().
                     forEach(dataEventListener -> dataEventListener.onStreamClose(stream.id()));
-            http2ConnectionManager.releaseStream(httpRoute, http2ClientChannel);
+            // Only streams this client opened hold a slot in the pool; a server-pushed stream never reserved one.
+            if (connection.local().isValidStreamId(stream.id())) {
+                // Channel is no longer exhausted, so we can return it back to the pool
+                http2ConnectionManager.markClientChannelAsIdle(http2ClientChannel);
+                http2ConnectionManager.releaseStream(httpRoute, http2ClientChannel);
+            }
         }
 
         private void notifyStreamClosedLocally(int streamId) {
