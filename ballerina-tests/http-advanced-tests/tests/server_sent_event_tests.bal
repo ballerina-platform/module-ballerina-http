@@ -199,28 +199,11 @@ function stopSseChunkedServer() returns error? {
 }
 
 @test:Config {}
-function testByteStreamReturnsTheBytesAlreadyReceived() returns error? {
-    string firstPart = "data: first\n\n";
-    string secondPart = "data: second\n\n";
-    decimal startTime = time:monotonicNow();
-    http:Response response = check sseChunkedClient->post(string `/sse/${firstPart.length()}?delay=2000`,
-        (firstPart + secondPart).toBytes());
-    stream<byte[], io:Error?> body = check response.getByteStream();
-    record {|byte[] value;|}? first = check body.next();
-    decimal elapsed = time:monotonicNow() - startTime;
-    test:assertEquals(first?.value, firstPart.toBytes());
-    test:assertTrue(elapsed < 1d, string `the first bytes took ${elapsed}s, waiting for bytes sent 2s later`);
-    record {|byte[] value;|}? second = check body.next();
-    test:assertEquals(second?.value, secondPart.toBytes());
-    test:assertEquals(check body.next(), ());
-}
-
-@test:Config {}
-function testByteStreamArraysKeepTheirBytesAfterLaterReads() returns error? {
-    http:Response response = check sseChunkedClient->post("/sse/3,5?delay=200", "abcdefgh".toBytes());
+function testByteStreamFillsEachArray() returns error? {
+    http:Response response = check sseChunkedClient->post("/sse/3,5?delay=200", "abcdefghij".toBytes());
     stream<byte[], io:Error?> body = check response.getByteStream(4);
     byte[][] arrays = check from byte[] bytes in body select bytes;
-    test:assertEquals(arrays, ["abc".toBytes(), "defg".toBytes(), "h".toBytes()]);
+    test:assertEquals(arrays, ["abcd".toBytes(), "efgh".toBytes(), "ij".toBytes()]);
 }
 
 @test:Config {}

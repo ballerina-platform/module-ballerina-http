@@ -446,16 +446,23 @@ isolated function externPopulateInputStream(mime:Entity entity) = @java:Method {
     name: "populateInputStream"
 } external;
 
-// Each array holds the bytes already received, up to `arraySize`, so a slowly streamed body is handed on as it
-// arrives. mime's own byte stream waits for `arraySize` bytes (ballerina-library#9283).
 isolated function getEntityByteStream(mime:Entity entity, int arraySize) returns stream<byte[], io:Error?>|mime:Error {
     if arraySize <= 0 {
         return error mime:GenericMimeError(string `The array size of a byte stream must be positive, but was ${arraySize}`);
     }
     externPopulateInputStream(entity);
+    return entity.getByteStream(arraySize);
+}
+
+const int AVAILABLE_BYTES_ARRAY_SIZE = 8192;
+
+// Unlike getEntityByteStream, whose arrays are filled to the array size, each array holds the bytes already
+// received, so a streamed body such as an event stream is handed on as it arrives.
+isolated function getEntityAvailableByteStream(mime:Entity entity) returns stream<byte[], io:Error?>|mime:Error {
+    externPopulateInputStream(entity);
     stream<byte[], io:Error?>|mime:Error? byteStream = externGetMimeByteStream(entity);
     if byteStream is () {
-        return new stream<byte[], io:Error?>(new EntityByteStream(entity, arraySize));
+        return new stream<byte[], io:Error?>(new EntityByteStream(entity, AVAILABLE_BYTES_ARRAY_SIZE));
     }
     return byteStream;
 }
