@@ -31,9 +31,9 @@ enum SseFieldName {
 # Turns a byte stream of server-sent events into `SseEvent` records.
 #
 # Each read returns the bytes received so far, in chunks of any size, down to one byte at a time. The chunks are
-# scanned for the end of an event, two consecutive line breaks ('\n\n' | '\r\r' | '\r\n\r\n'), and the bytes
-# of an unfinished event are carried over to the next chunk. An event is decoded only once it is complete, so a
-# multi-byte character split across chunks stays intact.
+# scanned for the end of an event, a blank line: a line break ('\r\n', '\n' or '\r') followed by another, in any
+# mix. The bytes of an unfinished event are carried over to the next chunk. An event is decoded only once it is
+# complete, so a multi-byte character split across chunks stays intact.
 class BytesToEventStreamGenerator {
     private final stream<byte[], io:Error?> byteStream;
     private boolean isClosed = false;
@@ -42,6 +42,9 @@ class BytesToEventStreamGenerator {
     private int eventStart = 0;
     // Where to resume looking for the end of that event, so each byte is scanned once.
     private int scanFrom = 0;
+    // The last event ended at a '\r', so a '\n' right after it completes that line break rather than starting the
+    // next event.
+    private boolean skipLineFeed = false;
 
     isolated function init(stream<byte[], io:Error?> byteStream) {
         self.byteStream = byteStream;
@@ -91,20 +94,24 @@ class BytesToEventStreamGenerator {
     # + return - The index just past the event's terminating line breaks, or `()` if they have not arrived yet
     private isolated function findEventEnd() returns int? {
         byte[] bytes = self.pending;
-        int eventStart = self.eventStart;
         int length = bytes.length();
+        if self.skipLineFeed && self.eventStart < length {
+            if bytes[self.eventStart] == LINE_FEED {
+                self.eventStart += 1;
+            }
+            self.skipLineFeed = false;
+        }
+        int eventStart = self.eventStart;
         int i = int:max(self.scanFrom, eventStart);
         while i < length {
             byte current = bytes[i];
             if i > eventStart && (current == LINE_FEED || current == CARRIAGE_RETURN) {
+                // A '\n' always ends a line, and so does a '\r' unless a '\n' follows it. Either way, a line break
+                // right after one is a blank line. A '\n' after a '\r' only completes the line break.
                 byte previous = bytes[i - 1];
-                if previous == current {
+                if previous == LINE_FEED || (previous == CARRIAGE_RETURN && current == CARRIAGE_RETURN) {
                     self.scanFrom = i + 1;
-                    return i + 1;
-                }
-                if current == LINE_FEED && previous == CARRIAGE_RETURN && i - 3 >= eventStart
-                        && bytes[i - 2] == LINE_FEED && bytes[i - 3] == CARRIAGE_RETURN {
-                    self.scanFrom = i + 1;
+                    self.skipLineFeed = current == CARRIAGE_RETURN;
                     return i + 1;
                 }
             }
@@ -147,7 +154,7 @@ isolated function parseSseEvent(string event) returns SseEvent|error {
             if data is () {
                 data = fieldValue;
             } else {
-                data += fieldValue;
+                data += "\n" + fieldValue;
             }
         }
     }

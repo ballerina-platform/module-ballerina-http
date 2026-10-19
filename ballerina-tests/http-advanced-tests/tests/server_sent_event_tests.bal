@@ -100,6 +100,11 @@ service /sse on http2SseListener {
         return response;
     }
 
+    resource function get multiline() returns stream<http:SseEvent, error?> {
+        http:SseEvent[] events = [{data: "first line\nsecond line\r\nthird line"}];
+        return events.toStream();
+    }
+
     resource function get completeWithError() returns stream<http:SseEvent, error?> {
         return new (new SseEventGenerator(3, true));
     }
@@ -246,6 +251,29 @@ function testSseEventIsDeliveredWithoutWaitingForMoreBytes() returns error? {
     test:assertTrue(elapsed < 1d, string `the first event took ${elapsed}s, waiting for bytes sent 2s later`);
     record {|http:SseEvent value;|}? second = check events.next();
     test:assertEquals(second?.value, {data: "second"});
+}
+
+@test:Config {}
+function testSseEventsEndedByMixedLineBreaks() returns error? {
+    byte[] payload = "data: a\n\r\ndata: b\n\rdata: c\r\n\ndata: d\r\r\ndata: e\r\n\r\ndata: f\n\n".toBytes();
+    http:SseEvent[] expected = [{data: "a"}, {data: "b"}, {data: "c"}, {data: "d"}, {data: "e"}, {data: "f"}];
+    foreach int splitAt in 1 ..< payload.length() {
+        http:SseEvent[] events = check readSseEvents(string `/sse/${splitAt}?delay=1`, payload);
+        test:assertEquals(events, expected, string `events split at byte ${splitAt}`);
+    }
+}
+
+@test:Config {}
+function testSseDataLinesAreJoinedWithLineFeeds() returns error? {
+    http:SseEvent[] events = check readSseEvents("/sse/64", "data: first\ndata: second\n\n".toBytes());
+    test:assertEquals(events, [{data: "first\nsecond"}]);
+}
+
+@test:Config {}
+function testMultiLineSseDataRoundTrips() returns error? {
+    stream<http:SseEvent, error?> events = check http2SseClient->/sse/multiline;
+    http:SseEvent[] received = check from http:SseEvent event in events select event;
+    test:assertEquals(received, [{data: "first line\nsecond line\nthird line"}]);
 }
 
 function readSseEvents(string path, byte[] payload) returns http:SseEvent[]|error {
