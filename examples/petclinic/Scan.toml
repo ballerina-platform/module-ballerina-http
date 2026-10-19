@@ -1,0 +1,5 @@
+# bal scan rules excluded for this example (false positives):
+# - ballerina/http:3 flags the generated persist client calls, e.g. `self.dbClient->/owners/[ownerId]()`.
+#   Those are database calls, not outgoing HTTP requests, so there is no server-side request forgery risk.
+[rule]
+exclude = ["ballerina/http:3"]

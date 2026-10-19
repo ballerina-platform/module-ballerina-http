@@ -1,0 +1,7 @@
+# bal scan rules excluded for this example (false positives):
+# - ballerina:13 / ballerina:14: this is a mock security token service. Its sample client credentials,
+#   OAuth2 grant type names ("password", "refresh_token"), `token_type` values and seeded in-memory
+#   token stores are intentional demo values that exist only to exercise the HTTP auth handlers in
+#   other examples and tests. They are not real secrets.
+[rule]
+exclude = ["ballerina:13", "ballerina:14"]

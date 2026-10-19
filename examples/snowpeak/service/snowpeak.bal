@@ -20,8 +20,11 @@ import 'service.mock;
 
 configurable int port = 9090;
 
+// Origins allowed to call the service from a browser.
+configurable string[] allowedOrigins = ["http://localhost:3000"];
+
 # A fake mountain resort
-@http:ServiceConfig { mediaTypeSubtypePrefix: "vnd.snowpeak.resort", cors: { allowOrigins: ["*"] }}
+@http:ServiceConfig { mediaTypeSubtypePrefix: "vnd.snowpeak.resort", cors: { allowOrigins: allowedOrigins }}
 service /snowpeak on new http:Listener(port) {
 
     # Snowpeak locations resource

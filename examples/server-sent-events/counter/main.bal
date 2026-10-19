@@ -3,9 +3,12 @@ import ballerina/lang.runtime;
 
 listener http:Listener counterListener = new(8080);
 
+// Origins allowed to call the service from a browser.
+configurable string[] allowedOrigins = ["http://localhost:3000"];
+
 @http:ServiceConfig {
     cors: {
-        allowOrigins: ["*"],
+        allowOrigins: allowedOrigins,
         allowCredentials: false,
         allowHeaders: ["*"],
         allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]

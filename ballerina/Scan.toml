@@ -1,0 +1,7 @@
+# bal scan rules excluded for this package (false positives):
+# - ballerina:13 / ballerina:14 match identifier names containing words such as "auth", "authorization",
+#   "password" or "token" (e.g. the public `AUTHORIZATION` header constant, `ClientAuthConfig auth`,
+#   the `STATUS_NON_AUTHORITATIVE_INFORMATION` status code). None of them hold secrets, and renaming
+#   them would break the public API.
+[rule]
+exclude = ["ballerina:13", "ballerina:14"]
