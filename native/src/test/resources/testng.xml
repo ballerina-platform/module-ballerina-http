@@ -72,6 +72,7 @@
             <class name="io.ballerina.stdlib.http.transport.ClientConnectorConnectionRefusedTestCase" />
             <class name="io.ballerina.stdlib.http.transport.ClientConnectorClosureAfterRequestReadTestCase" />
             <class name="io.ballerina.stdlib.http.transport.ClientEarlyResponseConnectionReuseTestCase" />
+            <class name="io.ballerina.stdlib.http.transport.ClientAbortedRequestBodyTestCase" />
             <class name="io.ballerina.stdlib.http.transport.ServerConnectorTimeoutTestCase" />
             <class name="io.ballerina.stdlib.http.transport.ServerConnectorTimeoutWhileReadingBodyTestCase" />
             <class name="io.ballerina.stdlib.http.transport.ServerConnectorTimeoutWhileSendingBodyTestCase" />

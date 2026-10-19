@@ -99,7 +99,12 @@ public class SendingHeaders implements SenderState {
 
     @Override
     public void writeOutboundRequestEntity(HttpCarbonMessage httpOutboundRequest, HttpContent httpContent) {
-        if (isLastHttpContent(httpContent)) {
+        if (RequestBodyAborted.isFailedBodyEnd(httpContent)) {
+            // Nothing has been sent yet, so the request is dropped along with the body held back for it.
+            contentList.forEach(HttpContent::release);
+            contentList.clear();
+            RequestBodyAborted.abort(senderReqRespStateManager, httpInboundResponseFuture, httpContent);
+        } else if (isLastHttpContent(httpContent)) {
             if (checkContentLengthAndTransferEncodingHeaderAllowance(httpOutboundRequest)) {
                 if (chunkConfig == ChunkConfig.ALWAYS && checkChunkingCompatibility(httpVersion, chunkConfig)) {
                     setupChunkedRequest(httpOutboundRequest);

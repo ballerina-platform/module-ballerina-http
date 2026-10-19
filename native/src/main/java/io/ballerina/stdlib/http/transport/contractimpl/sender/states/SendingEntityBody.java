@@ -71,7 +71,9 @@ public class SendingEntityBody implements SenderState {
 
     @Override
     public void writeOutboundRequestEntity(HttpCarbonMessage httpOutboundRequest, HttpContent httpContent) {
-        if (isLastHttpContent(httpContent)) {
+        if (RequestBodyAborted.isFailedBodyEnd(httpContent)) {
+            RequestBodyAborted.abort(senderReqRespStateManager, httpInboundResponseFuture, httpContent);
+        } else if (isLastHttpContent(httpContent)) {
             writeOutboundRequestBody(httpContent);
 
             if (handlerExecutor != null) {
