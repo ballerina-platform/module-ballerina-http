@@ -189,6 +189,19 @@ public class HttpMessageDataStreamerTest {
         expectThrows(DecoderException.class, inputStream::read);
     }
 
+    @Test
+    public void testAFailedFirstChunkIsReportedOnEveryRead() {
+        HttpCarbonMessage message = newResponse(60000);
+        LastHttpContent failed = new DefaultLastHttpContent();
+        failed.setDecoderResult(DecoderResult.failure(new DecoderException("body failed")));
+        message.addHttpContent(failed);
+        InputStream inputStream = new HttpMessageDataStreamer(message).getInputStream();
+
+        expectThrows(DecoderException.class, inputStream::read);
+        expectThrows(DecoderException.class, inputStream::read);
+        expectThrows(DecoderException.class, () -> inputStream.read(new byte[8192], 0, 8192));
+    }
+
     @Test(expectedExceptions = DecoderException.class,
           expectedExceptionsMessageRegExp = "No entity was added to the queue before the timeout")
     public void testReadTimesOutWithoutContent() throws IOException {

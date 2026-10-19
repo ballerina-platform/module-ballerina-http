@@ -166,7 +166,8 @@ public class HttpMessageDataStreamer {
             if (httpContent == null) {
                 throw new DecoderException("No entity was added to the queue before the timeout");
             } else if (httpContent.decoderResult().isFailure()) {
-                throw new DecoderException(httpContent.decoderResult().cause().getMessage());
+                pendingFailure = new DecoderException(httpContent.decoderResult().cause().getMessage());
+                throw pendingFailure;
             }
         }
 
