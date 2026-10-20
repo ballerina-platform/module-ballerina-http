@@ -47,10 +47,13 @@ import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http2.DefaultHttp2Headers;
 import io.netty.handler.codec.http2.DefaultHttp2HeadersFrame;
+import io.netty.handler.codec.http2.DefaultHttp2ResetFrame;
 import io.netty.handler.codec.http2.Http2DataFrame;
+import io.netty.handler.codec.http2.Http2Error;
 import io.netty.handler.codec.http2.Http2FrameCodecBuilder;
+import io.netty.handler.codec.http2.Http2FrameLogger;
 import io.netty.handler.codec.http2.Http2HeadersFrame;
-import io.netty.handler.codec.http2.Http2ResetFrame;
+import io.netty.handler.logging.LogLevel;
 import io.netty.util.ReferenceCountUtil;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
@@ -64,6 +67,7 @@ import java.util.concurrent.TimeUnit;
 import static io.ballerina.stdlib.http.transport.util.TestUtil.HTTP_SERVER_PORT;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 /**
@@ -79,7 +83,20 @@ public class Http2RespondedAbortedRequestBodyTest {
 
     @Test(timeOut = 60000)
     public void testBodyAbortedAfterTheResponseEndedResetsTheStream() throws Exception {
-        startBackend();
+        sendAbortedBodyAfterTheResponse(false);
+
+        assertEquals(requestEnds.poll(10, TimeUnit.SECONDS), "reset");
+    }
+
+    @Test(timeOut = 60000)
+    public void testStreamResetByTheBackendIsNotResetBack() throws Exception {
+        sendAbortedBodyAfterTheResponse(true);
+
+        assertNull(requestEnds.poll(1, TimeUnit.SECONDS), "The client reset a stream the backend had already reset");
+    }
+
+    private void sendAbortedBodyAfterTheResponse(boolean resetAfterResponse) throws Exception {
+        startBackend(resetAfterResponse);
         client = FrameLevelTestUtils.setupHttp2PriorKnowledgeClient();
         HttpCarbonMessage request = createRequest();
         request.addHttpContent(new DefaultHttpContent(Unpooled.copiedBuffer("partial", StandardCharsets.UTF_8)));
@@ -93,15 +110,17 @@ public class Http2RespondedAbortedRequestBodyTest {
         HttpContent responseEnd = response.getHttpContent();
         assertTrue(responseEnd instanceof LastHttpContent, "The response did not end: " + responseEnd);
         responseEnd.release();
+        if (resetAfterResponse) {
+            // Let the client close the stream on the backend's RST_STREAM before the body fails.
+            Thread.sleep(500);
+        }
 
         LastHttpContent abortedEnd = new DefaultLastHttpContent();
         abortedEnd.setDecoderResult(DecoderResult.failure(new DecoderException("client went away")));
         request.addHttpContent(abortedEnd);
-
-        assertEquals(requestEnds.poll(10, TimeUnit.SECONDS), "reset");
     }
 
-    private void startBackend() throws InterruptedException {
+    private void startBackend(boolean resetAfterResponse) throws InterruptedException {
         serverGroup = new MultiThreadIoEventLoopGroup(1, NioIoHandler.newFactory());
         serverChannel = new ServerBootstrap()
                 .group(serverGroup)
@@ -109,8 +128,9 @@ public class Http2RespondedAbortedRequestBodyTest {
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel ch) {
-                        ch.pipeline().addLast(Http2FrameCodecBuilder.forServer().build(),
-                                              new CompleteResponseBackend(requestEnds));
+                        ch.pipeline().addLast(Http2FrameCodecBuilder.forServer()
+                                                      .frameLogger(new ResetRecorder(requestEnds)).build(),
+                                              new CompleteResponseBackend(requestEnds, resetAfterResponse));
                     }
                 })
                 .bind(HTTP_SERVER_PORT).sync().channel();
@@ -141,30 +161,54 @@ public class Http2RespondedAbortedRequestBodyTest {
     }
 
     /**
-     * Sends a complete response as soon as the request headers arrive, then records whether the request was ended
-     * with END_STREAM or reset.
+     * Sends a complete response as soon as the request headers arrive, optionally followed by RST_STREAM(NO_ERROR) as
+     * RFC 9113 section 8.1 allows, and records a request ended with END_STREAM.
      */
     private static final class CompleteResponseBackend extends ChannelInboundHandlerAdapter {
         private final BlockingQueue<String> requestEnds;
+        private final boolean resetAfterResponse;
 
-        CompleteResponseBackend(BlockingQueue<String> requestEnds) {
+        CompleteResponseBackend(BlockingQueue<String> requestEnds, boolean resetAfterResponse) {
             this.requestEnds = requestEnds;
+            this.resetAfterResponse = resetAfterResponse;
         }
 
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) {
             if (msg instanceof Http2HeadersFrame headersFrame) {
-                ctx.writeAndFlush(new DefaultHttp2HeadersFrame(new DefaultHttp2Headers().status("200"), true)
-                                          .stream(headersFrame.stream()));
+                ctx.write(new DefaultHttp2HeadersFrame(new DefaultHttp2Headers().status("200"), true)
+                                  .stream(headersFrame.stream()));
+                if (resetAfterResponse) {
+                    ctx.write(new DefaultHttp2ResetFrame(Http2Error.NO_ERROR).stream(headersFrame.stream()));
+                }
+                ctx.flush();
             } else if (msg instanceof Http2DataFrame dataFrame) {
                 dataFrame.release();
                 if (dataFrame.isEndStream()) {
                     requestEnds.add("ended");
                 }
-            } else if (msg instanceof Http2ResetFrame) {
-                requestEnds.add("reset");
             } else {
                 ReferenceCountUtil.release(msg);
+            }
+        }
+    }
+
+    /**
+     * Records every RST_STREAM the backend reads, including one for a stream it has already closed, which the frame
+     * codec drops without passing on.
+     */
+    private static final class ResetRecorder extends Http2FrameLogger {
+        private final BlockingQueue<String> requestEnds;
+
+        ResetRecorder(BlockingQueue<String> requestEnds) {
+            super(LogLevel.DEBUG);
+            this.requestEnds = requestEnds;
+        }
+
+        @Override
+        public void logRstStream(Direction direction, ChannelHandlerContext ctx, int streamId, long errorCode) {
+            if (direction == Direction.INBOUND) {
+                requestEnds.add("reset");
             }
         }
     }

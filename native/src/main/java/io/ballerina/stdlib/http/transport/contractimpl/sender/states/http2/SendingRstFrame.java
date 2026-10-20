@@ -147,13 +147,16 @@ public class SendingRstFrame implements SenderState {
     }
 
     public void resetStream(ChannelHandlerContext ctx) {
-        encoder.writeRstStream(ctx, streamId, Http2Error.CANCEL.code(), ctx.newPromise());
-        try {
-            encoder.flowController().writePendingBytes();
-        } catch (Http2Exception e) {
-            LOG.warn(e.toString());
+        // A stream already closed, for example reset by the peer, must not be reset back (RFC 9113 section 5.4.2).
+        if (http2TargetHandler.getConnection().stream(streamId) != null) {
+            encoder.writeRstStream(ctx, streamId, Http2Error.CANCEL.code(), ctx.newPromise());
+            try {
+                encoder.flowController().writePendingBytes();
+            } catch (Http2Exception e) {
+                LOG.warn(e.toString());
+            }
+            ctx.flush();
         }
-        ctx.flush();
         outboundMsgHolder.setRequestWritten(true);
         http2MessageStateContext.setSenderState(
                 RequestCompleted.afterRequestWritten(http2TargetHandler, http2RequestWriter, outboundMsgHolder));
