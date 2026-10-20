@@ -148,7 +148,9 @@ public class HttpMessageDataStreamer {
         private void loadNextChunk() {
             releaseHttpContent();
             httpContent = httpCarbonMessage.getHttpContent();
-            referenceCount++;
+            if (httpContent != null) {
+                referenceCount++;
+            }
             validateHttpContent();
             byteBuffer = httpContent.content().nioBuffer();
             chunkFinished = !byteBuffer.hasRemaining();

@@ -210,6 +210,20 @@ public class HttpMessageDataStreamerTest {
     }
 
     @Test(timeOut = 10000)
+    public void testReadRetriedAfterATimeoutReleasesEachChunkOnce() throws IOException {
+        HttpCarbonMessage message = newResponse(100);
+        message.addHttpContent(chunk("a"));
+        InputStream inputStream = new HttpMessageDataStreamer(message).getInputStream();
+        Assert.assertEquals('a', inputStream.read());
+        expectThrows(DecoderException.class, inputStream::read);
+
+        message.addHttpContent(chunk("b"));
+        message.addHttpContent(new DefaultLastHttpContent());
+        Assert.assertEquals('b', inputStream.read());
+        Assert.assertEquals(-1, inputStream.read());
+    }
+
+    @Test(timeOut = 10000)
     public void testCompressedBodyReadReturnsTheBytesAlreadyReceived() throws Exception {
         ByteArrayOutputStream compressed = new ByteArrayOutputStream();
         GZIPOutputStream gzip = new GZIPOutputStream(compressed, true);
