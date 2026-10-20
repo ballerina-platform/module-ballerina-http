@@ -37,6 +37,7 @@ import java.io.IOException;
 import static io.ballerina.stdlib.http.transport.contract.Constants.INBOUND_RESPONSE_ALREADY_RECEIVED;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil.releaseContent;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.ILLEGAL_STATE_ERROR;
+import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.isFailedBodyEnd;
 
 /**
  * State of successfully read response.
@@ -77,11 +78,15 @@ public class EntityBodyReceived implements SenderState {
             if (request.getIoException() == null) {
                 request.setIoException(new IOException(INBOUND_RESPONSE_ALREADY_RECEIVED));
             }
+            boolean failedBodyEnd = isFailedBodyEnd(httpContent);
             http2MessageStateContext.setSenderState(new SendingEntityBody(http2TargetHandler, http2RequestWriter));
-            http2MessageStateContext.getSenderState().writeOutboundRequestBody(ctx, new DefaultLastHttpContent(),
-                    http2MessageStateContext);
+            http2MessageStateContext.getSenderState().writeOutboundRequestBody(ctx,
+                    failedBodyEnd ? httpContent : new DefaultLastHttpContent(), http2MessageStateContext);
             // Move back to EntityBodyReceived state to ensure proper state transition.
             http2MessageStateContext.setSenderState(new EntityBodyReceived(http2TargetHandler, http2RequestWriter));
+            if (failedBodyEnd) {
+                return;
+            }
         }
         releaseContent(httpContent);
     }

@@ -142,6 +142,7 @@
             <class name="io.ballerina.stdlib.http.transport.http2.clienttimeout.Http2ClientBackPressureStallLimitTestCase"/>
             <class name="io.ballerina.stdlib.http.transport.http2.Http2WithHttp2ResetContent"/>
             <class name="io.ballerina.stdlib.http.transport.http2.Http2AbortedRequestBodyTest"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.Http2RespondedAbortedRequestBodyTest"/>
             <class name="io.ballerina.stdlib.http.transport.http2.Http2EarlyResponseStreamTerminationTest"/>
             <class name="io.ballerina.stdlib.http.transport.http2.Http2RespondedRequestStillSendingTimeoutTest"/>
             <class name="io.ballerina.stdlib.http.transport.http2.Http2ConnectionWindowTest"/>
