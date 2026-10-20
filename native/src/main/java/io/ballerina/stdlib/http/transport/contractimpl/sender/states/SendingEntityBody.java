@@ -44,6 +44,7 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.INBOUND_RESP
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_BODY;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.isLastHttpContent;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.ILLEGAL_STATE_ERROR;
+import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.isFailedBodyEnd;
 
 /**
  * State between start and end of outbound request entity body write.
@@ -71,7 +72,7 @@ public class SendingEntityBody implements SenderState {
 
     @Override
     public void writeOutboundRequestEntity(HttpCarbonMessage httpOutboundRequest, HttpContent httpContent) {
-        if (RequestBodyAborted.isFailedBodyEnd(httpContent)) {
+        if (isFailedBodyEnd(httpContent)) {
             RequestBodyAborted.abort(senderReqRespStateManager, httpInboundResponseFuture, httpContent);
         } else if (isLastHttpContent(httpContent)) {
             writeOutboundRequestBody(httpContent);

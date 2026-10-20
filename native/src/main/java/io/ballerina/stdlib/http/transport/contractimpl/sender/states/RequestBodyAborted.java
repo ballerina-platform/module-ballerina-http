@@ -26,7 +26,6 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.LastHttpContent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,10 +44,6 @@ public class RequestBodyAborted implements SenderState {
 
     private RequestBodyAborted(SenderReqRespStateManager senderReqRespStateManager) {
         this.senderReqRespStateManager = senderReqRespStateManager;
-    }
-
-    static boolean isFailedBodyEnd(HttpContent httpContent) {
-        return httpContent instanceof LastHttpContent && httpContent.decoderResult().isFailure();
     }
 
     static void abort(SenderReqRespStateManager senderReqRespStateManager, HttpResponseFuture httpResponseFuture,

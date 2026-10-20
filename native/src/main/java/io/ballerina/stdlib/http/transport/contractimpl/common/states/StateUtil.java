@@ -120,6 +120,17 @@ public class StateUtil {
         LOG.warn(errorMessage);
     }
 
+    /**
+     * Checks whether the content is the failed end of a body that stopped part-way, as handleIncompleteInboundMessage
+     * marks it. Forwarding it as a normal end would hand the receiver a truncated body as if it were complete.
+     *
+     * @param httpContent content of an outbound body
+     * @return true if the body failed before it was complete
+     */
+    public static boolean isFailedBodyEnd(HttpContent httpContent) {
+        return httpContent instanceof LastHttpContent && httpContent.decoderResult().isFailure();
+    }
+
     public static void respondToIncompleteRequest(Channel channel, HttpOutboundRespListener outboundResponseListener,
                                                   ListenerReqRespStateManager listenerReqRespStateManager,
                                                   HttpCarbonMessage outboundResponseMsg, HttpContent httpContent,

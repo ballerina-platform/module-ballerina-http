@@ -55,6 +55,7 @@ import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.setupC
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.setupContentLengthRequest;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.ILLEGAL_STATE_ERROR;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.checkChunkingCompatibility;
+import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.isFailedBodyEnd;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.notifyIfHeaderWriteFailure;
 
 /**
@@ -99,7 +100,7 @@ public class SendingHeaders implements SenderState {
 
     @Override
     public void writeOutboundRequestEntity(HttpCarbonMessage httpOutboundRequest, HttpContent httpContent) {
-        if (RequestBodyAborted.isFailedBodyEnd(httpContent)) {
+        if (isFailedBodyEnd(httpContent)) {
             // Nothing has been sent yet, so the request is dropped along with the body held back for it.
             contentList.forEach(HttpContent::release);
             contentList.clear();

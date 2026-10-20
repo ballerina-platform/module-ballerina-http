@@ -59,6 +59,7 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVE
 import static io.ballerina.stdlib.http.transport.contract.Constants.STREAM_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_HEADERS;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil.initiateStream;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil.writeHttp2Headers;
+import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.isFailedBodyEnd;
 
 /**
  * State between start and end of outbound request header write.
@@ -171,7 +172,7 @@ public class SendingHeaders implements SenderState {
         HttpRequest httpRequest = Util.createHttpRequest(httpOutboundRequest);
 
         if (msg instanceof LastHttpContent && msg.content().capacity() == 0
-                && !SendingEntityBody.isAbortedRequestBody(msg)) {
+                && !isFailedBodyEnd(msg)) {
             endStream = true;
         }
         // Write Headers
