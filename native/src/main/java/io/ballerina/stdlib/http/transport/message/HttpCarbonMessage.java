@@ -516,11 +516,7 @@ public class HttpCarbonMessage {
         return future != null && future.isMessageListenerSet();
     }
 
-    /**
-     * A message listener, such as a passthrough writer, takes each chunk off the entity collector as it arrives, so
-     * waiting on the collector would only time out. Wait instead for the body to finish arriving, to fail, or to be
-     * rejected by an I/O error, after which no more of it can be delivered.
-     */
+    // A message listener takes each chunk off the collector as it arrives, so waiting there would only time out.
     private void waitForBodyToEnd() {
         try {
             if (!bodyEnded.await(entityWaitTime, MILLISECONDS)) {
