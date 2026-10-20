@@ -54,6 +54,35 @@ public class DefaultBackPressureObservableTest {
         blockedWriter.get(5, TimeUnit.SECONDS);
     }
 
+    // The listener is swapped for a blocking one after the writer saw a non-blocking one but before it took the lock.
+    @Test(timeOut = 30000)
+    public void testWriterDoesNotBlockUnderTheLockWhenABlockingListenerIsSetDuringTheCheck() throws Exception {
+        DefaultBackPressureObservable observable = new DefaultBackPressureObservable();
+        DefaultBackPressureListener blockingListener = new DefaultBackPressureListener();
+        observable.setListener(new BackPressureListener() {
+            @Override
+            public void onUnWritable() {
+            }
+
+            @Override
+            public void onWritable() {
+            }
+
+            @Override
+            public boolean blocksWriter() {
+                observable.setListener(blockingListener);
+                return false;
+            }
+        });
+
+        CompletableFuture<Void> blockedWriter = CompletableFuture.runAsync(
+                () -> observable.notifyUnWritableIfStreamUnwritable(() -> false));
+        assertThrows(TimeoutException.class, () -> blockedWriter.get(200, TimeUnit.MILLISECONDS));
+
+        CompletableFuture.runAsync(observable::notifyWritable).get(5, TimeUnit.SECONDS);
+        blockedWriter.get(5, TimeUnit.SECONDS);
+    }
+
     @Test
     public void testReplacingAPausedListenerResumesIt() {
         DefaultBackPressureObservable observable = new DefaultBackPressureObservable();

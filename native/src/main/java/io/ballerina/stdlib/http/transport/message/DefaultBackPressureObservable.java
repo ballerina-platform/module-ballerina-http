@@ -54,41 +54,42 @@ public class DefaultBackPressureObservable implements BackPressureObservable {
         }
     }
 
-    // Not synchronized: a listener that blocks the writer waits here until notifyWritable() releases it, and that
-    // call takes this monitor. Callers whose listener does not block hold the monitor around the check instead.
+    // Not synchronized: a blocking listener waits here for notifyWritable(), which takes this monitor.
     @Override
     public void notifyUnWritable() {
-        BackPressureListener currentListener = listener;
+        pause(listener);
+    }
+
+    private void pause(BackPressureListener currentListener) {
         if (currentListener != null) {
             unWritable.set(true);
             currentListener.onUnWritable();
         }
     }
 
-    /**
-     * A listener that does not block is checked under this monitor, which a writability change takes to update the
-     * flag and resume, so a stale check cannot pause after that resume has run. A listener that blocks the writer
-     * until it is resumed is checked without the monitor; DefaultBackPressureListener's semaphore keeps an earlier
-     * release.
-     */
+    // A blocking listener is checked without the monitor (its semaphore keeps an earlier release); any other listener
+    // is checked under it, so a stale check cannot pause after a writability change has resumed.
     @Override
     public void notifyUnWritableIfStreamUnwritable(BooleanSupplier streamWritable) {
         BackPressureListener currentListener = listener;
-        if (currentListener != null && currentListener.blocksWriter()) {
-            pauseIfStreamUnwritable(streamWritable);
-            return;
+        if (currentListener == null || !currentListener.blocksWriter()) {
+            synchronized (this) {
+                currentListener = listener;
+                if (currentListener == null || !currentListener.blocksWriter()) {
+                    pauseIfStreamUnwritable(currentListener, streamWritable);
+                    return;
+                }
+            }
         }
-        synchronized (this) {
-            pauseIfStreamUnwritable(streamWritable);
-        }
+        pauseIfStreamUnwritable(currentListener, streamWritable);
     }
 
-    private void pauseIfStreamUnwritable(BooleanSupplier streamWritable) {
+    private void pauseIfStreamUnwritable(BackPressureListener currentListener, BooleanSupplier streamWritable) {
         if (!streamWritable.getAsBoolean()) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("In thread {}. Stream is not writable.", Thread.currentThread().getName());
             }
-            notifyUnWritable();
+            pause(currentListener);
         }
     }
 
