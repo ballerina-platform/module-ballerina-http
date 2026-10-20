@@ -334,10 +334,10 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
 
                 @Override
                 public void onFailure(ClientConnectorException cause) {
+                    targetChannel.reportConnectionAttemptFailed(cause);
                     httpResponseFuture.notifyHttpListener(cause);
                     httpOutboundRequest
                             .setIoException(new IOException(REMOTE_SERVER_CLOSED_BEFORE_INITIATING_OUTBOUND_REQUEST));
-                    targetChannel.reportConnectionAttemptFailed();
                 }
             });
         } catch (NoSuchElementException failedCause) {
@@ -358,8 +358,9 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
             return connectionManager.borrowTargetChannel(route, srcHandler, http2SourceHandler, senderConfiguration,
                                                          bootstrapConfig, clientEventGroup);
         } catch (Exception e) {
-            // No connection will report back, so release the requests waiting for this one
-            http2ConnectionManager.releaseWaitingRequests(route, newConnectionAttempt, false);
+            // No connection will report back, so fail the requests waiting for this one
+            http2ConnectionManager.failWaitingRequests(route, newConnectionAttempt,
+                                                       new ClientConnectorException(null, e.getMessage()));
             throw e;
         }
     }

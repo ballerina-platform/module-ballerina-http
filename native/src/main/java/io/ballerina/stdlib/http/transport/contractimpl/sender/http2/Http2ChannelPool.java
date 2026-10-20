@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
 
+import io.ballerina.stdlib.http.transport.contract.exceptions.ClientConnectorException;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,21 +83,27 @@ class Http2ChannelPool {
         /**
          * Fetches an active {@code TargetChannel} from the pool and reserves a stream on it. When no channel can take
          * another stream, a single caller gets {@code null} and opens the new connection, while the rest wait until
-         * it is added to the pool. A caller that waits longer than a positive pool wait time gets {@code null} and
-         * opens its own connection, so a connection attempt that never reports back cannot stall the route.
+         * it is added to the pool. If that connection attempt fails, the waiting callers fail with its error. A caller
+         * that waits longer than a positive pool wait time gets {@code null} and opens its own connection, so a
+         * connection attempt that never reports back cannot stall the route.
          *
          * @param attempt the caller's attempt, marked as the opener if the caller is to open the new connection, or
          *                {@code null} if the caller cannot report its attempt's failure and so must not be the opener
          * @return active TargetChannel, or {@code null} if the caller should open a new connection
+         * @throws ClientConnectorException the failure of the connection attempt the caller waited for
          */
-        Http2ClientChannel fetchTargetChannel(NewConnectionAttempt attempt) {
+        Http2ClientChannel fetchTargetChannel(NewConnectionAttempt attempt) throws ClientConnectorException {
             lock.lock();
             try {
                 long remainingNanos = maxWaitTimeNanos;
+                NewConnectionAttempt awaited = null;
                 while (true) {
                     Http2ClientChannel http2ClientChannel = reserveStream();
                     if (http2ClientChannel != null) {
                         return http2ClientChannel;
+                    }
+                    if (awaited != null && awaited.getFailure() != null) {
+                        throw awaited.getFailure();
                     }
                     if (newChannelState == NewChannelState.NEEDS_OPENER) {
                         if (attempt == null) {
@@ -110,6 +117,7 @@ class Http2ChannelPool {
                     if (newChannelState == NewChannelState.OPEN_FREELY) {
                         return null;
                     }
+                    awaited = openingAttempt;
                     if (maxWaitTimeNanos <= 0) {  // a non-positive wait time means wait without a limit
                         channelAvailable.await();
                         continue;
@@ -199,14 +207,29 @@ class Http2ChannelPool {
             }
         }
 
-        void releaseWaitingRequests(NewConnectionAttempt attempt, boolean http2Unavailable) {
+        // The connection was made but did not negotiate HTTP/2, so each waiting caller opens its own
+        void releaseWaitingRequests(NewConnectionAttempt attempt) {
+            endOpeningAttempt(attempt, null);
+        }
+
+        // The waiting callers would most likely fail the same way, so they fail with this attempt's error
+        void failWaitingRequests(NewConnectionAttempt attempt, ClientConnectorException failure) {
+            endOpeningAttempt(attempt, failure);
+        }
+
+        private void endOpeningAttempt(NewConnectionAttempt attempt, ClientConnectorException failure) {
             lock.lock();
             try {
                 if (attempt == null || attempt != openingAttempt) {
                     return;
                 }
                 openingAttempt = null;
-                newChannelState = http2Unavailable ? NewChannelState.OPEN_FREELY : NewChannelState.NEEDS_OPENER;
+                if (failure == null) {
+                    newChannelState = NewChannelState.OPEN_FREELY;
+                } else {
+                    attempt.fail(failure);
+                    newChannelState = NewChannelState.NEEDS_OPENER;
+                }
                 channelAvailable.signalAll();
             } finally {
                 lock.unlock();

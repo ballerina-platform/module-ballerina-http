@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
 
+import io.ballerina.stdlib.http.transport.contract.exceptions.ClientConnectorException;
 import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.PoolConfiguration;
 import io.netty.channel.embedded.EmbeddedChannel;
@@ -29,6 +30,7 @@ import org.testng.annotations.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -40,6 +42,7 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.expectThrows;
 import static org.testng.Assert.fail;
 
 /**
@@ -84,7 +87,7 @@ public class Http2ChannelPoolConcurrencyTest {
     }
 
     @Test(description = "A request must stop waiting for a connection attempt that never reports back")
-    public void testWaitForNewConnectionIsBounded() {
+    public void testWaitForNewConnectionIsBounded() throws ClientConnectorException {
         Http2ConnectionManager connectionManager = newConnectionManager(100, 200);
         assertNull(fetch(connectionManager), "The first request should open the connection");
 
@@ -192,10 +195,10 @@ public class Http2ChannelPoolConcurrencyTest {
                                                                                                             waiter));
             assertStillWaiting(waitingRequest);
 
-            connectionManager.releaseWaitingRequests(ROUTE, new NewConnectionAttempt(), true);
+            connectionManager.releaseWaitingRequests(ROUTE, new NewConnectionAttempt());
             assertStillWaiting(waitingRequest);
 
-            connectionManager.releaseWaitingRequests(ROUTE, opener, true);
+            connectionManager.releaseWaitingRequests(ROUTE, opener);
             assertNull(waitingRequest.get(5, TimeUnit.SECONDS), "The released request should open its own connection");
             assertFalse(waiter.isOpener());
         } finally {
@@ -204,34 +207,34 @@ public class Http2ChannelPoolConcurrencyTest {
     }
 
     @Test(timeOut = 30000,
-          description = "A failed connection attempt lets one waiting request open the next while the rest wait")
-    public void testFailedAttemptLetsOneWaitingRequestOpenTheNextConnection() throws Exception {
+          description = "Requests waiting for a connection attempt fail with its error as soon as it fails")
+    public void testWaitingRequestsFailWithTheFailedAttemptsError() throws Exception {
         Http2ConnectionManager connectionManager = newConnectionManager(100, -1);
         NewConnectionAttempt opener = new NewConnectionAttempt();
         assertNull(connectionManager.fetchChannel(ROUTE, opener), "The first request should open the connection");
 
         ExecutorService executor = Executors.newFixedThreadPool(2);
         try {
-            NewConnectionAttempt firstWaiter = new NewConnectionAttempt();
-            NewConnectionAttempt secondWaiter = new NewConnectionAttempt();
-            Future<Http2ClientChannel> firstRequest =
-                    executor.submit(() -> connectionManager.fetchChannel(ROUTE, firstWaiter));
-            Future<Http2ClientChannel> secondRequest =
-                    executor.submit(() -> connectionManager.fetchChannel(ROUTE, secondWaiter));
-            assertStillWaiting(firstRequest);
-            assertStillWaiting(secondRequest);
+            List<Future<Http2ClientChannel>> waitingRequests = new ArrayList<>();
+            for (int i = 0; i < 2; i++) {
+                waitingRequests.add(executor.submit(() -> connectionManager.fetchChannel(ROUTE,
+                                                                                         new NewConnectionAttempt())));
+            }
+            for (Future<Http2ClientChannel> waitingRequest : waitingRequests) {
+                assertStillWaiting(waitingRequest);
+            }
 
-            connectionManager.releaseWaitingRequests(ROUTE, opener, false);
-            Future<Http2ClientChannel> nextOpener = awaitOneDone(firstRequest, secondRequest);
-            assertNull(nextOpener.get(), "The next opener should open the connection");
-            NewConnectionAttempt nextAttempt = nextOpener == firstRequest ? firstWaiter : secondWaiter;
-            Future<Http2ClientChannel> stillWaiting = nextOpener == firstRequest ? secondRequest : firstRequest;
+            ClientConnectorException failure = new ClientConnectorException(null, "Connection refused");
+            connectionManager.failWaitingRequests(ROUTE, opener, failure);
+            for (Future<Http2ClientChannel> waitingRequest : waitingRequests) {
+                ExecutionException failed = expectThrows(ExecutionException.class,
+                                                          () -> waitingRequest.get(5, TimeUnit.SECONDS));
+                assertSame(failed.getCause(), failure);
+            }
+
+            NewConnectionAttempt nextAttempt = new NewConnectionAttempt();
+            assertNull(connectionManager.fetchChannel(ROUTE, nextAttempt), "The next request should open again");
             assertTrue(nextAttempt.isOpener());
-            assertStillWaiting(stillWaiting);
-
-            Http2ClientChannel http2ClientChannel = newHttp2ClientChannel(connectionManager);
-            connectionManager.addHttp2ClientChannel(ROUTE, http2ClientChannel);
-            assertSame(stillWaiting.get(5, TimeUnit.SECONDS), http2ClientChannel);
         } finally {
             executor.shutdownNow();
         }
@@ -239,7 +242,7 @@ public class Http2ChannelPoolConcurrencyTest {
 
     @Test(timeOut = 30000,
           description = "A caller that cannot report a failed attempt must not make others wait for its connection")
-    public void testCallerWithoutAnAttemptDoesNotBecomeTheOpener() {
+    public void testCallerWithoutAnAttemptDoesNotBecomeTheOpener() throws ClientConnectorException {
         Http2ConnectionManager connectionManager = newConnectionManager(100, -1);
         assertNull(connectionManager.fetchChannel(ROUTE), "There is no channel to hand out yet");
 
@@ -248,24 +251,8 @@ public class Http2ChannelPoolConcurrencyTest {
         assertTrue(attempt.isOpener());
     }
 
-    private static Future<Http2ClientChannel> awaitOneDone(Future<Http2ClientChannel> first,
-                                                           Future<Http2ClientChannel> second)
-            throws InterruptedException {
-        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
-        while (System.nanoTime() < deadline) {
-            if (first.isDone()) {
-                return first;
-            }
-            if (second.isDone()) {
-                return second;
-            }
-            Thread.sleep(10);
-        }
-        fail("No waiting request took over the failed connection attempt");
-        return null;
-    }
-
-    private static Http2ClientChannel fetch(Http2ConnectionManager connectionManager) {
+    private static Http2ClientChannel fetch(Http2ConnectionManager connectionManager)
+            throws ClientConnectorException {
         return connectionManager.fetchChannel(ROUTE, new NewConnectionAttempt());
     }
 
@@ -306,7 +293,7 @@ public class Http2ChannelPoolConcurrencyTest {
     }
 
     private static void sendRequest(Http2ConnectionManager connectionManager, AtomicInteger connectionsOpened)
-            throws Http2Exception {
+            throws Http2Exception, ClientConnectorException {
         Http2ClientChannel http2ClientChannel = fetch(connectionManager);
         if (http2ClientChannel == null) {
             connectionsOpened.incrementAndGet();

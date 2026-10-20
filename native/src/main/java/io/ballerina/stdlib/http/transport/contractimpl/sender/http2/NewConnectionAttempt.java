@@ -18,13 +18,17 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
 
+import io.ballerina.stdlib.http.transport.contract.exceptions.ClientConnectorException;
+
 /**
  * Identifies one request's attempt to get an HTTP/2 connection. When the pool picks the request to open the route's
- * new connection, only a failure of that attempt releases the requests waiting for it.
+ * new connection, only a failure of that attempt releases the requests waiting for it, and they fail with it.
  */
 public final class NewConnectionAttempt {
 
     private boolean opener;
+    // Written and read under the route pool's lock
+    private ClientConnectorException failure;
 
     void markAsOpener() {
         opener = true;
@@ -37,5 +41,13 @@ public final class NewConnectionAttempt {
      */
     public boolean isOpener() {
         return opener;
+    }
+
+    void fail(ClientConnectorException failure) {
+        this.failure = failure;
+    }
+
+    ClientConnectorException getFailure() {
+        return failure;
     }
 }

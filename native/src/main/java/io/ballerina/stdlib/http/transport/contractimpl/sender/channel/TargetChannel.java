@@ -16,6 +16,7 @@
 package io.ballerina.stdlib.http.transport.contractimpl.sender.channel;
 
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
+import io.ballerina.stdlib.http.transport.contract.exceptions.ClientConnectorException;
 import io.ballerina.stdlib.http.transport.contractimpl.common.BackPressureHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
 import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
@@ -69,6 +70,7 @@ public class TargetChannel {
     private volatile NewConnectionAttempt newConnectionAttempt;
     private volatile boolean connectionAttemptEnded;
     private volatile boolean http2Unavailable;
+    private volatile ClientConnectorException connectionAttemptFailure;
 
     public TargetChannel(HttpClientChannelInitializer httpClientChannelInitializer, ChannelFuture channelFuture,
                          HttpRoute httpRoute, ConnectionAvailabilityFuture connectionAvailabilityFuture) {
@@ -187,17 +189,25 @@ public class TargetChannel {
 
     /**
      * Reports that this channel failed before it became an HTTP/2 connection. If it was opened as the route's new
-     * HTTP/2 connection, one of the requests waiting for that connection opens the next one.
+     * HTTP/2 connection, the requests waiting for that connection fail with the given error.
+     *
+     * @param failure the error of the failed connection attempt
      */
-    public void reportConnectionAttemptFailed() {
+    public void reportConnectionAttemptFailed(ClientConnectorException failure) {
+        connectionAttemptFailure = failure;
         endConnectionAttempt();
     }
 
     private void endConnectionAttempt() {
         connectionAttemptEnded = true;
         NewConnectionAttempt attempt = newConnectionAttempt;
-        if (attempt != null) {
-            http2ConnectionManager.releaseWaitingRequests(httpRoute, attempt, http2Unavailable);
+        if (attempt == null) {
+            return;
+        }
+        if (http2Unavailable) {
+            http2ConnectionManager.releaseWaitingRequests(httpRoute, attempt);
+        } else {
+            http2ConnectionManager.failWaitingRequests(httpRoute, attempt, connectionAttemptFailure);
         }
     }
 

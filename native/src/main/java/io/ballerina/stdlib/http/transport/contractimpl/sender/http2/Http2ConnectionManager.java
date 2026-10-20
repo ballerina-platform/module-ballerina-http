@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
 
+import io.ballerina.stdlib.http.transport.contract.exceptions.ClientConnectorException;
 import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.PoolConfiguration;
@@ -81,21 +82,35 @@ public class Http2ConnectionManager {
     }
 
     /**
-     * Releases the requests waiting for a new connection on the route when that connection attempt ends without adding
-     * a channel to the pool. If the connection did not negotiate HTTP/2, each waiting request opens its own;
-     * otherwise the attempt failed, and one of them opens the next connection while the rest keep waiting.
+     * Releases the requests waiting for a new connection on the route when that connection was made but did not
+     * negotiate HTTP/2, so each of them opens its own.
      *
-     * @param httpRoute        the route key
-     * @param attempt          the attempt that ended; requests are released only if they are waiting for it
-     * @param http2Unavailable whether the connection was made but did not negotiate HTTP/2
+     * @param httpRoute the route key
+     * @param attempt   the attempt that ended; requests are released only if they are waiting for it
      */
-    public void releaseWaitingRequests(HttpRoute httpRoute, NewConnectionAttempt attempt, boolean http2Unavailable) {
-        String key = generateKey(httpRoute);
-        Http2ChannelPool.PerRouteConnectionPool perRouteConnectionPool = this.http2ChannelPool.fetchPerRoutePool(key);
+    public void releaseWaitingRequests(HttpRoute httpRoute, NewConnectionAttempt attempt) {
+        Http2ChannelPool.PerRouteConnectionPool perRouteConnectionPool = fetchPerRoutePool(httpRoute);
         if (perRouteConnectionPool != null) {
-            perRouteConnectionPool.releaseWaitingRequests(attempt, http2Unavailable);
+            perRouteConnectionPool.releaseWaitingRequests(attempt);
         }
     }
+
+    /**
+     * Fails the requests waiting for a new connection on the route with the failure of that connection attempt. The
+     * next request opens a new connection.
+     *
+     * @param httpRoute the route key
+     * @param attempt   the attempt that failed; requests fail only if they are waiting for it
+     * @param failure   the error the waiting requests fail with
+     */
+    public void failWaitingRequests(HttpRoute httpRoute, NewConnectionAttempt attempt,
+                                    ClientConnectorException failure) {
+        Http2ChannelPool.PerRouteConnectionPool perRouteConnectionPool = fetchPerRoutePool(httpRoute);
+        if (perRouteConnectionPool != null) {
+            perRouteConnectionPool.failWaitingRequests(attempt, failure);
+        }
+    }
+
 
     /**
      * Get or create the per route pool.
@@ -144,19 +159,26 @@ public class Http2ConnectionManager {
      * @return Http2ClientChannel, or {@code null} if the caller should open its own connection
      */
     public Http2ClientChannel fetchChannel(HttpRoute httpRoute) {
-        return fetchChannel(httpRoute, null);
+        try {
+            return fetchChannel(httpRoute, null);
+        } catch (ClientConnectorException e) {
+            return null;
+        }
     }
 
     /**
      * Borrow an HTTP/2 client channel. If none is returned and the caller is to open the route's new connection, the
-     * attempt is marked as the opener, and its failure must be reported through
-     * {@link #releaseWaitingRequests(HttpRoute, NewConnectionAttempt, boolean)}.
+     * attempt is marked as the opener, and its outcome must be reported through
+     * {@link #releaseWaitingRequests(HttpRoute, NewConnectionAttempt)} or
+     * {@link #failWaitingRequests(HttpRoute, NewConnectionAttempt, ClientConnectorException)}.
      *
      * @param httpRoute the http route
      * @param attempt   the caller's attempt to get a connection
      * @return Http2ClientChannel
+     * @throws ClientConnectorException the failure of the connection attempt the caller waited for
      */
-    public Http2ClientChannel fetchChannel(HttpRoute httpRoute, NewConnectionAttempt attempt) {
+    public Http2ClientChannel fetchChannel(HttpRoute httpRoute, NewConnectionAttempt attempt)
+            throws ClientConnectorException {
         Http2ChannelPool.PerRouteConnectionPool perRouteConnectionPool;
         perRouteConnectionPool = getOrCreatePerRoutePool(this.http2ChannelPool, generateKey(httpRoute));
         return perRouteConnectionPool.fetchTargetChannel(attempt);

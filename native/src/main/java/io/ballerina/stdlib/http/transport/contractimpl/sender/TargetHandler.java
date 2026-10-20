@@ -17,6 +17,7 @@ package io.ballerina.stdlib.http.transport.contractimpl.sender;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contract.config.KeepAliveConfig;
+import io.ballerina.stdlib.http.transport.contract.exceptions.ClientConnectorException;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.SenderReqRespStateManager;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.TargetChannel;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.ConnectionManager;
@@ -46,6 +47,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Objects;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.CONTENT_DECODING_FAILED;
+import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_OUTBOUND_REQUEST;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.createInboundRespCarbonMsg;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.safelyRemoveHandlers;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil.initHttp2MessageContext;
@@ -121,10 +123,11 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        // Before the response fails, so a request sent on that failure does not wait for this connection
+        releaseWaitingRequestsOnFailure();
         if (!idleTimeoutTriggered) {
             targetChannel.senderReqRespStateManager.handleAbruptChannelClosure(this, httpResponseFuture);
         }
-        releaseWaitingRequestsOnFailure();
         connectionManager.invalidateTargetChannel(targetChannel);
 
         if (handlerExecutor != null) {
@@ -222,7 +225,9 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
         // When SSL completion event is received via UserEventTriggered method, this method can be called before
         // assigning value to connectionManager. Hence the null check
         if (Objects.nonNull(targetChannel)) {
-            targetChannel.reportConnectionAttemptFailed();
+            targetChannel.reportConnectionAttemptFailed(new ClientConnectorException(
+                    targetChannel.getChannel().id().asShortText(),
+                    REMOTE_SERVER_CLOSED_BEFORE_INITIATING_OUTBOUND_REQUEST));
         }
     }
 
