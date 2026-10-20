@@ -249,7 +249,7 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
                         // Response for the upgrade request will arrive in stream 1,
                         // so use 1 as the stream id.
                         if (protocol.equalsIgnoreCase(Constants.HTTP1_TLS_PROTOCOL)) {
-                            targetChannel.releaseRequestsWaitingForHttp2();
+                            targetChannel.reportHttp2Unavailable();
                             http2 = false;
                         }
                         prepareTargetChannelForHttp(channelFuture);
@@ -337,7 +337,7 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
                     httpResponseFuture.notifyHttpListener(cause);
                     httpOutboundRequest
                             .setIoException(new IOException(REMOTE_SERVER_CLOSED_BEFORE_INITIATING_OUTBOUND_REQUEST));
-                    targetChannel.releaseRequestsWaitingForHttp2();
+                    targetChannel.reportConnectionAttemptFailed();
                 }
             });
         } catch (NoSuchElementException failedCause) {
@@ -359,7 +359,7 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
                                                          bootstrapConfig, clientEventGroup);
         } catch (Exception e) {
             // No connection will report back, so release the requests waiting for this one
-            http2ConnectionManager.releaseWaitingRequests(route, newConnectionAttempt);
+            http2ConnectionManager.releaseWaitingRequests(route, newConnectionAttempt, false);
             throw e;
         }
     }

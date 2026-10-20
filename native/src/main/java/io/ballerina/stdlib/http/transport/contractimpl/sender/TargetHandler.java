@@ -151,7 +151,9 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
             if (HttpClientUpgradeHandler.UpgradeEvent.UPGRADE_SUCCESSFUL.name().equals(upgradeEvent.name())) {
                 executePostUpgradeActions(ctx);
             } else if (HttpClientUpgradeHandler.UpgradeEvent.UPGRADE_REJECTED.name().equals(upgradeEvent.name())) {
-                releaseWaitingRequestsOnFailure();
+                if (Objects.nonNull(targetChannel)) {
+                    targetChannel.reportHttp2Unavailable();
+                }
             }
             ctx.fireUserEventTriggered(evt);
         } else {
@@ -220,7 +222,7 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
         // When SSL completion event is received via UserEventTriggered method, this method can be called before
         // assigning value to connectionManager. Hence the null check
         if (Objects.nonNull(targetChannel)) {
-            targetChannel.releaseRequestsWaitingForHttp2();
+            targetChannel.reportConnectionAttemptFailed();
         }
     }
 

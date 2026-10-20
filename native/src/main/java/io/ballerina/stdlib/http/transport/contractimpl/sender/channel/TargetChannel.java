@@ -67,7 +67,8 @@ public class TargetChannel {
     // Each side writes its own field before reading the other's, so whichever runs second releases the waiters.
     private volatile Http2ConnectionManager http2ConnectionManager;
     private volatile NewConnectionAttempt newConnectionAttempt;
-    private volatile boolean notBecomingHttp2;
+    private volatile boolean connectionAttemptEnded;
+    private volatile boolean http2Unavailable;
 
     public TargetChannel(HttpClientChannelInitializer httpClientChannelInitializer, ChannelFuture channelFuture,
                          HttpRoute httpRoute, ConnectionAvailabilityFuture connectionAvailabilityFuture) {
@@ -162,7 +163,7 @@ public class TargetChannel {
     /**
      * Records the route's new HTTP/2 connection attempt this channel is serving, or {@code null} if the requests
      * waiting for a new connection are not waiting for this channel. If the channel already failed to become an HTTP/2
-     * connection, the waiting requests are released at once.
+     * connection, the outcome is reported to the waiting requests at once.
      *
      * @param attempt                the attempt, or {@code null}
      * @param http2ConnectionManager the manager holding the route's pool
@@ -170,20 +171,33 @@ public class TargetChannel {
     public void setNewConnectionAttempt(NewConnectionAttempt attempt, Http2ConnectionManager http2ConnectionManager) {
         this.http2ConnectionManager = http2ConnectionManager;
         this.newConnectionAttempt = attempt;
-        if (notBecomingHttp2) {
-            releaseRequestsWaitingForHttp2();
+        if (connectionAttemptEnded) {
+            endConnectionAttempt();
         }
     }
 
     /**
-     * Marks this channel as one that will not become an HTTP/2 connection, releasing the requests waiting for it if
-     * it was opened as the route's new HTTP/2 connection.
+     * Reports that this channel is connected but did not negotiate HTTP/2. If it was opened as the route's new HTTP/2
+     * connection, each request waiting for that connection opens its own.
      */
-    public void releaseRequestsWaitingForHttp2() {
-        notBecomingHttp2 = true;
+    public void reportHttp2Unavailable() {
+        http2Unavailable = true;
+        endConnectionAttempt();
+    }
+
+    /**
+     * Reports that this channel failed before it became an HTTP/2 connection. If it was opened as the route's new
+     * HTTP/2 connection, one of the requests waiting for that connection opens the next one.
+     */
+    public void reportConnectionAttemptFailed() {
+        endConnectionAttempt();
+    }
+
+    private void endConnectionAttempt() {
+        connectionAttemptEnded = true;
         NewConnectionAttempt attempt = newConnectionAttempt;
         if (attempt != null) {
-            http2ConnectionManager.releaseWaitingRequests(httpRoute, attempt);
+            http2ConnectionManager.releaseWaitingRequests(httpRoute, attempt, http2Unavailable);
         }
     }
 

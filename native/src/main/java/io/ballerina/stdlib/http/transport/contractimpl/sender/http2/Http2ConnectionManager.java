@@ -81,17 +81,19 @@ public class Http2ConnectionManager {
     }
 
     /**
-     * Release the requests waiting for a new connection on the route. If the connection attempt fails or the upgrade
-     * is rejected, no channel is added to the pool, so the waiting requests are released to proceed on their own.
+     * Releases the requests waiting for a new connection on the route when that connection attempt ends without adding
+     * a channel to the pool. If the connection did not negotiate HTTP/2, each waiting request opens its own;
+     * otherwise the attempt failed, and one of them opens the next connection while the rest keep waiting.
      *
-     * @param httpRoute the route key
-     * @param attempt   the failed attempt; requests are released only if they are waiting for it
+     * @param httpRoute        the route key
+     * @param attempt          the attempt that ended; requests are released only if they are waiting for it
+     * @param http2Unavailable whether the connection was made but did not negotiate HTTP/2
      */
-    public void releaseWaitingRequests(HttpRoute httpRoute, NewConnectionAttempt attempt) {
+    public void releaseWaitingRequests(HttpRoute httpRoute, NewConnectionAttempt attempt, boolean http2Unavailable) {
         String key = generateKey(httpRoute);
         Http2ChannelPool.PerRouteConnectionPool perRouteConnectionPool = this.http2ChannelPool.fetchPerRoutePool(key);
         if (perRouteConnectionPool != null) {
-            perRouteConnectionPool.releaseWaitingRequests(attempt);
+            perRouteConnectionPool.releaseWaitingRequests(attempt, http2Unavailable);
         }
     }
 
@@ -135,19 +137,20 @@ public class Http2ConnectionManager {
     }
 
     /**
-     * Borrow an HTTP/2 client channel.
+     * Borrow an HTTP/2 client channel. A caller that gets none must not count on being the route's new connection, as
+     * it cannot report that attempt's failure, so it never makes other callers wait for it.
      *
      * @param httpRoute the http route
-     * @return Http2ClientChannel
+     * @return Http2ClientChannel, or {@code null} if the caller should open its own connection
      */
     public Http2ClientChannel fetchChannel(HttpRoute httpRoute) {
-        return fetchChannel(httpRoute, new NewConnectionAttempt());
+        return fetchChannel(httpRoute, null);
     }
 
     /**
      * Borrow an HTTP/2 client channel. If none is returned and the caller is to open the route's new connection, the
      * attempt is marked as the opener, and its failure must be reported through
-     * {@link #releaseWaitingRequests(HttpRoute, NewConnectionAttempt)}.
+     * {@link #releaseWaitingRequests(HttpRoute, NewConnectionAttempt, boolean)}.
      *
      * @param httpRoute the http route
      * @param attempt   the caller's attempt to get a connection

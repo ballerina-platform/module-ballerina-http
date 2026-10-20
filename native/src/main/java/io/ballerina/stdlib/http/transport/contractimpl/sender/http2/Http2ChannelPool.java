@@ -53,7 +53,7 @@ class Http2ChannelPool {
         NEEDS_OPENER,
         // A caller is opening a connection that has not been added or failed yet, so the rest wait for it
         OPENING,
-        // The last connection attempt did not produce an HTTP/2 connection, so each caller opens its own
+        // The last connection did not negotiate HTTP/2, so each caller opens its own
         OPEN_FREELY
     }
 
@@ -85,7 +85,8 @@ class Http2ChannelPool {
          * it is added to the pool. A caller that waits longer than a positive pool wait time gets {@code null} and
          * opens its own connection, so a connection attempt that never reports back cannot stall the route.
          *
-         * @param attempt the caller's attempt, marked as the opener if the caller is to open the new connection
+         * @param attempt the caller's attempt, marked as the opener if the caller is to open the new connection, or
+         *                {@code null} if the caller cannot report its attempt's failure and so must not be the opener
          * @return active TargetChannel, or {@code null} if the caller should open a new connection
          */
         Http2ClientChannel fetchTargetChannel(NewConnectionAttempt attempt) {
@@ -98,6 +99,9 @@ class Http2ChannelPool {
                         return http2ClientChannel;
                     }
                     if (newChannelState == NewChannelState.NEEDS_OPENER) {
+                        if (attempt == null) {
+                            return null;
+                        }
                         newChannelState = NewChannelState.OPENING;
                         openingAttempt = attempt;
                         attempt.markAsOpener();
@@ -195,15 +199,14 @@ class Http2ChannelPool {
             }
         }
 
-        void releaseWaitingRequests(NewConnectionAttempt attempt) {
+        void releaseWaitingRequests(NewConnectionAttempt attempt, boolean http2Unavailable) {
             lock.lock();
             try {
                 if (attempt == null || attempt != openingAttempt) {
                     return;
                 }
                 openingAttempt = null;
-                // No HTTP/2 connection is coming, so each waiting caller opens its own
-                newChannelState = NewChannelState.OPEN_FREELY;
+                newChannelState = http2Unavailable ? NewChannelState.OPEN_FREELY : NewChannelState.NEEDS_OPENER;
                 channelAvailable.signalAll();
             } finally {
                 lock.unlock();
