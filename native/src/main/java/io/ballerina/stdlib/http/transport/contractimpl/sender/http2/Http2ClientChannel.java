@@ -175,8 +175,7 @@ public class Http2ClientChannel {
      * @param streamId stream id
      */
     public void removeRespondedMessage(int streamId) {
-        Http2Stream stream = connection.stream(streamId);
-        if (stream == null || !stream.state().localSideOpen()) {
+        if (!isRequestStillSending(streamId)) {
             removeInFlightMessage(streamId);
             return;
         }
@@ -188,6 +187,17 @@ public class Http2ClientChannel {
         if (outboundMsgHolder != null) {
             requestsStillSending.put(streamId, outboundMsgHolder);
         }
+    }
+
+    /**
+     * Checks whether the request on a stream is still being sent, that is, the stream's local side is still open.
+     *
+     * @param streamId stream id
+     * @return true if the request has not ended and the stream has not been closed
+     */
+    public boolean isRequestStillSending(int streamId) {
+        Http2Stream stream = connection.stream(streamId);
+        return stream != null && stream.state().localSideOpen();
     }
 
     /**

@@ -31,7 +31,6 @@ import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http2.Http2Error;
 import io.netty.handler.codec.http2.Http2Exception;
 import io.netty.handler.codec.http2.Http2Headers;
-import io.netty.handler.codec.http2.Http2Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -164,14 +163,9 @@ public class Http2ClientTimeoutHandler implements Http2DataEventListener {
         }
         // A request still being sent keeps its timer until the stream closes, so a peer that stops reading it is
         // still timed out.
-        if (endOfStream && !isLocalSideOpen(streamId)) {
+        if (endOfStream && !http2ClientChannel.isRequestStillSending(streamId)) {
             onStreamClose(streamId);
         }
-    }
-
-    private boolean isLocalSideOpen(int streamId) {
-        Http2Stream stream = http2ClientChannel.getConnection().stream(streamId);
-        return stream != null && stream.state().localSideOpen();
     }
 
     private void updateLastWriteTime(int streamId) {
