@@ -31,10 +31,12 @@ import io.ballerina.stdlib.http.transport.util.TestUtil;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultHttpContent;
 import io.netty.handler.codec.http.DefaultHttpRequest;
+import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.LastHttpContent;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -61,8 +63,12 @@ public class ClientEarlyResponseConnectionReuseTestCase {
 
     private static final byte[] PAYLOAD_TOO_LARGE =
             "HTTP/1.1 413 Payload Too Large\r\nContent-Length: 0\r\n\r\n".getBytes(StandardCharsets.US_ASCII);
+    private static final byte[] UNAVAILABLE_HEAD =
+            "HTTP/1.1 503 Service Unavailable\r\nContent-Length: 4\r\n\r\n".getBytes(StandardCharsets.US_ASCII);
+    private static final byte[] UNAVAILABLE_BODY = "busy".getBytes(StandardCharsets.US_ASCII);
 
     private final AtomicInteger acceptedConnections = new AtomicInteger();
+    private final AtomicInteger closedConnections = new AtomicInteger();
     private ServerSocket backend;
     private HttpWsConnectorFactory connectorFactory;
     private HttpClientConnector httpClientConnector;
@@ -89,6 +95,35 @@ public class ClientEarlyResponseConnectionReuseTestCase {
         assertEarlyResponseClosesTheConnection(true);
     }
 
+    @Test
+    public void testConnectionLeftMidRequestIsClosedWhenTheRequestIsSentAgain() throws Exception {
+        int closedBefore = closedConnections.get();
+        HttpCarbonMessage unfinishedUpload = newPost(false, "/slow");
+        Exchange first = send(unfinishedUpload);
+        unfinishedUpload.addHttpContent(new DefaultHttpContent(Unpooled.wrappedBuffer(new byte[1024])));
+        assertEquals(first.responseStatus(), 503);
+        // Sending the request again, as a retry does, clears its I/O error while this response body still arrives.
+        unfinishedUpload.setIoException(null);
+        readToTheEnd(first.listener().getHttpResponseMessage());
+
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+        while (closedConnections.get() == closedBefore && System.nanoTime() < deadline) {
+            Thread.sleep(10);
+        }
+        assertTrue(closedConnections.get() > closedBefore, "The connection left mid-request was kept for reuse");
+    }
+
+    private static void readToTheEnd(HttpCarbonMessage response) {
+        while (true) {
+            HttpContent content = response.getHttpContent();
+            assertNotNull(content, "The response body did not end");
+            content.release();
+            if (content instanceof LastHttpContent) {
+                return;
+            }
+        }
+    }
+
     private void assertEarlyResponseClosesTheConnection(boolean expectContinue) throws Exception {
         int connectionsBefore = acceptedConnections.get();
         HttpCarbonMessage unfinishedUpload = newPost(expectContinue);
@@ -104,11 +139,16 @@ public class ClientEarlyResponseConnectionReuseTestCase {
     }
 
     private HttpCarbonMessage newPost(boolean expectContinue) {
+        return newPost(expectContinue, "/upload");
+    }
+
+    private HttpCarbonMessage newPost(boolean expectContinue, String path) {
         HttpCarbonMessage request = new HttpCarbonMessage(
-                new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, "/upload"));
+                new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, path));
         request.setProperty(Constants.HTTP_PORT, backend.getLocalPort());
         request.setProperty(Constants.PROTOCOL, Constants.HTTP_SCHEME);
         request.setProperty(Constants.HTTP_HOST, TestUtil.TEST_HOST);
+        request.setProperty(Constants.TO, path);
         request.setHttpMethod(Constants.HTTP_POST_METHOD);
         if (expectContinue) {
             request.setHeader(HttpHeaderNames.EXPECT.toString(), HttpHeaderValues.CONTINUE.toString());
@@ -147,7 +187,7 @@ public class ClientEarlyResponseConnectionReuseTestCase {
         }
     }
 
-    private static void respondBeforeReadingTheBody(Socket socket) {
+    private void respondBeforeReadingTheBody(Socket socket) {
         try (socket; InputStream in = socket.getInputStream(); OutputStream out = socket.getOutputStream()) {
             byte[] buffer = new byte[8192];
             StringBuilder received = new StringBuilder();
@@ -155,16 +195,27 @@ public class ClientEarlyResponseConnectionReuseTestCase {
                 while (!received.toString().contains("\r\n\r\n")) {
                     int read = in.read(buffer);
                     if (read < 0) {
+                        closedConnections.incrementAndGet();
                         return;
                     }
                     received.append(new String(buffer, 0, read, StandardCharsets.ISO_8859_1));
                 }
-                out.write(PAYLOAD_TOO_LARGE);
+                if (received.toString().startsWith("POST /slow ")) {
+                    out.write(UNAVAILABLE_HEAD);
+                    out.flush();
+                    Thread.sleep(500);
+                    out.write(UNAVAILABLE_BODY);
+                } else {
+                    out.write(PAYLOAD_TOO_LARGE);
+                }
                 out.flush();
                 received.delete(0, received.indexOf("\r\n\r\n") + 4);
             }
-        } catch (IOException ignored) {
+        } catch (IOException e) {
             // The client closed the connection.
+            closedConnections.incrementAndGet();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 

@@ -105,6 +105,7 @@ public class Sending100Continue implements SenderState {
                 }
                 targetHandler.getOutboundRequestMsg()
                         .setIoException(new IOException(INBOUND_RESPONSE_ALREADY_RECEIVED));
+                senderReqRespStateManager.markRequestBodyIncomplete();
                 senderReqRespStateManager.state = new ReceivingHeaders(senderReqRespStateManager);
                 senderReqRespStateManager.readInboundResponseHeaders(targetHandler, httpInboundResponse);
             } else {
