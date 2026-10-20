@@ -73,7 +73,7 @@ public class Http2ResponseBackPressureTest {
     @Test(description = "Reads suspended by an unwritable response stream resume when the stream completes")
     public void testCompletedResponseStreamResumesSuspendedReads() {
         writer.setStreamWritable(false);
-        writer.getBackPressureObservable().notifyUnWritable();
+        writer.getBackPressureObservable().notifyUnWritableIfStreamUnwritable(() -> false);
         assertFalse(backendChannel.config().isAutoRead());
 
         flowControlListener.removeResponseWriter(writer);

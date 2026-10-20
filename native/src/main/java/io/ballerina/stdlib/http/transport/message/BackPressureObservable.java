@@ -37,11 +37,6 @@ public interface BackPressureObservable {
     void removeListener();
 
     /**
-     * Notify to start throttling.
-     */
-    void notifyUnWritable();
-
-    /**
      * Notify to start throttling if the stream the message is written to is not writable.
      *
      * @param streamWritable reports whether the stream is currently writable
@@ -54,7 +49,7 @@ public interface BackPressureObservable {
     void notifyWritable();
 
     /**
-     * Release throttling if the last notification was {@link #notifyUnWritable()}. Used once the writer can no
+     * Release throttling if the last notification paused the writer. Used once the writer can no
      * longer report writability, so a pause it started is not left in place.
      */
     void notifyWritableIfUnWritable();

@@ -42,7 +42,8 @@ public class DefaultBackPressureObservableTest {
         DefaultBackPressureObservable observable = new DefaultBackPressureObservable();
         observable.setListener(new DefaultBackPressureListener());
 
-        CompletableFuture<Void> blockedWriter = CompletableFuture.runAsync(observable::notifyUnWritable);
+        CompletableFuture<Void> blockedWriter = CompletableFuture.runAsync(
+                () -> observable.notifyUnWritableIfStreamUnwritable(() -> false));
         assertThrows(TimeoutException.class, () -> blockedWriter.get(200, TimeUnit.MILLISECONDS));
 
         CompletableFuture<Void> resume = CompletableFuture.runAsync(() -> {
@@ -54,12 +55,13 @@ public class DefaultBackPressureObservableTest {
         blockedWriter.get(5, TimeUnit.SECONDS);
     }
 
-    // The listener is swapped for a blocking one after the writer saw a non-blocking one but before it took the lock.
+    // A blocking listener replaced while its writer is about to pause belongs to a finished message, so the writer
+    // must not be left blocked on it.
     @Test(timeOut = 30000)
-    public void testWriterDoesNotBlockUnderTheLockWhenABlockingListenerIsSetDuringTheCheck() throws Exception {
+    public void testWriterOfAReplacedBlockingListenerIsNotLeftBlocked() throws Exception {
         DefaultBackPressureObservable observable = new DefaultBackPressureObservable();
-        DefaultBackPressureListener blockingListener = new DefaultBackPressureListener();
-        observable.setListener(new BackPressureListener() {
+        observable.setListener(new DefaultBackPressureListener());
+        BackPressureListener nextListener = new BackPressureListener() {
             @Override
             public void onUnWritable() {
             }
@@ -67,20 +69,12 @@ public class DefaultBackPressureObservableTest {
             @Override
             public void onWritable() {
             }
+        };
 
-            @Override
-            public boolean blocksWriter() {
-                observable.setListener(blockingListener);
-                return false;
-            }
-        });
-
-        CompletableFuture<Void> blockedWriter = CompletableFuture.runAsync(
-                () -> observable.notifyUnWritableIfStreamUnwritable(() -> false));
-        assertThrows(TimeoutException.class, () -> blockedWriter.get(200, TimeUnit.MILLISECONDS));
-
-        CompletableFuture.runAsync(observable::notifyWritable).get(5, TimeUnit.SECONDS);
-        blockedWriter.get(5, TimeUnit.SECONDS);
+        CompletableFuture.runAsync(() -> observable.notifyUnWritableIfStreamUnwritable(() -> {
+            observable.setListener(nextListener);
+            return false;
+        })).get(5, TimeUnit.SECONDS);
     }
 
     @Test
@@ -98,21 +92,35 @@ public class DefaultBackPressureObservableTest {
                 previousPaused.set(false);
             }
         });
-        observable.notifyUnWritable();
+        observable.notifyUnWritableIfStreamUnwritable(() -> false);
 
         observable.setListener(new DefaultBackPressureListener());
 
         assertFalse(previousPaused.get(), "The replaced listener was left paused");
     }
 
-    // The writer checks writability without the monitor, so the stream can finish before it blocks.
+    // A chunk still on its way when the stream finishes must not pause, as nothing would resume it.
     @Test(timeOut = 30000)
-    public void testWriterThatBlocksAfterTheStreamFinishedIsReleased() throws Exception {
+    public void testWriterDoesNotPauseAfterTheStreamFinished() throws Exception {
         DefaultBackPressureObservable observable = new DefaultBackPressureObservable();
         observable.setListener(new DefaultBackPressureListener());
 
-        observable.notifyWritableIfUnWritable();
-        CompletableFuture.runAsync(observable::notifyUnWritable).get(5, TimeUnit.SECONDS);
+        AtomicBoolean writable = new AtomicBoolean(false);
+        StreamWritability stream = new StreamWritability() {
+            @Override
+            public boolean isStreamWritable() {
+                return writable.get();
+            }
+
+            @Override
+            public void setStreamWritable(boolean streamWritable) {
+                writable.set(streamWritable);
+            }
+        };
+
+        observable.streamFinished(stream);
+        CompletableFuture.runAsync(() -> observable.notifyUnWritableIfStreamUnwritable(stream::isStreamWritable))
+                .get(5, TimeUnit.SECONDS);
     }
 
     // A writability change updates the flag and resumes under the observable's monitor. A writer that read the flag

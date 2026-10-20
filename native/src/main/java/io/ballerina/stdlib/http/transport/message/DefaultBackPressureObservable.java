@@ -54,43 +54,29 @@ public class DefaultBackPressureObservable implements BackPressureObservable {
         }
     }
 
-    // Not synchronized: a blocking listener waits here for notifyWritable(), which takes this monitor.
-    @Override
-    public void notifyUnWritable() {
-        pause(listener);
-    }
-
-    private void pause(BackPressureListener currentListener) {
-        if (currentListener != null) {
-            unWritable.set(true);
-            currentListener.onUnWritable();
-        }
-    }
-
-    // A blocking listener is checked without the monitor (its semaphore keeps an earlier release); any other listener
-    // is checked under it, so a stale check cannot pause after a writability change has resumed.
     @Override
     public void notifyUnWritableIfStreamUnwritable(BooleanSupplier streamWritable) {
-        BackPressureListener currentListener = listener;
-        if (currentListener == null || !currentListener.blocksWriter()) {
-            synchronized (this) {
-                currentListener = listener;
-                if (currentListener == null || !currentListener.blocksWriter()) {
-                    pauseIfStreamUnwritable(currentListener, streamWritable);
-                    return;
-                }
+        BackPressureListener blockingListener;
+        synchronized (this) {
+            if (streamWritable.getAsBoolean()) {
+                return;
             }
-        }
-        pauseIfStreamUnwritable(currentListener, streamWritable);
-    }
-
-    private void pauseIfStreamUnwritable(BackPressureListener currentListener, BooleanSupplier streamWritable) {
-        if (!streamWritable.getAsBoolean()) {
+            BackPressureListener currentListener = listener;
+            if (currentListener == null) {
+                return;
+            }
             if (LOG.isDebugEnabled()) {
                 LOG.debug("In thread {}. Stream is not writable.", Thread.currentThread().getName());
             }
-            pause(currentListener);
+            unWritable.set(true);
+            if (!currentListener.blocksWriter()) {
+                currentListener.onUnWritable();
+                return;
+            }
+            blockingListener = currentListener;
         }
+        // Blocks outside the monitor that a resume takes; the semaphore keeps a resume that runs first.
+        blockingListener.onUnWritable();
     }
 
     @Override
@@ -104,9 +90,7 @@ public class DefaultBackPressureObservable implements BackPressureObservable {
     @Override
     public synchronized void notifyWritableIfUnWritable() {
         BackPressureListener currentListener = listener;
-        // A blocking writer checks writability without this monitor, so it may block just after this runs. Its
-        // semaphore keeps the release, and an extra one is harmless once the stream is done.
-        if (currentListener != null && (unWritable.compareAndSet(true, false) || currentListener.blocksWriter())) {
+        if (currentListener != null && unWritable.compareAndSet(true, false)) {
             currentListener.onWritable();
         }
     }

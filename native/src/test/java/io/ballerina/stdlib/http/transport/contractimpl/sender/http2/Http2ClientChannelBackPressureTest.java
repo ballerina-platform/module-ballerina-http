@@ -79,7 +79,7 @@ public class Http2ClientChannelBackPressureTest {
 
     @Test(description = "Reads suspended by an unwritable stream resume when the stream completes")
     public void testCompletedStreamResumesSuspendedInboundReads() {
-        outboundMsgHolder.getBackPressureObservable().notifyUnWritable();
+        outboundMsgHolder.getBackPressureObservable().notifyUnWritableIfStreamUnwritable(() -> false);
         assertFalse(inboundChannel.config().isAutoRead());
 
         http2ClientChannel.removeInFlightMessage(STREAM_ID);
@@ -91,7 +91,7 @@ public class Http2ClientChannelBackPressureTest {
     @Test(description = "A request chunk written after the stream completed does not suspend reads again")
     public void testCompletedStreamIsNotReportedUnwritable() {
         outboundMsgHolder.setStreamWritable(false);
-        outboundMsgHolder.getBackPressureObservable().notifyUnWritable();
+        outboundMsgHolder.getBackPressureObservable().notifyUnWritableIfStreamUnwritable(() -> false);
 
         http2ClientChannel.removeInFlightMessage(STREAM_ID);
 
@@ -102,7 +102,7 @@ public class Http2ClientChannelBackPressureTest {
 
     @Test(description = "Completing a stream does not resume reads that something else suspended")
     public void testCompletedStreamLeavesReadsItDidNotSuspend() {
-        outboundMsgHolder.getBackPressureObservable().notifyUnWritable();
+        outboundMsgHolder.getBackPressureObservable().notifyUnWritableIfStreamUnwritable(() -> false);
         outboundMsgHolder.getBackPressureObservable().notifyWritable();
         inboundChannel.config().setAutoRead(false);
 
@@ -115,7 +115,7 @@ public class Http2ClientChannelBackPressureTest {
     public void testRespondedStreamStillSendingKeepsReadsSuspended() throws Http2Exception {
         Http2Stream stream = connection.local().createStream(STREAM_ID, false);
         outboundMsgHolder.setStreamWritable(false);
-        outboundMsgHolder.getBackPressureObservable().notifyUnWritable();
+        outboundMsgHolder.getBackPressureObservable().notifyUnWritableIfStreamUnwritable(() -> false);
 
         http2ClientChannel.removeRespondedMessage(STREAM_ID);
 
@@ -135,7 +135,7 @@ public class Http2ClientChannelBackPressureTest {
     public void testRespondedStreamAlreadySentResumesReads() throws Http2Exception {
         connection.local().createStream(STREAM_ID, true);
         outboundMsgHolder.setStreamWritable(false);
-        outboundMsgHolder.getBackPressureObservable().notifyUnWritable();
+        outboundMsgHolder.getBackPressureObservable().notifyUnWritableIfStreamUnwritable(() -> false);
 
         http2ClientChannel.removeRespondedMessage(STREAM_ID);
 
