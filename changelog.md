@@ -18,12 +18,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Fix the SSE client reading events far slower than the same payload as a plain response, by reading the body in chunks instead of one byte at a time and parsing fields without regular expressions, and fix it merging or holding back events that end with a mix of line breaks, such as `\n\r\n`, and dropping the line breaks between the `data` lines of an event](https://github.com/ballerina-platform/ballerina-library/issues/9245)
 - [Fix a passthrough service leaking the backend's response buffers when its caller disconnects before the response body has been fully written](https://github.com/ballerina-platform/ballerina-library/issues/9317)
 - [Fix the HTTP/1.1 client reusing a connection left in the middle of a request when the backend responds before the request body is fully sent, which failed the next request on that connection](https://github.com/ballerina-platform/ballerina-library/issues/9318)
-- Fix a streamed body read ending at an empty HTTP/2 DATA frame that does not end the stream, as if the body had ended
+- [Fix a streamed body read ending at an empty HTTP/2 DATA frame that does not end the stream, as if the body had ended](https://github.com/ballerina-platform/ballerina-library/issues/9267)
 
 ### Changed
 
 - [Fail the HTTP/2 client requests waiting for a new connection with that connection attempt's error, instead of each request opening its own connection after the attempt fails](https://github.com/ballerina-platform/ballerina-library/issues/9233)
-- Return an error from `getByteStream(arraySize)` for a non-positive `arraySize`, instead of an endless stream of empty arrays or a failure on the first read
+- [Return an error from `getByteStream(arraySize)` for a non-positive `arraySize`, instead of an endless stream of empty arrays or a failure on the first read](https://github.com/ballerina-platform/ballerina-library/issues/9267)
 
 ## [2.18.1] - 2026-10-16
 
