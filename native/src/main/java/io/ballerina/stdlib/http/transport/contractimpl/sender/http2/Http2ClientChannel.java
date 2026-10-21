@@ -253,6 +253,13 @@ public class Http2ClientChannel {
      *
      * @return number of active streams count
      */
+    /**
+     * Releases the pool slot reserved for a stream that could not be opened.
+     */
+    public void releaseReservedStream() {
+        http2ConnectionManager.releaseStream(httpRoute, this);
+    }
+
     int incrementActiveStreamCount() {
         return activeStreams.incrementAndGet();
     }

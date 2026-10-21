@@ -20,6 +20,7 @@ package io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
 
 import io.ballerina.stdlib.http.transport.contract.exceptions.ClientConnectorException;
 import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
+import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.PoolConfiguration;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonRequest;
 import io.netty.buffer.Unpooled;
@@ -297,6 +298,23 @@ public class Http2ChannelPoolConcurrencyTest {
 
         assertEquals(http2ClientChannel.incrementActiveStreamCount() - 1, 1,
                      "Only the stream the server accepted should still hold a slot");
+    }
+
+    @Test(description = "A stream the connection refuses to open must not keep its slot")
+    public void testStreamThatCannotBeOpenedReleasesItsSlot() throws Exception {
+        Http2ConnectionManager connectionManager = newConnectionManager(2, 60000);
+        assertNull(fetch(connectionManager), "The first request should open the connection");
+        Http2ClientChannel http2ClientChannel = newHttp2ClientChannel(connectionManager);
+        connectionManager.addHttp2ClientChannel(ROUTE, http2ClientChannel);
+        openStream(http2ClientChannel);
+        // The server allows fewer concurrent streams than the pool expects
+        http2ClientChannel.getConnection().local().maxActiveStreams(1);
+
+        assertSame(fetch(connectionManager), http2ClientChannel, "The channel should take one more");
+        expectThrows(Http2Exception.class, () -> Http2StateUtil.initiateStream(null,
+                http2ClientChannel.getConnection(), http2ClientChannel, newOutboundMsgHolder()));
+
+        assertSame(fetch(connectionManager), http2ClientChannel, "The refused stream still holds its slot");
     }
 
     private static OutboundMsgHolder newOutboundMsgHolder() {
