@@ -484,8 +484,9 @@ class EntityByteStream {
 
     public isolated function close() returns io:Error? {
         if !self.isClosed {
-            check externCloseByteStream(self.entity);
+            // Closed even if closing fails, as the channel cannot be read or closed again after a failed close
             self.isClosed = true;
+            check externCloseByteStream(self.entity);
         }
     }
 }

@@ -64,8 +64,9 @@ class BytesToEventStreamGenerator {
     }
 
     public isolated function close() returns error? {
-        check self.byteStream.close();
+        // Closed even if closing fails, as the stream cannot be read or closed again after a failed close
         self.isClosed = true;
+        check self.byteStream.close();
     }
 
     private isolated function readUntilDoubleLineBreaks() returns byte[]|error? {
