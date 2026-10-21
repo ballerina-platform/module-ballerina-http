@@ -68,7 +68,8 @@ public class ClientEarlyResponseConnectionReuseTestCase {
     private static final byte[] UNAVAILABLE_BODY = "busy".getBytes(StandardCharsets.US_ASCII);
 
     private final AtomicInteger acceptedConnections = new AtomicInteger();
-    private final AtomicInteger closedConnections = new AtomicInteger();
+    private final CountDownLatch slowBodyReleased = new CountDownLatch(1);
+    private final CountDownLatch slowConnectionClosed = new CountDownLatch(1);
     private ServerSocket backend;
     private HttpWsConnectorFactory connectorFactory;
     private HttpClientConnector httpClientConnector;
@@ -97,20 +98,17 @@ public class ClientEarlyResponseConnectionReuseTestCase {
 
     @Test
     public void testConnectionLeftMidRequestIsClosedWhenTheRequestIsSentAgain() throws Exception {
-        int closedBefore = closedConnections.get();
         HttpCarbonMessage unfinishedUpload = newPost(false, "/slow");
         Exchange first = send(unfinishedUpload);
         unfinishedUpload.addHttpContent(new DefaultHttpContent(Unpooled.wrappedBuffer(new byte[1024])));
         assertEquals(first.responseStatus(), 503);
         // Sending the request again, as a retry does, clears its I/O error while this response body still arrives.
         unfinishedUpload.setIoException(null);
+        slowBodyReleased.countDown();
         readToTheEnd(first.listener().getHttpResponseMessage());
 
-        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
-        while (closedConnections.get() == closedBefore && System.nanoTime() < deadline) {
-            Thread.sleep(10);
-        }
-        assertTrue(closedConnections.get() > closedBefore, "The connection left mid-request was kept for reuse");
+        assertTrue(slowConnectionClosed.await(5, TimeUnit.SECONDS),
+                   "The connection left mid-request was kept for reuse");
     }
 
     private static void readToTheEnd(HttpCarbonMessage response) {
@@ -188,6 +186,7 @@ public class ClientEarlyResponseConnectionReuseTestCase {
     }
 
     private void respondBeforeReadingTheBody(Socket socket) {
+        boolean servedSlowResponse = false;
         try (socket; InputStream in = socket.getInputStream(); OutputStream out = socket.getOutputStream()) {
             byte[] buffer = new byte[8192];
             StringBuilder received = new StringBuilder();
@@ -195,15 +194,17 @@ public class ClientEarlyResponseConnectionReuseTestCase {
                 while (!received.toString().contains("\r\n\r\n")) {
                     int read = in.read(buffer);
                     if (read < 0) {
-                        closedConnections.incrementAndGet();
                         return;
                     }
                     received.append(new String(buffer, 0, read, StandardCharsets.ISO_8859_1));
                 }
                 if (received.toString().startsWith("POST /slow ")) {
+                    servedSlowResponse = true;
                     out.write(UNAVAILABLE_HEAD);
                     out.flush();
-                    Thread.sleep(500);
+                    if (!slowBodyReleased.await(10, TimeUnit.SECONDS)) {
+                        return;
+                    }
                     out.write(UNAVAILABLE_BODY);
                 } else {
                     out.write(PAYLOAD_TOO_LARGE);
@@ -213,9 +214,12 @@ public class ClientEarlyResponseConnectionReuseTestCase {
             }
         } catch (IOException e) {
             // The client closed the connection.
-            closedConnections.incrementAndGet();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+        } finally {
+            if (servedSlowResponse) {
+                slowConnectionClosed.countDown();
+            }
         }
     }
 

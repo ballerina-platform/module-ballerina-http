@@ -111,8 +111,13 @@ public class Http2RespondedAbortedRequestBodyTest {
         assertTrue(responseEnd instanceof LastHttpContent, "The response did not end: " + responseEnd);
         responseEnd.release();
         if (resetAfterResponse) {
-            // Let the client close the stream on the backend's RST_STREAM before the body fails.
-            Thread.sleep(500);
+            // Frames on a connection are handled in order, so once this response arrives the client has handled the
+            // RST_STREAM sent before it and closed the stream.
+            HttpCarbonMessage barrier = createRequest();
+            CountDownLatch barrierResponded = new CountDownLatch(1);
+            client.send(barrier).setHttpConnectorListener(new DefaultHttpConnectorListener(barrierResponded));
+            barrier.addHttpContent(new DefaultLastHttpContent());
+            assertTrue(barrierResponded.await(10, TimeUnit.SECONDS), "The backend did not answer the second request");
         }
 
         LastHttpContent abortedEnd = new DefaultLastHttpContent();
@@ -161,8 +166,8 @@ public class Http2RespondedAbortedRequestBodyTest {
     }
 
     /**
-     * Sends a complete response as soon as the request headers arrive, optionally followed by RST_STREAM(NO_ERROR) as
-     * RFC 9113 section 8.1 allows, and records a request ended with END_STREAM.
+     * Sends a complete response as soon as the request headers arrive, optionally followed, for a request with a body
+     * still to come, by RST_STREAM(NO_ERROR) as RFC 9113 section 8.1 allows. Records a request ended with END_STREAM.
      */
     private static final class CompleteResponseBackend extends ChannelInboundHandlerAdapter {
         private final BlockingQueue<String> requestEnds;
@@ -178,7 +183,7 @@ public class Http2RespondedAbortedRequestBodyTest {
             if (msg instanceof Http2HeadersFrame headersFrame) {
                 ctx.write(new DefaultHttp2HeadersFrame(new DefaultHttp2Headers().status("200"), true)
                                   .stream(headersFrame.stream()));
-                if (resetAfterResponse) {
+                if (resetAfterResponse && !headersFrame.isEndStream()) {
                     ctx.write(new DefaultHttp2ResetFrame(Http2Error.NO_ERROR).stream(headersFrame.stream()));
                 }
                 ctx.flush();
