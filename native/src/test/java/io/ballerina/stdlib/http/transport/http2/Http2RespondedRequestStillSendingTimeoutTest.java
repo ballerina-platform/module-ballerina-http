@@ -48,9 +48,11 @@ import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http2.DefaultHttp2Headers;
 import io.netty.handler.codec.http2.DefaultHttp2HeadersFrame;
 import io.netty.handler.codec.http2.Http2DataFrame;
+import io.netty.handler.codec.http2.Http2Error;
 import io.netty.handler.codec.http2.Http2FrameCodecBuilder;
 import io.netty.handler.codec.http2.Http2FrameStream;
 import io.netty.handler.codec.http2.Http2HeadersFrame;
+import io.netty.handler.codec.http2.Http2ResetFrame;
 import io.netty.util.ReferenceCountUtil;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
@@ -58,6 +60,7 @@ import org.testng.annotations.Test;
 import java.io.UncheckedIOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import static io.ballerina.stdlib.http.transport.util.TestUtil.HTTP_SERVER_PORT;
@@ -71,8 +74,14 @@ import static org.testng.Assert.assertTrue;
 public class Http2RespondedRequestStillSendingTimeoutTest {
 
     private static final int CHUNK_SIZE = 16 * 1024;
+    // The response comes well after the writer pauses and well before the idle timeout, so the request times out
+    // only once its response has ended.
+    private static final int IDLE_TIMEOUT_MILLIS = 3000;
+    private static final int RESPONSE_DELAY_MILLIS = 500;
 
     private final CountDownLatch requestHeadersReceived = new CountDownLatch(1);
+    private final Semaphore dataFramesReceived = new Semaphore(0);
+    private final CompletableFuture<Long> resetErrorCode = new CompletableFuture<>();
     private EventLoopGroup serverGroup;
     private Channel serverChannel;
     private HttpWsConnectorFactory connectorFactory;
@@ -92,10 +101,14 @@ public class Http2RespondedRequestStillSendingTimeoutTest {
 
         CompletableFuture<String> writer = CompletableFuture.supplyAsync(() -> {
             try {
-                // Paced so the event loop writes each chunk, and the stream turns unwritable, before the next one.
+                // Paced by the backend receiving each chunk until the window is used up, so the stream has turned
+                // unwritable before the writer adds the chunk it pauses on.
+                boolean windowOpen = true;
                 for (int i = 0; i < 256; i++) {
                     request.addHttpContent(new DefaultHttpContent(Unpooled.wrappedBuffer(new byte[CHUNK_SIZE])));
-                    Thread.sleep(10);
+                    if (windowOpen) {
+                        windowOpen = dataFramesReceived.tryAcquire(100, TimeUnit.MILLISECONDS);
+                    }
                 }
                 return "the whole body was accepted";
             } catch (UncheckedIOException e) {
@@ -110,6 +123,8 @@ public class Http2RespondedRequestStillSendingTimeoutTest {
         assertNotNull(listener.getHttpResponseMessage(), "Expected a response, got " + listener.getHttpErrorMessage());
         assertEquals(writer.get(20, TimeUnit.SECONDS),
                      Constants.IDLE_TIMEOUT_TRIGGERED_WHILE_WRITING_OUTBOUND_REQUEST_BODY);
+        assertEquals(resetErrorCode.get(10, TimeUnit.SECONDS).longValue(), Http2Error.CANCEL.code(),
+                     "The timed-out stream was not reset with CANCEL");
     }
 
     private HttpClientConnector createClient() {
@@ -118,7 +133,7 @@ public class Http2RespondedRequestStillSendingTimeoutTest {
         senderConfiguration.setScheme(Constants.HTTP_SCHEME);
         senderConfiguration.setHttpVersion(Constants.HTTP_2_0);
         senderConfiguration.setForceHttp2(true);
-        senderConfiguration.setSocketIdleTimeout(1000);
+        senderConfiguration.setSocketIdleTimeout(IDLE_TIMEOUT_MILLIS);
         return connectorFactory.createHttpClientConnector(
                 HttpConnectorUtil.getTransportProperties(new TransportsConfiguration()), senderConfiguration);
     }
@@ -132,7 +147,8 @@ public class Http2RespondedRequestStillSendingTimeoutTest {
                     @Override
                     protected void initChannel(SocketChannel ch) {
                         ch.pipeline().addLast(Http2FrameCodecBuilder.forServer().build(),
-                                              new RespondOnceTheWindowIsUsedUp(requestHeadersReceived));
+                                              new RespondOnceTheWindowIsUsedUp(requestHeadersReceived,
+                                                                               dataFramesReceived, resetErrorCode));
                     }
                 })
                 .bind(HTTP_SERVER_PORT).sync().channel();
@@ -164,31 +180,40 @@ public class Http2RespondedRequestStillSendingTimeoutTest {
     }
 
     /**
-     * Never returns flow-control window for the request body, and sends a complete response a second after the
+     * Never returns flow-control window for the request body, and sends a complete response shortly after the
      * stream's initial window has been used up, so the client's writer is already paused when the response ends.
+     * Records the error code of the client's reset.
      */
     private static final class RespondOnceTheWindowIsUsedUp extends ChannelInboundHandlerAdapter {
         private final CountDownLatch requestHeadersReceived;
+        private final Semaphore dataFramesReceived;
+        private final CompletableFuture<Long> resetErrorCode;
         private int received;
         private boolean responded;
 
-        RespondOnceTheWindowIsUsedUp(CountDownLatch requestHeadersReceived) {
+        RespondOnceTheWindowIsUsedUp(CountDownLatch requestHeadersReceived, Semaphore dataFramesReceived,
+                                     CompletableFuture<Long> resetErrorCode) {
             this.requestHeadersReceived = requestHeadersReceived;
+            this.dataFramesReceived = dataFramesReceived;
+            this.resetErrorCode = resetErrorCode;
         }
 
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) {
             if (msg instanceof Http2HeadersFrame) {
                 requestHeadersReceived.countDown();
+            } else if (msg instanceof Http2ResetFrame resetFrame) {
+                resetErrorCode.complete(resetFrame.errorCode());
             } else if (msg instanceof Http2DataFrame dataFrame) {
                 received += dataFrame.content().readableBytes();
+                dataFramesReceived.release();
                 if (!responded && received >= 65535) {
                     responded = true;
                     // Delayed so the client's writer has paused on the shut window before the response ends.
                     Http2FrameStream stream = dataFrame.stream();
                     ctx.executor().schedule(() -> ctx.writeAndFlush(
                             new DefaultHttp2HeadersFrame(new DefaultHttp2Headers().status("413"), true).stream(stream)),
-                                            1, TimeUnit.SECONDS);
+                                            RESPONSE_DELAY_MILLIS, TimeUnit.MILLISECONDS);
                 }
             }
             ReferenceCountUtil.release(msg);
