@@ -42,6 +42,7 @@ import io.netty.handler.codec.http2.Http2ConnectionEncoder;
 import io.netty.handler.codec.http2.Http2Exception;
 import io.netty.handler.codec.http2.Http2Headers;
 import io.netty.handler.codec.http2.HttpConversionUtil;
+import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -167,7 +168,15 @@ public class SendingHeaders implements SenderState {
     private void writeHeaders(ChannelHandlerContext ctx, HttpContent msg) throws Http2Exception {
         // Initiate the stream
         boolean endStream = false;
-        this.streamId = initiateStream(ctx, connection, http2ClientChannel, outboundMsgHolder);
+        try {
+            this.streamId = initiateStream(ctx, connection, http2ClientChannel, outboundMsgHolder);
+        } catch (Http2Exception e) {
+            // The request fails with this error, so the rest of its body must not try to open the stream again
+            http2MessageStateContext.setSenderState(new StreamNotOpened());
+            httpOutboundRequest.setIoException(new IOException(e.getMessage(), e));
+            ReferenceCountUtil.release(msg);
+            throw e;
+        }
         http2RequestWriter.setStreamId(streamId);
         HttpRequest httpRequest = Util.createHttpRequest(httpOutboundRequest);
 

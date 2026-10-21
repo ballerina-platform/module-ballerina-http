@@ -25,7 +25,10 @@ import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.PoolC
 import io.ballerina.stdlib.http.transport.message.HttpCarbonRequest;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.embedded.EmbeddedChannel;
+import io.netty.handler.codec.http.DefaultHttpContent;
 import io.netty.handler.codec.http.DefaultHttpRequest;
+import io.netty.handler.codec.http.DefaultLastHttpContent;
+import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http2.DefaultHttp2Connection;
@@ -315,6 +318,34 @@ public class Http2ChannelPoolConcurrencyTest {
                 http2ClientChannel.getConnection(), http2ClientChannel, newOutboundMsgHolder()));
 
         assertSame(fetch(connectionManager), http2ClientChannel, "The refused stream still holds its slot");
+    }
+
+    @Test(description = "The rest of a request whose stream was refused must not release the slot again")
+    public void testLaterChunksOfARefusedRequestDoNotReleaseTheSlotAgain() throws Exception {
+        Http2ConnectionManager connectionManager = newConnectionManager(2, 60000);
+        assertNull(fetch(connectionManager), "The first request should open the connection");
+        Http2ClientChannel http2ClientChannel = newHttp2ClientChannel(connectionManager);
+        connectionManager.addHttp2ClientChannel(ROUTE, http2ClientChannel);
+        openStream(http2ClientChannel);
+        http2ClientChannel.getConnection().local().maxActiveStreams(1);
+        assertSame(fetch(connectionManager), http2ClientChannel, "The channel should take one more");
+
+        Http2TargetHandler targetHandler = new Http2TargetHandler(http2ClientChannel.getConnection(), null);
+        targetHandler.setHttp2ClientChannel(http2ClientChannel);
+        Http2TargetHandler.Http2RequestWriter requestWriter =
+                targetHandler.new Http2RequestWriter(newOutboundMsgHolder());
+        List<HttpContent> body = List.of(new DefaultHttpContent(Unpooled.wrappedBuffer(new byte[16])),
+                                         new DefaultHttpContent(Unpooled.wrappedBuffer(new byte[16])),
+                                         new DefaultLastHttpContent(Unpooled.wrappedBuffer(new byte[16])));
+        expectThrows(Http2Exception.class, () -> requestWriter.writeContent(null, body.get(0)));
+        requestWriter.writeContent(null, body.get(1));
+        requestWriter.writeContent(null, body.get(2));
+
+        for (HttpContent content : body) {
+            assertEquals(content.refCnt(), 0, "A chunk of the refused request was not released");
+        }
+        assertSame(fetch(connectionManager), http2ClientChannel, "The released slot should be reused");
+        assertNull(fetch(connectionManager), "The channel was full, but handed out a third stream");
     }
 
     private static OutboundMsgHolder newOutboundMsgHolder() {
