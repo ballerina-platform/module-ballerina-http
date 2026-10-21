@@ -25,8 +25,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -39,7 +39,8 @@ import java.util.concurrent.locks.ReentrantLock;
 class Http2ChannelPool {
 
     private static final Logger LOG = LoggerFactory.getLogger(Http2ChannelPool.class);
-    private final Map<String, PerRouteConnectionPool> perRouteConnectionPools = new HashMap<>();
+    // Written under the connection manager's lock but read without it, including from event loops
+    private final Map<String, PerRouteConnectionPool> perRouteConnectionPools = new ConcurrentHashMap<>();
 
     PerRouteConnectionPool fetchPerRoutePool(String key) {
         return perRouteConnectionPools.get(key);
