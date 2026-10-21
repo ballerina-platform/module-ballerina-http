@@ -21,9 +21,15 @@ package io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
 import io.ballerina.stdlib.http.transport.contract.exceptions.ClientConnectorException;
 import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.PoolConfiguration;
+import io.ballerina.stdlib.http.transport.message.HttpCarbonRequest;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.embedded.EmbeddedChannel;
+import io.netty.handler.codec.http.DefaultHttpRequest;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http2.DefaultHttp2Connection;
 import io.netty.handler.codec.http2.Http2Connection;
+import io.netty.handler.codec.http2.Http2Error;
 import io.netty.handler.codec.http2.Http2Exception;
 import io.netty.handler.codec.http2.Http2Stream;
 import org.testng.annotations.Test;
@@ -38,6 +44,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertSame;
@@ -271,6 +278,30 @@ public class Http2ChannelPoolConcurrencyTest {
 
         assertSame(fetch(connectionManager), http2ClientChannel, "The channel should take one more");
         assertNull(fetch(connectionManager), "The channel was full, but handed out a third stream");
+    }
+
+    @Test(description = "A stream refused by GOAWAY must release its slot once, when Netty closes it")
+    public void testStreamRefusedByGoAwayIsReleasedOnce() throws Exception {
+        Http2ConnectionManager connectionManager = newConnectionManager(100, 60000);
+        assertNull(fetch(connectionManager), "The first request should open the connection");
+        Http2ClientChannel http2ClientChannel = newHttp2ClientChannel(connectionManager);
+        connectionManager.addHttp2ClientChannel(ROUTE, http2ClientChannel);
+        Http2Stream acceptedStream = openStream(http2ClientChannel);
+        http2ClientChannel.putInFlightMessage(acceptedStream.id(), newOutboundMsgHolder());
+        assertSame(fetch(connectionManager), http2ClientChannel, "The channel should take one more");
+        Http2Stream refusedStream = openStream(http2ClientChannel);
+        http2ClientChannel.putInFlightMessage(refusedStream.id(), newOutboundMsgHolder());
+
+        http2ClientChannel.getConnection().goAwayReceived(acceptedStream.id(), Http2Error.NO_ERROR.code(),
+                                                          Unpooled.EMPTY_BUFFER);
+
+        assertEquals(http2ClientChannel.incrementActiveStreamCount() - 1, 1,
+                     "Only the stream the server accepted should still hold a slot");
+    }
+
+    private static OutboundMsgHolder newOutboundMsgHolder() {
+        return new OutboundMsgHolder(
+                new HttpCarbonRequest(new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "/")));
     }
 
     private static void assertStillWaiting(Future<Http2ClientChannel> request) throws Exception {
