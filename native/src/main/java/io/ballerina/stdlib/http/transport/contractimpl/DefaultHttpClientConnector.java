@@ -340,11 +340,6 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
                             .setIoException(new IOException(REMOTE_SERVER_CLOSED_BEFORE_INITIATING_OUTBOUND_REQUEST));
                 }
             });
-        } catch (NoSuchElementException failedCause) {
-            if ("Timeout waiting for idle object".equals(failedCause.getMessage())) {
-                failedCause = new NoSuchElementException(Constants.MAXIMUM_WAIT_TIME_EXCEED);
-            }
-            return notifyListenerAndGetErrorResponseFuture(failedCause);
         } catch (Exception failedCause) {
             return notifyListenerAndGetErrorResponseFuture(failedCause);
         }
@@ -358,10 +353,16 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
             return connectionManager.borrowTargetChannel(route, srcHandler, http2SourceHandler, senderConfiguration,
                                                          bootstrapConfig, clientEventGroup);
         } catch (Exception e) {
-            // No connection will report back, so fail the requests waiting for this one
-            http2ConnectionManager.failWaitingRequests(route, newConnectionAttempt,
-                                                       new ClientConnectorException(null, e.getMessage()));
-            throw e;
+            Exception failure = e;
+            if (e instanceof NoSuchElementException && "Timeout waiting for idle object".equals(e.getMessage())) {
+                failure = new NoSuchElementException(Constants.MAXIMUM_WAIT_TIME_EXCEED, e);
+            }
+            // No connection will report back, so fail the requests waiting for this one with the same error
+            ClientConnectorException waiterFailure = new ClientConnectorException(null,
+                    Objects.requireNonNullElse(failure.getMessage(), failure.toString()));
+            waiterFailure.initCause(failure);
+            http2ConnectionManager.failWaitingRequests(route, newConnectionAttempt, waiterFailure);
+            throw failure;
         }
     }
 
