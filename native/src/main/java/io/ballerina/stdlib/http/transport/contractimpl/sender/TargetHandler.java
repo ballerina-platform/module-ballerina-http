@@ -153,10 +153,9 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
             HttpClientUpgradeHandler.UpgradeEvent upgradeEvent = (HttpClientUpgradeHandler.UpgradeEvent) evt;
             if (HttpClientUpgradeHandler.UpgradeEvent.UPGRADE_SUCCESSFUL.name().equals(upgradeEvent.name())) {
                 executePostUpgradeActions(ctx);
-            } else if (HttpClientUpgradeHandler.UpgradeEvent.UPGRADE_REJECTED.name().equals(upgradeEvent.name())) {
-                if (Objects.nonNull(targetChannel)) {
-                    targetChannel.reportHttp2Unavailable();
-                }
+            } else if (HttpClientUpgradeHandler.UpgradeEvent.UPGRADE_REJECTED.name().equals(upgradeEvent.name())
+                    && Objects.nonNull(targetChannel)) {
+                targetChannel.reportHttp2Unavailable();
             }
             ctx.fireUserEventTriggered(evt);
         } else {

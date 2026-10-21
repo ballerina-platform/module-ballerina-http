@@ -64,10 +64,12 @@ public class DefaultBackPressureObservableTest {
         BackPressureListener nextListener = new BackPressureListener() {
             @Override
             public void onUnWritable() {
+                // Does not block; the test only needs a listener to replace the blocking one with.
             }
 
             @Override
             public void onWritable() {
+                // Nothing to resume, as onUnWritable never pauses.
             }
         };
 

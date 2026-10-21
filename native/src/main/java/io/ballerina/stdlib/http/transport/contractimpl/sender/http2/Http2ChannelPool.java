@@ -106,28 +106,19 @@ class Http2ChannelPool {
                     if (awaited != null && awaited.getFailure() != null) {
                         throw awaited.getFailure();
                     }
-                    if (newChannelState == NewChannelState.NEEDS_OPENER) {
-                        if (attempt == null) {
-                            return null;
-                        }
-                        newChannelState = NewChannelState.OPENING;
-                        openingAttempt = attempt;
-                        attempt.markAsOpener();
+                    if (opensItsOwnConnection(attempt)) {
                         return null;
                     }
-                    if (newChannelState == NewChannelState.OPEN_FREELY) {
+                    if (maxWaitTimeNanos > 0 && remainingNanos <= 0) {
+                        LOG.warn("Timed out waiting for a new HTTP/2 connection, opening another connection");
                         return null;
                     }
                     awaited = openingAttempt;
                     if (maxWaitTimeNanos <= 0) {  // a non-positive wait time means wait without a limit
                         channelAvailable.await();
-                        continue;
+                    } else {
+                        remainingNanos = channelAvailable.awaitNanos(remainingNanos);
                     }
-                    if (remainingNanos <= 0) {
-                        LOG.warn("Timed out waiting for a new HTTP/2 connection, opening another connection");
-                        return null;
-                    }
-                    remainingNanos = channelAvailable.awaitNanos(remainingNanos);
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -136,6 +127,22 @@ class Http2ChannelPool {
             } finally {
                 lock.unlock();
             }
+        }
+
+        // Claims the opening of the route's new connection when none is being opened, so the caller does not wait
+        private boolean opensItsOwnConnection(NewConnectionAttempt attempt) {
+            if (newChannelState == NewChannelState.OPEN_FREELY) {
+                return true;
+            }
+            if (newChannelState != NewChannelState.NEEDS_OPENER) {
+                return false;
+            }
+            if (attempt != null) {
+                newChannelState = NewChannelState.OPENING;
+                openingAttempt = attempt;
+                attempt.markAsOpener();
+            }
+            return true;
         }
 
         private Http2ClientChannel reserveStream() {
