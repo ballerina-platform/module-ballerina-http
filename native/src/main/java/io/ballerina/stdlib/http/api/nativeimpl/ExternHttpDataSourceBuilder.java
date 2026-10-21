@@ -19,8 +19,10 @@
 package io.ballerina.stdlib.http.api.nativeimpl;
 
 import io.ballerina.runtime.api.Environment;
+import io.ballerina.runtime.api.Module;
 import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
+import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.stdlib.http.api.HttpUtil;
@@ -228,10 +230,12 @@ public class ExternHttpDataSourceBuilder extends MimeDataSourceBuilder {
     }
 
     private static BError createReadError(Exception cause) {
-        BError error = IOUtils.createError(IOConstants.ErrorCode.GenericError,
-                                           "Error occurred while reading stream: " + cause.getMessage());
-        return ErrorCreator.createError(error.getType(), error.getErrorMessage(), ErrorCreator.createError(cause),
-                                        null);
+        // Built like IOUtils.createError, which has no variant that keeps a cause
+        Module ioModule = IOUtils.createError(IOConstants.ErrorCode.GenericError, "").getType().getPackage();
+        return ErrorCreator.createError(ioModule, IOConstants.ErrorCode.GenericError.errorCode(),
+                                        StringUtils.fromString("Error occurred while reading stream: "
+                                                                       + cause.getMessage()),
+                                        ErrorCreator.createError(cause), null);
     }
 
     // Reused across reads, as most reads of a streamed body return fewer bytes than the array size.
