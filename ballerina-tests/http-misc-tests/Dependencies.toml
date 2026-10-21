@@ -362,7 +362,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "uuid"
-version = "1.10.2"
+version = "1.10.0"
 dependencies = [
 	{org = "ballerina", name = "crypto"},
 	{org = "ballerina", name = "jballerina.java"},
