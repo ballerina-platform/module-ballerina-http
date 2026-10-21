@@ -57,13 +57,15 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
  * Replies to {@code /chunks/400,400,400?delay=50} with those chunk sizes flushed 50 ms apart, to
  * {@code /sse/3,1,5?delay=50} with the request body sent back as {@code text/event-stream} in chunks of those sizes
  * (the last chunk carries whatever is left), and to {@code /malformed} with a response the client cannot decode.
+ * {@code truncate=true} closes the connection after the last chunk instead of ending the body.
  */
 final class ChunkedResponseTestServer {
 
     private static final Logger log = LoggerFactory.getLogger(ChunkedResponseTestServer.class);
 
     private static final String PATH_MALFORMED = "/malformed";
-    private static final String PATH_SSE_PREFIX = "/sse/";
+    private static final String PATH_SSE = "/sse";
+    private static final String PATH_SSE_PREFIX = PATH_SSE + '/';
     private static final int MAX_REQUEST_BODY_SIZE = 1024 * 1024;
     private static final String MALFORMED_RESPONSE = "HTTP/1.1 200 OK\r\nContent-Length: abc\r\n\r\n";
     private static final Map<Integer, RunningServer> SERVERS = new ConcurrentHashMap<>();
@@ -113,6 +115,7 @@ final class ChunkedResponseTestServer {
                     .mapToInt(Integer::parseInt).toArray();
             List<String> delay = decoder.parameters().get("delay");
             long delayMillis = delay == null ? 0 : Long.parseLong(delay.get(0));
+            boolean truncate = decoder.parameters().containsKey("truncate");
 
             HttpResponse response = new DefaultHttpResponse(HTTP_1_1, OK);
             HttpUtil.setTransferEncodingChunked(response, true);
@@ -126,7 +129,7 @@ final class ChunkedResponseTestServer {
                 Arrays.fill(body, (byte) 'x');
             }
             ctx.writeAndFlush(response);
-            writeChunk(ctx, body, 0, chunkSizes, 0, delayMillis);
+            writeChunk(ctx, body, 0, chunkSizes, 0, delayMillis, truncate);
         }
 
         // Applies the requested sizes in turn and sends whatever is left of the body as the final chunk.
@@ -148,17 +151,21 @@ final class ChunkedResponseTestServer {
         }
 
         private void writeChunk(ChannelHandlerContext ctx, byte[] body, int offset, int[] chunkSizes, int index,
-                                long delayMillis) {
+                                long delayMillis, boolean truncate) {
             if (!ctx.channel().isActive()) {
                 return;
             }
             if (index == chunkSizes.length) {
-                ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+                if (truncate) {
+                    ctx.close();
+                } else {
+                    ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+                }
                 return;
             }
             ctx.executor().schedule(() -> {
                 ctx.writeAndFlush(new DefaultHttpContent(Unpooled.wrappedBuffer(body, offset, chunkSizes[index])));
-                writeChunk(ctx, body, offset + chunkSizes[index], chunkSizes, index + 1, delayMillis);
+                writeChunk(ctx, body, offset + chunkSizes[index], chunkSizes, index + 1, delayMillis, truncate);
             }, index == 0 ? 0 : delayMillis, TimeUnit.MILLISECONDS);
         }
 

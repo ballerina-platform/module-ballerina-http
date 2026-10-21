@@ -303,6 +303,21 @@ isolated function assertEventStream(stream<http:SseEvent, error?> actualSseEvent
 }
 
 @test:Config {}
+function testSseReadFailureKeepsItsCause() returns error? {
+    http:Response response = check sseChunkedClient->post("/sse/64?truncate=true", "data: first\n\n".toBytes());
+    stream<http:SseEvent, error?> events = check response.getSseEventStream();
+    record {|http:SseEvent value;|}? first = check events.next();
+    test:assertEquals(first?.value?.data, "first");
+
+    record {|http:SseEvent value;|}|error? failed = events.next();
+    if failed is error {
+        test:assertTrue(failed.cause() is error, "The error reading the truncated body lost its cause");
+    } else {
+        test:assertFail("Expected the truncated body to fail the event stream");
+    }
+}
+
+@test:Config {}
 function testByteStreamRejectsNonPositiveArraySize() returns error? {
     foreach int arraySize in [0, -1] {
         http:Response response = check sseChunkedClient->post("/sse/4", "data: x\n\n".toBytes());
