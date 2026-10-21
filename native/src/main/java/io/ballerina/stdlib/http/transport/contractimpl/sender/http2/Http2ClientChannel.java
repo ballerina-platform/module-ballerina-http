@@ -28,6 +28,8 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.handler.codec.http2.Http2Connection;
 import io.netty.handler.codec.http2.Http2EventAdapter;
+import io.netty.handler.codec.http2.Http2Exception;
+import io.netty.handler.codec.http2.Http2NoMoreStreamIdsException;
 import io.netty.handler.codec.http2.Http2Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -249,17 +251,23 @@ public class Http2ClientChannel {
     }
 
     /**
+     * Releases the pool slot reserved for a stream that could not be opened. A connection out of stream ids is marked
+     * stale first, so that releasing the slot does not hand it out again.
+     *
+     * @param cause the failure to open the stream
+     */
+    public void releaseReservedStream(Http2Exception cause) {
+        if (cause instanceof Http2NoMoreStreamIdsException && !isStale.get()) {
+            markAsStale();
+        }
+        http2ConnectionManager.releaseStream(httpRoute, this);
+    }
+
+    /**
      * Increments and gets the active streams count.
      *
      * @return number of active streams count
      */
-    /**
-     * Releases the pool slot reserved for a stream that could not be opened.
-     */
-    public void releaseReservedStream() {
-        http2ConnectionManager.releaseStream(httpRoute, this);
-    }
-
     int incrementActiveStreamCount() {
         return activeStreams.incrementAndGet();
     }

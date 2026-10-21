@@ -358,7 +358,7 @@ public final class Http2StateUtil {
             createStream(connection, streamId);
         } catch (Http2Exception e) {
             // The stream never opened, so no close will release the pool slot reserved for it
-            http2ClientChannel.releaseReservedStream();
+            http2ClientChannel.releaseReservedStream(e);
             throw e;
         }
         http2ClientChannel.putInFlightMessage(streamId, outboundMsgHolder);

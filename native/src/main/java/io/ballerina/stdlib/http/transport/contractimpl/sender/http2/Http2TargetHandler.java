@@ -71,8 +71,7 @@ public class Http2TargetHandler extends ChannelDuplexHandler {
                 new Http2TargetHandler.Http2RequestWriter(http2Content.getOutboundMsgHolder()).
                     writeContent(ctx, http2Content.getHttpContent());
             } catch (Http2NoMoreStreamIdsException ex) {
-                //Remove connection from the pool
-                http2ClientChannel.removeFromConnectionPool();
+                // Marked stale when the stream could not be opened, so the channel takes no more requests
                 LOG.warn("Channel is removed from the connection pool : {}", ex.getMessage(), ex);
                 http2Content.getOutboundMsgHolder().getResponseFuture().notifyHttpListener(ex);
             } catch (Http2Exception ex) {

@@ -35,6 +35,7 @@ import io.netty.handler.codec.http2.DefaultHttp2Connection;
 import io.netty.handler.codec.http2.Http2Connection;
 import io.netty.handler.codec.http2.Http2Error;
 import io.netty.handler.codec.http2.Http2Exception;
+import io.netty.handler.codec.http2.Http2NoMoreStreamIdsException;
 import io.netty.handler.codec.http2.Http2Stream;
 import org.testng.annotations.Test;
 
@@ -346,6 +347,22 @@ public class Http2ChannelPoolConcurrencyTest {
         }
         assertSame(fetch(connectionManager), http2ClientChannel, "The released slot should be reused");
         assertNull(fetch(connectionManager), "The channel was full, but handed out a third stream");
+    }
+
+    @Test(description = "A channel out of stream ids must not return to the pool when its reserved slot is released")
+    public void testChannelOutOfStreamIdsIsNotHandedOutAgain() throws Exception {
+        Http2ConnectionManager connectionManager = newConnectionManager(100, 60000);
+        assertNull(fetch(connectionManager), "The first request should open the connection");
+        Http2ClientChannel http2ClientChannel = newHttp2ClientChannel(connectionManager);
+        connectionManager.addHttp2ClientChannel(ROUTE, http2ClientChannel);
+        http2ClientChannel.getConnection().local().createStream(Integer.MAX_VALUE, false);
+        assertSame(fetch(connectionManager), http2ClientChannel, "The channel should take one more");
+
+        expectThrows(Http2NoMoreStreamIdsException.class, () -> Http2StateUtil.initiateStream(null,
+                http2ClientChannel.getConnection(), http2ClientChannel, newOutboundMsgHolder()));
+
+        assertTrue(http2ClientChannel.isStale());
+        assertNull(fetch(connectionManager), "A channel out of stream ids was handed out again");
     }
 
     private static OutboundMsgHolder newOutboundMsgHolder() {
