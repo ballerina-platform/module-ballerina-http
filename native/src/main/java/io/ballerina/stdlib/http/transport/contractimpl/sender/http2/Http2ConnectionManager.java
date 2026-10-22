@@ -152,21 +152,6 @@ public class Http2ConnectionManager {
     }
 
     /**
-     * Borrow an HTTP/2 client channel. A caller that gets none must not count on being the route's new connection, as
-     * it cannot report that attempt's failure, so it never makes other callers wait for it.
-     *
-     * @param httpRoute the http route
-     * @return Http2ClientChannel, or {@code null} if the caller should open its own connection
-     */
-    public Http2ClientChannel fetchChannel(HttpRoute httpRoute) {
-        try {
-            return fetchChannel(httpRoute, null);
-        } catch (ClientConnectorException e) {
-            return null;
-        }
-    }
-
-    /**
      * Borrow an HTTP/2 client channel. If none is returned and the caller is to open the route's new connection, the
      * attempt is marked as the opener, and its outcome must be reported through
      * {@link #releaseWaitingRequests(HttpRoute, NewConnectionAttempt)} or

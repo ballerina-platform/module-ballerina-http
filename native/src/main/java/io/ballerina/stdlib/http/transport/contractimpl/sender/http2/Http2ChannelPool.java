@@ -88,8 +88,7 @@ class Http2ChannelPool {
          * that waits longer than a positive pool wait time gets {@code null} and opens its own connection, so a
          * connection attempt that never reports back cannot stall the route.
          *
-         * @param attempt the caller's attempt, marked as the opener if the caller is to open the new connection, or
-         *                {@code null} if the caller cannot report its attempt's failure and so must not be the opener
+         * @param attempt the caller's attempt, marked as the opener if the caller is to open the new connection
          * @return active TargetChannel, or {@code null} if the caller should open a new connection
          * @throws ClientConnectorException the failure of the connection attempt the caller waited for
          */
@@ -137,11 +136,9 @@ class Http2ChannelPool {
             if (newChannelState != NewChannelState.NEEDS_OPENER) {
                 return false;
             }
-            if (attempt != null) {
-                newChannelState = NewChannelState.OPENING;
-                openingAttempt = attempt;
-                attempt.markAsOpener();
-            }
+            newChannelState = NewChannelState.OPENING;
+            openingAttempt = attempt;
+            attempt.markAsOpener();
             return true;
         }
 

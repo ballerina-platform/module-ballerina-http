@@ -255,17 +255,6 @@ public class Http2ChannelPoolConcurrencyTest {
     }
 
     @Test(timeOut = 30000,
-          description = "A caller that cannot report a failed attempt must not make others wait for its connection")
-    public void testCallerWithoutAnAttemptDoesNotBecomeTheOpener() throws ClientConnectorException {
-        Http2ConnectionManager connectionManager = newConnectionManager(100, -1);
-        assertNull(connectionManager.fetchChannel(ROUTE), "There is no channel to hand out yet");
-
-        NewConnectionAttempt attempt = new NewConnectionAttempt();
-        assertNull(connectionManager.fetchChannel(ROUTE, attempt), "The next request should open the connection");
-        assertTrue(attempt.isOpener());
-    }
-
-    @Test(timeOut = 30000,
           description = "An unexpected user event on the connection being opened must not fail the requests waiting")
     public void testUnexpectedUserEventDoesNotFailWaitingRequests() throws Exception {
         Http2ConnectionManager connectionManager = newConnectionManager(100, -1);
