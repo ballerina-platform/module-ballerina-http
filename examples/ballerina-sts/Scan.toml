@@ -1,0 +1,10 @@
+# bal scan rules excluded for this example (false positives):
+# - ballerina:13 / ballerina:14: this is a mock security token service. Its sample client credentials,
+#   OAuth2 grant type names ("password", "refresh_token"), `token_type` values and seeded in-memory
+#   token stores are intentional demo values that exist only to exercise the HTTP auth handlers in
+#   other examples and tests. They are not real secrets.
+# TODO: replace this rule exclusion with a targeted scan suppression (with a reason) once `bal scan` supports it
+# (planned for v0.13.0), and fix the false positives on the scan tool side: a secret-named identifier should only be
+# reported when it is assigned a fixed value.
+[rule]
+exclude = ["ballerina:13", "ballerina:14"]
