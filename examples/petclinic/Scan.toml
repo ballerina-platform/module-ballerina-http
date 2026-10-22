@@ -1,5 +1,8 @@
 # bal scan rules excluded for this example (false positives):
 # - ballerina/http:3 flags the generated persist client calls, e.g. `self.dbClient->/owners/[ownerId]()`.
 #   Those are database calls, not outgoing HTTP requests, so there is no server-side request forgery risk.
+# TODO: replace this rule exclusion with a targeted scan suppression (with a reason) once `bal scan` supports it
+# (planned for v0.13.0), and fix the false positives on the scan tool side: a secret-named identifier should only be
+# reported when it is assigned a fixed value.
 [rule]
 exclude = ["ballerina/http:3"]
