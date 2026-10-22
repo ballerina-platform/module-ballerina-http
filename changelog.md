@@ -4,6 +4,28 @@ This file contains all the notable changes done to the Ballerina HTTP package th
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- [Fix HTTP/2 client requests hanging forever once a connection reaches `maxActiveStreamsPerConnection`, the client opening a new connection for most requests after a connection was exhausted, a connection taking more streams than `maxActiveStreamsPerConnection` after the server pushed responses on it, requests waiting for a new connection being released by an unrelated connection attempt on the route, a connection no longer being used once the server refused to open a stream on it, an unexpected event on a connection being opened failing the requests waiting for it, and a connection opened by a request that stopped waiting ending the wait for the connection still being opened](https://github.com/ballerina-platform/ballerina-library/issues/9233)
+- [Fix a passthrough response being held back until a timeout when the backend responds before the request body has been fully forwarded](https://github.com/ballerina-platform/ballerina-library/issues/9238)
+- [Fix the HTTP/1.1 and HTTP/2 clients forwarding a request body that failed part-way, such as an aborted upload in passthrough or a chunk that fails to be written, as a complete but truncated request, instead of closing the connection or resetting the stream](https://github.com/ballerina-platform/ballerina-library/issues/9243)
+- [Fix the HTTP/2 client ignoring a stream reset or connection closure that arrives after it finishes sending a request whose response has already started, which left the response body waiting until a timeout](https://github.com/ballerina-platform/ballerina-library/issues/9244)
+- [Fix HTTP/2 passthrough leaving reads suspended on the inbound connection after a request completed, so the next request on that connection was not read until the idle timeout](https://github.com/ballerina-platform/ballerina-library/issues/9241)
+- [Fix an HTTP/2 listener's passthrough response leaving reads on the backend connection suspended after the response stream finished, or after a writability check raced with a resume, and back pressure no longer pausing a writer after its stream or connection had turned writable again while no writer was paused](https://github.com/ballerina-platform/ballerina-library/issues/9290)
+- [Fix the HTTP/2 client and listener never raising the connection-level receive window, so `http2InitialWindowSize` could not lift throughput above one 64 KB window per round trip on a connection](https://github.com/ballerina-platform/ballerina-library/issues/9242)
+- [Fix the SSE client reading events far slower than the same payload as a plain response, by reading the body in chunks instead of one byte at a time and parsing fields without regular expressions, and fix it merging or holding back events that end with a mix of line breaks, such as `\n\r\n`, dropping the line breaks between the `data` lines of an event, and returning an event with no fields for extra blank lines, and fix an SSE response dropping the bytes after its last event and leaking a buffer](https://github.com/ballerina-platform/ballerina-library/issues/9245)
+- [Fix a passthrough service leaking the backend's response buffers when its caller disconnects before the response body has been fully written](https://github.com/ballerina-platform/ballerina-library/issues/9317)
+- [Fix the HTTP/1.1 client reusing a connection left in the middle of a request when the backend responds before the request body is fully sent, which failed the next request on that connection](https://github.com/ballerina-platform/ballerina-library/issues/9318)
+- [Fix the HTTP/2 client's payload getters, such as `getBinaryPayload()`, hanging instead of returning the idle-timeout error when the response body stalls for longer than the client's `timeout`](https://github.com/ballerina-platform/ballerina-library/issues/9350)
+- [Fix a streamed body read ending at an empty HTTP/2 DATA frame that does not end the stream, as if the body had ended](https://github.com/ballerina-platform/ballerina-library/issues/9267)
+
+### Changed
+
+- [Fail the HTTP/2 client requests waiting for a new connection with that connection attempt's error, instead of each request opening its own connection after the attempt fails](https://github.com/ballerina-platform/ballerina-library/issues/9233)
+- [Return an error from `getByteStream(arraySize)` for a non-positive `arraySize`, instead of an endless stream of empty arrays or a failure on the first read](https://github.com/ballerina-platform/ballerina-library/issues/9267)
+
 ## [2.18.1] - 2026-10-16
 
 ### Changed

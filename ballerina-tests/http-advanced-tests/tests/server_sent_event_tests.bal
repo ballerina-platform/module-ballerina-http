@@ -15,13 +15,27 @@
 // under the License.
 
 import ballerina/http;
+import ballerina/io;
+import ballerina/jballerina.java;
 import ballerina/lang.runtime;
 import ballerina/test;
+import ballerina/time;
 
 listener http:Listener http1SseListener = new http:Listener(http1SsePort, httpVersion = http:HTTP_1_1);
 listener http:Listener http2SseListener = new http:Listener(http2SsePort);
 final http:Client http1SseClient = check new (string `http://localhost:${http1SsePort}`, httpVersion = http:HTTP_1_1);
 final http:Client http2SseClient = check new (string `http://localhost:${http2SsePort}`);
+// Sends the request body back as text/event-stream, split into chunks of the sizes given in the path.
+final http:Client sseChunkedClient = check new (string `http://localhost:${sseChunkedServerPort}`,
+    httpVersion = http:HTTP_1_1);
+
+const SPLIT_EVENTS = "event: delta\r\ndata: héllo wörld 🎉\r\nid: 1\r\n\r\n: ping\n\ndata: two\r\rretry: 5\n\n";
+final readonly & http:SseEvent[] splitEvents = [
+    {event: "delta", data: "héllo wörld 🎉", id: "1"},
+    {comment: "ping"},
+    {data: "two"},
+    {'retry: 5}
+];
 
 class SseEventGenerator {
     private final int eventCount;
@@ -84,6 +98,11 @@ service /sse on http2SseListener {
         stream<http:SseEvent, error?> sseEventStream = new (new SseEventGenerator());
         response.setSseEventStream(sseEventStream);
         return response;
+    }
+
+    resource function get multiline() returns stream<http:SseEvent, error?> {
+        http:SseEvent[] events = [{data: "first line\nsecond line\r\nthird line"}];
+        return events.toStream();
     }
 
     resource function get completeWithError() returns stream<http:SseEvent, error?> {
@@ -174,6 +193,111 @@ function testServiceCompletesStreamWithErrorEvent() returns error? {
     check assertEventStream(actualSseEvents, expectedSseEvents);
 }
 
+@test:BeforeSuite
+function startSseChunkedServer() returns error? {
+    check startChunkedResponseServer(sseChunkedServerPort);
+}
+
+@test:AfterSuite {alwaysRun: true}
+function stopSseChunkedServer() returns error? {
+    check stopChunkedResponseServer(sseChunkedServerPort);
+}
+
+@test:Config {}
+function testByteStreamFillsEachArray() returns error? {
+    http:Response response = check sseChunkedClient->post("/sse/3,5?delay=200", "abcdefghij".toBytes());
+    stream<byte[], io:Error?> body = check response.getByteStream(4);
+    byte[][] arrays = check from byte[] bytes in body select bytes;
+    test:assertEquals(arrays, ["abcd".toBytes(), "efgh".toBytes(), "ij".toBytes()]);
+}
+
+@test:Config {}
+function testSseEventsSplitAtEveryByteOffset() returns error? {
+    byte[] payload = SPLIT_EVENTS.toBytes();
+    foreach int splitAt in 1 ..< payload.length() {
+        http:SseEvent[] events = check readSseEvents(string `/sse/${splitAt}?delay=1`, payload);
+        test:assertEquals(events, splitEvents, string `events split at byte ${splitAt}`);
+    }
+}
+
+@test:Config {}
+function testSseEventsSentOneByteAtATime() returns error? {
+    byte[] payload = SPLIT_EVENTS.toBytes();
+    string[] sizes = from int _ in 0 ..< payload.length() select "1";
+    http:SseEvent[] events = check readSseEvents(string `/sse/${string:'join(",", ...sizes)}`, payload);
+    test:assertEquals(events, splitEvents);
+}
+
+@test:Config {}
+function testSseEventLargerThanTheReadBuffer() returns error? {
+    string largeData = "".padEnd(100000, "x");
+    byte[] payload = string `data: ${largeData}${"\n\n"}data: after${"\n\n"}`.toBytes();
+    http:SseEvent[] events = check readSseEvents("/sse/4096,4096,70000", payload);
+    test:assertEquals(events.length(), 2);
+    test:assertEquals(events[0].data, largeData);
+    test:assertEquals(events[1].data, "after");
+}
+
+@test:Config {}
+function testSseEventIsDeliveredWithoutWaitingForMoreBytes() returns error? {
+    string firstEvent = "data: first\n\n";
+    byte[] payload = string `${firstEvent}data: second${"\n\n"}`.toBytes();
+    decimal startTime = time:monotonicNow();
+    stream<http:SseEvent, error?> events = check sseChunkedClient->post(
+        string `/sse/${firstEvent.length()}?delay=2000`, payload);
+    record {|http:SseEvent value;|}? first = check events.next();
+    decimal elapsed = time:monotonicNow() - startTime;
+    test:assertEquals(first?.value, {data: "first"});
+    test:assertTrue(elapsed < 1d, string `the first event took ${elapsed}s, waiting for bytes sent 2s later`);
+    record {|http:SseEvent value;|}? second = check events.next();
+    test:assertEquals(second?.value, {data: "second"});
+}
+
+@test:Config {}
+function testSseEventsEndedByMixedLineBreaks() returns error? {
+    byte[] payload = "data: a\n\r\ndata: b\n\rdata: c\r\n\ndata: d\r\r\ndata: e\r\n\r\ndata: f\n\n".toBytes();
+    http:SseEvent[] expected = [{data: "a"}, {data: "b"}, {data: "c"}, {data: "d"}, {data: "e"}, {data: "f"}];
+    foreach int splitAt in 1 ..< payload.length() {
+        http:SseEvent[] events = check readSseEvents(string `/sse/${splitAt}?delay=1`, payload);
+        test:assertEquals(events, expected, string `events split at byte ${splitAt}`);
+    }
+}
+
+@test:Config {}
+function testBlankLinesBetweenSseEventsAreNotEvents() returns error? {
+    byte[] payload = "\n\ndata: a\n\n\n\n\r\n\r\ndata: b\n\n\n\n".toBytes();
+    foreach int splitAt in 1 ..< payload.length() {
+        http:SseEvent[] events = check readSseEvents(string `/sse/${splitAt}?delay=1`, payload);
+        test:assertEquals(events, [{data: "a"}, {data: "b"}], string `events split at byte ${splitAt}`);
+    }
+}
+
+@test:Config {}
+function testSseDataLinesAreJoinedWithLineFeeds() returns error? {
+    http:SseEvent[] events = check readSseEvents("/sse/64", "data: first\ndata: second\n\n".toBytes());
+    test:assertEquals(events, [{data: "first\nsecond"}]);
+}
+
+@test:Config {}
+function testMultiLineSseDataRoundTrips() returns error? {
+    stream<http:SseEvent, error?> events = check http2SseClient->/sse/multiline;
+    http:SseEvent[] received = check from http:SseEvent event in events select event;
+    test:assertEquals(received, [{data: "first line\nsecond line\nthird line"}]);
+}
+
+function readSseEvents(string path, byte[] payload) returns http:SseEvent[]|error {
+    stream<http:SseEvent, error?> events = check sseChunkedClient->post(path, payload);
+    return from http:SseEvent event in events select event;
+}
+
+function startChunkedResponseServer(int port) returns error? = @java:Method {
+    'class: "io.ballerina.stdlib.http.testutils.ExternChunkedResponseTestUtil"
+} external;
+
+function stopChunkedResponseServer(int port) returns error? = @java:Method {
+    'class: "io.ballerina.stdlib.http.testutils.ExternChunkedResponseTestUtil"
+} external;
+
 isolated function assertEventStream(stream<http:SseEvent, error?> actualSseEvents, stream<http:SseEvent, error?> expectedSseEvents) returns error? {
     error? err = from http:SseEvent expectedEvent in expectedSseEvents
         do {
@@ -184,5 +308,35 @@ isolated function assertEventStream(stream<http:SseEvent, error?> actualSseEvent
         http:SseEvent expectedEvent = {event: "error", data: err.message()};
         record {|http:SseEvent value;|}? valueRecord = check actualSseEvents.next();
         test:assertEquals(valueRecord?.value, expectedEvent);
+    }
+}
+
+@test:Config {}
+function testSseReadFailureKeepsItsCause() returns error? {
+    http:Response response = check sseChunkedClient->post("/sse/64?truncate=true", "data: first\n\n".toBytes());
+    stream<http:SseEvent, error?> events = check response.getSseEventStream();
+    record {|http:SseEvent value;|}? first = check events.next();
+    test:assertEquals(first?.value?.data, "first");
+
+    record {|http:SseEvent value;|}|error? failed = events.next();
+    if failed is error {
+        test:assertTrue(failed.cause() is error, "The error reading the truncated body lost its cause");
+    } else {
+        test:assertFail("Expected the truncated body to fail the event stream");
+    }
+}
+
+@test:Config {}
+function testByteStreamRejectsNonPositiveArraySize() returns error? {
+    foreach int arraySize in [0, -1] {
+        http:Response response = check sseChunkedClient->post("/sse/4", "data: x\n\n".toBytes());
+        stream<byte[], io:Error?>|http:ClientError body = response.getByteStream(arraySize);
+        if body is http:ClientError {
+            error? cause = body.cause();
+            test:assertEquals(cause is error ? cause.message() : (),
+                string `The array size of a byte stream must be positive, but was ${arraySize}`);
+        } else {
+            test:assertFail(string `expected an error for arraySize ${arraySize}`);
+        }
     }
 }

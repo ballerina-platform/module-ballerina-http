@@ -41,6 +41,7 @@ import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.Conne
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ClientChannel;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ClientTimeoutHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ConnectionManager;
+import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.NewConnectionAttempt;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.OutboundMsgHolder;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.RequestWriteStarter;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.states.SendingHeaders;
@@ -195,9 +196,11 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
              */
             final HttpRoute route = getTargetRoute(senderConfiguration.getScheme(), httpOutboundRequest,
                                                    this.configHashCode);
+            NewConnectionAttempt newConnectionAttempt = new NewConnectionAttempt();
             if (http2) {
                 // See whether an already upgraded HTTP/2 connection is available
-                Http2ClientChannel activeHttp2ClientChannel = http2ConnectionManager.fetchChannel(route);
+                Http2ClientChannel activeHttp2ClientChannel = http2ConnectionManager.fetchChannel(route,
+                                                                                                  newConnectionAttempt);
 
                 if (activeHttp2ClientChannel != null) {
                     outboundMsgHolder.setHttp2ClientChannel(activeHttp2ClientChannel);
@@ -210,9 +213,10 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
             }
 
             // Look for the connection from http connection manager
-            TargetChannel targetChannel = connectionManager.borrowTargetChannel(route, srcHandler, http2SourceHandler,
-                                                                                senderConfiguration,
-                                                                                bootstrapConfig, clientEventGroup);
+            TargetChannel targetChannel = borrowTargetChannel(route, srcHandler, http2SourceHandler,
+                                                              newConnectionAttempt);
+            targetChannel.setNewConnectionAttempt(newConnectionAttempt.isOpener() ? newConnectionAttempt : null,
+                                                  http2ConnectionManager);
             Http2ClientChannel freshHttp2ClientChannel = targetChannel.getHttp2ClientChannel();
             outboundMsgHolder.setHttp2ClientChannel(freshHttp2ClientChannel);
             httpResponseFuture = outboundMsgHolder.getResponseFuture();
@@ -245,8 +249,7 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
                         // Response for the upgrade request will arrive in stream 1,
                         // so use 1 as the stream id.
                         if (protocol.equalsIgnoreCase(Constants.HTTP1_TLS_PROTOCOL)) {
-                            connectionManager.getHttp2ConnectionManager().releasePerRoutePoolLatch(targetChannel
-                                    .getHttpRoute());
+                            targetChannel.reportHttp2Unavailable();
                             http2 = false;
                         }
                         prepareTargetChannelForHttp(channelFuture);
@@ -265,7 +268,8 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
 
                 private void prepareTargetChannelForHttp2() {
                     freshHttp2ClientChannel.setSocketIdleTimeout(socketIdleTimeout);
-                    connectionManager.getHttp2ConnectionManager().addHttp2ClientChannel(route, freshHttp2ClientChannel);
+                    connectionManager.getHttp2ConnectionManager().addHttp2ClientChannel(route, freshHttp2ClientChannel,
+                                                                                        newConnectionAttempt);
                     freshHttp2ClientChannel.getConnection().remote().flowController().listener(
                             new ClientRemoteFlowControlListener(freshHttp2ClientChannel));
                     freshHttp2ClientChannel.addDataEventListener(
@@ -331,21 +335,36 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
 
                 @Override
                 public void onFailure(ClientConnectorException cause) {
+                    targetChannel.reportConnectionAttemptFailed(cause);
                     httpResponseFuture.notifyHttpListener(cause);
                     httpOutboundRequest
                             .setIoException(new IOException(REMOTE_SERVER_CLOSED_BEFORE_INITIATING_OUTBOUND_REQUEST));
-                    connectionManager.getHttp2ConnectionManager().releasePerRoutePoolLatch(route);
                 }
             });
-        } catch (NoSuchElementException failedCause) {
-            if ("Timeout waiting for idle object".equals(failedCause.getMessage())) {
-                failedCause = new NoSuchElementException(Constants.MAXIMUM_WAIT_TIME_EXCEED);
-            }
-            return notifyListenerAndGetErrorResponseFuture(failedCause);
         } catch (Exception failedCause) {
             return notifyListenerAndGetErrorResponseFuture(failedCause);
         }
         return httpResponseFuture;
+    }
+
+    private TargetChannel borrowTargetChannel(HttpRoute route, SourceHandler srcHandler,
+                                              Http2SourceHandler http2SourceHandler,
+                                              NewConnectionAttempt newConnectionAttempt) throws Exception {
+        try {
+            return connectionManager.borrowTargetChannel(route, srcHandler, http2SourceHandler, senderConfiguration,
+                                                         bootstrapConfig, clientEventGroup);
+        } catch (Exception e) {
+            Exception failure = e;
+            if (e instanceof NoSuchElementException && "Timeout waiting for idle object".equals(e.getMessage())) {
+                failure = new NoSuchElementException(Constants.MAXIMUM_WAIT_TIME_EXCEED, e);
+            }
+            // No connection will report back, so fail the requests waiting for this one with the same error
+            ClientConnectorException waiterFailure = new ClientConnectorException(null,
+                    Objects.requireNonNullElse(failure.getMessage(), failure.toString()));
+            waiterFailure.initCause(failure);
+            http2ConnectionManager.failWaitingRequests(route, newConnectionAttempt, waiterFailure);
+            throw failure;
+        }
     }
 
     private void setHttp2ForwardedExtension(OutboundMsgHolder outboundMsgHolder) {

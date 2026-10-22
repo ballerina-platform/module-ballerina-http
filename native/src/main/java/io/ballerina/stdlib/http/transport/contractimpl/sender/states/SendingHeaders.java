@@ -55,6 +55,7 @@ import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.setupC
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.setupContentLengthRequest;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.ILLEGAL_STATE_ERROR;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.checkChunkingCompatibility;
+import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.isFailedBodyEnd;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.notifyIfHeaderWriteFailure;
 
 /**
@@ -99,7 +100,12 @@ public class SendingHeaders implements SenderState {
 
     @Override
     public void writeOutboundRequestEntity(HttpCarbonMessage httpOutboundRequest, HttpContent httpContent) {
-        if (isLastHttpContent(httpContent)) {
+        if (isFailedBodyEnd(httpContent)) {
+            // Nothing has been sent yet, so the request is dropped along with the body held back for it.
+            contentList.forEach(HttpContent::release);
+            contentList.clear();
+            RequestBodyAborted.abort(senderReqRespStateManager, httpInboundResponseFuture, httpContent);
+        } else if (isLastHttpContent(httpContent)) {
             if (checkContentLengthAndTransferEncodingHeaderAllowance(httpOutboundRequest)) {
                 if (chunkConfig == ChunkConfig.ALWAYS && checkChunkingCompatibility(httpVersion, chunkConfig)) {
                     setupChunkedRequest(httpOutboundRequest);
@@ -169,6 +175,7 @@ public class SendingHeaders implements SenderState {
         // If this method is called, it is an application error. Inbound response is receiving before the completion
         // of request header write.
         targetHandler.getOutboundRequestMsg().setIoException(new IOException(INBOUND_RESPONSE_ALREADY_RECEIVED));
+        senderReqRespStateManager.markRequestBodyIncomplete();
         senderReqRespStateManager.state = new ReceivingHeaders(senderReqRespStateManager);
         senderReqRespStateManager.readInboundResponseHeaders(targetHandler, httpInboundResponse);
     }

@@ -49,6 +49,7 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVE
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_SENT_RST_STREAM_WHILE_WRITING_OUTBOUND_REQUEST_BODY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.STREAM_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_BODY;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil.onPushPromiseRead;
+import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.isFailedBodyEnd;
 
 /**
  * State between start and end of outbound request entity body write.
@@ -85,7 +86,7 @@ public class SendingEntityBody implements SenderState {
     @Override
     public void writeOutboundRequestBody(ChannelHandlerContext ctx, HttpContent httpContent,
                                          Http2MessageStateContext http2MessageStateContext) throws Http2Exception {
-        if (httpContent instanceof Http2ResetContent) {
+        if (httpContent instanceof Http2ResetContent || isFailedBodyEnd(httpContent)) {
             http2MessageStateContext.setSenderState(new SendingRstFrame(http2TargetHandler, http2RequestWriter));
             http2MessageStateContext.getSenderState()
                     .writeOutboundRequestBody(ctx, httpContent, http2MessageStateContext);
@@ -184,7 +185,8 @@ public class SendingEntityBody implements SenderState {
             ctx.flush();
             if (endStream) {
                 outboundMsgHolder.setRequestWritten(true);
-                http2MessageStateContext.setSenderState(new RequestCompleted(http2TargetHandler, http2RequestWriter));
+                http2MessageStateContext.setSenderState(RequestCompleted.afterRequestWritten(
+                        http2TargetHandler, http2RequestWriter, outboundMsgHolder));
             }
         } finally {
             if (release) {
