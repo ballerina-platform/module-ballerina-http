@@ -114,7 +114,7 @@ public class Http2ChannelPoolConcurrencyTest {
     @Test(description = "A non-positive wait time must wait for the new connection instead of skipping the wait")
     public void testNonPositiveWaitTimeWaitsWithoutALimit() throws Exception {
         Http2ConnectionManager connectionManager = newConnectionManager(100, -1);
-        assertNull(fetch(connectionManager), "The first request should open the connection");
+        NewConnectionAttempt opener = claimNewConnection(connectionManager);
 
         ExecutorService executor = Executors.newSingleThreadExecutor();
         try {
@@ -122,7 +122,7 @@ public class Http2ChannelPoolConcurrencyTest {
             assertStillWaiting(waitingRequest);
 
             Http2ClientChannel http2ClientChannel = newHttp2ClientChannel(connectionManager);
-            connectionManager.addHttp2ClientChannel(ROUTE, http2ClientChannel);
+            connectionManager.addHttp2ClientChannel(ROUTE, http2ClientChannel, opener);
             assertSame(waitingRequest.get(5, TimeUnit.SECONDS), http2ClientChannel);
         } finally {
             executor.shutdownNow();
@@ -132,19 +132,19 @@ public class Http2ChannelPoolConcurrencyTest {
     @Test(description = "Losing the last channel must let one request open a connection while the rest wait for it")
     public void testRemovingTheLastChannelRearmsThePool() throws Exception {
         Http2ConnectionManager connectionManager = newConnectionManager(100, 60000);
-        assertNull(fetch(connectionManager), "The first request should open the connection");
+        NewConnectionAttempt opener = claimNewConnection(connectionManager);
         Http2ClientChannel lostChannel = newHttp2ClientChannel(connectionManager);
-        connectionManager.addHttp2ClientChannel(ROUTE, lostChannel);
+        connectionManager.addHttp2ClientChannel(ROUTE, lostChannel, opener);
         connectionManager.removeClientChannel(ROUTE, lostChannel);
 
-        assertNull(fetch(connectionManager), "The next request should open the replacement connection");
+        NewConnectionAttempt replacementOpener = claimNewConnection(connectionManager);
         ExecutorService executor = Executors.newSingleThreadExecutor();
         try {
             Future<Http2ClientChannel> waitingRequest = executor.submit(() -> fetch(connectionManager));
             assertStillWaiting(waitingRequest);
 
             Http2ClientChannel replacement = newHttp2ClientChannel(connectionManager);
-            connectionManager.addHttp2ClientChannel(ROUTE, replacement);
+            connectionManager.addHttp2ClientChannel(ROUTE, replacement, replacementOpener);
             assertSame(waitingRequest.get(5, TimeUnit.SECONDS), replacement);
         } finally {
             executor.shutdownNow();
@@ -154,14 +154,14 @@ public class Http2ChannelPoolConcurrencyTest {
     @Test(description = "A channel exhausted again while a new connection is opening must not start another one")
     public void testReExhaustedChannelWaitsForTheConnectionBeingOpened() throws Exception {
         Http2ConnectionManager connectionManager = newConnectionManager(2, 60000);
-        assertNull(fetch(connectionManager), "The first request should open the connection");
+        NewConnectionAttempt opener = claimNewConnection(connectionManager);
         Http2ClientChannel firstChannel = newHttp2ClientChannel(connectionManager);
-        connectionManager.addHttp2ClientChannel(ROUTE, firstChannel);
+        connectionManager.addHttp2ClientChannel(ROUTE, firstChannel, opener);
         Http2Stream firstStream = openStream(firstChannel);
         assertSame(fetch(connectionManager), firstChannel, "The channel should take one more");
         openStream(firstChannel);
 
-        assertNull(fetch(connectionManager), "The next request should open a second connection");
+        NewConnectionAttempt secondOpener = claimNewConnection(connectionManager);
         firstStream.close();
         assertSame(fetch(connectionManager), firstChannel, "The released stream should be reused");
 
@@ -171,8 +171,35 @@ public class Http2ChannelPoolConcurrencyTest {
             assertStillWaiting(waitingRequest);
 
             Http2ClientChannel secondChannel = newHttp2ClientChannel(connectionManager);
-            connectionManager.addHttp2ClientChannel(ROUTE, secondChannel);
+            connectionManager.addHttp2ClientChannel(ROUTE, secondChannel, secondOpener);
             assertSame(waitingRequest.get(5, TimeUnit.SECONDS), secondChannel);
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    @Test(timeOut = 30000,
+          description = "A connection opened by a request that stopped waiting must not end the attempt being opened")
+    public void testChannelOfARequestThatStoppedWaitingKeepsTheOpenerAttempt() throws Exception {
+        Http2ConnectionManager connectionManager = newConnectionManager(2, 1000);
+        NewConnectionAttempt opener = claimNewConnection(connectionManager);
+        NewConnectionAttempt impatient = new NewConnectionAttempt();
+        assertNull(connectionManager.fetchChannel(ROUTE, impatient), "The request should open its own after waiting");
+        assertFalse(impatient.isOpener());
+        Http2ClientChannel impatientChannel = newHttp2ClientChannel(connectionManager);
+        connectionManager.addHttp2ClientChannel(ROUTE, impatientChannel, impatient);
+        assertSame(fetch(connectionManager), impatientChannel, "The added channel should take one stream");
+
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            Future<Http2ClientChannel> waitingRequest = executor.submit(() -> fetch(connectionManager));
+            assertStillWaiting(waitingRequest);
+
+            ClientConnectorException failure = new ClientConnectorException(null, "Connection refused");
+            connectionManager.failWaitingRequests(ROUTE, opener, failure);
+            ExecutionException failed = expectThrows(ExecutionException.class,
+                                                      () -> waitingRequest.get(5, TimeUnit.SECONDS));
+            assertSame(failed.getCause(), failure);
         } finally {
             executor.shutdownNow();
         }
@@ -181,9 +208,9 @@ public class Http2ChannelPoolConcurrencyTest {
     @Test(description = "An exhausted channel that is closed must not return to the pool when its streams close")
     public void testClosedExhaustedChannelIsNotReturnedToThePool() throws Exception {
         Http2ConnectionManager connectionManager = newConnectionManager(2, 60000);
-        assertNull(fetch(connectionManager), "The first request should open the connection");
+        NewConnectionAttempt opener = claimNewConnection(connectionManager);
         Http2ClientChannel http2ClientChannel = newHttp2ClientChannel(connectionManager);
-        connectionManager.addHttp2ClientChannel(ROUTE, http2ClientChannel);
+        connectionManager.addHttp2ClientChannel(ROUTE, http2ClientChannel, opener);
         Http2Stream firstStream = openStream(http2ClientChannel);
 
         assertSame(fetch(connectionManager), http2ClientChannel, "The channel should take one more");
@@ -276,7 +303,7 @@ public class Http2ChannelPoolConcurrencyTest {
             assertStillWaiting(waitingRequest);
 
             Http2ClientChannel http2ClientChannel = newHttp2ClientChannel(connectionManager);
-            connectionManager.addHttp2ClientChannel(ROUTE, http2ClientChannel);
+            connectionManager.addHttp2ClientChannel(ROUTE, http2ClientChannel, opener);
             assertSame(waitingRequest.get(5, TimeUnit.SECONDS), http2ClientChannel);
         } finally {
             executor.shutdownNow();
@@ -288,12 +315,20 @@ public class Http2ChannelPoolConcurrencyTest {
         return connectionManager.fetchChannel(ROUTE, new NewConnectionAttempt());
     }
 
+    private static NewConnectionAttempt claimNewConnection(Http2ConnectionManager connectionManager)
+            throws ClientConnectorException {
+        NewConnectionAttempt attempt = new NewConnectionAttempt();
+        assertNull(connectionManager.fetchChannel(ROUTE, attempt), "The request should open a new connection");
+        assertTrue(attempt.isOpener(), "The request should be the one opening the connection");
+        return attempt;
+    }
+
     @Test(description = "A closed server-pushed stream must not free a slot it never reserved")
     public void testClosedPushStreamDoesNotFreeASlot() throws Exception {
         Http2ConnectionManager connectionManager = newConnectionManager(2, 60000);
-        assertNull(fetch(connectionManager), "The first request should open the connection");
+        NewConnectionAttempt opener = claimNewConnection(connectionManager);
         Http2ClientChannel http2ClientChannel = newHttp2ClientChannel(connectionManager);
-        connectionManager.addHttp2ClientChannel(ROUTE, http2ClientChannel);
+        connectionManager.addHttp2ClientChannel(ROUTE, http2ClientChannel, opener);
         Http2Stream openerStream = openStream(http2ClientChannel);
 
         Http2Connection connection = http2ClientChannel.getConnection();
@@ -308,9 +343,9 @@ public class Http2ChannelPoolConcurrencyTest {
     @Test(description = "A stream refused by GOAWAY must release its slot once, when Netty closes it")
     public void testStreamRefusedByGoAwayIsReleasedOnce() throws Exception {
         Http2ConnectionManager connectionManager = newConnectionManager(100, 60000);
-        assertNull(fetch(connectionManager), "The first request should open the connection");
+        NewConnectionAttempt opener = claimNewConnection(connectionManager);
         Http2ClientChannel http2ClientChannel = newHttp2ClientChannel(connectionManager);
-        connectionManager.addHttp2ClientChannel(ROUTE, http2ClientChannel);
+        connectionManager.addHttp2ClientChannel(ROUTE, http2ClientChannel, opener);
         Http2Stream acceptedStream = openStream(http2ClientChannel);
         http2ClientChannel.putInFlightMessage(acceptedStream.id(), newOutboundMsgHolder());
         assertSame(fetch(connectionManager), http2ClientChannel, "The channel should take one more");
@@ -327,9 +362,9 @@ public class Http2ChannelPoolConcurrencyTest {
     @Test(description = "A stream the connection refuses to open must not keep its slot")
     public void testStreamThatCannotBeOpenedReleasesItsSlot() throws Exception {
         Http2ConnectionManager connectionManager = newConnectionManager(2, 60000);
-        assertNull(fetch(connectionManager), "The first request should open the connection");
+        NewConnectionAttempt opener = claimNewConnection(connectionManager);
         Http2ClientChannel http2ClientChannel = newHttp2ClientChannel(connectionManager);
-        connectionManager.addHttp2ClientChannel(ROUTE, http2ClientChannel);
+        connectionManager.addHttp2ClientChannel(ROUTE, http2ClientChannel, opener);
         openStream(http2ClientChannel);
         // The server allows fewer concurrent streams than the pool expects
         http2ClientChannel.getConnection().local().maxActiveStreams(1);
@@ -344,9 +379,9 @@ public class Http2ChannelPoolConcurrencyTest {
     @Test(description = "The rest of a request whose stream was refused must not release the slot again")
     public void testLaterChunksOfARefusedRequestDoNotReleaseTheSlotAgain() throws Exception {
         Http2ConnectionManager connectionManager = newConnectionManager(2, 60000);
-        assertNull(fetch(connectionManager), "The first request should open the connection");
+        NewConnectionAttempt opener = claimNewConnection(connectionManager);
         Http2ClientChannel http2ClientChannel = newHttp2ClientChannel(connectionManager);
-        connectionManager.addHttp2ClientChannel(ROUTE, http2ClientChannel);
+        connectionManager.addHttp2ClientChannel(ROUTE, http2ClientChannel, opener);
         openStream(http2ClientChannel);
         http2ClientChannel.getConnection().local().maxActiveStreams(1);
         assertSame(fetch(connectionManager), http2ClientChannel, "The channel should take one more");
@@ -372,9 +407,9 @@ public class Http2ChannelPoolConcurrencyTest {
     @Test(description = "A channel out of stream ids must not return to the pool when its reserved slot is released")
     public void testChannelOutOfStreamIdsIsNotHandedOutAgain() throws Exception {
         Http2ConnectionManager connectionManager = newConnectionManager(100, 60000);
-        assertNull(fetch(connectionManager), "The first request should open the connection");
+        NewConnectionAttempt opener = claimNewConnection(connectionManager);
         Http2ClientChannel http2ClientChannel = newHttp2ClientChannel(connectionManager);
-        connectionManager.addHttp2ClientChannel(ROUTE, http2ClientChannel);
+        connectionManager.addHttp2ClientChannel(ROUTE, http2ClientChannel, opener);
         http2ClientChannel.getConnection().local().createStream(Integer.MAX_VALUE, false);
         assertSame(fetch(connectionManager), http2ClientChannel, "The channel should take one more");
 
@@ -411,11 +446,12 @@ public class Http2ChannelPoolConcurrencyTest {
 
     private static void sendRequest(Http2ConnectionManager connectionManager, AtomicInteger connectionsOpened)
             throws Http2Exception, ClientConnectorException {
-        Http2ClientChannel http2ClientChannel = fetch(connectionManager);
+        NewConnectionAttempt attempt = new NewConnectionAttempt();
+        Http2ClientChannel http2ClientChannel = connectionManager.fetchChannel(ROUTE, attempt);
         if (http2ClientChannel == null) {
             connectionsOpened.incrementAndGet();
             http2ClientChannel = newHttp2ClientChannel(connectionManager);
-            connectionManager.addHttp2ClientChannel(ROUTE, http2ClientChannel);
+            connectionManager.addHttp2ClientChannel(ROUTE, http2ClientChannel, attempt);
         }
         Http2Connection connection = http2ClientChannel.getConnection();
         Http2Stream stream;

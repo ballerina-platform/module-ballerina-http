@@ -268,7 +268,8 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
 
                 private void prepareTargetChannelForHttp2() {
                     freshHttp2ClientChannel.setSocketIdleTimeout(socketIdleTimeout);
-                    connectionManager.getHttp2ConnectionManager().addHttp2ClientChannel(route, freshHttp2ClientChannel);
+                    connectionManager.getHttp2ConnectionManager().addHttp2ClientChannel(route, freshHttp2ClientChannel,
+                                                                                        newConnectionAttempt);
                     freshHttp2ClientChannel.getConnection().remote().flowController().listener(
                             new ClientRemoteFlowControlListener(freshHttp2ClientChannel));
                     freshHttp2ClientChannel.addDataEventListener(

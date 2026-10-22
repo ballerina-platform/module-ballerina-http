@@ -178,6 +178,10 @@ public class TargetChannel {
         }
     }
 
+    public NewConnectionAttempt getNewConnectionAttempt() {
+        return newConnectionAttempt;
+    }
+
     /**
      * Reports that this channel is connected but did not negotiate HTTP/2. If it was opened as the route's new HTTP/2
      * connection, each request waiting for that connection opens its own.

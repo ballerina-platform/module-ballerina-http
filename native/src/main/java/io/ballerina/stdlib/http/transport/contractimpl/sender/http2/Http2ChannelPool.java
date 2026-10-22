@@ -179,12 +179,15 @@ class Http2ChannelPool {
             }
         }
 
-        void addChannel(Http2ClientChannel http2ClientChannel) {
+        void addChannel(Http2ClientChannel http2ClientChannel, NewConnectionAttempt attempt) {
             lock.lock();
             try {
                 http2ClientChannels.add(http2ClientChannel);
-                newChannelState = NewChannelState.NEEDS_OPENER;
-                openingAttempt = null;
+                // A channel opened by a caller that stopped waiting leaves the opener's attempt in progress
+                if (newChannelState != NewChannelState.OPENING || attempt == openingAttempt) {
+                    newChannelState = NewChannelState.NEEDS_OPENER;
+                    openingAttempt = null;
+                }
                 channelAvailable.signalAll();
             } finally {
                 lock.unlock();

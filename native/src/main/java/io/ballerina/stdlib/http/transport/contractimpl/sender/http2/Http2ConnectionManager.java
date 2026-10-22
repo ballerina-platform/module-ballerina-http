@@ -60,12 +60,14 @@ public class Http2ConnectionManager {
      *
      * @param httpRoute          http route
      * @param http2ClientChannel newly created http/2 client channel
+     * @param attempt            the attempt that opened the channel, which ends it if it is the route's opener
      */
-    public void addHttp2ClientChannel(HttpRoute httpRoute, Http2ClientChannel http2ClientChannel) {
+    public void addHttp2ClientChannel(HttpRoute httpRoute, Http2ClientChannel http2ClientChannel,
+                                      NewConnectionAttempt attempt) {
         String key = generateKey(httpRoute);
         final Http2ChannelPool.PerRouteConnectionPool perRouteConnectionPool =
                 getOrCreatePerRoutePool(this.http2ChannelPool, key);
-        perRouteConnectionPool.addChannel(http2ClientChannel);
+        perRouteConnectionPool.addChannel(http2ClientChannel, attempt);
 
         // Configure a listener to remove connection from pool when it is closed
         http2ClientChannel.getChannel().closeFuture().
