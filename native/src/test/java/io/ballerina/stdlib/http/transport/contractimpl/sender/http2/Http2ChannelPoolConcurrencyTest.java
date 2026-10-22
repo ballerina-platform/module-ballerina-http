@@ -21,6 +21,8 @@ package io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
 import io.ballerina.stdlib.http.transport.contract.exceptions.ClientConnectorException;
 import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil;
+import io.ballerina.stdlib.http.transport.contractimpl.sender.TargetHandler;
+import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.TargetChannel;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.PoolConfiguration;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonRequest;
 import io.netty.buffer.Unpooled;
@@ -261,6 +263,35 @@ public class Http2ChannelPoolConcurrencyTest {
         NewConnectionAttempt attempt = new NewConnectionAttempt();
         assertNull(connectionManager.fetchChannel(ROUTE, attempt), "The next request should open the connection");
         assertTrue(attempt.isOpener());
+    }
+
+    @Test(timeOut = 30000,
+          description = "An unexpected user event on the connection being opened must not fail the requests waiting")
+    public void testUnexpectedUserEventDoesNotFailWaitingRequests() throws Exception {
+        Http2ConnectionManager connectionManager = newConnectionManager(100, -1);
+        NewConnectionAttempt opener = new NewConnectionAttempt();
+        assertNull(connectionManager.fetchChannel(ROUTE, opener), "The first request should open the connection");
+        TargetChannel targetChannel = new TargetChannel(null, null, ROUTE, null);
+        targetChannel.setNewConnectionAttempt(opener, connectionManager);
+        TargetHandler targetHandler = new TargetHandler();
+        targetHandler.setTargetChannel(targetChannel);
+        EmbeddedChannel connection = new EmbeddedChannel(targetHandler);
+        targetChannel.setChannel(connection);
+
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            Future<Http2ClientChannel> waitingRequest = executor.submit(() -> fetch(connectionManager));
+            assertStillWaiting(waitingRequest);
+
+            connection.pipeline().fireUserEventTriggered("unexpected");
+            assertStillWaiting(waitingRequest);
+
+            Http2ClientChannel http2ClientChannel = newHttp2ClientChannel(connectionManager);
+            connectionManager.addHttp2ClientChannel(ROUTE, http2ClientChannel);
+            assertSame(waitingRequest.get(5, TimeUnit.SECONDS), http2ClientChannel);
+        } finally {
+            executor.shutdownNow();
+        }
     }
 
     private static Http2ClientChannel fetch(Http2ConnectionManager connectionManager)

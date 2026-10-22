@@ -178,7 +178,6 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
             // When closing the channel, if it is already closed it will trigger this event. So we can ignore this.
             LOG.debug("Input side of the connection is already shutdown");
         } else {
-            releaseWaitingRequestsOnFailure();
             LOG.warn("Unexpected user event {} triggered", evt);
         }
     }
@@ -221,8 +220,6 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
     }
 
     private void releaseWaitingRequestsOnFailure() {
-        // When SSL completion event is received via UserEventTriggered method, this method can be called before
-        // assigning value to connectionManager. Hence the null check
         if (Objects.nonNull(targetChannel)) {
             targetChannel.reportConnectionAttemptFailed(new ClientConnectorException(
                     targetChannel.getChannel().id().asShortText(),
