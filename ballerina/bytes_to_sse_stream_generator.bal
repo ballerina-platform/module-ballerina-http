@@ -52,11 +52,16 @@ class BytesToEventStreamGenerator {
 
     public isolated function next() returns record {|SseEvent value;|}|error? {
         do {
-            byte[]? sseEvent = check self.readUntilDoubleLineBreaks();
-            if sseEvent is () {
-                return;
+            while true {
+                byte[]? sseEvent = check self.readUntilDoubleLineBreaks();
+                if sseEvent is () {
+                    return;
+                }
+                // Extra blank lines between events form a block with no fields, which is not an event
+                if hasNonLineBreakByte(sseEvent) {
+                    return {value: check parseSseEvent(check string:fromBytes(sseEvent))};
+                }
             }
-            return {value: check parseSseEvent(check string:fromBytes(sseEvent))};
         } on fail error e {
             log:printError("failed to construct SseEvent", e);
             return e;
@@ -160,6 +165,15 @@ isolated function parseSseEvent(string event) returns SseEvent|error {
         }
     }
     return {data, id, comment, 'retry, event: eventName};
+}
+
+isolated function hasNonLineBreakByte(byte[] bytes) returns boolean {
+    foreach byte b in bytes {
+        if b != LINE_FEED && b != CARRIAGE_RETURN {
+            return true;
+        }
+    }
+    return false;
 }
 
 isolated function removeLeadingSpace(string line) returns string {

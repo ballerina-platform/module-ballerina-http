@@ -264,6 +264,15 @@ function testSseEventsEndedByMixedLineBreaks() returns error? {
 }
 
 @test:Config {}
+function testBlankLinesBetweenSseEventsAreNotEvents() returns error? {
+    byte[] payload = "\n\ndata: a\n\n\n\n\r\n\r\ndata: b\n\n\n\n".toBytes();
+    foreach int splitAt in 1 ..< payload.length() {
+        http:SseEvent[] events = check readSseEvents(string `/sse/${splitAt}?delay=1`, payload);
+        test:assertEquals(events, [{data: "a"}, {data: "b"}], string `events split at byte ${splitAt}`);
+    }
+}
+
+@test:Config {}
 function testSseDataLinesAreJoinedWithLineFeeds() returns error? {
     http:SseEvent[] events = check readSseEvents("/sse/64", "data: first\ndata: second\n\n".toBytes());
     test:assertEquals(events, [{data: "first\nsecond"}]);
