@@ -56,8 +56,8 @@ public interface BackPressureObservable {
 
     /**
      * Record a writability change of the stream under the lock that
-     * {@link #notifyUnWritableIfStreamUnwritable(BooleanSupplier)} checks it with, and release throttling when the
-     * stream becomes writable.
+     * {@link #notifyUnWritableIfStreamUnwritable(BooleanSupplier)} checks it with, and release throttling it started
+     * when the stream becomes writable.
      *
      * @param stream   the stream whose writability changed
      * @param writable whether the stream is now writable

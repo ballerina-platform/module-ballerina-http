@@ -99,7 +99,7 @@ public class DefaultBackPressureObservable implements BackPressureObservable {
     public synchronized void streamWritabilityChanged(StreamWritability stream, boolean writable) {
         stream.setStreamWritable(writable);
         if (writable) {
-            notifyWritable();
+            notifyWritableIfUnWritable();
         }
     }
 

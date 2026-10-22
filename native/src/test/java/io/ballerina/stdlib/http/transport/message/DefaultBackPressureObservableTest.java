@@ -106,23 +106,32 @@ public class DefaultBackPressureObservableTest {
     public void testWriterDoesNotPauseAfterTheStreamFinished() throws Exception {
         DefaultBackPressureObservable observable = new DefaultBackPressureObservable();
         observable.setListener(new DefaultBackPressureListener());
-
-        AtomicBoolean writable = new AtomicBoolean(false);
-        StreamWritability stream = new StreamWritability() {
-            @Override
-            public boolean isStreamWritable() {
-                return writable.get();
-            }
-
-            @Override
-            public void setStreamWritable(boolean streamWritable) {
-                writable.set(streamWritable);
-            }
-        };
+        StreamWritability stream = newStream();
 
         observable.streamFinished(stream);
         CompletableFuture.runAsync(() -> observable.notifyUnWritableIfStreamUnwritable(stream::isStreamWritable))
                 .get(5, TimeUnit.SECONDS);
+    }
+
+    // A stream turns writable again whenever its window opens, mostly with no writer paused. Each such change must not
+    // leave a resume behind, or the writer would no longer pause once the stream is unwritable.
+    @Test(timeOut = 30000)
+    public void testWritabilityChangesWithoutAPausedWriterDoNotSkipALaterPause() throws Exception {
+        DefaultBackPressureObservable observable = new DefaultBackPressureObservable();
+        observable.setListener(new DefaultBackPressureListener());
+        StreamWritability stream = newStream();
+        for (int i = 0; i < 3; i++) {
+            observable.streamWritabilityChanged(stream, false);
+            observable.streamWritabilityChanged(stream, true);
+        }
+        observable.streamWritabilityChanged(stream, false);
+
+        CompletableFuture<Void> writer = CompletableFuture.runAsync(
+                () -> observable.notifyUnWritableIfStreamUnwritable(stream::isStreamWritable));
+        assertThrows(TimeoutException.class, () -> writer.get(200, TimeUnit.MILLISECONDS));
+
+        observable.streamWritabilityChanged(stream, true);
+        writer.get(5, TimeUnit.SECONDS);
     }
 
     // A writability change updates the flag and resumes under the observable's monitor. A writer that read the flag
@@ -155,5 +164,20 @@ public class DefaultBackPressureObservableTest {
         check.get(5, TimeUnit.SECONDS);
 
         assertEquals(pauses.get(), 0, "The writer paused after the stream had become writable");
+    }
+
+    private static StreamWritability newStream() {
+        AtomicBoolean writable = new AtomicBoolean(false);
+        return new StreamWritability() {
+            @Override
+            public boolean isStreamWritable() {
+                return writable.get();
+            }
+
+            @Override
+            public void setStreamWritable(boolean streamWritable) {
+                writable.set(streamWritable);
+            }
+        };
     }
 }
