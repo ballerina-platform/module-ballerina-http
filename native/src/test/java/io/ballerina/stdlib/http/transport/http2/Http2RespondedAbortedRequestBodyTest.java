@@ -26,8 +26,10 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonRequest;
 import io.ballerina.stdlib.http.transport.util.DefaultHttpConnectorListener;
 import io.ballerina.stdlib.http.transport.util.TestUtil;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
@@ -63,6 +65,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 import static io.ballerina.stdlib.http.transport.util.TestUtil.HTTP_SERVER_PORT;
 import static org.testng.Assert.assertEquals;
@@ -71,8 +74,8 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 /**
- * Tests that a request body which fails after the backend has sent its complete response resets the HTTP/2 stream,
- * instead of ending it as if the body were complete.
+ * Tests that a request body which fails, before or after the backend has sent its complete response, resets the
+ * HTTP/2 stream, instead of ending it as if the body were complete.
  */
 public class Http2RespondedAbortedRequestBodyTest {
 
@@ -95,8 +98,33 @@ public class Http2RespondedAbortedRequestBodyTest {
         assertNull(requestEnds.poll(1, TimeUnit.SECONDS), "The client reset a stream the backend had already reset");
     }
 
+    @Test(timeOut = 60000)
+    public void testChunkThatFailsToBeWrittenResetsTheStream() throws Exception {
+        CountDownLatch bodyStarted = new CountDownLatch(1);
+        startBackend(() -> new SilentBackend(requestEnds, bodyStarted));
+        client = FrameLevelTestUtils.setupHttp2PriorKnowledgeClient();
+        HttpCarbonMessage request = createRequest();
+        request.addHttpContent(new DefaultHttpContent(Unpooled.copiedBuffer("partial", StandardCharsets.UTF_8)));
+
+        CountDownLatch failed = new CountDownLatch(1);
+        DefaultHttpConnectorListener listener = new DefaultHttpConnectorListener(failed);
+        client.send(request).setHttpConnectorListener(listener);
+        // From then on each chunk goes straight to the stream, without being read on the way
+        assertTrue(bodyStarted.await(10, TimeUnit.SECONDS), "The first chunk never reached the backend");
+        request.addHttpContent(new DefaultHttpContent(Unpooled.EMPTY_BUFFER) {
+            @Override
+            public ByteBuf content() {
+                throw new IllegalStateException("The chunk could not be read");
+            }
+        });
+
+        assertEquals(requestEnds.poll(10, TimeUnit.SECONDS), "reset");
+        assertTrue(failed.await(10, TimeUnit.SECONDS), "The request did not fail");
+        assertNotNull(listener.getHttpErrorMessage(), "Expected an error, got " + listener.getHttpResponseMessage());
+    }
+
     private void sendAbortedBodyAfterTheResponse(boolean resetAfterResponse) throws Exception {
-        startBackend(resetAfterResponse);
+        startBackend(() -> new CompleteResponseBackend(requestEnds, resetAfterResponse));
         client = FrameLevelTestUtils.setupHttp2PriorKnowledgeClient();
         HttpCarbonMessage request = createRequest();
         request.addHttpContent(new DefaultHttpContent(Unpooled.copiedBuffer("partial", StandardCharsets.UTF_8)));
@@ -125,7 +153,7 @@ public class Http2RespondedAbortedRequestBodyTest {
         request.addHttpContent(abortedEnd);
     }
 
-    private void startBackend(boolean resetAfterResponse) throws InterruptedException {
+    private void startBackend(Supplier<ChannelHandler> backend) throws InterruptedException {
         serverGroup = new MultiThreadIoEventLoopGroup(1, NioIoHandler.newFactory());
         serverChannel = new ServerBootstrap()
                 .group(serverGroup)
@@ -135,7 +163,7 @@ public class Http2RespondedAbortedRequestBodyTest {
                     protected void initChannel(SocketChannel ch) {
                         ch.pipeline().addLast(Http2FrameCodecBuilder.forServer()
                                                       .frameLogger(new ResetRecorder(requestEnds)).build(),
-                                              new CompleteResponseBackend(requestEnds, resetAfterResponse));
+                                              backend.get());
                     }
                 })
                 .bind(HTTP_SERVER_PORT).sync().channel();
@@ -195,6 +223,31 @@ public class Http2RespondedAbortedRequestBodyTest {
             } else {
                 ReferenceCountUtil.release(msg);
             }
+        }
+    }
+
+    /**
+     * Never responds, so the whole request body is written to an open stream. Signals the first DATA frame, and records
+     * a request ended with END_STREAM.
+     */
+    private static final class SilentBackend extends ChannelInboundHandlerAdapter {
+        private final BlockingQueue<String> requestEnds;
+        private final CountDownLatch bodyStarted;
+
+        SilentBackend(BlockingQueue<String> requestEnds, CountDownLatch bodyStarted) {
+            this.requestEnds = requestEnds;
+            this.bodyStarted = bodyStarted;
+        }
+
+        @Override
+        public void channelRead(ChannelHandlerContext ctx, Object msg) {
+            if (msg instanceof Http2DataFrame dataFrame) {
+                bodyStarted.countDown();
+                if (dataFrame.isEndStream()) {
+                    requestEnds.add("ended");
+                }
+            }
+            ReferenceCountUtil.release(msg);
         }
     }
 
