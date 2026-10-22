@@ -56,3 +56,5 @@ const int serviceContractTestPort = 9096;
 
 const int laxDataBindingTestPort = 9097;
 const int laxDataBindingNegativeTestPort = 9098;
+
+const int stalledBodyTestPort = 9497;

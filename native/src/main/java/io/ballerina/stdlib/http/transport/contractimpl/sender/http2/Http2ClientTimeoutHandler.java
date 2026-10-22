@@ -23,11 +23,7 @@ import io.ballerina.stdlib.http.transport.contract.exceptions.EndpointTimeOutExc
 import io.ballerina.stdlib.http.transport.contractimpl.common.FlowControlStallTracker;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.DecoderException;
-import io.netty.handler.codec.DecoderResult;
-import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http2.Http2Error;
 import io.netty.handler.codec.http2.Http2Exception;
 import io.netty.handler.codec.http2.Http2Headers;
@@ -47,6 +43,7 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_BODY;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.schedule;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.ticksInNanos;
+import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.handleIncompleteInboundMessage;
 
 /**
  * {@code Http2ClientTimeoutHandler} handles the Read/Write Timeout of HTTP/2 streams.
@@ -284,10 +281,7 @@ public class Http2ClientTimeoutHandler implements Http2DataEventListener {
         }
 
         private void handleIncompleteResponse(OutboundMsgHolder msgHolder, boolean primary) {
-            LastHttpContent lastHttpContent = new DefaultLastHttpContent();
-            lastHttpContent.setDecoderResult(DecoderResult.failure(new DecoderException(getErrorMessage(primary))));
-            msgHolder.getResponse().addHttpContent(lastHttpContent);
-            LOG.warn(getErrorMessage(primary));
+            handleIncompleteInboundMessage(msgHolder.getResponse(), getErrorMessage(primary));
         }
 
         private String getErrorMessage(boolean primary) {
