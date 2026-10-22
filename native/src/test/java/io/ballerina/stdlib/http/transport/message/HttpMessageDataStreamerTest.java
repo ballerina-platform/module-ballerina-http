@@ -19,7 +19,9 @@
 package io.ballerina.stdlib.http.transport.message;
 
 import io.ballerina.stdlib.http.transport.util.client.http2.MessageGenerator;
+import io.netty.buffer.AbstractByteBufAllocator;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.DecoderResult;
@@ -42,6 +44,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -267,6 +271,47 @@ public class HttpMessageDataStreamerTest {
         outputStream.write("data: a\n".getBytes(StandardCharsets.UTF_8));
         assertThrows(EncoderException.class, () -> outputStream.write('\n'));
         outputStream.write('d');
+    }
+
+    @Test
+    public void testClosingAnEventStreamSendsItsLastBytesAndReleasesItsBuffers() throws IOException {
+        List<ByteBuf> buffers = new ArrayList<>();
+        ByteBufAllocator allocator = new AbstractByteBufAllocator() {
+            @Override
+            protected ByteBuf newHeapBuffer(int initialCapacity, int maxCapacity) {
+                return Unpooled.buffer(initialCapacity, maxCapacity);
+            }
+
+            @Override
+            protected ByteBuf newDirectBuffer(int initialCapacity, int maxCapacity) {
+                ByteBuf buffer = Unpooled.directBuffer(initialCapacity, maxCapacity);
+                buffers.add(buffer);
+                return buffer;
+            }
+
+            @Override
+            public boolean isDirectBufferPooled() {
+                return false;
+            }
+        };
+        HttpCarbonMessage message = newResponse(1000);
+        message.setHeader(HttpHeaderNames.CONTENT_TYPE.toString(), "text/event-stream");
+        OutputStream outputStream = new HttpMessageDataStreamer(message, allocator).getOutputStream();
+
+        outputStream.write("data: a\n\ndata: b".getBytes(StandardCharsets.UTF_8));
+        outputStream.close();
+
+        EntityCollector entityCollector = message.getBlockingEntityCollector();
+        HttpContent event = entityCollector.getHttpContent();
+        Assert.assertEquals("data: a\n\n", event.content().toString(StandardCharsets.UTF_8));
+        event.release();
+        HttpContent last = entityCollector.getHttpContent();
+        Assert.assertTrue(last instanceof LastHttpContent);
+        Assert.assertEquals("data: b", last.content().toString(StandardCharsets.UTF_8));
+        last.release();
+        for (ByteBuf buffer : buffers) {
+            Assert.assertEquals(0, buffer.refCnt());
+        }
     }
 
     private static HttpCarbonMessage newResponse(int maxWaitTimeMillis) {

@@ -197,7 +197,7 @@ public class HttpMessageDataStreamer {
      */
     protected class ByteBufferOutputStream extends OutputStream {
 
-        private ByteBuf dataHolder;
+        protected ByteBuf dataHolder;
 
         @Override
         public void write(int b) {
@@ -248,7 +248,6 @@ public class HttpMessageDataStreamer {
      * one thread at particular time.
      */
     protected class EventBufferOutputStream extends ByteBufferOutputStream {
-        private ByteBuf dataHolder = getBuffer();
         private int lastByte = 0;
 
         @Override
@@ -262,7 +261,7 @@ public class HttpMessageDataStreamer {
                 try {
                     writeByte(b);
                     httpCarbonMessage.addHttpContent(new DefaultHttpContent(this.dataHolder));
-                    this.dataHolder = getBuffer();
+                    this.dataHolder = null;
                 } catch (RuntimeException ex) {
                     this.dataHolder = null;
                     throw new EncoderException(httpCarbonMessage.getIoException());
