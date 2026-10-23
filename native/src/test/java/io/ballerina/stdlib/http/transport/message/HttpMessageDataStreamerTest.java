@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.transport.message;
 
+import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.transport.util.client.http2.MessageGenerator;
 import io.netty.buffer.AbstractByteBufAllocator;
 import io.netty.buffer.ByteBuf;
@@ -259,6 +260,24 @@ public class HttpMessageDataStreamerTest {
         buffer.clear();
         Assert.assertEquals("second".length(), channel.read(buffer));
         Assert.assertEquals("second", new String(buffer.array(), 0, buffer.position(), StandardCharsets.UTF_8));
+    }
+
+    @Test
+    public void testAbortingTheOutputStreamEndsTheBodyAsFailed() throws IOException {
+        HttpCarbonMessage message = newResponse(1000);
+        OutputStream outputStream = new HttpMessageDataStreamer(message).getOutputStream();
+        outputStream.write("unsent".getBytes(StandardCharsets.UTF_8));
+        IOException cause = new IOException("disk failure");
+
+        HttpUtil.abortMessageOutputStream(outputStream, cause);
+        outputStream.close();
+
+        HttpContent end = message.getBlockingEntityCollector().getHttpContent();
+        Assert.assertTrue(end instanceof LastHttpContent);
+        Assert.assertSame(cause, end.decoderResult().cause());
+        Assert.assertEquals(0, end.content().readableBytes());
+        Assert.assertNull("Closing after the abort ended the body again",
+                          message.getBlockingEntityCollector().getHttpContent());
     }
 
     @Test

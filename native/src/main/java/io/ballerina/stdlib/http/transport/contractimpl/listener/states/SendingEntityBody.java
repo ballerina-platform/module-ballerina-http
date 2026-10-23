@@ -51,11 +51,13 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_HEAD_METHOD;
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY;
+import static io.ballerina.stdlib.http.transport.contract.Constants.OUTBOUND_RESPONSE_BODY_FAILED;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_TO_HOST_CONNECTION_CLOSED;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.createFullHttpResponse;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.setupContentLengthRequest;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.ILLEGAL_STATE_ERROR;
+import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.isFailedBodyEnd;
 
 /**
  * State between start and end of outbound response entity body write.
@@ -111,6 +113,10 @@ public class SendingEntityBody implements ListenerState {
     public void writeOutboundResponseBody(HttpOutboundRespListener outboundRespListener,
                                           HttpCarbonMessage outboundResponseMsg, HttpContent httpContent) {
         this.outboundResponseMsg = outboundResponseMsg;
+        if (isFailedBodyEnd(httpContent)) {
+            abortResponse(httpContent);
+            return;
+        }
 
         ChannelFuture outboundChannelFuture;
         if (httpContent instanceof LastHttpContent) {
@@ -167,6 +173,19 @@ public class SendingEntityBody implements ListenerState {
 
         LOG.error(IDLE_TIMEOUT_TRIGGERED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY);
         return null;
+    }
+
+    // Closes the connection after the content already written, without the end of the body, so the client sees it
+    // cut short. A response whose headers were not written yet is not sent at all.
+    private void abortResponse(HttpContent failedEnd) {
+        Throwable cause = failedEnd.decoderResult().cause();
+        failedEnd.release();
+        contentList.forEach(HttpContent::release);
+        contentList.clear();
+        listenerReqRespStateManager.state
+                = new ResponseCompleted(listenerReqRespStateManager, sourceHandler, inboundRequestMsg);
+        sourceContext.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
+        outboundRespStatusFuture.notifyHttpListener(new IOException(OUTBOUND_RESPONSE_BODY_FAILED, cause));
     }
 
     private ChannelFuture checkHeadRequestAndWriteOutboundResponseBody(HttpContent httpContent) {

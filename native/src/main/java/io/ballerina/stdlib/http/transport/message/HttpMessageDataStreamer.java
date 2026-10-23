@@ -24,6 +24,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.DecoderException;
+import io.netty.handler.codec.DecoderResult;
 import io.netty.handler.codec.EncoderException;
 import io.netty.handler.codec.http.DefaultHttpContent;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
@@ -195,9 +196,10 @@ public class HttpMessageDataStreamer {
      * No need to worry about thread safety of this class this is called only once by
      * one thread at particular time.
      */
-    protected class ByteBufferOutputStream extends OutputStream {
+    public class ByteBufferOutputStream extends OutputStream {
 
         protected ByteBuf dataHolder;
+        private boolean ended;
 
         @Override
         public void write(int b) {
@@ -225,6 +227,10 @@ public class HttpMessageDataStreamer {
 
         @Override
         public void close() {
+            if (ended) {
+                return;
+            }
+            ended = true;
             try {
                 if (dataHolder != null && dataHolder.isReadable()) {
                     httpCarbonMessage.addHttpContent(new DefaultLastHttpContent(dataHolder));
@@ -235,6 +241,33 @@ public class HttpMessageDataStreamer {
                 throw new EncoderException(httpCarbonMessage.getIoException());
             } catch (Exception e) {
                 LOG.error("Error while closing output stream but underlying resources are reset", e);
+            } finally {
+                byteBufferOutputStream = null;
+            }
+        }
+
+        /**
+         * Ends the body as failed, so the receiver sees it cut short instead of complete. The bytes not yet sent are
+         * dropped. Does nothing if the body has already ended.
+         *
+         * @param cause why the body could not be completed
+         */
+        public void abort(Throwable cause) {
+            if (ended) {
+                return;
+            }
+            ended = true;
+            if (dataHolder != null) {
+                dataHolder.release();
+                dataHolder = null;
+            }
+            LastHttpContent failedEnd = new DefaultLastHttpContent();
+            failedEnd.setDecoderResult(DecoderResult.failure(cause));
+            try {
+                httpCarbonMessage.addHttpContent(failedEnd);
+            } catch (RuntimeException e) {
+                // The message already failed with an I/O error, which ends it the same way
+                LOG.debug("Outbound message already failed: {}", e.getMessage());
             } finally {
                 byteBufferOutputStream = null;
             }
