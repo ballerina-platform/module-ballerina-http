@@ -51,9 +51,11 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY;
+import static io.ballerina.stdlib.http.transport.contract.Constants.OUTBOUND_RESPONSE_BODY_FAILED;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_SENT_GOAWAY_WHILE_WRITING_OUTBOUND_RESPONSE_BODY;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil.validatePromisedStreamState;
+import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.isFailedBodyEnd;
 
 /**
  * State between start and end of outbound response or push response entity body write.
@@ -164,7 +166,9 @@ public class SendingEntityBody implements ListenerState {
     private void writeContent(Http2OutboundRespListener http2OutboundRespListener,
                               HttpCarbonMessage outboundResponseMsg, HttpContent httpContent, int streamId)
             throws Http2Exception {
-        if (httpContent instanceof LastHttpContent) {
+        if (isFailedBodyEnd(httpContent)) {
+            abortResponse(http2OutboundRespListener, httpContent, streamId);
+        } else if (httpContent instanceof LastHttpContent) {
             final LastHttpContent lastContent = (httpContent == LastHttpContent.EMPTY_LAST_CONTENT) ?
                     new DefaultLastHttpContent() : (LastHttpContent) httpContent;
             HttpHeaders trailers = lastContent.trailingHeaders();
@@ -191,6 +195,19 @@ public class SendingEntityBody implements ListenerState {
         } else {
             writeData(httpContent, streamId, false);
         }
+    }
+
+    // Resets the stream rather than ending it, so the client sees the body cut short
+    private void abortResponse(Http2OutboundRespListener http2OutboundRespListener, HttpContent failedEnd,
+                               int streamId) throws Http2Exception {
+        Throwable cause = failedEnd.decoderResult().cause();
+        failedEnd.release();
+        http2OutboundRespListener.resetStream(ctx, streamId, Http2Error.INTERNAL_ERROR);
+        http2OutboundRespListener.getHttp2ServerChannel().getStreamIdRequestMap().remove(streamId);
+        http2OutboundRespListener.removeDefaultResponseWriter();
+        http2MessageStateContext
+                .setListenerState(new ResponseCompleted(http2OutboundRespListener, http2MessageStateContext));
+        outboundRespStatusFuture.notifyHttpListener(new IOException(OUTBOUND_RESPONSE_BODY_FAILED, cause));
     }
 
     private void writeData(HttpContent httpContent, int streamId, boolean endStream) throws Http2Exception {

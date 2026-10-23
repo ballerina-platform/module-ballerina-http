@@ -21,8 +21,9 @@ package io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.HttpClientChannelInitializer;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.states.http2.RequestCompleted;
-import io.ballerina.stdlib.http.transport.contractimpl.sender.states.http2.SendingEntityBody;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.states.http2.SendingHeaders;
+import io.ballerina.stdlib.http.transport.contractimpl.sender.states.http2.SendingRstFrame;
+import io.ballerina.stdlib.http.transport.contractimpl.sender.states.http2.StreamNotOpened;
 import io.ballerina.stdlib.http.transport.message.Http2DataFrame;
 import io.ballerina.stdlib.http.transport.message.Http2HeadersFrame;
 import io.ballerina.stdlib.http.transport.message.Http2PushPromise;
@@ -71,8 +72,7 @@ public class Http2TargetHandler extends ChannelDuplexHandler {
                 new Http2TargetHandler.Http2RequestWriter(http2Content.getOutboundMsgHolder()).
                     writeContent(ctx, http2Content.getHttpContent());
             } catch (Http2NoMoreStreamIdsException ex) {
-                //Remove connection from the pool
-                http2ClientChannel.removeFromConnectionPool();
+                // Marked stale when the stream could not be opened, so the channel takes no more requests
                 LOG.warn("Channel is removed from the connection pool : {}", ex.getMessage(), ex);
                 http2Content.getOutboundMsgHolder().getResponseFuture().notifyHttpListener(ex);
             } catch (Http2Exception ex) {
@@ -152,7 +152,6 @@ public class Http2TargetHandler extends ChannelDuplexHandler {
         HttpCarbonMessage httpOutboundRequest;
         OutboundMsgHolder outboundMsgHolder;
         Http2MessageStateContext http2MessageStateContext;
-        int streamId;
 
         Http2RequestWriter(OutboundMsgHolder outboundMsgHolder) {
             this.outboundMsgHolder = outboundMsgHolder;
@@ -173,11 +172,16 @@ public class Http2TargetHandler extends ChannelDuplexHandler {
                 }
                 http2MessageStateContext.getSenderState().writeOutboundRequestBody(ctx, msg, http2MessageStateContext);
             } catch (RuntimeException ex) {
-                httpOutboundRequest.getHttp2MessageStateContext()
-                    .setSenderState(new SendingEntityBody(Http2TargetHandler.this, this));
-                httpOutboundRequest.getHttp2MessageStateContext()
-                    .getSenderState().writeOutboundRequestBody(ctx, new DefaultLastHttpContent(),
-                                                               http2MessageStateContext);
+                // Ending the stream normally would hand the server a truncated body as if it were complete
+                LOG.warn("Failed to write the request body, so its stream is reset: {}", ex.getMessage(), ex);
+                if (getStreamId() > 0) {
+                    http2MessageStateContext.setSenderState(new SendingRstFrame(Http2TargetHandler.this, this));
+                    http2MessageStateContext.getSenderState()
+                            .writeOutboundRequestBody(ctx, new DefaultLastHttpContent(), http2MessageStateContext);
+                } else {
+                    http2MessageStateContext.setSenderState(new StreamNotOpened());
+                    outboundMsgHolder.getResponseFuture().notifyHttpListener(ex);
+                }
             }
         }
 
@@ -193,12 +197,13 @@ public class Http2TargetHandler extends ChannelDuplexHandler {
             return outboundMsgHolder;
         }
 
+        // Kept on the request, as each chunk of it is written by a new writer
         public int getStreamId() {
-            return streamId;
+            return http2MessageStateContext.getStreamId();
         }
 
         public void setStreamId(int streamId) {
-            this.streamId = streamId;
+            http2MessageStateContext.setStreamId(streamId);
         }
     }
 

@@ -141,9 +141,19 @@ public class ResponseWriter {
                 log.debug("Entity does not have a serializable payload");
             }
         } catch (IOException ex) {
+            abortResponseBody(messageOutputStream, ex);
             throw ErrorCreator.createError(StringUtils.fromString(SERIALIZATION_ERROR), StringUtils.fromString(
                     "error occurred while serializing message data source : " + ex.getMessage()));
+        } catch (BError ex) {
+            abortResponseBody(messageOutputStream, ex);
+            throw ex;
         }
+    }
+
+    // Logged here, as a resource that returns the response never sees the error
+    private static void abortResponseBody(OutputStream messageOutputStream, Exception cause) {
+        log.error("Failed to write the response body, so the response is aborted: {}", cause.getMessage());
+        HttpUtil.abortMessageOutputStream(messageOutputStream, cause);
     }
 
     /**

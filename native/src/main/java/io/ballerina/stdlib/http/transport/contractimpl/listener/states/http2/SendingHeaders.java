@@ -51,6 +51,7 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_HEADERS;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_SENT_GOAWAY_WHILE_WRITING_OUTBOUND_RESPONSE_HEADERS;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil.validatePromisedStreamState;
+import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.isFailedBodyEnd;
 
 /**
  * State between start and end of outbound response headers write.
@@ -102,7 +103,10 @@ public class SendingHeaders implements ListenerState {
     public void writeOutboundResponseHeaders(Http2OutboundRespListener http2OutboundRespListener,
                                              HttpCarbonMessage outboundResponseMsg, HttpContent httpContent,
                                              int streamId) throws Http2Exception {
-        writeHeaders(outboundResponseMsg, streamId);
+        // A body that failed before anything was sent resets the stream without sending headers
+        if (!isFailedBodyEnd(httpContent)) {
+            writeHeaders(outboundResponseMsg, streamId);
+        }
         http2MessageStateContext.setListenerState(
                 new SendingEntityBody(http2OutboundRespListener, http2MessageStateContext));
         http2MessageStateContext.getListenerState()

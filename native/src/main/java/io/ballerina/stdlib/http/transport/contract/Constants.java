@@ -376,6 +376,8 @@ public final class Constants {
             = "Remote client closed the connection while writing outbound response headers";
     public static final String REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY
             = "Remote client closed the connection while writing outbound response entity body";
+    public static final String OUTBOUND_RESPONSE_BODY_FAILED
+            = "Outbound response entity body failed before it was complete";
     public static final String REMOTE_CLIENT_CLOSED_BEFORE_INITIATING_100_CONTINUE_RESPONSE
             = "Remote client closed the connection before initiating 100 continue response";
     public static final String REMOTE_CLIENT_CLOSED_WHILE_WRITING_100_CONTINUE_RESPONSE
@@ -446,6 +448,10 @@ public final class Constants {
             = "Stream closed while writing outbound request headers";
     public static final String STREAM_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_BODY
             = "Stream closed while writing outbound request entity body";
+    public static final String STREAM_RESET_WHILE_WRITING_OUTBOUND_REQUEST_BODY
+            = "Stream reset because the outbound request entity body could not be completed";
+    public static final String CONNECTION_CLOSED_INCOMPLETE_OUTBOUND_REQUEST_BODY
+            = "Connection closed because the outbound request entity body could not be completed";
     public static final String STREAM_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE
             = "Stream closed before initiating inbound response";
     public static final String STREAM_CLOSED_WHILE_READING_INBOUND_RESPONSE_HEADERS

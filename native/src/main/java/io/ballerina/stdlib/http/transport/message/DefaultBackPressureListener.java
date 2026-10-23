@@ -52,6 +52,11 @@ public class DefaultBackPressureListener implements BackPressureListener {
     }
 
     @Override
+    public boolean blocksWriter() {
+        return true;
+    }
+
+    @Override
     public void onWritable() {
         semaphore.release();
 

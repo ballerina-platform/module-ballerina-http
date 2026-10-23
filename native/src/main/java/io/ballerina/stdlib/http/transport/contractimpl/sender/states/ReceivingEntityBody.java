@@ -90,7 +90,7 @@ public class ReceivingEntityBody implements SenderState {
             }
             senderReqRespStateManager.state = new EntityBodyReceived(senderReqRespStateManager);
 
-            if (!isKeepAlive(targetHandler.getKeepAliveConfig(),
+            if (senderReqRespStateManager.isRequestBodyIncomplete() || !isKeepAlive(targetHandler.getKeepAliveConfig(),
                     targetHandler.getOutboundRequestMsg(), inboundResponseMsg)) {
                 targetHandler.closeChannel(ctx);
             }

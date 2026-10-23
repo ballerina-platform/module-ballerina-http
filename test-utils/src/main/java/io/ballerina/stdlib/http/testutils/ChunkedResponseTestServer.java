@@ -19,6 +19,7 @@
 package io.ballerina.stdlib.http.testutils;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -31,6 +32,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.DefaultHttpContent;
 import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpServerCodec;
@@ -41,6 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -51,14 +54,19 @@ import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 /**
- * Replies to {@code /chunks/400,400,400?delay=50} with those chunk sizes flushed 50 ms apart, and to
- * {@code /malformed} with a response the client cannot decode.
+ * Replies to {@code /chunks/400,400,400?delay=50} with those chunk sizes flushed 50 ms apart, to
+ * {@code /sse/3,1,5?delay=50} with the request body sent back as {@code text/event-stream} in chunks of those sizes
+ * (the last chunk carries whatever is left), and to {@code /malformed} with a response the client cannot decode.
+ * {@code truncate=true} closes the connection after the last chunk instead of ending the body.
  */
 final class ChunkedResponseTestServer {
 
     private static final Logger log = LoggerFactory.getLogger(ChunkedResponseTestServer.class);
 
     private static final String PATH_MALFORMED = "/malformed";
+    private static final String PATH_SSE = "/sse";
+    private static final String PATH_SSE_PREFIX = PATH_SSE + '/';
+    private static final int MAX_REQUEST_BODY_SIZE = 1024 * 1024;
     private static final String MALFORMED_RESPONSE = "HTTP/1.1 200 OK\r\nContent-Length: abc\r\n\r\n";
     private static final Map<Integer, RunningServer> SERVERS = new ConcurrentHashMap<>();
 
@@ -71,7 +79,8 @@ final class ChunkedResponseTestServer {
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) {
-                            socketChannel.pipeline().addLast(new HttpServerCodec(), new HttpObjectAggregator(1024),
+                            socketChannel.pipeline().addLast(new HttpServerCodec(),
+                                                             new HttpObjectAggregator(MAX_REQUEST_BODY_SIZE),
                                                              new ChunkedResponseHandler());
                         }
                     }).bind(port).sync().channel();
@@ -106,26 +115,57 @@ final class ChunkedResponseTestServer {
                     .mapToInt(Integer::parseInt).toArray();
             List<String> delay = decoder.parameters().get("delay");
             long delayMillis = delay == null ? 0 : Long.parseLong(delay.get(0));
+            boolean truncate = decoder.parameters().containsKey("truncate");
 
             HttpResponse response = new DefaultHttpResponse(HTTP_1_1, OK);
             HttpUtil.setTransferEncodingChunked(response, true);
+            byte[] body;
+            if (path.startsWith(PATH_SSE_PREFIX)) {
+                response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/event-stream");
+                body = ByteBufUtil.getBytes(request.content());
+                chunkSizes = splitInto(body.length, chunkSizes);
+            } else {
+                body = new byte[Arrays.stream(chunkSizes).sum()];
+                Arrays.fill(body, (byte) 'x');
+            }
             ctx.writeAndFlush(response);
-            writeChunk(ctx, chunkSizes, 0, delayMillis);
+            writeChunk(ctx, body, 0, chunkSizes, 0, delayMillis, truncate);
         }
 
-        private void writeChunk(ChannelHandlerContext ctx, int[] chunkSizes, int index, long delayMillis) {
+        // Applies the requested sizes in turn and sends whatever is left of the body as the final chunk.
+        private static int[] splitInto(int bodyLength, int[] chunkSizes) {
+            List<Integer> sizes = new ArrayList<>();
+            int remaining = bodyLength;
+            for (int size : chunkSizes) {
+                if (remaining == 0) {
+                    break;
+                }
+                int chunkSize = Math.min(size, remaining);
+                sizes.add(chunkSize);
+                remaining -= chunkSize;
+            }
+            if (remaining > 0) {
+                sizes.add(remaining);
+            }
+            return sizes.stream().mapToInt(Integer::intValue).toArray();
+        }
+
+        private void writeChunk(ChannelHandlerContext ctx, byte[] body, int offset, int[] chunkSizes, int index,
+                                long delayMillis, boolean truncate) {
             if (!ctx.channel().isActive()) {
                 return;
             }
             if (index == chunkSizes.length) {
-                ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+                if (truncate) {
+                    ctx.close();
+                } else {
+                    ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+                }
                 return;
             }
             ctx.executor().schedule(() -> {
-                byte[] chunk = new byte[chunkSizes[index]];
-                Arrays.fill(chunk, (byte) 'x');
-                ctx.writeAndFlush(new DefaultHttpContent(Unpooled.wrappedBuffer(chunk)));
-                writeChunk(ctx, chunkSizes, index + 1, delayMillis);
+                ctx.writeAndFlush(new DefaultHttpContent(Unpooled.wrappedBuffer(body, offset, chunkSizes[index])));
+                writeChunk(ctx, body, offset + chunkSizes[index], chunkSizes, index + 1, delayMillis, truncate);
             }, index == 0 ? 0 : delayMillis, TimeUnit.MILLISECONDS);
         }
 

@@ -35,10 +35,12 @@ import io.netty.handler.timeout.IdleStateHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static io.ballerina.stdlib.http.transport.contract.Constants.INBOUND_RESPONSE_ALREADY_RECEIVED;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_BEFORE_READING_100_CONTINUE_RESPONSE;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.addIdleStateHandler;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.safelyRemoveHandlers;
@@ -101,6 +103,9 @@ public class Sending100Continue implements SenderState {
                 for (HttpContent cachedHttpContent : contentList) {
                     cachedHttpContent.release();
                 }
+                targetHandler.getOutboundRequestMsg()
+                        .setIoException(new IOException(INBOUND_RESPONSE_ALREADY_RECEIVED));
+                senderReqRespStateManager.markRequestBodyIncomplete();
                 senderReqRespStateManager.state = new ReceivingHeaders(senderReqRespStateManager);
                 senderReqRespStateManager.readInboundResponseHeaders(targetHandler, httpInboundResponse);
             } else {

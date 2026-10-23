@@ -50,8 +50,13 @@ const int cookieTestPort2 = 9254;
 
 const int http1SsePort = 9094;
 const int http2SsePort = 9095;
+const int sseChunkedServerPort = 9496;
 
 const int serviceContractTestPort = 9096;
 
 const int laxDataBindingTestPort = 9097;
 const int laxDataBindingNegativeTestPort = 9098;
+
+const int stalledBodyTestPort = 9497;
+const int failedBodyHttp2TestPort = 9498;
+const int failedBodyHttp1TestPort = 9499;

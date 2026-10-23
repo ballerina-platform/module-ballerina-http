@@ -18,42 +18,99 @@
 
 package io.ballerina.stdlib.http.transport.message;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BooleanSupplier;
+
 /**
  * Default implementation of the {@link BackPressureObservable}.
  */
 public class DefaultBackPressureObservable implements BackPressureObservable {
 
-    private BackPressureListener listener;
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultBackPressureObservable.class);
 
+    private volatile BackPressureListener listener;
+    private final AtomicBoolean unWritable = new AtomicBoolean();
+
+    // A paused listener being replaced belongs to a finished message, such as the previous request on a keep-alive
+    // connection, so it is resumed rather than left with its inbound channel suspended.
     @Override
-    public void setListener(BackPressureListener listener) {
+    public synchronized void setListener(BackPressureListener listener) {
+        BackPressureListener previous = this.listener;
+        if (previous != null && previous != listener && unWritable.getAndSet(false)) {
+            previous.onWritable();
+        }
         this.listener = listener;
     }
 
     @Override
-    public void removeListener() {
+    public synchronized void removeListener() {
         if (listener != null) {
+            unWritable.set(false);
             listener.onWritable();
             listener = null;
         }
     }
 
     @Override
-    public void notifyUnWritable() {
-        if (listener != null) {
-            listener.onUnWritable();
+    public void notifyUnWritableIfStreamUnwritable(BooleanSupplier streamWritable) {
+        BackPressureListener blockingListener;
+        synchronized (this) {
+            if (streamWritable.getAsBoolean()) {
+                return;
+            }
+            BackPressureListener currentListener = listener;
+            if (currentListener == null) {
+                return;
+            }
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("In thread {}. Stream is not writable.", Thread.currentThread().getName());
+            }
+            unWritable.set(true);
+            if (!currentListener.blocksWriter()) {
+                currentListener.onUnWritable();
+                return;
+            }
+            blockingListener = currentListener;
         }
+        // Blocks outside the monitor that a resume takes; the semaphore keeps a resume that runs first.
+        blockingListener.onUnWritable();
     }
 
     @Override
-    public void notifyWritable() {
+    public synchronized void notifyWritable() {
         if (listener != null) {
+            unWritable.set(false);
             listener.onWritable();
         }
     }
 
     @Override
-    public BackPressureListener getListener() {
+    public synchronized void notifyWritableIfUnWritable() {
+        BackPressureListener currentListener = listener;
+        if (currentListener != null && unWritable.compareAndSet(true, false)) {
+            currentListener.onWritable();
+        }
+    }
+
+    @Override
+    public synchronized void streamWritabilityChanged(StreamWritability stream, boolean writable) {
+        stream.setStreamWritable(writable);
+        if (writable) {
+            notifyWritableIfUnWritable();
+        }
+    }
+
+    @Override
+    public synchronized void streamFinished(StreamWritability stream) {
+        stream.setStreamWritable(true);
+        notifyWritableIfUnWritable();
+    }
+
+    @Override
+    public synchronized BackPressureListener getListener() {
         return listener;
     }
 }

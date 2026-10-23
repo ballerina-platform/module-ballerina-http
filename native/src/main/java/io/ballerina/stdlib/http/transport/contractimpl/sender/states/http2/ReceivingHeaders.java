@@ -226,7 +226,7 @@ public class ReceivingHeaders implements SenderState {
                 checkForTrailerHeaders(streamId, http2Headers, outboundMsgHolder, responseMessage);
                 outboundMsgHolder.setResponse(responseMessage);
             }
-            http2ClientChannel.removeInFlightMessage(streamId);
+            http2ClientChannel.removeRespondedMessage(streamId);
             http2MessageStateContext.setSenderState(new EntityBodyReceived(http2TargetHandler, http2RequestWriter));
         } else {
             // Create response carbon message.
