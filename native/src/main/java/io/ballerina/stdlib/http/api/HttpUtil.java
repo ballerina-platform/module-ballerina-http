@@ -392,6 +392,21 @@ public class HttpUtil {
         }
     }
 
+    /**
+     * Ends the body written to the given message output stream as failed, so the peer sees it cut short instead of
+     * complete. A stream that is not a message output stream is only closed.
+     *
+     * @param messageOutputStream the output stream of the message body
+     * @param cause               why the body could not be completed
+     */
+    public static void abortMessageOutputStream(OutputStream messageOutputStream, Throwable cause) {
+        if (messageOutputStream instanceof HttpMessageDataStreamer.ByteBufferOutputStream bodyOutputStream) {
+            bodyOutputStream.abort(cause);
+        } else {
+            closeMessageOutputStream(messageOutputStream);
+        }
+    }
+
     public static void prepareOutboundResponse(BObject connectionObj, HttpCarbonMessage inboundRequestMsg,
                                                HttpCarbonMessage outboundResponseMsg,
                                                BObject outboundResponseObj) {

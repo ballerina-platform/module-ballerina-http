@@ -376,6 +376,8 @@ public final class Constants {
             = "Remote client closed the connection while writing outbound response headers";
     public static final String REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY
             = "Remote client closed the connection while writing outbound response entity body";
+    public static final String OUTBOUND_RESPONSE_BODY_FAILED
+            = "Outbound response entity body failed before it was complete";
     public static final String REMOTE_CLIENT_CLOSED_BEFORE_INITIATING_100_CONTINUE_RESPONSE
             = "Remote client closed the connection before initiating 100 continue response";
     public static final String REMOTE_CLIENT_CLOSED_WHILE_WRITING_100_CONTINUE_RESPONSE
