@@ -251,10 +251,11 @@ public class HttpMessageDataStreamer {
          * dropped. Does nothing if the body has already ended.
          *
          * @param cause why the body could not be completed
+         * @return true if this ended the body, false if it had already ended or failed
          */
-        public void abort(Throwable cause) {
+        public boolean abort(Throwable cause) {
             if (ended) {
-                return;
+                return false;
             }
             ended = true;
             if (dataHolder != null) {
@@ -265,9 +266,11 @@ public class HttpMessageDataStreamer {
             failedEnd.setDecoderResult(DecoderResult.failure(cause));
             try {
                 httpCarbonMessage.addHttpContent(failedEnd);
+                return true;
             } catch (RuntimeException e) {
                 // The message already failed with an I/O error, which ends it the same way
                 LOG.debug("Outbound message already failed: {}", e.getMessage());
+                return false;
             } finally {
                 byteBufferOutputStream = null;
             }

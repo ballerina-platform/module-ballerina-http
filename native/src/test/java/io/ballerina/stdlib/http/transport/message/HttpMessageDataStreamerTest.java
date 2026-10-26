@@ -269,7 +269,7 @@ public class HttpMessageDataStreamerTest {
         outputStream.write("unsent".getBytes(StandardCharsets.UTF_8));
         IOException cause = new IOException("disk failure");
 
-        HttpUtil.abortMessageOutputStream(outputStream, cause);
+        Assert.assertTrue("The abort did not end the body", HttpUtil.abortMessageOutputStream(outputStream, cause));
         outputStream.close();
 
         HttpContent end = message.getBlockingEntityCollector().getHttpContent();
@@ -278,6 +278,16 @@ public class HttpMessageDataStreamerTest {
         Assert.assertEquals(0, end.content().readableBytes());
         Assert.assertNull("Closing after the abort ended the body again",
                           message.getBlockingEntityCollector().getHttpContent());
+    }
+
+    @Test
+    public void testAbortingTheOutputStreamOfAFailedMessageReportsNothingEnded() {
+        HttpCarbonMessage message = newResponse(1000);
+        message.setIoException(new IOException("client closed the connection"));
+        OutputStream outputStream = new HttpMessageDataStreamer(message).getOutputStream();
+
+        Assert.assertFalse("The abort ended a body that had already failed",
+                           HttpUtil.abortMessageOutputStream(outputStream, new IOException("disk failure")));
     }
 
     @Test

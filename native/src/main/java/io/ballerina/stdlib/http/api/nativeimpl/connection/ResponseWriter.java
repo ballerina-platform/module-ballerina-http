@@ -152,8 +152,9 @@ public class ResponseWriter {
 
     // Logged here, as a resource that returns the response never sees the error
     private static void abortResponseBody(OutputStream messageOutputStream, Exception cause) {
-        log.error("Failed to write the response body, so the response is aborted: {}", cause.getMessage());
-        HttpUtil.abortMessageOutputStream(messageOutputStream, cause);
+        if (HttpUtil.abortMessageOutputStream(messageOutputStream, cause)) {
+            log.error("Failed to write the response body, so the response is aborted: {}", cause.getMessage());
+        }
     }
 
     /**

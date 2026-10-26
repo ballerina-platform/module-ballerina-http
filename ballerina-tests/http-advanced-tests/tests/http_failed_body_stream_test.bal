@@ -49,18 +49,12 @@ listener http:Listener failedBodyHttp1Listener = new (failedBodyHttp1TestPort, h
 
 service /failedBody on failedBodyHttp2Listener, failedBodyHttp1Listener {
     // Fails before the first 8 KB buffer fills, so nothing has been sent yet.
-    resource function get early() returns http:Response {
-        http:Response response = new;
-        response.setByteStream(new stream<byte[], io:Error?>(new FailingBody(1, 7)));
-        return response;
-    }
+    resource function get early() returns http:Response => newFailingResponse(1, 7);
 
     // Fails after the headers and some of the body have been sent.
-    resource function get late() returns http:Response {
-        http:Response response = new;
-        response.setByteStream(new stream<byte[], io:Error?>(new FailingBody(3, 10000)));
-        return response;
-    }
+    resource function get late() returns http:Response => newFailingResponse(3, 10000);
+
+    resource function get ok() returns string => "ok";
 
     resource function post upload(http:Request request) returns string {
         byte[]|error body = request.getBinaryPayload();
@@ -72,22 +66,58 @@ service /failedBody on failedBodyHttp2Listener, failedBodyHttp1Listener {
     }
 }
 
+@http:ServiceConfig {chunking: http:CHUNKING_NEVER}
+service /failedBodyUnchunked on failedBodyHttp2Listener, failedBodyHttp1Listener {
+    resource function get early() returns http:Response => newFailingResponse(1, 7);
+
+    resource function get late() returns http:Response => newFailingResponse(3, 10000);
+}
+
+final http:Client failedBodyHttp2Backend = check new (string `http://localhost:${failedBodyHttp2TestPort}`,
+    http2Settings = {http2PriorKnowledge: true});
+final http:Client failedBodyHttp1Backend = check new (string `http://localhost:${failedBodyHttp1TestPort}`,
+    httpVersion = http:HTTP_1_1);
+
+// A backend response that fails before its headers is an error at the proxy, so only a later failure passes through.
+service /failedBodyProxy on failedBodyHttp2Listener {
+    resource function get late() returns http:Response|error {
+        return failedBodyHttp2Backend->get("/failedBody/late");
+    }
+}
+
+service /failedBodyProxy on failedBodyHttp1Listener {
+    resource function get late() returns http:Response|error {
+        return failedBodyHttp1Backend->get("/failedBody/late");
+    }
+}
+
+isolated function newFailingResponse(int blocks, int blockSize) returns http:Response {
+    http:Response response = new;
+    response.setByteStream(new stream<byte[], io:Error?>(new FailingBody(blocks, blockSize)));
+    return response;
+}
+
 final readonly & [int, http:HttpVersion][] failedBodyTargets =
     [[failedBodyHttp2TestPort, http:HTTP_2_0], [failedBodyHttp1TestPort, http:HTTP_1_1]];
 
 @test:Config {}
 function testResponseWhoseByteStreamFailsIsAborted() returns error? {
     foreach [int, http:HttpVersion] [port, httpVersion] in failedBodyTargets {
-        foreach string path in ["early", "late"] {
-            http:Client failedBodyClient = check new (string `http://localhost:${port}`, httpVersion = httpVersion,
-                timeout = 10);
+        // One client, so a connection that wrongly outlives an aborted response fails the next request on it
+        http:Client failedBodyClient = check new (string `http://localhost:${port}`, httpVersion = httpVersion,
+            timeout = 10);
+        foreach string path in ["failedBody/early", "failedBody/late", "failedBodyUnchunked/early",
+                "failedBodyUnchunked/late", "failedBodyProxy/late"] {
             decimal startTime = time:monotonicNow();
-            http:Response|error response = failedBodyClient->get(string `/failedBody/${path}`);
+            http:Response|error response = failedBodyClient->get("/" + path);
             byte[]|error body = response is error ? response : response.getBinaryPayload();
             decimal elapsed = time:monotonicNow() - startTime;
             string target = string `${httpVersion} /${path}`;
             test:assertTrue(body is error, string `${target}: the failed body was received as complete`);
             test:assertTrue(elapsed < 5d, string `${target}: the failure took ${elapsed}s to reach the client`);
+
+            string|error next = failedBodyClient->get("/failedBody/ok");
+            test:assertEquals(next, "ok", string `${target}: the next request on the client failed`);
         }
     }
 }
