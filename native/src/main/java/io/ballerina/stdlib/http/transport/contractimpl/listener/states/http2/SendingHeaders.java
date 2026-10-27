@@ -103,7 +103,7 @@ public class SendingHeaders implements ListenerState {
     public void writeOutboundResponseHeaders(Http2OutboundRespListener http2OutboundRespListener,
                                              HttpCarbonMessage outboundResponseMsg, HttpContent httpContent,
                                              int streamId) throws Http2Exception {
-        // A body that failed before anything was sent resets the stream without sending headers
+        // A body that failed before anything was sent gets a 500 instead of the response's own headers
         if (!isFailedBodyEnd(httpContent)) {
             writeHeaders(outboundResponseMsg, streamId);
         }

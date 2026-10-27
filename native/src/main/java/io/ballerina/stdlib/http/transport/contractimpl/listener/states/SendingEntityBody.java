@@ -33,10 +33,15 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
+import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpContent;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.util.concurrent.EventExecutorGroup;
 import org.slf4j.Logger;
@@ -44,6 +49,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
@@ -184,8 +191,24 @@ public class SendingEntityBody implements ListenerState {
         contentList.clear();
         listenerReqRespStateManager.state
                 = new ResponseCompleted(listenerReqRespStateManager, sourceHandler, inboundRequestMsg);
-        sourceContext.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
+        ChannelFuture lastWrite = headersWritten ? sourceContext.writeAndFlush(Unpooled.EMPTY_BUFFER)
+                : writeInternalServerError();
+        lastWrite.addListener(ChannelFutureListener.CLOSE);
         outboundRespStatusFuture.notifyHttpListener(new IOException(OUTBOUND_RESPONSE_BODY_FAILED, cause));
+    }
+
+    // Nothing of the response has been sent, so the client is told the server failed instead of seeing a bare close
+    private ChannelFuture writeInternalServerError() {
+        HttpVersion httpVersion = new HttpVersion(
+                Constants.HTTP_VERSION_PREFIX + outboundRespListener.getRequestDataHolder().getHttpVersion(), true);
+        FullHttpResponse response = new DefaultFullHttpResponse(httpVersion, HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                                                                Unpooled.EMPTY_BUFFER);
+        response.headers()
+                .set(HttpHeaderNames.CONTENT_LENGTH, 0)
+                .set(HttpHeaderNames.CONNECTION, Constants.CONNECTION_CLOSE)
+                .set(HttpHeaderNames.SERVER, outboundRespListener.getServerName())
+                .set(HttpHeaderNames.DATE, ZonedDateTime.now().format(DateTimeFormatter.RFC_1123_DATE_TIME));
+        return sourceContext.writeAndFlush(response);
     }
 
     private ChannelFuture checkHeadRequestAndWriteOutboundResponseBody(HttpContent httpContent) {

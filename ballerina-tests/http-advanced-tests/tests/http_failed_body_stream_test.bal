@@ -93,15 +93,20 @@ service /failedBodyProxy on failedBodyHttp1Listener {
 
 isolated function newFailingResponse(int blocks, int blockSize) returns http:Response {
     http:Response response = new;
+    response.setHeader("x-failing-body", "true");
     response.setByteStream(new stream<byte[], io:Error?>(new FailingBody(blocks, blockSize)));
     return response;
 }
+
+// Nothing has been sent when the body fails, as a chunking: NEVER HTTP/1.1 response holds back its whole body.
+isolated function failsBeforeSending(string path, http:HttpVersion httpVersion) returns boolean =>
+    path.endsWith("/early") || (path == "failedBodyUnchunked/late" && httpVersion == http:HTTP_1_1);
 
 final readonly & [int, http:HttpVersion][] failedBodyTargets =
     [[failedBodyHttp2TestPort, http:HTTP_2_0], [failedBodyHttp1TestPort, http:HTTP_1_1]];
 
 @test:Config {}
-function testResponseWhoseByteStreamFailsIsAborted() returns error? {
+function testResponseWhoseByteStreamFailsIsFailedAtTheClient() returns error? {
     foreach [int, http:HttpVersion] [port, httpVersion] in failedBodyTargets {
         // One client, so a connection that wrongly outlives an aborted response fails the next request on it
         http:Client failedBodyClient = check new (string `http://localhost:${port}`, httpVersion = httpVersion,
@@ -110,10 +115,15 @@ function testResponseWhoseByteStreamFailsIsAborted() returns error? {
                 "failedBodyUnchunked/late", "failedBodyProxy/late"] {
             decimal startTime = time:monotonicNow();
             http:Response|error response = failedBodyClient->get("/" + path);
-            byte[]|error body = response is error ? response : response.getBinaryPayload();
             decimal elapsed = time:monotonicNow() - startTime;
             string target = string `${httpVersion} /${path}`;
-            test:assertTrue(body is error, string `${target}: the failed body was received as complete`);
+            if failsBeforeSending(path, httpVersion) {
+                test:assertTrue(response is http:Response && response.statusCode == 500 &&
+                    !response.hasHeader("x-failing-body"), string `${target}: expected a bare 500`);
+            } else {
+                byte[]|error body = response is error ? response : response.getBinaryPayload();
+                test:assertTrue(body is error, string `${target}: the failed body was received as complete`);
+            }
             test:assertTrue(elapsed < 5d, string `${target}: the failure took ${elapsed}s to reach the client`);
 
             string|error next = failedBodyClient->get("/failedBody/ok");

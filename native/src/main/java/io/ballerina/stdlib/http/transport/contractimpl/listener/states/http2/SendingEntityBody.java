@@ -37,8 +37,11 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpContent;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.LastHttpContent;
+import io.netty.handler.codec.http2.DefaultHttp2Headers;
 import io.netty.handler.codec.http2.Http2Connection;
 import io.netty.handler.codec.http2.Http2ConnectionEncoder;
 import io.netty.handler.codec.http2.Http2Error;
@@ -49,6 +52,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.OUTBOUND_RESPONSE_BODY_FAILED;
@@ -202,12 +207,34 @@ public class SendingEntityBody implements ListenerState {
                                int streamId) throws Http2Exception {
         Throwable cause = failedEnd.decoderResult().cause();
         failedEnd.release();
-        http2OutboundRespListener.resetStream(ctx, streamId, Http2Error.INTERNAL_ERROR);
+        if (http2MessageStateContext.isHeadersSent()) {
+            http2OutboundRespListener.resetStream(ctx, streamId, Http2Error.INTERNAL_ERROR);
+        } else {
+            writeInternalServerError(http2OutboundRespListener, streamId);
+        }
         http2OutboundRespListener.getHttp2ServerChannel().getStreamIdRequestMap().remove(streamId);
         http2OutboundRespListener.removeDefaultResponseWriter();
         http2MessageStateContext
                 .setListenerState(new ResponseCompleted(http2OutboundRespListener, http2MessageStateContext));
         outboundRespStatusFuture.notifyHttpListener(new IOException(OUTBOUND_RESPONSE_BODY_FAILED, cause));
+    }
+
+    // Nothing of the response has been sent, so the client is told the server failed instead of seeing a reset
+    private void writeInternalServerError(Http2OutboundRespListener http2OutboundRespListener, int streamId)
+            throws Http2Exception {
+        Http2Headers http2Headers = new DefaultHttp2Headers()
+                .status(HttpResponseStatus.INTERNAL_SERVER_ERROR.codeAsText())
+                .set(HttpHeaderNames.SERVER, http2OutboundRespListener.getServerName())
+                .set(HttpHeaderNames.DATE, ZonedDateTime.now().format(DateTimeFormatter.RFC_1123_DATE_TIME));
+        for (Http2DataEventListener dataEventListener :
+                http2OutboundRespListener.getHttp2ServerChannel().getDataEventListeners()) {
+            if (!dataEventListener.onHeadersWrite(ctx, streamId, http2Headers, true)) {
+                break;
+            }
+        }
+        encoder.writeHeaders(ctx, streamId, http2Headers, 0, true, ctx.newPromise());
+        encoder.flowController().writePendingBytes();
+        ctx.flush();
     }
 
     private void writeData(HttpContent httpContent, int streamId, boolean endStream) throws Http2Exception {
