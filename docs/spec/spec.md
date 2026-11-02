@@ -1887,17 +1887,6 @@ The compiler plugin provides the following rules to the Ballerina static code an
 | `ballerina/http:3` | VULNERABILITY | A client resource access action with a computed path segment that is a parameter of the enclosing resource, or a field or member access on one.                          |
 | `ballerina/http:4` | VULNERABILITY | A resource whose return type includes a redirect status code response, and which returns a mapping literal whose `Location` header uses a parameter of the resource.      |
 
-## Changes
-
-- 2.18.2: Rewrote the specification as a normative contract, following the [library specification guide](https://github.com/ballerina-platform/ballerina-library/blob/main/docs/library-specification-guide.md). The following statements of the previous version were corrected to match the intended behaviour:
-  - A path parameter that cannot be converted results in `400 Bad Request`, not `500 Internal Server Error`.
-  - The `mediaType` of the `@http:Payload` annotation is not checked against the request (`415`) or the `Accept` header (`406`). Only `consumes` and `produces` are.
-  - The default client `timeout` is `30`, not `60`, and client caching is enabled by default.
-  - `ServiceConfig` has no `interceptors` field. Interceptors are engaged through `InterceptableService`.
-  - A request error interceptor has a resource method, not a remote method, and the default error response is a JSON object.
-  - Relaxed data binding applies to request payloads in services and response payloads in clients.
-- 2.18.2: Specified the retry behaviour of the HTTP client ([#2766](https://github.com/ballerina-platform/module-ballerina-http/pull/2766)).
-
 ## References
 
 - [RFC 9110: HTTP Semantics](https://www.rfc-editor.org/rfc/rfc9110)

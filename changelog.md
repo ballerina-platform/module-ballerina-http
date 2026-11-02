@@ -4,6 +4,13 @@ This file contains all the notable changes done to the Ballerina HTTP package th
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- [Rewrite the HTTP specification as a normative contract, following the library specification guide. The previous statements that path parameter conversion failures return `500`, that `@http:Payload` media types are validated at runtime, and that the client `timeout` defaults to `60` and caching is opt-in, are corrected](https://github.com/ballerina-platform/module-ballerina-http/pull/2768)
+- [Document the retry behaviour of the HTTP client in the specification and the `RetryConfig` API docs](https://github.com/ballerina-platform/module-ballerina-http/pull/2766)
+
 ## [2.18.1] - 2026-10-16
 
 ### Changed
