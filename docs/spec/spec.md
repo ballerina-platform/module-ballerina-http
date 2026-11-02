@@ -1406,7 +1406,7 @@ http:Client clientEP = check new ("http://localhost:9090",
 ```
 
 The following behaviours also apply to the retry client:
-- The client `timeout` applies to each attempt separately. The worst case duration of a single call is roughly `(count + 1) * timeout` plus the sum of the wait times.
+- The client `timeout` applies to each attempt separately. The worst-case duration of a single call is roughly `(count + 1) * timeout` plus the sum of the wait times. In the current implementation, when the last attempt fails with a network-level error, the client waits once more before returning the error, which adds one more wait time to this duration ([ballerina-library#9450](https://github.com/ballerina-platform/ballerina-library/issues/9450)).
 - Requests are retried regardless of the HTTP method, including non-idempotent methods such as `POST` and `PATCH`. Configure retrying only when the remote service can safely handle duplicate requests.
 - The request payload is built in memory before the first attempt so that it can be resent. This applies to streaming and passthrough payloads as well.
 - When `circuitBreaker` is also configured, the circuit breaker wraps the retry client. Therefore, a call and all of its retries are counted as a single request by the circuit breaker.
