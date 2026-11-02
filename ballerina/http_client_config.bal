@@ -71,19 +71,13 @@ public type ClientHttp2Settings record {|
     int http2InitialWindowSize = 65535;
 |};
 
-# Provides configurations for controlling the retrying behavior in failure scenarios. While `count` allows another
-# attempt, a request is retried on network-level failures such as connection failures and timeouts, and on responses
-# whose status code is listed in `statusCodes`. When the retries are exhausted, the outcome of the last attempt is
-# returned.
+# Provides configurations for retrying requests on network-level failures and on the configured status codes.
 #
-# + count - Number of retries after the initial attempt. The request is sent at most `count + 1` times
+# + count - Number of retries after the initial attempt
 # + interval - Wait time in seconds before the first retry
-# + backOffFactor - Multiplier applied to the previous wait time before each subsequent retry. A value less than or
-#                   equal to `0.0` is treated as `1.0`, which keeps the wait time constant
-# + maxWaitInterval - Upper bound in seconds for the wait time computed using `backOffFactor`. The value `0` is
-#                     treated as 60 seconds
-# + statusCodes - HTTP response status codes on which the request is retried. If empty, responses are returned
-#                 without retrying regardless of their status code, and only network-level failures are retried
+# + backOffFactor - Multiplier applied to the wait time before each subsequent retry. `<= 0.0` is treated as `1.0`
+# + maxWaitInterval - Maximum wait time in seconds between retries. `0` is treated as 60 seconds
+# + statusCodes - HTTP status codes on which the request is retried, in addition to network-level failures
 public type RetryConfig record {|
     int count = 0;
     decimal interval = 0;
