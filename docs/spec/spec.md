@@ -653,7 +653,7 @@ service /store on new http:Listener(9090) {
 }
 ```
 
-In a `get` resource, the same `Order 'order` parameter is a query parameter, bound from a JSON value such as `?order={"albumId":"a1","quantity":1}` (rule 4).
+In a `get` resource, the same `Order 'order` parameter is a query parameter, bound from a percent-encoded JSON value such as `?order=%7B%22albumId%22%3A%22a1%22%2C%22quantity%22%3A1%7D`, which is `{"albumId":"a1","quantity":1}` (rule 4). The value must be encoded, because a raw `,` splits it into multiple values (rule 2 of [Query parameters](#74-query-parameters)).
 
 ### 7.2. Special parameters
 
