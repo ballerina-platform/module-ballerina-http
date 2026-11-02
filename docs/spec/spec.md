@@ -1282,7 +1282,7 @@ The compiler plugin provides the following rules to the Ballerina static code an
 |--------------------|---------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `ballerina/http:1` | VULNERABILITY | A resource with the `default` accessor.                                                                                                                                    |
 | `ballerina/http:2` | VULNERABILITY | A `cors` field whose `allowOrigins` list literal contains `"*"`, in any annotation. Values given through variables or constants are not detected.                          |
-| `ballerina/http:3` | VULNERABILITY | A client resource access action with a path segment that is a reference to a parameter of the enclosing resource.                                                         |
+| `ballerina/http:3` | VULNERABILITY | A client resource access action with a computed path segment that is a parameter of the enclosing resource, or a field or member access on one.                          |
 | `ballerina/http:4` | VULNERABILITY | A resource whose return type includes a redirect status code response, and which returns a mapping literal whose `Location` header uses a parameter of the resource.      |
 
 ## Changes

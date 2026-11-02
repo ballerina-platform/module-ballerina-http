@@ -149,7 +149,7 @@ Common attack patterns include:
 
 Avoid using user input directly in server-side HTTP requests. Instead, validate and sanitize all user inputs to ensure they conform to expected formats and values before using them in any server-side operations.
 
-This rule detects only client resource access actions, such as `userClient->/users/[id]`, where a computed path segment is a direct reference to a parameter of the enclosing resource. It does not analyze remote method invocations such as `userClient->get(path)`, URLs passed to the client constructor, or values derived from parameters through other expressions. The absence of this issue therefore does not mean that the service is free of SSRF vulnerabilities.
+This rule detects only client resource access actions, such as `userClient->/users/[id]`, where a computed path segment is a parameter of the enclosing resource, or a field or member access on one, such as `[user.id]` or `[ids[0]]`. It does not analyze remote method invocations such as `userClient->get(path)`, URLs passed to the client constructor, or values derived from parameters through other expressions such as local variables, string templates or function calls. The absence of this issue therefore does not mean that the service is free of SSRF vulnerabilities.
 
 **Non-compliant code:**
 
