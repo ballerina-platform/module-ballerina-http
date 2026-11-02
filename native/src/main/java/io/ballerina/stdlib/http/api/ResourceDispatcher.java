@@ -54,11 +54,11 @@ public class ResourceDispatcher {
         try {
             Resource resource = service.getUriTemplate().matches(subPath, resourceArgumentValues, inboundRequest);
             if (resource instanceof HttpIntrospectionResource introspectionResource) {
-                handleOasResourceRequest(inboundRequest, introspectionResource, runtime);
+                handleOasResourceRequest(inboundRequest, introspectionResource, service, runtime);
                 return null;
             }
             if (resource instanceof HttpSwaggerUiResource swaggerUiResource) {
-                handleOasResourceRequest(inboundRequest, swaggerUiResource, runtime);
+                handleOasResourceRequest(inboundRequest, swaggerUiResource, service, runtime);
                 return null;
             }
             if (resource != null) {
@@ -115,9 +115,9 @@ public class ResourceDispatcher {
         cMsg.waitAndReleaseAllEntities();
     }
 
-    private static void handleOasResourceRequest(HttpCarbonMessage cMsg, HttpOASResource resource,
+    private static void handleOasResourceRequest(HttpCarbonMessage cMsg, HttpOASResource resource, Service service,
                                                  Runtime runtime) {
-        BArray authConfig = resource.getParentService().getServiceAuthConfig();
+        BArray authConfig = service instanceof HttpService httpService ? httpService.getServiceAuthConfig() : null;
         if (runtime == null || authConfig == null) {
             sendOasResource(cMsg, resource);
             return;
