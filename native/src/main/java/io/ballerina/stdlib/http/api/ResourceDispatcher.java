@@ -21,6 +21,7 @@ package io.ballerina.stdlib.http.api;
 import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.concurrent.StrandMetadata;
 import io.ballerina.runtime.api.creators.ValueCreator;
+import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.api.nativeimpl.pipelining.PipeliningHandler;
@@ -116,8 +117,8 @@ public class ResourceDispatcher {
 
     private static void handleOasResourceRequest(HttpCarbonMessage cMsg, HttpOASResource resource,
                                                  Runtime runtime) {
-        HttpService service = resource.getParentService();
-        if (runtime == null || !service.isServiceAuthEnabled()) {
+        BArray authConfig = resource.getParentService().getServiceAuthConfig();
+        if (runtime == null || authConfig == null) {
             sendOasResource(cMsg, resource);
             return;
         }
@@ -128,7 +129,7 @@ public class ResourceDispatcher {
             try {
                 runtime.callMethod(ValueCreator.createObjectValue(ModuleUtils.getHttpPackage(),
                                 HttpConstants.OAS_RESOURCE_AUTHENTICATOR_CLASS_NAME),
-                        HttpConstants.OAS_RESOURCE_AUTHENTICATE_METHOD_NAME, metadata, service.getBalService());
+                        HttpConstants.OAS_RESOURCE_AUTHENTICATE_METHOD_NAME, metadata, authConfig);
             } catch (BError error) {
                 new HttpCallableUnitCallback(cMsg, runtime).invokeErrorInterceptors(error, true);
                 return;

@@ -99,7 +99,7 @@ public class HttpService implements Service {
     private byte[] introspectionPayload = new byte[0];
     private Boolean constraintValidation = true;
     private Boolean laxDataBinding = false;
-    private boolean serviceAuthEnabled = false;
+    private BArray serviceAuthConfig;
 
     protected HttpService(BObject service, String basePath) {
         this.balService = service;
@@ -265,7 +265,7 @@ public class HttpService implements Service {
             this.setTreatNilableAsOptional(serviceConfig.getBooleanValue(TREAT_NILABLE_AS_OPTIONAL));
             this.setConstraintValidation(serviceConfig.getBooleanValue(DATA_VALIDATION));
             this.setLaxDataBinding(serviceConfig.getBooleanValue(LAX_DATA_BINDING));
-            this.serviceAuthEnabled = serviceConfig.get(AUTH_FIELD) != null;
+            this.serviceAuthConfig = (BArray) serviceConfig.get(AUTH_FIELD);
         } else {
             this.setHostName(HttpConstants.DEFAULT_HOST);
         }
@@ -590,7 +590,7 @@ public class HttpService implements Service {
         this.laxDataBinding = laxDataBinding;
     }
 
-    public boolean isServiceAuthEnabled() {
-        return serviceAuthEnabled;
+    public BArray getServiceAuthConfig() {
+        return serviceAuthConfig;
     }
 }

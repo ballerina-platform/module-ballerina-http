@@ -39,8 +39,8 @@ public isolated function authenticateResource(Service serviceRef, string methodN
 
 // Invoked by the runtime to apply the service auth to the generated OpenAPI and Swagger UI resources.
 isolated class OasResourceAuthenticator {
-    isolated function authenticate(Service serviceRef) {
-        authenticateWithConfig(getServiceAuthConfig(serviceRef));
+    isolated function authenticate(ListenerAuthConfig[] authConfig) {
+        authenticateWithConfig(authConfig);
     }
 }
 
