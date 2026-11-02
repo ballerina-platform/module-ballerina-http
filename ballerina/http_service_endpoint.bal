@@ -55,7 +55,8 @@ public isolated class Listener {
         'class: "io.ballerina.stdlib.http.api.service.endpoint.Start"
     } external;
 
-    # Stops the service listener gracefully. Already-accepted requests will be served before connection closure.
+    # Stops accepting new connections, waits for `gracefulStopTimeout`, and then closes all connections. Requests
+    # still in flight are terminated, so with the default timeout of `0` they are terminated immediately.
     #
     # + return - An `error` if an error occurred during the listener stopping process
     public isolated function gracefulStop() returns error? = @java:Method {

@@ -432,7 +432,7 @@ A resource is a resource method of a service. Its accessor determines the HTTP m
 1. A resource path consists of segments separated by `/`, without a leading `/`. The resource path `.` denotes the base path itself.
 2. A literal segment is an identifier. Characters that are not allowed in an identifier MUST be escaped, e.g. `hello\-world`. The segment is unescaped and percent-encoded before matching.
 3. A path parameter `[T name]` matches exactly one segment. `T` MUST be a subtype of exactly one of `string`, `int`, `float`, `decimal` and `boolean`. Finite types, enums and constrained types satisfying this rule are allowed. Unions of these types and nilable types are not.
-4. A rest parameter `[T... name]` matches one or more remaining segments. When the rest parameter is the whole resource path, it also matches the base path itself, with no segments. It MUST be the last segment, and `T` follows rule 3.
+4. A rest parameter `[T... name]` matches the remaining segments, including none. It MUST be the last segment, and `T` follows rule 3.
 5. Two resources of a service conflict when they have the same accessor and their paths have the same literal segments at the same positions and parameters at the same positions, regardless of the names and types of the parameters. Attaching a service with conflicting resources fails with a `ListenerError`.
 
 | Code       | Condition                                                                         |
@@ -452,7 +452,7 @@ service /store on new http:Listener(9090) {
     // GET /store/order-history
     resource function get order\-history() returns string => "history";
 
-    // GET /store/files/covers/a1.png, but not GET /store/files
+    // GET /store/files, GET /store/files/covers/a1.png
     resource function get files/[string... path]() returns string => string:'join("/", ...path);
 }
 ```
@@ -541,6 +541,7 @@ service /store on new http:Listener(9090) {
 | `GET /store/albums/a1`                                   | `get albums/[string id]`, with `id` bound to `"a1"`.                                           |
 | `DELETE /store/albums/a1`                                | `405 Method Not Allowed` (rules 4.1 and 5).                                                    |
 | `PUT /store/albums/a1` with `Content-Type: text/plain`   | `415 Unsupported Media Type` (rules 4.2 and 5).                                                |
+| `GET /store/files`                                       | `get files/[string... path]`, with `path` bound to `[]` (rule 2).                              |
 | `GET /store/files/covers/a1.png`                         | `get files/[string... path]`, with `path` bound to `["covers", "a1.png"]` (rule 2).            |
 | `GET /store/albums/a1/tracks`                            | `404 Not Found`, because no resource path matches (rule 5).                                    |
 
@@ -586,8 +587,9 @@ The `cors` field of the `ServiceConfig` and `ResourceConfig` annotations is a `C
    - If all the origins of the header are allowed, the response has `Access-Control-Allow-Origin` set to the origins of the request, `Access-Control-Allow-Credentials: true` when `allowCredentials` is `true`, and `Access-Control-Expose-Headers` when `exposeHeaders` is not empty.
    - Otherwise, the response has no CORS headers. The request is still processed.
 4. An `OPTIONS` request handled as in [Automatic OPTIONS responses](#64-automatic-options-responses) is a preflight request when it has exactly one origin in its `Origin` header and a single value in its `Access-Control-Request-Method` header. It is accepted when a resource at the node handles the requested method (`HEAD` is checked against `GET`), the origin and the method are allowed by the configuration of that resource, and every header of `Access-Control-Request-Headers` is in `allowHeaders`, compared case-insensitively, or `allowHeaders` is empty.
-5. The response to an accepted preflight request has `Access-Control-Allow-Origin`, `Access-Control-Allow-Credentials` as in rule 3, `Access-Control-Allow-Methods` set to the requested method, `Access-Control-Allow-Headers` set to the requested headers, and `Access-Control-Max-Age` set to `maxAge`. It has no `Allow` header.
+5. The response to an accepted preflight request has `Access-Control-Allow-Origin`, `Access-Control-Allow-Credentials` as in rule 3, `Access-Control-Allow-Methods` set to the requested method, `Access-Control-Allow-Headers` set to the requested headers, and `Access-Control-Max-Age` set to `maxAge` when `maxAge` is greater than or equal to `0`. It has no `Allow` header.
 6. A preflight request whose path matches an `options` or `default` resource is dispatched to that resource.
+7. A response to a request dispatched to a resource with an enabled configuration, including a preflight response, has a `Vary` header that includes `Origin`, because its CORS headers depend on the `Origin` of the request.
 
 #### Example
 
@@ -608,7 +610,7 @@ service /store on new http:Listener(9090) {
 }
 ```
 
-- A preflight request `OPTIONS /store/albums/a1` with `Origin: https://shop.example.com`, `Access-Control-Request-Method: PUT` and `Access-Control-Request-Headers: X-Request-Id` is accepted. The response is `204 No Content` with `Access-Control-Allow-Origin: https://shop.example.com`, `Access-Control-Allow-Credentials: true`, `Access-Control-Allow-Methods: PUT`, `Access-Control-Allow-Headers: X-Request-Id` and `Access-Control-Max-Age: 600` (rules 4 and 5).
+- A preflight request `OPTIONS /store/albums/a1` with `Origin: https://shop.example.com`, `Access-Control-Request-Method: PUT` and `Access-Control-Request-Headers: X-Request-Id` is accepted. The response is `204 No Content` with `Access-Control-Allow-Origin: https://shop.example.com`, `Access-Control-Allow-Credentials: true`, `Access-Control-Allow-Methods: PUT`, `Access-Control-Allow-Headers: X-Request-Id`, `Access-Control-Max-Age: 600` and `Vary: Origin` (rules 4, 5 and 7).
 - The same preflight request with `Access-Control-Request-Method: DELETE` is not accepted, because the `delete` resource uses its own configuration, which allows only `https://admin.example.com` (rule 2).
 - `PUT /store/albums/a1` with `Origin: https://other.example.com` is processed, and its response has no CORS headers (rule 3).
 
@@ -921,7 +923,7 @@ The `@http:Cache` annotation on the return type of a resource adds caching heade
 | `setLastModified` | `boolean`  | `true`  | Adds a `Last-Modified` header with the time of the response.               |
 
 1. The `Cache-Control` directives are written in the order of the table. Either `public` or `private` is always written.
-2. The `ETag` value is the CRC32 checksum of the payload in hexadecimal, without quotes. It is added only for `xml`, `string`, `byte[]` and JSON payloads.
+2. The `ETag` value is the CRC32 checksum of the payload in hexadecimal, enclosed in double quotes as required by the `entity-tag` syntax of [RFC 9110](https://www.rfc-editor.org/rfc/rfc9110#section-8.8.3). It is added only for `xml`, `string`, `byte[]` and JSON payloads.
 3. The listener does not evaluate conditional requests, so it does not respond with `304 Not Modified`.
 
 For example, a resource with the return type `@http:Cache {maxAge: 15, isPrivate: true} Album` responds with `Cache-Control: must-revalidate,private,max-age=15`, an `ETag` header and a `Last-Modified` header.
@@ -1042,8 +1044,10 @@ A `RequestContext` is created for each request, and the same context is passed t
 6. When a response interceptor or a response error interceptor returns an error, the next response error interceptor towards the start of the pipeline handles it. `DefaultErrorInterceptor`, at the start of the pipeline, handles every error that reaches it.
 7. While an error is being handled, response interceptors are skipped. When an error interceptor returns a value, the error is handled, the value becomes the response, and the remaining response interceptors run.
 8. When a request interceptor binds the payload, the request body is read in full before the interceptor runs.
+9. An interceptor that returns `()` returns the value `()`, which becomes the response as described in rules 2 and 3. Like a resource without a `Caller` parameter, this results in `202 Accepted` without a payload. A response interceptor that returns `()` therefore replaces the response with `202 Accepted`.
+10. When a request interceptor calls `ctx.next()` and then returns `()`, the `202 Accepted` response is sent, and the request is still dispatched to the next service. The value returned by that service is not sent, and is logged as a warning.
 
-> **Note:** The behaviour of an interceptor that returns `()` without calling `next()` is unspecified.
+> **Note:** Whether `()` returned from an interceptor should continue the pipeline is under discussion in [ballerina-library#6110](https://github.com/ballerina-platform/ballerina-library/issues/6110).
 
 #### Example
 
@@ -1492,7 +1496,7 @@ Suppose the first four calls receive `503`, `200`, `503` and `503` responses. Wh
 2. When an attempt results in a `ClientError` and `failover` is `true`, the request is sent to the next endpoint selected by the rule. A response is returned whatever its status code. The payload of the request is read into memory so that it can be resent.
 3. When all the endpoints fail, the call returns an `AllLoadBalanceEndpointsFailedError` whose message includes the last error. When `failover` is `false`, the first error is returned.
 4. `submit()`, `getResponse()`, `getNextPromise()` and `getPromisedResponse()` return an `UnsupportedActionError`, `hasPromise()` returns `false`, and `execute()` with a custom method returns an `UnsupportedActionError`.
-5. The behaviour of a load balance client with no targets is unspecified.
+5. When `targets` is empty, the initialization returns a `ClientError`.
 
 #### Example
 
@@ -1520,7 +1524,7 @@ Successive calls are sent to `a`, `b` and `c` in turn. If the call sent to `b` f
 3. When all the endpoints fail, the call returns a `FailoverAllEndpointsFailedError` whose message includes the last error or the last response, and whose detail field `failoverErrors` has the error of each attempt. An attempt that failed with a status code is represented by a `FailoverActionFailedError`.
 4. `getSucceededEndpointIndex()` returns the index of the endpoint that last succeeded.
 5. `hasPromise()` returns `false`, and `getNextPromise()` and `getPromisedResponse()` return an `UnsupportedActionError`.
-6. The behaviour of a failover client with no targets is unspecified.
+6. When `targets` is empty, the initialization returns a `ClientError`.
 
 #### Example
 
@@ -1679,9 +1683,11 @@ The `auth` field of the `ServiceConfig` and `ResourceConfig` annotations secures
 4. When no configuration authenticates the request, the result is a `ListenerAuthnError` (`401 Unauthorized`). When a configuration authenticates the request but does not authorize it, the result is a `ListenerAuthzError` (`403 Forbidden`), and later configurations are not tried.
 5. A request is authorized when the configuration has no scopes, or when at least one scope of the user is equal to one of the configured scopes. The scopes of a JWT are taken from the claim named by `scopeKey` (default `"scope"`), which MAY be a space-separated string or an array. The scopes of an OAuth2 token are taken from the introspection response, and MUST be a space-separated string. A user of a user store without scopes is not authorized.
 6. An inactive OAuth2 token results in a `ListenerAuthnError` (`401 Unauthorized`).
-7. The errors of rules 2 to 6 are handled as described in [Error handling](#10-error-handling), and are visible to error interceptors as `ListenerAuthnError` and `ListenerAuthzError`. The responses do not have a `WWW-Authenticate` header.
+7. The errors of rules 2 to 6 are handled as described in [Error handling](#10-error-handling), and are visible to error interceptors as `ListenerAuthnError` and `ListenerAuthzError`.
+8. A `401 Unauthorized` response has a `WWW-Authenticate` header with a challenge for each authentication scheme of the configurations of the resource: `Basic` for user store configurations and `Bearer` for JWT and OAuth2 configurations, as required by [RFC 9110](https://www.rfc-editor.org/rfc/rfc9110#section-15.5.2).
 
-> **Note:** The behaviour of a resource with `auth` of type `Scopes` in a service without `auth`, and of `auth: []`, is unspecified.
+9. A resource with `auth` of type `Scopes` in a service without `auth` has no configurations, so its requests are not authenticated.
+10. An empty `auth` array, `auth: []`, authenticates no request, so every request is rejected with a `ListenerAuthnError` (`401 Unauthorized`).
 
 #### Example
 
@@ -1866,7 +1872,8 @@ http:Client storeClient = check new ("https://localhost:9443",
 6. Redirects, retries and load balancing read request payloads into memory, and retries resend non-idempotent requests.
 7. The `JWT_INFORMATION` member of the request context is decoded without validation, and MUST NOT be used for authorization unless the token has been validated, e.g. by declarative authentication.
 8. When a resource or an interceptor panics, the program terminates. A panic triggered by a request therefore stops the service.
-9. The Swagger UI resource loads its scripts from `unpkg.com`.
+9. A resource that declares only `Scopes` in a service without `auth` is not authenticated. See rule 9 of [Declarative listener authentication](#151-declarative-listener-authentication).
+10. The Swagger UI resource loads its scripts from `unpkg.com`.
 
 ## 18. Static code rules
 
