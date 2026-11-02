@@ -224,6 +224,7 @@ listener http:Listener storeListener = new (9090,
 3. `detach(service)` removes a service. Requests received afterwards are not dispatched to it. Detaching a service that is not attached has no effect.
 4. `gracefulStop()` stops accepting new connections, waits for `gracefulStopTimeout`, and then closes all remaining connections. Requests that are still in flight when the connections are closed are terminated without a response. With the default `gracefulStopTimeout` of `0`, in-flight requests are terminated immediately.
 5. `immediateStop()` stops accepting new connections and closes all connections immediately.
+6. `gracefulStop()` and `immediateStop()` detach all the services of the listener. A service MUST be attached again before the listener is started again.
 
 ### 3.4. HTTP versions and connections
 
@@ -1335,13 +1336,19 @@ The return type of a client call is determined by the `targetType` argument, whi
 1. If the request fails, the `ClientError` is returned.
 2. If `targetType` contains `Response`, the `Response` is returned, whatever its status code.
 3. If the status code is in the range `400` to `599`, a `ClientRequestError` (`4XX`) or a `RemoteServerError` (`5XX`) is returned. Its message is the reason phrase, and its detail has the `statusCode`, the `headers`, and the `body` of the response. The body is read as JSON for `application/json`, as XML for `application/xml`, as bytes for `application/octet-stream`, and as text otherwise. An empty body is `()`.
-4. If `targetType` is a stream of `SseEvent`, the `Content-Type` of the response MUST start with `text/event-stream`, and the events are returned as a stream. Otherwise, a `PayloadBindingError` is returned. A union of a stream of `SseEvent` and other types is not supported.
+4. If `targetType` is a stream of `SseEvent`, the `Content-Type` of the response MUST start with `text/event-stream`, and the events are returned as a stream, parsed as described in rule 8. Otherwise, a `PayloadBindingError` is returned. A union of a stream of `SseEvent` and other types is not supported.
 5. Otherwise, the payload is converted to `targetType` according to the `Content-Type` of the response, compared without parameters, as for the [payload parameter](#76-payload-parameter), with these differences:
    - A `map<string>` is decoded from a form only for `application/x-www-form-urlencoded`.
    - When the payload cannot be converted, a `PayloadBindingError` is returned.
    - When the response has no body, `()` is returned if `targetType` contains `()`, and a `NoContentError` is returned otherwise.
 6. When `validation` is `true`, the constraints of `targetType` are validated. A violation results in a `PayloadValidationError`.
 7. `1XX`, `2XX` and `3XX` responses are converted by rule 5. A `3XX` response is not an error.
+8. A `text/event-stream` payload, bound by rule 4 or read with `Response.getSseEventStream()`, is parsed into events as follows:
+   - An event ends at an empty line, i.e. at `\n\n`, `\r\r` or `\r\n\r\n`. An incomplete event at the end of the payload is discarded.
+   - Each line is split at its first `:` into a field name and a value, and one leading space is removed from the value. A line without `:` is a field name with an empty value.
+   - A line whose field name is empty sets `comment`. The fields `id`, `event` and `retry` set the fields of the same name, and when one occurs more than once in an event, the last value is used. A `retry` value that is not an integer is ignored. Lines with other field names are ignored.
+   - The values of the `data` lines of an event are joined with `\n`, so that `data` is the value written by the server as described in [Server-sent events](#86-server-sent-events).
+   - Every event is returned, including an event without `data`, such as a comment sent to keep the connection alive.
 
 For example, when the service responds with `404 Not Found`:
 
@@ -1365,7 +1372,8 @@ http:Response response = check storeClient->/albums/a9;
 3. The `headers` field is bound from the response headers. Each field of a record type is bound to the header named by the `name` of its `@http:Header` annotation, or else by its name. A field that is not optional MUST have a header.
 4. The `mediaType` field, when present in the type, is bound to the `Content-Type` of the response.
 5. The `body` field is bound as described in [Response data binding](#1111-response-data-binding).
-6. A failure to bind or validate the headers, the media type or the body returns the corresponding subtype of `StatusCodeResponseBindingError`, whose detail has the field `fromDefaultStatusCodeMapping`, which is `true` when the response was bound by the default status.
+6. A failure to bind the headers, the media type or the body returns a `StatusCodeResponseDataBindingError`, and a failure to validate them returns a validation error. Each of these errors is a subtype of both `StatusCodeResponseBindingError` and the corresponding binding or validation error type of [Client errors](#1113-client-errors), and its detail has the field `fromDefaultStatusCodeMapping`, which is `true` when the response was bound by the default status.
+7. `head()`, `getResponse()` and `getPromisedResponse()` return a `Response`, as for `Client`, and are not bound to status code responses.
 
 #### Example
 
@@ -1799,8 +1807,8 @@ The following fields are shared by the listener and client TLS configurations:
 | `certValidation`   | `record {CertValidationType type = OCSP_STAPLING; int cacheSize; int cacheValidityPeriod;}` | Certificate revocation checking. A `cacheSize` of `0` means `50`, and a `cacheValidityPeriod` of `0` means `15`. |
 | `ciphers`          | `string[]`                             | Cipher suites.                                                                                                      |
 | `shareSession`     | `boolean`                              | Whether TLS sessions are reused. Default `true`.                                                                    |
-| `handshakeTimeout` | `decimal`                              | TLS handshake timeout. When absent or `0`, the default of the Java runtime is used.                                 |
-| `sessionTimeout`   | `decimal`                              | TLS session timeout. When absent or `0`, the default of the Java runtime is used.                                   |
+| `handshakeTimeout` | `decimal`                              | TLS handshake timeout in seconds, rounded to the nearest whole second with ties to even. When absent, or when the rounded value is less than or equal to `0`, the timeout is 10 seconds. |
+| `sessionTimeout`   | `decimal`                              | Lifetime in seconds of a cached TLS session that can be resumed, rounded as `handshakeTimeout`. When absent, or when the rounded value is less than or equal to `0`, the default of the TLS implementation is used. |
 
 A key store or trust store with a blank path or password is an initialization error.
 
