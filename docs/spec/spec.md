@@ -222,7 +222,7 @@ listener http:Listener storeListener = new (9090,
 1. `attach(service, basePath)` registers a service under its host (see [Service configuration](#44-service-configuration)) and base path (see [Base path](#42-base-path)). It returns an error when a service with the same base path is already registered under the same host. Services with the same base path MAY be attached to the same listener under different hosts. A service MAY be attached before or after `start()`.
 2. `start()` binds the port and starts accepting connections. Calling it on a listener that has already started has no effect. Service-level interceptors are created when `start()` is called. A failure to create the interceptor pipeline of a service is returned as a `ListenerError`. A failure to bind the port results in a panic with a `ListenerError`.
 3. `detach(service)` removes a service. Requests received afterwards are not dispatched to it. Detaching a service that is not attached has no effect.
-4. `gracefulStop()` stops accepting new connections, waits for `gracefulStopTimeout`, and then closes all remaining connections. Requests that are still in flight when the connections are closed are terminated without a response. With the default `gracefulStopTimeout` of `0`, in-flight requests are terminated immediately.
+4. `gracefulStop()` stops accepting new connections, waits for `gracefulStopTimeout`, and then closes all remaining connections. Requests that are still in flight when the connections are closed are terminated without a response. With the default `gracefulStopTimeout` of `0`, in-flight requests are terminated immediately. The configured `gracefulStopTimeout` applies to every `gracefulStop()`, including one after the listener was stopped with `immediateStop()` and started again.
 5. `immediateStop()` stops accepting new connections and closes all connections immediately.
 6. `gracefulStop()` and `immediateStop()` detach all the services of the listener. A service MUST be attached again before the listener is started again.
 
@@ -481,7 +481,7 @@ The listener selects the service for a request as follows:
 
 1. If the `Host` header of the request is equal to the `host` of the `ServiceConfig` annotation of one or more attached services, the candidates are those services. The comparison is a case-sensitive string comparison that includes the port, so the host `localhost` does not match the header `localhost:9090`. Otherwise, the candidates are the services registered under the default host. If there are no candidates, the result is a `ServiceNotFoundError` (`404 Not Found`).
 2. The matrix parameters are removed from the request path, as described in [Matrix parameters](#62-matrix-parameters).
-3. The request target is split at the first `?` into the path and the query. Text after a second `?` is ignored.
+3. The request target is split at the first `?` into the path and the query. A later `?` is part of the query, as allowed by [RFC 3986](https://www.rfc-editor.org/rfc/rfc3986#section-3.4).
 4. The candidate base paths are compared with the request path in order of decreasing length. A base path matches when its segments are equal to the leading segments of the request path. Segments are compared case-sensitively after percent-decoding the request path. Empty segments are ignored, and dot segments (`.` and `..`) are compared literally without normalization.
 5. The first base path that matches selects its service. If none matches and a service is attached at `/`, that service is selected. Otherwise, the result is a `ServiceNotFoundError` (`404 Not Found`).
 6. The sub-path is the part of the request path after the base path, or `/` when the request path is the base path. A trailing `/` of the sub-path is ignored.
@@ -1224,7 +1224,7 @@ Consequences of this order:
 1. Only responses to `GET` and `HEAD` requests are cached. Requests sent with `submit()` are not cached.
 2. With `CACHE_CONTROL_AND_VALIDATORS`, a response is stored only if it has a `Cache-Control` header and an `ETag` or `Last-Modified` header. With `RFC_7234`, this condition does not apply.
 3. A response is not stored when it has the `no-store` directive, when the request has the `no-store` directive, or when the cache is shared and the response has the `private` directive. Otherwise, it is stored when it has `max-age`, `s-maxage` with a shared cache, a `Cache-Control` header without `private`, or an `Expires` header, or when its status code is one of `200`, `203`, `204`, `206`, `300`, `301`, `404`, `405`, `410`, `414` and `501`.
-4. The cache key is the method and the path of the request. The host and the `Vary` header are not part of the key.
+4. The cache key is the method and the path of the request. The host and the `Vary` header are not part of the key, so a stored response is reused for a request whose header fields named by `Vary` differ.
 5. A fresh cached response is returned without contacting the endpoint, unless the request or the cached response has the `no-cache` directive or the request has a `Pragma` header. Then the response is revalidated with a conditional request. A stale cached response is returned with a `Warning: 110` header when the request allows stale responses, and is revalidated otherwise.
 6. A response with a `2XX` or `3XX` status to a request with any method other than `GET` and `HEAD` invalidates the cached responses of the same path.
 
@@ -1873,7 +1873,8 @@ http:Client storeClient = check new ("https://localhost:9443",
 7. The `JWT_INFORMATION` member of the request context is decoded without validation, and MUST NOT be used for authorization unless the token has been validated, e.g. by declarative authentication.
 8. When a resource or an interceptor panics, the program terminates. A panic triggered by a request therefore stops the service.
 9. A resource that declares only `Scopes` in a service without `auth` is not authenticated. See rule 9 of [Declarative listener authentication](#151-declarative-listener-authentication).
-10. The Swagger UI resource loads its scripts from `unpkg.com`.
+10. The client cache does not honour `Vary`, as described in rule 4 of [Caching](#115-caching). A response that varies by request header, such as language, or by credentials carried in headers, can be returned for a request with other values. Disable the cache with `cache: {enabled: false}` for such endpoints.
+11. The Swagger UI resource loads its scripts from `unpkg.com`.
 
 ## 18. Static code rules
 
