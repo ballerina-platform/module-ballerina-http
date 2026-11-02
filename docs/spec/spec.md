@@ -1377,7 +1377,7 @@ public type RetryConfig record {|
 
 The client classifies failures into two kinds, and retries them as follows:
 
-1. **Network-level failures**: The request did not result in an HTTP response, e.g. connection failures, connection resets, idle timeouts and TLS handshake failures. These are always retried, regardless of `statusCodes`.
+1. **Network-level failures**: The request did not result in an HTTP response, e.g. connection failures, connection resets, idle timeouts and TLS handshake failures. These are retried regardless of `statusCodes`, as long as `count` allows another attempt.
 2. **Application-level failures**: The request resulted in an HTTP response whose status code is listed in `statusCodes`.
 
 Any other response, including `4XX` and `5XX` responses whose status codes are not listed in `statusCodes`, is returned to the caller without retrying. Therefore, if `statusCodes` is not configured, only network-level failures are retried. The status code based errors such as `http:ClientRequestError` and `http:RemoteServerError` returned during client data binding are created after the retry handling and do not trigger retries on their own.

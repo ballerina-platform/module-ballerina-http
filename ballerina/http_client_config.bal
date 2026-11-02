@@ -71,9 +71,10 @@ public type ClientHttp2Settings record {|
     int http2InitialWindowSize = 65535;
 |};
 
-# Provides configurations for controlling the retrying behavior in failure scenarios. A request is always retried
-# on network-level failures such as connection failures and timeouts, and additionally on responses whose status
-# code is listed in `statusCodes`. When the retries are exhausted, the outcome of the last attempt is returned.
+# Provides configurations for controlling the retrying behavior in failure scenarios. While `count` allows another
+# attempt, a request is retried on network-level failures such as connection failures and timeouts, and on responses
+# whose status code is listed in `statusCodes`. When the retries are exhausted, the outcome of the last attempt is
+# returned.
 #
 # + count - Number of retries after the initial attempt. The request is sent at most `count + 1` times
 # + interval - Wait time in seconds before the first retry
