@@ -18,6 +18,11 @@
 
 package io.ballerina.stdlib.http.api;
 
+import io.ballerina.runtime.api.Runtime;
+import io.ballerina.runtime.api.concurrent.StrandMetadata;
+import io.ballerina.runtime.api.creators.ValueCreator;
+import io.ballerina.runtime.api.values.BError;
+import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.api.nativeimpl.pipelining.PipeliningHandler;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.uri.DispatcherUtil;
@@ -25,6 +30,8 @@ import io.ballerina.stdlib.http.uri.URITemplateException;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpHeaderNames;
+
+import java.util.Map;
 
 import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_RESOURCE_DISPATCHING_SERVER_ERROR;
 import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_RESOURCE_NOT_FOUND_ERROR;
@@ -35,7 +42,10 @@ import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_RESOURCE_NOT_F
 public class ResourceDispatcher {
 
     public static Resource findResource(Service service, HttpCarbonMessage inboundRequest) {
+        return findResource(service, inboundRequest, null);
+    }
 
+    public static Resource findResource(Service service, HttpCarbonMessage inboundRequest, Runtime runtime) {
         String method = inboundRequest.getHttpMethod();
         String subPath = (String) inboundRequest.getProperty(HttpConstants.SUB_PATH);
         subPath = sanitizeSubPath(subPath);
@@ -43,11 +53,11 @@ public class ResourceDispatcher {
         try {
             Resource resource = service.getUriTemplate().matches(subPath, resourceArgumentValues, inboundRequest);
             if (resource instanceof HttpIntrospectionResource introspectionResource) {
-                handleOasResourceRequest(inboundRequest, introspectionResource);
+                handleOasResourceRequest(inboundRequest, introspectionResource, runtime);
                 return null;
             }
             if (resource instanceof HttpSwaggerUiResource swaggerUiResource) {
-                handleOasResourceRequest(inboundRequest, swaggerUiResource);
+                handleOasResourceRequest(inboundRequest, swaggerUiResource, runtime);
                 return null;
             }
             if (resource != null) {
@@ -104,7 +114,30 @@ public class ResourceDispatcher {
         cMsg.waitAndReleaseAllEntities();
     }
 
-    private static void handleOasResourceRequest(HttpCarbonMessage cMsg, HttpOASResource resource) {
+    private static void handleOasResourceRequest(HttpCarbonMessage cMsg, HttpOASResource resource,
+                                                 Runtime runtime) {
+        HttpService service = resource.getParentService();
+        if (runtime == null || !service.isServiceAuthEnabled()) {
+            sendOasResource(cMsg, resource);
+            return;
+        }
+        // The auth handlers can make remote calls (LDAP, OAuth2 introspection), so they run off the I/O thread
+        Thread.startVirtualThread(() -> {
+            StrandMetadata metadata = new StrandMetadata(true,
+                    Map.<String, Object>of(HttpConstants.INBOUND_MESSAGE, cMsg));
+            try {
+                runtime.callMethod(ValueCreator.createObjectValue(ModuleUtils.getHttpPackage(),
+                                HttpConstants.OAS_RESOURCE_AUTHENTICATOR_CLASS_NAME),
+                        HttpConstants.OAS_RESOURCE_AUTHENTICATE_METHOD_NAME, metadata, service.getBalService());
+            } catch (BError error) {
+                new HttpCallableUnitCallback(cMsg, runtime).invokeErrorInterceptors(error, true);
+                return;
+            }
+            sendOasResource(cMsg, resource);
+        });
+    }
+
+    private static void sendOasResource(HttpCarbonMessage cMsg, HttpOASResource resource) {
         HttpCarbonMessage response = HttpUtil.createHttpCarbonMessage(false);
         response.waitAndReleaseAllEntities();
         response.addHttpContent(new DefaultLastHttpContent(Unpooled.wrappedBuffer(resource.getPayload())));

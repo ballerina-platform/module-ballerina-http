@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 
 - [Serve the embedded OpenAPI definition when the listener port cannot be resolved at compile time](https://github.com/ballerina-platform/ballerina-library/issues/9436)
+- [Apply the service auth to the generated OpenAPI and Swagger UI resources](https://github.com/ballerina-platform/ballerina-library/issues/9432)
 
 ## [2.18.1] - 2026-10-16
 

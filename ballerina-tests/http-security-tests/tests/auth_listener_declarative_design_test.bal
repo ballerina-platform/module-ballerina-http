@@ -108,6 +108,42 @@ isolated function testBasicAuthFileUserStoreServiceAuthnFailure() {
     assertUnauthorized(sendNoTokenRequest("/basicAuthFile"));
 }
 
+// Basic auth (file user store) secured service - Generated OpenAPI and Swagger UI resources
+
+@http:ServiceConfig {
+    auth: [
+        {
+            fileUserStoreConfig: {},
+            scopes: ["write", "update"]
+        }
+    ],
+    openApiDefinition: base16 `7b7d`
+}
+service /basicAuthOas on authListener {
+    resource function get .() returns string {
+        return "Hello World!";
+    }
+}
+
+@test:Config {}
+isolated function testBasicAuthFileUserStoreServiceOasResourceAuthSuccess() {
+    assertSuccess(sendBasicTokenRequest("/basicAuthOas/openapi-doc-dygixywsw", "alice", "xxx"));
+    assertSuccess(sendBasicTokenRequest("/basicAuthOas/swagger-ui-dygixywsw", "alice", "xxx"));
+}
+
+@test:Config {}
+isolated function testBasicAuthFileUserStoreServiceOasResourceAuthzFailure() {
+    assertForbidden(sendBasicTokenRequest("/basicAuthOas/openapi-doc-dygixywsw", "bob", "yyy"));
+    assertForbidden(sendBasicTokenRequest("/basicAuthOas/swagger-ui-dygixywsw", "bob", "yyy"));
+}
+
+@test:Config {}
+isolated function testBasicAuthFileUserStoreServiceOasResourceAuthnFailure() {
+    assertUnauthorized(sendBasicTokenRequest("/basicAuthOas/openapi-doc-dygixywsw", "peter", "123"));
+    assertUnauthorized(sendNoTokenRequest("/basicAuthOas/openapi-doc-dygixywsw"));
+    assertUnauthorized(sendNoTokenRequest("/basicAuthOas/swagger-ui-dygixywsw"));
+}
+
 // Basic auth (LDAP user store) secured service - Unsecured resource
 
 @http:ServiceConfig {
