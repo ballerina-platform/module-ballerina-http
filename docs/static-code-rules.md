@@ -70,7 +70,7 @@ Cross-Origin Resource Sharing (CORS) is a mechanism that allows restricted resou
 
 This can lead to security vulnerabilities, including:
 
-- Cross-Site Request Forgery (CSRF) attacks
+- Cross-Site Request Forgery (CSRF) attacks, when `allowCredentials` is enabled and the service accepts state-changing requests authenticated by browser-sent credentials such as cookies. CORS is not a CSRF protection mechanism by itself.
 - Unauthorized data access from malicious websites
 - Exposure of sensitive information to untrusted domains
 
@@ -148,6 +148,8 @@ Common attack patterns include:
 ### 3.3. How can I fix this?
 
 Avoid using user input directly in server-side HTTP requests. Instead, validate and sanitize all user inputs to ensure they conform to expected formats and values before using them in any server-side operations.
+
+This rule detects only client resource access actions, such as `userClient->/users/[id]`, where a computed path segment is a direct reference to a parameter of the enclosing resource. It does not analyze remote method invocations such as `userClient->get(path)`, URLs passed to the client constructor, or values derived from parameters through other expressions. The absence of this issue therefore does not mean that the service is free of SSRF vulnerabilities.
 
 **Non-compliant code:**
 
