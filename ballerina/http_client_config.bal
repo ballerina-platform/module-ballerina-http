@@ -71,13 +71,13 @@ public type ClientHttp2Settings record {|
     int http2InitialWindowSize = 65535;
 |};
 
-# Provides configurations for controlling the retrying behavior in failure scenarios.
+# Provides configurations for retrying requests on network-level failures and on the configured status codes.
 #
-# + count - Number of retry attempts before giving up
-# + interval - Retry interval in seconds
-# + backOffFactor - Multiplier, which increases the retry interval exponentially.
-# + maxWaitInterval - Maximum time of the retry interval in seconds
-# + statusCodes - HTTP response status codes which are considered as failures
+# + count - Number of retries after the initial attempt
+# + interval - Wait time in seconds before the first retry
+# + backOffFactor - Multiplier applied to the wait time before each subsequent retry. `<= 0.0` is treated as `1.0`
+# + maxWaitInterval - Maximum wait time in seconds between retries. `0` is treated as 60 seconds
+# + statusCodes - HTTP status codes on which the request is retried, in addition to network-level failures
 public type RetryConfig record {|
     int count = 0;
     decimal interval = 0;
