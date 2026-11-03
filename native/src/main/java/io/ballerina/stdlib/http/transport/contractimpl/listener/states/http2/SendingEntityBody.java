@@ -52,6 +52,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -225,7 +226,8 @@ public class SendingEntityBody implements ListenerState {
         Http2Headers http2Headers = new DefaultHttp2Headers()
                 .status(HttpResponseStatus.INTERNAL_SERVER_ERROR.codeAsText())
                 .set(HttpHeaderNames.SERVER, http2OutboundRespListener.getServerName())
-                .set(HttpHeaderNames.DATE, ZonedDateTime.now().format(DateTimeFormatter.RFC_1123_DATE_TIME));
+                .set(HttpHeaderNames.DATE,
+                     ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.RFC_1123_DATE_TIME));
         for (Http2DataEventListener dataEventListener :
                 http2OutboundRespListener.getHttp2ServerChannel().getDataEventListeners()) {
             if (!dataEventListener.onHeadersWrite(ctx, streamId, http2Headers, true)) {

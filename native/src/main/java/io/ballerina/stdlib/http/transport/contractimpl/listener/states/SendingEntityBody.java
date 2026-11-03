@@ -49,6 +49,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -207,7 +208,8 @@ public class SendingEntityBody implements ListenerState {
                 .set(HttpHeaderNames.CONTENT_LENGTH, 0)
                 .set(HttpHeaderNames.CONNECTION, Constants.CONNECTION_CLOSE)
                 .set(HttpHeaderNames.SERVER, outboundRespListener.getServerName())
-                .set(HttpHeaderNames.DATE, ZonedDateTime.now().format(DateTimeFormatter.RFC_1123_DATE_TIME));
+                .set(HttpHeaderNames.DATE,
+                     ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.RFC_1123_DATE_TIME));
         return sourceContext.writeAndFlush(response);
     }
 
