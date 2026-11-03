@@ -25,6 +25,7 @@ import io.ballerina.stdlib.http.transport.message.DefaultBackPressureObservable;
 import io.ballerina.stdlib.http.transport.message.Http2PushPromise;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonResponse;
+import io.ballerina.stdlib.http.transport.message.StreamWritability;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,7 +35,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * {@code OutboundMsgHolder} holds data related to a single outbound invocation.
  */
-public class OutboundMsgHolder {
+public class OutboundMsgHolder implements StreamWritability {
 
     // Outbound request HttpCarbonMessage
     private HttpCarbonMessage requestCarbonMessage;
@@ -235,10 +236,12 @@ public class OutboundMsgHolder {
         this.firstContentWritten = firstContentWritten;
     }
 
-    boolean isStreamWritable() {
+    @Override
+    public boolean isStreamWritable() {
         return streamWritable.get();
     }
 
+    @Override
     public void setStreamWritable(boolean streamWritable) {
         this.streamWritable.set(streamWritable);
     }

@@ -95,7 +95,6 @@ public class ReceivingEntityBody implements ListenerState {
                             = new EntityBodyReceived(listenerReqRespStateManager, sourceHandler, httpVersion);
                 }
             } catch (RuntimeException ex) {
-                httpContent.release();
                 inboundRequestMsg.notifyContentFailure(ex);
                 LOG.warn("Response already received before completing the inbound request {}", ex.getMessage());
             }
@@ -138,9 +137,9 @@ public class ReceivingEntityBody implements ListenerState {
                 LOG.warn("Failed to send: {}", cause.getMessage());
             }
             ctx.close();
-            handleIncompleteInboundMessage(inboundRequestMsg,
-                                           IDLE_TIMEOUT_TRIGGERED_WHILE_READING_INBOUND_REQUEST_BODY);
         });
+        // Failed before the state change: its cleanup waits for a body that only this event loop can still end.
+        handleIncompleteInboundMessage(inboundRequestMsg, IDLE_TIMEOUT_TRIGGERED_WHILE_READING_INBOUND_REQUEST_BODY);
         listenerReqRespStateManager.state
                 = new ResponseCompleted(listenerReqRespStateManager, sourceHandler, inboundRequestMsg);
         return outboundRespFuture;

@@ -32,6 +32,8 @@ import io.netty.handler.codec.http.LastHttpContent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.UncheckedIOException;
+
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_STATE_HANDLER;
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_WHILE_READING_INBOUND_RESPONSE_BODY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_BODY;
@@ -81,20 +83,26 @@ public class ReceivingEntityBody implements SenderState {
         if (httpContent instanceof LastHttpContent) {
             StateUtil.setInboundTrailersToNewMessage(((LastHttpContent) httpContent).trailingHeaders(),
                                                      inboundResponseMsg);
-            addHttpContent(inboundResponseMsg, httpContent);
-            inboundResponseMsg.setLastHttpContentArrived();
             targetHandler.resetInboundMsg();
             safelyRemoveHandlers(targetHandler.getTargetChannel().getChannel().pipeline(), IDLE_STATE_HANDLER);
             if (accessLogger != null) {
+                accessLogger.updateContentLength(httpContent.content());
                 accessLogger.updateAccessLogInfo(targetHandler.getOutboundRequestMsg(), inboundResponseMsg);
             }
             senderReqRespStateManager.state = new EntityBodyReceived(senderReqRespStateManager);
 
-            if (!isKeepAlive(targetHandler.getKeepAliveConfig(),
-                    targetHandler.getOutboundRequestMsg(), inboundResponseMsg)) {
-                targetHandler.closeChannel(ctx);
+            try {
+                if (senderReqRespStateManager.isRequestBodyIncomplete()
+                        || !isKeepAlive(targetHandler.getKeepAliveConfig(), targetHandler.getOutboundRequestMsg(),
+                                        inboundResponseMsg)) {
+                    targetHandler.closeChannel(ctx);
+                }
+                targetHandler.getConnectionManager().returnChannel(targetHandler.getTargetChannel());
+            } finally {
+                // Ended once the connection is back in the pool, so a caller that reads the whole body and sends
+                // again reuses it; ended even if returning it failed, so the reader is not left waiting
+                endInboundResponse(inboundResponseMsg, httpContent);
             }
-            targetHandler.getConnectionManager().returnChannel(targetHandler.getTargetChannel());
         } else {
             addHttpContent(inboundResponseMsg, httpContent);
         }
@@ -113,6 +121,16 @@ public class ReceivingEntityBody implements SenderState {
         senderReqRespStateManager.nettyTargetChannel.close();
         handleIncompleteInboundMessage(targetHandler.getInboundResponseMsg(),
                                        IDLE_TIMEOUT_TRIGGERED_WHILE_READING_INBOUND_RESPONSE_BODY);
+    }
+
+    private void endInboundResponse(HttpCarbonMessage inboundResponseMsg, HttpContent lastHttpContent) {
+        try {
+            inboundResponseMsg.addHttpContent(lastHttpContent);
+            inboundResponseMsg.setLastHttpContentArrived();
+        } catch (UncheckedIOException e) {
+            // Its reader already failed; throwing now would close a connection another request may hold
+            LOG.debug("Inbound response already failed: {}", e.getMessage());
+        }
     }
 
     private void addHttpContent(HttpCarbonMessage inboundResponseMsg, HttpContent httpContent) {
