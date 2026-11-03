@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 public class MessageFuture {
 
     private static final Logger LOG = LoggerFactory.getLogger(MessageFuture.class);
-    private MessageListener messageListener;
+    private volatile MessageListener messageListener;
     private final HttpCarbonMessage httpCarbonMessage;
 
     public MessageFuture(HttpCarbonMessage httpCarbonMessage) {

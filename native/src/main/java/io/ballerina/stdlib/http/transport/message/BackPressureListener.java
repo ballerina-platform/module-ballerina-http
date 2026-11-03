@@ -32,4 +32,14 @@ public interface BackPressureListener {
      * Get notified to release throttling.
      */
     void onWritable();
+
+    /**
+     * Whether {@link #onUnWritable()} blocks the writer until {@link #onWritable()} is called. Such a listener must be
+     * notified without holding a lock that the resume takes.
+     *
+     * @return true if the listener blocks the writer
+     */
+    default boolean blocksWriter() {
+        return false;
+    }
 }

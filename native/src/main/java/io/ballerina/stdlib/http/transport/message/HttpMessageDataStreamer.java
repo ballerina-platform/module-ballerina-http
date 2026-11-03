@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.util.Objects;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.InflaterInputStream;
 
@@ -71,50 +72,110 @@ public class HttpMessageDataStreamer {
      */
     protected class ByteBufferInputStream extends InputStream {
 
-        private int count;
         private boolean chunkFinished = true;
-        private int limit;
         private ByteBuffer byteBuffer;
         private HttpContent httpContent;
         private int referenceCount = 0;
+        // A failed chunk met after some bytes were copied, thrown by the next read so those bytes are returned first
+        private DecoderException pendingFailure;
 
         @Override
         public int read() {
-            if ((httpContent instanceof LastHttpContent) && chunkFinished) {
+            if (!awaitData()) {
                 return -1;
-            } else if (chunkFinished) {
-                httpContent = httpCarbonMessage.getHttpContent();
-                referenceCount++;
-                validateHttpContent();
-                byteBuffer = httpContent.content().nioBuffer();
-                count = 0;
-                limit = byteBuffer.limit();
-                if (limit == 0) {
-                    return -1;
-                }
-                chunkFinished = false;
             }
-            count++;
-            if (count == limit) {
-                int value = byteBuffer.get() & 0xff;
+            int value = byteBuffer.get() & 0xff;
+            releaseIfDrained();
+            return value;
+        }
+
+        /**
+         * Blocks only until some content is available, then returns what is already received, up to {@code len}
+         * bytes, instead of waiting for {@code len} bytes. A streamed body is then delivered as it arrives.
+         */
+        @Override
+        public int read(byte[] b, int off, int len) {
+            Objects.checkFromIndexSize(off, len, b.length);
+            if (len == 0) {
+                return 0;
+            }
+            if (!awaitData()) {
+                return -1;
+            }
+            int total = 0;
+            while (true) {
+                if (!chunkFinished) {
+                    int bytesToCopy = Math.min(len - total, byteBuffer.remaining());
+                    byteBuffer.get(b, off + total, bytesToCopy);
+                    total += bytesToCopy;
+                    releaseIfDrained();
+                }
+                if (total == len || httpContent instanceof LastHttpContent || httpCarbonMessage.isEmpty()) {
+                    return total;
+                }
+                try {
+                    loadNextChunk();
+                } catch (DecoderException e) {
+                    pendingFailure = e;
+                    return total;
+                }
+            }
+        }
+
+        @Override
+        public int available() {
+            return chunkFinished ? 0 : byteBuffer.remaining();
+        }
+
+        /**
+         * Blocks until a chunk with unread bytes is available, skipping empty ones.
+         *
+         * @return false once the body has ended
+         */
+        private boolean awaitData() {
+            if (pendingFailure != null) {
+                throw pendingFailure;
+            }
+            while (chunkFinished) {
+                if (httpContent instanceof LastHttpContent) {
+                    return false;
+                }
+                loadNextChunk();
+            }
+            return true;
+        }
+
+        private void loadNextChunk() {
+            releaseHttpContent();
+            httpContent = httpCarbonMessage.getHttpContent();
+            if (httpContent != null) {
+                referenceCount++;
+            }
+            validateHttpContent();
+            byteBuffer = httpContent.content().nioBuffer();
+            chunkFinished = !byteBuffer.hasRemaining();
+        }
+
+        private void releaseIfDrained() {
+            if (!byteBuffer.hasRemaining()) {
                 chunkFinished = true;
                 byteBuffer = null;
                 releaseHttpContent();
-                return value;
             }
-            return byteBuffer.get() & 0xff;
         }
 
         private void validateHttpContent() {
             if (httpContent == null) {
                 throw new DecoderException("No entity was added to the queue before the timeout");
             } else if (httpContent.decoderResult().isFailure()) {
-                throw new DecoderException(httpContent.decoderResult().cause().getMessage());
+                pendingFailure = new DecoderException(httpContent.decoderResult().cause().getMessage());
+                throw pendingFailure;
             }
         }
 
         @Override
         public void close() throws IOException {
+            chunkFinished = true;
             byteBuffer = null;
             releaseHttpContent();    //fix memory leak issue in error path
             super.close();
@@ -136,7 +197,7 @@ public class HttpMessageDataStreamer {
      */
     protected class ByteBufferOutputStream extends OutputStream {
 
-        private ByteBuf dataHolder;
+        protected ByteBuf dataHolder;
 
         @Override
         public void write(int b) {
@@ -151,6 +212,7 @@ public class HttpMessageDataStreamer {
                     dataHolder = getBuffer();
                     dataHolder.writeByte((byte) b);
                 } catch (RuntimeException ex) {
+                    dataHolder = null;
                     throw new EncoderException(httpCarbonMessage.getIoException());
                 }
             }
@@ -186,19 +248,22 @@ public class HttpMessageDataStreamer {
      * one thread at particular time.
      */
     protected class EventBufferOutputStream extends ByteBufferOutputStream {
-        private ByteBuf dataHolder = getBuffer();
         private int lastByte = 0;
 
         @Override
         public void write(int b) {
             // Buffer the data until a double line feed (indicating the end of an event)
             // or until CONTENT_BUFFER_SIZE is reached.
+            if (this.dataHolder == null) {
+                this.dataHolder = getBuffer();
+            }
             if (hasDoubleLineFeed(b))  {
                 try {
                     writeByte(b);
                     httpCarbonMessage.addHttpContent(new DefaultHttpContent(this.dataHolder));
-                    this.dataHolder = getBuffer();
+                    this.dataHolder = null;
                 } catch (RuntimeException ex) {
+                    this.dataHolder = null;
                     throw new EncoderException(httpCarbonMessage.getIoException());
                 }
             } else if (this.dataHolder.writableBytes() != 0) {
@@ -209,6 +274,7 @@ public class HttpMessageDataStreamer {
                     this.dataHolder = getBuffer();
                     writeByte(b);
                 } catch (RuntimeException ex) {
+                    this.dataHolder = null;
                     throw new EncoderException(httpCarbonMessage.getIoException());
                 }
             }
@@ -268,10 +334,23 @@ public class HttpMessageDataStreamer {
             // accept-encoding request header
             httpCarbonMessage.removeHeader(HttpHeaderNames.CONTENT_ENCODING.toString());
             try {
+                InputStream source = createInputStreamIfNull();
+                // Compressed bytes left in the source may not decode on their own, so a reader that keeps reading
+                // while something is available would wait for the next chunk. Report nothing ready instead.
                 if (contentEncodingHeader.equalsIgnoreCase(Constants.ENCODING_GZIP)) {
-                    return new GZIPInputStream(createInputStreamIfNull());
+                    return new GZIPInputStream(source) {
+                        @Override
+                        public int available() {
+                            return 0;
+                        }
+                    };
                 } else if (contentEncodingHeader.equalsIgnoreCase(Constants.ENCODING_DEFLATE)) {
-                    return new InflaterInputStream(createInputStreamIfNull());
+                    return new InflaterInputStream(source) {
+                        @Override
+                        public int available() {
+                            return 0;
+                        }
+                    };
                 } else if (!contentEncodingHeader.equalsIgnoreCase(Constants.HTTP_TRANSFER_ENCODING_IDENTITY)) {
                     LOG.warn("Unknown Content-Encoding: {}", contentEncodingHeader);
                 }

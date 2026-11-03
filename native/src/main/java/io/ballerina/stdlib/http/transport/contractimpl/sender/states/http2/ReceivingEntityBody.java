@@ -183,7 +183,7 @@ public class ReceivingEntityBody implements SenderState {
         HttpCarbonMessage responseMessage = outboundMsgHolder.getResponse();
         if (endOfStream) {
             responseMessage.addHttpContent(new DefaultLastHttpContent(data.retain()));
-            http2ClientChannel.removeInFlightMessage(streamId);
+            http2ClientChannel.removeRespondedMessage(streamId);
             responseMessage.setLastHttpContentArrived();
         } else {
             responseMessage.addHttpContent(new DefaultHttpContent(data.retain()));

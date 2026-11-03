@@ -17,6 +17,7 @@ package io.ballerina.stdlib.http.transport.contractimpl.sender;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contract.config.KeepAliveConfig;
+import io.ballerina.stdlib.http.transport.contract.exceptions.ClientConnectorException;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.SenderReqRespStateManager;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.TargetChannel;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.ConnectionManager;
@@ -46,6 +47,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Objects;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.CONTENT_DECODING_FAILED;
+import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_OUTBOUND_REQUEST;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.createInboundRespCarbonMsg;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.safelyRemoveHandlers;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil.initHttp2MessageContext;
@@ -121,11 +123,15 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        if (!idleTimeoutTriggered) {
-            targetChannel.senderReqRespStateManager.handleAbruptChannelClosure(this, httpResponseFuture);
+        // Not yet configured: the connection closed before its request was handed over, which reports it instead
+        if (targetChannel != null) {
+            // Before the response fails, so a request sent on that failure does not wait for this connection
+            releaseWaitingRequestsOnFailure();
+            if (!idleTimeoutTriggered) {
+                targetChannel.senderReqRespStateManager.handleAbruptChannelClosure(this, httpResponseFuture);
+            }
+            connectionManager.invalidateTargetChannel(targetChannel);
         }
-        releasePerRoutePoolLatchOnFailure();
-        connectionManager.invalidateTargetChannel(targetChannel);
 
         if (handlerExecutor != null) {
             handlerExecutor.executeAtTargetConnectionTermination(Integer.toString(ctx.hashCode()));
@@ -150,8 +156,9 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
             HttpClientUpgradeHandler.UpgradeEvent upgradeEvent = (HttpClientUpgradeHandler.UpgradeEvent) evt;
             if (HttpClientUpgradeHandler.UpgradeEvent.UPGRADE_SUCCESSFUL.name().equals(upgradeEvent.name())) {
                 executePostUpgradeActions(ctx);
-            } else if (HttpClientUpgradeHandler.UpgradeEvent.UPGRADE_REJECTED.name().equals(upgradeEvent.name())) {
-                releasePerRoutePoolLatchOnFailure();
+            } else if (HttpClientUpgradeHandler.UpgradeEvent.UPGRADE_REJECTED.name().equals(upgradeEvent.name())
+                    && Objects.nonNull(targetChannel)) {
+                targetChannel.reportHttp2Unavailable();
             }
             ctx.fireUserEventTriggered(evt);
         } else {
@@ -174,7 +181,6 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
             // When closing the channel, if it is already closed it will trigger this event. So we can ignore this.
             LOG.debug("Input side of the connection is already shutdown");
         } else {
-            releasePerRoutePoolLatchOnFailure();
             LOG.warn("Unexpected user event {} triggered", evt);
         }
     }
@@ -202,7 +208,8 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
     private void handoverChannelToHttp2ConnectionManager() {
         Http2ClientChannel upgradedHttp2ClientChannel = targetChannel.getHttp2ClientChannel();
         connectionManager.getHttp2ConnectionManager().addHttp2ClientChannel(targetChannel.getHttpRoute(),
-                                                                            upgradedHttp2ClientChannel);
+                                                                            upgradedHttp2ClientChannel,
+                                                                            targetChannel.getNewConnectionAttempt());
         upgradedHttp2ClientChannel.getConnection().remote().flowController().listener(
             new ClientRemoteFlowControlListener(upgradedHttp2ClientChannel));
     }
@@ -216,12 +223,10 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
-    private void releasePerRoutePoolLatchOnFailure() {
-        // When SSL completion event is received via UserEventTriggered method, this method can be called before
-        // assigning value to connectionManager. Hence the null check
-        if (Objects.nonNull(connectionManager)) {
-            connectionManager.getHttp2ConnectionManager().releasePerRoutePoolLatch(targetChannel.getHttpRoute());
-        }
+    private void releaseWaitingRequestsOnFailure() {
+        targetChannel.reportConnectionAttemptFailed(new ClientConnectorException(
+                targetChannel.getChannel().id().asShortText(),
+                REMOTE_SERVER_CLOSED_BEFORE_INITIATING_OUTBOUND_REQUEST));
     }
 
     public void setHttpResponseFuture(HttpResponseFuture httpResponseFuture) {
