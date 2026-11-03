@@ -261,6 +261,7 @@
             <class name="io.ballerina.stdlib.http.transport.contractimpl.listener.MaxEntityBodyValidatorTest"/>
             <class name="io.ballerina.stdlib.http.transport.contractimpl.sender.states.SenderIdleStateHandlerPlacementTest"/>
             <class name="io.ballerina.stdlib.http.transport.contractimpl.sender.states.RequestCompletedIdleTimeoutTest"/>
+            <class name="io.ballerina.stdlib.http.transport.contractimpl.sender.states.ReceivingEntityBodyTest"/>
             <class name="io.ballerina.stdlib.http.transport.message.PassthroughBackPressureListenerTest"/>
             <class name="io.ballerina.stdlib.http.transport.message.DefaultBackPressureObservableTest"/>
             <class name="io.ballerina.stdlib.http.transport.message.Http2PassthroughBackPressureListenerTest"/>

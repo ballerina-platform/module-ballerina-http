@@ -91,19 +91,17 @@ public class ReceivingEntityBody implements SenderState {
             }
             senderReqRespStateManager.state = new EntityBodyReceived(senderReqRespStateManager);
 
-            if (senderReqRespStateManager.isRequestBodyIncomplete() || !isKeepAlive(targetHandler.getKeepAliveConfig(),
-                    targetHandler.getOutboundRequestMsg(), inboundResponseMsg)) {
-                targetHandler.closeChannel(ctx);
-            }
-            targetHandler.getConnectionManager().returnChannel(targetHandler.getTargetChannel());
-            // Ended only once the connection is back in the pool, so a caller that reads the whole body and sends
-            // again on the same route reuses it instead of opening another
             try {
-                inboundResponseMsg.addHttpContent(httpContent);
-                inboundResponseMsg.setLastHttpContentArrived();
-            } catch (UncheckedIOException e) {
-                // Its reader already failed; throwing now would close a connection another request may hold
-                LOG.debug("Inbound response already failed: {}", e.getMessage());
+                if (senderReqRespStateManager.isRequestBodyIncomplete()
+                        || !isKeepAlive(targetHandler.getKeepAliveConfig(), targetHandler.getOutboundRequestMsg(),
+                                        inboundResponseMsg)) {
+                    targetHandler.closeChannel(ctx);
+                }
+                targetHandler.getConnectionManager().returnChannel(targetHandler.getTargetChannel());
+            } finally {
+                // Ended once the connection is back in the pool, so a caller that reads the whole body and sends
+                // again reuses it; ended even if returning it failed, so the reader is not left waiting
+                endInboundResponse(inboundResponseMsg, httpContent);
             }
         } else {
             addHttpContent(inboundResponseMsg, httpContent);
@@ -123,6 +121,16 @@ public class ReceivingEntityBody implements SenderState {
         senderReqRespStateManager.nettyTargetChannel.close();
         handleIncompleteInboundMessage(targetHandler.getInboundResponseMsg(),
                                        IDLE_TIMEOUT_TRIGGERED_WHILE_READING_INBOUND_RESPONSE_BODY);
+    }
+
+    private void endInboundResponse(HttpCarbonMessage inboundResponseMsg, HttpContent lastHttpContent) {
+        try {
+            inboundResponseMsg.addHttpContent(lastHttpContent);
+            inboundResponseMsg.setLastHttpContentArrived();
+        } catch (UncheckedIOException e) {
+            // Its reader already failed; throwing now would close a connection another request may hold
+            LOG.debug("Inbound response already failed: {}", e.getMessage());
+        }
     }
 
     private void addHttpContent(HttpCarbonMessage inboundResponseMsg, HttpContent httpContent) {
