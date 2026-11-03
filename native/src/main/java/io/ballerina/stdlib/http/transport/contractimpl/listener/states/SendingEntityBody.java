@@ -33,6 +33,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.DateFormatter;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.FullHttpResponse;
@@ -49,10 +50,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.locks.ReentrantLock;
@@ -208,8 +207,7 @@ public class SendingEntityBody implements ListenerState {
                 .set(HttpHeaderNames.CONTENT_LENGTH, 0)
                 .set(HttpHeaderNames.CONNECTION, Constants.CONNECTION_CLOSE)
                 .set(HttpHeaderNames.SERVER, outboundRespListener.getServerName())
-                .set(HttpHeaderNames.DATE,
-                     ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.RFC_1123_DATE_TIME));
+                .set(HttpHeaderNames.DATE, DateFormatter.format(new Date()));
         return sourceContext.writeAndFlush(response);
     }
 

@@ -35,6 +35,7 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.DateFormatter;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpHeaderNames;
@@ -52,9 +53,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.Date;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.OUTBOUND_RESPONSE_BODY_FAILED;
@@ -226,8 +225,7 @@ public class SendingEntityBody implements ListenerState {
         Http2Headers http2Headers = new DefaultHttp2Headers()
                 .status(HttpResponseStatus.INTERNAL_SERVER_ERROR.codeAsText())
                 .set(HttpHeaderNames.SERVER, http2OutboundRespListener.getServerName())
-                .set(HttpHeaderNames.DATE,
-                     ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.RFC_1123_DATE_TIME));
+                .set(HttpHeaderNames.DATE, DateFormatter.format(new Date()));
         for (Http2DataEventListener dataEventListener :
                 http2OutboundRespListener.getHttp2ServerChannel().getDataEventListeners()) {
             if (!dataEventListener.onHeadersWrite(ctx, streamId, http2Headers, true)) {
