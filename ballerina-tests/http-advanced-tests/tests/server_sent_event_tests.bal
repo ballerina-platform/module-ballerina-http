@@ -86,9 +86,25 @@ class SseEventGenerator2 {
     }
 }
 
+class PanickingSseEventGenerator {
+    private boolean sent = false;
+
+    public isolated function next() returns record {|http:SseEvent value;|}|error? {
+        if self.sent {
+            panic error("event source failed");
+        }
+        self.sent = true;
+        return {value: {data: "first"}};
+    }
+}
+
 service /sse on http1SseListener {
     resource function 'default [string... paths](http:Request req) returns stream<http:SseEvent, error?> {
         return new (new SseEventGenerator());
+    }
+
+    resource function get panicking() returns stream<http:SseEvent, error?> {
+        return new (new PanickingSseEventGenerator());
     }
 }
 
@@ -111,6 +127,10 @@ service /sse on http2SseListener {
 
     resource function get completeWithError2() returns stream<http:SseEvent, error> {
         return new (new SseEventGenerator2());
+    }
+
+    resource function get panicking() returns stream<http:SseEvent, error?> {
+        return new (new PanickingSseEventGenerator());
     }
 }
 
@@ -191,6 +211,17 @@ function testServiceCompletesStreamWithErrorEvent() returns error? {
     actualSseEvents = check http2SseClient->/sse/completeWithError2;
     expectedSseEvents = new (new SseEventGenerator2());
     check assertEventStream(actualSseEvents, expectedSseEvents);
+}
+
+@test:Config {}
+function testSseStreamWhoseSourcePanicsIsFailedAtTheClient() returns error? {
+    foreach http:Client sseClient in [http1SseClient, http2SseClient] {
+        stream<http:SseEvent, error?> events = check sseClient->/sse/panicking;
+        record {|http:SseEvent value;|}? first = check events.next();
+        test:assertEquals(first?.value, {data: "first"});
+        record {|http:SseEvent value;|}|error? next = events.next();
+        test:assertTrue(next is error, "The event stream ended as complete although its source panicked");
+    }
 }
 
 @test:BeforeSuite
