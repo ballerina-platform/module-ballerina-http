@@ -39,6 +39,7 @@ import io.ballerina.stdlib.mime.util.MultipartDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -128,7 +129,9 @@ public class ResponseWriter {
                 HttpUtil.closeMessageOutputStream(messageOutputStream);
             } else if (EntityBodyHandler.getEventStream(entity) != null) {
                 //When the entity body is a byte stream of server sent events and it is not null
-                EntityBodyHandler.writeEventStreamToOutputStream(env, entity, messageOutputStream);
+                EntityBodyHandler.writeEventStreamToOutputStream(env, entity,
+                                                                 new EventStreamOutputStream(messageOutputStream));
+                HttpUtil.closeMessageOutputStream(messageOutputStream);
             } else if (EntityBodyHandler.getByteStream(entity) != null) {
                 //When the entity body is a byte stream and when it is not null
                 EntityBodyHandler.writeByteStreamToOutputStream(env, entity, messageOutputStream);
@@ -154,6 +157,27 @@ public class ResponseWriter {
     private static void abortResponseBody(OutputStream messageOutputStream, Exception cause) {
         if (HttpUtil.abortMessageOutputStream(messageOutputStream, cause)) {
             log.error("Failed to write the response body, so the response is aborted: {}", cause.getMessage());
+        }
+    }
+
+    /**
+     * Writes an event stream to the response body, but leaves ending the body to the caller, as mime's event stream
+     * writer closes the stream even when the event stream panics, which would end the body as complete.
+     */
+    private static class EventStreamOutputStream extends FilterOutputStream {
+
+        EventStreamOutputStream(OutputStream out) {
+            super(out);
+        }
+
+        @Override
+        public void write(byte[] bytes, int offset, int length) throws IOException {
+            out.write(bytes, offset, length);
+        }
+
+        @Override
+        public void close() {
+            // Ended by serializeDataSource, which aborts the body instead if the event stream panicked
         }
     }
 
