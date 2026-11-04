@@ -140,8 +140,26 @@ isolated function testBasicAuthFileUserStoreServiceOasResourceAuthzFailure() {
 @test:Config {}
 isolated function testBasicAuthFileUserStoreServiceOasResourceAuthnFailure() {
     assertUnauthorized(sendBasicTokenRequest("/basicAuthOas/openapi-doc-dygixywsw", "peter", "123"));
+    assertUnauthorized(sendBasicTokenRequest("/basicAuthOas/swagger-ui-dygixywsw", "peter", "123"));
     assertUnauthorized(sendNoTokenRequest("/basicAuthOas/openapi-doc-dygixywsw"));
     assertUnauthorized(sendNoTokenRequest("/basicAuthOas/swagger-ui-dygixywsw"));
+}
+
+@test:Config {}
+isolated function testBasicAuthFileUserStoreServiceOasLinkHeaderIsPublic() returns error? {
+    http:Client clientEP = check new ("https://localhost:" + securedListenerPort.toString(),
+        secureSocket = {
+        cert: {
+            path: TRUSTSTORE_PATH,
+            password: "ballerina"
+        }
+    }
+    );
+    http:Response response = check clientEP->options("/basicAuthOas");
+    test:assertEquals(response.statusCode, 204);
+    string link = check response.getHeader("link");
+    test:assertTrue(link.includes("/basicAuthOas/openapi-doc-dygixywsw"));
+    test:assertTrue(link.includes("/basicAuthOas/swagger-ui-dygixywsw"));
 }
 
 // Basic auth (LDAP user store) secured service - Unsecured resource

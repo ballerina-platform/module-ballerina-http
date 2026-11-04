@@ -21,7 +21,6 @@ package io.ballerina.stdlib.http.api;
 import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.concurrent.StrandMetadata;
 import io.ballerina.runtime.api.creators.ValueCreator;
-import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.api.nativeimpl.pipelining.PipeliningHandler;
@@ -32,6 +31,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpHeaderNames;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_RESOURCE_DISPATCHING_SERVER_ERROR;
@@ -117,24 +117,28 @@ public class ResourceDispatcher {
 
     private static void handleOasResourceRequest(HttpCarbonMessage cMsg, HttpOASResource resource, Service service,
                                                  Runtime runtime) {
-        BArray authConfig = service instanceof HttpService httpService ? httpService.getServiceAuthConfig() : null;
-        if (runtime == null || authConfig == null) {
+        if (!(service instanceof HttpService httpService) || !httpService.isServiceAuthEnabled()) {
             sendOasResource(cMsg, resource);
             return;
         }
+        if (runtime == null) {
+            throw HttpUtil.createHttpError("unable to authenticate the request to the OpenAPI resource",
+                    INTERNAL_RESOURCE_DISPATCHING_SERVER_ERROR);
+        }
         // The auth handlers can make remote calls (LDAP, OAuth2 introspection), so they run off the I/O thread
         Thread.startVirtualThread(() -> {
-            StrandMetadata metadata = new StrandMetadata(true,
-                    Map.<String, Object>of(HttpConstants.INBOUND_MESSAGE, cMsg));
             try {
+                StrandMetadata metadata = new StrandMetadata(true,
+                        new HashMap<>(Map.of(HttpConstants.INBOUND_MESSAGE, cMsg)));
                 runtime.callMethod(ValueCreator.createObjectValue(ModuleUtils.getHttpPackage(),
                                 HttpConstants.OAS_RESOURCE_AUTHENTICATOR_CLASS_NAME),
-                        HttpConstants.OAS_RESOURCE_AUTHENTICATE_METHOD_NAME, metadata, authConfig);
+                        HttpConstants.OAS_RESOURCE_AUTHENTICATE_METHOD_NAME, metadata, httpService.getBalService());
+                sendOasResource(cMsg, resource);
             } catch (BError error) {
                 new HttpCallableUnitCallback(cMsg, runtime).invokeErrorInterceptors(error, true);
-                return;
+            } catch (Exception e) {
+                HttpUtil.handleFailure(cMsg, HttpUtil.createError(e));
             }
-            sendOasResource(cMsg, resource);
         });
     }
 

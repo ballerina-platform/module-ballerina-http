@@ -98,12 +98,18 @@ public class ServiceOasGenerator implements AnalysisTask<SyntaxNodeAnalysisConte
         Location annotationLocation = serviceInfoAnnotation.get().location();
         Optional<String> openApi = generateOpenApi(fileName, context.currentPackage().project(),
                 context.semanticModel(), serviceNode,
-                reason -> updateDiagnostic(context, annotationLocation, HttpDiagnostic.HTTP_WARNING_104, reason));
+                reason -> updateDiagnostic(context, annotationLocation, HttpDiagnostic.HTTP_WARNING_104,
+                        escapeMessageFormat(reason)));
         if (openApi.isEmpty()) {
             return;
         }
 
         writeOpenApiAsTargetResource(context.currentPackage().project(), fileName, openApi.get());
+    }
+
+    // The diagnostic message is passed through `MessageFormat`, where quotes and braces are special
+    private static String escapeMessageFormat(String text) {
+        return text.replace("'", "''").replace("{", "'{'").replace("}", "'}'");
     }
 
     protected static String getFileName(int hashCode) {

@@ -1159,7 +1159,8 @@ different formats. In order to access these resources user can send an OPTIONS r
 the service base-path. The link header in the 204 response specifies the location for the OAS resources.
 
 When the service is secured with the `auth` field of `http:ServiceConfig`, the OAS resources apply the same auth
-configurations, including the scopes. The OPTIONS response carrying the link header is not secured.
+configurations, including the scopes. Only the service-level `auth` is applied; `auth` configured only on individual
+resources does not secure the OAS resources. The OPTIONS response carrying the link header is not secured.
 
 Sample service
 ```ballerina
