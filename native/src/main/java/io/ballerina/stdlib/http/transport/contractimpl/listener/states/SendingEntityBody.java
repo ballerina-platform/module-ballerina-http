@@ -33,10 +33,16 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.DateFormatter;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
+import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpContent;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.util.concurrent.EventExecutorGroup;
 import org.slf4j.Logger;
@@ -45,17 +51,20 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_HEAD_METHOD;
 import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT_TRIGGERED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY;
+import static io.ballerina.stdlib.http.transport.contract.Constants.OUTBOUND_RESPONSE_BODY_FAILED;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_CLOSED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_TO_HOST_CONNECTION_CLOSED;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.createFullHttpResponse;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.setupContentLengthRequest;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.ILLEGAL_STATE_ERROR;
+import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.isFailedBodyEnd;
 
 /**
  * State between start and end of outbound response entity body write.
@@ -111,6 +120,10 @@ public class SendingEntityBody implements ListenerState {
     public void writeOutboundResponseBody(HttpOutboundRespListener outboundRespListener,
                                           HttpCarbonMessage outboundResponseMsg, HttpContent httpContent) {
         this.outboundResponseMsg = outboundResponseMsg;
+        if (isFailedBodyEnd(httpContent)) {
+            abortResponse(httpContent);
+            return;
+        }
 
         ChannelFuture outboundChannelFuture;
         if (httpContent instanceof LastHttpContent) {
@@ -167,6 +180,35 @@ public class SendingEntityBody implements ListenerState {
 
         LOG.error(IDLE_TIMEOUT_TRIGGERED_WHILE_WRITING_OUTBOUND_RESPONSE_BODY);
         return null;
+    }
+
+    // Closes the connection after the content already written, without the end of the body, so the client sees it
+    // cut short. A response whose headers were not written yet is not sent at all.
+    private void abortResponse(HttpContent failedEnd) {
+        Throwable cause = failedEnd.decoderResult().cause();
+        failedEnd.release();
+        contentList.forEach(HttpContent::release);
+        contentList.clear();
+        listenerReqRespStateManager.state
+                = new ResponseCompleted(listenerReqRespStateManager, sourceHandler, inboundRequestMsg);
+        ChannelFuture lastWrite = headersWritten ? sourceContext.writeAndFlush(Unpooled.EMPTY_BUFFER)
+                : writeInternalServerError();
+        lastWrite.addListener(ChannelFutureListener.CLOSE);
+        outboundRespStatusFuture.notifyHttpListener(new IOException(OUTBOUND_RESPONSE_BODY_FAILED, cause));
+    }
+
+    // Nothing of the response has been sent, so the client is told the server failed instead of seeing a bare close
+    private ChannelFuture writeInternalServerError() {
+        HttpVersion httpVersion = new HttpVersion(
+                Constants.HTTP_VERSION_PREFIX + outboundRespListener.getRequestDataHolder().getHttpVersion(), true);
+        FullHttpResponse response = new DefaultFullHttpResponse(httpVersion, HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                                                                Unpooled.EMPTY_BUFFER);
+        response.headers()
+                .set(HttpHeaderNames.CONTENT_LENGTH, 0)
+                .set(HttpHeaderNames.CONNECTION, Constants.CONNECTION_CLOSE)
+                .set(HttpHeaderNames.SERVER, outboundRespListener.getServerName())
+                .set(HttpHeaderNames.DATE, DateFormatter.format(new Date()));
+        return sourceContext.writeAndFlush(response);
     }
 
     private ChannelFuture checkHeadRequestAndWriteOutboundResponseBody(HttpContent httpContent) {

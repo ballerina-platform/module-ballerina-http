@@ -58,3 +58,5 @@ const int laxDataBindingTestPort = 9097;
 const int laxDataBindingNegativeTestPort = 9098;
 
 const int stalledBodyTestPort = 9497;
+const int failedBodyHttp2TestPort = 9498;
+const int failedBodyHttp1TestPort = 9499;

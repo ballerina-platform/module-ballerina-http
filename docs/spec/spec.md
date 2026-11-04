@@ -407,6 +407,8 @@ The service is attached at `/albums`, the base path of the contract type (rule 1
    - `get swagger-ui-dygixywsw`, which returns an HTML page that renders the definition with Swagger UI loaded from `unpkg.com`.
 2. A `204 No Content` response to an `OPTIONS` request on the service has a `Link` header with the paths of these resources, with the relations `service-desc` and `swagger-ui`.
 3. A user-defined resource with the same accessor and path as a generated resource causes the attach to fail.
+4. When the listener port cannot be resolved at compile time, the definition is generated without a `servers` section. When the definition cannot be generated at all, the compiler plugin reports a warning, and the service has no generated resources.
+5. When the service is secured with the `auth` field of `http:ServiceConfig`, the generated resources are secured with the same configuration, including its scopes. `auth` configured only on resources does not secure them. The `OPTIONS` response that carries the `Link` header is not secured.
 
 #### 4.6.1. Example: Embedded OpenAPI definition
 
@@ -1551,6 +1553,10 @@ When the primary endpoint responds with `503 Service Unavailable`, the client wa
    - For HTTP/1.x, this applies to reading a body only. A remote endpoint that reads a body slowly is not distinguished from one that has stopped responding.
 3. A transfer that makes no progress is treated as stalled once the idle timeout has elapsed once for it, and is excused for up to `maxBackPressureStallTime` more before the idle timeout applies. Any progress restarts this period. A transfer that never makes progress again is therefore closed after the idle timeout plus `maxBackPressureStallTime`.
 4. `maxBackPressureStallTime` is a configurable of type `decimal` whose default is `300`. A negative value lets a stalled transfer wait indefinitely. `0` removes the allowance, so that any inactivity counts towards the idle timeout.
+5. An outbound body that fails part-way, such as a `stream<byte[], io:Error?>` or byte channel that returns an error, or a passthrough body whose source fails, is never ended as if it were complete:
+   - When a listener has sent nothing of the response, it sends a `500 Internal Server Error` without a body and without the headers of the response, and closes an HTTP/1.1 connection. This includes a response with `chunking` set to `NEVER`, whose body is held back until it is complete.
+   - Otherwise, the HTTP/1.1 connection is closed without ending the body, or the HTTP/2 stream is reset.
+   - A listener logs the failure as an error, since a resource that returned the response does not observe it.
 
 For example, with a client `timeout` of `30` and the default `maxBackPressureStallTime` of `300`, an application that stops reading a response body can resume reading within 330 seconds. After that, the transfer is closed as idle (rule 3).
 
