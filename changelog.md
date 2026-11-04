@@ -21,12 +21,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Fix a passthrough service leaking the backend's response buffers when its caller disconnects before the response body has been fully written](https://github.com/ballerina-platform/ballerina-library/issues/9317)
 - [Fix the HTTP/1.1 client reusing a connection left in the middle of a request when the backend responds before the request body is fully sent, which failed the next request on that connection](https://github.com/ballerina-platform/ballerina-library/issues/9318)
 - [Fix the HTTP/2 client's payload getters, such as `getBinaryPayload()`, hanging instead of returning the idle-timeout error when the response body stalls for longer than the client's `timeout`](https://github.com/ballerina-platform/ballerina-library/issues/9350)
+- [Fix a service response, or a client request, whose byte stream or byte channel fails part-way never ending, so the peer waited until a timeout; a service response that fails before anything was sent now gets a `500` without the response's own headers, otherwise the HTTP/1.1 connection is closed or the HTTP/2 stream reset, and the failure is logged](https://github.com/ballerina-platform/ballerina-library/issues/9349)
 - [Fix a streamed body read ending at an empty HTTP/2 DATA frame that does not end the stream, as if the body had ended](https://github.com/ballerina-platform/ballerina-library/issues/9267)
 
 ### Changed
 
 - [Fail the HTTP/2 client requests waiting for a new connection with that connection attempt's error, instead of each request opening its own connection after the attempt fails](https://github.com/ballerina-platform/ballerina-library/issues/9233)
 - [Reset an HTTP/2 client stream with `CANCEL` instead of `STREAM_CLOSED` when the client gives up on it, that is on an idle timeout or when its request body fails part-way, as RFC 9113 defines `STREAM_CLOSED` for a frame received on a half-closed stream](https://github.com/ballerina-platform/ballerina-library/issues/9244)
+- [Abort a passthrough response whose backend body fails part-way, by closing the HTTP/1.1 connection or resetting the HTTP/2 stream, instead of ending the truncated body as if it were complete](https://github.com/ballerina-platform/ballerina-library/issues/9349)
 - [Return an error from `getByteStream(arraySize)` for a non-positive `arraySize`, instead of an endless stream of empty arrays or a failure on the first read](https://github.com/ballerina-platform/ballerina-library/issues/9267)
 
 ## [2.18.1] - 2026-10-16

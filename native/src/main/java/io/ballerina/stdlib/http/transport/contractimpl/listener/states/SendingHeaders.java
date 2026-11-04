@@ -43,6 +43,7 @@ import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.isLast
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.setupChunkedRequest;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.ILLEGAL_STATE_ERROR;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.checkChunkingCompatibility;
+import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.isFailedBodyEnd;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.notifyIfHeaderWriteFailure;
 
 /**
@@ -104,6 +105,10 @@ public class SendingHeaders implements ListenerState {
             this.setChunkConfig(responseChunkConfig);
         }
         outboundRespStatusFuture = outboundResponseListener.getInboundRequestMsg().getHttpOutboundRespStatusFuture();
+        if (isFailedBodyEnd(httpContent)) {
+            writeResponse(outboundResponseMsg, httpContent, false);
+            return;
+        }
         String httpVersion = outboundResponseListener.getRequestDataHolder().getHttpVersion();
         keepAlive = HttpUtil.hasEventStreamContentType(outboundResponseMsg) || keepAlive;
         if (isLastHttpContent(httpContent)) {

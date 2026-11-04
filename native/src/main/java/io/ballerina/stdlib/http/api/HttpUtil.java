@@ -392,6 +392,25 @@ public class HttpUtil {
         }
     }
 
+    /**
+     * Ends the body written to the given message output stream as failed, so the peer sees it cut short instead of
+     * complete.
+     *
+     * @param messageOutputStream the output stream of the message body
+     * @param cause               why the body could not be completed
+     * @return true if this ended the body, false if it had already ended or failed
+     */
+    public static boolean abortMessageOutputStream(OutputStream messageOutputStream, Throwable cause) {
+        if (messageOutputStream instanceof HttpMessageDataStreamer.ByteBufferOutputStream bodyOutputStream) {
+            return bodyOutputStream.abort(cause);
+        }
+        // Closing ends the body as complete, which hides the failure from the peer
+        log.warn("Cannot abort a message output stream of type {}, so it is closed",
+                 messageOutputStream == null ? null : messageOutputStream.getClass().getName());
+        closeMessageOutputStream(messageOutputStream);
+        return false;
+    }
+
     public static void prepareOutboundResponse(BObject connectionObj, HttpCarbonMessage inboundRequestMsg,
                                                HttpCarbonMessage outboundResponseMsg,
                                                BObject outboundResponseObj) {
