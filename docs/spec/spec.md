@@ -29,6 +29,9 @@ Durations are in seconds and sizes are in bytes unless stated otherwise. Status 
     - [3.2. Configuration](#32-configuration)
     - [3.3. Lifecycle](#33-lifecycle)
     - [3.4. HTTP versions and connections](#34-http-versions-and-connections)
+        - [3.4.1. HTTP versions](#341-http-versions)
+        - [3.4.2. Keep-alive and pipelining](#342-keep-alive-and-pipelining)
+        - [3.4.3. Idle timeout](#343-idle-timeout)
     - [3.5. Request limits](#35-request-limits)
     - [3.6. Default listener](#36-default-listener)
 - [4. Service](#4-service)
@@ -114,6 +117,7 @@ Durations are in seconds and sizes are in bytes unless stated otherwise. Status 
     - [16.3. Client](#163-client)
 - [17. Security considerations](#17-security-considerations)
 - [18. Static code rules](#18-static-code-rules)
+- [References](#references)
 
 ## 1. Overview
 
