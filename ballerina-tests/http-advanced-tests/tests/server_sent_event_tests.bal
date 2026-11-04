@@ -219,8 +219,12 @@ function testSseStreamWhoseSourcePanicsIsFailedAtTheClient() returns error? {
         stream<http:SseEvent, error?> events = check sseClient->/sse/panicking;
         record {|http:SseEvent value;|}? first = check events.next();
         test:assertEquals(first?.value, {data: "first"});
+        decimal startTime = time:monotonicNow();
         record {|http:SseEvent value;|}|error? next = events.next();
+        decimal elapsed = time:monotonicNow() - startTime;
         test:assertTrue(next is error, "The event stream ended as complete although its source panicked");
+        // Well below the client's timeout, so an idle timeout does not pass for the abort
+        test:assertTrue(elapsed < 5d, string `The failure took ${elapsed}s to reach the client`);
     }
 }
 
