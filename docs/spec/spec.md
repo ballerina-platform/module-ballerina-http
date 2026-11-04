@@ -377,7 +377,7 @@ A service contract type is a service object type that includes `ServiceContract`
 | `HTTP_159` | A resource has a `ResourceConfig` annotation.                                                                                     |
 | `HTTP_160` | A resource or parameter has another HTTP annotation.                                                                              |
 
-#### Example
+#### 4.5.1. Example: Implementing a service contract
 
 ```ballerina
 @http:ServiceConfig {basePath: "/albums"}
@@ -404,7 +404,7 @@ The service is attached at `/albums`, the base path of the contract type (rule 1
 2. A `204 No Content` response to an `OPTIONS` request on the service has a `Link` header with the paths of these resources, with the relations `service-desc` and `swagger-ui`.
 3. A user-defined resource with the same accessor and path as a generated resource causes the attach to fail.
 
-#### Example
+#### 4.6.1. Example: Embedded OpenAPI definition
 
 ```ballerina
 @openapi:ServiceInfo {embed: true}
@@ -439,7 +439,7 @@ A resource is a resource method of a service. Its accessor determines the HTTP m
 |------------|-----------------------------------------------------------------------------------|
 | `HTTP_145` | A path parameter or rest parameter has a type that does not satisfy rule 3.       |
 
-#### Example
+#### 5.3.1. Example: Resource paths
 
 ```ballerina
 service /store on new http:Listener(9090) {
@@ -520,7 +520,7 @@ A `HEAD` request is matched like any other method. It is not dispatched to a `ge
 
 > **Note:** Because the search backtracks, a service with `resource function get foo()` and `resource function 'default [string... path]()` dispatches `POST /foo` to the default resource rather than responding with `405 Method Not Allowed`.
 
-#### Example
+#### 6.3.1. Example: Selecting a resource
 
 ```ballerina
 service /store on new http:Listener(9090) {
@@ -591,7 +591,7 @@ The `cors` field of the `ServiceConfig` and `ResourceConfig` annotations is a `C
 6. A preflight request whose path matches an `options` or `default` resource is dispatched to that resource.
 7. A response to a request dispatched to a resource with an enabled configuration, including a preflight response, has a `Vary` header that includes `Origin`, because its CORS headers depend on the `Origin` of the request.
 
-#### Example
+#### 6.6.1. Example: Preflight and actual requests
 
 ```ballerina
 @http:ServiceConfig {
@@ -732,7 +732,7 @@ For example, for a resource `get albums(@http:Header {name: "X-Request-Id"} stri
 8. When `validation` is enabled, the constraints of the declared type are validated. A violation results in a `PayloadValidationError` (`400 Bad Request`).
 9. The `mediaType` field of the `@http:Payload` annotation on a parameter is used for documentation and OpenAPI generation. It is not checked against the request.
 
-#### Example
+#### 7.6.1. Example: Binding a JSON payload
 
 ```ballerina
 service /store on new http:Listener(9090) {
@@ -819,7 +819,7 @@ The library defines a closed record type for each standard status code, e.g. `Ok
 
 `NoContent` has no `mediaType` and no `body` field. A user-defined subtype MAY narrow the types of `headers` and `body`.
 
-#### Example
+#### 8.4.1. Example: Status code responses
 
 ```ballerina
 type AlbumCreated record {|
@@ -861,7 +861,7 @@ service /store on new http:Listener(9090) {
 |------------|-----------------------------------------------------------------------------------------------------------|
 | `HTTP_114` | The argument of `respond()` is not of the type declared by `@http:CallerInfo`.                             |
 
-#### Example
+#### 8.5.1. Example: Responding before processing
 
 The following resource responds before it processes the order:
 
@@ -882,7 +882,7 @@ The response is `202 Accepted`. An error returned by `processOrder` is logged, a
 4. Each event is written as a `: <comment>` line, an `id: <id>` line, an `event: <event>` line, a `retry: <retry>` line, and a `data: <line>` line for each line of `data`, in this order, followed by an empty line. Lines for absent fields are not written.
 5. When the stream returns an error, or an event without any field, the error is logged, an event with `event` set to `error` and `data` set to the message of the error is written, and the response ends.
 
-#### Example
+#### 8.6.1. Example: Streaming events
 
 ```ballerina
 resource function get prices() returns stream<http:SseEvent, error?> {
@@ -984,7 +984,7 @@ Interceptors run common logic on the requests and responses of a service. A requ
 3. The resource path of a request interceptor is relative to the base path of the service. A request interceptor runs for a request only when its resource matches the request, as described in [Resource selection](#63-resource-selection). An interceptor that does not match is skipped.
 4. When no service matches a request, the request is handled by the pipeline of the service attached at `/`, or by the pipeline of the only service of the listener when it has one service. Otherwise, it is handled by `DefaultErrorInterceptor` only.
 
-#### Example
+#### 9.3.1. Example: Request and response interceptors
 
 ```ballerina
 service class ApiKeyInterceptor {
@@ -1049,7 +1049,7 @@ A `RequestContext` is created for each request, and the same context is passed t
 
 > **Note:** Whether `()` returned from an interceptor should continue the pipeline is under discussion in [ballerina-library#6110](https://github.com/ballerina-platform/ballerina-library/issues/6110).
 
-#### Example
+#### 9.5.1. Example: Interceptor pipeline
 
 ![Interceptor pipeline](_resources/interceptor-pipeline.png)
 
@@ -1116,7 +1116,7 @@ An error returned by a resource or an interceptor, or raised by the library whil
 
 4. A user-defined response error interceptor receives, as its `Response` parameter, a response with the status code of the error and the message of the error as a text payload.
 
-#### Example
+#### 10.2.1. Example: Error payload
 
 ```ballerina
 import ballerina/http;
@@ -1171,7 +1171,7 @@ A `Client` sends requests to one remote endpoint, given by a URL, and binds the 
 | Field             | Type                    | Default             | Meaning                                                                                                                                                                       |
 |-------------------|-------------------------|---------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `httpVersion`     | `HttpVersion`           | `HTTP_2_0`          | HTTP version of the requests. With `HTTP_2_0`, the client negotiates HTTP/2 with ALPN over TLS, and over cleartext uses an `Upgrade: h2c` request unless `http2PriorKnowledge` is `true`. |
-| `http1Settings`   | `ClientHttp1Settings`   | `{}`                | `keepAlive` (`KEEPALIVE_AUTO`) and `chunking` (`CHUNKING_AUTO`) of HTTP/1.x requests. Its `proxy` field is deprecated. See [Proxy](#118-proxy).                              |
+| `http1Settings`   | `ClientHttp1Settings`   | `{}`                | `keepAlive` (`KEEPALIVE_AUTO`) and `chunking` (`CHUNKING_AUTO`) of HTTP/1.x requests. Its `proxy` field is deprecated since 2.18.0; use the `proxy` field of the configuration. See [Proxy](#118-proxy).                              |
 | `http2Settings`   | `ClientHttp2Settings`   | `{}`                | `http2PriorKnowledge` (`false`) and `http2InitialWindowSize` (`65535`).                                                                                                      |
 | `timeout`         | `decimal`               | `30`                | Idle timeout. When it elapses, the request fails with an `IdleTimeoutError`.                                                                                                 |
 | `forwarded`       | `string`                | `"disable"`         | Handling of the `Forwarded` header when forwarding requests: `"enable"`, `"transition"` or `"disable"`, compared case-insensitively. Any other value is an initialization error. |
@@ -1313,7 +1313,7 @@ For example, with `followRedirects: {enabled: true, maxCount: 3}`, a `POST` requ
 6. `head()` returns a `Response` without data binding.
 7. `submit()` sends a request and returns an `HttpFuture`, whose response is obtained with `getResponse()`. On HTTP/2 connections, `hasPromise()`, `getNextPromise()`, `getPromisedResponse()` and `rejectPromise()` handle the push promises of the response.
 
-#### Example
+#### 11.10.1. Example: Resource method calls
 
 ```ballerina
 http:Client storeClient = check new ("localhost:9090/store");
@@ -1379,7 +1379,7 @@ http:Response response = check storeClient->/albums/a9;
 6. A failure to bind the headers, the media type or the body returns a `StatusCodeResponseDataBindingError`, and a failure to validate them returns a validation error. Each of these errors is a subtype of both `StatusCodeResponseBindingError` and the corresponding binding or validation error type of [Client errors](#1113-client-errors), and its detail has the field `fromDefaultStatusCodeMapping`, which is `true` when the response was bound by the default status.
 7. `head()`, `getResponse()` and `getPromisedResponse()` return a `Response`, as for `Client`, and are not bound to status code responses.
 
-#### Example
+#### 11.12.1. Example: Binding status code responses
 
 ```ballerina
 type AlbumFound record {|
@@ -1438,7 +1438,7 @@ Binding and validation errors are also of the types `PayloadBindingError`, `Payl
 7. The payload of the request is read into memory before the first attempt so that it can be resent. This includes streamed payloads.
 8. The client `timeout` applies to each attempt separately.
 
-#### Example
+#### 12.1.1. Example: Wait times
 
 The following client sends a request at most five times, retrying on network-level failures and on `503 Service Unavailable` responses. The wait times between the attempts are 3, 6, 12 and 20 seconds, where the last one is capped by `maxWaitInterval`.
 
@@ -1467,7 +1467,7 @@ http:Client clientEP = check new ("http://localhost:9090",
    - **Half-open**: The request is sent. When the window has at least `requestVolumeThreshold` requests, the circuit becomes closed if the last completed request succeeded, and open otherwise. The number of requests sent while the circuit is half-open is not limited.
 4. `circuitBreakerForceOpen()` opens the circuit, `circuitBreakerForceClose()` closes it and discards the buckets, and `getCircuitBreakerCurrentState()` returns the state of the circuit as of the last request. These methods panic with a `ClientError` when the client has no circuit breaker.
 
-#### Example
+#### 12.2.1. Example: Opening and closing the circuit
 
 ```ballerina
 http:Client storeClient = check new ("localhost:9090/store",
@@ -1498,7 +1498,7 @@ Suppose the first four calls receive `503`, `200`, `503` and `503` responses. Wh
 4. `submit()`, `getResponse()`, `getNextPromise()` and `getPromisedResponse()` return an `UnsupportedActionError`, `hasPromise()` returns `false`, and `execute()` with a custom method returns an `UnsupportedActionError`.
 5. When `targets` is empty, the initialization returns a `ClientError`.
 
-#### Example
+#### 12.3.1. Example: Round robin with failover
 
 ```ballerina
 http:LoadBalanceClient storeClient = check new ({
@@ -1526,7 +1526,7 @@ Successive calls are sent to `a`, `b` and `c` in turn. If the call sent to `b` f
 5. `hasPromise()` returns `false`, and `getNextPromise()` and `getPromisedResponse()` return an `UnsupportedActionError`.
 6. When `targets` is empty, the initialization returns a `ClientError`.
 
-#### Example
+#### 12.4.1. Example: Failing over to a backup
 
 ```ballerina
 http:FailoverClient storeClient = check new ({
@@ -1567,7 +1567,7 @@ Trace logs record the HTTP messages sent and received by listeners and clients. 
 |-----------|---------------|---------|------------------------------------------------------------------------------------------------------------|
 | `console` | `boolean`     | `false` | Whether trace logs are written to the console.                                                             |
 | `file`    | `LogFileConfig`  | absent  | File destination, with a `path` and an optional `rotation`. See [Log rotation](#143-log-rotation).         |
-| `path`    | `string`      | absent  | Deprecated. File path of the trace logs. Ignored, with a warning, when `file` is set.                     |
+| `path`    | `string`      | absent  | Deprecated since 2.16.0. Use `file`. File path of the trace logs. Ignored, with a warning, when `file` is set.                     |
 | `host`    | `string`      | absent  | Host of a socket destination. When `host` and `port` are set, trace logs are sent to it in JSON format.    |
 | `port`    | `int`         | absent  | Port of a socket destination. It MUST NOT be `0`.                                                          |
 
@@ -1592,7 +1592,7 @@ Access logs record one entry for each request handled by a listener. They are di
 | `format`     | `string`      | `"flat"`           | `"flat"` or `"json"`. Any other value is treated as `"flat"`, with a warning.                                         |
 | `attributes` | `string[]`    | absent             | Attributes of each entry. When absent, the default attributes are used. `[]` disables access logs.                   |
 | `file`       | `LogFileConfig`  | absent             | File destination, with a `path` and an optional `rotation`. See [Log rotation](#143-log-rotation).                    |
-| `path`       | `string`      | absent             | Deprecated. File path of the access logs. Ignored, with a warning, when `file` is set.                               |
+| `path`       | `string`      | absent             | Deprecated since 2.16.0. Use `file`. File path of the access logs. Ignored, with a warning, when `file` is set.                               |
 
 The following attributes are supported. The default attributes are `ip`, `date_time`, `request`, `status`, `response_body_size`, `http_referrer` and `http_user_agent`.
 
@@ -1689,7 +1689,7 @@ The `auth` field of the `ServiceConfig` and `ResourceConfig` annotations secures
 9. A resource with `auth` of type `Scopes` in a service without `auth` has no configurations, so its requests are not authenticated.
 10. An empty `auth` array, `auth: []`, authenticates no request, so every request is rejected with a `ListenerAuthnError` (`401 Unauthorized`).
 
-#### Example
+#### 15.1.1. Example: JWT authentication with scopes
 
 ```ballerina
 listener http:Listener secureListener = new (9443,
@@ -1741,7 +1741,7 @@ The following handlers authenticate and authorize requests from the code of a re
 2. The Basic auth handlers return `Unauthorized` for a scheme other than `Basic`.
 3. Scopes are matched as in rule 5 of [Declarative listener authentication](#151-declarative-listener-authentication).
 
-#### Example
+#### 15.2.1. Example: Authenticating in a resource
 
 ```ballerina
 final http:ListenerJwtAuthHandler jwtHandler = new ({
@@ -1782,7 +1782,7 @@ The `auth` field of a client configuration is one of the following. The correspo
 2. When the header cannot be created, e.g. because an access token cannot be obtained, the call returns a `ClientAuthError` and the request is not sent.
 3. The caching and refreshing of tokens is provided by the `ballerina/jwt` and `ballerina/oauth2` modules. A `401 Unauthorized` response does not cause a token to be refreshed.
 
-#### Example
+#### 15.3.1. Example: OAuth2 client credentials
 
 ```ballerina
 configurable string clientSecret = ?;
@@ -1841,7 +1841,7 @@ A key store or trust store with a blank path or password is an initialization er
 2. When `ciphers` is not set, the defaults of the Java runtime are used.
 3. A client with an `https://` URL and no `secureSocket` uses the defaults of the Java runtime.
 
-#### Example
+#### 16.3.1. Example: Mutual TLS
 
 The following listener accepts TLS 1.3 connections only from clients that present a certificate trusted by `ca.crt`, and the client presents such a certificate:
 
