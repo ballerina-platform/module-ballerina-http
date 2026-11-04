@@ -99,24 +99,16 @@ public class HttpService implements Service {
     private byte[] introspectionPayload = new byte[0];
     private Boolean constraintValidation = true;
     private Boolean laxDataBinding = false;
-    private boolean serviceAuthEnabled;
+    private boolean serviceAuthEnabled = false;
 
     protected HttpService(BObject service, String basePath) {
         this.balService = service;
         this.basePath = basePath;
-        this.serviceAuthEnabled = hasServiceAuth(service);
     }
 
     // Added due to WebSub requirement
     protected HttpService(BObject service) {
         this.balService = service;
-        this.serviceAuthEnabled = hasServiceAuth(service);
-    }
-
-    // The declarative auth reads `auth` from the annotation of the type of the service itself, so use the same source
-    private static boolean hasServiceAuth(BObject service) {
-        BMap serviceConfig = getHttpServiceConfigAnnotation(service);
-        return checkConfigAnnotationAvailability(serviceConfig) && serviceConfig.get(AUTH_FIELD) != null;
     }
 
     public boolean isKeepAlive() {
@@ -254,6 +246,7 @@ public class HttpService implements Service {
         BMap serviceConfig = getHttpServiceConfigAnnotation(service);
         httpService.populateIntrospectionPayload();
         httpService.populateServiceConfig(serviceConfig);
+        httpService.setServiceAuthEnabled(serviceConfig);
         return httpService;
     }
 
@@ -595,6 +588,12 @@ public class HttpService implements Service {
 
     protected void setLaxDataBinding(boolean laxDataBinding) {
         this.laxDataBinding = laxDataBinding;
+    }
+
+    // The declarative auth reads `auth` from the annotation of the type of the service itself, so use the same source
+    protected void setServiceAuthEnabled(BMap serviceConfig) {
+        this.serviceAuthEnabled = checkConfigAnnotationAvailability(serviceConfig) &&
+                serviceConfig.get(AUTH_FIELD) != null;
     }
 
     public boolean isServiceAuthEnabled() {

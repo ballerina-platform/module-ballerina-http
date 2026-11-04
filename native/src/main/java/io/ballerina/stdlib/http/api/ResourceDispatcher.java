@@ -122,8 +122,8 @@ public class ResourceDispatcher {
             return;
         }
         if (runtime == null) {
-            throw HttpUtil.createHttpError("unable to authenticate the request to the OpenAPI resource",
-                    INTERNAL_RESOURCE_DISPATCHING_SERVER_ERROR);
+            throw HttpUtil.createHttpStatusCodeError(INTERNAL_RESOURCE_DISPATCHING_SERVER_ERROR,
+                    "unable to authenticate the request to the OpenAPI resource");
         }
         // The auth handlers can make remote calls (LDAP, OAuth2 introspection), so they run off the I/O thread
         Thread.startVirtualThread(() -> {
@@ -133,12 +133,15 @@ public class ResourceDispatcher {
                 runtime.callMethod(ValueCreator.createObjectValue(ModuleUtils.getHttpPackage(),
                                 HttpConstants.OAS_RESOURCE_AUTHENTICATOR_CLASS_NAME),
                         HttpConstants.OAS_RESOURCE_AUTHENTICATE_METHOD_NAME, metadata, httpService.getBalService());
-                sendOasResource(cMsg, resource);
             } catch (BError error) {
                 new HttpCallableUnitCallback(cMsg, runtime).invokeErrorInterceptors(error, true);
-            } catch (Exception e) {
-                HttpUtil.handleFailure(cMsg, HttpUtil.createError(e));
+                return;
+            } catch (Throwable throwable) {
+                new HttpCallableUnitCallback(cMsg, runtime).invokeErrorInterceptors(
+                        HttpUtil.createHttpError(throwable), true);
+                return;
             }
+            sendOasResource(cMsg, resource);
         });
     }
 

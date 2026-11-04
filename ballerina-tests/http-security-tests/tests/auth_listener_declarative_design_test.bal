@@ -109,6 +109,7 @@ isolated function testBasicAuthFileUserStoreServiceAuthnFailure() {
 }
 
 // Basic auth (file user store) secured service - Generated OpenAPI and Swagger UI resources
+// The OAS resources come from `openApiDefinition`, since these tests do not depend on `ballerina/openapi` for `embed`
 
 @http:ServiceConfig {
     auth: [

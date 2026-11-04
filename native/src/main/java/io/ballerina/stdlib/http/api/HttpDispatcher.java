@@ -261,7 +261,8 @@ public class HttpDispatcher {
         }
 
         // Find the Resource
-        return (InterceptorResource) ResourceDispatcher.findResource(service, inboundMessage);
+        return (InterceptorResource) ResourceDispatcher.findResource(service, inboundMessage,
+                servicesRegistry.getRuntime());
     }
 
     public static Object[] getRemoteSignatureParameters(InterceptorService service, BObject response, BObject caller,
