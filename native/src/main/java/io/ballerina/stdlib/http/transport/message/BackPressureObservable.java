@@ -18,6 +18,8 @@
 
 package io.ballerina.stdlib.http.transport.message;
 
+import java.util.function.BooleanSupplier;
+
 /**
  * Allows listeners to register and get notified.
  */
@@ -35,14 +37,40 @@ public interface BackPressureObservable {
     void removeListener();
 
     /**
-     * Notify to start throttling.
+     * Notify to start throttling if the stream the message is written to is not writable.
+     *
+     * @param streamWritable reports whether the stream is currently writable
      */
-    void notifyUnWritable();
+    void notifyUnWritableIfStreamUnwritable(BooleanSupplier streamWritable);
 
     /**
      * Notify to release throttling.
      */
     void notifyWritable();
+
+    /**
+     * Release throttling if the last notification paused the writer. Used once the writer can no
+     * longer report writability, so a pause it started is not left in place.
+     */
+    void notifyWritableIfUnWritable();
+
+    /**
+     * Record a writability change of the stream under the lock that
+     * {@link #notifyUnWritableIfStreamUnwritable(BooleanSupplier)} checks it with, and release throttling it started
+     * when the stream becomes writable.
+     *
+     * @param stream   the stream whose writability changed
+     * @param writable whether the stream is now writable
+     */
+    void streamWritabilityChanged(StreamWritability stream, boolean writable);
+
+    /**
+     * Mark a finished stream writable and release throttling it started, as it never reports writability again.
+     * Marking it writable stops a chunk still on its way from starting throttling again with nothing to release it.
+     *
+     * @param stream the stream that finished
+     */
+    void streamFinished(StreamWritability stream);
 
     /**
      * Get the registered listener.

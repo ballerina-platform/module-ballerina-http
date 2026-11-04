@@ -1111,12 +1111,8 @@ public class Util {
                                                    BackPressureHandler backpressureHandler) {
         if (backpressureHandler != null) {
             Channel channel = context.channel();
-            if (!channel.isWritable() && channel.isActive()) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("HTTP/1.1 channel is not writable in thread {} ", Thread.currentThread().getName());
-                }
-                backpressureHandler.getBackPressureObservable().notifyUnWritable();
-            }
+            backpressureHandler.getBackPressureObservable().notifyUnWritableIfStreamUnwritable(
+                    () -> channel.isWritable() || !channel.isActive());
         }
     }
 
@@ -1241,6 +1237,32 @@ public class Util {
         String[] protocols = {HTTP_1_1};
         sslParams.setApplicationProtocols(protocols);
         sslEngine.setSSLParameters(sslParams);
+    }
+
+    /**
+     * Raises the connection-level receive window to the given size. SETTINGS_INITIAL_WINDOW_SIZE only applies to
+     * streams, and the connection window stays at 65,535 bytes until it is raised with a WINDOW_UPDATE on stream 0,
+     * which must not be sent before the connection preface. Must run on the channel's event loop.
+     * <p>
+     * The connection is always refilled to the new size. Netty sends the WINDOW_UPDATE straight away only when the
+     * current window is at most half of it, so for a size below about 128 KB the window grows once that much has
+     * been received.
+     *
+     * @param connection the HTTP/2 connection
+     * @param windowSize the receive window to give the whole connection
+     * @return true if a WINDOW_UPDATE was written and needs to be flushed
+     * @throws Http2Exception if the window cannot be updated
+     */
+    public static boolean expandConnectionWindow(Http2Connection connection, int windowSize) throws Http2Exception {
+        Http2Stream connectionStream = connection.connectionStream();
+        Http2LocalFlowController localFlowController = connection.local().flowController();
+        int delta = windowSize - localFlowController.initialWindowSize(connectionStream);
+        if (delta <= 0) {
+            return false;
+        }
+        int windowBefore = localFlowController.windowSize(connectionStream);
+        localFlowController.incrementWindowSize(connectionStream, delta);
+        return localFlowController.windowSize(connectionStream) != windowBefore;
     }
 
     // True if the stream is quiet because of HTTP/2 flow control - our inbound window closed on an unconsumed
