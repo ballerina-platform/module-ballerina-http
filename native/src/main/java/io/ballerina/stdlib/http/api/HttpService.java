@@ -79,6 +79,7 @@ public class HttpService implements Service {
     private static final BString TREAT_NILABLE_AS_OPTIONAL = fromString("treatNilableAsOptional");
     private static final BString DATA_VALIDATION = fromString("validation");
     private static final BString LAX_DATA_BINDING = fromString("laxDataBinding");
+    private static final BString AUTH_FIELD = fromString("auth");
 
     private BObject balService;
     private List<HttpResource> resources;
@@ -98,6 +99,7 @@ public class HttpService implements Service {
     private byte[] introspectionPayload = new byte[0];
     private Boolean constraintValidation = true;
     private Boolean laxDataBinding = false;
+    private boolean serviceAuthEnabled = false;
 
     protected HttpService(BObject service, String basePath) {
         this.balService = service;
@@ -244,6 +246,7 @@ public class HttpService implements Service {
         BMap serviceConfig = getHttpServiceConfigAnnotation(service);
         httpService.populateIntrospectionPayload();
         httpService.populateServiceConfig(serviceConfig);
+        httpService.setServiceAuthEnabled(serviceConfig);
         return httpService;
     }
 
@@ -585,5 +588,15 @@ public class HttpService implements Service {
 
     protected void setLaxDataBinding(boolean laxDataBinding) {
         this.laxDataBinding = laxDataBinding;
+    }
+
+    // The declarative auth reads `auth` from the annotation of the type of the service itself, so use the same source
+    protected void setServiceAuthEnabled(BMap serviceConfig) {
+        this.serviceAuthEnabled = checkConfigAnnotationAvailability(serviceConfig) &&
+                serviceConfig.get(AUTH_FIELD) != null;
+    }
+
+    public boolean isServiceAuthEnabled() {
+        return serviceAuthEnabled;
     }
 }

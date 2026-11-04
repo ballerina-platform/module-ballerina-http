@@ -26,6 +26,7 @@ import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.openapi.service.mapper.ServiceToOpenAPIMapper;
+import io.ballerina.openapi.service.mapper.diagnostic.OpenAPIMapperDiagnostic;
 import io.ballerina.openapi.service.mapper.model.OASGenerationMetaInfo;
 import io.ballerina.openapi.service.mapper.model.OASResult;
 import io.ballerina.openapi.service.mapper.model.ServiceDeclaration;
@@ -33,7 +34,9 @@ import io.ballerina.openapi.service.mapper.model.ServiceNode;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.plugins.AnalysisTask;
 import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
+import io.ballerina.stdlib.http.compiler.HttpDiagnostic;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
+import io.ballerina.tools.diagnostics.Location;
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.oas.models.OpenAPI;
 
@@ -42,10 +45,12 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import static io.ballerina.openapi.service.mapper.utils.MapperCommonUtils.normalizeTitle;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.diagnosticContainsErrors;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.getServiceDeclarationNode;
+import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.updateDiagnostic;
 
 /**
  * This class generates the OpenAPI definition resource for the service declaration node.
@@ -90,13 +95,21 @@ public class ServiceOasGenerator implements AnalysisTask<SyntaxNodeAnalysisConte
 
 
         ServiceNode serviceNode = new ServiceDeclaration(serviceDeclarationNode, context.semanticModel());
+        Location annotationLocation = serviceInfoAnnotation.get().location();
         Optional<String> openApi = generateOpenApi(fileName, context.currentPackage().project(),
-                context.semanticModel(), serviceNode);
+                context.semanticModel(), serviceNode,
+                reason -> updateDiagnostic(context, annotationLocation, HttpDiagnostic.HTTP_WARNING_104,
+                        escapeMessageFormat(reason)));
         if (openApi.isEmpty()) {
             return;
         }
 
         writeOpenApiAsTargetResource(context.currentPackage().project(), fileName, openApi.get());
+    }
+
+    // The diagnostic message is passed through `MessageFormat`, where quotes and braces are special
+    private static String escapeMessageFormat(String text) {
+        return text.replace("'", "''").replace("{", "'{'").replace("}", "'}'");
     }
 
     protected static String getFileName(int hashCode) {
@@ -148,19 +161,31 @@ public class ServiceOasGenerator implements AnalysisTask<SyntaxNodeAnalysisConte
 
     protected Optional<String> generateOpenApi(String fileName, Project project, SemanticModel semanticModel,
                                                ServiceNode serviceNode) {
+        return generateOpenApi(fileName, project, semanticModel, serviceNode, reason -> { });
+    }
+
+    protected Optional<String> generateOpenApi(String fileName, Project project, SemanticModel semanticModel,
+                                               ServiceNode serviceNode, Consumer<String> onFailure) {
         OASGenerationMetaInfo.OASGenerationMetaInfoBuilder builder = new
                 OASGenerationMetaInfo.OASGenerationMetaInfoBuilder();
+        // The definition is served by the running listener, so it stays useful without the `servers` section
         builder.setServiceNode(serviceNode)
                 .setSemanticModel(semanticModel)
                 .setOpenApiFileName(fileName)
                 .setBallerinaFilePath(null)
+                .setServerInfoOptional(true)
                 .setProject(project);
         OASResult oasResult = ServiceToOpenAPIMapper.generateOAS(builder.build());
+        Optional<OpenAPIMapperDiagnostic> error = oasResult.getDiagnostics().stream()
+                .filter(diagnostic -> diagnostic.getDiagnosticSeverity().equals(DiagnosticSeverity.ERROR))
+                .findFirst();
+        if (error.isPresent()) {
+            onFailure.accept(error.get().getMessage());
+            return Optional.empty();
+        }
         Optional<OpenAPI> openApiOpt = oasResult.getOpenAPI();
-        if (oasResult.getDiagnostics().stream().anyMatch(
-                diagnostic -> diagnostic.getDiagnosticSeverity().equals(DiagnosticSeverity.ERROR))
-                || openApiOpt.isEmpty()) {
-            // Add warning diagnostic
+        if (openApiOpt.isEmpty()) {
+            onFailure.accept("no definition was generated for the service");
             return Optional.empty();
         }
         OpenAPI openApi = openApiOpt.get();
