@@ -32,13 +32,17 @@ import io.netty.handler.codec.http.HttpVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 /**
  * A Message processor which echos the incoming message.
  */
 public class EchoStreamingMessageListener implements HttpConnectorListener {
     private static final Logger LOG = LoggerFactory.getLogger(EchoStreamingMessageListener.class);
 
-    private Exception receivedException;
+    private volatile Exception receivedException;
+    private final CountDownLatch exceptionReceived = new CountDownLatch(1);
 
     @Override
     public void onMessage(HttpCarbonMessage httpRequest) {
@@ -59,6 +63,7 @@ public class EchoStreamingMessageListener implements HttpConnectorListener {
             } catch (Exception e) {
                 LOG.error("Error occurred during message notification: " + e.getMessage());
                 receivedException = e;
+                exceptionReceived.countDown();
             }
         });
     }
@@ -69,6 +74,11 @@ public class EchoStreamingMessageListener implements HttpConnectorListener {
     }
 
     public Exception getReceivedException() {
+        return receivedException;
+    }
+
+    public Exception awaitReceivedException(long timeout, TimeUnit unit) throws InterruptedException {
+        exceptionReceived.await(timeout, unit);
         return receivedException;
     }
 }

@@ -331,8 +331,7 @@ public class Request {
         if result is error {
             return result;
         } else {
-            externPopulateInputStream(result);
-            var byteStream = result.getByteStream(arraySize);
+            var byteStream = getEntityByteStream(result, arraySize);
             if byteStream is mime:Error {
                 string message = "Error occurred while retrieving the byte stream from the request";
                 return error GenericClientError(message, byteStream);

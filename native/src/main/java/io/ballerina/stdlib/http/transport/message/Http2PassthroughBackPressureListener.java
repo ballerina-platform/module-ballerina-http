@@ -21,7 +21,7 @@ package io.ballerina.stdlib.http.transport.message;
 /**
  * HTTP/2 back pressure listener for passthrough scenario.
  */
-public class Http2PassthroughBackPressureListener implements BackPressureListener {
+public class Http2PassthroughBackPressureListener extends InboundSuspendingBackPressureListener {
 
     private Http2InboundContentListener inboundListenerHook;
 
@@ -29,15 +29,10 @@ public class Http2PassthroughBackPressureListener implements BackPressureListene
         this.inboundListenerHook = inboundListenerHook;
     }
 
+    // Stopping consumption eventually stops the window updates to the peer, and consuming the outstanding bytes
+    // resumes them.
     @Override
-    public void onUnWritable() {
-        //Stop consuming bytes which will eventually stop the window updates to the peer
-        inboundListenerHook.stopByteConsumption();
-    }
-
-    @Override
-    public void onWritable() {
-        //Immediately consume outstanding unconsumed bytes to resume window updates to the peer
-        inboundListenerHook.resumeByteConsumption();
+    protected void applySuspension() {
+        inboundListenerHook.applyByteConsumption(this::isSuspended);
     }
 }

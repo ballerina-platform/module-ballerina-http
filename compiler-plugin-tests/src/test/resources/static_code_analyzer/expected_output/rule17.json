@@ -12,7 +12,7 @@
     "rule": {
       "id": "ballerina/http:17",
       "numericId": 17,
-      "description": "Avoid disclosing the server product version in the server response header",
+      "description": "The server response header discloses a product version.",
       "ruleKind": "VULNERABILITY"
     },
     "source": "BUILT_IN",
@@ -32,7 +32,7 @@
     "rule": {
       "id": "ballerina/http:17",
       "numericId": 17,
-      "description": "Avoid disclosing the server product version in the server response header",
+      "description": "The server response header discloses a product version.",
       "ruleKind": "VULNERABILITY"
     },
     "source": "BUILT_IN",

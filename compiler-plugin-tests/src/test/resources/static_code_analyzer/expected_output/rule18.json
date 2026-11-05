@@ -12,7 +12,7 @@
     "rule": {
       "id": "ballerina/http:18",
       "numericId": 18,
-      "description": "Avoid serving authenticated responses from a cache without revalidation",
+      "description": "A cached response that requires authentication may be served stale without revalidation.",
       "ruleKind": "VULNERABILITY"
     },
     "source": "BUILT_IN",

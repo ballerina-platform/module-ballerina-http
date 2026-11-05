@@ -40,10 +40,24 @@ public class SenderReqRespStateManager {
 
     public final Channel nettyTargetChannel;
     public final int socketTimeout;
+    // Kept here rather than on the request, whose I/O error is cleared when the request is sent again
+    private boolean requestBodyIncomplete;
 
     public SenderReqRespStateManager(Channel nettyTargetChannel, int socketTimeout) {
         this.nettyTargetChannel = nettyTargetChannel;
         this.socketTimeout = socketTimeout;
+    }
+
+    /**
+     * Records that the response started before the request was fully written, so the connection is left in the
+     * middle of the request and cannot be reused.
+     */
+    public void markRequestBodyIncomplete() {
+        requestBodyIncomplete = true;
+    }
+
+    public boolean isRequestBodyIncomplete() {
+        return requestBodyIncomplete;
     }
 
     public void writeOutboundRequestHeaders(HttpCarbonMessage httpOutboundRequest) {

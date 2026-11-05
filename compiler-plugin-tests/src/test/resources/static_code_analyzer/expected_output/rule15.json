@@ -12,7 +12,7 @@
     "rule": {
       "id": "ballerina/http:15",
       "numericId": 15,
-      "description": "Avoid accepting request bodies of unlimited size",
+      "description": "A listener accepts request bodies of unlimited size.",
       "ruleKind": "VULNERABILITY"
     },
     "source": "BUILT_IN",
@@ -32,7 +32,7 @@
     "rule": {
       "id": "ballerina/http:15",
       "numericId": 15,
-      "description": "Avoid accepting request bodies of unlimited size",
+      "description": "A listener accepts request bodies of unlimited size.",
       "ruleKind": "VULNERABILITY"
     },
     "source": "BUILT_IN",

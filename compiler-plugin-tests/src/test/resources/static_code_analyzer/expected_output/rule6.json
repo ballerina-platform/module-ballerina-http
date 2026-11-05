@@ -12,7 +12,7 @@
     "rule": {
       "id": "ballerina/http:6",
       "numericId": 6,
-      "description": "Avoid disabling TLS certificate or host name validation",
+      "description": "A client secure socket disables certificate or host name validation.",
       "ruleKind": "VULNERABILITY"
     },
     "source": "BUILT_IN",
@@ -32,7 +32,7 @@
     "rule": {
       "id": "ballerina/http:6",
       "numericId": 6,
-      "description": "Avoid disabling TLS certificate or host name validation",
+      "description": "A client secure socket disables certificate or host name validation.",
       "ruleKind": "VULNERABILITY"
     },
     "source": "BUILT_IN",
@@ -52,7 +52,7 @@
     "rule": {
       "id": "ballerina/http:6",
       "numericId": 6,
-      "description": "Avoid disabling TLS certificate or host name validation",
+      "description": "A client secure socket disables certificate or host name validation.",
       "ruleKind": "VULNERABILITY"
     },
     "source": "BUILT_IN",
@@ -72,7 +72,7 @@
     "rule": {
       "id": "ballerina/http:6",
       "numericId": 6,
-      "description": "Avoid disabling TLS certificate or host name validation",
+      "description": "A client secure socket disables certificate or host name validation.",
       "ruleKind": "VULNERABILITY"
     },
     "source": "BUILT_IN",

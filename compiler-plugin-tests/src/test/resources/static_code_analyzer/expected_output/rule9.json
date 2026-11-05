@@ -12,7 +12,7 @@
     "rule": {
       "id": "ballerina/http:9",
       "numericId": 9,
-      "description": "Avoid creating cookies without the secure and httpOnly flags",
+      "description": "A cookie is created without both the secure and httpOnly flags set.",
       "ruleKind": "VULNERABILITY"
     },
     "source": "BUILT_IN",
@@ -32,7 +32,7 @@
     "rule": {
       "id": "ballerina/http:9",
       "numericId": 9,
-      "description": "Avoid creating cookies without the secure and httpOnly flags",
+      "description": "A cookie is created without both the secure and httpOnly flags set.",
       "ruleKind": "VULNERABILITY"
     },
     "source": "BUILT_IN",
@@ -52,7 +52,7 @@
     "rule": {
       "id": "ballerina/http:9",
       "numericId": 9,
-      "description": "Avoid creating cookies without the secure and httpOnly flags",
+      "description": "A cookie is created without both the secure and httpOnly flags set.",
       "ruleKind": "VULNERABILITY"
     },
     "source": "BUILT_IN",
@@ -72,7 +72,7 @@
     "rule": {
       "id": "ballerina/http:9",
       "numericId": 9,
-      "description": "Avoid creating cookies without the secure and httpOnly flags",
+      "description": "A cookie is created without both the secure and httpOnly flags set.",
       "ruleKind": "VULNERABILITY"
     },
     "source": "BUILT_IN",
@@ -92,7 +92,7 @@
     "rule": {
       "id": "ballerina/http:9",
       "numericId": 9,
-      "description": "Avoid creating cookies without the secure and httpOnly flags",
+      "description": "A cookie is created without both the secure and httpOnly flags set.",
       "ruleKind": "VULNERABILITY"
     },
     "source": "BUILT_IN",

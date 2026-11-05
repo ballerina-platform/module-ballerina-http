@@ -27,41 +27,43 @@ import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.RuleFactory.c
  * Represents static code rules specific to the Ballerina Http package.
  */
 public enum HttpRule {
-    AVOID_DEFAULT_RESOURCE_ACCESSOR(createRule(1, "Avoid allowing default resource accessor", VULNERABILITY)),
-    AVOID_PERMISSIVE_CORS(createRule(2, "Avoid permissive Cross-Origin Resource Sharing", VULNERABILITY)),
-    AVOID_TRAVERSING_ATTACKS(createRule(3, "Server-side requests should not be vulnerable to traversing attacks",
+    AVOID_DEFAULT_RESOURCE_ACCESSOR(createRule(1, "A resource is declared with the `default` accessor, so it " +
+            "responds to every HTTP method.", VULNERABILITY)),
+    AVOID_PERMISSIVE_CORS(createRule(2, "A Cross-Origin Resource Sharing configuration accepts requests from " +
+            "any origin.", VULNERABILITY)),
+    AVOID_TRAVERSING_ATTACKS(createRule(3, "A server-side request is sent to a URL derived from user input.",
             VULNERABILITY)),
-    AVOID_UNSECURE_REDIRECTIONS(createRule(4, "HTTP request redirections should not be open to forging attacks",
+    AVOID_UNSECURE_REDIRECTIONS(createRule(4, "A redirect target is derived from user input, allowing " +
+            "redirection to an arbitrary site.", VULNERABILITY)),
+    AVOID_CREDENTIALED_WILDCARD_CORS(createRule(5, "A Cross-Origin Resource Sharing configuration allows " +
+            "credentials while accepting any origin.", VULNERABILITY)),
+    AVOID_DISABLED_TLS_VALIDATION(createRule(6, "A client secure socket disables certificate or host name " +
+            "validation.", VULNERABILITY)),
+    AVOID_WEAK_TLS_PROTOCOLS(createRule(7, "A secure socket enables a weak TLS protocol version.", VULNERABILITY)),
+    AVOID_FORWARDING_CREDENTIALS_ON_REDIRECT(createRule(8, "A client forwards authorization headers when " +
+            "following redirects.", VULNERABILITY)),
+    ENSURE_SECURE_COOKIE_CONFIGURATION(createRule(9, "A cookie is created without both the secure and httpOnly " +
+            "flags set.", VULNERABILITY)),
+    AVOID_DISABLED_AUTH_PROVIDER_TLS(createRule(10, "An authentication provider client disables TLS " +
+            "certificate validation.", VULNERABILITY)),
+    ENSURE_JWT_VERIFICATION(createRule(11, "A JSON Web Token validator omits signature, issuer or audience " +
+            "verification.", VULNERABILITY)),
+    ENSURE_AUTHORIZATION_SCOPES(createRule(12, "A listener authentication configuration authenticates callers " +
+            "without requiring any authorization scopes.", VULNERABILITY)),
+    AVOID_AUTHENTICATION_OVER_CLEARTEXT(createRule(13, "A service accepts credentials over a listener that has " +
+            "no TLS configuration.", VULNERABILITY)),
+    AVOID_UNSECURE_CALLER_REDIRECTIONS(createRule(14, "A caller redirect target is derived from user input, " +
+            "allowing redirection to an arbitrary site.", VULNERABILITY)),
+    AVOID_UNLIMITED_REQUEST_BODY_SIZE(createRule(15, "A listener accepts request bodies of unlimited size.",
             VULNERABILITY)),
-    AVOID_CREDENTIALED_WILDCARD_CORS(createRule(5,
-            "Avoid allowing credentials with a wildcard Cross-Origin Resource Sharing origin", VULNERABILITY)),
-    AVOID_DISABLED_TLS_VALIDATION(createRule(6, "Avoid disabling TLS certificate or host name validation",
+    AVOID_CACHING_AUTHENTICATED_RESPONSES(createRule(16, "A response that requires authentication may be stored " +
+            "by a shared cache.", VULNERABILITY)),
+    AVOID_SERVER_VERSION_DISCLOSURE(createRule(17, "The server response header discloses a product version.",
             VULNERABILITY)),
-    AVOID_WEAK_TLS_PROTOCOLS(createRule(7, "Avoid using weak TLS protocol versions", VULNERABILITY)),
-    AVOID_FORWARDING_CREDENTIALS_ON_REDIRECT(createRule(8,
-            "Avoid forwarding authorization headers across redirects", VULNERABILITY)),
-    ENSURE_SECURE_COOKIE_CONFIGURATION(createRule(9, "Avoid creating cookies without the secure and httpOnly flags",
-            VULNERABILITY)),
-    AVOID_DISABLED_AUTH_PROVIDER_TLS(createRule(10,
-            "Avoid disabling TLS validation on the authentication provider client", VULNERABILITY)),
-    ENSURE_JWT_VERIFICATION(createRule(11, "Avoid accepting JSON Web Tokens without verification", VULNERABILITY)),
-    ENSURE_AUTHORIZATION_SCOPES(createRule(12, "Avoid authenticating requests without authorizing them",
-            VULNERABILITY)),
-    AVOID_AUTHENTICATION_OVER_CLEARTEXT(createRule(13,
-            "Avoid accepting credentials over a listener without TLS", VULNERABILITY)),
-    AVOID_UNSECURE_CALLER_REDIRECTIONS(createRule(14,
-            "Caller redirections should not be open to forging attacks", VULNERABILITY)),
-    AVOID_UNLIMITED_REQUEST_BODY_SIZE(createRule(15, "Avoid accepting request bodies of unlimited size",
-            VULNERABILITY)),
-    AVOID_CACHING_AUTHENTICATED_RESPONSES(createRule(16,
-            "Avoid allowing shared caches to store responses that require authentication", VULNERABILITY)),
-    AVOID_SERVER_VERSION_DISCLOSURE(createRule(17,
-            "Avoid disclosing the server product version in the server response header", VULNERABILITY)),
-    AVOID_STALE_AUTHENTICATED_RESPONSES(createRule(18,
-            "Avoid serving authenticated responses from a cache without revalidation", VULNERABILITY)),
-    AVOID_SHARED_CACHE_WITH_CREDENTIALS(createRule(19,
-            "Avoid sharing a client response cache across callers when credentials are configured",
-            VULNERABILITY));
+    AVOID_STALE_AUTHENTICATED_RESPONSES(createRule(18, "A cached response that requires authentication may be " +
+            "served stale without revalidation.", VULNERABILITY)),
+    AVOID_SHARED_CACHE_WITH_CREDENTIALS(createRule(19, "A client response cache is shared across callers while " +
+            "credentials are configured.", VULNERABILITY));
 
     private final Rule rule;
 

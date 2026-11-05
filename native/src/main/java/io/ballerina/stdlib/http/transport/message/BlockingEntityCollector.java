@@ -194,6 +194,10 @@ public class BlockingEntityCollector implements EntityCollector {
                 while (!isEndOfMessageProcessed) {
                     waitForEntity();
                     HttpContent httpContent = httpContentQueue.poll(soTimeOut, MILLISECONDS);
+                    if (httpContent == null) {
+                        LOG.warn("Timed out waiting for the end of the message body before releasing it");
+                        break;
+                    }
                     if (httpContent instanceof LastHttpContent) {
                         isEndOfMessageProcessed = true;
                         state = EntityBodyState.CONSUMED;

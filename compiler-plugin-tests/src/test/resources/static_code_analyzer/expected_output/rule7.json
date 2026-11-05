@@ -12,7 +12,7 @@
     "rule": {
       "id": "ballerina/http:7",
       "numericId": 7,
-      "description": "Avoid using weak TLS protocol versions",
+      "description": "A secure socket enables a weak TLS protocol version.",
       "ruleKind": "VULNERABILITY"
     },
     "source": "BUILT_IN",
@@ -32,7 +32,7 @@
     "rule": {
       "id": "ballerina/http:7",
       "numericId": 7,
-      "description": "Avoid using weak TLS protocol versions",
+      "description": "A secure socket enables a weak TLS protocol version.",
       "ruleKind": "VULNERABILITY"
     },
     "source": "BUILT_IN",
@@ -52,7 +52,7 @@
     "rule": {
       "id": "ballerina/http:7",
       "numericId": 7,
-      "description": "Avoid using weak TLS protocol versions",
+      "description": "A secure socket enables a weak TLS protocol version.",
       "ruleKind": "VULNERABILITY"
     },
     "source": "BUILT_IN",
@@ -72,7 +72,7 @@
     "rule": {
       "id": "ballerina/http:7",
       "numericId": 7,
-      "description": "Avoid using weak TLS protocol versions",
+      "description": "A secure socket enables a weak TLS protocol version.",
       "ruleKind": "VULNERABILITY"
     },
     "source": "BUILT_IN",

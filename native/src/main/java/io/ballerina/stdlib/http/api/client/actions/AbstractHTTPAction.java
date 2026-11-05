@@ -464,20 +464,26 @@ public abstract class AbstractHTTPAction {
 
     private static void serializeDataSource(Environment env, BObject entityObj, OutputStream messageOutputStream)
             throws IOException {
-        Object messageDataSource = EntityBodyHandler.getMessageDataSource(entityObj);
-        if (messageDataSource != null) {
-            HttpUtil.serializeDataSource(messageDataSource, entityObj, messageOutputStream);
-            HttpUtil.closeMessageOutputStream(messageOutputStream);
-        } else if (EntityBodyHandler.getByteStream(entityObj) != null) {
-            //When the entity body is a byte stream and when it is not null
-            EntityBodyHandler.writeByteStreamToOutputStream(env, entityObj, messageOutputStream);
-            HttpUtil.closeMessageOutputStream(messageOutputStream);
-        } else if (EntityBodyHandler.getByteChannel(entityObj) != null) {
-            //When the entity body is a byte channel and when it is not null
-            EntityBodyHandler.writeByteChannelToOutputStream(entityObj, messageOutputStream);
-            HttpUtil.closeMessageOutputStream(messageOutputStream);
-        } else {
-            logger.debug("Entity does not have a serializable payload");
+        try {
+            Object messageDataSource = EntityBodyHandler.getMessageDataSource(entityObj);
+            if (messageDataSource != null) {
+                HttpUtil.serializeDataSource(messageDataSource, entityObj, messageOutputStream);
+                HttpUtil.closeMessageOutputStream(messageOutputStream);
+            } else if (EntityBodyHandler.getByteStream(entityObj) != null) {
+                //When the entity body is a byte stream and when it is not null
+                EntityBodyHandler.writeByteStreamToOutputStream(env, entityObj, messageOutputStream);
+                HttpUtil.closeMessageOutputStream(messageOutputStream);
+            } else if (EntityBodyHandler.getByteChannel(entityObj) != null) {
+                //When the entity body is a byte channel and when it is not null
+                EntityBodyHandler.writeByteChannelToOutputStream(entityObj, messageOutputStream);
+                HttpUtil.closeMessageOutputStream(messageOutputStream);
+            } else {
+                logger.debug("Entity does not have a serializable payload");
+            }
+        } catch (BError | IOException e) {
+            // Ending the body normally would send the backend a truncated request as if it were complete
+            HttpUtil.abortMessageOutputStream(messageOutputStream, e);
+            throw e;
         }
     }
 
