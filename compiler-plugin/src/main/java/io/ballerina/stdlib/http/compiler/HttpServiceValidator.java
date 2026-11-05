@@ -25,6 +25,7 @@ import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
+import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingFieldNode;
@@ -33,6 +34,7 @@ import io.ballerina.compiler.syntax.tree.MethodDeclarationNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.NodeLocation;
+import io.ballerina.compiler.syntax.tree.ObjectConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.Token;
@@ -69,7 +71,9 @@ import static io.ballerina.stdlib.http.compiler.Constants.SUFFIX_SEPARATOR_REGEX
 import static io.ballerina.stdlib.http.compiler.Constants.UNNECESSARY_CHARS_REGEX;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.diagnosticContainsErrors;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.getCtxTypes;
+import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.getServiceClassDefinitionNode;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.getServiceDeclarationNode;
+import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.getServiceObjectConstructorNode;
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.updateDiagnostic;
 import static io.ballerina.stdlib.http.compiler.HttpDiagnostic.HTTP_101;
 import static io.ballerina.stdlib.http.compiler.HttpDiagnostic.HTTP_119;
@@ -82,6 +86,17 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
 
     @Override
     public void perform(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext) {
+        SyntaxKind kind = syntaxNodeAnalysisContext.node().kind();
+        if (kind == SyntaxKind.SERVICE_DECLARATION) {
+            validateServiceDeclaration(syntaxNodeAnalysisContext);
+        } else if (kind == SyntaxKind.CLASS_DEFINITION) {
+            validateServiceClass(syntaxNodeAnalysisContext);
+        } else if (kind == SyntaxKind.OBJECT_CONSTRUCTOR) {
+            validateServiceObjectConstructor(syntaxNodeAnalysisContext);
+        }
+    }
+
+    private static void validateServiceDeclaration(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext) {
         checkForServiceImplementationErrors(syntaxNodeAnalysisContext);
         if (diagnosticContainsErrors(syntaxNodeAnalysisContext)) {
             return;
@@ -111,6 +126,29 @@ public class HttpServiceValidator implements AnalysisTask<SyntaxNodeAnalysisCont
         } else {
             validateResources(syntaxNodeAnalysisContext, members);
         }
+    }
+
+    private static void validateServiceClass(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext) {
+        ClassDefinitionNode classDefinitionNode = getServiceClassDefinitionNode(syntaxNodeAnalysisContext);
+        if (classDefinitionNode == null) {
+            return;
+        }
+        if (diagnosticContainsErrors(syntaxNodeAnalysisContext)) {
+            return;
+        }
+        validateResources(syntaxNodeAnalysisContext, classDefinitionNode.members());
+    }
+
+    private static void validateServiceObjectConstructor(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext) {
+        ObjectConstructorExpressionNode objConstructorNode =
+                getServiceObjectConstructorNode(syntaxNodeAnalysisContext);
+        if (objConstructorNode == null) {
+            return;
+        }
+        if (diagnosticContainsErrors(syntaxNodeAnalysisContext)) {
+            return;
+        }
+        validateResources(syntaxNodeAnalysisContext, objConstructorNode.members());
     }
 
     public static boolean isServiceContractImplementation(SemanticModel semanticModel, ServiceDeclarationNode node) {

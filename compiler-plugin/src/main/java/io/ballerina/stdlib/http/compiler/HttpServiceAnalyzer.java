@@ -25,6 +25,7 @@ import io.ballerina.stdlib.http.compiler.endpointyaml.generator.ServiceArtifacts
 import io.ballerina.stdlib.http.compiler.oas.ServiceContractOasGenerator;
 import io.ballerina.stdlib.http.compiler.oas.ServiceOasGenerator;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -40,7 +41,8 @@ public class HttpServiceAnalyzer extends CodeAnalyzer {
     @Override
     public void init(CodeAnalysisContext codeAnalysisContext) {
         codeAnalysisContext.addSyntaxNodeAnalysisTask(new HttpServiceObjTypeAnalyzer(), SyntaxKind.OBJECT_TYPE_DESC);
-        codeAnalysisContext.addSyntaxNodeAnalysisTask(new HttpServiceValidator(), SyntaxKind.SERVICE_DECLARATION);
+        codeAnalysisContext.addSyntaxNodeAnalysisTask(new HttpServiceValidator(),
+                List.of(SyntaxKind.SERVICE_DECLARATION, SyntaxKind.CLASS_DEFINITION, SyntaxKind.OBJECT_CONSTRUCTOR));
         codeAnalysisContext.addSyntaxNodeAnalysisTask(
                     new ServiceArtifactsExtractor(ctxData), SyntaxKind.SERVICE_DECLARATION);
         codeAnalysisContext.addSyntaxNodeAnalysisTask(new OpenAPISpecGenerator(), SyntaxKind.SERVICE_DECLARATION);
