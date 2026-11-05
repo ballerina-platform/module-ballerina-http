@@ -169,7 +169,6 @@ The conforming implementation of the specification is released and included in t
     * 11.16. [Avoid allowing shared caches to store responses that require authentication](#1116-avoid-allowing-shared-caches-to-store-responses-that-require-authentication)
     * 11.17. [Avoid disclosing the server product version in the server response header](#1117-avoid-disclosing-the-server-product-version-in-the-server-response-header)
     * 11.18. [Avoid serving authenticated responses from a cache without revalidation](#1118-avoid-serving-authenticated-responses-from-a-cache-without-revalidation)
-    * 11.19. [Avoid sharing a client response cache across callers when credentials are configured](#1119-avoid-sharing-a-client-response-cache-across-callers-when-credentials-are-configured)
 
 ## 1. Overview
 Ballerina language provides first-class support for writing network-oriented programs. The HTTP standard library uses these language constructs and creates the programming model to produce and consume HTTP APIs.
@@ -3791,7 +3790,6 @@ The following static code rules are applied to the HTTP module.
 | ballerina/http:16 | VULNERABILITY | [Avoid allowing shared caches to store responses that require authentication](#1116-avoid-allowing-shared-caches-to-store-responses-that-require-authentication) |
 | ballerina/http:17 | VULNERABILITY | [Avoid disclosing the server product version in the server response header](#1117-avoid-disclosing-the-server-product-version-in-the-server-response-header) |
 | ballerina/http:18 | VULNERABILITY | [Avoid serving authenticated responses from a cache without revalidation](#1118-avoid-serving-authenticated-responses-from-a-cache-without-revalidation) |
-| ballerina/http:19 | VULNERABILITY | [Avoid sharing a client response cache across callers when credentials are configured](#1119-avoid-sharing-a-client-response-cache-across-callers-when-credentials-are-configured) |
 
 ### 11.1. Avoid allowing default resource accessor
 
@@ -4002,6 +4000,8 @@ Unvalidated user input in redirect URLs can enable phishing and malware distribu
 
 Open redirects occur when an application accepts user-controlled input that specifies a URL to which the user will be redirected. When these redirects are implemented without proper validation, attackers can craft redirection URLs to malicious sites.
 
+A parameter appended after a string literal that already fixes the scheme and host, such as `"https://example.com/" + target`, cannot send the user off-site and is not reported. A prefix without a path delimiter, such as `"https://example.com"` or `"/"`, does not fix the host, since `"@evil.com"` or `"/evil.com"` appended to it changes the destination.
+
 #### 11.4.2. What is the potential impact?
 
 These vulnerabilities can lead to several security threats:
@@ -4075,11 +4075,11 @@ A wildcard origin combined with credentials lets any site make authenticated cro
 
 #### 11.5.1. Why this is an issue?
 
-A wildcard origin on its own exposes only unauthenticated responses. Combined with `allowCredentials: true` it allows any site to issue cross-origin requests that carry the user's cookies or authorization header, and to read the responses. Browsers reject this combination, which means the service is either relying on a non-browser client or the configuration does not do what its author intended.
+A wildcard origin on its own exposes only unauthenticated responses. Combined with `allowCredentials: true` it declares that any site may send credentialed cross-origin requests. Browsers refuse to expose a credentialed response whose allowed origin is `*`, so the calling script cannot read it, but that does not make the configuration safe: simple requests, such as a form `POST`, still carry the user's cookies and can trigger state-changing behaviour (cross-site request forgery), and non-browser clients are not bound by the restriction at all. Requests that carry an `Authorization` header need a successful preflight, which the browser also refuses here. Either way the configuration does not do what its author intended.
 
 #### 11.5.2. What is the potential impact?
 
-Every endpoint the service exposes becomes callable, with the user's credentials attached, from any page the user visits.
+Any page the user visits can trigger requests to the service that carry the user's cookies, so state-changing endpoints are exposed to cross-site request forgery, and any non-browser client that honours the policy can read the responses.
 
 #### 11.5.3. How can I fix this?
 
@@ -4130,7 +4130,7 @@ Switching off either check leaves the connection open to interception while it s
 
 #### 11.6.1. Why this is an issue?
 
-`enable: false` turns off SSL for the client entirely. `verifyHostName: false` keeps the encrypted channel but stops checking that the certificate was issued for the host being contacted, so any party holding a certificate the client trusts, for any host, can terminate the connection. Both fields default to `true`, so only an explicit assignment weakens the connection.
+`enable: false` keeps the TLS channel but disables certificate validation, so the client trusts any certificate. `verifyHostName: false` keeps the encrypted channel but stops checking that the certificate was issued for the host being contacted, so any party holding a certificate the client trusts, for any host, can terminate the connection. Both fields default to `true`, so only an explicit assignment weakens the connection. The secure socket of each `targets` entry of an `http:FailoverClient` or `http:LoadBalanceClient` is checked as well.
 
 #### 11.6.2. What is the potential impact?
 
@@ -4165,7 +4165,7 @@ http:Client apiClient = check new ("https://api.example.com", secureSocket = {
 
 ### 11.7. Avoid using weak TLS protocol versions
 
-TLS 1.0, TLS 1.1 and the SSL family are withdrawn and should not be named.
+TLS 1.0, TLS 1.1 and every SSL version are withdrawn and should not be enabled.
 
 | Property              | Description |
 |-----------------------|-------------|
@@ -4176,7 +4176,9 @@ TLS 1.0, TLS 1.1 and the SSL family are withdrawn and should not be named.
 
 #### 11.7.1. Why this is an issue?
 
-The SSL protocol family is broken outright. TLS 1.0 and TLS 1.1 rely on MD5 and SHA-1 in the handshake and lack the modern cipher suites, which leaves them open to downgrade and padding-oracle attacks. Naming any of them, on a client or a listener, pins the endpoint to a version a current peer should refuse.
+SSL 2.0 and SSL 3.0 are broken outright. TLS 1.0 and TLS 1.1 rely on MD5 and SHA-1 in the handshake and lack the modern cipher suites, which leaves them open to downgrade and padding-oracle attacks. Listing any of them, or the `SSLv2Hello` pseudo-protocol, in `protocol.versions` on a client or a listener lets the endpoint negotiate a version a current peer should refuse.
+
+Only `versions` decides which protocol versions are enabled. `protocol.name` selects the `SSLContext`, and in the JDK `SSL` is an alias of the `TLS` context, so `name` is not reported.
 
 #### 11.7.2. What is the potential impact?
 
@@ -4192,7 +4194,7 @@ Name only TLS 1.2 and TLS 1.3, or leave `protocol` unset and take the runtime's 
 http:Client apiClient = check new ("https://api.example.com", secureSocket = {
     cert: "/path/to/public.crt",
     protocol: {
-        name: http:SSL,
+        name: http:TLS,
         versions: ["TLSv1.0", "TLSv1.1"]
     }
 });
@@ -4229,7 +4231,7 @@ The redirect target is chosen by the server being called, not by the caller.
 
 #### 11.8.1. Why this is an issue?
 
-The client strips `Authorization` and `Proxy-Authorization` from a redirected request by default. Setting `allowAuthHeaders: true` sends them on to whatever host the redirect names, and that host is chosen by the response rather than by the code.
+The client strips `Authorization` and `Proxy-Authorization` from a redirected request by default. Setting `allowAuthHeaders: true` sends them on to whatever host the redirect names, and that host is chosen by the response rather than by the code. Redirects are followed only when `enabled` is `true`, which is not the default, so the rule reports `allowAuthHeaders: true` only alongside a literal `enabled: true`.
 
 #### 11.8.2. What is the potential impact?
 
@@ -4277,7 +4279,9 @@ Both flags default to `false`, so omitting them is as much a defect as disabling
 
 Without `secure` the cookie is sent over plaintext HTTP, where anyone on the path can read it. Without `httpOnly` it is readable from JavaScript, which turns any cross-site scripting flaw on the origin into session theft. `http:CookieOptions` defaults both to `false`, so a cookie carrying a session or any other credential is insecure unless the author sets them.
 
-The rule reports a flag that is explicitly `false` and, separately, a construction that leaves either flag unset.
+The rule reports a flag that is explicitly `false` or, failing that, a construction that leaves either flag unset, at most once per construction. Options it cannot read, such as a record from a function call, a mutable variable or a spread, are not guessed at.
+
+The flags only take effect on a cookie sent in a response. `Request.addCookies` serializes only the name and value into the `Cookie` header, so a cookie constructed directly as its argument, or as a member of the list literal passed to it, is not reported. A cookie that reaches `Request.addCookies` through a variable is still reported, since telling where it ends up would need data-flow analysis.
 
 #### 11.9.2. What is the potential impact?
 
@@ -4318,7 +4322,7 @@ The token endpoint client has its own secure socket, separate from the client's 
 
 #### 11.10.1. Why this is an issue?
 
-A client's `auth` configuration carries its own client for reaching the token or JWKS endpoint. Securing the client's own `secureSocket` while setting `disable: true` on the one inside `auth` is easy to do by accident, and it leaves the credential exchange itself unprotected.
+A client's `auth` configuration carries its own client for reaching the token or JWKS endpoint. Securing the client's own `secureSocket` while setting `disable: true` on the one inside `auth` is easy to do by accident, and it leaves the credential exchange itself unprotected. The same provider configuration passed to an `http:ClientOAuth2Handler`, `http:ListenerOAuth2Handler` or `http:ListenerJwtAuthHandler` constructed directly is checked as well.
 
 #### 11.10.2. What is the potential impact?
 
@@ -4370,7 +4374,7 @@ Each omitted field removes a check rather than defaulting to a safe value.
 
 `signatureConfig`, `issuer` and `audience` are all optional on a JWT validator configuration. With no `signatureConfig` the signature is never verified, so any self-signed token is accepted. With no `issuer` or `audience` a token genuinely issued by the same provider, but for a different service or tenant, is accepted here as well.
 
-A record carrying only `scopes` is indistinguishable from a file user store configuration, so the rule identifies a JWT validator by a field that appears on no other listener authentication configuration and leaves the ambiguous case alone.
+In a listener authentication configuration the validator is nested under `jwtValidatorConfig`, which appears on no other provider, so the rule identifies a JWT validator by that field. An `http:ListenerJwtAuthHandler` constructed directly takes the validator configuration as its argument and is checked the same way. A validator configuration built with a spread or computed field may supply the missing fields, so it is not reported.
 
 #### 11.11.2. What is the potential impact?
 
@@ -4386,8 +4390,10 @@ Configure the signature check and pin both the issuer and the audience.
 @http:ServiceConfig {
     auth: [
         {
-            issuer: "wso2",
-            audience: "ballerina",
+            jwtValidatorConfig: {
+                issuer: "wso2",
+                audience: "ballerina"
+            },
             scopes: ["admin"]
         }
     ]
@@ -4402,9 +4408,11 @@ service /api on securedListener {
 @http:ServiceConfig {
     auth: [
         {
-            issuer: "wso2",
-            audience: "ballerina",
-            signatureConfig: {certFile: "/path/to/public.crt"},
+            jwtValidatorConfig: {
+                issuer: "wso2",
+                audience: "ballerina",
+                signatureConfig: {certFile: "/path/to/public.crt"}
+            },
             scopes: ["admin"]
         }
     ]
@@ -4433,6 +4441,8 @@ Authentication establishes who the caller is; it does not decide what they may d
 
 A listener authentication configuration without `scopes` authenticates the caller and then allows every caller it managed to authenticate. Any valid credential issued by the provider grants full access to the service, which makes authentication stand in for authorization.
 
+A service-level provider without scopes is not reported when every resource of the service declares its own `auth` in `@http:ResourceConfig`, either the `Scopes` form that narrows the service's providers or a provider list that replaces them, since authorization is then enforced per resource. A configuration built with a spread or computed field may supply `scopes`, so it is not reported either.
+
 #### 11.12.2. What is the potential impact?
 
 Every account the identity provider knows about can reach every resource the service exposes, regardless of what that account is meant to be able to do.
@@ -4447,9 +4457,11 @@ Declare the scopes the service requires, at the service or the resource.
 @http:ServiceConfig {
     auth: [
         {
-            issuer: "wso2",
-            audience: "ballerina",
-            signatureConfig: {certFile: "/path/to/public.crt"}
+            jwtValidatorConfig: {
+                issuer: "wso2",
+                audience: "ballerina",
+                signatureConfig: {certFile: "/path/to/public.crt"}
+            }
         }
     ]
 }
@@ -4463,9 +4475,11 @@ service /api on securedListener {
 @http:ServiceConfig {
     auth: [
         {
-            issuer: "wso2",
-            audience: "ballerina",
-            signatureConfig: {certFile: "/path/to/public.crt"},
+            jwtValidatorConfig: {
+                issuer: "wso2",
+                audience: "ballerina",
+                signatureConfig: {certFile: "/path/to/public.crt"}
+            },
             scopes: ["admin"]
         }
     ]
@@ -4492,9 +4506,11 @@ Credentials on a plaintext listener cross the network in the clear.
 
 #### 11.13.1. Why this is an issue?
 
-A service that declares `auth` expects callers to present credentials. If the listener it is attached to has no `secureSocket`, those credentials travel unencrypted, where anyone on the path can read and replay them.
+A service that declares an authentication provider, in its `@http:ServiceConfig` or in any resource's `@http:ResourceConfig`, expects callers to present credentials. If the listener it is attached to has no `secureSocket`, or sets `secureSocket = ()`, those credentials travel unencrypted, where anyone on the path can read and replay them.
 
-The rule reports only a listener that carries credentials. Flagging every listener without TLS would fire on nearly every service, most of them legitimately behind a gateway that terminates TLS. A listener whose construction cannot be resolved is also left alone, since reporting it would mean guessing that it has no TLS.
+The rule reports only a listener that carries credentials. Flagging every listener without TLS would fire on nearly every service, most of them legitimately behind a gateway that terminates TLS. A listener bound to a loopback `host`, such as `"localhost"` or `"127.0.0.1"`, is exempt, since credentials sent to it never leave the host. A listener whose construction, configuration or host cannot be resolved is also left alone, since reporting it would mean guessing that it has no TLS.
+
+A service behind a gateway or ingress that terminates TLS and forwards credentials to a plaintext listener on another host is still reported: the hop between the gateway and the service carries the credentials in the clear. Bind the listener to a loopback address when the gateway runs on the same host, add TLS on that hop, or suppress the issue where the network between the two is trusted.
 
 #### 11.13.2. What is the potential impact?
 
@@ -4510,7 +4526,7 @@ Give the listener a secure socket, or terminate TLS ahead of it and keep the pla
 listener http:Listener plainListener = new (9090);
 
 @http:ServiceConfig {
-    auth: [{issuer: "wso2", audience: "ballerina", signatureConfig: {certFile: "/path/to/public.crt"}, scopes: ["admin"]}]
+    auth: [{jwtValidatorConfig: {issuer: "wso2", audience: "ballerina", signatureConfig: {certFile: "/path/to/public.crt"}}, scopes: ["admin"]}]
 }
 service /api on plainListener {
 }
@@ -4524,7 +4540,7 @@ listener http:Listener securedListener = new (9090, secureSocket = {
 });
 
 @http:ServiceConfig {
-    auth: [{issuer: "wso2", audience: "ballerina", signatureConfig: {certFile: "/path/to/public.crt"}, scopes: ["admin"]}]
+    auth: [{jwtValidatorConfig: {issuer: "wso2", audience: "ballerina", signatureConfig: {certFile: "/path/to/public.crt"}}, scopes: ["admin"]}]
 }
 service /api on securedListener {
 }
@@ -4550,7 +4566,7 @@ service /api on securedListener {
 
 A caller-controlled redirect target lets an attacker send a user to a site of their choosing from a URL that begins on the trusted origin, which is what makes the resulting phishing page credible. Rule `ballerina/http:4` covers the `location` header of a status code response; this rule covers the explicit `Caller.redirect` API.
 
-Like `ballerina/http:4`, it matches a resource parameter used directly at the sink, not one that has passed through a local variable.
+Like `ballerina/http:4`, it matches a resource parameter used directly at the sink, not one that has passed through a local variable, and it does not report a parameter appended after a string literal that already fixes the scheme and host, such as `"https://example.com/" + target`.
 
 #### 11.14.2. What is the potential impact?
 
@@ -4586,7 +4602,7 @@ resource function get redirect(http:Caller caller, string target) returns error?
 
 ### 11.15. Avoid accepting request bodies of unlimited size
 
-`maxEntityBodySize: -1` removes the ceiling on an incoming request body.
+A negative `maxEntityBodySize` removes the ceiling on an incoming request body.
 
 | Property              | Description |
 |-----------------------|-------------|
@@ -4597,9 +4613,7 @@ resource function get redirect(http:Caller caller, string target) returns error?
 
 #### 11.15.1. Why this is an issue?
 
-With no ceiling, a single request can carry a body large enough to exhaust the service's memory. The rule reports an explicit `-1` only: the field also defaults to `-1`, so reporting every listener that leaves it alone would fire on all of them.
-
-That default is worth noting on its own, since it means a listener gets the unbounded behaviour by saying nothing.
+The transport enforces the limit only when it is not negative, so `-1`, or any other negative value, leaves a single request free to carry a body large enough to exhaust the service's memory. The rule reports an explicit negative literal only: the field defaults to `-1`, so reporting every listener that leaves it alone would fire on all of them.
 
 #### 11.15.2. What is the potential impact?
 
@@ -4645,7 +4659,11 @@ The `@http:Cache` annotation advertises a response as cacheable by shared caches
 
 A response produced for one authenticated caller is specific to that caller. The annotation defaults to `must-revalidate, public, max-age=3600`, and `public` is an explicit statement that a proxy, gateway or CDN may store the response and serve it to somebody else.
 
-The rule reports a resource that carries the annotation and requires authentication, unless the response is marked private or excluded from storage. Authentication is recognised where it is declared, on the resource's own `@http:ResourceConfig` or on the service's `@http:ServiceConfig`. A service that enforces authentication imperatively inside the resource body is out of scope, because establishing that from the syntax alone would be guesswork.
+The rule reports a resource that carries the `ballerina/http` `@http:Cache` annotation and requires authentication, unless the response is marked private (`isPrivate`) or excluded from storage (`noStore`). `noCache` does not exempt the response: a shared cache may still store it and only has to revalidate before reusing it. A flag set to a value that is not a literal is not guessed at.
+
+Authentication is recognised where it is declared, on the resource's own `@http:ResourceConfig` or on the `@http:ServiceConfig` of the service declaration or service class. `auth: []` declares no provider, and on a resource it switches off the service's authentication for that resource. A service that enforces authentication imperatively inside the resource body is out of scope, because establishing that from the syntax alone would be guesswork.
+
+The rule addresses shared caches only. `isPrivate: true` emits `Cache-Control: private`, which still lets the client's own cache store the response. Where that cache can serve more than one authenticated identity, for example a shared browser profile or a client-side cache keyed only by URL, and the response differs per identity, use `noStore: true` instead.
 
 The insecure behaviour is the default, which is what makes this easy to introduce by accident.
 
@@ -4705,7 +4723,7 @@ A `server` response header carrying a product version names the exact release th
 
 A version in the `server` header tells an attacker which published vulnerabilities to try, and offers a client nothing in return.
 
-Ballerina leaves the header unset by default, so the rule reports only where a value has been configured deliberately. A bare product name is not reported: it discloses far less than a version, and some deployments need it for routing or diagnostics. The rule looks for a version token of the form `1.2` in a string literal, so a value assembled at runtime is not examined.
+When `server` is not configured, the listener still sends a `server` header on every response that lacks one, with the value `ballerina`, or `ballerina/<version>` when the runtime exposes its version. The rule does not report an unconfigured listener, since that would fire on every listener; it reports only where a value carrying a version has been configured deliberately. To control what is disclosed, configure an explicit value without a version. A bare product name is not reported: it discloses far less than a version, and some deployments need it for routing or diagnostics. The rule looks for a version token of the form `1.2` in a string literal, so a value assembled at runtime is not examined.
 
 #### 11.17.2. What is the potential impact?
 
@@ -4713,7 +4731,7 @@ Reconnaissance is reduced to reading one response header, which narrows an attac
 
 #### 11.17.3. How can I fix this?
 
-Leave the header unset, or use a name that carries no version.
+Configure a `server` value that carries no version.
 
 **Non-compliant code:**
 
@@ -4724,9 +4742,7 @@ listener http:Listener versionedListener = new (9090, server = "ballerina/2201.1
 **Compliant code:**
 
 ```ballerina
-listener http:Listener defaultListener = new (9090);
-
-listener http:Listener namedListener = new (9091, server = "gateway");
+listener http:Listener namedListener = new (9090, server = "gateway");
 ```
 
 #### 11.17.4. Additional Resources
@@ -4737,7 +4753,7 @@ listener http:Listener namedListener = new (9091, server = "gateway");
 
 ### 11.18. Avoid serving authenticated responses from a cache without revalidation
 
-`mustRevalidate: false` removes the check a cache makes before serving a stored copy that has gone stale.
+`mustRevalidate: false` lets a cache serve a stored authenticated response after it has gone stale.
 
 | Property              | Description |
 |-----------------------|-------------|
@@ -4748,17 +4764,17 @@ listener http:Listener namedListener = new (9091, server = "gateway");
 
 #### 11.18.1. Why this is an issue?
 
-`mustRevalidate` defaults to `true`, which tells a cache to check back with the service before serving a stale entry. Turning it off on an authenticated endpoint means access revocation stops taking effect promptly: a caller whose account has been disabled, whose session has ended or whose scopes have been reduced keeps receiving the stored response, because nothing goes back to the service to discover that anything changed. The window is `maxAge`, which itself defaults to an hour.
+`mustRevalidate` defaults to `true`, which forbids a cache from serving an entry once it is stale, that is, after `maxAge` (an hour by default) has elapsed, without first checking back with the service. It does not affect the freshness window itself: during `maxAge` a cache serves the stored copy either way. Turning it off allows a cache to keep serving a stale authenticated response beyond `maxAge`, for example while the service is unreachable or to a client that accepts stale content (`max-stale`), so a caller whose account has been disabled, whose session has ended or whose scopes have been reduced may keep receiving it for longer than the configured lifetime.
 
-The rule reports an explicit `false` only. Leaving the field out keeps the secure default, and a value that is not a literal cannot be resolved without guessing.
+The rule reports an explicit `false` only. Leaving the field out keeps the default, and a value that is not a literal cannot be resolved without guessing. It is not reported when `noStore`, `noCache` or `proxyRevalidate` is `true`: `noStore` keeps the response out of caches, `noCache` forces revalidation on every use, and `proxyRevalidate` already requires revalidation of stale entries by shared caches. To bound the exposure during the freshness window itself, lower `maxAge`.
 
 #### 11.18.2. What is the potential impact?
 
-Revoked access continues to work for as long as the cached entry lives.
+Revoked access may continue to work past `maxAge`, for as long as a cache is willing to serve the stale entry.
 
 #### 11.18.3. How can I fix this?
 
-Leave revalidation at its default, or set it explicitly where the intent should be visible in the code.
+Leave revalidation at its default, or set it explicitly where the intent should be visible in the code, and keep `maxAge` short for responses whose access can be revoked.
 
 **Non-compliant code:**
 
@@ -4781,53 +4797,3 @@ resource function get profile() returns @http:Cache {isPrivate: true} json {
 - [CWE-524: Use of Cache Containing Sensitive Information](https://cwe.mitre.org/data/definitions/524.html)
 - [OWASP Top 10:2025 A01 Broken Access Control](https://owasp.org/Top10/2025/A01_2025-Broken_Access_Control/)
 - [MDN: Cache-Control must-revalidate](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control#must-revalidate)
-
-### 11.19. Avoid sharing a client response cache across callers when credentials are configured
-
-`cache.isShared: true` on a client that also configures `auth` declares a shared cache for responses fetched with credentials.
-
-| Property              | Description |
-|-----------------------|-------------|
-| **Rule ID**           | ballerina/http:19 |
-| **Rule Kind**         | Vulnerability |
-| **CWE**               | [CWE-524](https://cwe.mitre.org/data/definitions/524.html) |
-| **OWASP Top 10:2025** | [A02 Security Misconfiguration](https://owasp.org/Top10/2025/A02_2025-Security_Misconfiguration/) |
-
-#### 11.19.1. Why this is an issue?
-
-An `http:Client` caches responses by default, and `cache.isShared` declares whether that cache holds responses for a single identity or on behalf of many. Where the client also carries `auth`, every response it stores was fetched with those credentials and belongs to the identity they represent. Declaring the cache shared tells the caching layer it may return those responses in contexts they were not fetched for, and honours directives such as `s-maxage` that are meant for proxies rather than for a caller's own cache.
-
-#### 11.19.2. What is the potential impact?
-
-A response fetched for one identity is returned for another.
-
-#### 11.19.3. How can I fix this?
-
-Keep the cache private to the identity the client authenticates as, which is the default, and reserve a shared cache for clients that send no credentials.
-
-**Non-compliant code:**
-
-```ballerina
-final http:Client securedClient = check new ("https://api.example.com",
-    auth = {username: "admin", password: "secret"},
-    cache = {isShared: true}
-);
-```
-
-**Compliant code:**
-
-```ballerina
-final http:Client securedClient = check new ("https://api.example.com",
-    auth = {username: "admin", password: "secret"}
-);
-
-final http:Client anonymousClient = check new ("https://api.example.com",
-    cache = {isShared: true}
-);
-```
-
-#### 11.19.4. Additional Resources
-
-- [CWE-524: Use of Cache Containing Sensitive Information](https://cwe.mitre.org/data/definitions/524.html)
-- [OWASP Top 10:2025 A02 Security Misconfiguration](https://owasp.org/Top10/2025/A02_2025-Security_Misconfiguration/)
-- [MDN: Private and shared caches](https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching)
