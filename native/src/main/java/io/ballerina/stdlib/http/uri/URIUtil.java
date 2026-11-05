@@ -179,37 +179,58 @@ public final class URIUtil {
     @SuppressWarnings("unchecked")
     public static void populateQueryParamMap(String queryParamString, BMap<BString, Object> queryParamsMap)
             throws UnsupportedEncodingException {
+        populateQueryParamMap(queryParamString, queryParamsMap, true);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void populateQueryParamMap(String queryParamString, BMap<BString, Object> queryParamsMap,
+                                             boolean valuelessAsEmptyString) throws UnsupportedEncodingException {
         Map<String, List<String>> tempParamMap = new HashMap<>();
         String[] queryParamVals = queryParamString.split("&");
         for (String queryParam : queryParamVals) {
-            int index = queryParam.indexOf('=');
-            if (index == -1) {
-                if (!tempParamMap.containsKey(queryParam)) {
-                    tempParamMap.put(queryParam, null);
-                }
-                continue;
-            }
-            String queryParamName = queryParam.substring(0, index).trim();
-            String queryParamValue = queryParam.substring(index + 1).trim();
-            List<String> values = new ArrayList<>();
-            Set<String> uniqueValues = new HashSet<>();
-            for (String val : queryParamValue.split(",")) {
-                String decodedValue = URLDecoder.decode(val, StandardCharsets.UTF_8);
-                if (uniqueValues.add(decodedValue)) {
-                    values.add(decodedValue);
-                }
-            }
-
-            if (tempParamMap.containsKey(queryParamName) && tempParamMap.get(queryParamName) != null) {
-                tempParamMap.get(queryParamName).addAll(values);
-            } else {
-                tempParamMap.put(queryParamName, values);
-            }
+            addQueryParam(queryParam, tempParamMap, valuelessAsEmptyString);
         }
 
+        populateQueryParams(queryParamsMap, tempParamMap);
+    }
+
+    private static void addQueryParam(String queryParam, Map<String, List<String>> tempParamMap,
+                                      boolean valuelessAsEmptyString) throws UnsupportedEncodingException {
+        int index = queryParam.indexOf('=');
+        if (index == -1) {
+            List<String> values = tempParamMap.computeIfAbsent(queryParam, k -> new ArrayList<>());
+            values.add(valuelessAsEmptyString ? "" : null);
+            return;
+        }
+
+        String queryParamName = queryParam.substring(0, index).trim();
+        String queryParamValue = queryParam.substring(index + 1).trim();
+        List<String> values = getDecodedValues(queryParamValue);
+        if (tempParamMap.containsKey(queryParamName) && tempParamMap.get(queryParamName) != null) {
+            tempParamMap.get(queryParamName).addAll(values);
+        } else {
+            tempParamMap.put(queryParamName, values);
+        }
+    }
+
+    private static List<String> getDecodedValues(String queryParamValue) throws UnsupportedEncodingException {
+        List<String> values = new ArrayList<>();
+        Set<String> uniqueValues = new HashSet<>();
+        for (String val : queryParamValue.split(",")) {
+            String decodedValue = URLDecoder.decode(val, StandardCharsets.UTF_8);
+            if (uniqueValues.add(decodedValue)) {
+                values.add(decodedValue);
+            }
+        }
+        return values;
+    }
+
+    private static void populateQueryParams(BMap<BString, Object> queryParamsMap,
+                                            Map<String, List<String>> tempParamMap) {
         for (Map.Entry<String, List<String>> entry : tempParamMap.entrySet()) {
             List<String> entryValue = entry.getValue();
-            if (entryValue != null) {
+            entryValue.removeIf(value -> value == null);
+            if (!entryValue.isEmpty()) {
                 queryParamsMap.put(StringUtils.fromString(entry.getKey()),
                         StringUtils.fromStringArray(entryValue.toArray(new String[0])));
             } else {

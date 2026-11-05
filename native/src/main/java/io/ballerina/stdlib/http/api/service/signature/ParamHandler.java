@@ -318,7 +318,7 @@ public class ParamHandler {
 
         if (rawQueryString != null) {
             try {
-                URIUtil.populateQueryParamMap((String) rawQueryString, queryParams);
+                URIUtil.populateQueryParamMap((String) rawQueryString, queryParams, false);
             } catch (UnsupportedEncodingException e) {
                 throw HttpUtil.createHttpError("error while retrieving query param from message: " + e.getMessage(),
                         HttpErrorType.GENERIC_LISTENER_ERROR);
