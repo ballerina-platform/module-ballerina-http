@@ -24,6 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Fix a service response, or a client request, whose byte stream or byte channel fails part-way never ending, so the peer waited until a timeout; a service response that fails before anything was sent now gets a `500` without the response's own headers, otherwise the HTTP/1.1 connection is closed or the HTTP/2 stream reset, and the failure is logged](https://github.com/ballerina-platform/ballerina-library/issues/9349)
 - [Fix an SSE response ending as complete when the `next()` of its event stream panics, instead of being aborted with the panic logged](https://github.com/ballerina-platform/ballerina-library/issues/9502)
 - [Fix a streamed body read ending at an empty HTTP/2 DATA frame that does not end the stream, as if the body had ended](https://github.com/ballerina-platform/ballerina-library/issues/9267)
+- [Fix concurrent requests through a client with `followRedirects` enabled sharing one redirect count, which cut a request short with a 3xx response before `maxCount` was reached or let it follow more redirects than `maxCount` allows](https://github.com/ballerina-platform/ballerina-library/issues/9512)
 
 ### Changed
 
