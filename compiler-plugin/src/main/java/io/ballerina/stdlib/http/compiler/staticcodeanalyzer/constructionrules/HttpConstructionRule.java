@@ -23,7 +23,7 @@ import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpConstructionRule
 /**
  * Interface to be implemented by all static code analysis rules that analyze HTTP object construction.
  *
- * @since 2.15.0
+ * @since 2.18.2
  */
 public interface HttpConstructionRule {
 

@@ -38,5 +38,45 @@
     "source": "BUILT_IN",
     "fileName": "rule13/service.bal",
     "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule13/service.bal"
+  },
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 194,
+      "endLine": 194,
+      "startColumn": 22,
+      "endColumn": 39,
+      "startOffset": 5092,
+      "length": 17
+    },
+    "rule": {
+      "id": "ballerina/http:13",
+      "numericId": 13,
+      "description": "A service accepts credentials over a listener that has no TLS configuration.",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule13/service.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule13/service.bal"
+  },
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 201,
+      "endLine": 201,
+      "startColumn": 25,
+      "endColumn": 38,
+      "startOffset": 5283,
+      "length": 13
+    },
+    "rule": {
+      "id": "ballerina/http:13",
+      "numericId": 13,
+      "description": "A service accepts credentials over a listener that has no TLS configuration.",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule13/service.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule13/service.bal"
   }
 ]

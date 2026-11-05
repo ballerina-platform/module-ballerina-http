@@ -184,11 +184,22 @@ service / on new http:Listener(8080) {
         };
     }
 
+    // Negative case - the parameter is appended after a fixed origin, so it cannot leave example.com
     resource function get concatenated(string location) returns TemporaryRedirect {
         return {
             body: "Redirection",
             headers: {
                 "Location": "https://example.com/" + location
+            }
+        };
+    }
+
+    // A leading "/" does not fix the host: "/" + "/evil.com" is a protocol-relative URL
+    resource function get rootRelative(string location) returns TemporaryRedirect {
+        return {
+            body: "Redirection",
+            headers: {
+                "Location": "/" + location
             }
         };
     }

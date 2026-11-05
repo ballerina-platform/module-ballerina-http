@@ -21,25 +21,37 @@ package io.ballerina.stdlib.http.compiler.staticcodeanalyzer.constructionrules;
 import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.AuthConfigAnalyzer;
 import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpConstructionRuleContext;
 
+import java.util.Set;
+
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpRule.AVOID_DISABLED_AUTH_PROVIDER_TLS;
 
 /**
- * Rule to detect a client whose authentication provider has had its TLS validation disabled.
+ * Rule to detect an authentication provider client whose TLS validation has been disabled.
  * <p>
  * A client's {@code auth} configuration carries its own secure socket for reaching the token endpoint, separate from
  * the {@code secureSocket} that governs the client's own requests. Securing one and disabling the other is easy to
- * do by accident and leaves the credential exchange itself unprotected.
+ * do by accident and leaves the credential exchange itself unprotected. An auth handler constructed directly takes
+ * the same provider configuration as its argument, and is checked the same way.
  *
- * @since 2.15.0
+ * @since 2.18.2
  */
 public class AvoidDisabledAuthProviderTlsRule implements HttpConstructionRule {
 
     private static final String AUTH = "auth";
+    private static final Set<String> PROVIDER_CLIENT_HANDLERS = Set.of("ClientOAuth2Handler", "ListenerOAuth2Handler",
+            "ListenerJwtAuthHandler");
 
     @Override
     public void analyze(HttpConstructionRuleContext context) {
+        if (PROVIDER_CLIENT_HANDLERS.contains(context.constructedTypeName())) {
+            context.arguments().getConfiguration().ifPresent(providerConfig ->
+                    AuthConfigAnalyzer.reportDisabledTlsValidation(providerConfig, context.reporter(),
+                            context.document(), context.arguments()::issueLocation));
+            return;
+        }
         context.arguments().getConfigurationRecord(AUTH).ifPresent(authConfig ->
-                AuthConfigAnalyzer.reportDisabledTlsValidation(authConfig, context.reporter(), context.document()));
+                AuthConfigAnalyzer.reportDisabledTlsValidation(authConfig, context.reporter(), context.document(),
+                        context.arguments()::issueLocation));
     }
 
     @Override

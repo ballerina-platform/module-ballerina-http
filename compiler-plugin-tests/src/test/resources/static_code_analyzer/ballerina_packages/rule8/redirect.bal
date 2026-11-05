@@ -49,3 +49,18 @@ function defaultRedirects() returns http:Client|error {
         enabled: true
     });
 }
+
+// Negative case - redirects are not followed, since enabled defaults to false
+function redirectsNotFollowed() returns http:Client|error {
+    return new ("https://api.example.com", followRedirects = {
+        allowAuthHeaders: true
+    });
+}
+
+// Negative case - redirects explicitly disabled
+function redirectsDisabled() returns http:Client|error {
+    return new ("https://api.example.com", followRedirects = {
+        enabled: false,
+        allowAuthHeaders: true
+    });
+}

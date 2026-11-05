@@ -32,28 +32,25 @@ import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAna
 /**
  * Rule to detect a client whose TLS validation has been switched off.
  * <p>
- * {@code enable: false} turns off SSL for the client entirely, and {@code verifyHostName: false} keeps the encrypted
- * channel but stops checking that the certificate belongs to the host being contacted. Either one leaves the
- * connection open to interception by any party able to present a certificate, so the transport looks secure while
- * providing no authentication of the peer.
+ * {@code enable: false} keeps the TLS channel but disables certificate validation, so any certificate is trusted,
+ * and {@code verifyHostName: false} keeps validation but stops checking that the certificate belongs to the host
+ * being contacted. Either one leaves the connection open to interception by any party able to present a
+ * certificate, so the transport looks secure while providing no authentication of the peer. The secure socket of
+ * each {@code targets} entry of a failover or load-balancing client is checked as well.
  *
- * @since 2.15.0
+ * @since 2.18.2
  */
 public class AvoidDisabledTlsValidationRule implements HttpConstructionRule {
 
-    private static final String SECURE_SOCKET = "secureSocket";
     private static final String ENABLE = "enable";
     private static final String VERIFY_HOST_NAME = "verifyHostName";
 
     @Override
     public void analyze(HttpConstructionRuleContext context) {
-        Optional<MappingConstructorExpressionNode> secureSocket =
-                context.arguments().getConfigurationRecord(SECURE_SOCKET);
-        if (secureSocket.isEmpty()) {
-            return;
-        }
-        for (String field : List.of(ENABLE, VERIFY_HOST_NAME)) {
-            reportIfDisabled(context, secureSocket.get(), field);
+        for (MappingConstructorExpressionNode secureSocket : context.arguments().getSecureSocketRecords()) {
+            for (String field : List.of(ENABLE, VERIFY_HOST_NAME)) {
+                reportIfDisabled(context, secureSocket, field);
+            }
         }
     }
 
@@ -68,7 +65,8 @@ public class AvoidDisabledTlsValidationRule implements HttpConstructionRule {
             return;
         }
         if (getBooleanLiteralValue(field.get().valueExpr().get()).filter(value -> !value).isPresent()) {
-            context.reporter().reportIssue(context.document(), field.get().location(), getRuleId());
+            context.reporter().reportIssue(context.document(), context.arguments().issueLocation(field.get()),
+                    getRuleId());
         }
     }
 

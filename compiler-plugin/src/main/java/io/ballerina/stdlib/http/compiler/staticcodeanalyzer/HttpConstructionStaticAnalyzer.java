@@ -20,12 +20,7 @@ package io.ballerina.stdlib.http.compiler.staticcodeanalyzer;
 
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
-import io.ballerina.compiler.syntax.tree.ExplicitNewExpressionNode;
-import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
-import io.ballerina.compiler.syntax.tree.ImplicitNewExpressionNode;
 import io.ballerina.compiler.syntax.tree.NewExpressionNode;
-import io.ballerina.compiler.syntax.tree.ParenthesizedArgList;
-import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.projects.plugins.AnalysisTask;
 import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
 import io.ballerina.scan.Reporter;
@@ -42,7 +37,7 @@ import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAna
  * Client, listener and cookie configuration is supplied at construction, so none of it is reachable from the service
  * and annotation analyzers. This task provides the missing entry point.
  *
- * @since 2.15.0
+ * @since 2.18.2
  */
 class HttpConstructionStaticAnalyzer implements AnalysisTask<SyntaxNodeAnalysisContext> {
 
@@ -65,12 +60,9 @@ class HttpConstructionStaticAnalyzer implements AnalysisTask<SyntaxNodeAnalysisC
             return;
         }
 
-        HttpConstructionArguments arguments = getArguments(newExpression)
-                .map(argumentList -> new HttpConstructionArguments(context, argumentList))
-                .orElseGet(HttpConstructionArguments::empty);
         rulesEngine.executeRules(new HttpConstructionRuleContext(reporter,
-                HttpCompilerPluginUtil.getDocument(context), context.semanticModel(), newExpression.location(),
-                typeName.get(), arguments));
+                HttpCompilerPluginUtil.getDocument(context), context.semanticModel(), newExpression,
+                typeName.get(), HttpConstructionArguments.of(context, newExpression)));
     }
 
     /**
@@ -87,18 +79,5 @@ class HttpConstructionStaticAnalyzer implements AnalysisTask<SyntaxNodeAnalysisC
             return Optional.empty();
         }
         return constructedType.getName();
-    }
-
-    /**
-     * Get the constructor arguments. A bare {@code new} carries no argument list at all.
-     */
-    private Optional<SeparatedNodeList<FunctionArgumentNode>> getArguments(NewExpressionNode newExpression) {
-        return switch (newExpression) {
-            case ExplicitNewExpressionNode explicitNew ->
-                    Optional.of(explicitNew.parenthesizedArgList().arguments());
-            case ImplicitNewExpressionNode implicitNew ->
-                    implicitNew.parenthesizedArgList().map(ParenthesizedArgList::arguments);
-            default -> Optional.empty();
-        };
     }
 }

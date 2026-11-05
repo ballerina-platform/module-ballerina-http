@@ -63,3 +63,37 @@ function secureProtocolClient() returns http:Client|error {
         }
     });
 }
+
+// The SSLv2Hello pseudo-protocol enabled on a client
+function sslv2HelloClient() returns http:Client|error {
+    return new ("https://api.example.com", secureSocket = {
+        cert: "/path/to/public.crt",
+        protocol: {
+            name: http:TLS,
+            versions: ["SSLv2Hello", "TLSv1.2"]
+        }
+    });
+}
+
+// A withdrawn TLS version on one target of a load-balancing client
+function loadBalanceTargetWeakVersion() returns http:LoadBalanceClient|error {
+    return new ({
+        targets: [
+            {
+                url: "https://a.example.com",
+                secureSocket: {cert: "/path/to/public.crt", protocol: {name: http:TLS, versions: ["TLSv1.1"]}}
+            }
+        ]
+    });
+}
+
+// Negative case - the SSL context name with a string literal; only the versions decide what is negotiated
+function sslContextNameLiteral() returns http:Client|error {
+    return new ("https://api.example.com", secureSocket = {
+        cert: "/path/to/public.crt",
+        protocol: {
+            name: "SSL",
+            versions: ["TLSv1.3"]
+        }
+    });
+}

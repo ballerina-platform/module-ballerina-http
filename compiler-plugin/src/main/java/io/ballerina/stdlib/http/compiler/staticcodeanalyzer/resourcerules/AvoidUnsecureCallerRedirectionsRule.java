@@ -34,7 +34,7 @@ import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.isHttpMod
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpRule.AVOID_UNSECURE_CALLER_REDIRECTIONS;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getEffectiveExpression;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getListElements;
-import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getUsedParamNames;
+import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getRedirectTargetParamNames;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.resolveConstructedType;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.unescapeIdentifier;
 
@@ -46,7 +46,7 @@ import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAna
  * redirect sink in the module: {@code AvoidUnsecureRedirectionsRule} covers the {@code location} header of a status
  * code response, and this one covers the explicit caller API.
  *
- * @since 2.15.0
+ * @since 2.18.2
  */
 public class AvoidUnsecureCallerRedirectionsRule implements HttpResourceRule {
 
@@ -98,7 +98,7 @@ public class AvoidUnsecureCallerRedirectionsRule implements HttpResourceRule {
             targets.add(locations.get());
         }
         for (ExpressionNode target : targets) {
-            if (getUsedParamNames(target).stream().anyMatch(context.resourceParamNames()::contains)) {
+            if (getRedirectTargetParamNames(target).stream().anyMatch(context.resourceParamNames()::contains)) {
                 context.reporter().reportIssue(context.document(), target.location(), getRuleId());
             }
         }

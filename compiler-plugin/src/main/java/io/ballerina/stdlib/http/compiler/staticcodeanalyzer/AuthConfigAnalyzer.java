@@ -21,13 +21,16 @@ package io.ballerina.stdlib.http.compiler.staticcodeanalyzer;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingFieldNode;
+import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.projects.Document;
 import io.ballerina.scan.Reporter;
+import io.ballerina.tools.diagnostics.Location;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpRule.AVOID_DISABLED_AUTH_PROVIDER_TLS;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpRule.ENSURE_AUTHORIZATION_SCOPES;
@@ -36,15 +39,19 @@ import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAna
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getBooleanLiteralValue;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getEffectiveExpression;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getNestedMapping;
+import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.hasUnresolvableFields;
 
 /**
  * Checks that apply to an authentication configuration record, wherever it appears.
  * <p>
- * The same configuration shapes are reachable from two unrelated places: a client passes them to its constructor,
- * and a service declares them in {@code @http:ServiceConfig}. The checks live here so both entry points share one
- * implementation rather than diverging.
+ * The same configuration shapes are reachable from several unrelated places: a client passes them to its
+ * constructor, a service declares them in {@code @http:ServiceConfig}, and an auth handler takes them at
+ * construction. The checks live here so every entry point shares one implementation rather than diverging.
+ * <p>
+ * Each check that reports an absent field skips a record built with spread or computed fields, since those may well
+ * supply the field.
  *
- * @since 2.15.0
+ * @since 2.18.2
  */
 public final class AuthConfigAnalyzer {
 
@@ -76,14 +83,16 @@ public final class AuthConfigAnalyzer {
      * @param authConfig the authentication configuration record
      * @param reporter   static code analysis reporter
      * @param document   the document being analyzed
+     * @param locator    maps the offending node to the location to report at
      */
     public static void reportDisabledTlsValidation(MappingConstructorExpressionNode authConfig, Reporter reporter,
-                                                   Document document) {
-        reportDisabledTlsValidation(authConfig, reporter, document, 0);
+                                                   Document document, Function<Node, Location> locator) {
+        reportDisabledTlsValidation(authConfig, reporter, document, locator, 0);
     }
 
     private static void reportDisabledTlsValidation(MappingConstructorExpressionNode config, Reporter reporter,
-                                                    Document document, int depth) {
+                                                    Document document, Function<Node, Location> locator,
+                                                    int depth) {
         if (depth > MAX_SECURE_SOCKET_DEPTH) {
             return;
         }
@@ -98,20 +107,20 @@ public final class AuthConfigAnalyzer {
                 continue;
             }
             if (HttpStaticAnalysisUtils.matchesFieldName(specificField.fieldName(), SECURE_SOCKET, false)) {
-                reportIfValidationDisabled(nested, reporter, document);
+                reportIfValidationDisabled(nested, reporter, document, locator);
             }
-            reportDisabledTlsValidation(nested, reporter, document, depth + 1);
+            reportDisabledTlsValidation(nested, reporter, document, locator, depth + 1);
         }
     }
 
     private static void reportIfValidationDisabled(MappingConstructorExpressionNode secureSocket, Reporter reporter,
-                                                   Document document) {
+                                                   Document document, Function<Node, Location> locator) {
         Optional<SpecificFieldNode> disable = findSpecificField(secureSocket, DISABLE);
         if (disable.isEmpty() || disable.get().valueExpr().isEmpty()) {
             return;
         }
         if (getBooleanLiteralValue(disable.get().valueExpr().get()).orElse(false)) {
-            reporter.reportIssue(document, disable.get().location(), AVOID_DISABLED_AUTH_PROVIDER_TLS.getId());
+            reporter.reportIssue(document, locator.apply(disable.get()), AVOID_DISABLED_AUTH_PROVIDER_TLS.getId());
         }
     }
 
@@ -128,18 +137,13 @@ public final class AuthConfigAnalyzer {
      */
     public static void reportMissingScopes(MappingConstructorExpressionNode authConfig, Reporter reporter,
                                            Document document) {
-        if (findSpecificField(authConfig, SCOPES).isEmpty()) {
+        if (findSpecificField(authConfig, SCOPES).isEmpty() && !hasUnresolvableFields(authConfig)) {
             reporter.reportIssue(document, authConfig.location(), ENSURE_AUTHORIZATION_SCOPES.getId());
         }
     }
 
     /**
-     * Report a JWT validator configuration that omits a verification step.
-     * <p>
-     * {@code signatureConfig}, {@code issuer} and {@code audience} are all optional, and each one that is left out
-     * removes a check rather than defaulting to a safe value. With no {@code signatureConfig} the signature is never
-     * verified at all, so any self-signed token is accepted; with no {@code issuer} or {@code audience} a token
-     * genuinely issued for a different service is accepted here.
+     * Report a listener authentication configuration whose JWT validator omits a verification step.
      * <p>
      * A listener authentication configuration nests its provider under a named field, so the checks apply to the
      * {@code jwtValidatorConfig} record rather than to the entry that carries it. That field also identifies the
@@ -151,14 +155,32 @@ public final class AuthConfigAnalyzer {
      */
     public static void reportUnverifiedJwt(MappingConstructorExpressionNode authConfig, Reporter reporter,
                                            Document document) {
-        Optional<MappingConstructorExpressionNode> validatorConfig = getNestedMapping(authConfig,
-                JWT_VALIDATOR_CONFIG);
-        if (validatorConfig.isEmpty()) {
+        getNestedMapping(authConfig, JWT_VALIDATOR_CONFIG).ifPresent(validatorConfig ->
+                reportUnverifiedJwtValidator(validatorConfig, reporter, document, Node::location));
+    }
+
+    /**
+     * Report a JWT validator configuration that omits a verification step.
+     * <p>
+     * {@code signatureConfig}, {@code issuer} and {@code audience} are all optional, and each one that is left out
+     * removes a check rather than defaulting to a safe value. With no {@code signatureConfig} the signature is never
+     * verified at all, so any self-signed token is accepted; with no {@code issuer} or {@code audience} a token
+     * genuinely issued for a different service is accepted here.
+     *
+     * @param validatorConfig the JWT validator configuration record
+     * @param reporter        static code analysis reporter
+     * @param document        the document being analyzed
+     * @param locator         maps the offending node to the location to report at
+     */
+    public static void reportUnverifiedJwtValidator(MappingConstructorExpressionNode validatorConfig,
+                                                    Reporter reporter, Document document,
+                                                    Function<Node, Location> locator) {
+        if (hasUnresolvableFields(validatorConfig)) {
             return;
         }
         for (String field : List.of(SIGNATURE_CONFIG, ISSUER, AUDIENCE)) {
-            if (findSpecificField(validatorConfig.get(), field).isEmpty()) {
-                reporter.reportIssue(document, validatorConfig.get().location(), ENSURE_JWT_VERIFICATION.getId());
+            if (findSpecificField(validatorConfig, field).isEmpty()) {
+                reporter.reportIssue(document, locator.apply(validatorConfig), ENSURE_JWT_VERIFICATION.getId());
                 return;
             }
         }

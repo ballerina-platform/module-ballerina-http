@@ -38,5 +38,25 @@
     "source": "BUILT_IN",
     "fileName": "rule12/service.bal",
     "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule12/service.bal"
+  },
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 121,
+      "endLine": 129,
+      "startColumn": 8,
+      "endColumn": 9,
+      "startOffset": 3117,
+      "length": 235
+    },
+    "rule": {
+      "id": "ballerina/http:12",
+      "numericId": 12,
+      "description": "A listener authentication configuration authenticates callers without requiring any authorization scopes.",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule12/service.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule12/service.bal"
   }
 ]

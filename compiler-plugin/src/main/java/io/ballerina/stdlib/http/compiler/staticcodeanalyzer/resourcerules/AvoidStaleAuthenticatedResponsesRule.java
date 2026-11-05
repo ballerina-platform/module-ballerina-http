@@ -22,26 +22,31 @@ import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpResourceRuleContext;
 
+import java.util.List;
 import java.util.Optional;
 
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpRule.AVOID_STALE_AUTHENTICATED_RESPONSES;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getBooleanLiteralValue;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getFieldValue;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.resourcerules.CacheAnalysisSupport.CACHE_ANNOTATION;
+import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.resourcerules.CacheAnalysisSupport.getFlag;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.resourcerules.CacheAnalysisSupport.getReturnTypeAnnotation;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.resourcerules.CacheAnalysisSupport.requiresAuthentication;
 
 /**
- * Reports a resource that requires authentication but turns off cache revalidation.
+ * Reports a resource that requires authentication but allows caches to serve its response stale.
  *
- * <p>{@code mustRevalidate} defaults to {@code true}. Setting it to {@code false} permits a cache to serve a
- * stored copy of an authenticated response without checking back with the service, so a response continues to
- * be served after the caller's access has been revoked.</p>
+ * <p>{@code mustRevalidate} defaults to {@code true}. It governs only entries that are already stale: setting it to
+ * {@code false} lets a cache keep serving a stored authenticated response after {@code maxAge} has expired, for
+ * example while the service is unreachable or to a client that accepts stale content, without checking back with
+ * the service. {@code noStore}, {@code noCache} and {@code proxyRevalidate} each remove or narrow that window, so a
+ * literal {@code true} on any of them suppresses the issue.</p>
  *
- * @since 2.16.0
+ * @since 2.18.2
  */
 public class AvoidStaleAuthenticatedResponsesRule implements HttpResourceRule {
     private static final String MUST_REVALIDATE_FIELD = "mustRevalidate";
+    private static final List<String> STALE_REUSE_GUARDS = List.of("noStore", "noCache", "proxyRevalidate");
 
     @Override
     public void analyze(HttpResourceRuleContext context) {
@@ -62,7 +67,10 @@ public class AvoidStaleAuthenticatedResponsesRule implements HttpResourceRule {
         if (getBooleanLiteralValue(mustRevalidate.get()).filter(value -> !value).isEmpty()) {
             return;
         }
-        if (!requiresAuthentication(context)) {
+        boolean staleReuseGuarded = STALE_REUSE_GUARDS.stream()
+                .map(field -> getFlag(config.get(), field))
+                .anyMatch(flag -> flag.isEmpty() || flag.get());
+        if (staleReuseGuarded || !requiresAuthentication(context)) {
             return;
         }
         context.reporter().reportIssue(context.document(), mustRevalidate.get().location(), getRuleId());

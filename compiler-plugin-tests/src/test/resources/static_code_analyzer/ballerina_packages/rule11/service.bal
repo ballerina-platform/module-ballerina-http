@@ -117,3 +117,44 @@ service /noVerification on securedListener {
         return "Hello";
     }
 }
+
+// A JWT auth handler constructed directly, without a signature check
+function unverifiedJwtHandler() returns http:ListenerJwtAuthHandler {
+    return new ({
+        issuer: "wso2",
+        audience: "ballerina"
+    });
+}
+
+// Negative case - a JWT auth handler that verifies everything
+function verifiedJwtHandler() returns http:ListenerJwtAuthHandler {
+    return new ({
+        issuer: "wso2",
+        audience: "ballerina",
+        signatureConfig: {
+            certFile: "/path/to/public.crt"
+        }
+    });
+}
+
+final readonly & record {|string issuer; string audience;|} commonJwt = {issuer: "wso2", audience: "ballerina"};
+
+// Negative case - fields supplied through a spread cannot be ruled out
+@http:ServiceConfig {
+    auth: [
+        {
+            jwtValidatorConfig: {
+                ...commonJwt,
+                signatureConfig: {
+                    certFile: "/path/to/public.crt"
+                }
+            },
+            scopes: ["admin"]
+        }
+    ]
+}
+service /spreadValidator on securedListener {
+    resource function get greet() returns string {
+        return "Hello";
+    }
+}

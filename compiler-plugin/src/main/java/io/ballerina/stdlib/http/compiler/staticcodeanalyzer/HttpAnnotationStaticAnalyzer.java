@@ -19,10 +19,14 @@
 package io.ballerina.stdlib.http.compiler.staticcodeanalyzer;
 
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
+import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
+import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.NodeList;
+import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.projects.Document;
@@ -31,15 +35,18 @@ import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
 import io.ballerina.scan.Reporter;
 import io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpRule.AVOID_CREDENTIALED_WILDCARD_CORS;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpRule.AVOID_PERMISSIVE_CORS;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.findSpecificField;
+import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getBooleanLiteralValue;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getEffectiveExpression;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getFieldValue;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getListElements;
+import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.isHttpAnnotation;
 
 /**
  * Analyzer to validate static rules related to HTTP annotations.
@@ -52,6 +59,9 @@ class HttpAnnotationStaticAnalyzer implements AnalysisTask<SyntaxNodeAnalysisCon
     private static final String ALLOW_ORIGINS_FIELD_NAME = "allowOrigins";
     private static final String ALLOW_CREDENTIALS_FIELD_NAME = "allowCredentials";
     private static final String AUTH_FIELD_NAME = "auth";
+    private static final String SCOPES_FIELD_NAME = "scopes";
+    private static final String SERVICE_CONFIG_ANNOTATION = "ServiceConfig";
+    private static final String RESOURCE_CONFIG_ANNOTATION = "ResourceConfig";
     public static final Pattern WILDCARD_ORIGIN = Pattern.compile("\"(\s*)\\*(\s*)\"");
 
     public HttpAnnotationStaticAnalyzer(Reporter reporter) {
@@ -70,7 +80,7 @@ class HttpAnnotationStaticAnalyzer implements AnalysisTask<SyntaxNodeAnalysisCon
         }
         Document document = HttpCompilerPluginUtil.getDocument(context);
         validateCorsConfig(annotationValue.get(), document);
-        validateAuthConfig(annotationValue.get(), document);
+        validateAuthConfig(context, annotationNode, annotationValue.get(), document);
     }
 
     /**
@@ -79,21 +89,68 @@ class HttpAnnotationStaticAnalyzer implements AnalysisTask<SyntaxNodeAnalysisCon
      * {@code auth} is a list of provider configurations. A resource may instead give a bare {@code Scopes} record,
      * which carries a required {@code scopes} field and so has nothing to check.
      *
+     * @param context            the analysis context
+     * @param annotation         the annotation being analyzed
      * @param annotationValueMap the annotation's configuration record
      * @param document           the document being analyzed
      */
-    private void validateAuthConfig(MappingConstructorExpressionNode annotationValueMap, Document document) {
+    private void validateAuthConfig(SyntaxNodeAnalysisContext context, AnnotationNode annotation,
+                                    MappingConstructorExpressionNode annotationValueMap, Document document) {
         Optional<ExpressionNode> authField = getFieldValue(annotationValueMap, AUTH_FIELD_NAME);
         if (authField.isEmpty()) {
             return;
         }
+        boolean scopesNarrowedPerResource = everyResourceNarrowsAuth(context, annotation);
         for (ExpressionNode authConfig : getListElements(authField.get())) {
             if (getEffectiveExpression(authConfig) instanceof MappingConstructorExpressionNode authConfigMap) {
-                AuthConfigAnalyzer.reportDisabledTlsValidation(authConfigMap, this.reporter, document);
+                AuthConfigAnalyzer.reportDisabledTlsValidation(authConfigMap, this.reporter, document,
+                        Node::location);
                 AuthConfigAnalyzer.reportUnverifiedJwt(authConfigMap, this.reporter, document);
-                AuthConfigAnalyzer.reportMissingScopes(authConfigMap, this.reporter, document);
+                if (!scopesNarrowedPerResource) {
+                    AuthConfigAnalyzer.reportMissingScopes(authConfigMap, this.reporter, document);
+                }
             }
         }
+    }
+
+    /**
+     * Check whether the annotation is a service-level {@code ServiceConfig} on a service whose every resource
+     * declares its own {@code auth} in {@code @http:ResourceConfig}, either the {@code Scopes} form that narrows the
+     * service's providers or a provider list that replaces them. Authorization is then enforced per resource, and the
+     * service-level provider needs no scopes of its own.
+     */
+    private static boolean everyResourceNarrowsAuth(SyntaxNodeAnalysisContext context, AnnotationNode annotation) {
+        if (!isHttpAnnotation(context.semanticModel(), annotation, SERVICE_CONFIG_ANNOTATION)
+                || annotation.parent() == null) {
+            return false;
+        }
+        NodeList<Node> members = switch (annotation.parent().parent()) {
+            case ServiceDeclarationNode service -> service.members();
+            case ClassDefinitionNode serviceClass -> serviceClass.members();
+            case null, default -> null;
+        };
+        if (members == null) {
+            return false;
+        }
+        List<FunctionDefinitionNode> resources = members.stream()
+                .filter(member -> member.kind() == SyntaxKind.RESOURCE_ACCESSOR_DEFINITION)
+                .map(FunctionDefinitionNode.class::cast)
+                .toList();
+        return !resources.isEmpty()
+                && resources.stream().allMatch(resource -> declaresResourceAuth(context, resource));
+    }
+
+    private static boolean declaresResourceAuth(SyntaxNodeAnalysisContext context, FunctionDefinitionNode resource) {
+        return resource.metadata().stream()
+                .flatMap(metadata -> metadata.annotations().stream())
+                .filter(annotation -> isHttpAnnotation(context.semanticModel(), annotation,
+                        RESOURCE_CONFIG_ANNOTATION))
+                .flatMap(annotation -> annotation.annotValue().stream())
+                .flatMap(config -> getFieldValue(config, AUTH_FIELD_NAME).stream())
+                .map(HttpStaticAnalysisUtils::getEffectiveExpression)
+                .anyMatch(auth -> auth instanceof ListConstructorExpressionNode
+                        || auth instanceof MappingConstructorExpressionNode scopes
+                        && findSpecificField(scopes, SCOPES_FIELD_NAME).isPresent());
     }
 
     private void validateCorsConfig(MappingConstructorExpressionNode annotationValueMap, Document document) {
@@ -139,7 +196,7 @@ class HttpAnnotationStaticAnalyzer implements AnalysisTask<SyntaxNodeAnalysisCon
         }
         // Only a literal `true` is actionable. A variable or expression cannot be resolved here, and reporting on
         // one would be a guess, so those are left alone.
-        if (!Boolean.parseBoolean(allowCredentials.get().valueExpr().get().toSourceCode().trim())) {
+        if (!getBooleanLiteralValue(allowCredentials.get().valueExpr().get()).orElse(false)) {
             return;
         }
         boolean hasWildcardOrigin = origins.expressions().stream()

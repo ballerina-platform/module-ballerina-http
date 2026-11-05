@@ -29,7 +29,7 @@ import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAna
 /**
  * Reports a listener that advertises a product version through the {@code server} response header.
  *
- * @since 2.16.0
+ * @since 2.18.2
  */
 public class AvoidServerVersionDisclosureRule implements HttpConstructionRule {
     private static final String LISTENER = "Listener";
@@ -50,7 +50,8 @@ public class AvoidServerVersionDisclosureRule implements HttpConstructionRule {
             return;
         }
         if (VERSION_TOKEN.matcher(serverValue.get()).find()) {
-            context.reporter().reportIssue(context.document(), serverField.get().location(), getRuleId());
+            context.reporter().reportIssue(context.document(), context.arguments().issueLocation(serverField.get()),
+                    getRuleId());
         }
     }
 

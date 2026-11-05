@@ -19,9 +19,9 @@
 package io.ballerina.stdlib.http.compiler.staticcodeanalyzer;
 
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.syntax.tree.NewExpressionNode;
 import io.ballerina.projects.Document;
 import io.ballerina.scan.Reporter;
-import io.ballerina.tools.diagnostics.Location;
 
 /**
  * Context information required to analyze static code analysis rules on HTTP object construction.
@@ -29,14 +29,14 @@ import io.ballerina.tools.diagnostics.Location;
  * @param reporter            static code analysis reporter
  * @param document            Ballerina document
  * @param semanticModel       semantic model of the document
- * @param constructionLocation location of the constructor expression, for reporting on the
- *                            construction itself rather than on one of its fields
+ * @param construction        the constructor expression, for reporting on the construction itself and inspecting
+ *                            where its value goes
  * @param constructedTypeName simple name of the constructed {@code ballerina/http} type, for example {@code Listener}
  * @param arguments           constructor arguments, normalized across positional and named forms
  *
- * @since 2.15.0
+ * @since 2.18.2
  */
 public record HttpConstructionRuleContext(Reporter reporter, Document document, SemanticModel semanticModel,
-                                          Location constructionLocation, String constructedTypeName,
+                                          NewExpressionNode construction, String constructedTypeName,
                                           HttpConstructionArguments arguments) {
 }

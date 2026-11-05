@@ -2,26 +2,6 @@
   {
     "location": {
       "filePath": "protocol.bal",
-      "startLine": 24,
-      "endLine": 24,
-      "startColumn": 18,
-      "endColumn": 26,
-      "startOffset": 904,
-      "length": 8
-    },
-    "rule": {
-      "id": "ballerina/http:7",
-      "numericId": 7,
-      "description": "A secure socket enables a weak TLS protocol version.",
-      "ruleKind": "VULNERABILITY"
-    },
-    "source": "BUILT_IN",
-    "fileName": "rule7/protocol.bal",
-    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule7/protocol.bal"
-  },
-  {
-    "location": {
-      "filePath": "protocol.bal",
       "startLine": 36,
       "endLine": 36,
       "startColumn": 23,
@@ -68,6 +48,46 @@
       "endColumn": 30,
       "startOffset": 1625,
       "length": 7
+    },
+    "rule": {
+      "id": "ballerina/http:7",
+      "numericId": 7,
+      "description": "A secure socket enables a weak TLS protocol version.",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule7/protocol.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule7/protocol.bal"
+  },
+  {
+    "location": {
+      "filePath": "protocol.bal",
+      "startLine": 72,
+      "endLine": 72,
+      "startColumn": 23,
+      "endColumn": 35,
+      "startOffset": 2249,
+      "length": 12
+    },
+    "rule": {
+      "id": "ballerina/http:7",
+      "numericId": 7,
+      "description": "A secure socket enables a weak TLS protocol version.",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule7/protocol.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule7/protocol.bal"
+  },
+  {
+    "location": {
+      "filePath": "protocol.bal",
+      "startLine": 83,
+      "endLine": 83,
+      "startColumn": 98,
+      "endColumn": 107,
+      "startOffset": 2637,
+      "length": 9
     },
     "rule": {
       "id": "ballerina/http:7",

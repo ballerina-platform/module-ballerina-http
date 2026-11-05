@@ -61,9 +61,7 @@ public enum HttpRule {
     AVOID_SERVER_VERSION_DISCLOSURE(createRule(17, "The server response header discloses a product version.",
             VULNERABILITY)),
     AVOID_STALE_AUTHENTICATED_RESPONSES(createRule(18, "A cached response that requires authentication may be " +
-            "served stale without revalidation.", VULNERABILITY)),
-    AVOID_SHARED_CACHE_WITH_CREDENTIALS(createRule(19, "A client response cache is shared across callers while " +
-            "credentials are configured.", VULNERABILITY));
+            "served stale without revalidation.", VULNERABILITY));
 
     private final Rule rule;
 

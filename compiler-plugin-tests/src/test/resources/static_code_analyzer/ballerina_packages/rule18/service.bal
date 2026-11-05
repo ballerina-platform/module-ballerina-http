@@ -37,6 +37,21 @@ service /secured on securedListener {
         return {name: "user"};
     }
 
+    // Compliant: not stored, so there is no stale copy to serve.
+    resource function get secret() returns @http:Cache {noStore: true, mustRevalidate: false} json {
+        return {secret: "xyz"};
+    }
+
+    // Compliant: no-cache forces revalidation on every use.
+    resource function get preferences() returns @http:Cache {isPrivate: true, noCache: true, mustRevalidate: false} json {
+        return {lang: "en"};
+    }
+
+    // Compliant: proxy-revalidate covers the shared caches.
+    resource function get account() returns @http:Cache {isPrivate: true, proxyRevalidate: true, mustRevalidate: false} json {
+        return {id: 1};
+    }
+
     // Compliant: revalidation left at its default.
     resource function get settings() returns @http:Cache {isPrivate: true} json {
         return {theme: "dark"};

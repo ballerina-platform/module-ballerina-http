@@ -78,5 +78,25 @@
     "source": "BUILT_IN",
     "fileName": "rule11/service.bal",
     "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule11/service.bal"
+  },
+  {
+    "location": {
+      "filePath": "service.bal",
+      "startLine": 122,
+      "endLine": 125,
+      "startColumn": 16,
+      "endColumn": 5,
+      "startOffset": 3195,
+      "length": 61
+    },
+    "rule": {
+      "id": "ballerina/http:11",
+      "numericId": 11,
+      "description": "A JSON Web Token validator omits signature, issuer or audience verification.",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule11/service.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule11/service.bal"
   }
 ]

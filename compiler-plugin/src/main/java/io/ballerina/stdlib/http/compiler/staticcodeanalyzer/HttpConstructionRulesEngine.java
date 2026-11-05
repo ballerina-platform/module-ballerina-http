@@ -22,9 +22,9 @@ import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.constructionrules.Av
 import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.constructionrules.AvoidDisabledTlsValidationRule;
 import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.constructionrules.AvoidForwardingCredentialsOnRedirectRule;
 import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.constructionrules.AvoidServerVersionDisclosureRule;
-import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.constructionrules.AvoidSharedCacheWithCredentialsRule;
 import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.constructionrules.AvoidUnlimitedRequestBodySizeRule;
 import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.constructionrules.AvoidWeakTlsProtocolsRule;
+import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.constructionrules.EnsureJwtHandlerVerificationRule;
 import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.constructionrules.EnsureSecureCookieConfigurationRule;
 import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.constructionrules.HttpConstructionRule;
 
@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * Engine to manage and execute static code analysis rules on HTTP object construction.
  *
- * @since 2.15.0
+ * @since 2.18.2
  */
 public class HttpConstructionRulesEngine {
 
@@ -65,9 +65,9 @@ public class HttpConstructionRulesEngine {
         addRule(new AvoidForwardingCredentialsOnRedirectRule());
         addRule(new EnsureSecureCookieConfigurationRule());
         addRule(new AvoidDisabledAuthProviderTlsRule());
+        addRule(new EnsureJwtHandlerVerificationRule());
         addRule(new AvoidUnlimitedRequestBodySizeRule());
         addRule(new AvoidServerVersionDisclosureRule());
-        addRule(new AvoidSharedCacheWithCredentialsRule());
         // Add more default rules here as needed
     }
 }

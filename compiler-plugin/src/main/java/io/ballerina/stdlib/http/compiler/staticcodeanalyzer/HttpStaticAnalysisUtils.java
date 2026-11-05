@@ -18,16 +18,23 @@
 
 package io.ballerina.stdlib.http.compiler.staticcodeanalyzer;
 
+import io.ballerina.compiler.api.ModuleID;
+import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.IntersectionTypeSymbol;
+import io.ballerina.compiler.api.symbols.ModuleSymbol;
+import io.ballerina.compiler.api.symbols.Qualifier;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
+import io.ballerina.compiler.api.symbols.VariableSymbol;
+import io.ballerina.compiler.syntax.tree.AnnotationNode;
 import io.ballerina.compiler.syntax.tree.AssignmentStatementNode;
 import io.ballerina.compiler.syntax.tree.BasicLiteralNode;
 import io.ballerina.compiler.syntax.tree.BinaryExpressionNode;
 import io.ballerina.compiler.syntax.tree.BlockStatementNode;
+import io.ballerina.compiler.syntax.tree.BracedExpressionNode;
 import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.DoStatementNode;
@@ -48,12 +55,15 @@ import io.ballerina.compiler.syntax.tree.ListenerDeclarationNode;
 import io.ballerina.compiler.syntax.tree.LockStatementNode;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MatchStatementNode;
+import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.ObjectTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.OnFailClauseNode;
+import io.ballerina.compiler.syntax.tree.ParameterNode;
+import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.ReturnStatementNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
@@ -61,13 +71,16 @@ import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.StatementNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.TemplateExpressionNode;
+import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypeCastExpressionNode;
 import io.ballerina.compiler.syntax.tree.TypeCastParamNode;
+import io.ballerina.compiler.syntax.tree.UnaryExpressionNode;
 import io.ballerina.compiler.syntax.tree.VariableDeclarationNode;
 import io.ballerina.compiler.syntax.tree.WhileStatementNode;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
+import io.ballerina.projects.ModuleDescriptor;
 import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
 import io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil;
 import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.models.HttpService;
@@ -79,6 +92,7 @@ import io.ballerina.tools.diagnostics.Location;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.isHttpServiceType;
 
@@ -88,6 +102,11 @@ import static io.ballerina.stdlib.http.compiler.HttpCompilerPluginUtil.isHttpSer
  * @since 2.15.0
  */
 public final class HttpStaticAnalysisUtils {
+
+    /**
+     * A string that begins with a scheme and a complete authority, so whatever is appended to it stays on that host.
+     */
+    private static final Pattern FIXED_ORIGIN = Pattern.compile("^[a-zA-Z][a-zA-Z0-9+.-]*://[^/?#@\\\\]+[/?#]");
 
     private HttpStaticAnalysisUtils() {
     }
@@ -276,30 +295,77 @@ public final class HttpStaticAnalysisUtils {
      */
     public static List<String> getUsedParamNames(ExpressionNode expressionNode) {
         List<String> paramNames = new ArrayList<>();
-        collectUsedParamNames(expressionNode, paramNames);
+        collectUsedParamNames(expressionNode, paramNames, false);
         return paramNames;
     }
 
-    private static void collectUsedParamNames(Node node, List<String> paramNames) {
+    /**
+     * Extract the parameter names that can influence where a redirect target points.
+     * <p>
+     * Same as {@link #getUsedParamNames(ExpressionNode)}, except that a composition whose leading string literal
+     * already fixes the scheme and host, such as {@code "https://example.com/" + param}, cannot send the user
+     * off-site, so the names after it are not collected.
+     *
+     * @param expressionNode the redirect target expression
+     * @return the names that can control the redirect destination
+     */
+    public static List<String> getRedirectTargetParamNames(ExpressionNode expressionNode) {
+        List<String> paramNames = new ArrayList<>();
+        collectUsedParamNames(expressionNode, paramNames, true);
+        return paramNames;
+    }
+
+    private static void collectUsedParamNames(Node node, List<String> paramNames, boolean skipFixedOrigin) {
         Node effectiveNode = node instanceof ExpressionNode expression ? getEffectiveExpression(expression) : node;
         switch (effectiveNode) {
             case SimpleNameReferenceNode simpleNameRef ->
                     paramNames.add(unescapeIdentifier(simpleNameRef.name().text()));
             case FieldAccessExpressionNode fieldAccessExpr ->
-                    collectUsedParamNames(fieldAccessExpr.expression(), paramNames);
+                    collectUsedParamNames(fieldAccessExpr.expression(), paramNames, skipFixedOrigin);
             case IndexedExpressionNode indexedExpr ->
-                    collectUsedParamNames(indexedExpr.containerExpression(), paramNames);
+                    collectUsedParamNames(indexedExpr.containerExpression(), paramNames, skipFixedOrigin);
+            case BracedExpressionNode bracedExpr ->
+                    collectUsedParamNames(bracedExpr.expression(), paramNames, skipFixedOrigin);
             case BinaryExpressionNode binaryExpr -> {
-                collectUsedParamNames(binaryExpr.lhsExpr(), paramNames);
-                collectUsedParamNames(binaryExpr.rhsExpr(), paramNames);
+                if (skipFixedOrigin && getLeadingStringLiteral(binaryExpr).filter(FIXED_ORIGIN.asPredicate())
+                        .isPresent()) {
+                    return;
+                }
+                collectUsedParamNames(binaryExpr.lhsExpr(), paramNames, skipFixedOrigin);
+                collectUsedParamNames(binaryExpr.rhsExpr(), paramNames, skipFixedOrigin);
             }
-            case TemplateExpressionNode templateExpr -> templateExpr.content().stream()
-                    .filter(InterpolationNode.class::isInstance)
-                    .forEach(content -> collectUsedParamNames(((InterpolationNode) content).expression(), paramNames));
+            case TemplateExpressionNode templateExpr -> {
+                if (skipFixedOrigin && FIXED_ORIGIN.matcher(getLeadingTemplateText(templateExpr)).find()) {
+                    return;
+                }
+                templateExpr.content().stream()
+                        .filter(InterpolationNode.class::isInstance)
+                        .forEach(content -> collectUsedParamNames(((InterpolationNode) content).expression(),
+                                paramNames, skipFixedOrigin));
+            }
             default -> {
                 // Other expressions do not reference a parameter in a form this analysis can resolve
             }
         }
+    }
+
+    private static Optional<String> getLeadingStringLiteral(BinaryExpressionNode binaryExpr) {
+        ExpressionNode leading = binaryExpr;
+        while (leading instanceof BinaryExpressionNode binary) {
+            leading = getEffectiveExpression((ExpressionNode) binary.lhsExpr());
+        }
+        return getStringLiteralValue(leading);
+    }
+
+    private static String getLeadingTemplateText(TemplateExpressionNode templateExpr) {
+        StringBuilder text = new StringBuilder();
+        for (Node content : templateExpr.content()) {
+            if (content instanceof InterpolationNode) {
+                break;
+            }
+            text.append(content.toSourceCode());
+        }
+        return text.toString();
     }
 
     /**
@@ -378,12 +444,9 @@ public final class HttpStaticAnalysisUtils {
      * @return the literal value if the expression is a boolean literal, empty otherwise
      */
     public static Optional<Boolean> getBooleanLiteralValue(ExpressionNode expression) {
-        String source = expression.toSourceCode().trim();
-        if (Boolean.TRUE.toString().equals(source)) {
-            return Optional.of(true);
-        }
-        if (Boolean.FALSE.toString().equals(source)) {
-            return Optional.of(false);
+        if (unwrapBraces(expression) instanceof BasicLiteralNode literal
+                && literal.kind() == SyntaxKind.BOOLEAN_LITERAL) {
+            return Optional.of(literal.literalToken().kind() == SyntaxKind.TRUE_KEYWORD);
         }
         return Optional.empty();
     }
@@ -395,8 +458,27 @@ public final class HttpStaticAnalysisUtils {
      * @return the literal value if the expression is an integer literal, empty otherwise
      */
     public static Optional<Long> getIntegerLiteralValue(ExpressionNode expression) {
+        ExpressionNode effective = unwrapBraces(expression);
+        boolean negated = false;
+        if (effective instanceof UnaryExpressionNode unary) {
+            SyntaxKind operator = unary.unaryOperator().kind();
+            if (operator != SyntaxKind.MINUS_TOKEN && operator != SyntaxKind.PLUS_TOKEN) {
+                return Optional.empty();
+            }
+            negated = operator == SyntaxKind.MINUS_TOKEN;
+            effective = unwrapBraces(unary.expression());
+        }
+        if (!(effective instanceof BasicLiteralNode literal) || literal.kind() != SyntaxKind.NUMERIC_LITERAL) {
+            return Optional.empty();
+        }
+        Token token = literal.literalToken();
         try {
-            return Optional.of(Long.parseLong(expression.toSourceCode().trim()));
+            long value = switch (token.kind()) {
+                case DECIMAL_INTEGER_LITERAL_TOKEN -> Long.parseLong(token.text());
+                case HEX_INTEGER_LITERAL_TOKEN -> Long.parseLong(token.text().substring(2), 16);
+                default -> throw new NumberFormatException(token.text());
+            };
+            return Optional.of(negated ? -value : value);
         } catch (NumberFormatException e) {
             return Optional.empty();
         }
@@ -409,11 +491,32 @@ public final class HttpStaticAnalysisUtils {
      * @return the literal value if the expression is a string literal, empty otherwise
      */
     public static Optional<String> getStringLiteralValue(ExpressionNode expression) {
-        String source = expression.toSourceCode().trim();
-        if (source.length() >= 2 && source.startsWith("\"") && source.endsWith("\"")) {
-            return Optional.of(source.substring(1, source.length() - 1));
+        if (unwrapBraces(expression) instanceof BasicLiteralNode literal
+                && literal.kind() == SyntaxKind.STRING_LITERAL) {
+            String text = literal.literalToken().text();
+            return Optional.of(text.substring(1, text.length() - 1));
         }
         return Optional.empty();
+    }
+
+    private static ExpressionNode unwrapBraces(ExpressionNode expression) {
+        ExpressionNode current = expression;
+        while (current instanceof BracedExpressionNode braced) {
+            current = braced.expression();
+        }
+        return current;
+    }
+
+    /**
+     * Check whether a mapping constructor contains a spread or computed field, whose entries cannot be named
+     * statically. A rule reporting on an absent field must treat such a mapping as unresolved.
+     *
+     * @param mapNode the mapping constructor to inspect
+     * @return true if any field cannot be resolved by name
+     */
+    public static boolean hasUnresolvableFields(MappingConstructorExpressionNode mapNode) {
+        return mapNode.fields().stream().anyMatch(field -> field.kind() == SyntaxKind.SPREAD_FIELD
+                || field.kind() == SyntaxKind.COMPUTED_NAME_FIELD);
     }
 
     /**
@@ -436,8 +539,11 @@ public final class HttpStaticAnalysisUtils {
      * Resolve the initializer of the variable or listener the given expression refers to.
      * <p>
      * A value written into a variable and then passed on is invisible to a rule that only reads the call site, so a
-     * name reference is followed to the expression it was declared with. The declaration may live in any document of
-     * the module, so it is located through the module's syntax trees rather than the current document alone.
+     * name reference is followed to the expression it was declared with. Only a declaration whose value cannot change
+     * afterwards is followed: a listener, or a {@code final} variable that is not {@code configurable}. Any other
+     * variable may be reassigned, mutated or overridden from configuration, so its initializer is not evidence of
+     * the value that reaches the call site. The declaration may live in any document of the current module, so it is
+     * located through the module's syntax trees rather than the current document alone.
      *
      * @param context    the analysis context, for the semantic model and the module's documents
      * @param expression the expression to resolve
@@ -445,14 +551,42 @@ public final class HttpStaticAnalysisUtils {
      */
     public static Optional<ExpressionNode> resolveVariableInitializer(SyntaxNodeAnalysisContext context,
                                                                      ExpressionNode expression) {
-        return context.semanticModel().symbol(expression)
+        if (!(getEffectiveExpression(expression) instanceof SimpleNameReferenceNode
+                || getEffectiveExpression(expression) instanceof QualifiedNameReferenceNode)) {
+            return Optional.empty();
+        }
+        return context.semanticModel().symbol(getEffectiveExpression(expression))
+                .filter(HttpStaticAnalysisUtils::isImmutableBinding)
+                .filter(symbol -> isDeclaredInCurrentModule(context, symbol))
                 .flatMap(Symbol::getLocation)
                 .flatMap(location -> findDeclarationNode(context, location))
                 .flatMap(HttpStaticAnalysisUtils::getDeclarationInitializer);
     }
 
+    private static boolean isImmutableBinding(Symbol symbol) {
+        if (!(symbol instanceof VariableSymbol variable)) {
+            return false;
+        }
+        List<Qualifier> qualifiers = variable.qualifiers();
+        if (qualifiers.contains(Qualifier.CONFIGURABLE)) {
+            return false;
+        }
+        return qualifiers.contains(Qualifier.FINAL) || qualifiers.contains(Qualifier.LISTENER);
+    }
+
+    private static boolean isDeclaredInCurrentModule(SyntaxNodeAnalysisContext context, Symbol symbol) {
+        Optional<ModuleSymbol> symbolModule = symbol.getModule();
+        if (symbolModule.isEmpty()) {
+            return false;
+        }
+        ModuleID symbolModuleId = symbolModule.get().id();
+        ModuleDescriptor currentModule = context.currentPackage().module(context.moduleId()).descriptor();
+        return symbolModuleId.orgName().equals(currentModule.org().value())
+                && symbolModuleId.moduleName().equals(currentModule.name().toString());
+    }
+
     /**
-     * Find the syntax node a symbol was declared at, in whichever document of the module holds it.
+     * Find the syntax node a symbol was declared at, in whichever document of the current module holds it.
      */
     private static Optional<Node> findDeclarationNode(SyntaxNodeAnalysisContext context, Location location) {
         Module module = context.currentPackage().module(context.moduleId());
@@ -461,7 +595,8 @@ public final class HttpStaticAnalysisUtils {
             if (!document.name().equals(location.lineRange().fileName())) {
                 continue;
             }
-            if (document.syntaxTree().rootNode() instanceof ModulePartNode modulePart) {
+            if (document.syntaxTree().rootNode() instanceof ModulePartNode modulePart
+                    && location.textRange().endOffset() <= modulePart.textRangeWithMinutiae().endOffset()) {
                 return Optional.ofNullable(modulePart.findNode(location.textRange()));
             }
         }
@@ -470,27 +605,67 @@ public final class HttpStaticAnalysisUtils {
 
     /**
      * Walk up from the node a symbol resolved to, which is the declared name, to the declaration that holds the
-     * initializer.
+     * initializer. The walk stops at the first declaration, parameter, statement or body boundary, so a declaration
+     * without an initializer never borrows an enclosing one.
      */
     private static Optional<ExpressionNode> getDeclarationInitializer(Node declaration) {
         Node current = declaration;
         while (current != null) {
-            Optional<Node> initializer = switch (current) {
-                case ListenerDeclarationNode listenerDeclaration -> Optional.of(listenerDeclaration.initializer());
+            Optional<Node> initializer;
+            switch (current) {
+                case ListenerDeclarationNode listenerDeclaration ->
+                        initializer = Optional.of(listenerDeclaration.initializer());
                 case ModuleVariableDeclarationNode variableDeclaration ->
-                        variableDeclaration.initializer().map(Node.class::cast);
+                        initializer = variableDeclaration.initializer().map(Node.class::cast);
                 case VariableDeclarationNode variableDeclaration ->
-                        variableDeclaration.initializer().map(Node.class::cast);
-                default -> Optional.empty();
-            };
-            if (initializer.isPresent()) {
-                return initializer
-                        .filter(ExpressionNode.class::isInstance)
-                        .map(node -> getEffectiveExpression((ExpressionNode) node));
+                        initializer = variableDeclaration.initializer().map(Node.class::cast);
+                case ParameterNode ignored -> {
+                    return Optional.empty();
+                }
+                case StatementNode ignored -> {
+                    return Optional.empty();
+                }
+                case FunctionBodyNode ignored -> {
+                    return Optional.empty();
+                }
+                case ModuleMemberDeclarationNode ignored -> {
+                    return Optional.empty();
+                }
+                default -> {
+                    current = current.parent();
+                    continue;
+                }
             }
-            current = current.parent();
+            return initializer
+                    .filter(ExpressionNode.class::isInstance)
+                    .map(node -> getEffectiveExpression((ExpressionNode) node));
         }
         return Optional.empty();
+    }
+
+    /**
+     * Check whether an annotation is the {@code ballerina/http} annotation of the given name, whatever prefix the
+     * module was imported under. The name alone is not enough, since other modules declare annotations such as
+     * {@code ServiceConfig} or {@code Cache} of their own.
+     *
+     * @param semanticModel  the semantic model of the document
+     * @param annotation     the annotation to check
+     * @param annotationName the simple annotation name, for example {@code ServiceConfig}
+     * @return true if the annotation is the named HTTP annotation
+     */
+    public static boolean isHttpAnnotation(SemanticModel semanticModel, AnnotationNode annotation,
+                                           String annotationName) {
+        Node reference = annotation.annotReference();
+        String name = reference instanceof QualifiedNameReferenceNode qualified ?
+                qualified.identifier().text() : reference.toSourceCode().trim();
+        if (!annotationName.equals(unescapeIdentifier(name))) {
+            return false;
+        }
+        return semanticModel.symbol(annotation)
+                .or(() -> semanticModel.symbol(reference))
+                .flatMap(Symbol::getModule)
+                .filter(module -> module.getName().isPresent() && HttpCompilerPluginUtil.isHttpModule(module))
+                .isPresent();
     }
 
     /**

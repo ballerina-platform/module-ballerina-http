@@ -63,3 +63,29 @@ function securedTokenEndpoint() returns http:Client|error {
         }
     });
 }
+
+// A client OAuth2 handler constructed directly, whose token endpoint client accepts any certificate
+function clientOAuth2Handler() returns http:ClientOAuth2Handler {
+    return new ({
+        tokenUrl: "https://idp.example.com/token",
+        clientId: "client-id",
+        clientSecret: "client-secret",
+        clientConfig: {
+            secureSocket: {
+                disable: true
+            }
+        }
+    });
+}
+
+// A listener OAuth2 handler constructed directly, whose introspection client accepts any certificate
+function listenerOAuth2Handler() returns http:ListenerOAuth2Handler {
+    return new ({
+        url: "https://idp.example.com/introspect",
+        clientConfig: {
+            secureSocket: {
+                disable: true
+            }
+        }
+    });
+}

@@ -202,12 +202,12 @@
   {
     "location": {
       "filePath": "service.bal",
-      "startLine": 190,
-      "endLine": 190,
+      "startLine": 201,
+      "endLine": 201,
       "startColumn": 16,
-      "endColumn": 61,
-      "startOffset": 5238,
-      "length": 45
+      "endColumn": 42,
+      "startOffset": 5680,
+      "length": 26
     },
     "rule": {
       "id": "ballerina/http:4",

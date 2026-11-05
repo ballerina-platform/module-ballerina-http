@@ -40,3 +40,10 @@ function boundedBody() returns http:Listener|error {
         maxEntityBodySize: 1048576
     });
 }
+
+// Any negative value disables the limit, not only -1
+function negativeBodyLimit() returns http:Listener|error {
+    return new (9093, requestLimits = {
+        maxEntityBodySize: -2
+    });
+}

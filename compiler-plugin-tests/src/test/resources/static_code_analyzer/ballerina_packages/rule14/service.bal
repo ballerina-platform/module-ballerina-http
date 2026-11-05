@@ -43,16 +43,28 @@ service /redirects on new http:Listener(9090) {
         check caller->redirect(response, http:REDIRECT_FOUND_302, ["https://example.com", target]);
     }
 
-    // The target is concatenated into a longer URL
+    // Negative case - the target is appended after a fixed origin, so it cannot leave example.com
     resource function get concatenatedTarget(http:Caller caller, string target) returns error? {
         http:Response response = new;
         check caller->redirect(response, http:REDIRECT_FOUND_302, ["https://example.com/" + target]);
     }
 
-    // The target is interpolated into a string template
+    // Negative case - the target is interpolated after a fixed origin
     resource function get templatedTarget(http:Caller caller, string target) returns error? {
         http:Response response = new;
         check caller->redirect(response, http:REDIRECT_FOUND_302, [string `https://example.com/${target}`]);
+    }
+
+    // The origin has no path delimiter, so "@evil.com" in the target changes the host
+    resource function get unterminatedOrigin(http:Caller caller, string target) returns error? {
+        http:Response response = new;
+        check caller->redirect(response, http:REDIRECT_FOUND_302, ["https://example.com" + target]);
+    }
+
+    // The template starts with the target, which controls the scheme and host
+    resource function get leadingInterpolation(http:Caller caller, string target) returns error? {
+        http:Response response = new;
+        check caller->redirect(response, http:REDIRECT_FOUND_302, [string `${target}/welcome`]);
     }
 
     // Negative case - a fixed redirect target

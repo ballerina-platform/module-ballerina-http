@@ -117,7 +117,7 @@
       "owasp": [
         {
           "year": 2025,
-          "categories": [2]
+          "categories": [1]
         }
       ]
     }
@@ -142,7 +142,7 @@
       "owasp": [
         {
           "year": 2025,
-          "categories": [4]
+          "categories": [7]
         }
       ]
     }
@@ -193,7 +193,7 @@
       "owasp": [
         {
           "year": 2025,
-          "categories": [7]
+          "categories": [4]
         }
       ]
     }
@@ -218,7 +218,7 @@
       "owasp": [
         {
           "year": 2025,
-          "categories": [2]
+          "categories": [7]
         }
       ]
     }
@@ -243,7 +243,7 @@
       "owasp": [
         {
           "year": 2025,
-          "categories": [4, 7]
+          "categories": [7]
         }
       ]
     }
@@ -391,7 +391,7 @@
       "owasp": [
         {
           "year": 2025,
-          "categories": [1]
+          "categories": [2]
         }
       ]
     }
@@ -428,30 +428,6 @@
     "severity": "LOW",
     "description": "A cached response that requires authentication may be served stale without revalidation.",
     "fullDescription": "`mustRevalidate: false` lets a cache keep serving a stored authenticated response after its `maxAge` has expired, for example while the origin is unreachable or when a client accepts stale content, so a caller whose access was revoked may still receive it. Keep `mustRevalidate` enabled, or disable caching with `noStore` or `noCache`.",
-    "tags": [
-      "http",
-      "cache"
-    ],
-    "standards": {
-      "cwe": [
-        524
-      ],
-      "owasp": [
-        {
-          "year": 2025,
-          "categories": [1]
-        }
-      ]
-    }
-  },
-  {
-    "id": 19,
-    "kind": "VULNERABILITY",
-    "name": "Avoid sharing a client response cache across callers when credentials are configured",
-    "helpUri": "https://ballerina.io/learn/scan-rules/#ballerina-http-19",
-    "severity": "MEDIUM",
-    "description": "A client response cache is shared across callers while credentials are configured.",
-    "fullDescription": "A shared cache stores responses on behalf of more than one caller, so a client that sends credentials may return one caller's data to another.",
     "tags": [
       "http",
       "cache"

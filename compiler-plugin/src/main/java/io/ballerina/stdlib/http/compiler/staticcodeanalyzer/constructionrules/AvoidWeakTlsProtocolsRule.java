@@ -29,52 +29,30 @@ import java.util.Set;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpRule.AVOID_WEAK_TLS_PROTOCOLS;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getFieldValue;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getListElements;
-import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getNestedMapping;
 import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAnalysisUtils.getStringLiteralValue;
 
 /**
- * Rule to detect weak TLS protocol versions on a client or listener secure socket.
+ * Rule to detect weak TLS protocol versions enabled on a client or listener secure socket.
  * <p>
- * The {@code SSL} protocol family is broken outright, and TLS 1.0 and TLS 1.1 are withdrawn: both rely on MD5 and
- * SHA-1 in the handshake and lack the modern cipher suites, which leaves them open to downgrade and padding-oracle
- * attacks. Naming any of them pins the endpoint to a protocol version that a current peer should refuse.
+ * SSL 2.0 and 3.0 are broken outright, and TLS 1.0 and TLS 1.1 are withdrawn: both rely on MD5 and SHA-1 in the
+ * handshake and lack the modern cipher suites, which leaves them open to downgrade and padding-oracle attacks. Only
+ * {@code protocol.versions} decides which versions are negotiated. {@code protocol.name} merely selects the
+ * {@code SSLContext}, and in the JDK {@code SSL} is an alias of the {@code TLS} context, so it is not reported.
  *
- * @since 2.15.0
+ * @since 2.18.2
  */
 public class AvoidWeakTlsProtocolsRule implements HttpConstructionRule {
 
-    private static final String SECURE_SOCKET = "secureSocket";
     private static final String PROTOCOL = "protocol";
-    private static final String NAME = "name";
     private static final String VERSIONS = "versions";
-    private static final String SSL_PROTOCOL = "SSL";
-    private static final Set<String> WEAK_VERSIONS = Set.of("SSLV3", "TLSV1.0", "TLSV1.1", "TLSV1", "SSL");
+    private static final Set<String> WEAK_VERSIONS = Set.of("SSLV2", "SSLV2HELLO", "SSLV3", "TLSV1", "TLSV1.0",
+            "TLSV1.1");
 
     @Override
     public void analyze(HttpConstructionRuleContext context) {
-        Optional<MappingConstructorExpressionNode> protocol =
-                context.arguments().getConfigurationRecord(SECURE_SOCKET)
-                        .flatMap(secureSocket -> getNestedMapping(secureSocket, PROTOCOL));
-        if (protocol.isEmpty()) {
-            return;
-        }
-        checkProtocolName(context, protocol.get());
-        checkProtocolVersions(context, protocol.get());
-    }
-
-    /**
-     * Report {@code name: SSL}, which selects the SSL protocol family rather than TLS. The name is an enum member
-     * reference, so it is matched on source text rather than as a string literal.
-     */
-    private void checkProtocolName(HttpConstructionRuleContext context,
-                                   MappingConstructorExpressionNode protocol) {
-        Optional<ExpressionNode> name = getFieldValue(protocol, NAME);
-        if (name.isEmpty()) {
-            return;
-        }
-        String protocolName = name.get().toSourceCode().trim();
-        if (protocolName.equals(SSL_PROTOCOL) || protocolName.endsWith(":" + SSL_PROTOCOL)) {
-            context.reporter().reportIssue(context.document(), name.get().location(), getRuleId());
+        for (MappingConstructorExpressionNode secureSocket : context.arguments().getSecureSocketRecords()) {
+            context.arguments().getNestedRecord(secureSocket, PROTOCOL)
+                    .ifPresent(protocol -> checkProtocolVersions(context, protocol));
         }
     }
 
@@ -89,7 +67,8 @@ public class AvoidWeakTlsProtocolsRule implements HttpConstructionRule {
                     .map(value -> WEAK_VERSIONS.contains(value.trim().toUpperCase(Locale.ROOT)))
                     .orElse(false);
             if (isWeak) {
-                context.reporter().reportIssue(context.document(), version.location(), getRuleId());
+                context.reporter().reportIssue(context.document(), context.arguments().issueLocation(version),
+                        getRuleId());
             }
         }
     }

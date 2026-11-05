@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.compiler.staticcodeanalyzer.constructionrules;
 
+import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpConstructionRuleContext;
 
@@ -33,26 +34,36 @@ import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAna
  * The client strips {@code Authorization} and {@code Proxy-Authorization} from a redirected request by default.
  * Setting {@code allowAuthHeaders: true} sends them on to whatever host the redirect names, which is chosen by the
  * server being called rather than by the caller. A compromised or merely misconfigured upstream can then collect the
- * caller's credentials by answering with a redirect to a host it controls.
+ * caller's credentials by answering with a redirect to a host it controls. Redirects are followed only when
+ * {@code enabled} is {@code true}, which is not the default, so the rule requires a literal {@code enabled: true}.
  *
- * @since 2.15.0
+ * @since 2.18.2
  */
 public class AvoidForwardingCredentialsOnRedirectRule implements HttpConstructionRule {
 
     private static final String FOLLOW_REDIRECTS = "followRedirects";
+    private static final String ENABLED = "enabled";
     private static final String ALLOW_AUTH_HEADERS = "allowAuthHeaders";
 
     @Override
     public void analyze(HttpConstructionRuleContext context) {
-        Optional<SpecificFieldNode> allowAuthHeaders = context.arguments()
-                .getConfigurationRecord(FOLLOW_REDIRECTS)
-                .flatMap(followRedirects -> findSpecificField(followRedirects, ALLOW_AUTH_HEADERS));
-        if (allowAuthHeaders.isEmpty() || allowAuthHeaders.get().valueExpr().isEmpty()) {
+        Optional<MappingConstructorExpressionNode> followRedirects =
+                context.arguments().getConfigurationRecord(FOLLOW_REDIRECTS);
+        if (followRedirects.isEmpty() || !isLiteralTrue(followRedirects.get(), ENABLED)) {
             return;
         }
-        if (getBooleanLiteralValue(allowAuthHeaders.get().valueExpr().get()).orElse(false)) {
-            context.reporter().reportIssue(context.document(), allowAuthHeaders.get().location(), getRuleId());
+        Optional<SpecificFieldNode> allowAuthHeaders = findSpecificField(followRedirects.get(), ALLOW_AUTH_HEADERS);
+        if (allowAuthHeaders.isPresent() && isLiteralTrue(followRedirects.get(), ALLOW_AUTH_HEADERS)) {
+            context.reporter().reportIssue(context.document(),
+                    context.arguments().issueLocation(allowAuthHeaders.get()), getRuleId());
         }
+    }
+
+    private static boolean isLiteralTrue(MappingConstructorExpressionNode config, String fieldName) {
+        return findSpecificField(config, fieldName)
+                .flatMap(SpecificFieldNode::valueExpr)
+                .flatMap(value -> getBooleanLiteralValue(value))
+                .orElse(false);
     }
 
     @Override

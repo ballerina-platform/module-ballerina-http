@@ -82,12 +82,12 @@
   {
     "location": {
       "filePath": "service.bal",
-      "startLine": 48,
-      "endLine": 48,
+      "startLine": 60,
+      "endLine": 60,
       "startColumn": 67,
-      "endColumn": 98,
-      "startOffset": 2087,
-      "length": 31
+      "endColumn": 97,
+      "startOffset": 2784,
+      "length": 30
     },
     "rule": {
       "id": "ballerina/http:14",
@@ -102,12 +102,12 @@
   {
     "location": {
       "filePath": "service.bal",
-      "startLine": 54,
-      "endLine": 54,
+      "startLine": 66,
+      "endLine": 66,
       "startColumn": 67,
-      "endColumn": 105,
-      "startOffset": 2385,
-      "length": 38
+      "endColumn": 93,
+      "startOffset": 3108,
+      "length": 26
     },
     "rule": {
       "id": "ballerina/http:14",

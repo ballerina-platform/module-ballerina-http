@@ -81,3 +81,89 @@ service /scoped on securedListener {
         return "Hello";
     }
 }
+
+// Negative case - every resource narrows the service's provider with its own scopes
+@http:ServiceConfig {
+    auth: [
+        {
+            jwtValidatorConfig: {
+                signatureConfig: {
+                    certFile: "/path/to/public.crt"
+                },
+                issuer: "wso2",
+                audience: "ballerina"
+            }
+        }
+    ]
+}
+service /scopedPerResource on securedListener {
+    @http:ResourceConfig {
+        auth: {
+            scopes: ["read"]
+        }
+    }
+    resource function get items() returns string {
+        return "Hello";
+    }
+
+    @http:ResourceConfig {
+        auth: {
+            scopes: ["write"]
+        }
+    }
+    resource function post items() returns string {
+        return "Hello";
+    }
+}
+
+// Not every resource narrows the provider, so the unscoped one admits every authenticated caller
+@http:ServiceConfig {
+    auth: [
+        {
+            jwtValidatorConfig: {
+                signatureConfig: {
+                    certFile: "/path/to/public.crt"
+                },
+                issuer: "wso2",
+                audience: "ballerina"
+            }
+        }
+    ]
+}
+service /partiallyScoped on securedListener {
+    @http:ResourceConfig {
+        auth: {
+            scopes: ["read"]
+        }
+    }
+    resource function get items() returns string {
+        return "Hello";
+    }
+
+    resource function post items() returns string {
+        return "Hello";
+    }
+}
+
+final readonly & record {|string[] scopes;|} adminScopes = {scopes: ["admin"]};
+
+// Negative case - the scopes may be supplied by the spread
+@http:ServiceConfig {
+    auth: [
+        {
+            jwtValidatorConfig: {
+                signatureConfig: {
+                    certFile: "/path/to/public.crt"
+                },
+                issuer: "wso2",
+                audience: "ballerina"
+            },
+            ...adminScopes
+        }
+    ]
+}
+service /spreadScopes on securedListener {
+    resource function get greet() returns string {
+        return "Hello";
+    }
+}

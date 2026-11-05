@@ -59,3 +59,55 @@ function cookieFromDeclaredOptions() returns http:Cookie {
 function cookieFromSuppliedOptions(http:CookieOptions options) returns http:Cookie {
     return new ("session", "abc123", options);
 }
+
+// The secure flag switched off and httpOnly left unset, reported once for the construction
+function insecureAndUnsetCookie() returns http:Cookie {
+    return new ("session", "abc123", secure = false);
+}
+
+// The flag switched off on the last field, with a trailing comment
+function commentedInsecureCookie() returns http:Cookie {
+    return new ("session", "abc123", {
+        httpOnly: true,
+        secure: false // dev only
+    });
+}
+
+// Negative case - the included options record passed by its parameter name
+function optionsPassedByName() returns http:Cookie {
+    return new ("session", "abc123", options = {secure: true, httpOnly: true});
+}
+
+final http:CookieOptions & readonly secureOptions = {secure: true, httpOnly: true};
+
+// Negative case - options spread into the argument list
+function optionsAsRestArgument() returns http:Cookie {
+    return new ("session", "abc123", ...secureOptions);
+}
+
+// Negative case - options spread into the options record
+function optionsSpreadIntoRecord() returns http:Cookie {
+    return new ("session", "abc123", {...secureOptions, path: "/"});
+}
+
+function loadCookieOptions() returns http:CookieOptions|error => {secure: true, httpOnly: true};
+
+// Negative case - options from a fallible producer cannot be read
+function optionsFromFallibleProducer() returns http:Cookie|error {
+    return new ("session", "abc123", check loadCookieOptions());
+}
+
+// Negative case - mutable options set after declaration are not judged by their initializer
+function mutatedOptions() returns http:Cookie {
+    http:CookieOptions opts = {};
+    opts.secure = true;
+    opts.httpOnly = true;
+    return new ("session", "abc123", opts);
+}
+
+// Negative case - a cookie sent on an outbound request carries only its name and value
+function outboundRequestCookie(http:Client clientEp, string token) returns error? {
+    http:Request req = new;
+    req.addCookies([new http:Cookie("sid", token)]);
+    _ = check clientEp->post("/x", req, targetType = http:Response);
+}

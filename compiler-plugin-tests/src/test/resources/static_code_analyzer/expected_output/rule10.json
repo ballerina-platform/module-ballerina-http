@@ -38,5 +38,45 @@
     "source": "BUILT_IN",
     "fileName": "rule10/auth_client.bal",
     "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule10/auth_client.bal"
+  },
+  {
+    "location": {
+      "filePath": "auth_client.bal",
+      "startLine": 74,
+      "endLine": 74,
+      "startColumn": 16,
+      "endColumn": 29,
+      "startOffset": 2451,
+      "length": 13
+    },
+    "rule": {
+      "id": "ballerina/http:10",
+      "numericId": 10,
+      "description": "An authentication provider client disables TLS certificate validation.",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule10/auth_client.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule10/auth_client.bal"
+  },
+  {
+    "location": {
+      "filePath": "auth_client.bal",
+      "startLine": 86,
+      "endLine": 86,
+      "startColumn": 16,
+      "endColumn": 29,
+      "startOffset": 2809,
+      "length": 13
+    },
+    "rule": {
+      "id": "ballerina/http:10",
+      "numericId": 10,
+      "description": "An authentication provider client disables TLS certificate validation.",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule10/auth_client.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule10/auth_client.bal"
   }
 ]

@@ -30,18 +30,17 @@ import static io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpStaticAna
 /**
  * Rule to detect a listener that accepts request bodies of unlimited size.
  * <p>
- * {@code maxEntityBodySize: -1} removes the ceiling on an incoming body, so a single request can exhaust the
- * service's memory. The rule reports only an explicit {@code -1}: the field also defaults to {@code -1}, and
- * reporting every listener that leaves it alone would fire on essentially all of them. That default is worth
- * raising with the HTTP team, since it means the unsafe value is what a listener gets by saying nothing.
+ * The transport enforces {@code maxEntityBodySize} only when it is not negative, so any negative value removes the
+ * ceiling on an incoming body and a single request can exhaust the service's memory. The rule reports only an
+ * explicit negative literal: the field defaults to {@code -1}, and reporting every listener that leaves it alone
+ * would fire on essentially all of them.
  *
- * @since 2.15.0
+ * @since 2.18.2
  */
 public class AvoidUnlimitedRequestBodySizeRule implements HttpConstructionRule {
 
     private static final String REQUEST_LIMITS = "requestLimits";
     private static final String MAX_ENTITY_BODY_SIZE = "maxEntityBodySize";
-    private static final long UNLIMITED = -1L;
 
     @Override
     public void analyze(HttpConstructionRuleContext context) {
@@ -51,9 +50,9 @@ public class AvoidUnlimitedRequestBodySizeRule implements HttpConstructionRule {
         if (maxEntityBodySize.isEmpty() || maxEntityBodySize.get().valueExpr().isEmpty()) {
             return;
         }
-        if (getIntegerLiteralValue(maxEntityBodySize.get().valueExpr().get())
-                .filter(size -> size == UNLIMITED).isPresent()) {
-            context.reporter().reportIssue(context.document(), maxEntityBodySize.get().location(), getRuleId());
+        if (getIntegerLiteralValue(maxEntityBodySize.get().valueExpr().get()).filter(size -> size < 0).isPresent()) {
+            context.reporter().reportIssue(context.document(),
+                    context.arguments().issueLocation(maxEntityBodySize.get()), getRuleId());
         }
     }
 

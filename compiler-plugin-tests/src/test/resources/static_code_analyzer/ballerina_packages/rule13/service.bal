@@ -174,3 +174,123 @@ service /opaqueConfig on opaqueConfigListener {
         return "Hello";
     }
 }
+
+// TLS explicitly switched off with a nil secure socket
+listener http:Listener nilSocketListener = new (9095, secureSocket = ());
+
+@http:ServiceConfig {
+    auth: [
+        {
+            jwtValidatorConfig: {
+                signatureConfig: {
+                    certFile: "/path/to/public.crt"
+                },
+                issuer: "wso2",
+                audience: "ballerina"
+            },
+            scopes: ["admin"]
+        }
+    ]
+}
+service /nilSocket on nilSocketListener {
+    resource function get greet() returns string {
+        return "Hello";
+    }
+}
+
+// Credentials accepted by a resource rather than the service
+service /resourceAuth on plainListener {
+    @http:ResourceConfig {
+        auth: [
+            {
+                jwtValidatorConfig: {
+                    signatureConfig: {
+                        certFile: "/path/to/public.crt"
+                    },
+                    issuer: "wso2",
+                    audience: "ballerina"
+                },
+                scopes: ["admin"]
+            }
+        ]
+    }
+    resource function get greet() returns string {
+        return "Hello";
+    }
+}
+
+// Negative case - a loopback listener never exposes credentials beyond the host
+listener http:Listener loopbackListener = new (9096, host = "127.0.0.1");
+
+@http:ServiceConfig {
+    auth: [
+        {
+            jwtValidatorConfig: {
+                signatureConfig: {
+                    certFile: "/path/to/public.crt"
+                },
+                issuer: "wso2",
+                audience: "ballerina"
+            },
+            scopes: ["admin"]
+        }
+    ]
+}
+service /loopback on loopbackListener {
+    resource function get greet() returns string {
+        return "Hello";
+    }
+}
+
+// Negative case - a configuration from a fallible producer cannot be read
+function loadListenerConfig() returns http:ListenerConfiguration|error => {
+    secureSocket: {
+        key: {
+            certFile: "/path/to/public.crt",
+            keyFile: "/path/to/private.key"
+        }
+    }
+};
+
+listener http:Listener fallibleConfigListener = new (9097, check loadListenerConfig());
+
+@http:ServiceConfig {
+    auth: [
+        {
+            jwtValidatorConfig: {
+                signatureConfig: {
+                    certFile: "/path/to/public.crt"
+                },
+                issuer: "wso2",
+                audience: "ballerina"
+            },
+            scopes: ["admin"]
+        }
+    ]
+}
+service /fallibleConfig on fallibleConfigListener {
+    resource function get greet() returns string {
+        return "Hello";
+    }
+}
+
+// Negative case - a listener declared in another module is not resolved against this module's files
+@http:ServiceConfig {
+    auth: [
+        {
+            jwtValidatorConfig: {
+                signatureConfig: {
+                    certFile: "/path/to/public.crt"
+                },
+                issuer: "wso2",
+                audience: "ballerina"
+            },
+            scopes: ["admin"]
+        }
+    ]
+}
+service /otherModuleListener on custom:ep {
+    resource function get greet() returns string {
+        return "Hello";
+    }
+}
