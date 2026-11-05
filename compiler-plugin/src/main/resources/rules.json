@@ -95,5 +95,353 @@
         }
       ]
     }
+  },
+  {
+    "id": 5,
+    "kind": "VULNERABILITY",
+    "name": "Avoid allowing credentials with a wildcard Cross-Origin Resource Sharing origin",
+    "helpUri": "https://ballerina.io/learn/scan-rules/#ballerina-http-5",
+    "severity": "MEDIUM",
+    "description": "A Cross-Origin Resource Sharing configuration allows credentials while accepting any origin.",
+    "fullDescription": "Combining a wildcard origin with `allowCredentials: true` invites any site to send credentialed cross-origin requests. Browsers refuse to expose such responses to the calling script, but simple requests still carry the user's cookies and can trigger state-changing behaviour (cross-site request forgery), and a non-browser client is not bound by the restriction at all. List the trusted origins explicitly when credentials are allowed.",
+    "tags": [
+      "http",
+      "cors",
+      "csrf"
+    ],
+    "standards": {
+      "cwe": [
+        942,
+        346
+      ],
+      "owasp": [
+        {
+          "year": 2025,
+          "categories": [1]
+        }
+      ]
+    }
+  },
+  {
+    "id": 6,
+    "kind": "VULNERABILITY",
+    "name": "Avoid disabling TLS certificate or host name validation",
+    "helpUri": "https://ballerina.io/learn/scan-rules/#ballerina-http-6",
+    "severity": "HIGH",
+    "description": "A client secure socket disables certificate or host name validation.",
+    "fullDescription": "`enable: false` on a client secure socket keeps the TLS channel but trusts any certificate, and `verifyHostName: false` accepts a valid certificate issued for a different host. Either way, anyone able to intercept the connection can impersonate the server and read or alter the traffic. Configure a trust store or certificate and keep host name verification enabled.",
+    "tags": [
+      "http",
+      "tls"
+    ],
+    "standards": {
+      "cwe": [
+        295,
+        297
+      ],
+      "owasp": [
+        {
+          "year": 2025,
+          "categories": [7]
+        }
+      ]
+    }
+  },
+  {
+    "id": 7,
+    "kind": "VULNERABILITY",
+    "name": "Avoid using weak TLS protocol versions",
+    "helpUri": "https://ballerina.io/learn/scan-rules/#ballerina-http-7",
+    "severity": "MEDIUM",
+    "description": "A secure socket enables a weak TLS protocol version.",
+    "fullDescription": "SSL 3.0, TLS 1.0 and TLS 1.1 are deprecated and rely on weak handshake primitives that are open to downgrade and padding-oracle attacks. Enabling any of them in a secure socket's `versions` allows a connection to be negotiated over a broken protocol. Enable only TLS 1.2 and TLS 1.3.",
+    "tags": [
+      "http",
+      "tls"
+    ],
+    "standards": {
+      "cwe": [
+        326,
+        327
+      ],
+      "owasp": [
+        {
+          "year": 2025,
+          "categories": [4]
+        }
+      ]
+    }
+  },
+  {
+    "id": 8,
+    "kind": "VULNERABILITY",
+    "name": "Avoid forwarding authorization headers across redirects",
+    "helpUri": "https://ballerina.io/learn/scan-rules/#ballerina-http-8",
+    "severity": "MEDIUM",
+    "description": "A client forwards authorization headers when following redirects.",
+    "fullDescription": "With `allowAuthHeaders: true`, a client that follows redirects resends its `Authorization` and `Proxy-Authorization` headers to whatever host the redirect names. A compromised or misconfigured upstream can harvest the client's credentials by redirecting to a host it controls. Leave authorization headers stripped on redirect.",
+    "tags": [
+      "http",
+      "redirect",
+      "credentials"
+    ],
+    "standards": {
+      "cwe": [
+        200,
+        522
+      ],
+      "owasp": [
+        {
+          "year": 2025,
+          "categories": [4]
+        }
+      ]
+    }
+  },
+  {
+    "id": 9,
+    "kind": "VULNERABILITY",
+    "name": "Avoid creating cookies without the secure and httpOnly flags",
+    "helpUri": "https://ballerina.io/learn/scan-rules/#ballerina-http-9",
+    "severity": "MEDIUM",
+    "description": "A cookie is created without both the secure and httpOnly flags set.",
+    "fullDescription": "Both flags default to `false`. Without `secure` a cookie is also sent over plaintext HTTP, where anyone on the path can read it; without `httpOnly` it is readable from JavaScript, turning any cross-site scripting flaw into session theft. Set both flags on cookies sent in responses.",
+    "tags": [
+      "http",
+      "cookie"
+    ],
+    "standards": {
+      "cwe": [
+        614,
+        1004
+      ],
+      "owasp": [
+        {
+          "year": 2025,
+          "categories": [7]
+        }
+      ]
+    }
+  },
+  {
+    "id": 10,
+    "kind": "VULNERABILITY",
+    "name": "Avoid disabling TLS validation on the authentication provider client",
+    "helpUri": "https://ballerina.io/learn/scan-rules/#ballerina-http-10",
+    "severity": "HIGH",
+    "description": "An authentication provider client disables TLS certificate validation.",
+    "fullDescription": "The clients that fetch tokens, introspect them or download JSON Web Key Sets carry their own secure socket. Setting `disable: true` there accepts the identity provider's response from any host able to answer, which undermines every authentication decision made from it. Keep TLS validation enabled on authentication provider clients.",
+    "tags": [
+      "http",
+      "tls",
+      "auth"
+    ],
+    "standards": {
+      "cwe": [
+        295
+      ],
+      "owasp": [
+        {
+          "year": 2025,
+          "categories": [7]
+        }
+      ]
+    }
+  },
+  {
+    "id": 11,
+    "kind": "VULNERABILITY",
+    "name": "Avoid accepting JSON Web Tokens without verification",
+    "helpUri": "https://ballerina.io/learn/scan-rules/#ballerina-http-11",
+    "severity": "HIGH",
+    "description": "A JSON Web Token validator omits signature, issuer or audience verification.",
+    "fullDescription": "`signatureConfig`, `issuer` and `audience` are optional, and leaving one out removes a check rather than applying a safe default. Without `signatureConfig` any self-signed token is accepted; without `issuer` or `audience` a token genuinely issued for another service is accepted. Configure all three.",
+    "tags": [
+      "http",
+      "jwt",
+      "auth"
+    ],
+    "standards": {
+      "cwe": [
+        347
+      ],
+      "owasp": [
+        {
+          "year": 2025,
+          "categories": [7]
+        }
+      ]
+    }
+  },
+  {
+    "id": 12,
+    "kind": "VULNERABILITY",
+    "name": "Avoid authenticating requests without authorizing them",
+    "helpUri": "https://ballerina.io/learn/scan-rules/#ballerina-http-12",
+    "severity": "MEDIUM",
+    "description": "A listener authentication configuration authenticates callers without requiring any authorization scopes.",
+    "fullDescription": "A listener authentication configuration without `scopes` authorizes every caller it manages to authenticate, so any valid credential issued by the provider grants full access to the service. Require the scopes each service or resource needs.",
+    "tags": [
+      "http",
+      "auth",
+      "authorization"
+    ],
+    "standards": {
+      "cwe": [
+        862
+      ],
+      "owasp": [
+        {
+          "year": 2025,
+          "categories": [1]
+        }
+      ]
+    }
+  },
+  {
+    "id": 13,
+    "kind": "VULNERABILITY",
+    "name": "Avoid accepting credentials over a listener without TLS",
+    "helpUri": "https://ballerina.io/learn/scan-rules/#ballerina-http-13",
+    "severity": "HIGH",
+    "description": "A service accepts credentials over a listener that has no TLS configuration.",
+    "fullDescription": "A service that authenticates callers over a listener with no `secureSocket` receives tokens and passwords in the clear, where anyone on the network path can read and replay them. Configure TLS on the listener, or terminate TLS in front of it and bind the listener to a loopback address.",
+    "tags": [
+      "http",
+      "tls",
+      "auth"
+    ],
+    "standards": {
+      "cwe": [
+        319
+      ],
+      "owasp": [
+        {
+          "year": 2025,
+          "categories": [4]
+        }
+      ]
+    }
+  },
+  {
+    "id": 14,
+    "kind": "VULNERABILITY",
+    "name": "Caller redirections should not be open to forging attacks",
+    "helpUri": "https://ballerina.io/learn/scan-rules/#ballerina-http-14",
+    "severity": "MEDIUM",
+    "description": "A caller redirect target is derived from user input, allowing redirection to an arbitrary site.",
+    "fullDescription": "When user-controlled input determines the target passed to `Caller.redirect`, an attacker can craft a link on the trusted domain that sends victims to a site under their control, which is widely used for phishing and credential theft. Validate the target against an allow-list, or accept only relative paths.",
+    "tags": [
+      "http",
+      "redirect"
+    ],
+    "standards": {
+      "cwe": [
+        601
+      ],
+      "owasp": [
+        {
+          "year": 2025,
+          "categories": [1]
+        }
+      ]
+    }
+  },
+  {
+    "id": 15,
+    "kind": "VULNERABILITY",
+    "name": "Avoid accepting request bodies of unlimited size",
+    "helpUri": "https://ballerina.io/learn/scan-rules/#ballerina-http-15",
+    "severity": "MEDIUM",
+    "description": "A listener accepts request bodies of unlimited size.",
+    "fullDescription": "A negative `maxEntityBodySize` removes the ceiling on incoming request bodies, so a single request can exhaust the service's memory. Set a limit that fits the largest body the service expects.",
+    "tags": [
+      "http",
+      "dos"
+    ],
+    "standards": {
+      "cwe": [
+        770
+      ],
+      "owasp": [
+        {
+          "year": 2025,
+          "categories": [6]
+        }
+      ]
+    }
+  },
+  {
+    "id": 16,
+    "kind": "VULNERABILITY",
+    "name": "Avoid allowing shared caches to store responses that require authentication",
+    "helpUri": "https://ballerina.io/learn/scan-rules/#ballerina-http-16",
+    "severity": "MEDIUM",
+    "description": "A response that requires authentication may be stored by a shared cache.",
+    "fullDescription": "The `@http:Cache` annotation emits `public` by default, so a response specific to one authenticated caller may be stored by a proxy or CDN and served to another. Mark the response private, or exclude it from storage with `noStore`.",
+    "tags": [
+      "http",
+      "cache"
+    ],
+    "standards": {
+      "cwe": [
+        524,
+        525
+      ],
+      "owasp": [
+        {
+          "year": 2025,
+          "categories": [2]
+        }
+      ]
+    }
+  },
+  {
+    "id": 17,
+    "kind": "VULNERABILITY",
+    "name": "Avoid disclosing the server product version in the server response header",
+    "helpUri": "https://ballerina.io/learn/scan-rules/#ballerina-http-17",
+    "severity": "LOW",
+    "description": "The server response header discloses a product version.",
+    "fullDescription": "A `server` header that carries a version number tells an attacker exactly which release to look up known vulnerabilities for. Use a value without a version.",
+    "tags": [
+      "http",
+      "information-disclosure"
+    ],
+    "standards": {
+      "cwe": [
+        200
+      ],
+      "owasp": [
+        {
+          "year": 2025,
+          "categories": [2]
+        }
+      ]
+    }
+  },
+  {
+    "id": 18,
+    "kind": "VULNERABILITY",
+    "name": "Avoid serving authenticated responses from a cache without revalidation",
+    "helpUri": "https://ballerina.io/learn/scan-rules/#ballerina-http-18",
+    "severity": "LOW",
+    "description": "A cached response that requires authentication may be served stale without revalidation.",
+    "fullDescription": "`mustRevalidate: false` lets a cache keep serving a stored authenticated response after its `maxAge` has expired, for example while the origin is unreachable or when a client accepts stale content, so a caller whose access was revoked may still receive it. Keep `mustRevalidate` enabled, or disable caching with `noStore` or `noCache`.",
+    "tags": [
+      "http",
+      "cache"
+    ],
+    "standards": {
+      "cwe": [
+        524
+      ],
+      "owasp": [
+        {
+          "year": 2025,
+          "categories": [1]
+        }
+      ]
+    }
   }
 ]

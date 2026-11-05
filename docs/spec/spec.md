@@ -155,6 +155,20 @@ The conforming implementation of the specification is released and included in t
     * 11.2. [Avoid permissive Cross-Origin Resource Sharing](#112-avoid-permissive-cross-origin-resource-sharing)
     * 11.3. [Server-side requests should not be vulnerable to traversing attacks](#113-server-side-requests-should-not-be-vulnerable-to-traversing-attacks)
     * 11.4. [HTTP request redirections should not be open to forging attacks](#114-http-request-redirections-should-not-be-open-to-forging-attacks)
+    * 11.5. [Avoid allowing credentials with a wildcard Cross-Origin Resource Sharing origin](#115-avoid-allowing-credentials-with-a-wildcard-cross-origin-resource-sharing-origin)
+    * 11.6. [Avoid disabling TLS certificate or host name validation](#116-avoid-disabling-tls-certificate-or-host-name-validation)
+    * 11.7. [Avoid using weak TLS protocol versions](#117-avoid-using-weak-tls-protocol-versions)
+    * 11.8. [Avoid forwarding authorization headers across redirects](#118-avoid-forwarding-authorization-headers-across-redirects)
+    * 11.9. [Avoid creating cookies without the secure and httpOnly flags](#119-avoid-creating-cookies-without-the-secure-and-httponly-flags)
+    * 11.10. [Avoid disabling TLS validation on the authentication provider client](#1110-avoid-disabling-tls-validation-on-the-authentication-provider-client)
+    * 11.11. [Avoid accepting JSON Web Tokens without verification](#1111-avoid-accepting-json-web-tokens-without-verification)
+    * 11.12. [Avoid authenticating requests without authorizing them](#1112-avoid-authenticating-requests-without-authorizing-them)
+    * 11.13. [Avoid accepting credentials over a listener without TLS](#1113-avoid-accepting-credentials-over-a-listener-without-tls)
+    * 11.14. [Caller redirections should not be open to forging attacks](#1114-caller-redirections-should-not-be-open-to-forging-attacks)
+    * 11.15. [Avoid accepting request bodies of unlimited size](#1115-avoid-accepting-request-bodies-of-unlimited-size)
+    * 11.16. [Avoid allowing shared caches to store responses that require authentication](#1116-avoid-allowing-shared-caches-to-store-responses-that-require-authentication)
+    * 11.17. [Avoid disclosing the server product version in the server response header](#1117-avoid-disclosing-the-server-product-version-in-the-server-response-header)
+    * 11.18. [Avoid serving authenticated responses from a cache without revalidation](#1118-avoid-serving-authenticated-responses-from-a-cache-without-revalidation)
 
 ## 1. Overview
 Ballerina language provides first-class support for writing network-oriented programs. The HTTP standard library uses these language constructs and creates the programming model to produce and consume HTTP APIs.
@@ -3762,10 +3776,31 @@ The following static code rules are applied to the HTTP module.
 | ballerina/http:2 | VULNERABILITY | [Avoid permissive Cross-Origin Resource Sharing](#112-avoid-permissive-cross-origin-resource-sharing)                                           |
 | ballerina/http:3 | VULNERABILITY | [Server-side requests should not be vulnerable to traversing attacks](#113-server-side-requests-should-not-be-vulnerable-to-traversing-attacks) |
 | ballerina/http:4 | VULNERABILITY | [HTTP request redirections should not be open to forging attacks](#114-http-request-redirections-should-not-be-open-to-forging-attacks)         |
+| ballerina/http:5 | VULNERABILITY | [Avoid allowing credentials with a wildcard Cross-Origin Resource Sharing origin](#115-avoid-allowing-credentials-with-a-wildcard-cross-origin-resource-sharing-origin) |
+| ballerina/http:6 | VULNERABILITY | [Avoid disabling TLS certificate or host name validation](#116-avoid-disabling-tls-certificate-or-host-name-validation) |
+| ballerina/http:7 | VULNERABILITY | [Avoid using weak TLS protocol versions](#117-avoid-using-weak-tls-protocol-versions) |
+| ballerina/http:8 | VULNERABILITY | [Avoid forwarding authorization headers across redirects](#118-avoid-forwarding-authorization-headers-across-redirects) |
+| ballerina/http:9 | VULNERABILITY | [Avoid creating cookies without the secure and httpOnly flags](#119-avoid-creating-cookies-without-the-secure-and-httponly-flags) |
+| ballerina/http:10 | VULNERABILITY | [Avoid disabling TLS validation on the authentication provider client](#1110-avoid-disabling-tls-validation-on-the-authentication-provider-client) |
+| ballerina/http:11 | VULNERABILITY | [Avoid accepting JSON Web Tokens without verification](#1111-avoid-accepting-json-web-tokens-without-verification) |
+| ballerina/http:12 | VULNERABILITY | [Avoid authenticating requests without authorizing them](#1112-avoid-authenticating-requests-without-authorizing-them) |
+| ballerina/http:13 | VULNERABILITY | [Avoid accepting credentials over a listener without TLS](#1113-avoid-accepting-credentials-over-a-listener-without-tls) |
+| ballerina/http:14 | VULNERABILITY | [Caller redirections should not be open to forging attacks](#1114-caller-redirections-should-not-be-open-to-forging-attacks) |
+| ballerina/http:15 | VULNERABILITY | [Avoid accepting request bodies of unlimited size](#1115-avoid-accepting-request-bodies-of-unlimited-size) |
+| ballerina/http:16 | VULNERABILITY | [Avoid allowing shared caches to store responses that require authentication](#1116-avoid-allowing-shared-caches-to-store-responses-that-require-authentication) |
+| ballerina/http:17 | VULNERABILITY | [Avoid disclosing the server product version in the server response header](#1117-avoid-disclosing-the-server-product-version-in-the-server-response-header) |
+| ballerina/http:18 | VULNERABILITY | [Avoid serving authenticated responses from a cache without revalidation](#1118-avoid-serving-authenticated-responses-from-a-cache-without-revalidation) |
 
 ### 11.1. Avoid allowing default resource accessor
 
 Using a default resource accessor allows resources to handle any HTTP method, creating CSRF vulnerabilities.
+
+| Property              | Description |
+|-----------------------|-------------|
+| **Rule ID**           | ballerina/http:1 |
+| **Rule Kind**         | Vulnerability |
+| **CWE**               | [CWE-352](https://cwe.mitre.org/data/definitions/352.html) |
+| **OWASP Top 10:2025** | [A01 Broken Access Control](https://owasp.org/Top10/2025/A01_2025-Broken_Access_Control/) |
 
 #### 11.1.1. Why this is an issue?
 
@@ -3815,6 +3850,13 @@ service / on new http:Listener(9090) {
 ### 11.2. Avoid permissive Cross-Origin Resource Sharing
 
 Permissive CORS configuration allowing any origin can expose resources to unauthorized access.
+
+| Property              | Description |
+|-----------------------|-------------|
+| **Rule ID**           | ballerina/http:2 |
+| **Rule Kind**         | Vulnerability |
+| **CWE**               | [CWE-942](https://cwe.mitre.org/data/definitions/942.html) |
+| **OWASP Top 10:2025** | [A02 Security Misconfiguration](https://owasp.org/Top10/2025/A02_2025-Security_Misconfiguration/) |
 
 #### 11.2.1. Why this is an issue?
 
@@ -3874,6 +3916,13 @@ service /api/v1 on new http:Listener(9090) {
 ### 11.3. Server-side requests should not be vulnerable to traversing attacks
 
 User input in server-side requests can enable SSRF attacks against internal systems.
+
+| Property              | Description |
+|-----------------------|-------------|
+| **Rule ID**           | ballerina/http:3 |
+| **Rule Kind**         | Vulnerability |
+| **CWE**               | [CWE-918](https://cwe.mitre.org/data/definitions/918.html) |
+| **OWASP Top 10:2025** | [A01 Broken Access Control](https://owasp.org/Top10/2025/A01_2025-Broken_Access_Control/) |
 
 #### 11.3.1. Why this is an issue?
 
@@ -3940,9 +3989,18 @@ service /api/v1 on new http:Listener(8080) {
 
 Unvalidated user input in redirect URLs can enable phishing and malware distribution attacks.
 
+| Property              | Description |
+|-----------------------|-------------|
+| **Rule ID**           | ballerina/http:4 |
+| **Rule Kind**         | Vulnerability |
+| **CWE**               | [CWE-601](https://cwe.mitre.org/data/definitions/601.html) |
+| **OWASP Top 10:2025** | [A01 Broken Access Control](https://owasp.org/Top10/2025/A01_2025-Broken_Access_Control/) |
+
 #### 11.4.1. Why this is an issue?
 
 Open redirects occur when an application accepts user-controlled input that specifies a URL to which the user will be redirected. When these redirects are implemented without proper validation, attackers can craft redirection URLs to malicious sites.
+
+A parameter appended after a string literal that already fixes the scheme and host, such as `"https://example.com/" + target`, cannot send the user off-site and is not reported. A prefix without a path delimiter, such as `"https://example.com"` or `"/"`, does not fix the host, since `"@evil.com"` or `"/evil.com"` appended to it changes the destination.
 
 #### 11.4.2. What is the potential impact?
 
@@ -4003,3 +4061,739 @@ service /api/v1 on new http:Listener(8080) {
 - OWASP - [Top 10 2017 Category A5 - Broken Access Control](https://owasp.org/www-project-top-ten/2017/A5_2017-Broken_Access_Control)
 - CWE - [CWE-20 - Improper Input Validation](https://cwe.mitre.org/data/definitions/20)
 - CWE - [CWE-601 - URL Redirection to Untrusted Site ('Open Redirect')](https://cwe.mitre.org/data/definitions/601)
+
+### 11.5. Avoid allowing credentials with a wildcard Cross-Origin Resource Sharing origin
+
+A wildcard origin combined with credentials lets any site make authenticated cross-origin requests.
+
+| Property              | Description |
+|-----------------------|-------------|
+| **Rule ID**           | ballerina/http:5 |
+| **Rule Kind**         | Vulnerability |
+| **CWE**               | [CWE-942](https://cwe.mitre.org/data/definitions/942.html), [CWE-346](https://cwe.mitre.org/data/definitions/346.html) |
+| **OWASP Top 10:2025** | [A01 Broken Access Control](https://owasp.org/Top10/2025/A01_2025-Broken_Access_Control/) |
+
+#### 11.5.1. Why this is an issue?
+
+A wildcard origin on its own exposes only unauthenticated responses. Combined with `allowCredentials: true` it declares that any site may send credentialed cross-origin requests. Browsers refuse to expose a credentialed response whose allowed origin is `*`, so the calling script cannot read it, but that does not make the configuration safe: simple requests, such as a form `POST`, still carry the user's cookies and can trigger state-changing behaviour (cross-site request forgery), and non-browser clients are not bound by the restriction at all. Requests that carry an `Authorization` header need a successful preflight, which the browser also refuses here. Either way the configuration does not do what its author intended.
+
+#### 11.5.2. What is the potential impact?
+
+Any page the user visits can trigger requests to the service that carry the user's cookies, so state-changing endpoints are exposed to cross-site request forgery, and any non-browser client that honours the policy can read the responses.
+
+#### 11.5.3. How can I fix this?
+
+Name the origins that are allowed to send credentials.
+
+**Non-compliant code:**
+
+```ballerina
+@http:ServiceConfig {
+    cors: {
+        allowOrigins: ["*"],
+        allowCredentials: true
+    }
+}
+service /api on new http:Listener(9090) {
+}
+```
+
+**Compliant code:**
+
+```ballerina
+@http:ServiceConfig {
+    cors: {
+        allowOrigins: ["https://app.example.com"],
+        allowCredentials: true
+    }
+}
+service /api on new http:Listener(9090) {
+}
+```
+
+#### 11.5.4. Additional Resources
+
+- [CWE-942: Permissive Cross-domain Policy with Untrusted Domains](https://cwe.mitre.org/data/definitions/942.html)
+- [CWE-346: Origin Validation Error](https://cwe.mitre.org/data/definitions/346.html)
+- [OWASP Top 10:2025 A01 Broken Access Control](https://owasp.org/Top10/2025/A01_2025-Broken_Access_Control/)
+
+### 11.6. Avoid disabling TLS certificate or host name validation
+
+Switching off either check leaves the connection open to interception while it still looks encrypted.
+
+| Property              | Description |
+|-----------------------|-------------|
+| **Rule ID**           | ballerina/http:6 |
+| **Rule Kind**         | Vulnerability |
+| **CWE**               | [CWE-295](https://cwe.mitre.org/data/definitions/295.html), [CWE-297](https://cwe.mitre.org/data/definitions/297.html) |
+| **OWASP Top 10:2025** | [A07 Authentication Failures](https://owasp.org/Top10/2025/A07_2025-Authentication_Failures/) |
+
+#### 11.6.1. Why this is an issue?
+
+`enable: false` keeps the TLS channel but disables certificate validation, so the client trusts any certificate. `verifyHostName: false` keeps the encrypted channel but stops checking that the certificate was issued for the host being contacted, so any party holding a certificate the client trusts, for any host, can terminate the connection. Both fields default to `true`, so only an explicit assignment weakens the connection. The secure socket of each `targets` entry of an `http:FailoverClient` or `http:LoadBalanceClient` is checked as well.
+
+#### 11.6.2. What is the potential impact?
+
+An attacker on the network path can present their own certificate and read or modify everything the client sends and receives, including credentials, while the transport still appears secure.
+
+#### 11.6.3. How can I fix this?
+
+Leave both at their defaults and supply the certificate the server presents.
+
+**Non-compliant code:**
+
+```ballerina
+http:Client apiClient = check new ("https://api.example.com", secureSocket = {
+    enable: false,
+    verifyHostName: false
+});
+```
+
+**Compliant code:**
+
+```ballerina
+http:Client apiClient = check new ("https://api.example.com", secureSocket = {
+    cert: "/path/to/public.crt"
+});
+```
+
+#### 11.6.4. Additional Resources
+
+- [CWE-295: Improper Certificate Validation](https://cwe.mitre.org/data/definitions/295.html)
+- [CWE-297: Improper Validation of Certificate with Host Mismatch](https://cwe.mitre.org/data/definitions/297.html)
+- [OWASP Top 10:2025 A07 Authentication Failures](https://owasp.org/Top10/2025/A07_2025-Authentication_Failures/)
+
+### 11.7. Avoid using weak TLS protocol versions
+
+TLS 1.0, TLS 1.1 and every SSL version are withdrawn and should not be enabled.
+
+| Property              | Description |
+|-----------------------|-------------|
+| **Rule ID**           | ballerina/http:7 |
+| **Rule Kind**         | Vulnerability |
+| **CWE**               | [CWE-326](https://cwe.mitre.org/data/definitions/326.html), [CWE-327](https://cwe.mitre.org/data/definitions/327.html) |
+| **OWASP Top 10:2025** | [A04 Cryptographic Failures](https://owasp.org/Top10/2025/A04_2025-Cryptographic_Failures/) |
+
+#### 11.7.1. Why this is an issue?
+
+SSL 2.0 and SSL 3.0 are broken outright. TLS 1.0 and TLS 1.1 rely on MD5 and SHA-1 in the handshake and lack the modern cipher suites, which leaves them open to downgrade and padding-oracle attacks. Listing any of them, or the `SSLv2Hello` pseudo-protocol, in `protocol.versions` on a client or a listener lets the endpoint negotiate a version a current peer should refuse.
+
+Only `versions` decides which protocol versions are enabled. `protocol.name` selects the `SSLContext`, and in the JDK `SSL` is an alias of the `TLS` context, so `name` is not reported.
+
+#### 11.7.2. What is the potential impact?
+
+An attacker able to influence the negotiation can hold the connection at a weak version and attack the encryption itself rather than having to defeat a current one.
+
+#### 11.7.3. How can I fix this?
+
+Name only TLS 1.2 and TLS 1.3, or leave `protocol` unset and take the runtime's defaults.
+
+**Non-compliant code:**
+
+```ballerina
+http:Client apiClient = check new ("https://api.example.com", secureSocket = {
+    cert: "/path/to/public.crt",
+    protocol: {
+        name: http:TLS,
+        versions: ["TLSv1.0", "TLSv1.1"]
+    }
+});
+```
+
+**Compliant code:**
+
+```ballerina
+http:Client apiClient = check new ("https://api.example.com", secureSocket = {
+    cert: "/path/to/public.crt",
+    protocol: {
+        name: http:TLS,
+        versions: ["TLSv1.2", "TLSv1.3"]
+    }
+});
+```
+
+#### 11.7.4. Additional Resources
+
+- [CWE-326: Inadequate Encryption Strength](https://cwe.mitre.org/data/definitions/326.html)
+- [CWE-327: Use of a Broken or Risky Cryptographic Algorithm](https://cwe.mitre.org/data/definitions/327.html)
+- [OWASP Top 10:2025 A04 Cryptographic Failures](https://owasp.org/Top10/2025/A04_2025-Cryptographic_Failures/)
+
+### 11.8. Avoid forwarding authorization headers across redirects
+
+The redirect target is chosen by the server being called, not by the caller.
+
+| Property              | Description |
+|-----------------------|-------------|
+| **Rule ID**           | ballerina/http:8 |
+| **Rule Kind**         | Vulnerability |
+| **CWE**               | [CWE-200](https://cwe.mitre.org/data/definitions/200.html), [CWE-522](https://cwe.mitre.org/data/definitions/522.html) |
+| **OWASP Top 10:2025** | [A04 Cryptographic Failures](https://owasp.org/Top10/2025/A04_2025-Cryptographic_Failures/) |
+
+#### 11.8.1. Why this is an issue?
+
+The client strips `Authorization` and `Proxy-Authorization` from a redirected request by default. Setting `allowAuthHeaders: true` sends them on to whatever host the redirect names, and that host is chosen by the response rather than by the code. Redirects are followed only when `enabled` is `true`, which is not the default, so the rule reports `allowAuthHeaders: true` only alongside a literal `enabled: true`.
+
+#### 11.8.2. What is the potential impact?
+
+A compromised or merely misconfigured upstream can collect the caller's credentials by answering with a redirect to a host it controls.
+
+#### 11.8.3. How can I fix this?
+
+Leave `allowAuthHeaders` at its default of `false` and authenticate to the redirect target explicitly if that is genuinely required.
+
+**Non-compliant code:**
+
+```ballerina
+http:Client apiClient = check new ("https://api.example.com", followRedirects = {
+    enabled: true,
+    allowAuthHeaders: true
+});
+```
+
+**Compliant code:**
+
+```ballerina
+http:Client apiClient = check new ("https://api.example.com", followRedirects = {
+    enabled: true
+});
+```
+
+#### 11.8.4. Additional Resources
+
+- [CWE-200: Exposure of Sensitive Information to an Unauthorized Actor](https://cwe.mitre.org/data/definitions/200.html)
+- [CWE-522: Insufficiently Protected Credentials](https://cwe.mitre.org/data/definitions/522.html)
+- [OWASP Top 10:2025 A04 Cryptographic Failures](https://owasp.org/Top10/2025/A04_2025-Cryptographic_Failures/)
+
+### 11.9. Avoid creating cookies without the secure and httpOnly flags
+
+Both flags default to `false`, so omitting them is as much a defect as disabling them.
+
+| Property              | Description |
+|-----------------------|-------------|
+| **Rule ID**           | ballerina/http:9 |
+| **Rule Kind**         | Vulnerability |
+| **CWE**               | [CWE-614](https://cwe.mitre.org/data/definitions/614.html), [CWE-1004](https://cwe.mitre.org/data/definitions/1004.html) |
+| **OWASP Top 10:2025** | [A07 Authentication Failures](https://owasp.org/Top10/2025/A07_2025-Authentication_Failures/) |
+
+#### 11.9.1. Why this is an issue?
+
+Without `secure` the cookie is sent over plaintext HTTP, where anyone on the path can read it. Without `httpOnly` it is readable from JavaScript, which turns any cross-site scripting flaw on the origin into session theft. `http:CookieOptions` defaults both to `false`, so a cookie carrying a session or any other credential is insecure unless the author sets them.
+
+The rule reports a flag that is explicitly `false` or, failing that, a construction that leaves either flag unset, at most once per construction. Options it cannot read, such as a record from a function call, a mutable variable or a spread, are not guessed at.
+
+The flags only take effect on a cookie sent in a response. `Request.addCookies` serializes only the name and value into the `Cookie` header, so a cookie constructed directly as its argument, or as a member of the list literal passed to it, is not reported. A cookie that reaches `Request.addCookies` through a variable is still reported, since telling where it ends up would need data-flow analysis.
+
+#### 11.9.2. What is the potential impact?
+
+A session cookie can be captured from the network or read by injected script, and either gives the attacker the user's session.
+
+#### 11.9.3. How can I fix this?
+
+Set both flags when creating a cookie.
+
+**Non-compliant code:**
+
+```ballerina
+http:Cookie sessionCookie = new ("session", sessionId);
+```
+
+**Compliant code:**
+
+```ballerina
+http:Cookie sessionCookie = new ("session", sessionId, secure = true, httpOnly = true);
+```
+
+#### 11.9.4. Additional Resources
+
+- [CWE-614: Sensitive Cookie in HTTPS Session Without 'Secure' Attribute](https://cwe.mitre.org/data/definitions/614.html)
+- [CWE-1004: Sensitive Cookie Without 'HttpOnly' Flag](https://cwe.mitre.org/data/definitions/1004.html)
+- [OWASP Top 10:2025 A07 Authentication Failures](https://owasp.org/Top10/2025/A07_2025-Authentication_Failures/)
+
+### 11.10. Avoid disabling TLS validation on the authentication provider client
+
+The token endpoint client has its own secure socket, separate from the client's own.
+
+| Property              | Description |
+|-----------------------|-------------|
+| **Rule ID**           | ballerina/http:10 |
+| **Rule Kind**         | Vulnerability |
+| **CWE**               | [CWE-295](https://cwe.mitre.org/data/definitions/295.html) |
+| **OWASP Top 10:2025** | [A07 Authentication Failures](https://owasp.org/Top10/2025/A07_2025-Authentication_Failures/) |
+
+#### 11.10.1. Why this is an issue?
+
+A client's `auth` configuration carries its own client for reaching the token or JWKS endpoint. Securing the client's own `secureSocket` while setting `disable: true` on the one inside `auth` is easy to do by accident, and it leaves the credential exchange itself unprotected. The same provider configuration passed to an `http:ClientOAuth2Handler`, `http:ListenerOAuth2Handler` or `http:ListenerJwtAuthHandler` constructed directly is checked as well.
+
+#### 11.10.2. What is the potential impact?
+
+The identity provider's response is accepted from any host able to answer, which undermines every authentication decision made from it, including the tokens the client then presents elsewhere.
+
+#### 11.10.3. How can I fix this?
+
+Validate the certificate on the authentication provider's client too.
+
+**Non-compliant code:**
+
+```ballerina
+http:Client apiClient = check new ("https://api.example.com", auth = {
+    tokenUrl: "https://idp.example.com/token",
+    clientId: "client-id",
+    clientSecret: clientSecret,
+    secureSocket: {disable: true}
+});
+```
+
+**Compliant code:**
+
+```ballerina
+http:Client apiClient = check new ("https://api.example.com", auth = {
+    tokenUrl: "https://idp.example.com/token",
+    clientId: "client-id",
+    clientSecret: clientSecret,
+    secureSocket: {cert: "/path/to/public.crt"}
+});
+```
+
+#### 11.10.4. Additional Resources
+
+- [CWE-295: Improper Certificate Validation](https://cwe.mitre.org/data/definitions/295.html)
+- [OWASP Top 10:2025 A07 Authentication Failures](https://owasp.org/Top10/2025/A07_2025-Authentication_Failures/)
+
+### 11.11. Avoid accepting JSON Web Tokens without verification
+
+Each omitted field removes a check rather than defaulting to a safe value.
+
+| Property              | Description |
+|-----------------------|-------------|
+| **Rule ID**           | ballerina/http:11 |
+| **Rule Kind**         | Vulnerability |
+| **CWE**               | [CWE-347](https://cwe.mitre.org/data/definitions/347.html) |
+| **OWASP Top 10:2025** | [A07 Authentication Failures](https://owasp.org/Top10/2025/A07_2025-Authentication_Failures/) |
+
+#### 11.11.1. Why this is an issue?
+
+`signatureConfig`, `issuer` and `audience` are all optional on a JWT validator configuration. With no `signatureConfig` the signature is never verified, so any self-signed token is accepted. With no `issuer` or `audience` a token genuinely issued by the same provider, but for a different service or tenant, is accepted here as well.
+
+In a listener authentication configuration the validator is nested under `jwtValidatorConfig`, which appears on no other provider, so the rule identifies a JWT validator by that field. An `http:ListenerJwtAuthHandler` constructed directly takes the validator configuration as its argument and is checked the same way. A validator configuration built with a spread or computed field may supply the missing fields, so it is not reported.
+
+#### 11.11.2. What is the potential impact?
+
+Without a signature check, anyone can mint a token granting themselves whatever claims they choose. Without issuer and audience checks, one service's token becomes a key to every service that trusts the same provider.
+
+#### 11.11.3. How can I fix this?
+
+Configure the signature check and pin both the issuer and the audience.
+
+**Non-compliant code:**
+
+```ballerina
+@http:ServiceConfig {
+    auth: [
+        {
+            jwtValidatorConfig: {
+                issuer: "wso2",
+                audience: "ballerina"
+            },
+            scopes: ["admin"]
+        }
+    ]
+}
+service /api on securedListener {
+}
+```
+
+**Compliant code:**
+
+```ballerina
+@http:ServiceConfig {
+    auth: [
+        {
+            jwtValidatorConfig: {
+                issuer: "wso2",
+                audience: "ballerina",
+                signatureConfig: {certFile: "/path/to/public.crt"}
+            },
+            scopes: ["admin"]
+        }
+    ]
+}
+service /api on securedListener {
+}
+```
+
+#### 11.11.4. Additional Resources
+
+- [CWE-347: Improper Verification of Cryptographic Signature](https://cwe.mitre.org/data/definitions/347.html)
+- [OWASP Top 10:2025 A07 Authentication Failures](https://owasp.org/Top10/2025/A07_2025-Authentication_Failures/)
+
+### 11.12. Avoid authenticating requests without authorizing them
+
+Authentication establishes who the caller is; it does not decide what they may do.
+
+| Property              | Description |
+|-----------------------|-------------|
+| **Rule ID**           | ballerina/http:12 |
+| **Rule Kind**         | Vulnerability |
+| **CWE**               | [CWE-862](https://cwe.mitre.org/data/definitions/862.html) |
+| **OWASP Top 10:2025** | [A01 Broken Access Control](https://owasp.org/Top10/2025/A01_2025-Broken_Access_Control/) |
+
+#### 11.12.1. Why this is an issue?
+
+A listener authentication configuration without `scopes` authenticates the caller and then allows every caller it managed to authenticate. Any valid credential issued by the provider grants full access to the service, which makes authentication stand in for authorization.
+
+A service-level provider without scopes is not reported when every resource of the service declares its own `auth` in `@http:ResourceConfig`, either the `Scopes` form that narrows the service's providers or a provider list that replaces them, since authorization is then enforced per resource. A configuration built with a spread or computed field may supply `scopes`, so it is not reported either.
+
+#### 11.12.2. What is the potential impact?
+
+Every account the identity provider knows about can reach every resource the service exposes, regardless of what that account is meant to be able to do.
+
+#### 11.12.3. How can I fix this?
+
+Declare the scopes the service requires, at the service or the resource.
+
+**Non-compliant code:**
+
+```ballerina
+@http:ServiceConfig {
+    auth: [
+        {
+            jwtValidatorConfig: {
+                issuer: "wso2",
+                audience: "ballerina",
+                signatureConfig: {certFile: "/path/to/public.crt"}
+            }
+        }
+    ]
+}
+service /api on securedListener {
+}
+```
+
+**Compliant code:**
+
+```ballerina
+@http:ServiceConfig {
+    auth: [
+        {
+            jwtValidatorConfig: {
+                issuer: "wso2",
+                audience: "ballerina",
+                signatureConfig: {certFile: "/path/to/public.crt"}
+            },
+            scopes: ["admin"]
+        }
+    ]
+}
+service /api on securedListener {
+}
+```
+
+#### 11.12.4. Additional Resources
+
+- [CWE-862: Missing Authorization](https://cwe.mitre.org/data/definitions/862.html)
+- [OWASP Top 10:2025 A01 Broken Access Control](https://owasp.org/Top10/2025/A01_2025-Broken_Access_Control/)
+
+### 11.13. Avoid accepting credentials over a listener without TLS
+
+Credentials on a plaintext listener cross the network in the clear.
+
+| Property              | Description |
+|-----------------------|-------------|
+| **Rule ID**           | ballerina/http:13 |
+| **Rule Kind**         | Vulnerability |
+| **CWE**               | [CWE-319](https://cwe.mitre.org/data/definitions/319.html) |
+| **OWASP Top 10:2025** | [A04 Cryptographic Failures](https://owasp.org/Top10/2025/A04_2025-Cryptographic_Failures/) |
+
+#### 11.13.1. Why this is an issue?
+
+A service that declares an authentication provider, in its `@http:ServiceConfig` or in any resource's `@http:ResourceConfig`, expects callers to present credentials. If the listener it is attached to has no `secureSocket`, or sets `secureSocket = ()`, those credentials travel unencrypted, where anyone on the path can read and replay them.
+
+The rule reports only a listener that carries credentials. Flagging every listener without TLS would fire on nearly every service, most of them legitimately behind a gateway that terminates TLS. A listener bound to a loopback `host`, such as `"localhost"` or `"127.0.0.1"`, is exempt, since credentials sent to it never leave the host. A listener whose construction, configuration or host cannot be resolved is also left alone, since reporting it would mean guessing that it has no TLS.
+
+A service behind a gateway or ingress that terminates TLS and forwards credentials to a plaintext listener on another host is still reported: the hop between the gateway and the service carries the credentials in the clear. Bind the listener to a loopback address when the gateway runs on the same host, add TLS on that hop, or suppress the issue where the network between the two is trusted.
+
+#### 11.13.2. What is the potential impact?
+
+Every credential presented to the service is recoverable from the network and can be replayed against it.
+
+#### 11.13.3. How can I fix this?
+
+Give the listener a secure socket, or terminate TLS ahead of it and keep the plaintext listener unauthenticated.
+
+**Non-compliant code:**
+
+```ballerina
+listener http:Listener plainListener = new (9090);
+
+@http:ServiceConfig {
+    auth: [{jwtValidatorConfig: {issuer: "wso2", audience: "ballerina", signatureConfig: {certFile: "/path/to/public.crt"}}, scopes: ["admin"]}]
+}
+service /api on plainListener {
+}
+```
+
+**Compliant code:**
+
+```ballerina
+listener http:Listener securedListener = new (9090, secureSocket = {
+    key: {certFile: "/path/to/public.crt", keyFile: "/path/to/private.key"}
+});
+
+@http:ServiceConfig {
+    auth: [{jwtValidatorConfig: {issuer: "wso2", audience: "ballerina", signatureConfig: {certFile: "/path/to/public.crt"}}, scopes: ["admin"]}]
+}
+service /api on securedListener {
+}
+```
+
+#### 11.13.4. Additional Resources
+
+- [CWE-319: Cleartext Transmission of Sensitive Information](https://cwe.mitre.org/data/definitions/319.html)
+- [OWASP Top 10:2025 A04 Cryptographic Failures](https://owasp.org/Top10/2025/A04_2025-Cryptographic_Failures/)
+
+### 11.14. Caller redirections should not be open to forging attacks
+
+`Caller.redirect` is the second redirect sink in the module.
+
+| Property              | Description |
+|-----------------------|-------------|
+| **Rule ID**           | ballerina/http:14 |
+| **Rule Kind**         | Vulnerability |
+| **CWE**               | [CWE-601](https://cwe.mitre.org/data/definitions/601.html) |
+| **OWASP Top 10:2025** | [A01 Broken Access Control](https://owasp.org/Top10/2025/A01_2025-Broken_Access_Control/) |
+
+#### 11.14.1. Why this is an issue?
+
+A caller-controlled redirect target lets an attacker send a user to a site of their choosing from a URL that begins on the trusted origin, which is what makes the resulting phishing page credible. Rule `ballerina/http:4` covers the `location` header of a status code response; this rule covers the explicit `Caller.redirect` API.
+
+Like `ballerina/http:4`, it matches a resource parameter used directly at the sink, not one that has passed through a local variable, and it does not report a parameter appended after a string literal that already fixes the scheme and host, such as `"https://example.com/" + target`.
+
+#### 11.14.2. What is the potential impact?
+
+A link on the service's own domain sends the user to an attacker's site, carrying the trust the domain confers.
+
+#### 11.14.3. How can I fix this?
+
+Redirect to a target the service chooses, or validate the caller's value against a set of permitted destinations.
+
+**Non-compliant code:**
+
+```ballerina
+resource function get redirect(http:Caller caller, string target) returns error? {
+    http:Response response = new;
+    check caller->redirect(response, http:REDIRECT_FOUND_302, [target]);
+}
+```
+
+**Compliant code:**
+
+```ballerina
+resource function get redirect(http:Caller caller, string target) returns error? {
+    http:Response response = new;
+    string destination = target == "docs" ? "https://example.com/docs" : "https://example.com/";
+    check caller->redirect(response, http:REDIRECT_FOUND_302, [destination]);
+}
+```
+
+#### 11.14.4. Additional Resources
+
+- [CWE-601: URL Redirection to Untrusted Site](https://cwe.mitre.org/data/definitions/601.html)
+- [OWASP Top 10:2025 A01 Broken Access Control](https://owasp.org/Top10/2025/A01_2025-Broken_Access_Control/)
+
+### 11.15. Avoid accepting request bodies of unlimited size
+
+A negative `maxEntityBodySize` removes the ceiling on an incoming request body.
+
+| Property              | Description |
+|-----------------------|-------------|
+| **Rule ID**           | ballerina/http:15 |
+| **Rule Kind**         | Vulnerability |
+| **CWE**               | [CWE-770](https://cwe.mitre.org/data/definitions/770.html) |
+| **OWASP Top 10:2025** | [A06 Insecure Design](https://owasp.org/Top10/2025/A06_2025-Insecure_Design/) |
+
+#### 11.15.1. Why this is an issue?
+
+The transport enforces the limit only when it is not negative, so `-1`, or any other negative value, leaves a single request free to carry a body large enough to exhaust the service's memory. The rule reports an explicit negative literal only: the field defaults to `-1`, so reporting every listener that leaves it alone would fire on all of them.
+
+#### 11.15.2. What is the potential impact?
+
+One request can exhaust memory and take the service down, so a denial of service needs no volume of traffic behind it.
+
+#### 11.15.3. How can I fix this?
+
+Set a limit that reflects the largest body the service is meant to accept.
+
+**Non-compliant code:**
+
+```ballerina
+listener http:Listener httpListener = new (9090, requestLimits = {
+    maxEntityBodySize: -1
+});
+```
+
+**Compliant code:**
+
+```ballerina
+listener http:Listener httpListener = new (9090, requestLimits = {
+    maxEntityBodySize: 1048576
+});
+```
+
+#### 11.15.4. Additional Resources
+
+- [CWE-770: Allocation of Resources Without Limits or Throttling](https://cwe.mitre.org/data/definitions/770.html)
+- [OWASP Top 10:2025 A06 Insecure Design](https://owasp.org/Top10/2025/A06_2025-Insecure_Design/)
+
+### 11.16. Avoid allowing shared caches to store responses that require authentication
+
+The `@http:Cache` annotation advertises a response as cacheable by shared caches unless told otherwise.
+
+| Property              | Description |
+|-----------------------|-------------|
+| **Rule ID**           | ballerina/http:16 |
+| **Rule Kind**         | Vulnerability |
+| **CWE**               | [CWE-524](https://cwe.mitre.org/data/definitions/524.html), [CWE-525](https://cwe.mitre.org/data/definitions/525.html) |
+| **OWASP Top 10:2025** | [A02 Security Misconfiguration](https://owasp.org/Top10/2025/A02_2025-Security_Misconfiguration/) |
+
+#### 11.16.1. Why this is an issue?
+
+A response produced for one authenticated caller is specific to that caller. The annotation defaults to `must-revalidate, public, max-age=3600`, and `public` is an explicit statement that a proxy, gateway or CDN may store the response and serve it to somebody else.
+
+The rule reports a resource that carries the `ballerina/http` `@http:Cache` annotation and requires authentication, unless the response is marked private (`isPrivate`) or excluded from storage (`noStore`). `noCache` does not exempt the response: a shared cache may still store it and only has to revalidate before reusing it. A flag set to a value that is not a literal is not guessed at.
+
+Authentication is recognised where it is declared, on the resource's own `@http:ResourceConfig` or on the `@http:ServiceConfig` of the service declaration or service class. `auth: []` declares no provider, and on a resource it switches off the service's authentication for that resource. A service that enforces authentication imperatively inside the resource body is out of scope, because establishing that from the syntax alone would be guesswork.
+
+The rule addresses shared caches only. `isPrivate: true` emits `Cache-Control: private`, which still lets the client's own cache store the response. Where that cache can serve more than one authenticated identity, for example a shared browser profile or a client-side cache keyed only by URL, and the response differs per identity, use `noStore: true` instead.
+
+The insecure behaviour is the default, which is what makes this easy to introduce by accident.
+
+#### 11.16.2. What is the potential impact?
+
+One user's data is served to another from an intermediary cache, without either request reaching the service.
+
+#### 11.16.3. How can I fix this?
+
+Mark the response private, so only the requesting client's own cache may store it, or decline storage altogether.
+
+**Non-compliant code:**
+
+```ballerina
+@http:ServiceConfig {
+    auth: [{fileUserStoreConfig: {}, scopes: ["admin"]}]
+}
+service /secured on securedListener {
+    resource function get profile() returns @http:Cache {maxAge: 3600} json {
+        return {name: "user"};
+    }
+}
+```
+
+**Compliant code:**
+
+```ballerina
+@http:ServiceConfig {
+    auth: [{fileUserStoreConfig: {}, scopes: ["admin"]}]
+}
+service /secured on securedListener {
+    resource function get profile() returns @http:Cache {maxAge: 3600, isPrivate: true} json {
+        return {name: "user"};
+    }
+}
+```
+
+#### 11.16.4. Additional Resources
+
+- [CWE-524: Use of Cache Containing Sensitive Information](https://cwe.mitre.org/data/definitions/524.html)
+- [CWE-525: Use of Web Browser Cache Containing Sensitive Information](https://cwe.mitre.org/data/definitions/525.html)
+- [OWASP Top 10:2025 A02 Security Misconfiguration](https://owasp.org/Top10/2025/A02_2025-Security_Misconfiguration/)
+- [MDN: Cache-Control](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control)
+
+### 11.17. Avoid disclosing the server product version in the server response header
+
+A `server` response header carrying a product version names the exact release that is running.
+
+| Property              | Description |
+|-----------------------|-------------|
+| **Rule ID**           | ballerina/http:17 |
+| **Rule Kind**         | Vulnerability |
+| **CWE**               | [CWE-200](https://cwe.mitre.org/data/definitions/200.html) |
+| **OWASP Top 10:2025** | [A02 Security Misconfiguration](https://owasp.org/Top10/2025/A02_2025-Security_Misconfiguration/) |
+
+#### 11.17.1. Why this is an issue?
+
+A version in the `server` header tells an attacker which published vulnerabilities to try, and offers a client nothing in return.
+
+When `server` is not configured, the listener still sends a `server` header on every response that lacks one, with the value `ballerina`, or `ballerina/<version>` when the runtime exposes its version. The rule does not report an unconfigured listener, since that would fire on every listener; it reports only where a value carrying a version has been configured deliberately. To control what is disclosed, configure an explicit value without a version. A bare product name is not reported: it discloses far less than a version, and some deployments need it for routing or diagnostics. The rule looks for a version token of the form `1.2` in a string literal, so a value assembled at runtime is not examined.
+
+#### 11.17.2. What is the potential impact?
+
+Reconnaissance is reduced to reading one response header, which narrows an attacker's search to vulnerabilities known to affect that release.
+
+#### 11.17.3. How can I fix this?
+
+Configure a `server` value that carries no version.
+
+**Non-compliant code:**
+
+```ballerina
+listener http:Listener versionedListener = new (9090, server = "ballerina/2201.13.5");
+```
+
+**Compliant code:**
+
+```ballerina
+listener http:Listener namedListener = new (9090, server = "gateway");
+```
+
+#### 11.17.4. Additional Resources
+
+- [CWE-200: Exposure of Sensitive Information to an Unauthorized Actor](https://cwe.mitre.org/data/definitions/200.html)
+- [OWASP Top 10:2025 A02 Security Misconfiguration](https://owasp.org/Top10/2025/A02_2025-Security_Misconfiguration/)
+- [OWASP Secure Headers Project](https://owasp.org/www-project-secure-headers/)
+
+### 11.18. Avoid serving authenticated responses from a cache without revalidation
+
+`mustRevalidate: false` lets a cache serve a stored authenticated response after it has gone stale.
+
+| Property              | Description |
+|-----------------------|-------------|
+| **Rule ID**           | ballerina/http:18 |
+| **Rule Kind**         | Vulnerability |
+| **CWE**               | [CWE-524](https://cwe.mitre.org/data/definitions/524.html) |
+| **OWASP Top 10:2025** | [A01 Broken Access Control](https://owasp.org/Top10/2025/A01_2025-Broken_Access_Control/) |
+
+#### 11.18.1. Why this is an issue?
+
+`mustRevalidate` defaults to `true`, which forbids a cache from serving an entry once it is stale, that is, after `maxAge` (an hour by default) has elapsed, without first checking back with the service. It does not affect the freshness window itself: during `maxAge` a cache serves the stored copy either way. Turning it off allows a cache to keep serving a stale authenticated response beyond `maxAge`, for example while the service is unreachable or to a client that accepts stale content (`max-stale`), so a caller whose account has been disabled, whose session has ended or whose scopes have been reduced may keep receiving it for longer than the configured lifetime.
+
+The rule reports an explicit `false` only. Leaving the field out keeps the default, and a value that is not a literal cannot be resolved without guessing. It is not reported when `noStore`, `noCache` or `proxyRevalidate` is `true`: `noStore` keeps the response out of caches, `noCache` forces revalidation on every use, and `proxyRevalidate` already requires revalidation of stale entries by shared caches. To bound the exposure during the freshness window itself, lower `maxAge`.
+
+#### 11.18.2. What is the potential impact?
+
+Revoked access may continue to work past `maxAge`, for as long as a cache is willing to serve the stale entry.
+
+#### 11.18.3. How can I fix this?
+
+Leave revalidation at its default, or set it explicitly where the intent should be visible in the code, and keep `maxAge` short for responses whose access can be revoked.
+
+**Non-compliant code:**
+
+```ballerina
+resource function get profile() returns @http:Cache {isPrivate: true, mustRevalidate: false} json {
+    return {name: "user"};
+}
+```
+
+**Compliant code:**
+
+```ballerina
+resource function get profile() returns @http:Cache {isPrivate: true} json {
+    return {name: "user"};
+}
+```
+
+#### 11.18.4. Additional Resources
+
+- [CWE-524: Use of Cache Containing Sensitive Information](https://cwe.mitre.org/data/definitions/524.html)
+- [OWASP Top 10:2025 A01 Broken Access Control](https://owasp.org/Top10/2025/A01_2025-Broken_Access_Control/)
+- [MDN: Cache-Control must-revalidate](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control#must-revalidate)
