@@ -97,19 +97,19 @@ service /unhealthy on new http:Listener(8088, httpVersion = http:HTTP_1_1) {
 //Test for circuit breaker forceClose functionality
 final http:Client testForceCloseClient = check new("http://localhost:9308", httpVersion = http:HTTP_1_1);
 
-@test:Config{
-    dataProvider:forceCloseResponseDataProvider
-}
-function testForceClose(DataFeed dataFeed) returns error? {
-    check invokeApiAndVerifyResponse(testForceCloseClient, "/cb/forceclose", dataFeed);
+@test:Config {}
+function testForceClose() returns error? {
+    foreach [int, DataFeed] [step, dataFeed] in forceCloseResponses().enumerate() {
+        check atStep(step, trap invokeApiAndVerifyResponse(testForceCloseClient, "/cb/forceclose", dataFeed));
+    }
 }
 
-function forceCloseResponseDataProvider() returns DataFeed[][] {
+function forceCloseResponses() returns DataFeed[] {
     return [
-        [{responseCode:SC_INTERNAL_SERVER_ERROR, message:IDLE_TIMEOUT_MESSAGE}],
-        [{responseCode:SC_INTERNAL_SERVER_ERROR, message:IDLE_TIMEOUT_MESSAGE}],
-        [{responseCode:SC_INTERNAL_SERVER_ERROR, message:UPSTREAM_UNAVAILABLE_MESSAGE}],
-        [{responseCode:SC_OK, message:SUCCESS_HELLO_MESSAGE}],
-        [{responseCode:SC_OK, message:SUCCESS_HELLO_MESSAGE}]
+        {responseCode:SC_INTERNAL_SERVER_ERROR, message:IDLE_TIMEOUT_MESSAGE},
+        {responseCode:SC_INTERNAL_SERVER_ERROR, message:IDLE_TIMEOUT_MESSAGE},
+        {responseCode:SC_INTERNAL_SERVER_ERROR, message:UPSTREAM_UNAVAILABLE_MESSAGE},
+        {responseCode:SC_OK, message:SUCCESS_HELLO_MESSAGE},
+        {responseCode:SC_OK, message:SUCCESS_HELLO_MESSAGE}
     ];
 }

@@ -76,15 +76,17 @@ service /simple on new http:Listener(8089, httpVersion = http:HTTP_1_1) {
 //Test for circuit breaker getState functionality
 final http:Client testGetStateClient = check new("http://localhost:9309", httpVersion = http:HTTP_1_1);
 
-@test:Config{ dataProvider:getStateResponseDataProvider }
-function testGetState(DataFeed dataFeed) returns error? {
-    check invokeApiAndVerifyResponse(testGetStateClient, "/cb/getstate", dataFeed);
+@test:Config {}
+function testGetState() returns error? {
+    foreach [int, DataFeed] [step, dataFeed] in getStateResponses().enumerate() {
+        check atStep(step, trap invokeApiAndVerifyResponse(testGetStateClient, "/cb/getstate", dataFeed));
+    }
 }
 
-function getStateResponseDataProvider() returns DataFeed[][] {
+function getStateResponses() returns DataFeed[] {
     return [
-        [{responseCode:SC_OK, message:SUCCESS_HELLO_MESSAGE}],
-        [{responseCode:SC_OK, message:SUCCESS_HELLO_MESSAGE}],
-        [{responseCode:SC_OK, message:SUCCESS_HELLO_MESSAGE}]
+        {responseCode:SC_OK, message:SUCCESS_HELLO_MESSAGE},
+        {responseCode:SC_OK, message:SUCCESS_HELLO_MESSAGE},
+        {responseCode:SC_OK, message:SUCCESS_HELLO_MESSAGE}
     ];
 }

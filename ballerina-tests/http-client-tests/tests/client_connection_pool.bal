@@ -17,7 +17,7 @@
 import ballerina/test;
 import ballerina/http;
 
-http:PoolConfiguration sharedPoolConfig = {};
+final readonly & http:PoolConfiguration sharedPoolConfig = {};
 
 @test:Config {}
 function testGlobalPoolConfig() returns error? {

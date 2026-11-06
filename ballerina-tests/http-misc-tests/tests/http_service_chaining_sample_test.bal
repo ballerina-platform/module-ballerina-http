@@ -119,8 +119,8 @@ service /branchlocator on serviceChainingListenerEP {
     }
 }
 
-json requestMessage = {ATMLocator: {ZipCode: "95999"}};
-json responseMessage = {"ABC Bank": {Address: "111 River Oaks Pkwy, San Jose, CA 95999"}};
+final json & readonly requestMessage = {ATMLocator: {ZipCode: "95999"}};
+final json & readonly responseMessage = {"ABC Bank": {Address: "111 River Oaks Pkwy, San Jose, CA 95999"}};
 
 //Test service chaining sample
 @test:Config {}

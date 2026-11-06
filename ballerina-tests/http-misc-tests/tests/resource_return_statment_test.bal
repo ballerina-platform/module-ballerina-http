@@ -377,7 +377,7 @@ service http:Service /mytest on resourceReturnTestEP {
 }
 
 @test:Config {}
-public function testRespondAndReturnNil() returns error? {
+function testRespondAndReturnNil() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test1");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
@@ -389,7 +389,7 @@ public function testRespondAndReturnNil() returns error? {
 }
 
 @test:Config {}
-public function testReturnString() returns error? {
+function testReturnString() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test2");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
@@ -401,7 +401,7 @@ public function testReturnString() returns error? {
 }
 
 @test:Config {}
-public function testReturnStringWithMediaType() returns error? {
+function testReturnStringWithMediaType() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test2a");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
@@ -413,7 +413,7 @@ public function testReturnStringWithMediaType() returns error? {
 }
 
 @test:Config {}
-public function testReturnJson() returns error? {
+function testReturnJson() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test3");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
@@ -425,7 +425,7 @@ public function testReturnJson() returns error? {
 }
 
 @test:Config {}
-public function testReturnJsonWithMediaType() returns error? {
+function testReturnJsonWithMediaType() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test3a");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
@@ -437,7 +437,7 @@ public function testReturnJsonWithMediaType() returns error? {
 }
 
 @test:Config {}
-public function testReturnXml() returns error? {
+function testReturnXml() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test4");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
@@ -449,7 +449,7 @@ public function testReturnXml() returns error? {
 }
 
 @test:Config {}
-public function testReturnByte() returns error? {
+function testReturnByte() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test5");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
@@ -466,7 +466,7 @@ public function testReturnByte() returns error? {
 }
 
 @test:Config {}
-public function testReturnResponse() returns error? {
+function testReturnResponse() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test6");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 201, msg = "Found unexpected output");
@@ -479,7 +479,7 @@ public function testReturnResponse() returns error? {
 }
 
 @test:Config {}
-public function testReturnInt() returns error? {
+function testReturnInt() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test7");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
@@ -491,7 +491,7 @@ public function testReturnInt() returns error? {
 }
 
 @test:Config {}
-public function testReturnIntWithMediaType() returns error? {
+function testReturnIntWithMediaType() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test7a");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
@@ -503,7 +503,7 @@ public function testReturnIntWithMediaType() returns error? {
 }
 
 @test:Config {}
-public function testReturnFloat() returns error? {
+function testReturnFloat() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test8");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
@@ -515,7 +515,7 @@ public function testReturnFloat() returns error? {
 }
 
 @test:Config {}
-public function testReturnDecimal() returns error? {
+function testReturnDecimal() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test9");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
@@ -528,7 +528,7 @@ public function testReturnDecimal() returns error? {
 }
 
 @test:Config {}
-public function testReturnBoolean() returns error? {
+function testReturnBoolean() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test10");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
@@ -540,7 +540,7 @@ public function testReturnBoolean() returns error? {
 }
 
 @test:Config {}
-public function testReturnError() returns error? {
+function testReturnError() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test11");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 500, msg = "Found unexpected output");
@@ -553,7 +553,7 @@ public function testReturnError() returns error? {
 }
 
 @test:Config {}
-public function testReturnStatusCodeRecord() returns error? {
+function testReturnStatusCodeRecord() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test12");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 202, msg = "Found unexpected output");
@@ -566,7 +566,7 @@ public function testReturnStatusCodeRecord() returns error? {
 }
 
 @test:Config {}
-public function testReturnStatusCodeRecordWithMediaType() returns error? {
+function testReturnStatusCodeRecordWithMediaType() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test13");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 201, msg = "Found unexpected output");
@@ -579,7 +579,7 @@ public function testReturnStatusCodeRecordWithMediaType() returns error? {
 }
 
 @test:Config {}
-public function testReturnStatusCodeRecordWithArrayOfHeaders() returns error? {
+function testReturnStatusCodeRecordWithArrayOfHeaders() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test14");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
@@ -593,7 +593,7 @@ public function testReturnStatusCodeRecordWithArrayOfHeaders() returns error? {
 }
 
 @test:Config {}
-public function testReturnInlineRecord() returns error? {
+function testReturnInlineRecord() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test15");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 201, msg = "Found unexpected output");
@@ -606,7 +606,7 @@ public function testReturnInlineRecord() returns error? {
 }
 
 @test:Config {}
-public function testReturnStringArr() returns error? {
+function testReturnStringArr() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test16");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
@@ -618,7 +618,7 @@ public function testReturnStringArr() returns error? {
 }
 
 @test:Config {}
-public function testReturnJsonAsString() returns error? {
+function testReturnJsonAsString() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test17");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
@@ -630,7 +630,7 @@ public function testReturnJsonAsString() returns error? {
 }
 
 @test:Config {}
-public function testReturnRecordArr() returns error? {
+function testReturnRecordArr() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test18");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
@@ -642,7 +642,7 @@ public function testReturnRecordArr() returns error? {
 }
 
 @test:Config {}
-public function testReturnTable() returns error? {
+function testReturnTable() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test19");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
@@ -657,7 +657,7 @@ public function testReturnTable() returns error? {
 }
 
 @test:Config {}
-public function testReturnMapOfInt() returns error? {
+function testReturnMapOfInt() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test20");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
@@ -669,7 +669,7 @@ public function testReturnMapOfInt() returns error? {
 }
 
 @test:Config {}
-public function testReturnMapOfJson() returns error? {
+function testReturnMapOfJson() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test21");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
@@ -681,7 +681,7 @@ public function testReturnMapOfJson() returns error? {
 }
 
 @test:Config {}
-public function testReturnMapOfJsonArr() returns error? {
+function testReturnMapOfJsonArr() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test22");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
@@ -696,7 +696,7 @@ public function testReturnMapOfJsonArr() returns error? {
 }
 
 @test:Config {}
-public function testReturnTableArr() returns error? {
+function testReturnTableArr() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test23");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
@@ -717,7 +717,7 @@ public function testReturnTableArr() returns error? {
 }
 
 @test:Config {}
-public function testReturnXmlArr() returns error? {
+function testReturnXmlArr() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test24");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
@@ -729,7 +729,7 @@ public function testReturnXmlArr() returns error? {
 }
 
 @test:Config {}
-public function testReturnMapOfXml() returns error? {
+function testReturnMapOfXml() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test25");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
@@ -741,7 +741,7 @@ public function testReturnMapOfXml() returns error? {
 }
 
 @test:Config {}
-public function testReturnMultipleTypes() returns error? {
+function testReturnMultipleTypes() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test26/gone");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 410, msg = "Found unexpected output");
@@ -772,7 +772,7 @@ public function testReturnMultipleTypes() returns error? {
 }
 
 @test:Config {}
-public function testSwitchingProtocolsStatusCodes() {
+function testSwitchingProtocolsStatusCodes() {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test27/SwitchingProtocols");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 101, msg = "Found unexpected output");
@@ -782,7 +782,7 @@ public function testSwitchingProtocolsStatusCodes() {
 }
 
 @test:Config {}
-public function testNonAuthoritativeInformationStatusCodes() {
+function testNonAuthoritativeInformationStatusCodes() {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test27/NonAuthoritativeInformation");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 203, msg = "Found unexpected output");
@@ -792,7 +792,7 @@ public function testNonAuthoritativeInformationStatusCodes() {
 }
 
 @test:Config {}
-public function testAllOtherStatusCodes() {
+function testAllOtherStatusCodes() {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test27/ResetContent");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 205, msg = "Found unexpected output");
@@ -1012,7 +1012,7 @@ public function testAllOtherStatusCodes() {
 }
 
 @test:Config {}
-public function testCheckPanic() {
+function testCheckPanic() {
     string|error resp = resourceReturnTestClient->get("/mytest/test28");
     if resp is error {
         test:assertEquals(resp.message(), "Internal Server Error", msg = "Found unexpected output");
@@ -1022,7 +1022,7 @@ public function testCheckPanic() {
 }
 
 @test:Config {}
-public function testDoubleResponse() {
+function testDoubleResponse() {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test29");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
@@ -1033,7 +1033,7 @@ public function testDoubleResponse() {
 }
 
 @test:Config {}
-public function testCheckErrorAfterResponse() {
+function testCheckErrorAfterResponse() {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test31");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
@@ -1044,7 +1044,7 @@ public function testCheckErrorAfterResponse() {
 }
 
 @test:Config {}
-public function testCheckPanicErrorAfterResponse() {
+function testCheckPanicErrorAfterResponse() {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test32");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
@@ -1055,7 +1055,7 @@ public function testCheckPanicErrorAfterResponse() {
 }
 
 @test:Config {}
-public function testContentTypeHeaderInHeaderField() returns error? {
+function testContentTypeHeaderInHeaderField() returns error? {
     http:Response|error resp = resourceReturnTestClient->get("/mytest/test33");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");

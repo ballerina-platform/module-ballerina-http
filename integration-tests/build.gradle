@@ -134,6 +134,24 @@ task copyTestResources(type: Copy) {
     }
 }
 
+task buildSampleService {
+    def execHelper = project.objects.newInstance(BallerinaExecHelper)
+    dependsOn(copyTestResources)
+    dependsOn(":http-ballerina:build")
+    doLast {
+        execHelper.execOperations.exec {
+            workingDir "${tempDir}/service"
+            environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
+            if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                environment.remove("JAVA_TOOL_OPTIONS")
+                commandLine 'cmd', '/c', "$distributionBinPath/bal.bat build --offline && exit %%ERRORLEVEL%%"
+            } else {
+                commandLine 'sh', '-c', "$distributionBinPath/bal build --offline"
+            }
+        }
+    }
+}
+
 task startSocksServer() {
     def execHelper = project.objects.newInstance(BallerinaExecHelper)
     doLast {
@@ -180,6 +198,7 @@ task ballerinaIntegrationTests {
     dependsOn(processTestResources)
     dependsOn(copyToLib)
     dependsOn(copyTestResources)
+    dependsOn(buildSampleService)
     dependsOn(":http-integration-tests:jar")
     dependsOn(":http-ballerina:build")
     dependsOn(updateTomlVerions)
@@ -189,6 +208,7 @@ task ballerinaIntegrationTests {
     if (project.hasProperty('balGraalVMTest')) {
         graalvmFlag = '--graalvm'
     }
+    def parallelFlag = (project.hasProperty('balGraalVMTest') || project.hasProperty('balSerialTest')) ? '' : '--parallel'
     doLast {
         setExecPath(configTOMLFile, distributionBinPath)
         setTempDirPath(configTOMLFile, "$tempDir")
@@ -197,10 +217,10 @@ task ballerinaIntegrationTests {
             environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
                 environment.remove("JAVA_TOOL_OPTIONS")
-                commandLine 'cmd', '/c', "$distributionBinPath/bal.bat test ${graalvmFlag} --offline " +
+                commandLine 'cmd', '/c', "$distributionBinPath/bal.bat test ${graalvmFlag} ${parallelFlag} --offline " +
                         "--disable-groups disabledOnWindows ${testCoverageParam} && exit %%ERRORLEVEL%%"
             } else {
-                commandLine 'sh', '-c', "$distributionBinPath/bal test ${graalvmFlag} --offline ${testCoverageParam}"
+                commandLine 'sh', '-c', "$distributionBinPath/bal test ${graalvmFlag} ${parallelFlag} --offline ${testCoverageParam}"
             }
         }
     }

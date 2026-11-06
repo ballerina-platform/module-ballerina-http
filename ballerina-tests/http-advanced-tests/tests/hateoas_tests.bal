@@ -192,7 +192,7 @@ service /restBucks on new http:Listener(hateoasTestPort, httpVersion = http:HTTP
     }
 }
 
-http:Client jsonClientEP = check new(string`http://localhost:${hateoasTestPort}/restBucks`, httpVersion = http:HTTP_1_1);
+final http:Client jsonClientEP = check new(string`http://localhost:${hateoasTestPort}/restBucks`, httpVersion = http:HTTP_1_1);
 
 @test:Config {}
 function testHateoasLinks1() returns error? {

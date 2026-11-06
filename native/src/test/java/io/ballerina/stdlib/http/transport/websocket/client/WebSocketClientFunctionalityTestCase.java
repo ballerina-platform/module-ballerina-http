@@ -251,7 +251,7 @@ public class WebSocketClientFunctionalityTestCase {
     }
 
     private void assertMessageProperties(WebSocketMessage webSocketMessage) {
-        Assert.assertEquals(webSocketMessage.getTarget(), "ws://localhost:9010/websocket");
+        Assert.assertEquals(webSocketMessage.getTarget(), WEBSOCKET_REMOTE_SERVER_URL);
         Assert.assertFalse(webSocketMessage.isServerMessage());
     }
 

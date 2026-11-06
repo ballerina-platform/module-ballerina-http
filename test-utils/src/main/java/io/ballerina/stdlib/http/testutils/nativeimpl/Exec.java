@@ -18,11 +18,13 @@
 
 package io.ballerina.stdlib.http.testutils.nativeimpl;
 
+import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -37,6 +39,19 @@ import java.util.stream.Collectors;
 public class Exec {
 
     private Exec() {}
+
+    // Used to start prebuilt jars without the extra `bal run` JVM. A GraalVM native test has no java.home, so it
+    // falls back to JAVA_HOME and then to the java on the PATH.
+    public static BString javaExecutable() {
+        String javaHome = System.getProperty("java.home");
+        if (javaHome == null || javaHome.isEmpty()) {
+            javaHome = System.getenv("JAVA_HOME");
+        }
+        if (javaHome == null || javaHome.isEmpty()) {
+            return StringUtils.fromString("java");
+        }
+        return StringUtils.fromString(Paths.get(javaHome, "bin", "java").toString());
+    }
     
     public static Object exec(BString command, BMap<BString, BString> env, Object dir, BString[] args) {
         List<String> commandList = new ArrayList<>();
@@ -53,7 +68,7 @@ public class Exec {
         try {
             return OSUtils.getProcessObject(pb.start());
         } catch (IOException e) {
-            return OSUtils.getBallerinaError(OSConstants.PROCESS_EXEC_ERROR, e);
+            return OSUtils.getBallerinaError(e);
         }
     }
 }

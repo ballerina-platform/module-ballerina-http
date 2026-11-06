@@ -42,27 +42,15 @@ function cleanupIntegrationTests() returns error? {
     return cleanLogFiles();
 }
 
-@test:Config {
-    serialExecution: true
-}
+@test:Config {}
 function testSizeBasedAccessLogRotation() returns error? {
     string logFile = "./build/tmp/output/size-based-access.log";
     string configFile = "tests/resources/samples/config/size-based-rotation.toml";
 
-    // Execute the test Ballerina program that generates logs and triggers rotation
-    Process result = check exec(bal_exec_path, {BAL_CONFIG_FILES: configFile}, (), "run", string `${temp_dir_path}/service`);
-    runtime:sleep(15); // wait to up the service
-
-    http:Client 'client = check new("http://localhost:9797");
-    foreach int i in 0...9 {
-        record {}[] _= check 'client->get("/albums");
-        runtime:sleep(1);
-    }
-    runtime:sleep(1); // Wait for the service to complete requests
-
-    boolean hasTerminated = result.stop(); // Stop the process
-    runtime:sleep(1); // Ensure all file handles are released before verification
-    test:assertTrue(hasTerminated, "Process should be stopped successfully");
+    _ = check useService(configFile, 9797, isolated function(http:Client 'client) returns int|error {
+        check sendRequests('client, 10);
+        return 0;
+    });
 
     test:assertTrue(fileExists(logFile), "Main log file should exist");
     int rotatedFileCount = check countRotatedFiles(SIZE_BASED_PREFIX);
@@ -76,25 +64,14 @@ function testSizeBasedAccessLogRotation() returns error? {
     test:assertTrue(content.includes("ballerina"), "Logs should include attributes from Config.toml");
 }
 
-@test:Config {
-    serialExecution: true
-}
+@test:Config {}
 function testTimeBasedAccessLogRotation() returns error? {
     string logFile = "./build/tmp/output/time-based-access.log";
     string configFile = "tests/resources/samples/config/time-based-rotation.toml";
-    Process result = check exec(bal_exec_path, {BAL_CONFIG_FILES: configFile}, (), "run", string `${temp_dir_path}/service`);
-    runtime:sleep(15); // Wait to up the service
-
-    http:Client 'client = check new("http://localhost:9797");
-    foreach int i in 0...9 {
-        record {}[] _= check 'client->get("/albums");
-        runtime:sleep(1);
-    }
-    runtime:sleep(1); // Wait for the service to complete requests
-
-    boolean hasTerminated = result.stop();
-    runtime:sleep(1); // Ensure all file handles are released before verification
-    test:assertTrue(hasTerminated, "Process should be stopped successfully"); 
+    _ = check useService(configFile, 9798, isolated function(http:Client 'client) returns int|error {
+        check sendRequests('client, 10);
+        return 0;
+    });
 
     test:assertTrue(fileExists(logFile), "Main log file should exist");
     int rotatedFileCount = check countRotatedFiles(TIME_BASED_PREFIX);
@@ -108,35 +85,23 @@ function testTimeBasedAccessLogRotation() returns error? {
     test:assertTrue(content.includes("ballerina"), "Logs should include attributes from Config.toml");
 }
 
-@test:Config {
-    serialExecution: true
-}
+@test:Config {}
 function testCombinedPolicyRotation() returns error? {
     string logFile = "./build/tmp/output/combined-policy-access.log";
     string configFile = "tests/resources/samples/config/combined-policy-rotation.toml";
-    Process result = check exec(bal_exec_path, {BAL_CONFIG_FILES: configFile}, (), "run", string `${temp_dir_path}/service`);
-    runtime:sleep(15); // Wait to up the service
+    int rotatedFileCountAfterSize = check useService(configFile, 9799,
+        isolated function(http:Client 'client) returns int|error {
+            check sendRequests('client, 10);
 
-    http:Client 'client = check new("http://localhost:9797");
-    foreach int i in 0...9 {
-        record {}[] _= check 'client->get("/albums");
-        runtime:sleep(1);
-    }
-    runtime:sleep(1); // Wait for the service to complete requests
+            // Verify size-based rotation occurred first
+            int rotatedFiles = check countRotatedFiles(COMBINED_POLICY_ACCESS_PREFIX);
+            test:assertTrue(rotatedFiles > 0, "Should have rotated when size limit reached");
 
-    // Verify size-based rotation occurred first
-    int rotatedFileCountAfterSize = check countRotatedFiles(COMBINED_POLICY_ACCESS_PREFIX);
-    test:assertTrue(rotatedFileCountAfterSize > 0, "Should have rotated when size limit reached");
-
-    // Wait for time interval and generate minimal logs
-    runtime:sleep(5);
-    record {}[] _= check 'client->get("/albums");
-    runtime:sleep(1);
-
-    // Stop the process
-    boolean hasTerminated = result.stop();
-    runtime:sleep(1);
-    test:assertTrue(hasTerminated, "Process should be stopped successfully");
+            // Wait for time interval and generate minimal logs
+            runtime:sleep(5);
+            record {}[] _ = check 'client->get("/albums");
+            return rotatedFiles;
+        });
 
     // Verify time-based rotation also works
     int rotatedFileCountAfterTime = check countRotatedFiles(COMBINED_POLICY_ACCESS_PREFIX);
@@ -146,51 +111,31 @@ function testCombinedPolicyRotation() returns error? {
     test:assertTrue(fileExists(logFile), "Main log file should exist");
 }
 
-@test:Config {
-    serialExecution: true
-}
+@test:Config {}
 function testConcurrentWrites() returns error? {
     string logFile = "./build/tmp/output/concurrent-writes-access.log";
     string configFile = "tests/resources/samples/config/concurrent-writes-rotation.toml";
-    Process result = check exec(bal_exec_path, {BAL_CONFIG_FILES: configFile}, (), "run", string `${temp_dir_path}/service`);
-    runtime:sleep(15);
+    _ = check useService(configFile, 9800, isolated function(http:Client client1) returns int|error {
+        final http:Client client2 = check new("http://localhost:9800");
+        final http:Client client3 = check new("http://localhost:9800");
 
-    http:Client client1 = check new("http://localhost:9797");
-    http:Client client2 = check new("http://localhost:9797");
-    http:Client client3 = check new("http://localhost:9797");
-
-    worker w1 returns error? {
-        foreach int i in 0...6 {
-            record {}[] _ = check client1->get("/albums");
-            runtime:sleep(1);
-            
+        worker w1 returns error? {
+            check sendRequests(client1, 7);
         }
-    }
 
-    worker w2 returns error? {
-        foreach int i in 0...6 {
-            record{}[] _ = check client2->get("/albums");
-            runtime:sleep(1);
+        worker w2 returns error? {
+            check sendRequests(client2, 7);
         }
-        
-    }
 
-    worker w3 returns error? {
-        foreach int i in 0...6 {
-            record{}[] _ = check client3->get("/albums");
-            runtime:sleep(1);
+        worker w3 returns error? {
+            check sendRequests(client3, 7);
         }
-    }
-    runtime:sleep(3); // Wait for all requests to complete and rotation to occur
 
-    () _ = check wait w1;
-    _ = check wait w2;
-    _ = check wait w3;
-    runtime:sleep(1);
-
-    boolean hasTerminated = result.stop();
-    runtime:sleep(1);
-    test:assertTrue(hasTerminated, "Process should be stopped successfully");
+        check wait w1;
+        check wait w2;
+        check wait w3;
+        return 0;
+    });
 
     test:assertTrue(fileExists(logFile), "Main log file should exist");
     int rotatedFileCount = check countRotatedFiles(CONCURRENT_WRITES_PREFIX);
@@ -218,25 +163,15 @@ function testConcurrentWrites() returns error? {
 }
 
 // Zero backup files: Verify rotation with maxBackupFiles=0 only keeps current file
-@test:Config {
-    serialExecution: true
-}
+@test:Config {}
 function testZeroMaxBackupFiles() returns error? {
     string logFile = "./build/tmp/output/zero-backup-access.log";
     string configFile = "tests/resources/samples/config/zero-backup-rotation.toml";
-    Process result = check exec(bal_exec_path, {BAL_CONFIG_FILES: configFile}, (), "run", string `${temp_dir_path}/service`);
-    runtime:sleep(10);
+    _ = check useService(configFile, 9801, isolated function(http:Client 'client) returns int|error {
+        check sendRequests('client, 11);
+        return 0;
+    });
 
-    http:Client 'client = check new("http://localhost:9797");
-    foreach int i in 0...10 {
-        record {}[] _= check 'client->get("/albums");
-        runtime:sleep(1);
-    }
-    runtime:sleep(1);
-
-    boolean hasTerminated = result.stop();
-    runtime:sleep(1);
-    test:assertTrue(hasTerminated, "Process should be stopped successfully");
     test:assertTrue(fileExists(logFile), "Main log file should exist");
     
     // Verify no backup files are kept (maxBackupFiles=0)
@@ -245,25 +180,15 @@ function testZeroMaxBackupFiles() returns error? {
 }
 
 // Zero backup files: Verify log file with util file handler
-@test:Config {
-    serialExecution: true
-}
+@test:Config {}
 function testZeroMaxBackupFilesWithUtilHandler() returns error? {
     string logFile = "./build/tmp/output/zero-backup-util.log";
     string configFile = "tests/resources/samples/config/zero-backup-util-rotation.toml";
-    Process result = check exec(bal_exec_path, {BAL_CONFIG_FILES: configFile}, (), "run", string `${temp_dir_path}/service`);
-    runtime:sleep(10);
+    _ = check useService(configFile, 9802, isolated function(http:Client 'client) returns int|error {
+        check sendRequests('client, 11);
+        return 0;
+    });
 
-    http:Client 'client = check new("http://localhost:9797");
-    foreach int i in 0...10 {
-        record {}[] _= check 'client->get("/albums");
-        runtime:sleep(1);
-    }
-    runtime:sleep(1);
-
-    boolean hasTerminated = result.stop();
-    runtime:sleep(1);
-    test:assertTrue(hasTerminated, "Process should be stopped successfully");
     test:assertTrue(fileExists(logFile), "Main log file should exist");
     
     // Verify no backup files are kept (maxBackupFiles=0)
@@ -273,17 +198,14 @@ function testZeroMaxBackupFilesWithUtilHandler() returns error? {
 
 // Invalid config: Test behavior with invalid rotation configuration values
 @test:Config {
-    groups: ["invalid-config"],
-    serialExecution: true
+    groups: ["invalid-config"]
 }
 function testInvalidConfigBackupFile() returns error? {
     string configFile = "tests/resources/samples/config/invalid-backup-file-config.toml";
-    Process result = check exec(bal_exec_path, {BAL_CONFIG_FILES: configFile}, (), "run", string `${temp_dir_path}/service`);
+    Process result = check runService(configFile, 9803);
     int _ = check result.waitForExit();
     int _ = check result.exitCode();
-    io:ReadableByteChannel readableResult = result.stderr();
-    io:ReadableCharacterChannel sc = new (readableResult, "UTF-8");
-    string outText = check sc.read(100000);
+    string outText = check readAll(result.stderr());
     string[] logLines = re `\n`.split(outText.trim());
     if logLines.length() > 5 {
         log:printInfo("Error message: " + logLines[5]);
@@ -296,17 +218,14 @@ function testInvalidConfigBackupFile() returns error? {
 }
 
 @test:Config {
-    groups: ["invalid-config"],
-    serialExecution: true
+    groups: ["invalid-config"]
 }
 function testInvalidConfigMaxAge() returns error? {
     string configFile = "tests/resources/samples/config/invalid-max-age-config.toml";
-    Process result = check exec(bal_exec_path, {BAL_CONFIG_FILES: configFile}, (), "run", string `${temp_dir_path}/service`);
+    Process result = check runService(configFile, 9804);
     int _ = check result.waitForExit();
     int _ = check result.exitCode();
-    io:ReadableByteChannel readableResult = result.stderr();
-    io:ReadableCharacterChannel sc = new (readableResult, "UTF-8");
-    string outText = check sc.read(100000);
+    string outText = check readAll(result.stderr());
     string[] logLines = re `\n`.split(outText.trim());
     if logLines.length() > 5 {
         log:printInfo("Error message: " + logLines[5]);
@@ -319,17 +238,14 @@ function testInvalidConfigMaxAge() returns error? {
 }
 
 @test:Config {
-    groups: ["invalid-config"],
-    serialExecution: true
+    groups: ["invalid-config"]
 }
 function testInvalidConfigMaxFileSize() returns error? {
     string configFile = "tests/resources/samples/config/invalid-max-file-size-config.toml";
-    Process result = check exec(bal_exec_path, {BAL_CONFIG_FILES: configFile}, (), "run", string `${temp_dir_path}/service`);
+    Process result = check runService(configFile, 9805);
     int _ = check result.waitForExit();
     int _ = check result.exitCode();
-    io:ReadableByteChannel readableResult = result.stderr();
-    io:ReadableCharacterChannel sc = new (readableResult, "UTF-8");
-    string outText = check sc.read(100000);
+    string outText = check readAll(result.stderr());
     string[] logLines = re `\n`.split(outText.trim());
     if logLines.length() > 5 {
         log:printInfo("Error message: " + logLines[5]);
@@ -342,17 +258,14 @@ function testInvalidConfigMaxFileSize() returns error? {
 }
 
 @test:Config {
-    groups: ["invalid-config"],
-    serialExecution: true
+    groups: ["invalid-config"]
 }
 function testInvalidFilePath() returns error? {
     string configFile = "tests/resources/samples/config/invalid-file-path-config.toml";
-    Process result = check exec(bal_exec_path, {BAL_CONFIG_FILES: configFile}, (), "run", string `${temp_dir_path}/service`);
+    Process result = check runService(configFile, 9806);
     int _ = check result.waitForExit();
     int _ = check result.exitCode();
-    io:ReadableByteChannel readableResult = result.stderr();
-    io:ReadableCharacterChannel sc = new (readableResult, "UTF-8");
-    string outText = check sc.read(100000);
+    string outText = check readAll(result.stderr());
     string[] logLines = re `\n`.split(outText.trim());
     if logLines.length() > 5 {
         log:printInfo("Error message: " + logLines[5]);
@@ -363,9 +276,7 @@ function testInvalidFilePath() returns error? {
     test:assertTrue(outText.includes("error: Path must include a file name, not just a directory."), 
         "Error output should indicate configuration validation failure");
 
-    readableResult = result.stdout();
-    sc = new (readableResult, "UTF-8");
-    outText = check sc.read(100000);
+    outText = check readAll(result.stdout());
     logLines = re `\n`.split(outText.trim());
     if logLines.length() >= 1 {
         log:printInfo("Warning message: " + logLines[0]);
@@ -378,35 +289,23 @@ function testInvalidFilePath() returns error? {
 }
 
 // Trace log rotation with combined policies: Verify that both size-based and time-based rotation work together as expected
-@test:Config {
-    serialExecution: true
-}
+@test:Config {}
 function testCombinedPolicyRotationWithTraceLog() returns error? {
     string logFile = "./build/tmp/output/combined-policy-trace.log";
     string configFile = "tests/resources/samples/config/combined-policy-rotation-with-trace-log.toml";
-    Process result = check exec(bal_exec_path, {BAL_CONFIG_FILES: configFile}, (), "run", string `${temp_dir_path}/service`);
-    runtime:sleep(15); // Wait to up the service
+    int rotatedFileCountAfterSize = check useService(configFile, 9807,
+        isolated function(http:Client 'client) returns int|error {
+            check sendRequests('client, 10);
 
-    http:Client 'client = check new("http://localhost:9797");
-    foreach int i in 0...9 {
-        record {}[] _= check 'client->get("/albums");
-        runtime:sleep(1);
-    }
-    runtime:sleep(1); // Wait for the service to complete requests
+            // Verify size-based rotation occurred first
+            int rotatedFiles = check countRotatedFiles(COMBINED_POLICY_TRACE_PREFIX);
+            test:assertTrue(rotatedFiles > 0, "Should have rotated when size limit reached");
 
-    // Verify size-based rotation occurred first
-    int rotatedFileCountAfterSize = check countRotatedFiles(COMBINED_POLICY_TRACE_PREFIX);
-    test:assertTrue(rotatedFileCountAfterSize > 0, "Should have rotated when size limit reached");
-
-    // Wait for time interval and generate minimal logs
-    runtime:sleep(5);
-    record {}[] _= check 'client->get("/albums");
-    runtime:sleep(1);
-
-    // Stop the process
-    boolean hasTerminated = result.stop();
-    runtime:sleep(1);
-    test:assertTrue(hasTerminated, "Process should be stopped successfully");
+            // Wait for time interval and generate minimal logs
+            runtime:sleep(5);
+            record {}[] _ = check 'client->get("/albums");
+            return rotatedFiles;
+        });
 
     // Verify time-based rotation also works
     int rotatedFileCountAfterTime = check countRotatedFiles(COMBINED_POLICY_TRACE_PREFIX);

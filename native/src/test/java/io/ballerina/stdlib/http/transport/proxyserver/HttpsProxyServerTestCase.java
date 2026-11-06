@@ -75,7 +75,7 @@ public class HttpsProxyServerTestCase {
             msg.setProperty(HTTP_PORT, TestUtil.SERVER_PORT1);
             msg.setProperty(PROTOCOL, HTTPS_SCHEME);
             msg.setProperty(HTTP_HOST, TestUtil.TEST_HOST);
-            msg.setHeader("Host", "localhost:9001");
+            msg.setHeader("Host", "localhost:" + TestUtil.SERVER_PORT1);
             msg.addHttpContent(new DefaultLastHttpContent(Unpooled.wrappedBuffer(byteBuffer)));
             ProxyServerUtil.sendRequest(msg, testValue);
     }

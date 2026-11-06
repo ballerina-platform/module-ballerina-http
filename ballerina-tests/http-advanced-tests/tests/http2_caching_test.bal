@@ -19,8 +19,8 @@ import ballerina/test;
 import ballerina/http;
 import ballerina/http_test_common as common;
 
-int http2CachingTestPort1 = common:getHttp2Port(cachingTestPort1);
-int http2CachingTestPort2 = common:getHttp2Port(cachingTestPort2);
+final int http2CachingTestPort1 = common:getHttp2Port(cachingTestPort1);
+final int http2CachingTestPort2 = common:getHttp2Port(cachingTestPort2);
 
 listener http:Listener http2CachingListener1 = new (http2CachingTestPort1);
 listener http:Listener http2CachingListener2 = new (http2CachingTestPort2);
@@ -107,7 +107,7 @@ service /cachingBackend on http2CachingListener2 { //new http:Listener(9240) {
         res.setETag(payload);
         res.setLastModified();
         incrementHttp2HitCount();
-        res.setHeader("x-service-hit-count", getHitCount().toString());
+        res.setHeader("x-service-hit-count", getHttp2HitCount().toString());
 
         res.setPayload(payload);
 
