@@ -18,9 +18,14 @@
 
 package io.ballerina.stdlib.http.testutils.nativeimpl;
 
+import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.api.values.BString;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Port checks for the integration tests.
@@ -28,6 +33,10 @@ import java.net.Socket;
 public final class PortUtils {
 
     private static final int CONNECT_TIMEOUT_MILLIS = 500;
+    private static final long POLL_INTERVAL_MILLIS = 500;
+    private static final BString STARTED = StringUtils.fromString("started");
+    private static final BString EXITED = StringUtils.fromString("exited");
+    private static final BString TIMED_OUT = StringUtils.fromString("timed-out");
 
     private PortUtils() {}
 
@@ -39,5 +48,26 @@ public final class PortUtils {
         } catch (IOException e) {
             return false;
         }
+    }
+
+    // Returns "started" once the port accepts connections, "exited" if the process ends first, or "timed-out".
+    public static BString waitForService(BObject processObject, long port, long timeoutSeconds) {
+        Process process = OSUtils.processFromObject(processObject);
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(timeoutSeconds);
+        while (System.nanoTime() < deadline) {
+            if (isPortOpen(port)) {
+                return STARTED;
+            }
+            if (!process.isAlive()) {
+                return EXITED;
+            }
+            try {
+                Thread.sleep(POLL_INTERVAL_MILLIS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+        return TIMED_OUT;
     }
 }

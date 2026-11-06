@@ -18,11 +18,13 @@
 
 package io.ballerina.stdlib.http.testutils.nativeimpl;
 
+import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -37,6 +39,11 @@ import java.util.stream.Collectors;
 public class Exec {
 
     private Exec() {}
+
+    // The Java runtime of the test JVM, used to start prebuilt jars without the extra `bal run` JVM.
+    public static BString javaExecutable() {
+        return StringUtils.fromString(Paths.get(System.getProperty("java.home"), "bin", "java").toString());
+    }
     
     public static Object exec(BString command, BMap<BString, BString> env, Object dir, BString[] args) {
         List<String> commandList = new ArrayList<>();
@@ -53,7 +60,7 @@ public class Exec {
         try {
             return OSUtils.getProcessObject(pb.start());
         } catch (IOException e) {
-            return OSUtils.getBallerinaError(OSConstants.PROCESS_EXEC_ERROR, e);
+            return OSUtils.getBallerinaError(e);
         }
     }
 }
