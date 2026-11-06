@@ -99,8 +99,8 @@ final http:Client testForceCloseClient = check new("http://localhost:9308", http
 
 @test:Config {}
 function testForceClose() returns error? {
-    foreach DataFeed dataFeed in forceCloseResponses() {
-        check invokeApiAndVerifyResponse(testForceCloseClient, "/cb/forceclose", dataFeed);
+    foreach [int, DataFeed] [step, dataFeed] in forceCloseResponses().enumerate() {
+        check atStep(step, trap invokeApiAndVerifyResponse(testForceCloseClient, "/cb/forceclose", dataFeed));
     }
 }
 

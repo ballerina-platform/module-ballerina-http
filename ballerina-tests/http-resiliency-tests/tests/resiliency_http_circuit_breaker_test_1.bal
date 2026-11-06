@@ -99,8 +99,8 @@ final http:Client testTypicalBackendTimeoutClient = check new("http://localhost:
 
 @test:Config {}
 function testTypicalBackendTimeout() returns error? {
-    foreach DataFeed dataFeed in typicalBackendTimeoutResponses() {
-        check invokeApiAndVerifyResponse(testTypicalBackendTimeoutClient, "/cb/typical", dataFeed);
+    foreach [int, DataFeed] [step, dataFeed] in typicalBackendTimeoutResponses().enumerate() {
+        check atStep(step, trap invokeApiAndVerifyResponse(testTypicalBackendTimeoutClient, "/cb/typical", dataFeed));
     }
 }
 

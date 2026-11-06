@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/http;
+import ballerina/jballerina.java;
 import ballerina/test;
 import ballerina/http_test_common as common;
 
@@ -163,7 +164,7 @@ function testHttp2MutualSsl4() returns error? {
             + ": error:10000410:SSL routines:OPENSSL_internal:SSLV3_ALERT_HANDSHAKE_FAILURE localhost/127.0.0.1:9204";
     if resp is error {
         // On Windows the server's reset can reach the client before the TLS alert, which surfaces as a generic error.
-        if resp.message() != "Something wrong with the connection" {
+        if !isWindows() || resp.message() != "Something wrong with the connection" {
             test:assertEquals(resp.message(), expectedErrMsg);
         }
     } else {
@@ -171,3 +172,7 @@ function testHttp2MutualSsl4() returns error? {
     }
     return;
 }
+
+isolated function isWindows() returns boolean = @java:Method {
+    'class: "io.ballerina.stdlib.http.testutils.Platform"
+} external;

@@ -194,7 +194,7 @@ function testClientPutResource() returns error? {
 
 // Hangs with an idle timeout under concurrent requests on a fresh client (under investigation)
 @test:Config {serialExecution: true}
-function testClientDeleteResource()returns error? {
+function testClientDeleteResource() returns error? {
     string response = check clientResourceMethodsClientEP->/foo/bar.delete(headers = {x\-names: ["John", "James"]});
     test:assertEquals(response, "Hi from DELETE bar to John, Hi from DELETE bar to James");
     response = check clientResourceMethodsClientEP->/foo/bar.delete("Hello", {x\-names: ["John", "James"]});

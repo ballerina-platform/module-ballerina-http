@@ -66,8 +66,8 @@ final http:Client testRequestVolumeClient = check new("http://localhost:9310", h
     groups: ["circuitBreakerRequestVolume"]
 }
 function requestVolumeTest() returns error? {
-    foreach DataFeed dataFeed in requestVolumeResponses() {
-        check invokeApiAndVerifyResponse(testRequestVolumeClient, "/cb/requestvolume", dataFeed);
+    foreach [int, DataFeed] [step, dataFeed] in requestVolumeResponses().enumerate() {
+        check atStep(step, trap invokeApiAndVerifyResponse(testRequestVolumeClient, "/cb/requestvolume", dataFeed));
     }
 }
 

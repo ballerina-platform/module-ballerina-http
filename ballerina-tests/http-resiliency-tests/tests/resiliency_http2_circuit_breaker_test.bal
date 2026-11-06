@@ -84,9 +84,9 @@ final http:Client h2CBTestClient = check new("http://localhost:9315");
 @test:Config {}
 function testBasicHttp2CircuitBreaker() returns error? {
     int index = 0;
-    foreach DataFeed dataFeed in http2CircuitBreakerResponses() {
+    foreach [int, DataFeed] [step, dataFeed] in http2CircuitBreakerResponses().enumerate() {
         index += 1;
-        check invokeApiAndVerifyResponse(h2CBTestClient, "/cb/trialrun/" + index.toString(), dataFeed);
+        check atStep(step, trap invokeApiAndVerifyResponse(h2CBTestClient, "/cb/trialrun/" + index.toString(), dataFeed));
     }
 }
 

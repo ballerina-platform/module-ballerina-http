@@ -233,8 +233,8 @@ final http:Client roundRobinLoadBalanceTestClient = check new ("http://localhost
 
 @test:Config {}
 function roundRobinLoadBalanceTest() returns error? {
-    foreach DataFeed dataFeed in roundRobinResponses() {
-        check invokeApiAndVerifyResponse(roundRobinLoadBalanceTestClient, "/loadBalancerDemoService/roundRobin", dataFeed);
+    foreach [int, DataFeed] [step, dataFeed] in roundRobinResponses().enumerate() {
+        check atStep(step, trap invokeApiAndVerifyResponse(roundRobinLoadBalanceTestClient, "/loadBalancerDemoService/roundRobin", dataFeed));
     }
 }
 
@@ -250,8 +250,8 @@ function roundRobinResponses() returns DataFeed[] {
 //Test for verify failover behavior with load balancer
 @test:Config {}
 function roundRobinWithFailoverResponseTest() returns error? {
-    foreach DataFeed dataFeed in roundRobinWithFailoverResponses() {
-        check invokeApiAndVerifyResponse(roundRobinLoadBalanceTestClient, "/loadBalancerDemoService/lbFailover", dataFeed);
+    foreach [int, DataFeed] [step, dataFeed] in roundRobinWithFailoverResponses().enumerate() {
+        check atStep(step, trap invokeApiAndVerifyResponse(roundRobinLoadBalanceTestClient, "/loadBalancerDemoService/lbFailover", dataFeed));
     }
 }
 
@@ -281,8 +281,8 @@ function testAllLbEndpointFailure() returns error? {
 //Test for custom algorithm implementation of load balancer
 @test:Config {}
 function customLbResponseTest() returns error? {
-    foreach DataFeed dataFeed in customLbResponses() {
-        check invokeApiAndVerifyResponse(roundRobinLoadBalanceTestClient, "/loadBalancerDemoService/customResource", dataFeed);
+    foreach [int, DataFeed] [step, dataFeed] in customLbResponses().enumerate() {
+        check atStep(step, trap invokeApiAndVerifyResponse(roundRobinLoadBalanceTestClient, "/loadBalancerDemoService/customResource", dataFeed));
     }
 }
 

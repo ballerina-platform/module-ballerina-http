@@ -78,8 +78,8 @@ final http:Client testGetStateClient = check new("http://localhost:9309", httpVe
 
 @test:Config {}
 function testGetState() returns error? {
-    foreach DataFeed dataFeed in getStateResponses() {
-        check invokeApiAndVerifyResponse(testGetStateClient, "/cb/getstate", dataFeed);
+    foreach [int, DataFeed] [step, dataFeed] in getStateResponses().enumerate() {
+        check atStep(step, trap invokeApiAndVerifyResponse(testGetStateClient, "/cb/getstate", dataFeed));
     }
 }
 

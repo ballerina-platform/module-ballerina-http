@@ -79,8 +79,8 @@ final http:Client testCBStatusCodesClient = check new("http://localhost:9311", h
     groups: ["circuitBreakerStatusCodeResponse"]
 }
 function httpStatusCodesTest() returns error? {
-    foreach DataFeed dataFeed in statusCodeResponses() {
-        check invokeApiAndVerifyResponse(testCBStatusCodesClient, "/cb/statuscode", dataFeed);
+    foreach [int, DataFeed] [step, dataFeed] in statusCodeResponses().enumerate() {
+        check atStep(step, trap invokeApiAndVerifyResponse(testCBStatusCodesClient, "/cb/statuscode", dataFeed));
     }
 }
 

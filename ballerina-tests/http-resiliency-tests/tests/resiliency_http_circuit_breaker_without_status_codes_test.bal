@@ -67,8 +67,8 @@ service / on new http:Listener(cBClientWithoutStatusCodesTestPort1, httpVersion 
 
 @test:Config {}
 function testCircuitBreakerWithoutStatusCodes1() returns error? {
-    foreach DataFeed dataFeed in withoutStatusCodesResponses1() {
-        check invokeApiAndVerifyResponseWithHttpGet(cbrClient, "/test1", dataFeed, common:TEXT_PLAIN);
+    foreach [int, DataFeed] [step, dataFeed] in withoutStatusCodesResponses1().enumerate() {
+        check atStep(step, trap invokeApiAndVerifyResponseWithHttpGet(cbrClient, "/test1", dataFeed, common:TEXT_PLAIN));
     }
 }
 
@@ -84,8 +84,8 @@ function withoutStatusCodesResponses1() returns DataFeed[] {
 
 @test:Config {}
 function testCircuitBreakerWithoutStatusCodes2() returns error? {
-    foreach DataFeed dataFeed in withoutStatusCodesResponses2() {
-        check invokeApiAndVerifyResponseWithHttpGet(cbrClient, "/test2", dataFeed, common:APPLICATION_JSON);
+    foreach [int, DataFeed] [step, dataFeed] in withoutStatusCodesResponses2().enumerate() {
+        check atStep(step, trap invokeApiAndVerifyResponseWithHttpGet(cbrClient, "/test2", dataFeed, common:APPLICATION_JSON));
     }
 }
 

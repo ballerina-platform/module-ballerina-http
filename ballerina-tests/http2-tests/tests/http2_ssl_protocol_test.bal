@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/http;
+import ballerina/jballerina.java;
 import ballerina/lang.'string as strings;
 import ballerina/test;
 import ballerina/http_test_common as common;
@@ -136,8 +137,13 @@ function testSslProtocolConflict() returns error? {
     }
 }
 
-// On Windows the server's reset can reach the client before the TLS alert, which surfaces as a generic error.
 isolated function assertProtocolMismatchError(string message) {
-    test:assertTrue(strings:includes(message, "SSL connection failed") ||
-            strings:includes(message, "Something wrong with the connection"), msg = message);
+    // On Windows the server's reset can reach the client before the TLS alert, which surfaces as a generic error.
+    boolean genericErrorOnWindows = isWindows() && strings:includes(message, "Something wrong with the connection");
+    test:assertTrue(strings:includes(message, "SSL connection failed") || genericErrorOnWindows, msg = message);
 }
+
+isolated function isWindows() returns boolean = @java:Method {
+    'class: "io.ballerina.stdlib.http.testutils.Platform"
+} external;
+

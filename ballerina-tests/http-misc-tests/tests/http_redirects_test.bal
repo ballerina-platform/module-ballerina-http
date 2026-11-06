@@ -64,6 +64,7 @@ http:ClientConfiguration endPoint5Config = {
     }
 };
 
+// The tests through these clients are serial since a client shares its redirect count across requests: https://github.com/ballerina-platform/ballerina-library/issues/9512
 final http:Client endPoint1 = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1, followRedirects = {enabled: true, maxCount: 3});
 final http:Client endPoint2 = check new (string `http://localhost:${redirectTestPort2}`, endPoint2Config);
 final http:Client endPoint3 = check new (string `http://localhost:${redirectTestPort1}`, endPoint3Config);
@@ -666,7 +667,8 @@ function testRedirectWithoutAuthHeaders() returns error? {
 }
 
 @test:Config {
-    groups: ["httpRedirect"]
+    groups: ["httpRedirect"],
+    serialExecution: true
 }
 function testHttpRedirects() returns error? {
     http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
@@ -679,7 +681,8 @@ function testHttpRedirects() returns error? {
 }
 
 @test:Config {
-    groups: ["httpRedirect"]
+    groups: ["httpRedirect"],
+    serialExecution: true
 }
 function testMaxRedirect() returns error? {
     http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
@@ -692,7 +695,8 @@ function testMaxRedirect() returns error? {
 }
 
 @test:Config {
-    groups: ["httpRedirect"]
+    groups: ["httpRedirect"],
+    serialExecution: true
 }
 function testCrossDomain() returns error? {
     http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
@@ -705,7 +709,8 @@ function testCrossDomain() returns error? {
 }
 
 @test:Config {
-    groups: ["httpRedirect"]
+    groups: ["httpRedirect"],
+    serialExecution: true
 }
 function testNoRedirect() returns error? {
     http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
@@ -718,7 +723,8 @@ function testNoRedirect() returns error? {
 }
 
 @test:Config {
-    groups: ["httpRedirect"]
+    groups: ["httpRedirect"],
+    serialExecution: true
 }
 function testRedirectOff() returns error? {
     http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
@@ -731,7 +737,8 @@ function testRedirectOff() returns error? {
 }
 
 @test:Config {
-    groups: ["httpRedirect"]
+    groups: ["httpRedirect"],
+    serialExecution: true
 }
 function testQPWithRelativePath() returns error? {
     http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
@@ -744,7 +751,8 @@ function testQPWithRelativePath() returns error? {
 }
 
 @test:Config {
-    groups: ["httpRedirect"]
+    groups: ["httpRedirect"],
+    serialExecution: true
 }
 function testQPWithAbsolutePath() returns error? {
     http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
@@ -757,7 +765,8 @@ function testQPWithAbsolutePath() returns error? {
 }
 
 @test:Config {
-    groups: ["httpRedirect"]
+    groups: ["httpRedirect"],
+    serialExecution: true
 }
 function testOriginalRequestWithQP() returns error? {
     http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
@@ -770,7 +779,8 @@ function testOriginalRequestWithQP() returns error? {
 }
 
 @test:Config {
-    groups: ["httpRedirect"]
+    groups: ["httpRedirect"],
+    serialExecution: true
 }
 function test303Status() returns error? {
     http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
@@ -783,7 +793,8 @@ function test303Status() returns error? {
 }
 
 @test:Config {
-    groups: ["httpRedirect"]
+    groups: ["httpRedirect"],
+    serialExecution: true
 }
 function testRedirectWithHTTPs() returns error? {
     http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
@@ -796,7 +807,8 @@ function testRedirectWithHTTPs() returns error? {
 }
 
 @test:Config {
-    groups: ["httpRedirect"]
+    groups: ["httpRedirect"],
+    serialExecution: true
 }
 function testRedirectWithPOST() returns error? {
     http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
@@ -809,7 +821,8 @@ function testRedirectWithPOST() returns error? {
 }
 
 @test:Config {
-    groups: ["httpRedirect"]
+    groups: ["httpRedirect"],
+    serialExecution: true
 }
 function testRedirectWithHead() returns error? {
     http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
@@ -822,7 +835,8 @@ function testRedirectWithHead() returns error? {
 }
 
 @test:Config {
-    groups: ["httpRedirect"]
+    groups: ["httpRedirect"],
+    serialExecution: true
 }
 function testRedirectWithExecute() returns error? {
     http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
@@ -835,7 +849,8 @@ function testRedirectWithExecute() returns error? {
 }
 
 @test:Config {
-    groups: ["httpRedirect"]
+    groups: ["httpRedirect"],
+    serialExecution: true
 }
 function testRedirectWithPatch() returns error? {
     http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
@@ -848,7 +863,8 @@ function testRedirectWithPatch() returns error? {
 }
 
 @test:Config {
-    groups: ["httpRedirect"]
+    groups: ["httpRedirect"],
+    serialExecution: true
 }
 function testRedirectWithDelete() returns error? {
     http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
@@ -861,7 +877,8 @@ function testRedirectWithDelete() returns error? {
 }
 
 @test:Config {
-    groups: ["httpRedirect"]
+    groups: ["httpRedirect"],
+    serialExecution: true
 }
 function testRedirectWithOptions() returns error? {
     http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
@@ -874,7 +891,8 @@ function testRedirectWithOptions() returns error? {
 }
 
 @test:Config {
-    groups: ["httpRedirect"]
+    groups: ["httpRedirect"],
+    serialExecution: true
 }
 function testWithHTTPs() returns error? {
     http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
@@ -887,7 +905,8 @@ function testWithHTTPs() returns error? {
 }
 
 @test:Config {
-    groups: ["httpRedirect"]
+    groups: ["httpRedirect"],
+    serialExecution: true
 }
 function testMultipartRedirect() returns error? {
     http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);

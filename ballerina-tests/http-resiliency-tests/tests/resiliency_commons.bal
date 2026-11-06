@@ -47,6 +47,13 @@ const int SC_INTERNAL_SERVER_ERROR = 500;
 const int SC_CONNECTION_ERROR = 502;
 const int SC_SERVICE_UNAVAILABLE = 503;
 
+// Names the failing step, since an ordered sequence runs in one test and reports only its first failure.
+isolated function atStep(int step, error? result) returns error? {
+    if result is error {
+        return error(string `step ${step}: ${result.message()}`, result);
+    }
+}
+
 function invokeApiAndVerifyResponse(http:Client testClient, string path, DataFeed dataFeed) returns error? {
     http:Response|error response = testClient->post(path, requestPayload);
     if response is http:Response {

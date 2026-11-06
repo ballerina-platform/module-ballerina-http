@@ -99,8 +99,8 @@ final http:Client testTrialRunFailureClient = check new("http://localhost:9312",
 
 @test:Config {}
 function testCBTrialRunFailure() returns error? {
-    foreach DataFeed dataFeed in trialRunFailureResponses() {
-        check invokeApiAndVerifyResponse(testTrialRunFailureClient, "/cb/trialrun", dataFeed);
+    foreach [int, DataFeed] [step, dataFeed] in trialRunFailureResponses().enumerate() {
+        check atStep(step, trap invokeApiAndVerifyResponse(testTrialRunFailureClient, "/cb/trialrun", dataFeed));
     }
 }
 

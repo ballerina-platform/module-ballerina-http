@@ -275,6 +275,9 @@ function testRemovePersistentCookieFromCookieStore_2() returns error? {
         cookies = cookieStore.getAllCookies();
     }
     test:assertEquals(cookies.length(), 0, msg = "Invalid cookie object");
+    if check file:test("./native-cookie-test-data-7", file:EXISTS) {
+        check file:remove("./native-cookie-test-data-7", file:RECURSIVE);
+    }
 }
 
 // Test to remove all cookies when there is no persistent cookie store
@@ -293,4 +296,7 @@ function testRemoveAllCookiesFromCookieStore() returns error? {
         cookies = cookieStore.getAllCookies();
     }
     test:assertEquals(cookies.length(), 0, msg = "Invalid cookie object");
+    if check file:test("./native-cookie-test-data-8", file:EXISTS) {
+        check file:remove("./native-cookie-test-data-8", file:RECURSIVE);
+    }
 }
