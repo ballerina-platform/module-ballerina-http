@@ -51,6 +51,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.InetAddress;
+import java.net.ServerSocket;
 import java.net.URI;
 import java.net.URL;
 import java.nio.ByteBuffer;
@@ -75,16 +77,73 @@ public final class TestUtil {
 
     private TestUtil() {}
 
+    private static int claimPortBlock() {
+        for (int block = 0; block < MAX_PORT_BLOCKS; block++) {
+            ServerSocket lock;
+            try {
+                lock = new ServerSocket(PORT_BLOCK_LOCK_BASE + block, 1, InetAddress.getLoopbackAddress());
+            } catch (IOException e) {
+                LOG.debug("Test port block {} is in use by another test JVM", block);
+                continue;
+            }
+            if (arePortsFree(block * PORT_BLOCK_SIZE)) {
+                portBlockLock = lock;
+                LOG.info("Using test port block {}: ports are offset by {}", block, block * PORT_BLOCK_SIZE);
+                return block;
+            }
+            closeQuietly(lock);
+            LOG.debug("Test port block {} has a port taken by another process", block);
+        }
+        throw new IllegalStateException("No free test port block among " + MAX_PORT_BLOCKS);
+    }
+
+    private static boolean arePortsFree(int offset) {
+        for (int basePort : BASE_TEST_PORTS) {
+            // Both binds are needed: some platforms allow a wildcard bind while another process listens on loopback.
+            if (!canBind(basePort + offset, InetAddress.getLoopbackAddress()) || !canBind(basePort + offset, null)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean canBind(int port, InetAddress address) {
+        try (ServerSocket socket = new ServerSocket(port, 1, address)) {
+            return socket.isBound();
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    private static void closeQuietly(ServerSocket socket) {
+        try {
+            socket.close();
+        } catch (IOException e) {
+            LOG.debug("Failed to release a test port block lock", e);
+        }
+    }
+
     private static final Logger LOG = LoggerFactory.getLogger(TestUtil.class);
 
-    public static final int HTTP_SERVER_PORT = 9000;
-    public static final int HTTPS_SERVER_PORT = 9004;
-    public static final int SERVER_PORT1 = 9001;
-    public static final int SERVER_PORT2 = 9002;
-    public static final int SERVER_PORT3 = 9003;
-    public static final int SERVER_CONNECTOR_PORT = 8490;
-    public static final int WEBSOCKET_REMOTE_SERVER_PORT = 9010;
-    public static final int WEBSOCKET_HANDSHAKE_TIMEOUT_REMOTE_SERVER_PORT = 9011;
+    private static final int PORT_BLOCK_LOCK_BASE = 19900;
+    private static final int PORT_BLOCK_SIZE = 1000;
+    private static final int MAX_PORT_BLOCKS = 10;
+    // The fixed ports the tests listen on, before the block offset; 8001 is api.TestUtils.SOCKET_SERVER_PORT.
+    private static final int[] BASE_TEST_PORTS = {8001, 8490, 9000, 9001, 9002, 9003, 9004, 9010, 9011};
+    // Held open for the life of the JVM so that no other test JVM claims the same port block.
+    private static ServerSocket portBlockLock;
+
+    // Each test JVM uses its own block of ports, so the Gradle test forks can run at the same time.
+    public static final int PORT_OFFSET = claimPortBlock() * PORT_BLOCK_SIZE;
+
+    public static final int HTTP_SERVER_PORT = 9000 + PORT_OFFSET;
+    public static final int HTTPS_SERVER_PORT = 9004 + PORT_OFFSET;
+    public static final int SERVER_PORT1 = 9001 + PORT_OFFSET;
+    public static final int SERVER_PORT2 = 9002 + PORT_OFFSET;
+    public static final int SERVER_PORT3 = 9003 + PORT_OFFSET;
+    public static final int SERVER_CONNECTOR_PORT = 8490 + PORT_OFFSET;
+    public static final int WEBSOCKET_REMOTE_SERVER_PORT = 9010 + PORT_OFFSET;
+    public static final int WEBSOCKET_HANDSHAKE_TIMEOUT_REMOTE_SERVER_PORT = 9011 + PORT_OFFSET;
     public static final int WEBSOCKET_TEST_IDLE_TIMEOUT = 30;
     public static final long HTTP2_RESPONSE_TIME_OUT = 30;
     public static final long SSL_HANDSHAKE_TIMEOUT = 20;

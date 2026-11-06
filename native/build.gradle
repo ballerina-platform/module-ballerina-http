@@ -77,10 +77,19 @@ dependencies {
     testImplementation group: 'org.testng', name: 'testng', version: "${testngVersion}"
 }
 
+// testng.xml lists the test classes. Running it as a TestNG suite would keep every class in one JVM, so its classes
+// are selected here instead, and Gradle spreads them over parallel forks that each claim their own ports.
+def testngXml = file('src/test/resources/testng.xml').text.replaceAll(/(?s)<!--.*?-->/, '')
+def nativeTestClasses = (testngXml =~ /<class\s+name="([^"]+)"/).collect { it[1] }
+
 test {
     useTestNG() {
-        suites 'src/test/resources/testng.xml'
+        listeners << 'io.ballerina.stdlib.http.transport.util.TestNGListener'
     }
+    filter {
+        nativeTestClasses.each { includeTestsMatching it }
+    }
+    maxParallelForks = project.hasProperty('nativeTestForks') ? project.findProperty('nativeTestForks').toString().toInteger() : 3
     testLogging.showStandardStreams = true
     testLogging {
         events "PASSED", "FAILED", "SKIPPED"

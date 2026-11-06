@@ -30,6 +30,7 @@ import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
+import io.ballerina.stdlib.http.transport.util.TestUtil;
 import org.mockito.Mockito;
 
 /**
@@ -39,7 +40,7 @@ public final class TestUtils {
 
     private TestUtils() {}
 
-    public static final int SOCKET_SERVER_PORT = 8001;
+    public static final int SOCKET_SERVER_PORT = 8001 + TestUtil.PORT_OFFSET;
 
     static BObject getNewServiceObject(String name) {
         BObject serviceObject = Mockito.mock(BObject.class);

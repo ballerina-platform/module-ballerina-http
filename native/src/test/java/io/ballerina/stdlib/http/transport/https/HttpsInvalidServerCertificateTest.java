@@ -83,7 +83,7 @@ public class HttpsInvalidServerCertificateTest {
             assertNotNull(listener.getThrowables());
             assertEquals(listener.getThrowables().get(0).getMessage(),
                     "SSL connection failed:unable to find valid certification path to requested "
-                            + "target localhost/127.0.0.1:9004");
+                            + "target localhost/127.0.0.1:" + TestUtil.HTTPS_SERVER_PORT);
         } catch (Exception e) {
             TestUtil.handleException("Exception occurred while running HttpsCertificateInvalid test case", e);
         }

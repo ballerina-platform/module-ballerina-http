@@ -63,7 +63,7 @@ public class HttpProxyServerTestCase {
         msg.setProperty(PROTOCOL, HTTP_SCHEME);
         msg.setProperty(HTTP_HOST, TestUtil.TEST_HOST);
         msg.setHttpMethod(HTTP_POST_METHOD);
-        msg.setHeader("Host", "localhost:9001");
+        msg.setHeader("Host", "localhost:" + TestUtil.SERVER_PORT1);
         msg.addHttpContent(new DefaultLastHttpContent(Unpooled.wrappedBuffer(byteBuffer)));
 
         ProxyServerUtil.setUpClientAndServerConnectors(getListenerConfiguration(), HTTP_SCHEME);
@@ -86,7 +86,7 @@ public class HttpProxyServerTestCase {
     public void testHttpProxyRequestUrl() {
         msg.setProperty(IS_PROXY_ENABLED, true);
         HttpRequest request = Util.createHttpRequest(msg);
-        String expectedUri = "http://localhost:9001";
+        String expectedUri = "http://localhost:" + TestUtil.SERVER_PORT1;
         Assert.assertEquals(request.uri(), expectedUri);
     }
 
