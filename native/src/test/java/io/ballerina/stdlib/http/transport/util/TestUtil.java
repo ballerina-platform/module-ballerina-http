@@ -41,6 +41,8 @@ import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.util.CharsetUtil;
+import io.netty.util.concurrent.EventExecutorGroup;
+import io.netty.util.concurrent.Future;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,6 +60,7 @@ import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -125,25 +128,42 @@ public final class TestUtil {
 
     private static final Logger LOG = LoggerFactory.getLogger(TestUtil.class);
 
+    // The ports the tests listen on, before the block offset. Every test port must be derived from one of these, so
+    // that claiming a block checks it.
+    private static final int SOCKET_SERVER_BASE_PORT = 8001;
+    private static final int SERVER_CONNECTOR_BASE_PORT = 8490;
+    private static final int HTTP_SERVER_BASE_PORT = 9000;
+    private static final int SERVER_BASE_PORT1 = 9001;
+    private static final int SERVER_BASE_PORT2 = 9002;
+    private static final int SERVER_BASE_PORT3 = 9003;
+    private static final int HTTPS_SERVER_BASE_PORT = 9004;
+    private static final int WEBSOCKET_REMOTE_SERVER_BASE_PORT = 9010;
+    private static final int WEBSOCKET_HANDSHAKE_TIMEOUT_REMOTE_SERVER_BASE_PORT = 9011;
+    private static final int[] BASE_TEST_PORTS = {SOCKET_SERVER_BASE_PORT, SERVER_CONNECTOR_BASE_PORT,
+            HTTP_SERVER_BASE_PORT, SERVER_BASE_PORT1, SERVER_BASE_PORT2, SERVER_BASE_PORT3, HTTPS_SERVER_BASE_PORT,
+            WEBSOCKET_REMOTE_SERVER_BASE_PORT, WEBSOCKET_HANDSHAKE_TIMEOUT_REMOTE_SERVER_BASE_PORT};
+
+    // Larger than the span of the base ports (8001 to 9011), so that blocks never overlap. Ten blocks end at 27011,
+    // and the lock ports (19900 to 19909) fall between blocks 5 and 6.
+    private static final int PORT_BLOCK_SIZE = 2000;
     private static final int PORT_BLOCK_LOCK_BASE = 19900;
-    private static final int PORT_BLOCK_SIZE = 1000;
     private static final int MAX_PORT_BLOCKS = 10;
-    // The fixed ports the tests listen on, before the block offset; 8001 is api.TestUtils.SOCKET_SERVER_PORT.
-    private static final int[] BASE_TEST_PORTS = {8001, 8490, 9000, 9001, 9002, 9003, 9004, 9010, 9011};
     // Held open for the life of the JVM so that no other test JVM claims the same port block.
     private static ServerSocket portBlockLock;
 
     // Each test JVM uses its own block of ports, so the Gradle test forks can run at the same time.
     public static final int PORT_OFFSET = claimPortBlock() * PORT_BLOCK_SIZE;
 
-    public static final int HTTP_SERVER_PORT = 9000 + PORT_OFFSET;
-    public static final int HTTPS_SERVER_PORT = 9004 + PORT_OFFSET;
-    public static final int SERVER_PORT1 = 9001 + PORT_OFFSET;
-    public static final int SERVER_PORT2 = 9002 + PORT_OFFSET;
-    public static final int SERVER_PORT3 = 9003 + PORT_OFFSET;
-    public static final int SERVER_CONNECTOR_PORT = 8490 + PORT_OFFSET;
-    public static final int WEBSOCKET_REMOTE_SERVER_PORT = 9010 + PORT_OFFSET;
-    public static final int WEBSOCKET_HANDSHAKE_TIMEOUT_REMOTE_SERVER_PORT = 9011 + PORT_OFFSET;
+    public static final int SOCKET_SERVER_PORT = SOCKET_SERVER_BASE_PORT + PORT_OFFSET;
+    public static final int SERVER_CONNECTOR_PORT = SERVER_CONNECTOR_BASE_PORT + PORT_OFFSET;
+    public static final int HTTP_SERVER_PORT = HTTP_SERVER_BASE_PORT + PORT_OFFSET;
+    public static final int SERVER_PORT1 = SERVER_BASE_PORT1 + PORT_OFFSET;
+    public static final int SERVER_PORT2 = SERVER_BASE_PORT2 + PORT_OFFSET;
+    public static final int SERVER_PORT3 = SERVER_BASE_PORT3 + PORT_OFFSET;
+    public static final int HTTPS_SERVER_PORT = HTTPS_SERVER_BASE_PORT + PORT_OFFSET;
+    public static final int WEBSOCKET_REMOTE_SERVER_PORT = WEBSOCKET_REMOTE_SERVER_BASE_PORT + PORT_OFFSET;
+    public static final int WEBSOCKET_HANDSHAKE_TIMEOUT_REMOTE_SERVER_PORT =
+            WEBSOCKET_HANDSHAKE_TIMEOUT_REMOTE_SERVER_BASE_PORT + PORT_OFFSET;
     public static final int WEBSOCKET_TEST_IDLE_TIMEOUT = 30;
     public static final long HTTP2_RESPONSE_TIME_OUT = 30;
     public static final long SSL_HANDSHAKE_TIMEOUT = 20;
@@ -167,6 +187,20 @@ public final class TestUtil {
     public static final String CERT_FILE = "/simple-test-config/certsAndKeys/public.crt";
     public static final String TRUST_CERT_CHAIN = "/simple-test-config/certsAndKeys/public.crt";
     private static final DefaultHttpWsConnectorFactory httpConnectorFactory = new DefaultHttpWsConnectorFactory();
+
+    /**
+     * Shuts the event loop groups of a test server down together, without Netty's 2 s quiet period, and waits until
+     * they have terminated, so the next test class can bind the same port.
+     *
+     * @param groups the event loop groups of the server
+     */
+    public static void shutdownEventLoopGroups(EventExecutorGroup... groups) {
+        List<Future<?>> terminations = new ArrayList<>();
+        for (EventExecutorGroup group : groups) {
+            terminations.add(group.shutdownGracefully(0, 15, TimeUnit.SECONDS));
+        }
+        terminations.forEach(Future::syncUninterruptibly);
+    }
 
     public static HttpServer startHTTPServer(int port, ChannelInitializer channelInitializer) {
         HttpServer httpServer = new HttpServer(port, channelInitializer);

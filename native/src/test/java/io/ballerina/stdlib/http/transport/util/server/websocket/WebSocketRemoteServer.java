@@ -19,16 +19,14 @@
 
 package io.ballerina.stdlib.http.transport.util.server.websocket;
 
+import io.ballerina.stdlib.http.transport.util.TestUtil;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.ssl.SslContext;
-import io.netty.util.concurrent.Future;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * Simple WebSocket server for Test cases.
@@ -66,11 +64,7 @@ public final class WebSocketRemoteServer {
     }
 
     public void stop() {
-        // Wait for the port to be released, since the next test class may bind the same port right away.
-        Future<?> bossTermination = bossGroup.shutdownGracefully(0, 15, TimeUnit.SECONDS);
-        Future<?> workerTermination = workerGroup.shutdownGracefully(0, 15, TimeUnit.SECONDS);
-        bossTermination.syncUninterruptibly();
-        workerTermination.syncUninterruptibly();
+        TestUtil.shutdownEventLoopGroups(bossGroup, workerGroup);
         LOG.info("WebSocket remote server stopped listening  on port " + port);
     }
 }

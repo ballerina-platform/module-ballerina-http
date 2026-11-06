@@ -40,7 +40,7 @@ public final class TestUtils {
 
     private TestUtils() {}
 
-    public static final int SOCKET_SERVER_PORT = 8001 + TestUtil.PORT_OFFSET;
+    public static final int SOCKET_SERVER_PORT = TestUtil.SOCKET_SERVER_PORT;
 
     static BObject getNewServiceObject(String name) {
         BObject serviceObject = Mockito.mock(BObject.class);

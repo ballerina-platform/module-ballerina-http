@@ -66,7 +66,9 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.PIPELINING_T
  */
 public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
 
-    private static final long SHUTDOWN_QUIET_PERIOD_MILLIS = 0;
+    // Netty's defaults. The native tests set the quiet period to 0, since they shut a factory down after every class.
+    private static final long SHUTDOWN_QUIET_PERIOD_MILLIS =
+            Long.getLong("ballerina.http.transport.shutdownQuietPeriodMillis", 2000);
     private static final long SHUTDOWN_TIMEOUT_MILLIS = 15000;
 
     private final EventLoopGroup bossGroup;
@@ -223,7 +225,6 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
     @Override
     public void shutdown() throws InterruptedException {
         allChannels.close().sync();
-        // The channels are closed, so no quiet period is needed and the groups can terminate together.
         List<Future<?>> terminations = new ArrayList<>();
         terminations.add(terminate(workerGroup));
         terminations.add(terminate(bossGroup));
@@ -231,8 +232,16 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
         if (pipeliningGroup != null) {
             terminations.add(terminate(pipeliningGroup));
         }
+        // Wait for every group before reporting a failure, so that no group is left running.
+        Throwable failure = null;
         for (Future<?> termination : terminations) {
-            termination.sync();
+            termination.await();
+            if (!termination.isSuccess() && failure == null) {
+                failure = termination.cause();
+            }
+        }
+        if (failure != null) {
+            throw new IllegalStateException("Failed to shut down the connector factory", failure);
         }
     }
 
