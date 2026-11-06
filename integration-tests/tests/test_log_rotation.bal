@@ -42,16 +42,13 @@ function cleanupIntegrationTests() returns error? {
     return cleanLogFiles();
 }
 
-@test:Config {
-    serialExecution: true
-}
+@test:Config {}
 function testSizeBasedAccessLogRotation() returns error? {
     string logFile = "./build/tmp/output/size-based-access.log";
     string configFile = "tests/resources/samples/config/size-based-rotation.toml";
 
     // Execute the test Ballerina program that generates logs and triggers rotation
-    Process result = check exec(bal_exec_path, {BAL_CONFIG_FILES: configFile}, (), "run", string `${temp_dir_path}/service`);
-    runtime:sleep(15); // wait to up the service
+    Process result = check startService(configFile, 9797);
 
     http:Client 'client = check new("http://localhost:9797");
     foreach int i in 0...9 {
@@ -76,16 +73,13 @@ function testSizeBasedAccessLogRotation() returns error? {
     test:assertTrue(content.includes("ballerina"), "Logs should include attributes from Config.toml");
 }
 
-@test:Config {
-    serialExecution: true
-}
+@test:Config {}
 function testTimeBasedAccessLogRotation() returns error? {
     string logFile = "./build/tmp/output/time-based-access.log";
     string configFile = "tests/resources/samples/config/time-based-rotation.toml";
-    Process result = check exec(bal_exec_path, {BAL_CONFIG_FILES: configFile}, (), "run", string `${temp_dir_path}/service`);
-    runtime:sleep(15); // Wait to up the service
+    Process result = check startService(configFile, 9798);
 
-    http:Client 'client = check new("http://localhost:9797");
+    http:Client 'client = check new("http://localhost:9798");
     foreach int i in 0...9 {
         record {}[] _= check 'client->get("/albums");
         runtime:sleep(1);
@@ -108,16 +102,13 @@ function testTimeBasedAccessLogRotation() returns error? {
     test:assertTrue(content.includes("ballerina"), "Logs should include attributes from Config.toml");
 }
 
-@test:Config {
-    serialExecution: true
-}
+@test:Config {}
 function testCombinedPolicyRotation() returns error? {
     string logFile = "./build/tmp/output/combined-policy-access.log";
     string configFile = "tests/resources/samples/config/combined-policy-rotation.toml";
-    Process result = check exec(bal_exec_path, {BAL_CONFIG_FILES: configFile}, (), "run", string `${temp_dir_path}/service`);
-    runtime:sleep(15); // Wait to up the service
+    Process result = check startService(configFile, 9799);
 
-    http:Client 'client = check new("http://localhost:9797");
+    http:Client 'client = check new("http://localhost:9799");
     foreach int i in 0...9 {
         record {}[] _= check 'client->get("/albums");
         runtime:sleep(1);
@@ -146,18 +137,15 @@ function testCombinedPolicyRotation() returns error? {
     test:assertTrue(fileExists(logFile), "Main log file should exist");
 }
 
-@test:Config {
-    serialExecution: true
-}
+@test:Config {}
 function testConcurrentWrites() returns error? {
     string logFile = "./build/tmp/output/concurrent-writes-access.log";
     string configFile = "tests/resources/samples/config/concurrent-writes-rotation.toml";
-    Process result = check exec(bal_exec_path, {BAL_CONFIG_FILES: configFile}, (), "run", string `${temp_dir_path}/service`);
-    runtime:sleep(15);
+    Process result = check startService(configFile, 9800);
 
-    http:Client client1 = check new("http://localhost:9797");
-    http:Client client2 = check new("http://localhost:9797");
-    http:Client client3 = check new("http://localhost:9797");
+    final http:Client client1 = check new("http://localhost:9800");
+    final http:Client client2 = check new("http://localhost:9800");
+    final http:Client client3 = check new("http://localhost:9800");
 
     worker w1 returns error? {
         foreach int i in 0...6 {
@@ -218,16 +206,13 @@ function testConcurrentWrites() returns error? {
 }
 
 // Zero backup files: Verify rotation with maxBackupFiles=0 only keeps current file
-@test:Config {
-    serialExecution: true
-}
+@test:Config {}
 function testZeroMaxBackupFiles() returns error? {
     string logFile = "./build/tmp/output/zero-backup-access.log";
     string configFile = "tests/resources/samples/config/zero-backup-rotation.toml";
-    Process result = check exec(bal_exec_path, {BAL_CONFIG_FILES: configFile}, (), "run", string `${temp_dir_path}/service`);
-    runtime:sleep(10);
+    Process result = check startService(configFile, 9801);
 
-    http:Client 'client = check new("http://localhost:9797");
+    http:Client 'client = check new("http://localhost:9801");
     foreach int i in 0...10 {
         record {}[] _= check 'client->get("/albums");
         runtime:sleep(1);
@@ -245,16 +230,13 @@ function testZeroMaxBackupFiles() returns error? {
 }
 
 // Zero backup files: Verify log file with util file handler
-@test:Config {
-    serialExecution: true
-}
+@test:Config {}
 function testZeroMaxBackupFilesWithUtilHandler() returns error? {
     string logFile = "./build/tmp/output/zero-backup-util.log";
     string configFile = "tests/resources/samples/config/zero-backup-util-rotation.toml";
-    Process result = check exec(bal_exec_path, {BAL_CONFIG_FILES: configFile}, (), "run", string `${temp_dir_path}/service`);
-    runtime:sleep(10);
+    Process result = check startService(configFile, 9802);
 
-    http:Client 'client = check new("http://localhost:9797");
+    http:Client 'client = check new("http://localhost:9802");
     foreach int i in 0...10 {
         record {}[] _= check 'client->get("/albums");
         runtime:sleep(1);
@@ -273,12 +255,11 @@ function testZeroMaxBackupFilesWithUtilHandler() returns error? {
 
 // Invalid config: Test behavior with invalid rotation configuration values
 @test:Config {
-    groups: ["invalid-config"],
-    serialExecution: true
+    groups: ["invalid-config"]
 }
 function testInvalidConfigBackupFile() returns error? {
     string configFile = "tests/resources/samples/config/invalid-backup-file-config.toml";
-    Process result = check exec(bal_exec_path, {BAL_CONFIG_FILES: configFile}, (), "run", string `${temp_dir_path}/service`);
+    Process result = check runService(configFile, 9803);
     int _ = check result.waitForExit();
     int _ = check result.exitCode();
     io:ReadableByteChannel readableResult = result.stderr();
@@ -296,12 +277,11 @@ function testInvalidConfigBackupFile() returns error? {
 }
 
 @test:Config {
-    groups: ["invalid-config"],
-    serialExecution: true
+    groups: ["invalid-config"]
 }
 function testInvalidConfigMaxAge() returns error? {
     string configFile = "tests/resources/samples/config/invalid-max-age-config.toml";
-    Process result = check exec(bal_exec_path, {BAL_CONFIG_FILES: configFile}, (), "run", string `${temp_dir_path}/service`);
+    Process result = check runService(configFile, 9804);
     int _ = check result.waitForExit();
     int _ = check result.exitCode();
     io:ReadableByteChannel readableResult = result.stderr();
@@ -319,12 +299,11 @@ function testInvalidConfigMaxAge() returns error? {
 }
 
 @test:Config {
-    groups: ["invalid-config"],
-    serialExecution: true
+    groups: ["invalid-config"]
 }
 function testInvalidConfigMaxFileSize() returns error? {
     string configFile = "tests/resources/samples/config/invalid-max-file-size-config.toml";
-    Process result = check exec(bal_exec_path, {BAL_CONFIG_FILES: configFile}, (), "run", string `${temp_dir_path}/service`);
+    Process result = check runService(configFile, 9805);
     int _ = check result.waitForExit();
     int _ = check result.exitCode();
     io:ReadableByteChannel readableResult = result.stderr();
@@ -342,12 +321,11 @@ function testInvalidConfigMaxFileSize() returns error? {
 }
 
 @test:Config {
-    groups: ["invalid-config"],
-    serialExecution: true
+    groups: ["invalid-config"]
 }
 function testInvalidFilePath() returns error? {
     string configFile = "tests/resources/samples/config/invalid-file-path-config.toml";
-    Process result = check exec(bal_exec_path, {BAL_CONFIG_FILES: configFile}, (), "run", string `${temp_dir_path}/service`);
+    Process result = check runService(configFile, 9806);
     int _ = check result.waitForExit();
     int _ = check result.exitCode();
     io:ReadableByteChannel readableResult = result.stderr();
@@ -378,16 +356,13 @@ function testInvalidFilePath() returns error? {
 }
 
 // Trace log rotation with combined policies: Verify that both size-based and time-based rotation work together as expected
-@test:Config {
-    serialExecution: true
-}
+@test:Config {}
 function testCombinedPolicyRotationWithTraceLog() returns error? {
     string logFile = "./build/tmp/output/combined-policy-trace.log";
     string configFile = "tests/resources/samples/config/combined-policy-rotation-with-trace-log.toml";
-    Process result = check exec(bal_exec_path, {BAL_CONFIG_FILES: configFile}, (), "run", string `${temp_dir_path}/service`);
-    runtime:sleep(15); // Wait to up the service
+    Process result = check startService(configFile, 9807);
 
-    http:Client 'client = check new("http://localhost:9797");
+    http:Client 'client = check new("http://localhost:9807");
     foreach int i in 0...9 {
         record {}[] _= check 'client->get("/albums");
         runtime:sleep(1);

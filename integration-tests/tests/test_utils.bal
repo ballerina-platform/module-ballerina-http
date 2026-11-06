@@ -15,10 +15,46 @@
 // under the License.
 
 import ballerina/io;
+import ballerina/lang.runtime;
 import ballerina/jballerina.java;
 
 configurable string bal_exec_path = ?;
 configurable string temp_dir_path = ?;
+
+// Built once by the Gradle build, so each test starts the service without recompiling it.
+isolated function serviceJarPath() returns string => string `${temp_dir_path}/service/target/bin/service.jar`;
+
+isolated function runService(string configFile, int port) returns Process|error =>
+    exec(bal_exec_path, {BAL_CONFIG_FILES: configFile}, (), "run", serviceJarPath(), "--", string `-Cport=${port}`);
+
+// All the tests start their services at the same time, which can take a while on a small CI runner.
+const decimal SERVICE_START_TIMEOUT_SECONDS = 120;
+
+isolated function startService(string configFile, int port) returns Process|error {
+    if isPortOpen(port) {
+        return error(string `port ${port} is already in use, possibly by a service left behind by an earlier run`);
+    }
+    Process process = check runService(configFile, port);
+    decimal waited = 0;
+    while waited < SERVICE_START_TIMEOUT_SECONDS {
+        if isPortOpen(port) {
+            return process;
+        }
+        // exitCode() panics with a TypeCastError while the process is running.
+        if (trap process.exitCode()) is int {
+            return error(string `the service on port ${port} exited before it started: ${check readAll(process.stderr())}`);
+        }
+        runtime:sleep(0.5);
+        waited += 0.5d;
+    }
+    _ = process.stop();
+    return error(string `the service on port ${port} did not start within ${SERVICE_START_TIMEOUT_SECONDS} s`);
+}
+
+isolated function readAll(io:ReadableByteChannel channel) returns string|error {
+    io:ReadableCharacterChannel characters = new (channel, "UTF-8");
+    return characters.read(100000);
+}
 
 type FileInfo record {|
     string absPath;
@@ -99,7 +135,7 @@ isolated function createDirectory(string path) returns error? = @java:Method {
     'class: "io.ballerina.stdlib.http.testutils.nativeimpl.TestFileUtils"
 } external;
 
-function exec(string command, map<string> env = {},
+isolated function exec(string command, map<string> env = {},
               string? dir = (), string... args) returns Process|error = @java:Method {
     'class: "io.ballerina.stdlib.http.testutils.nativeimpl.Exec"
 } external;
@@ -108,3 +144,7 @@ isolated function listFiles(string path) returns FileInfo[]|error {
     string jsonStr = check listFilesJson(path);
     return jsonStr.fromJsonStringWithType();
 }
+
+isolated function isPortOpen(int port) returns boolean = @java:Method {
+    'class: "io.ballerina.stdlib.http.testutils.nativeimpl.PortUtils"
+} external;
