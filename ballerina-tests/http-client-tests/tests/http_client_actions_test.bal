@@ -108,12 +108,12 @@ service /httpClientActionBE on httpClientActionListenerEP1 {
         check caller->respond(check request.getTextPayload());
     }
 
-    // withWhitespacedExpression
+    // withWhitespaceExpression
     resource function 'default [string id](http:Caller caller, http:Request request) returns error? {
         check caller->respond(id);
     }
 
-    // withWhitespacedLiteral
+    // withWhitespaceLiteral
     resource function 'default a/b\ c/d(http:Caller caller, http:Request request) returns error? {
         check caller->respond("dispatched to white_spaced literal");
     }
@@ -366,7 +366,7 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
         check caller->respond(value);
     }
 
-    resource function get handleMultiparts(http:Caller caller, http:Request req) returns error? {
+    resource function get handleMultipart(http:Caller caller, http:Request req) returns error? {
         string value = "";
         mime:Entity part1 = new;
         part1.setJson({"name": "wso2"});
@@ -422,7 +422,7 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
     }
 
     resource function get testServiceUnavailable() returns error? {
-        http:Client ep = checkpanic new("http://localhost:8080");
+        http:Client ep = check new("http://localhost:8080");
         return ep->get("/bar");
     }
 }
@@ -526,7 +526,7 @@ function testPostWithTextToByteStream() returns error? {
 
 @test:Config {}
 function testPostWithBodyParts() returns error? {
-    http:Response|error response = httpClientActionClient->get("/handleMultiparts");
+    http:Response|error response = httpClientActionClient->get("/handleMultipart");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
         common:assertHeaderValue(check response.getHeader(common:CONTENT_TYPE), common:TEXT_PLAIN);
@@ -625,9 +625,9 @@ function testClientPathWithWhitespaces() returns error? {
 
 @test:Config {}
 function testClientInitWithMalformedURL() {
-    http:Client|error httpEndpoint = new ("httpeds://bar.com/foo", httpVersion = http:HTTP_1_1);
+    http:Client|error httpEndpoint = new ("https://bar.com/foo", httpVersion = http:HTTP_1_1);
     if (httpEndpoint is error) {
-        test:assertEquals(httpEndpoint.message(), "malformed URL: httpeds://bar.com/foo", msg = "Found unexpected output");
+        test:assertEquals(httpEndpoint.message(), "malformed URL: https://bar.com/foo", msg = "Found unexpected output");
     } else {
         test:assertFail(msg = "Found unexpected output type");
     }
@@ -682,5 +682,17 @@ function testServiceUnavailable() returns error? {
         check common:assertJsonErrorPayloadPartialMessage(check response.getJsonPayload(), "Something wrong with the connection: Connection refused");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
+ 
+    }
+}
+
+@test:Config {}
+function testHttpClientInvalidPathResponse() returns error? {
+    http:Response|error response = httpClientActionClient->get("/invalid-endpoint-path");
+    
+    if response is http:Response {
+        test:assertEquals(response.statusCode, 404, "Expected status code 404 Not Found");
+    } else {
+        test:assertFail("Expected HTTP Response but received an error");
     }
 }
