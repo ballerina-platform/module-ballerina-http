@@ -73,6 +73,7 @@ const redirectTestPort2 = 9103;
 const redirectTestPort3 = 9104;
 const redirectTestPort4 = 9105;
 const redirectTestPort5 = 9106;
+const concurrentRedirectTestPort = 9641;
 
 const introResTestPort = 9023;
 const acceptEncodingHeaderTestPort = 9500;
