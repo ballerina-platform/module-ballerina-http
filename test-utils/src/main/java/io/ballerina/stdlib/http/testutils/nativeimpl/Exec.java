@@ -40,9 +40,17 @@ public class Exec {
 
     private Exec() {}
 
-    // The Java runtime of the test JVM, used to start prebuilt jars without the extra `bal run` JVM.
+    // Used to start prebuilt jars without the extra `bal run` JVM. A GraalVM native test has no java.home, so it
+    // falls back to JAVA_HOME and then to the java on the PATH.
     public static BString javaExecutable() {
-        return StringUtils.fromString(Paths.get(System.getProperty("java.home"), "bin", "java").toString());
+        String javaHome = System.getProperty("java.home");
+        if (javaHome == null || javaHome.isEmpty()) {
+            javaHome = System.getenv("JAVA_HOME");
+        }
+        if (javaHome == null || javaHome.isEmpty()) {
+            return StringUtils.fromString("java");
+        }
+        return StringUtils.fromString(Paths.get(javaHome, "bin", "java").toString());
     }
     
     public static Object exec(BString command, BMap<BString, BString> env, Object dir, BString[] args) {
