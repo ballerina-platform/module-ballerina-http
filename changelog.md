@@ -31,6 +31,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Reset an HTTP/2 client stream with `CANCEL` instead of `STREAM_CLOSED` when the client gives up on it, that is on an idle timeout or when its request body fails part-way, as RFC 9113 defines `STREAM_CLOSED` for a frame received on a half-closed stream](https://github.com/ballerina-platform/ballerina-library/issues/9244)
 - [Abort a passthrough response whose backend body fails part-way, by closing the HTTP/1.1 connection or resetting the HTTP/2 stream, instead of ending the truncated body as if it were complete](https://github.com/ballerina-platform/ballerina-library/issues/9349)
 - [Return an error from `getByteStream(arraySize)` for a non-positive `arraySize`, instead of an endless stream of empty arrays or a failure on the first read](https://github.com/ballerina-platform/ballerina-library/issues/9267)
+- [Rewrite the HTTP specification as a normative contract, following the library specification guide. The previous statements that path parameter conversion failures return `500`, that `@http:Payload` media types are validated at runtime, and that the client `timeout` defaults to `60` and caching is opt-in, are corrected](https://github.com/ballerina-platform/module-ballerina-http/pull/2768)
+- [Document the retry behaviour of the HTTP client in the specification and the `RetryConfig` API docs](https://github.com/ballerina-platform/module-ballerina-http/pull/2766)
 
 ## [2.18.1] - 2026-10-16
 

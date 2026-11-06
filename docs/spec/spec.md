@@ -3,4003 +3,1907 @@
 _Owners_: @shafreenAnfar @TharmiganK @ayeshLK @chamil321  
 _Reviewers_: @shafreenAnfar @bhashinee @TharmiganK @ldclakmal  
 _Created_: 2021/12/23  
-_Updated_: 2026/11/02   
-_Edition_: Swan Lake
-
+_Updated_: 2026/11/02  
+_Edition_: Swan Lake  
 
 ## Introduction
-This is the specification for the HTTP standard library of [Ballerina language](https://ballerina.io/), which provides HTTP client-server functionalities to produce and consume HTTP APIs.  
 
-The HTTP library specification has evolved and may continue to evolve in the future. The released versions of the specification can be found under the relevant GitHub tag. 
+This is the specification for the HTTP standard library of the [Ballerina language](https://ballerina.io/), which provides the HTTP listener, service and client functionality used to produce and consume HTTP APIs.
 
-If you have any feedback or suggestions about the library, start a discussion via a [GitHub issue](https://github.com/ballerina-platform/ballerina-standard-library/issues) or in the [Discord server](https://discord.gg/ballerinalang). Based on the outcome of the discussion, the specification and implementation can be updated. Community feedback is always welcome. Any accepted proposal, which affects the specification is stored under `/docs/proposals`. Proposals under discussion can be found with the label `type/proposal` in GitHub.
+This specification is the contract of the library. It defines the observable behaviour of the library: the configuration it accepts, how it processes requests and responses, the errors it returns, and what it rejects at compile time. A behaviour of the implementation that differs from this specification is a bug in the implementation. A behaviour that this specification does not define is a gap in the specification, and is also reported as a bug. Signatures and per-symbol documentation are part of the [API documentation](https://central.ballerina.io/ballerina/http/latest), and usage examples are part of [Ballerina by Example](https://ballerina.io/learn/by-example/). Neither is repeated here.
 
-The conforming implementation of the specification is released and included in the distribution. Any deviation from the specification is considered a bug.
+The released versions of the specification can be found under the relevant GitHub tag. Changes to the specification follow the proposal process described in the [library development process](https://github.com/ballerina-platform/ballerina-library/blob/main/docs/library-development-process.md). If you have any feedback or suggestions about the library, start a discussion via a [GitHub issue](https://github.com/ballerina-platform/ballerina-library/issues) or in the [Discord server](https://discord.gg/ballerinalang).
+
+### Notation
+
+The key words MUST, MUST NOT, REQUIRED, SHALL, SHALL NOT, SHOULD, SHOULD NOT, RECOMMENDED, MAY and OPTIONAL in this document are to be interpreted as described in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) and [RFC 8174](https://www.rfc-editor.org/rfc/rfc8174) when, and only when, they appear in all capitals. Sentences that state behaviour in the present tense are also normative. Examples, notes and the overview are informative. Behaviour marked as _unspecified_ MUST NOT be relied upon.
+
+Durations are in seconds and sizes are in bytes unless stated otherwise. Status codes are written as `<code> <reason phrase>`, e.g. `404 Not Found`. Types are written without the `http:` prefix when they belong to this library.
 
 ## Contents
 
-1. [Overview](#1-overview)
-2. [Components](#2-components)
-    * 2.1. [Listener](#21-listener)
-        * 2.1.1. [Automatically starting the service](#211-automatically-starting-the-service)
-        * 2.1.2. [Programmatically starting the service](#212-programmatically-starting-the-service)
-        * 2.1.3. [Default listener](#213-default-listener)
-        * 2.1.4. [HTTP/2 stream concurrency](#214-http2-stream-concurrency)
-        * 2.1.5. [Request limits](#215-request-limits)
-    * 2.2. [Service](#22-service)
-        * 2.2.1. [Service type](#221-service-type)
-        * 2.2.2. [Service-base-path](#222-service-base-path)
-        * 2.2.3. [Service declaration](#223-service-declaration)
-        * 2.2.4. [Service class declaration](#224-service-class-declaration)
-        * 2.2.5. [Service constructor expression](#225-service-constructor-expression)
-        * 2.2.6. [Service contract type](#226-service-contract-type)
-        * 2.2.7. [Relaxed data binding](#227-relaxed-data-binding)
-    * 2.3. [Resource](#23-resource)
-        * 2.3.1. [Accessor](#231-accessor)
-        * 2.3.2. [Resource-name](#232-resource-name)
-        * 2.3.3. [Path parameter](#233-path-parameter)
-        * 2.3.4. [Signature parameters](#234-signature-parameters)
-            * 2.3.4.1. [Caller](#2341-httpcaller)
-            * 2.3.4.2. [Request](#2342-httprequest)
-            * 2.3.4.3. [Query param](#2343-query-parameter)
-            * 2.3.4.4. [Payload param](#2344-payload-parameter)
-            * 2.3.4.5. [Header param](#2345-header-parameter)
-        * 2.3.5. [Return types](#235-return-types)
-            * 2.3.5.1. [Status Code Response](#2351-status-code-response)
-            * 2.3.5.2. [Return nil](#2352-return-nil)
-            * 2.3.5.3. [Return SSE stream](#2353-return-sse-stream)
-            * 2.3.5.4. [Default response status codes](#2354-default-response-status-codes)
-        * 2.3.6. [OpenAPI specification resources](#236-openapi-specification-resources)
-            * 2.3.6.1. [Introspection resource](#2361-introspection-resource)
-            * 2.3.6.2. [SwaggerUI resource](#2362-swaggerui-resource)
-    * 2.4. [Client](#24-client)
-        * 2.4.1. [Client types](#241-client-types)
-            * 2.4.1.1. [Security](#2411-security)
-            * 2.4.1.2. [Caching](#2412-caching)
-            * 2.4.1.3. [Redirect](#2413-redirect)
-            * 2.4.1.4. [Retry](#2414-retry)
-            * 2.4.1.5. [Circuit breaker](#2415-circuit-breaker)
-            * 2.4.1.6. [Cookie](#2416-cookie)
-            * 2.4.1.7. [Load balance](#2417-load-balance)
-            * 2.4.1.8. [Failover](#2418-failover)
-            * 2.4.1.9. [Status code binding client](#2419-status-code-binding-client)
-            * 2.4.1.10. [Relaxed data binding client](#24110-relaxed-data-binding-client)
-            * 2.4.1.11. [Proxy](#24111-proxy)
-            * 2.4.1.12. [Response limits](#24112-response-limits)
-        * 2.4.2. [Client actions](#242-client-action)
-            * 2.4.2.1. [Entity body methods](#2421-entity-body-methods)
-            * 2.4.2.2. [Non entity body methods](#2422-non-entity-body-methods)
-            * 2.4.2.3. [Resource methods](#2423-resource-methods)
-            * 2.4.2.4. [Forward/execute methods](#2424-forwardexecute-methods)
-            * 2.4.2.5. [HTTP2 additional methods](#2425-http2-additional-methods)
-        * 2.4.3. [Client actions return types](#243-client-action-return-types)
-3. [Request-routing](#3-request-routing)
-    * 3.1. [Uri and http method match](#31-uri-and-http-method-match)
-    * 3.2. [Most specific path match](#32-most-specific-path-match)
-    * 3.3. [Wild card path match](#33-wild-card-path-match)
-    * 3.4. [Path parameter template match](#34-path-parameter-template-match)
-4. [Annotations](#4-annotations)
-    * 4.1. [Service configuration](#41-service-configuration)
-    * 4.2. [Resource configuration](#42-resource-configuration)
-    * 4.3. [Payload annotation](#43-payload-annotation)
-        * 4.3.1. [Payload binding parameter](#431-payload-binding-parameter)
-        * 4.3.2. [Anydata return value info](#432-anydata-return-value-info)
-    * 4.4. [CallerInfo annotation](#44-callerinfo-annotation)
-    * 4.5. [Header annotation](#45-header-annotation)
-    * 4.6. [Cache annotation](#46-cache-annotation)
-5. [url-parameters](#5-url-parameters)
-    * 5.1. [Path](#51-path)
-    * 5.2. [Query](#52-query)
-    * 5.3. [Matrix](#53-matrix)
-6. [Request and Response](#6-request-and-response)
-    * 6.1. [Message body streaming and back-pressure](#61-message-body-streaming-and-back-pressure)
-7. [Header and Payload](#7-header-and-payload)
-    * 7.1. [Parse header functions](#71-parse-header-functions)
-    * 7.2. [Links support](#72-links-support)
-      * 7.2.1 [LinkedTo record](#721-linkedto-record)
-      * 7.2.2 [Links in the response](#722-links-in-the-response)
-8. [Interceptor and error handling](#8-interceptor-and-error-handling)
-    * 8.1. [Interceptor](#81-interceptor)
-        * 8.1.1. [Request interceptor](#811-request-interceptor)
-            * 8.1.1.1. [Request context](#8111-request-context)
-            * 8.1.1.2. [Next method](#8112-next-method)
-            * 8.1.1.3. [Return to respond](#8113-return-to-respond)
-            * 8.1.1.4 [Get JWT information](#8114-get-jwt-information)
-        * 8.1.2. [Response interceptor](#812-response-interceptor)
-            * 8.1.2.1. [Return to respond](#8121-return-to-respond)
-        * 8.1.3. [Request error interceptor and response error interceptor](#813-request-error-interceptor-and-response-error-interceptor)
-        * 8.1.4. [Engaging interceptors](#814-engaging-interceptors)
-            * 8.1.4.1. [Service level](#8141-service-level)
-            * 8.1.4.2. [Execution order of interceptors](#8142-execution-order-of-interceptors)
-        * 8.1.5. [Data binding](#815-data-binding)
-    * 8.2. [Error handling](#82-error-handling)
-      * 8.2.1. [Error interceptors](#821-error-interceptors)
-      * 8.2.2. [Error types](#822-error-types)
-      * 8.2.3. [Trace log](#823-trace-log)
-        * 8.2.3.1 [Trace log rotation](#8231-trace-log-rotation)
-      * 8.2.4. [Access log](#824-access-log)
-        * 8.2.4.1 [Access log rotation](#8241-access-log-rotation)
-      * 8.2.5. [Panic inside resource](#825-panic-inside-resource)
-9. [Security](#9-security)
-    * 9.1. [Authentication and Authorization](#91-authentication-and-authorization)
-        * 9.1.1. [Declarative Approach](#911-declarative-approach)
-            * 9.1.1.1. [Listener - Basic Auth - File User Store](#9111-listener---basic-auth---file-user-store)
-            * 9.1.1.2. [Listener - Basic Auth - LDAP User Store](#9112-listener---basic-auth---ldap-user-store)
-            * 9.1.1.3. [Listener - JWT Auth](#9113-listener---jwt-auth)
-            * 9.1.1.4. [Listener - OAuth2](#9114-listener---oauth2)
-            * 9.1.1.5. [Client - Basic Auth](#9115-client---basic-auth)
-            * 9.1.1.6. [Client - Bearer Token Auth](#9116-client---bearer-token-auth)
-            * 9.1.1.7. [Client - Self Signed JWT Auth](#9117-client---self-signed-jwt)
-            * 9.1.1.8. [Client - Bearer Token OAuth2](#9118-client---bearer-token-oauth2)
-            * 9.1.1.9. [Client - Grant Types OAuth2](#9119-client---grant-types-oauth2)
-        * 9.1.2 [Imperative Approach](#912-imperative-approach)
-            * 9.1.2.1. [Listener - Basic Auth - File User Store](#9121-listener---basic-auth---file-user-store)
-            * 9.1.2.2. [Listener - Basic Auth - LDAP User Store](#9122-listener---basic-auth---ldap-user-store)
-            * 9.1.2.3. [Listener - JWT Auth](#9123-listener---jwt-auth)
-            * 9.1.2.4. [Listener - OAuth2](#9124-listener---oauth2)
-            * 9.1.2.5. [Client - Basic Auth](#9125-client---basic-auth)
-            * 9.1.2.6. [Client - Bearer Token Auth](#9126-client---bearer-token-auth)
-            * 9.1.2.7. [Client - Self Signed JWT Auth](#9127-client---self-signed-jwt)
-            * 9.1.2.8. [Client - Bearer Token OAuth2](#9128-client---bearer-token-oauth2)
-            * 9.1.2.9. [Client - Grant Types OAuth2](#9129-client---grant-types-oauth2)
-   * 9.2. [SSL/TLS and Mutual SSL](#92-ssltls-and-mutual-ssl)
-        * 9.2.1. [Listener - SSL/TLS](#921-listener---ssltls)
-        * 9.2.2. [Listener - Mutual SSL](#922-listener---mutual-ssl)
-        * 9.2.3. [Client - SSL/TLS](#923-client---ssltls)
-        * 9.2.4. [Client - Mutual SSL](#924-client---mutual-ssl)
-10. [Protocol-upgrade](#10-protocol-upgrade)
-    * 10.1. [HTTP2](#101-http2)
-        * 10.1.1. [Push promise and promise response](#1011-push-promise-and-promise-response)
-11. [Static Code Rules](#11-static-code-rules)
-    * 11.1. [Avoid allowing default resource accessor](#111-avoid-allowing-default-resource-accessor)
-    * 11.2. [Avoid permissive Cross-Origin Resource Sharing](#112-avoid-permissive-cross-origin-resource-sharing)
-    * 11.3. [Server-side requests should not be vulnerable to traversing attacks](#113-server-side-requests-should-not-be-vulnerable-to-traversing-attacks)
-    * 11.4. [HTTP request redirections should not be open to forging attacks](#114-http-request-redirections-should-not-be-open-to-forging-attacks)
+- [1. Overview](#1-overview)
+- [2. Terminology](#2-terminology)
+- [3. Listener](#3-listener)
+    - [3.1. Description](#31-description)
+    - [3.2. Configuration](#32-configuration)
+    - [3.3. Lifecycle](#33-lifecycle)
+    - [3.4. HTTP versions and connections](#34-http-versions-and-connections)
+        - [3.4.1. HTTP versions](#341-http-versions)
+        - [3.4.2. Keep-alive and pipelining](#342-keep-alive-and-pipelining)
+        - [3.4.3. Idle timeout](#343-idle-timeout)
+    - [3.5. Request limits](#35-request-limits)
+    - [3.6. Default listener](#36-default-listener)
+- [4. Service](#4-service)
+    - [4.1. Description](#41-description)
+    - [4.2. Base path](#42-base-path)
+    - [4.3. Compile-time validation](#43-compile-time-validation)
+    - [4.4. Service configuration](#44-service-configuration)
+    - [4.5. Service contract](#45-service-contract)
+    - [4.6. OpenAPI resources](#46-openapi-resources)
+- [5. Resources](#5-resources)
+    - [5.1. Description](#51-description)
+    - [5.2. Accessors](#52-accessors)
+    - [5.3. Resource paths](#53-resource-paths)
+    - [5.4. Resource configuration](#54-resource-configuration)
+- [6. Request dispatching](#6-request-dispatching)
+    - [6.1. Service selection](#61-service-selection)
+    - [6.2. Matrix parameters](#62-matrix-parameters)
+    - [6.3. Resource selection](#63-resource-selection)
+    - [6.4. Automatic OPTIONS responses](#64-automatic-options-responses)
+    - [6.5. Path parameter binding](#65-path-parameter-binding)
+    - [6.6. CORS](#66-cors)
+    - [6.7. Dispatching errors](#67-dispatching-errors)
+- [7. Resource parameters](#7-resource-parameters)
+    - [7.1. Parameter classification](#71-parameter-classification)
+    - [7.2. Special parameters](#72-special-parameters)
+    - [7.3. Names](#73-names)
+    - [7.4. Query parameters](#74-query-parameters)
+    - [7.5. Header parameters](#75-header-parameters)
+    - [7.6. Payload parameter](#76-payload-parameter)
+    - [7.7. Compile-time validation](#77-compile-time-validation)
+- [8. Responses](#8-responses)
+    - [8.1. Return types](#81-return-types)
+    - [8.2. Status codes](#82-status-codes)
+    - [8.3. Content type and serialization](#83-content-type-and-serialization)
+    - [8.4. Status code responses](#84-status-code-responses)
+    - [8.5. Responding with a caller](#85-responding-with-a-caller)
+    - [8.6. Server-sent events](#86-server-sent-events)
+    - [8.7. Response caching headers](#87-response-caching-headers)
+    - [8.8. Links](#88-links)
+    - [8.9. Compile-time validation](#89-compile-time-validation)
+- [9. Interceptors](#9-interceptors)
+    - [9.1. Description](#91-description)
+    - [9.2. Interceptor types](#92-interceptor-types)
+    - [9.3. Engaging interceptors](#93-engaging-interceptors)
+    - [9.4. Request context](#94-request-context)
+    - [9.5. Execution](#95-execution)
+    - [9.6. Compile-time validation](#96-compile-time-validation)
+- [10. Error handling](#10-error-handling)
+    - [10.1. Status codes of errors](#101-status-codes-of-errors)
+    - [10.2. Default error response](#102-default-error-response)
+    - [10.3. Panics](#103-panics)
+- [11. Client](#11-client)
+    - [11.1. Description](#111-description)
+    - [11.2. Initialization](#112-initialization)
+    - [11.3. Configuration](#113-configuration)
+    - [11.4. Feature composition](#114-feature-composition)
+    - [11.5. Caching](#115-caching)
+    - [11.6. Redirects](#116-redirects)
+    - [11.7. Cookies](#117-cookies)
+    - [11.8. Proxy](#118-proxy)
+    - [11.9. Response limits](#119-response-limits)
+    - [11.10. Sending requests](#1110-sending-requests)
+    - [11.11. Response data binding](#1111-response-data-binding)
+    - [11.12. Status code client](#1112-status-code-client)
+    - [11.13. Client errors](#1113-client-errors)
+- [12. Resiliency](#12-resiliency)
+    - [12.1. Retry](#121-retry)
+    - [12.2. Circuit breaker](#122-circuit-breaker)
+    - [12.3. Load balance client](#123-load-balance-client)
+    - [12.4. Failover client](#124-failover-client)
+- [13. Message body streaming and back-pressure](#13-message-body-streaming-and-back-pressure)
+- [14. Observability](#14-observability)
+    - [14.1. Trace logs](#141-trace-logs)
+    - [14.2. Access logs](#142-access-logs)
+    - [14.3. Log rotation](#143-log-rotation)
+- [15. Authentication and authorization](#15-authentication-and-authorization)
+    - [15.1. Declarative listener authentication](#151-declarative-listener-authentication)
+    - [15.2. Imperative listener authentication](#152-imperative-listener-authentication)
+    - [15.3. Client authentication](#153-client-authentication)
+- [16. TLS](#16-tls)
+    - [16.1. Common configuration](#161-common-configuration)
+    - [16.2. Listener](#162-listener)
+    - [16.3. Client](#163-client)
+- [17. Security considerations](#17-security-considerations)
+- [18. Static code rules](#18-static-code-rules)
+- [References](#references)
 
 ## 1. Overview
-Ballerina language provides first-class support for writing network-oriented programs. The HTTP standard library uses these language constructs and creates the programming model to produce and consume HTTP APIs.
 
-The HTTP standard library is designed to work with HTTP protocol. It includes high-level abstractions such as `http:Request`, `http:Response`, `http:Service`, and `http:Client` which allow users to produce and consume HTTP API. Further, developers can use this library to build other libraries. The standard libraries such as GraphQL, Websub, and WebSubHub use this library internally.
+The library provides three main abstractions:
 
-In addition to functional requirements, this library deals with nonfunctional requirements such as security, observability, and resiliency. Each requirement is discussed in detail in the coming sections.
+- A `Listener` receives HTTP requests over the network and dispatches them to the services attached to it.
+- A `Service` is a collection of resource methods. Each resource method handles requests for one HTTP method and one resource path, and its parameters and return value are bound to the request and the response.
+- A `Client` sends HTTP requests to a remote endpoint, and binds the responses to the types the caller expects. The client can be configured with resiliency features such as retrying, circuit breaking and failover.
 
-## 2. Components
-### 2.1. Listener
-The HTTP listener object receives network data from a remote process according to the HTTP transport protocol and 
-translates the received data into invocations on the resources functions of services that have been 
-attached to the listener object. The listener provides the interface between network and services. When initiating
-the listener, the port is a compulsory parameter whereas the second parameter is the listenerConfiguration which
-changes the behaviour of the listener based on the requirement. By default, HTTP listener supports
-HTTP2 version.
+Interceptors run common logic before and after resource methods, and error interceptors turn errors into responses. Security is provided through declarative authentication and authorization, imperative auth handlers, and TLS. The library supports HTTP/1.0, HTTP/1.1 and HTTP/2, and is also the transport of other standard libraries such as GraphQL and WebSub.
 
-```ballerina
-public type ListenerConfiguration record {|
-    string host = "0.0.0.0";
-    ListenerHttp1Settings http1Settings = {};
-    ListenerSecureSocket? secureSocket = ();
-    HttpVersion httpVersion = HTTP_2_0;
-    decimal timeout = DEFAULT_LISTENER_TIMEOUT;
-    string? server = ();
-    RequestLimitConfigs requestLimits = {};
-    int http2InitialWindowSize = 65535;
-    int http2MaxActiveStreams = 100;
-    decimal minIdleTimeInStaleState = 300;
-    decimal timeBetweenStaleEviction = 30;
-|};
-```
-
-As defined in [Ballerina 2021R1 Section 5.7.4](https://ballerina.io/spec/lang/2021R1/#section_5.7.4) the Listener has 
-the object constructor and life cycle methods such as attach(), detach(), 'start(), gracefulStop(), and immediateStop().
-
-#### 2.1.1. Automatically starting the service
-If a service is attached to the listener, then the listener starts listening on the given port after executing 
-attach() and start() methods. HTTP listener can be declared as follows honoring to the generic 
-[listener declaration](https://ballerina.io/spec/lang/2021R1/#section_8.3.1)
-
-```ballerina
-// Listener object constructor
-listener http:Listener serviceListener = new(9090);
-
-// Service attaches to the Listener
-service /foo/bar on serviceListener {
-    resource function get greeting() returns string {}
-}
-```
-
-#### 2.1.2. Programmatically starting the service
-
-Users can programmatically start the listener by calling each lifecycle method as follows.
-
-```ballerina
-// Listener object constructor
-listener http:Listener serviceListener = new(9090);
-
-public function main() {
-    error? err1 = serviceListener.attach(s, "/foo/bar");
-    error? err2 = serviceListener.start();
-    //...
-    error? err3 = serviceListener.gracefulStop();
-}
-
-http:Service s = service object {
-    resource function get greeting() returns string {}
-};
-```
-
-#### 2.1.3. Default listener
-
-The default listener can be created by calling the `getDefaultListener()` method. Once the default listener is created,
-the subsequent calls to the `getDefaultListener()` method will return the same listener object. With this approach,
-the user can attach multiple services to the same listener and configure the listener as required. The default listener
-port is 9090.
+The following service returns an album by its identifier, and responds with `404 Not Found` when there is no such album:
 
 ```ballerina
 import ballerina/http;
 
-listener http:Listener httpListener = http:getDefaultListener();
+type Album record {|
+    string id;
+    string title;
+|};
 
-service /api/v1 on httpListener {
+map<Album> albums = {"a1": {id: "a1", title: "Blue Train"}};
 
-    resource function get greeting() returns string {
-        return "Hello, World from Service 1!";
+service /store on new http:Listener(9090) {
+    resource function get albums/[string id]() returns Album|http:NotFound {
+        return albums[id] ?: http:NOT_FOUND;
     }
 }
 ```
 
-The port and listener configuration of the default listener can be changed in the `Config.toml` as follows:
+The following client calls the service. The JSON payload of the response is bound to `Album`, and a `404 Not Found` response is returned as an error.
+
+```ballerina
+http:Client storeClient = check new ("localhost:9090/store");
+Album album = check storeClient->/albums/a1;
+```
+
+The examples in the rest of this specification use the `Album` type and the `albums` map defined above.
+
+## 2. Terminology
+
+| Term                           | Meaning                                                                                                                                                                                  |
+|--------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Listener                       | A value of the `Listener` type, bound to one port.                                                                                                                                       |
+| Service                        | A service object attached to a listener whose type is a subtype of `Service`.                                                                                                            |
+| Resource                       | A resource method of a service. It is identified by its accessor and its resource path.                                                                                                 |
+| Accessor                       | The method name of a resource, e.g. `get` or `default`. It determines the HTTP methods the resource handles.                                                                            |
+| Base path                      | The absolute path at which a service is attached to a listener.                                                                                                                         |
+| Resource path                  | The path of a resource relative to the base path of its service.                                                                                                                        |
+| Sub-path                       | The part of the request path that follows the base path of the selected service.                                                                                                        |
+| Default host                   | The host name `b7a.default`, under which a service is registered when it does not configure a host.                                                                                    |
+| Data binding                   | Converting a part of a message, such as a query parameter, a header or the payload, to a Ballerina value of the declared type, or the reverse.                                           |
+| Status code response           | A value of a record type that includes one of the status code record types of the library, such as `Ok` or `NotFound`. Each fixes the status code of the response.                       |
+| Interceptor pipeline           | The ordered list of interceptors that apply to the requests of a service.                                                                                                               |
+| Network-level failure          | A client request that does not result in an HTTP response, e.g. a connection failure, a connection reset, an idle timeout or a TLS handshake failure. It results in a `ClientError`.      |
+| Idle timeout                   | The `timeout` of a listener or a client. It is the maximum period of inactivity on a connection or stream, not the maximum duration of a request.                                       |
+| Configurable                   | A module-level `configurable` variable of the library, set under `[ballerina.http]` in `Config.toml` or with a `-Cballerina.http.<name>=<value>` argument.                               |
+
+## 3. Listener
+
+### 3.1. Description
+
+A listener accepts connections on a port, reads HTTP requests from them, dispatches each request to an attached service, and writes the responses back. It implements the listener object lifecycle defined in the [Ballerina language specification](https://ballerina.io/spec/lang/master/#section_8.3).
+
+### 3.2. Configuration
+
+A listener is created with a port and an optional `ListenerConfiguration`. The port MUST be greater than `0`. Initialization fails with a `ListenerError` when the port is `0` or when any configuration value below is invalid.
+
+| Field                      | Type                     | Default         | Meaning                                                                                                                                                                                                                                       |
+|----------------------------|--------------------------|-----------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `host`                     | `string`                 | `"0.0.0.0"`     | Network interface to bind. An empty or blank value is treated as `"0.0.0.0"`.                                                                                                                                                                |
+| `httpVersion`              | `HttpVersion`            | `HTTP_2_0`      | Highest HTTP version the listener accepts. See [HTTP versions](#34-http-versions-and-connections).                                                                                                                                           |
+| `http1Settings`            | `ListenerHttp1Settings`  | `{}`            | Settings for HTTP/1.x connections. See below.                                                                                                                                                                                                 |
+| `secureSocket`             | `ListenerSecureSocket?`  | `()`            | TLS configuration. `()` means the listener accepts cleartext connections only. See [TLS](#162-listener).                                                                                                                                      |
+| `timeout`                  | `decimal`                | `60`            | Idle timeout. `0` disables it. A negative value is an initialization error.                                                                                                                                                                   |
+| `server`                   | `string?`                | `()`            | Value of the `Server` header of responses. `()` means `ballerina/<library version>`.                                                                                                                                                         |
+| `requestLimits`            | `RequestLimitConfigs`    | `{}`            | Limits on the size of inbound requests. See [Request limits](#35-request-limits).                                                                                                                                                            |
+| `gracefulStopTimeout`      | `decimal`                | `0`             | Period for which `gracefulStop()` lets in-flight requests complete. A negative value is an initialization error.                                                                                                                              |
+| `socketConfig`             | `ServerSocketConfig`     | `{}`            | Socket options: `soBackLog` (`100`), `connectTimeOut` (`15`), `receiveBufferSize` (`1048576`), `sendBufferSize` (`1048576`), `tcpNoDelay` (`true`), `socketReuse` (`true`) and `keepAlive` (`false`).                                       |
+| `http2InitialWindowSize`   | `int`                    | `65535`         | HTTP/2 initial flow-control window size advertised to clients.                                                                                                                                                                               |
+| `http2MaxActiveStreams`    | `int`                    | `100`           | Maximum number of concurrent streams per HTTP/2 connection, advertised as `SETTINGS_MAX_CONCURRENT_STREAMS`.                                                                                                                                  |
+| `minIdleTimeInStaleState`  | `decimal`                | `300`           | Minimum time an HTTP/2 connection that has received a `GOAWAY` frame is kept open. `-1` keeps it open until all its in-flight streams are complete.                                                                                         |
+| `timeBetweenStaleEviction` | `decimal`                | `30`            | Interval between the runs that close HTTP/2 connections whose `minIdleTimeInStaleState` has elapsed. A value less than or equal to `0` is treated as `30`.                                                                                  |
+
+`ListenerHttp1Settings` has the following fields. They apply to every HTTP/1.x connection of the listener, whatever the value of `httpVersion`.
+
+| Field                  | Type        | Default          | Meaning                                                                                                                              |
+|------------------------|-------------|------------------|--------------------------------------------------------------------------------------------------------------------------------------|
+| `keepAlive`            | `KeepAlive` | `KEEPALIVE_AUTO` | Whether a connection is kept open after a response. See [Keep-alive](#342-keep-alive-and-pipelining).                                |
+| `maxPipelinedRequests` | `int`       | `10`             | Maximum number of requests on one connection that have been received but not yet responded to.                                      |
+
+The configuration of the secure socket, the window size and the stale eviction fields apply to both cleartext and TLS listeners.
+
+For example, the following listener accepts HTTP/1.x connections only, closes connections that are idle for 30 seconds, and answers requests whose body is larger than 1 MB with `413 Payload Too Large`:
+
+```ballerina
+listener http:Listener storeListener = new (9090,
+    httpVersion = http:HTTP_1_1,
+    timeout = 30,
+    requestLimits = {maxEntityBodySize: 1048576}
+);
+```
+
+### 3.3. Lifecycle
+
+1. `attach(service, basePath)` registers a service under its host (see [Service configuration](#44-service-configuration)) and base path (see [Base path](#42-base-path)). It returns an error when a service with the same base path is already registered under the same host. Services with the same base path MAY be attached to the same listener under different hosts. A service MAY be attached before or after `start()`.
+2. `start()` binds the port and starts accepting connections. Calling it on a listener that has already started has no effect. Service-level interceptors are created when `start()` is called. A failure to create the interceptor pipeline of a service is returned as a `ListenerError`. A failure to bind the port results in a panic with a `ListenerError`.
+3. `detach(service)` removes a service. Requests received afterwards are not dispatched to it. Detaching a service that is not attached has no effect.
+4. `gracefulStop()` stops accepting new connections, waits for `gracefulStopTimeout`, and then closes all remaining connections. Requests that are still in flight when the connections are closed are terminated without a response. With the default `gracefulStopTimeout` of `0`, in-flight requests are terminated immediately. The configured `gracefulStopTimeout` applies to every `gracefulStop()`, including one after the listener was stopped with `immediateStop()` and started again.
+5. `immediateStop()` stops accepting new connections and closes all connections immediately.
+6. `gracefulStop()` and `immediateStop()` detach all the services of the listener. A service MUST be attached again before the listener is started again.
+
+### 3.4. HTTP versions and connections
+
+#### 3.4.1. HTTP versions
+
+1. When `httpVersion` is `HTTP_2_0` and `secureSocket` is `()`, the listener accepts HTTP/2 over cleartext (h2c), both with prior knowledge and through an HTTP/1.1 `Upgrade: h2c` request. Any other connection is served as HTTP/1.x.
+2. When `httpVersion` is `HTTP_2_0` and `secureSocket` is configured, the listener negotiates `h2` or `http/1.1` using ALPN.
+3. When `httpVersion` is `HTTP_1_1` or `HTTP_1_0`, the listener never serves HTTP/2. With TLS, ALPN advertises `http/1.1` only.
+4. Push promises are supported on HTTP/2 connections only. On an HTTP/1.x connection, `Caller->promise()` and `Caller->pushPromisedResponse()` return a `ListenerError`.
+
+#### 3.4.2. Keep-alive and pipelining
+
+1. With `KEEPALIVE_AUTO`, an HTTP/1.1 connection is kept open unless the request has a `Connection: close` header, and an HTTP/1.0 connection is kept open only if the request has a `Connection: keep-alive` header.
+2. With `KEEPALIVE_ALWAYS`, the connection is kept open after every response. With `KEEPALIVE_NEVER`, the connection is closed after every response.
+3. A response with the `text/event-stream` content type keeps the connection open regardless of `keepAlive`.
+4. When a request arrives on a connection that already has `maxPipelinedRequests` requests that are not responded to, the connection is closed without a response.
+
+#### 3.4.3. Idle timeout
+
+1. On an HTTP/1.x connection with no request in progress, the connection is closed when the idle timeout elapses.
+2. When the idle timeout elapses while the headers or the body of a request are being received, or after the request is dispatched but before the service starts the response, the listener responds with `408 Request Timeout` and closes the connection.
+3. When the idle timeout elapses while a response is being written, the connection is closed.
+4. On an HTTP/2 connection, the idle timeout applies to each stream. Before the response starts, the stream is answered with `408 Request Timeout`. After the response starts, the stream is reset with `INTERNAL_ERROR`.
+5. Inactivity caused by the application consuming or producing a body slowly is handled as described in [Message body streaming](#13-message-body-streaming-and-back-pressure).
+
+### 3.5. Request limits
+
+| Field               | Type  | Default | Meaning                                                                                                                                                                                       |
+|---------------------|-------|---------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `maxUriLength`      | `int` | `4096`  | Maximum length of the request line of an HTTP/1.x request. A negative value is an initialization error.                                                                                      |
+| `maxHeaderSize`     | `int` | `8192`  | Maximum total size of the request headers. A negative value is an initialization error. For HTTP/2, it is advertised as `SETTINGS_MAX_HEADER_LIST_SIZE`.                                      |
+| `maxEntityBodySize` | `int` | `-1`    | Maximum size of the body of each HTTP/1.x request. `-1` means no limit. A value less than `-1` is an initialization error.                                                                   |
+
+1. An HTTP/1.x request whose request line exceeds `maxUriLength` is answered with `414 URI Too Long`, and one whose headers exceed `maxHeaderSize` is answered with `431 Request Header Fields Too Large`. Both responses use the `HTTP/1.0` status line, and the connection is closed afterwards.
+2. `maxEntityBodySize` applies to each request on its own, so the requests on a keep-alive connection do not share one budget. It does not apply to HTTP/2 streams.
+3. When `maxEntityBodySize` is set, a request is not dispatched until its whole body has arrived, so a request whose body exceeds the limit never reaches the service:
+   - A request whose `Content-Length` header exceeds the limit is answered with `413 Payload Too Large` without its body being read.
+   - A request whose body exceeds the limit as it arrives, such as a chunked request, is answered with `413 Payload Too Large`.
+4. In both cases of rule 3 the connection is closed after the response. If an earlier request on the connection has not been answered yet, the connection is closed without the `413 Payload Too Large` response, which the client would otherwise take as the response to the earlier request.
+5. The idle timeout keeps applying while the body arrives, and each part of the body that is read counts as activity. A request that stays idle before its body is complete is answered with `408 Request Timeout`.
+6. A request with an `Expect: 100-continue` header and no `Content-Length` over the limit is dispatched as soon as its headers arrive, since the client sends the body only after the service answers. Its body is counted as the service reads it, and the connection is closed once the body exceeds the limit. The `413 Payload Too Large` response is sent only if the service has not already responded.
+
+### 3.6. Default listener
+
+1. `getDefaultListener()` returns a listener that is shared by all its callers. The listener is created on the first call, and every later call returns the same listener. The function does not start the listener.
+2. The port of the default listener is the `defaultListenerPort` configurable, whose default is `9090`.
+3. The configuration of the default listener is the `defaultListenerConfig` configurable of type `ListenerConfiguration`, whose default is `{}`.
+4. The function returns a `ListenerError` when the listener cannot be created.
+
+For example, the following service is attached to the default listener, whose port is set to `8080` in `Config.toml`:
+
+```ballerina
+listener http:Listener defaultListener = http:getDefaultListener();
+
+service /store on defaultListener {
+    resource function get status() returns string => "up";
+}
+```
 
 ```toml
 [ballerina.http]
 defaultListenerPort = 8080
-
-[ballerina.http.defaultListenerConfig]
-httpVersion = "1.1"
-
-[ballerina.http.defaultListenerConfig.secureSocket.key]
-path = "resources/certs/ballerinaKeystore.p12"
-password = "ballerina"
 ```
 
-#### 2.1.4. HTTP/2 stream concurrency
+## 4. Service
 
-Each HTTP/2 connection can carry multiple requests concurrently over independent streams. The listener limits the
-number of concurrent streams a single connection can open, advertised to clients via the `SETTINGS_MAX_CONCURRENT_STREAMS`
-parameter, using the `http2MaxActiveStreams` field of the `ListenerConfiguration`. This defaults to `100`, the value
-recommended by [RFC 7540 Section 6.5.2](https://www.rfc-editor.org/rfc/rfc7540#section-6.5.2).
+### 4.1. Description
 
-```ballerina
-listener http:Listener h2Listener = new (9090, {
-    http2MaxActiveStreams: 500
-});
-```
+A service is a service object whose type is a subtype of the `Service` type. It is created with a service declaration, a service class, or a service constructor expression, and attached to a listener. The library also defines the following service types:
 
-A client that reaches this limit on a connection opens an additional connection rather than stalling.
+- `ServiceContract`: A service object type that includes it defines the contract of a service. See [Service contract](#45-service-contract).
+- `InterceptableService`: A service that includes it defines its interceptor pipeline. See [Interceptors](#9-interceptors).
 
-#### 2.1.5. Request limits
+### 4.2. Base path
 
-The `requestLimits` field of the `ListenerConfiguration` bounds the size of inbound requests.
+The base path of a service is given by the `attach` call, or by the attach point of a service declaration, and is normalized as follows:
 
-```ballerina
-public type RequestLimitConfigs record {|
-    int maxUriLength = 4096;
-    int maxHeaderSize = 8192;
-    int maxEntityBodySize = -1;
-|};
-```
+1. When it is `()`, the base path is `/`.
+2. When it is a string, it is trimmed and split into segments on `/`. When it is a `string[]`, each member is a segment. A leading `/` is not required.
+3. Each segment is unescaped, so that `hello\-world` becomes `hello-world`, and then percent-encoded. The segments are joined with `/`, prefixed with `/`.
+4. Empty segments are removed, a trailing `/` is removed, and a trailing `*` is removed.
 
-- `maxUriLength` - A request line longer than this gets a `414 - URI Too Long` response.
-- `maxHeaderSize` - Request headers larger than this get a `431 - Request Header Fields Too Large` response.
-- `maxEntityBodySize` - The maximum size, in bytes, of the body of each request. The default `-1` means no limit.
+For a service implemented from a service contract type, the base path is the `basePath` field of the `ServiceConfig` annotation of the contract type. When the field is absent, the base path is `/`. When it is empty or blank, the base path is `/` followed by the name of the service contract type.
 
-`maxEntityBodySize` applies to each request on its own, so the requests sent on a keep-alive connection do not share one budget. It applies to HTTP/1.x requests; HTTP/2 streams are not checked against it.
+For example:
 
-When the limit is set, a request is not dispatched to the service until its whole body has arrived. A request whose body goes over the limit therefore never reaches the service:
+| Attach point                              | Base path        |
+|-------------------------------------------|------------------|
+| `service on ep`                           | `/`              |
+| `service /store on ep`                    | `/store`         |
+| `service /store/v1 on ep`                 | `/store/v1`      |
+| `service /order\-history on ep`           | `/order-history` |
+| `service "store v1" on ep`                | `/store%20v1`    |
+| `ep.attach(svc, "/store/v1/")`            | `/store/v1`      |
+| `ep.attach(svc, "/store/*")`              | `/store`         |
 
-- A request whose `Content-Length` header is over the limit gets a `413 - Payload Too Large` response without its body being read.
-- A request whose body goes over the limit as it arrives, such as a chunked request, gets a `413 - Payload Too Large` response.
+### 4.3. Compile-time validation
 
-In both cases the connection is closed after the response. If an earlier request on the connection has not been answered yet, the connection is closed without the `413 - Payload Too Large` response, which the client would otherwise take as the response to that earlier request. The idle `timeout` of the listener keeps applying while the body arrives, and each part of the body that is read counts as activity. A request that stays idle before its body is complete is answered with a `408 - Request Timeout` response, as it is without the limit.
+The compiler plugin validates service declarations attached to a listener of this library, and object type descriptors that are subtypes of `Service`. Service classes and service constructor expressions are validated at runtime when they are attached. The validation rules for resources are given in [Resources](#5-resources) and [Resource parameters](#7-resource-parameters).
 
-A request with an `Expect: 100-continue` header and no `Content-Length` over the limit is dispatched as soon as its headers arrive, since the client sends the body only after the service answers. Its body is counted as the service reads it, and the connection is closed once the body goes over the limit. The `413 - Payload Too Large` response is sent only if the service has not already responded to the request.
+| Code       | Condition                                                                                                       |
+|------------|-----------------------------------------------------------------------------------------------------------------|
+| `HTTP_101` | The service has a remote method.                                                                                |
+| `HTTP_119` | `mediaTypeSubtypePrefix` ends with a suffix (`+...`).                                                           |
+| `HTTP_120` | `mediaTypeSubtypePrefix` is not a valid media type subtype.                                                     |
+| `HTTP_155` | `basePath` is set in `ServiceConfig` of a type that is not a service contract type.                            |
+| `HTTP_157` | `serviceType` is set in `ServiceConfig` of a service that is not implemented from a service contract type.      |
 
-```ballerina
-listener http:Listener limitedListener = new (9090, requestLimits = {maxEntityBodySize: 1048576});
-```
+### 4.4. Service configuration
 
-### 2.2. Service
-Service is a collection of resources functions, which are the network entry points of a ballerina program. 
-In addition to that a service can contain public and private functions which can be accessed by calling with `self`.
+The `ServiceConfig` annotation configures a service. It MAY be attached to a service or to a service contract type.
 
-#### 2.2.1. Service type
-```ballerina
-public type Service distinct service object {
+| Field                    | Type                   | Default        | Meaning                                                                                                                                                                                                                                 |
+|--------------------------|------------------------|----------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `host`                   | `string`               | `"b7a.default"`| Host under which the service is registered. See [Service selection](#61-service-selection).                                                                                                                                             |
+| `compression`            | `CompressionConfig`    | `{}`           | Compression of responses. See below.                                                                                                                                                                                                    |
+| `chunking`               | `Chunking`             | `CHUNKING_AUTO`| Transfer encoding of responses. `CHUNKING_AUTO` uses `Content-Length` for payloads smaller than 8 KB and chunked encoding otherwise. `CHUNKING_ALWAYS` always uses chunked encoding. `CHUNKING_NEVER` never uses chunked encoding.      |
+| `cors`                   | `CorsConfig`           | `{}`           | CORS configuration. See [CORS](#66-cors).                                                                                                                                                                                               |
+| `auth`                   | `ListenerAuthConfig[]` | absent         | Declarative authentication and authorization. See [Declarative authentication](#151-declarative-listener-authentication).                                                                                                               |
+| `mediaTypeSubtypePrefix` | `string`               | absent         | When present, the content type `type/subtype` of every response is rewritten to `type/<prefix>+subtype`.                                                                                                                                |
+| `treatNilableAsOptional` | `boolean`              | `true`         | Whether a nilable query or header parameter whose value is absent is bound to `()`. See [Query parameters](#74-query-parameters).                                                                                                       |
+| `openApiDefinition`      | `byte[]`               | `[]`           | OpenAPI definition of the service. It is used only when the compiler plugin has not generated a definition for the service.                                                                                                             |
+| `validation`             | `boolean`              | `true`         | Whether constraint validation is applied to bound parameters and payloads.                                                                                                                                                              |
+| `serviceType`            | `typedesc`             | absent         | Service contract type that the service implements. The compiler plugin sets it for services implemented from a service contract type.                                                                                                   |
+| `basePath`               | `string`               | absent         | Base path of a service contract type. It MUST NOT be set on other types.                                                                                                                                                                |
+| `laxDataBinding`         | `boolean`              | `false`        | Relaxed binding of JSON payloads to records. See [Payload parameter](#76-payload-parameter).                                                                                                                                            |
 
-};
-```
-Above distinct type is provided by HTTP module and user can include the type as `*http:Service` to refer it.
-The comprehensive typing support is yet to be added to the language. Until that, the compiler plugin is used to 
-validate the services.
+`CompressionConfig` has the fields `enable` of type `Compression` (default `COMPRESSION_AUTO`) and `contentTypes` of type `string[]` (default `[]`):
 
-#### 2.2.2. Service base path
+1. With `COMPRESSION_AUTO`, a response is compressed according to the `Accept-Encoding` header of the request.
+2. With `COMPRESSION_ALWAYS`, a response is compressed, using gzip when the request has no `Accept-Encoding` header or only `identity`.
+3. With `COMPRESSION_NEVER`, a response is not compressed, and its `Content-Encoding` is `identity`.
+4. When `contentTypes` is not empty, a response whose content type does not contain any of its members is not compressed.
+5. A `Content-Encoding` header set by the service is not changed.
 
-The base path is considered during the request dispatching to discover the service. Identifiers and string literals
-are allowed to be stated as base path, and it should be started with `/`. The base path is optional, and it will be 
-defaulted to `/` when not defined. If the base path contains any special characters, those should be escaped or defined
-as string literals
+### 4.5. Service contract
 
-```ballerina
-service /hello\-world on new http:Listener(9090) {
-   resource function get foo() {
-   }
-}
+A service contract type is a service object type that includes `ServiceContract`. A service declaration whose type is a service contract type implements that contract.
 
-service "hello-world" on new http:Listener(9090) {
-   resource function get foo() {
-   }
-}
-```
+1. The base path of the service is derived from the contract type, as described in [Base path](#42-base-path).
+2. The annotations of the contract type and its resources apply to the service.
+3. The service MUST NOT have a base path in its declaration, MUST NOT have resources that are not defined in the contract type, and MUST NOT have HTTP annotations on its resources or parameters. Its `ServiceConfig` annotation MAY only have the `serviceType` and `openApiDefinition` fields.
 
-A service can be declared in three ways upon the requirement.
+| Code       | Condition                                                                                                                         |
+|------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| `HTTP_153` | The service has a `ServiceConfig` annotation with fields other than `serviceType` and `openApiDefinition`.                       |
+| `HTTP_154` | The service declaration has a base path.                                                                                          |
+| `HTTP_156` | `serviceType` in `ServiceConfig` is not the contract type of the service.                                                         |
+| `HTTP_158` | The service has a resource that is not defined in the contract type.                                                              |
+| `HTTP_159` | A resource has a `ResourceConfig` annotation.                                                                                     |
+| `HTTP_160` | A resource or parameter has another HTTP annotation.                                                                              |
 
-#### 2.2.3. Service declaration
-The [Service declaration](https://ballerina.io/spec/lang/2021R1/#section_8.3.2) is a syntactic sugar for creating a
-service and, it is the mostly used approach for creating a service. The declaration gets desugared into creating a 
-listener object, creating a service object, attaching the service object to the listener object.
-
-```ballerina
-service /foo/bar on new http:Listener(9090) {
-  resource function get greeting() returns string {
-      return "hello world";
-  }
-}
-```
-
-#### 2.2.4. Service class declaration
-
-The service value can be instantiated using the service class. This way, user has the completed control of attaching
-the service to the listener. The life cycle methods to used to proceed.
+#### 4.5.1. Example: Implementing a service contract
 
 ```ballerina
-service isolated class SClass {
-   *http:Service;
-   resource function get greeting() returns string {
-       return "hello world";
-   }
-}
-
-listener http:Listener serviceListener = check new (9090);
-
-public function main() {
-   http:Service httpService = new SClass();
-   error? err1 = serviceListener.attach(httpService, ["foo", "bar"]);
-   error? err2 = serviceListener.'start();
-}
-```
-
-#### 2.2.5. Service constructor expression
-
-```ballerina
-listener http:Listener serviceListener = new (9090);
-
-http:Service httpService = @http:ServiceConfig {} service object {
-   resource function get greeting() returns string {
-       return "hello world";
-   }
-};
-
-public function main() {
-   error? err1 = serviceListener.attach(httpService, "/foo/bar");
-   error? err2 = serviceListener.start();
-}
-```
-
-### 2.2.6. Service contract type
-
-The service contract type is a distinct type which is used to represent the service contract. This service contract
-type can be used along with the service declaration to implement a service which ensures that the service is compliant
-with the contract. Additionally, all the metadata related to the service can be defined within the service contract 
-type which makes the service declaration clean and readable.
-
-Following is an example of a service contract type:
-
-```ballerina
-@http:ServiceConfig {basePath: "/v1"}
-public type AlbumService service object {
+@http:ServiceConfig {basePath: "/albums"}
+type AlbumService service object {
     *http:ServiceContract;
 
-    @openapi:ResourceInfo {
-        summary: "Get all albums"
-    }
-    resource function get albums() returns Album[];
-
-    @openapi:ResourceInfo {
-        summary: "Add a new album"
-    }
-    resource function post albums(@openapi:Example {
-                value: {
-                    title: "Blue Train",
-                    artist: "John Coltrane"
-                }
-            } Album album) returns Album|ErrorPayloadBadRequest;
+    resource function get [string id]() returns Album|http:NotFound;
 };
+
+service AlbumService on new http:Listener(9090) {
+    resource function get [string id]() returns Album|http:NotFound {
+        return albums[id] ?: http:NOT_FOUND;
+    }
+}
 ```
 
-The service contract type can have the annotations which are supported on the service declaration. Additionally, a 
-`basePath` can be defined in the `ServiceConfig` annotation to define the base path of the service. This field is 
-optional and if not defined, the base path will be defaulted to `/`.
+The service is attached at `/albums`, the base path of the contract type (rule 1). A base path in the declaration, as in `service AlbumService /music on ...`, is rejected with `HTTP_154` (rule 3).
 
-Following is an example of a service implemented with the above service contract type:
+### 4.6. OpenAPI resources
+
+1. For a service with the `@openapi:ServiceInfo {embed: true}` annotation and without a `contract` field in that annotation, the compiler plugin generates the OpenAPI definition of the service, and the listener serves it through two generated resources:
+   - `get openapi-doc-dygixywsw`, which returns the definition as `application/json`.
+   - `get swagger-ui-dygixywsw`, which returns an HTML page that renders the definition with Swagger UI loaded from `unpkg.com`.
+2. A `204 No Content` response to an `OPTIONS` request on the service has a `Link` header with the paths of these resources, with the relations `service-desc` and `swagger-ui`.
+3. A user-defined resource with the same accessor and path as a generated resource causes the attach to fail.
+4. When the listener port cannot be resolved at compile time, the definition is generated without a `servers` section. When the definition cannot be generated at all, the compiler plugin reports a warning, and the service has no generated resources.
+5. When the service is secured with the `auth` field of `http:ServiceConfig`, the generated resources are secured with the same configuration, including its scopes. `auth` configured only on resources does not secure them. The `OPTIONS` response that carries the `Link` header is not secured.
+
+#### 4.6.1. Example: Embedded OpenAPI definition
 
 ```ballerina
-service AlbumService on new http:Listener(9090) {
+@openapi:ServiceInfo {embed: true}
+service /hello on new http:Listener(9090) {
+    resource function get greeting() returns string => "Hello, World!";
+}
+// OPTIONS /hello → 204 No Content
+// link: </hello/openapi-doc-dygixywsw>;rel="service-desc", </hello/swagger-ui-dygixywsw>;rel="swagger-ui"
+```
 
-    resource function get albums() returns Album[] {
-        return albums.toArray();
+## 5. Resources
+
+### 5.1. Description
+
+A resource is a resource method of a service. Its accessor determines the HTTP methods it handles, and its resource path determines the request paths it handles, relative to the base path of the service.
+
+### 5.2. Accessors
+
+1. The HTTP method handled by a resource is its accessor name in upper case, e.g. `get` handles `GET`. Any accessor name is allowed, so custom methods such as `copy` handle `COPY`.
+2. The request method is compared with the upper-cased accessor name exactly, so a request method in lower case does not match.
+3. The `default` accessor handles every HTTP method for which the same resource path has no resource with a matching accessor.
+
+### 5.3. Resource paths
+
+1. A resource path consists of segments separated by `/`, without a leading `/`. The resource path `.` denotes the base path itself.
+2. A literal segment is an identifier. Characters that are not allowed in an identifier MUST be escaped, e.g. `hello\-world`. The segment is unescaped and percent-encoded before matching.
+3. A path parameter `[T name]` matches exactly one segment. `T` MUST be a subtype of exactly one of `string`, `int`, `float`, `decimal` and `boolean`. Finite types, enums and constrained types satisfying this rule are allowed. Unions of these types and nilable types are not.
+4. A rest parameter `[T... name]` matches the remaining segments, including none. It MUST be the last segment, and `T` follows rule 3.
+5. Two resources of a service conflict when they have the same accessor and their paths have the same literal segments at the same positions and parameters at the same positions, regardless of the names and types of the parameters. Attaching a service with conflicting resources fails with a `ListenerError`.
+
+| Code       | Condition                                                                         |
+|------------|-----------------------------------------------------------------------------------|
+| `HTTP_145` | A path parameter or rest parameter has a type that does not satisfy rule 3.       |
+
+#### 5.3.1. Example: Resource paths
+
+```ballerina
+service /store on new http:Listener(9090) {
+    // GET /store
+    resource function get .() returns string => "store";
+
+    // GET /store/albums/a1
+    resource function get albums/[string id]() returns string => id;
+
+    // GET /store/order-history
+    resource function get order\-history() returns string => "history";
+
+    // GET /store/files, GET /store/files/covers/a1.png
+    resource function get files/[string... path]() returns string => string:'join("/", ...path);
+}
+```
+
+Adding `resource function get albums/[int index]()` to this service makes the attach fail, because it conflicts with `get albums/[string id]` (rule 5).
+
+### 5.4. Resource configuration
+
+The `ResourceConfig` annotation configures a resource.
+
+| Field                   | Type                             | Default | Meaning                                                                                                                                                                                                    |
+|-------------------------|----------------------------------|---------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `name`                  | `string`                         | absent  | Link name of the resource. See [Links](#88-links).                                                                                                                                                        |
+| `consumes`              | `string[]`                       | `[]`    | Media types accepted in the request `Content-Type`. `[]` accepts any. See [Resource selection](#63-resource-selection).                                                                                   |
+| `produces`              | `string[]`                       | `[]`    | Media types that the resource produces, matched against the request `Accept` header. `[]` accepts any. See [Resource selection](#63-resource-selection).                                                  |
+| `cors`                  | `CorsConfig`                     | `{}`    | CORS configuration of the resource. See [CORS](#66-cors).                                                                                                                                                 |
+| `transactionInfectable` | `boolean`                        | `true`  | When `false`, a request with an `X-XID` header, which propagates a distributed transaction, is rejected.                                                                                                  |
+| `auth`                  | `ListenerAuthConfig[]\|Scopes`   | absent  | Declarative authentication and authorization of the resource. See [Declarative authentication](#151-declarative-listener-authentication).                                                                 |
+| `linkedTo`              | `LinkedTo[]`                     | absent  | Resources linked from this resource. See [Links](#88-links).                                                                                                                                              |
+
+## 6. Request dispatching
+
+### 6.1. Service selection
+
+The listener selects the service for a request as follows:
+
+1. If the `Host` header of the request is equal to the `host` of the `ServiceConfig` annotation of one or more attached services, the candidates are those services. The comparison is a case-sensitive string comparison that includes the port, so the host `localhost` does not match the header `localhost:9090`. Otherwise, the candidates are the services registered under the default host. If there are no candidates, the result is a `ServiceNotFoundError` (`404 Not Found`).
+2. The matrix parameters are removed from the request path, as described in [Matrix parameters](#62-matrix-parameters).
+3. The request target is split at the first `?` into the path and the query. A later `?` is part of the query, as allowed by [RFC 3986](https://www.rfc-editor.org/rfc/rfc3986#section-3.4).
+4. The candidate base paths are compared with the request path in order of decreasing length. A base path matches when its segments are equal to the leading segments of the request path. Segments are compared case-sensitively after percent-decoding the request path. Empty segments are ignored, and dot segments (`.` and `..`) are compared literally without normalization.
+5. The first base path that matches selects its service. If none matches and a service is attached at `/`, that service is selected. Otherwise, the result is a `ServiceNotFoundError` (`404 Not Found`).
+6. The sub-path is the part of the request path after the base path, or `/` when the request path is the base path. A trailing `/` of the sub-path is ignored.
+
+For example, with services attached at `/`, `/store` and `/store/albums` under the default host:
+
+| Request path       | Selected service | Sub-path      |
+|--------------------|------------------|---------------|
+| `/store/albums/a1` | `/store/albums`  | `/a1`         |
+| `/store/orders`    | `/store`         | `/orders`     |
+| `/store`           | `/store`         | `/`           |
+| `/storefront`      | `/`              | `/storefront` |
+
+### 6.2. Matrix parameters
+
+1. Each segment of the request path is split on `;`. The first part is the segment, and each other part MUST have the form `name=value`. If any part does not, the result is a `BadMatrixParamError` (`400 Bad Request`), whether or not a service would match.
+2. The matrix parameters are available through `Request.getMatrixParams(path)`, where `path` is the request path up to and including the segment, without matrix parameters, e.g. `/hello/t1/john`. The values are returned without percent-decoding. When a segment has the same parameter more than once, the last value is used.
+
+For example, the request path `/store/albums;genre=jazz/a1;format=lp` is dispatched as `/store/albums/a1`. `req.getMatrixParams("/store/albums")` returns `{"genre": "jazz"}`, and `req.getMatrixParams("/store/albums/a1")` returns `{"format": "lp"}`.
+
+### 6.3. Resource selection
+
+The resource of the selected service is chosen by matching the sub-path against the resource paths:
+
+1. The resource paths form a tree of segments. The children of a node are tried in the following order: literal segments, longer ones first; then the path parameter; then the rest parameter. All path parameters at the same position of different resources share one node.
+2. A literal segment matches a request segment that is equal to it, compared case-sensitively after percent-decoding the request segment. A path parameter matches any one segment. A rest parameter matches all the remaining segments, as described in rule 4 of [Resource paths](#53-resource-paths).
+3. The tree is searched depth-first. When a subtree does not lead to a selected resource, the next child is tried.
+4. At a node where the whole sub-path has been matched, the resource is chosen as follows:
+   1. The resource whose accessor matches the request method, otherwise the `default` resource. If there is neither, the request is a candidate `405 Method Not Allowed`, and the search continues with rule 3. An `OPTIONS` request is handled as described in [Automatic OPTIONS responses](#64-automatic-options-responses).
+   2. If the resource has a non-empty `consumes`, the media type of the request `Content-Type`, without parameters, MUST be equal to one of its members, compared case-insensitively. A request without `Content-Type` is treated as `application/octet-stream`. Otherwise, the request is a candidate `415 Unsupported Media Type`, and the search continues with rule 3.
+   3. If the resource has a non-empty `produces` and the request has an `Accept` header other than `*/*`, one of the media ranges of the header MUST match one of its members. A range `type/*` matches any member with that type, and other ranges match a member equal to them, compared case-insensitively. Quality values are ignored. Otherwise, the request is a candidate `406 Not Acceptable`, and the search continues with rule 3.
+   4. Otherwise, the resource is selected and the search stops.
+5. If no resource is selected, the result is the last candidate error recorded during the search: `ResourceMethodNotAllowedError` (405), `UnsupportedRequestMediaTypeError` (415) or `RequestNotAcceptableError` (406). If no candidate error was recorded, the result is a `ResourceNotFoundError` (`404 Not Found`).
+
+A `HEAD` request is matched like any other method. It is not dispatched to a `get` resource.
+
+> **Note:** Because the search backtracks, a service with `resource function get foo()` and `resource function 'default [string... path]()` dispatches `POST /foo` to the default resource rather than responding with `405 Method Not Allowed`.
+
+#### 6.3.1. Example: Selecting a resource
+
+```ballerina
+service /store on new http:Listener(9090) {
+    resource function get albums/latest() returns string => "latest";
+
+    resource function get albums/[string id]() returns string => id;
+
+    @http:ResourceConfig {consumes: ["application/json"]}
+    resource function put albums/[string id](@http:Payload json album) returns string => id;
+
+    resource function get files/[string... path]() returns string => "file";
+}
+```
+
+| Request                                                  | Result                                                                                         |
+|----------------------------------------------------------|------------------------------------------------------------------------------------------------|
+| `GET /store/albums/latest`                               | `get albums/latest`, because literal segments are tried before path parameters (rule 1).       |
+| `GET /store/albums/a1`                                   | `get albums/[string id]`, with `id` bound to `"a1"`.                                           |
+| `DELETE /store/albums/a1`                                | `405 Method Not Allowed` (rules 4.1 and 5).                                                    |
+| `PUT /store/albums/a1` with `Content-Type: text/plain`   | `415 Unsupported Media Type` (rules 4.2 and 5).                                                |
+| `GET /store/files`                                       | `get files/[string... path]`, with `path` bound to `[]` (rule 2).                              |
+| `GET /store/files/covers/a1.png`                         | `get files/[string... path]`, with `path` bound to `["covers", "a1.png"]` (rule 2).            |
+| `GET /store/albums/a1/tracks`                            | `404 Not Found`, because no resource path matches (rule 5).                                    |
+
+### 6.4. Automatic OPTIONS responses
+
+1. When an `OPTIONS` request matches a node that has no `options` and no `default` resource, the listener responds with `204 No Content` and an `Allow` header listing the methods of the resources at that node and `OPTIONS`. If the request is a CORS preflight request, it is processed as described in [CORS](#66-cors).
+2. When an `OPTIONS` request does not match any node and its request target is equal to the base path, the `Allow` header lists the methods of all resources of the service and `OPTIONS`. If the service has a `default` resource, it lists all the standard methods.
+3. The response has a `Link` header to the [OpenAPI resources](#46-openapi-resources) when the service has them.
+4. Otherwise, the result is a `ResourceNotFoundError` (`404 Not Found`).
+
+For example, for the service in the example of [Resource selection](#63-resource-selection), `OPTIONS /store/albums/a1` is answered with `204 No Content` and an `Allow` header that lists `GET`, `PUT` and `OPTIONS` (rule 1).
+
+### 6.5. Path parameter binding
+
+1. The value of a path parameter is the matched segment, percent-decoded once. A `+` in the segment is not decoded to a space.
+2. The value of a rest parameter is the list of the matched segments, each percent-decoded once.
+3. The value is converted to the declared type. An `int` value is parsed as a decimal integer, a `float` value as a floating point number, a `decimal` value as a decimal number, and a `boolean` value as `true` or `false`, case-insensitively.
+4. When the value cannot be converted, the result is a `PathParameterBindingError` (`400 Bad Request`). When the declared type is a finite type and the value is not a member of it, the result is a `ResourceNotFoundError` (`404 Not Found`).
+5. When `validation` is enabled, the constraints of the declared type are validated. A violation results in a `ResourcePathValidationError` (`400 Bad Request`).
+
+For example:
+
+- For `get albums/[string id]`, the path `/albums/blue%20train` binds `id` to `"blue train"` (rule 1).
+- For `get albums/[int id]`, the path `/albums/abc` results in a `PathParameterBindingError` (rule 4).
+- For `get albums/[Format format]`, where `type Format "lp"|"cd";`, the path `/albums/tape` results in a `ResourceNotFoundError` (rule 4).
+
+### 6.6. CORS
+
+The `cors` field of the `ServiceConfig` and `ResourceConfig` annotations is a `CorsConfig`:
+
+| Field              | Type       | Default | Meaning                                                                                       |
+|--------------------|------------|---------|-----------------------------------------------------------------------------------------------|
+| `allowOrigins`     | `string[]` | `[]`    | Origins allowed to access the resource. `["*"]` allows any origin.                            |
+| `allowCredentials` | `boolean`  | `false` | Whether `Access-Control-Allow-Credentials: true` is sent.                                     |
+| `allowHeaders`     | `string[]` | `[]`    | Request headers allowed in actual requests.                                                   |
+| `allowMethods`     | `string[]` | `[]`    | Methods allowed in actual requests. `["*"]` allows any method.                                |
+| `exposeHeaders`    | `string[]` | `[]`    | Response headers exposed to the client.                                                       |
+| `maxAge`           | `decimal`  | `-1`    | Duration for which the result of a preflight request may be cached.                            |
+
+1. A `CorsConfig` is _enabled_ when any of its arrays is non-empty, `allowCredentials` is `true`, or `maxAge` is greater than or equal to `0`. An enabled configuration with an empty `allowOrigins` allows any origin. An enabled service configuration with an empty `allowMethods` allows any method, and an enabled resource configuration with an empty `allowMethods` allows the methods of the resource.
+2. A resource with an enabled `cors` configuration uses it, and ignores the service configuration entirely. Otherwise, the resource uses the service configuration.
+3. For a request with an `Origin` header that is dispatched to a resource with an enabled configuration:
+   - If all the origins of the header are allowed, the response has `Access-Control-Allow-Origin` set to the origins of the request, `Access-Control-Allow-Credentials: true` when `allowCredentials` is `true`, and `Access-Control-Expose-Headers` when `exposeHeaders` is not empty.
+   - Otherwise, the response has no CORS headers. The request is still processed.
+4. An `OPTIONS` request handled as in [Automatic OPTIONS responses](#64-automatic-options-responses) is a preflight request when it has exactly one origin in its `Origin` header and a single value in its `Access-Control-Request-Method` header. It is accepted when a resource at the node handles the requested method (`HEAD` is checked against `GET`), the origin and the method are allowed by the configuration of that resource, and every header of `Access-Control-Request-Headers` is in `allowHeaders`, compared case-insensitively, or `allowHeaders` is empty.
+5. The response to an accepted preflight request has `Access-Control-Allow-Origin`, `Access-Control-Allow-Credentials` as in rule 3, `Access-Control-Allow-Methods` set to the requested method, `Access-Control-Allow-Headers` set to the requested headers, and `Access-Control-Max-Age` set to `maxAge` when `maxAge` is greater than or equal to `0`. It has no `Allow` header.
+6. A preflight request whose path matches an `options` or `default` resource is dispatched to that resource.
+7. A response to a request dispatched to a resource with an enabled configuration, including a preflight response, has a `Vary` header that includes `Origin`, because its CORS headers depend on the `Origin` of the request.
+
+#### 6.6.1. Example: Preflight and actual requests
+
+```ballerina
+@http:ServiceConfig {
+    cors: {
+        allowOrigins: ["https://shop.example.com"],
+        allowCredentials: true,
+        allowHeaders: ["X-Request-Id"],
+        maxAge: 600
+    }
+}
+service /store on new http:Listener(9090) {
+    resource function put albums/[string id](@http:Payload json album) returns string => id;
+
+    @http:ResourceConfig {cors: {allowOrigins: ["https://admin.example.com"]}}
+    resource function delete albums/[string id]() returns http:NoContent => http:NO_CONTENT;
+}
+```
+
+- A preflight request `OPTIONS /store/albums/a1` with `Origin: https://shop.example.com`, `Access-Control-Request-Method: PUT` and `Access-Control-Request-Headers: X-Request-Id` is accepted. The response is `204 No Content` with `Access-Control-Allow-Origin: https://shop.example.com`, `Access-Control-Allow-Credentials: true`, `Access-Control-Allow-Methods: PUT`, `Access-Control-Allow-Headers: X-Request-Id`, `Access-Control-Max-Age: 600` and `Vary: Origin` (rules 4, 5 and 7).
+- The same preflight request with `Access-Control-Request-Method: DELETE` is not accepted, because the `delete` resource uses its own configuration, which allows only `https://admin.example.com` (rule 2).
+- `PUT /store/albums/a1` with `Origin: https://other.example.com` is processed, and its response has no CORS headers (rule 3).
+
+### 6.7. Dispatching errors
+
+| Condition                                                    | Error                              | Status                       |
+|--------------------------------------------------------------|------------------------------------|------------------------------|
+| No service matches                                           | `ServiceNotFoundError`             | `404 Not Found`              |
+| A matrix parameter is malformed                              | `BadMatrixParamError`              | `400 Bad Request`            |
+| No resource path matches                                     | `ResourceNotFoundError`            | `404 Not Found`              |
+| A resource path matches, but no accessor matches the method  | `ResourceMethodNotAllowedError`    | `405 Method Not Allowed`     |
+| `consumes` does not match                                    | `UnsupportedRequestMediaTypeError` | `415 Unsupported Media Type` |
+| `produces` does not match                                    | `RequestNotAcceptableError`        | `406 Not Acceptable`         |
+| An internal failure during dispatching                       | `ResourceDispatchingServerError`   | `500 Internal Server Error`  |
+
+These errors are handled as described in [Error handling](#10-error-handling).
+
+## 7. Resource parameters
+
+### 7.1. Parameter classification
+
+A resource MAY have any number of parameters in any order. Each parameter is classified as follows:
+
+1. A parameter of type `Caller`, `Request`, `Headers`, `RequestContext` or `error` is a special parameter. A resource MUST NOT have more than one parameter of each of these types.
+2. A parameter with the `@http:Payload` annotation is the payload parameter, and one with the `@http:Header` annotation is a header parameter. A parameter MUST NOT have more than one of the `@http:Payload`, `@http:Header`, `@http:Query` and `@http:CallerInfo` annotations, and a resource MUST NOT have more than one payload parameter.
+3. In a resource whose accessor is not `get`, `head` or `options`, and which has no `@http:Payload` parameter, a parameter without an annotation is the payload parameter when its type, or each non-nil member of its union type, is one of: `byte[]`, `xml`, or a subtype of `map<anydata>`, `table<map<anydata>>`, an anydata tuple, or an array whose member type is not one of `string`, `int`, `float`, `decimal` and `boolean`. At most one parameter can be inferred this way. When two parameters qualify, the resource is rejected at compile time, and one of them MUST be annotated with `@http:Payload` or `@http:Query`.
+4. Every other parameter is a query parameter.
+
+For example, in the following resource, `customerId` is a path parameter, `authorization` is a header parameter, `coupon` is a query parameter, `'order` is the payload parameter inferred by rule 3, and `ctx` is a special parameter:
+
+```ballerina
+type Order record {|
+    string albumId;
+    int quantity;
+|};
+
+service /store on new http:Listener(9090) {
+    resource function post customers/[string customerId]/orders(@http:Header string authorization, string? coupon,
+            Order 'order, http:RequestContext ctx) returns Order => 'order;
+}
+```
+
+In a `get` resource, the same `Order 'order` parameter is a query parameter, bound from a percent-encoded JSON value such as `?order=%7B%22albumId%22%3A%22a1%22%2C%22quantity%22%3A1%7D`, which is `{"albumId":"a1","quantity":1}` (rule 4). The value must be encoded, because a raw `,` splits it into multiple values (rule 2 of [Query parameters](#74-query-parameters)).
+
+### 7.2. Special parameters
+
+| Type             | Value                                                                                                                                                                    |
+|------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `Caller`         | The caller of the request, used to respond explicitly. See [Responding with a caller](#85-responding-with-a-caller).                                                    |
+| `Request`        | The request. Its payload can be read only once, by either the request or the payload parameter.                                                                          |
+| `Headers`        | A read-only view of all the headers of the request.                                                                                                                      |
+| `RequestContext` | The request context shared with the interceptors. See [Request context](#94-request-context).                                                                           |
+| `error`          | The error handled by an error interceptor. In a resource of a service, it is an error value without meaning, and SHOULD NOT be used.                                     |
+
+### 7.3. Names
+
+The name of a query parameter is the `name` field of its `@http:Query` annotation, or else the name of the parameter without escapes. The name of a header parameter is the `name` field of its `@http:Header` annotation, or else the name of the parameter.
+
+### 7.4. Query parameters
+
+1. The type of a query parameter MUST be one of: `string`, `int`, `float`, `decimal`, `boolean`, a finite type of these, an array of these, `map<anydata>` (records included), an array of `map<anydata>`, or a nilable form of any of these.
+2. The query is split on `&` into parameters, and each parameter on the first `=` into a name and a value. The name and the value are trimmed. The value is then split on `,` into multiple values, and each value is percent-decoded, so an encoded `%2C` is not split. A parameter without `=` has a name and no value. Names are case-sensitive.
+3. A parameter of an array type is bound to all the values of all the occurrences of its name. A parameter of any other type is bound to the first value.
+4. Each value is converted to the member type as described for path parameters in [Path parameter binding](#65-path-parameter-binding). A value for a `map<anydata>` type is parsed as JSON and converted to the declared type. When the conversion fails, the result is a `QueryParameterBindingError` (`400 Bad Request`).
+5. When the request has no value for the parameter:
+   - If the parameter has a default value, the default value is used.
+   - Otherwise, if the type is nilable and either `treatNilableAsOptional` is `true` or the name is present without a value, the parameter is `()`.
+   - Otherwise, the result is a `QueryParameterBindingError` (`400 Bad Request`).
+6. When `validation` is enabled, the constraints of the declared type are validated. A violation results in a `QueryParameterValidationError` (`400 Bad Request`).
+7. Query parameters of the request that have no corresponding parameter are ignored. They are available through `Request.getQueryParams()`.
+
+For example, for a resource `get albums(string? artist, int[] ids = [], int 'limit = 10)` and the default `treatNilableAsOptional`:
+
+| Query                              | Result                                                                                  |
+|------------------------------------|-----------------------------------------------------------------------------------------|
+| `?artist=Coltrane&ids=1,2&ids=3`   | `artist` is `"Coltrane"`, `ids` is `[1, 2, 3]` and `limit` is `10` (rules 2, 3 and 5).  |
+| `?artist=Coltrane,Davis`           | `artist` is `"Coltrane"`, the first value (rule 3).                                     |
+| `?artist=Coltrane%2CDavis`         | `artist` is `"Coltrane,Davis"` (rule 2).                                                |
+| No query                           | `artist` is `()`, `ids` is `[]` and `limit` is `10` (rule 5).                           |
+| `?limit=ten`                       | `QueryParameterBindingError` (`400 Bad Request`) (rule 4).                              |
+
+### 7.5. Header parameters
+
+1. The type of a header parameter MUST be one of: `string`, `int`, `float`, `decimal`, `boolean`, an array of these, a closed record whose fields have these types or their nilable forms, or a nilable form of any of these. A record MUST NOT have a rest field.
+2. Header names are compared case-insensitively.
+3. A parameter of an array type is bound to the values of all the header lines with its name. A parameter of any other type is bound to the value of the first one. The value of a header line is not split on commas.
+4. When the request has the header with an empty value, a parameter of a nilable type is `()`. Otherwise, the result is a `HeaderBindingError` (`400 Bad Request`).
+5. When the request does not have the header:
+   - If the parameter has a default value, the default value is used.
+   - Otherwise, if the type is nilable and `treatNilableAsOptional` is `true`, the parameter is `()`.
+   - Otherwise, the result is a `HeaderBindingError` (`400 Bad Request`).
+6. Each field of a record parameter is bound as a separate header, named by the `name` field of the `@http:Header` annotation of the field, or else by the field name. When a field without a nilable type cannot be bound and the record parameter is nilable, the parameter is `()`. Otherwise, the result is a `HeaderBindingError` (`400 Bad Request`).
+7. When a value cannot be converted, the result is a `HeaderBindingError` (`400 Bad Request`). When `validation` is enabled, the constraints of the declared type are validated. A violation results in a `HeaderValidationError` (`400 Bad Request`).
+
+For example, for a resource `get albums(@http:Header {name: "X-Request-Id"} string? requestId, @http:Header string[] accept)`:
+
+- A request with `Accept: application/json, text/plain` and no `X-Request-Id` header binds `accept` to `["application/json, text/plain"]`, a single value that is not split (rule 3), and `requestId` to `()` (rule 5).
+- A request with an empty `X-Request-Id` header binds `requestId` to `()` (rule 4).
+- A request without an `Accept` header results in a `HeaderBindingError` (`400 Bad Request`), because `accept` is neither nilable nor has a default value (rule 5).
+
+### 7.6. Payload parameter
+
+1. The type of the payload parameter MUST be a subtype of `anydata`, optionally intersected with `readonly`.
+2. The whole request body is read before the resource is invoked.
+3. The body is converted according to the `Content-Type` of the request, compared case-insensitively and without parameters, using the first matching row:
+
+   | Content-Type                                                                            | Conversion                                                                                                                                                                                         |
+   |-----------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+   | `application/xml`, `text/xml`, or a type with the `+xml` or `.xml` suffix               | Parsed as XML. The type MUST contain `xml`.                                                                                                                                                        |
+   | `text/plain` or a type with the `+plain` suffix, `application/x-www-form-urlencoded`    | Read as text. The value is bound to `string` or a finite string type as is, to `byte[]` as UTF-8 bytes, or to `map<string>` after decoding it as a form.                                           |
+   | `application/octet-stream` or a type with the `+octet-stream` suffix                    | Read as bytes. The type MUST be `byte[]`.                                                                                                                                                          |
+   | `application/json`, `text/json`, or a type with the `+json` or `.json` suffix           | Parsed as JSON and converted to the declared type.                                                                                                                                                 |
+   | Absent, or any other media type                                                         | Chosen by the declared type: `string` is read as text, `xml` is parsed as XML, `byte[]` is read as bytes, and any other type is parsed as JSON.                                                    |
+
+4. When the body cannot be converted to the declared type, the result is a `PayloadBindingError` (`400 Bad Request`). A request is never rejected with `415 Unsupported Media Type` because of its payload. Only `consumes` causes `415 Unsupported Media Type`.
+5. When the body is empty, a parameter of a nilable type is `()`. Otherwise, the result is a `PayloadBindingError` (`400 Bad Request`). A default value of the payload parameter is not used.
+6. JSON is converted to a closed record strictly: a field of the payload that is not in the record is an error. When `laxDataBinding` is `true` and the declared type contains a record type, JSON is converted with data projection, a `null` value of an optional field that is not nilable is treated as absent, and an absent field of a nilable type is treated as `null`.
+7. When the declared type is an intersection with `readonly`, the value is read-only.
+8. When `validation` is enabled, the constraints of the declared type are validated. A violation results in a `PayloadValidationError` (`400 Bad Request`).
+9. The `mediaType` field of the `@http:Payload` annotation on a parameter is used for documentation and OpenAPI generation. It is not checked against the request.
+
+#### 7.6.1. Example: Binding a JSON payload
+
+```ballerina
+service /store on new http:Listener(9090) {
+    resource function post albums(Album album) returns Album => album;
+}
+```
+
+| Request                                                                                       | Result                                                                                                                                  |
+|-----------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| `Content-Type: application/json` and `{"id": "a2", "title": "Giant Steps"}`                 | `album` is bound (rule 3).                                                                                                              |
+| No `Content-Type` and `{"id": "a2", "title": "Giant Steps"}`                                | `album` is bound, because the body is parsed as JSON for a record type (rule 3).                                                        |
+| `Content-Type: application/json` and `{"id": "a2", "title": "Giant Steps", "year": 1960}`   | `PayloadBindingError` (`400 Bad Request`), because `year` is not a field of the closed record. With `laxDataBinding: true`, `year` is ignored (rule 6). |
+| An empty body                                                                                 | `PayloadBindingError` (`400 Bad Request`), because `Album` is not nilable (rule 5).                                                     |
+
+### 7.7. Compile-time validation
+
+| Code                                         | Condition                                                                                                     |
+|----------------------------------------------|---------------------------------------------------------------------------------------------------------------|
+| `HTTP_105`, `HTTP_106`                       | A parameter has a type that is not allowed for any kind of parameter.                                         |
+| `HTTP_107`                                   | The payload parameter type is not a subtype of `anydata`.                                                     |
+| `HTTP_108`                                   | A parameter has more than one HTTP annotation.                                                                |
+| `HTTP_109`, `HTTP_110`, `HTTP_144`           | A header parameter type does not satisfy rule 1 of [Header parameters](#75-header-parameters).                |
+| `HTTP_111`                                   | A parameter with `@http:CallerInfo` is not of type `Caller`.                                                  |
+| `HTTP_112`, `HTTP_113`                       | A query parameter type does not satisfy rule 1 of [Query parameters](#74-query-parameters).                  |
+| `HTTP_115`, `HTTP_116`, `HTTP_117`, `HTTP_121`, `HTTP_122` | More than one parameter of type `Caller`, `Request`, `Headers`, `RequestContext` or `error`.     |
+| `HTTP_129`                                   | A `get`, `head` or `options` resource has a `@http:Payload` parameter.                                        |
+| `HTTP_133`, `HTTP_134`                       | A parameter has an intersection type other than `readonly & T` with `T` allowed for the parameter.            |
+| `HTTP_151`                                   | More than one parameter qualifies as the inferred payload parameter.                                          |
+| `HTTP_152`                                   | An inferred payload parameter has a union of structured and non-structured types.                             |
+
+## 8. Responses
+
+### 8.1. Return types
+
+1. The return type of a resource MUST be a subtype of `anydata|Response|StatusCodeResponse|stream<SseEvent, error?>|stream<SseEvent, error>|error`.
+2. A resource with a `Caller` parameter MUST have a return type that is a subtype of `error?`.
+3. The value returned by the resource is converted to the response as described in this section, unless the resource has already responded through its `Caller`. In that case, nothing more is sent, and a returned value other than `()` is logged as a warning.
+
+### 8.2. Status codes
+
+| Returned value                                                   | Status                                                                                       |
+|------------------------------------------------------------------|----------------------------------------------------------------------------------------------|
+| `()`, in a resource without a `Caller` parameter                 | `202 Accepted`, without a body                                                               |
+| `()`, in a resource with a `Caller` parameter that has not responded | `500 Internal Server Error`, without a body                                             |
+| An `anydata` value, from a `post` resource                       | `201 Created`                                                                                |
+| An `anydata` value, from any other resource                      | `200 OK`. This includes a `default` resource handling a `POST` request.                      |
+| A status code response                                           | The status code of its type                                                                  |
+| A `Response`                                                     | The status code of the response                                                              |
+| A stream of `SseEvent`                                           | `200 OK`. See [Server-sent events](#86-server-sent-events).                                  |
+| An `error`                                                       | See [Error handling](#10-error-handling).                                                    |
+
+### 8.3. Content type and serialization
+
+1. An `anydata` value, or the `body` of a status code response, is serialized as follows:
+
+   | Value                    | Serialization                   | Default content type        |
+   |--------------------------|---------------------------------|-----------------------------|
+   | `()`                     | No body                         | None                        |
+   | `xml`                    | XML                             | `application/xml`           |
+   | `string`                 | Text                            | `text/plain`                |
+   | `byte[]`                 | Bytes                           | `application/octet-stream`  |
+   | Any other `anydata`      | JSON, using `jsondata:toJson`   | `application/json`          |
+
+2. The content type of the response is the first of the following that is present:
+   1. The `mediaType` field of a status code response.
+   2. The `mediaType` field of the `@http:Payload` annotation on the return type. When it is an array, its first member is used.
+   3. The `Content-Type` in the `headers` field of a status code response.
+   4. The default content type of the value.
+3. For a returned `Response`, the `mediaType` of the `@http:Payload` annotation is used only when the response has no `Content-Type`.
+4. When the content type is `application/x-www-form-urlencoded` and the value is a map, the value is encoded as a form.
+5. The `mediaType` of the `@http:Payload` annotation on the return type is not checked against the `Accept` header of the request. Only `produces` causes `406 Not Acceptable`.
+6. When the service has a `mediaTypeSubtypePrefix`, it is applied to the content type of every response, as described in [Service configuration](#44-service-configuration).
+
+### 8.4. Status code responses
+
+The library defines a closed record type for each standard status code, e.g. `Ok`, `Created` and `NotFound`, and `DefaultStatusCodeResponse` for other codes. Each has the following fields:
+
+| Field       | Type                                                         | Meaning                                                                       |
+|-------------|--------------------------------------------------------------|-------------------------------------------------------------------------------|
+| `status`    | read-only status record                                      | The status code. It is fixed by the type, except for `DefaultStatusCodeResponse`. |
+| `mediaType` | `string`, optional                                           | The content type of the response.                                             |
+| `headers`   | `map<string\|int\|boolean\|string[]\|int[]\|boolean[]>`, optional | Headers of the response.                                                  |
+| `body`      | `anydata`, optional                                          | The payload of the response.                                                  |
+
+`NoContent` has no `mediaType` and no `body` field. A user-defined subtype MAY narrow the types of `headers` and `body`.
+
+#### 8.4.1. Example: Status code responses
+
+```ballerina
+type AlbumCreated record {|
+    *http:Created;
+    record {|string location;|} headers;
+    Album body;
+|};
+
+service /store on new http:Listener(9090) {
+    resource function get albums/[string id]() returns Album|http:NotFound {
+        return albums[id] ?: http:NOT_FOUND;
     }
 
-    resource function post albums(Album album) returns Album|ErrorPayloadBadRequest {
-        albums.add(album);
+    resource function post albums(Album album) returns AlbumCreated {
+        albums[album.id] = album;
+        return {headers: {location: string `/store/albums/${album.id}`}, body: album};
+    }
+
+    resource function put albums/[string id]/cover(byte[] image) {
+    }
+}
+```
+
+| Request                     | Response                                                                                      |
+|-----------------------------|-----------------------------------------------------------------------------------------------|
+| `GET /store/albums/a1`      | `200 OK`, with the album as an `application/json` payload.                                    |
+| `GET /store/albums/a9`      | `404 Not Found`, without a payload.                                                           |
+| `POST /store/albums`        | `201 Created`, with a `location` header and the album as an `application/json` payload.       |
+| `PUT /store/albums/a1/cover`| `202 Accepted`, without a payload, because the resource returns `()`.                         |
+
+### 8.5. Responding with a caller
+
+1. `Caller->respond(message)` sends the response to the request. `message` MAY be a `Response`, a status code response, an `anydata` value, a `mime:Entity[]`, a `stream<byte[], io:Error?>`, a stream of `SseEvent`, or an `error`. An `error` is converted to a response as described in [Error handling](#10-error-handling).
+2. An `anydata` message from a `post` resource results in `201 Created`, and from any other resource in `200 OK`.
+3. A `Response` value can be sent only once. Sending it again returns a `ListenerError`, and the request is answered with `500 Internal Server Error`. The behaviour of responding to the same request more than once is unspecified.
+4. The `@http:CallerInfo {respondType: T}` annotation on the `Caller` parameter declares the type of the response. The compiler plugin checks that the arguments of `respond()` are of type `T`. It has no runtime effect.
+
+| Code       | Condition                                                                                                 |
+|------------|-----------------------------------------------------------------------------------------------------------|
+| `HTTP_114` | The argument of `respond()` is not of the type declared by `@http:CallerInfo`.                             |
+
+#### 8.5.1. Example: Responding before processing
+
+The following resource responds before it processes the order:
+
+```ballerina
+resource function post orders(http:Caller caller, Order 'order) returns error? {
+    check caller->respond(<http:Accepted>{body: {status: "processing"}});
+    check processOrder('order);
+}
+```
+
+The response is `202 Accepted`. An error returned by `processOrder` is logged, and nothing more is sent (rule 3 of [Return types](#81-return-types)).
+
+### 8.6. Server-sent events
+
+1. When a resource returns a stream of `SseEvent`, each event is written to the response as it is produced, in the `text/event-stream` format.
+2. The response has `Content-Type: text/event-stream` and a `Cache-Control` header with the `no-cache` directive. On an HTTP/1.1 connection, it also has `Transfer-Encoding: chunked` and `Connection: keep-alive`, and the connection is kept open.
+3. The response ends when the stream ends.
+4. Each event is written as a `: <comment>` line, an `id: <id>` line, an `event: <event>` line, a `retry: <retry>` line, and a `data: <line>` line for each line of `data`, in this order, followed by an empty line. Lines for absent fields are not written.
+5. When the stream returns an error, or an event without any field, the error is logged, an event with `event` set to `error` and `data` set to the message of the error is written, and the response ends.
+
+#### 8.6.1. Example: Streaming events
+
+```ballerina
+resource function get prices() returns stream<http:SseEvent, error?> {
+    http:SseEvent[] events = [{data: "101.5"}, {event: "close", id: "2", data: "line 1\nline 2"}];
+    return events.toStream();
+}
+```
+
+The payload of the response is:
+
+```text
+data: 101.5
+
+id: 2
+event: close
+data: line 1
+data: line 2
+
+```
+
+### 8.7. Response caching headers
+
+The `@http:Cache` annotation on the return type of a resource adds caching headers to its responses. It applies to `anydata` values and to status code responses with a `2XX` status. It is ignored for other values.
+
+| Field             | Type       | Default | Meaning                                                                    |
+|-------------------|------------|---------|----------------------------------------------------------------------------|
+| `mustRevalidate`  | `boolean`  | `true`  | Adds the `must-revalidate` directive.                                      |
+| `noCache`         | `boolean`  | `false` | Adds the `no-cache` directive, with `noCacheFields` when not empty.        |
+| `noStore`         | `boolean`  | `false` | Adds the `no-store` directive.                                             |
+| `noTransform`     | `boolean`  | `false` | Adds the `no-transform` directive.                                         |
+| `isPrivate`       | `boolean`  | `false` | Adds `private`, with `privateFields` when not empty, instead of `public`.  |
+| `proxyRevalidate` | `boolean`  | `false` | Adds the `proxy-revalidate` directive.                                     |
+| `maxAge`          | `decimal`  | `3600`  | Adds `max-age`, rounded down, when greater than or equal to `0`.           |
+| `sMaxAge`         | `decimal`  | `-1`    | Adds `s-maxage`, rounded down, when greater than or equal to `0`.          |
+| `noCacheFields`   | `string[]` | `[]`    | Field names of the `no-cache` directive.                                   |
+| `privateFields`   | `string[]` | `[]`    | Field names of the `private` directive.                                    |
+| `setETag`         | `boolean`  | `true`  | Adds an `ETag` header.                                                     |
+| `setLastModified` | `boolean`  | `true`  | Adds a `Last-Modified` header with the time of the response.               |
+
+1. The `Cache-Control` directives are written in the order of the table. Either `public` or `private` is always written.
+2. The `ETag` value is the CRC32 checksum of the payload in hexadecimal, enclosed in double quotes as required by the `entity-tag` syntax of [RFC 9110](https://www.rfc-editor.org/rfc/rfc9110#section-8.8.3). It is added only for `xml`, `string`, `byte[]` and JSON payloads.
+3. The listener does not evaluate conditional requests, so it does not respond with `304 Not Modified`.
+
+For example, a resource with the return type `@http:Cache {maxAge: 15, isPrivate: true} Album` responds with `Cache-Control: must-revalidate,private,max-age=15`, an `ETag` header and a `Last-Modified` header.
+
+| Code       | Condition                                                                                                  |
+|------------|------------------------------------------------------------------------------------------------------------|
+| `HTTP_130` | `@http:Cache` is used on a return type that contains neither `anydata` nor a success status code response. |
+
+### 8.8. Links
+
+The `linkedTo` field of `ResourceConfig` records links from a resource to other resources of the same service.
+
+1. A `LinkedTo` value has the fields `name` (the link name of the target resource), `relation` (default `"self"`) and `method` (optional). `name` and `relation` are compared case-insensitively, and `method` is compared after conversion to upper case.
+2. The target is the resource whose `ResourceConfig` has the same `name`. Several resources MAY share a link name only when they have the same path, and then `method` MUST be given to select one. The relations of the links of a resource MUST be unique.
+3. For each link, a `Link` record is created with `rel` set to the relation, `href` set to the path of the target relative to the listener, with path parameters written as `{name}`, `methods` set to the method of the target, and `types` set to the media types the target produces, when known.
+4. When the response of the resource is an `anydata` value or the `body` of a `2XX` status code response, and it is a mapping without a `_links` field to which a field can be added, the links are added to it as the `_links` field, a map from relation to `Link`. Otherwise, when the response has no `Link` header, the links are added as a `Link` header in the form `<href>; rel="relation"; methods="METHOD"`, separated by `, `.
+5. Links are not added when the resource returns a `Response`.
+
+| Code       | Condition                                                                                             |
+|------------|-------------------------------------------------------------------------------------------------------|
+| `HTTP_146` | Resources with the same link name have different paths.                                               |
+| `HTTP_147` | The links of a resource have duplicate relations.                                                     |
+| `HTTP_148` | No resource has the link name.                                                                        |
+| `HTTP_149` | Several resources have the link name, and `method` is not given.                                      |
+| `HTTP_150` | No resource with the link name has the given method.                                                  |
+
+### 8.9. Compile-time validation
+
+| Code       | Condition                                                                                    |
+|------------|----------------------------------------------------------------------------------------------|
+| `HTTP_102` | The return type does not satisfy rule 1 of [Return types](#81-return-types).                 |
+| `HTTP_118` | A resource with a `Caller` parameter returns a type that is not a subtype of `error?`.       |
+| `HTTP_131` | `@http:Payload` is used on a return type that has no payload, such as `error?`.              |
+
+## 9. Interceptors
+
+### 9.1. Description
+
+Interceptors run common logic on the requests and responses of a service. A request interceptor runs before the resource, and a response interceptor runs after it. Error interceptors turn errors into responses.
+
+### 9.2. Interceptor types
+
+| Type                       | Member                                                     | Rules                                                                                                                         |
+|----------------------------|------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------|
+| `RequestInterceptor`       | Exactly one resource method, with any accessor and path    | Its parameters are bound as described in [Resource parameters](#7-resource-parameters).                                       |
+| `RequestErrorInterceptor`  | Exactly one resource method `'default [string... path]`    | It MUST have an `error` parameter. Its other parameters are bound as for a request interceptor.                              |
+| `ResponseInterceptor`      | Exactly one remote method `interceptResponse`              | Its parameters MAY only be of the types `RequestContext`, `Request`, `Response` and `Caller`.                                |
+| `ResponseErrorInterceptor` | Exactly one remote method `interceptResponseError`         | It MUST have an `error` parameter. Its other parameters follow the rule of a response interceptor.                          |
+
+1. The return type of an interceptor method MUST be a subtype of `anydata|Response|StatusCodeResponse|stream<SseEvent, error?>|stream<SseEvent, error>|NextService|error?`.
+2. Interceptor methods and their return types MUST NOT have annotations.
+3. An interceptor service class MUST include exactly one of the interceptor types.
+
+### 9.3. Engaging interceptors
+
+1. A service that includes `InterceptableService` defines its interceptor pipeline with the method `createInterceptors() returns Interceptor|Interceptor[]`. The method is called once, when the listener starts. When it returns an error, the error is logged and the service has no interceptors.
+2. The pipeline of a service is `DefaultErrorInterceptor` followed by the interceptors returned by `createInterceptors()`, in order. `DefaultErrorInterceptor` is described in [Default error response](#102-default-error-response).
+3. The resource path of a request interceptor is relative to the base path of the service. A request interceptor runs for a request only when its resource matches the request, as described in [Resource selection](#63-resource-selection). An interceptor that does not match is skipped.
+4. When no service matches a request, the request is handled by the pipeline of the service attached at `/`, or by the pipeline of the only service of the listener when it has one service. Otherwise, it is handled by `DefaultErrorInterceptor` only.
+
+#### 9.3.1. Example: Request and response interceptors
+
+```ballerina
+service class ApiKeyInterceptor {
+    *http:RequestInterceptor;
+
+    resource function 'default [string... path](http:RequestContext ctx,
+            @http:Header {name: "X-Api-Key"} string? apiKey) returns http:NextService|http:Unauthorized|error? {
+        if apiKey is () {
+            return http:UNAUTHORIZED;
+        }
+        ctx.set("apiKey", apiKey);
+        return ctx.next();
+    }
+}
+
+service class ServedByInterceptor {
+    *http:ResponseInterceptor;
+
+    remote function interceptResponse(http:RequestContext ctx, http:Response res) returns http:NextService|error? {
+        res.setHeader("X-Served-By", "store");
+        return ctx.next();
+    }
+}
+
+service http:InterceptableService /store on new http:Listener(9090) {
+    public function createInterceptors() returns http:Interceptor[] {
+        return [new ApiKeyInterceptor(), new ServedByInterceptor()];
+    }
+
+    resource function get whoami(http:RequestContext ctx) returns string|error {
+        string apiKey = check ctx.getWithType("apiKey");
+        return apiKey;
+    }
+}
+```
+
+A request with an `X-Api-Key` header reaches the resource, which reads the value stored in the [request context](#94-request-context), and `ServedByInterceptor` adds the `X-Served-By` header to the response. A request without the header is answered with `401 Unauthorized` by `ApiKeyInterceptor`. That response has no `X-Served-By` header, because `ServedByInterceptor` comes after `ApiKeyInterceptor` in the pipeline, as described in rule 2 of [Execution](#95-execution).
+
+### 9.4. Request context
+
+A `RequestContext` is created for each request, and the same context is passed to every interceptor and to the resource.
+
+1. `set(key, value)` stores a value. A value of type `Cloneable` is stored as a clone, and an `isolated object` is stored as is.
+2. `get(key)` returns a clone of the value. It panics when the key is not present.
+3. `getWithType(key, targetType)` returns the value converted to `targetType`, without cloning it. It returns a `ListenerError` when the key is not present or when the value cannot be converted.
+4. `hasKey(key)` and `keys()` report the stored keys. `remove(key)` removes a value, and panics when the key is not present.
+5. `next()` returns the next service in the pipeline, as described in [Execution](#95-execution). Called from a resource of a service, it returns an `InterceptorReturnError`.
+6. When the request has an `Authorization` header of the form `Bearer <token>`, the context has the key `JWT_INFORMATION` with the decoded `[jwt:Header, jwt:Payload]` of the token. The token is decoded but not validated. When it cannot be decoded, the key is absent.
+
+### 9.5. Execution
+
+1. The request interceptors run in the order of the pipeline. A request interceptor continues the pipeline by returning the value of `ctx.next()`, which is the next matching request interceptor, or else the resource of the service. Returning any other service object results in an `InterceptorReturnError`.
+2. When a request interceptor returns a value other than a service object or an error, the value becomes the response, as described in [Responses](#8-responses), and the response interceptors that precede it in the pipeline run.
+3. The response interceptors run in the reverse order of the pipeline, starting from the end of the pipeline when the response comes from the resource. A response interceptor continues the pipeline by returning the value of `ctx.next()`. When it returns another value other than an error, that value replaces the response, and the pipeline continues.
+4. When a request interceptor or a request error interceptor returns an error, the next request error interceptor in the pipeline handles it. If there is none, the response error interceptors handle it, starting from the end of the pipeline.
+5. When the resource returns an error, or when dispatching to or binding the parameters of the resource fails, the response error interceptors handle the error, starting from the end of the pipeline. Request error interceptors do not handle these errors.
+6. When a response interceptor or a response error interceptor returns an error, the next response error interceptor towards the start of the pipeline handles it. `DefaultErrorInterceptor`, at the start of the pipeline, handles every error that reaches it.
+7. While an error is being handled, response interceptors are skipped. When an error interceptor returns a value, the error is handled, the value becomes the response, and the remaining response interceptors run.
+8. When a request interceptor binds the payload, the request body is read in full before the interceptor runs.
+9. An interceptor that returns `()` returns the value `()`, which becomes the response as described in rules 2 and 3. Like a resource without a `Caller` parameter, this results in `202 Accepted` without a payload. A response interceptor that returns `()` therefore replaces the response with `202 Accepted`.
+10. When a request interceptor calls `ctx.next()` and then returns `()`, the `202 Accepted` response is sent, and the request is still dispatched to the next service. The value returned by that service is not sent, and is logged as a warning.
+
+> **Note:** Whether `()` returned from an interceptor should continue the pipeline is under discussion in [ballerina-library#6110](https://github.com/ballerina-platform/ballerina-library/issues/6110).
+
+#### 9.5.1. Example: Interceptor pipeline
+
+![Interceptor pipeline](_resources/interceptor-pipeline.png)
+
+In the above pipeline, the solid blue boxes (1, 2, 4) are request interceptors, the dashed blue box (6) is a request error interceptor, the solid green boxes (3, 5) are response interceptors, and the dashed green box (0) is a response error interceptor. `DefaultErrorInterceptor` precedes position 0.
+
+- When no error occurs, the request interceptors run in the order 1, 2, 4, then the resource, then the response interceptors in the order 5, 3 (rules 1 and 3).
+- When request interceptor 4 returns a response, only response interceptor 3 runs (rule 2).
+- When request interceptor 2 returns an error, request error interceptor 6 handles it (rule 4). When 6 returns a value, it becomes the response, and response interceptors 5 and 3 run (rule 7).
+- When the resource returns an error, response error interceptor 0 handles it, and response interceptors 5 and 3 are skipped (rules 5 and 7).
+
+### 9.6. Compile-time validation
+
+| Code                                 | Condition                                                                                          |
+|--------------------------------------|----------------------------------------------------------------------------------------------------|
+| `HTTP_123`                           | An interceptor includes more than one interceptor type.                                            |
+| `HTTP_124`, `HTTP_132`               | A request interceptor has more than one resource method, or none.                                  |
+| `HTTP_125`, `HTTP_142`               | An interceptor method or its return type has an annotation.                                        |
+| `HTTP_126`, `HTTP_141`               | An interceptor method has a return type that does not satisfy rule 1 of [Interceptor types](#92-interceptor-types). |
+| `HTTP_127`, `HTTP_128`               | A request error interceptor resource is not `'default [string... path]`.                          |
+| `HTTP_135`, `HTTP_138`               | A response interceptor does not have exactly the required remote method.                           |
+| `HTTP_136`, `HTTP_137`               | An interceptor has a resource or remote method that its type does not allow.                       |
+| `HTTP_139`, `HTTP_140`               | A response interceptor method has a parameter that is not allowed, or more than one `Response`.    |
+| `HTTP_143`                           | An error interceptor method has no `error` parameter.                                              |
+
+## 10. Error handling
+
+### 10.1. Status codes of errors
+
+An error returned by a resource or an interceptor, or raised by the library while processing a request, is converted to a response with the following status code:
+
+| Error                                                                                                                                          | Status                                                       |
+|------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------|
+| A status code error of the `ballerina/http.httpscerr` module, e.g. `httpscerr:NotFoundError`                                                   | The status code of its type                                  |
+| `httpscerr:DefaultStatusCodeError`                                                                                                             | `statusCode` of its detail, else the status of its cause, else `500 Internal Server Error` |
+| `ApplicationResponseError`, i.e. a `ClientRequestError` or `RemoteServerError` from a client call                                              | The status code, headers and body of the remote response    |
+| `ClientConnectorError`                                                                                                                         | `502 Bad Gateway`                                            |
+| `PathParameterBindingError`, `QueryParameterBindingError`, `HeaderBindingError`, `PayloadBindingError`, and the corresponding validation errors | `400 Bad Request`                                            |
+| `BadMatrixParamError`                                                                                                                          | `400 Bad Request`                                            |
+| `ListenerAuthnError`                                                                                                                           | `401 Unauthorized`                                           |
+| `ListenerAuthzError`                                                                                                                           | `403 Forbidden`                                              |
+| `ServiceNotFoundError`, `ResourceNotFoundError`                                                                                                | `404 Not Found`                                              |
+| `ResourceMethodNotAllowedError`                                                                                                                | `405 Method Not Allowed`                                     |
+| `RequestNotAcceptableError`                                                                                                                    | `406 Not Acceptable`                                         |
+| `UnsupportedRequestMediaTypeError`                                                                                                             | `415 Unsupported Media Type`                                 |
+| `InterceptorReturnError`, `ResourceDispatchingServerError`                                                                                     | `500 Internal Server Error`                                  |
+| Any other error                                                                                                                                | `500 Internal Server Error`                                  |
+
+### 10.2. Default error response
+
+`DefaultErrorInterceptor` is a response error interceptor at the start of every pipeline. For an error that reaches it:
+
+1. Unless the error is raised by the library for a request it rejects, such as a binding or dispatching error, the error is logged with the path and the method of the request.
+2. The response has the status code given in [Status codes of errors](#101-status-codes-of-errors), and the headers in the `headers` field of the error detail, when present.
+3. When the error detail has a `body`, it is the payload of the response, serialized as described in [Content type and serialization](#83-content-type-and-serialization). Otherwise, the payload is the following JSON object, with `Content-Type: application/json`:
+
+   | Field       | Value                                                    |
+   |-------------|----------------------------------------------------------|
+   | `timestamp` | Time of the response, in RFC 3339 format in UTC          |
+   | `status`    | Status code                                              |
+   | `reason`    | Reason phrase of the status code                         |
+   | `message`   | Message of the error                                     |
+   | `path`      | Raw path of the request                                  |
+   | `method`    | Method of the request                                    |
+
+4. A user-defined response error interceptor receives, as its `Response` parameter, a response with the status code of the error and the message of the error as a text payload.
+
+#### 10.2.1. Example: Error payload
+
+```ballerina
+import ballerina/http;
+import ballerina/http.httpscerr;
+
+service /store on new http:Listener(9090) {
+    resource function get albums/[string id]() returns Album|httpscerr:NotFoundError {
+        Album? album = albums[id];
+        if album is () {
+            return error httpscerr:NotFoundError("Album not found");
+        }
         return album;
     }
 }
 ```
 
-The service implemented via the service contract type has the following restrictions:
-- None of the service level, resource level and parameter level HTTP annotation are allowed.
-- The base path is not allowed in the service declaration, and it is inferred from the service contract type.
-- The service declaration cannot have additional resource methods which are not defined in the service contract type.
+`GET /store/albums/a9` is answered with `404 Not Found` and the following payload:
 
-### 2.2.7. Relaxed data binding
-
-Enables relaxed data binding for the JSON payload binding process, allowing graceful handling of null values and absent fields 
-to reduce type conversion errors and better align with inconsistent API requests.
-
-The following additional rules applies to data projection used for the relaxed data binding,
-
-- For fields that are marked as optional but non-nullable, null values in the response are treated as absent fields instead of causing
-runtime failures.
-- For required fields that are absent in the response are treated as null values instead of causing runtime failures.
-
-```ballerina
-@http:ServiceConfig {
-    laxDataBinding: true
-}
-```
-
-### 2.3. Resource
-
-A method of a service can be declared as a [resource method](https://ballerina.io/spec/lang/2021R1/#resources) 
-which is associated with configuration data that is invoked by a network message by a Listener. Users write the 
-business logic inside a resource and expose it over the network.
-
-#### 2.3.1. Accessor
-The accessor-name of the resource represents the HTTP method, and it can be get, post, put, delete, head, patch, options 
-and default. If the accessor is unmatched, 405 Method Not Allowed response is returned. When the accessor name is 
-stated as default, any HTTP method can be matched to it in the absence of an exact match. Users can define custom 
-methods such as copy, move based on their requirement. A resource which can handle any method would look like as 
-follows. This is useful when handling unmatched verbs.
-
-```ballerina
-resource function 'default NAME_TEMPLATE () {
-    
-}
-```
-#### 2.3.2. Resource name
-The resource-name represents the path of the resource which is considered during the request dispatching. The name can 
-be hierarchical(foo/bar/baz). Each path identifier should be separated by `/` and first path identifier should not 
-contain a prefixing `/`. If the paths are unmatched, 404 NOT FOUND response is returned.
-```ballerina
-resource function post hello() {
-    
-}
-```
-Only the identifiers can be used as resource path not string literals. Dot identifier is 
-used to denote the `/` only if the path contains a single identifier. 
-```ballerina
-resource function post .() {
-    
-}
-```
-Any special characters can be used in the path by escaping.
-```ballerina
-resource function post hello\-world() {
-    
-}
-```
-
-#### 2.3.3. Path parameter
-The path parameter segment is also a part of the resource name which is declared within brackets along with the type. 
-As per the following resource name, baz is the path param segment, and it’s type is string. Like wise users can define 
-string, int, boolean, float, and decimal typed path parameters. If the paths are unmatched, 404 NOT FOUND response 
-is returned. If the segment failed to parse into the expected type, 500 Internal Server Error response is returned.
-
-```ballerina
-resource function post foo/bar/[string baz]/qux() {
-    // baz is the path param
-}
-
-resource function get data/[int age]/[string name]/[boolean status]/[float weight]() returns json {
-   int balAge = age + 1;
-   float balWeight = weight + 2.95;
-   string balName = name + " lang";
-   if status {
-       balName = name;
-   }
-   json responseJson = { Name:name, Age:balAge, Weight:balWeight, Status:status, Lang: balName};
-   return responseJson;
-}
-```
-
-If multiple path segments needs to be matched after the last identifier, Rest param should be used at the end of the 
-resource name as the last identifier. string, int, boolean, float, and decimal types are supported as rest parameters.
-```ballerina
-resource function get foo/[string... bar]() returns json {
-   json responseJson = {"echo": bar[0]};
-   return responseJson;
-}
-```
-
-Using both `'default` accessor and the rest parameters, a default resource can be defined to a service. This 
-default resource can act as a common destination where the unmatched requests (either HTTP method or resource path) may 
-get dispatched.
-
-```ballerina
-resource function 'default [string... s]() {
-
-}
-```
-
-#### 2.3.4. Signature parameters
-The resource method can have the following parameters in the signature. There are not any mandatory params or any 
-particular order. But it’s a good practice to keep the optional param at the end.
-
-```ballerina
-resource function XXX NAME_TEMPLATE ([http:Caller hc], [http:Request req], (anydata queryParam)?, 
-    (@http:Payload anydata payload)?, (@http:Header string header)?, (http:Header headers)? ) {
-        
-}
-```
-
-However, the first choice should be to use signature params and use returns. Avoid caller unless you have specific 
-requirement. Also use data binding, header params and resource returns to write smaller code with more readability.
-
-##### 2.3.4.1. http:Caller
-
-The caller client object represents the endpoint which initiates the request. Once the request is processed, the 
-corresponding response is sent back using the remote methods which are associated with the caller object. 
-In addition to that, the caller has certain meta information related to remote and local host such as IP address,
-protocol. This parameter is not compulsory and not ordered.
-
-
-The CallerInfo annotation associated with the `Caller` is to denote the response type.
-It will ensure that the resource method responds with the right type and provides static type information about 
-the response type that can be used to generate OpenAPI.
-
-The default type is the `http:Response`. Other than that, caller remote methods will accept following types as the 
-outbound response payload. Internally an `http:Response` is created including the given payload value
-
-```ballerina
-string|xml|json|byte[]|int|float|decimal|boolean|map<json>|table<map<json>>|(map<json>|table<map<json>>)[]|
-mime:Entity[]|stream<byte[], io:Error?>|()
-```
-
-Based on the payload types respective header value is added as the `Content-type` of the `http:Response`.
-
-| Type                                                                  | Content Type             |
-|-----------------------------------------------------------------------|--------------------------|
-| ()                                                                    | -                        |
-| string                                                                | text/plain               |
-| xml                                                                   | application/xml          |
-| byte[], stream<byte[], io:Error?>                                     | application/octet-stream |
-| int, float, decimal, boolean                                          | application/json         |
-| map\<json\>, table<map\<json\>>, map\<json\>[], table<map\<json\>>)[] | application/json         |
-
-In addition to the above types, caller `respond()` method can accept `StatusCodeResponse` or `error` type. In case of 
-`error`, an error response is returned to the client with the error message.
-
-The HTTP compiler extension checks the argument of the `respond()` method if the matching payload type is passed as
-denoted in the CallerInfo annotation. At the moment, in terms of responding error, CallerInfo annotation can only support 
-`http:Error` type.
-
-```ballerina
-resource function post foo(@http:CallerInfo {respondType:Person}  http:Caller hc) {
-    Person p = {};
-    error? result = hc->respond(p);
-}
-```
-
-When the caller `respond()` method is invoked from HTTP post resource by providing `anydata` payload, the status 
-code of the outbound response will be set to HTTP Created (201) by default.
-
-##### 2.3.4.2. http:Request
-
-The `http:Request` represents the request which is sent and received over the network which includes headers and 
-the entity body. Listener passes it to the resource method as an argument to be accessed by the user based on 
-their requirement. This parameter is not compulsory and not ordered.
-
-```ballerina
-resource function get person(http:Request req) {
-    
-}
-```
-
-See section [Request and Response](#6-request-and-response) to find out more. 
-
-##### 2.3.4.3. Query parameter
-
-The query param is a URL parameter which is available as a resource method parameter, and it's not associated 
-with any annotation or additional detail unless any default payload param is defined. This parameter is not compulsory 
-and not ordered. The type of query param are as follows
-
-```ballerina
-type BasicType boolean|int|float|decimal|string|map<anydata>|enum;
-public type QueryParamType ()|BasicType|BasicType[];
-```
-
-The same query param can have multiple values. In the presence of multiple such values,  If the user has specified 
-the param as an array type, then all values will return. If not the first param values will be returned. As per the 
-following resource method, the request may contain at least two query params with the key of bar and id.
-Eg : “/hello?bar=hi&id=56”
-
-```ballerina
-resource function get hello(string bar, int id) { 
-    
-}
-```
-
-With the introduction of the default payload param support, the structured data types such as map<json> can be
-identified as payload param. To solve that ambiguity between the default payload and query param, the
-@http:Query annotation should be defined in front of the query param.
-
-```ballerina
-resource function post queryParamCheck(@http:Query map<json> q) returns map<json> {
-    return q; // q is payload param
-}
-```
-
-If the query parameter is not defined in the function signature, then the query param binding does not happen. If a 
-query param of the request URL has no corresponding parameter in the resource method, then that param is ignored. 
-If the parameter is defined in the function, but there is no such query param in the URL, that request will lead 
-to a 400 BAD REQUEST error response unless the type is nilable (string?)
-
-If the query parameter is defined with a defaultable value in the resource signature, in the absence of particular
-query parameter, the default value will be assigned to the variable.
-
-```ballerina
-resource function get price(int id = 10) { 
-    
-}
-```
-
-The query param consists of query name and values. Sometimes user may send query without value(`foo:`). In such
-situations, when the query param type is nilable, the values returns nil and same happened when the complete query is
-not present in the request. In order to avoid the missing detail, a service level configuration has introduced naming
-`treatNilableAsOptional`
-
-```ballerina
-@http:ServiceConfig {
-    treatNilableAsOptional : false
-}
-service /queryparamservice on new http:Listener(9090) {
-
-    resource function get queryvalues(string foo, int bar) returns json {
-        json responseJson = { value1: foo, value2: bar};
-        return responseJson;
-    }
-}
-```
-
-<table>
-<tr>
-<th> Case </th>
-<th>  Resource argument </th>
-<th>  Query </th>
-<th>  Current Mapping (treatNilableAsOptional=true - Default) </th>
-<th>  Ideal Mapping (treatNilableAsOptional=false) </th>
-</tr>
-<tr>
-<td rowspan=4> 1 </td>
-<td rowspan=4> string foo </td>
-<td> foo=bar </td>
-<td> bar </td>
-<td> bar </td>
-</tr>
-<tr>
-<td> foo=</td>
-<td> "" </td>
-<td> "" </td>
-</tr>
-<tr>
-<td> foo</td>
-<td> Error : no query param value found for 'foo' </td>
-<td> Error : no query param value found for 'foo' </td>
-</tr>
-<tr>
-<td> No query</td>
-<td> Error : no query param value found for 'foo' </td>
-<td> Error : no query param value found for 'foo' </td>
-</tr>
-<tr>
-<td rowspan=4> 2 </td>
-<td rowspan=4> string? foo </td>
-<td> foo=bar </td>
-<td> bar </td>
-<td> bar </td>
-</tr>
-<tr>
-<td> foo=</td>
-<td> "" </td>
-<td> "" </td>
-</tr>
-<tr>
-<td> foo</td>
-<td> nil </td>
-<td> nil </td>
-</tr>
-<tr>
-<td> No query</td>
-<td> nil </td>
-<td> Error : no query param value found for 'foo' </td>
-</tr>
-<tr>
-<td rowspan=4> 3 </td>
-<td rowspan=4> string foo = "baz"<br/> string? foo = "baz" </td>
-<td> foo=bar </td>
-<td> bar </td>
-<td> bar </td>
-</tr>
-<tr>
-<td> foo=</td>
-<td> "" </td>
-<td> "" </td>
-</tr>
-<tr>
-<td> foo</td>
-<td> baz </td>
-<td> baz </td>
-</tr>
-<tr>
-<td> No query</td>
-<td> baz </td>
-<td> baz </td>
-</tr>
-</table>
-
-See section [Query](#52-query) to understand accessing query param via the request object.
-
-##### 2.3.4.4. Payload parameter
-
-The payload parameter is used to access the request payload during the resource invocation. When the payload param is 
-defined with @http:Payload annotation, the listener deserialize the inbound request payload based on the media type 
-which retrieved by the `Content-type` header of the request. The data binding happens thereafter considering the 
-parameter type. The type of payload parameter can be one of the `anydata`. If the header is not present or not a 
-standard header, the binding type is inferred by the parameter type.
-
-When the following conditions are met, the listener identifies the default payload parameter, which is defined 
-without the @http:Payload annotation:
-- The default payload parameter rules are only applicable to POST, PUT, PATCH, DELETE, and DEFAULT accessors.
-- Parameters must contain only one structured(map/record/table/tuple/array) type or `xml`. However, the array types of 
-  basic types are considered as query parameters. But `byte[]` is an exception, and it is considered as a payload param.
-    - `resource function post path(Student p) {}` -> `Student` is payload param type
-    - `resource function post path(Student[] p) {}` -> `Student[]` is payload param type
-    - `resource function post path(map<json> p) {}` -> `map<json>` is payload param type
-    - `resource function post path(int[] p) {}` -> `int[]` is query param type
-    - `resource function post path(byte[] p) {}` -> `byte[]` is payload param type
-    - `resource function post path(int p) {}` -> `int` is query param type
-- If there's more than one structured type, the ambiguity must be resolved using either @http:Payload or @http:Query
-  annotation.
-    - `resource function post path(Student p, map<json> q) {}` -> ambiguous types for payload
-    - `resource function post path(@http:Payload Student p, map<json> q) {}` -> `p` is payload, `q` is query parameter
-    - `resource function post path(Student p, @http:Query map<json> q) {}` -> `p` is payload, `q` is query parameter
-- If there are no structured types, all parameters are considered query parameters.
-    - `resource function post path(string p, string q) {}` -> `p` and `q` are query params
-    - `resource function post path(@http:Payload string p, string q) {}` -> `p` is payload, `q` is query parameter
-- If the query parameter is structured, then the @http:Query annotation is required.
-    - `resource function post path(Student p) {}` -> `p` is payload param type
-    - `resource function post path(@http:Query Student p) {}` -> `p` is query param type
-- The only types allowed in the union for a parameter are structured types, `xml`, and `nil`.
-    - `resource function post path(Student|xml p) {}` -> `Student|xml` is payload param type
-    - `resource function post path(map<json>|xml p) {}` -> `map<json>|xml` is payload param type
-    - `resource function post path(Student? p) {}` -> `Student?` is payload param type
-    - `resource function post path(Student|string p) {}` -> invalid union type for default payload param
-
-Following table explains the compatible `anydata` types with each common media type. In the absence of a standard media 
-type, the binding type is inferred by the payload parameter type itself. If the type is not compatible with the media 
-type, error is returned.
-
-| Ballerina Type | Structure               | "text" | "xml" | "json" | "x-www-form-urlencoded" | "octet-stream" |
-|----------------|-------------------------|:------:|:-----:|:------:|:-----------------------:|:--------------:|
-| boolean        |                         |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
-|                | boolean[]               |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
-|                | map\<boolean\>          |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
-|                | table\<map\<boolean\>\> |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
-| int            |                         |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
-|                | int[]                   |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
-|                | map\<int\>              |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
-|                | table\<map\<int\>\>     |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
-| float          |                         |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
-|                | float[]                 |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
-|                | map\<float\>            |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
-|                | table\<map\<float\>\>   |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
-| decimal        |                         |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
-|                | decimal[]               |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
-|                | map\<decimal\>          |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
-|                | table\<map\<decimal\>\> |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
-| byte[]         |                         |   ✅    |   ❌   |   ✅    |            ❌            |       ✅        |
-|                | byte[][]                |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
-|                | map\<byte[]\>           |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
-|                | table\<map\<byte[]\>\>  |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
-| string         |                         |   ✅    |   ❌   |   ✅    |            ✅            |       ❌        |
-|                | string[]                |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
-|                | map\<string\>           |   ❌    |   ❌   |   ✅    |            ✅            |       ❌        |
-|                | table\<map\<string\>\>  |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
-| xml            |                         |   ❌    |   ✅   |   ❌    |            ❌            |       ❌        |
-| json           |                         |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
-|                | json[]                  |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
-|                | map\<json\>             |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
-|                | table\<map\<json\>\>    |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
-| map            |                         |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
-|                | map[]                   |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
-|                | map\<map\>              |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
-|                | table\<map\<map\>\>     |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
-| record         |                         |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
-|                | record[]                |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
-|                | map\<record\>           |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
-|                | table\<record\>         |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
-
-The payload binding process begins soon after finding the correct resource for the given URL and before the 
-resource execution. 
-The error which may occur during the process will be returned to the caller with the response 
-status code of 400 BAD REQUEST. The successful binding will proceed the resource execution with the built payload.
-
-```ballerina
-resource function post hello(json payload) { 
-    
-}
-```
-
-Additionally, the payload parameter type can be a union of `anydata`. Based on the media type, the potential binding
-type is decided. For example, if the union is defined as `json|xml` and the media type is related to `json`,
-the deserialization and the binding will proceed according to the type `json`. But if the media type is related to `xml`
-the process will happen according to the type `xml`.
-If the given types of the union are not compatible with the media type, an error is returned.
-
-```ballerina
-resource function post album(json|xml payload) { 
-    
-}
-
-```
-If any of the type is union with `()`(i.e `string?`), then in the absence of the payload, `()` will be assigned as 
-the value without being responded by a `BAD REQUEST` response.
-
-Internally the complete payload is built, therefore the application should have sufficient memory to support the 
-process. Payload binding is not recommended if the service behaves as a proxy/pass-through where request payload is 
-not accessed.
-
-User may specify the expected content type in the annotation to shape the resource as described in section [Payload 
-binding parameter](#431-payload-binding-parameter)
-
-##### 2.3.4.5. Header parameter
-
-The header parameter is to access the inbound request headers The header param is defined with `@http:Header` annotation
-The type of header param can be defined as follows;
-
-```ballerina
-type BasicType string|int|float|decimal|boolean;
-public type HeaderParamType ()|BasicType|BasicType[]|record {| BasicType...; |};
-```
-
-When multiple header values are present for the given header, the first header value is returned when the param 
-type is `string` or any of the basic types. To retrieve all the values, use `string[]` type or any array of the
-basic types. This parameter is not compulsory and not ordered. 
-
-The header param name is considered as the header name during the value retrieval. However, the header annotation name 
-field can be used to define the header name whenever user needs some different variable name for the header. 
-
-User cannot denote the type as a union of pure type, array type, or record type together, that way the resource 
-cannot infer a single type to proceed. Hence, returns a compiler error.
-
-In the absence of a header when the param is defined in the resource signature, listener returns 400 BAD REQUEST unless
-the type is nilable. 
-
-```ballerina
-//Single header value extraction
-resource function post album(@http:Header string referer) {
-    
-}
-
-//Multiple header value extraction
-resource function post product(@http:Header {name: "Accept"} string[] accept) {
-    
-}
-```
-
-When the header parameter type is a record, the record fields represents each header values and the header name is 
-considered as the field name. However, the header annotation with a name field can be used to define the header 
-name whenever user needs some different variable name for the header. 
-
-```ballerina
-public type RateLimitHeaders record {|
-    string x\-rate\-limit\-id;
-    int x\-rate\-limit\-remaining;
-    string[] x\-rate\-limit\-types;
-|};
-
-//Populate selected headers to a record
-resource function get price(@http:Header RateLimitHeaders rateLimitHeaders) {
-}
-
-public type RateLimitHeadersWithName record {|
-    @http:Header {name: "X-RATE-LIMIT-ID"}
-    string rateLimitId;
-    @http:Header {name: "X-RATE-LIMIT-REMAINING"}
-    int rateLimitRemaining;
-    @http:Header {name: "X-RATE-LIMIT-TYPES"}
-    string[] rateLimitTypes;
-|};
-
-//Populate selected headers to a record. The header name is defined in the field level annotation
-resource function get price(@http:Header RateLimitHeadersWithName rateLimitHeaders) {
-}
-```
-
-If the requirement is to access all the header of the inbound request, it can be achieved through the `http:Headers` 
-typed param in the signature. It does not need the annotation and not ordered.
-
-```ballerina
-resource function get price(http:Headers headers) {
-    string|http:HeaderNotFoundError referer = headers.getHeader("Referer");
-    string[]|http:HeaderNotFoundError accept = headers.getHeaders("Accept");
-    string[] keys = headers.getHeaderNames();
-}
-```
-
-The header consists of header name and values. Sometimes user may send header without value(`foo:`). In such 
-situations, when the header param type is nilable, the values returns nil and same happened when the complete header is 
-not present in the request. In order to avoid the missing detail, a service level configuration has introduced naming 
-`treatNilableAsOptional`
-
-```ballerina
-@http:ServiceConfig {
-    treatNilableAsOptional : false
-}
-service /headerparamservice on HeaderBindingIdealEP {
-
-    resource function get headers(@http:Header string? foo) returns json {
-        
-    }
-}
-```
-
-<table>
-<tr>
-<th>  Case </th>
-<th>  Resource argument </th>
-<th>  Header </th>
-<th>  Current Mapping (treatNilableAsOptional=true - Default) </th>
-<th>  Ideal Mapping (treatNilableAsOptional=false) </th>
-</tr>
-<tr>
-<td rowspan=3> 1 </td>
-<td rowspan=3> string foo </td>
-<td> foo:bar </td>
-<td> bar </td>
-<td> bar </td>
-</tr>
-<tr>
-<td> foo:</td>
-<td> Error : no header value found for 'foo' </td>
-<td> Error : no header value found for 'foo' </td>
-</tr>
-<tr>
-<td> No header</td>
-<td> Error : no header value found for 'foo' </td>
-<td> Error : no header value found for 'foo' </td>
-</tr>
-<tr>
-<td rowspan=3> 2 </td>
-<td rowspan=3> string? foo </td>
-<td> foo:bar </td>
-<td> bar </td>
-<td> bar </td>
-</tr>
-<tr>
-<td> foo:</td>
-<td> nil </td>
-<td> nil </td>
-</tr>
-<tr>
-<td> No header</td>
-<td> nil </td>
-<td> Error : no header value found for 'foo' </td>
-</tr>
-</table>
-
-
-#### 2.3.5. Return types
-The resource method supports `anydata`, `error?`, `http:Response`, `http:StatusCodeResponse` and `stream<http:SseEvent, error?>` as return types. 
-Whenever user returns a particular output, that will result in an HTTP response to the caller who initiated the 
-call. Therefore, user does not necessarily depend on the `http:Caller` and its remote methods to proceed with the 
-response. 
-
-```ballerina
-resource function XXX NAME_TEMPLATE () returns @http:Payload anydata|http:Response|http:StatusCodeResponse|stream<http:SseEvent, error?>|http:Error? {
-}
-```
-
-In addition to that the `@http:Payload` annotation can be specified along with anydata return type
-mentioning the content type of the outbound payload.
-
-```ballerina
-resource function get greeting() returns @http:Payload {mediaType:"text/id+plain"} string {
-    return "hello world";
-}
-```
-
-Based on the return types respective header value is added as the `Content-type` of the `http:Response`. 
-
-| Type                                                                  | Content Type                |
-|-----------------------------------------------------------------------|-----------------------------|
-| ()                                                                    | -                           |
-| string                                                                | text/plain                  |
-| xml                                                                   | application/xml             |
-| byte[]                                                                | application/octet-stream    |
-| int, float, decimal, boolean                                          | application/json            |
-| map\<json\>, table<map\<json\>>, map\<json\>[], table<map\<json\>>)[] | application/json            |
-| http:StatusCodeResponse                                               | derived from the body field |
-| stream<http:SseEvent, error?>                                         | text/event-stream           |
-
-##### 2.3.5.1. Status Code Response
-
-The status code response records are defined in the HTTP module for every HTTP status code. It improves readability & 
-helps OpenAPI spec generation. By default, the content type of the response message is derived from the `body` field.
-This default content type can be overwritten by the `mediaType` field as shown below.
-
-```ballerina
-type PersonCreated record {|
-    *http:Created;
-    record {|
-        string name;
-    |} body;
-|};
-
-resource function post name(string name) returns PersonCreated {
-   Person person = {name:name};
-   return {
-       mediaType: "application/person+json",
-       headers: {
-           "X-Server": "myServer"
-       },
-       body: person
-   };
-}
-```
-
-Following is the `http:Ok` definition. Likewise, all the status codes are provided.
-
-```ballerina
-public type Ok record {
-   string mediaType;
-   map<string|string[]> headers?;
-   anydata body?;
-};
-
-resource function get greeting() returns http:Ok|http:InternalServerError {
-   http:Ok ok = { body: "hello world", headers: { xtest: "foo"} };
-   return ok;
-}
-```
-
-##### 2.3.5.2. Return nil
-
-Return nil from the resource has few meanings. 
-
-1. If the resource wants to return nothing, the listener will return 202 ACCEPTED response.
-    ```ballerina
-    resource function post person(@http:Payload Person p) {
-        int age = p.age;
-        io:println(string `Age is: ${age}`);
-    }
-    ```   
-2. If the resource is dealt with the response via http:Caller, then returning () does not lead to subsequent response. 
-   Listener aware that the request is already being served.
-    ```ballerina
-    resource function get fruit(string? colour, http:Caller caller) {
-        if colour == "red" {
-            error? result = caller->respond("Sending apple");
-            return; // ending the flow, so not 202 response
-        }
-        error? result = caller->respond("Sending orange");
-    }
-    ```   
-3. If the resource is dealt with the success response via http:Caller and return () in the else case, then the 
-   response is 500 INTERNAL SERVER ERROR.
-    ```ballerina
-    resource function get fruit(string? colour, http:Caller caller) {
-        if colour == "red" {
-            error? result = caller->respond("Sending apple");
-            return; // ending the flow
-        }
-        return; // 500 internal Server Error
-    }
-    ```
-
-##### 2.3.5.3. Return SSE stream
-
-When an `http:SseEvent` stream is returned from the service, it's considered a server-sent event. By default, the service will add the following headers: 
-
-- For HTTP 2.0: 
-  - `Content-Type: text/event-stream`
-  - `Cache-Control: no-cache`
-
-- For HTTP 1.1, in addition to the previously mentioned headers, the following headers will also be included in the response: 
-  - `Transfer-Encoding: chunked`
-  - `Connection: keep-alive`
-
-##### 2.3.5.4. Default response status codes
-
-To improve the developer experience for RESTful API development, following default status codes will be used in outbound 
-response when returning `anydata` directly from a resource method.
-
-| Resource Accessor | Semantics                                                     | Status Code             |
-|-------------------|---------------------------------------------------------------|-------------------------|
-| GET               | Retrieve the resource                                         | 200 OK                  |
-| POST              | Create a new resource                                         | 201 Created             |
-| PUT               | Create a new resource or update an existing resource          | 200 OK                  |
-| PATCH             | Partially update an existing resource                         | 200 OK                  |
-| DELETE            | Delete an existing resource                                   | 200 OK                  |
-| HEAD              | Retrieve headers                                              | 200 OK                  |
-| OPTIONS           | Retrieve permitted communication options                      | 200 OK                  |
-
-#### 2.3.6. OpenAPI specification resources
-
-OAS resources are internally generated for each service and host the generated OpenAPI specification for the service in
-different formats. In order to access these resources user can send an OPTIONS request either to one of the resources or
-the service base-path. The link header in the 204 response specifies the location for the OAS resources.
-
-When the service is secured with the `auth` field of `http:ServiceConfig`, the OAS resources apply the same auth
-configurations, including the scopes. Only the service-level `auth` is applied; `auth` configured only on individual
-resources does not secure the OAS resources. The OPTIONS response carrying the link header is not secured.
-
-Sample service
-```ballerina
-import ballerina/http;
-import ballerina/openapi;
-
-@openapi:ServiceInfo {
-    embed: true
-}
-service /hello on new http:Listener(9090) {
-    resource function get greeting() returns string {
-        return "Hello world";
-    }
-}
-```
-
-Output of OPTIONS call to service base path
-```ballerina
-curl -v localhost:9090/hello -X OPTIONS 
-*   Trying 127.0.0.1:9090...
-* TCP_NODELAY set
-* Connected to localhost (127.0.0.1) port 9090 (#0)
-> OPTIONS /hello HTTP/1.1
-> Host: localhost:9090
-> User-Agent: curl/7.68.0
-> Accept: */*
->
-< HTTP/1.1 204 No Content
-< allow: GET, OPTIONS
-< link: </hello/openapi-doc-dygixywsw>;rel="service-desc", </hello/swagger-ui-dygixywsw>;rel="swagger-ui"
-< server: ballerina
-< date: Thu, 13 Jun 2024 20:04:11 +0530
-< 
-* Connection #0 to host localhost left intact
-* Closing connection 0
-```
-
-##### 2.3.6.1. Introspection resource
-
-The introspection resource is one of the generated OAS resources, and it hosts the OpenAPI specification for the service 
-in JSON format. The user can send a GET request to the resource path specified in the link header with the relation 
-attribute set to `service-desc`.
-
-Output of GET call to introspection resource
-```ballerina
-curl -v localhost:9090/hello/openapi-doc-dygixywsw
-*   Trying 127.0.0.1:9090...
-* TCP_NODELAY set
-* Connected to localhost (127.0.0.1) port 9090 (#0)
-> GET /hello/openapi-doc-dygixywsw HTTP/1.1
-> Host: localhost:9090
-> User-Agent: curl/7.68.0
-> Accept: */*
-> 
-* Mark bundle as not supporting multiuse
-< HTTP/1.1 200 OK
-< content-type: application/json
-< content-length: 675
-< server: ballerina
-< date: Thu, 13 Jun 2024 20:05:03 +0530
-< 
+```json
 {
-  "openapi" : "3.0.1",
-  "info" : {
-    "title" : "Hello",
-    "version" : "0.1.0"
-  },
-  "servers" : [ {
-    "url" : "{server}:{port}/hello",
-    "variables" : {
-      "server" : {
-        "default" : "http://localhost"
-      },
-      "port" : {
-        "default" : "9090"
-      }
-    }
-  } ],
-  "paths" : {
-    "/greeting" : {
-      "get" : {
-        "operationId" : "getGreeting",
-        "responses" : {
-          "200" : {
-            "description" : "Ok",
-            "content" : {
-              "text/plain" : {
-                "schema" : {
-                  "type" : "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
+    "timestamp": "2026-11-02T10:15:30.120Z",
+    "status": 404,
+    "reason": "Not Found",
+    "message": "Album not found",
+    "path": "/store/albums/a9",
+    "method": "GET"
 }
 ```
 
-##### 2.3.6.2. SwaggerUI resource
+When the resource returns `error httpscerr:NotFoundError("Album not found", body = {code: "ALBUM_NOT_FOUND"})` instead, the payload is `{"code": "ALBUM_NOT_FOUND"}` (rule 3).
 
-The swagger-ui resource is one of the generated OAS resources, and it hosts the OpenAPI specification for the service in 
-HTML format. The user can view it in a web browser by accessing the URL specified in the HTTP link header, which has 
-relation attribute set to `swagger-ui`.
+### 10.3. Panics
 
-### 2.4. Client
-A client allows the program to send network messages to a remote process according to the HTTP protocol. The fixed 
-remote methods of the client object correspond to distinct network operations defined by the HTTP protocol.
+When a resource or an interceptor panics, the listener responds with `500 Internal Server Error` and the message of the panic as a `text/plain` payload, without running the interceptors, prints the panic with its stack trace, and terminates the program with exit code `1`. Panics raised by [declarative authentication](#151-declarative-listener-authentication) are an exception, and are handled as errors.
 
-The client init function requires a valid URL and optional configuration to initialize the client. 
-```ballerina
-http:Client clientEP = check new ("http://localhost:9090", { httpVersion: "2.0" });
-```
+## 11. Client
 
-#### 2.4.1 Client types
-The client configuration can be used to enhance the client behaviour. By default, HTTP client supports HTTP2 version.
+### 11.1. Description
 
-```ballerina
-public type ClientConfiguration record {|
-    string httpVersion = HTTP_2_0;
-    ClientHttp1Settings http1Settings = {};
-    ClientHttp2Settings http2Settings = {};
-    decimal timeout = 60;
-    string forwarded = "disable";
-    FollowRedirects? followRedirects = ();
-    PoolConfiguration? poolConfig = ();
-    CacheConfig cache = {};
-    Compression compression = COMPRESSION_AUTO;
-    ClientAuthConfig? auth = ();
-    CircuitBreakerConfig? circuitBreaker = ();
-    RetryConfig? retryConfig = ();
-    CookieConfig? cookieConfig = ();
-    ResponseLimitConfigs responseLimits = {};
-    ClientSecureSocket? secureSocket = ();
-    ProxyConfig? proxy = ();
-    boolean validation = true;
-    laxDataBinding = false;
-|};
+A `Client` sends requests to one remote endpoint, given by a URL, and binds the responses to the types the caller expects. `StatusCodeClient` binds responses to status code responses. `LoadBalanceClient` and `FailoverClient` send requests to several endpoints, and are described in [Resiliency](#12-resiliency).
 
-public type ClientHttp1Settings record {|
-    KeepAlive keepAlive = KEEPALIVE_AUTO;
-    Chunking chunking = CHUNKING_AUTO;
-    @deprecated
-    ProxyConfig? proxy = ();
-|};
+### 11.2. Initialization
 
-public type ClientHttp2Settings record {|
-    boolean http2PriorKnowledge = false;
-    int http2InitialWindowSize = 65535;
-|};
+1. When the URL has no scheme, `https://` is used if `secureSocket` or `auth` is configured, and `http://` otherwise.
+2. A malformed URL, or any invalid configuration value, makes the initialization return a `ClientError`.
+3. When `secureSocket` is configured and the URL uses `http://`, the TLS configuration is ignored and a warning is printed.
 
-```
+### 11.3. Configuration
 
-Based on the config, the client object will be accompanied by following client behaviours. Following clients cannot be
-instantiated calling `new`, instead user have to enable the config in the `ClientConfiguration`.
+`ClientConfiguration` has the following fields:
 
-##### 2.4.1.1 Security
-Provides secure HTTP remote methods for interacting with HTTP endpoints. This will make use of the authentication
-schemes configured in the HTTP client endpoint to secure the HTTP requests.
-```ballerina
-http:Client clientEP = check new ("https://localhost:9090",
-    auth = {
-        username: username,
-        password: password
-    },
-    secureSocket = {
-        cert: {
-            path: TRUSTSTORE_PATH,
-            password: "ballerina"
-        }
-    }
-);
-```
+| Field             | Type                    | Default             | Meaning                                                                                                                                                                       |
+|-------------------|-------------------------|---------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `httpVersion`     | `HttpVersion`           | `HTTP_2_0`          | HTTP version of the requests. With `HTTP_2_0`, the client negotiates HTTP/2 with ALPN over TLS, and over cleartext uses an `Upgrade: h2c` request unless `http2PriorKnowledge` is `true`. |
+| `http1Settings`   | `ClientHttp1Settings`   | `{}`                | `keepAlive` (`KEEPALIVE_AUTO`) and `chunking` (`CHUNKING_AUTO`) of HTTP/1.x requests. Its `proxy` field is deprecated since 2.18.0; use the `proxy` field of the configuration. See [Proxy](#118-proxy).                              |
+| `http2Settings`   | `ClientHttp2Settings`   | `{}`                | `http2PriorKnowledge` (`false`) and `http2InitialWindowSize` (`65535`).                                                                                                      |
+| `timeout`         | `decimal`               | `30`                | Idle timeout. When it elapses, the request fails with an `IdleTimeoutError`.                                                                                                 |
+| `forwarded`       | `string`                | `"disable"`         | Handling of the `Forwarded` header when forwarding requests: `"enable"`, `"transition"` or `"disable"`, compared case-insensitively. Any other value is an initialization error. |
+| `followRedirects` | `FollowRedirects?`      | `()`                | Redirect handling. See [Redirects](#116-redirects).                                                                                                                           |
+| `poolConfig`      | `PoolConfiguration?`    | `()`                | Connection pool. `()` means a pool shared by all clients that do not configure one.                                                                                          |
+| `cache`           | `CacheConfig`           | `{}`                | Response caching, enabled by default. See [Caching](#115-caching).                                                                                                           |
+| `compression`     | `Compression`           | `COMPRESSION_AUTO`  | Whether the `Accept-Encoding` header is sent.                                                                                                                                |
+| `auth`            | `ClientAuthConfig?`     | `()`                | Authentication of requests. See [Client authentication](#153-client-authentication).                                                                                         |
+| `circuitBreaker`  | `CircuitBreakerConfig?` | `()`                | See [Circuit breaker](#122-circuit-breaker).                                                                                                                                 |
+| `retryConfig`     | `RetryConfig?`          | `()`                | See [Retry](#121-retry).                                                                                                                                                     |
+| `cookieConfig`    | `CookieConfig?`         | `()`                | See [Cookies](#117-cookies).                                                                                                                                                 |
+| `responseLimits`  | `ResponseLimitConfigs`  | `{}`                | See [Response limits](#119-response-limits).                                                                                                                                 |
+| `proxy`           | `ProxyConfig?`          | `()`                | See [Proxy](#118-proxy).                                                                                                                                                     |
+| `socketConfig`    | `ClientSocketConfig`    | `{}`                | Socket options: `connectTimeOut` (`15`), `receiveBufferSize` (`1048576`), `sendBufferSize` (`1048576`), `tcpNoDelay` (`true`), `socketReuse` (`true`) and `keepAlive` (`false`). |
+| `validation`      | `boolean`               | `true`              | Whether constraint validation is applied to bound response payloads.                                                                                                         |
+| `laxDataBinding`  | `boolean`               | `false`             | Relaxed binding of JSON payloads to records, as for the [payload parameter](#76-payload-parameter).                                                                          |
+| `secureSocket`    | `ClientSecureSocket?`   | `()`                | TLS configuration. See [TLS](#163-client).                                                                                                                                   |
 
-##### 2.4.1.2 Caching
-An HTTP caching client uses the HTTP caching layer once `cache` config is enabled.
-```ballerina
-http:Client clientEP = check new ("http://localhost:9090",
-    cache = {
-        enabled: true, 
-        isShared: true 
-    }
-);
-```
+`PoolConfiguration` has the fields `maxActiveConnections` (`-1`, unlimited), `maxIdleConnections` (`100`), `waitTime` (`30`), `maxActiveStreamsPerConnection` (`100`), `minEvictableIdleTime` (`300`), `timeBetweenEvictionRuns` (`30`), `minIdleTimeInStaleState` (`300`) and `timeBetweenStaleEviction` (`30`). Their defaults are configurables of the same names.
 
-##### 2.4.1.3 Redirect
-Provide the redirection support for outbound requests internally considering the location header when `followRedirects`
-configs are defined.
-```ballerina
-http:Client clientEP = check new ("http://localhost:9090", 
-    followRedirects = { 
-        enabled: true, 
-        maxCount: 3 
-    }
-);
-```
+### 11.4. Feature composition
 
-##### 2.4.1.4 Retry
-Provides the retrying over HTTP requests when `retryConfig` is defined.
-```ballerina
-public type RetryConfig record {|
-    int count = 0;
-    decimal interval = 0;
-    float backOffFactor = 0.0;
-    decimal maxWaitInterval = 0;
-    int[] statusCodes = [];
-|};
-```
+The features of a client are applied in the following order, from the call outwards to the network. A feature is present only when it is configured.
 
-| Field             | Description                                                                                                                                                                                       |
-|-------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `count`           | Number of retries after the initial attempt. A request is sent at most `count + 1` times. The default `0` disables retrying.                                                                      |
-| `interval`        | Wait time in seconds before the first retry.                                                                                                                                                      |
-| `backOffFactor`   | Multiplier applied to the previous wait time before each subsequent retry. A value `<= 0.0` (the default) is treated as `1.0`, which keeps the wait constant. A value between `0.0` and `1.0` shrinks the wait. |
-| `maxWaitInterval` | Upper bound in seconds for the wait time computed using `backOffFactor`. The default `0` is treated as `60`. The first retry always waits `interval`, even if it exceeds this bound.              |
-| `statusCodes`     | HTTP response status codes on which the request is retried. Empty by default.                                                                                                                    |
+1. Circuit breaker
+2. Redirects
+3. Retry
+4. Cookies
+5. Caching
+6. Authentication
+7. The connection to the endpoint
 
-The client classifies failures into two kinds, and retries them as follows:
+Consequences of this order:
 
-1. **Network-level failures**: The request did not result in an HTTP response, e.g. connection failures, connection resets, idle timeouts and TLS handshake failures. These are retried regardless of `statusCodes`, as long as `count` allows another attempt.
-2. **Application-level failures**: The request resulted in an HTTP response whose status code is listed in `statusCodes`.
+- A call and all its retries count as one request for the circuit breaker.
+- The request to each redirect location is retried separately.
+- Authentication headers are added to each attempt, including retries.
+- A response served from the cache is not retried or redirected.
 
-Any other response, including `4XX` and `5XX` responses whose status codes are not listed in `statusCodes`, is returned to the caller without retrying. Therefore, if `statusCodes` is not configured, only network-level failures are retried. The status code based errors such as `http:ClientRequestError` and `http:RemoteServerError` returned during client data binding are created after the retry handling and do not trigger retries on their own.
+### 11.5. Caching
 
-When all the retries are exhausted, the outcome of the last attempt is returned:
-- If the last attempt received a response whose status code is listed in `statusCodes`, that response is returned. With data binding, it is then converted to the corresponding `http:ApplicationResponseError`.
-- If the last attempt failed with a network-level failure, that `http:ClientError` is returned.
+| Field            | Type            | Default                        | Meaning                                                                                       |
+|------------------|-----------------|--------------------------------|-----------------------------------------------------------------------------------------------|
+| `enabled`        | `boolean`       | `true`                         | Whether responses are cached.                                                                 |
+| `isShared`       | `boolean`       | `false`                        | Whether the cache is a shared cache. A shared cache does not store `private` responses, and honours `s-maxage`. |
+| `capacity`       | `int`           | `16`                           | Maximum number of cache entries.                                                              |
+| `evictionFactor` | `float`         | `0.2`                          | Fraction of the entries evicted when the cache is full. It MUST be in the range (0, 1].       |
+| `policy`         | `CachingPolicy` | `CACHE_CONTROL_AND_VALIDATORS` | Which responses are cached. See rule 2.                                                       |
 
-The wait time before the `n`th retry is calculated as follows:
-```
-wait(1) = interval
-wait(n) = min(wait(n - 1) * backOffFactor, maxWaitInterval)
-```
+1. Only responses to `GET` and `HEAD` requests are cached. Requests sent with `submit()` are not cached.
+2. With `CACHE_CONTROL_AND_VALIDATORS`, a response is stored only if it has a `Cache-Control` header and an `ETag` or `Last-Modified` header. With `RFC_7234`, this condition does not apply.
+3. A response is not stored when it has the `no-store` directive, when the request has the `no-store` directive, or when the cache is shared and the response has the `private` directive. Otherwise, it is stored when it has `max-age`, `s-maxage` with a shared cache, a `Cache-Control` header without `private`, or an `Expires` header, or when its status code is one of `200`, `203`, `204`, `206`, `300`, `301`, `404`, `405`, `410`, `414` and `501`.
+4. The cache key is the method and the path of the request. The host and the `Vary` header are not part of the key, so a stored response is reused for a request whose header fields named by `Vary` differ.
+5. A fresh cached response is returned without contacting the endpoint, unless the request or the cached response has the `no-cache` directive or the request has a `Pragma` header. Then the response is revalidated with a conditional request. A stale cached response is returned with a `Warning: 110` header when the request allows stale responses, and is revalidated otherwise.
+6. A response with a `2XX` or `3XX` status to a request with any method other than `GET` and `HEAD` invalidates the cached responses of the same path.
 
-For example, the following client sends a request at most five times, retrying on network-level failures and on `503 Service Unavailable` responses. The wait times between the attempts are 3, 6, 12 and 20 seconds, where the last one is capped by `maxWaitInterval`.
-```ballerina
-http:Client clientEP = check new ("http://localhost:9090",
-    retryConfig = {
-        count: 4,
-        interval: 3,
-        backOffFactor: 2.0,
-        maxWaitInterval: 20,
-        statusCodes: [503]
-    }
-);
-```
+### 11.6. Redirects
 
-The following behaviours also apply to the retry client:
-- The client `timeout` applies to each attempt separately. The worst-case duration of a single call is roughly `(count + 1) * timeout` plus the sum of the wait times. In the current implementation, when the last attempt fails with a network-level error, the client waits once more before returning the error, which adds one more wait time to this duration ([ballerina-library#9450](https://github.com/ballerina-platform/ballerina-library/issues/9450)).
-- Requests are retried regardless of the HTTP method, including non-idempotent methods such as `POST` and `PATCH`. Configure retrying only when the remote service can safely handle duplicate requests.
-- The request payload is built in memory before the first attempt so that it can be resent. This applies to streaming and passthrough payloads as well.
-- When `circuitBreaker` is also configured, the circuit breaker wraps the retry client. Therefore, a call and all of its retries are counted as a single request by the circuit breaker.
-- When `followRedirects` is enabled, the redirect client wraps the retry client. The request to each redirect location is retried independently.
+| Field              | Type      | Default | Meaning                                                                                   |
+|--------------------|-----------|---------|-------------------------------------------------------------------------------------------|
+| `enabled`          | `boolean` | `false` | Whether redirects are followed. When `false`, the field has no effect.                    |
+| `maxCount`         | `int`     | `5`     | Maximum number of redirects followed for one call.                                        |
+| `allowAuthHeaders` | `boolean` | `false` | Whether authentication headers are sent to redirect locations.                            |
 
-##### 2.4.1.5 Circuit breaker
-A Circuit Breaker implementation which can be used to gracefully handle network failures.
-```ballerina
-http:Client clientEP = check new ("http://localhost:9090", 
-    circuitBreaker = {
-        rollingWindow: {
-            timeWindow: 60,
-            bucketSize: 20,
-            requestVolumeThreshold: 0
-        },
-        failureThreshold: 0.3,
-        resetTime: 2,
-        statusCodes: [500, 501, 502, 503]
-    }
-);
-```
+1. Responses with the status codes `300`, `301`, `302`, `303`, `305`, `307` and `308` are followed. Other responses are returned.
+2. For `301`, `302` and `303`, the request to the redirect location uses `GET`. For the other codes, it uses the original method and payload. The payload of a request with a method other than `GET`, `HEAD` and `OPTIONS` is read into memory before the first request so that it can be resent.
+3. The redirect location is the `Location` header of the response. A relative location is resolved against the URL of the request. A response without a `Location` header makes the call return a `ClientError`.
+4. The request to the redirect location uses the configuration of the client.
+5. Unless `allowAuthHeaders` is `true`, the `Authorization` and `Proxy-Authorization` headers are removed, and configured `auth` is not applied, for redirect locations.
+6. When `maxCount` redirects have been followed, the last redirect response is returned. The `resolvedRequestedURI` field of the response is the URL of the last request.
+7. Redirects are followed for `get`, `post`, `put`, `patch`, `delete`, `head`, `options` and their resource method forms, and for `execute` with a standard method. They are not followed for `forward`, `submit` and `execute` with a custom method.
+8. The redirect count of a call is not affected by other calls.
 
-##### 2.4.1.6 Cookie
-Provides the cookie functionality across HTTP client actions. The support functions defined in the request can be 
-used to manipulate cookies.
-```ballerina
-http:Client clientEP = check new ("http://localhost:9090", 
-    cookieConfig = { 
-        enabled: true, 
-        persistentCookieHandler: myPersistentStore 
-    }
-);
-```
+For example, with `followRedirects: {enabled: true, maxCount: 3}`, a `POST` request that receives `302 Found` with `Location: /store/albums/a1` is followed by a `GET` request to that location, and one that receives `307 Temporary Redirect` is followed by a `POST` request with the same payload (rule 2).
 
-Following clients can be created separately as it requires different configurations.
+### 11.7. Cookies
 
-##### 2.4.1.7 Load balance
-LoadBalanceClient endpoint provides load balancing functionality over multiple HTTP clients. It uses the
-LoadBalanceClientConfiguration. 
-```ballerina
-public type LoadBalanceClientConfiguration record {|
-    *CommonClientConfiguration;
-    TargetService[] targets = [];
-    LoadBalancerRule? lbRule = ();
-    boolean failover = true;
-|};
+| Field                     | Type                       | Default | Meaning                                                                         |
+|---------------------------|----------------------------|---------|---------------------------------------------------------------------------------|
+| `enabled`                 | `boolean`                  | `false` | Whether cookies are stored and sent.                                            |
+| `maxCookiesPerDomain`     | `int`                      | `50`    | Maximum number of cookies stored for one domain.                                |
+| `maxTotalCookieCount`     | `int`                      | `3000`  | Maximum number of cookies stored.                                               |
+| `blockThirdPartyCookies`  | `boolean`                  | `true`  | Whether cookies for other domains are rejected.                                 |
+| `persistentCookieHandler` | `PersistentCookieHandler`  | absent  | Store of persistent cookies. Without it, persistent cookies are not stored.     |
 
-http:LoadBalanceClient clientEP = check new (
-    targets = [
-        { url: "http://localhost:8093/LBMock1" },
-        { url: "http://localhost:8093/LBMock2" },
-        { url: "http://localhost:8093/LBMock3" }
-    ],
-    timeout = 5
-);
-```
+1. Cookies of `Set-Cookie` headers in responses are stored. A cookie that would exceed a limit is not stored, and the error is logged. It is not returned to the caller.
+2. When `blockThirdPartyCookies` is `true`, a cookie whose `Domain` does not domain-match the host of the request, or whose `Path` does not path-match its path, is not stored. When it is `false`, the `Domain` and `Path` of cookies are not checked.
+3. A request includes the stored cookies whose domain and path match the request. A cookie with the `Secure` attribute is sent only over `https`.
 
-##### 2.4.1.8 Failover
-An HTTP client endpoint which provides failover support over multiple HTTP clients. It uses the
-FailoverClientConfiguration.
-```ballerina
-public type FailoverClientConfiguration record {|
-    *CommonClientConfiguration;
-    TargetService[] targets = [];
-    int[] failoverCodes = [501, 502, 503, 504];
-    decimal interval = 0;
-|};
+### 11.8. Proxy
 
-http:FailoverClient foBackendEP00 = check new (
-    timeout = 5,
-    failoverCodes = [501, 502, 503],
-    interval = 5,
-    targets = [
-        { url: "http://localhost:3467/inavalidEP" },
-        { url: "http://localhost:8080/echo00" },
-        { url: "http://localhost:8080/mockResource" },
-        { url: "http://localhost:8080/mockResource" }
-    ]
-)
-```
+| Field      | Type            | Default | Meaning                                         |
+|------------|-----------------|---------|-------------------------------------------------|
+| `host`     | `string`        | `""`    | Host of the proxy server.                       |
+| `port`     | `int`           | `0`     | Port of the proxy server.                       |
+| `userName` | `string`        | `""`    | User name for proxy authentication.             |
+| `password` | `string`        | `""`    | Password for proxy authentication.              |
+| `protocol` | `ProxyProtocol` | absent  | Proxy protocol. When absent, `HTTP` is used.    |
 
-##### 2.4.1.9 Status code binding client
+1. With `HTTP`, requests are sent through an HTTP proxy.
+2. With `SOCKS4`, requests are sent through a SOCKS version 4 proxy. `userName` is sent as the SOCKS4 user id, and `password` is ignored with a warning. The target host is resolved by the client.
+3. With `SOCKS5`, requests are sent through a SOCKS version 5 proxy, using `userName` and `password` for authentication. The target host is resolved by the proxy.
+4. SOCKS proxies are supported for `http://` and `https://` URLs, over HTTP/1.1 and HTTP/2.
+5. A proxy host that cannot be resolved makes the initialization return a `ClientError`.
+6. The deprecated `proxy` field of `ClientHttp1Settings` is used only when `httpVersion` is `HTTP_1_1` and the `proxy` field of the configuration is `()`. Setting it prints a deprecation warning.
 
-An HTTP status code binding client can be used to bind the response to the status code response records.
+> **Note:** `protocol` is optional rather than defaultable, so that a mapping value without `protocol` remains assignable to `ProxyConfig`.
+
+### 11.9. Response limits
+
+| Field                 | Type  | Default | Meaning                                                                                                                       |
+|-----------------------|-------|---------|-------------------------------------------------------------------------------------------------------------------------------|
+| `maxStatusLineLength` | `int` | `4096`  | Maximum length of the status line. A negative value is an initialization error.                                              |
+| `maxHeaderSize`       | `int` | `8192`  | Maximum total size of the response headers. A negative value is an initialization error.                                     |
+| `maxEntityBodySize`   | `int` | `-1`    | Maximum size of the body of each HTTP/1.x response. `-1` means no limit. A value less than `-1` is an initialization error. |
+
+1. A response whose status line or headers exceed the limit fails the request with a `ClientError`.
+2. `maxEntityBodySize` applies to each response on its own, and does not apply to HTTP/2 streams.
+3. When `maxEntityBodySize` is set, a response is not returned to the caller until its whole body has arrived. A response whose `Content-Length` header exceeds the limit, or whose body exceeds the limit as it arrives, fails the request with a `ClientError`, and the connection is closed. Responses that cannot have a body are not checked against their `Content-Length` header: responses to `HEAD` requests and `1XX`, `204` and `304` responses.
+4. The idle timeout keeps applying while the body arrives, and each part of the body that is read counts as activity. A response that stays idle before its body is complete fails the request with an `IdleTimeoutError`.
+
+### 11.10. Sending requests
+
+1. The client has a remote method for each standard method (`get`, `post`, `put`, `patch`, `delete`, `head`, `options`), a resource method for each of them, `execute` for any method, and `forward`, which sends an inbound `Request` with its own method.
+2. The payload of a request MAY be a `Request`, any `anydata` value, a `mime:Entity[]` for a multipart payload, or a `stream<byte[], io:Error?>`. It is serialized as follows:
+
+   | Payload                              | Serialization   | Default content type       |
+   |--------------------------------------|-----------------|----------------------------|
+   | `()`                                 | No body         | None                       |
+   | `string`                             | Text            | `text/plain`               |
+   | `xml`                                | XML             | `application/xml`          |
+   | `byte[]`, `stream<byte[], io:Error?>`| Bytes           | `application/octet-stream` |
+   | `mime:Entity[]`                      | Multipart       | `multipart/form-data`      |
+   | Any other `anydata`                  | JSON            | `application/json`         |
+
+3. The `Content-Type` of the request is the `mediaType` argument, else the `Content-Type` in the `headers` argument, else the default content type of the payload.
+4. When `mediaType` is `application/x-www-form-urlencoded` and the payload is an `anydata` value other than `string`, `xml` and `byte[]`, the payload MUST be convertible to `map<string>`, and is encoded as a form. Otherwise, the call returns a `ClientError`.
+5. In the resource method form, the path segments are joined with `/`. The values of query parameters are converted to strings, and the values of an array are joined with `,`. The name of a query parameter is the `name` field of its `@http:Query` annotation, or else its name. `http:QueryParams` MAY be used to pass several query parameters as one value.
+6. `head()` returns a `Response` without data binding.
+7. `submit()` sends a request and returns an `HttpFuture`, whose response is obtained with `getResponse()`. On HTTP/2 connections, `hasPromise()`, `getNextPromise()`, `getPromisedResponse()` and `rejectPromise()` handle the push promises of the response.
+
+#### 11.10.1. Example: Resource method calls
 
 ```ballerina
-final http:StatusCodeClient albumClient = check new ("localhost:9090");
+http:Client storeClient = check new ("localhost:9090/store");
 
-public type AlbumsOk record {|
+// GET /store/albums/a1
+Album album = check storeClient->/albums/a1;
+
+// GET /store/albums?genre=jazz&ids=1,2
+Album[] jazz = check storeClient->/albums(genre = "jazz", ids = [1, 2]);
+
+// POST /store/albums with Content-Type: application/json
+Album created = check storeClient->/albums.post({id: "a2", title: "Giant Steps"});
+
+// GET /store/albums/a1, returning the response without data binding
+http:Response response = check storeClient->get("/albums/a1");
+```
+
+The URL has no scheme, so `http://` is used (rule 1 of [Initialization](#112-initialization)).
+
+### 11.11. Response data binding
+
+The return type of a client call is determined by the `targetType` argument, which defaults to the contextually expected type. The response is converted to it as follows:
+
+1. If the request fails, the `ClientError` is returned.
+2. If `targetType` contains `Response`, the `Response` is returned, whatever its status code.
+3. If the status code is in the range `400` to `599`, a `ClientRequestError` (`4XX`) or a `RemoteServerError` (`5XX`) is returned. Its message is the reason phrase, and its detail has the `statusCode`, the `headers`, and the `body` of the response. The body is read as JSON for `application/json`, as XML for `application/xml`, as bytes for `application/octet-stream`, and as text otherwise. An empty body is `()`.
+4. If `targetType` is a stream of `SseEvent`, the `Content-Type` of the response MUST start with `text/event-stream`, and the events are returned as a stream, parsed as described in rule 8. Otherwise, a `PayloadBindingError` is returned. A union of a stream of `SseEvent` and other types is not supported.
+5. Otherwise, the payload is converted to `targetType` according to the `Content-Type` of the response, compared without parameters, as for the [payload parameter](#76-payload-parameter), with these differences:
+   - A `map<string>` is decoded from a form only for `application/x-www-form-urlencoded`.
+   - When the payload cannot be converted, a `PayloadBindingError` is returned.
+   - When the response has no body, `()` is returned if `targetType` contains `()`, and a `NoContentError` is returned otherwise.
+6. When `validation` is `true`, the constraints of `targetType` are validated. A violation results in a `PayloadValidationError`.
+7. `1XX`, `2XX` and `3XX` responses are converted by rule 5. A `3XX` response is not an error.
+8. A `text/event-stream` payload, bound by rule 4 or read with `Response.getSseEventStream()`, is parsed into events as follows:
+   - An event ends at an empty line, i.e. at `\n\n`, `\r\r` or `\r\n\r\n`. An incomplete event at the end of the payload is discarded.
+   - Each line is split at its first `:` into a field name and a value, and one leading space is removed from the value. A line without `:` is a field name with an empty value.
+   - A line whose field name is empty sets `comment`. The fields `id`, `event` and `retry` set the fields of the same name, and when one occurs more than once in an event, the last value is used. A `retry` value that is not an integer is ignored. Lines with other field names are ignored.
+   - The values of the `data` lines of an event are joined with `\n`, so that `data` is the value written by the server as described in [Server-sent events](#86-server-sent-events).
+   - Every event is returned, including an event without `data`, such as a comment sent to keep the connection alive.
+
+For example, when the service responds with `404 Not Found`:
+
+```ballerina
+Album|http:ClientError result = storeClient->/albums/a9;
+if result is http:ClientRequestError {
+    int status = result.detail().statusCode; // 404
+    anydata body = result.detail().body;     // the payload of the response
+}
+
+// The same response, returned without an error (rule 2)
+http:Response response = check storeClient->/albums/a9;
+```
+
+### 11.12. Status code client
+
+`StatusCodeClient` has the same configuration and methods as `Client`, but its `targetType` MUST be a status code response type or a union of them.
+
+1. The response is bound to the member of `targetType` whose status code is the status code of the response, or else to a member with the default status, i.e. a subtype of `DefaultStatusCodeResponse`.
+2. When no member matches, a `StatusCodeResponseBindingError` is returned: `StatusCodeBindingClientRequestError` for a `4XX` response, `StatusCodeBindingRemoteServerError` for a `5XX` response, and `StatusCodeResponseBindingError` otherwise. A `4XX` or `5XX` response that matches a member is not an error.
+3. The `headers` field is bound from the response headers. Each field of a record type is bound to the header named by the `name` of its `@http:Header` annotation, or else by its name. A field that is not optional MUST have a header.
+4. The `mediaType` field, when present in the type, is bound to the `Content-Type` of the response.
+5. The `body` field is bound as described in [Response data binding](#1111-response-data-binding).
+6. A failure to bind the headers, the media type or the body returns a `StatusCodeResponseDataBindingError`, and a failure to validate them returns a validation error. Each of these errors is a subtype of both `StatusCodeResponseBindingError` and the corresponding binding or validation error type of [Client errors](#1113-client-errors), and its detail has the field `fromDefaultStatusCodeMapping`, which is `true` when the response was bound by the default status.
+7. `head()`, `getResponse()` and `getPromisedResponse()` return a `Response`, as for `Client`, and are not bound to status code responses.
+
+#### 11.12.1. Example: Binding status code responses
+
+```ballerina
+type AlbumFound record {|
     *http:Ok;
-    Album[] body;
+    Album body;
 |};
 
-public function main() {
-    // Status code response binding with generic type 
-    http:Ok|error response1 = albumClient->/v1/albums;
-    
-    // Status code response binding with specific body type
-    AlbumsOk|error response2 = albumClient->/v1/albums;
+http:StatusCodeClient storeClient = check new ("localhost:9090/store");
+
+AlbumFound|http:NotFound response = check storeClient->/albums/a1;
+if response is AlbumFound {
+    Album album = response.body;
 }
 ```
 
-##### 2.4.1.10 Relaxed data binding client
+A `404 Not Found` response is bound to `http:NotFound` and is not an error, while a `500 Internal Server Error` response results in a `StatusCodeBindingRemoteServerError` (rules 1 and 2).
 
-Enables relaxed data binding for the JSON payload binding process, allowing graceful handling of null values and absent fields 
-to reduce type conversion errors and better align with inconsistent API responses.
+### 11.13. Client errors
 
-The following additional rules applies to data projection used for the relaxed data binding,
+The errors returned by clients are subtypes of `ClientError`:
 
-- For fields that are marked as optional but non-nullable, null values in the response are treated as absent fields instead of causing
-runtime failures.
-- For required fields that are absent in the response are treated as null values instead of causing runtime failures.
+| Error                                                                   | Condition                                                                                    |
+|-------------------------------------------------------------------------|----------------------------------------------------------------------------------------------|
+| `OutboundRequestError` and its subtypes                                 | The request could not be written.                                                            |
+| `InboundResponseError` and its subtypes                                 | The response could not be read.                                                              |
+| `IdleTimeoutError`                                                      | The idle timeout elapsed.                                                                    |
+| `ClientConnectorError`                                                  | The connection to the endpoint failed.                                                       |
+| `SslError`                                                              | The TLS handshake or configuration failed.                                                   |
+| `ClientAuthError`                                                       | The authentication headers could not be created.                                             |
+| `ApplicationResponseError` (`ClientRequestError`, `RemoteServerError`)  | The response has a `4XX` or `5XX` status and data binding was requested.                     |
+| `NoContentError`                                                        | The response has no body and `targetType` is not nilable.                                    |
+| `ResiliencyError` and its subtypes                                      | A resiliency feature failed. See [Resiliency](#12-resiliency).                               |
+| `StatusCodeResponseBindingError` and its subtypes                       | A `StatusCodeClient` response could not be bound.                                            |
+| `GenericClientError`                                                    | Any other failure, including invalid configuration.                                         |
+
+Binding and validation errors are also of the types `PayloadBindingError`, `PayloadValidationError`, `HeaderBindingError` and `MediaTypeBindingError`, which MAY be used to test for them.
+
+## 12. Resiliency
+
+### 12.1. Retry
+
+| Field             | Type      | Default | Meaning                                                                                                                                                                                                |
+|-------------------|-----------|---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `count`           | `int`     | `0`     | Number of retries after the initial attempt. A request is sent at most `count + 1` times. `0` disables retrying.                                                                                      |
+| `interval`        | `decimal` | `0`     | Wait time before the first retry.                                                                                                                                                                      |
+| `backOffFactor`   | `float`   | `0.0`   | Multiplier applied to the previous wait time before each later retry. A value less than or equal to `0.0` is treated as `1.0`, which keeps the wait time constant. A value between `0.0` and `1.0` shrinks the wait time. |
+| `maxWaitInterval` | `decimal` | `0`     | Upper bound of the wait times computed using `backOffFactor`. `0` is treated as `60`. The first retry always waits `interval`, even if it exceeds this bound.                                         |
+| `statusCodes`     | `int[]`   | `[]`    | Response status codes on which the request is retried.                                                                                                                                                 |
+
+1. The client sends the request.
+2. If the attempt results in a network-level failure, or in a response whose status code is in `statusCodes`, and fewer than `count` retries have been made, the client waits as given by rule 4 and goes to step 1.
+3. Otherwise, the client returns the outcome of the last attempt: the response, including a response whose status code is in `statusCodes`, or the `ClientError`. A response is then converted as described in [Response data binding](#1111-response-data-binding), so a `4XX` or `5XX` response becomes an `ApplicationResponseError` after the retries.
+4. The wait time before the first retry is `interval`. The wait time before each later retry is the previous wait time multiplied by `backOffFactor`, capped at `maxWaitInterval`.
+5. Responses whose status codes are not in `statusCodes`, including `4XX` and `5XX` responses, are not retried. Therefore, when `statusCodes` is empty, only network-level failures are retried.
+6. Requests are retried whatever their method, including non-idempotent methods such as `POST` and `PATCH`.
+7. The payload of the request is read into memory before the first attempt so that it can be resent. This includes streamed payloads.
+8. The client `timeout` applies to each attempt separately.
+
+#### 12.1.1. Example: Wait times
+
+The following client sends a request at most five times, retrying on network-level failures and on `503 Service Unavailable` responses. The wait times between the attempts are 3, 6, 12 and 20 seconds, where the last one is capped by `maxWaitInterval`.
 
 ```ballerina
-final http:Client relaxedClientEP = check new ("http://localhost:9090", laxDataBinding = true);
+http:Client clientEP = check new ("http://localhost:9090",
+    retryConfig = {count: 4, interval: 3, backOffFactor: 2.0, maxWaitInterval: 20, statusCodes: [503]}
+);
 ```
 
-##### 2.4.1.11 Proxy
+### 12.2. Circuit breaker
 
-The client can route its outbound requests through a proxy server configured via the top-level `proxy` field
-(`ProxyConfig`). The `protocol` field selects the proxy protocol:
+| Field                                  | Type      | Default | Meaning                                                                                                                       |
+|----------------------------------------|-----------|---------|-------------------------------------------------------------------------------------------------------------------------------|
+| `rollingWindow.timeWindow`             | `decimal` | `60`    | Duration of the window over which requests are counted.                                                                      |
+| `rollingWindow.bucketSize`             | `decimal` | `10`    | Duration of each bucket of the window. It MUST NOT be greater than `timeWindow`, otherwise the initialization returns a `ClientError`. |
+| `rollingWindow.requestVolumeThreshold` | `int`     | `10`    | Minimum number of requests in the window before the circuit can change its state.                                            |
+| `failureThreshold`                     | `float`   | `0.0`   | Failure ratio above which the circuit opens. It MUST be in the range [0, 1], otherwise the initialization panics with a `CircuitBreakerConfigError`. |
+| `resetTime`                            | `decimal` | `0`     | Duration for which the circuit stays open before it lets a request through.                                                  |
+| `statusCodes`                          | `int[]`   | `[]`    | Response status codes counted as failures.                                                                                    |
 
-```ballerina
-public enum ProxyProtocol {
-    HTTP,
-    SOCKS4,
-    SOCKS5
-}
+1. A request _fails_ when it results in a `ClientError`, including the outcome of exhausted retries, or in a response whose status code is in `statusCodes`. Otherwise, it succeeds.
+2. The window is divided into `timeWindow / bucketSize` buckets, each counting the requests, failures and rejected requests in its period. Buckets older than `timeWindow` are discarded. When no request is made for longer than `timeWindow`, all the buckets are discarded.
+3. The circuit has three states, and is evaluated when a request is made:
+   - **Closed**: The request is sent. When the window has at least `requestVolumeThreshold` requests and the ratio of failures to the requests that were not rejected is greater than `failureThreshold`, the circuit becomes open before the request is sent.
+   - **Open**: The request is not sent, and the call returns an `UpstreamServiceUnavailableError`. When more than `resetTime` has passed since the last failure, or since the circuit was forced open, the circuit becomes half-open and the request is sent.
+   - **Half-open**: The request is sent. When the window has at least `requestVolumeThreshold` requests, the circuit becomes closed if the last completed request succeeded, and open otherwise. The number of requests sent while the circuit is half-open is not limited.
+4. `circuitBreakerForceOpen()` opens the circuit, `circuitBreakerForceClose()` closes it and discards the buckets, and `getCircuitBreakerCurrentState()` returns the state of the circuit as of the last request. These methods panic with a `ClientError` when the client has no circuit breaker.
 
-public type ProxyConfig record {|
-    string host = "";
-    int port = 0;
-    string userName = "";
-    string password = "";
-    ProxyProtocol protocol?;
-|};
-```
-
-The `protocol` field is optional rather than defaultable. When it is not specified, `HTTP` is used. Keeping it optional means a mapping value that does not carry `protocol` stays assignable to `ProxyConfig`, which preserves the record's subtyping relationship with the pre-SOCKS shape used by generated connectors.
-
-- `http:HTTP` (default) — a standard HTTP proxy. Existing behaviour is unchanged.
-- `http:SOCKS4` — a SOCKS version 4 proxy. SOCKS4 does not support password authentication; the optional `userName`
-  is sent as the SOCKS4 user id, and any configured `password` is ignored with a warning. DNS resolution of the
-  target host is performed on the client side.
-- `http:SOCKS5` — a SOCKS version 5 proxy. Supports `userName`/`password` authentication, and DNS resolution of the
-  target host is performed remotely on the proxy side.
-
-SOCKS proxies are supported for both plaintext (`http://`) and TLS (`https://`) targets over HTTP/1.1 and HTTP/2.
-
-The `proxy` field of `ClientHttp1Settings` is deprecated and is annotated with `@deprecated`, so referencing it produces a compile time warning. It is honoured only when `httpVersion` is `http:HTTP_1_1`, and only when the top-level `proxy` field is not set; the top-level field always takes precedence.
+#### 12.2.1. Example: Opening and closing the circuit
 
 ```ballerina
-http:Client clientEP = check new ("https://api.example.com",
-    proxy = {
-        host: "localhost",
-        port: 1080,
-        protocol: http:SOCKS5
+http:Client storeClient = check new ("localhost:9090/store",
+    circuitBreaker = {
+        rollingWindow: {timeWindow: 60, bucketSize: 10, requestVolumeThreshold: 4},
+        failureThreshold: 0.5,
+        resetTime: 30,
+        statusCodes: [500, 503]
     }
 );
 ```
 
-##### 2.4.1.12 Response limits
+Suppose the first four calls receive `503`, `200`, `503` and `503` responses. When the fifth call is made, the window has four requests, three of which failed, and the failure ratio `0.75` is greater than `0.5`. The circuit becomes open, and the call returns an `UpstreamServiceUnavailableError` without sending the request. Calls made within 30 seconds of the last failure are rejected in the same way. The first call after that is sent with the circuit half-open, and if it succeeds, the circuit becomes closed (rules 1 and 3).
 
-The `responseLimits` field of the `ClientConfiguration` bounds the size of inbound responses.
+### 12.3. Load balance client
 
-```ballerina
-public type ResponseLimitConfigs record {|
-    int maxStatusLineLength = 4096;
-    int maxHeaderSize = 8192;
-    int maxEntityBodySize = -1;
-|};
-```
+`LoadBalanceClient` distributes requests over the endpoints of `targets`. Its configuration has the fields of `ClientConfiguration` except `secureSocket`, which is configured per target, and the following fields:
 
-- `maxStatusLineLength` - A status line longer than this fails the request with an `http:ClientError`.
-- `maxHeaderSize` - Response headers larger than this fail the request with an `http:ClientError`.
-- `maxEntityBodySize` - The maximum size, in bytes, of the body of each response. The default `-1` means no limit.
+| Field      | Type                | Default | Meaning                                                                     |
+|------------|---------------------|---------|-----------------------------------------------------------------------------|
+| `targets`  | `TargetService[]`   | `[]`    | The endpoints, each with a `url` and an optional `secureSocket`.            |
+| `lbRule`   | `LoadBalancerRule?` | `()`    | Rule that selects the endpoint of a request. `()` means round robin.        |
+| `failover` | `boolean`           | `true`  | Whether a request that fails is sent to the next endpoint.                  |
 
-`maxEntityBodySize` applies to each response on its own, so the responses received on a reused connection do not share one budget. It applies to HTTP/1.x responses; HTTP/2 streams are not checked against it.
+1. With round robin, the endpoints are selected in order, starting from the first, and the position is shared by all the calls and attempts of the client.
+2. When an attempt results in a `ClientError` and `failover` is `true`, the request is sent to the next endpoint selected by the rule. A response is returned whatever its status code. The payload of the request is read into memory so that it can be resent.
+3. When all the endpoints fail, the call returns an `AllLoadBalanceEndpointsFailedError` whose message includes the last error. When `failover` is `false`, the first error is returned.
+4. `submit()`, `getResponse()`, `getNextPromise()` and `getPromisedResponse()` return an `UnsupportedActionError`, `hasPromise()` returns `false`, and `execute()` with a custom method returns an `UnsupportedActionError`.
+5. When `targets` is empty, the initialization returns a `ClientError`.
 
-When the limit is set, a response is not returned to the caller until its whole body has arrived. A response whose `Content-Length` header is over the limit, or whose body goes over the limit as it arrives, fails the request with an `http:ClientError`, and the connection is closed. A response that cannot carry a body is not checked against its `Content-Length` header: a response to a `HEAD` request and a `1xx`, `204` or `304` response.
-
-The idle `timeout` of the client keeps applying while the body arrives, and each part of the body that is read counts as activity. A response that stays idle before its body is complete fails the request with an `http:IdleTimeoutError`.
+#### 12.3.1. Example: Round robin with failover
 
 ```ballerina
-http:Client limitedClient = check new ("http://api.example.com", responseLimits = {maxEntityBodySize: 1048576});
-```
-
-##### 2.4.2. Client action
-
-The HTTP client contains separate remote method representing each HTTP method such as `get`, `put`, `post`,
-`delete`,`patch`,`head`,`options` and some custom remote methods.
-
-###### 2.4.2.1 Entity body methods
- 
-POST, PUT, DELETE, PATCH methods are considered as entity body methods. These remote methods contains RequestMessage
-as the second parameter to send out the Request or Payload. 
-
-```ballerina
-public type RequestMessage Request|string|xml|json|byte[]|int|float|decimal|boolean|map<json>|table<map<json>>|
-                           (map<json>|table<map<json>>)[]|mime:Entity[]|stream<byte[], io:Error?>|();
-```
-
-Based on the payload types respective header value is added as the `Content-type` of the `http:Request`.
-
-| Type                                                                  | Content Type             |
-|-----------------------------------------------------------------------|--------------------------|
-| ()                                                                    | -                        |
-| string                                                                | text/plain               |
-| xml                                                                   | application/xml          |
-| byte[], stream<byte[], io:Error?>                                     | application/octet-stream |
-| int, float, decimal, boolean                                          | application/json         |
-| map\<json\>, table<map\<json\>>, map\<json\>[], table<map\<json\>>)[] | application/json         |
-
-The header map and the mediaType param are optional for entity body remote methods.
-
-```ballerina
-# The post() function can be used to send HTTP POST requests to HTTP endpoints.
-remote isolated function post(string path, RequestMessage message, map<string|string[]>? headers = (),
-        string? mediaType = (), TargetType targetType = <>)
-        returns targetType|ClientError;
-
-# The put() function can be used to send HTTP PUT requests to HTTP endpoints.
-remote isolated function put(string path, RequestMessage message, map<string|string[]>? headers = (),
-        string? mediaType = (), TargetType targetType = <>)
-        returns targetType|ClientError;
-
-# The patch() function can be used to send HTTP PATCH requests to HTTP endpoints.
-remote isolated function patch(string path, RequestMessage message, map<string|string[]>? headers = (),
-        string? mediaType = (), TargetType targetType = <>)
-        returns targetType|ClientError;
-
-# The delete() function can be used to send HTTP DELETE requests to HTTP endpoints.
-remote isolated function delete(string path, RequestMessage message = (), map<string|string[]>? headers = (),
-        string? mediaType = (), TargetType targetType = <>)
-        returns targetType|ClientError;
-```
-
-```ballerina
-http:Client httpClient = check new ("https://www.example.com");
-string response = check httpClient->post("/some/endpoint",
-   {
-       name: "foo",
-       age: 25,
-       address: "area 51"
-   },
-   headers = {
-       "my-header": "my-header-value"
-   }
-   mediaType = "application/json",
-);
-```
-
-###### 2.4.2.2 Non Entity body methods
-
-GET, HEAD, OPTIONS methods are considered as non entity body methods. These remote methods do not contain 
-RequestMessage, but the header map an optional param.
-
-```ballerina
-# The head() function can be used to send HTTP HEAD requests to HTTP endpoints.
-remote isolated function head(string path, map<string|string[]>? headers = ()) returns Response|ClientError;
-
-# The get() function can be used to send HTTP GET requests to HTTP endpoints.
-remote isolated function get( string path, map<string|string[]>? headers = (), TargetType targetType = <>)
-        returns  targetType|ClientError;
-
-# The options() function can be used to send HTTP OPTIONS requests to HTTP endpoints.
-remote isolated function options( string path, map<string|string[]>? headers = (), TargetType targetType = <>)
-        returns  targetType|ClientError;
-```
-
-````ballerina
-http:Client httpClient = check new ("https://www.example.com");
-map<string|string[]> headers = {
-   "my-header": "my-header-value",
-   "header-2": ["foo", "bar"]
-};
-string resp = check httpClient->get("/data", headers);
-````
-
-###### 2.4.2.3 Resource methods
-
-In addition to the above remote method actions, HTTP client supports executing standard HTTP methods through resource 
-methods. The following are the definitions of those resource methods :
-
-```ballerina
-# Defines the path parameter types.
-public type PathParamType boolean|int|float|decimal|string;
-
-# The post resource method can be used to send HTTP POST requests to HTTP endpoints.
-resource function post [PathParamType ...path](RequestMessage message, map<string|string[]>? headers = (), string? mediaType = (),
-            TargetType targetType = <>, *QueryParams params) returns targetType|ClientError;
-
-# The put resource method can be used to send HTTP PUT requests to HTTP endpoints.            
-resource function put [PathParamType ...path](RequestMessage message, map<string|string[]>? headers = (), string? mediaType = (),
-            TargetType targetType = <>, *QueryParams params) returns targetType|ClientError;
-
-# The patch resource method can be used to send HTTP PATCH requests to HTTP endpoints.              
-resource function patch [PathParamType ...path](RequestMessage message, map<string|string[]>? headers = (), string? mediaType = (),
-            TargetType targetType = <>, *QueryParams params) returns targetType|ClientError;
-
-# The delete resource method can be used to send HTTP DELETE requests to HTTP endpoints.              
-resource function delete [PathParamType ...path](RequestMessage message = (), map<string|string[]>? headers = (), string? mediaType = (),
-            TargetType targetType = <>, *QueryParams params) returns targetType|ClientError;
-
-# The head resource method can be used to send HTTP HEAD requests to HTTP endpoints.              
-resource function head [PathParamType ...path](map<string|string[]>? headers = (), *QueryParams params)
-            returns Response|ClientError; 
-
-# The get resource method can be used to send HTTP GET requests to HTTP endpoints.              
-resource function get [PathParamType ...path](map<string|string[]>? headers = (), TargetType targetType = <>,
-            *QueryParams params) returns targetType|ClientError;
-
-# The options resource method can be used to send HTTP OPTIONS requests to HTTP endpoints.              
-resource function options [PathParamType ...path](map<string|string[]>? headers = (), TargetType targetType = <>,
-            *QueryParams params) returns targetType|ClientError;                                               
-```
-
-* Path parameter
-
-Path parameters can be specified in the resource invocation along with the type.
-The supported types are `string`, `int`, `float`, `boolean`, and `decimal`.
-
-```ballerina
-// Making a GET request
-string 'from = "2022-10-31";
-string to = "2023-10-29";
-http:Client httpClient = check new ("https://www.example.com");
-string resp = check httpClient->/date/['from]/[to];
-// Same as the following :
-// string response = check httpClient->get("/date/2022-10-31/2023-10-29");
-```
-
-```ballerina
-// Making a POST request
-string profession = "chemist";
-json payload = {
-   name: "Jesse Pinkman",
-   age: 25
-};
-string response = check httpClient->/addPerson/[profession].post(payload);
-// Same as the following :
-// string response = check httpClient->post("/addPerson/chemist", payload);
-```
-
-* Query parameter
-
-A query parameter is passed as a key-value pair in the resource method call.
-The supported types are `string`, `int`, `float`, `boolean`, `decimal`, and the `array` types of the aforementioned types.
-The query param type can be nil as well.
-```ballerina
-// Making a GET request
-string resp = check httpClient->/date(id = 123);
-// Same as the following :
-// string response = check httpClient->get("/date?id=123");
-```
-```ballerina
-// Making a POST request
-json payload = {
-   name: "Jesse Pinkman",
-   age: 25
-};
-string response = check httpClient->/addPerson.post(payload, profession = "chemist", id = 123);
-// Same as the following :
-// string response = check httpClient->post("/addPerson?profession=chemist&id=123", payload);
-```
-
-The `http:QueryParams` type represents a collection of query parameters and is defined as follows.
-
-```ballerina
-// Defines the possible simple query parameter types.
-public type SimpleQueryParamType boolean|int|float|decimal|string;
-
-// Defines the possible query parameter types.
-public type QueryParamType SimpleQueryParamType[]|SimpleQueryParamType;
-
-// Defines the record type for query parameters.
-public type QueryParams record {|
-    never headers?;
-    never targetType?;
-    never message?;
-    never mediaType?;
-    QueryParamType...;
-|};
-```
-
-Multiple query parameters can be passed together using an `http:QueryParams` value, which can then be passed to the resource method using the `params` parameter.
-
-```ballerina
-// Making a GET request
-http:QueryParams queries = {
-   id: 123,
-   profession: "chemist"
-};
-string resp = check httpClient->/date(params = queries);
-// Same as the following :
-// string response = check httpClient->get("/date?id=123&profession=chemist");
-```
-
-Query parameters can also be passed inline if the value is structurally compatible with `http:QueryParams`.
-
-```ballerina
-// Passing multiple query parameters as an inline value.
-string resp = check httpClient->/date(params = {
-    id: 123,
-    profession: "chemist"
+http:LoadBalanceClient storeClient = check new ({
+    targets: [{url: "http://a.example.com"}, {url: "http://b.example.com"}, {url: "http://c.example.com"}],
+    timeout: 5
 });
 ```
 
-* Header parameter
+Successive calls are sent to `a`, `b` and `c` in turn. If the call sent to `b` fails with a network-level failure, it is resent to `c`, and the next call is sent to `a`, because the position is shared by all calls and attempts (rules 1 and 2).
 
-The headers to a resource method can be provided as `map<string|string[]>`.
+### 12.4. Failover client
 
-```ballerina
-// Making a GET request
-map<string|string[]> headers = {
-   "my-header": "my-header-value",
-   "header-2": ["foo", "bar"]
-};
-string resp = check httpClient->/date(headers);
-// Same as the following :
-// string response = check httpClient->get("/date", headers);
-```
+`FailoverClient` sends a request to the endpoints of `targets` one at a time until one succeeds. Its configuration has the fields of `ClientConfiguration` except `secureSocket`, and the following fields:
 
-```ballerina
-// Making a POST request
-json payload = {
-   name: "Jesse Pinkman",
-   age: 25
-};
-map<string> headers = { "my-header": "my-header-value" };
-string response = check httpClient->/addPerson.post(payload, headers, "application/json");
-// Same as the following :
-// string response = check httpClient->post("/addPerson", payload, headers, "application/json");
-```
+| Field           | Type              | Default                | Meaning                                                           |
+|-----------------|-------------------|------------------------|-------------------------------------------------------------------|
+| `targets`       | `TargetService[]` | `[]`                   | The endpoints, each with a `url` and an optional `secureSocket`.  |
+| `failoverCodes` | `int[]`           | `[501, 502, 503, 504]` | Response status codes on which the next endpoint is tried.        |
+| `interval`      | `decimal`         | `0`                    | Wait time between attempts.                                       |
 
-###### 2.4.2.4 Forward/Execute methods
+1. A call starts with the endpoint that last succeeded, initially the first one, and tries the endpoints in order, wrapping around, until each has been tried once.
+2. An attempt fails when it results in a `ClientError` or in a response whose status code is in `failoverCodes`.
+3. When all the endpoints fail, the call returns a `FailoverAllEndpointsFailedError` whose message includes the last error or the last response, and whose detail field `failoverErrors` has the error of each attempt. An attempt that failed with a status code is represented by a `FailoverActionFailedError`.
+4. `getSucceededEndpointIndex()` returns the index of the endpoint that last succeeded.
+5. `hasPromise()` returns `false`, and `getNextPromise()` and `getPromisedResponse()` return an `UnsupportedActionError`.
+6. When `targets` is empty, the initialization returns a `ClientError`.
 
-In addition to the standard HTTP methods, `forward` function can be used to proxy an inbound request using the incoming 
-HTTP request method. Also `execute` remote method is useful to send request with custom HTTP verbs such as `move`, 
-`copy` and etc.
-
+#### 12.4.1. Example: Failing over to a backup
 
 ```ballerina
-# Invokes an HTTP call with the specified HTTP verb.
-remote isolated function execute(string httpVerb,  string path, RequestMessage message, 
-        map<string|string[]>? headers = (), string? mediaType = (), TargetType targetType = <>)
-        returns targetType|ClientError;
-
-# The forward() function can be used to invoke an HTTP call with inbound request's HTTP verb
-remote isolated function forward(string path, Request request, TargetType targetType = <>)
-        returns  targetType|ClientError;
+http:FailoverClient storeClient = check new ({
+    targets: [{url: "http://primary.example.com"}, {url: "http://backup.example.com"}],
+    failoverCodes: [503],
+    interval: 1,
+    timeout: 5
+});
 ```
 
-###### 2.4.2.5 HTTP2 additional methods
-Following are the HTTP2 client related additional remote methods to deal with promises and responses.
+When the primary endpoint responds with `503 Service Unavailable`, the client waits one second and sends the request to the backup endpoint, whose response is returned. Later calls start with the backup endpoint, which succeeded last (rule 1). A `500 Internal Server Error` response from the primary endpoint is returned without trying the backup endpoint, because `500` is not in `failoverCodes` (rule 2).
 
-```ballerina
+## 13. Message body streaming and back-pressure
 
-# Submits an HTTP request to a service with the specified HTTP verb.
-# The submit() function does not give out a http:Response as the result.
-# Rather it returns an http:HttpFuture which can be used to do further interactions with the endpoint.
-remote isolated function submit(string httpVerb, string path, RequestMessage message)
-    returns HttpFuture|ClientError;
+1. Message bodies are transferred on demand rather than buffered in full, unless a rule of this specification requires the body to be read in full. An inbound body is read from the connection as the application consumes it, and an outbound body is written as the remote endpoint accepts it. While an application consumes or produces a body slowly, no data moves on the connection.
+2. Inactivity caused by the pace of the application does not count towards the idle timeout of a listener or a client. A remote endpoint that stops responding is still timed out.
+   - For HTTP/2, this applies to both directions of a stream.
+   - For HTTP/1.x, this applies to reading a body only. A remote endpoint that reads a body slowly is not distinguished from one that has stopped responding.
+3. A transfer that makes no progress is treated as stalled once the idle timeout has elapsed once for it, and is excused for up to `maxBackPressureStallTime` more before the idle timeout applies. Any progress restarts this period. A transfer that never makes progress again is therefore closed after the idle timeout plus `maxBackPressureStallTime`.
+4. `maxBackPressureStallTime` is a configurable of type `decimal` whose default is `300`. A negative value lets a stalled transfer wait indefinitely. `0` removes the allowance, so that any inactivity counts towards the idle timeout.
+5. An outbound body that fails part-way, such as a `stream<byte[], io:Error?>` or byte channel that returns an error, or a passthrough body whose source fails, is never ended as if it were complete:
+   - When a listener has sent nothing of the response, it sends a `500 Internal Server Error` without a body and without the headers of the response, and closes an HTTP/1.1 connection. This includes a response with `chunking` set to `NEVER`, whose body is held back until it is complete.
+   - Otherwise, the HTTP/1.1 connection is closed without ending the body, or the HTTP/2 stream is reset.
+   - A listener logs the failure as an error, since a resource that returned the response does not observe it.
 
-# Passes the request to actual network call.
-remote isolated function getResponse(HttpFuture httpFuture) returns Response|ClientError;
+For example, with a client `timeout` of `30` and the default `maxBackPressureStallTime` of `300`, an application that stops reading a response body can resume reading within 330 seconds. After that, the transfer is closed as idle (rule 3).
 
-# Passes the request to actual network call.
-remote isolated function hasPromise(HttpFuture httpFuture) returns boolean;
+## 14. Observability
 
-# Passes the request to actual network call.
-remote isolated function getNextPromise(HttpFuture httpFuture) returns PushPromise|ClientError;
+### 14.1. Trace logs
 
-# Passes the request to an actual network call.
-remote isolated function getPromisedResponse(PushPromise promise) returns Response|ClientError;
+Trace logs record the HTTP messages sent and received by listeners and clients. They are disabled by default.
 
-# Passes the request to actual network call.
-remote isolated function rejectPromise(PushPromise promise);
-```
+| Configurable                    | Type      | Default | Meaning                                         |
+|---------------------------------|-----------|---------|-------------------------------------------------|
+| `traceLogConsole`               | `boolean` | `false` | Whether trace logs are written to the console.  |
+| `traceLogAdvancedConfig`        | record    | `{}`    | Further destinations. See below.                |
 
-##### 2.4.3. Client action return types
+`traceLogAdvancedConfig` has the following fields:
 
-The HTTP client remote method supports the contextually expected return types. The client operation is able to 
-infer the expected payload type from the LHS variable type. This is called as client payload binding support where the 
-inbound response payload is accessed and parse to the expected type in the method signature. It is easy to access the
-payload directly rather manipulation `http:Response` using its support methods such as `getTextPayload()`, 
-`getJsonPayload()` and etc.
+| Field     | Type          | Default | Meaning                                                                                                    |
+|-----------|---------------|---------|------------------------------------------------------------------------------------------------------------|
+| `console` | `boolean`     | `false` | Whether trace logs are written to the console.                                                             |
+| `file`    | `LogFileConfig`  | absent  | File destination, with a `path` and an optional `rotation`. See [Log rotation](#143-log-rotation).         |
+| `path`    | `string`      | absent  | Deprecated since 2.16.0. Use `file`. File path of the trace logs. Ignored, with a warning, when `file` is set.                     |
+| `host`    | `string`      | absent  | Host of a socket destination. When `host` and `port` are set, trace logs are sent to it in JSON format.    |
+| `port`    | `int`         | absent  | Port of a socket destination. It MUST NOT be `0`.                                                          |
 
-Client data binding supports `anydata` and `stream<http:SseEvent>` where the payload is deserialized based on the media type before binding it 
-to the required type. Similar to the service data binding following table explains the compatible `anydata` types with 
-each common media type. In the absence of a standard media type, the binding type is inferred by the payload parameter 
-type itself. If the type is not compatible with the media type, error is returned.
+1. Console output is written to the standard error stream.
+2. Each record has the form `[yyyy-MM-dd HH:mm:ss,SSS] LEVEL {logger} - message`.
+3. An invalid configuration, or a socket destination that cannot be connected to, makes the initialization of the module fail.
 
-| Ballerina Type | Structure                     | "text" | "xml" | "json" | "x-www-form-urlencoded" | "octet-stream" | "event-stream" |
-|----------------|-------------------------------|:------:|:-----:|:------:|:-----------------------:|:--------------:|:--------------:|
-| boolean        |                               |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
-|                | boolean[]                     |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
-|                | map\<boolean\>                |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
-|                | table\<map\<boolean\>\>       |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
-| int            |                               |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
-|                | int[]                         |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
-|                | map\<int\>                    |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
-|                | table\<map\<int\>\>           |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
-| float          |                               |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
-|                | float[]                       |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
-|                | map\<float\>                  |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
-|                | table\<map\<float\>\>         |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
-| decimal        |                               |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
-|                | decimal[]                     |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
-|                | map\<decimal\>                |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
-|                | table\<map\<decimal\>\>       |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
-| byte[]         |                               |   ✅    |   ❌   |   ✅    |            ❌            |       ✅        |       ❌        |
-|                | byte[][]                      |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
-|                | map\<byte[]\>                 |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
-|                | table\<map\<byte[]\>\>        |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
-| string         |                               |   ✅    |   ❌   |   ✅    |            ✅            |       ❌        |       ❌        |
-|                | string[]                      |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
-|                | map\<string\>                 |   ❌    |   ❌   |   ✅    |            ✅            |       ❌        |       ❌        |
-|                | table\<map\<string\>\>        |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
-| xml            |                               |   ❌    |   ✅   |   ❌    |            ❌            |       ❌        |       ❌        |
-| json           |                               |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
-|                | json[]                        |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
-|                | map\<json\>                   |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
-|                | table\<map\<json\>\>          |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
-| map            |                               |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
-|                | map[]                         |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
-|                | map\<map\>                    |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
-|                | table\<map\<map\>\>           |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
-| record         |                               |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
-|                | record[]                      |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
-|                | map\<record\>                 |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
-|                | table\<record\>               |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
-| stream         |                               |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
-|                | stream<http:SseEvent, error?> |   ❌    |   ❌   |   ❌    |            ❌            |       ❌        |       ✅        |
-
-```ballerina
-http:Client httpClient = check new ("https://person.free.beeceptor.com");
-json payload = check httpClient->get("/data");
-```
-In case of using var as return type, user can pass the typedesc to the targetType argument.
-
-```ballerina
-http:Client httpClient = check new ("https://person.free.beeceptor.com");
-var payload = check httpClient->get("/data", targetType = json);
-```
-
-If any of the type is union with `()`(i.e `string?`), then in the absence of the payload, `()` will be assigned as
-the value without being responded by a `BAD REQUEST` response.
-
-```ballerina
-string? payload = check httpClient->get("/data");
-```
-
-When the user expects client data binding to happen, the HTTP error responses (4XX, 5XX) will be categorized as an 
-error (http:ClientRequestError, http:RemoteServerError) of the client remote operation. These error types contain 
-payload, headers and status code inside the error detail.
-
-```ballerina
-public type Detail record {
-    int statusCode;
-    map<string[]> headers;
-    anydata body;
-};
-```
-The error detail is useful when user wants to dig deeper to understand the backend failure. Here the error message 
-is the response phrase.
-
-```ballerina
-json|error result = httpClient->post("/backend/5XX", "payload");
-if result is http:RemoteServerError {
-    int statusCode = result.detail().statusCode;
-    anydata payload = result.detail().body;
-    map<string[]> headers = result.detail().headers;
-}
-```
-
-Additionally, the client action return type can be a union of `anydata`. Based on the media type, the potential binding
-type is decided. For example, if the union is defined as `json|xml` and the media type is related to `json`,
-the deserialization and the binding will proceed according to the type `json`. But if the media type is related to `xml`
-the process will happen according to the type `xml`.
-If the given types of the union are not compatible with the media type, an error is returned.
-
-```ballerina
-json|xml payload = check httpClient->get("/data");
-```
-
-If the type is union with `()`(i.e `string?`), then in the absence of the payload, `()` will be assigned as
-the value without being responded by a `BAD REQUEST` response.
-
-## 3. Request routing
-Ballerina dispatching logic is implemented to uniquely identify a resource based on the request URI and Method.
-
-### 3.1. URI and HTTP method match
-
-The ballerina dispatcher considers the absolute-resource-path of the service as the base path and the resource
-method name as the path of the resource method for the URI path match.
-Ballerina dispatching logic depends on the HTTP method of the request in addition to the URI. Therefore, matching only 
-the request path will not be sufficient. Once the dispatcher finds a resource, it checks for the method compatibility 
-as well. The accessor name of the resource describes the HTTP method where the name of the remote method implicitly 
-describes its respective method
-
-### 3.2. Most specific path match
-When discovering the resource, the complete path will be considered when figuring out the best match. Perhaps a 
-part of the request URI can be matched, yet they won’t be picked unless the longest is matched.
-
-### 3.3. Wild card path match
-The resource path can contain a template within the bracket along with the type which represents the wild card. 
-i.e `[string… s]`.That is some special way to say that if nothing matched, then the wildcard should be invoked. 
-When the best resource match does not exist, a resource with a wild card path can be stated in the API design to 
-get requests dispatched without any failure.  
-
-### 3.4. Path parameter template match
-PathParam is a parameter which allows you to map variable URI path segments into your resource call. Only the 
-resource methods allow this functionality where the resource name can have path templates as a path segment with 
-variable type and the identifier within curly braces.
-```ballerina
-resource function /foo/[string bar]() {
-    
-}
-```
-The value of the variable is extracted from the URI and assigned to the resource name parameter during the run-time 
-execution.
-
-## 4. Annotations
-   
-### 4.1. Service configuration
-The configurations stated in the http:ServiceConfig  changes the behavior of particular services and applies it to 
-all the resources mentioned in the particular services. Some configurations such as Auth, CORS can be overridden by 
-resource level configurations. Yet, the service config is useful to cover service level configs.
-
-```ballerina
-# ServiceConfig definition
-public type HttpServiceConfig record {|
-    string host = "b7a.default";
-    CompressionConfig compression = {};
-    Chunking chunking = CHUNKING_AUTO;
-    CorsConfig cors = {};
-    ListenerAuthConfig[] auth?;
-    string mediaTypeSubtypePrefix?;
-    boolean treatNilableAsOptional = true;
-    Interceptor|Interceptor[] interceptors?;
-    byte[] openApiDefinition = [];
-|};
-
-@http:ServiceConfig {
-    chunking: http:CHUNKING_ALWAYS
-}
-service on testListener {
-    
-}
-```
-
-The `openApiDefinition` field in http:ServiceConfig annotation serves a unique purpose. It will be automatically 
-populated at compile-time with OpenAPI definition of the particular http:Service if the OpenAPI definition auto 
-generation is available.
-
-### 4.2. Resource configuration
-The resource configuration responsible for shaping the resource method. Most of the behaviours are provided from 
-the language itself such as path, HTTP verb as a part of resource method. Some other configs such as CORS, 
-compression, auth are defined in the resource config.
-
-```ballerina
-# ResourceConfig definition
-public type HttpResourceConfig record {|
-    string name?;
-    string[] consumes = [];
-    string[] produces = [];
-    CorsConfig cors = {};
-    boolean transactionInfectable = true;
-    ListenerAuthConfig[]|Scopes auth?;
-    LinkedTo[] linkedTo?;
-|};
-
-@http:ResourceConfig {
-    produces: ["application/json"]
-}
-resource function post person() {
-
-}
-```
-
-### 4.3. Payload annotation
-The payload annotation has two usages. It is used to decorate the resource method payload parameter and to decorate 
-the resource return type. 
-
-```ballerina
-public type Payload record {|
-    string|string[] mediaType?;
-|}
-```
-
-#### 4.3.1. Payload binding parameter
-
-The request payload binding is supported in resource methods where users can access it through a resource method 
-parameter. The @http:Payload annotation is specially introduced to distinguish the request payload with other 
-resource method parameters. The annotation can be used to specify values such as mediaType...etc. Users can 
-define the potential request payload content type as the mediaType to perform some pre-validations as same as 
-Consumes resource config field.
-
-```ballerina
-resource function post person(@http:Payload {mediaType:["application/json", "application/ld+json"]} json payload)  {
-    
-}
-```
-
-During the runtime, the request content-type header is matched against the mediaType field value to validate. If the 
-validation fails, the listener returns an error response with the status code of 415 Unsupported Media Type. 
-Otherwise, the dispatching moves forward. 
-
-#### 4.3.2. Anydata return value info
-
-The same annotation can be used to specify the MIME type return value when a particular resource method returns 
-one of the anydata typed values. In this way users can override the default MIME type which the service type has 
-defined based on the requirement. Users can define the potential response payload content type as the mediaType 
-to perform some pre-runtime validations in addition to the compile-time validations as same as produces resource 
-config field.
-
-```ballerina
-resource function post person() returns @http:Payload{mediaType:"application/xml"} xml? {
-    
-}
-```
-
-During the runtime, the request accept header is matched against the mediaType field value to validate. If the 
-validation fails, the listener returns an error response with the status code of 406 Not Acceptable. Otherwise, the 
-dispatching moves forward.
-
-The annotation is not mandatory, so if the media type info is not defined, the following table describes the default 
-MIME types assigned to each anydata type.
-
-| Declared return type                                                            | MIME type                |
-|---------------------------------------------------------------------------------|--------------------------|
-| ()                                                                              | (no body)                |
-| xml                                                                             | application/xml          |
-| string                                                                          | text/plain               |
-| byte[]                                                                          | application/octet-stream |
-| map\<json\>, table\<map\<json\>\>, (map\<json\> &#124; table\<map\<json\>\>)[]) | application/json         |
-| int, float, decimal, boolean                                                    | application/json         |
-
-If anything comes other than above return types will be default to `application/json`.
-
-### 4.4. CallerInfo annotation
-
-The CallerInfo annotation associated with the `Caller` is to denote the response type.
-It will ensure that the resource method responds with the right type and provides static type information about
-the response type that can be used to generate OpenAPI.
-
-```ballerina
-resource function get person(@http:CallerInfo { respondType: http:Accepted } http:Caller hc) returns error?{
-    Person p = {};
-    hc->respond(Person p);
-}
-```
-
-### 4.5. Header annotation
-
-```ballerina
-
-resource function get person(@http:Header {name:"Referer"} string referer) {
-
-}
-```
-### 4.6. Cache annotation
-
-This annotation can be used to enable response caching from the resource signature. This allows to set the 
-`cache-control`, `etag` and `last-modified` headers in the response.
-
-The default behavior (`@http:Cache`) is to have `must-revalidate,public,max-age=3600` directives in 
-`cache-control` header. In addition to that `etag` and `last-modified` headers will be added.
-
-```ballerina
-@http:Cache {                 // Default Configuration
-    mustRevalidate : true,    // Sets the must-revalidate directive
-    noCache : false,          // Sets the no-cache directive
-    noStore : false,          // Sets the no-store directive 
-    noTransform : false,      // Sets the no-transform directive
-    isPrivate : false,        // Sets the private and public directive
-    proxyRevalidate : false,  // Sets the proxy-revalidate directive
-    maxAge : 3600,             // Sets the max-age directive. Default value is 3600 seconds
-    sMaxAge : -1,             // Sets the s-maxage directive
-    noCacheFields : [],       // Optional fields for no-cache directive
-    privateFields : [],       // Optional fields for private directive
-    setETag : true,           // Sets the etag header
-    setLastModified : true    // Sets the last-modified header
-}
-```
-This annotation can **only** support return types of `anydata` and `SuccessStatusCodeResponse`. (For other return 
-values cache configuration will not be added through this annotation)
-
-```ballerina
-// Sets the cache-control header as "public,must-revalidate,max-age=5". Also sets the etag header.
-// last-modified header will not be set
-resource function get greeting() returns @http:Cache{maxAge : 5, setLastModified : false} string {
-    return "Hello, World!!"
-}
-```
-
-## 5. URL parameters
-### 5.1. Path
-Path params are specified in the resource name itself. Path params can be specified in the types of string, int, 
-boolean, decimal and float. During the request runtime the respective path segment is matched and cast into param 
-type. Users can access it within the resource method, and it is very useful when designing APIs with dynamically 
-changing path segments.
-
-### 5.2. Query
-Query params can be accessed via the resource signature without an annotation or accessed via request functions.
-
-```ballerina
-# Gets the query parameters of the request as a map consisting of a string array.
-public isolated function getQueryParams() returns map<string[]> {
-    
-}
-
-# Gets the query param value associated with the given key.
-public isolated function getQueryParamValue(string key) returns string? {
-
-}
-
-# Gets all the query param values associated with the given key.
-public isolated function getQueryParamValues(string key) returns string[]? {
-
-}
-```
-### 5.3. Matrix
-The matrix params are one of the URL param which is supported access in ballerina using a function which bound to 
-the request
-
-```ballerina
-# Gets the matrix parameters of the request.
-public isolated function getMatrixParams(string path) returns map<any> {
-    
-}
-```
-
-## 6. Request and Response
-The request and the response represent the message/data which travel over the network using HTTP. The request object 
-models the inbound/outbound message with request oriented properties, headers and payload. Followings are the properties 
-associated with the `http:Request` which get populated for each request during the runtime.
-
-```ballerina
-public class Request {
-   public string rawPath = "";
-   public string method = "";
-   public string httpVersion = "";
-   public string userAgent = "";
-   public string extraPathInfo = "";
-   public RequestCacheControl? cacheControl = ();
-   public MutualSslHandshake? mutualSslHandshake = ();
-}
-```
-
-The header and the payload manipulation can be done using the functions associated to the request.
-
-Same as request, the response object also models the inbound/outbound message with the response oriented properties 
-and headers. Followings are the properties associated with the `http:Response` which get populated for each response 
-during the runtime.
-
-```ballerina
-public class Response {
-    public int statusCode = 200;
-    public string reasonPhrase = "";
-    public string server = "";
-    public string resolvedRequestedURI = "";
-    public ResponseCacheControl? cacheControl = ();
-}
-```
-
-The header and the payload manipulation can be done using the functions associated to the response.
-
-### 6.1. Message body streaming and back-pressure
-
-Message bodies are moved on demand rather than buffered in full. An inbound body is read from the connection as the application consumes what has already been delivered, and an outbound body is written as the remote endpoint accepts it. An application that consumes or produces a body slowly therefore holds the transfer still, and no data moves on the connection while that lasts.
-
-The `timeout` of a client or a listener measures the responsiveness of the remote endpoint. Inactivity that is caused by the pace of the application itself is not a sign of an unresponsive remote endpoint, and does not make the connection eligible for the timeout. A large body is transferred in full however slowly it is consumed, while a remote endpoint that genuinely stops responding is still timed out after the configured period. For HTTP/2, this exclusion applies to both directions of a stream: consuming a response slowly and writing a request slowly are both distinguished from an unresponsive peer. For HTTP/1.1, only the inbound direction currently participates in it - an application that reads a request or response body slowly is protected the same way, but a peer that reads a response or request body slowly from an HTTP/1.1 connection is not yet distinguished from one that has genuinely stopped responding.
-
-That allowance is bounded, so that a connection can still be reclaimed from an application that has stopped consuming altogether, or from a remote endpoint that has stopped reading. A transfer that makes no progress at all is treated as stalled once the connection's own `timeout` has already elapsed once for it, and continues to be excused for up to `maxBackPressureStallTime` further seconds before the timeout applies as usual. Any progress, however small, restarts that span. A transfer that never makes progress again is therefore reclaimed after `timeout + maxBackPressureStallTime`, not `maxBackPressureStallTime` alone. The default is 300 seconds:
+For example, the following `Config.toml` writes trace logs to the console:
 
 ```toml
 [ballerina.http]
-maxBackPressureStallTime = 600
+traceLogConsole = true
 ```
 
-A negative value allows back-pressure to hold a transfer still indefinitely. Zero removes the allowance entirely, so that any inactivity is treated as an idle connection.
-
-## 7. Header and Payload
-The header and payload are the main components of the request and response. In the world of MIME, that is called 
-Entity header and Entity body. Ballerina supports multiple payload types and allows convenient functions to access 
-headers along with other properties.
-
-### 7.1. Parse header functions
-
-```ballerina
-# Parses the header value which contains multiple values or parameters.
-parseHeader(string headerValue) returns HeaderValue[]|ClientError  {
-
-}
-```
-
-### 7.2 Links support
-Hypermedia As the Engine Of Application State (HATEOAS) is one of the key principles in REST, which brings the 
-connectedness to a set of scattered resources. It also brings direction as to what might user could do next. Similar 
-to Web pages REST APIs becomes self-descriptive and dynamic along with this principle.
-
-As an initial support to HATEOAS, HTTP package has the ability to statically record the connectedness of resources 
-through `Links` object. `Links` is a map of `Link` objects which represent the connectedness between resources. The 
-`Link` record is defined as follows :
-```ballerina
-public type Link record {
-    # Names the relationship of the linked target to the current representation
-    string rel?;
-    # Target URL
-    string href;
-    # Expected resource representation media types
-    string[] types?;
-    # Allowed resource methods
-    Method[] methods?;
-};
-```
-
-This `Links` is generated from the `linkedTo` field in the `ResourceConfig` annotation and added either to the 
-payload or as a `Link` header depending on the payload type. This `Links` will not be added when an `http:Response` is 
-returned.
-
-#### 7.2.1 LinkedTo record
-The `LinkedTo` record is defined as follows :
-```ballerina
-public type LinkedTo record {|
-    string name;
-    string relation = "self";
-    string method?;
-|};
-```
-
-This record represents a connectedness between two resources. All the fields in the `LinkedTo` record is 
-**case-insensitive**. The `relation` field is defaulted to the IANA link relation `self`, and for a specific resource, 
-the linked resources should have a **unique** relation.  
-
-The linked resource is resolved using the resource link name specified in the `name` field. To 
-find the linked resource, the linked resource should be configured with the same name through `ResourceConfig` 
-annotation. Following is a simple example of creating links :
-```ballerina
-service on new http:Listener(port) {
-
-    @http:ResourceConfig {
-        // Create a link between this resource and "Payment" resource
-        linkedTo: [{ name: "Payment", rel: "payment" }]
-    }
-    resource function post 'order(@http:Payload Order 'order) returns 
-            http:Accepted|http:InternalServerError {
-        // some logic
-    }
-    
-    @http:ResourceConfig {
-        name: "Payment"
-    }
-    resource function put payment/[string id](@http:Payload Payment payment) returns 
-            http:Ok|http:InternalServerError {
-        // some logic
-    }
-}
-```
-
-Resource link name can be duplicated only when the resources have the same path. In this case, the `method` of the 
-linked resource should be specified in the `LinkedTo` record to resolve conflicts. Following is an example when we have two 
-resources with the same resource link name :
-```ballerina
-service on new http:Listener(port) {
-
-    @http:ResourceConfig {
-        name: "Orders",
-        linkedTo: [
-            { name: "Orders", rel: "edit",  method: "PUT" },
-            { name: "Orders", rel: "remove",  method: "DELETE" }
-        ]
-    }
-    resource function put orders/[string id](@http:Payload Order 'order) returns 
-            http:Ok|http:InternalServerError {
-        // some logic
-    }
-    
-    @http:ResourceConfig {
-        name : "Orders"
-    }
-    resource function delete orders/[string id]() returns http:Ok|http:InternalServerError {
-        // some logic
-    }
-}
-```
-
-#### 7.2.2 Links in the response
-The static `Links` generated from the `linkedTo` field will be injected into the JSON payload when it is not 
-a closed record and not `readonly`. Suppose the user returns the below record type, the runtime will inject the `Links` 
-record as in the latter. Therefore, the response should be considered as a record with the `Links` field.
-
-```ballerina
-public type 'Order record {
-    string item_name;
-    string id;
-    string quantity;
-};
-```
-
-```ballerina
-public type 'Order record {
-    *http:Links;
-    string item_name;
-    string id;
-    string quantity;
-};
-```
-
-Following is an example of `Links` in payload :
-```ballerina
-service on new http:Listener(port) {
-
-    @http:ResourceConfig {
-        linkedTo: [{ name: "Payment", rel: "payment" }]
-    }
-    resource function get orders/[string id]() returns Order|http:NotFound {
-        // some logic
-    }
-    
-    @http:ResourceConfig {
-        name: "Payment"
-    }
-    resource function put payment/[string id](@http:Payload Payment payment) returns 
-            http:Ok|http:InternalServerError {
-        // some logic
-    }
-}
-```
-The response payload to the GET resource will look like this :
-```json
-{
-   "item_name": "latte",
-   "quantity": 2,
-   "_links":{
-      "payment":{
-         "href": "/payment/{id}", 
-         "types": ["application/json"],
-         "methods":["PUT"]
-      }
-   }
-}
-```
-The fields of the `Link` are automatically populated from the resource specified in the `LinkedTo` configuration.
-
-When there is no payload or when `Links` not supported in the payload, the `Links` will be added as a `Link` header. 
-Following is an example of `Links` in `Link` header:
-```ballerina
-service on new http:Listener(port) {
-
-    @http:ResourceConfig {
-        linkedTo: [{ name: "Payment", rel: "payment" }]
-    }
-    resource function post order(@http:Payload Order 'order) returns 
-            http:Accepted|http:InternalServerError {
-        // some logic
-        // return http:Accepted without body
-    }
-    
-    @http:ResourceConfig {
-        name: "Payment"
-    }
-    resource function put payment/[string id](@http:Payload Payment payment) returns 
-            http:Ok|http:InternalServerError {
-        // some logic
-    }
-}
-```
-The response will have the following header :
-```
-link: "</payment/{id}>; rel=\"payment\"; methods=\"\"PUT\"\""
-```
-
-The `Links` will not overwrite the payload or the header if the user has already added the links.
-
-## 8. Interceptor and error handling
-### 8.1 Interceptor
-Interceptor enhances the HTTP package with interceptors. Interceptors typically do small units of work such as logging, header 
-manipulation, state publishing, etc., before resources are invoked. The ability to execute some common logic for all 
-the inbound requests and outbound responses has proven to be highly useful. It typically includes some small unit of 
-work such as the below.
- - Logging
- - Header manipulation
- - Observability
- - Throttling
- - Validating
- - Securing
-
-Interceptors are designed for both request and response flows. There are just service objects which will be executed in
-a configured order to intercept request and response. These interceptor services can only have either a resource method 
-or a remote method depends on the interceptor type. Moreover, they do not support `ServiceConfig`, `ResourceConfig`
-and `Cache` annotations.
-
-#### 8.1.1 Request interceptor
-Following is an example of `RequestInterceptor` written in Ballerina swan-lake. `RequestInterceptor` can only have one 
-resource method.
-
-```ballerina
-service class RequestInterceptor {
-   *http:RequestInterceptor;
- 
-   resource function 'default [string… path](http:RequestContext ctx, http:Request req) returns http:NextService|error? {
-       req.setHeader("X-requestHeader", "RequestInterceptor");
-       return ctx.next();
-   }
-}
-```
-
-Since interceptors work with network activities, it must be either a remote or resource method. In this case resource 
-functions are used for `RequestInterceptor` as it gives more flexibility. With resource methods interceptors can be engaged 
-based on HTTP method and path.
-
-For instance consider a scenario where there are two resources: one on path `foo` whereas the other on path `bar`. If the 
-user writes an interceptor as follows, it would only get hit when the request is directed to `foo` resource.
-
-```ballerina
-service class RequestInterceptor {
-   *http:RequestInterceptor;
- 
-   resource function 'default foo(http:RequestContext ctx, http:Request req) returns http:NextService|error? {
-       req.setHeader("X-requestHeader", "RequestInterceptor");
-       return ctx.next();
-   }
-}
-```
-
-##### 8.1.1.1 Request context
-Following is the rough definition of the interceptor context. Request context can store non-error values, and these values 
-can be retrieved at the next services in the pipeline.  
-```ballerina
-// This is same as the `value:Cloneable`, except that it does not include `error` type.
-# Represents a non-error type that can be cloned.
-public type Cloneable (any & readonly)|xml|Cloneable[]|map<Cloneable>|table<map<Cloneable>>;
- 
-# Request context member type.
-public type ReqCtxMember Cloneable|isolated object {};
-
-# Request context member type descriptor.
-public type ReqCtxMemberType typedesc<ReqCtxMember>;
-
-# Represents an HTTP Context that allows user to pass data between interceptors.
-public isolated class RequestContext {
-    private final map<ReqCtxMember> members = {};
-
-    # Sets an member to the request context object.
-    #
-    # + key - Represents the member key
-    # + value - Represents the member value
-    public isolated function set(string key, ReqCtxMember value) {}
-
-    # Gets an member value from the request context object.
-    #
-    # + key - Represents the member key
-    # + return - Member value
-    public isolated function get(string key) returns ReqCtxMember {}
-
-    # Checks whether the request context object has an member corresponds to the key.
-    #
-    # + key - Represents the member key
-    # + return - true if the member exists, else false
-    public isolated function hasKey(string key) returns boolean {}
-
-    # Returns the member keys of the request context object.
-    #
-    # + return - Array of member keys
-    public isolated function keys() returns string[] {}
-
-    # Gets an attribute value with type from the request context object.
-    #
-    # + key - Represents the member key
-    # + targetType - Represents the expected type of the member value
-    # + return - Attribute value or an error if the member value is not of the expected type
-    public isolated function getWithType(string key, ReqCtxMemberType targetType = <>) returns targetType|ListenerError = external;
-
-    # Removes a member from the request context object. It panics if there is no such member.
-    #
-    # + key - Represents the member key
-    public isolated function remove(string key) {}
-
-    # Calls the next service in the interceptor pipeline.
-    #
-    # + return - The next service object in the pipeline. An error is returned, if the call fails
-    public isolated function next() returns NextService|error? = external;
-}
-```
-
-##### 8.1.1.2 next() method
-However, there is an addition when it comes to `RequestContext`. A new method namely, `next()` is introduced to control 
-the execution flow. Users must invoke `next()` method in order to trigger the next interceptor in the pipeline. Then 
-the reference of the retrieved interceptor must be returned from the resource method. Pipeline use this reference to
-execute the next interceptor. 
-
-Previously, this was controlled by returning a boolean value which is quite cryptic and confusing.
-
-##### 8.1.1.3 Return to respond
-There is a key difference between interceptors and the final service. Resources in the final service allow returning 
-values which in turn results in HTTP responses. The same can be done inside the `RequestInterceptors`. However, as 
-mentioned above `RequestInterceptor` additionally could return the `NextService|error?` to continue the pipeline which
-does not translate into HTTP response. 
-
-When a `RequestInterceptor` responded with a response, the response interceptor pipeline will get executed immediately.
-In case of an error, interceptor pipeline execution jumps to the nearest `RequestErrorInterceptor` or 
-`ResponseErrorInterceptor` in the pipeline. These error interceptors are special kinds of interceptor which could be 
-used to handle errors, and they are not necessarily the last interceptor in the pipeline, they can be anywhere in the 
-chain. However, in the case of there is no error interceptors in the pipeline, pipeline returns the internal error 
-response to the client similar to any HTTP service resource.
-
-##### 8.1.1.4 Get JWT information
-If the JWT information of the request is required, it can be retrieved by using the `getWithType()` api.
-```ballerina
-[jwt:Header, jwt:Payload] jwtInformation = check ctx.getWithType(http:JWT_INFORMATION);
-```
-
-#### 8.1.2 Response interceptor
-
-Following is an example of `ResponseInterceptor` written in Ballerina swan-lake. `ResponseInterceptor` can only have one
-remote method : `interceptResponse()`.
-
-```ballerina
-service class ResponseInterceptor {
-   *http:ResponseInterceptor;
- 
-   remote function interceptResponse(http:RequestContext ctx, http:Response res) returns http:NextService|error? {
-       res.setHeader("X-responseHeader", "ResponseInterceptor");
-       return ctx.next();
-   }
-}
-```
-
-`ResponseInterceptor` is different from `RequestInterceptor`. Since it has nothing to do with HTTP methods and paths, 
-remote method is used instead of resource method. The `ResponseInterceptor` can access the request as a function parameter.
-
-##### 8.1.2.1 Return to respond
-The remote method : `interceptResposne()` allows returning values other than `NextService|error?`. Anyway this will
-continue the response interceptor pipeline with the returned response object and calling `RequestContext.next()` is
-redundant in this case.
-
-In case of an error, interceptor pipeline execution jumps to the nearest `ResponseErrorInterceptor` in the 
-pipeline. . However, in the case of there is no `ResponseInterceptor` in the pipeline, pipeline returns the internal 
-error response to the client.
-
-#### 8.1.3 Request error interceptor and response error interceptor
-As mentioned above, these are special kinds of interceptor designed to handle errors. These interceptors can  
-be placed anywhere in the request or response interceptor chain. The framework automatically adds default 
-`RequestErrorInterceptor` and `ResponseErrorInterceptor` which basically prints the error message to the console.
-
-Users can override these interceptors by defining their own ones as follows. Users don’t have to specifically engage 
-these interceptors as they only have fixed positions, and they are always executed. The only additional and mandatory 
-argument in this case is error `err`. Moreover, the `RequestErrorInterceptor` resource method can only have
-the `default` method and default path.
-
-```ballerina
-service class RequestErrorInterceptor {
-   *http:RequestErrorInterceptor;
- 
-   remote function 'default [string… path](http:RequestContext ctx, http:Caller caller,
-                       http:Request req, error err) returns http:NextService|error? {
-       // deal with the error
-   }
-}
-```
-
-The same works for `ResponseErrorInterceptor`, the difference is it has a remote method : `interceptResponseError()`
-and deals with response object. In addition, the `ResponseErrorInterceptor` can access the request as a function parameter.
-
-```ballerina
-service class ResponseErrorInterceptor {
-   *http:ResponseErrorInterceptor;
- 
-   remote function interceptResponseError(http:RequestContext ctx, http:Response res, error err) 
-                       returns http:NextService|error? {
-       // deal with the error
-   }
-}
-```
-
-In the case of an error returned within an error interceptor, again execution jumps to the nearest error interceptor. 
-However, if there is no error interceptor to jump to, the internal error response is returned just like in a normal 
-interceptors.
-
-#### 8.1.4 Engaging interceptors
-##### 8.1.4.1 Service level
-Interceptors could get engaged at service level. One reason for this is that users may want to engage two different 
-interceptor chains for each service even though it is attached to the same Listener. At the service level resource 
-function paths are relative to the service base path.
-
-In order to engage interceptors at service level, the service should be marked as `http:InterceptableService`. Then, the 
-interceptor pipeline can be defined by implementing the `createInterceptors` function.
-```ballerina
-public function createInterceptors() returns Interceptor|Interceptor[];
-```
-Internally, this function is used to create the interceptor pipeline when the service gets initialised. An example 
-implementation is shown below,
-```ballerina
-service http:InterceptableService / on new http:Listener(9099) {
-
-    public function createInterceptors() returns [RequestInterceptor, ResponseInterceptor] {
-        return [new RequestInterceptor(), new ResponseInterceptor()];
-    }
-
-    resource function get hello() returns string {
-        return "Hello, World!";
-    }
-}
-```
-
-When handling `http:ServiceNotFound` scenarios,
-1. If there is a service in `/`, the error will be handled by the interceptors in that service.
-2. If there is only a single service, the error will be handled by the interceptors in that service.
-3. If there are multiple services including a service in `/`, the error will be handled by the interceptors in `/`.
-   Otherwise, it will be handled by the `http:DefaultErrorInterceptor`.
-
-##### 8.1.4.2 Execution order of interceptors
-
-![img.png](_resources/img.png)
-In the above example blue dashed box represents the `RequestErrorInterceptor` and blue boxes simply represent the 
-`RequestInterceptors`, whereas green dashed box represents the `ResponseErrorInterceptor` and green boxes simply represent the 
-`ResponseInterceptors`. 
-
-`ResponseInterceptors` are executed in the opposite direction of `RequestInterceptors` i.e. `RequestInterceptors`
-are executed head to tail whereas `ResponseInterceptors` are executed tail to head. The new execution order is as follows, 
-assuming that there are no error occurred in the pipeline :
-```
-RequestInterceptor  : 1, 2, 4
-ResponseInterceptor : 5, 3
-```
-
-However, if the user decides to respond at 4 and terminate the cycle, only the `ResponseInterceptor` at 3 gets executed.
-Also, when the `RequestInterceptor` at 2 returns an error, the execution jumps from 2 to 6 as the nearest Error Interceptor
-is at 6. The same goes to the response path.
-
-Execution of interceptors does not depend on the existence of the end service i.e. the interceptors are executed in the
-relevant order even though the end service does not exist.
-
-#### 8.1.5 Data binding
-`RequestInterceptor` methods support data binding. Which means users can directly access the payload, headers and query
-parameters. In order to get hold of the headers and the payload, users must use @http:Payload and @http:Headers.
-
-### 8.2 Error handling
-
-#### 8.2.1 Error interceptors
-
-Error handling is an integral part of any network program. Errors can be returned by many components such as interceptors,
-dispatcher, data-binder, security handlers, etc. These errors are often handled by a default handler and sent back as 
-`500 Internal Server Error` with an entity-body. However, this often causes problems because when designing any API 
-consistency matters. Therefore, all the responses must have a consistent format. 
-
-As a result, almost all the real API requires overriding the default error handler and replacing it with their own
-error handlers. This can be done by error interceptors discussed in [Request error interceptor and response error 
-interceptor](#813-request-error-interceptor-and-response-error-interceptor). These error handlers can be placed 
-anywhere in the pipeline. The only mandatory argument in error interceptors is `error`. Just like a main service, it 
-is possible to return values from error handlers which will send back as HTTP responses. This overrides the current response
-and results in triggering the next response interceptor. Following is such an example :
-```ballerina
-service class ResponseErrorInterceptor {
-   *http:ResponseErrorInterceptor;
- 
-   remote function interceptResponseError(error err) returns http:NotFound {
-       http:NotFound nf = { body: { msg: err.message()} };
-       return nf;
-   }
-}
-```
-
-The HTTP module also have a `DefaultErrorInterceptor` which is a `ResponseErrorInterceptor`. This will be added by 
-the listener and will be executed at last when there is an error. Hence, any error which is not handled by other 
-error interceptors will be finally handled by this default error handler. In essence, the internal default error interceptor
-will look like this :
-```ballerina
-service class DefaultErrorInterceptor {
-    *http:ResponseErrorInterceptor;
-
-    remote function interceptResponseError(error err) returns http:Response {
-        http:Response res = new;
-        res.setTextPayload(err.message());
-        // By default, the error response is set to 500 - Internal Server Error
-        // However, if the error is an internal error which has a different error
-        // status code (4XX or 5XX) then this 500 status code will be overwritten 
-        // by the original status code.
-        res.statusCode = 500;
-        return res;
-    }
-}
-```
-
-In order to overwrite this default error handling behavior, a custom `ResponseErrorInterceptor` can be placed as the 
-first interceptor in the listener level configuration which will be executed at last just before the  `DefaultErrorHandler`.
-
-#### 8.2.2 Error types
-
-In addition to error interceptors, HTTP module provides distinct error types in order to intercept errors and handle 
-them differently. These error types have a hierarchical structure starting from the basic `HttpError`. The following 
-table summarizes the error types which can be intercepted by the error interceptors:
-
-<table>
-<thead>
-  <tr>
-    <th></th>
-    <th>Error</th>
-    <th>Error Type</th>
-  </tr>
-</thead>
-<tbody>
-  <tr>
-    <td rowspan="5">Executing Interceptors - Interceptor Level</td>
-    <td>500 - no next service to be returned</td>
-    <td rowspan="4">InterceptorReturnError</td>
-  </tr>
-  <tr>
-    <td>500 - request context object does not contain the configured interceptors</td>
-  </tr>
-  <tr>
-    <td>500 - next interceptor service did not match with the configuration</td>
-  </tr>
-  <tr>
-    <td>500 - target service did not match with the configuration</td>
-  </tr>
-  <tr>
-    <td>Other errors occurred during the resource/remote method execution</td>
-    <td><i>Same as the returned error type</i></td>
-  </tr>
-  <tr>
-    <td rowspan="3">Finding Service - Listener Level</td>
-    <td>404 - no service has registered for listener</td>
-    <td rowspan="3">ServiceDispatchingError</td>
-  </tr>
-  <tr>
-    <td>404 - no matching service found for path</td>
-  </tr>
-  <tr>
-    <td>400 - Found non-matrix parameter in path</td>
-  </tr>
-  <tr>
-    <td rowspan="2">Finding Resource - Service Level</td>
-    <td>404 - no matching resource found for path</td>
-     <td rowspan="4">ResourceDispatchingError</td>
-  </tr>
-  <tr>
-    <td>405 - Method not allowed</td>
-  </tr>
-  <tr>
-    <td rowspan="2">Consumes & Produces - Service Level</td>
-    <td>406 - Not Acceptable</td>
-  </tr>
-  <tr>
-    <td>415 - Unsupported Media Type</td>
-  </tr>
-  <tr>
-    <td rowspan="6">Databinding - Service Level</td>
-    <td>400 - Error in casting path param</td>
-    <td>PathParameterBindingError</td>
-  </tr>
-  <tr>
-    <td>400 - no query param value found</td>
-    <td rowspan="2">QueryParameterBindingError</td>
-  </tr>
-  <tr>
-    <td>400 - Error in casting query param </td>
-  </tr>
-  <tr>
-    <td>400 - no header value found</td>
-    <td rowspan="2">HeaderBindingError</td>
-  </tr>
-  <tr>
-    <td>400 - header binding failed </td>
-  </tr>
-  <tr>
-    <td>400 - data binding failed</td>
-    <td>PayloadBindingError</td>
-  </tr>
-  <tr>
-    <td rowspan="2">Security - Resource Level</td>
-    <td>401 - Unauthorized errors</td>
-    <td>ListenerAuthnError</td>
-  </tr>
-  <tr>
-    <td>403 - Forbidden errors</td>
-    <td>ListenerAuthzError</td>
-  </tr>
-  <tr>
-    <td>Resource execution -  Resource Level</td>
-    <td>500 - Returned errors</td>
-    <td><i>Same as the returned error type</i></td>
-  </tr>
-</tbody>
-</table>
-
-#### 8.2.3 Trace log
-The HTTP trace logs can be used to monitor the HTTP traffic that goes in and out of Ballerina.
-The HTTP trace logs are **disabled as default**.
-To enable trace logs, the log level has to be set to TRACE using the runtime argument:
-`-Cballerina.http.traceLogConsole=true.`
-
-The HTTP trace logs are **disabled as default**. To enable, the configurations can be set by the 
-following `config.toml` file:
-
-The configurations can be set in the `config.toml` file for advanced use cases such as specifying the file path to 
-save the trace logs and specifying the hostname and port of a socket service to publish the trace logs.
-
-```toml
-[ballerina.http.traceLogAdvancedConfig]
-# Enable printing trace logs in console
-console = true              # Default is false
-# Specify the hostname and port of a socket service to publish the trace logs
-host = "localhost"          # Optional
-port = 8080                 # Optional
-
-# Enable trace log file destination
-[ballerina.http.traceLogAdvancedConfig.file]
-# The file path to store trace logs
-path = "./logs/trace.log"
-
-# Enable trace logs rotation
-[ballerina.http.traceLogAdvancecdConfig.file.rotation]
-# The rotation policy to use (SIZE_BASED, TIME_BASED, or BOTH). Default is BOTH
-policy = "SIZE_BASED"      # Default: BOTH
-# Maximum file size in bytes before rotation occurs (applies to SIZE_BASED and BOTH policies)
-maxFileSize = 52428800     # Default: 10 MB (in bytes)
-# Maximum number of backup files to retain (older backups are automatically deleted)
-maxBackupFiles = 30        # Default: 10
-```
-
-##### 8.2.3.1 Trace log rotation
-Trace log rotation helps manage log file sizes by automatically creating backup files when certain conditions are met. This prevents log files from growing indefinitely and consuming excessive disk space.
-
-Trace log rotation is optional and can be configured for file destinations. If no rotation configuration is provided, logs are written without rotation. When rotation is enabled, a rotation policy determines when log files are rotated. The following rotation policies are available.
-
-```ballerina
-public enum RotationPolicy {
-    SIZE_BASED,  # Rotate based on file size only
-    TIME_BASED,  # Rotate based on time interval only
-    BOTH         # Rotate when either size or time threshold is met (whichever comes first)
-};
-```
-
-The rotation configuration is defined as follows:
-
-```ballerina
-public type RotationConfig record {|
-    RotationPolicy policy = BOTH;
-    int maxFileSize = 10485760;   # Default: 10MB (in bytes)
-    int maxAge = 86400;           # Default: 24 hours (in seconds)
-    int maxBackupFiles = 10;      # Default: 10 backup files
-|};
-```
-
-Configuration parameters:
-- `policy`: The rotation policy to use (SIZE_BASED, TIME_BASED, or BOTH). Default is BOTH
-- `maxFileSize`: Maximum file size in bytes before rotation occurs (applies to SIZE_BASED and BOTH policies)
-- `maxAge`: Maximum age in seconds before rotation occurs (applies to TIME_BASED and BOTH policies)
-- `maxBackupFiles`: Maximum number of backup files to retain (older backups are automatically deleted)
-
-Example configuration for size-based rotation:
-
-```toml
-[ballerina.http.traceLogAdvancedConfig.file]
-path = "./logs/http-trace.log"
-
-[ballerina.http.traceLogAdvancedConfig.file.rotation]
-policy = "SIZE_BASED"
-maxFileSize = 52428800    # 50MB
-maxBackupFiles = 30
-```
-
-Time-based rotation example:
-
-```toml
-[ballerina.http.traceLogAdvancedConfig.file]
-path = "./logs/http-trace.log"
-
-[ballerina.http.traceLogAdvancedConfig.file.rotation]
-policy = "TIME_BASED"
-maxAge = 86400        # Rotate daily
-maxBackupFiles = 7    # Keep one week of trace
-```
-
-Rotation using both size and time (default policy):
-
-```toml
-[ballerina.http.traceLogAdvancedConfig.file]
-path = "./logs/http-trace.log"
-
-[ballerina.http.traceLogAdvancedConfig.file.rotation]
-policy = "BOTH"
-maxFileSize = 52428800    # 50MB
-maxAge = 86400            # 24 hours
-maxBackupFiles = 30       # One month of backups
-```
-
-When rotation occurs:
-- The current trace log file is renamed with a timestamp suffix (e.g., `http-trace-20260303-130530432.log`)
-- A new log file is created with the original name
-- If the number of backup files exceeds `maxBackupFiles`, the oldest backups are automatically deleted
-- With `BOTH` policy, rotation happens when either the size limit OR time interval is reached (whichever comes first)
-
-> **Note:**
->
-> - Log rotation only applies to file destinations, not to stderr or stdout
-> - Backup files are named using the pattern: `{basename}-{timestamp}.{ext}` (e.g., `http-trace-20260303-130530432.log`)
-> - The timestamp format is `yyyyMMdd-HHmmssSSS` (uses system default timezone)
-> - Rotation checks happen during log write operations, so timing may vary slightly based on application logging activity
-
-#### 8.2.4 Access log
-Ballerina supports HTTP access logs for HTTP services, providing insights into web traffic and request handling.
-The access log feature is **disabled by default** to allow users to opt-in as per their requirements.
-
-To enable access logs, configuration settings are provided under `ballerina.http.accessLogConfig` in the
-`Config.toml` file. Users can specify whether logs should be output to the console, a file, or both, 
-and can select the format and specific attributes to log.
+### 14.2. Access logs
+
+Access logs record one entry for each request handled by a listener. They are disabled by default, and are configured with the `accessLogConfig` configurable:
+
+| Field        | Type          | Default            | Meaning                                                                                                               |
+|--------------|---------------|--------------------|-----------------------------------------------------------------------------------------------------------------------|
+| `console`    | `boolean`     | `false`            | Whether access logs are written to the console.                                                                       |
+| `format`     | `string`      | `"flat"`           | `"flat"` or `"json"`. Any other value is treated as `"flat"`, with a warning.                                         |
+| `attributes` | `string[]`    | absent             | Attributes of each entry. When absent, the default attributes are used. `[]` disables access logs.                   |
+| `file`       | `LogFileConfig`  | absent             | File destination, with a `path` and an optional `rotation`. See [Log rotation](#143-log-rotation).                    |
+| `path`       | `string`      | absent             | Deprecated since 2.16.0. Use `file`. File path of the access logs. Ignored, with a warning, when `file` is set.                               |
+
+The following attributes are supported. The default attributes are `ip`, `date_time`, `request`, `status`, `response_body_size`, `http_referrer` and `http_user_agent`.
+
+| Attribute              | Value                                                                                        |
+|------------------------|----------------------------------------------------------------------------------------------|
+| `ip`                   | The first address of the `X-Forwarded-For` header, else the address of the client            |
+| `date_time`            | Time the request was received, as `[dd/MMM/yyyy:HH:mm:ss.SSS Z]` in the flat format          |
+| `request`              | Request line                                                                                 |
+| `request_method`       | Method of the request                                                                        |
+| `request_uri`          | Request target, including the query                                                          |
+| `scheme`               | Protocol version of the request, e.g. `HTTP/1.1`                                             |
+| `status`               | Status code of the response                                                                  |
+| `request_body_size`    | Size of the request body, from `Content-Length` when present                                 |
+| `response_body_size`   | Size of the response body                                                                    |
+| `request_time`         | Time taken to process the request, in milliseconds                                           |
+| `http_referrer`        | `Referer` header                                                                             |
+| `http_user_agent`      | `User-Agent` header                                                                          |
+| `http_x_forwarded_for` | `X-Forwarded-For` header                                                                     |
+| `http_<name>`          | The header `<name>`, e.g. `http_x-request-id`                                                |
+
+1. The attributes of an entry are written in the order of the table, followed by the `http_<name>` attributes, regardless of the order of the configuration. Unknown attributes are ignored.
+2. In the flat format, the values are separated by spaces. The values of `request`, `http_referrer`, `http_user_agent`, `http_x_forwarded_for` and `http_<name>` are quoted, and a missing value is written as `-`. In the JSON format, each entry is a JSON object.
+3. The requests sent by clients while handling the request are appended to its entry: after `"~"` in the flat format, and as an `upstream` array in the JSON format.
+4. Console output is written to the standard error stream.
+
+For example, with the following `Config.toml`:
 
 ```toml
 [ballerina.http.accessLogConfig]
-# Enable printing access logs in console
-console = true              # Default is false
-# Select the format of the access logs
-format = "json"             # Options: "flat", "json"; Default is "flat". Omit to stick to the default.
-# Specify which attributes to log. Omit to stick to the default set.
-attributes = ["ip", "date_time", "request", "status", "response_body_size", "http_referrer", "http_user_agent"]
-# Default attributes: ip, date_time, request, status, response_body_size, http_referrer, http_user_agent
-
-# Enable access log file destination
-[ballerina.http.accessLogConfig.file]
-# The file path to store access logs
-path = "./logs/access.log"
-
-# Enable access logs rotation
-[ballerina.http.accessLogConfig.file.rotation]
-# The rotation policy to use (SIZE_BASED, TIME_BASED, or BOTH). Default is BOTH
-policy = "SIZE_BASED"      # Default: BOTH
-# Maximum file size in bytes before rotation occurs (applies to SIZE_BASED and BOTH policies)
-maxFileSize = 52428800     # Default: 10 MB (in bytes)
-# Maximum number of backup files to retain (older backups are automatically deleted)
-maxBackupFiles = 30        # Default: 10
+console = true
+attributes = ["ip", "date_time", "request", "status", "request_time", "http_x-request-id"]
 ```
 
-##### Configurable Attributes
-Users can customize which parts of the access data are logged by specifying attributes in the configuration.
-This allows for tailored logging that can focus on particular details relevant to the users' needs.
+a request is logged in the flat format as:
 
-|       Attribute        |                                                    Description                                                     |
-|:----------------------:|:------------------------------------------------------------------------------------------------------------------:|
-|           ip           |                                                Client's IP address                                                 |
-|       date_time        |                                             HTTP request received time                                             |
-|        request         |                                   Full HTTP request line (method, URI, protocol)                                   |
-|     request_method     |                                             HTTP method of the request                                             |
-|      request_uri       |                                      URI of the request, including parameters                                      |
-|         scheme         |                                       Scheme of the request and HTTP version                                       |
-|         status         |                                      HTTP status code returned to the client                                       |
-|   request_body_size    |                                         Size of the request body in bytes                                          |
-|   response_body_size   |                                      Size of the HTTP response body in bytes                                       |
-|      request_time      |                                      Total time taken to process the request                                       |
-|     http_referrer      |                                 HTTP Referer header, indicating the previous page                                  |
-|    http_user_agent     |                                 User-Agent header, identifying the client software                                 |
-|  http_x_forwarded_for  |                                      Originating IP address if using a proxy                                       |
-| http_(X-Custom-Header) | Header fields. Referring to them with `http` followed by the header name. (`x-request-id` ->; `http_x-request-id`) |
-
-##### 8.2.4.1 Access log rotation
-Access log rotation helps manage log file sizes by automatically creating backup files when certain conditions are met. This prevents log files from growing indefinitely and consuming excessive disk space.
-
-Access log rotation is optional and can be configured for file destinations. If no rotation configuration is provided, logs are written without rotation. When rotation is enabled, a rotation policy determines when log files are rotated. The following rotation policies are available.
-
-```ballerina
-public enum RotationPolicy {
-    SIZE_BASED,  # Rotate based on file size only
-    TIME_BASED,  # Rotate based on time interval only
-    BOTH         # Rotate when either size or time threshold is met (whichever comes first)
-};
+```text
+127.0.0.1 [02/Nov/2026:10:15:30.120 +0000] "GET /store/albums/a1 HTTP/1.1" 200 12 "4f2c9a"
 ```
 
-The rotation configuration is defined as follows:
+### 14.3. Log rotation
 
-```ballerina
-public type RotationConfig record {|
-    RotationPolicy policy = BOTH;
-    int maxFileSize = 10485760;   # Default: 10MB (in bytes)
-    int maxAge = 86400;           # Default: 24 hours (in seconds)
-    int maxBackupFiles = 10;      # Default: 10 backup files
-|};
-```
+The `rotation` field of a file destination is a `log:RotationConfig` of the `ballerina/log` module:
 
-Configuration parameters:
-- `policy`: The rotation policy to use (SIZE_BASED, TIME_BASED, or BOTH). Default is BOTH
-- `maxFileSize`: Maximum file size in bytes before rotation occurs (applies to SIZE_BASED and BOTH policies)
-- `maxAge`: Maximum age in seconds before rotation occurs (applies to TIME_BASED and BOTH policies)
-- `maxBackupFiles`: Maximum number of backup files to retain (older backups are automatically deleted)
+| Field            | Type             | Default    | Meaning                                                                       |
+|------------------|------------------|------------|-------------------------------------------------------------------------------|
+| `policy`         | `RotationPolicy` | `BOTH`     | `SIZE_BASED`, `TIME_BASED`, or `BOTH`, which rotates on whichever comes first. |
+| `maxFileSize`    | `int`            | `10485760` | File size at which a `SIZE_BASED` or `BOTH` policy rotates the file.           |
+| `maxAge`         | `int`            | `86400`    | File age at which a `TIME_BASED` or `BOTH` policy rotates the file.            |
+| `maxBackupFiles` | `int`            | `10`       | Number of rotated files kept. `0` keeps none.                                  |
 
-Example configuration for size-based rotation:
+1. When `rotation` is absent, the file is not rotated.
+2. The rotation condition is checked before each record is written. The size is that of the file, including content present before the program started. The age is measured from when the file was opened, at startup or at the last rotation. A file can therefore exceed `maxFileSize` by one record.
+3. A rotated file is renamed to `{basename}-{yyyyMMdd-HHmmssSSS}.{extension}`, using the local time zone, and a new file is created. When there are more than `maxBackupFiles` rotated files, the oldest are deleted.
+4. The parent directories of the file are created when they do not exist. The file is locked with a `{path}.lck` file, and startup fails when another process holds the lock.
+5. A `maxFileSize` less than or equal to `0` with a `SIZE_BASED` or `BOTH` policy, a `maxAge` less than or equal to `0` with a `TIME_BASED` or `BOTH` policy, a negative `maxBackupFiles`, and an empty or directory `path` make the initialization of the module fail.
+
+For example, the following `Config.toml` rotates `logs/access.log` when it reaches 1 MB, renaming it to a file such as `logs/access-20261102-101530120.log`, and keeps the five newest rotated files:
 
 ```toml
 [ballerina.http.accessLogConfig.file]
-path = "./logs/http-access.log"
+path = "logs/access.log"
 
 [ballerina.http.accessLogConfig.file.rotation]
 policy = "SIZE_BASED"
-maxFileSize = 52428800    # 50MB
-maxBackupFiles = 30
+maxFileSize = 1048576
+maxBackupFiles = 5
 ```
 
-Time-based rotation example:
+## 15. Authentication and authorization
 
-```toml
-[ballerina.http.accessLogConfig.file]
-path = "./logs/http-access.log"
+### 15.1. Declarative listener authentication
 
-[ballerina.http.accessLogConfig.file.rotation]
-policy = "TIME_BASED"
-maxAge = 86400        # Rotate daily
-maxBackupFiles = 7    # Keep one week of access
-```
+The `auth` field of the `ServiceConfig` and `ResourceConfig` annotations secures resources. Each `ListenerAuthConfig` is one of the following, each with an optional `scopes` field of type `string|string[]`:
 
-Rotation using both size and time (default policy):
+| Config                     | Scheme   | Credentials validated by                                       |
+|----------------------------|----------|----------------------------------------------------------------|
+| `FileUserStoreConfigWithScopes` | `Basic`  | The users configured under `[[ballerina.auth.users]]`     |
+| `LdapUserStoreConfigWithScopes` | `Basic`  | An LDAP user store                                        |
+| `JwtValidatorConfigWithScopes`  | `Bearer` | JWT validation                                            |
+| `OAuth2IntrospectionConfigWithScopes` | `Bearer` | An OAuth2 introspection endpoint                    |
 
-```toml
-[ballerina.http.accessLogConfig.file]
-path = "./logs/http-access.log"
+1. The configurations of a resource are chosen as follows:
+   - If the resource has `auth` of type `ListenerAuthConfig[]`, those configurations are used, and the configurations of the service are ignored.
+   - If the resource has `auth` of type `Scopes`, the configurations of the service are used with their scopes replaced by those scopes.
+   - Otherwise, the configurations of the service are used.
+2. Authentication runs after the request interceptors and before the resource. A request without an `Authorization` header results in a `ListenerAuthnError` (`401 Unauthorized`).
+3. The scheme is the first word of the `Authorization` header. The configurations for that scheme are tried in order. The first configuration that authenticates and authorizes the request is used, and the resource is invoked.
+4. When no configuration authenticates the request, the result is a `ListenerAuthnError` (`401 Unauthorized`). When a configuration authenticates the request but does not authorize it, the result is a `ListenerAuthzError` (`403 Forbidden`), and later configurations are not tried.
+5. A request is authorized when the configuration has no scopes, or when at least one scope of the user is equal to one of the configured scopes. The scopes of a JWT are taken from the claim named by `scopeKey` (default `"scope"`), which MAY be a space-separated string or an array. The scopes of an OAuth2 token are taken from the introspection response, and MUST be a space-separated string. A user of a user store without scopes is not authorized.
+6. An inactive OAuth2 token results in a `ListenerAuthnError` (`401 Unauthorized`).
+7. The errors of rules 2 to 6 are handled as described in [Error handling](#10-error-handling), and are visible to error interceptors as `ListenerAuthnError` and `ListenerAuthzError`.
+8. A `401 Unauthorized` response has a `WWW-Authenticate` header with a challenge for each authentication scheme of the configurations of the resource: `Basic` for user store configurations and `Bearer` for JWT and OAuth2 configurations, as required by [RFC 9110](https://www.rfc-editor.org/rfc/rfc9110#section-15.5.2).
 
-[ballerina.http.accessLogConfig.file.rotation]
-policy = "BOTH"
-maxFileSize = 52428800    # 50MB
-maxAge = 86400            # 24 hours
-maxBackupFiles = 30       # One month of backups
-```
+9. A resource with `auth` of type `Scopes` in a service without `auth` has no configurations, so its requests are not authenticated.
+10. An empty `auth` array, `auth: []`, authenticates no request, so every request is rejected with a `ListenerAuthnError` (`401 Unauthorized`).
 
-When rotation occurs:
-- The current access log file is renamed with a timestamp suffix (e.g., `http-access-20260303-130530432.log`)
-- A new log file is created with the original name
-- If the number of backup files exceeds `maxBackupFiles`, the oldest backups are automatically deleted
-- With `BOTH` policy, rotation happens when either the size limit OR time interval is reached (whichever comes first)
-
-> **Note:**
->
-> - Log rotation only applies to file destinations, not to stderr or stdout
-> - Backup files are named using the pattern: `{basename}-{timestamp}.{ext}` (e.g., `http-access-20260303-130530432.log`)
-> - The timestamp format is `yyyyMMdd-HHmmssSSS` (uses system default timezone)
-> - Rotation checks happen during log write operations, so timing may vary slightly based on application logging activity
-
-#### 8.2.5 Panic inside resource
-
-Ballerina consider panic as a catastrophic error and non-recoverable. Hence, immediate application termination is 
-performed to fail fast after responding to the request. This behaviour will be more useful in cloud environments as 
-well.
-
-## 9. Security
-
-### 9.1 Authentication and Authorization
-
-There are two ways to enable authentication and authorization in HTTP.
-
-1. Declarative approach
-2. Imperative approach
-
-#### 9.1.1 Declarative Approach
-
-This is also known as the configuration-driven approach, which is used for simple use cases, where users have to 
-provide a set of configurations and do not need to be worried more about how authentication and authorization works. 
-The user does not have full control over the configuration-driven approach.
-
-The service configurations are used to define the authentication and authorization configurations. Users can 
-configure the configurations needed for different authentication schemes and configurations needed for 
-authorizations of each authentication scheme. Also, the configurations can be provided at the service level. 
-The priority will be given from bottom to top. Then, the auth handler creation and request 
-authentication/authorization is handled internally without user intervention. The requests that succeeded both 
-authentication and/or authorization phases according to the configurations will be passed to the business logic layer.
-
-##### 9.1.1.1 Listener - Basic Auth - File User Store
+#### 15.1.1. Example: JWT authentication with scopes
 
 ```ballerina
-@http:ServiceConfig {
-    auth: [
-        {
-            fileUserStoreConfig: {},
-            scopes: ["admin"]
-        }
-    ]
-}
-service / on new http:Listener(9090) {
-    resource function get greeting() returns string {
-        return "Hello, World!";
-    }
-}
-```
+listener http:Listener secureListener = new (9443,
+    secureSocket = {key: {certFile: "./resources/server.crt", keyFile: "./resources/server.key"}}
+);
 
-```ballerina
-# Config.toml
-
-[[ballerina.auth.users]]
-username="alice"
-password="alice@123"
-scopes=["developer"]
-
-[[ballerina.auth.users]]
-username="ldclakmal"
-password="ldclakmal@123"
-scopes=["developer", "admin"]
-
-[[ballerina.auth.users]]
-username="eve"
-password="eve@123"
-```
-
-##### 9.1.1.2. Listener - Basic Auth - LDAP User Store
-
-```ballerina
-@http:ServiceConfig {
-    auth: [
-        {
-            ldapUserStoreConfig: {
-                domainName: "avix.lk",
-                connectionUrl: "ldap://localhost:389",
-                connectionName: "cn=admin,dc=avix,dc=lk",
-                connectionPassword: "avix123",
-                userSearchBase: "ou=Users,dc=avix,dc=lk",
-                userEntryObjectClass: "inetOrgPerson",
-                userNameAttribute: "uid",
-                userNameSearchFilter: "(&(objectClass=inetOrgPerson)(uid=?))",
-                userNameListFilter: "(objectClass=inetOrgPerson)",
-                groupSearchBase: ["ou=Groups,dc=avix,dc=lk"],
-                groupEntryObjectClass: "groupOfNames",
-                groupNameAttribute: "cn",
-                groupNameSearchFilter: "(&(objectClass=groupOfNames)(cn=?))",
-                groupNameListFilter: "(objectClass=groupOfNames)",
-                membershipAttribute: "member",
-                userRolesCacheEnabled: true,
-                connectionPoolingEnabled: false,
-                connectionTimeout: 5,
-                readTimeout: 60
-            },
-            scopes: ["admin"]
-        }
-    ]
-}
-service / on new http:Listener(9090) {
-    resource function get greeting() returns string {
-        return "Hello, World!";
-    }
-}
-```
-
-##### 9.1.1.3 Listener - JWT Auth
-
-```ballerina
 @http:ServiceConfig {
     auth: [
         {
             jwtValidatorConfig: {
                 issuer: "wso2",
-                audience: "ballerina",
-                signatureConfig: {
-                    certFile: "/path/to/public.crt"
-                },
+                audience: "store",
+                signatureConfig: {certFile: "./resources/issuer.crt"},
                 scopeKey: "scp"
             },
-            scopes: ["admin"]
+            scopes: ["read"]
         }
     ]
 }
-service / on new http:Listener(9090) {
-    resource function get greeting() returns string {
-        return "Hello, World!";
-    }
+service /store on secureListener {
+    resource function get albums() returns Album[] => albums.toArray();
+
+    @http:ResourceConfig {auth: {scopes: ["write"]}}
+    resource function post albums(Album album) returns Album => album;
 }
 ```
 
-##### 9.1.1.4 Listener - OAuth2
+| Request                                                | `GET /store/albums`  | `POST /store/albums` |
+|--------------------------------------------------------|----------------------|----------------------|
+| No `Authorization` header                              | `401 Unauthorized`   | `401 Unauthorized`   |
+| A JWT that is expired or has an invalid signature      | `401 Unauthorized`   | `401 Unauthorized`   |
+| A valid JWT with `"scp": "read"`                       | `200 OK`             | `403 Forbidden`      |
+| A valid JWT with `"scp": "read write"`                 | `200 OK`             | `201 Created`        |
+
+The `post` resource uses the JWT configuration of the service with the scope `write` instead of `read` (rule 1).
+
+### 15.2. Imperative listener authentication
+
+The following handlers authenticate and authorize requests from the code of a resource. Their `authenticate` and `authorize` methods accept a `Request`, a `Headers` value, or the value of the `Authorization` header.
+
+| Handler                                  | Kind         | `authenticate` returns                 | `authorize` returns                                         |
+|------------------------------------------|--------------|----------------------------------------|-------------------------------------------------------------|
+| `ListenerFileUserStoreBasicAuthHandler`  | class        | `auth:UserDetails\|Unauthorized`       | `Forbidden?`                                                |
+| `ListenerLdapUserStoreBasicAuthHandler`  | client class | `auth:UserDetails\|Unauthorized`       | `Forbidden?`                                                |
+| `ListenerJwtAuthHandler`                 | class        | `jwt:Payload\|Unauthorized`            | `Forbidden?`                                                |
+| `ListenerOAuth2Handler`                  | client class | none                                   | `oauth2:IntrospectionResponse\|Unauthorized\|Forbidden`     |
+
+1. A missing `Authorization` header results in an `Unauthorized` value whose body is `"Authorization header not available."`.
+2. The Basic auth handlers return `Unauthorized` for a scheme other than `Basic`.
+3. Scopes are matched as in rule 5 of [Declarative listener authentication](#151-declarative-listener-authentication).
+
+#### 15.2.1. Example: Authenticating in a resource
 
 ```ballerina
-@http:ServiceConfig {
-    auth: [
-        {
-            oauth2IntrospectionConfig: {
-                url: "https://localhost:9445/oauth2/introspect",
-                tokenTypeHint: "access_token",
-                scopeKey: "scp",
-                clientConfig: {
-                    customHeaders: {"Authorization": "Basic YWRtaW46YWRtaW4="},
-                    secureSocket: {
-                        cert: "/path/to/public.crt"
-                    }
-                }
-            },
-            scopes: ["admin"]
-        }
-    ]
-}
-service / on new http:Listener(9090) {
-    resource function get greeting() returns string {
-        return "Hello, World!";
-    }
-}
-```
+final http:ListenerJwtAuthHandler jwtHandler = new ({
+    issuer: "wso2",
+    audience: "store",
+    signatureConfig: {certFile: "./resources/issuer.crt"},
+    scopeKey: "scp"
+});
 
-##### 9.1.1.5 Client - Basic Auth
-
-```ballerina
-http:Client c = check new ("https://localhost:9090",
-    auth = {
-        username: "tom",
-        password: "123"
-    }
-);
-
-public function main() returns error? {
-    http:Request req = new;
-    json response = check c->post("/foo/bar", req);
-    // evaluate response
-}
-```
-
-##### 9.1.1.6 Client - Bearer Token Auth
-
-```ballerina
-http:Client c = check new ("https://localhost:9090",
-    auth = {
-        token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiw" +
-               "ibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2Q" +
-               "T4fwpMeJf36POk6yJV_adQssw5c"
-    }
-);
-
-public function main() returns error? {
-    http:Request req = new;
-    json response = check c->post("/foo/bar", req);
-    // evaluate response
-}
-```
-
-##### 9.1.1.7 Client - Self-Signed JWT
-
-```ballerina
-http:Client c = check new ("https://localhost:9090",
-    auth = {
-        username: "ballerina",
-        issuer: "wso2",
-        audience: ["ballerina", "ballerina.org", "ballerina.io"],
-        keyId: "5a0b754-895f-4279-8843-b745e11a57e9",
-        jwtId: "JlbmMiOiJBMTI4Q0JDLUhTMjU2In",
-        customClaims: {"scp": "admin"},
-        expTime: 3600,
-        signatureConfig: {
-            config: {
-                keyFile: "/path/to/private.key"
-            }
-        }
-    }
-);
-
-public function main() returns error? {
-    http:Request req = new;
-    json response = check c->post("/foo/bar", req);
-    // evaluate response
-}
-```
-
-##### 9.1.1.8 Client - Bearer Token OAuth2
-
-```ballerina
-http:Client c = check new ("https://localhost:9090",
-    auth = {
-        token: "56ede317-4511-44b4-8579-a08f094ee8c5"
-    }
-);
-
-public function main() returns error? {
-    http:Request req = new;
-    json response = check c->post("/foo/bar", req);
-    // evaluate response
-}
-```
-
-##### 9.1.1.9 Client - Grant Types OAuth2
-
-```ballerina
-http:OAuth2ClientCredentialsGrantConfig config = {
-    tokenUrl: "https://localhost:8080/oauth2/token/authorize",
-    clientId: "3MVG9YDQS5WtC11paU2WcQjBB3L5w4gz52uriT8ksZ3nUVjKvrfQMrU4uvZohTftxS",
-    clientSecret: "9205371918321623741"
-};
-
-http:Client c = check new ("https://localhost:9090", auth = config);
-
-public function main() returns error? {
-    http:Request req = new;
-    json response = check c->post("/foo/bar", req);
-    // evaluate response
-}
-```
-
-#### 9.1.2 Imperative Approach
-
-This is also known as the code-driven approach, which is used for advanced use cases, where users need to be 
-worried more about how authentication and authorization work and need to have further customizations. The user has 
-full control of the code-driven approach. The handler creation and authentication/authorization calls are made by 
-the user at the business logic layer.
-
-##### 9.1.2.1 Listener - Basic Auth - File User Store
-
-```ballerina
-http:FileUserStoreConfig config = {};
-http:ListenerFileUserStoreBasicAuthHandler handler = new (config);
-
-service /foo on new http:Listener(9090) {
-    resource function post bar(@http:Header string Authorization) returns string|http:Unauthorized|http:Forbidden {
-        auth:UserDetails|http:Unauthorized authn = handler.authenticate(Authorization);
+service /store on secureListener {
+    resource function post albums(http:Headers headers, Album album)
+            returns Album|http:Unauthorized|http:Forbidden {
+        jwt:Payload|http:Unauthorized authn = jwtHandler.authenticate(headers);
         if authn is http:Unauthorized {
             return authn;
         }
-        http:Forbidden? authz = handler.authorize(<auth:UserDetails>authn, "admin");
+        http:Forbidden? authz = jwtHandler.authorize(<jwt:Payload>authn, "write");
         if authz is http:Forbidden {
             return authz;
         }
-        // business logic
+        return album;
     }
 }
 ```
 
-```ballerina
-# Config.toml
-[ballerina.observe]
-enabled=true
-provider="noop"
+### 15.3. Client authentication
 
-[[auth.users]]
-username="admin"
-password="123"
-scopes=["write", "update"]
+The `auth` field of a client configuration is one of the following. The corresponding handler MAY also be used directly, through its `enrich()` method.
+
+| Config                                           | Handler                              | Header                                                       |
+|--------------------------------------------------|--------------------------------------|--------------------------------------------------------------|
+| `CredentialsConfig`                              | `ClientBasicAuthHandler`             | `Authorization: Basic <base64 of username:password>`         |
+| `BearerTokenConfig`                              | `ClientBearerTokenAuthHandler`       | `Authorization: Bearer <token>`                              |
+| `JwtIssuerConfig`                                | `ClientSelfSignedJwtAuthHandler`     | `Authorization: Bearer <self-signed JWT>`                    |
+| `OAuth2GrantConfig` (client credentials, password, refresh token or JWT bearer grant) | `ClientOAuth2Handler` | `Authorization: Bearer <access token>`         |
+
+1. The header is set on each request, replacing an `Authorization` header set by the caller.
+2. When the header cannot be created, e.g. because an access token cannot be obtained, the call returns a `ClientAuthError` and the request is not sent.
+3. The caching and refreshing of tokens is provided by the `ballerina/jwt` and `ballerina/oauth2` modules. A `401 Unauthorized` response does not cause a token to be refreshed.
+
+#### 15.3.1. Example: OAuth2 client credentials
+
+```ballerina
+configurable string clientSecret = ?;
+
+http:Client storeClient = check new ("https://api.example.com/store",
+    auth = {
+        tokenUrl: "https://idp.example.com/oauth2/token",
+        clientId: "store-client",
+        clientSecret: clientSecret,
+        scopes: ["read"]
+    },
+    secureSocket = {cert: "./resources/ca.crt"}
+);
 ```
 
-##### 9.1.2.2 Listener - Basic Auth - LDAP User Store
+Each request has an `Authorization: Bearer <access token>` header, where the token is obtained with the client credentials grant. When a token cannot be obtained, the call returns a `ClientAuthError` and the request is not sent (rule 2).
+
+## 16. TLS
+
+### 16.1. Common configuration
+
+The following fields are shared by the listener and client TLS configurations:
+
+| Field              | Type                                   | Meaning                                                                                                             |
+|--------------------|----------------------------------------|---------------------------------------------------------------------------------------------------------------------|
+| `key`              | `crypto:KeyStore\|CertKey`             | Key store, or certificate and private key files, of the endpoint.                                                   |
+| `protocol`         | `record {Protocol name; string[] versions = [];}` | Protocol (`SSL`, `TLS` or `DTLS`) and versions. Empty `versions` means the defaults of the Java runtime. |
+| `certValidation`   | `record {CertValidationType type = OCSP_STAPLING; int cacheSize; int cacheValidityPeriod;}` | Certificate revocation checking. A `cacheSize` of `0` means `50`, and a `cacheValidityPeriod` of `0` means `15`. |
+| `ciphers`          | `string[]`                             | Cipher suites.                                                                                                      |
+| `shareSession`     | `boolean`                              | Whether TLS sessions are reused. Default `true`.                                                                    |
+| `handshakeTimeout` | `decimal`                              | TLS handshake timeout in seconds, rounded to the nearest whole second with ties to even. When absent, or when the rounded value is less than or equal to `0`, the timeout is 10 seconds. |
+| `sessionTimeout`   | `decimal`                              | Lifetime in seconds of a cached TLS session that can be resumed, rounded as `handshakeTimeout`. When absent, or when the rounded value is less than or equal to `0`, the default of the TLS implementation is used. |
+
+A key store or trust store with a blank path or password is an initialization error.
+
+### 16.2. Listener
+
+`ListenerSecureSocket` has the fields of [Common configuration](#161-common-configuration), and:
+
+1. `key` is required.
+2. `mutualSsl` is an optional `record {VerifyClient verifyClient = REQUIRE; crypto:TrustStore|string cert;}`. With `REQUIRE`, a client MUST present a certificate trusted by `cert`. With `OPTIONAL`, a client MAY present one.
+3. When `ciphers` is not set, a fixed list of 12 cipher suites is used.
+
+### 16.3. Client
+
+`ClientSecureSocket` has the fields of [Common configuration](#161-common-configuration), and:
+
+| Field            | Type                         | Default | Meaning                                                                                                  |
+|------------------|------------------------------|---------|----------------------------------------------------------------------------------------------------------|
+| `enable`         | `boolean`                    | `true`  | When `false`, the certificate of the server is not validated. `key` is still used.                       |
+| `cert`           | `crypto:TrustStore\|string`  | absent  | Trust store or certificate file used to validate the server. When absent, the trust store of the Java runtime is used. |
+| `verifyHostName` | `boolean`                    | `true`  | Whether the host name of the server is verified against its certificate.                                 |
+| `serverName`     | `string`                     | absent  | Server name sent with SNI. When absent, the host of the URL is used.                                     |
+
+1. `key` is optional, and is used for mutual TLS.
+2. When `ciphers` is not set, the defaults of the Java runtime are used.
+3. A client with an `https://` URL and no `secureSocket` uses the defaults of the Java runtime.
+
+#### 16.3.1. Example: Mutual TLS
+
+The following listener accepts TLS 1.3 connections only from clients that present a certificate trusted by `ca.crt`, and the client presents such a certificate:
 
 ```ballerina
-http:LdapUserStoreConfig config = {
-    domainName: "avix.lk",
-    connectionUrl: "ldap://localhost:389",
-    connectionName: "cn=admin,dc=avix,dc=lk",
-    connectionPassword: "avix123",
-    userSearchBase: "ou=Users,dc=avix,dc=lk",
-    userEntryObjectClass: "inetOrgPerson",
-    userNameAttribute: "uid",
-    userNameSearchFilter: "(&(objectClass=inetOrgPerson)(uid=?))",
-    userNameListFilter: "(objectClass=inetOrgPerson)",
-    groupSearchBase: ["ou=Groups,dc=avix,dc=lk"],
-    groupEntryObjectClass: "groupOfNames",
-    groupNameAttribute: "cn",
-    groupNameSearchFilter: "(&(objectClass=groupOfNames)(cn=?))",
-    groupNameListFilter: "(objectClass=groupOfNames)",
-    membershipAttribute: "member",
-    userRolesCacheEnabled: true,
-    connectionPoolingEnabled: false,
-    connectionTimeout: 5,
-    readTimeout: 60
-};
-http:ListenerLdapUserStoreBasicAuthHandler handler = new (config);
-
-service /foo on new http:Listener(9090) {
-    resource function post bar(@http:Header string Authorization) returns string|http:Unauthorized|http:Forbidden {
-        auth:UserDetails|http:Unauthorized authn = handler->authenticate(Authorization);
-        if authn is http:Unauthorized {
-            return authn;
-        }
-        http:Forbidden? authz = handler->authorize(<auth:UserDetails>authn, "admin");
-        if authz is http:Forbidden {
-            return authz;
-        }
-        // business logic
-    }
-}
-```
-
-##### 9.1.2.3 Listener - JWT Auth
-
-```ballerina
-http:JwtValidatorConfig config = {
-    issuer: "ballerina",
-    audience: ["wso2"],
-    signatureConfig: {
-        jwksConfig: {
-            url: "https://localhost:8080/jwks"
-        }
-    }
-};
-http:ListenerJwtAuthHandler handler = new (config);
-
-service /foo on new http:Listener(9090) {
-    resource function post bar(@http:Header string Authorization) returns string|http:Unauthorized|http:Forbidden {
-        jwt:Payload|http:Unauthorized authn = handler.authenticate(Authorization);
-        if authn is http:Unauthorized {
-            return authn;
-        }
-        http:Forbidden? authz = handler.authorize(<jwt:Payload>authn, "admin");
-        if authz is http:Forbidden {
-            return authz;
-        }
-        // business logic
-    }
-}
-```
-
-##### 9.1.2.4 Listener - OAuth2
-
-```ballerina
-http:OAuth2IntrospectionConfig config = {
-    url: "https://localhost:8080/oauth2/introspect",
-    tokenTypeHint: "access_token"
-};
-http:ListenerOAuth2Handler handler = new (config);
-
-service /foo on new http:Listener(9090) {
-    resource function post bar(@http:Header string authorization) returns string|http:Unauthorized|http:Forbidden {
-        oauth2:IntrospectionResponse|http:Unauthorized|http:Forbidden auth = handler->authorize(authorization, "admin");
-        if auth is http:Unauthorized || auth is http:Forbidden {
-            return auth;
-        }
-        // business logic
-    }
-}
-```
-
-##### 9.1.2.5 Client - Basic Auth
-
-```ballerina
-http:CredentialsConfig config = {
-    username: "tom",
-    password: "123"
-};
-http:ClientBasicAuthHandler handler = new (config);
-
-http:Client c = check new ("https://localhost:9090");
-
-public function main() returns error? {
-    http:Request req = new;
-    req = check handler.enrich(req);
-    json response = check c->post("/foo/bar", req);
-    // evaluate response
-}
-```
-
-##### 9.1.2.6 Client - Bearer Token Auth
-
-```ballerina
-http:BearerTokenConfig config = {
-    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFt" +
-           "ZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf3" +
-           "6POk6yJV_adQssw5c"
-};
-http:ClientBearerTokenAuthHandler handler = new (config);
-
-http:Client c = check new ("https://localhost:9090");
-
-public function main() returns error? {
-    http:Request req = new;
-    req = check handler.enrich(req);
-    json response = check c->post("/foo/bar", req);
-    // evaluate response
-}
-```
-
-##### 9.1.2.7. Client - Self-Signed JWT
-
-```ballerina
-http:JwtIssuerConfig config = {
-    username: "admin",
-    issuer: "ballerina",
-    audience: ["wso2"],
-    signatureConfig: {
-        config: {
-            keyFile: "/path/to/private.key",
-            keyPassword: "password"
-        }
-    }
-};
-http:ClientSelfSignedJwtAuthHandler handler = new (config);
-
-http:Client c = check new ("https://localhost:9090");
-
-public function main() returns error? {
-    http:Request req = new;
-    req = check handler.enrich(req);
-    json response = check c->post("/foo/bar", req);
-    // evaluate response
-}
-```
-
-##### 9.1.2.8. Client - Bearer Token OAuth2
-
-```ballerina
-http:BearerTokenConfig config = {
-    token: "JhbGciOiJIIiwiaWF0IjUzI1NiIsInR5cCI6IkpXVCJ9WIiOiIxMjM0NTY3ODkwI"
-};
-http:ClientBearerTokenAuthHandler handler = new (config);
-
-http:Client c = check new ("https://localhost:9090");
-
-public function main() returns error? {
-    http:Request req = new;
-    req = check handler.enrich(req);
-    json response = check c->post("/foo/bar", req);
-    // evaluate response
-}
-```
-
-##### 9.1.2.9. Client - Grant Types OAuth2
-
-```ballerina
-http:OAuth2ClientCredentialsGrantConfig config = {
-    tokenUrl: "https://localhost:8080/oauth2/token/authorize",
-    clientId: "3MVG9YDQS5WtC11paU2WcQjBB3L5w4gz52uriT8ksZ3nUVjKvrfQMrU4uvZohTftxS",
-    clientSecret: "9205371918321623741"
-};
-http:ClientOAuth2Handler handler = new (config);
-
-http:Client c = check new ("https://localhost:9090");
-
-public function main() returns error? {
-    http:Request req = new;
-    req = check handler->enrich(req);
-    json response = check c->post("/foo/bar", req);
-    // evaluate response
-}
-```
-
-### 9.2 SSL/TLS and Mutual SSL
-
-The HTTPS listener could connect to or interact with an HTTPS client. The `http:ListenerSecureSocket` configuration
-of the listener exposes the HTTPS connection related configs.
-
-#### 9.2.1 Listener - SSL/TLS
-
-```ballerina
-listener http:Listener securedEP = new(9090,
+listener http:Listener storeListener = new (9443,
     secureSocket = {
-        key: {
-            certFile: "/path/to/public.crt",
-            keyFile: "/path/to/private.key"
-        }
+        key: {certFile: "./resources/server.crt", keyFile: "./resources/server.key"},
+        mutualSsl: {verifyClient: http:REQUIRE, cert: "./resources/ca.crt"},
+        protocol: {name: http:TLS, versions: ["TLSv1.3"]}
     }
 );
 
-service / on securedEP {
-    resource function get greeting() returns string {
-        return "Hello, World!";
-    }
-}
-```
-
-#### 9.2.2 Listener - Mutual SSL
-
-The mutual SSL support which is a certificate-based authentication process in which two parties 
-(the client and server) authenticate each other by verifying the digital certificates. It ensures that both 
-parties are assured of each other’s identity.
-
-```ballerina
-listener http:Listener securedEP = new(9090,
+http:Client storeClient = check new ("https://localhost:9443",
     secureSocket = {
-        key: {
-            certFile: "/path/to/public.crt",
-            keyFile: "/path/to/private.key"
-        },
-
-        mutualSsl: {
-            verifyClient: http:REQUIRE,
-            cert: "/path/to/public.crt"
-        },
-
-        protocol: {
-            name: http:TLS,
-            versions: ["TLSv1.2", "TLSv1.1"]
-        },
-
-        ciphers: ["TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"]
-
+        cert: "./resources/ca.crt",
+        key: {certFile: "./resources/client.crt", keyFile: "./resources/client.key"}
     }
 );
-service / on securedEP {
-    resource function get greeting() returns string {
-        return "Hello, World!";
-    }
-}
 ```
 
-#### 9.2.3 Client - SSL/TLS
-
-```ballerina
-http:Client securedEP = check new("https://localhost:9090",
-    secureSocket = {
-        cert: "/path/to/public.crt"
-    }
-);
-
-public function main() returns error? {
-    http:Request req = new;
-    string response = check securedEP->post("/foo/bar", req);
-    io:println(response);
-}
-```
-
-#### 9.2.4 Client - Mutual SSL
-
-```ballerina
-http:Client securedEP = check new("https://localhost:9090",
-    secureSocket = {
-        key: {
-            certFile: "/path/to/public.crt",
-            keyFile: "/path/to/private.key"
-        },
-        cert: "/path/to/public.crt",
-        protocol: {
-            name: http:TLS
-        },
-        ciphers: ["TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"]
-
-    }
-);
-public function main() returns error? {
-    http:Request req = new;
-    string response = check securedEP->post("/foo/bar", req);
-    io:println(response);
-}
-```
-
-## 10. Protocol upgrade
-### 10.1. HTTP/2
-The version 2 of HTTP protocol is supported in both Listener and Client space which could be configured through the 
-respective configuration.
-
-```ballerina
-// Listener declaration
-listener http:Listener http2ServiceEP = new (7090, config = {httpVersion: "2.0"});
-
-// Client declaration
-http:Client clientEP = check new ("http://localhost:7090", {httpVersion: "2.0"});
-```
-
-There are few API level additions when it comes to the HTTP/2 design such as Push promise and promise response.
-#### 10.1.1. Push Promise and Promise Response
-Push Promise and Promise response are the only application level new semantics which are introduced by HTTP2.
-
-Other protocol changes such as streams, messages, frames, request prioritization, flow control, header compression, 
-etc. are all lower level changes that can be handled by the HTTP listener seamlessly from the user.
-
-## 11. Static Code Rules
-
-The following static code rules are applied to the HTTP module.
-
-| Id               | Kind          | Description                                                                                                                                     |
-|------------------|---------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
-| ballerina/http:1 | VULNERABILITY | [Avoid allowing default resource accessor](#111-avoid-allowing-default-resource-accessor)                                                       |
-| ballerina/http:2 | VULNERABILITY | [Avoid permissive Cross-Origin Resource Sharing](#112-avoid-permissive-cross-origin-resource-sharing)                                           |
-| ballerina/http:3 | VULNERABILITY | [Server-side requests should not be vulnerable to traversing attacks](#113-server-side-requests-should-not-be-vulnerable-to-traversing-attacks) |
-| ballerina/http:4 | VULNERABILITY | [HTTP request redirections should not be open to forging attacks](#114-http-request-redirections-should-not-be-open-to-forging-attacks)         |
-
-### 11.1. Avoid allowing default resource accessor
-
-Using a default resource accessor allows resources to handle any HTTP method, creating CSRF vulnerabilities.
-
-#### 11.1.1. Why this is an issue?
-
-Using a default resource accessor allows the resource to handle any HTTP method, including both safe and unsafe operations. HTTP methods are categorized as either **safe** or **unsafe** based on their intended purpose:
-
-- **Safe HTTP methods** (GET, HEAD, OPTIONS) are designed for read-only operations that should not modify server state
-- **Unsafe HTTP methods** (POST, PUT, DELETE) are intended for operations that change application state
-
-#### 11.1.2. What is the potential impact?
-
-This creates significant security vulnerabilities, particularly with Cross-Site Request Forgery (CSRF) attacks, since CSRF protections typically only guard unsafe HTTP methods. Attackers can exploit this by performing state-changing operations through methods that should be read-only.
-
-#### 11.1.3. How can I fix this?
-
-Explicitly define the authorized HTTP methods for each resource and ensure safe HTTP methods are only used for read-only operations.
-
-**Non-compliant code:**
-
-```ballerina
-service / on new http:Listener(9090) {
-    // Default resource accessor is used
-    resource function default users(string id) returns string {
-        ...
-    }
-}
-```
-
-**Compliant code:**
-
-```ballerina
-service / on new http:Listener(9090) {
-    // Use explicit HTTP method
-    resource function get users(string id) returns string {
-        ...
-    }
-}
-```
-
-#### 11.1.4. Additional Resources
-
-- OWASP - [Top 10 2021 Category A1 - Broken Access Control](https://owasp.org/Top10/A01_2021-Broken_Access_Control/)
-- OWASP - [Top 10 2021 Category A4 - Insecure Design](https://owasp.org/Top10/A04_2021-Insecure_Design/)
-- OWASP - [Top 10 2017 Category A5 - Broken Access Control](https://owasp.org/www-project-top-ten/2017/A5_2017-Broken_Access_Control/)
-- CWE - [CWE-352 - Cross-Site Request Forgery (CSRF)](https://cwe.mitre.org/data/definitions/352)
-- [OWASP: Cross-Site Request Forgery](https://owasp.org/www-community/attacks/csrf)
-
-### 11.2. Avoid permissive Cross-Origin Resource Sharing
-
-Permissive CORS configuration allowing any origin can expose resources to unauthorized access.
-
-#### 11.2.1. Why this is an issue?
-
-Cross-Origin Resource Sharing (CORS) is a mechanism that allows restricted resources on a web page to be requested from another domain outside the domain from which the resource originated. A permissive CORS configuration that allows any origin (`*`) to access server resources can lead to security vulnerabilities.
-
-#### 11.2.2. What is the potential impact?
-
-This can lead to security vulnerabilities, including:
-
-- Cross-Site Request Forgery (CSRF) attacks
-- Unauthorized data access from malicious websites
-- Exposure of sensitive information to untrusted domains
-
-#### 11.2.3. How can I fix this?
-
-Avoid using wildcard (`*`) in the `allowOrigins` configuration of CORS. Instead, explicitly define specific origins that are authorized to access the resources.
-
-**Non-compliant code:**
-
-```ballerina
-@http:ServiceConfig {
-    cors: {
-        // Wildcard origin is used
-        allowOrigins: ["*"]
-    }
-}
-service /api/v1 on new http:Listener(9090) {
-    ...
-}
-```
-
-**Compliant code:**
-
-```ballerina
-@http:ServiceConfig {
-    cors: {
-        // Specific origins are defined
-        allowOrigins: ["https://example.com", "https://another-example.com"]
-    }
-}
-service /api/v1 on new http:Listener(9090) {
-    ...
-}
-```
-
-#### 11.2.4. Additional Resources
-
-- OWASP - [Top 10 2021 Category A5 - Security Misconfiguration](https://owasp.org/Top10/A05_2021-Security_Misconfiguration/)
-- OWASP - [Top 10 2021 Category A7 - Identification and Authentication Failures](https://owasp.org/Top10/A07_2021-Identification_and_Authentication_Failures/)
-- [developer.mozilla.org](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) - CORS
-- [developer.mozilla.org](https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy) - Same origin policy
-- OWASP - [Top 10 2017 Category A6 - Security Misconfiguration](https://owasp.org/www-project-top-ten/2017/A6_2017-Security_Misconfiguration)
-- [OWASP HTML5 Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/HTML5_Security_Cheat_Sheet.html#cross-origin-resource-sharing) - Cross Origin Resource Sharing
-- CWE - [CWE-346 - Origin Validation Error](https://cwe.mitre.org/data/definitions/346)
-- CWE - [CWE-942 - Overly Permissive Cross-domain Whitelist](https://cwe.mitre.org/data/definitions/942)
-
-### 11.3. Server-side requests should not be vulnerable to traversing attacks
-
-User input in server-side requests can enable SSRF attacks against internal systems.
-
-#### 11.3.1. Why this is an issue?
-
-Server-Side Request Forgery (SSRF) is a vulnerability that allows attackers to induce the server-side application to make requests to an unintended location. When applications accept user input that influences server-side HTTP requests without proper validation or sanitization, attackers can manipulate these requests.
-
-#### 11.3.2. What is the potential impact?
-
-SSRF attacks can enable attackers to:
-
-- Access internal services behind firewalls
-- Scan internal networks for vulnerabilities
-- Interact with metadata services in cloud environments
-- Perform denial-of-service attacks
-- Leverage server privileges to access restricted resources
-
-SSRF attacks are particularly dangerous in cloud environments where metadata services can expose sensitive information such as credentials and configuration data.
-
-Common attack patterns include:
-
-- Manipulating URL parameters to reach internal IPs (e.g., `127.0.0.1`, `192.168.x.x`)
-- Using alternate encoding schemes to bypass filters (e.g., decimal IPs, hex encoding)
-- Abusing URL redirects to reach internal resources
-- Using DNS rebinding to bypass hostname-based restrictions
-- Exploiting non-HTTP URL schemes like `file://`, `gopher://`, or `dict://`
-
-#### 11.3.3. How can I fix this?
-
-Avoid using user input directly in server-side HTTP requests. Instead, validate and sanitize all user inputs to ensure they conform to expected formats and values before using them in any server-side operations.
-
-**Non-compliant code:**
-
-```ballerina
-service /api/v1 on new http:Listener(8080) {
-    resource function get users(string id) returns http:Response|error {
-        http:Client userClient = check new ("http://example.com");
-        // User input is used directly in the URL
-        return userClient->/users/[id];
-    }
-}
-```
-
-**Compliant code:**
-
-```ballerina
-service /api/v1 on new http:Listener(8080) {
-    resource function get users(string id) returns http:Response|error {
-        // Validate the user input
-        string validatedId = check getValidatedId(id);
-        http:Client userClient = check new ("http://example.com");
-        return userClient->/users/[validatedId];
-    }
-}
-```
-
-#### 11.3.4. Additional Resources
-
-- OWASP - [Top 10 2021 Category A10 - Server-Side Request Forgery (SSRF)](https://owasp.org/Top10/A10_2021-Server-Side_Request_Forgery_%28SSRF%29/)
-- OWASP - [Top 10 2017 Category A5 - Broken Access Control](https://owasp.org/www-project-top-ten/2017/A5_2017-Broken_Access_Control)
-- CWE - [CWE-20 - Improper Input Validation](https://cwe.mitre.org/data/definitions/20)
-- CWE - [CWE-918 - Server-Side Request Forgery (SSRF)](https://cwe.mitre.org/data/definitions/918)
-- STIG Viewer - [Application Security and Development: V-222609](https://stigviewer.com/stigs/application_security_and_development/2024-12-06/finding/V-222609) - The application must not be subject to input handling vulnerabilities.
-
-### 11.4. HTTP request redirections should not be open to forging attacks
-
-Unvalidated user input in redirect URLs can enable phishing and malware distribution attacks.
-
-#### 11.4.1. Why this is an issue?
-
-Open redirects occur when an application accepts user-controlled input that specifies a URL to which the user will be redirected. When these redirects are implemented without proper validation, attackers can craft redirection URLs to malicious sites.
-
-#### 11.4.2. What is the potential impact?
-
-These vulnerabilities can lead to several security threats:
-
-- **Phishing attacks:** Users are redirected to malicious sites that impersonate legitimate services
-- **Credential theft:** Redirects to sites designed to steal authentication information
-- **Malware distribution:** Redirects to malicious downloads
-- **Security control bypass:** Leveraging user trust in the original domain
-- **Cross-site scripting (XSS):** Through `javascript:` URI schemes in some browsers
-
-Common vulnerable patterns include:
-
-- Directly using user-supplied URLs in Location headers
-- Insufficient validation of redirect destinations
-- Allowing protocol-relative URLs that can lead to unexpected destinations
-- Validating only prefixes of redirect URLs, which can be bypassed
-- Relying on blocklists instead of allowlists for URL validation
-
-#### 11.4.3. How can I fix this?
-
-Avoid using user input directly in redirection URLs. Instead, validate and sanitize all user inputs to ensure they conform to expected formats and values before using them in redirect operations.
-
-**Non-compliant code:**
-
-```ballerina
-service /api/v1 on new http:Listener(8080) {
-    resource function get redirect(string location) returns http:TemporaryRedirect {
-        return {
-            headers: {
-                // User input is used directly in the Location header
-                "Location": location
-            }
-        };
-    }
-}
-```
-
-**Compliant code:**
-
-```ballerina
-service /api/v1 on new http:Listener(8080) {
-    resource function get redirect(string location) returns http:TemporaryRedirect|error {
-        // Validate the user input
-        string validatedLocation = check getValidatedLocation(location);
-        return {
-            headers: {
-                "Location": validatedLocation
-            }
-        };
-    }
-}
-```
-
-#### 11.4.4. Additional Resources
-
-- OWASP - [Top 10 2021 Category A1 - Broken Access Control](https://owasp.org/Top10/A01_2021-Broken_Access_Control/)
-- OWASP - [Top 10 2017 Category A5 - Broken Access Control](https://owasp.org/www-project-top-ten/2017/A5_2017-Broken_Access_Control)
-- CWE - [CWE-20 - Improper Input Validation](https://cwe.mitre.org/data/definitions/20)
-- CWE - [CWE-601 - URL Redirection to Untrusted Site ('Open Redirect')](https://cwe.mitre.org/data/definitions/601)
+## 17. Security considerations
+
+1. The listener accepts cleartext connections unless `secureSocket` is configured. Credentials, including those of Basic authentication, are then sent in clear text.
+2. `ClientSecureSocket` with `enable: false` disables the validation of server certificates, and exposes the client to man-in-the-middle attacks.
+3. The `default` accessor handles every method, including methods that are expected to be safe, such as `GET`. See static code rule `ballerina/http:1`.
+4. A CORS configuration with `allowOrigins: ["*"]` allows any origin to read the responses of the resource. A request from an origin that is not allowed is still processed, so CORS MUST NOT be relied upon for access control.
+5. Payload binding reads the whole request body into memory. Without `maxEntityBodySize`, the size of the body is not limited.
+6. Redirects, retries and load balancing read request payloads into memory, and retries resend non-idempotent requests.
+7. The `JWT_INFORMATION` member of the request context is decoded without validation, and MUST NOT be used for authorization unless the token has been validated, e.g. by declarative authentication.
+8. When a resource or an interceptor panics, the program terminates. A panic triggered by a request therefore stops the service.
+9. A resource that declares only `Scopes` in a service without `auth` is not authenticated. See rule 9 of [Declarative listener authentication](#151-declarative-listener-authentication).
+10. The client cache does not honour `Vary`, as described in rule 4 of [Caching](#115-caching). A response that varies by request header, such as language, or by credentials carried in headers, can be returned for a request with other values. Disable the cache with `cache: {enabled: false}` for such endpoints.
+11. The Swagger UI resource loads its scripts from `unpkg.com`.
+
+## 18. Static code rules
+
+The compiler plugin provides the following rules to the Ballerina static code analysis tool. Their rationale and remediation are documented in [Static code rules](../static-code-rules.md).
+
+| Id                 | Kind          | Triggered by                                                                                                                                                               |
+|--------------------|---------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `ballerina/http:1` | VULNERABILITY | A resource with the `default` accessor.                                                                                                                                    |
+| `ballerina/http:2` | VULNERABILITY | A `cors` field whose `allowOrigins` list literal contains `"*"`, in any annotation. Values given through variables or constants are not detected.                          |
+| `ballerina/http:3` | VULNERABILITY | A client resource access action with a computed path segment that is a parameter of the enclosing resource, or a field or member access on one.                          |
+| `ballerina/http:4` | VULNERABILITY | A resource whose return type includes a redirect status code response, and which returns a mapping literal whose `Location` header uses a parameter of the resource.      |
+
+## References
+
+- [RFC 9110: HTTP Semantics](https://www.rfc-editor.org/rfc/rfc9110)
+- [RFC 9111: HTTP Caching](https://www.rfc-editor.org/rfc/rfc9111)
+- [RFC 9112: HTTP/1.1](https://www.rfc-editor.org/rfc/rfc9112)
+- [RFC 9113: HTTP/2](https://www.rfc-editor.org/rfc/rfc9113)
+- [RFC 6265: HTTP State Management Mechanism](https://www.rfc-editor.org/rfc/rfc6265)
+- [Fetch Standard: CORS protocol](https://fetch.spec.whatwg.org/#http-cors-protocol)
+- [Server-sent events](https://html.spec.whatwg.org/multipage/server-sent-events.html)
+- [Ballerina language specification](https://ballerina.io/spec/lang/master/)
