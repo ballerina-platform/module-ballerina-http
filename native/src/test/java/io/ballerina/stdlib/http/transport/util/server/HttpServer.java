@@ -26,10 +26,12 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.util.concurrent.Future;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A Simple HTTP Server.
@@ -83,8 +85,10 @@ public class HttpServer implements TestServer {
      * Shutdown the HttpServer.
      */
     public void shutdown() throws InterruptedException {
-        bossGroup.shutdownGracefully().sync();
-        workerGroup.shutdownGracefully().sync();
+        Future<?> bossTermination = bossGroup.shutdownGracefully(0, 15000, TimeUnit.MILLISECONDS);
+        Future<?> workerTermination = workerGroup.shutdownGracefully(0, 15000, TimeUnit.MILLISECONDS);
+        bossTermination.sync();
+        workerTermination.sync();
         LOG.info("HttpServer shutdown");
     }
 

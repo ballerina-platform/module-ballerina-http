@@ -34,6 +34,7 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.ssl.SupportedCipherSuiteFilter;
+import io.netty.util.concurrent.Future;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +43,7 @@ import java.net.InetSocketAddress;
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -130,8 +132,10 @@ public class HttpsServer implements TestServer {
      * Shutdown the HttpsServer.
      */
     public void shutdown() throws InterruptedException {
-        bossGroup.shutdownGracefully().sync();
-        workerGroup.shutdownGracefully().sync();
+        Future<?> bossTermination = bossGroup.shutdownGracefully(0, 15000, TimeUnit.MILLISECONDS);
+        Future<?> workerTermination = workerGroup.shutdownGracefully(0, 15000, TimeUnit.MILLISECONDS);
+        bossTermination.sync();
+        workerTermination.sync();
         LOG.info("HttpsServer shutdown ");
     }
 

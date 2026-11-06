@@ -43,6 +43,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.EventExecutorGroup;
+import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GlobalEventExecutor;
 
 import java.io.IOException;
@@ -50,7 +51,10 @@ import java.io.UncheckedIOException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLException;
 
@@ -61,6 +65,9 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.PIPELINING_T
  * Implementation of HttpWsConnectorFactory interface.
  */
 public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
+
+    private static final long SHUTDOWN_QUIET_PERIOD_MILLIS = 0;
+    private static final long SHUTDOWN_TIMEOUT_MILLIS = 15000;
 
     private final EventLoopGroup bossGroup;
     private final EventLoopGroup workerGroup;
@@ -216,12 +223,21 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
     @Override
     public void shutdown() throws InterruptedException {
         allChannels.close().sync();
-        workerGroup.shutdownGracefully().sync();
-        bossGroup.shutdownGracefully().sync();
-        clientGroup.shutdownGracefully().sync();
+        // The channels are closed, so no quiet period is needed and the groups can terminate together.
+        List<Future<?>> terminations = new ArrayList<>();
+        terminations.add(terminate(workerGroup));
+        terminations.add(terminate(bossGroup));
+        terminations.add(terminate(clientGroup));
         if (pipeliningGroup != null) {
-            pipeliningGroup.shutdownGracefully().sync();
+            terminations.add(terminate(pipeliningGroup));
         }
+        for (Future<?> termination : terminations) {
+            termination.sync();
+        }
+    }
+
+    private static Future<?> terminate(EventExecutorGroup group) {
+        return group.shutdownGracefully(SHUTDOWN_QUIET_PERIOD_MILLIS, SHUTDOWN_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
     }
 
     /**
