@@ -231,31 +231,35 @@ public isolated class CustomLoadBalancerRule {
 //Test for round robin implementation algorithm of load balancer
 final http:Client roundRobinLoadBalanceTestClient = check new ("http://localhost:9313", httpVersion = http:HTTP_1_1);
 
-@test:Config {dataProvider: roundRobinResponseDataProvider}
-function roundRobinLoadBalanceTest(DataFeed dataFeed) returns error? {
-    check invokeApiAndVerifyResponse(roundRobinLoadBalanceTestClient, "/loadBalancerDemoService/roundRobin", dataFeed);
+@test:Config {}
+function roundRobinLoadBalanceTest() returns error? {
+    foreach DataFeed dataFeed in roundRobinResponses() {
+        check invokeApiAndVerifyResponse(roundRobinLoadBalanceTestClient, "/loadBalancerDemoService/roundRobin", dataFeed);
+    }
 }
 
-function roundRobinResponseDataProvider() returns DataFeed[][] {
+function roundRobinResponses() returns DataFeed[] {
     return [
-        [{responseCode: SC_OK, message: MOCK_1_INVOKED}],
-        [{responseCode: SC_OK, message: MOCK_2_INVOKED}],
-        [{responseCode: SC_OK, message: MOCK_3_INVOKED}],
-        [{responseCode: SC_OK, message: MOCK_1_INVOKED}]
+        {responseCode: SC_OK, message: MOCK_1_INVOKED},
+        {responseCode: SC_OK, message: MOCK_2_INVOKED},
+        {responseCode: SC_OK, message: MOCK_3_INVOKED},
+        {responseCode: SC_OK, message: MOCK_1_INVOKED}
     ];
 }
 
 //Test for verify failover behavior with load balancer
-@test:Config {dataProvider: roundRobinWithFailoverResponseDataProvider}
-function roundRobinWithFailoverResponseTest(DataFeed dataFeed) returns error? {
-    check invokeApiAndVerifyResponse(roundRobinLoadBalanceTestClient, "/loadBalancerDemoService/lbFailover", dataFeed);
+@test:Config {}
+function roundRobinWithFailoverResponseTest() returns error? {
+    foreach DataFeed dataFeed in roundRobinWithFailoverResponses() {
+        check invokeApiAndVerifyResponse(roundRobinLoadBalanceTestClient, "/loadBalancerDemoService/lbFailover", dataFeed);
+    }
 }
 
-function roundRobinWithFailoverResponseDataProvider() returns DataFeed[][] {
+function roundRobinWithFailoverResponses() returns DataFeed[] {
     return [
-        [{responseCode: SC_OK, message: MOCK_2_INVOKED}],
-        [{responseCode: SC_OK, message: MOCK_3_INVOKED}],
-        [{responseCode: SC_OK, message: MOCK_2_INVOKED}]
+        {responseCode: SC_OK, message: MOCK_2_INVOKED},
+        {responseCode: SC_OK, message: MOCK_3_INVOKED},
+        {responseCode: SC_OK, message: MOCK_2_INVOKED}
     ];
 }
 
@@ -275,16 +279,18 @@ function testAllLbEndpointFailure() returns error? {
 }
 
 //Test for custom algorithm implementation of load balancer
-@test:Config {dataProvider: customLbResponseDataProvider}
-function customLbResponseTest(DataFeed dataFeed) returns error? {
-    check invokeApiAndVerifyResponse(roundRobinLoadBalanceTestClient, "/loadBalancerDemoService/customResource", dataFeed);
+@test:Config {}
+function customLbResponseTest() returns error? {
+    foreach DataFeed dataFeed in customLbResponses() {
+        check invokeApiAndVerifyResponse(roundRobinLoadBalanceTestClient, "/loadBalancerDemoService/customResource", dataFeed);
+    }
 }
 
-function customLbResponseDataProvider() returns DataFeed[][] {
+function customLbResponses() returns DataFeed[] {
     return [
-        [{responseCode: SC_OK, message: MOCK_3_INVOKED}],
-        [{responseCode: SC_OK, message: MOCK_1_INVOKED}],
-        [{responseCode: SC_OK, message: MOCK_2_INVOKED}],
-        [{responseCode: SC_OK, message: MOCK_3_INVOKED}]
+        {responseCode: SC_OK, message: MOCK_3_INVOKED},
+        {responseCode: SC_OK, message: MOCK_1_INVOKED},
+        {responseCode: SC_OK, message: MOCK_2_INVOKED},
+        {responseCode: SC_OK, message: MOCK_3_INVOKED}
     ];
 }

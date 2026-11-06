@@ -68,7 +68,7 @@ service /mutualSSLService on mutualSSLListener {
     }
 }
 
-http:ClientConfiguration mutualSslCertClientConf1 = {
+function mutualSslCertClientConf1() returns http:ClientConfiguration => {
     httpVersion: http:HTTP_1_1,
     secureSocket: {
         cert: common:CERT_FILE,
@@ -80,8 +80,8 @@ http:ClientConfiguration mutualSslCertClientConf1 = {
 };
 
 @test:Config {}
-public function testMutualSslWithCerts1() returns error? {
-    http:Client clientEP = check new ("https://localhost:9217", mutualSslCertClientConf1);
+function testMutualSslWithCerts1() returns error? {
+    http:Client clientEP = check new ("https://localhost:9217", mutualSslCertClientConf1());
     http:Response|error resp = clientEP->get("/mutualSSLService/");
     if resp is http:Response {
         var payload = resp.getTextPayload();
@@ -95,7 +95,7 @@ public function testMutualSslWithCerts1() returns error? {
     }
 }
 
-http:ClientConfiguration mutualSslCertClientConf2 = {
+function mutualSslCertClientConf2() returns http:ClientConfiguration => {
     httpVersion: http:HTTP_1_1,
     secureSocket: {
         key: {
@@ -106,8 +106,8 @@ http:ClientConfiguration mutualSslCertClientConf2 = {
 };
 
 @test:Config {}
-public function testMutualSslWithCerts2() returns error? {
-    http:Client clientEP = check new ("https://localhost:9217", mutualSslCertClientConf2);
+function testMutualSslWithCerts2() returns error? {
+    http:Client clientEP = check new ("https://localhost:9217", mutualSslCertClientConf2());
     http:Response|error resp = clientEP->get("/mutualSSLService/");
     string expectedErrMsg = "SSL connection failed:unable to find valid certification path to requested target";
     if resp is error {
@@ -117,7 +117,7 @@ public function testMutualSslWithCerts2() returns error? {
     }
 }
 
-http:ClientConfiguration mutualSslCertClientConf3 = {
+function mutualSslCertClientConf3() returns http:ClientConfiguration => {
     httpVersion: http:HTTP_1_1,
     secureSocket: {
         enable: false,
@@ -129,8 +129,8 @@ http:ClientConfiguration mutualSslCertClientConf3 = {
 };
 
 @test:Config {}
-public function testMutualSslWithCerts3() returns error? {
-    http:Client clientEP = check new ("https://localhost:9217", mutualSslCertClientConf3);
+function testMutualSslWithCerts3() returns error? {
+    http:Client clientEP = check new ("https://localhost:9217", mutualSslCertClientConf3());
     http:Response|error resp = clientEP->get("/mutualSSLService/");
     if resp is http:Response {
         var payload = resp.getTextPayload();

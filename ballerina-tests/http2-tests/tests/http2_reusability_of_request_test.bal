@@ -21,7 +21,7 @@ import ballerina/mime;
 import ballerina/test;
 import ballerina/http_test_common as common;
 
-int http2ReuseRequestTestPort = common:getHttp2Port(reuseRequestTestPort);
+final int http2ReuseRequestTestPort = common:getHttp2Port(reuseRequestTestPort);
 
 listener http:Listener http2ReuseRequestListenerEP = new (http2ReuseRequestTestPort);
 final http:Client http2ReuseRequestClient = check new ("http://localhost:" + http2ReuseRequestTestPort.toString(),

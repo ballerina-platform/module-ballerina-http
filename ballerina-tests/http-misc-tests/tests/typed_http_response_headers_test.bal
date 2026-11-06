@@ -105,7 +105,7 @@ service /typedHeaders on generalListener {
 }
 
 @test:Config {}
-public function testStringTypedHeaders() returns error? {
+function testStringTypedHeaders() returns error? {
     http:Response resp = check typedHeadersTestClient->get("/typedHeaders/stringHeaders");
     test:assertEquals(resp.statusCode, 202, msg = "Found unexpected output");
     test:assertEquals(check resp.getHeader("requestId"), "123");
@@ -114,7 +114,7 @@ public function testStringTypedHeaders() returns error? {
 }
 
 @test:Config {}
-public function testIntTypedHeaders() returns error? {
+function testIntTypedHeaders() returns error? {
     http:Response resp = check typedHeadersTestClient->get("/typedHeaders/intHeaders");
     test:assertEquals(resp.statusCode, 202, msg = "Found unexpected output");
     test:assertEquals(check resp.getHeader("requestId"), "123");
@@ -123,7 +123,7 @@ public function testIntTypedHeaders() returns error? {
 }
 
 @test:Config {}
-public function testBooleanTypedHeaders() returns error? {
+function testBooleanTypedHeaders() returns error? {
     http:Response resp = check typedHeadersTestClient->get("/typedHeaders/booleanHeaders");
     test:assertEquals(resp.statusCode, 202, msg = "Found unexpected output");
     test:assertEquals(check resp.getHeader("isSuccess"), "true");
@@ -132,7 +132,7 @@ public function testBooleanTypedHeaders() returns error? {
 }
 
 @test:Config {}
-public function testAdvancedHeaderTypes() returns error? {
+function testAdvancedHeaderTypes() returns error? {
     http:Response resp = check typedHeadersTestClient->get("/typedHeaders/advancedHeaders");
     test:assertEquals(resp.statusCode, 202, msg = "Found unexpected output");
     test:assertEquals(check resp.getHeader("requestId"), "123");

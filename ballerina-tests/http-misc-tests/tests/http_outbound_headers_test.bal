@@ -44,7 +44,7 @@ final http:LoadBalanceClient outRequestLBClient = check new (
 );
 
 @test:Config {}
-public function testGetWithInlineHeadersMap() returns error? {
+function testGetWithInlineHeadersMap() returns error? {
     http:Response|error resp = outReqHeadClient->get("/mytest/headers", {"x-type": "hello", "y-type": ["yello", "elle"]});
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
@@ -56,7 +56,7 @@ public function testGetWithInlineHeadersMap() returns error? {
 }
 
 @test:Config {}
-public function testGetWithDefinedHeadersMap() {
+function testGetWithDefinedHeadersMap() {
     map<string> headerMap = {"x-type": "Ross", "y-type": "Rachel"};
     var resp = outReqHeadClient->get("/mytest/headers", headerMap, string);
     if resp is string {
@@ -67,7 +67,7 @@ public function testGetWithDefinedHeadersMap() {
 }
 
 @test:Config {}
-public function testGetWithDefinedHeadersMapOfArray() {
+function testGetWithDefinedHeadersMapOfArray() {
     map<string[]> headerMap = {"x-type": ["Geller", "Ross"], "y-type": ["Green", "Rachel"]};
     var resp = outReqHeadClient->get("/mytest/headers", headers = headerMap, targetType = string);
     if resp is string {
@@ -78,7 +78,7 @@ public function testGetWithDefinedHeadersMapOfArray() {
 }
 
 @test:Config {}
-public function testOptionsWithInlineHeadersMap() returns error? {
+function testOptionsWithInlineHeadersMap() returns error? {
     http:Response|error resp = outReqHeadClient->options("/mytest/headers",
         headers = {"x-type": "options", "y-type": ["yello", "elle"]});
     if resp is http:Response {
@@ -91,7 +91,7 @@ public function testOptionsWithInlineHeadersMap() returns error? {
 }
 
 @test:Config {}
-public function testOptionsWithTargetType() {
+function testOptionsWithTargetType() {
     var resp = outReqHeadClient->options("/mytest/any", targetType = json);
     if resp is json {
         common:assertJsonPayload(resp, {result: "default"});
@@ -101,7 +101,7 @@ public function testOptionsWithTargetType() {
 }
 
 @test:Config {}
-public function testHeadWithInlineHeadersMap() returns error? {
+function testHeadWithInlineHeadersMap() returns error? {
     http:Response|error resp = outReqHeadClient->head("/mytest/headers", headers = {"x-type": "head", "y-type": ["yello", "elle"]});
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
@@ -113,7 +113,7 @@ public function testHeadWithInlineHeadersMap() returns error? {
 }
 
 @test:Config {}
-public function testPostWithInlineHeadersMap() returns error? {
+function testPostWithInlineHeadersMap() returns error? {
     http:Response|error resp = outReqHeadClient->post("/mytest/headers", "abc", headers = {"x-type": "joe", "y-type": ["yello", "go"]});
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 201, msg = "Found unexpected output");
@@ -125,7 +125,7 @@ public function testPostWithInlineHeadersMap() returns error? {
 }
 
 @test:Config {}
-public function testPostWithInlineHeadersMapNMediaType() {
+function testPostWithInlineHeadersMapNMediaType() {
     map<string[]> headerMap = {"x-type": ["monica"], "y-type": ["yello", "go"]};
     var resp = outReqHeadClient->post("/mytest/headers", "abc", headerMap, "application/json", string);
     if resp is string {
@@ -136,7 +136,7 @@ public function testPostWithInlineHeadersMapNMediaType() {
 }
 
 @test:Config {}
-public function testPostWithOverrideMediaType() {
+function testPostWithOverrideMediaType() {
     map<string> headerMap = {"x-type": "hello", "y-type": "ross", "content-type": "application/xml"};
     var resp = outReqHeadClient->post("/mytest/headers", "abc", headers = headerMap, targetType = string);
     if resp is string {
@@ -147,7 +147,7 @@ public function testPostWithOverrideMediaType() {
 }
 
 @test:Config {}
-public function testPutWithInlineHeadersMap() returns error? {
+function testPutWithInlineHeadersMap() returns error? {
     http:Response|error resp = outReqHeadClient->put("/mytest/headers/put", "abc",
         {"x-type": "joe", "y-type": ["hello", "go"]});
     if resp is http:Response {
@@ -160,7 +160,7 @@ public function testPutWithInlineHeadersMap() returns error? {
 }
 
 @test:Config {}
-public function testPutWithInlineHeadersMapNMediaType() {
+function testPutWithInlineHeadersMapNMediaType() {
     map<string[]> headerMap = {"x-type": ["monica"], "y-type": ["chan", "go"]};
     string|error resp = outReqHeadClient->put("/mytest/headers/put", "abc", headerMap, "application/json");
     if resp is string {
@@ -171,7 +171,7 @@ public function testPutWithInlineHeadersMapNMediaType() {
 }
 
 @test:Config {}
-public function testPutWithOverrideMediaType() {
+function testPutWithOverrideMediaType() {
     map<string> headerMap = {"x-type": "yello", "y-type": "ross", "content-type": "application/xml"};
     var resp = outReqHeadClient->put("/mytest/headers/put", "abc", headers = headerMap, targetType = string);
     if resp is string {
@@ -182,7 +182,7 @@ public function testPutWithOverrideMediaType() {
 }
 
 @test:Config {}
-public function testExecuteWithInlineHeadersMap() returns error? {
+function testExecuteWithInlineHeadersMap() returns error? {
     http:Response|error resp = outReqHeadClient->execute("POST", "/mytest/headers", "abc",
         {"x-type": "joe", "y-type": ["hello", "go"]});
     if resp is http:Response {
@@ -195,7 +195,7 @@ public function testExecuteWithInlineHeadersMap() returns error? {
 }
 
 @test:Config {}
-public function testExecuteWithInlineHeadersMapNMediaType() {
+function testExecuteWithInlineHeadersMapNMediaType() {
     map<string[]> headerMap = {"x-type": ["monica"], "y-type": ["chan", "go"]};
     var resp = outReqHeadClient->execute("PUT", "/mytest/headers/put", "abc", headerMap, "application/json", string);
     if resp is string {
@@ -206,7 +206,7 @@ public function testExecuteWithInlineHeadersMapNMediaType() {
 }
 
 @test:Config {}
-public function testExecuteWithOverrideMediaType() {
+function testExecuteWithOverrideMediaType() {
     map<string> headerMap = {"x-type": "yello", "y-type": "ross", "content-type": "application/xml"};
     var resp = outReqHeadClient->execute("PATCH", "/mytest/headers/patch", "abc", headerMap,
         targetType = string);
@@ -218,7 +218,7 @@ public function testExecuteWithOverrideMediaType() {
 }
 
 @test:Config {}
-public function testExecuteToSendGet() {
+function testExecuteToSendGet() {
     map<string> headerMap = {"x-type": "monica", "y-type": "ross", "content-type": "application/xml"};
     var resp = outReqHeadClient->execute("GET", "/mytest/headersWithExecute", "abc", headers = headerMap,
         targetType = string);
@@ -230,7 +230,7 @@ public function testExecuteToSendGet() {
 }
 
 @test:Config {}
-public function testPatchWithInlineHeadersMap() returns error? {
+function testPatchWithInlineHeadersMap() returns error? {
     http:Response|error resp = outReqHeadClient->patch("/mytest/headers/patch", "abc",
         headers = {"x-type": "joe", "y-type": ["hello", "go"]});
     if resp is http:Response {
@@ -243,7 +243,7 @@ public function testPatchWithInlineHeadersMap() returns error? {
 }
 
 @test:Config {}
-public function testPatchWithInlineHeadersMapNMediaType() {
+function testPatchWithInlineHeadersMapNMediaType() {
     map<string[]> headerMap = {"x-type": ["monica"], "y-type": ["chan", "go"]};
     var resp = outReqHeadClient->patch("/mytest/headers/patch", "abc", headerMap, "application/json", string);
     if resp is string {
@@ -254,7 +254,7 @@ public function testPatchWithInlineHeadersMapNMediaType() {
 }
 
 @test:Config {}
-public function testPatchWithOverrideMediaType() {
+function testPatchWithOverrideMediaType() {
     map<string> headerMap = {"x-type": "yello", "y-type": "ross", "content-type": "application/xml"};
     var resp = outReqHeadClient->patch("/mytest/headers/patch", "abc", headers = headerMap, targetType = string);
     if resp is string {
@@ -265,7 +265,7 @@ public function testPatchWithOverrideMediaType() {
 }
 
 @test:Config {}
-public function testDeleteWithInlineHeadersMap() returns error? {
+function testDeleteWithInlineHeadersMap() returns error? {
     http:Response|error resp = outReqHeadClient->delete("/mytest/headers/nobody",
         headers = {"x-type": "joe", "y-type": ["hello", "go"]});
     if resp is http:Response {
@@ -278,7 +278,7 @@ public function testDeleteWithInlineHeadersMap() returns error? {
 }
 
 @test:Config {}
-public function testDeleteWithInlineHeadersMapNMediaType() {
+function testDeleteWithInlineHeadersMapNMediaType() {
     map<string[]> headerMap = {"x-type": ["monica"], "y-type": ["chan", "go"]};
     var resp = outReqHeadClient->delete("/mytest/headers/delete", "abc", headerMap, "application/json", string);
     if resp is string {
@@ -289,7 +289,7 @@ public function testDeleteWithInlineHeadersMapNMediaType() {
 }
 
 @test:Config {}
-public function testDeleteWithOverrideMediaType() {
+function testDeleteWithOverrideMediaType() {
     map<string> headerMap = {"x-type": "yello", "y-type": "ross", "content-type": "application/xml"};
     var resp = outReqHeadClient->delete("/mytest/headers/delete", message = "abc", headers = headerMap,
         targetType = string);
@@ -301,7 +301,7 @@ public function testDeleteWithOverrideMediaType() {
 }
 
 @test:Config {}
-public function testInlineReq() {
+function testInlineReq() {
     var resp = outReqHeadClient->post("/mytest/inline",
         {
         name: "foo",
@@ -321,7 +321,7 @@ public function testInlineReq() {
 }
 
 @test:Config {}
-public function testGetWithNothing() returns error? {
+function testGetWithNothing() returns error? {
     http:Response|error resp = outReqHeadClient->get("/mytest/any");
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
@@ -334,7 +334,7 @@ public function testGetWithNothing() returns error? {
 
 //FO client tests
 @test:Config {}
-public function testFOGetWithInlineHeadersMap() returns error? {
+function testFOGetWithInlineHeadersMap() returns error? {
     http:Response|error resp = outRequestFOClient->get("/mytest/headers", headers = {"x-type": "hello", "y-type": ["yello", "elle"]});
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
@@ -346,7 +346,7 @@ public function testFOGetWithInlineHeadersMap() returns error? {
 }
 
 @test:Config {}
-public function testFOOptionsWithInlineHeadersMap() returns error? {
+function testFOOptionsWithInlineHeadersMap() returns error? {
     http:Response|error resp = outRequestFOClient->options("/mytest/headers",
         headers = {"x-type": "options", "y-type": ["yello", "elle"]});
     if resp is http:Response {
@@ -359,7 +359,7 @@ public function testFOOptionsWithInlineHeadersMap() returns error? {
 }
 
 @test:Config {}
-public function testFOPostWithInlineHeadersMap() returns error? {
+function testFOPostWithInlineHeadersMap() returns error? {
     http:Response|error resp = outRequestFOClient->post("/mytest/headers", "abc", headers = {"x-type": "joe", "y-type": ["yello", "go"]});
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 201, msg = "Found unexpected output");
@@ -371,7 +371,7 @@ public function testFOPostWithInlineHeadersMap() returns error? {
 }
 
 @test:Config {}
-public function testFOHeadWithInlineHeadersMap() returns error? {
+function testFOHeadWithInlineHeadersMap() returns error? {
     http:Response|error resp = outRequestFOClient->head("/mytest/headers", headers = {"x-type": "head", "y-type": ["yello", "elle"]});
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
@@ -383,7 +383,7 @@ public function testFOHeadWithInlineHeadersMap() returns error? {
 }
 
 @test:Config {}
-public function testFOPutWithInlineHeadersMapNMediaType() {
+function testFOPutWithInlineHeadersMapNMediaType() {
     map<string[]> headerMap = {"x-type": ["monica"], "y-type": ["chan", "go"]};
     var resp = outRequestFOClient->put("/mytest/headers/put", "abc", headerMap, "application/json", string);
     if resp is string {
@@ -394,7 +394,7 @@ public function testFOPutWithInlineHeadersMapNMediaType() {
 }
 
 @test:Config {}
-public function testFOExecuteWithInlineHeadersMapNMediaType() {
+function testFOExecuteWithInlineHeadersMapNMediaType() {
     map<string[]> headerMap = {"x-type": ["monica"], "y-type": ["chan", "go"]};
     var resp = outRequestFOClient->execute("PUT", "/mytest/headers/put", "abc", headerMap, "application/json", string);
     if resp is string {
@@ -405,7 +405,7 @@ public function testFOExecuteWithInlineHeadersMapNMediaType() {
 }
 
 @test:Config {}
-public function testFOPatchWithOverrideMediaType() {
+function testFOPatchWithOverrideMediaType() {
     map<string> headerMap = {"x-type": "yello", "y-type": "ross", "content-type": "application/xml"};
     var resp = outRequestFOClient->patch("/mytest/headers/patch", "abc", headers = headerMap, targetType = string);
     if resp is string {
@@ -416,7 +416,7 @@ public function testFOPatchWithOverrideMediaType() {
 }
 
 @test:Config {}
-public function testFODeleteWithInlineHeadersMap() returns error? {
+function testFODeleteWithInlineHeadersMap() returns error? {
     http:Response|error resp = outRequestFOClient->delete("/mytest/headers/nobody",
         headers = {"x-type": "joe", "y-type": ["hello", "go"]});
     if resp is http:Response {
@@ -430,7 +430,7 @@ public function testFODeleteWithInlineHeadersMap() returns error? {
 
 //LB client tests
 @test:Config {}
-public function testLBGetWithInlineHeadersMap() returns error? {
+function testLBGetWithInlineHeadersMap() returns error? {
     http:Response|error resp = outRequestLBClient->get("/mytest/headers", headers = {"x-type": "hello", "y-type": ["yello", "elle"]});
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
@@ -442,7 +442,7 @@ public function testLBGetWithInlineHeadersMap() returns error? {
 }
 
 @test:Config {}
-public function testLBOptionsWithInlineHeadersMap() returns error? {
+function testLBOptionsWithInlineHeadersMap() returns error? {
     http:Response|error resp = outRequestLBClient->options("/mytest/headers",
         headers = {"x-type": "options", "y-type": ["yello", "elle"]});
     if resp is http:Response {
@@ -455,7 +455,7 @@ public function testLBOptionsWithInlineHeadersMap() returns error? {
 }
 
 @test:Config {}
-public function testLBPostWithInlineHeadersMap() returns error? {
+function testLBPostWithInlineHeadersMap() returns error? {
     http:Response|error resp = outRequestLBClient->post("/mytest/headers", "abc", headers = {"x-type": "joe", "y-type": ["yello", "go"]});
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 201, msg = "Found unexpected output");
@@ -467,7 +467,7 @@ public function testLBPostWithInlineHeadersMap() returns error? {
 }
 
 @test:Config {}
-public function testLBHeadWithInlineHeadersMap() returns error? {
+function testLBHeadWithInlineHeadersMap() returns error? {
     http:Response|error resp = outRequestLBClient->head("/mytest/headers", headers = {"x-type": "head", "y-type": ["yello", "elle"]});
     if resp is http:Response {
         test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
@@ -479,7 +479,7 @@ public function testLBHeadWithInlineHeadersMap() returns error? {
 }
 
 @test:Config {}
-public function testLBPutWithInlineHeadersMapNMediaType() {
+function testLBPutWithInlineHeadersMapNMediaType() {
     map<string[]> headerMap = {"x-type": ["monica"], "y-type": ["chan", "go"]};
     var resp = outRequestLBClient->put("/mytest/headers/put", "abc", headerMap, "application/json", string);
     if resp is string {
@@ -490,7 +490,7 @@ public function testLBPutWithInlineHeadersMapNMediaType() {
 }
 
 @test:Config {}
-public function testLBExecuteWithInlineHeadersMapNMediaType() {
+function testLBExecuteWithInlineHeadersMapNMediaType() {
     map<string[]> headerMap = {"x-type": ["monica"], "y-type": ["chan", "go"]};
     var resp = outRequestLBClient->execute("PUT", "/mytest/headers/put", "abc", headerMap, "application/json", string);
     if resp is string {
@@ -501,7 +501,7 @@ public function testLBExecuteWithInlineHeadersMapNMediaType() {
 }
 
 @test:Config {}
-public function testLBPatchWithOverrideMediaType() {
+function testLBPatchWithOverrideMediaType() {
     map<string> headerMap = {"x-type": "yello", "y-type": "ross", "content-type": "application/xml"};
     var resp = outRequestLBClient->patch("/mytest/headers/patch", "abc", headers = headerMap, targetType = string);
     if resp is string {
@@ -512,7 +512,7 @@ public function testLBPatchWithOverrideMediaType() {
 }
 
 @test:Config {}
-public function testLBDeleteWithInlineHeadersMap() returns error? {
+function testLBDeleteWithInlineHeadersMap() returns error? {
     http:Response|error resp = outRequestLBClient->delete("/mytest/headers/nobody",
         headers = {"x-type": "joe", "y-type": ["hello", "go"]});
     if resp is http:Response {

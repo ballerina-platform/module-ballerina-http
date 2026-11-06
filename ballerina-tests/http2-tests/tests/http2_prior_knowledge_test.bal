@@ -63,7 +63,7 @@ service /priorKnowledgeTestBackEnd on HTTP2BackendListener {
 }
 
 @test:Config {}
-public function testPriorKnowledgeOn() returns error? {
+function testPriorKnowledgeOn() returns error? {
     final http:Client clientEP = check new ("http://localhost:9100");
     http:Response|error resp = clientEP->get("/priorKnowledge/on");
     if resp is http:Response {
@@ -74,7 +74,7 @@ public function testPriorKnowledgeOn() returns error? {
 }
 
 @test:Config {}
-public function testPriorKnowledgeOff() returns error? {
+function testPriorKnowledgeOff() returns error? {
     final http:Client clientEP = check new ("http://localhost:9100");
     http:Response|error resp = clientEP->get("/priorKnowledge/off");
     if resp is http:Response {

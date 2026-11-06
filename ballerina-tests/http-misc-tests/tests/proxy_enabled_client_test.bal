@@ -46,17 +46,16 @@ function sendRequest(string url, http:Request req, http:Caller caller) returns e
     }
 }
 
-http:ClientConfiguration clientEPConfig  = {
-    http1Settings: {
-        proxy: {
-            host:"localhost",
-            port:proxyTestPort2
-        }
-    }
-};
-
 @test:Config {}
-public function testProxyClient() returns error? {
+function testProxyClient() returns error? {
+    http:ClientConfiguration clientEPConfig = {
+        http1Settings: {
+            proxy: {
+                host: "localhost",
+                port: proxyTestPort2
+            }
+        }
+    };
     http:Client clientEP2 = check new("http://localhost:" + proxyTestPort1.toString(), clientEPConfig);
     http:Request req = new;
     http:Response|error resp = clientEP2->post("/proxy/server", req);

@@ -75,20 +75,21 @@ service /statuscode on new http:Listener(8091, httpVersion = http:HTTP_1_1) {
 //Test for circuit breaker failure status codes functionality 
 final http:Client testCBStatusCodesClient = check new("http://localhost:9311", httpVersion = http:HTTP_1_1);
 
-@test:Config{ 
-    groups: ["circuitBreakerStatusCodeResponse"],
-    dataProvider:statusCodeResponseDataProvider 
+@test:Config {
+    groups: ["circuitBreakerStatusCodeResponse"]
 }
-function httpStatusCodesTest(DataFeed dataFeed) returns error? {
-    check invokeApiAndVerifyResponse(testCBStatusCodesClient, "/cb/statuscode", dataFeed);
+function httpStatusCodesTest() returns error? {
+    foreach DataFeed dataFeed in statusCodeResponses() {
+        check invokeApiAndVerifyResponse(testCBStatusCodesClient, "/cb/statuscode", dataFeed);
+    }
 }
 
-function statusCodeResponseDataProvider() returns DataFeed[][] {
+function statusCodeResponses() returns DataFeed[] {
     return [
-        [{responseCode:SC_SERVICE_UNAVAILABLE, message:SERVICE_UNAVAILABLE_MESSAGE}],
-        [{responseCode:SC_SERVICE_UNAVAILABLE, message:SERVICE_UNAVAILABLE_MESSAGE}],
-        [{responseCode:SC_SERVICE_UNAVAILABLE, message:SERVICE_UNAVAILABLE_MESSAGE}],
-        [{responseCode:SC_INTERNAL_SERVER_ERROR, message:UPSTREAM_UNAVAILABLE_MESSAGE}],
-        [{responseCode:SC_INTERNAL_SERVER_ERROR, message:UPSTREAM_UNAVAILABLE_MESSAGE}]
+        {responseCode:SC_SERVICE_UNAVAILABLE, message:SERVICE_UNAVAILABLE_MESSAGE},
+        {responseCode:SC_SERVICE_UNAVAILABLE, message:SERVICE_UNAVAILABLE_MESSAGE},
+        {responseCode:SC_SERVICE_UNAVAILABLE, message:SERVICE_UNAVAILABLE_MESSAGE},
+        {responseCode:SC_INTERNAL_SERVER_ERROR, message:UPSTREAM_UNAVAILABLE_MESSAGE},
+        {responseCode:SC_INTERNAL_SERVER_ERROR, message:UPSTREAM_UNAVAILABLE_MESSAGE}
     ];
 }

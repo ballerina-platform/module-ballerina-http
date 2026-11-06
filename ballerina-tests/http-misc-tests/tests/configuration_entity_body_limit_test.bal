@@ -65,7 +65,7 @@ function stopChunkedServer() returns error? {
     check stopChunkedResponseServer(responseLimitsTestPort3);
 }
 
-@test:Config {groups: [CHUNKED_RESPONSE_GROUP]}
+@test:Config {groups: [CHUNKED_RESPONSE_GROUP], serialExecution: true}
 function testEntityBodyLimitExceededWithManyBufferedChunks() {
     http:Response|error response = entityBodyLimitChunkedClient->get("/chunks/400,400,400");
     if response is http:ClientError {
@@ -76,7 +76,7 @@ function testEntityBodyLimitExceededWithManyBufferedChunks() {
     }
 }
 
-@test:Config {groups: [CHUNKED_RESPONSE_GROUP]}
+@test:Config {groups: [CHUNKED_RESPONSE_GROUP], serialExecution: true}
 function testEntityBodyLimitDoesNotStopIdleTimeoutSeeingProgress() returns error? {
     http:Client clientEP = check new ("http://localhost:" + responseLimitsTestPort3.toString(),
         httpVersion = http:HTTP_1_1, timeout = 1, responseLimits = {maxEntityBodySize: 1048576});
@@ -85,7 +85,7 @@ function testEntityBodyLimitDoesNotStopIdleTimeoutSeeingProgress() returns error
     test:assertEquals(payload.length(), 1800);
 }
 
-@test:Config {groups: [CHUNKED_RESPONSE_GROUP]}
+@test:Config {groups: [CHUNKED_RESPONSE_GROUP], serialExecution: true}
 function testIdleTimeoutWhileBodyIsHeldIsReportedAsReadingBody() returns error? {
     http:Client clientEP = check new ("http://localhost:" + responseLimitsTestPort3.toString(),
         httpVersion = http:HTTP_1_1, timeout = 1, responseLimits = {maxEntityBodySize: 1048576});
@@ -97,7 +97,7 @@ function testIdleTimeoutWhileBodyIsHeldIsReportedAsReadingBody() returns error? 
     }
 }
 
-@test:Config {groups: [CHUNKED_RESPONSE_GROUP]}
+@test:Config {groups: [CHUNKED_RESPONSE_GROUP], serialExecution: true}
 function testMalformedResponseFailsTheSameWithEntityBodyLimit() returns error? {
     http:Client cappedClient = check new ("http://localhost:" + responseLimitsTestPort3.toString(),
         httpVersion = http:HTTP_1_1, timeout = 1, responseLimits = {maxEntityBodySize: 1024});
@@ -163,14 +163,14 @@ function getOutcome(http:Client clientEP, string path) returns string|error {
     return response.statusCode.toString() + " " + (payload is error ? payload.message() : payload);
 }
 
-function sendRawRequest(int port, string rawRequest) returns string|error = @java:Method {
+isolated function sendRawRequest(int port, string rawRequest) returns string|error = @java:Method {
     'class: "io.ballerina.stdlib.http.testutils.ExternRawRequestTestUtil"
 } external;
 
-function startChunkedResponseServer(int port) returns error? = @java:Method {
+isolated function startChunkedResponseServer(int port) returns error? = @java:Method {
     'class: "io.ballerina.stdlib.http.testutils.ExternChunkedResponseTestUtil"
 } external;
 
-function stopChunkedResponseServer(int port) returns error? = @java:Method {
+isolated function stopChunkedResponseServer(int port) returns error? = @java:Method {
     'class: "io.ballerina.stdlib.http.testutils.ExternChunkedResponseTestUtil"
 } external;

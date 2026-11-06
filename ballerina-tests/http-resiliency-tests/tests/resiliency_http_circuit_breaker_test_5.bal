@@ -62,22 +62,23 @@ service /errornous on new http:Listener(8090, httpVersion = http:HTTP_1_1) {
 //Test for circuit breaker requestVolumeThreshold functionality
 final http:Client testRequestVolumeClient = check new("http://localhost:9310", httpVersion = http:HTTP_1_1);
 
-@test:Config{ 
-    groups: ["circuitBreakerRequestVolume"],
-    dataProvider:requestVolumeResponseDataProvider 
+@test:Config {
+    groups: ["circuitBreakerRequestVolume"]
 }
-function requestVolumeTest(DataFeed dataFeed) returns error? {
-    check invokeApiAndVerifyResponse(testRequestVolumeClient, "/cb/requestvolume", dataFeed);
+function requestVolumeTest() returns error? {
+    foreach DataFeed dataFeed in requestVolumeResponses() {
+        check invokeApiAndVerifyResponse(testRequestVolumeClient, "/cb/requestvolume", dataFeed);
+    }
 }
 
-function requestVolumeResponseDataProvider() returns DataFeed[][] {
+function requestVolumeResponses() returns DataFeed[] {
     return [
-        [{responseCode:SC_INTERNAL_SERVER_ERROR, message:INTERNAL_ERROR_MESSAGE}],
-        [{responseCode:SC_INTERNAL_SERVER_ERROR, message:INTERNAL_ERROR_MESSAGE}],
-        [{responseCode:SC_INTERNAL_SERVER_ERROR, message:INTERNAL_ERROR_MESSAGE}],
-        [{responseCode:SC_INTERNAL_SERVER_ERROR, message:INTERNAL_ERROR_MESSAGE}],
-        [{responseCode:SC_INTERNAL_SERVER_ERROR, message:INTERNAL_ERROR_MESSAGE}],
-        [{responseCode:SC_INTERNAL_SERVER_ERROR, message:INTERNAL_ERROR_MESSAGE}],
-        [{responseCode:SC_INTERNAL_SERVER_ERROR, message:UPSTREAM_UNAVAILABLE_MESSAGE}]
+        {responseCode:SC_INTERNAL_SERVER_ERROR, message:INTERNAL_ERROR_MESSAGE},
+        {responseCode:SC_INTERNAL_SERVER_ERROR, message:INTERNAL_ERROR_MESSAGE},
+        {responseCode:SC_INTERNAL_SERVER_ERROR, message:INTERNAL_ERROR_MESSAGE},
+        {responseCode:SC_INTERNAL_SERVER_ERROR, message:INTERNAL_ERROR_MESSAGE},
+        {responseCode:SC_INTERNAL_SERVER_ERROR, message:INTERNAL_ERROR_MESSAGE},
+        {responseCode:SC_INTERNAL_SERVER_ERROR, message:INTERNAL_ERROR_MESSAGE},
+        {responseCode:SC_INTERNAL_SERVER_ERROR, message:UPSTREAM_UNAVAILABLE_MESSAGE}
     ];
 }

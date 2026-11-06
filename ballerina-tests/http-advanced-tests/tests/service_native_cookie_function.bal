@@ -19,8 +19,6 @@ import ballerina/io;
 import ballerina/test;
 import ballerina/http;
 
-string filePath = "resources/";
-
 // "Test to add cookie with same domain and path values as in the request url , into cookie store"
 @test:Config {}
 function testAddCookieToCookieStore1() {
@@ -159,10 +157,10 @@ function testAddSimilarCookieToCookieStore() {
 @test:Config {}
 function testAddCookiesConcurrentlyToCookieStore() returns error? {
     http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com");
-    http:Cookie[] cookiesToadd = [cookie1];
-    http:CookieConfig cookieConfig = { enabled: true };
+    final readonly & http:Cookie[] cookiesToadd = [cookie1];
+    final readonly & http:CookieConfig cookieConfig = { enabled: true };
     http:Client cookieClientEndpoint = check new("http://google.com", cookieConfig = cookieConfig );
-    http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
+    final http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
     worker w1 {
         http:CookieStore? localCookieStore = cookieStore;
         if localCookieStore is http:CookieStore {
@@ -322,7 +320,7 @@ function testRemoveAllCookiesInCookieStore() returns error? {
     http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com");
     http:Cookie cookie2 = new("SID003", "239d4dmnmsddd34", path = "/sample", domain = "google.com", expires = "2030-07-15 05:46:22");
     http:Cookie[] cookies = [];
-    http:CsvPersistentCookieHandler myPersistentStore = new(filePath + "client-5.csv");
+    http:CsvPersistentCookieHandler myPersistentStore = new("./native-cookie-test-data-5/client-5.csv");
     http:CookieConfig cookieConfig = { enabled: true, persistentCookieHandler: myPersistentStore };
     http:Client cookieClientEndpoint = check new("http://google.com", cookieConfig = cookieConfig );
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
@@ -338,7 +336,7 @@ function testRemoveAllCookiesInCookieStore() returns error? {
         }
         cookies = cookieStore.getAllCookies();
     }
-    _ = check file:remove(filePath, file:RECURSIVE);
+    _ = check file:remove("./native-cookie-test-data-5", file:RECURSIVE);
     test:assertEquals(cookies.length(), 0, msg = "Invalid cookie object");
     return;
 }
@@ -347,7 +345,7 @@ function testRemoveAllCookiesInCookieStore() returns error? {
 @test:Config {}
 function testAddPersistentCookieToCookieStore() returns error? {
     http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com", expires = "2030-07-15 05:46:22");
-    http:CsvPersistentCookieHandler myPersistentStore = new(filePath + "client-1.csv");
+    http:CsvPersistentCookieHandler myPersistentStore = new("./native-cookie-test-data-1/client-1.csv");
     http:CookieConfig cookieConfig = { enabled: true, persistentCookieHandler: myPersistentStore };
     http:Client cookieClientEndpoint = check new("http://google.com", cookieConfig = cookieConfig );
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
@@ -357,7 +355,7 @@ function testAddPersistentCookieToCookieStore() returns error? {
         _ = check cookieStore.addCookie(cookie1, cookieConfig, "http://google.com", "/sample");
         cookies = cookieStore.getAllCookies();
     }
-    _ = check file:remove(filePath, file:RECURSIVE);
+    _ = check file:remove("./native-cookie-test-data-1", file:RECURSIVE);
     test:assertEquals(cookies.length(), 1, msg = "Invalid cookie object");
     test:assertEquals(cookies[0].name, "SID002", msg = "Invalid cookie name");
     return;
@@ -367,7 +365,7 @@ function testAddPersistentCookieToCookieStore() returns error? {
 @test:Config {}
 function testAddPersistentCookieToCookieStore_2() returns error? {
     http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com", expires = "0050-07-15 05:46:22");
-    http:CsvPersistentCookieHandler myPersistentStore = new(filePath + "client-2.csv");
+    http:CsvPersistentCookieHandler myPersistentStore = new("./native-cookie-test-data-2/client-2.csv");
     http:CookieConfig cookieConfig = { enabled: true, persistentCookieHandler: myPersistentStore };
     http:Client cookieClientEndpoint = check new("http://google.com", cookieConfig = cookieConfig );
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
@@ -377,7 +375,7 @@ function testAddPersistentCookieToCookieStore_2() returns error? {
         _ = check cookieStore.addCookie(cookie1, cookieConfig, "http://google.com", "/sample");
         cookies = cookieStore.getAllCookies();
     }
-    _ = check file:remove(filePath, file:RECURSIVE);
+    _ = check file:remove("./native-cookie-test-data-2", file:RECURSIVE);
     test:assertEquals(cookies.length(), 1, msg = "Invalid cookie object");
     test:assertEquals(cookies[0].name, "SID002", msg = "Invalid cookie name");
     return;
@@ -387,7 +385,7 @@ function testAddPersistentCookieToCookieStore_2() returns error? {
 @test:Config {}
 function testGetPersistentCookieFromCookieStore() returns error? {
     http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com", expires = "2030-07-15 05:46:22");
-    http:CsvPersistentCookieHandler myPersistentStore = new(filePath + "client-3.csv");
+    http:CsvPersistentCookieHandler myPersistentStore = new("./native-cookie-test-data-3/client-3.csv");
     http:CookieConfig cookieConfig = { enabled: true, persistentCookieHandler: myPersistentStore };
     http:Client cookieClientEndpoint = check new("http://google.com", cookieConfig = cookieConfig );
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
@@ -397,7 +395,7 @@ function testGetPersistentCookieFromCookieStore() returns error? {
         _ = check cookieStore.addCookie(cookie1, cookieConfig, "http://google.com", "/sample");
         cookies = cookieStore.getCookies("http://google.com", "/sample");
     }
-    _ = check file:remove(filePath, file:RECURSIVE);
+    _ = check file:remove("./native-cookie-test-data-3", file:RECURSIVE);
     test:assertEquals(cookies.length(), 1, msg = "Invalid cookie object");
     test:assertEquals(cookies[0].name, "SID002", msg = "Invalid cookie name");
     return;
@@ -407,7 +405,7 @@ function testGetPersistentCookieFromCookieStore() returns error? {
 @test:Config {}
 function testRemovePersistentCookieFromCookieStore() returns error? {
     http:Cookie cookie1 = new("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com", expires = "2030-07-15 05:46:22");
-    http:CsvPersistentCookieHandler myPersistentStore = new(filePath + "client-4.csv");
+    http:CsvPersistentCookieHandler myPersistentStore = new("./native-cookie-test-data-4/client-4.csv");
     http:CookieConfig cookieConfig = { enabled: true, persistentCookieHandler: myPersistentStore };
     http:Client cookieClientEndpoint = check new("http://google.com", cookieConfig = cookieConfig );
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
@@ -421,7 +419,7 @@ function testRemovePersistentCookieFromCookieStore() returns error? {
         }
         cookies = cookieStore.getAllCookies();
     }
-    _ = check file:remove(filePath, file:RECURSIVE);
+    _ = check file:remove("./native-cookie-test-data-4", file:RECURSIVE);
     test:assertEquals(cookies.length(), 0, msg = "Invalid cookie object");
     return;
 }

@@ -47,7 +47,7 @@ service /helloWorldWithSSL on generalSSLListener {
 }
 
 @test:Config {}
-public function testClientFallbackFromH2ToH1() returns error? {
+function testClientFallbackFromH2ToH1() returns error? {
     string payload = check fallbackClient->get("/helloWorldWithoutSSL");
     test:assertEquals(payload, version_1_1, msg = "Found unexpected output");
 
@@ -57,14 +57,14 @@ public function testClientFallbackFromH2ToH1() returns error? {
 
 // TODO disabled due to https://github.com/ballerina-platform/ballerina-standard-library/issues/3250
 @test:Config {enable: false}
-public function testSslClientFallbackFromH2ToH1() returns error? {
+function testSslClientFallbackFromH2ToH1() returns error? {
     string payload = check fallbackSslClient->get("/helloWorldWithSSL");
     test:assertEquals(payload, version_1_1, msg = "Found unexpected output");
 }
 
 // TODO disabled due to https://github.com/ballerina-platform/ballerina-standard-library/issues/3250
 @test:Config {enable: false, dependsOn: [testSslClientFallbackFromH2ToH1]}
-public function testSslClientFallbackFromH2ToH1Subsequent() returns error? {
+function testSslClientFallbackFromH2ToH1Subsequent() returns error? {
     string payload = check fallbackSslClient->get("/helloWorldWithSSL");
     test:assertEquals(payload, version_1_1, msg = "Found unexpected output");
 }

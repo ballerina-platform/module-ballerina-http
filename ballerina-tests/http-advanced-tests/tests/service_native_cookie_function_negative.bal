@@ -239,7 +239,7 @@ function testAddPersistentCookieWithoutPersistentStore() returns error? {
 @test:Config {}
 function testRemovePersistentCookieFromCookieStore_1() returns error? {
     http:Cookie cookie1 = new ("SID002", "239d4dmnmsddd34", path = "/sample", domain = "google.com", expires = "2030-07-15 05:46:22");
-    http:CsvPersistentCookieHandler myPersistentStore = new (filePath + "client-6.csv");
+    http:CsvPersistentCookieHandler myPersistentStore = new ("./native-cookie-test-data-6/client-6.csv");
     http:CookieConfig cookieConfig = {enabled: true, persistentCookieHandler: myPersistentStore};
     http:Client cookieClientEndpoint = check new ("http://google.com", cookieConfig = cookieConfig);
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
@@ -253,7 +253,7 @@ function testRemovePersistentCookieFromCookieStore_1() returns error? {
         }
         cookies = cookieStore.getAllCookies();
     }
-    _ = check file:remove(filePath, file:RECURSIVE);
+    _ = check file:remove("./native-cookie-test-data-6", file:RECURSIVE);
     test:assertEquals(cookies.length(), 1, msg = "Invalid cookie object");
     test:assertEquals(cookies[0].name, "SID002", msg = "Invalid cookie name");
     return;
@@ -262,7 +262,7 @@ function testRemovePersistentCookieFromCookieStore_1() returns error? {
 // Test to remove a specific cookie which is not in the cookie store, when there is no persistent cookie store
 @test:Config {}
 function testRemovePersistentCookieFromCookieStore_2() returns error? {
-    http:CsvPersistentCookieHandler myPersistentStore = new (filePath + "client-7.csv");
+    http:CsvPersistentCookieHandler myPersistentStore = new ("./native-cookie-test-data-7/client-7.csv");
     http:CookieConfig cookieConfig = {enabled: true, persistentCookieHandler: myPersistentStore};
     http:Client cookieClientEndpoint = check new ("http://google.com", cookieConfig = cookieConfig);
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();
@@ -280,7 +280,7 @@ function testRemovePersistentCookieFromCookieStore_2() returns error? {
 // Test to remove all cookies when there is no persistent cookie store
 @test:Config {}
 function testRemoveAllCookiesFromCookieStore() returns error? {
-    http:CsvPersistentCookieHandler myPersistentStore = new (filePath + "client-8.csv");
+    http:CsvPersistentCookieHandler myPersistentStore = new ("./native-cookie-test-data-8/client-8.csv");
     http:CookieConfig cookieConfig = {enabled: true, persistentCookieHandler: myPersistentStore};
     http:Client cookieClientEndpoint = check new ("http://google.com", cookieConfig = cookieConfig);
     http:CookieStore? cookieStore = cookieClientEndpoint.getCookieStore();

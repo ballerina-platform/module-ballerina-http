@@ -24,7 +24,7 @@ type DataFeed record {
     string message = "";
 };
 
-json requestPayload = {Name: "Ballerina"};
+final readonly & json requestPayload = {Name: "Ballerina"};
 
 const string CB_HEADER = "X-CB-Request";
 const string ALLOW_HEADER = "Allow";

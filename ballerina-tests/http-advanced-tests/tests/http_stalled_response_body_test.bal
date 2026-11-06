@@ -46,7 +46,7 @@ service /stalled on new http:Listener(stalledBodyTestPort) {
 
 final http:Client stalledBodyClient = check new (string `http://localhost:${stalledBodyTestPort}`, timeout = 1);
 
-@test:Config {}
+@test:Config {serialExecution: true}
 function testPayloadGettersFailWhenTheHttp2ResponseBodyIdlesOut() returns error? {
     foreach string getter in ["binary", "text", "json"] {
         decimal startTime = time:monotonicNow();

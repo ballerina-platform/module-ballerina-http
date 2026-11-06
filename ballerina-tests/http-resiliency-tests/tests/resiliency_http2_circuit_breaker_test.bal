@@ -81,21 +81,20 @@ function sendCBErrorResponse(http:Caller caller, error e) {
 //Test circuit breaker functionality for HTTP/2 methods
 final http:Client h2CBTestClient = check new("http://localhost:9315");
 
-int index = 0;
-
-@test:Config{
-    dataProvider:http2CircuitBreakerDataProvider
+@test:Config {}
+function testBasicHttp2CircuitBreaker() returns error? {
+    int index = 0;
+    foreach DataFeed dataFeed in http2CircuitBreakerResponses() {
+        index += 1;
+        check invokeApiAndVerifyResponse(h2CBTestClient, "/cb/trialrun/" + index.toString(), dataFeed);
+    }
 }
-function testBasicHttp2CircuitBreaker(DataFeed dataFeed) returns error? {
-    index += 1;
-    check invokeApiAndVerifyResponse(h2CBTestClient, "/cb/trialrun/" + index.toString(), dataFeed);
-}
 
-function http2CircuitBreakerDataProvider() returns DataFeed[][] {
+function http2CircuitBreakerResponses() returns DataFeed[] {
     return [
-        [{responseCode:SC_SERVICE_UNAVAILABLE, message:SERVICE_UNAVAILABLE_MESSAGE}],
-        [{responseCode:SC_INTERNAL_SERVER_ERROR, message:UPSTREAM_UNAVAILABLE_MESSAGE}],
-        [{responseCode:SC_SERVICE_UNAVAILABLE, message:SERVICE_UNAVAILABLE_MESSAGE}],
-        [{responseCode:SC_INTERNAL_SERVER_ERROR, message:UPSTREAM_UNAVAILABLE_MESSAGE}]
+        {responseCode:SC_SERVICE_UNAVAILABLE, message:SERVICE_UNAVAILABLE_MESSAGE},
+        {responseCode:SC_INTERNAL_SERVER_ERROR, message:UPSTREAM_UNAVAILABLE_MESSAGE},
+        {responseCode:SC_SERVICE_UNAVAILABLE, message:SERVICE_UNAVAILABLE_MESSAGE},
+        {responseCode:SC_INTERNAL_SERVER_ERROR, message:UPSTREAM_UNAVAILABLE_MESSAGE}
     ];
 }

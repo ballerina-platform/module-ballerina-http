@@ -31,8 +31,8 @@ service / on httpIntroResTestListener {
     }
 }
 
-json openApiDoc = check io:fileReadJson(common:OPENAPI_DOC);
-byte[] openApiDef = openApiDoc.toJsonString().toBytes();
+final json & readonly openApiDoc = (check io:fileReadJson(common:OPENAPI_DOC)).cloneReadOnly();
+final byte[] & readonly openApiDef = openApiDoc.toJsonString().toBytes().cloneReadOnly();
 
 @http:ServiceConfig {
     openApiDefinition: openApiDef
@@ -98,7 +98,8 @@ function testIntrospectionResourceGetPayload() returns error? {
     common:assertJsonPayload(check response.getJsonPayload(), openApiDoc);
 }
 
-@test:Config {}
+// Attaches a service to the shared listener at runtime.
+@test:Config {serialExecution: true}
 function testIntrospectionAnnotationInConstructorExpression() returns error? {
     http:Response response = check httpIntroResTestClient->get("/greeting");
     test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");

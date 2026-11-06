@@ -65,33 +65,33 @@ service / on new http:Listener(cBClientWithoutStatusCodesTestPort1, httpVersion 
     }
 }
 
-@test:Config {
-    dataProvider: responseDataProvider1
-}
-function testCircuitBreakerWithoutStatusCodes1(DataFeed dataFeed) returns error? {
-    check invokeApiAndVerifyResponseWithHttpGet(cbrClient, "/test1", dataFeed, common:TEXT_PLAIN);
+@test:Config {}
+function testCircuitBreakerWithoutStatusCodes1() returns error? {
+    foreach DataFeed dataFeed in withoutStatusCodesResponses1() {
+        check invokeApiAndVerifyResponseWithHttpGet(cbrClient, "/test1", dataFeed, common:TEXT_PLAIN);
+    }
 }
 
-function responseDataProvider1() returns DataFeed[][] {
+function withoutStatusCodesResponses1() returns DataFeed[] {
     return [
-        [{responseCode:SC_OK, message:SUCCESS_HELLO_MESSAGE}],
-        [{responseCode:SC_OK, message:SUCCESS_HELLO_MESSAGE}],
-        [{responseCode:SC_INTERNAL_SERVER_ERROR, message:INTERNAL_ERROR_MESSAGE}],
-        [{responseCode:SC_OK, message:SUCCESS_HELLO_MESSAGE}],
-        [{responseCode:SC_OK, message:SUCCESS_HELLO_MESSAGE}]
+        {responseCode:SC_OK, message:SUCCESS_HELLO_MESSAGE},
+        {responseCode:SC_OK, message:SUCCESS_HELLO_MESSAGE},
+        {responseCode:SC_INTERNAL_SERVER_ERROR, message:INTERNAL_ERROR_MESSAGE},
+        {responseCode:SC_OK, message:SUCCESS_HELLO_MESSAGE},
+        {responseCode:SC_OK, message:SUCCESS_HELLO_MESSAGE}
     ];
 }
 
-@test:Config {
-    dataProvider: responseDataProvider2
-}
-function testCircuitBreakerWithoutStatusCodes2(DataFeed dataFeed) returns error? {
-    check invokeApiAndVerifyResponseWithHttpGet(cbrClient, "/test2", dataFeed, common:APPLICATION_JSON);
+@test:Config {}
+function testCircuitBreakerWithoutStatusCodes2() returns error? {
+    foreach DataFeed dataFeed in withoutStatusCodesResponses2() {
+        check invokeApiAndVerifyResponseWithHttpGet(cbrClient, "/test2", dataFeed, common:APPLICATION_JSON);
+    }
 }
 
-function responseDataProvider2() returns DataFeed[][] {
+function withoutStatusCodesResponses2() returns DataFeed[] {
     return [
-        [{responseCode:SC_CONNECTION_ERROR, message:"Something wrong with the connection"}],
-        [{responseCode:SC_INTERNAL_SERVER_ERROR, message:UPSTREAM_UNAVAILABLE_MESSAGE}]
+        {responseCode:SC_CONNECTION_ERROR, message:"Something wrong with the connection"},
+        {responseCode:SC_INTERNAL_SERVER_ERROR, message:UPSTREAM_UNAVAILABLE_MESSAGE}
     ];
 }

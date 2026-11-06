@@ -27,6 +27,7 @@ listener http:Listener http2RedirectServiceEndpoint3 = new (http2RedirectTestPor
 
 final http:Client http2RedirectClient = check new ("http://localhost:" + http2RedirectTestPort1.toString());
 
+// The redirect tests are serial since these clients share the redirect count: https://github.com/ballerina-platform/ballerina-library/issues/9512
 final http:Client http2RedirectEndPoint1 = check new ("http://localhost:" + http2RedirectTestPort2.toString(),
     followRedirects = {enabled: true, maxCount: 3});
 
@@ -225,7 +226,8 @@ service /redirect2 on http2RedirectServiceEndpoint3 {
 
 //Test http redirection and test whether the resolvedRequestedURI in the response is correct.
 @test:Config {
-    groups: ["http2Redirect"]
+    groups: ["http2Redirect"],
+    serialExecution: true
 }
 function testHTTP2Redirect() returns error? {
     http:Response|error response = http2RedirectClient->get("/testHttp2Redirect/");
@@ -240,7 +242,8 @@ function testHTTP2Redirect() returns error? {
 
 //When the maximum redirect count is reached, client should do no more redirects.
 @test:Config {
-    groups: ["http2Redirect"]
+    groups: ["http2Redirect"],
+    serialExecution: true
 }
 function testHTTP2MaxRedirect() returns error? {
     http:Response|error response = http2RedirectClient->get("/testHttp2Redirect/maxRedirect");
@@ -255,7 +258,8 @@ function testHTTP2MaxRedirect() returns error? {
 
 //Original request and the final redirect request goes to two different domains and the max redirect count gets equal to current redirect count
 @test:Config {
-    groups: ["http2Redirect"]
+    groups: ["http2Redirect"],
+    serialExecution: true
 }
 function testHTTP2CrossDomain() returns error? {
     http:Response|error response = http2RedirectClient->get("/testHttp2Redirect/crossDomain");
@@ -270,7 +274,8 @@ function testHTTP2CrossDomain() returns error? {
 
 //Redirect is on, but the first response received is not a redirect
 @test:Config {
-    groups: ["http2Redirect"]
+    groups: ["http2Redirect"],
+    serialExecution: true
 }
 function testHTTP2NoRedirect() returns error? {
     http:Response|error response = http2RedirectClient->get("/testHttp2Redirect/noRedirect");
@@ -285,7 +290,8 @@ function testHTTP2NoRedirect() returns error? {
 
 //Include query params in relative path of a redirect location
 @test:Config {
-    groups: ["http2Redirect"]
+    groups: ["http2Redirect"],
+    serialExecution: true
 }
 function testHTTP2QPWithRelativePath() returns error? {
     http:Response|error response = http2RedirectClient->get("/testHttp2Redirect/qpWithRelativePath");
@@ -300,7 +306,8 @@ function testHTTP2QPWithRelativePath() returns error? {
 
 //Include query params in absolute path of a redirect location
 @test:Config {
-    groups: ["http2Redirect"]
+    groups: ["http2Redirect"],
+    serialExecution: true
 }
 function testHTTP2QPWithAbsolutePath() returns error? {
     http:Response|error response = http2RedirectClient->get("/testHttp2Redirect/qpWithAbsolutePath");
@@ -315,7 +322,8 @@ function testHTTP2QPWithAbsolutePath() returns error? {
 
 //Test original request with query params. NOTE:Query params in the original request should be ignored while resolving redirect url
 @test:Config {
-    groups: ["http2Redirect"]
+    groups: ["http2Redirect"],
+    serialExecution: true
 }
 function testHTTP2OriginalRequestWithQP() returns error? {
     http:Response|error response = http2RedirectClient->get("/testHttp2Redirect/originalRequestWithQP");
@@ -329,7 +337,8 @@ function testHTTP2OriginalRequestWithQP() returns error? {
 }
 
 @test:Config {
-    groups: ["http2Redirect"]
+    groups: ["http2Redirect"],
+    serialExecution: true
 }
 function testHTTP2303Status() returns error? {
     http:Response|error response = http2RedirectClient->get("/testHttp2Redirect/test303");

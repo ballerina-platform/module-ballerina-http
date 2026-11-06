@@ -97,21 +97,21 @@ service /hello on new http:Listener(8086, httpVersion = http:HTTP_1_1) {
 //Test basic circuit breaker functionality
 final http:Client testTypicalBackendTimeoutClient = check new("http://localhost:9306", httpVersion = http:HTTP_1_1);
 
-@test:Config {
-    dataProvider:responseDataProvider
-}
-function testTypicalBackendTimeout(DataFeed dataFeed) returns error? {
-    check invokeApiAndVerifyResponse(testTypicalBackendTimeoutClient, "/cb/typical", dataFeed);
+@test:Config {}
+function testTypicalBackendTimeout() returns error? {
+    foreach DataFeed dataFeed in typicalBackendTimeoutResponses() {
+        check invokeApiAndVerifyResponse(testTypicalBackendTimeoutClient, "/cb/typical", dataFeed);
+    }
 }
 
-function responseDataProvider() returns DataFeed[][] {
+function typicalBackendTimeoutResponses() returns DataFeed[] {
     return [
-        [{responseCode:SC_OK, message:SUCCESS_HELLO_MESSAGE}],
-        [{responseCode:SC_OK, message:SUCCESS_HELLO_MESSAGE}],
-        [{responseCode:SC_INTERNAL_SERVER_ERROR, message:IDLE_TIMEOUT_MESSAGE}],
-        [{responseCode:SC_INTERNAL_SERVER_ERROR, message:UPSTREAM_UNAVAILABLE_MESSAGE}],
-        [{responseCode:SC_INTERNAL_SERVER_ERROR, message:UPSTREAM_UNAVAILABLE_MESSAGE}],
-        [{responseCode:SC_OK, message:SUCCESS_HELLO_MESSAGE}],
-        [{responseCode:SC_OK, message:SUCCESS_HELLO_MESSAGE}]
+        {responseCode:SC_OK, message:SUCCESS_HELLO_MESSAGE},
+        {responseCode:SC_OK, message:SUCCESS_HELLO_MESSAGE},
+        {responseCode:SC_INTERNAL_SERVER_ERROR, message:IDLE_TIMEOUT_MESSAGE},
+        {responseCode:SC_INTERNAL_SERVER_ERROR, message:UPSTREAM_UNAVAILABLE_MESSAGE},
+        {responseCode:SC_INTERNAL_SERVER_ERROR, message:UPSTREAM_UNAVAILABLE_MESSAGE},
+        {responseCode:SC_OK, message:SUCCESS_HELLO_MESSAGE},
+        {responseCode:SC_OK, message:SUCCESS_HELLO_MESSAGE}
     ];
 }

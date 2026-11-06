@@ -65,7 +65,7 @@ service /protocol on sslProtocol13Listener {
     }
 }
 
-http:ClientSecureSocket sslProtocolClientConfig = {
+function sslProtocolClientConfig() returns http:ClientSecureSocket => {
     cert: {
         path: common:TRUSTSTORE_PATH,
         password: "ballerina"
@@ -73,8 +73,8 @@ http:ClientSecureSocket sslProtocolClientConfig = {
 };
 
 @test:Config {}
-public function testTLS12() returns error? {
-    http:ClientSecureSocket sslConfig = sslProtocolClientConfig.clone();
+function testTLS12() returns error? {
+    http:ClientSecureSocket sslConfig = sslProtocolClientConfig();
     sslConfig.protocol = {
         name: http:TLS,
         versions: ["TLSv1.2"]
@@ -85,8 +85,8 @@ public function testTLS12() returns error? {
 }
 
 @test:Config {}
-public function testTLS13() returns error? {
-    http:ClientSecureSocket sslConfig = sslProtocolClientConfig.clone();
+function testTLS13() returns error? {
+    http:ClientSecureSocket sslConfig = sslProtocolClientConfig();
     sslConfig.protocol = {
         name: http:TLS,
         versions: ["TLSv1.3"]
@@ -97,8 +97,8 @@ public function testTLS13() returns error? {
 }
 
 @test:Config {}
-public function testSslProtocol() returns error? {
-    http:ClientSecureSocket sslConfig = sslProtocolClientConfig.clone();
+function testSslProtocol() returns error? {
+    http:ClientSecureSocket sslConfig = sslProtocolClientConfig();
     sslConfig.protocol = {
         name: http:TLS,
         versions: ["TLSv1.2", "TLSv1.3"]
@@ -114,8 +114,8 @@ public function testSslProtocol() returns error? {
 }
 
 @test:Config {}
-public function testSslProtocolConflict() returns error? {
-    http:ClientSecureSocket sslConfig = sslProtocolClientConfig.clone();
+function testSslProtocolConflict() returns error? {
+    http:ClientSecureSocket sslConfig = sslProtocolClientConfig();
     sslConfig.protocol = {
         name: http:TLS,
         versions: ["TLSv1.2"]

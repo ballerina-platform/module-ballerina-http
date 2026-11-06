@@ -600,7 +600,7 @@ service /api on externalRedirectedEP {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function testRedirectWithAllowAuthHeaders() returns error? {
+function testRedirectWithAllowAuthHeaders() returns error? {
     http:ClientConfiguration clientConfig = {
         httpVersion: http:HTTP_1_1,
         followRedirects: {enabled: true, allowAuthHeaders: true},
@@ -634,7 +634,7 @@ public function testRedirectWithAllowAuthHeaders() returns error? {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function testRedirectWithoutAuthHeaders() returns error? {
+function testRedirectWithoutAuthHeaders() returns error? {
     http:ClientConfiguration clientConfig = {
         httpVersion: http:HTTP_1_1,
         followRedirects: {enabled: true, allowAuthHeaders: false},
@@ -668,7 +668,7 @@ public function testRedirectWithoutAuthHeaders() returns error? {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function testHttpRedirects() returns error? {
+function testHttpRedirects() returns error? {
     http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/");
     if resp is http:Response {
@@ -681,7 +681,7 @@ public function testHttpRedirects() returns error? {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function testMaxRedirect() returns error? {
+function testMaxRedirect() returns error? {
     http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/maxRedirect");
     if resp is http:Response {
@@ -694,7 +694,7 @@ public function testMaxRedirect() returns error? {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function testCrossDomain() returns error? {
+function testCrossDomain() returns error? {
     http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/noRedirect");
     if resp is http:Response {
@@ -707,7 +707,7 @@ public function testCrossDomain() returns error? {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function testNoRedirect() returns error? {
+function testNoRedirect() returns error? {
     http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/crossDomain");
     if resp is http:Response {
@@ -720,7 +720,7 @@ public function testNoRedirect() returns error? {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function testRedirectOff() returns error? {
+function testRedirectOff() returns error? {
     http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/redirectOff");
     if resp is http:Response {
@@ -733,7 +733,7 @@ public function testRedirectOff() returns error? {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function testQPWithRelativePath() returns error? {
+function testQPWithRelativePath() returns error? {
     http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/qpWithRelativePath");
     if resp is http:Response {
@@ -746,7 +746,7 @@ public function testQPWithRelativePath() returns error? {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function testQPWithAbsolutePath() returns error? {
+function testQPWithAbsolutePath() returns error? {
     http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/qpWithAbsolutePath");
     if resp is http:Response {
@@ -759,7 +759,7 @@ public function testQPWithAbsolutePath() returns error? {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function testOriginalRequestWithQP() returns error? {
+function testOriginalRequestWithQP() returns error? {
     http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/originalRequestWithQP");
     if resp is http:Response {
@@ -772,7 +772,7 @@ public function testOriginalRequestWithQP() returns error? {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function test303Status() returns error? {
+function test303Status() returns error? {
     http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/test303");
     if resp is http:Response {
@@ -785,7 +785,7 @@ public function test303Status() returns error? {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function testRedirectWithHTTPs() returns error? {
+function testRedirectWithHTTPs() returns error? {
     http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/httpsRedirect");
     if resp is http:Response {
@@ -798,7 +798,7 @@ public function testRedirectWithHTTPs() returns error? {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function testRedirectWithPOST() returns error? {
+function testRedirectWithPOST() returns error? {
     http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/doPost");
     if resp is http:Response {
@@ -811,7 +811,7 @@ public function testRedirectWithPOST() returns error? {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function testRedirectWithHead() returns error? {
+function testRedirectWithHead() returns error? {
     http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/doHead");
     if resp is http:Response {
@@ -824,7 +824,7 @@ public function testRedirectWithHead() returns error? {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function testRedirectWithExecute() returns error? {
+function testRedirectWithExecute() returns error? {
     http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/doExecute");
     if resp is http:Response {
@@ -837,7 +837,7 @@ public function testRedirectWithExecute() returns error? {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function testRedirectWithPatch() returns error? {
+function testRedirectWithPatch() returns error? {
     http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/doPatch");
     if resp is http:Response {
@@ -850,7 +850,7 @@ public function testRedirectWithPatch() returns error? {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function testRedirectWithDelete() returns error? {
+function testRedirectWithDelete() returns error? {
     http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/doDelete");
     if resp is http:Response {
@@ -863,7 +863,7 @@ public function testRedirectWithDelete() returns error? {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function testRedirectWithOptions() returns error? {
+function testRedirectWithOptions() returns error? {
     http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/doOptions");
     if resp is http:Response {
@@ -876,7 +876,7 @@ public function testRedirectWithOptions() returns error? {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function testWithHTTPs() returns error? {
+function testWithHTTPs() returns error? {
     http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/doSecurePut");
     if resp is http:Response {
@@ -889,7 +889,7 @@ public function testWithHTTPs() returns error? {
 @test:Config {
     groups: ["httpRedirect"]
 }
-public function testMultipartRedirect() returns error? {
+function testMultipartRedirect() returns error? {
     http:Client httpClient = check new (string `http://localhost:${redirectTestPort2}`, httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/testRedirectService/testMultipart");
     if resp is http:Response {
@@ -899,7 +899,7 @@ public function testMultipartRedirect() returns error? {
     }
 }
 
-public function assertRedirectResponse(http:Response response, string expected) {
+function assertRedirectResponse(http:Response response, string expected) {
     var body = response.getTextPayload();
     if (body is string) {
         test:assertEquals(body, expected, msg = common:errorMessage);
