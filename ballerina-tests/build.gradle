@@ -131,7 +131,66 @@ def balJavaDebugParam = ""
 def testParams = ""
 def graalvmFlag = ""
 def parallelTestFlag = ""
+// Parallel runs can deadlock in the runtime (ballerina-platform/ballerina-lang#44864), so only the packages that gain
+// minutes from it run in parallel, and a parallel run that hangs is retried serially.
+def parallelTestPackages = ["http2-tests", "http-resiliency-tests"]
+def testTimeoutMinutes = 30L
+def parallelTimeoutMinutes = 5L
 def skipTests = false
+
+ext.TIMED_OUT = -1
+
+// Runs one `bal test`, streaming its output. On timeout, prints a thread dump of each test JVM, then kills it.
+def runBalTest(List<String> command, File workingDir, long timeoutSeconds, String label) {
+    def builder = new ProcessBuilder(command*.toString()).directory(workingDir).redirectErrorStream(true)
+    builder.environment().put("JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true")
+    def process = builder.start()
+    def pump = Thread.start { process.inputStream.eachLine { println it } }
+    if (process.waitFor(timeoutSeconds, java.util.concurrent.TimeUnit.SECONDS)) {
+        pump.join()
+        return process.exitValue()
+    }
+    println "\n========== bal test ${label} did not finish within ${timeoutSeconds.intdiv(60)} min; thread dumps follow =========="
+    def descendants = [process.toHandle()] + process.toHandle().descendants().toList()
+    descendants.findAll { it.info().command().orElse('').contains('java') }.each { jvm ->
+        println "---------- thread dump of ${jvm.pid()}: ${jvm.info().commandLine().orElse('').take(200)} ----------"
+        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+            def jcmd = "${System.getProperty('java.home')}/bin/jcmd.exe"
+            def dump = new ProcessBuilder(jcmd, jvm.pid().toString(), 'Thread.print').redirectErrorStream(true).start()
+            println dump.inputStream.text
+            dump.waitFor()
+        } else {
+            // The JVM prints the dump to its own stdout, which the pump is already relaying.
+            new ProcessBuilder('kill', '-QUIT', jvm.pid().toString()).start().waitFor()
+            sleep(3000)
+        }
+    }
+    descendants.each { it.destroyForcibly() }
+    process.destroyForcibly()
+    pump.join(5000)
+    return TIMED_OUT
+}
+
+def summarizeTestReport(File reportFile) {
+    def summary = [total: '-', passed: '-', failed: '-', skipped: '-', failures: []]
+    if (!reportFile.exists()) {
+        return summary
+    }
+    def report = new groovy.json.JsonSlurper().parse(reportFile)
+    summary.total = report.totalTests
+    summary.passed = report.passed
+    summary.failed = report.failed
+    summary.skipped = report.skipped
+    def packageResults = report.packages != null ? report.packages : [report]
+    packageResults.each { pkg ->
+        pkg.moduleStatus?.each { module ->
+            module.tests?.findAll { it.status?.toString()?.equalsIgnoreCase('failure') }?.each { test ->
+                summary.failures << "${module.name}:${test.name}"
+            }
+        }
+    }
+    return summary
+}
 
 task initializeVariables {
     if (project.hasProperty("groups")) {
@@ -151,6 +210,19 @@ task initializeVariables {
     }
     if (project.hasProperty('balParallelTest')) {
         parallelTestFlag = '--parallel'
+    }
+    if (project.hasProperty('balTestTimeoutMinutes')) {
+        testTimeoutMinutes = project.findProperty('balTestTimeoutMinutes').toString().toLong()
+    }
+    if (project.hasProperty('balParallelTimeoutMinutes')) {
+        parallelTimeoutMinutes = project.findProperty('balParallelTimeoutMinutes').toString().toLong()
+    }
+    if (project.hasProperty('balParallelTests')) {
+        parallelTestPackages = project.findProperty('balParallelTests').toString().split(",")*.trim()
+    }
+    if (project.hasProperty('balSerialTest') || project.hasProperty('balGraalVMTest')) {
+        parallelTestFlag = ''
+        parallelTestPackages = []
     }
     if (project.hasProperty('balTests')) {
         testPackages = project.findProperty('balTests').toString().split(",")
@@ -215,32 +287,75 @@ task ballerinaTest {
     finalizedBy(commitTomlFiles)
 
     doLast {
+        if (skipTests) {
+            return
+        }
+        def results = []
         testPackages.each { testPackage ->
-            if (!skipTests) {
+            def packageParallelFlag = parallelTestFlag ?: (parallelTestPackages.contains(testPackage) ? '--parallel' : '')
+            def reportFile = new File("${project.projectDir}/${testPackage}/target/report/test_results.json")
+            def balTestCommand = { String modeFlag ->
+                Os.isFamily(Os.FAMILY_WINDOWS) ?
+                        ['cmd', '/c', "${balJavaDebugParam} ${distributionBinPath}/bal.bat test ${graalvmFlag}" +
+                                " ${modeFlag} ${testParams} ${groupParams} ${disableGroups} ${windowsDisableGroups}" +
+                                "  ${debugParams} && exit %%ERRORLEVEL%%"] :
+                        ['sh', '-c', "${balJavaDebugParam} ${distributionBinPath}/bal test ${graalvmFlag} " +
+                                "${modeFlag} ${testParams} ${groupParams} ${disableGroups} ${debugParams}"]
+            }
+            def startedAt = System.currentTimeMillis()
+            def retried = false
+            reportFile.delete()
+            def exitCode
+            if (packageParallelFlag) {
+                println "\n========== bal test ${testPackage} (parallel) =========="
+                exitCode = runBalTest(balTestCommand(packageParallelFlag), file("${project.projectDir}/${testPackage}"),
+                        parallelTimeoutMinutes * 60, testPackage)
+                if (exitCode == TIMED_OUT) {
+                    // Parallel runs can deadlock in the runtime (ballerina-platform/ballerina-lang#44864).
+                    println "\n========== bal test ${testPackage}: retrying serially after the parallel run hung =========="
+                    retried = true
+                    reportFile.delete()
+                }
+            }
+            if (!packageParallelFlag || retried) {
+                if (!retried) {
+                    println "\n========== bal test ${testPackage} =========="
+                }
+                exitCode = runBalTest(balTestCommand(''), file("${project.projectDir}/${testPackage}"),
+                        testTimeoutMinutes * 60, testPackage)
+            }
+            results << [name: testPackage, mode: retried ? 'retried' : (packageParallelFlag ? 'parallel' : 'serial'),
+                        exitCode: exitCode, seconds: (System.currentTimeMillis() - startedAt).intdiv(1000)] +
+                    summarizeTestReport(reportFile)
+            if (project.hasProperty('balGraalVMTest')) {
                 execHelper.execOperations.exec {
                     workingDir "${project.projectDir}/${testPackage}"
                     environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
                     if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                        commandLine 'cmd', '/c', "${balJavaDebugParam} ${distributionBinPath}/bal.bat test ${graalvmFlag}" +
-                                " ${parallelTestFlag} ${testParams} ${groupParams} ${disableGroups} ${windowsDisableGroups}" +
-                                "  ${debugParams} && exit %%ERRORLEVEL%%"
+                        commandLine 'cmd', '/c', "${distributionBinPath}/bal.bat clean"
                     } else {
-                        commandLine 'sh', '-c', "${balJavaDebugParam} ${distributionBinPath}/bal test ${graalvmFlag} " +
-                                "${parallelTestFlag} ${testParams} ${groupParams} ${disableGroups} ${debugParams}"
-                    }
-                }
-                if (project.hasProperty('balGraalVMTest')) {
-                    execHelper.execOperations.exec {
-                        workingDir "${project.projectDir}/${testPackage}"
-                        environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
-                        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                            commandLine 'cmd', '/c', "${distributionBinPath}/bal.bat clean"
-                        } else {
-                            commandLine 'sh', '-c', "${distributionBinPath}/bal clean"
-                        }
+                        commandLine 'sh', '-c', "${distributionBinPath}/bal clean"
                     }
                 }
             }
+        }
+
+        def row = { cells -> cells.withIndex().collect { cell, i -> i == 0 ? cell.toString().padRight(26) :
+                cell.toString().padLeft(9) }.join('') }
+        println "\n========== Ballerina test summary =========="
+        println row(['Package', 'Result', 'Mode', 'Time(s)', 'Total', 'Passed', 'Failed', 'Skipped'])
+        results.each { r ->
+            println row([r.name, r.exitCode == 0 ? 'OK' : (r.exitCode == TIMED_OUT ? 'TIMEOUT' : 'FAILED'), r.mode, r.seconds,
+                         r.total, r.passed, r.failed, r.skipped])
+        }
+        def failedPackages = results.findAll { it.exitCode != 0 }
+        failedPackages.findAll { it.failures }.each { r ->
+            println "\nFailed tests in ${r.name}:"
+            r.failures.each { println "  - ${it}" }
+        }
+        if (failedPackages) {
+            throw new GradleException("bal test failed for: ${failedPackages*.name.join(', ')}. " +
+                    "See the summary above and each package's section for details.")
         }
     }
 }
