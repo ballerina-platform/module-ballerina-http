@@ -44,11 +44,13 @@ service /stalled on new http:Listener(stalledBodyTestPort) {
     }
 }
 
-final http:Client stalledBodyClient = check new (string `http://localhost:${stalledBodyTestPort}`, timeout = 1);
-
 @test:Config {serialExecution: true}
 function testPayloadGettersFailWhenTheHttp2ResponseBodyIdlesOut() returns error? {
     foreach string getter in ["binary", "text", "json"] {
+        // A client with its own connection pool per getter: the idle timeout closes the connection, and the next
+        // request on it could race that close and fail before getting a response.
+        http:Client stalledBodyClient = check new (string `http://localhost:${stalledBodyTestPort}`, timeout = 1,
+            poolConfig = {});
         decimal startTime = time:monotonicNow();
         http:Response response = check stalledBodyClient->/stalled;
         anydata|error payload = getter == "binary" ? response.getBinaryPayload()
