@@ -112,7 +112,9 @@ function testSslProtocol() returns error? {
     test:assertEquals(resp, "Hello, World!");
 }
 
-@test:Config {}
+// Serial since, under concurrent load, the server's reset can reach the client before the TLS alert, which surfaces
+// as a generic connection error. On Windows that happens even when the test runs alone.
+@test:Config {serialExecution: true}
 function testSslProtocolConflict() returns error? {
     http:ClientSecureSocket sslConfig = {...sslProtocolClientConfig};
     sslConfig.protocol = {
