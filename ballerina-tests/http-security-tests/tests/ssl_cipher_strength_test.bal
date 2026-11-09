@@ -75,7 +75,7 @@ service /weakService on weakCipher {
 }
 
 @test:Config {}
-public function testWithStrongClientWithWeakService() returns error? {
+function testWithStrongClientWithWeakService() returns error? {
     http:Client clientEP = check new ("https://localhost:9227",
         httpVersion = http:HTTP_1_1,
         secureSocket = {
@@ -99,7 +99,7 @@ public function testWithStrongClientWithWeakService() returns error? {
 }
 
 @test:Config {}
-public function testWithStrongClientWithStrongService() returns error? {
+function testWithStrongClientWithStrongService() returns error? {
     http:Client clientEP = check new ("https://localhost:9226",
         httpVersion = http:HTTP_1_1,
         secureSocket = {

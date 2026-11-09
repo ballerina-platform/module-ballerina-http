@@ -688,7 +688,7 @@ function testServiceSetBinaryPayload() {
 
 // Test getBinaryPayload() function within a service
 @test:Config {}
-public function testServiceGetBinaryPayload() {
+function testServiceGetBinaryPayload() {
     string textVal = "Ballerina";
     byte[] payload = textVal.toBytes();
     string path = "/requesthello/GetBinaryPayload";

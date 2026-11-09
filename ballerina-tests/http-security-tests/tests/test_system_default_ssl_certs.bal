@@ -18,7 +18,7 @@ import ballerina/http;
 import ballerina/test;
 
 @test:Config {}
-public function testHttp2WithSystemDefaultCerts() returns error? {
+function testHttp2WithSystemDefaultCerts() returns error? {
     http:Client httpClient = check new("https://www.google.com");
     string|error resp = httpClient->get("/");
     if resp is error {
@@ -27,7 +27,7 @@ public function testHttp2WithSystemDefaultCerts() returns error? {
 }
 
 @test:Config {}
-public function testHttp2PriorKnowledgeWithSystemDefaultCerts() returns error? {
+function testHttp2PriorKnowledgeWithSystemDefaultCerts() returns error? {
     http:Client httpClient = check new("https://www.google.com", http2Settings = { http2PriorKnowledge: true });
     string|error resp = httpClient->get("/");
     if resp is error {

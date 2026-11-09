@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/http;
+import ballerina/jwt;
 import ballerina/lang.'string as strings;
 
 public type Person record {|
@@ -377,7 +378,10 @@ service class RequestInterceptorJwtInformation {
     *http:RequestInterceptor;
 
     resource function 'default [string... path](http:RequestContext ctx, http:Request req) returns http:NextService|error? {
-        reqCtxJwtValues = check ctx.getWithType(http:JWT_INFORMATION);
+        [jwt:Header, jwt:Payload] jwtValues = check ctx.getWithType(http:JWT_INFORMATION);
+        lock {
+            reqCtxJwtValues = jwtValues.clone();
+        }
         return ctx.next();
     }
 }
@@ -415,7 +419,7 @@ service class RequestInterceptorNegative3 {
     }
 }
 
-string largePayload = "WSO2 was founded by Sanjiva Weerawarana, Paul Fremantle and Davanum Srinivas in August 2005, " +
+final string largePayload = "WSO2 was founded by Sanjiva Weerawarana, Paul Fremantle and Davanum Srinivas in August 2005, " +
     "backed by Intel Capital, Toba Capital, and Pacific Controls. Weerawarana[3] was an IBM researcher and a founder " +
     "of the Web services platform.[4][5] He led the creation of IBM SOAP4J,[6] which later became Apache SOAP, and was" +
     " the architect of other notable projects. Fremantle was one of the authors of IBM's Web Services Invocation Framework" +

@@ -55,7 +55,7 @@ service /validation\-req\-be on cachingBackendListener {
 }
 
 //Test preservation of caller request headers in the validation request
-@test:Config {}
+@test:Config {serialExecution: true}
 function testCallerRequestHeaderPreservation() returns error? {
     string callerReqHeader = "x-caller-req-header";
 

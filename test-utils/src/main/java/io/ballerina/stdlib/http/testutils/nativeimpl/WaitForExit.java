@@ -34,7 +34,7 @@ public class WaitForExit {
         try {
             return process.waitFor();
         } catch (InterruptedException e) {
-            return OSUtils.getBallerinaError(OSConstants.PROCESS_EXEC_ERROR, e);
+            return OSUtils.getBallerinaError(e);
         }
     }
 }

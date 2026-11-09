@@ -64,11 +64,11 @@ http:ListenerConfiguration http2LowPayloadConfig = {
     }
 };
 
-int http2RequestLimitsTestPort1 = common:getHttp2Port(requestLimitsTestPort1);
-int http2RequestLimitsTestPort2 = common:getHttp2Port(requestLimitsTestPort2);
-int http2RequestLimitsTestPort3 = common:getHttp2Port(requestLimitsTestPort3);
-int http2RequestLimitsTestPort4 = common:getHttp2Port(requestLimitsTestPort4);
-int http2RequestLimitsTestPort6 = common:getHttp2Port(requestLimitsTestPort6);
+final int http2RequestLimitsTestPort1 = common:getHttp2Port(requestLimitsTestPort1);
+final int http2RequestLimitsTestPort2 = common:getHttp2Port(requestLimitsTestPort2);
+final int http2RequestLimitsTestPort3 = common:getHttp2Port(requestLimitsTestPort3);
+final int http2RequestLimitsTestPort4 = common:getHttp2Port(requestLimitsTestPort4);
+final int http2RequestLimitsTestPort6 = common:getHttp2Port(requestLimitsTestPort6);
 
 listener http:Listener http2NormalRequestLimitEP = new (http2RequestLimitsTestPort1, http2UrlLimitConfig);
 listener http:Listener http2LowRequestLimitEP = new (http2RequestLimitsTestPort2, http2LowUrlLimitConfig);

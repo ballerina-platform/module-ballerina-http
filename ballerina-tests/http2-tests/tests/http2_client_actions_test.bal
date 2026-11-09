@@ -295,7 +295,7 @@ service /testHttp2Service on new http:Listener(9123) {
 }
 
 @test:Config {}
-public function testHttp2GetAction() returns error? {
+function testHttp2GetAction() returns error? {
     http:Client clientEP = check new ("http://localhost:9123");
     http:Response|error resp = clientEP->get("/testHttp2Service/clientGet");
     if resp is http:Response {
@@ -307,7 +307,7 @@ public function testHttp2GetAction() returns error? {
 }
 
 @test:Config {}
-public function testHttp2PostAction() returns error? {
+function testHttp2PostAction() returns error? {
     http:Client clientEP = check new ("http://localhost:9123");
     http:Response|error resp = clientEP->get("/testHttp2Service/clientPostWithoutBody");
     if resp is http:Response {
@@ -318,7 +318,7 @@ public function testHttp2PostAction() returns error? {
 }
 
 @test:Config {}
-public function testHttp2PostActionWithBody() returns error? {
+function testHttp2PostActionWithBody() returns error? {
     http:Client clientEP = check new ("http://localhost:9123");
     http:Response|error resp = clientEP->get("/testHttp2Service/clientPostWithBody");
     if resp is http:Response {
@@ -329,7 +329,7 @@ public function testHttp2PostActionWithBody() returns error? {
 }
 
 @test:Config {}
-public function testHttp2PostWithBlob() returns error? {
+function testHttp2PostWithBlob() returns error? {
     http:Client clientEP = check new ("http://localhost:9123");
     http:Response|error resp = clientEP->get("/testHttp2Service/testHttp2PostWithBinaryData");
     if resp is http:Response {
@@ -341,7 +341,7 @@ public function testHttp2PostWithBlob() returns error? {
 
 // TODO: Enable after the I/O revamp
 @test:Config {enable: false}
-public function testHttp2PostWithByteChannel() returns error? {
+function testHttp2PostWithByteChannel() returns error? {
     http:Client clientEP = check new ("http://localhost:9123");
     http:Response|error resp = clientEP->post("/testHttp2Service/testHttp2PostWithByteChannel", "Sample Text");
     if resp is http:Response {
@@ -352,7 +352,7 @@ public function testHttp2PostWithByteChannel() returns error? {
 }
 
 @test:Config {}
-public function testHttp2PostWithTextToStream() returns error? {
+function testHttp2PostWithTextToStream() returns error? {
     http:Client clientEP = check new ("http://localhost:9123");
     http:Response|error resp = clientEP->post("/testHttp2Service/testHttp2PostWithTextToStream", "Sample Text");
     if resp is http:Response {
@@ -363,7 +363,7 @@ public function testHttp2PostWithTextToStream() returns error? {
 }
 
 @test:Config {}
-public function testHttp2PostWithByteStream() returns error? {
+function testHttp2PostWithByteStream() returns error? {
     http:Client clientEP = check new ("http://localhost:9123");
     http:Response|error resp = clientEP->post("/testHttp2Service/testHttp2PostWithByteStream", "Sample Text");
     if resp is http:Response {
@@ -374,7 +374,7 @@ public function testHttp2PostWithByteStream() returns error? {
 }
 
 @test:Config {}
-public function testHttp2PostWithByteStreamToTextPayloadOfClient() returns error? {
+function testHttp2PostWithByteStreamToTextPayloadOfClient() returns error? {
     http:Client clientEP = check new ("http://localhost:9123");
     http:Response|error resp = clientEP->post("/testHttp2Service/testHttp2PostWithByteStreamToText", "Sample Text");
     if resp is http:Response {

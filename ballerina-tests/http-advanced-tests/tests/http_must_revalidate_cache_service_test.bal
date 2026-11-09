@@ -74,7 +74,7 @@ service /mustRevalidateBE on cachingBackendListener {
 }
 
 //Test must-revalidate cache control
-@test:Config {}
+@test:Config {serialExecution: true}
 function testMustRevalidateCacheControl() returns error? {
     http:Response|error response = cachingProxyTestClient->get("/mustRevalidate");
     if response is http:Response {

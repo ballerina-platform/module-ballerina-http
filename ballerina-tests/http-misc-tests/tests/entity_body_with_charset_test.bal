@@ -18,9 +18,9 @@ import ballerina/test;
 import ballerina/http;
 import ballerina/http_test_common as common;
 
-string textValue = "Hello Ballerina!";
-xml testValue = xml `<test><name>ballerina</name></test>`;
-xml xmlValue = xml `<菜鸟驿站><name>菜鸟驿站</name></菜鸟驿站>`;
+final string textValue = "Hello Ballerina!";
+final xml & readonly testValue = xml `<test><name>ballerina</name></test>`;
+final xml & readonly xmlValue = xml `<菜鸟驿站><name>菜鸟驿站</name></菜鸟驿站>`;
 
 //Request charset with json payload
 @test:Config {}

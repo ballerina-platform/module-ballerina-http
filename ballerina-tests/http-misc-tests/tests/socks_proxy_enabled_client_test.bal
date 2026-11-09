@@ -36,7 +36,7 @@ const string SOCKS_BACKEND_RESPONSE = "Backend server sent the response";
 @test:Config {
     groups: ["disabledOnWindows"]
 }
-public function testSocks5Client() returns error? {
+function testSocks5Client() returns error? {
     http:Client clientEP = check new (SOCKS_BACKEND_URL, {
         proxy: {
             host: "localhost",
@@ -52,7 +52,7 @@ public function testSocks5Client() returns error? {
 // error — the password is ignored with a warning log. This test verifies that client creation
 // succeeds and no error is returned when a password is provided with SOCKS4.
 @test:Config {}
-public function testSocks4ClientIgnoresPassword() returns error? {
+function testSocks4ClientIgnoresPassword() returns error? {
     http:Client _ = check new (SOCKS_BACKEND_URL, {
         proxy: {
             host: "localhost",

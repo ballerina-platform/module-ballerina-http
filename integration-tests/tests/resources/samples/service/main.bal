@@ -10,7 +10,9 @@ final table<Album> key(title) albums = table [
     {title: "Jeru", artist: "Gerry Mulligan"}
 ];
 
-listener http:Listener 'listener = new(9797);
+configurable int port = 9797;
+
+listener http:Listener 'listener = new(port);
 service / on 'listener {
 
     isolated resource function get albums() returns Album[] {

@@ -17,6 +17,7 @@
  */
 package io.ballerina.stdlib.http.transport.util.client.http2.nettyclient;
 
+import io.ballerina.stdlib.http.transport.util.TestUtil;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
@@ -50,7 +51,7 @@ public final class Http2NettyClient {
     private EventLoopGroup workerGroup = new NioEventLoopGroup();
     private HttpResponseHandler responseHandler;
     private Channel channel;
-    private int port = 9000;
+    private int port = TestUtil.HTTP_SERVER_PORT;
 
     public void startClient(int port, boolean decompressorEnabled) throws Exception {
 

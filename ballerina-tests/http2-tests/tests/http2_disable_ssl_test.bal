@@ -39,15 +39,15 @@ service /hello on sslServerEp {
     }
 }
 
-http:ClientConfiguration sslDisabledConfig = {
+function sslDisabledConfig() returns http:ClientConfiguration => {
     secureSocket: {
         enable: false
     }
 };
 
 @test:Config {}
-public function disableSslTest() returns error? {
-    http:Client clientEP = check new ("https://localhost:9114", sslDisabledConfig);
+function disableSslTest() returns error? {
+    http:Client clientEP = check new ("https://localhost:9114", sslDisabledConfig());
     http:Response|error resp = clientEP->get("/hello/");
     if resp is http:Response {
         common:assertTextPayload(resp.getTextPayload(), "Hello World!");

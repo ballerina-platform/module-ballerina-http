@@ -105,7 +105,7 @@ isolated function failsBeforeSending(string path, http:HttpVersion httpVersion) 
 final readonly & [int, http:HttpVersion][] failedBodyTargets =
     [[failedBodyHttp2TestPort, http:HTTP_2_0], [failedBodyHttp1TestPort, http:HTTP_1_1]];
 
-@test:Config {}
+@test:Config {serialExecution: true}
 function testResponseWhoseByteStreamFailsIsFailedAtTheClient() returns error? {
     foreach [int, http:HttpVersion] [port, httpVersion] in failedBodyTargets {
         // One client, so a connection that wrongly outlives an aborted response fails the next request on it

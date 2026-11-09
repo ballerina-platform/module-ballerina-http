@@ -33,7 +33,7 @@ final http:Client http2RequestClient2 = check new ("http://localhost:" + http2Ge
     http2Settings = {http2PriorKnowledge: true});
 
 @test:Config {}
-public function testHttp2AccessingPayloadAsTextAndJSON() {
+function testHttp2AccessingPayloadAsTextAndJSON() {
     string payload = "{ \"foo\" : \"bar\"}";
     string path = "/MyService/myResource";
     http:Request req = new;

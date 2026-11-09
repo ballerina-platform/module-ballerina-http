@@ -43,6 +43,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.EventExecutorGroup;
+import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GlobalEventExecutor;
 
 import java.io.IOException;
@@ -50,7 +51,10 @@ import java.io.UncheckedIOException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLException;
 
@@ -61,6 +65,11 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.PIPELINING_T
  * Implementation of HttpWsConnectorFactory interface.
  */
 public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
+
+    // Netty's defaults. The native tests set the quiet period to 0, since they shut a factory down after every class.
+    private static final long SHUTDOWN_QUIET_PERIOD_MILLIS =
+            Long.getLong("ballerina.http.transport.shutdownQuietPeriodMillis", 2000);
+    private static final long SHUTDOWN_TIMEOUT_MILLIS = 15000;
 
     private final EventLoopGroup bossGroup;
     private final EventLoopGroup workerGroup;
@@ -216,12 +225,28 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
     @Override
     public void shutdown() throws InterruptedException {
         allChannels.close().sync();
-        workerGroup.shutdownGracefully().sync();
-        bossGroup.shutdownGracefully().sync();
-        clientGroup.shutdownGracefully().sync();
+        List<Future<?>> terminations = new ArrayList<>();
+        terminations.add(terminate(workerGroup));
+        terminations.add(terminate(bossGroup));
+        terminations.add(terminate(clientGroup));
         if (pipeliningGroup != null) {
-            pipeliningGroup.shutdownGracefully().sync();
+            terminations.add(terminate(pipeliningGroup));
         }
+        // Wait for every group before reporting a failure, so that no group is left running.
+        Throwable failure = null;
+        for (Future<?> termination : terminations) {
+            termination.await();
+            if (!termination.isSuccess() && failure == null) {
+                failure = termination.cause();
+            }
+        }
+        if (failure != null) {
+            throw new IllegalStateException("Failed to shut down the connector factory", failure);
+        }
+    }
+
+    private static Future<?> terminate(EventExecutorGroup group) {
+        return group.shutdownGracefully(SHUTDOWN_QUIET_PERIOD_MILLIS, SHUTDOWN_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
     }
 
     /**

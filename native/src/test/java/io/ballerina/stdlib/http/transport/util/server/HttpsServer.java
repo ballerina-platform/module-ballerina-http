@@ -130,8 +130,7 @@ public class HttpsServer implements TestServer {
      * Shutdown the HttpsServer.
      */
     public void shutdown() throws InterruptedException {
-        bossGroup.shutdownGracefully().sync();
-        workerGroup.shutdownGracefully().sync();
+        TestUtil.shutdownEventLoopGroups(bossGroup, workerGroup);
         LOG.info("HttpsServer shutdown ");
     }
 

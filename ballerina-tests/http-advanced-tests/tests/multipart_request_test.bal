@@ -593,7 +593,7 @@ function getContentDispositionForGivenDisposition(string partName, string dispos
 
 function close(io:ReadableByteChannel|io:ReadableCharacterChannel ch) returns error? {
     object {
-        public function close() returns error?;
+        public isolated function close() returns error?;
     } channelResult = ch;
     return channelResult.close();
 }

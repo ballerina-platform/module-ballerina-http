@@ -18,7 +18,7 @@ import ballerina/http;
 import ballerina/test;
 import ballerina/http_test_common as common;
 
-int http2HateoasRuntimeErrorPort = common:getHttp2Port(hateoasRuntimeErrorPort);
+final int http2HateoasRuntimeErrorPort = common:getHttp2Port(hateoasRuntimeErrorPort);
 
 listener http:Listener http2HateoasRuntimeErrorServerEP = check new (http2HateoasRuntimeErrorPort);
 
