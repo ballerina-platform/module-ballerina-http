@@ -105,7 +105,8 @@ public class SimpleStringExpression<DataType, InboundMsgType> extends Expression
     }
 
     boolean setVariables(String expressionValue, HttpResourceArguments variables) {
-        String finalValue = decodeValue(expressionValue);
+        // The raw (still percent-encoded) segment is stored. It is decoded exactly once when it is bound.
+        String finalValue = expressionValue;
         for (Variable var : variableList) {
             String name = var.getName();
             Map<Integer, String> indexValueMap;

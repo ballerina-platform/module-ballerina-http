@@ -56,9 +56,9 @@ import static io.ballerina.stdlib.http.api.HttpConstants.DEFAULT_HOST;
 import static io.ballerina.stdlib.http.api.HttpConstants.JWT_DECODER_CLASS_NAME;
 import static io.ballerina.stdlib.http.api.HttpConstants.JWT_DECODE_METHOD_NAME;
 import static io.ballerina.stdlib.http.api.HttpConstants.JWT_INFORMATION;
-import static io.ballerina.stdlib.http.api.HttpConstants.QUERY_STRING_SEPARATOR;
 import static io.ballerina.stdlib.http.api.HttpConstants.REQUEST_CTX_MEMBERS;
 import static io.ballerina.stdlib.http.api.HttpConstants.WHITESPACE;
+import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_RESOURCE_DISPATCHING_SERVER_ERROR;
 import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_SERVICE_NOT_FOUND_ERROR;
 import static io.ballerina.stdlib.http.api.HttpUtil.getParameterTypes;
 
@@ -114,7 +114,10 @@ public class HttpDispatcher {
             return service;
         } catch (Exception e) {
             if (!(e instanceof BError)) {
-                throw HttpUtil.createHttpStatusCodeError(INTERNAL_SERVICE_NOT_FOUND_ERROR, e.getMessage());
+                // An unexpected failure during service lookup is a server error. The exception text is not exposed.
+                logger.error("unexpected error while looking up the service", e);
+                throw HttpUtil.createHttpStatusCodeError(INTERNAL_RESOURCE_DISPATCHING_SERVER_ERROR,
+                        "unexpected error while dispatching the request");
             }
             throw e;
         }
@@ -183,7 +186,10 @@ public class HttpDispatcher {
             return service;
         } catch (Exception e) {
             if (!(e instanceof BError)) {
-                throw HttpUtil.createHttpStatusCodeError(INTERNAL_SERVICE_NOT_FOUND_ERROR, e.getMessage());
+                // An unexpected failure during service lookup is a server error. The exception text is not exposed.
+                logger.error("unexpected error while looking up the service", e);
+                throw HttpUtil.createHttpStatusCodeError(INTERNAL_RESOURCE_DISPATCHING_SERVER_ERROR,
+                        "unexpected error while dispatching the request");
             }
             throw e;
         }
@@ -191,9 +197,15 @@ public class HttpDispatcher {
 
     private static String[] extractRawPathAndQuery(String uriWithoutMatrixParams) {
         String[] rawPathAndQuery = new String[2];
-        String[] splittedUri = uriWithoutMatrixParams.split(QUERY_STRING_SEPARATOR);
-        rawPathAndQuery[0] = splittedUri[0];
-        rawPathAndQuery[1] = splittedUri.length > 1 ? splittedUri[1] : null;
+        // The request target is split at the first '?'. A later '?' is part of the query.
+        int queryIndex = uriWithoutMatrixParams.indexOf('?');
+        if (queryIndex < 0) {
+            rawPathAndQuery[0] = uriWithoutMatrixParams;
+        } else {
+            rawPathAndQuery[0] = uriWithoutMatrixParams.substring(0, queryIndex);
+            String query = uriWithoutMatrixParams.substring(queryIndex + 1);
+            rawPathAndQuery[1] = query.isEmpty() ? null : query;
+        }
         return rawPathAndQuery;
     }
 

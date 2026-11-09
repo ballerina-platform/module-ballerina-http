@@ -74,7 +74,7 @@ public class ParamUtils {
                 case FLOAT_TAG:
                     return Double.parseDouble(argValue);
                 case BOOLEAN_TAG:
-                    return Boolean.parseBoolean(argValue);
+                    return parseBoolean(argValue);
                 case DECIMAL_TAG:
                     return ValueCreator.createDecimalValue(argValue);
                 case MAP_TAG:
@@ -90,6 +90,24 @@ public class ParamUtils {
             }
             throw ErrorCreator.createError(StringUtils.fromString(errorMessage));
         }
+    }
+
+    /**
+     * Strictly parses a boolean: only {@code true} and {@code false}, in any case, are accepted. This is the single
+     * boolean parser used for path, query and header parameters.
+     *
+     * @param value the text to parse
+     * @return the parsed value
+     * @throws IllegalArgumentException if the text is neither {@code true} nor {@code false}
+     */
+    public static boolean parseBoolean(String value) {
+        if ("true".equalsIgnoreCase(value)) {
+            return true;
+        }
+        if ("false".equalsIgnoreCase(value)) {
+            return false;
+        }
+        throw new IllegalArgumentException("'" + value + "' is not a valid boolean value");
     }
 
     public static BArray castParamArray(Type elementType, String[] argValueArr) {
@@ -138,7 +156,7 @@ public class ParamUtils {
                     arrayValue.add(index++, Double.parseDouble(element));
                     break;
                 case BOOLEAN_TAG:
-                    arrayValue.add(index++, Boolean.parseBoolean(element));
+                    arrayValue.add(index++, parseBoolean(element));
                     break;
                 case DECIMAL_TAG:
                     arrayValue.add(index++, ValueCreator.createDecimalValue(element));

@@ -27,8 +27,8 @@ import io.ballerina.stdlib.http.api.HttpErrorType;
 import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
+import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -176,6 +176,50 @@ public final class URIUtil {
         return true;
     }
 
+    /**
+     * Strictly percent-decodes the given value exactly once. This is the single decoder used for path segments
+     * and query values.
+     *
+     * @param value       the encoded value
+     * @param plusAsSpace whether {@code +} is converted to a space (form-style decoding, used for query values);
+     *                    path segments are decoded with {@code false} so that {@code +} stays as it is
+     * @return the decoded value
+     * @throws IllegalArgumentException if the value contains a malformed percent-escape; the message does not
+     *                                  carry any JDK exception text
+     */
+    public static String percentDecode(String value, boolean plusAsSpace) {
+        if (value.indexOf('%') < 0 && (!plusAsSpace || value.indexOf('+') < 0)) {
+            return value;
+        }
+        int length = value.length();
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream(length);
+        int i = 0;
+        while (i < length) {
+            int codePoint = value.codePointAt(i);
+            if (codePoint == '%') {
+                int high = i + 2 < length ? hexValue(value.charAt(i + 1)) : -1;
+                int low = i + 2 < length ? hexValue(value.charAt(i + 2)) : -1;
+                if (high < 0 || low < 0) {
+                    throw new IllegalArgumentException("malformed percent-encoding in the request target");
+                }
+                bytes.write((high << 4) | low);
+                i += 3;
+            } else if (codePoint == '+' && plusAsSpace) {
+                bytes.write(' ');
+                i++;
+            } else {
+                byte[] encoded = new String(Character.toChars(codePoint)).getBytes(StandardCharsets.UTF_8);
+                bytes.write(encoded, 0, encoded.length);
+                i += Character.charCount(codePoint);
+            }
+        }
+        return new String(bytes.toByteArray(), StandardCharsets.UTF_8);
+    }
+
+    private static int hexValue(char ch) {
+        return ch < 128 ? Character.digit(ch, 16) : -1;
+    }
+
     @SuppressWarnings("unchecked")
     public static void populateQueryParamMap(String queryParamString, BMap<BString, Object> queryParamsMap)
             throws UnsupportedEncodingException {
@@ -194,7 +238,7 @@ public final class URIUtil {
             List<String> values = new ArrayList<>();
             Set<String> uniqueValues = new HashSet<>();
             for (String val : queryParamValue.split(",")) {
-                String decodedValue = URLDecoder.decode(val, StandardCharsets.UTF_8);
+                String decodedValue = percentDecode(val, true);
                 if (uniqueValues.add(decodedValue)) {
                     values.add(decodedValue);
                 }

@@ -322,6 +322,9 @@ public class ParamHandler {
             } catch (UnsupportedEncodingException e) {
                 throw HttpUtil.createHttpError("error while retrieving query param from message: " + e.getMessage(),
                         HttpErrorType.GENERIC_LISTENER_ERROR);
+            } catch (IllegalArgumentException e) {
+                throw HttpUtil.createHttpStatusCodeError(HttpErrorType.INTERNAL_QUERY_PARAM_BINDING_ERROR,
+                        "malformed percent-encoding in the query string");
             }
         }
         return queryParams;

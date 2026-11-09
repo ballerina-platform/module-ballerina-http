@@ -26,9 +26,8 @@ import io.ballerina.stdlib.http.api.HttpResourceArguments;
 import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.api.Resource;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
+import io.ballerina.stdlib.http.uri.URIUtil;
 
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -36,10 +35,6 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static io.ballerina.stdlib.http.api.HttpConstants.EXTRA_PATH_INDEX;
-import static io.ballerina.stdlib.http.api.HttpConstants.PERCENTAGE;
-import static io.ballerina.stdlib.http.api.HttpConstants.PERCENTAGE_ENCODED;
-import static io.ballerina.stdlib.http.api.HttpConstants.PLUS_SIGN;
-import static io.ballerina.stdlib.http.api.HttpConstants.PLUS_SIGN_ENCODED;
 import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_RESOURCE_NOT_FOUND_ERROR;
 import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castParam;
 import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castParamArray;
@@ -77,19 +72,30 @@ public class AllPathParams implements Parameter {
             int paramTypeTag = pathParam.getEffectiveTypeTag();
             int index = pathParam.getIndex();
             String argumentValue = resourceArgumentValues.getMap().get(paramToken).get(index);
-            if (argumentValue.endsWith(PERCENTAGE)) {
-                argumentValue = argumentValue.replaceAll(PERCENTAGE, PERCENTAGE_ENCODED);
+
+            String decodedValue = null;
+            String[] decodedSegments = null;
+            try {
+                if (pathParam.isArray()) {
+                    String rawSegments = argumentValue.substring(1);
+                    decodedSegments = rawSegments.isEmpty() ? new String[0] :
+                            Stream.of(rawSegments.split(HttpConstants.SINGLE_SLASH))
+                                    .map(AllPathParams::decodePathSegment).toArray(String[]::new);
+                } else {
+                    decodedValue = decodePathSegment(argumentValue);
+                }
+            } catch (IllegalArgumentException ex) {
+                throw HttpUtil.createHttpStatusCodeError(HttpErrorType.INTERNAL_PATH_PARAM_BINDING_ERROR,
+                        "malformed percent-encoding in path parameter : '" + paramToken + "'");
             }
 
             Object castedPathValue;
             try {
                 Object parsedValue;
                 if (pathParam.isArray()) {
-                    String[] segments = Stream.of(argumentValue.substring(1).split(HttpConstants.SINGLE_SLASH))
-                            .map(AllPathParams::decodePathSegment).toArray(String[]::new);
-                    parsedValue = castParamArray(paramTypeTag, segments);
+                    parsedValue = castParamArray(paramTypeTag, decodedSegments);
                 } else {
-                    parsedValue = castParam(paramTypeTag, decodePathSegment(argumentValue));
+                    parsedValue = castParam(paramTypeTag, decodedValue);
                 }
                 castedPathValue = ValueUtils.convert(parsedValue, paramType);
             } catch (Exception ex) {
@@ -110,7 +116,7 @@ public class AllPathParams implements Parameter {
     }
 
     private static String decodePathSegment(String pathSegment) {
-        return URLDecoder.decode(pathSegment.replaceAll(PLUS_SIGN, PLUS_SIGN_ENCODED), StandardCharsets.UTF_8);
+        return URIUtil.percentDecode(pathSegment, false);
     }
 
     private static void updateWildcardToken(String wildcardToken, int wildCardIndex,
