@@ -33,7 +33,9 @@ const FILE_EXT = ".log";
 @test:BeforeSuite
 function setupIntegrationTests() returns error? {
     // Clean up any existing log files before starting tests
-    return cleanLogFiles();
+    check cleanLogFiles();
+    // The services start together, and the util file handler does not create the directory, unlike the other handlers.
+    return createDirectory(LOG_DIR);
 }
 
 @test:AfterSuite
