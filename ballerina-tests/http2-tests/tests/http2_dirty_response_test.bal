@@ -20,7 +20,7 @@ import ballerina/http;
 import ballerina/lang.runtime;
 import ballerina/http_test_common as common;
 
-int http2DirtyResponseTestPort = common:getHttp2Port(dirtyResponseTestPort);
+final int http2DirtyResponseTestPort = common:getHttp2Port(dirtyResponseTestPort);
 
 listener http:Listener http2DirtyResponseListener = new (http2DirtyResponseTestPort);
 final http:Client http2DirtyResponseTestClient = check new ("http://localhost:" + http2DirtyResponseTestPort.toString(),

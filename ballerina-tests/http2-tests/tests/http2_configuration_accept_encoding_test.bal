@@ -18,7 +18,7 @@ import ballerina/test;
 import ballerina/http;
 import ballerina/http_test_common as common;
 
-int http2AcceptEncodingHeaderTestPort = common:getHttp2Port(acceptEncodingHeaderTestPort);
+final int http2AcceptEncodingHeaderTestPort = common:getHttp2Port(acceptEncodingHeaderTestPort);
 
 listener http:Listener http2AcceptEncodingListenerEP = new (http2AcceptEncodingHeaderTestPort, server = "Mysql");
 

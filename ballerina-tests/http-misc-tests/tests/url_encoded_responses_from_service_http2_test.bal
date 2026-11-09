@@ -69,7 +69,7 @@ service /urlEncodedResponses on generalHTTP2Listener {
 }
 
 @test:Config {}
-public function testHttp2UrlEncodedAcceptedResponse() returns error? {
+function testHttp2UrlEncodedAcceptedResponse() returns error? {
     http:Response resp = check http2UrlEncodedResponsesTestClient->get("/urlEncodedResponses/accepted");
     test:assertEquals(resp.statusCode, 202, msg = "Found unexpected output");
     string payload = check resp.getTextPayload();
@@ -77,7 +77,7 @@ public function testHttp2UrlEncodedAcceptedResponse() returns error? {
 }
 
 @test:Config {}
-public function testHttp2UrlEncodedAcceptedResponseWithInlineAcceptedBody() returns error? {
+function testHttp2UrlEncodedAcceptedResponseWithInlineAcceptedBody() returns error? {
     http:Response resp = check http2UrlEncodedResponsesTestClient->get("/urlEncodedResponses/acceptedWithInlinePayload");
     test:assertEquals(resp.statusCode, 202, msg = "Found unexpected output");
     string payload = check resp.getTextPayload();
@@ -85,7 +85,7 @@ public function testHttp2UrlEncodedAcceptedResponseWithInlineAcceptedBody() retu
 }
 
 @test:Config {}
-public function testHttp2UrlEncodedWithDirectReturn() returns error? {
+function testHttp2UrlEncodedWithDirectReturn() returns error? {
     http:Response resp = check http2UrlEncodedResponsesTestClient->get("/urlEncodedResponses/directReturn");
     test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
     string payload = check resp.getTextPayload();
@@ -93,7 +93,7 @@ public function testHttp2UrlEncodedWithDirectReturn() returns error? {
 }
 
 @test:Config {}
-public function testHttp2UrlEncodedClientErrorResponse() returns error? {
+function testHttp2UrlEncodedClientErrorResponse() returns error? {
     http:Response resp = check http2UrlEncodedResponsesTestClient->get("/urlEncodedResponses/clientError");
     test:assertEquals(resp.statusCode, 400, msg = "Found unexpected output");
     string payload = check resp.getTextPayload();
@@ -101,7 +101,7 @@ public function testHttp2UrlEncodedClientErrorResponse() returns error? {
 }
 
 @test:Config {}
-public function testHttp2UrlEncodedServerErrorResponse() returns error? {
+function testHttp2UrlEncodedServerErrorResponse() returns error? {
     http:Response resp = check http2UrlEncodedResponsesTestClient->get("/urlEncodedResponses/serverError");
     test:assertEquals(resp.statusCode, 500, msg = "Found unexpected output");
     string payload = check resp.getTextPayload();
@@ -109,7 +109,7 @@ public function testHttp2UrlEncodedServerErrorResponse() returns error? {
 }
 
 @test:Config {}
-public function testHttp2AcceptedWithStringPayload() returns error? {
+function testHttp2AcceptedWithStringPayload() returns error? {
     http:Response resp = check http2UrlEncodedResponsesTestClient->get("/urlEncodedResponses/acceptedWithStringPayload");
     test:assertEquals(resp.statusCode, 202, msg = "Found unexpected output");
     test:assertEquals(resp.getContentType(), mime:APPLICATION_FORM_URLENCODED);

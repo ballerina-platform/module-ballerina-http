@@ -67,7 +67,7 @@ service /mutualSslService on mutualSslistener {
     }
 }
 
-http:ClientConfiguration certsClientConf1 = {
+function certsClientConf1() returns http:ClientConfiguration => {
     secureSocket: {
         cert: common:CERT_FILE,
         key: {
@@ -78,8 +78,8 @@ http:ClientConfiguration certsClientConf1 = {
 };
 
 @test:Config {}
-public function mutualSslWithCerts1() returns error? {
-    http:Client clientEP = check new ("https://localhost:9110", certsClientConf1);
+function mutualSslWithCerts1() returns error? {
+    http:Client clientEP = check new ("https://localhost:9110", certsClientConf1());
     http:Response|error resp = clientEP->get("/mutualSslService/");
     if resp is http:Response {
         common:assertTextPayload(resp.getTextPayload(), "Response received");
@@ -88,7 +88,7 @@ public function mutualSslWithCerts1() returns error? {
     }
 }
 
-http:ClientConfiguration certsClientConf2 = {
+function certsClientConf2() returns http:ClientConfiguration => {
     secureSocket: {
         key: {
             keyFile: common:KEY_FILE,
@@ -97,7 +97,7 @@ http:ClientConfiguration certsClientConf2 = {
     }
 };
 
-http:ClientConfiguration certsClientConf3 = {
+function certsClientConf3() returns http:ClientConfiguration => {
     secureSocket: {
         enable: false,
         key: {
@@ -108,8 +108,8 @@ http:ClientConfiguration certsClientConf3 = {
 };
 
 @test:Config {}
-public function mutualSslWithCerts3() returns error? {
-    http:Client clientEP = check new ("https://localhost:9110", certsClientConf3);
+function mutualSslWithCerts3() returns error? {
+    http:Client clientEP = check new ("https://localhost:9110", certsClientConf3());
     http:Response|error resp = clientEP->get("/mutualSslService/");
     if resp is http:Response {
         common:assertTextPayload(resp.getTextPayload(), "Response received");

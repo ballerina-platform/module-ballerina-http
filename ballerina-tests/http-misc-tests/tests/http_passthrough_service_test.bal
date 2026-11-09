@@ -106,7 +106,7 @@ service /nyseStock on passthroughEP1 {
 }
 
 @test:Config {}
-public function testPassthroughServiceByBasePath() returns error? {
+function testPassthroughServiceByBasePath() returns error? {
     http:Client httpClient = check new ("http://localhost:9113", httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->get("/passthrough");
     if resp is http:Response {
@@ -124,7 +124,7 @@ public function testPassthroughServiceByBasePath() returns error? {
 }
 
 @test:Config {}
-public function testPassthroughServiceWithMimeEntity() returns error? {
+function testPassthroughServiceWithMimeEntity() returns error? {
     http:Client httpClient = check new ("http://localhost:9113", httpVersion = http:HTTP_1_1);
     http:Response|error resp = httpClient->post("/passthrough/forward", "Hello from POST!");
     if resp is http:Response {
@@ -142,7 +142,7 @@ public function testPassthroughServiceWithMimeEntity() returns error? {
 }
 
 @test:Config {}
-public function testPassthroughWithMultiparts() returns error? {
+function testPassthroughWithMultiparts() returns error? {
     http:Client httpClient = check new ("http://localhost:9113", httpVersion = http:HTTP_1_1);
     mime:Entity textPart1 = new;
     textPart1.setText("Part1");

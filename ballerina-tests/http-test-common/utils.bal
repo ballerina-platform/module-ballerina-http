@@ -62,7 +62,9 @@ public isolated function assertJsonErrorPayload(json payload, string message, st
     test:assertEquals(payload.status, statusCode);
     test:assertEquals(payload.path, path);
     test:assertEquals(payload.method, method);
-    test:assertTrue(((check payload.timestamp).toString()).startsWith(time:utcToString(time:utcNow()).substring(0, 17)));
+    time:Utc errorTime = check time:utcFromString((check payload.timestamp).toString());
+    decimal age = time:utcDiffSeconds(time:utcNow(), errorTime);
+    test:assertTrue(age >= 0d && age < 60d, msg = string `error timestamp is ${age}s old`);
 }
 
 public isolated function assertJsonErrorPayloadPartialMessage(json payload, string message) returns error? {

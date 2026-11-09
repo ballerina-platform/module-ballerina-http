@@ -52,7 +52,7 @@ service / on new http:Listener(httpEnumMethodsTestPort, httpVersion = http:HTTP_
 }
 
 @test:Config{}
-public function testHttpEnumMethods() {
+function testHttpEnumMethods() {
     http:Response|error response = clientEPTest->execute(http:GET, "/test", "testMsg");
     if response is http:Response {
         test:assertEquals(response.statusCode, 200);
@@ -110,7 +110,7 @@ public function testHttpEnumMethods() {
 }
 
 @test:Config{}
-public function testMixedCaseMethods() returns error? {
+function testMixedCaseMethods() returns error? {
     string payload = check clientEPTest->execute("get", "/test", "testMsg");
     test:assertEquals(payload, "GetTest");
     payload = check clientEPTest->execute("Get", "/test", "testMsg");

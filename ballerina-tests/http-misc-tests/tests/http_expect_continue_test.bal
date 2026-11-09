@@ -163,18 +163,18 @@ function test100ContinueNegativeWithEntityBodyLimit() {
     test:assertTrue(externTest100ContinueNegative(expectContinueTestPort3));
 }
 
-function externTest100Continue(int servicePort) returns boolean = @java:Method {
+isolated function externTest100Continue(int servicePort) returns boolean = @java:Method {
     'class: "io.ballerina.stdlib.http.testutils.ExternExpectContinueTestUtil"
 } external;
 
-function externTest100ContinueNegative(int servicePort) returns boolean = @java:Method {
+isolated function externTest100ContinueNegative(int servicePort) returns boolean = @java:Method {
     'class: "io.ballerina.stdlib.http.testutils.ExternExpectContinueTestUtil"
 } external;
 
-function externTestMultipartWith100ContinueHeader(int servicePort) returns boolean = @java:Method {
+isolated function externTestMultipartWith100ContinueHeader(int servicePort) returns boolean = @java:Method {
     'class: "io.ballerina.stdlib.http.testutils.ExternExpectContinueTestUtil"
 } external;
 
-function externTest100ContinuePassthrough(int servicePort) returns boolean = @java:Method {
+isolated function externTest100ContinuePassthrough(int servicePort) returns boolean = @java:Method {
     'class: "io.ballerina.stdlib.http.testutils.ExternExpectContinueTestUtil"
 } external;

@@ -69,7 +69,7 @@ service /hostNameVerificationService on certFileHostNameVerificationListener {
 }
 
 @test:Config {}
-public function testHostNameVerificationDisabledWithTrustStore() returns error? {
+function testHostNameVerificationDisabledWithTrustStore() returns error? {
     http:Client clientEP = check new (string `https://127.0.0.1:${hostNameVerificationPort}`, {
         httpVersion: http:HTTP_1_1,
         secureSocket: {
@@ -85,7 +85,7 @@ public function testHostNameVerificationDisabledWithTrustStore() returns error? 
 }
 
 @test:Config {}
-public function testHostNameVerificationEnabledWithTrustStore() returns error? {
+function testHostNameVerificationEnabledWithTrustStore() returns error? {
     http:Client clientEP = check new (string `https://127.0.0.1:${hostNameVerificationPort}`, {
         httpVersion: http:HTTP_1_1,
         secureSocket: {
@@ -100,7 +100,7 @@ public function testHostNameVerificationEnabledWithTrustStore() returns error? {
 }
 
 @test:Config {}
-public function testHostNameVerificationDisabledWithCertFile() returns error? {
+function testHostNameVerificationDisabledWithCertFile() returns error? {
     http:Client clientEP = check new (string `https://127.0.0.1:${certFileHostNameVerificationPort}`, {
         httpVersion: http:HTTP_1_1,
         secureSocket: {
@@ -113,7 +113,7 @@ public function testHostNameVerificationDisabledWithCertFile() returns error? {
 }
 
 @test:Config {}
-public function testHostNameVerificationEnabledWithCertFile() returns error? {
+function testHostNameVerificationEnabledWithCertFile() returns error? {
     http:Client clientEP = check new (string `https://127.0.0.1:${certFileHostNameVerificationPort}`, {
         httpVersion: http:HTTP_1_1,
         secureSocket: {
@@ -125,7 +125,7 @@ public function testHostNameVerificationEnabledWithCertFile() returns error? {
 }
 
 @test:Config {}
-public function testHttp2HostNameVerificationDisabled() returns error? {
+function testHttp2HostNameVerificationDisabled() returns error? {
     http:Client clientEP = check new (string `https://127.0.0.1:${http2HostNameVerificationPort}`, {
         secureSocket: {
             cert: {
@@ -140,7 +140,7 @@ public function testHttp2HostNameVerificationDisabled() returns error? {
 }
 
 @test:Config {}
-public function testHttp2HostNameVerificationEnabled() returns error? {
+function testHttp2HostNameVerificationEnabled() returns error? {
     http:Client clientEP = check new (string `https://127.0.0.1:${http2HostNameVerificationPort}`, {
         secureSocket: {
             cert: {

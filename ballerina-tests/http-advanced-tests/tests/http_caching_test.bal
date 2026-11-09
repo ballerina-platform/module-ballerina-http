@@ -114,7 +114,7 @@ service /cachingBackend on cachingListener2 { //new http:Listener(9240) {
 
 const string serviceHitCount = "x-service-hit-count";
 const string proxyHitCount = "x-proxy-hit-count";
-json cachingPayload = {message: "Hello, World!"};
+final readonly & json cachingPayload = {message: "Hello, World!"};
 
 //Test basic caching behaviour
 @test:Config {}

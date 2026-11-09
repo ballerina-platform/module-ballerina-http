@@ -35,7 +35,7 @@ service on generalHTTP2Listener {
     }
 
     resource function get countryLocal/[int callingCode]() returns string|error {
-        http:Client restCountriesEp = check new ("https://localhost:" + http2SslGeneralPort.toString(), http2SslClientConf1);
+        http:Client restCountriesEp = check new ("https://localhost:" + http2SslGeneralPort.toString(), http2SslClientConf1());
         string country = check restCountriesEp->get("/restcountries/v2/callingcode/" + callingCode.toString());
         return country;
     }

@@ -35,7 +35,7 @@ public class ExitCode {
         try {
             return process.exitValue();
         } catch (java.lang.IllegalThreadStateException e) {
-            return OSUtils.getBallerinaError(OSConstants.PROCESS_EXEC_ERROR, e);
+            return OSUtils.getBallerinaError(e);
         }
     }
 }

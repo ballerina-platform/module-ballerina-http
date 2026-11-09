@@ -184,7 +184,7 @@ isolated function getContDisposition(string partName) returns (mime:ContentDispo
 }
 
 @test:Config {}
-public function testMultipart() returns error? {
+function testMultipart() returns error? {
     http:Client clientEP = check new ("http://localhost:9100");
     http:Response|error resp = clientEP->get("/multiparts/initial", {"priorKnowledge": "false"});
     if resp is http:Response {
@@ -195,7 +195,7 @@ public function testMultipart() returns error? {
 }
 
 @test:Config {}
-public function testMultipartsWithPriorKnowledge() returns error? {
+function testMultipartsWithPriorKnowledge() returns error? {
     http:Client clientEP = check new ("http://localhost:9100");
     http:Response|error resp = clientEP->get("/multiparts/initial", {"priorKnowledge": "true"});
     if resp is http:Response {

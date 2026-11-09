@@ -194,9 +194,13 @@ function testClientPutResource() returns error? {
 
 @test:Config {}
 function testClientDeleteResource() returns error? {
-    string response = check clientResourceMethodsClientEP->/foo/bar.delete(headers = {x\-names: ["John", "James"]});
+    // A client with its own connection pool, so that the body-less DELETE opens a new connection and goes over
+    // HTTP/1.1. Over an upgraded HTTP/2 connection the listener never answers it:
+    // https://github.com/ballerina-platform/ballerina-library/issues/9514
+    http:Client clientEP = check new ("http://localhost:" + clientResourceMethodsTestPort.toString(), poolConfig = {});
+    string response = check clientEP->/foo/bar.delete(headers = {x\-names: ["John", "James"]});
     test:assertEquals(response, "Hi from DELETE bar to John, Hi from DELETE bar to James");
-    response = check clientResourceMethodsClientEP->/foo/bar.delete("Hello", {x\-names: ["John", "James"]});
+    response = check clientEP->/foo/bar.delete("Hello", {x\-names: ["John", "James"]});
     test:assertEquals(response, "Hello from DELETE bar to John, Hello from DELETE bar to James");
 }
 
