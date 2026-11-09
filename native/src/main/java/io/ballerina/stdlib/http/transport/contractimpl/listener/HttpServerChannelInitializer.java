@@ -79,7 +79,7 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.SSL;
 import static io.ballerina.stdlib.http.transport.contract.Constants.TRACE_LOG_DOWNSTREAM;
 import static io.ballerina.stdlib.http.transport.contract.Constants.URI_HEADER_LENGTH_VALIDATION_HANDLER;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.addIdleStateHandler;
-import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.setSslHandshakeTimeOut;
+import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.configureSslHandler;
 
 /**
  * A class that responsible for build server side channels.
@@ -138,12 +138,12 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
 
                     ReferenceCountedOpenSslEngine engine = (ReferenceCountedOpenSslEngine) sslHandler.engine();
                     engine.setOcspResponse(response.getEncoded());
-                    setSslHandshakeTimeOut(sslConfig, sslHandler);
+                    configureSslHandler(sslConfig, sslHandler);
                     ch.pipeline()
                             .addLast(sslHandler, new Http2PipelineConfiguratorForServer(this, sslHandler.engine()));
                 } else {
                     SslHandler sslHandler = keystoreHttp2SslContext.newHandler(ch.alloc());
-                    setSslHandshakeTimeOut(sslConfig, sslHandler);
+                    configureSslHandler(sslConfig, sslHandler);
                     serverPipeline
                             .addLast(sslHandler, new Http2PipelineConfiguratorForServer(this, sslHandler.engine()));
                     serverPipeline.addLast(Constants.HTTP2_EXCEPTION_HANDLER, new Http2ExceptionHandler());
@@ -188,7 +188,7 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
 
             ReferenceCountedOpenSslEngine engine = (ReferenceCountedOpenSslEngine) sslEngine;
             engine.setOcspResponse(response.getEncoded());
-            setSslHandshakeTimeOut(sslConfig, sslHandler);
+            configureSslHandler(sslConfig, sslHandler);
             ch.pipeline().addLast(sslHandler);
         } else {
             if (sslConfig.getServerKeyFile() != null) {
@@ -200,7 +200,7 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
             }
             Util.setAlpnProtocols(sslEngine);
             sslHandler = new SslHandler(sslEngine);
-            setSslHandshakeTimeOut(sslConfig, sslHandler);
+            configureSslHandler(sslConfig, sslHandler);
             serverPipeline.addLast(Constants.SSL_HANDLER, sslHandler);
             if (validateCertEnabled) {
                 serverPipeline.addLast(Constants.HTTP_CERT_VALIDATION_HANDLER,

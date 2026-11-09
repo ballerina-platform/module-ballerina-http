@@ -241,22 +241,32 @@ public class ServerConnectorBootstrap {
 
         @Override
         public ServerConnectorFuture start() {
+            Channel previousServerChannel = serverChannel;
+            ServerConnectorFuture previousServerConnectorFuture = serverConnectorFuture;
             ChannelFuture channelFuture = bindInterface();
             if (Objects.nonNull(channelFuture)) {
                 serverChannel = channelFuture.channel();
             }
             serverConnectorFuture = new HttpWsServerConnectorFuture(channelFuture, allChannels);
+            ServerConnectorFuture startedFuture = serverConnectorFuture;
             channelFuture.addListener(future -> {
                 if (future.isSuccess()) {
                     if (log.isDebugEnabled()) {
                         log.debug("HTTP(S) Interface starting on host {} and port {}", getHost(), getPort());
                     }
-                    serverConnectorFuture.notifyPortBindingEvent(this.connectorID, isHttps);
+                    // The dispatching of requests is handed over only once the port is bound. A failed bind (for
+                    // example a second listener on a port that is already in use) must leave the dispatching of the
+                    // listener that is already running untouched.
+                    httpServerChannelInitializer.setServerConnectorFuture(startedFuture);
+                    startedFuture.notifyPortBindingEvent(this.connectorID, isHttps);
                 } else {
-                    serverConnectorFuture.notifyPortBindingError(future.cause());
+                    if (previousServerChannel != null && serverChannel == channelFuture.channel()) {
+                        serverChannel = previousServerChannel;
+                        serverConnectorFuture = previousServerConnectorFuture;
+                    }
+                    startedFuture.notifyPortBindingError(future.cause());
                 }
             });
-            httpServerChannelInitializer.setServerConnectorFuture(serverConnectorFuture);
             return serverConnectorFuture;
         }
 
@@ -281,8 +291,15 @@ public class ServerConnectorBootstrap {
 
         @Override
         public boolean immediateStop() {
+            // The immediate stop uses a zero timeout only for this stop, so the configured gracefulStopTimeout still
+            // applies to a later gracefulStop() after the listener is started again.
+            int configuredGracefulStopTimeout = gracefulStopTimeout;
             setGracefulStopTimeout(0);
-            return this.stop();
+            try {
+                return this.stop();
+            } finally {
+                setGracefulStopTimeout(configuredGracefulStopTimeout);
+            }
         }
 
         @Override

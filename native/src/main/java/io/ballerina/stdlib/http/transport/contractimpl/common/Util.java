@@ -400,7 +400,7 @@ public class Util {
             if (referenceCountedOpenSslContext != null) {
                 sslHandler = referenceCountedOpenSslContext.newHandler(socketChannel.alloc());
                 sslEngine = sslHandler.engine();
-                setSslHandshakeTimeOut(sslConfig, sslHandler);
+                configureSslHandler(sslConfig, sslHandler);
                 socketChannel.pipeline().addLast(sslHandler);
                 socketChannel.pipeline().addLast(new OCSPStaplingHandler((ReferenceCountedOpenSslEngine) sslEngine));
             }
@@ -417,7 +417,7 @@ public class Util {
                 }
             }
             sslHandler = new SslHandler(sslEngine);
-            setSslHandshakeTimeOut(sslConfig, sslHandler);
+            configureSslHandler(sslConfig, sslHandler);
             pipeline.addLast(Constants.SSL_HANDLER, sslHandler);
             if (sslConfig.isValidateCertEnabled()) {
                 pipeline.addLast(Constants.HTTP_CERT_VALIDATION_HANDLER, new CertificateValidationHandler(
@@ -1116,10 +1116,42 @@ public class Util {
         }
     }
 
-    public static void setSslHandshakeTimeOut(SSLConfig sslConfig, SslHandler sslHandler) {
+    /**
+     * Applies the per-connection settings of the SSL config (handshake timeout, session reuse and named groups) to
+     * the SSL handler before the handshake starts.
+     *
+     * @param sslConfig  the SSL config
+     * @param sslHandler the SSL handler of the connection
+     */
+    public static void configureSslHandler(SSLConfig sslConfig, SslHandler sslHandler) {
+        applyNamedGroups(sslConfig, sslHandler.engine());
         long handshakeTimeout = sslConfig.getHandshakeTimeOut();
         if (handshakeTimeout > 0) {
             sslHandler.setHandshakeTimeout(handshakeTimeout, TimeUnit.SECONDS);
+        }
+        if (!sslConfig.isEnableSessionCreation()) {
+            // shareSession=false: sessions must still be created for the handshake to succeed, but they are
+            // invalidated once the handshake completes so that they can not be resumed.
+            sslHandler.handshakeFuture().addListener(future -> {
+                if (future.isSuccess()) {
+                    sslHandler.engine().getSession().invalidate();
+                }
+            });
+        }
+    }
+
+    private static void applyNamedGroups(SSLConfig sslConfig, SSLEngine engine) {
+        String[] namedGroups = sslConfig.getNamedGroups();
+        if (namedGroups == null || namedGroups.length == 0 || engine instanceof ReferenceCountedOpenSslEngine) {
+            return;
+        }
+        try {
+            // Per-engine setting. It does not touch the process-wide jdk.tls.namedGroups property.
+            SSLParameters parameters = engine.getSSLParameters();
+            parameters.setNamedGroups(namedGroups);
+            engine.setSSLParameters(parameters);
+        } catch (RuntimeException e) {
+            LOG.debug("Could not set the TLS named groups: {}", e.getMessage());
         }
     }
 

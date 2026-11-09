@@ -70,7 +70,7 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.MAX_ENTITY_B
 import static io.ballerina.stdlib.http.transport.contract.Constants.SECURITY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.SSL;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.setHostNameVerfication;
-import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.setSslHandshakeTimeOut;
+import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.configureSslHandler;
 import static io.netty.handler.logging.LogLevel.TRACE;
 
 /**
@@ -246,7 +246,7 @@ public class HttpClientChannelInitializer extends ChannelInitializer<SocketChann
             if (referenceCountedOpenSslContext != null) {
                 SslHandler sslHandler = referenceCountedOpenSslContext.newHandler(ch.alloc());
                 ReferenceCountedOpenSslEngine engine = (ReferenceCountedOpenSslEngine) sslHandler.engine();
-                setSslHandshakeTimeOut(sslConfig, sslHandler);
+                configureSslHandler(sslConfig, sslHandler);
                 ch.pipeline().addLast(sslHandler);
                 ch.pipeline().addLast(new OCSPStaplingHandler(engine));
             }
@@ -264,7 +264,7 @@ public class HttpClientChannelInitializer extends ChannelInitializer<SocketChann
             if (sslConfig.isHostNameVerificationEnabled()) {
                 setHostNameVerfication(sslEngine);
             }
-            setSslHandshakeTimeOut(sslConfig, sslHandler);
+            configureSslHandler(sslConfig, sslHandler);
             clientPipeline.addLast(sslHandler);
             if (sslConfig.isValidateCertEnabled()) {
                 clientPipeline.addLast(Constants.HTTP_CERT_VALIDATION_HANDLER,

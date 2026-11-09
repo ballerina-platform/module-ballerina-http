@@ -1564,13 +1564,11 @@ public class HttpUtil {
         BMap<BString, Object> sslConfig = endpointConfig.getMapValue(HttpConstants.ENDPOINT_CONFIG_SECURESOCKET);
         String httpVersion = endpointConfig.getStringValue(HttpConstants.ENDPOINT_CONFIG_VERSION).getValue();
         ListenerConfiguration listenerConfiguration = new ListenerConfiguration();
-        if (HTTP_1_1_VERSION.equals(httpVersion)) {
-            BMap<BString, Object> http1Settings =
-                    (BMap<BString, Object>) endpointConfig.get(HttpConstants.HTTP1_SETTINGS);
-            listenerConfiguration.setPipeliningLimit(http1Settings.getIntValue(HttpConstants.PIPELINING_REQUEST_LIMIT));
-            String keepAlive = http1Settings.getStringValue(HttpConstants.ENDPOINT_CONFIG_KEEP_ALIVE).getValue();
-            listenerConfiguration.setKeepAliveConfig(HttpUtil.getKeepAliveConfig(keepAlive));
-        }
+        // The HTTP/1.x settings apply to every HTTP/1.x connection, whatever the configured httpVersion.
+        BMap<BString, Object> http1Settings = (BMap<BString, Object>) endpointConfig.get(HttpConstants.HTTP1_SETTINGS);
+        listenerConfiguration.setPipeliningLimit(http1Settings.getIntValue(HttpConstants.PIPELINING_REQUEST_LIMIT));
+        String keepAlive = http1Settings.getStringValue(HttpConstants.ENDPOINT_CONFIG_KEEP_ALIVE).getValue();
+        listenerConfiguration.setKeepAliveConfig(HttpUtil.getKeepAliveConfig(keepAlive));
 
         // Set Request validation limits.
         BMap<BString, Object> requestLimits =
@@ -1588,6 +1586,9 @@ public class HttpUtil {
 
         if (port == 0) {
             throw new BallerinaConnectorException("Listener port is not defined!");
+        }
+        if (port < 0 || port > 65535) {
+            throw new BallerinaConnectorException("Listener port must be between 1 and 65535, but was " + port);
         }
         listenerConfiguration.setPort(Math.toIntExact(port));
 
@@ -1618,29 +1619,35 @@ public class HttpUtil {
             setServerSocketConfig(serverSocketConfig, listenerConfiguration);
         }
 
-        listenerConfiguration.setHttp2MaxConcurrentStreams(
-                endpointConfig.getIntValue(ENDPOINT_CONFIG_HTTP2_MAX_ACTIVE_STREAMS).intValue());
-
-        if (sslConfig != null) {
-            return setSslConfig(sslConfig, listenerConfiguration);
+        long http2MaxActiveStreams = endpointConfig.getIntValue(ENDPOINT_CONFIG_HTTP2_MAX_ACTIVE_STREAMS);
+        if (http2MaxActiveStreams <= 0 || http2MaxActiveStreams > Integer.MAX_VALUE) {
+            throw new BallerinaConnectorException("http2MaxActiveStreams must be a positive 32-bit integer");
         }
+        listenerConfiguration.setHttp2MaxConcurrentStreams((int) http2MaxActiveStreams);
 
+        // The settings below apply to cleartext and TLS listeners alike, so they are set before the secure socket.
         listenerConfiguration.setPipeliningEnabled(true); //Pipelining is enabled all the time
-        listenerConfiguration.setHttp2InitialWindowSize(endpointConfig
-                .getIntValue(ENDPOINT_CONFIG_HTTP2_INITIAL_WINDOW_SIZE).intValue());
+        long http2InitialWindowSize = endpointConfig.getIntValue(ENDPOINT_CONFIG_HTTP2_INITIAL_WINDOW_SIZE);
+        if (http2InitialWindowSize < 0 || http2InitialWindowSize > Integer.MAX_VALUE) {
+            throw new BallerinaConnectorException("http2InitialWindowSize must be between 0 and 2147483647");
+        }
+        listenerConfiguration.setHttp2InitialWindowSize((int) http2InitialWindowSize);
 
         double minIdleTimeInStaleState =
                 ((BDecimal) endpointConfig.get(HttpConstants.ENDPOINT_CONFIG_IDLE_TIME_STALE_STATE)).floatValue();
         listenerConfiguration.setMinIdleTimeInStaleState(minIdleTimeInStaleState < -1 ? -1 :
-                (long) minIdleTimeInStaleState * 1000);
+                (long) (minIdleTimeInStaleState * 1000));
 
         double timeBetweenStaleEviction =
                 ((BDecimal) endpointConfig.get(HttpConstants.ENDPOINT_CONFIG_TIME_BETWEEN_STALE_CHECK_RUNS))
                         .floatValue();
         if (timeBetweenStaleEviction > 0) {
-            listenerConfiguration.setTimeBetweenStaleEviction((long) timeBetweenStaleEviction * 1000);
+            listenerConfiguration.setTimeBetweenStaleEviction((long) (timeBetweenStaleEviction * 1000));
         }
 
+        if (sslConfig != null) {
+            return setSslConfig(sslConfig, listenerConfiguration);
+        }
         return listenerConfiguration;
     }
 
@@ -1891,7 +1898,8 @@ public class HttpUtil {
             sslConfiguration.setSSLProtocol(sslProtocol);
         }
         if (System.getProperty(JAVA_CONFIG_TLS_NAMED_GROUPS) == null) {
-            System.setProperty(JAVA_CONFIG_TLS_NAMED_GROUPS, String.join(",", DEFAULT_NAMED_GROUPS));
+            // Applied per connection, so that the process-wide jdk.tls.namedGroups property is left untouched.
+            sslConfiguration.setNamedGroups(DEFAULT_NAMED_GROUPS);
         }
     }
 
@@ -1904,8 +1912,8 @@ public class HttpUtil {
             sslConfiguration.setValidateCertEnabled(true);
         }
         long cacheSize = certValidation.getIntValue(SECURESOCKET_CONFIG_CERT_VALIDATION_CACHE_SIZE).intValue();
-        long cacheValidityPeriod = ((BDecimal) certValidation.get(
-                HttpConstants.SECURESOCKET_CONFIG_CERT_VALIDATION_CACHE_VALIDITY_PERIOD)).intValue();
+        long cacheValidityPeriod = certValidation.getIntValue(
+                HttpConstants.SECURESOCKET_CONFIG_CERT_VALIDATION_CACHE_VALIDITY_PERIOD);
         if (cacheValidityPeriod != 0) {
             sslConfiguration.setCacheValidityPeriod(Math.toIntExact(cacheValidityPeriod));
         }

@@ -237,7 +237,6 @@ public class SSLHandlerFactory {
         if (sslConfig.getEnableProtocols() != null && sslConfig.getEnableProtocols().length > 0) {
             engine.setEnabledProtocols(sslConfig.getEnableProtocols());
         }
-        engine.setEnableSessionCreation(sslConfig.isEnableSessionCreation());
         return engine;
     }
 
